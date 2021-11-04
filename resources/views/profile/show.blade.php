@@ -1,9 +1,14 @@
-<x-app-layout>
-    <x-slot name="header">
-        <h2 class="h4 font-weight-bold">
-            {{ __('Profile') }}
-        </h2>
-    </x-slot>
+@extends('adminlte::page')
+
+@section('title', __('Profile'))
+
+@section('content_header')
+    <h2 class="h4 font-weight-bold">
+        {{ __('Profile') }}
+    </h2>
+@endsection
+
+@section('content')
 
     <div>
         @if (Laravel\Fortify\Features::canUpdateProfileInformation())
@@ -32,4 +37,14 @@
             @livewire('profile.delete-user-form')
         @endif
     </div>
-</x-app-layout>
+@endsection
+
+@section('css')
+     <!-- Google Font: Source Sans Pro -->
+     <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+@endsection
+
+@section('js')
+     <!-- Scripts -->
+     <script src="{{ mix('js/app.js') }}" defer></script>
+@endsection
