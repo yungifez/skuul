@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 
 class RoleSeeder extends Seeder
@@ -15,9 +16,9 @@ class RoleSeeder extends Seeder
     public function run() 
     {
         DB::table('roles')->delete();
-        
+
         Role::create([
-            'name' => 'super_admin',
+            'name' => 'super-admin',
         ]);
         Role::create([
             'name' => 'admin',
