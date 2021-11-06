@@ -14,7 +14,7 @@ return [
     |
     */
 
-    'title' => 'AdminLTE 3',
+    'title' => env('APP_NAME'),
     'title_prefix' => '',
     'title_postfix' => '',
 
@@ -45,12 +45,12 @@ return [
     |
     */
 
-    'logo' => '<b>Admin</b>LTE',
+    'logo' => env('APP_NAME'),
     'logo_img' => 'vendor/adminlte/dist/img/AdminLTELogo.png',
     'logo_img_class' => 'brand-image img-circle elevation-3',
     'logo_img_xl' => null,
     'logo_img_xl_class' => 'brand-image-xs',
-    'logo_img_alt' => 'AdminLTE',
+    'logo_img_alt' => env('APP_NAME'),
 
     /*
     |--------------------------------------------------------------------------
@@ -230,6 +230,10 @@ return [
             'type'         => 'fullscreen-widget',
             'topnav_right' => true,
         ],
+        [
+            'type'         => 'darkmode-widget',
+            'topnav_right' => true,
+        ],
 
         // Sidebar items:
         [
@@ -247,6 +251,14 @@ return [
             'icon' => 'fas fa-user',
             'text' => 'User Profile',
             'route' => 'profile.show',
+        ],
+        ['header' => 'Manage Schools', 'can' => 'header-manage-schools'],
+        [
+            'type' => 'sidebar-menu-item',
+            'icon' => 'fas fa-school',
+            'text' => 'Schools',
+            'route' => 'schools.index',
+            'can'  => 'manage schools',
         ],
     ],
 
