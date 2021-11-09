@@ -3,6 +3,7 @@
 namespace App\Services\School;
 
 use App\Models\School;
+use Illuminate\Support\Str;
 
 class SchoolService
 {
@@ -18,7 +19,7 @@ class SchoolService
 
     public function createSchool($records)
     {
-        return School::create($records->all());
+        return School::create($records);
     }
 
     public function setCurrentSchool($id)
@@ -33,5 +34,8 @@ class SchoolService
 
         return 0;
     }
-      
+
+    public function generateSchoolCode(){
+        return Str::random(10);
+    }
 }
