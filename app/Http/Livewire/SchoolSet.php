@@ -5,7 +5,7 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Services\School\SchoolService;
 
-class ListSchoolsTable extends Component
+class SchoolSet extends Component
 {
     public $schools;
 
@@ -16,6 +16,6 @@ class ListSchoolsTable extends Component
 
     public function render()
     {
-        return view('livewire.list-schools-table');
+        return view('livewire.school-set');
     }
 }

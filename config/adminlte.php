@@ -244,7 +244,7 @@ return [
             'type' => 'sidebar-menu-item',
             'icon' => 'fas fa-tachometer-alt',
             'text' => 'Dashboard',
-            'route' => 'home',
+            'route' => 'dashboard',
         ],['header' => 'manage_profile' ],
         [
             'type' => 'sidebar-menu-item',

@@ -9,8 +9,7 @@
     </h1>
 
     @livewire('breadcrumbs', ['paths' => [
-        ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-        ['href'=> route('schools.index'), 'text'=> 'Schools' , 'active']
+        ['href'=> route('dashboard'), 'text'=> 'Dashboard', 'active'],
     ]])
 @stop
 
