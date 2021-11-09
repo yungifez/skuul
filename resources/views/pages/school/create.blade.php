@@ -9,13 +9,11 @@
 
     @livewire('breadcrumbs', ['paths' => [
         ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-        ['href'=> route('schools.index'), 'text'=> 'Schools' , 'active']
+        ['href'=> route('schools.create'), 'text'=> 'Create School' , 'active']
     ]])
 @endsection
 
 @section('content')
-
-    @livewire('school-set')
-    
-    @livewire('list-schools-table')
+    @livewire('display-status')
+    @livewire('create-school')
 @endsection
