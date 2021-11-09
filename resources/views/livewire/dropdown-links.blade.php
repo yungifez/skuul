@@ -1,7 +1,5 @@
 <div class="dropdown">
-    <button class="btn" type="button" id="DropDownButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-        <p class="text-capitalize text-black">{{$button_label}}</p>
-    </button>
+    <x-adminlte-button label="{{$button_label}}" theme="secondary" id="DropDownButton" data-toggle="dropdown" class="text-capitalize"  aria-haspopup="true" aria-expanded="false"/>
     <div class="dropdown-menu" aria-labelledby="DropDownButton">
         @if (isset($links))
             @foreach ($links as $link)

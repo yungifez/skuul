@@ -252,13 +252,20 @@ return [
             'text' => 'User Profile',
             'route' => 'profile.show',
         ],
-        ['header' => 'Manage Schools', 'can' => 'header-manage-schools'],
+        ['header' => 'Schools', 'can' => 'header-schools'],
         [
             'type' => 'sidebar-menu-item',
             'icon' => 'fas fa-school',
-            'text' => 'Schools',
+            'text' => 'View Schools',
             'route' => 'schools.index',
-            'can'  => 'manage schools',
+            'can'  => 'View schools',
+        ],
+        [
+            'type' => 'sidebar-menu-item',
+            'icon' => 'fas fa-school',
+            'text' => 'Create School',
+            'route' => 'schools.create',
+            'can'  => 'create school',
         ],
     ],
 
