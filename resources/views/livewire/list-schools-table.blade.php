@@ -1,5 +1,5 @@
 <p class='text-bold'>School list</p>
-<x-adminlte-datatable id="school-list-table" :heads="['S/N', 'Name','initials','Code' , 'address', '']" class='text-capitalize'>
+<x-adminlte-datatable id="school-list-table" :heads="['S/N', 'Name','initials','Code' , 'address', '', '']" class='text-capitalize' >
     @foreach($schools as $school)
         <tr>
             <td>{{$loop->iteration}}</td>
@@ -13,6 +13,9 @@
                 ['href' => 'schools.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
                 ],
             ],)</td>
+            <td>
+                @livewire('delete-modal', ['modal_id' => $school->id ,"action" => route('schools.destroy', $school->id), 'item_name' => $school->name])
+            </td>
         </tr>
     @endforeach
 </x-adminlte-datatable>
