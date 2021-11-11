@@ -15,5 +15,7 @@
 
 @section('content')
     <x-jet-welcome />
+
+    @livewire('display-status')
 @stop
 

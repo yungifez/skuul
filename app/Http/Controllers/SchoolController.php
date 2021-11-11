@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Services\School\SchoolService;
+use App\Http\Requests\SchoolSetRequest;
 use App\Http\Requests\SchoolStoreRequest;
+use App\Http\Requests\SchoolUpdateRequest;
 
 class SchoolController extends Controller
 {
@@ -68,9 +70,11 @@ class SchoolController extends Controller
     * @return \Illuminate\Http\Response
     */
 
-    public function edit($id)
+    public function edit($school)
     {
-        return view('pages.school.edit');
+        $data['school'] = $this->school->getSchoolById($school);
+
+        return view('pages.school.edit', $data);
     }
 
     /**
@@ -80,9 +84,12 @@ class SchoolController extends Controller
     * @param  int  $id
     * @return \Illuminate\Http\Response
     */
-    public function update(Request $request, $id)
+    public function update(SchoolUpdateRequest $request, $id)
     {
-        //
+        $data = $request->only('name', 'address', 'initials');
+        $this->school->updateSchool($id, $data);
+
+        return back()->with('success', __('School Updated successfully'));
     }
 
     /**
@@ -93,6 +100,21 @@ class SchoolController extends Controller
     */
     public function destroy($id)
     {
-        //
+       //
+    }
+
+    public function settings()
+    {
+        return redirect()->route('schools.edit', ['school'=> auth()->user()->school_id]);
+    }
+
+    public function setSchool(SchoolSetRequest $request)
+    {
+        $data = $request->only('school_id');
+        if ($this->school->setSchool($data['school_id'])) {
+            return redirect()->route('dashboard')->with('success', __('Successfully set school'));
+        }
+
+        return redirect()->back()->with('danger', __("Something went wrong, please try again"));
     }
 }

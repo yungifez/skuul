@@ -9,8 +9,8 @@
             <td>{{$school->address}}</td>
             <td>@livewire('dropdown-links', [
                 'links' => [
-                ['href' => 'schools.edit', 'text' => 'Settings', 'icon' => 'fas fa-cog'],
-                ['href' => 'schools.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
+                ['href' => route("schools.edit", $school->id), 'text' => 'Settings', 'icon' => 'fas fa-cog'],
+                ['href' => route("schools.show", $school->id), 'text' => 'View', 'icon' => 'fas fa-eye'],
                 ],
             ],)</td>
             <td>

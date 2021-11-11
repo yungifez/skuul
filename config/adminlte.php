@@ -245,7 +245,7 @@ return [
             'icon' => 'fas fa-tachometer-alt',
             'text' => 'Dashboard',
             'route' => 'dashboard',
-        ],['header' => 'manage_profile' ],
+        ],['header' => 'Manage Profile' ],
         [
             'type' => 'sidebar-menu-item',
             'icon' => 'fas fa-user',
@@ -267,6 +267,13 @@ return [
             'route' => 'schools.create',
             'can'  => 'create school',
         ],
+        ['header' => 'Administration', 'can' => 'header-administrate'],
+        [ 
+        'type' => 'sidebar-menu-item',
+        'icon' => 'fas fa-cog',
+        'text' => 'School Settings',
+        'route' => 'schools.settings',
+        'can'  => 'manage school settings',]
     ],
 
     /*
@@ -305,7 +312,7 @@ return [
 
     'plugins' => [
         'Datatables' => [
-            'active' => false,
+            'active' => true,
             'files' => [
                 [
                     'type' => 'js',
@@ -321,6 +328,50 @@ return [
                     'type' => 'css',
                     'asset' => false,
                     'location' => '//cdn.datatables.net/1.10.19/css/dataTables.bootstrap4.min.css',
+                ],
+            ],
+        ],'DatatablesPlugins' => [
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'vendor/datatables-plugins/buttons/js/dataTables.buttons.min.js',
+                ],
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'vendor/datatables-plugins/buttons/js/buttons.bootstrap4.min.js',
+                ],
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'vendor/datatables-plugins/buttons/js/buttons.html5.min.js',
+                ],
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'vendor/datatables-plugins/buttons/js/buttons.print.min.js',
+                ],
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'vendor/datatables-plugins/jszip/jszip.min.js',
+                ],
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'vendor/datatables-plugins/pdfmake/pdfmake.min.js',
+                ],
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'vendor/datatables-plugins/pdfmake/vfs_fonts.js',
+                ],
+                [
+                    'type' => 'css',
+                    'asset' => true,
+                    'location' => 'vendor/datatables-plugins/buttons/css/buttons.bootstrap4.min.css',
                 ],
             ],
         ],

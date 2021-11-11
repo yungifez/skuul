@@ -16,15 +16,16 @@ class SchoolSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('schools')->delete();
-
-        School::create([
-            'id' => 1,
+    
+        School::updateOrCreate(
+            ['id' => 1],
+            [
             'name' => 'Default School',
             'address' => 'School of Computing',
             'code' => Str::Random(10),
             'initials' => 'DSI',
-        ]);
+            ]
+        );
 
         School::factory()
                 ->count(3)
