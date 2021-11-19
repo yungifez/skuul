@@ -12,7 +12,7 @@ class SchoolSetRequest extends FormRequest
      * @return bool
      */
     public function authorize(){
-        if (auth()->user()->hasRoles(['admin'])) {
+        if (auth()->user()->hasRole('super-admin')) {
             return true;
         }
     }

@@ -48,7 +48,7 @@ class SchoolController extends Controller
         $data['code'] = $this->school->generateSchoolCode();
         $this->school->createSchool($data);
 
-        return back()->with('success', __('School created successfully'));
+        return back();
     }
 
     /**
@@ -89,7 +89,7 @@ class SchoolController extends Controller
         $data = $request->only('name', 'address', 'initials');
         $this->school->updateSchool($id, $data);
 
-        return back()->with('success', __('School Updated successfully'));
+        return back();
     }
 
     /**
@@ -111,10 +111,8 @@ class SchoolController extends Controller
     public function setSchool(SchoolSetRequest $request)
     {
         $data = $request->only('school_id');
-        if ($this->school->setSchool($data['school_id'])) {
-            return redirect()->route('dashboard')->with('success', __('Successfully set school'));
-        }
+        $this->school->setSchool($data['school_id']);
 
-        return redirect()->back()->with('danger', __("Something went wrong, please try again"));
+        return back();
     }
 }

@@ -4,7 +4,8 @@ namespace App\Services\School;
 
 use App\Models\School;
 use Illuminate\Support\Str;
-use App\Services\School\UserService;
+use App\Services\User\UserService;
+
 
 class SchoolService
 {
@@ -26,13 +27,17 @@ class SchoolService
 
     public function createSchool($records)
     {
-        return School::create($records);
+        $school = School::create($records);
+        session()->flash('success',  __('School created successfully'));
+        
+        return $school;
     }
 
     public function updateSchool($id, $records)
     {
         $school = $this->getSchoolById($id);
         $school->update($records);
+        session()->flash('success',  __('School updated successfully'));
 
         return $school;
     }
@@ -45,10 +50,12 @@ class SchoolService
             $user = $this->userService->getUserById(auth()->user()->id);
             $user->school_id = $school->id;
             $user->save();
+            session()->flash('success', __('School set successfully'));
 
             return true;
         }
 
+        session()->flash('danger', __('School not found'));
         return false;
     }
 
