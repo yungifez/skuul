@@ -269,11 +269,44 @@ return [
         ],
         ['header' => 'Administration', 'can' => 'header-administrate'],
         [ 
-        'type' => 'sidebar-menu-item',
-        'icon' => 'fas fa-cog',
-        'text' => 'School Settings',
-        'route' => 'schools.settings',
-        'can'  => 'manage school settings',]
+            'type' => 'sidebar-menu-item',
+            'icon' => 'fas fa-cog',
+            'text' => 'School Settings',
+            'route' => 'schools.settings',
+            'can'  => 'edit school',
+        ],
+        [
+            'type' => 'sidebar-menu-item',
+            'text' => 'Classes',
+            'icon' => 'fas fa-chalkboard',
+            'can'  =>  'menu-school',
+            'submenu' => [
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View Class Groups',
+                    'route' => 'class-groups.index',
+                    'can'  => 'view class-group',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create Class Groups',
+                    'route' => 'class-groups.create',
+                    'can'  => 'create class-group',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View Classes',
+                    'route' => 'classes.index',
+                    'can'  => 'view classes',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create Class',
+                    'route' => 'classes.create',
+                    'can'  => 'create class',
+                ],
+            ]
+        ]
     ],
 
     /*
