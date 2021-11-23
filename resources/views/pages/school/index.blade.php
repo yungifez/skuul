@@ -7,6 +7,8 @@
         {{ __('Manage Schools') }}
     </h1>
 
+    @livewire('show-set-school')
+    
     @livewire('breadcrumbs', ['paths' => [
         ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
         ['href'=> route('schools.index'), 'text'=> 'Manage Schools' , 'active']
@@ -18,4 +20,6 @@
     @livewire('school-set')
     
     @livewire('list-schools-table')
+
+    @livewire('display-status')
 @endsection

@@ -7,6 +7,8 @@
         {{ __('Schools') }}
     </h1>
 
+    @livewire('show-set-school')
+    
     @livewire('breadcrumbs', ['paths' => [
         ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
         ['href'=> route('schools.create'), 'text'=> 'Create School' , 'active']

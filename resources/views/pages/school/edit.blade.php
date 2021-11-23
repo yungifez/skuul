@@ -7,6 +7,8 @@
         {{ __("Edit $school->name") }}
     </h1>
 
+    @livewire('show-set-school')
+    
     @livewire('breadcrumbs', ['paths' => [
         ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
         ['href'=> route('schools.settings'), 'text'=> 'Settings' , 'active']

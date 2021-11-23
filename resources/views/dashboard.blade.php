@@ -8,9 +8,12 @@
         {{ __('Dashboard') }}
     </h1>
 
+    @livewire('show-set-school')
+    
     @livewire('breadcrumbs', ['paths' => [
         ['href'=> route('dashboard'), 'text'=> 'Dashboard', 'active'],
     ]])
+
 @stop
 
 @section('content')
