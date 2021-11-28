@@ -16,6 +16,6 @@ class ListSchools extends Component
 
     public function render()
     {
-        return view('livewire.list-schools-table');
+        return view('livewire.list-schools');
     }
 }
