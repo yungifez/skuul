@@ -86,7 +86,7 @@ class SchoolController extends Controller
     */
     public function update(SchoolUpdateRequest $request, $id)
     {
-        $data = $request->only('name', 'address', 'initials');
+        $data = $request->except('_token', '_method');
         $this->school->updateSchool($id, $data);
 
         return back();
