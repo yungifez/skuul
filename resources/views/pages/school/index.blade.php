@@ -19,7 +19,7 @@
 
     @livewire('school-set')
     
-    @livewire('list-schools-table')
+    @livewire('list-schools')
 
     @livewire('display-status')
 @endsection
