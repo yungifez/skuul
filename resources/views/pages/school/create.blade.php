@@ -1,10 +1,10 @@
 @extends('adminlte::page')
 
-@section('title', __('Schools'))
+@section('title', __('Create School'))
 
 @section('content_header')
     <h1 class="font-weight-semibold">
-        {{ __('Schools') }}
+        {{ __('Create School') }}
     </h1>
 
     @livewire('show-set-school')
