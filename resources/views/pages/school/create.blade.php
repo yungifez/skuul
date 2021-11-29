@@ -17,5 +17,5 @@
 
 @section('content')
     @livewire('display-status')
-    @livewire('create-school')
+    @livewire('create-school-form')
 @endsection

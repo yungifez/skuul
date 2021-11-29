@@ -17,7 +17,7 @@
 
 @section('content')
 
-    @livewire('list-class-groups')
+    @livewire('list-class-groups-table')
 
     @livewire('display-status')
 @endsection

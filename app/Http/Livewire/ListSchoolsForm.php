@@ -5,7 +5,7 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Services\School\SchoolService;
 
-class ListSchools extends Component
+class ListSchoolsForm extends Component
 {
     public $schools;
 
@@ -16,6 +16,6 @@ class ListSchools extends Component
 
     public function render()
     {
-        return view('livewire.list-schools');
+        return view('livewire.list-schools-form');
     }
 }

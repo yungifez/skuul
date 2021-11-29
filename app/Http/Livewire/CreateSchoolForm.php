@@ -4,10 +4,10 @@ namespace App\Http\Livewire;
 
 use Livewire\Component;
 
-class CreateSchool extends Component
+class CreateSchoolForm extends Component
 {
     public function render()
     {
-        return view('livewire.create-school');
+        return view('livewire.create-school-form');
     }
 }

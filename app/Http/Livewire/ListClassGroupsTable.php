@@ -5,7 +5,7 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use App\Services\MyClass\MyClassService;
 
-class ListClassGroups extends Component
+class ListClassGroupsTable extends Component
 {
     public $classGroups;
 
@@ -16,6 +16,6 @@ class ListClassGroups extends Component
 
     public function render()
     {
-        return view('livewire.list-class-groups');
+        return view('livewire.list-class-groups-table');
     }
 }

@@ -1,25 +1,23 @@
 @extends('adminlte::page')
 
-@section('title', __('Manage Schools'))
+@section('title', __('Classes'))
 
 @section('content_header')
     <h1 class="font-weight-semibold">
-        {{ __('Manage Schools') }}
+        {{ __('Classes') }}
     </h1>
 
     @livewire('show-set-school')
     
     @livewire('breadcrumbs', ['paths' => [
         ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-        ['href'=> route('schools.index'), 'text'=> 'Manage Schools' , 'active']
+        ['href'=> route('classes.index'), 'text'=> 'Classes' , 'active']
     ]])
 @endsection
 
 @section('content')
 
-    @livewire('school-set')
-    
-    @livewire('list-schools-form')
+    @livewire('list-classes-form')
 
     @livewire('display-status')
 @endsection
