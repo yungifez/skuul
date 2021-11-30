@@ -11,13 +11,14 @@
     
     @livewire('breadcrumbs', ['paths' => [
         ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-        ['href'=> route('schools.settings'), 'text'=> 'School Settings' , 'active']
+        ['href'=> route('schools.index'), 'text'=> 'Schools' , ],
+        ['href'=> route('schools.settings'), 'text'=> 'Settings' , 'active']
     ]])
 @endsection
 
 @section('content')
 
-@livewire('edit-school', ['school' => $school])
+@livewire('edit-school-form', ['school' => $school])
 
 @livewire('display-status')
 

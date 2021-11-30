@@ -11,7 +11,8 @@
 
     @livewire('breadcrumbs', ['paths' => [
         ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-        ['href'=> route('class-groups.edit', $classGroup->id), 'text'=> 'Edit class group' , 'active']
+        ['href'=> route('class-groups.index'), 'text'=> 'class group' ],
+        ['href'=> route('class-groups.edit', $classGroup->id), 'text'=> 'Edit' , 'active']
     ]])
 @endsection
 
