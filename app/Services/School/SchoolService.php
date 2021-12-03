@@ -25,6 +25,11 @@ class SchoolService
         return School::find($id);
     }
 
+    public function getSchoolByIdOrFail($id)
+    {
+        return School::findOrFail($id);
+    }
+
     public function createSchool($records)
     {
         $school = School::create($records);

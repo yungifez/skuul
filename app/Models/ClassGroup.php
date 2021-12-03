@@ -17,4 +17,9 @@ class ClassGroup extends Model
     {
         return $this->belongsTo(School::class);
     }
+
+    public function classes()
+    {
+        return $this->hasMany(Classes::class);
+    }
 }

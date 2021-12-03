@@ -72,7 +72,7 @@ class SchoolController extends Controller
 
     public function edit($school)
     {
-        $data['school'] = $this->school->getSchoolById($school);
+        $data['school'] = $this->school->getSchoolByIdOrFail($school);
 
         return view('pages.school.edit', $data);
     }
