@@ -16,7 +16,7 @@ class CreateClassGroupsTable extends Migration
         Schema::create('class_groups', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->foreignId('school_id')->constrained();
+            $table->foreignId('school_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->timestamps();
             $table->unique(['school_id', 'name']);
         });
