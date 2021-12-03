@@ -26,7 +26,7 @@ class ClassGroupController extends Controller
 
     public function index()
     {
-        return view('pages.class-groups.index');
+        return view('pages.class-group.index');
     }
 
     /**
@@ -37,7 +37,7 @@ class ClassGroupController extends Controller
 
     public function create()
     {
-        return view('pages.class-groups.create');
+        return view('pages.class-group.create');
     }
 
     /**
@@ -76,9 +76,9 @@ class ClassGroupController extends Controller
      */
 
     public function edit($id){
-        $data['classGroup'] = $this->myClass->getClassGroupById($id);
+        $data['classGroup'] = $this->myClass->getClassGroupByIdOrFail($id);
 
-        return view('pages.class-groups.edit', $data);
+        return view('pages.class-group.edit', $data);
     }
 
     /**
