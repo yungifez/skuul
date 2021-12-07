@@ -14,38 +14,38 @@ class MyClassSeeder extends Seeder
      */
     public function run()
     {
-        MyClass::create([
+        MyClass::firstOrcreate([
             'id' => 1,
             'name' => 'Kindergarten 1',
             'class_group_id' => 1,
         ]);
 
-        MyClass::create([
+        MyClass::firstOrcreate([
             'id' => 2,
             'name' => 'Kindergarten 2',
             'class_group_id' => 1,
         ]);
 
-        MyClass::create([
+        MyClass::firstOrcreate([
             'id' => 3,
             'name' => 'Nursery 1',
             'class_group_id' => 2,
         ]);
 
         
-        MyClass::create([
+        MyClass::firstOrcreate([
             'id' => 4,
             'name' => 'Nursery 2',
             'class_group_id' => 2,
         ]);
 
-        MyClass::create([
+        MyClass::firstOrcreate([
             'id' => 5,
             'name' => 'Primary 1',
             'class_group_id' => 3,
         ]);
 
-        MyClass::create([
+        MyClass::firstOrcreate([
             'id' => 7,
             'name' => 'Primary 2',
             'class_group_id' => 4,

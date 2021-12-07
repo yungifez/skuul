@@ -23,6 +23,8 @@ class UserSeeder extends Seeder
             'email' => 'super@admin.com',
             'password' => Hash::make('password'),
             'school_id' => 1,
+            'address' => 'super admin street',
+            'birthday' => '22/04/04',
         ]);
 
         $superAdmin->assignRole('super-admin');
@@ -32,6 +34,8 @@ class UserSeeder extends Seeder
             'email' => 'admin@admin.com',
             'password' => Hash::make('password'),
             'school_id' => 1,
+            'address' => 'admin street',
+            'birthday' => '22/04/04',
         ]);
 
         $admin->assignRole('admin');
@@ -41,6 +45,8 @@ class UserSeeder extends Seeder
             'email'    => 'teacher@teacher.com',
             'password' => Hash::make('password'),
             'school_id'=> 1,
+            'address' => 'teacher street',
+            'birthday' => '22/04/04',
         ]);
 
         $teacher->assignRole('teacher');
@@ -50,6 +56,8 @@ class UserSeeder extends Seeder
             'email' => 'student@student.com',
             'password' => Hash::make('password'),
             'school_id'=> 1,
+            'address' => 'student street',
+            'birthday' => '22/04/04',
         ]);
 
         $student->assignRole('student');
@@ -59,6 +67,8 @@ class UserSeeder extends Seeder
             'email' => 'parent@parent.com',
             'password' => Hash::make('password'),
             'school_id'=> 1,
+            'address' => 'parent street',
+            'birthday' => '22/04/04',
         ]);
 
         $parent->assignRole('parent');
@@ -68,6 +78,8 @@ class UserSeeder extends Seeder
             'email' => 'accountant@accountant.com',
             'password' => Hash::make('password'),
             'school_id'=> 1,
+            'address' => 'accountant street',
+            'birthday' => '22/04/04',
         ]);
 
         $accountant->assignRole('accountant');
@@ -77,8 +89,12 @@ class UserSeeder extends Seeder
             'email' => 'libratian@librarian.com',
             'password' => Hash::make('password'),
             'school_id'=> 1,
+            'address' => 'librarian street',
+            'birthday' => '22/04/04',
         ]);
 
         $librarian->assignRole('librarian');
+
+        
     }
 }

@@ -279,7 +279,7 @@ return [
             'type' => 'sidebar-menu-item',
             'text' => 'Classes',
             'icon' => 'fas fa-chalkboard',
-            'can'  =>  'menu-school',
+            'can'  =>  'menu-class',
             'submenu' => [
                 [
                     'type' => 'sidebar-menu-item',
@@ -289,7 +289,7 @@ return [
                 ],
                 [
                     'type' => 'sidebar-menu-item',
-                    'text' => 'Create Class Groups',
+                    'text' => 'Create Class Group',
                     'route' => 'class-groups.create',
                     'can'  => 'create class-group',
                 ],
@@ -304,6 +304,27 @@ return [
                     'text' => 'Create Class',
                     'route' => 'classes.create',
                     'can'  => 'create class',
+                ],
+                
+            ]
+        ],
+        [
+            'type' => 'sidebar-menu-item',
+            'text' => 'sections',
+            'icon' => 'fas fa-landmark',
+            'can'  =>  'menu-section',
+            'submenu' => [
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View sections',
+                    'route' => 'sections.index',
+                    'can'  => 'view sections',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create section',
+                    'route' => 'sections.create',
+                    'can'  => 'create sections',
                 ],
             ]
         ]
