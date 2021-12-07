@@ -17,7 +17,7 @@
 
 @section('content')
 
-    @livewire('list-classes-form')
+    @livewire('list-classes-table')
 
     @livewire('display-status')
 @endsection
