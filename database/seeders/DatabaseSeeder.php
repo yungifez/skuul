@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Database\Seeders\MyClassSeeder;
+use Database\Seeders\SectionSeeder;
 use Database\Seeders\RunInProductionSeeder;
 
 class DatabaseSeeder extends Seeder
@@ -19,5 +20,6 @@ class DatabaseSeeder extends Seeder
         $this->call(RunInProductionSeeder::class);
         $this->call(ClassGroupSeeder::class);
         $this->call(MyClassSeeder::class);
+        $this->call(SectionSeeder::class);
     }
 }

@@ -9,7 +9,7 @@ icon="fas fa-trash" v-centered>
         <i class="fas fa-trash text-danger fa-6x py-3"></i>
     </div>
     
-    <p>This item "{{$item_name ?? ''}}" would be deleted</p>
+    <p>This item "{{$item_name ?? ''}}" and all related records would be deleted</p>
 </div>
 <x-slot name="footerSlot">
     <x-adminlte-button label="close" data-dismiss="modal" theme="secondary" class="mr-auto"/>

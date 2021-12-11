@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Section;
 use App\Models\ClassGroup;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,5 +21,15 @@ class MyClass extends Model
     public function classGroup()
     {
         return $this->belongsTo(ClassGroup::class);
+    }
+
+    /**
+     * Get all of the sections for the MyClass
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function sections()
+    {
+        return $this->hasMany(Section::class);
     }
 }

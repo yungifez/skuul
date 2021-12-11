@@ -3,30 +3,24 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Services\MyClass\MyClassService;
-use App\Http\Requests\ClassGroupStoreRequest;
+use App\Services\Section\SectionService;
+use App\Http\Requests\SectionStoreRequest;
 
-class ClassGroupController extends Controller
+class SectionController extends Controller
 {
-    //create public properties
-    public $myClass;
-
-
-    //construct method
-    public function __construct(MyClassService $myClass)
+    public $section;
+    public function __construct(SectionService $section)
     {
-        $this->myClass = $myClass;
+        $this->section = $section;
     }
-
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-
     public function index()
     {
-        return view('pages.class-group.index');
+        return view('pages.section.index');
     }
 
     /**
@@ -34,10 +28,9 @@ class ClassGroupController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-
     public function create()
     {
-        return view('pages.class-group.create');
+        return view('pages.section.create');
     }
 
     /**
@@ -46,15 +39,13 @@ class ClassGroupController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-
-    public function store(ClassGroupStoreRequest $request)
+    public function store(SectionStoreRequest $request)
     {
         $data = $request->except('_token');
-        $this->myClass->createClassGroup($data);
-         
-        return redirect()->back();
-    }
+        $this->section->createSection($data);
 
+        return back();
+    }
 
     /**
      * Display the specified resource.
@@ -62,7 +53,6 @@ class ClassGroupController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-
     public function show($id)
     {
         //
@@ -74,11 +64,9 @@ class ClassGroupController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-
-    public function edit($id){
-        $data['classGroup'] = $this->myClass->getClassGroupByIdOrFail($id);
-
-        return view('pages.class-group.edit', $data);
+    public function edit($id)
+    {
+        //
     }
 
     /**
@@ -88,12 +76,9 @@ class ClassGroupController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-
-    public function update(ClassGroupStoreRequest $request, $id){
-        $data = $request->except('_token', '_method', 'school_id');
-        $this->myClass->updateClassGroup($id, $data);
-
-        return back();
+    public function update(Request $request, $id)
+    {
+        //
     }
 
     /**
@@ -102,11 +87,8 @@ class ClassGroupController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-
-    public function destroy($id){
-        $this->myClass->deleteClassGroup($id);
-
-        return back();
+    public function destroy($id)
+    {
+        //
     }
-
 }

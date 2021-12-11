@@ -4,20 +4,21 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateMyClassesTable extends Migration
+class CreateSectionsTable extends Migration
 {
     /**
      * Run the migrations.
      *
      * @return void
      */
-    public function up()
+    public function up() 
     {
-        Schema::create('my_classes', function (Blueprint $table) {
+        Schema::create('sections', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->foreignId('class_group_id')->constrained()->onDelete('cascade')->onUpdate('cascade');
+            $table->foreignId('my_class_id');
             $table->timestamps();
+            $table->unique(['name', 'my_class_id']);
         });
     }
 
@@ -28,6 +29,6 @@ class CreateMyClassesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('my_classes');
+        Schema::dropIfExists('sections');
     }
 }

@@ -27,17 +27,58 @@ class PermissionSeeder extends Seeder
             'name' => 'create school'
         ]);
         Permission::create([
-            'name' => 'edit school'
+            'name' => 'read school'
+        ]);
+        Permission::create([
+            'name' => 'update school'
         ]);
         Permission::create([
             'name' => 'delete school'
         ]);
+
+        // Permissions for class group
         Permission::create([
-            'name' => 'view schools'
+            'name' => 'create class group'
         ]);
         Permission::create([
-            'name' => 'manage school settings'
+            'name' => 'read class group'
         ]);
+        Permission::create([
+            'name' => 'update class group'
+        ]);
+        Permission::create([
+            'name' => 'delete class group'
+        ]);
+
+        // Permissions for class
+        Permission::create([
+            'name' => 'create class'
+        ]);
+        Permission::create([
+            'name' => 'read class'
+        ]);
+        Permission::create([
+            'name' => 'update class'
+        ]);
+        Permission::create([
+            'name' => 'delete class'
+        ]);
+
+        // Permissions for sectionm
+        Permission::create([
+            'name' => 'create section'
+        ]);
+        Permission::create([
+            'name' => 'read section'
+        ]);
+        Permission::create([
+            'name' => 'update section'
+        ]);
+        Permission::create([
+            'name' => 'delete section'
+        ]);
+        
+
 
         //header permissions (for controlling the menu headers)
         Permission::create([

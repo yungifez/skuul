@@ -15,6 +15,9 @@ class AddFieldsToUsersTable extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->foreignId('school_id')->nullable()->constrained()->nullOnDelete()->onUpdate('cascade');
+            $table->string('gender')->nullable();
+            $table->date('birthday');
+            $table->string('address');
         });
     }
 
@@ -28,6 +31,9 @@ class AddFieldsToUsersTable extends Migration
         Schema::table('users', function (Blueprint $table) {
             $table->dropForeign(['school_id']);
             $table->dropColumn('school_id');
+            $table->dropColumn('birthday');
+            $table->dropColumn('gender');
+            $table->dropColumn('address');
         });
     }
 }

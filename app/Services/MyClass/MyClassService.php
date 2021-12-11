@@ -104,8 +104,9 @@ class MyClassService{
         return MyClass::delete();
     }
 
-    public function deleteClassGroup()
+    public function deleteClassGroup($id)
     {
-        return ClassGroup::delete();
+        $classGroup = $this->getClassGroupById($id);
+        $classGroup->delete();
     }
 }
