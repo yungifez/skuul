@@ -12,14 +12,14 @@ class MyClassService{
 
 
       //construct method
-      public function __construct(SchoolService $school)
-      {
-          $this->school = $school;
-      }
+    public function __construct(SchoolService $school)
+    {
+        $this->school = $school;
+    }
 
     public function getAllClasses()
     {
-        return $this->school->getSchoolById(auth()->user()->school_id)->myClasses->all();
+        return $this->school->getSchoolById(auth()->user()->school_id)->myClasses->load('classGroup','sections')->all();
     }
 
     public function getAllClassGroups()
@@ -50,19 +50,19 @@ class MyClassService{
     public function createClass($record)
     {
         if (!$this->getClassGroupById($record['class_group_id'])) {
-            session()->flash('danger' ,__('Class group does not exists'));
+            return session()->flash('danger' ,__('Class group does not exists'));
         }
 
-        $classGroup =  MyClass::firstOrCreate($record);
+        $myClass =  MyClass::firstOrCreate($record);
         
-        if (!$classGroup->wasRecentlyCreated) {
+        if (!$myClass->wasRecentlyCreated) {
             session()->flash('danger' ,__('Class already exists'));
         }else {
             session()->flash('success' ,__('Class created successfully'));
         }
         
 
-        return $classGroup;
+        return $myClass;
     }
 
     public function createClassGroup($record)

@@ -44,8 +44,7 @@ class SchoolController extends Controller
     */
     public function store(SchoolStoreRequest $request)
     {
-        $data = $request->only('name', 'address', 'initials');
-        $data['code'] = $this->school->generateSchoolCode();
+        $data = $request->except('_token');
         $this->school->createSchool($data);
 
         return back();

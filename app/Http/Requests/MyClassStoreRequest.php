@@ -24,4 +24,10 @@ class MyClassStoreRequest extends FormRequest
             'class_group_id' => 'required'
         ];
     }
+    public function messages()
+    {
+        return [
+            'class_group_id.required' => 'Please select a class group'
+        ];
+    }
 }

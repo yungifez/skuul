@@ -22,7 +22,7 @@ class SchoolService
 
     public function getSchoolById($id)
     {
-        return School::find($id);
+        return School::with('myClasses')->find($id);
     }
 
     public function getSchoolByIdOrFail($id)
@@ -32,6 +32,7 @@ class SchoolService
 
     public function createSchool($records)
     {
+        $records['code'] = $this->generateSchoolCode();
         $school = School::create($records);
         session()->flash('success',  __('School created successfully'));
         
