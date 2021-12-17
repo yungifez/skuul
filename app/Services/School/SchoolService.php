@@ -25,11 +25,6 @@ class SchoolService
         return School::with('myClasses')->find($id);
     }
 
-    public function getSchoolByIdOrFail($id)
-    {
-        return School::findOrFail($id);
-    }
-
     public function createSchool($records)
     {
         $records['code'] = $this->generateSchoolCode();
@@ -39,9 +34,8 @@ class SchoolService
         return $school;
     }
 
-    public function updateSchool($id, $records)
+    public function updateSchool(School $school, $records)
     {
-        $school = $this->getSchoolById($id);
         $school->update($records);
         session()->flash('success',  __('School updated successfully'));
 

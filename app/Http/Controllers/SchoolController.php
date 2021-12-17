@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\School;
 use Illuminate\Http\Request;
 use App\Services\School\SchoolService;
 use App\Http\Requests\SchoolSetRequest;
@@ -15,6 +16,7 @@ class SchoolController extends Controller
     public function __construct(SchoolService $school)
     {
         $this->school = $school;
+        $this->authorizeResource(School::class, 'school');
     }
 
     /**
@@ -69,9 +71,9 @@ class SchoolController extends Controller
     * @return \Illuminate\Http\Response
     */
 
-    public function edit($school)
+    public function edit(School $school)
     {
-        $data['school'] = $this->school->getSchoolByIdOrFail($school);
+        $data['school'] = $school;
 
         return view('pages.school.edit', $data);
     }
@@ -83,10 +85,10 @@ class SchoolController extends Controller
     * @param  int  $id
     * @return \Illuminate\Http\Response
     */
-    public function update(SchoolUpdateRequest $request, $id)
+    public function update(SchoolUpdateRequest $request,School $school)
     {
         $data = $request->except('_token', '_method');
-        $this->school->updateSchool($id, $data);
+        $this->school->updateSchool($school, $data);
 
         return back();
     }
@@ -109,6 +111,7 @@ class SchoolController extends Controller
 
     public function setSchool(SchoolSetRequest $request)
     {
+        $this->authorize('setSchool', School::class);
         $data = $request->only('school_id');
         $this->school->setSchool($data['school_id']);
 
