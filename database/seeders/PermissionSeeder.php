@@ -35,6 +35,9 @@ class PermissionSeeder extends Seeder
         Permission::create([
             'name' => 'delete school'
         ]);
+        Permission::create([
+            'name' => 'manage school settings'
+        ]);
 
         // Permissions for class group
         Permission::create([
@@ -84,6 +87,16 @@ class PermissionSeeder extends Seeder
         Permission::create([
             'name' => 'header-administrate'
         ]);
+        Permission::create([
+            'name' => 'header-schools'
+        ]);
+        Permission::create([
+            'name' => 'menu-class'
+        ]);
+        Permission::create([
+            'name' => 'menu-section'
+        ]);
+
 
         /**
          * assign permissions to roles
@@ -93,7 +106,22 @@ class PermissionSeeder extends Seeder
         $admin = Role::where('name', 'admin')->first();
         $admin->givePermissionTo([
             'header-administrate',
-            'manage school settings'
+            'menu-section',
+            'menu-class',
+            'manage school settings',
+            'update school',
+            'create section',
+            'read section',
+            'update section',
+            'delete section',
+            'create class',
+            'read class',
+            'update class',
+            'delete class',
+            'create class group',
+            'read class group',
+            'update class group',
+            'delete class group',
         ]);
 
          //assign permissions to teacher

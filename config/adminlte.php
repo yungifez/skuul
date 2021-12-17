@@ -258,7 +258,7 @@ return [
             'icon' => 'fas fa-school',
             'text' => 'View Schools',
             'route' => 'schools.index',
-            'can'  => 'View schools',
+            'can'  => 'read school',
         ],
         [
             'type' => 'sidebar-menu-item',
@@ -273,7 +273,7 @@ return [
             'icon' => 'fas fa-cog',
             'text' => 'School Settings',
             'route' => 'schools.settings',
-            'can'  => 'edit school',
+            'can'  => 'update school',
         ],
         [
             'type' => 'sidebar-menu-item',
@@ -297,7 +297,7 @@ return [
                     'type' => 'sidebar-menu-item',
                     'text' => 'View Classes',
                     'route' => 'classes.index',
-                    'can'  => 'view classes',
+                    'can'  => 'read class',
                 ],
                 [
                     'type' => 'sidebar-menu-item',
@@ -318,13 +318,13 @@ return [
                     'type' => 'sidebar-menu-item',
                     'text' => 'View sections',
                     'route' => 'sections.index',
-                    'can'  => 'view sections',
+                    'can'  => 'read section',
                 ],
                 [
                     'type' => 'sidebar-menu-item',
                     'text' => 'Create section',
                     'route' => 'sections.create',
-                    'can'  => 'create sections',
+                    'can'  => 'create section',
                 ],
             ]
         ]
