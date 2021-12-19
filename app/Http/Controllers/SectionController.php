@@ -12,6 +12,7 @@ class SectionController extends Controller
     public function __construct(SectionService $section)
     {
         $this->section = $section;
+        $this->authorizeResource(Section::class, 'section');
     }
     /**
      * Display a listing of the resource.

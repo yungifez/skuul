@@ -7,8 +7,8 @@ use App\Models\ClassGroup;
 use App\Services\School\SchoolService;
 
 class MyClassService{
-      //create public properties
-      public $school;
+    //create public properties
+    public $school;
 
 
       //construct method
@@ -40,11 +40,6 @@ class MyClassService{
     public function getClassGroupById($id)
     {
         return ClassGroup::where('school_id', auth()->user()->school_id)->find($id);
-    }
-
-    public function getClassGroupByIdOrFail($id)
-    {
-        return ClassGroup::where('school_id', auth()->user()->school_id)->findOrFail($id);
     }
 
     public function createClass($record)
@@ -81,18 +76,16 @@ class MyClassService{
         return $classGroup;
     }
 
-    public function updateClass($id, $records)
+    public function updateClass($myClass, $records)
     {
-        $myClass = $this->getClassById($id);
         $myClass->update($records);
         session()->flash('success',  __('Class updated successfully'));
 
         return $myClass;
     }
 
-    public function updateClassGroup($id, $records)
+    public function updateClassGroup(ClassGroup $classGroup, $records)
     {
-        $classGroup = $this->getClassGroupById($id);
         $classGroup->update($records);
         session()->flash('success',  __('Class group updated successfully'));
 
@@ -104,9 +97,10 @@ class MyClassService{
         return MyClass::delete();
     }
 
-    public function deleteClassGroup($id)
+    public function deleteClassGroup(ClassGroup $classGroup)
     {
-        $classGroup = $this->getClassGroupById($id);
         $classGroup->delete();
+
+        return session()->flash('success',  __('Class group deleted successfully'));
     }
 }

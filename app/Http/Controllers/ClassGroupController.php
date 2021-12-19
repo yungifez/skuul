@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ClassGroup;
 use Illuminate\Http\Request;
 use App\Services\MyClass\MyClassService;
 use App\Http\Requests\ClassGroupStoreRequest;
@@ -16,6 +17,7 @@ class ClassGroupController extends Controller
     public function __construct(MyClassService $myClass)
     {
         $this->myClass = $myClass;
+        $this->authorizeResource(ClassGroup::class, 'class_group');
     }
 
     /**
@@ -75,8 +77,8 @@ class ClassGroupController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function edit($id){
-        $data['classGroup'] = $this->myClass->getClassGroupByIdOrFail($id);
+    public function edit(ClassGroup $classGroup){
+        $data['classGroup'] = $classGroup;
 
         return view('pages.class-group.edit', $data);
     }
@@ -89,9 +91,9 @@ class ClassGroupController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function update(ClassGroupStoreRequest $request, $id){
+    public function update(ClassGroupStoreRequest $request,ClassGroup $classGroup){
         $data = $request->except('_token', '_method', 'school_id');
-        $this->myClass->updateClassGroup($id, $data);
+        $this->myClass->updateClassGroup($classGroup, $data);
 
         return back();
     }
@@ -103,8 +105,8 @@ class ClassGroupController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function destroy($id){
-        $this->myClass->deleteClassGroup($id);
+    public function destroy(ClassGroup $classGroup){
+        $this->myClass->deleteClassGroup($classGroup);
 
         return back();
     }
