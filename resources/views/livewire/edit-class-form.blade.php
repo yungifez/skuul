@@ -13,5 +13,5 @@
     </x-adminlte-select>
     @csrf
     @method('PUT')
-    <x-adminlte-button label="Create" theme="primary" icon="fas fa-key" type="submit"/>
+    <x-adminlte-button label="Edit" theme="primary" icon="fas fa-key" type="submit"/>
 </form>
