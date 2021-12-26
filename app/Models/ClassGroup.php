@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\MyClass;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ClassGroup extends Model
 {
@@ -20,6 +21,6 @@ class ClassGroup extends Model
 
     public function classes()
     {
-        return $this->hasMany(Classes::class);
+        return $this->hasMany(MyClass::class);
     }
 }
