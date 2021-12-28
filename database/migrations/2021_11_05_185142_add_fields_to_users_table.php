@@ -17,6 +17,12 @@ return new class extends Migration
             $table->foreignId('school_id')->nullable()->constrained()->nullOnDelete()->onUpdate('cascade');
             $table->string('gender')->nullable();
             $table->date('birthday');
+            $table->string('nationality');
+            $table->string('state');
+            $table->string('city');
+            $table->string('religion')->nullable();
+            $table->string('blood_group');
+            $table->string('phone')->nullable();
             $table->string('address');
         });
     }
