@@ -109,7 +109,6 @@ class PermissionSeeder extends Seeder
             'menu-section',
             'menu-class',
             'manage school settings',
-            'update school',
             'create section',
             'read section',
             'update section',
