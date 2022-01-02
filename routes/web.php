@@ -35,6 +35,10 @@ Route::group(['middleware' => ['auth:sanctum', 'verified'], 'prefix' => 'dashboa
     //class groups routes
     Route::resource('class-groups', ClassGroupController::class);
 
-     //sections routes
-     Route::resource('sections', SectionController::class);
+    //sections routes
+    Route::resource('sections', SectionController::class);
+
+    //student routes
+    Route::resource('students', StudentController::class);
+
 });
