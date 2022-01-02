@@ -6,12 +6,11 @@ use App\Models\MyClass;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
-class Section extends Model
+class StudentRecord extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'my_class_id'];
-
+    protected $fillable = ['admission_number', 'admission_date', 'my_class_id', 'section_id'];
     /**
      * Get the MyClass that owns the Section
      *
@@ -21,4 +20,14 @@ class Section extends Model
     {
         return $this->belongsTo(MyClass::class);
     }
+
+   /**
+    * Get the user that owns the StudentRecord
+    *
+    * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+    */
+   public function user()
+   {
+       return $this->belongsTo(User::class);
+   }
 }

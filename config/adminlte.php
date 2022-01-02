@@ -285,13 +285,13 @@ return [
                     'type' => 'sidebar-menu-item',
                     'text' => 'View Class Groups',
                     'route' => 'class-groups.index',
-                    'can'  => 'view class-group',
+                    'can'  => 'read class group',
                 ],
                 [
                     'type' => 'sidebar-menu-item',
                     'text' => 'Create Class Group',
                     'route' => 'class-groups.create',
-                    'can'  => 'create class-group',
+                    'can'  => 'create class group',
                 ],
                 [
                     'type' => 'sidebar-menu-item',
@@ -327,7 +327,27 @@ return [
                     'can'  => 'create section',
                 ],
             ]
-        ]
+            ],
+            [
+                'type' => 'sidebar-menu-item',
+                'text' => 'Students',
+                'icon' => 'fas fa-user',
+                'can'  =>  'menu-student',
+                'submenu' => [
+                    [
+                        'type' => 'sidebar-menu-item',
+                        'text' => 'View students',
+                        'route' => 'students.index',
+                        'can'  => 'read student',
+                    ],
+                    [
+                        'type' => 'sidebar-menu-item',
+                        'text' => 'Create student',
+                        'route' => 'students.create',
+                        'can'  => 'create student',
+                    ],
+                ]
+            ]
     ],
 
     /*
@@ -365,6 +385,26 @@ return [
     */
 
     'plugins' => [
+        'DateRangePicker' => [
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'vendor/daterangepicker/moment.min.js',
+                ],
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'vendor/daterangepicker/daterangepicker.js',
+                ],
+                [
+                    'type' => 'css',
+                    'asset' => true,
+                    'location' => 'vendor/daterangepicker/daterangepicker.css',
+                ],
+            ],
+        ],
         'Datatables' => [
             'active' => true,
             'files' => [
@@ -430,19 +470,44 @@ return [
                 ],
             ],
         ],
+        'TempusDominusBs4' => [
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'vendor/moment/moment.min.js',
+                ],
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'vendor/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js',
+                ],
+                [
+                    'type' => 'css',
+                    'asset' => true,
+                    'location' => 'vendor/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css',
+                ],
+            ],
+        ],
         
         'Select2' => [
             'active' => false,
             'files' => [
                 [
                     'type' => 'js',
-                    'asset' => false,
-                    'location' => '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/js/select2.min.js',
+                    'asset' => true,
+                    'location' => 'vendor/select2/js/select2.full.min.js',
                 ],
                 [
                     'type' => 'css',
-                    'asset' => false,
-                    'location' => '//cdnjs.cloudflare.com/ajax/libs/select2/4.0.3/css/select2.css',
+                    'asset' => true,
+                    'location' => 'vendor/select2/css/select2.min.css',
+                ],
+                [
+                    'type' => 'css',
+                    'asset' => true,
+                    'location' => 'vendor/select2-bootstrap4-theme/select2-bootstrap4.min.css',
                 ],
             ],
         ],
@@ -478,6 +543,16 @@ return [
                     'type' => 'js',
                     'asset' => false,
                     'location' => '//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js',
+                ],
+            ],
+        ],
+        'BsCustomFileInput' => [
+            'active' => true,
+            'files' => [
+                [
+                    'type' => 'js',
+                    'asset' => true,
+                    'location' => 'vendor/bs-custom-file-input/bs-custom-file-input.min.js',
                 ],
             ],
         ],

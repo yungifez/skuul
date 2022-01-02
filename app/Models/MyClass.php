@@ -32,4 +32,12 @@ class MyClass extends Model
     {
         return $this->hasMany(Section::class);
     }
+
+    //check if section is in a class
+    public function isSectionInClass($sectionId)
+    {
+        return MyClass::whereHas('sections', function($query) use ($sectionId){
+            $query->where('id', $sectionId);
+        })->exists();
+    }
 }
