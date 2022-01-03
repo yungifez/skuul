@@ -7,6 +7,7 @@ use PragmaRX\Countries\Package\Countries;
 
 class CreateUserFields extends Component
 {
+    public string $role = 'user';
     public $countries;
     public $country;
     public $states;
