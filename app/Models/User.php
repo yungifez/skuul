@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\School;
 use App\Scopes\SchoolScope;
 use App\Models\StudentRecord;
+use App\Models\TeacherRecord;
 use Laravel\Sanctum\HasApiTokens;
 use Laravel\Jetstream\HasProfilePhoto;
 use Spatie\Permission\Traits\HasRoles;
@@ -93,5 +94,15 @@ class User extends Authenticatable
     public function studentRecord()
     {
         return $this->hasOne(StudentRecord::class);
+    }
+
+    /**
+     * Get the teacherRecord associated with the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function teacherRecord()
+    {
+        return $this->hasOne(TeacherRecord::class);
     }
 }

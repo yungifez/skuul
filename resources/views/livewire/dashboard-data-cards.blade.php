@@ -23,7 +23,16 @@
                 <x-adminlte-small-box title="{{$sections}}" text="Sections" icon=" text-dark" theme="green" url="{{route('sections.index')}}" url-text="View sections" />
             @endcan
         </div>
-       
+        <div class="col-lg-4">
+            @can('read student')
+                <x-adminlte-small-box title="{{$students}}" text="Students" icon=" text-dark" theme="yellow" url="{{route('students.index')}}" url-text="View students" />
+            @endcan
+        </div>
+        <div class="col-lg-4">
+            @can('read teacher')
+                <x-adminlte-small-box title="{{$students}}" text="Teachers" icon=" text-dark" theme="orange" url="{{route('teachers.index')}}" url-text="View teachers" />
+            @endcan
+        </div>
     
     </div>
 

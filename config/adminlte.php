@@ -327,27 +327,67 @@ return [
                     'can'  => 'create section',
                 ],
             ]
-            ],
-            [
-                'type' => 'sidebar-menu-item',
-                'text' => 'Students',
-                'icon' => 'fas fa-user',
-                'can'  =>  'menu-student',
-                'submenu' => [
-                    [
-                        'type' => 'sidebar-menu-item',
-                        'text' => 'View students',
-                        'route' => 'students.index',
-                        'can'  => 'read student',
-                    ],
-                    [
-                        'type' => 'sidebar-menu-item',
-                        'text' => 'Create student',
-                        'route' => 'students.create',
-                        'can'  => 'create student',
-                    ],
-                ]
+        ],
+        [
+            'type' => 'sidebar-menu-item',
+            'text' => 'Students',
+            'icon' => 'fas fa-user',
+            'can'  =>  'menu-student',
+            'submenu' => [
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View students',
+                    'route' => 'students.index',
+                    'can'  => 'read student',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create student',
+                    'route' => 'students.create',
+                    'can'  => 'create student',
+                ],
             ]
+        ],
+        [
+            'type' => 'sidebar-menu-item',
+            'text' => 'Teachers',
+            'icon' => 'fas fa-user',
+            'can'  =>  'menu-teacher',
+            'submenu' => [
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View teachers',
+                    'route' => 'teachers.index',
+                    'can'  => 'read teacher',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create teacher',
+                    'route' => 'teachers.create',
+                    'can'  => 'create teacher',
+                ],
+            ]
+        ],
+        [
+            'type' => 'sidebar-menu-item',
+            'text' => 'Academic year',
+            'icon' => 'fas fa-calendar',
+            'can'  =>  'menu-academic-year',
+            'submenu' => [
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View acadeic years',
+                    'route' => 'academic-years.index',
+                    'can'  => 'read teacher',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create academic year',
+                    'route' => 'academic-years.create',
+                    'can'  => 'create academic year',
+                ],
+            ]
+            ],
     ],
 
     /*
