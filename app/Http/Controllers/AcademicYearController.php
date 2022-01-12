@@ -93,4 +93,12 @@ class AcademicYearController extends Controller
     {
         //
     }
+
+    public function setAcademicYear(request $request)
+    {
+        $academicYear = $request->academic_year_id;
+        $this->academicYear->setAcademicYear($academicYear);
+
+        return back();
+    }
 }

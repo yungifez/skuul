@@ -78,6 +78,13 @@ class UserSeeder extends Seeder
 
         $student->assignRole('student');
 
+        $student->studentRecord()->create([
+            'my_class_id' => 1,
+            'section_id' => 1,
+            'admission_number' => 1,
+            'admission_date' => '22/04/04',
+        ]);
+
         $parent = User::create([
             'name' => 'John Doe',
             'email' => 'parent@parent.com',

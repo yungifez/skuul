@@ -376,7 +376,7 @@ return [
             'submenu' => [
                 [
                     'type' => 'sidebar-menu-item',
-                    'text' => 'View acadeic years',
+                    'text' => 'View academic years',
                     'route' => 'academic-years.index',
                     'can'  => 'read teacher',
                 ],

@@ -37,7 +37,9 @@ class ClassGroupPolicy
      */
     public function view(User $user, ClassGroup $classGroup)
     {
-        //
+        if ($user->can('read class group') && $classGroup->school_id == auth()->user()->school_id) {
+            return true;
+        }
     }
 
     /**
@@ -62,7 +64,7 @@ class ClassGroupPolicy
      */
 
     public function update(User $user, ClassGroup $classGroup){
-        if ($user->can('update class group')) {
+        if ($user->can('update class group') && $classGroup->school_id == auth()->user()->school_id) {
             return true;
         }
     }
