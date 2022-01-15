@@ -378,7 +378,7 @@ return [
                     'type' => 'sidebar-menu-item',
                     'text' => 'View academic years',
                     'route' => 'academic-years.index',
-                    'can'  => 'read teacher',
+                    'can'  => 'read academic year',
                 ],
                 [
                     'type' => 'sidebar-menu-item',
@@ -387,7 +387,27 @@ return [
                     'can'  => 'create academic year',
                 ],
             ]
-            ],
+        ],
+        [
+            'type' => 'sidebar-menu-item',
+            'text' => 'Subject',
+            'icon' => 'fas fa-lightbulb',
+            'can'  =>  'menu-subject',
+            'submenu' => [
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View subjects',
+                    'route' => 'subjects.index',
+                    'can'  => 'read subject',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create subject',
+                    'route' => 'subjects.create',
+                    'can'  => 'create subject',
+                ],
+            ]
+        ],
     ],
 
     /*
@@ -532,7 +552,7 @@ return [
         ],
         
         'Select2' => [
-            'active' => false,
+            'active' => true,
             'files' => [
                 [
                     'type' => 'js',

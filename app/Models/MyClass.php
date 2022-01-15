@@ -52,4 +52,14 @@ class MyClass extends Model
     {
         return $this->hasMany(StudentRecord::class);
     }
+
+    /**
+     * The subjects that belong to the MyClass
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function subjects()
+    {
+        return $this->belongsToMany(Subjects::class);
+    }
 }

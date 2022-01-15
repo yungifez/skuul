@@ -48,4 +48,6 @@ Route::group(['middleware' => ['auth:sanctum', 'verified'], 'prefix' => 'dashboa
     Route::resource('academic-years', AcademicYearController::class);
     Route::post('academic-years/set academic year', ['App\Http\Controllers\AcademicYearController', 'setAcademicYear'])->name('academic-years.set-academic-year');
 
+    //subject routes
+    Route::resource('subjects', SubjectController::class);
 });
