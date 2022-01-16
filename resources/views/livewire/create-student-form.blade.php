@@ -1,5 +1,5 @@
 <form action="{{route('students.store')}}" method="POST" enctype="multipart/form-data">
-    @livewire('create-user-fields', ['role' => 'student'])
+    @livewire('create-user-fields', ['role' => 'Student'])
     <div class="row">
      
         <h4 class="text-bold col-12 text-center">Class information</h4>

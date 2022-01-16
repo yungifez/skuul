@@ -15,6 +15,12 @@ class CreateStudentForm extends Component
     public $section;
     protected $myClassService;
 
+    protected $rules = [
+        'myClass' => 'string',
+        'section' => 'string',
+    ];
+ 
+
     public function mount(MyClassService $myClassService)
     {
         $this->myClasses = $myClassService->getAllClasses();

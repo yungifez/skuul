@@ -11,7 +11,13 @@ class CreateUserFields extends Component
     public $countries;
     public $country;
     public $states;
-    public $state;
+
+    protected $rules = [
+        'role' => 'string',
+        'country' => 'string',
+        'state' => 'string',
+    ];
+ 
 
     public function mount()
     {
@@ -19,10 +25,7 @@ class CreateUserFields extends Component
     }
     public function updatedCountry()
     {
-        $this->reset('state');
-        // dd($this->myClasses);
         $this->states = collect(Countries::where('name.common' , $this->country)->first()->hydrateStates()->states->pluck('name')); 
-        // dd($this->states);
     }
 
     public function render()
