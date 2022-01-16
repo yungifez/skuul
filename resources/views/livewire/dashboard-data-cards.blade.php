@@ -33,7 +33,12 @@
                 <x-adminlte-small-box title="{{$students}}" text="Teachers" icon=" text-dark" theme="orange" url="{{route('teachers.index')}}" url-text="View teachers" />
             @endcan
         </div>
-    
+
+        <div class="col-lg-4">
+            @can('read subject')
+                <x-adminlte-small-box title="{{$subjects}}" text="Subjects" icon=" text-dark" theme="purple" url="{{route('subjects.index')}}" url-text="View subjects" />
+            @endcan
+        </div>
     </div>
 
 </div>
