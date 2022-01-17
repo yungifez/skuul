@@ -37,7 +37,7 @@ class ClassGroupPolicy
      */
     public function view(User $user, ClassGroup $classGroup)
     {
-        if ($user->can('read class group') && $classGroup->school_id == auth()->user()->school_id) {
+        if ($user->can('read class group') && $user->school_id == $classGroup->school_id) {
             return true;
         }
     }
@@ -64,7 +64,7 @@ class ClassGroupPolicy
      */
 
     public function update(User $user, ClassGroup $classGroup){
-        if ($user->can('update class group') && $classGroup->school_id == auth()->user()->school_id) {
+        if ($user->can('update class group') && $user->school_id == $classGroup->school_id) {
             return true;
         }
     }
@@ -78,7 +78,7 @@ class ClassGroupPolicy
      */
     public function delete(User $user, ClassGroup $classGroup)
     {
-        if ($user->can('delete class group')) {
+        if ($user->can('delete class group') && $user->school_id == $classGroup->school_id) {
             return true;
         }
     }
