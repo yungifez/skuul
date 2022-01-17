@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Section;
 use Illuminate\Http\Request;
 use App\Services\Section\SectionService;
 use App\Http\Requests\SectionStoreRequest;
+use App\Http\Requests\SectionUpdateRequest;
 
 class SectionController extends Controller
 {
@@ -65,9 +67,11 @@ class SectionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Section $section)
     {
-        //
+        $data['section'] = $section;
+
+        return view('pages.section.edit', $data);
     }
 
     /**
@@ -77,9 +81,13 @@ class SectionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(SectionUpdateRequest $request,Section $section)
     {
-        //
+        $data = $request->except('_token', '_method');
+
+        $this->section->updateSection($section, $request);
+
+        return back();
     }
 
     /**

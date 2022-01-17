@@ -50,4 +50,13 @@ class SectionService
 
         return $section;
     }
+
+    public function updateSection(Section $section, $record)
+    {
+        $section->name = $record->name;
+        $section->save();
+        session()->flash('success' ,__('Section updated successfully'));
+
+        return $section;
+    }
 }
