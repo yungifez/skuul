@@ -161,7 +161,9 @@ class PermissionSeeder extends Seeder
         Permission::create([
             'name' => 'menu-academic-year'
         ]);
-
+        Permission::create([
+            'name' => 'menu-subject'
+        ]);
 
 
         /**
@@ -177,6 +179,7 @@ class PermissionSeeder extends Seeder
             'menu-student',
             'menu-teacher',
             'menu-academic-year',
+            'menu-subject',
             'manage school settings',
             'create section',
             'read section',
