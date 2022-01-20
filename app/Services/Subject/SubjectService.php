@@ -14,18 +14,18 @@ class SubjectService
 
     public function createSubject($data)
     {
-        $subject =  Subject::create([
+        $subject =  Subject::firstOrCreate([
             'name' => $data['name'],
             'short_name' => $data['short_name'],
             'school_id' => auth()->user()->school_id,
+            'my_class_id' => $data['my_class_id'],
         ]);
 
-        if (isset($data['my_class_id'])) {
-            $subject->classes()->attach($data['my_class_id']);
+        if ($subject->wasRecentlyCreated) {
+            return session()->flash('success', 'Subject created successfully');
         }
-
-
-        return session()->flash('success', 'Subject created successfully');
+        
+        return session()->flash('danger', 'Subject already exists or something went wrong');
     }
 
     //update subject
@@ -36,11 +36,7 @@ class SubjectService
         $subject->short_name = $data['short_name'];
 
         $subject->save();
-
-        if (isset($data['my_class_id'])) {
-            $subject->classes()->sync($data['my_class_id']);
-        }
-
+        
         return session()->flash('success', 'Subject updated successfully');
     }
 

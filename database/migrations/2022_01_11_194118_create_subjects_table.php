@@ -13,6 +13,8 @@ return new class extends Migration
             $table->string('name');
             $table->string('short_name');
             $table->foreignId('school_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->foreignId('my_class_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->unique(['name', 'school_id']);
             $table->timestamps();
         });
     }

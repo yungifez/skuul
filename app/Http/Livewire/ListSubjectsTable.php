@@ -9,7 +9,7 @@ class ListSubjectsTable extends Component
 {
     public function mount(SubjectService $subjectService)
     {
-        $this->subjects = $subjectService->getAllSubjects();
+        $this->subjects = $subjectService->getAllSubjects()->load('myClass');
     }
     public function render()
     {

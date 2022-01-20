@@ -16,7 +16,7 @@ class SubjectStoreRequest extends FormRequest
         return [
             'name' => 'required|max:256',
             'short_name' => 'required|max:256',
-            'my_class_id.*' => 'exists:my_classes,id',
+            'my_class_id' => 'exists:my_classes,id',
         ];
     }
 }

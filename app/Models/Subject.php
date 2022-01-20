@@ -2,24 +2,25 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\MyClass;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Subject extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'name', 'short_name', 'school_id',
+        'name', 'short_name', 'school_id', 'my_class_id'
     ];
-    
+
     /**
-     * The classes that belong to the Subject
+     * Get the class that owns the Subject
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function classes()
+    public function myClass()
     {
-        return $this->belongsToMany(MyClass::class);
+        return $this->belongsTo(MyClass::class);
     }
 }
