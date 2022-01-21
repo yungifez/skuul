@@ -22,7 +22,7 @@ class SectionStoreRequest extends FormRequest
     {
         return [
             'name' => 'required',
-            'my_class_id' => 'required',
+            'my_class_id' => 'required|exists:my_classes,id',
         ];
     }
 
