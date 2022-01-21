@@ -1,4 +1,5 @@
 <form action="{{route('schools.store')}}" method="POST">
+    @livewire('display-validation-error')
     <x-adminlte-input name="name" placeholder="Enter name of school" label="School Name" value="{{old('name')}}"/>
     <x-adminlte-textarea name="address" placeholder="Enter school branch address" label="School Address">
         {{old('address')}}

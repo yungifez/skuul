@@ -1,5 +1,6 @@
 <form action="{{route('schools.update', $school->id )}}" method="POST">
     @method('PUT')
+    @livewire('display-validation-error')
     <x-adminlte-input name="name" placeholder="Enter name of school" label="School Name" value="{{old('name') ? old('name') : $school->name}}"/>
     <x-adminlte-textarea name="address" placeholder="Enter school branch address" label="School Address">
         {{old('address') ? old('address') : $school->address}}

@@ -4,7 +4,7 @@
         <form action="{{route('schools.setSchool')}}" method="POST" class="d-flex flex-column">
             <x-adminlte-select name="school_id" label="Set current school">
                 @foreach ($schools as $school)
-                    <option value="{{ $school->id }}">{{$loop->iteration}}: {{ $school->name }} - {{$school->address}}</option>
+                    <option value="{{ $school->id }}" {{auth()->user()->school_id == $school->id ?'selected' : ''}}>{{$loop->iteration}}: {{ $school->name }} - {{$school->address}}</option>
                 @endforeach
             </x-adminlte-select>
             @csrf

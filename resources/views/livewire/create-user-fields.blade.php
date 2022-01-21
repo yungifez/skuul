@@ -1,14 +1,6 @@
 <div class="row">
+    @livewire('display-validation-error')
     <h4 class="text-bold col-12 text-center">Account information</h4> 
-    @if ($errors->any())
-        <div class="alert alert-danger col-12">
-            <ul>
-                @foreach ($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-        </div>
-    @endif
     <x-adminlte-input name="first_name" label="First name" placeholder="{{$role}}'s first name" fgroup-class="col-md-3" enable-old-support/>
     <x-adminlte-input name="last_name" label="Last name" placeholder="{{$role}}'s last name" fgroup-class="col-md-3" enable-old-support/>
     <x-adminlte-input name="other_names" label="Other names" placeholder="{{$role}}'s other names" fgroup-class="col-md-6" enable-old-support/>

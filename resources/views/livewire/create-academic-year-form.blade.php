@@ -1,4 +1,5 @@
 <form action="{{route('academic-years.store')}}" autocomplete="off" method="POST">
+    @livewire('display-validation-error')
     <div class="col-md-6">
         <x-adminlte-input-date name="start_year" label="Start year" required  :config="['format' => 'YYYY']" value="{{old('start_year')}}"></x-adminlte-input>
     </div>

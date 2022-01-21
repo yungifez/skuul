@@ -1,4 +1,5 @@
 <form action="{{route('classes.update', $myClass->id)}}" method="POST">
+    @livewire('display-validation-error')
     <x-adminlte-input name="name" label="Class Name" placeholder="Enter class name" fgroup-class="col-md-6" value="{{old('name') ? old('name') : $myClass->name}}"/>
     <x-adminlte-select name="class_group_id" class="col-md-6 m-2" >
         @foreach ($classGroups as $classGroup)

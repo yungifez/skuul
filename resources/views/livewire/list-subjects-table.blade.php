@@ -1,12 +1,13 @@
 <div>
     <p class='text-bold'>Subject list</p>
-    <x-adminlte-datatable id="school-list-table" :heads="['S/N', 'Name','Short name', ['label'=>'Class',  'width' => '40'], '', '']" class='text-capitalize' >
+    <x-adminlte-datatable id="school-list-table" :heads="['S/N', 'Name','Short name', ['label'=>'Class', ], 'Teahers assigned', '', '']" class='text-capitalize' >
         @foreach($subjects as $subject)
             <tr>
                 <td>{{$loop->iteration}}</td>
                 <td>{{$subject->name}}</td>
                 <td>{{$subject->short_name}}</td>
                 <td>{{$subject->myClass->name}}</td>
+                <td>{{$subject->teachers()->count()}}</td>
                 <td>@livewire('dropdown-links', [
                     'links' => [
                     ['href' => route("subjects.edit", $subject->id), 'text' => 'Edit', 'icon' => 'fas fa-cog'],
