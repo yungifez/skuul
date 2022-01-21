@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Models\User;
 use App\Models\Section;
+use App\Models\Subject;
 use App\Models\ClassGroup;
 use App\Models\StudentRecord;
 use Illuminate\Database\Eloquent\Model;
@@ -60,6 +61,6 @@ class MyClass extends Model
      */
     public function subjects()
     {
-        return $this->belongsToMany(Subjects::class);
+        return $this->hasMany(Subject::class);
     }
 }

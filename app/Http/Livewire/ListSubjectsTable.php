@@ -3,13 +3,14 @@
 namespace App\Http\Livewire;
 
 use Livewire\Component;
+use App\Services\MyClass\MyClassService;
 use App\Services\Subject\SubjectService;
 
 class ListSubjectsTable extends Component
 {
-    public function mount(SubjectService $subjectService)
+    public function mount(MyClassService $myClassService)
     {
-        $this->subjects = $subjectService->getAllSubjects()->load('myClass');
+        $this->classes = $myClassService->getAllClasses();
     }
     public function render()
     {
