@@ -3,9 +3,15 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Services\Teacher\TeacherService;
 
 class TeacherController extends Controller
 {
+    public $teacher;
+    public function __construct(TeacherService $teacher)
+    {
+        $this->teacher = $teacher;
+    }
     /**
      * Display a listing of the resource.
      *
@@ -34,7 +40,9 @@ class TeacherController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $this->teacher->createTeacher($request);
+
+        return back();
     }
 
     /**

@@ -29,9 +29,6 @@ class TeacherService
 
         $student->assignRole('teacher');
 
-        $student->teacherRecord()->create([
-            'my_class_id' => $record['my_class_id'],
-            'section_id' => $record['section_id'],
-        ]);
+        return session()->flash('success', 'Teacher Created Successfully');
     }
 }
