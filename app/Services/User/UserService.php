@@ -67,4 +67,13 @@ class UserService
     {
         return $firstname . ' ' . $lastname. ' ' . $othernames;
     }
+
+    // verify role
+
+    public function verifyRole($id, $role)
+    {
+        $user = $this->getUserById($id);
+
+        return $user->hasRole($role);
+    }
 }
