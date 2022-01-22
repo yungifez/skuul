@@ -15,7 +15,6 @@ class CreateUserFields extends Component
     protected $rules = [
         'role' => 'string',
         'country' => 'string',
-        'state' => 'string',
     ];
  
 

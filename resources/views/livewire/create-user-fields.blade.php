@@ -30,7 +30,7 @@
             <option value="{{$item}}">{{$item}}</option>
         @endforeach
     </x-adminlte-select>
-    <x-adminlte-select2 name="state" label="State" fgroup-class="col-md-4" wire:model="state" enable-old-support>
+    <x-adminlte-select2 name="state" label="State" fgroup-class="col-md-4" enable-old-support>
         @if (isset($states))
             @foreach ($states as $item)
                 <option value="{{$item}}">{{$item}}</option>
