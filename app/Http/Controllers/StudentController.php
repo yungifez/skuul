@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\Student\StudentService;
 use App\Http\Requests\StudentStoreRequest;
@@ -66,9 +67,11 @@ class StudentController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(User $student)
     {
-        //
+        $data['student'] = $student;
+
+        return view('pages.student.edit', $data);
     }
 
     /**
