@@ -25,20 +25,9 @@
     </x-adminlte-select>
     <x-adminlte-input name="phone" label="Phone number" placeholder="{{$role}}'s phone number" fgroup-class="col-md-3" enable-old-support/>
     <x-adminlte-input name="address" placeholder="{{$role}}'s address" fgroup-class="col-md-12 no-resize" label="Address" enable-old-support/>
-    <x-adminlte-select name="nationality" label="Nationality" fgroup-class="col-md-3"  wire:model="country" enable-old-support>
-        @foreach ($countries as $item)
-            <option value="{{$item}}">{{$item}}</option>
-        @endforeach
-    </x-adminlte-select>
-    <x-adminlte-select2 name="state" label="State" fgroup-class="col-md-4" enable-old-support>
-        @if (isset($states))
-            @foreach ($states as $item)
-                <option value="{{$item}}">{{$item}}</option>
-            @endforeach
-        @else 
-            <option value="" disabled>Select a country first</option>
-        @endif
-    </x-adminlte-select2>
+    <div class="col-md-8">
+        @livewire('nationality-and-state-input-fields')
+    </div>
     <x-adminlte-input name="city" label="City" placeholder="{{$role}}'s city" fgroup-class="col-md-4" enable-old-support/>
     <x-adminlte-input-file name="profile_photo" placeholder="Choose a profile photo..." accept="image/*" fgroup-class="col-md-6" label="Profile photo">
         <x-slot name="prependSlot">

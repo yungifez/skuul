@@ -8,7 +8,7 @@
                 <option value="{{$item['id']}}">{{$item['name']}}</option>
             @endforeach
         </x-adminlte-select>
-        <x-adminlte-select name="section_id" label="Choose a section" fgroup-class="col-md-6" wire:model="section">
+        <x-adminlte-select name="section_id" label="Choose a section" fgroup-class="col-md-6" wire:model="section" wire:init="loadInitialSections">
             @if (isset($sections))
                 @foreach ($sections as $item)
                     <option value="{{$item['id']}}">{{$item['name']}}</option>
