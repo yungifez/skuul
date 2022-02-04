@@ -105,4 +105,24 @@ class User extends Authenticatable
     {
         return $this->hasOne(TeacherRecord::class);
     }
+
+    //get first name
+    public function firstName()
+    {
+        return explode(' ', $this->name)[0];
+    }
+
+    //get last name
+    public function lastName()
+    {
+        return explode(' ', $this->name)[1];
+    }
+
+    //get other names
+    public function otherNames()
+    {
+        $names = array_diff_key(explode(' ', $this->name), array_flip([0,1]));
+
+        return implode(' ', $names);
+    }
 }
