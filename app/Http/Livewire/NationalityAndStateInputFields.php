@@ -11,9 +11,11 @@ class NationalityAndStateInputFields extends Component
     public $nationalities;
     public $nationality;
     public $states;
+    public $state;
 
     protected $rules = [
         'nationality' => 'string',
+        'state' => 'string'
     ];
  
 
@@ -27,7 +29,12 @@ class NationalityAndStateInputFields extends Component
     }
     public function loadInitialStates()
     {
-        $this->states =  collect(Countries::where('name.common' , $this->nationalities->first())->first()->hydrateStates()->states->pluck('name'));
+        if ($this->nationality != null) {
+            $this->states =  collect(Countries::where('name.common' , $this->nationality)->first()->hydrateStates()->states->pluck('name'));
+        }else {
+              $this->states =  collect(Countries::where('name.common' , $this->nationalities->first())->first()->hydrateStates()->states->pluck('name'));
+        }
+      
     }
 
     public function render()
