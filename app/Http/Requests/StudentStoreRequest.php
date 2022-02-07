@@ -15,7 +15,7 @@ class StudentStoreRequest extends FormRequest
     {
         return [
             'admission_number' => 'unique:student_records,admission_number',
-            'admission_date' => 'required|date',
+            'admission_date' => 'required|date|date_format:Y/m/d',
             'my_class_id' => 'required|exists:my_classes,id',
             'section_id' => 'required|exists:sections,id',
         ];

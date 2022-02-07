@@ -2,7 +2,6 @@
 
 namespace App\Services\Student;
 
-use App\Models\User;
 use Illuminate\Support\Str;
 use App\Services\User\UserService;
 use App\Services\MyClass\MyClassService;
@@ -52,5 +51,12 @@ class StudentService
     public function generateAdmissionNumber()
     {
         return Str::random(10);
+    }
+
+    public function updateStudent($student, $records)
+    {
+        $student = $this->user->updateUser($student, $records);
+
+        return session()->flash('success', 'Student Updated Successfully');
     }
 }

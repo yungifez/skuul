@@ -76,4 +76,13 @@ class UserService
 
         return $user->hasRole($role);
     }
+
+    public function updateUser(User $user, $record)
+    {
+        $record['name'] = $this->createFullName($record['first_name'],$record['last_name'],$record['other_names']);
+
+        $user = $this->updateUserProfileInformationAction->updateUser($user, $record);
+
+        return $user;
+    }
 }
