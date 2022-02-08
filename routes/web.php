@@ -40,6 +40,7 @@ Route::group(['middleware' => ['auth:sanctum', 'verified'], 'prefix' => 'dashboa
 
     //student routes
     Route::resource('students', StudentController::class);
+    Route::get('students/{student}/print', ['App\Http\Controllers\StudentController', 'printProfile'])->name('students.print-profile');
 
     //teacher routes
     Route::resource('teachers', TeacherController::class);

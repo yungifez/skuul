@@ -3,6 +3,7 @@
 namespace App\Services\Student;
 
 use Illuminate\Support\Str;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\User\UserService;
 use App\Services\MyClass\MyClassService;
 
@@ -58,5 +59,12 @@ class StudentService
         $student = $this->user->updateUser($student, $records);
 
         return session()->flash('success', 'Student Updated Successfully');
+    }
+
+    public function createPdfFromView(string $name,string $view,array $data)
+    {
+        $pdf = Pdf::loadView($view, $data);
+
+        return $pdf->download("$name.pdf");
     }
 }

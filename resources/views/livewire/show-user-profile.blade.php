@@ -1,6 +1,7 @@
 <div class="container">
-    <div class="row justify-content-center">
-          <img src="{{$user->profile_photo_url}}" alt="user photo" class="rounded-circle " height="200px" width="200px">
+    {{-- written to support css 2.1 --}}
+    <div class="row justify-content-center text-center">
+        <img src="{{$user->profile_photo_url}}" class="rounded-circle" alt="user photo"  height="200px" width="200px" style="width: 200px;height: 200px; ">
     </div>
     <div class="row my-2">
         <h2 class="text-center col-md-12">{{$user->name}}</h2>

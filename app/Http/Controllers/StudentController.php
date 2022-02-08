@@ -53,14 +53,24 @@ class StudentController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param  User  $student
      * @return \Illuminate\Http\Response
      */
     public function show(User $student)
     {
         $data['student'] = $student;
-        
+
         return view('pages.student.show', $data);
+    }
+
+    /**
+     * Print student Profile
+     */
+    public function printProfile(User $student)
+    {
+        $data['student'] = $student;
+
+        return $this->student->createPdfFromView($data['student']->name, 'pages.student.print-student-profile', $data);
     }
 
     /**

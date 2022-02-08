@@ -17,8 +17,11 @@
 @endsection
 
 @section('content')
+    <a href="{{route('students.print-profile',$student->id)}}" class="btn btn-primary">Print Profile</a>
 
     @livewire('show-student-profile', ['student' => $student])
 
     @livewire('display-status')
+
+    
 @endsection
