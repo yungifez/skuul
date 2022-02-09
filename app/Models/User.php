@@ -5,14 +5,14 @@ namespace App\Models;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\TeacherRecord;
-use Laravel\Sanctum\HasApiTokens;
-use Laravel\Jetstream\HasProfilePhoto;
-use Spatie\Permission\Traits\HasRoles;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
+use Laravel\Jetstream\HasProfilePhoto;
+use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -41,7 +41,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'state',
         'city',
         'gender',
-        'school_id'
+        'school_id',
     ];
 
     /**
@@ -120,7 +120,7 @@ class User extends Authenticatable implements MustVerifyEmail
     //get other names
     public function otherNames()
     {
-        $names = array_diff_key(explode(' ', $this->name), array_flip([0,1]));
+        $names = array_diff_key(explode(' ', $this->name), array_flip([0, 1]));
 
         return implode(' ', $names);
     }

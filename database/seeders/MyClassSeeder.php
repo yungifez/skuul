@@ -32,7 +32,6 @@ class MyClassSeeder extends Seeder
             'class_group_id' => 2,
         ]);
 
-        
         MyClass::firstOrcreate([
             'id' => 4,
             'name' => 'Nursery 2',

@@ -2,15 +2,15 @@
 
 namespace App\Services\Student;
 
-use Illuminate\Support\Str;
-use Barryvdh\DomPDF\Facade\Pdf;
-use App\Services\User\UserService;
 use App\Services\MyClass\MyClassService;
-
+use App\Services\User\UserService;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Str;
 
 class StudentService
 {
     public $myClassService;
+
     public $user;
 
     public function __construct(MyClassService $myClass, UserService $user)
@@ -18,7 +18,7 @@ class StudentService
         $this->myClass = $myClass;
         $this->user = $user;
     }
-  
+
     public function getAllStudents()
     {
         return $this->user->getUsersByRole('student')->load('studentRecord');
@@ -27,14 +27,14 @@ class StudentService
     //create student method
 
     public function createStudent($record)
-    { 
+    {
         $student = $this->user->createUser($record);
 
         $student->assignRole('student');
 
         $record['admission_number'] || $record['admission_number'] = $this->generateAdmissionNumber();
 
-        if (!$this->myClass->getClassById($record['my_class_id'])->isSectionInClass($record['section_id'])) {
+        if (! $this->myClass->getClassById($record['my_class_id'])->isSectionInClass($record['section_id'])) {
             throw new \Exception('Section is not in the class');
         }
 
@@ -44,7 +44,6 @@ class StudentService
             'admission_number' => $record['admission_number'],
             'admission_date' => $record['admission_date'],
         ]);
-
 
         return session()->flash('success', 'Student Created Successfully');
     }
@@ -61,7 +60,7 @@ class StudentService
         return session()->flash('success', 'Student Updated Successfully');
     }
 
-    public function createPdfFromView(string $name,string $view,array $data)
+    public function createPdfFromView(string $name, string $view, array $data)
     {
         $pdf = Pdf::loadView($view, $data);
 

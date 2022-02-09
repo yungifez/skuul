@@ -2,8 +2,8 @@
 
 namespace App\Http\Livewire;
 
-use Livewire\Component;
 use App\Services\AcademicYear\AcademicYearService;
+use Livewire\Component;
 
 class AcademicYearSet extends Component
 {

@@ -2,20 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Section;
-use Illuminate\Http\Request;
-use App\Services\Section\SectionService;
 use App\Http\Requests\SectionStoreRequest;
 use App\Http\Requests\SectionUpdateRequest;
+use App\Models\Section;
+use App\Services\Section\SectionService;
+use Illuminate\Http\Request;
 
 class SectionController extends Controller
 {
     public $section;
+
     public function __construct(SectionService $section)
     {
         $this->section = $section;
         $this->authorizeResource(Section::class, 'section');
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -81,7 +83,7 @@ class SectionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(SectionUpdateRequest $request,Section $section)
+    public function update(SectionUpdateRequest $request, Section $section)
     {
         $data = $request->except('_token', '_method');
 

@@ -59,7 +59,7 @@ class SectionPolicy
     {
         if ($user->can('update class') && $user->school_id == $section->myClass->classGroup->school_id) {
             return true;
-       }
+        }
     }
 
     /**

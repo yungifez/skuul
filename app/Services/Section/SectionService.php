@@ -13,7 +13,7 @@ class SectionService
     {
         $this->school = $school;
     }
-    
+
     public function getAllSections()
     {
         $myClasses = $this->school->getSchoolById(auth()->user()->school_id)->myClasses->all();
@@ -23,9 +23,10 @@ class SectionService
             foreach ($myClasses as $myClass) {
                 $sections = $sections->merge($myClass->sections->all());
             }
+
             return $sections;
         } catch (\Throwable $th) {
-            return session()->flash('danger' ,__('No sections found'));
+            return session()->flash('danger', __('No sections found'));
         }
     }
 
@@ -39,9 +40,9 @@ class SectionService
         $section = Section::firstOrCreate($records);
 
         if ($section->wasRecentlyCreated) {
-            session()->flash('success' ,__('Section created successfully'));
-        }else {
-            session()->flash('danger' ,__('Section slready exists'));
+            session()->flash('success', __('Section created successfully'));
+        } else {
+            session()->flash('danger', __('Section slready exists'));
         }
 
         return $section;
@@ -51,7 +52,7 @@ class SectionService
     {
         $section->name = $record->name;
         $section->save();
-        session()->flash('success' ,__('Section updated successfully'));
+        session()->flash('success', __('Section updated successfully'));
 
         return $section;
     }

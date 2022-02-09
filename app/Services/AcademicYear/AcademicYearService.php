@@ -16,7 +16,7 @@ class AcademicYearService
 
     public function getAllAcademicYears()
     {
-       return AcademicYear::where('school_id', auth()->user()->school_id)->get();
+        return AcademicYear::where('school_id', auth()->user()->school_id)->get();
     }
 
     public function getAcademicYearById($id)
@@ -32,16 +32,15 @@ class AcademicYearService
         return session()->flash('success', 'Academic year created successfully');
     }
 
-    public function setAcademicYear($academicYearId,$schoolId = null)
+    public function setAcademicYear($academicYearId, $schoolId = null)
     {
-        if (!isset($schoolId)) {
-            $schoolId =  auth()->user()->school_id;
+        if (! isset($schoolId)) {
+            $schoolId = auth()->user()->school_id;
         }
         $school = $this->school->getSchoolById($schoolId);
         $school->academic_year_id = $academicYearId;
         $school->save();
-        
+
         return session()->flash('success', "Academic year set for {$school->name} successfully");
     }
-
 }

@@ -57,9 +57,9 @@ class MyClassPolicy
      */
     public function update(User $user, MyClass $myClass)
     {
-       if ($user->can('update class') && $user->school_id == $myClass->classGroup->school_id) {
+        if ($user->can('update class') && $user->school_id == $myClass->classGroup->school_id) {
             return true;
-       }
+        }
     }
 
     /**

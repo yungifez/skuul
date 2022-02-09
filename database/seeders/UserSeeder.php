@@ -129,7 +129,5 @@ class UserSeeder extends Seeder
         ]);
 
         $librarian->assignRole('librarian');
-
-        
     }
 }

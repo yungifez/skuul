@@ -12,7 +12,6 @@ class SectionStoreRequest extends FormRequest
      * @return bool
      */
 
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -29,7 +28,7 @@ class SectionStoreRequest extends FormRequest
     public function messages()
     {
         return [
-            'my_class_id.required' => 'Please select a class'
+            'my_class_id.required' => 'Please select a class',
         ];
     }
 }

@@ -1,10 +1,11 @@
 <?php
+
 namespace App\Services\Subject;
 
 use App\Models\Subject;
 use App\Services\User\UserService;
 
-class SubjectService  
+class SubjectService
 {
     public function __construct(UserService $user)
     {
@@ -16,24 +17,24 @@ class SubjectService
         return Subject::where(['school_id' => auth()->user()->school_id])->get();
     }
 
-   //create subject 
+    //create subject
 
     public function createSubject($data)
     {
-        $subject =  Subject::firstOrCreate([
+        $subject = Subject::firstOrCreate([
             'name' => $data['name'],
             'short_name' => $data['short_name'],
             'school_id' => auth()->user()->school_id,
             'my_class_id' => $data['my_class_id'],
         ]);
 
-        if (!$subject->wasRecentlyCreated) {
-           return session()->flash('danger', 'Subject already exists or something went wrong');
+        if (! $subject->wasRecentlyCreated) {
+            return session()->flash('danger', 'Subject already exists or something went wrong');
         }
 
         if (isset($data['teachers'])) {
             $teachers = [];
-            foreach ($data['teachers'] as $teacher ) {
+            foreach ($data['teachers'] as $teacher) {
                 if ($this->user->verifyRole($teacher, 'teacher')) {
                     $teachers[] = $teacher;
                 }
@@ -41,7 +42,6 @@ class SubjectService
 
             $subject->teachers()->sync($teachers);
         }
-      
 
         return session()->flash('success', 'Subject created successfully');
     }
@@ -57,16 +57,16 @@ class SubjectService
 
         if (isset($data['teachers'])) {
             $teachers = [];
-            foreach ($data['teachers'] as $teacher ) {
+            foreach ($data['teachers'] as $teacher) {
                 if ($this->user->verifyRole($teacher, 'teacher')) {
                     $teachers[] = $teacher;
                 }
             }
             $subject->teachers()->sync($teachers);
-        }else {
+        } else {
             $subject->teachers()->sync([]);
         }
-        
+
         return session()->flash('success', 'Subject updated successfully');
     }
 

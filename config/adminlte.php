@@ -245,7 +245,7 @@ return [
             'icon' => 'fas fa-tachometer-alt',
             'text' => 'Dashboard',
             'route' => 'dashboard',
-        ],['header' => 'Manage Profile' ],
+        ], ['header' => 'Manage Profile'],
         [
             'type' => 'sidebar-menu-item',
             'icon' => 'fas fa-user',
@@ -268,7 +268,7 @@ return [
             'can'  => 'create school',
         ],
         ['header' => 'Administration', 'can' => 'header-administrate'],
-        [ 
+        [
             'type' => 'sidebar-menu-item',
             'icon' => 'fas fa-cog',
             'text' => 'School Settings',
@@ -305,8 +305,8 @@ return [
                     'route' => 'classes.create',
                     'can'  => 'create class',
                 ],
-                
-            ]
+
+            ],
         ],
         [
             'type' => 'sidebar-menu-item',
@@ -326,7 +326,7 @@ return [
                     'route' => 'sections.create',
                     'can'  => 'create section',
                 ],
-            ]
+            ],
         ],
         [
             'type' => 'sidebar-menu-item',
@@ -346,7 +346,7 @@ return [
                     'route' => 'students.create',
                     'can'  => 'create student',
                 ],
-            ]
+            ],
         ],
         [
             'type' => 'sidebar-menu-item',
@@ -366,7 +366,7 @@ return [
                     'route' => 'teachers.create',
                     'can'  => 'create teacher',
                 ],
-            ]
+            ],
         ],
         [
             'type' => 'sidebar-menu-item',
@@ -386,7 +386,7 @@ return [
                     'route' => 'academic-years.create',
                     'can'  => 'create academic year',
                 ],
-            ]
+            ],
         ],
         [
             'type' => 'sidebar-menu-item',
@@ -406,7 +406,7 @@ return [
                     'route' => 'subjects.create',
                     'can'  => 'create subject',
                 ],
-            ]
+            ],
         ],
     ],
 
@@ -550,7 +550,7 @@ return [
                 ],
             ],
         ],
-        
+
         'Select2' => [
             'active' => true,
             'files' => [

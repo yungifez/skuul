@@ -15,7 +15,7 @@ class ClassGroupFactory extends Factory
     {
         return [
             'name' => $this->faker->name,
-            'school_id' => 1
+            'school_id' => 1,
         ];
     }
 }

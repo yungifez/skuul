@@ -2,19 +2,19 @@
 
 namespace App\Models;
 
-use App\Models\User;
-use App\Models\Section;
-use App\Models\Subject;
 use App\Models\ClassGroup;
+use App\Models\Section;
 use App\Models\StudentRecord;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\Subject;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class MyClass extends Model
 {
     use HasFactory;
 
-    protected $fillable =['name', 'class_group_id'];
+    protected $fillable = ['name', 'class_group_id'];
 
     /**
      * Get the classGroup that owns the MyClass
@@ -39,7 +39,7 @@ class MyClass extends Model
     //check if section is in a class
     public function isSectionInClass($sectionId)
     {
-        return MyClass::whereHas('sections', function($query) use ($sectionId){
+        return self::whereHas('sections', function ($query) use ($sectionId) {
             $query->where('id', $sectionId);
         })->exists();
     }

@@ -2,16 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
 use App\Services\Teacher\TeacherService;
+use Illuminate\Http\Request;
 
 class TeacherController extends Controller
 {
     public $teacher;
+
     public function __construct(TeacherService $teacher)
     {
         $this->teacher = $teacher;
     }
+
     /**
      * Display a listing of the resource.
      *

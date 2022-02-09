@@ -4,8 +4,8 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
-use Spatie\Permission\Models\Role;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class PermissionSeeder extends Seeder
 {
@@ -20,157 +20,154 @@ class PermissionSeeder extends Seeder
 
         /**
          * Create all permissions
-        */
+         */
 
         // Permissions for school
         Permission::create([
-            'name' => 'create school'
+            'name' => 'create school',
         ]);
         Permission::create([
-            'name' => 'read school'
+            'name' => 'read school',
         ]);
         Permission::create([
-            'name' => 'update school'
+            'name' => 'update school',
         ]);
         Permission::create([
-            'name' => 'delete school'
+            'name' => 'delete school',
         ]);
         Permission::create([
-            'name' => 'manage school settings'
+            'name' => 'manage school settings',
         ]);
 
         // Permissions for class group
         Permission::create([
-            'name' => 'create class group'
+            'name' => 'create class group',
         ]);
         Permission::create([
-            'name' => 'read class group'
+            'name' => 'read class group',
         ]);
         Permission::create([
-            'name' => 'update class group'
+            'name' => 'update class group',
         ]);
         Permission::create([
-            'name' => 'delete class group'
+            'name' => 'delete class group',
         ]);
 
         // Permissions for class
         Permission::create([
-            'name' => 'create class'
+            'name' => 'create class',
         ]);
         Permission::create([
-            'name' => 'read class'
+            'name' => 'read class',
         ]);
         Permission::create([
-            'name' => 'update class'
+            'name' => 'update class',
         ]);
         Permission::create([
-            'name' => 'delete class'
+            'name' => 'delete class',
         ]);
 
         // Permissions for sectionm
         Permission::create([
-            'name' => 'create section'
+            'name' => 'create section',
         ]);
         Permission::create([
-            'name' => 'read section'
+            'name' => 'read section',
         ]);
         Permission::create([
-            'name' => 'update section'
+            'name' => 'update section',
         ]);
         Permission::create([
-            'name' => 'delete section'
+            'name' => 'delete section',
         ]);
 
         //Permission for students
         Permission::create([
-            'name' => 'create student'
+            'name' => 'create student',
         ]);
         Permission::create([
-            'name' => 'read student'
+            'name' => 'read student',
         ]);
         Permission::create([
-            'name' => 'update student'
+            'name' => 'update student',
         ]);
         Permission::create([
-            'name' => 'delete student'
+            'name' => 'delete student',
         ]);
 
         //Permission for academic year
         Permission::create([
-            'name' => 'create academic year'
+            'name' => 'create academic year',
         ]);
         Permission::create([
-            'name' => 'read academic year'
+            'name' => 'read academic year',
         ]);
         Permission::create([
-            'name' => 'update academic year'
+            'name' => 'update academic year',
         ]);
         Permission::create([
-            'name' => 'delete academic year'
+            'name' => 'delete academic year',
         ]);
 
-         //Permission for teacher
-         Permission::create([
-            'name' => 'create teacher'
+        //Permission for teacher
+        Permission::create([
+            'name' => 'create teacher',
         ]);
         Permission::create([
-            'name' => 'read teacher'
+            'name' => 'read teacher',
         ]);
         Permission::create([
-            'name' => 'update teacher'
+            'name' => 'update teacher',
         ]);
         Permission::create([
-            'name' => 'delete teacher'
+            'name' => 'delete teacher',
         ]);
-        
+
         //Permission for subject
         Permission::create([
-            'name' => 'create subject'
+            'name' => 'create subject',
         ]);
         Permission::create([
-            'name' => 'read subject'
+            'name' => 'read subject',
         ]);
         Permission::create([
-            'name' => 'update subject'
+            'name' => 'update subject',
         ]);
         Permission::create([
-            'name' => 'delete subject'
+            'name' => 'delete subject',
         ]);
-                
-
 
         //header permissions (for controlling the menu headers)
         Permission::create([
-            'name' => 'header-administrate'
+            'name' => 'header-administrate',
         ]);
         Permission::create([
-            'name' => 'header-schools'
+            'name' => 'header-schools',
         ]);
         Permission::create([
-            'name' => 'menu-class'
+            'name' => 'menu-class',
         ]);
         Permission::create([
-            'name' => 'menu-section'
+            'name' => 'menu-section',
         ]);
         Permission::create([
-            'name' => 'menu-student'
+            'name' => 'menu-student',
         ]);
         Permission::create([
-            'name' => 'menu-teacher'
+            'name' => 'menu-teacher',
         ]);
         Permission::create([
-            'name' => 'menu-academic-year'
+            'name' => 'menu-academic-year',
         ]);
         Permission::create([
-            'name' => 'menu-subject'
+            'name' => 'menu-subject',
         ]);
-
 
         /**
          * assign permissions to roles
-        */
+         */
 
-         //assign permissions to admin
+        //assign permissions to admin
         $admin = Role::where('name', 'admin')->first();
         $admin->givePermissionTo([
             'header-administrate',
@@ -211,7 +208,7 @@ class PermissionSeeder extends Seeder
             'delete subject',
         ]);
 
-         //assign permissions to teacher
+        //assign permissions to teacher
 
          //assign permissions to student
 
