@@ -1,7 +1,7 @@
 @if (!empty($classes))
     <p class='text-bold'>Subject list</p>
     @foreach ($classes as $class)
-        <x-adminlte-card title="Sections under Class: {{$class->name}}" theme="secondary" icon=""  collapsible="collapsed">
+        <x-adminlte-card title="Subjects under Class: {{$class->name}}" theme="secondary" icon=""  collapsible="collapsed">
             <x-adminlte-datatable id="school-list-table-{{$class->id}}" :heads="['S/N', 'Name','Short name', 'Teahers assigned', '', '']" class='text-capitalize' >
                 @foreach($class->subjects as $subject)
                     <tr>
