@@ -26,8 +26,8 @@ Route::group(['middleware' => ['auth:sanctum', 'verified'], 'prefix' => 'dashboa
 
     //School routes
     Route::resource('schools', SchoolController::class);
-    Route::get('Schools/settings', ['App\Http\Controllers\SchoolController', 'settings'])->name('schools.settings');
-    Route::post('schools/set school', ['App\Http\Controllers\SchoolController', 'setSchool'])->name('schools.setSchool');
+    Route::get('Schools/settings', [\App\Http\Controllers\SchoolController::class, 'settings'])->name('schools.settings');
+    Route::post('schools/set school', [\App\Http\Controllers\SchoolController::class, 'setSchool'])->name('schools.setSchool');
 
     //class routes
     Route::resource('classes', MyClassController::class);
@@ -40,14 +40,14 @@ Route::group(['middleware' => ['auth:sanctum', 'verified'], 'prefix' => 'dashboa
 
     //student routes
     Route::resource('students', StudentController::class);
-    Route::get('students/{student}/print', ['App\Http\Controllers\StudentController', 'printProfile'])->name('students.print-profile');
+    Route::get('students/{student}/print', [\App\Http\Controllers\StudentController::class, 'printProfile'])->name('students.print-profile');
 
     //teacher routes
     Route::resource('teachers', TeacherController::class);
 
     //academic year routes
     Route::resource('academic-years', AcademicYearController::class);
-    Route::post('academic-years/set academic year', ['App\Http\Controllers\AcademicYearController', 'setAcademicYear'])->name('academic-years.set-academic-year');
+    Route::post('academic-years/set academic year', [\App\Http\Controllers\AcademicYearController::class, 'setAcademicYear'])->name('academic-years.set-academic-year');
 
     //subject routes
     Route::resource('subjects', SubjectController::class);
