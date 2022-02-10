@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\AcademicYear;
 use Illuminate\Http\Request;
 use App\Http\Requests\AcademicYearStoreRequest;
 use App\Services\AcademicYear\AcademicYearService;
@@ -13,6 +14,7 @@ class AcademicYearController extends Controller
     public function __construct(AcademicYearService $academicYear)
     {
         $this->academicYear = $academicYear;
+        $this->authorizeResource(AcademicYear::class, 'academic_year');
     }
 
     /**
@@ -66,7 +68,7 @@ class AcademicYearController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(AcademicYear $academicYear)
     {
         //
     }
