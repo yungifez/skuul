@@ -8,16 +8,16 @@
     "packages": [
         {
             "name": "almasaeed2010/adminlte",
-            "version": "v3.1.0",
+            "version": "v3.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/ColorlibHQ/AdminLTE.git",
-                "reference": "c641d7f5716ed47e76f70ab16e05ae41420120b8"
+                "reference": "bd4d9c72931f1dd28601b6bfb387554a381ad540"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/ColorlibHQ/AdminLTE/zipball/c641d7f5716ed47e76f70ab16e05ae41420120b8",
-                "reference": "c641d7f5716ed47e76f70ab16e05ae41420120b8",
+                "url": "https://api.github.com/repos/ColorlibHQ/AdminLTE/zipball/bd4d9c72931f1dd28601b6bfb387554a381ad540",
+                "reference": "bd4d9c72931f1dd28601b6bfb387554a381ad540",
                 "shasum": ""
             },
             "type": "library",
@@ -45,9 +45,9 @@
             ],
             "support": {
                 "issues": "https://github.com/ColorlibHQ/AdminLTE/issues",
-                "source": "https://github.com/ColorlibHQ/AdminLTE/tree/v3.1.0"
+                "source": "https://github.com/ColorlibHQ/AdminLTE/tree/v3.2.0"
             },
-            "time": "2021-03-22T07:30:50+00:00"
+            "time": "2022-02-07T20:33:09+00:00"
         },
         {
             "name": "asm89/stack-cors",
@@ -1474,20 +1474,20 @@
         },
         {
             "name": "jeroennoten/laravel-adminlte",
-            "version": "v3.7.3",
+            "version": "v3.8.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jeroennoten/Laravel-AdminLTE.git",
-                "reference": "bfee8db41d64ccdb6c71b5538ea774ddd28d64c1"
+                "reference": "5ba9fcebbdd889e4d05fdcfba927ffe1335f91ee"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jeroennoten/Laravel-AdminLTE/zipball/bfee8db41d64ccdb6c71b5538ea774ddd28d64c1",
-                "reference": "bfee8db41d64ccdb6c71b5538ea774ddd28d64c1",
+                "url": "https://api.github.com/repos/jeroennoten/Laravel-AdminLTE/zipball/5ba9fcebbdd889e4d05fdcfba927ffe1335f91ee",
+                "reference": "5ba9fcebbdd889e4d05fdcfba927ffe1335f91ee",
                 "shasum": ""
             },
             "require": {
-                "almasaeed2010/adminlte": "3.1.*",
+                "almasaeed2010/adminlte": "3.2.*",
                 "laravel/framework": ">=6.0",
                 "php": ">=7.2.0"
             },
@@ -1527,9 +1527,9 @@
             ],
             "support": {
                 "issues": "https://github.com/jeroennoten/Laravel-AdminLTE/issues",
-                "source": "https://github.com/jeroennoten/Laravel-AdminLTE/tree/v3.7.3"
+                "source": "https://github.com/jeroennoten/Laravel-AdminLTE/tree/v3.8.0"
             },
-            "time": "2022-01-28T20:16:06+00:00"
+            "time": "2022-02-10T17:50:18+00:00"
         },
         {
             "name": "laravel/fortify",
@@ -9259,16 +9259,16 @@
         },
         {
             "name": "sebastian/global-state",
-            "version": "5.0.3",
+            "version": "5.0.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/sebastianbergmann/global-state.git",
-                "reference": "23bd5951f7ff26f12d4e3242864df3e08dec4e49"
+                "reference": "19c519631c5a511b7ed0ad64a6713fdb3fd25fe4"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/sebastianbergmann/global-state/zipball/23bd5951f7ff26f12d4e3242864df3e08dec4e49",
-                "reference": "23bd5951f7ff26f12d4e3242864df3e08dec4e49",
+                "url": "https://api.github.com/repos/sebastianbergmann/global-state/zipball/19c519631c5a511b7ed0ad64a6713fdb3fd25fe4",
+                "reference": "19c519631c5a511b7ed0ad64a6713fdb3fd25fe4",
                 "shasum": ""
             },
             "require": {
@@ -9311,7 +9311,7 @@
             ],
             "support": {
                 "issues": "https://github.com/sebastianbergmann/global-state/issues",
-                "source": "https://github.com/sebastianbergmann/global-state/tree/5.0.3"
+                "source": "https://github.com/sebastianbergmann/global-state/tree/5.0.4"
             },
             "funding": [
                 {
@@ -9319,7 +9319,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2021-06-11T13:31:12+00:00"
+            "time": "2022-02-10T07:01:19+00:00"
         },
         {
             "name": "sebastian/lines-of-code",
