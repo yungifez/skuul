@@ -15,6 +15,9 @@ class StudentController extends Controller
     public function __construct(StudentService $student)
     {
         $this->student = $student;
+
+        //resource controller cant be used because of the role dependance of the user policy which needs be passed as a third parameter
+        // $this->authorizeResource(User::class, 'student');
     }
 
     /**
@@ -24,6 +27,7 @@ class StudentController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny',[ User::class, 'student']);
         return view('pages.student.index');
     }
 
@@ -34,6 +38,7 @@ class StudentController extends Controller
      */
     public function create()
     {
+        $this->authorize('create',[ User::class, 'student']);
         return view('pages.student.create');
     }
 
@@ -45,6 +50,7 @@ class StudentController extends Controller
      */
     public function store(StudentStoreRequest $request)
     {
+        $this->authorize('create',[ User::class, 'student']);
         $this->student->createStudent($request);
 
         return back();
@@ -58,6 +64,7 @@ class StudentController extends Controller
      */
     public function show(User $student)
     {
+        $this->authorize('view',[ $student, 'student']);
         $data['student'] = $student;
 
         return view('pages.student.show', $data);
@@ -81,6 +88,7 @@ class StudentController extends Controller
      */
     public function edit(User $student)
     {
+        $this->authorize('update',[ $student, 'student']);
         $data['student'] = $student;
 
         return view('pages.student.edit', $data);
@@ -95,6 +103,7 @@ class StudentController extends Controller
      */
     public function update(Request $request,User $student)
     {
+        $this->authorize('update',[ $student, 'student']);
         $data = $request->except('_token', '_method');
         $this->student->updateStudent($student, $data);
 
@@ -109,6 +118,6 @@ class StudentController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $this->authorize('destroy',[ $student, 'student']);
     }
 }
