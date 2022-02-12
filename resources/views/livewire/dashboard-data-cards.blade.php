@@ -1,4 +1,4 @@
-<div>
+<div class="my-4">
     @can('read school')
         <h4 class="text-bold text-center">Multi schools</h4>
         <div>
