@@ -2,6 +2,7 @@
 
 namespace App\Services\Student;
 
+use App\Models\Promotion;
 use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\User\UserService;
@@ -66,5 +67,48 @@ class StudentService
         $pdf = Pdf::loadView($view, $data);
 
         return $pdf->download("$name.pdf");
+    }
+
+    //promote student method
+    public function promoteStudent($records)
+    {
+        $oldClass = $this->myClass->getClassById($records['old_class']);
+        $newClass = $this->myClass->getClassById($records['new_class']);
+        $records['academic_year'] = auth()->user()->school->academic_year_id;
+
+
+        if (!$oldClass->isSectionInClass($records['old_section'])) {
+            throw new \Exception('Old section is not in the class');
+        }
+
+        if (!$newClass->isSectionInClass($records['new_section'])) {
+            throw new \Exception('New section is not in the class');
+        }
+
+        if ($records['academic_year'] == null) {
+            return session()->flash('danger', 'Academic year is not set');
+        }
+
+        $students = $this->getAllStudents()->whereIn('id', $records['student_id']);
+
+        foreach ($students as $student) {
+            if (in_array($student->id, $records['student_id'])) {
+                $student->studentRecord()->update([
+                    'my_class_id' => $records['new_class'],
+                    'section_id' => $records['new_section'],
+                ]);
+
+                Promotion::create([
+                    'old_class_id' => $records['old_class'],
+                    'new_class_id' => $records['new_class'],
+                    'old_section_id' => $records['old_section'],
+                    'new_section_id' => $records['new_section'],
+                    'student_id' => $student->id,
+                    'academic_year_id' => $records['academic_year'],
+                ]);
+            }
+        }
+
+        return session()->flash('success', 'Students Promoted Successfully');
     }
 }

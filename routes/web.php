@@ -40,7 +40,9 @@ Route::group(['middleware' => ['auth:sanctum', 'verified'], 'prefix' => 'dashboa
         //sections routes
         Route::resource('sections', SectionController::class);
 
-        //student routes
+        //student routes 
+        Route::get('students/promote', ['App\Http\Controllers\StudentController', 'promoteView'])->name('students.promote'); 
+        Route::post('students/promote', ['App\Http\Controllers\StudentController', 'promote']);
         Route::resource('students', StudentController::class);
         Route::get('students/{student}/print', ['App\Http\Controllers\StudentController', 'printProfile'])->name('students.print-profile');
 

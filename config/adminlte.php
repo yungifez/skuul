@@ -346,6 +346,12 @@ return [
                     'route' => 'students.create',
                     'can'  => 'create student',
                 ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Promote students',
+                    'route' => 'students.promote',
+                    'can'  => 'update student',
+                ],
             ]
         ],
         [
