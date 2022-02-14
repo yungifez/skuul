@@ -10,12 +10,13 @@ return new class extends Migration
     {
         Schema::create('promotions', static function (Blueprint $table) {
             $table->id();
-            $table->foreignId('old_class_id')->constrained('my_classes');
-            $table->foreignId('new_class_id')->constrained('my_classes');
-            $table->foreignId('old_section_id')->constrained('sections');
-            $table->foreignId('new_section_id')->constrained('sections');
-            $table->foreignId('academic_year_id')->constrained('academic_years');
-            $table->foreignId('student_id')->constrained('users');
+            $table->foreignId('old_class_id')->constrained('my_classes')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreignId('new_class_id')->constrained('my_classes')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreignId('old_section_id')->constrained('sections')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreignId('new_section_id')->constrained('sections')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreignId('academic_year_id')->constrained('academic_years')->onDelete('cascade')->onUpdate('cascade');
+            $table->json('students');
+            $table->foreignId('school_id')->constrained('schools')->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });
     }

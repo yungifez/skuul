@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\User;
 use App\Models\MyClass;
 use App\Models\ClassGroup;
+use App\Models\AcademicYear;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -39,5 +40,16 @@ class School extends Model
     public function myClasses()
     {
         return $this->hasManyThrough(MyClass::class, ClassGroup::class);
+    }
+
+    /**
+     * Get the AcademicYear for the School
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+
+    public function academicYear()
+    {
+        return $this->hasOne(AcademicYear::class);
     }
 }

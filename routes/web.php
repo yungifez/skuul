@@ -40,9 +40,14 @@ Route::group(['middleware' => ['auth:sanctum', 'verified'], 'prefix' => 'dashboa
         //sections routes
         Route::resource('sections', SectionController::class);
 
+        Route::middleware(['App\Http\Middleware\EnsureAcademicYearIsSet'])->group(function () {
+            //promotion routes
+            Route::get('students/promotions', ['App\Http\Controllers\PromotionController', 'index'])->name('students.promotions');
+            Route::get('students/promote', ['App\Http\Controllers\PromotionController', 'promoteView'])->name('students.promote');
+            Route::post('students/promote', ['App\Http\Controllers\PromotionController', 'promote']);
+        });
+
         //student routes 
-        Route::get('students/promote', ['App\Http\Controllers\StudentController', 'promoteView'])->name('students.promote'); 
-        Route::post('students/promote', ['App\Http\Controllers\StudentController', 'promote']);
         Route::resource('students', StudentController::class);
         Route::get('students/{student}/print', ['App\Http\Controllers\StudentController', 'printProfile'])->name('students.print-profile');
 

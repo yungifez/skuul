@@ -20,6 +20,8 @@ class PermissionSeeder extends Seeder
 
         /**
          * Create all permissions
+         * 
+         * EVERYTHING HERE IS USED IN A SINGULAR SENSE
         */
 
         // Permissions for school
@@ -136,7 +138,14 @@ class PermissionSeeder extends Seeder
         Permission::create([
             'name' => 'delete subject'
         ]);
-                
+
+        //Permission for student promotions
+        Permission::create([
+            'name' => 'promote student'
+        ]);
+        Permission::create([
+            'name' => 'read promotion'
+        ]);
 
 
         //header permissions (for controlling the menu headers)
@@ -209,6 +218,8 @@ class PermissionSeeder extends Seeder
             'read subject',
             'update subject',
             'delete subject',
+            'promote student',
+            'read promotion',
         ]);
 
          //assign permissions to teacher

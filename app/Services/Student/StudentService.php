@@ -97,18 +97,29 @@ class StudentService
                     'my_class_id' => $records['new_class'],
                     'section_id' => $records['new_section'],
                 ]);
-
-                Promotion::create([
-                    'old_class_id' => $records['old_class'],
-                    'new_class_id' => $records['new_class'],
-                    'old_section_id' => $records['old_section'],
-                    'new_section_id' => $records['new_section'],
-                    'student_id' => $student->id,
-                    'academic_year_id' => $records['academic_year'],
-                ]);
             }
         }
 
+        Promotion::create([
+            'old_class_id' => $records['old_class'],
+            'new_class_id' => $records['new_class'],
+            'old_section_id' => $records['old_section'],
+            'new_section_id' => $records['new_section'],
+            'students' => $student->id,
+            'academic_year_id' => $records['academic_year'],
+            'school_id' => auth()->user()->school_id,
+        ]);
+
         return session()->flash('success', 'Students Promoted Successfully');
+    }
+
+    public function getAllPromotions()
+    {
+        return Promotion::where('school_id', auth()->user()->school_id)->get();
+    }
+
+    public function getPromotionsByAcademicYearId($academicYearId)
+    {
+        return Promotion::where('school_id', auth()->user()->school_id)->where('academic_year_id' , $academicYearId)->get();
     }
 }

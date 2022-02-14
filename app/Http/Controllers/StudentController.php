@@ -6,7 +6,6 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\Student\StudentService;
 use App\Http\Requests\StudentStoreRequest;
-use App\Http\Requests\StudentPromoteRequest;
 
 class StudentController extends Controller
 {
@@ -120,24 +119,5 @@ class StudentController extends Controller
     public function destroy($id)
     {
         $this->authorize('destroy',[ $student, 'student']);
-    }
-
-    /**
-     * promote view 
-     */
-    public function promoteView()
-    {
-    return view('pages.student.promote');
-    }
-
-    /**
-    * promote student
-    */
-    public function promote(StudentPromoteRequest $request)
-    {
-        $data = collect($request->except('_token'));
-        $this->student->promoteStudent($data);
-
-        return back();
     }
 }

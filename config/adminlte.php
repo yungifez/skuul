@@ -350,8 +350,15 @@ return [
                     'type' => 'sidebar-menu-item',
                     'text' => 'Promote students',
                     'route' => 'students.promote',
-                    'can'  => 'update student',
+                    'can'  => 'promote student',
                 ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Manage promotions',
+                    'route' => 'students.promotions',
+                    'can'  => 'view promotions',
+                ],
+
             ]
         ],
         [
