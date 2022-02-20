@@ -25,6 +25,13 @@ class StudentService
         return $this->user->getUsersByRole('student')->load('studentRecord');
     }
 
+    // get student by id
+
+    public function getStudentById($id)
+    {
+        return $this->user->getUserById($id)->load('studentRecord');
+    }
+
     //create student method
 
     public function createStudent($record)
@@ -77,20 +84,30 @@ class StudentService
         $records['academic_year'] = auth()->user()->school->academic_year_id;
 
 
+        //check if the section is in  class
         if (!$oldClass->isSectionInClass($records['old_section'])) {
             throw new \Exception('Old section is not in the class');
         }
 
+        // make sure section is in class
         if (!$newClass->isSectionInClass($records['new_section'])) {
             throw new \Exception('New section is not in the class');
         }
 
+        //make sure academic year is present
         if ($records['academic_year'] == null) {
             return session()->flash('danger', 'Academic year is not set');
         }
 
+        //get all students for promotion
         $students = $this->getAllStudents()->whereIn('id', $records['student_id']);
 
+        // make sure there are students to promote
+        if (!$students->count()) {
+            return session()->flash('danger', 'No students to promote');
+        }
+
+        // update each student's class
         foreach ($students as $student) {
             if (in_array($student->id, $records['student_id'])) {
                 $student->studentRecord()->update([
@@ -100,12 +117,13 @@ class StudentService
             }
         }
 
+        // create promotion record
         Promotion::create([
             'old_class_id' => $records['old_class'],
             'new_class_id' => $records['new_class'],
             'old_section_id' => $records['old_section'],
             'new_section_id' => $records['new_section'],
-            'students' => $student->id,
+            'students' => $students->pluck('id'),
             'academic_year_id' => $records['academic_year'],
             'school_id' => auth()->user()->school_id,
         ]);
@@ -121,5 +139,23 @@ class StudentService
     public function getPromotionsByAcademicYearId($academicYearId)
     {
         return Promotion::where('school_id', auth()->user()->school_id)->where('academic_year_id' , $academicYearId)->get();
+    }
+
+    // reset promotion method
+
+    public function resetPromotion($promotion)
+    {
+        $students = $this->getStudentById($promotion->students);
+
+        foreach ($students as $student) {
+            $student->studentRecord()->update([
+                'my_class_id' => $promotion->old_class_id,
+                'section_id' => $promotion->old_section_id,
+            ]);
+        }
+
+        $promotion->delete();
+
+        return session()->flash('success', 'Promotion Reset Successfully');
     }
 }

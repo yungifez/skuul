@@ -45,6 +45,8 @@ Route::group(['middleware' => ['auth:sanctum', 'verified'], 'prefix' => 'dashboa
             Route::get('students/promotions', ['App\Http\Controllers\PromotionController', 'index'])->name('students.promotions');
             Route::get('students/promote', ['App\Http\Controllers\PromotionController', 'promoteView'])->name('students.promote');
             Route::post('students/promote', ['App\Http\Controllers\PromotionController', 'promote']);
+            Route::get('students/promotions/{promotion}', ['App\Http\Controllers\PromotionController', 'show'])->name('students.promotions.show');
+            Route::delete('students/promotions/{promotion}/reset', ['App\Http\Controllers\PromotionController', 'resetPromotion'])->name('students.promotions.reset');
         });
 
         //student routes 

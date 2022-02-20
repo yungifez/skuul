@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Promotion;
 use Illuminate\Http\Request;
 use App\Services\Student\StudentService;
 use App\Http\Requests\StudentPromoteRequest;
@@ -20,7 +21,7 @@ class PromotionController extends Controller
      */
     public function index()
     {
-        return view('pages.student.promotions');
+        return view('pages.student.promotion.index');
     }
 
     /**
@@ -28,7 +29,7 @@ class PromotionController extends Controller
      */
     public function promoteView()
     {
-    return view('pages.student.promote');
+    return view('pages.student.promotion.promote');
     }
 
     /**
@@ -40,5 +41,25 @@ class PromotionController extends Controller
         $this->student->promoteStudent($data);
 
         return back();
+    }
+
+    /**
+     * reset promotion
+     */
+    public function resetPromotion(Promotion $promotion){
+        $this->student->resetPromotion($promotion);
+
+        return back();
+    }
+
+    /**
+     * Display the specified resource.
+     *
+     * @param  int  $id
+     * @return \Illuminate\Http\Response
+     */
+    public function show(Promotion $promotion)
+    {
+        return view('pages.student.promotion.show', compact('promotion'));
     }
 }

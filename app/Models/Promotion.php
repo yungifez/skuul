@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\User;
 use App\Models\MyClass;
 use App\Models\Section;
 use Illuminate\Database\Eloquent\Model;
@@ -25,6 +26,11 @@ class Promotion extends Model
         'students' => 'array',
     ];
 
+    public function getLabelAttribute()
+    {    
+        return "{$this->oldClass->name} - {$this->oldSection->name} to {$this->newClass->name} - {$this->newSection->name} year: {$this->academicYear->start_year} - {$this->academicYear->stop_year}";
+    }
+
     public function oldClass()
     {
         return $this->belongsTo(MyClass::class, 'old_class_id');
@@ -43,5 +49,10 @@ class Promotion extends Model
     public function newSection()
     {
         return $this->belongsTo(Section::class, 'new_section_id');
+    }
+
+    public function academicYear()
+    {
+        return $this->belongsTo(AcademicYear::class, 'academic_year_id');
     }
 }
