@@ -1,4 +1,4 @@
-<div>
+<div class="my-3">
     <p class='text-bold'>School list</p>
     <x-adminlte-datatable id="school-list-table" :heads="['S/N', 'Name','initials','Code' , 'address', '', '']" class='text-capitalize' >
         @foreach($schools as $school)

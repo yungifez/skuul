@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use App\Models\School;
+use App\Models\StudentRecord;
+use App\Models\TeacherRecord;
 use Laravel\Sanctum\HasApiTokens;
 use Laravel\Jetstream\HasProfilePhoto;
 use Spatie\Permission\Traits\HasRoles;
@@ -12,7 +14,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens;
     use HasFactory;
@@ -30,6 +32,16 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'birthday',
+        'address',
+        'blood_group',
+        'religion',
+        'nationality',
+        'phone',
+        'state',
+        'city',
+        'gender',
+        'school_id'
     ];
 
     /**
@@ -51,6 +63,7 @@ class User extends Authenticatable
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'birthday' => 'date:Y-m-d',
     ];
 
     /**
@@ -70,5 +83,45 @@ class User extends Authenticatable
     public function school()
     {
         return $this->belongsTo(School::class);
+    }
+
+    /**
+     * Get the studentRecord associated with the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function studentRecord()
+    {
+        return $this->hasOne(StudentRecord::class);
+    }
+
+    /**
+     * Get the teacherRecord associated with the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function teacherRecord()
+    {
+        return $this->hasOne(TeacherRecord::class);
+    }
+
+    //get first name
+    public function firstName()
+    {
+        return explode(' ', $this->name)[0];
+    }
+
+    //get last name
+    public function lastName()
+    {
+        return explode(' ', $this->name)[1];
+    }
+
+    //get other names
+    public function otherNames()
+    {
+        $names = array_diff_key(explode(' ', $this->name), array_flip([0,1]));
+
+        return implode(' ', $names);
     }
 }

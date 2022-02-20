@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\MyClass;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Section extends Model
 {
@@ -16,8 +17,18 @@ class Section extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function MyClass(): BelongsTo
+    public function myClass()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(MyClass::class);
+    }
+
+    /**
+     * Get the StudentRecords that owns the Section
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function studentRecords()
+    {
+        return $this->hasMany(StudentRecord::class);
     }
 }

@@ -20,6 +20,8 @@ class PermissionSeeder extends Seeder
 
         /**
          * Create all permissions
+         * 
+         * EVERYTHING HERE IS USED IN A SINGULAR SENSE
         */
 
         // Permissions for school
@@ -80,7 +82,70 @@ class PermissionSeeder extends Seeder
         Permission::create([
             'name' => 'delete section'
         ]);
+
+        //Permission for students
+        Permission::create([
+            'name' => 'create student'
+        ]);
+        Permission::create([
+            'name' => 'read student'
+        ]);
+        Permission::create([
+            'name' => 'update student'
+        ]);
+        Permission::create([
+            'name' => 'delete student'
+        ]);
+
+        //Permission for academic year
+        Permission::create([
+            'name' => 'create academic year'
+        ]);
+        Permission::create([
+            'name' => 'read academic year'
+        ]);
+        Permission::create([
+            'name' => 'update academic year'
+        ]);
+        Permission::create([
+            'name' => 'delete academic year'
+        ]);
+
+         //Permission for teacher
+         Permission::create([
+            'name' => 'create teacher'
+        ]);
+        Permission::create([
+            'name' => 'read teacher'
+        ]);
+        Permission::create([
+            'name' => 'update teacher'
+        ]);
+        Permission::create([
+            'name' => 'delete teacher'
+        ]);
         
+        //Permission for subject
+        Permission::create([
+            'name' => 'create subject'
+        ]);
+        Permission::create([
+            'name' => 'read subject'
+        ]);
+        Permission::create([
+            'name' => 'update subject'
+        ]);
+        Permission::create([
+            'name' => 'delete subject'
+        ]);
+
+        //Permission for student promotions
+        Permission::create([
+            'name' => 'promote student'
+        ]);
+        Permission::create([
+            'name' => 'read promotion'
+        ]);
 
 
         //header permissions (for controlling the menu headers)
@@ -96,6 +161,18 @@ class PermissionSeeder extends Seeder
         Permission::create([
             'name' => 'menu-section'
         ]);
+        Permission::create([
+            'name' => 'menu-student'
+        ]);
+        Permission::create([
+            'name' => 'menu-teacher'
+        ]);
+        Permission::create([
+            'name' => 'menu-academic-year'
+        ]);
+        Permission::create([
+            'name' => 'menu-subject'
+        ]);
 
 
         /**
@@ -108,8 +185,11 @@ class PermissionSeeder extends Seeder
             'header-administrate',
             'menu-section',
             'menu-class',
+            'menu-student',
+            'menu-teacher',
+            'menu-academic-year',
+            'menu-subject',
             'manage school settings',
-            'update school',
             'create section',
             'read section',
             'update section',
@@ -122,6 +202,24 @@ class PermissionSeeder extends Seeder
             'read class group',
             'update class group',
             'delete class group',
+            'create student',
+            'read student',
+            'update student',
+            'delete student',
+            'create academic year',
+            'read academic year',
+            'update academic year',
+            'delete academic year',
+            'create teacher',
+            'read teacher',
+            'update teacher',
+            'delete teacher',
+            'create subject',
+            'read subject',
+            'update subject',
+            'delete subject',
+            'promote student',
+            'read promotion',
         ]);
 
          //assign permissions to teacher

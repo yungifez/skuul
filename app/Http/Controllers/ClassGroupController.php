@@ -65,9 +65,11 @@ class ClassGroupController extends Controller
      * @return \Illuminate\Http\Response
      */
 
-    public function show($id)
+    public function show(ClassGroup $classGroup)
     {
-        //
+        $data['classGroup'] = $classGroup;
+
+        return view('pages.class-group.show', $data);
     }
 
     /**
