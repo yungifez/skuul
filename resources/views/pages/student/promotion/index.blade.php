@@ -3,7 +3,7 @@
 @php
     $currentAcademicYear = auth()->user()->school->load('academicYear')->academicYear;
 @endphp
-@section('title', __('Promote Students'))
+@section('title', __('Manage Promotions'))
 
 
 @section('content_header')
