@@ -38,7 +38,7 @@ class PromotionController extends Controller
     public function promote(StudentPromoteRequest $request)
     {
         $data = collect($request->except('_token'));
-        $this->student->promoteStudent($data);
+        $this->student->promoteStudents($data);
 
         return back();
     }
