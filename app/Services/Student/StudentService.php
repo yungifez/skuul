@@ -2,6 +2,7 @@
 
 namespace App\Services\Student;
 
+use App\Models\User;
 use App\Models\Promotion;
 use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -20,9 +21,23 @@ class StudentService
         $this->user = $user;
     }
   
+    //gets active students
     public function getAllStudents()
     {
-        return $this->user->getUsersByRole('student')->load('studentRecord');
+        return $this->user->getUsersByRole('student')->load('studentRecord')->filter(function ($student)
+        {
+            return $student->studentRecord->is_graduated == false;
+        });
+    }
+
+    //gets graduated students
+
+    public function getAllGraduatedStudents()
+    {
+        return $this->user->getUsersByRole('student')->load('studentRecord')->filter(function ($student)
+        {
+            return $student->studentRecord->is_graduated == true;
+        });
     }
 
     // get student by id
@@ -77,7 +92,7 @@ class StudentService
     }
 
     //promote student method
-    public function promoteStudent($records)
+    public function promoteStudents($records)
     {
         $oldClass = $this->myClass->getClassById($records['old_class']);
         $newClass = $this->myClass->getClassById($records['new_class']);
@@ -131,6 +146,8 @@ class StudentService
         return session()->flash('success', 'Students Promoted Successfully');
     }
 
+    //get all promotion record
+
     public function getAllPromotions()
     {
         return Promotion::where('school_id', auth()->user()->school_id)->get();
@@ -157,5 +174,41 @@ class StudentService
         $promotion->delete();
 
         return session()->flash('success', 'Promotion Reset Successfully');
+    }
+
+    //graduate student method
+    public function graduateStudents($records)
+    {
+        //get all students for graduation
+        $students = $this->getAllStudents()->whereIn('id', $records['student_id']);
+
+        // make sure there are students to graduate
+        if (!$students->count()) {
+            return session()->flash('danger', 'No students to graduate');
+        }
+
+        // update each student's graduation status
+        foreach ($students as $student) {
+            if (in_array($student->id, $records['student_id'])) {
+                $student->studentRecord()->update([
+                    'is_graduated' => true
+                ]);
+            }
+        }
+
+        return session()->flash('success', 'Students graduated Successfully');
+    }
+
+    //reset graduation method
+
+    public function resetGraduation($student)
+    {
+        $student = $this->getStudentById($student);
+
+        $student->studentRecord()->update([
+            'is_graduated' => false
+        ]);
+
+        return session()->flash('success', 'Graduation Reset Successfully');
     }
 }

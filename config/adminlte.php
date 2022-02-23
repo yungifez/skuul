@@ -358,6 +358,18 @@ return [
                     'route' => 'students.promotions',
                     'can'  => 'view promotions',
                 ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Graduate students',
+                    'route' => 'students.graduate',
+                    'can'  => 'graduate student',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Manage graduations',
+                    'route' => 'students.graduations',
+                    'can'  => 'view graduations',
+                ],
 
             ]
         ],

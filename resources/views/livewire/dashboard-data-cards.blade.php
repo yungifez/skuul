@@ -25,7 +25,7 @@
         </div>
         <div class="col-lg-4">
             @can('read student')
-                <x-adminlte-small-box title="{{$students}}" text="Students" icon=" text-dark" theme="yellow" url="{{route('students.index')}}" url-text="View students" />
+                <x-adminlte-small-box title="{{$students}}" text="Students (active)" icon=" text-dark" theme="yellow" url="{{route('students.index')}}" url-text="View students" />
             @endcan
         </div>
         <div class="col-lg-4">
