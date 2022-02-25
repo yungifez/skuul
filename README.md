@@ -53,6 +53,26 @@ After running the above commands, you should be able to access the application a
 * Add classes to class groups
 * Add sections to classes
 * Add students to sections (You must have created a class and a section before you can add students)
+* Add teachers to school
+* Add subjects to school
+
+## Features
+### Super Admin
+By default super admin can manage all activities in each school, some admin exclusive features are
+* Ability to create, edit and delete schools
+* Ability to manage school settings
+
+### Admin
+* Ability to create, edit, view and delete class groups in assigned school
+* Ability to create, edit, view and delete classes 
+* Ability to create, edit, view and delete sections
+* Ability to create, edit, view and delete classes
+* Ability to create, edit, view and delete subjects
+* Ability to create, edit, view and delete academic years
+* Ability to set Academic years
+* Ability to admit students, view student profiles, edit student profile, print student profile,
+
+This project was highly inspired by 4jean/lavSMS
 
 
 
