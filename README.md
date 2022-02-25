@@ -12,26 +12,47 @@ Schooldash is a multi school management system that aims to make administration 
 
 ## Installation
 * Clone the repository by running the following command in your comamand line below (Or you can dowload zip file from github)
-
 ```shell
 git clone https://github.com/yungifez/schooldash ./schooldash
  ```
-
 * Head to the projects directory
 ```shell
 cd schooldash
  ```
-
 * Install composer dependancies
 ```shell
 composer install
+```
+* Copy .env.example file into .env file and configure based on your environment
+```shell
+cp .emv.example .env
 ```
 * Migrate the database
 ```shell
 php artisan migrate
 ```
-
 * Seed database
 ```shell
 php artisan db:seed
- ```
+```
+
+After running the above commands, you should be able to access the application at http::/localhost or your designated domain name depending on configuration.
+
+## Setup
+* Log in to the application with the following credentials
+    * Email: Super@admin.com
+    * Password: password
+    
+    You would be authenticated and redirected to the dashboard
+* Create a new school or work with the default school
+* Proceed to view schools and from the drop down, set the school you want to work with. Now any action you carry out will be carried out on the set school
+* Create an academic year and set it as the current academic year
+
+## Usage
+* Add class groups to the school
+* Add classes to class groups
+* Add sections to classes
+* Add students to sections (You must have created a class and a section before you can add students)
+
+
+
