@@ -20,6 +20,14 @@
                     <th scope="row">Admission Date:</th>
                     <td>{{$student->studentRecord->admission_date}}</td>
                 </tr>
+                <tr>
+                    <th scope="row">Graduated:</th>
+                    @if ($student->studentRecord->is_graduated == 0)
+                        <td>False</td>
+                    @else
+                        <td>True</td>
+                    @endif
+                </tr>
             </tbody>
         </table>
     </div>
