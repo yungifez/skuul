@@ -1,5 +1,5 @@
-<div class="d-flex justify-content-between">
-<x-adminlte-select name="nationality" label="Nationality" fgroup-class="col-md-6 "  wire:model="nationality" enable-old-support>
+<div class="row">
+<x-adminlte-select name="nationality" label="Nationality" fgroup-class="col-md-6"  wire:model="nationality" enable-old-support>
     @foreach ($nationalities as $item)
         <option value="{{$item}}">{{$item}}</option>
     @endforeach
