@@ -4,10 +4,10 @@
         <option value="{{$item}}">{{$item}}</option>
     @endforeach
 </x-adminlte-select>
-<x-adminlte-select2 name="state" label="State" fgroup-class="col-md-6" enable-old-support wire:init="loadInitialStates" >
+<x-adminlte-select2 name="state" label="State" fgroup-class="col-md-6" enable-old-support wire:init="loadInitialStates">
     @if (isset($states))
         @foreach ($states as $item)
-            <option value="{{$item}}" {{$state == $item ? 'selected' : ''}}>{{$item}}</option>
+            <option value="{{$item['name']}}" {{$state == $item['name'] ? 'selected' : ''}}>{{$item['name']}}</option>
         @endforeach
     @else 
         <option value="" disabled>Select a country first</option>
