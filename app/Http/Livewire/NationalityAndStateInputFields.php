@@ -8,24 +8,27 @@ use Livewire\Component;
 class NationalityAndStateInputFields extends Component
 {
     public $nationalities;
+
     public $nationality;
+
     public $states;
+
     public $state;
 
     protected $rules = [
         'nationality' => 'string',
-        'state' => 'string'
+        'state' => 'string',
     ];
- 
 
     public function mount()
     {
         $this->nationalities = World::countries()->data->pluck('name');
 
-        if ($this->nationality != null && !in_array($this->nationality, $this->nationalities->toArray())) {
+        if ($this->nationality != null && ! in_array($this->nationality, $this->nationalities->toArray())) {
             $this->nationality = null;
         }
     }
+
     public function updatedNationality()
     {
         // $this->states = collect(World::where('name.common' , $this->nationality)->first()->hydrateStates()->states->pluck('name'));
@@ -35,8 +38,8 @@ class NationalityAndStateInputFields extends Component
                 'name' => $this->nationality,
             ]
         ])->data->pluck('states')->first();
-        
     }
+
     public function loadInitialStates()
     {
         if ($this->nationality != null) {
@@ -56,7 +59,6 @@ class NationalityAndStateInputFields extends Component
             ]
         ])->data->pluck('states')->first();
         }
-      
     }
 
     public function render()

@@ -14,8 +14,8 @@ class ClassGroupFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->name,
-            'school_id' => 1
+            'name' => $this->faker->name(),
+            'school_id' => 1,
         ];
     }
 }

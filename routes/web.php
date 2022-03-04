@@ -17,7 +17,7 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
-Route::group(['middleware' => ['auth:sanctum', 'verified'], 'prefix' => 'dashboard', 'namespace' => 'App\Http\Controllers'], function () {
+Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('App\Http\Controllers')->group(function () {
 
  
     //School routes

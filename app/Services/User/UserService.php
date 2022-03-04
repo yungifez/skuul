@@ -2,13 +2,14 @@
 
 namespace App\Services\User;
 
-use App\Models\User;
 use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Models\User;
 
 class UserService
 {
     public $createUserAction;
+
     public $updateUserProfileInformationAction;
     //construct method which assigns CresteNewUser to createUserAction variable
 
@@ -35,9 +36,9 @@ class UserService
 
     public function createUser($record)
     {
-        $record['name'] = $this->createFullName($record['first_name'],$record['last_name'],$record['other_names']);
+        $record['name'] = $this->createFullName($record['first_name'], $record['last_name'], $record['other_names']);
         $record['school_id'] = auth()->user()->school_id;
-        $user =  $this->createUserAction->create([
+        $user = $this->createUserAction->create([
             'name' => $record['name'],
             'email' => $record['email'],
             'password' => $record['password'],
@@ -51,9 +52,9 @@ class UserService
             'state' => $record['state'],
             'city' => $record['city'],
             'gender' => $record['gender'],
-            'phone' => $record['phone']
+            'phone' => $record['phone'],
         ]);
-    
+
         if (isset($record['profile_photo'])) {
             $user->updateProfilePhoto($record['profile_photo']);
         }
@@ -65,7 +66,7 @@ class UserService
 
     public function createFullName($firstname, $lastname, $othernames = null)
     {
-        return $firstname . ' ' . $lastname. ' ' . $othernames;
+        return $firstname.' '.$lastname.' '.$othernames;
     }
 
     // verify role
@@ -79,7 +80,7 @@ class UserService
 
     public function updateUser(User $user, $record)
     {
-        $record['name'] = $this->createFullName($record['first_name'],$record['last_name'],$record['other_names']);
+        $record['name'] = $this->createFullName($record['first_name'], $record['last_name'], $record['other_names']);
 
         $user = $this->updateUserProfileInformationAction->updateUser($user, $record);
 

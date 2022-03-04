@@ -2,10 +2,10 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Seeder;
 use Database\Seeders\RoleSeeder;
-use Database\Seeders\UserSeeder;
 use Database\Seeders\SchoolSeeder;
+use Database\Seeders\UserSeeder;
+use Illuminate\Database\Seeder;
 
 class RunInProductionSeeder extends Seeder
 {
@@ -17,7 +17,7 @@ class RunInProductionSeeder extends Seeder
     public function run()
     {
         $this->call([
-          
+
         ]);
     }
 }

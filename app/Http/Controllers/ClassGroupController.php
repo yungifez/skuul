@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ClassGroup;
-use Illuminate\Http\Request;
-use App\Services\MyClass\MyClassService;
 use App\Http\Requests\ClassGroupStoreRequest;
+use App\Models\ClassGroup;
+use App\Services\MyClass\MyClassService;
+use Illuminate\Http\Request;
 
 class ClassGroupController extends Controller
 {
     //create public properties
     public $myClass;
-
 
     //construct method
     public function __construct(MyClassService $myClass)
@@ -25,7 +24,6 @@ class ClassGroupController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-
     public function index()
     {
         return view('pages.class-group.index');
@@ -36,7 +34,6 @@ class ClassGroupController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-
     public function create()
     {
         return view('pages.class-group.create');
@@ -48,15 +45,13 @@ class ClassGroupController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-
     public function store(ClassGroupStoreRequest $request)
     {
         $data = $request->except('_token');
         $this->myClass->createClassGroup($data);
-         
+
         return redirect()->back();
     }
-
 
     /**
      * Display the specified resource.
@@ -64,7 +59,6 @@ class ClassGroupController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-
     public function show(ClassGroup $classGroup)
     {
         $data['classGroup'] = $classGroup;
@@ -78,8 +72,8 @@ class ClassGroupController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-
-    public function edit(ClassGroup $classGroup){
+    public function edit(ClassGroup $classGroup)
+    {
         $data['classGroup'] = $classGroup;
 
         return view('pages.class-group.edit', $data);
@@ -92,8 +86,8 @@ class ClassGroupController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-
-    public function update(ClassGroupStoreRequest $request,ClassGroup $classGroup){
+    public function update(ClassGroupStoreRequest $request, ClassGroup $classGroup)
+    {
         $data = $request->except('_token', '_method', 'school_id');
         $this->myClass->updateClassGroup($classGroup, $data);
 
@@ -106,11 +100,10 @@ class ClassGroupController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-
-    public function destroy(ClassGroup $classGroup){
+    public function destroy(ClassGroup $classGroup)
+    {
         $this->myClass->deleteClassGroup($classGroup);
 
         return back();
     }
-
 }

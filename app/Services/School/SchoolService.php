@@ -3,13 +3,13 @@
 namespace App\Services\School;
 
 use App\Models\School;
-use Illuminate\Support\Str;
 use App\Services\User\UserService;
-
+use Illuminate\Support\Str;
 
 class SchoolService
 {
     public $userService;
+
     public function __construct(UserService $userService)
     {
         $this->userService = $userService;
@@ -17,7 +17,7 @@ class SchoolService
 
     public function getAllSchools()
     {
-       return School::all();
+        return School::all();
     }
 
     public function getSchoolById($id)
@@ -29,15 +29,15 @@ class SchoolService
     {
         $records['code'] = $this->generateSchoolCode();
         $school = School::create($records);
-        session()->flash('success',  __('School created successfully'));
-        
+        session()->flash('success', __('School created successfully'));
+
         return $school;
     }
 
     public function updateSchool(School $school, $records)
     {
         $school->update($records);
-        session()->flash('success',  __('School updated successfully'));
+        session()->flash('success', __('School updated successfully'));
 
         return $school;
     }
@@ -56,11 +56,12 @@ class SchoolService
         }
 
         session()->flash('danger', __('School not found'));
+
         return false;
     }
 
-    public function generateSchoolCode(){
+    public function generateSchoolCode()
+    {
         return Str::random(10);
     }
-    
 }

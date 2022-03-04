@@ -11,7 +11,7 @@ class MyClassStoreRequest extends FormRequest
      *
      * @return bool
      */
- 
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -21,13 +21,14 @@ class MyClassStoreRequest extends FormRequest
     {
         return [
             'name' => 'required',
-            'class_group_id' => 'required'
+            'class_group_id' => 'required',
         ];
     }
+
     public function messages()
     {
         return [
-            'class_group_id.required' => 'Please select a class group'
+            'class_group_id.required' => 'Please select a class group',
         ];
     }
 }

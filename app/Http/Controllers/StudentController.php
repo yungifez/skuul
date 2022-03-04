@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Illuminate\Http\Request;
-use App\Services\Student\StudentService;
 use App\Http\Requests\StudentStoreRequest;
+use App\Models\User;
+use App\Services\Student\StudentService;
+use Illuminate\Http\Request;
 
 class StudentController extends Controller
 {
@@ -101,7 +101,7 @@ class StudentController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request,User $student)
+    public function update(Request $request, User $student)
     {
         $this->authorize('update',[ $student, 'student']);
         $data = $request->except('_token', '_method');

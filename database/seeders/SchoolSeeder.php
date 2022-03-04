@@ -3,9 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\School;
-use Illuminate\Support\Str;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class SchoolSeeder extends Seeder
 {
@@ -16,14 +16,13 @@ class SchoolSeeder extends Seeder
      */
     public function run()
     {
-    
         School::updateOrCreate(
             ['id' => 1],
             [
-            'name' => 'Default School',
-            'address' => 'School of Computing',
-            'code' => Str::Random(10),
-            'initials' => 'DSI',
+                'name' => 'Default School',
+                'address' => 'School of Computing',
+                'code' => Str::Random(10),
+                'initials' => 'DSI',
             ]
         );
 

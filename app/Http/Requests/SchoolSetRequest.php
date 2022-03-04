@@ -11,12 +11,12 @@ class SchoolSetRequest extends FormRequest
      *
      * @return bool
      */
-    public function authorize(){
+    public function authorize()
+    {
         if (auth()->user()->hasRole('super-admin')) {
             return true;
         }
     }
-  
 
     /**
      * Get the validation rules that apply to the request.
@@ -26,7 +26,7 @@ class SchoolSetRequest extends FormRequest
     public function rules()
     {
         return [
-            'school_id' => 'required:int'
+            'school_id' => 'required:int',
         ];
     }
 }

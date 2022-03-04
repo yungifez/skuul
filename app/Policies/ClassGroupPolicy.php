@@ -12,7 +12,7 @@ class ClassGroupPolicy
 
     public function __construct(ClassGroup $classGroup)
     {
-       return true;
+        return true;
     }
 
     /**
@@ -62,8 +62,8 @@ class ClassGroupPolicy
      * @param  \App\Models\ClassGroup  $classGroup
      * @return \Illuminate\Auth\Access\Response|bool
      */
-
-    public function update(User $user, ClassGroup $classGroup){
+    public function update(User $user, ClassGroup $classGroup)
+    {
         if ($user->can('update class group') && $user->school_id == $classGroup->school_id) {
             return true;
         }

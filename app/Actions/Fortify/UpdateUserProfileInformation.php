@@ -57,14 +57,14 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         $user->sendEmailVerificationNotification();
     }
 
-    //updating profile on behalf of themself 
+    //updating profile on behalf of themself
     public function updateUser($user, array $input)
     {
         Validator::make($input, [
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:1024'],
-            'birthday' => ['required', 'date','date_format:Y/m/d', 'before:today'],
+            'birthday' => ['required', 'date', 'date_format:Y/m/d', 'before:today'],
             'address' => ['required', 'string', 'max:500'],
             'blood_group' => ['required', 'string', 'max:255'],
             'religion' => ['string', 'max:255'],
@@ -72,7 +72,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'state' => ['required', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:255'],
             'gender' => ['required', 'string', 'max:255'],
-            'phone' => ['string','max:255']
+            'phone' => ['string', 'max:255'],
         ])->validate();
 
         if (isset($input['photo'])) {

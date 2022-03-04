@@ -11,7 +11,6 @@ class SchoolUpdateRequest extends FormRequest
      *
      * @return bool
      */
- 
 
     /**
      * Get the validation rules that apply to the request.

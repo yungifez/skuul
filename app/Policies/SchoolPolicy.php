@@ -60,8 +60,8 @@ class SchoolPolicy
         if ($user->can('update school')) {
             return true;
         }
-       
-        if ($user->can('manage school settings'))  {
+
+        if ($user->can('manage school settings')) {
             return $user->school_id == $school->id;
         }
     }

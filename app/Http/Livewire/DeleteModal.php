@@ -10,6 +10,7 @@ class DeleteModal extends Component
     public $button_label = "Delete";
     public $action;
     public $item_name;
+
     public function render()
     {
         return view('livewire.delete-modal');

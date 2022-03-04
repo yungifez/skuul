@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Subject;
-use Illuminate\Http\Request;
-use App\Services\Subject\SubjectService;
 use App\Http\Requests\SubjectStoreRequest;
+use App\Models\Subject;
+use App\Services\Subject\SubjectService;
+use Illuminate\Http\Request;
 
 class SubjectController extends Controller
 {
@@ -16,6 +16,7 @@ class SubjectController extends Controller
         $this->subject = $subject;
         $this->authorizeResource(Subject::class, 'subject');
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -72,7 +73,7 @@ class SubjectController extends Controller
     {
         $data['subject'] = $subject;
 
-        return view('pages.subject.edit',$data);
+        return view('pages.subject.edit', $data);
     }
 
     /**
@@ -82,11 +83,11 @@ class SubjectController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(SubjectStoreRequest $request,Subject $subject)
+    public function update(SubjectStoreRequest $request, Subject $subject)
     {
         $data = $request->except(['_token', '_method']);
 
-        $this->subject->updateSubject($subject,$data);
+        $this->subject->updateSubject($subject, $data);
 
         return back();
     }

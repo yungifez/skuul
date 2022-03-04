@@ -2,24 +2,27 @@
 
 namespace App\Http\Livewire;
 
-use Livewire\Component;
-use Illuminate\Support\Facades\App;
 use App\Services\MyClass\MyClassService;
 use App\Services\Section\SectionService;
+use Illuminate\Support\Facades\App;
+use Livewire\Component;
 
 class CreateStudentForm extends Component
 {
     public $myClasses;
+
     public $myClass;
+
     public $sections;
+
     public $section;
+
     protected $myClassService;
 
     protected $rules = [
         'myClass' => 'string',
         'section' => 'string',
     ];
- 
 
     public function mount(MyClassService $myClassService)
     {
@@ -30,7 +33,6 @@ class CreateStudentForm extends Component
     {
         $this->sections = collect(App::make(MyClassService::class)->getClassById($this->myClasses[0]['id'])->sections);
     }
-
 
     public function updatedMyClass()
     {
