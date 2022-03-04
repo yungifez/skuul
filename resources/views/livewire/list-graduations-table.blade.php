@@ -22,10 +22,7 @@
                     ],
                 ],)</td>
                 <td>
-                    @livewire('delete-modal', ['modal_id' => $student->id ,"action" => route('students.graduations.reset', $student->id), 'item_name' => "would be reset to ungraduated", 'button_label' => 'Reset Graduation'])
-                </td>
-                <td>
-                    @livewire('delete-modal', ['modal_id' => $student->id ,"action" => route('students.destroy', $student->id), 'item_name' => $student->name])
+                    @livewire('delete-modal', ['modal_id' => $student->id ,"action" => route('students.graduations.reset', $student->id), 'item_name' => "would be reset to ungraduated", 'button_label' => 'Reset'])
                 </td>
             </tr>
         @endforeach
