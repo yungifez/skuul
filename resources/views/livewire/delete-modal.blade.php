@@ -1,5 +1,5 @@
 <div>
-    <x-adminlte-button label="Delete" data-toggle="modal" data-target="#modal-{{$modal_id}}" theme="danger"/>
+    <x-adminlte-button label="{{$button_label}}" data-toggle="modal" data-target="#modal-{{$modal_id}}" theme="danger"/>
 
     
 <x-adminlte-modal id="modal-{{$modal_id}}" title="Confirm delete" size="lg" theme="danger"

@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->date('admission_date');
             $table->foreignId('my_class_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('section_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
+            $table->boolean('is_graduated')->default(false);      
             $table->timestamps();
         });
     }

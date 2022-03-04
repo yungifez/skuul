@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Models\School;
+use DateTimeInterface;
 use App\Models\StudentRecord;
 use App\Models\TeacherRecord;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -63,8 +64,12 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'birthday' => 'date:Y-m-d',
     ];
+
+    protected function serializeBirthday(DateTimeInterface $birthday)
+    {
+        return $birthday->format('Y-m-d');
+    }
 
     /**
      * The accessors to append to the model's array form.

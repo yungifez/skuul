@@ -7,7 +7,7 @@
             <option value="{{$class->id}}">{{$class->name}}</option>
         @endforeach
     </x-adminlte-select2>
-    <x-adminlte-select2 id="teacher_id" name="teachers[]" label="Add teachers to class" :config='["placeholder" => "You can select multiple teachers...","allowClear" => true]' fgroup-class="col-md-6" enable-old-support multiple>
+    <x-adminlte-select2 id="teacher_id" name="teachers[]" label="Add teachers to subject" :config='["placeholder" => "You can select multiple teachers...","allowClear" => true]' fgroup-class="col-md-6" enable-old-support multiple>
         @foreach ($teachers as $teacher)
             <option value="{{$teacher->id}}">{{$teacher->name}}</option>
         @endforeach

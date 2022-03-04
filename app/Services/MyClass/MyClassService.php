@@ -92,6 +92,9 @@ class MyClassService
 
     public function deleteClassGroup(ClassGroup $classGroup)
     {
+        if ($classGroup->classes->count()) {
+            return session()->flash('danger',__('Remove all classes from this class group first'));
+        }
         $classGroup->delete();
 
         return session()->flash('success', __('Class group deleted successfully'));
@@ -99,6 +102,9 @@ class MyClassService
 
     public function deleteClass(MyClass $class)
     {
+        if ($class->studentRecords->count()) {
+            return session()->flash('danger',__('Remove all students from this class first'));
+        }
         $class->delete();
 
         return session()->flash('success', __('Class deleted successfully'));

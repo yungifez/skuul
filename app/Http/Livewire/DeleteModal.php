@@ -7,9 +7,8 @@ use Livewire\Component;
 class DeleteModal extends Component
 {
     public $modal_id;
-
+    public $button_label = "Delete";
     public $action;
-
     public $item_name;
 
     public function render()

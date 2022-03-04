@@ -18,8 +18,8 @@
         "laravel/sanctum": "^2.14",
         "laravel/tinker": "^2.7",
         "livewire/livewire": "^2.5",
-        "pragmarx/countries": "^0.7.2",
         "spatie/laravel-permission": "^5.5"
+        "nnjeim/world": "^1.1",
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.6",

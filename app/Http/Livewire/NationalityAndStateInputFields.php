@@ -1,9 +1,9 @@
 <?php
 
 namespace App\Http\Livewire;
+use Nnjeim\World\World;
 
 use Livewire\Component;
-use PragmaRX\Countries\Package\Countries;
 
 class NationalityAndStateInputFields extends Component
 {
@@ -22,7 +22,7 @@ class NationalityAndStateInputFields extends Component
 
     public function mount()
     {
-        $this->nationalities = collect(Countries::all()->pluck('name.common'));
+        $this->nationalities = World::countries()->data->pluck('name');
 
         if ($this->nationality != null && ! in_array($this->nationality, $this->nationalities->toArray())) {
             $this->nationality = null;
@@ -31,15 +31,33 @@ class NationalityAndStateInputFields extends Component
 
     public function updatedNationality()
     {
-        $this->states = collect(Countries::where('name.common', $this->nationality)->first()->hydrateStates()->states->pluck('name'));
+        // $this->states = collect(World::where('name.common' , $this->nationality)->first()->hydrateStates()->states->pluck('name'));
+        $this->states =  World::countries([
+            'fields' => 'states',
+            'filters' => [
+                'name' => $this->nationality,
+            ]
+        ])->data->pluck('states')->first();
     }
 
     public function loadInitialStates()
     {
         if ($this->nationality != null) {
-            $this->states = collect(Countries::where('name.common', $this->nationality)->first()->hydrateStates()->states->pluck('name'));
-        } else {
-            $this->states = collect(Countries::where('name.common', $this->nationalities->first())->first()->hydrateStates()->states->pluck('name'));
+            // $this->states =  collect(World::where('name.common' , $this->nationality)->first()->hydrateStates()->states->pluck('name'));
+            $this->states =  $this->states =  World::countries([
+                'fields' => 'states',
+                'filters' => [
+                    'name' => $this->nationality,
+                ]
+            ])->data->pluck('states')->first();
+
+        }else {
+        $this->states =  World::countries([
+            'fields' => 'states',
+            'filters' => [
+                'name' => $this->nationalities->first(),
+            ]
+        ])->data->pluck('states')->first();
         }
     }
 

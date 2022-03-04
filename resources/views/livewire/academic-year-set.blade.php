@@ -1,4 +1,4 @@
-<div class="">
+<div class="my-2">
     @livewire('help-button', ['target_id' => 'academic-year-set-help', 'text' => "Select an academic year for the school"])
     <form action="{{route('academic-years.set-academic-year')}}" method="POST" class="d-flex flex-column">
         @livewire('display-validation-error')

@@ -17,8 +17,18 @@ class Section extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function MyClass()
+    public function myClass()
     {
         return $this->belongsTo(MyClass::class);
+    }
+
+    /**
+     * Get the StudentRecords that owns the Section
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function studentRecords()
+    {
+        return $this->hasMany(StudentRecord::class);
     }
 }

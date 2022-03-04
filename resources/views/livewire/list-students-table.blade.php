@@ -1,12 +1,17 @@
 <div>
     <p class='text-bold'>Student list</p>
-    <x-adminlte-datatable id="school-list-table" :heads="['S/N','Profile photo', 'Name','Class', 'email','gender' , 'address', '', '']" class='text-capitalize' >
+    <x-adminlte-datatable id="school-list-table" :heads="['S/N','Profile photo', 'Name','Class','Section', 'email','gender' , 'address', '', '']" class='text-capitalize' >
         @foreach($students as $student)
             <tr>
                 <td>{{$loop->iteration}}</td>
                 <td><img src="{{$student->profile_photo_url}}" alt="" class="rounded-circle" height="50px" width="50px"></td>
                 <td>{{ $student->name}}</td>
-                <td>{{$student->studentRecord->myClass->name}}</td>
+                <td>@isset ($student->studentRecord->myClass)
+                    {{$student->studentRecord->myClass->name}}
+                @endisset</td>
+                <td>@isset($student->studentRecord->section)
+                    {{$student->studentRecord->section->name}}
+                @endisset</td>
                 <td>{{ $student->email}}</td>
                 <td>{{$student->gender}}</td>
                 <td>{{$student->address}}</td>

@@ -346,7 +346,32 @@ return [
                     'route' => 'students.create',
                     'can'  => 'create student',
                 ],
-            ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Promote students',
+                    'route' => 'students.promote',
+                    'can'  => 'promote student',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Manage promotions',
+                    'route' => 'students.promotions',
+                    'can'  => 'view promotions',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Graduate students',
+                    'route' => 'students.graduate',
+                    'can'  => 'graduate student',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Manage graduations',
+                    'route' => 'students.graduations',
+                    'can'  => 'view graduations',
+                ],
+
+            ]
         ],
         [
             'type' => 'sidebar-menu-item',
