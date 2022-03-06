@@ -43,13 +43,24 @@ class School extends Model
     }
 
     /**
-     * Get the AcademicYear for the School
+     * Get the AcademicYears for the School
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
 
+    public function academicYears()
+    {
+        return $this->hasMany(AcademicYear::class);
+    }
+
+    /**
+     * Get the academicYear associated with the School
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
     public function academicYear()
     {
-        return $this->hasOne(AcademicYear::class);
+        return $this->hasOne(AcademicYear::class,'id', 'academic_year_id');
     }
+
 }
