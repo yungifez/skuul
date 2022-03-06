@@ -33,7 +33,7 @@ class SubjectPolicy
     public function view(User $user, Subject $subject)
     {
         if ($user->can('read subject') && $user->school_id == $subject->school_id) {
-            # code...
+            return true;
         }
     }
 
