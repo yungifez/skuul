@@ -16,7 +16,7 @@ class StudentController extends Controller
     {
         $this->student = $student;
 
-        //resource controller cant be used because of the role dependance of the user policy which needs be passed as a third parameter
+        //resource policy cant be used because of the role dependance of the user policy which needs be passed as a third parameter
         // $this->authorizeResource(User::class, 'student');
     }
 
