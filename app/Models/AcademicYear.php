@@ -14,4 +14,9 @@ class AcademicYear extends Model
         'stop_year',
         'school_id',
     ];
+
+    public function name()
+    {
+        return "$this->start_year - $this->stop_year";
+    }
 }
