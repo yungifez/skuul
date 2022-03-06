@@ -34,13 +34,13 @@ class AcademicYearService
 
     public function setAcademicYear($academicYearId, $schoolId = null)
     {
-        if (! isset($schoolId)) {
+        if (!isset($schoolId)) {
             $schoolId = auth()->user()->school_id;
         }
         $school = $this->school->getSchoolById($schoolId);
         $school->academic_year_id = $academicYearId;
         $school->save();
-
+        
         return session()->flash('success', "Academic year set for {$school->name} successfully");
     }
 }
