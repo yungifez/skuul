@@ -29,6 +29,7 @@ class UserSeeder extends Seeder
             'state' => 'lagos',
             'city' => 'lagos',
             'blood_group' => 'B+',
+            'email_verified_at' => now(),
         ]);
 
         $superAdmin->assignRole('super-admin');
@@ -44,6 +45,7 @@ class UserSeeder extends Seeder
             'state' => 'lagos',
             'city' => 'lagos',
             'blood_group' => 'B+',
+            'email_verified_at' => now(),
         ]);
 
         $admin->assignRole('admin');
@@ -59,6 +61,7 @@ class UserSeeder extends Seeder
             'state' => 'lagos',
             'city' => 'lagos',
             'blood_group' => 'B+',
+            'email_verified_at' => now(),
         ]);
 
         $teacher->assignRole('teacher');
@@ -74,6 +77,7 @@ class UserSeeder extends Seeder
             'state' => 'lagos',
             'city' => 'lagos',
             'blood_group' => 'B+',
+            'email_verified_at' => now(),
         ]);
 
         $student->assignRole('student');
@@ -96,6 +100,7 @@ class UserSeeder extends Seeder
             'state' => 'lagos',
             'city' => 'lagos',
             'blood_group' => 'B+',
+            'email_verified_at' => now(),
         ]);
 
         $parent->assignRole('parent');
@@ -111,6 +116,7 @@ class UserSeeder extends Seeder
             'state' => 'lagos',
             'city' => 'lagos',
             'blood_group' => 'B+',
+            'email_verified_at' => now(),
         ]);
 
         $accountant->assignRole('accountant');
@@ -126,6 +132,7 @@ class UserSeeder extends Seeder
             'state' => 'lagos',
             'city' => 'lagos',
             'blood_group' => 'B+',
+            'email_verified_at' => now(),
         ]);
 
         $librarian->assignRole('librarian');

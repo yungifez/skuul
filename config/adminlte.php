@@ -245,27 +245,33 @@ return [
             'icon' => 'fas fa-tachometer-alt',
             'text' => 'Dashboard',
             'route' => 'dashboard',
-        ], ['header' => 'Manage Profile'],
+        ], 
+        ['header' => 'Manage Profile'],
         [
             'type' => 'sidebar-menu-item',
             'icon' => 'fas fa-user',
             'text' => 'User Profile',
             'route' => 'profile.show',
         ],
-        ['header' => 'Schools', 'can' => 'header-schools'],
+        ['header' => 'Multi Schools Management', 'can' => 'header-schools'],
         [
             'type' => 'sidebar-menu-item',
+            'text' => 'Schools',
             'icon' => 'fas fa-school',
-            'text' => 'View Schools',
-            'route' => 'schools.index',
-            'can'  => 'read school',
-        ],
-        [
-            'type' => 'sidebar-menu-item',
-            'icon' => 'fas fa-school',
-            'text' => 'Create School',
-            'route' => 'schools.create',
-            'can'  => 'create school',
+            'can'  =>  'menu-school',
+
+            'submenu' => [[
+                'type' => 'sidebar-menu-item',
+                'text' => 'View Schools',
+                'route' => 'schools.index',
+                'can'  => 'read school',
+            ],
+            [
+                'type' => 'sidebar-menu-item',
+                'text' => 'Create School',
+                'route' => 'schools.create',
+                'can'  => 'create school',
+            ],]
         ],
         ['header' => 'Administration', 'can' => 'header-administrate'],
         [
@@ -370,7 +376,6 @@ return [
                     'route' => 'students.graduations',
                     'can'  => 'view graduations',
                 ],
-
             ]
         ],
         [
@@ -410,6 +415,26 @@ return [
                     'text' => 'Create academic year',
                     'route' => 'academic-years.create',
                     'can'  => 'create academic year',
+                ],
+            ],
+        ],
+        [
+            'type' => 'sidebar-menu-item',
+            'text' => 'Semester',
+            'icon' => 'fas fa-clock',
+            'can'  =>  'menu-subject',
+            'submenu' => [
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View semesters',
+                    'route' => 'semesters.index',
+                    'can'  => 'read semester',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create semester',
+                    'route' => 'semesters.create',
+                    'can'  => 'create semester',
                 ],
             ],
         ],
