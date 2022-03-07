@@ -28,6 +28,7 @@ class StudentController extends Controller
     public function index()
     {
         $this->authorize('viewAny',[ User::class, 'student']);
+
         return view('pages.student.index');
     }
 
@@ -39,6 +40,7 @@ class StudentController extends Controller
     public function create()
     {
         $this->authorize('create',[ User::class, 'student']);
+        
         return view('pages.student.create');
     }
 
