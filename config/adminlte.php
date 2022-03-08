@@ -362,7 +362,7 @@ return [
                     'type' => 'sidebar-menu-item',
                     'text' => 'Manage promotions',
                     'route' => 'students.promotions',
-                    'can'  => 'view promotions',
+                    'can'  => 'read promotion',
                 ],
                 [
                     'type' => 'sidebar-menu-item',
@@ -455,6 +455,27 @@ return [
                     'text' => 'Create subject',
                     'route' => 'subjects.create',
                     'can'  => 'create subject',
+                ],
+            ],
+        ],
+        ['header' => 'Academics', 'can' => 'header-academics'],
+        [
+            'type' => 'sidebar-menu-item',
+            'text' => 'Syllabus',
+            'icon' => 'fas fa-list-alt',
+            'can'  =>  'menu-syllabus',
+            'submenu' => [
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View Syllabus',
+                    'route' => 'classes.index',
+                    'can'  => 'read syllabus',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create Syllabus',
+                    'route' => 'classes.create',
+                    'can'  => 'create syllabus',
                 ],
             ],
         ],

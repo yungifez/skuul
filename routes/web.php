@@ -56,7 +56,9 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
             Route::post('students/graduate', ['App\Http\Controllers\GraduationController', 'graduate']);
             Route::delete('students/graduations/{graduation}/reset', ['App\Http\Controllers\GraduationController', 'resetGraduation'])->name('students.graduations.reset');
 
+            //semester routes
             Route::resource('semesters', SemesterController::class);
+            Route::post('semester/set-semester', ['App\Http\Controllers\SemesterController', 'setSemester'])->name('semesters.set-semester');
         });
 
         //student routes 

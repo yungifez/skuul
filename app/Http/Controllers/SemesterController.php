@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Semester;
 use Illuminate\Http\Request;
+use App\Http\Requests\SetSemesterRequest;
 use App\Services\Semester\SemesterService;
 use App\Http\Requests\SemesterStoreRequest;
 
@@ -94,5 +95,17 @@ class SemesterController extends Controller
     public function destroy(Semester $semester)
     {
         //
+    }
+
+    /**
+     * Set school semester
+     *
+     * @return \Illuminate\Http\Response
+     */
+
+    public function setSemester(SetSemesterRequest $request){
+        $this->semester->setSemester($request->semester_id);
+        
+        return back();
     }
 }

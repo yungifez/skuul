@@ -1,4 +1,5 @@
 <div>
+    @livewire('semester-set')
     <p class='text-bold'>Semester List for {{auth()->user()->school->academicYear->name()}}</p>
     <x-adminlte-datatable id="Semester-list-table" :heads="['S/N', 'Name', 'Action', '']" Class='text-capitalize'>
         @foreach($semesters as $semester)

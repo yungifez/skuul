@@ -21,6 +21,8 @@ class TeacherController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny',[ User::class, 'teacher']);
+
         return view('pages.teacher.index');
     }
 
@@ -31,6 +33,8 @@ class TeacherController extends Controller
      */
     public function create()
     {
+        $this->authorize('create',[ User::class, 'teacher']);
+
         return view('pages.teacher.create');
     }
 
@@ -42,6 +46,7 @@ class TeacherController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorize('create',[ User::class, 'teacher']);
         $this->teacher->createTeacher($request);
 
         return back();
