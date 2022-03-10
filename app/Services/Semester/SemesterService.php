@@ -48,4 +48,13 @@ class SemesterService
         
         return session()->flash('success',"Successfully set current semester");
     }
+
+    //update semester
+
+    public function updateSemester(Semester $semester, $data)
+    {
+        $semester->name = $data['name'];
+        $semester->save();
+        return session()->flash('success',"Successfully updated semester");
+    }
 }

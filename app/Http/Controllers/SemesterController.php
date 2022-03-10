@@ -71,7 +71,7 @@ class SemesterController extends Controller
      */
     public function edit(Semester $semester)
     {
-        //
+        return view('pages.semester.edit', compact('semester'));
     }
 
     /**
@@ -81,9 +81,12 @@ class SemesterController extends Controller
      * @param  \App\Models\Semester  $semester
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Semester $semester)
+    public function update(SemesterStoreRequest $request, Semester $semester)
     {
-        //
+        $data = $request->except('_token','_method');
+        $this->semester->updateSemester($semester, $data);
+
+        return back();
     }
 
     /**
