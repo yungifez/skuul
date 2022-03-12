@@ -21,6 +21,8 @@ class PromotionController extends Controller
      */
     public function index()
     {
+        $this->authorize('viewAny', Promotion::class);
+        
         return view('pages.student.promotion.index');
     }
 
@@ -29,7 +31,9 @@ class PromotionController extends Controller
      */
     public function promoteView()
     {
-    return view('pages.student.promotion.promote');
+        $this->authorize('promote', Promotion::class);
+
+        return view('pages.student.promotion.promote');
     }
 
     /**
@@ -37,6 +41,7 @@ class PromotionController extends Controller
     */
     public function promote(StudentPromoteRequest $request)
     {
+        $this->authorize('promote', Promotion::class);
         $data = collect($request->except('_token'));
         $this->student->promoteStudents($data);
 
@@ -47,6 +52,7 @@ class PromotionController extends Controller
      * reset promotion
      */
     public function resetPromotion(Promotion $promotion){
+        $this->authorize('reset', Promotion::class);
         $this->student->resetPromotion($promotion);
 
         return back();
@@ -60,6 +66,8 @@ class PromotionController extends Controller
      */
     public function show(Promotion $promotion)
     {
+        $this->authorize('view', $promotion);
+
         return view('pages.student.promotion.show', compact('promotion'));
     }
 }

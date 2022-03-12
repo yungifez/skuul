@@ -245,27 +245,33 @@ return [
             'icon' => 'fas fa-tachometer-alt',
             'text' => 'Dashboard',
             'route' => 'dashboard',
-        ], ['header' => 'Manage Profile'],
+        ], 
+        ['header' => 'Manage Profile'],
         [
             'type' => 'sidebar-menu-item',
             'icon' => 'fas fa-user',
             'text' => 'User Profile',
             'route' => 'profile.show',
         ],
-        ['header' => 'Schools', 'can' => 'header-schools'],
+        ['header' => 'Multi Schools Management', 'can' => 'header-schools'],
         [
             'type' => 'sidebar-menu-item',
+            'text' => 'Schools',
             'icon' => 'fas fa-school',
-            'text' => 'View Schools',
-            'route' => 'schools.index',
-            'can'  => 'read school',
-        ],
-        [
-            'type' => 'sidebar-menu-item',
-            'icon' => 'fas fa-school',
-            'text' => 'Create School',
-            'route' => 'schools.create',
-            'can'  => 'create school',
+            'can'  =>  'menu-school',
+
+            'submenu' => [[
+                'type' => 'sidebar-menu-item',
+                'text' => 'View Schools',
+                'route' => 'schools.index',
+                'can'  => 'read school',
+            ],
+            [
+                'type' => 'sidebar-menu-item',
+                'text' => 'Create School',
+                'route' => 'schools.create',
+                'can'  => 'create school',
+            ],]
         ],
         ['header' => 'Administration', 'can' => 'header-administrate'],
         [
@@ -356,7 +362,7 @@ return [
                     'type' => 'sidebar-menu-item',
                     'text' => 'Manage promotions',
                     'route' => 'students.promotions',
-                    'can'  => 'view promotions',
+                    'can'  => 'read promotion',
                 ],
                 [
                     'type' => 'sidebar-menu-item',
@@ -370,7 +376,6 @@ return [
                     'route' => 'students.graduations',
                     'can'  => 'view graduations',
                 ],
-
             ]
         ],
         [
@@ -415,6 +420,26 @@ return [
         ],
         [
             'type' => 'sidebar-menu-item',
+            'text' => 'Semester',
+            'icon' => 'fas fa-clock',
+            'can'  =>  'menu-subject',
+            'submenu' => [
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View semesters',
+                    'route' => 'semesters.index',
+                    'can'  => 'read semester',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create semester',
+                    'route' => 'semesters.create',
+                    'can'  => 'create semester',
+                ],
+            ],
+        ],
+        [
+            'type' => 'sidebar-menu-item',
             'text' => 'Subject',
             'icon' => 'fas fa-lightbulb',
             'can'  =>  'menu-subject',
@@ -430,6 +455,27 @@ return [
                     'text' => 'Create subject',
                     'route' => 'subjects.create',
                     'can'  => 'create subject',
+                ],
+            ],
+        ],
+        ['header' => 'Academics', 'can' => 'header-academics'],
+        [
+            'type' => 'sidebar-menu-item',
+            'text' => 'Syllabus',
+            'icon' => 'fas fa-list-alt',
+            'can'  =>  'menu-syllabus',
+            'submenu' => [
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View Syllabus',
+                    'route' => 'classes.index',
+                    'can'  => 'read syllabus',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create Syllabus',
+                    'route' => 'classes.create',
+                    'can'  => 'create syllabus',
                 ],
             ],
         ],

@@ -2,11 +2,11 @@
 
 namespace App\Policies;
 
-use App\Models\Subject;
+use App\Models\Semester;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class SubjectPolicy
+class SemesterPolicy
 {
     use HandlesAuthorization;
 
@@ -18,7 +18,7 @@ class SubjectPolicy
      */
     public function viewAny(User $user)
     {
-        if ($user->can('read subject')) {
+        if ($user->can('read semester')) {
             return true;
         }
     }
@@ -27,12 +27,12 @@ class SubjectPolicy
      * Determine whether the user can view the model.
      *
      * @param  \App\Models\User  $user
-     * @param  \App\Models\Subject  $subject
+     * @param  \App\Models\Semester  $semester
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function view(User $user, Subject $subject)
+    public function view(User $user, Semester $semester)
     {
-        if ($user->can('read subject') && $user->school_id == $subject->school_id) {
+        if ($user->can('read semester') && $user->school_id == $semester->school_id) {
             return true;
         }
     }
@@ -45,7 +45,7 @@ class SubjectPolicy
      */
     public function create(User $user)
     {
-        if ($user->can('create subject')) {
+        if ($user->can('create semester')) {
             return true;
         }
     }
@@ -54,12 +54,12 @@ class SubjectPolicy
      * Determine whether the user can update the model.
      *
      * @param  \App\Models\User  $user
-     * @param  \App\Models\Subject  $subject
+     * @param  \App\Models\Semester  $semester
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function update(User $user, Subject $subject)
+    public function update(User $user, Semester $semester)
     {
-        if ($user->can('update subject') && $user->school_id == $subject->school_id) {
+        if ($user->can('update semester') && $user->school_id == $semester->school_id) {
             return true;
         }
     }
@@ -68,24 +68,22 @@ class SubjectPolicy
      * Determine whether the user can delete the model.
      *
      * @param  \App\Models\User  $user
-     * @param  \App\Models\Subject  $subject
+     * @param  \App\Models\Semester  $semester
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function delete(User $user, Subject $subject)
+    public function delete(User $user, Semester $semester)
     {
-        if ($user->can('delete subject') && $user->school_id == $subject->school_id) {
-            return true;
-        }
+        //
     }
 
     /**
      * Determine whether the user can restore the model.
      *
      * @param  \App\Models\User  $user
-     * @param  \App\Models\Subject  $subject
+     * @param  \App\Models\Semester  $semester
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function restore(User $user, Subject $subject)
+    public function restore(User $user, Semester $semester)
     {
         //
     }
@@ -94,10 +92,10 @@ class SubjectPolicy
      * Determine whether the user can permanently delete the model.
      *
      * @param  \App\Models\User  $user
-     * @param  \App\Models\Subject  $subject
+     * @param  \App\Models\Semester  $semester
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function forceDelete(User $user, Subject $subject)
+    public function forceDelete(User $user, Semester $semester)
     {
         //
     }

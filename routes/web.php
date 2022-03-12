@@ -17,6 +17,7 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+//user must be authenticated
 Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('App\Http\Controllers')->group(function () {
 
  
@@ -24,6 +25,7 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
     Route::resource('schools', SchoolController::class);
     Route::post('schools/set school', ['App\Http\Controllers\SchoolController', 'setSchool'])->name('schools.setSchool');
 
+    //super admin must be have school id set
     Route::middleware(['App\Http\Middleware\EnsureSuperAdminHasSchoolId'])->group(function () {
         //dashboard route
         Route::get('/', function () {
@@ -48,10 +50,15 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
             Route::get('students/promotions/{promotion}', ['App\Http\Controllers\PromotionController', 'show'])->name('students.promotions.show');
             Route::delete('students/promotions/{promotion}/reset', ['App\Http\Controllers\PromotionController', 'resetPromotion'])->name('students.promotions.reset');
 
+            //graduation routes
             Route::get('students/graduations', ['App\Http\Controllers\GraduationController', 'index'])->name('students.graduations');
             Route::get('students/graduate', ['App\Http\Controllers\GraduationController', 'graduateView'])->name('students.graduate');
             Route::post('students/graduate', ['App\Http\Controllers\GraduationController', 'graduate']);
             Route::delete('students/graduations/{graduation}/reset', ['App\Http\Controllers\GraduationController', 'resetGraduation'])->name('students.graduations.reset');
+
+            //semester routes
+            Route::resource('semesters', SemesterController::class);
+            Route::post('semester/set-semester', ['App\Http\Controllers\SemesterController', 'setSemester'])->name('semesters.set-semester');
         });
 
         //student routes 

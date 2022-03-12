@@ -146,6 +146,24 @@ class PermissionSeeder extends Seeder
         Permission::create([
             'name' => 'read promotion'
         ]);
+        Permission::create([
+            'name' => 'reset promotion'
+        ]);
+
+        //permission for semesters
+        Permission::create([
+            'name' => 'create semester'
+        ]);
+        Permission::create([
+            'name' => 'read semester'
+        ]);
+        Permission::create([
+            'name' => 'update semester'
+        ]);
+        Permission::create([
+            'name' => 'delete semester'
+        ]);
+
 
         //header permissions (for controlling the menu headers)
         Permission::create([
@@ -218,6 +236,11 @@ class PermissionSeeder extends Seeder
             'delete subject',
             'promote student',
             'read promotion',
+            'reset promotion',
+            'create semester',
+            'read semester',
+            'update semester',
+            'delete semester',
         ]);
 
         //assign permissions to teacher

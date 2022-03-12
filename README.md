@@ -74,5 +74,7 @@ By default super admin can manage all activities in each school, some admin excl
 
 This project was highly inspired by 4jean/lavSMS
 
+Do you like the current state of this project?, you can support me or hire me for work
+
 
 
