@@ -39,6 +39,8 @@ class AcademicYearService
         }
         $school = $this->school->getSchoolById($schoolId);
         $school->academic_year_id = $academicYearId;
+        //set semester id to null
+        $school->semester_id = null;
         $school->save();
         
         return session()->flash('success', "Academic year set for {$school->name} successfully");

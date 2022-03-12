@@ -4,7 +4,7 @@
         @livewire('display-validation-error')
         <x-adminlte-select name="academic_year_id" label="Set current academic-year">
             @foreach ($academicYears as $academicYear)
-                <option value="{{ $academicYear->id }}" {{$academicYear->id == auth()->user()->school->academicyear_id ? 'selected' : ''}}> {{ $academicYear->name()}}</option>
+                <option value="{{ $academicYear->id }}" {{$academicYear->id == auth()->user()->school->academic_year_id ? 'selected' : ''}}> {{ $academicYear->name()}}</option>
             @endforeach
         </x-adminlte-select>
         @csrf
