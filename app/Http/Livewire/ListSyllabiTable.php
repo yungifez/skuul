@@ -14,6 +14,7 @@ class ListSyllabiTable extends Component
     {
         $semester = auth()->user()->school->semester_id;
         if (auth()->user()->hasRole('student')) {
+            $this->class = auth()->user()->studentRecord->myClass->name;
             $class = auth()->user()->studentRecord->my_class_id;
             $this->syllabi = $syllabusService->getAllSyllabiInSemesterAndClass($semester,$class);
         }else {

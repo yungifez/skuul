@@ -1,5 +1,9 @@
 <div>
-    <p class='text-bold'>Syllabus list</p>
+    <p class='text-bold'>Syllabus list 
+        @isset($class)
+            for {{$class}}
+        @endisset
+    </p>
     @if (!auth()->user()->hasRole('student'))
         <form action="">
             <x-adminlte-select id="my_class" label="Select a class to see syllabus"  fgroup-class="col-md-6" name="" wire:model="class">
