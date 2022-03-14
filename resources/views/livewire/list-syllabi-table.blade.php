@@ -16,9 +16,21 @@
                     <h4 class="text-center text-bold">Description:</h4>
                     <p>{{$syllabus->description}}</p>
                 @endif
-                <a class="btn btn-secondary" href="{{asset($syllabus->file)}}">
-                    Download
-                </a>
+                <div class="my-2 row">
+                    <a class="btn btn-secondary col-2 mx-2" href="{{asset('storage/'.$syllabus->file)}}" download>
+                        <i class="fas fa-download"></i>
+                        Download
+                    </a> 
+                    @can('update syllabus')
+                        <a class="btn btn-primary col-2 mx-2" href="{{route('syllabi.edit',$syllabus->id)}}">
+                            <i class="fas fa-pen"></i>
+                            Edit
+                        </a> 
+                    @endcan
+                    @can('delete syllabus')
+                        @livewire('delete-modal', ['modal_id' => $syllabus->id ,"action" => route('syllabi.destroy', $syllabus->id), 'item_name' => $syllabus->name], key($loop->index))
+                    @endcan
+                </div>
             </x-adminlte-card>
         @endforeach
     @endisset

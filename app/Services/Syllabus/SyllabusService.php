@@ -3,7 +3,6 @@
 namespace App\Services\Syllabus;
 
 use App\Models\Syllabus;
-use Illuminate\Support\Facades\Storage;
 
 class SyllabusService
 {
@@ -30,7 +29,9 @@ class SyllabusService
     {
         $data['semester_id'] = auth()->user()->school->semester_id;
 
-        $data['file'] = Storage::putFile('public/syllabus', $data['file']);
+        $data['file'] =  $data['file']->store(
+            'syllabus/', 'public'
+        );;
 
         Syllabus::create([
             'name' => $data['name'],
