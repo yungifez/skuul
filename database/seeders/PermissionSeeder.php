@@ -264,6 +264,15 @@ class PermissionSeeder extends Seeder
         ]);
 
         //assign permissions to teacher
+        $teacher = Role::where('name', 'teacher')->first();
+        $teacher->givePermissionTo([
+            'header-academics',
+            'menu-syllabus',
+            'create syllabus',
+            'read syllabus',
+            'update syllabus',
+            'delete syllabus'
+        ]);
 
         //assign permissions to student
         $student = Role::where('name', 'student')->first();
