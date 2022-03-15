@@ -25,6 +25,14 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'address' => $this->faker->address(),
             'birthday' => '22/04/04',
+            'address' => $this->faker->address(),
+            'school_id' => null,
+            'blood_group' => 'a+',
+            'religion' => 'christian',
+            'nationality' => 'Nigerian',
+            'state' => 'anambra',
+            'city' => 'ngo',
+            'gender' => 'male',
         ];
     }
 
