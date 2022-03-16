@@ -20,4 +20,17 @@ class SchoolFactory extends Factory
             'code' => $this->faker->unique()->randomNumber(5),
         ];
     }
+
+    public function createDefaultSchool()
+    {
+        return $this->state(function (array $attributes) {
+            return [
+                'id' => 1,
+                'name'   => 'Default school',
+                'address'=> $this->faker->address(),
+                'initials'=> $this->faker->unique()->word(),
+                'code' => $this->faker->unique()->randomNumber(5),
+            ];
+        });
+    }
 }

@@ -4,9 +4,10 @@ namespace Database\Factories;
 
 use App\Models\Team;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Factories\Factory;
+use App\Models\School;
 use Illuminate\Support\Str;
 use Laravel\Jetstream\Features;
+use Illuminate\Database\Eloquent\Factories\Factory;
 
 class UserFactory extends Factory
 {
@@ -26,7 +27,7 @@ class UserFactory extends Factory
             'address' => $this->faker->address(),
             'birthday' => '22/04/04',
             'address' => $this->faker->address(),
-            'school_id' => null,
+            'school_id' => 1,
             'blood_group' => 'a+',
             'religion' => 'christian',
             'nationality' => 'Nigerian',
