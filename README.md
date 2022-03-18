@@ -78,7 +78,6 @@ Do you like the current state of this project?, you can support me or hire me fo
 
 Todo
 - Write all delete methods
-- Add set academic year permission 
 - Write policies for none CRUD models
 - Work on user profile updates
 - Create class schedule feature
