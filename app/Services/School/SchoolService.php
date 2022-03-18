@@ -64,4 +64,16 @@ class SchoolService
     {
         return Str::random(10);
     }
+
+    // delete school
+
+    public function deleteSchool(School $school)
+    {
+        if ($school->users->count('id')) {
+            return session()->flash('danger', __('Remove all users from this school and make sure school is not set for any super admin'));
+        }
+        $school->delete();
+    
+        return session()->flash('success', __('School deleted successfully'));;
+    }
 }
