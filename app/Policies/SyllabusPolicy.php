@@ -73,7 +73,9 @@ class SyllabusPolicy
      */
     public function delete(User $user, Syllabus $syllabus)
     {
-        //
+        if ($user->can('delete syllabus') && $user->school_id == $syllabus->subject->school_id) {
+            return true;
+        }
     }
 
     /**

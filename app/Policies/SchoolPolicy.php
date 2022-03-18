@@ -75,7 +75,9 @@ class SchoolPolicy
      */
     public function delete(User $user, School $school)
     {
-        //
+        if ($user->can('delete school')) {
+            return true;
+        }
     }
 
     /**

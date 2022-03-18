@@ -45,4 +45,13 @@ class AcademicYearService
         
         return session()->flash('success', "Academic year set for {$school->name} successfully");
     }
+
+    //delete academic year
+
+    public function deleteAcademicYear(AcademicYear $academicYear)
+    {
+        $academicYear->delete();
+
+        return session()->flash('success', 'Academic year deleted successfully');
+    }
 }
