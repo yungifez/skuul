@@ -99,4 +99,18 @@ class SemesterPolicy
     {
         //
     }
+
+    /**
+     * Determine whether the user can set current semester.
+     *
+     * @param  \App\Models\User  $user
+     * @return \Illuminate\Auth\Access\Response|bool
+    */
+
+    public function setSemester(User $user)
+    {
+        if ($user->can('set semester')) {
+            return true;
+        }
+    }
 }

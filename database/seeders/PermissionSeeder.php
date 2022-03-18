@@ -167,6 +167,10 @@ class PermissionSeeder extends Seeder
             'name' => 'delete semester'
         ]);
 
+        Permission::firstOrCreate([
+            'name' => 'set semester'
+        ]);
+
         //permission for syllabus
         Permission::firstOrCreate([
             'name' => 'create syllabus'
@@ -265,6 +269,7 @@ class PermissionSeeder extends Seeder
             'read semester',
             'update semester',
             'delete semester',
+            'set semester',
         ]);
 
         //assign permissions to teacher
