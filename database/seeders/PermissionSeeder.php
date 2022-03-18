@@ -226,12 +226,14 @@ class PermissionSeeder extends Seeder
         $admin = Role::where('name', 'admin')->first();
         $admin->givePermissionTo([
             'header-administrate',
+            'header-academics',
             'menu-section',
             'menu-class',
             'menu-student',
             'menu-teacher',
             'menu-academic-year',
             'menu-subject',
+            'menu-syllabus',
             'manage school settings',
             'create section',
             'read section',
@@ -270,6 +272,10 @@ class PermissionSeeder extends Seeder
             'update semester',
             'delete semester',
             'set semester',
+            'create syllabus',
+            'read syllabus',
+            'update syllabus',
+            'delete syllabus'
         ]);
 
         //assign permissions to teacher

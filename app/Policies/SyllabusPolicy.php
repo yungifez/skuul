@@ -18,7 +18,9 @@ class SyllabusPolicy
      */
     public function viewAny(User $user)
     {
-        //
+        if ($user->can('read syllabus')) {
+            return true;
+        }
     }
 
     /**
@@ -30,7 +32,9 @@ class SyllabusPolicy
      */
     public function view(User $user, Syllabus $syllabus)
     {
-        //
+        if ($user->can('read syllabus') && $user->school_id == $syllabus->subject->school_id) {
+            return true;
+        }
     }
 
     /**
@@ -41,7 +45,9 @@ class SyllabusPolicy
      */
     public function create(User $user)
     {
-        //
+        if ($user->can('create syllabus')) {
+            return true;
+        }
     }
 
     /**
@@ -53,7 +59,9 @@ class SyllabusPolicy
      */
     public function update(User $user, Syllabus $syllabus)
     {
-        //
+        if ($user->can('update syllabus') && $user->school_id == $syllabus->subject->school_id) {
+            return true;
+        }
     }
 
     /**
