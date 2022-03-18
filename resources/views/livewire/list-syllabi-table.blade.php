@@ -1,8 +1,5 @@
 <div>
     <p class='text-bold'>Syllabus list 
-        @isset($class)
-            for {{$class}}
-        @endisset
     </p>
     @if (!auth()->user()->hasRole('student'))
         <form action="">
@@ -16,6 +13,7 @@
     @isset($syllabi)
         @foreach ($syllabi as $syllabus)
             <x-adminlte-card title="{{$syllabus->name}}" theme="primary" icon=""  collapsible="collapsed">
+                <p>Subject: {{$syllabus->subject->name}}</p>
                 @if (isset($syllabus->description))
                     <h4 class="text-center text-bold">Description:</h4>
                     <p>{{$syllabus->description}}</p>
