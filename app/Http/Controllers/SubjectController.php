@@ -98,8 +98,10 @@ class SubjectController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Subject $subject)
     {
-        //
+        $this->subject->deleteSubject($subject);
+
+        return back();
     }
 }
