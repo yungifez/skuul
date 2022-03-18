@@ -110,6 +110,9 @@ class PermissionSeeder extends Seeder
         Permission::firstOrCreate([
             'name' => 'delete academic year',
         ]);
+        Permission::firstOrCreate([
+            'name' => 'set academic year',
+        ]);
 
         //Permission for teacher
         Permission::firstOrCreate([
@@ -246,6 +249,7 @@ class PermissionSeeder extends Seeder
             'read academic year',
             'update academic year',
             'delete academic year',
+            'set academic year',
             'create teacher',
             'read teacher',
             'update teacher',

@@ -98,6 +98,7 @@ class AcademicYearController extends Controller
 
     public function setAcademicYear(request $request)
     {
+        $this->authorize('setAcademicYear', AcademicYear::class);
         $academicYear = $request->academic_year_id;
         $this->academicYear->setAcademicYear($academicYear);
 
