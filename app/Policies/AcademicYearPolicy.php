@@ -97,4 +97,17 @@ class AcademicYearPolicy
     {
         //
     }
+
+    /**
+     * Determine whether the user can set academic year
+     *
+     * @param  \App\Models\User  $user
+     * @return \Illuminate\Auth\Access\Response|bool
+     */
+
+    public function setAcademicYear(User $user){
+        if ($user->can('set academic year')) {
+            return true;
+        }
+    }
 }

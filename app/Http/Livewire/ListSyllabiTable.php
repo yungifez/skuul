@@ -26,7 +26,7 @@ class ListSyllabiTable extends Component
     public function updatedClass()
     {
         $semester = auth()->user()->school->semester_id;
-        return $this->syllabi = collect(App::make(SyllabusService::class)->getAllSyllabiInSemesterAndClass($semester,$this->class));
+        $this->syllabi = collect(App::make(SyllabusService::class)->getAllSyllabiInSemesterAndClass($semester,$this->class));
     }
 
     public function render()

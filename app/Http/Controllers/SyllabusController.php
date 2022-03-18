@@ -13,6 +13,7 @@ class SyllabusController extends Controller
     public function __construct(SyllabusService $syllabus)
     {
         $this->syllabus = $syllabus;
+        $this->authorizeResource(Syllabus::class,'syllabus');
     }
     
     /**
