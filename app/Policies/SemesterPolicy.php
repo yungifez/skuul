@@ -73,7 +73,9 @@ class SemesterPolicy
      */
     public function delete(User $user, Semester $semester)
     {
-        //
+        if ($user->can('delete semester') && $user->school_id == $semester->school_id) {
+            return true;
+        }
     }
 
     /**

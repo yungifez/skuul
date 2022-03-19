@@ -97,7 +97,9 @@ class SemesterController extends Controller
      */
     public function destroy(Semester $semester)
     {
-        //
+        $this->semester->deleteSemester($semester);
+
+        return back();
     }
 
     /**

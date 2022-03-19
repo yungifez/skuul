@@ -98,9 +98,11 @@ class SchoolController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(School $school)
     {
-        //
+        $this->school->deleteSchool($school);
+
+        return back();
     }
 
     public function settings()

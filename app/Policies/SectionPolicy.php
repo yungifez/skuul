@@ -71,7 +71,9 @@ class SectionPolicy
      */
     public function delete(User $user, Section $section)
     {
-        //
+        if ($user->can('delete class') && $user->school_id == $section->myClass->classGroup->school_id) {
+            return true;
+        }
     }
 
     /**

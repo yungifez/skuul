@@ -92,6 +92,8 @@ class SyllabusController extends Controller
      */
     public function destroy(Syllabus $syllabus)
     {
-        //
+        $this->syllabus->deleteSyllabus($syllabus);
+
+        return back();
     }
 }

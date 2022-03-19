@@ -3,6 +3,7 @@
 namespace App\Services\Syllabus;
 
 use App\Models\Syllabus;
+use Illuminate\Support\Facades\Storage;
 
 class SyllabusService
 {
@@ -49,8 +50,11 @@ class SyllabusService
         return Syllabus::find($id)->update($data);
     }
 
-    public function deleteSyllabus($id)
+    public function deleteSyllabus(Syllabus $syllabus)
     {
-        return Syllabus::find($id)->delete();
+        Storage::disk('public')->delete($syllabus->file);
+        $syllabus->delete();
+
+        return session()->flash('success', 'Successfully deleted Syllabus');
     }
 }

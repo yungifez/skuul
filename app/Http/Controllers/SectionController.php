@@ -98,8 +98,10 @@ class SectionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Section $section)
     {
-        //
+        $this->section->deleteSection($section);
+
+        return back();
     }
 }

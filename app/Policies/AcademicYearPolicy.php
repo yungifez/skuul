@@ -71,7 +71,9 @@ class AcademicYearPolicy
      */
     public function delete(User $user, AcademicYear $academicYear)
     {
-        //
+        if ($user->can('delete academic year') && $user->school_id == $academicYear->school_id) {
+            return true;
+        }
     }
 
     /**
