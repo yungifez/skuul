@@ -97,7 +97,9 @@ class SemesterController extends Controller
      */
     public function destroy(Semester $semester)
     {
-        //
+        $this->semester->deleteSemester($semester);
+
+        return back();
     }
 
     /**
@@ -107,6 +109,7 @@ class SemesterController extends Controller
      */
 
     public function setSemester(SetSemesterRequest $request){
+        $this->authorize('setSemester', Semester::class);
         $this->semester->setSemester($request->semester_id);
         
         return back();

@@ -91,13 +91,16 @@ class AcademicYearController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(AcademicYear $academicYear)
     {
-        //
+        $this->academicYear->deleteAcademicYear($academicYear);
+
+        return back();
     }
 
     public function setAcademicYear(request $request)
     {
+        $this->authorize('setAcademicYear', AcademicYear::class);
         $academicYear = $request->academic_year_id;
         $this->academicYear->setAcademicYear($academicYear);
 

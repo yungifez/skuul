@@ -73,7 +73,9 @@ class SemesterPolicy
      */
     public function delete(User $user, Semester $semester)
     {
-        //
+        if ($user->can('delete semester') && $user->school_id == $semester->school_id) {
+            return true;
+        }
     }
 
     /**
@@ -98,5 +100,19 @@ class SemesterPolicy
     public function forceDelete(User $user, Semester $semester)
     {
         //
+    }
+
+    /**
+     * Determine whether the user can set current semester.
+     *
+     * @param  \App\Models\User  $user
+     * @return \Illuminate\Auth\Access\Response|bool
+    */
+
+    public function setSemester(User $user)
+    {
+        if ($user->can('set semester')) {
+            return true;
+        }
     }
 }

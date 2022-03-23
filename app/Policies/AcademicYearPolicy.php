@@ -71,7 +71,9 @@ class AcademicYearPolicy
      */
     public function delete(User $user, AcademicYear $academicYear)
     {
-        //
+        if ($user->can('delete academic year') && $user->school_id == $academicYear->school_id) {
+            return true;
+        }
     }
 
     /**
@@ -96,5 +98,18 @@ class AcademicYearPolicy
     public function forceDelete(User $user, AcademicYear $academicYear)
     {
         //
+    }
+
+    /**
+     * Determine whether the user can set academic year
+     *
+     * @param  \App\Models\User  $user
+     * @return \Illuminate\Auth\Access\Response|bool
+     */
+
+    public function setAcademicYear(User $user){
+        if ($user->can('set academic year')) {
+            return true;
+        }
     }
 }

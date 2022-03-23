@@ -61,6 +61,11 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
             Route::post('semester/set-semester', ['App\Http\Controllers\SemesterController', 'setSemester'])->name('semesters.set-semester');
         });
 
+        Route::middleware(['App\Http\Middleware\EnsureSemesterIsSet'])->group(function () {
+            //syllabi route
+            Route::resource('syllabi', SyllabusController::class);
+        });
+
         //student routes 
         Route::resource('students', StudentController::class);
         Route::get('students/{student}/print', ['App\Http\Controllers\StudentController', 'printProfile'])->name('students.print-profile');

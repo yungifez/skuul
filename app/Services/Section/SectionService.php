@@ -62,4 +62,15 @@ class SectionService
 
         return $section;
     }
+
+    public function deleteSection(Section $section)
+    {
+        if ($section->studentRecords->count() > 0) {
+            return session()->flash('danger', __('Remove all students from section first'));;
+        }
+        $section->delete();
+        session()->flash('success', __('Section deleted successfully'));
+
+        return $section;
+    }
 }

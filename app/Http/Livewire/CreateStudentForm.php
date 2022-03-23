@@ -10,13 +10,9 @@ use Livewire\Component;
 class CreateStudentForm extends Component
 {
     public $myClasses;
-
     public $myClass;
-
     public $sections;
-
     public $section;
-
     protected $myClassService;
 
     protected $rules = [
