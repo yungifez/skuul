@@ -22,6 +22,16 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:1024'],
+            'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:1024'],
+            'birthday' => ['required', 'date', 'before:today'],
+            'address' => ['required', 'string', 'max:500'],
+            'blood_group' => ['required', 'string', 'max:255'],
+            'religion' => ['nullable','string', 'max:255'],
+            'nationality' => ['required', 'string', 'max:255'],
+            'state' => ['required', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:255'],
+            'gender' => ['required', 'string', 'max:255'],
+            'phone' => ['nullable','string', 'max:255'],
         ])->validateWithBag('updateProfileInformation');
 
         if (isset($input['photo'])) {
@@ -35,6 +45,15 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             $user->forceFill([
                 'name' => $input['name'],
                 'email' => $input['email'],
+                'birthday' => $input['birthday'],
+                'address' => $input['address'],
+                'blood_group' => $input['blood_group'],
+                'religion' => $input['religion'],
+                'nationality' => $input['nationality'],
+                'state' => $input['state'],
+                'city' => $input['city'],
+                'gender' => $input['gender'],
+                'phone' => $input['phone'],
             ])->save();
         }
     }
@@ -52,37 +71,6 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'name' => $input['name'],
             'email' => $input['email'],
             'email_verified_at' => null,
-        ])->save();
-
-        $user->sendEmailVerificationNotification();
-    }
-
-    //updating profile on behalf of themself
-    public function updateUser($user, array $input)
-    {
-        Validator::make($input, [
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:1024'],
-            'birthday' => ['required', 'date', 'date_format:Y/m/d', 'before:today'],
-            'address' => ['required', 'string', 'max:500'],
-            'blood_group' => ['required', 'string', 'max:255'],
-            'religion' => ['string', 'max:255'],
-            'nationality' => ['required', 'string', 'max:255'],
-            'state' => ['required', 'string', 'max:255'],
-            'city' => ['required', 'string', 'max:255'],
-            'gender' => ['required', 'string', 'max:255'],
-            'phone' => ['string', 'max:255'],
-        ])->validate();
-
-        if (isset($input['photo'])) {
-            $user->updateProfilePhoto($input['photo']);
-        }
-
-        $user->forceFill([
-            'name' => $input['name'],
-            'email' => $input['email'],
-            'email_verified_at' => now(),
             'birthday' => $input['birthday'],
             'address' => $input['address'],
             'blood_group' => $input['blood_group'],
@@ -93,5 +81,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'gender' => $input['gender'],
             'phone' => $input['phone'],
         ])->save();
+
+        $user->sendEmailVerificationNotification();
     }
 }
