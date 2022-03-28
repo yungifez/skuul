@@ -64,6 +64,9 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
         Route::middleware(['App\Http\Middleware\EnsureSemesterIsSet'])->group(function () {
             //syllabi route
             Route::resource('syllabi', SyllabusController::class);
+
+            //timetable route
+            Route::resource('timetables', TimetableController::class);
         });
 
         //student routes 
