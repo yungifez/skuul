@@ -35,6 +35,9 @@ class NationalityAndStateInputFields extends Component
                 'name' => $this->nationality,
             ]
         ])->data->pluck('states')->first();
+        if ($this->states->isEmpty()) {
+            return $this->states = [['name' => $this->nationality]];
+        }
         $this->state = $this->states[0]['name'];
 
         $this->dispatchBrowserEvent('nationality-updated',['nationality' => $this->nationality]);
