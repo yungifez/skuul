@@ -22,7 +22,6 @@ class TimetableService
     {
         DB::transaction(function() use ($data) {
             $data['semester_id'] = auth()->user()->school->semester_id;
-
             if(!isset($data['description'])) {
                 $data['description'] = null;
             }
@@ -33,5 +32,7 @@ class TimetableService
                 'semester_id' => $data['semester_id'],
             ]);
         });
+
+        return session()->flash('success', 'Timetable created successfully');
     }
 }

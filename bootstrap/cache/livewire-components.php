@@ -25,6 +25,7 @@
   'edit-semester-form' => 'App\\Http\\Livewire\\EditSemesterForm',
   'edit-student-form' => 'App\\Http\\Livewire\\EditStudentForm',
   'edit-subject-form' => 'App\\Http\\Livewire\\EditSubjectForm',
+  'edit-timetable-form' => 'App\\Http\\Livewire\\EditTimetableForm',
   'edit-user-fields' => 'App\\Http\\Livewire\\EditUserFields',
   'graduate-students' => 'App\\Http\\Livewire\\GraduateStudents',
   'help-button' => 'App\\Http\\Livewire\\HelpButton',

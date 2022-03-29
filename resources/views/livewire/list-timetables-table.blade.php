@@ -21,7 +21,8 @@
                         @can('update timetable')
                             @livewire('dropdown-links', [
                                 'links' => [
-                                ['href' => route("timetables.edit", $timetable->id), 'text' => 'Manage timetable', 'icon' => 'fas fa-cog'],
+                                ['href' => route("timetables.edit", $timetable->id), 'text' => 'Edit', 'icon' => 'fas fa-pen'],
+                                ['href' => route("timetables.edit", $timetable->id), 'text' => 'Manage', 'icon' => 'fas fa-cog'],
                                 ['href' => route("timetables.show", $timetable->id), 'text' => 'View', 'icon' => 'fas fa-eye'],
                                 ],
                             ],)

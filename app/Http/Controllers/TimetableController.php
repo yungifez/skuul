@@ -40,7 +40,7 @@ class TimetableController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(TimetableStoreRequest $request)
     {
         $data = $request->except('_token');
         $this->timetable->createTimetable($data);
@@ -77,7 +77,7 @@ class TimetableController extends Controller
      * @param  \App\Models\Timetable  $timetable
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Timetable $timetable)
+    public function update(TimetableStoreRequest $request, Timetable $timetable)
     {
         //
     }
