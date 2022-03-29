@@ -35,6 +35,8 @@
                 </div>
             </x-adminlte-card>
         @endforeach
+    @else
+        <p class="text-bold text-center">No syllabus for this class at this time</p>
     @endisset
    
 </div>
