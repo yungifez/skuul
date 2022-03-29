@@ -10,6 +10,7 @@ class CreateSyllabusForm extends Component
 {
     public $class;
     public $classes;
+    public $subject;
     public function mount(MyClassService $myClassService)
     {
         $this->classes = $myClassService->getAllClasses();

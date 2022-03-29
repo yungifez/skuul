@@ -6,7 +6,7 @@
             <option value="{{$item['id']}}">{{$item['name']}}</option>
         @endforeach
     </x-adminlte-select>
-    <x-adminlte-select name='subject_id' id="subject" label="Subject" wire:init="loadInitialSubjects" fgroup-class="col-md-6" enable-old-support >
+    <x-adminlte-select name='subject_id' id="subject" label="Subject" wire:init="loadInitialSubjects" fgroup-class="col-md-6" enable-old-support wire:model="subject" >
         @isset($subjects)
             @foreach ($subjects as $subject)
                 <option value="{{$subject['id']}}">{{$subject['name']}}</option>
