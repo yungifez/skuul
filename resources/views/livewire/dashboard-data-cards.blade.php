@@ -6,7 +6,9 @@
         </div>
     @endcan
     
-    <h4 class="text-bold text-center">School data</h4>
+    @can('manage school settings')
+        <h4 class="text-bold text-center">School data</h4>
+    @endcan
     <div class="row">
         <div class="col-lg-4">
             @can('read class group')

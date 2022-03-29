@@ -4,9 +4,16 @@ namespace App\Http\Controllers;
 
 use App\Models\Timetable;
 use Illuminate\Http\Request;
+use App\Services\TimeTable\TimetableService;
 
 class TimetableController extends Controller
 {
+    public $timetable;
+
+    public function __construct(TimetableService $timetable)
+    {
+        $this->timetable = $timetable;
+    }
     /**
      * Display a listing of the resource.
      *
@@ -35,7 +42,10 @@ class TimetableController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $data = $request->except('_token');
+        $this->timetable->createTimetable($data);
+
+        return back();
     }
 
     /**

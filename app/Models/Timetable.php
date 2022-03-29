@@ -8,6 +8,7 @@ class Timetable extends Pivot
 {
     protected $fillable = [
         'name',
+        'description',
         'semester_id',
         'subject_id',
     ];

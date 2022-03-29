@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('timetable', static function (Blueprint $table) {
             $table->id();
             $table->string('name');
+            $table->string('description')->nullable();
             $table->foreignId('semester_id')->constrained()->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('subject_id')->constrained()->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
