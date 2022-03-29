@@ -1,5 +1,6 @@
-<form action="{{route('timetables.edit',$timetable)}}" method="POST">
+<form action="{{route('timetables.update',$timetable)}}" method="POST">
     @csrf 
+    @method('PUT')
     <x-adminlte-input name="name" label="Timetable name" placeholder="Enter timetable name" fgroup-class="col-md-6" value="{{$timetable->name}}"/>
     <x-adminlte-textarea name="description" label="Description" placeholder="Enter description" fgroup-class="col-md-6">
         {{$timetable->description}}

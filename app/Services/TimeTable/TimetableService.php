@@ -35,4 +35,18 @@ class TimetableService
 
         return session()->flash('success', 'Timetable created successfully');
     }
+
+    //update timetable
+
+    public function updateTimetable(Timetable $timetable, $data)
+    {
+        DB::transaction(function() use ($data, $timetable) {
+            $timetable->name = $data['name'];
+            $timetable->description = $data['description'];
+            $timetable->subject_id = $data['subject_id'];
+            $timetable->save();
+        });
+
+        return session()->flash('success', 'Timetable updated successfully');
+    }
 }
