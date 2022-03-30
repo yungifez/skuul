@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('timetable', static function (Blueprint $table) {
+        Schema::create('timetables', static function (Blueprint $table) {
             $table->id();
             $table->string('name');
             $table->string('description')->nullable();

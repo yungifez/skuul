@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class Timetable extends Pivot
 {
+    protected $table = 'timetables';
     protected $fillable = [
         'name',
         'description',
