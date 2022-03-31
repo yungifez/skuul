@@ -42,6 +42,7 @@
   'list-syllabi-table' => 'App\\Http\\Livewire\\ListSyllabiTable',
   'list-teachers-table' => 'App\\Http\\Livewire\\ListTeachersTable',
   'list-timetables-table' => 'App\\Http\\Livewire\\ListTimetablesTable',
+  'manage-timetable' => 'App\\Http\\Livewire\\ManageTimetable',
   'nationality-and-state-input-fields' => 'App\\Http\\Livewire\\NationalityAndStateInputFields',
   'print-student-profile' => 'App\\Http\\Livewire\\PrintStudentProfile',
   'promote-students' => 'App\\Http\\Livewire\\PromoteStudents',
