@@ -1,12 +1,4 @@
-<?php
 
-namespace App\Services\Timetable;
-
-use App\Models\Timetable;
-use Illuminate\Support\Facades\DB;
-
-class TimetableService
-{
     //get all syllabus in semester and class
     public function getAllTimetablesInSemesterAndClass($semester_id, $class_id)
     {

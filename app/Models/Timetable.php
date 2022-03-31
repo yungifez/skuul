@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\TimetableTimeSlot;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class Timetable extends Pivot
@@ -22,5 +23,15 @@ class Timetable extends Pivot
     public function subject()
     {
         return $this->belongsTo(Subject::class);
+    }
+
+    /**
+     * Get all of the timeSlots for the Timetable
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function timeSlots()
+    {
+        return $this->hasMany(TimetableTimeSlot::class,'timetable_id');
     }
 }

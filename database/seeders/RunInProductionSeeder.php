@@ -17,7 +17,7 @@ class RunInProductionSeeder extends Seeder
     public function run()
     {
         $this->call([
-
+            WeekdaySeeder::class,
         ]);
     }
 }
