@@ -1,10 +1,18 @@
+<?php
 
+namespace App\Services\Timetable;
+
+use App\Models\Timetable;
+use Illuminate\Support\Facades\DB;
+
+class TimetableService
+{
     //get all syllabus in semester and class
     public function getAllTimetablesInSemesterAndClass($semester_id, $class_id)
     {
         return Timetable::where('semester_id', $semester_id)->get()->filter(function ($timetable) use ($class_id)
         {
-            return $timetable->subject->myClass->id == $class_id;
+            return $timetable->myClass->id == $class_id;
         });
     }
 
@@ -20,7 +28,7 @@
             Timetable::create([
                 'name' => $data['name'],
                 'description' => $data['description'],
-                'subject_id' => $data['subject_id'],
+                'my_class_id' => $data['my_class_id'],
                 'semester_id' => $data['semester_id'],
             ]);
         });
@@ -35,7 +43,6 @@
         DB::transaction(function() use ($data, $timetable) {
             $timetable->name = $data['name'];
             $timetable->description = $data['description'];
-            $timetable->subject_id = $data['subject_id'];
             $timetable->save();
         });
 

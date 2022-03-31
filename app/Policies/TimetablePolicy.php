@@ -32,7 +32,7 @@ class TimetablePolicy
      */
     public function view(User $user, Timetable $timetable)
     {
-        if ($user->can('read timetable') && $user->school_id == $timetable->subject->school_id) {
+        if ($user->can('read timetable') && $user->school_id == $timetable->myClass->classGroup->school->id) {
             return true;
         }
     }
@@ -59,7 +59,7 @@ class TimetablePolicy
      */
     public function update(User $user, Timetable $timetable)
     {
-        if ($user->can('update timetable') && $user->school_id == $timetable->subject->school_id) {
+        if ($user->can('update timetable') && $user->school_id == $timetable->myClass->classGroup->school->id) {
             return true;
         }
     }

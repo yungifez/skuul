@@ -12,7 +12,7 @@ class Timetable extends Pivot
         'name',
         'description',
         'semester_id',
-        'subject_id',
+        'my_class_id',
     ];
 
     public function semester()
@@ -20,9 +20,9 @@ class Timetable extends Pivot
         return $this->belongsTo(Semester::class);
     }
 
-    public function subject()
+    public function MyClass()
     {
-        return $this->belongsTo(Subject::class);
+        return $this->belongsTo(MyClass::class);
     }
 
     /**

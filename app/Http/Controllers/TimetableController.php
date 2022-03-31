@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Timetable;
 use Illuminate\Http\Request;
 use App\Http\Requests\TimetableStoreRequest;
-use App\Services\TimeTable\TimetableService;
+use App\Services\Timetable\TimetableService;
+use App\Http\Requests\TimetableUpdateRequest;
 
 class TimetableController extends Controller
 {
@@ -79,7 +80,7 @@ class TimetableController extends Controller
      * @param  \App\Models\Timetable  $timetable
      * @return \Illuminate\Http\Response
      */
-    public function update(TimetableStoreRequest $request, Timetable $timetable)
+    public function update(TimetableUpdateRequest $request, Timetable $timetable)
     {
         $data = $request->except('_token'. '_method');
         $this->timetable->updateTimetable($timetable, $data);
