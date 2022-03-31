@@ -77,9 +77,10 @@ This project was highly inspired by 4jean/lavSMS
 Do you like the current state of this project?, you can support me or hire me for work
 
 Todo
+- Write tests
 - Write all delete methods
-- Write policies for none CRUD models
-- Work on user profile updates
+- Write policies for none CRUD methods
+- Work on user profile updates ✅
 - Create class schedule feature
 - Create accounting
 - Create admin and super admin management features
