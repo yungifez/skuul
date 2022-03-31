@@ -45,7 +45,9 @@ class TimetablePolicy
      */
     public function create(User $user)
     {
-        //
+        if ($user->can('create timetable')) {
+            return true;
+        }
     }
 
     /**
@@ -57,7 +59,9 @@ class TimetablePolicy
      */
     public function update(User $user, Timetable $timetable)
     {
-        //
+        if ($user->can('update timetable') && $user->school_id == $timetable->subject->school_id) {
+            return true;
+        }
     }
 
     /**

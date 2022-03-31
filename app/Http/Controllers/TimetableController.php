@@ -14,6 +14,7 @@ class TimetableController extends Controller
     public function __construct(TimetableService $timetable)
     {
         $this->timetable = $timetable;
+        $this->authorizeResource(Timetable::Class,'timetable');
     }
     /**
      * Display a listing of the resource.
@@ -57,7 +58,7 @@ class TimetableController extends Controller
      */
     public function show(Timetable $timetable)
     {
-        //
+       //
     }
 
     /**
