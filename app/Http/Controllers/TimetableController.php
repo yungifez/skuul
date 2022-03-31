@@ -97,4 +97,10 @@ class TimetableController extends Controller
     {
         //
     }
+
+    //manage timetable
+    public function manage(Timetable $timetable)
+    {
+        return view('pages.timetable.manage',compact('timetable'));
+    }
 }
