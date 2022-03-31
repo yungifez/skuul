@@ -82,7 +82,7 @@ class UserService
     {
         $record['name'] = $this->createFullName($record['first_name'], $record['last_name'], $record['other_names']);
 
-        $user = $this->updateUserProfileInformationAction->updateUser($user, $record);
+        $user = $this->updateUserProfileInformationAction->update($user, $record);
 
         return $user;
     }

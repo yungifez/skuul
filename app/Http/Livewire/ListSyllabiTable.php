@@ -21,12 +21,20 @@ class ListSyllabiTable extends Component
             $this->classes = $myClassService->getAllClasses();
             $this->syllabi = $syllabusService->getAllSyllabiInSemesterAndClass($semester,$this->classes[0]['id']);
         }
+
+        if($this->syllabi->isEmpty()){
+            $this->syllabi = null;
+        }
     }
 
     public function updatedClass()
     {
         $semester = auth()->user()->school->semester_id;
         $this->syllabi = collect(App::make(SyllabusService::class)->getAllSyllabiInSemesterAndClass($semester,$this->class));
+
+        if($this->syllabi->isEmpty()){
+            $this->syllabi = null;
+        }
     }
 
     public function render()

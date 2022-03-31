@@ -64,12 +64,10 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'birthday' => 'datetime:Y-m-d'
     ];
 
-    protected function serializeBirthday(DateTimeInterface $birthday)
-    {
-        return $birthday->format('Y-m-d');
-    }
+    protected $birthdayFormat = "d-m-y";
 
     /**
      * The accessors to append to the model's array form.

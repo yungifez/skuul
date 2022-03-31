@@ -6,7 +6,7 @@ use Livewire\Component;
 use Illuminate\Support\Facades\App;
 use App\Services\MyClass\MyClassService;
 
-class CreateSyllabusForm extends Component
+class CreateTimetableForm extends Component
 {
     public $class;
     public $classes;
@@ -18,6 +18,7 @@ class CreateSyllabusForm extends Component
     public function updatedClass()
     {
         $this->subjects = collect(App::make(MyClassService::class)->getClassById($this->class)->subjects);
+ 
     }
     public function loadInitialSubjects()
     {
@@ -25,6 +26,6 @@ class CreateSyllabusForm extends Component
     }
     public function render()
     {
-        return view('livewire.create-syllabus-form');
+        return view('livewire.create-timetable-form');
     }
 }

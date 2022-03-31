@@ -479,6 +479,26 @@ return [
                 ],
             ],
         ],
+        [
+            'type' => 'sidebar-menu-item',
+            'text' => 'Timetable',
+            'icon' => 'fas fa-tasks',
+            'can'  =>  'menu-timetable',
+            'submenu' => [
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View Timetable',
+                    'route' => 'timetables.index',
+                    'can'  => 'read timetable',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create Timetable',
+                    'route' => 'timetables.create',
+                    'can'  => 'create timetable',
+                ],
+            ],
+        ],
     ],
 
     /*
