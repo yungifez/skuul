@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Services\TimeTable;
+namespace App\Services\Timetable;
 
 use App\Models\Timetable;
 use Illuminate\Support\Facades\DB;
