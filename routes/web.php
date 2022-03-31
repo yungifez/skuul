@@ -67,6 +67,11 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
 
             //timetable route
             Route::resource('timetables', TimetableController::class);
+            //manage timetable 
+            Route::get('timetables/{timetable}/manage', ['App\Http\Controllers\TimetableController', 'manage'])->name('timetables.manage');
+
+            //timetable-timeslot route
+            Route::resource('timetable/{timetable}/manage/timeslots', TimetableTimeSlotController::Class);
         });
 
         //student routes 
