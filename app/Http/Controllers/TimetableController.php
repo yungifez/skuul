@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Timetable;
 use Illuminate\Http\Request;
 use App\Http\Requests\TimetableStoreRequest;
-use App\Services\TimeTable\TimetableService;
+use App\Services\Timetable\TimetableService;
 
 class TimetableController extends Controller
 {
