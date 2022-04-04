@@ -7,7 +7,7 @@
         <table class="table table-bordered overflow-auto" style="overflow-x: scroll"> 
             <thead>
                 <tr> 
-                    <th scope="col" class="col-2">Time slots /<br>Weekdays
+                    <th scope="col">Time slots /<br>Weekdays
                     </th>
                     {{--table heading which disp;lays all the time slots--}}
                     @foreach ($timeSlots as $timeSlot)
@@ -20,7 +20,7 @@
             {{--creates a row for each day of the week--}}
             @foreach ($weekdays as $weekday)
                 <tr> 
-                    <td scope="col" class="col-2">{{$weekday->name}}</th>
+                    <td scope="col" >{{$weekday->name}}</th>
                     {{--displays the time slots for each day of the week--}}
                     @foreach ($timeSlots as $timeSlot)
                         <td scope="col">
