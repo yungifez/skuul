@@ -31,8 +31,8 @@
             <img src="{{asset(config('app.logo'))}}" alt="" class="logo" >
         </div>
         <div>
-            <h1 class="text-capitalize text-center ">{{config('app.name')}} - {{auth()->user()->school->name}}</h1>
-            <h4 class="text-capitalize text-center ">{{auth()->user()->school->address}}</h4>
+            <h2 class="text-uppercase text-center ">{{config('app.name')}} - {{auth()->user()->school->name}}</h2>
+            <h4 class="text-capitalize text-center font-weight-normal">{{auth()->user()->school->address}}</h4>
         </div>
     </div>
     @livewire('show-timetable', ['timetable' => $timetable])

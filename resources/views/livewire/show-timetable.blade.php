@@ -20,7 +20,7 @@
             {{--creates a row for each day of the week--}}
             @foreach ($weekdays as $weekday)
                 <tr> 
-                    <td scope="col" >{{$weekday->name}}</th>
+                    <td scope="col" ><p class="text-center">{{$weekday->name}}</p></td>
                     {{--displays the time slots for each day of the week--}}
                     @foreach ($timeSlots as $timeSlot)
                         <td scope="col">

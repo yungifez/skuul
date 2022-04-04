@@ -127,4 +127,13 @@ class User extends Authenticatable implements MustVerifyEmail
 
         return implode(' ', $names);
     }
+
+    public function defaultProfilePhotoUrl()
+    {
+        $name = trim(collect(explode(' ', $this->name))->map(function ($segment) {
+            return mb_substr($segment, 0, 1);
+        })->join(' '));
+
+        return 'https://www.gravatar.com/avatar/'.$this->email.'?d=https%3A%2F%2Fui-avatars.com%2Fapi%2F/'.urlencode($name).'/125/EBF4FF/7F9CF5';
+    }
 }
