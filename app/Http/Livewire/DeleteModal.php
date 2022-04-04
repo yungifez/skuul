@@ -10,6 +10,7 @@ class DeleteModal extends Component
     public $button_label = "Delete";
     public $action;
     public $item_name;
+    public $button_class;
 
     public function render()
     {

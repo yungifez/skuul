@@ -2,11 +2,11 @@
 
 namespace App\Policies;
 
-use App\Models\Timetable;
+use App\Models\TimetableTimeSlot;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class TimetablePolicy
+class TimetableTimeSlotPolicy
 {
     use HandlesAuthorization;
 
@@ -18,23 +18,19 @@ class TimetablePolicy
      */
     public function viewAny(User $user)
     {
-        if ($user->can('read timetable')) {
-            return true;
-        }
+        //
     }
 
     /**
      * Determine whether the user can view the model.
      *
      * @param  \App\Models\User  $user
-     * @param  \App\Models\Timetable  $timetable
+     * @param  \App\Models\TimetableTimeSlot  $timetableTimeSlot
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function view(User $user, Timetable $timetable)
+    public function view(User $user, TimetableTimeSlot $timetableTimeSlot)
     {
-        if ($user->can('read timetable') && $user->school_id == $timetable->myClass->classGroup->school->id) {
-            return true;
-        }
+        //
     }
 
     /**
@@ -54,24 +50,22 @@ class TimetablePolicy
      * Determine whether the user can update the model.
      *
      * @param  \App\Models\User  $user
-     * @param  \App\Models\Timetable  $timetable
+     * @param  \App\Models\TimetableTimeSlot  $timetableTimeSlot
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function update(User $user, Timetable $timetable)
+    public function update(User $user, TimetableTimeSlot $timetableTimeSlot)
     {
-        if ($user->can('update timetable') && $user->school_id == $timetable->myClass->classGroup->school->id) {
-            return true;
-        }
+        //
     }
 
     /**
      * Determine whether the user can delete the model.
      *
      * @param  \App\Models\User  $user
-     * @param  \App\Models\Timetable  $timetable
+     * @param  \App\Models\TimetableTimeSlot  $timetableTimeSlot
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function delete(User $user, Timetable $timetable)
+    public function delete(User $user, TimetableTimeSlot $timetableTimeSlot)
     {
         //
     }
@@ -80,10 +74,10 @@ class TimetablePolicy
      * Determine whether the user can restore the model.
      *
      * @param  \App\Models\User  $user
-     * @param  \App\Models\Timetable  $timetable
+     * @param  \App\Models\TimetableTimeSlot  $timetableTimeSlot
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function restore(User $user, Timetable $timetable)
+    public function restore(User $user, TimetableTimeSlot $timetableTimeSlot)
     {
         //
     }
@@ -92,10 +86,10 @@ class TimetablePolicy
      * Determine whether the user can permanently delete the model.
      *
      * @param  \App\Models\User  $user
-     * @param  \App\Models\Timetable  $timetable
+     * @param  \App\Models\TimetableTimeSlot  $timetableTimeSlot
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function forceDelete(User $user, Timetable $timetable)
+    public function forceDelete(User $user, TimetableTimeSlot $timetableTimeSlot)
     {
         //
     }

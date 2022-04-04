@@ -6,7 +6,7 @@
     <x-adminlte-input name="other_names" label="Other names" placeholder="{{$role}}'s other names" fgroup-class="col-md-6" enable-old-support value="{{$user->otherNames()}}"/>
     <x-adminlte-input name="email" label="Email address" placeholder="Enter {{$role}}'s email address" fgroup-class="col-md-4" enable-old-support value="{{$user->email}}"/>
     <h4 class="text-bold col-12 text-center">Personal information</h4>
-    <x-adminlte-input-date name="birthday" :config="['format' => 'YYYY/MM/DD']" placeholder="Choose {{$role}}'s birthday..." label="Birthday"  fgroup-class="col-md-3" value="{{old('birthday')}}" value="{{$user->birthday}}"/>
+    <x-adminlte-input-date name="birthday" :config="['format' => 'YYYY/MM/DD']" placeholder="Choose {{$role}}'s birthday..." label="Birthday"  fgroup-class="col-md-3" value="{{old('birthday')}}" value="{{$user->birthday}}" error/>
     <x-adminlte-select name="gender" label="Gender" fgroup-class="col-md-3" enable-old-support>
         @php ($genders = ['Male', 'Female'])
         @foreach ($genders as $gender)
