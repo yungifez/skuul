@@ -134,6 +134,10 @@ class User extends Authenticatable implements MustVerifyEmail
             return mb_substr($segment, 0, 1);
         })->join(' '));
 
-        return 'https://www.gravatar.com/avatar/'.$this->email.'?d=https%3A%2F%2Fui-avatars.com%2Fapi%2F/'.urlencode($name).'/125/EBF4FF/7F9CF5';
+        $email = trim( $this->email ); 
+        $email = strtolower( $email );
+        $email =  md5( $email );
+
+        return 'https://www.gravatar.com/avatar/'.$email.'?d=https%3A%2F%2Fui-avatars.com%2Fapi%2F/'.urlencode($name).'/10/EBF4FF/7F9CF5';
     }
 }
