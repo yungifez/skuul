@@ -59,9 +59,18 @@ class TimetableController extends Controller
      */
     public function show(Timetable $timetable)
     {
-       //
+       return view('pages.timetable.show',compact('timetable'));
     }
 
+    /**
+     * Print timetsable
+     */
+    public function print(Timetable $timetable)
+    {
+        $data['timetable'] = $timetable;
+;
+        return $this->timetable->createPdfFromView($data['timetable']->name, 'pages.timetable.print', $data);
+    }
     /**
      * Show the form for editing the specified resource.
      *

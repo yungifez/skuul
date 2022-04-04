@@ -3,6 +3,7 @@
 namespace App\Services\Timetable;
 
 use App\Models\Timetable;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 
 class TimetableService
@@ -47,5 +48,13 @@ class TimetableService
         });
 
         return session()->flash('success', 'Timetable updated successfully');
+    }
+
+    // print timetable
+    public function createPdfFromView(string $name, string $view, array $data)
+    {
+        $pdf = Pdf::loadView($view, $data);
+
+        return $pdf->download("$name.pdf");
     }
 }

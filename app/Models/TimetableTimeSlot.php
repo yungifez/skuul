@@ -22,8 +22,9 @@ class TimetableTimeSlot extends Model
     }
 
     //many to many relationship with week days
-    public function weekDays()
+    public function weekdays()
     {
-        return $this->belongsToMany(WeekDay::class);
+        //get pivot table as timetableRecords
+        return $this->belongsToMany(WeekDay::class)->as('timetableRecord')->withPivot(['subject_id'])->withTimestamps();
     }
 }

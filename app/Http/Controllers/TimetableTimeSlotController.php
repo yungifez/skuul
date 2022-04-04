@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Timetable;
+use Illuminate\Http\Request;
 use App\Models\TimetableTimeSlot;
+use App\Http\Requests\storeTimetableReord;
 use App\Services\Timetable\TimeslotService;
 use App\Http\Requests\StoreTimetableTimeSlotRequest;
 use App\Http\Requests\UpdateTimetableTimeSlotRequest;
@@ -78,7 +80,7 @@ class TimetableTimeSlotController extends Controller
      * @param  \App\Models\TimetableTimeSlot  $timetableTimeSlot
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateTimetableTimeSlotRequest $request, TimetableTimeSlot $timetableTimeSlot)
+    public function update(UpdateTimetableTimeSlotRequest $request,$timetable, TimetableTimeSlot $timetableTimeSlot)
     {
         //
     }
@@ -89,8 +91,19 @@ class TimetableTimeSlotController extends Controller
      * @param  \App\Models\TimetableTimeSlot  $timetableTimeSlot
      * @return \Illuminate\Http\Response
      */
-    public function destroy(TimetableTimeSlot $timetableTimeSlot)
+    public function destroy($timetable,TimetableTimeSlot $timeSlot)
     {
-        //
+        $this->timeSlot->deleteTimeSlot($timeSlot);
+
+        return back();
+    }
+
+    //timetable record
+    public function addTimetableRecord(Timetable $timetable,TimetableTimeSlot $timeSlot,storeTimetableReord $request)
+    {
+        $data = $request->except('_token');
+        $this->timeSlot->createTimetableRecord($timeSlot, $data);
+
+        return back();
     }
 }
