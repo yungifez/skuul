@@ -5,7 +5,7 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use Illuminate\Support\Facades\App;
 use App\Services\MyClass\MyClassService;
-use App\Services\TimeTable\TimetableService;
+use App\Services\Timetable\TimetableService;
 
 class ListTimetablesTable extends Component
 {
