@@ -73,6 +73,7 @@
             <x-jet-label for="Birthday" value="{{ __('Birthday') }}" />
             <x-jet-input id="birthday" type="date" class="{{ $errors->has('birthday') ? 'is-invalid' : '' }}"  wire:model="state.birthday"/>
             <x-jet-input-error for="birthday" />
+            @section('plugins.TempusDominusBs4', true)
 
             <div class="row col-12">
                 <!--Gender-->
