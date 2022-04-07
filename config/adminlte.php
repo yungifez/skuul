@@ -487,7 +487,7 @@ return [
             'submenu' => [
                 [
                     'type' => 'sidebar-menu-item',
-                    'text' => 'View Timetable',
+                    'text' => 'View Timetables',
                     'route' => 'timetables.index',
                     'can'  => 'read timetable',
                 ],

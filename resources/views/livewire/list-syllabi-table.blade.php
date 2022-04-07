@@ -10,21 +10,26 @@
             </x-adminlte-select>
         </form>
     @endif
+    <div class="d-flex justify-content-center">
+        <div wire:loading class="spinner-border" role="status">
+            <p class="sr-only">Loading.....</p>
+        </div>
+    </div>
     @isset($syllabi)
         @foreach ($syllabi as $syllabus)
-            <x-adminlte-card title="{{$syllabus->name}}" theme="primary" icon=""  collapsible="collapsed">
+            <x-adminlte-card title="{{$syllabus->name}}" theme="primary" icon=""  collapsible="collapsed" wire.loading.remove>
                 <p>Subject: {{$syllabus->subject->name}}</p>
                 @if (isset($syllabus->description))
                     <h4 class="text-center text-bold">Description:</h4>
                     <p>{{$syllabus->description}}</p>
                 @endif
-                <div class="my-2 row">
-                    <a class="btn btn-secondary col-2 mx-2" href="{{asset('storage/'.$syllabus->file)}}" download>
+                <div class=" row">
+                    <a class="btn btn-secondary  mx-2" href="{{asset('storage/'.$syllabus->file)}}" download>
                         <i class="fas fa-download"></i>
                         Download
                     </a> 
                     @can('update syllabus')
-                        <a class="btn btn-primary col-2 mx-2" href="{{route('syllabi.edit',$syllabus->id)}}">
+                        <a class="btn btn-primary  mx-2" href="{{route('syllabi.edit',$syllabus->id)}}">
                             <i class="fas fa-pen"></i>
                             Edit
                         </a> 
@@ -36,7 +41,7 @@
             </x-adminlte-card>
         @endforeach
     @else
-        <p class="text-bold text-center">No syllabus for this class at this time</p>
+        <p class="text-bold text-center" wire.loading.remove>No syllabus for this class at this time</p>
     @endisset
    
 </div>
