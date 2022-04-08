@@ -7,7 +7,8 @@
         <table class="table table-bordered overflow-auto" style="overflow-x: scroll"> 
             <thead>
                 <tr> 
-                    <th scope="col">Time slots /<br>Weekdays
+                    <th scope="col" class="col-2">
+                        <p class="text-center">Time slots &#8594<br>Weekdays &#8595 </p>
                     </th>
                     {{--table heading which disp;lays all the time slots--}}
                     @foreach ($timeSlots as $timeSlot)

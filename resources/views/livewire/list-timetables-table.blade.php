@@ -18,36 +18,36 @@
     </div>
     
     @isset($timetables)
-        <x-adminlte-datatable id="timetable-list-table-{{$class}}" :heads="['S/N', 'Name', 'Action', '']" Class='text-capital' wire:loading.remove>
-            @foreach($timetables as $timetable)
-                <tr>
-                    <td>{{$loop->iteration}}</td>
-                    <td>{{ $timetable->name}}</td>
-                    <td>
-                        @can('update timetable')
-                            @livewire('dropdown-links', [
-                                'links' => [
-                                ['href' => route("timetables.edit", $timetable->id), 'text' => 'Edit', 'icon' => 'fas fa-pen'],
-                                ['href' => route("timetables.manage", $timetable->id), 'text' => 'Manage', 'icon' => 'fas fa-cog'],
-                                ['href' => route("timetables.show", $timetable->id), 'text' => 'View', 'icon' => 'fas fa-eye'],
-                                ],
-                            ],)
-                        @elsecan('read timetable')
-                            @livewire('dropdown-links', [
-                                'links' => [
-                                ['href' => route("timetables.show", $timetable->id), 'text' => 'View', 'icon' => 'fas fa-eye'],
-                                ],
-                            ],)
-                        @endcan
-                    </td>
-                    <td>
-                        @can('delete timetable')
-                            @livewire('delete-modal', ['modal_id' => $timetable->id ,"action" => route('timetables.destroy', $timetable->id), 'item_name' => $timetable->name])
-                        @endcan
-                    </td>
-                </tr>
-            @endforeach
-        </x-adminlte-datatable>
+        @foreach ($timetables as $timetable)
+            <x-adminlte-card title="{{$timetable->name}}" theme="primary" icon=""  collapsible="collapsed" wire.loading.remove :wire:key="$loop->index">
+                @if (isset($timetable->description))
+                    <h4 class="text-center text-bold">Description:</h4>
+                    <p>{{$timetable->description}}</p>
+                @endif
+               
+                <div class="d-grid gap-2 ">
+                    @can('read timetable')
+                        <a class="btn btn-primary" href="{{route('timetables.show',$timetable->id)}}">
+                            <i class="fas fa-eye"></i>
+                            View
+                        </a> 
+                    @endcan
+                    @can('update timetable')
+                        <a class="btn btn-primary " href="{{route('timetables.edit',$timetable->id)}}">
+                            <i class="fas fa-pen"></i>
+                            Edit
+                        </a> 
+                        <a class="btn btn-primary" href="{{route('timetables.manage',$timetable->id)}}">
+                            <i class="fas fa-cog"></i>
+                            Manage
+                        </a> 
+                    @endcan
+                    @can('delete timetable')
+                        @livewire('delete-modal', ['modal_id' => $timetable->id ,"action" => route('timetables.destroy', $timetable->id), 'item_name' => $timetable->name,"button_class" => ' my-3'], key($loop->index))
+                    @endcan
+                </div>
+            </x-adminlte-card>
+    @endforeach
     @else
         <p class="text-center text-bold" wire:loading.remove>No Timetable for this class at this time</p>
     @endisset
