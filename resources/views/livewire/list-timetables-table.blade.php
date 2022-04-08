@@ -20,11 +20,7 @@
     @isset($timetables)
         @foreach ($timetables as $timetable)
             <x-adminlte-card title="{{$timetable->name}}" theme="primary" icon=""  collapsible="collapsed" wire.loading.remove :wire:key="$loop->index">
-                @if (isset($timetable->description))
-                    <h4 class="text-center text-bold">Description:</h4>
-                    <p>{{$timetable->description}}</p>
-                @endif
-               
+               @livewire('show-timetable', ['timetable' => $timetable], key("timetable-$timetable->id"))
                 <div class="d-grid gap-2 ">
                     @can('read timetable')
                         <a class="btn btn-primary" href="{{route('timetables.show',$timetable->id)}}">
@@ -43,11 +39,11 @@
                         </a> 
                     @endcan
                     @can('delete timetable')
-                        @livewire('delete-modal', ['modal_id' => $timetable->id ,"action" => route('timetables.destroy', $timetable->id), 'item_name' => $timetable->name,"button_class" => ' my-3'], key($loop->index))
+                        @livewire('delete-modal', ['modal_id' => $timetable->id ,"action" => route('timetables.destroy', $timetable->id), 'item_name' => $timetable->name,"button_class" => ' my-3'], key("delete-modal-".$timetable->id))
                     @endcan
                 </div>
             </x-adminlte-card>
-    @endforeach
+        @endforeach
     @else
         <p class="text-center text-bold" wire:loading.remove>No Timetable for this class at this time</p>
     @endisset

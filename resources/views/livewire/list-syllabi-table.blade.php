@@ -35,7 +35,7 @@
                         </a> 
                     @endcan
                     @can('delete syllabus')
-                        @livewire('delete-modal', ['modal_id' => $syllabus->id ,"action" => route('syllabi.destroy', $syllabus->id), 'item_name' => $syllabus->name], key($loop->index))
+                        @livewire('delete-modal', ['modal_id' => $syllabus->id ,"action" => route('syllabi.destroy', $syllabus->id), 'item_name' => $syllabus->name], key("delete-modal-".$syllabus->id))
                     @endcan
                 </div>
             </x-adminlte-card>
