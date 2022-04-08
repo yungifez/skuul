@@ -15,6 +15,7 @@ class TimetableTimeSlotController extends Controller
     public function __construct(TimeslotService $timeSlot)
     {
         $this->timeSlot = $timeSlot;
+        $this->authorizeResource(TimetableTimeSlot::Class,'timetableTimeSlot');
     }
 
     /**
