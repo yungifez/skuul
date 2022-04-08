@@ -6,7 +6,11 @@
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>{{$timetable->name}}'s profile</title>
-    <link rel="stylesheet" href="{{url('public/app.css')}}">
+    <style>
+        @php 
+            include(public_path().'/css/app.css'); 
+        @endphp
+    </style>
     <style>
         body{
             background-color: white;
