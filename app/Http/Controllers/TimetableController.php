@@ -69,7 +69,7 @@ class TimetableController extends Controller
     {
         $data['timetable'] = $timetable;
 ;
-        return $this->timetable->createPdfFromView($data['timetable']->name, 'pages.timetable.print', $data);
+        return $this->timetable->printTimetable($data['timetable']->name, 'pages.timetable.print', $data);
     }
     /**
      * Show the form for editing the specified resource.

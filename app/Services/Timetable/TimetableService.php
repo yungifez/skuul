@@ -3,8 +3,8 @@
 namespace App\Services\Timetable;
 
 use App\Models\Timetable;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
+use App\Services\Print\PrintService;
 
 class TimetableService
 {
@@ -51,19 +51,9 @@ class TimetableService
     }
 
     // print timetable
-    public function createPdfFromView(string $name, string $view, array $data)
+    public function printTimetable(string $name, string $view, array $data)
     {
-        $pdf = Pdf::loadView($view, $data);
-        $pdf->getDomPDF()->setHttpContext(
-            stream_context_create([
-                'ssl' => [
-                    'allow_self_signed'=> TRUE,
-                    'verify_peer' => FALSE,
-                    'verify_peer_name' => FALSE,
-                ]
-            ])
-        );
-        return $pdf->download("$name.pdf");
+        return PrintService::createPdfFromView($name, $view, $data);
     }
 
     //delete timetable

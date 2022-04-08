@@ -79,7 +79,7 @@ class StudentController extends Controller
     {
         $data['student'] = $student;
 
-        return $this->student->createPdfFromView($data['student']->name, 'pages.student.print-student-profile', $data);
+        return $this->student->printProfile($data['student']->name, 'pages.student.print-student-profile', $data);
     }
 
     /**

@@ -5,8 +5,8 @@ namespace App\Services\Student;
 use App\Models\User;
 use App\Models\Promotion;
 use Illuminate\Support\Str;
-use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\User\UserService;
+use App\Services\Print\PrintService;
 use App\Services\MyClass\MyClassService;
 
 class StudentService
@@ -83,11 +83,9 @@ class StudentService
         return session()->flash('success', 'Student Updated Successfully');
     }
 
-    public function createPdfFromView(string $name, string $view, array $data)
+    public function printProfile(string $name, string $view, array $data)
     {
-        $pdf = Pdf::loadView($view, $data);
-
-        return $pdf->download("$name.pdf");
+        return PrintService::createPdfFromView($name, $view, $data);
     }
 
     //promote student method
