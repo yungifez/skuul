@@ -41,7 +41,7 @@ class TimetableTimeSlotPolicy
      */
     public function create(User $user)
     {
-        if ($user->can('create timetable')) {
+        if ($user->can('update timetable')) {
             return true;
         }
     }
@@ -55,7 +55,9 @@ class TimetableTimeSlotPolicy
      */
     public function update(User $user, TimetableTimeSlot $timetableTimeSlot)
     {
-        //
+        if ($user->can('update timetable')) {
+            return true;
+        }
     }
 
     /**
@@ -67,7 +69,9 @@ class TimetableTimeSlotPolicy
      */
     public function delete(User $user, TimetableTimeSlot $timetableTimeSlot)
     {
-        //
+        if ($user->can('update timetable')) {
+            return true;
+        }
     }
 
     /**

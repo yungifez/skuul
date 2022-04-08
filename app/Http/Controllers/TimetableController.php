@@ -105,12 +105,15 @@ class TimetableController extends Controller
      */
     public function destroy(Timetable $timetable)
     {
-        //
+        $this->timetable->deleteTimetable($timetable);
+
+        return back();
     }
 
     //manage timetable
     public function manage(Timetable $timetable)
     {
+        $this->authorize('update', $timetable);
         return view('pages.timetable.manage',compact('timetable'));
     }
 }

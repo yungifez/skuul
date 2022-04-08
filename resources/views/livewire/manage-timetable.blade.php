@@ -23,9 +23,9 @@
                     @foreach ($timeSlots as $timeSlot)
                     <th scope="col" >
                         <p class="text-center">{{$timeSlot->start_time}} - {{$timeSlot->stop_time}}</p>
-                        <div class=" col-md-12">
+                        <div class=" col-12 d-flex justify-content-center">
                             {{--delete time slot modal--}}
-                            @livewire('delete-modal', ['modal_id' => "timeslot-$timeSlot->id" ,"action" => route('time-slots.destroy',[$timetable->id, $timeSlot->id]), 'item_name' => "timeslot $timeSlot->start_time - $timeSlot->stop_time", 'button_class' => 'col-lg-6 text-center'])
+                            @livewire('delete-modal', ['modal_id' => "timeslot-$timeSlot->id" ,"action" => route('time-slots.destroy',[$timetable->id, $timeSlot->id]), 'item_name' => "timeslot $timeSlot->start_time - $timeSlot->stop_time", 'button_class' => ''])
                         </div>
                     </th>
                     @endforeach

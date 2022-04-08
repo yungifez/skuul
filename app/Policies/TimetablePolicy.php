@@ -73,7 +73,9 @@ class TimetablePolicy
      */
     public function delete(User $user, Timetable $timetable)
     {
-        //
+        if ($user->can('delete timetable') && $user->school_id == $timetable->myClass->classGroup->school->id) {
+            return true;
+        }
     }
 
     /**

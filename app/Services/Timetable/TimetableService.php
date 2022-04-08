@@ -57,4 +57,13 @@ class TimetableService
 
         return $pdf->download("$name.pdf");
     }
+
+    //delete timetable
+
+    public function deleteTimetable(Timetable $timetable)
+    {
+        $timetable->delete();
+
+        return session()->flash('success', 'Timetable deleted successfully');
+    }
 }
