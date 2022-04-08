@@ -77,7 +77,7 @@
 
             <div class="row col-12">
                 <!--Gender-->
-                <x-adminlte-select name="gender" label="Gender" fgroup-class="my-3 col-md-6" enable-old-support>
+                <x-adminlte-select name="gender" label="Gender" fgroup-class="my-3 col-md-6" enable-old-support wire:model="state.gender">
                     @php ($genders = ['Male', 'Female'])
                     @foreach ($genders as $gender)
                         <option value="{{$gender}}" {{Str::lower($gender) == str::lower($this->user->gender) ? 'selected' : ''}} >{{$gender}}</option>
