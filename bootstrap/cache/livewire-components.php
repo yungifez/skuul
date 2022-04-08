@@ -53,5 +53,6 @@
   'show-promotion' => 'App\\Http\\Livewire\\ShowPromotion',
   'show-set-school' => 'App\\Http\\Livewire\\ShowSetSchool',
   'show-student-profile' => 'App\\Http\\Livewire\\ShowStudentProfile',
+  'show-timetable' => 'App\\Http\\Livewire\\ShowTimetable',
   'show-user-profile' => 'App\\Http\\Livewire\\ShowUserProfile',
 );

@@ -11,8 +11,11 @@
             </x-adminlte-select>
         </form>
     @endif
+    <div wire:loading class="col-12">
+        <p class="text-bold text-center">Loading.....</p>
+    </div>
     @isset($timetables)
-        <x-adminlte-datatable id="timetable-list-table" :heads="['S/N', 'Name', 'Action', '']" Class='text-capitalize'>
+        <x-adminlte-datatable id="timetable-list-table" :heads="['S/N', 'Name', 'Action', '']" Class='text-capitalize' wire:loading.remove>
             @foreach($timetables as $timetable)
                 <tr>
                     <td>{{$loop->iteration}}</td>
@@ -43,6 +46,6 @@
             @endforeach
         </x-adminlte-datatable>
     @else
-        <p class="text-center text-bold">No Timetable for this class at this time</p>
+        <p class="text-center text-bold" wire:loading.remove>No Timetable for this class at this time</p>
     @endisset
 </div>

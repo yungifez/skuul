@@ -3,6 +3,7 @@
 namespace App\Services\Timetable;
 
 use App\Models\Timetable;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 
 class TimetableService
@@ -12,7 +13,7 @@ class TimetableService
     {
         return Timetable::where('semester_id', $semester_id)->get()->filter(function ($timetable) use ($class_id)
         {
-            return $timetable->subject->myClass->id == $class_id;
+            return $timetable->myClass->id == $class_id;
         });
     }
 
@@ -28,7 +29,7 @@ class TimetableService
             Timetable::create([
                 'name' => $data['name'],
                 'description' => $data['description'],
-                'subject_id' => $data['subject_id'],
+                'my_class_id' => $data['my_class_id'],
                 'semester_id' => $data['semester_id'],
             ]);
         });
@@ -43,10 +44,17 @@ class TimetableService
         DB::transaction(function() use ($data, $timetable) {
             $timetable->name = $data['name'];
             $timetable->description = $data['description'];
-            $timetable->subject_id = $data['subject_id'];
             $timetable->save();
         });
 
         return session()->flash('success', 'Timetable updated successfully');
+    }
+
+    // print timetable
+    public function createPdfFromView(string $name, string $view, array $data)
+    {
+        $pdf = Pdf::loadView($view, $data);
+
+        return $pdf->download("$name.pdf");
     }
 }

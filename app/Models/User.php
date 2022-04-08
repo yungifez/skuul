@@ -2,18 +2,19 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use App\Models\School;
 use DateTimeInterface;
 use App\Models\StudentRecord;
 use App\Models\TeacherRecord;
+use Laravel\Sanctum\HasApiTokens;
+use Laravel\Jetstream\HasProfilePhoto;
+use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Fortify\TwoFactorAuthenticatable;
-use Laravel\Jetstream\HasProfilePhoto;
-use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -66,8 +67,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at' => 'datetime',
         'birthday' => 'datetime:Y-m-d'
     ];
-
-    protected $birthdayFormat = "d-m-y";
 
     /**
      * The accessors to append to the model's array form.
@@ -126,5 +125,25 @@ class User extends Authenticatable implements MustVerifyEmail
         $names = array_diff_key(explode(' ', $this->name), array_flip([0, 1]));
 
         return implode(' ', $names);
+    }
+
+    public function defaultProfilePhotoUrl()
+    {
+        $name = trim(collect(explode(' ', $this->name))->map(function ($segment) {
+            return mb_substr($segment, 0, 1);
+        })->join(' '));
+
+        $email = trim( $this->email ); 
+        $email = strtolower( $email );
+        $email =  md5( $email );
+
+        return 'https://www.gravatar.com/avatar/'.$email.'?d=https%3A%2F%2Fui-avatars.com%2Fapi%2F/'.urlencode($name).'/300/EBF4FF/7F9CF5';
+    }
+
+    //accessor for birthday
+
+    public function getBirthdayAttribute($value)
+    {
+        return Carbon::parse($value)->format('Y/m/d');
     }
 }

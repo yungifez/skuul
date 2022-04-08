@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class TimetableStoreRequest extends FormRequest
+class storeTimetableReord extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -20,9 +20,8 @@ class TimetableStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string|max:255',
-            'my_class_id' => 'required|integer|exists:my_classes,id',
+            'subject_id' => 'nullable|exists:subjects,id|integer',
+            'weekday_id' => 'required|exists:weekdays,id|integer'
         ];
     }
 }
