@@ -22,7 +22,9 @@
         .logo{
             width: 100px;
             height: 80px;
-           
+        }
+        h2{
+            text-transform: uppercase;
         }
     </style>
 </head>
