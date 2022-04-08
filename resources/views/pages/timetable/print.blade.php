@@ -3,14 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>{{$timetable->name}}'s profile</title>
-    <style>
-        @php 
-            include(public_path().'/css/app.css'); 
-        @endphp
-    </style>
+    <link rel="stylesheet" href="{{asset('css/app.css')}}">
     <style>
         body{
             background-color: white;
@@ -26,9 +21,7 @@
         .logo{
             width: 100px;
             height: 80px;
-        }
-        h2{
-            text-transform: uppercase;
+           
         }
     </style>
 </head>
