@@ -25,7 +25,7 @@ class UserFactory extends Factory
             'password' => '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
             'remember_token' => Str::random(10),
             'address' => $this->faker->address(),
-            'birthday' => '22/04/04',
+            'birthday' => '2004/04/22',
             'address' => $this->faker->address(),
             'school_id' => 1,
             'blood_group' => 'a+',
