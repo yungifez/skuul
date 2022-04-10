@@ -10,6 +10,8 @@ use App\Services\Timetable\TimetableService;
 class ListTimetablesTable extends Component
 {
     public $class;
+    public $timetables;
+    public $classes;
     public function mount(TimetableService $timetableService, MyClassService $myClassService)
     {
         //get current semester
