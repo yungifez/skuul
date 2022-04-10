@@ -20,7 +20,8 @@ Route::get('/', function () {
 //user must be authenticated
 Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('App\Http\Controllers')->group(function () {
 
- 
+    //manage school settings
+    Route::get('schools/settings', ['App\Http\Controllers\SchoolController', 'settings'])->name('schools.settings')->middleware('App\Http\Middleware\EnsureSuperAdminHasSchoolId');
     //School routes
     Route::resource('schools', SchoolController::class);
     Route::post('schools/set school', ['App\Http\Controllers\SchoolController', 'setSchool'])->name('schools.setSchool');
@@ -31,8 +32,7 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
         Route::get('/', function () {
             return view('dashboard');
         })->name('dashboard');
-        //manage school settings
-        Route::get('Schools/settings', ['App\Http\Controllers\SchoolController', 'settings'])->name('schools.settings');
+        
         //class routes
         Route::resource('classes', MyClassController::class);
 

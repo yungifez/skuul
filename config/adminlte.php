@@ -279,7 +279,7 @@ return [
             'icon' => 'fas fa-cog',
             'text' => 'School Settings',
             'route' => 'schools.settings',
-            'can'  => 'update school',
+            'can'  => 'manage school settings',
         ],
         [
             'type' => 'sidebar-menu-item',
