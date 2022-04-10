@@ -32,7 +32,9 @@ class SchoolPolicy
      */
     public function view(User $user, School $school)
     {
-        //
+        if ($user->can('read school') && $user->school_id = $school->id) {
+            return true;
+        }
     }
 
     /**
