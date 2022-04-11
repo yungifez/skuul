@@ -142,4 +142,89 @@ class SchoolTest extends TestCase
         $response = $this->get('/dashboard/schools/settings');
         $response->assertRedirect(url("/dashboard/schools/$user->school_id/edit"));
     }
+
+    public function test_unauthorized_user_cannot_update_school()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $school = School::where('name','Test school')->first();
+        $response = $this->patch("/dashboard/schools/$school->id");
+
+        $response->assertForbidden();
+    }
+
+    public function test_authorized_user_can_update_School()
+    {
+        $user = User::factory()->create();
+        $user->givePermissionTo([
+            'update school'
+        ]);
+        $this->actingAs($user);
+        $school = School::where('name','Test school')->first();
+        $user->school_id = $school->id;
+        $user->save();
+        $response = $this->patch("/dashboard/schools/$school->id",['name'=>'Test school 2','address' => 'something street', 'initials' => 'TS2']);
+
+        $this->assertEquals('Test school 2',$school->fresh()->name);
+    }
+
+    public function test_that_unauthorized_user_cannot_delete_school()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $school = School::where('name','Test school 2')->first();
+        $response = $this->delete("/dashboard/schools/$school->id");
+
+        $response->assertForbidden();
+    }
+
+    public function test_that_unauthorized_user_cannot_delete_School_if_it_is_their_current_school()
+    {
+        $user = User::factory()->create();
+        $user->givePermissionTo([
+            'delete school'
+        ]);
+        $this->actingAs($user);
+        $school = School::where('name','Test school 2')->first();
+        $user->school_id = $school->id;
+        $user->save();
+        $response = $this->delete("/dashboard/schools/$school->id");
+
+        $this->assertNotNull($school->fresh());
+    }
+
+    public function test_user_cannot_delete_school_with_users_in_it()
+    {
+        $user = User::factory()->create();
+        $user->givePermissionTo([
+            'delete school'
+        ]);
+        $this->actingAs($user);
+
+        $school = School::where('name','Test school 2')->first();
+        //user id must always not equal to school id 
+        $user->school_id = $school->id++;
+        $user->save();
+        $response = $this->delete("/dashboard/schools/$school->id");
+
+        $this->assertNotNull($school->fresh());
+    }
+
+    public function test_user_can_delete_School_with_no_users()
+    {
+        //get school and users
+        $school = School::where('name','Test school 2')->first();
+        $userIds = $school->users->pluck('id');
+        //delete all users
+        User::destroy($userIds);
+        $user = User::factory()->create();
+        $user->givePermissionTo([
+            'delete school'
+        ]);
+        $this->actingAs($user);
+        //user id must always not equal to school id 
+        $response = $this->delete("/dashboard/schools/$school->id");
+        
+        $this->assertNull($school->fresh());
+    }
 }
