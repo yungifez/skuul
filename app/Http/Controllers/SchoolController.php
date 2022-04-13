@@ -62,7 +62,7 @@ class SchoolController extends Controller
     public function show(School $school)
     {
         $data['school'] = $school;
-        return view('pages.school.show');
+        return view('pages.school.show', $data);
     }
 
     /**

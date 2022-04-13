@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use App\Models\ClassGroup;
-use App\Models\MyClass;
 use App\Models\User;
+use App\Models\MyClass;
+use App\Models\Semester;
+use App\Models\ClassGroup;
 use App\Models\AcademicYear;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class School extends Model
 {
@@ -63,4 +64,13 @@ class School extends Model
         return $this->hasOne(AcademicYear::class,'id', 'academic_year_id');
     }
 
+    /**
+     * Get the semester associated with the School
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function semester()
+    {
+        return $this->hasOne(Semester::class, 'id', 'semester_id');
+    }
 }

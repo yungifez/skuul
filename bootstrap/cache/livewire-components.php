@@ -51,6 +51,7 @@
   'show-class' => 'App\\Http\\Livewire\\ShowClass',
   'show-class-group' => 'App\\Http\\Livewire\\ShowClassGroup',
   'show-promotion' => 'App\\Http\\Livewire\\ShowPromotion',
+  'show-school' => 'App\\Http\\Livewire\\ShowSchool',
   'show-set-school' => 'App\\Http\\Livewire\\ShowSetSchool',
   'show-student-profile' => 'App\\Http\\Livewire\\ShowStudentProfile',
   'show-timetable' => 'App\\Http\\Livewire\\ShowTimetable',
