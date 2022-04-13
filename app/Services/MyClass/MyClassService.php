@@ -87,7 +87,11 @@ class MyClassService
 
     public function updateClassGroup(ClassGroup $classGroup, $records)
     {
-        $classGroup->update($records);
+        $classGroup->update(
+            [
+                'name' => $records['name'],
+            ]
+        );
         session()->flash('success', __('Class group updated successfully'));
 
         return $classGroup;
