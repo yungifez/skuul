@@ -27,7 +27,7 @@ class SchoolTest extends TestCase
         $response->assertStatus(200);
     }
 
-    public function test_view_schools_rendered_to_unauthorized_user()
+    public function test_view_schools_cannot_be_rendered_to_unauthorized_user()
     {
         $user = User::factory()->create();
      
@@ -58,11 +58,8 @@ class SchoolTest extends TestCase
         $this->actingAs($user);
         $response = $this->post('/dashboard/schools', ['name' => 'Test school', 'address' => 'Test address', 'initials' => 'DS']);
         $school = School::where('name','Test school')->get();
-        if ($school == null) {
-            return false;
-        }
-
-        $response->assertRedirect();
+        
+        $this->assertEquals(1, $school->count());
     }
 
     public function test_unauthorized_user_can_not_create_school()
@@ -79,7 +76,7 @@ class SchoolTest extends TestCase
         $user = User::factory()->create();
         $user->assignRole('super-admin');
         $this->actingAs($user);
-        $school = School::where('name','Test school')->first();
+        $school = School::factory()->create();
         $response = $this->get("/dashboard/schools/$school->id");
 
         $response->assertStatus(200);
@@ -92,28 +89,12 @@ class SchoolTest extends TestCase
             ['read school']
         );
         $this->actingAs($user);
-        $school = School::where('name','Test school')->first();
+        $school =  School::factory()->create();
         $user->school_id = $school->id;
         $user->save();
         $response = $this->get("/dashboard/schools/$school->id");
 
         $response->assertStatus(200);
-    }
-
-    public function test_school_is_not_rendered_to_authorized_user_in_different_school()
-    {
-        $user = User::factory()->create();
-        $user->givePermissionTo(
-            ['read school']
-        );
-        $this->actingAs($user);
-        $school = School::where('name','Test school')->first();
-        //assign user a different school from the fetched school every time
-        $user->school_id = $school->id++;
-        $user->save();
-        $response = $this->get("/dashboard/schools/$school->id");
-
-        $response->assertNotFound();
     }
 
     public function test_edit_school_can_be_rendered_to_authorized_user()
@@ -201,7 +182,7 @@ class SchoolTest extends TestCase
         ]);
         $this->actingAs($user);
 
-        $school = School::where('name','Test school 2')->first();
+        $school = School::find(1);
         //user id must always not equal to school id 
         $user->school_id = $school->id++;
         $user->save();
@@ -213,7 +194,7 @@ class SchoolTest extends TestCase
     public function test_user_can_delete_School_with_no_users()
     {
         //get school and users
-        $school = School::where('name','Test school 2')->first();
+        $school =  School::factory()->create();;
         $userIds = $school->users->pluck('id');
         //delete all users
         User::destroy($userIds);
@@ -226,5 +207,15 @@ class SchoolTest extends TestCase
         $response = $this->delete("/dashboard/schools/$school->id");
         
         $this->assertNull($school->fresh());
+    }
+
+    public function test_super_admin_can_set_school()
+    {
+        $user =  User::where('email','super@admin.com')->first();
+        $this->actingAs($user);
+        $school = School::factory()->create();
+        $response = $this->post("/dashboard/schools/set-school",['school_id' => $school->id]);
+
+        $this->assertEquals($school->id,$user->fresh()->school_id);
     }
 }
