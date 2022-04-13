@@ -32,7 +32,9 @@ class MyClassPolicy
      */
     public function view(User $user, MyClass $myClass)
     {
-        //
+        if ($user->can('read class') && $myClass->classGroup->school_id == $user->school_id) {
+            return true;
+        }
     }
 
     /**
