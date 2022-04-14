@@ -49,6 +49,16 @@ class SchoolTest extends TestCase
         $response->assertStatus(200);
     }
 
+    public function test_create_schools_cannot_be_rendered_to_unauthorized_user()
+    {
+        $user = User::factory()->create();
+     
+        $this->actingAs($user);
+        $response = $this->get('/dashboard/schools/create');
+
+        $response->assertStatus(403);
+    }
+
     public function test_user_can_create_school()
     {
         $user = User::factory()->create();
@@ -71,10 +81,12 @@ class SchoolTest extends TestCase
         $response->assertForbidden();
     }
 
-    public function test_show_school_can_be_rendered_to_super_admin()
+    public function test_show_school_can_be_rendered_to_authorized_user()
     {
         $user = User::factory()->create();
-        $user->assignRole('super-admin');
+        $user->givePermissionTo(
+            ['read school']
+        );
         $this->actingAs($user);
         $school = School::factory()->create();
         $response = $this->get("/dashboard/schools/$school->id");

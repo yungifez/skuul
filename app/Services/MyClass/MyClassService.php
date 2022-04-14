@@ -76,7 +76,10 @@ class MyClassService
 
     public function updateClass($myClass, $records)
     {
-        $myClass->update($records);
+        $myClass->update([
+            'name' => $records['name'],
+            'class_group_id' => $records['class_group_id'],
+        ]);
         session()->flash('success', __('Class updated successfully'));
 
         return $myClass;
@@ -84,7 +87,11 @@ class MyClassService
 
     public function updateClassGroup(ClassGroup $classGroup, $records)
     {
-        $classGroup->update($records);
+        $classGroup->update(
+            [
+                'name' => $records['name'],
+            ]
+        );
         session()->flash('success', __('Class group updated successfully'));
 
         return $classGroup;
