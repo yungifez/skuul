@@ -57,9 +57,9 @@ class AcademicYearController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(AcademicYear $academicYear)
     {
-        //
+        return view('pages.academic-year.show', compact('academicYear'));
     }
 
     /**
