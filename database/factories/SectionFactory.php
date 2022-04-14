@@ -14,7 +14,8 @@ class SectionFactory extends Factory
     public function definition()
     {
         return [
-            //
+            'name' => $this->faker->name,
+            'my_class_id' => 1,
         ];
     }
 }

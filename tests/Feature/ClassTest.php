@@ -83,9 +83,9 @@ class ClassTest extends TestCase
         );
         $this->actingAs($user);
         $response = $this->post('/dashboard/classes', ['name' => 'Test class','class_group_id' => '1']);
-        $class = MyClass::where('name','Test class')->get();
-
-        $this->assertEquals(1, $class->count());
+        $class = MyClass::where('name','Test class')->first();
+        
+        $this->assertModelExists($class);
     }
 
     public function test_unauthorized_user_can_not_create_class()
