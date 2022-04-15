@@ -6,9 +6,9 @@ This made me passionate in building my own school management system. Although it
 Schooldash is a multi school management system that aims to make administration and school 
 
 ## Requirements
-* Php 8
+* Php 8.0 and above
 * Composer 
-* Since this project is running laravel 8, we suggest checking out 
+* Since this project is running laravel 9, we suggest checking out the official requirements
 
 ## Installation
 * Clone the repository by running the following command in your comamand line below (Or you can dowload zip file from github)
@@ -36,6 +36,11 @@ php artisan migrate
 php artisan db:seed
 ```
 
+* Seed database to populate countries (takes approximately 10 minutes)
+```shell
+php artisan db:seed --class=WorldSeeder
+```
+
 After running the above commands, you should be able to access the application at http::/localhost or your designated domain name depending on configuration.
 
 ## Setup
@@ -58,11 +63,12 @@ After running the above commands, you should be able to access the application a
 
 ## Features
 ### Super Admin
-By default super admin can manage all activities in each school, some admin exclusive features are
+By default super admin can manage all activities in each school, some super admin exclusive features are
 * Ability to create, edit and delete schools
-* Ability to manage school settings
+" Ability to set school of operation
 
 ### Admin
+* Ability to manage own school settings
 * Ability to create, edit, view and delete class groups in assigned school
 * Ability to create, edit, view and delete classes 
 * Ability to create, edit, view and delete sections
@@ -70,7 +76,16 @@ By default super admin can manage all activities in each school, some admin excl
 * Ability to create, edit, view and delete subjects
 * Ability to create, edit, view and delete academic years
 * Ability to set Academic years
-* Ability to admit students, view student profiles, edit student profile, print student profile,
+* Ability to admit students, view student profiles, edit student profile, print student profile and delete student
+* Ability to create teachers, edit teacher profile and delete teacher
+* Ability to create, edit, manage, view and delete timetables
+* Ability to create, edit, view and delete sylabii
+* Ability to create, edit, view and delete semester
+* Ability to set own school academic year and semester
+
+### Teachers
+* Ability to create, edit, view and delete sylabii
+* Ability to create, edit, manage, view and delete timetables
 
 This project was highly inspired by 4jean/lavSMS
 
