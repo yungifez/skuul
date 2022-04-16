@@ -400,7 +400,7 @@ return [
         ],
         [
             'type' => 'sidebar-menu-item',
-            'text' => 'Academic year',
+            'text' => 'Academic years',
             'icon' => 'fas fa-calendar',
             'can'  =>  'menu-academic-year',
             'submenu' => [
@@ -420,7 +420,7 @@ return [
         ],
         [
             'type' => 'sidebar-menu-item',
-            'text' => 'Semester',
+            'text' => 'Semesters',
             'icon' => 'fas fa-clock',
             'can'  =>  'menu-subject',
             'submenu' => [
@@ -440,7 +440,7 @@ return [
         ],
         [
             'type' => 'sidebar-menu-item',
-            'text' => 'Subject',
+            'text' => 'Subjects',
             'icon' => 'fas fa-lightbulb',
             'can'  =>  'menu-subject',
             'submenu' => [
@@ -461,13 +461,13 @@ return [
         ['header' => 'Academics', 'can' => 'header-academics'],
         [
             'type' => 'sidebar-menu-item',
-            'text' => 'Syllabus',
+            'text' => 'Syllabi',
             'icon' => 'fas fa-list-alt',
             'can'  =>  'menu-syllabus',
             'submenu' => [
                 [
                     'type' => 'sidebar-menu-item',
-                    'text' => 'View Syllabus',
+                    'text' => 'View Syllabi',
                     'route' => 'syllabi.index',
                     'can'  => 'read syllabus',
                 ],
@@ -481,7 +481,7 @@ return [
         ],
         [
             'type' => 'sidebar-menu-item',
-            'text' => 'Timetable',
+            'text' => 'Timetables',
             'icon' => 'fas fa-tasks',
             'can'  =>  'menu-timetable',
             'submenu' => [

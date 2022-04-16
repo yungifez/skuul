@@ -1,4 +1,4 @@
-<div class="fixed-top d-flex flex-column align-items-end " style="z-index: 2000">
+<div class="fixed-top d-flex flex-column align-items-end " style="z-index: 2000" id="status-display">
     @if (session('danger'))
         <x-adminlte-alert theme="danger" title="Danger" dismissable class="col-lg-4">
             {{ session('danger') }}
@@ -11,3 +11,9 @@
         </x-adminlte-alert>
     @endif
 </div>
+
+<script>
+    setTimeout(() => {
+        document.querySelector('#status-display').remove()
+    }, 10000);
+</script>

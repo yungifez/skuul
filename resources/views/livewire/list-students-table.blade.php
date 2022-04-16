@@ -1,6 +1,6 @@
 <div>
     <p class='text-bold'>Student list</p>
-    <x-adminlte-datatable id="school-list-table" :heads="['S/N','Profile photo', 'Name','Class','Section', 'email','gender' , 'address', '', '']" class='text-capitalize' >
+    <x-adminlte-datatable id="school-list-table" :heads="['S/N','Photo', 'Name','Class','Section', 'email','gender' , 'address', '', '']" class='text-capitalize' >
         @foreach($students as $student)
             <tr>
                 <td>{{$loop->iteration}}</td>
