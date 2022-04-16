@@ -10,10 +10,11 @@
             {{ session('success') }}
         </x-adminlte-alert>
     @endif
+    <script>
+        setTimeout(() => {
+            document.querySelector('#status-display').remove()
+        }, 10000);
+    </script>
 </div>
 
-<script>
-    setTimeout(() => {
-        document.querySelector('#status-display').remove()
-    }, 10000);
-</script>
+
