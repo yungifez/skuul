@@ -160,6 +160,9 @@ class PermissionSeeder extends Seeder
         Permission::firstOrCreate([
             'name' => 'view graduations'
         ]);
+        Permission::firstOrCreate([
+            'name' => 'reset graduation'
+        ]);
 
         //permission for semesters
         Permission::firstOrCreate([
@@ -295,6 +298,7 @@ class PermissionSeeder extends Seeder
             'reset promotion',
             'graduate student',
             'view graduations',
+            'reset graduation',
             'create semester',
             'read semester',
             'update semester',

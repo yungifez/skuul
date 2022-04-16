@@ -34,6 +34,10 @@ class UserPolicy
         if ($user->can("read $role") && $user->school_id == $model->school_id) {
             return true;
         }
+        // user can view his own profile
+        if ($user->id == $model->id) {
+            return true;
+        }
     }
 
     /**

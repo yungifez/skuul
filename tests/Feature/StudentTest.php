@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Tests\TestCase;
 use App\Models\User;
+use App\Models\Promotion;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -269,5 +270,225 @@ class StudentTest extends TestCase
         $response = $this->delete("/dashboard/students/$student->id");
 
         $this->assertModelMissing($student);
+    }
+
+    //test unauthorized user annot view all promotions
+
+    public function test_unauthorized_user_cannot_view_all_promotions()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $response = $this->get('/dashboard/students/promotions');
+
+        $response->assertForbidden();
+    }
+
+    //test authorized user can view all promotions
+
+    public function test_authorized_user_can_view_all_promotions()
+    {
+        $user = User::factory()->create();
+        $user->givePermissionTo(['read promotion']);
+        $this->actingAs($user);
+
+        $response = $this->get('/dashboard/students/promotions');
+
+        $response->assertOk();
+    }
+
+    //test unauthorized user cannot view promotion
+
+    public function test_unauthorized_user_cannot_view_promotion()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $promotion = Promotion::factory()->create();
+
+        $response = $this->get("/dashboard/students/promotions/$promotion->id");
+
+        $response->assertForbidden();
+    }
+
+    //test authorized user can view promotion
+
+    public function test_authorized_user_can_view_promotion()
+    {
+        $user = User::factory()->create();
+        $user->givePermissionTo(['read promotion']);
+        $this->actingAs($user);
+
+        $promotion = Promotion::factory()->create();
+
+        $response = $this->get("/dashboard/students/promotions/$promotion->id");
+
+        $response->assertOk();
+    }
+
+    //tes unauthorized user cannot view promoteview
+
+    public function test_unauthorized_user_cannot_view_promoteview()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $response = $this->get("/dashboard/students/promote");
+
+        $response->assertForbidden();
+    }
+
+    //test authorized user can view promoteview
+
+    public function test_authorized_user_can_view_promoteview()
+    {
+        $user = User::factory()->create();
+        $user->givePermissionTo(['promote student']);
+        $this->actingAs($user);
+        $response = $this->get("/dashboard/students/promote");
+
+        $response->assertOk();
+    }
+
+    //test unauthorized user cannot promote students
+
+    public function test_unauthorized_user_cannot_promote_students()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $student = User::factory()->create();
+        $student->assignRole('student');
+        $student->studentRecord()->create([
+            'my_class_id' => 1,
+            'section_id' => 2,
+            'admission_date' => '22/04/04',
+            'is_graduated' => false,
+        ]);
+        $response = $this->post("/dashboard/students/promote", [
+            'student_id' =>[ $student->id],
+            'old_class_id' => 1,
+            'old_section_id' => 2,
+            'new_class_id' => 1,
+            'new_section_id' => 1,
+        ]);
+
+        $promotion = Promotion::where([
+            'old_class_id' => 1,
+            'old_section_id' => 2,
+            'new_class_id' => 1,
+            'new_section_id' => 1,
+        ])->whereJsonContains('students' , [$student->id])->first();
+
+        $response->assertForbidden();
+    }
+
+    //test authorized user can promote students
+
+    public function test_authorized_user_can_promote_students()
+    {
+        $user = User::factory()->create();
+        $user->givePermissionTo(['promote student']);
+        $this->actingAs($user);
+
+        $student = User::factory()->create();
+        $student->assignRole('student');
+        $student->studentRecord()->create([
+            'my_class_id' => 1,
+            'section_id' => 2,
+            'admission_date' => '22/04/04',
+            'is_graduated' => false,
+        ]);
+        $response = $this->post("/dashboard/students/promote", [
+            'student_id' =>[ $student->id],
+            'old_class_id' => 1,
+            'old_section_id' => 2,
+            'new_class_id' => 1,
+            'new_section_id' => 1,
+        ]);
+
+        $promotion = Promotion::where([
+            'old_class_id' => 1,
+            'old_section_id' => 2,
+            'new_class_id' => 1,
+            'new_section_id' => 1,
+        ])->whereJsonContains('students' , [$student->id])->first();
+
+        $this->assertModelExists($promotion);
+    }
+
+    //test unauthorized user cannot delete promotion
+
+    public function test_unauthorized_user_cannot_delete_promotion()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $promotion = Promotion::factory()->create();
+
+        $response = $this->delete("/dashboard/students/promotions/$promotion->id/reset");
+
+        $response->assertForbidden();
+    }
+
+    //test authorized user can delete promotion
+
+    public function test_authorized_user_can_delete_promotion()
+    {
+        $user = User::factory()->create();
+        $user->givePermissionTo(['reset promotion']);
+        $this->actingAs($user);
+
+        $promotion = Promotion::factory()->create();
+
+        $response = $this->delete("/dashboard/students/promotions/$promotion->id/reset");
+
+        $this->assertModelMissing($promotion);
+    }
+
+    //test unauthorized user cannot view all graduations
+
+    public function test_unauthorized_user_cannot_view_all_graduations()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $response = $this->get('/dashboard/students/graduations');
+
+        $response->assertForbidden();
+    }
+
+    //test authorized user can view all graduations
+
+    public function test_authorized_user_can_view_all_graduations()
+    {
+        $user = User::factory()->create();
+        $user->givePermissionTo(['view graduations']);
+        $this->actingAs($user);
+
+        $response = $this->get('/dashboard/students/graduations');
+
+        $response->assertOk();
+    }
+
+    //test unauthorized user cannot graduate student
+
+    public function test_unauthorized_user_cannot_graduate_student()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $student = User::factory()->create();
+        $student->assignRole('student');
+        $student->studentRecord()->create([
+            'my_class_id' => 1,
+            'section_id' => 2,
+            'admission_date' => '22/04/04',
+            'is_graduated' => false,
+        ]);
+        $response = $this->post("/dashboard/students/graduate", [
+            'student_id' =>[ $student->id]
+        ]);
+
+        $response->assertForbidden();
     }
 }

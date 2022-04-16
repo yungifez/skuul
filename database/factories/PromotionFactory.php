@@ -5,9 +5,9 @@ namespace Database\Factories;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Semester>
+ * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Promotion>
  */
-class SemesterFactory extends Factory
+class PromotionFactory extends Factory
 {
     /**
      * Define the model's default state.
@@ -17,9 +17,13 @@ class SemesterFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->unique()->word,
+            'old_class_id' => 1,
+            'new_class_id' => 2,
+            'old_section_id' => 1,
+            'new_section_id' => 2,
             'academic_year_id' => 1,
             'school_id' => 1,
+            'students' => [1]
         ];
     }
 }

@@ -99,23 +99,23 @@ class StudentService
     //promote student method
     public function promoteStudents($records)
     {
-        $oldClass = $this->myClass->getClassById($records['old_class']);
-        $newClass = $this->myClass->getClassById($records['new_class']);
-        $records['academic_year'] = auth()->user()->school->academic_year_id;
+        $oldClass = $this->myClass->getClassById($records['old_class_id']);
+        $newClass = $this->myClass->getClassById($records['new_class_id']);
+        $records['academic_year_id'] = auth()->user()->school->academic_year_id;
 
 
         //check if the section is in  class
-        if (!$oldClass->isSectionInClass($records['old_section'])) {
+        if (!$oldClass->isSectionInClass($records['old_section_id'])) {
             throw new \Exception('Old section is not in the class');
         }
 
         // make sure section is in class
-        if (!$newClass->isSectionInClass($records['new_section'])) {
+        if (!$newClass->isSectionInClass($records['new_section_id'])) {
             throw new \Exception('New section is not in the class');
         }
 
         //make sure academic year is present
-        if ($records['academic_year'] == null) {
+        if ($records['academic_year_id'] == null) {
             return session()->flash('danger', 'Academic year is not set');
         }
 
@@ -131,20 +131,20 @@ class StudentService
         foreach ($students as $student) {
             if (in_array($student->id, $records['student_id'])) {
                 $student->studentRecord()->update([
-                    'my_class_id' => $records['new_class'],
-                    'section_id' => $records['new_section'],
+                    'my_class_id' => $records['new_class_id'],
+                    'section_id' => $records['new_section_id'],
                 ]);
             }
         }
 
         // create promotion record
         Promotion::create([
-            'old_class_id' => $records['old_class'],
-            'new_class_id' => $records['new_class'],
-            'old_section_id' => $records['old_section'],
-            'new_section_id' => $records['new_section'],
+            'old_class_id' => $records['old_class_id'],
+            'new_class_id' => $records['new_class_id'],
+            'old_section_id' => $records['old_section_id'],
+            'new_section_id' => $records['new_section_id'],
             'students' => $students->pluck('id'),
-            'academic_year_id' => $records['academic_year'],
+            'academic_year_id' => $records['academic_year_id'],
             'school_id' => auth()->user()->school_id,
         ]);
 

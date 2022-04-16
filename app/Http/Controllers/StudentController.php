@@ -78,6 +78,8 @@ class StudentController extends Controller
      */
     public function printProfile(User $student)
     {
+        $this->student->user->verifyUserIsOfRoleElseNotFound($student, 'student');
+        $this->authorize('view',[ $student, 'student']);
         $data['student'] = $student;
 
         return $this->student->printProfile($data['student']->name, 'pages.student.print-student-profile', $data);

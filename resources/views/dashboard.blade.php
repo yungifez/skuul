@@ -23,6 +23,13 @@
     
     @livewire('academic-year-set')
 
+    @if (auth()->user()->hasRole('student'))
+        <a href="{{route('students.print-profile',auth()->user()->id)}}" >
+            <x-adminlte-small-box title="Download profile" text="click to download profile" icon="fas fa-download text-white"
+            theme="secondary"/>
+        </a>
+    @endif
+
     @livewire('display-status')
 @stop
 

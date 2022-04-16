@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -84,6 +85,7 @@ class UserSeeder extends Seeder
             'section_id' => 1,
             'admission_date' => '22/04/04',
             'is_graduated' => false,
+            'admission_number' => Str::random(10),
         ]);
 
         $student->assignRole('student');

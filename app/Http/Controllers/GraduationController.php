@@ -19,7 +19,11 @@ class GraduationController extends Controller
      * @return \Illuminate\Http\Response
      */
 
+    // atuhorization is done in the controller
     public function index(){
+        if (!auth()->user()->can('view graduations')) {
+            return abort(403, 'Unauthorized action.');
+        }
         return view('pages.student.graduation.index');
     }
 
@@ -27,6 +31,9 @@ class GraduationController extends Controller
 
     public function graduateView()
     {
+        if (!auth()->user()->can('graduate student')) {
+            return abort(403, 'Unauthorized action.');
+        }
         return view('pages.student.graduation.graduate');
     }
 
@@ -34,6 +41,9 @@ class GraduationController extends Controller
 
     public function graduate(StudentGraduateRequest $request)
     {
+        if (!auth()->user()->can('graduate student')) {
+            return abort(403, 'Unauthorized action.');
+        }
         $data = collect($request->except('_token'));
         $this->student->graduateStudents($data);
 
@@ -42,8 +52,11 @@ class GraduationController extends Controller
 
     //reset graduation method
 
-    public function resetGraduation($student)
+    public function resetGraduation(User $student)
     {
+        if (!auth()->user()->can('reset graduation')) {
+            return abort(403, 'Unauthorized action.');
+        }
         $this->student->resetGraduation($student);
 
         return back();
