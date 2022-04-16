@@ -71,10 +71,7 @@ class StudentService
         return session()->flash('success', 'Student Created Successfully');
     }
 
-    public function generateAdmissionNumber()
-    {
-        return Str::random(10);
-    }
+   
 
     public function updateStudent($student, $records)
     {
@@ -83,6 +80,17 @@ class StudentService
         return session()->flash('success', 'Student Updated Successfully');
     }
 
+    public function deleteStudent($student)
+    {
+        $student->delete();
+
+        return session()->flash('success', 'Student Deleted Successfully');
+    }
+  
+    public function generateAdmissionNumber()
+    {
+        return Str::random(10);
+    }
     public function printProfile(string $name, string $view, array $data)
     {
         return PrintService::createPdfFromView($name, $view, $data);

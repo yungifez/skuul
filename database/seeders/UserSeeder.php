@@ -79,15 +79,14 @@ class UserSeeder extends Seeder
             'blood_group' => 'B+',
             'email_verified_at' => now(),
         ]);
-
-        $student->assignRole('student');
-
         $student->studentRecord()->create([
             'my_class_id' => 1,
             'section_id' => 1,
-            'admission_number' => 1,
             'admission_date' => '22/04/04',
+            'is_graduated' => false,
         ]);
+
+        $student->assignRole('student');
 
         $parent = User::create([
             'name' => 'John Doe',

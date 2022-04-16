@@ -29,7 +29,7 @@ class CreateNewUser implements CreatesNewUsers
             'birthday' => ['required', 'date', 'date_format:Y/m/d', 'before:today'],
             'address' => ['required', 'string', 'max:500'],
             'blood_group' => ['required', 'string', 'max:255'],
-            'religion' => ['string', 'max:255'],
+            'religion' => ['nullable','string', 'max:255'],
             'nationality' => ['required', 'string', 'max:255'],
             'state' => ['required', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:255'],

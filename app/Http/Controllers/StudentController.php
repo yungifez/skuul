@@ -66,6 +66,7 @@ class StudentController extends Controller
      */
     public function show(User $student)
     {
+        $this->user->userwithRoleNotFound($student, 'student');
         $this->authorize('view',[ $student, 'student']);
         $data['student'] = $student;
 
@@ -90,6 +91,7 @@ class StudentController extends Controller
      */
     public function edit(User $student)
     {
+        $this->student->user->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('update',[ $student, 'student']);
         $data['student'] = $student;
 
@@ -105,6 +107,7 @@ class StudentController extends Controller
      */
     public function update(Request $request, User $student)
     {
+        $this->student->user->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('update',[ $student, 'student']);
         $data = $request->except('_token', '_method');
         $this->student->updateStudent($student, $data);
@@ -118,8 +121,12 @@ class StudentController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(User $student)
     {
-        $this->authorize('destroy',[ $student, 'student']);
+        $this->student->user->verifyUserIsOfRoleElseNotFound($student, 'student');
+        $this->authorize('delete',[ $student, 'student']);
+        $this->student->deleteStudent($student);
+
+        return back();
     }
 }
