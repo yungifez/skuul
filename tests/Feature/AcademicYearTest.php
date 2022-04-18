@@ -9,6 +9,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class AcademicYearTest extends TestCase
 {
+    use RefreshDatabase;
     // test ubauthorized user cannot see academic years
 
     function test_unauthorized_user_cannot_see_academic_years()
