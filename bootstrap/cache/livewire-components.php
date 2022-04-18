@@ -18,6 +18,7 @@
   'display-status' => 'App\\Http\\Livewire\\DisplayStatus',
   'display-validation-error' => 'App\\Http\\Livewire\\DisplayValidationError',
   'dropdown-links' => 'App\\Http\\Livewire\\DropdownLinks',
+  'edit-academic-year-form' => 'App\\Http\\Livewire\\EditAcademicYearForm',
   'edit-class-form' => 'App\\Http\\Livewire\\EditClassForm',
   'edit-class-group-form' => 'App\\Http\\Livewire\\EditClassGroupForm',
   'edit-school-form' => 'App\\Http\\Livewire\\EditSchoolForm',
