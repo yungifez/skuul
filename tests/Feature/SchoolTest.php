@@ -10,11 +10,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class SchoolTest extends TestCase
 {
-    /**
-     * A basic feature test example.
-     *
-     * @return void
-     */
+    use RefreshDatabase;
+
     public function test_view_schools_can_be_rendered_to_authorized_user()
     {
         $user = User::factory()->create();
@@ -116,7 +113,7 @@ class SchoolTest extends TestCase
             ['update school']
         );
         $this->actingAs($user);
-        $school = School::where('name','Test school')->first();
+        $school = School::factory()->create();
         $response = $this->get("/dashboard/schools/$school->id/edit");
 
         $response->assertOK();
@@ -129,7 +126,7 @@ class SchoolTest extends TestCase
             ['manage school settings']
         );
         $this->actingAs($user);
-        $school = School::where('name','Test school')->first();
+        $school = School::factory()->create();
         $user->school_id = $school->id;
         $user->save();
         $response = $this->get('/dashboard/schools/settings');
@@ -140,7 +137,7 @@ class SchoolTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user);
-        $school = School::where('name','Test school')->first();
+        $school = School::factory()->create();
         $response = $this->patch("/dashboard/schools/$school->id");
 
         $response->assertForbidden();
@@ -153,7 +150,7 @@ class SchoolTest extends TestCase
             'update school'
         ]);
         $this->actingAs($user);
-        $school = School::where('name','Test school')->first();
+        $school = School::factory()->create();
         $user->school_id = $school->id;
         $user->save();
         $response = $this->patch("/dashboard/schools/$school->id",['name'=>'Test school 2','address' => 'something street', 'initials' => 'TS2']);
@@ -165,7 +162,7 @@ class SchoolTest extends TestCase
     {
         $user = User::factory()->create();
         $this->actingAs($user);
-        $school = School::where('name','Test school 2')->first();
+        $school = School::factory()->create();
         $response = $this->delete("/dashboard/schools/$school->id");
 
         $response->assertForbidden();
@@ -178,7 +175,7 @@ class SchoolTest extends TestCase
             'delete school'
         ]);
         $this->actingAs($user);
-        $school = School::where('name','Test school 2')->first();
+        $school = School::factory()->create();
         $user->school_id = $school->id;
         $user->save();
         $response = $this->delete("/dashboard/schools/$school->id");
@@ -194,7 +191,7 @@ class SchoolTest extends TestCase
         ]);
         $this->actingAs($user);
 
-        $school = School::find(1);
+        $school = School::factory()->create();
         //user id must always not equal to school id 
         $user->school_id = $school->id++;
         $user->save();

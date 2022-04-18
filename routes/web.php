@@ -87,7 +87,7 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
 
         //academic year routes
         Route::resource('academic-years', AcademicYearController::class);
-        Route::post('academic-years/set academic year', ['App\Http\Controllers\AcademicYearController', 'setAcademicYear'])->name('academic-years.set-academic-year');
+        Route::post('academic-years/set', ['App\Http\Controllers\AcademicYearController', 'setAcademicYear'])->name('academic-years.set-academic-year');
 
         //subject routes
         Route::resource('subjects', SubjectController::class);

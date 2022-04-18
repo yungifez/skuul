@@ -145,4 +145,31 @@ class AcademicYearTest extends TestCase
             'id' => $academicYear->id,
         ]);
     }
+
+    // test unauthorized user cannot set academic year
+
+    function test_unauthorized_user_cannot_set_academic_year()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $this->post('/dashboard/academic-years/set')->assertForbidden();
+    }
+
+    // test authorized user can set academic year
+
+    function test_authorized_user_can_set_academic_year()
+    {
+        $user = User::factory()->create();
+        $user->givePermissionTo('set academic year');
+        $this->actingAs($user);
+        $academicYear = \App\Models\AcademicYear::factory()->create();
+        $this->post('/dashboard/academic-years/set', [
+            'academic_year_id' => $academicYear->id,
+        ]);
+        $school_id = auth()->user()->school_id;
+        $this->assertDatabaseHas('schools', [
+            'id' => $school_id,
+            'academic_year_id' => $academicYear->id,
+        ]);
+    }
 }

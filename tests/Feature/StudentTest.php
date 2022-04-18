@@ -10,6 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class StudentTest extends TestCase
 {
+    use RefreshDatabase;
     //test view all students cannot be accessed by unauthorised users
     
     public function test_view_all_students_cannot_be_accessed_by_unauthorised_users()

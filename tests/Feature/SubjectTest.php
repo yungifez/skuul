@@ -9,6 +9,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class SubjectTest extends TestCase
 {
+    use RefreshDatabase;
+
     public function test_unauthorized_user_cannot_see_all_subjects()
     {
         $user = User::factory()->create();
@@ -140,7 +142,7 @@ class SubjectTest extends TestCase
         $user = User::factory()->create();
         $user->givePermissionTo(['delete subject']);
         $this->actingAs($user);
-        $subject = \App\Models\Subject::where('name', 'Test Subject 2')->first();
+        $subject = \App\Models\Subject::factory()->create();
         $response = $this->delete("/dashboard/subjects/{$subject->id}");
 
         $this->assertModelMissing($subject);
