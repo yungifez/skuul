@@ -17,6 +17,7 @@ class SemesterFactory extends Factory
     public function definition()
     {
         return [
+            'id' => $this->faker->numberBetween(1, 10000),
             'name' => $this->faker->unique()->word,
             'academic_year_id' => 1,
             'school_id' => 1,

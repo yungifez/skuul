@@ -58,7 +58,7 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
 
             //semester routes
             Route::resource('semesters', SemesterController::class);
-            Route::post('semester/set-semester', ['App\Http\Controllers\SemesterController', 'setSemester'])->name('semesters.set-semester');
+            Route::post('semesters/set', ['App\Http\Controllers\SemesterController', 'setSemester'])->name('semesters.set-semester');
         });
 
         Route::middleware(['App\Http\Middleware\EnsureSemesterIsSet'])->group(function () {
