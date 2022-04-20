@@ -28,12 +28,6 @@
                         <i class="fas fa-download"></i>
                         Download
                     </a> 
-                    @can('update syllabus')
-                        <a class="btn btn-primary  mx-2" href="{{route('syllabi.edit',$syllabus->id)}}">
-                            <i class="fas fa-pen"></i>
-                            Edit
-                        </a> 
-                    @endcan
                     @can('delete syllabus')
                         @livewire('delete-modal', ['modal_id' => $syllabus->id ,"action" => route('syllabi.destroy', $syllabus->id), 'item_name' => $syllabus->name], key("delete-modal-".$syllabus->id))
                     @endcan
@@ -43,5 +37,4 @@
     @else
         <p class="text-bold text-center" wire.loading.remove>No syllabus for this class at this time</p>
     @endisset
-   
 </div>

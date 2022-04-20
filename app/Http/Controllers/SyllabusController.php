@@ -58,7 +58,7 @@ class SyllabusController extends Controller
      */
     public function show(Syllabus $syllabus)
     {
-        //
+        abort(404);
     }
 
     /**
@@ -69,7 +69,7 @@ class SyllabusController extends Controller
      */
     public function edit(Syllabus $syllabus)
     {
-        //
+        abort('404');
     }
 
     /**

@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Syllabus;
 use Illuminate\Database\Seeder;
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class SyllabusSeeder extends Seeder
 {
@@ -14,6 +15,6 @@ class SyllabusSeeder extends Seeder
      */
     public function run()
     {
-        //
+        Syllabus::factory()->count(10)->create();
     }
 }
