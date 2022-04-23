@@ -74,7 +74,7 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
 
             //timetable-timeslot route
             Route::resource('timetables/{timetable}/manage/time-slots', TimetableTimeSlotController::Class);
-            Route::post('timetables/{timetable}/manage/time-slot/{time_slot}/record/create',['App\Http\Controllers\TimetableTimeSlotController', 'addTimetableRecord'])->name('timetables.records.create');
+            Route::post('timetables/{timetable}/manage/time-slots/{time_slot}/record/create',['App\Http\Controllers\TimetableTimeSlotController', 'addTimetableRecord'])->name('timetables.records.create');
            
         });
 

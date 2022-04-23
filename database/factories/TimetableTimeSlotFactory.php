@@ -17,7 +17,10 @@ class TimetableTimeSlotFactory extends Factory
     public function definition()
     {
         return [
-            //
+            'timetable_id' => 1,
+            'start_time' => $this->faker->time('H:i'),
+            'stop_time' => $this->faker->time('H:i'),
+
         ];
     }
 }

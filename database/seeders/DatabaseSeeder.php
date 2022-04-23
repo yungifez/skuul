@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             SemesterSeeder::class,
             PromotionSeeder::class,
             SyllabusSeeder::class,
+            TimetableSeeder::class,
         ]);
     }
 }

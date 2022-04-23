@@ -25,7 +25,7 @@ class syllabusTest extends TestCase
         return $this->actingAs($user);
     }
     
-    // test aunauthorized user can't view all syllabi 
+    // test unauthorized user can't view all syllabi 
 
     public function test_unauthorized_user_cant_view_all_syllabi()
     {

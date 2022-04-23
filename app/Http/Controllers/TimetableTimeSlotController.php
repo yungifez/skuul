@@ -102,6 +102,7 @@ class TimetableTimeSlotController extends Controller
     //timetable record
     public function addTimetableRecord(Timetable $timetable,TimetableTimeSlot $timeSlot,storeTimetableReord $request)
     {
+        $this->authorize('update',$timetable);
         $data = $request->except('_token');
         $this->timeSlot->createTimetableRecord($timeSlot, $data);
 
