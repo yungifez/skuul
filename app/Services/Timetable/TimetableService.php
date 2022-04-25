@@ -13,7 +13,7 @@ class TimetableService
     {
         return Timetable::where('semester_id', $semester_id)->get()->filter(function ($timetable) use ($class_id)
         {
-            return $timetable->myClass->id == $class_id;
+            return $timetable->my_class_id == $class_id;
         });
     }
 

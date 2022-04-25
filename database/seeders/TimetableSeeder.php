@@ -15,7 +15,7 @@ class TimetableSeeder extends Seeder
      */
     public function run()
     {
-        Timetable::create([
+        Timetable::firstOrCreate([
             'id' => 1,
             'name' => 'Timetable 1',
             'description' => 'Timetable 1 description',

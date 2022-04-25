@@ -19,8 +19,7 @@
     
     @isset($timetables)
         @foreach ($timetables as $timetable)
-            <x-adminlte-card title="{{$timetable->name}}" theme="primary" icon=""  collapsible="collapsed" wire.loading.remove :wire:key="$loop->index">
-               @livewire('show-timetable', ['timetable' => $timetable], key("timetable-$timetable->id"))
+            <x-adminlte-card title="{{$timetable->name}}" theme="primary" icon=""  collapsible="collapsed" :wire:key="$loop->index" wire:loading.remove>
                 <div class="d-grid gap-2 ">
                     @can('read timetable')
                         <a class="btn btn-primary" href="{{route('timetables.show',$timetable->id)}}">
