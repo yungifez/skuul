@@ -15,7 +15,7 @@ class TimetableTimeSlotController extends Controller
     public function __construct(TimeslotService $timeSlot)
     {
         $this->timeSlot = $timeSlot;
-        $this->authorizeResource(TimetableTimeSlot::Class,'timetableTimeSlot');
+        $this->authorizeResource(TimetableTimeSlot::Class,'time_slot');
     }
 
     /**
@@ -92,7 +92,7 @@ class TimetableTimeSlotController extends Controller
      * @param  \App\Models\TimetableTimeSlot  $timetableTimeSlot
      * @return \Illuminate\Http\Response
      */
-    public function destroy($timetable,TimetableTimeSlot $timeSlot)
+    public function destroy(Timetable $timetable,TimetableTimeSlot $timeSlot)
     {
         $this->timeSlot->deleteTimeSlot($timeSlot);
 
@@ -102,6 +102,7 @@ class TimetableTimeSlotController extends Controller
     //timetable record
     public function addTimetableRecord(Timetable $timetable,TimetableTimeSlot $timeSlot,storeTimetableReord $request)
     {
+        $this->authorize('update',$timetable);
         $data = $request->except('_token');
         $this->timeSlot->createTimetableRecord($timeSlot, $data);
 

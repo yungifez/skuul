@@ -10,6 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class SectionTest extends TestCase
 {
+    use RefreshDatabase;
     public function test_view_all_sections_can_be_rendered_to_authorized_user()
     {
         $user = User::factory()->create();
@@ -128,8 +129,8 @@ class SectionTest extends TestCase
             ['update section']
         );
         $this->actingAs($user);
-        $response = $this->put('/dashboard/sections/1', ['name' => 'Test section', 'initials' => 'TS']);
-        $section = Section::where('name','Test section')->get();
+        $response = $this->put('/dashboard/sections/1', ['name' => 'Test section jj', 'initials' => 'TS']);
+        $section = Section::where('name','Test section jj')->get();
 
         $this->assertEquals(1, $section->count());
     }

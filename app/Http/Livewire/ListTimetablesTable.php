@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire;
 
+use App\Models\Weekday;
 use Livewire\Component;
 use Illuminate\Support\Facades\App;
 use App\Services\MyClass\MyClassService;
@@ -12,6 +13,7 @@ class ListTimetablesTable extends Component
     public $class;
     public $timetables;
     public $classes;
+    public $weekdays;
     public function mount(TimetableService $timetableService, MyClassService $myClassService)
     {
         //get current semester
@@ -35,6 +37,8 @@ class ListTimetablesTable extends Component
         if($this->timetables->isEmpty()) {
             $this->timetables = null;
         }
+
+        $this->weekdays = Weekday::all();
     }
 
     public function updatedClass()

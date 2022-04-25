@@ -4,9 +4,11 @@ namespace App\Models;
 
 use App\Models\TimetableTimeSlot;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Timetable extends Pivot
 {
+    use HasFactory;
     protected $table = 'timetables';
     protected $fillable = [
         'name',

@@ -34,6 +34,10 @@ class UserPolicy
         if ($user->can("read $role") && $user->school_id == $model->school_id) {
             return true;
         }
+        // user can view his own profile
+        if ($user->id == $model->id) {
+            return true;
+        }
     }
 
     /**
@@ -70,9 +74,11 @@ class UserPolicy
      * @param  \App\Models\User  $model
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function delete(User $user, User $model)
+    public function delete(User $user, User $model,$role)
     {
-        //
+        if ($user->can("delete $role") && $user->school_id == $model->school_id) {
+            return true;
+        }
     }
 
     /**

@@ -10,6 +10,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class ClassGroupTest extends TestCase
 {
+   use RefreshDatabase;
    public function test_view_class_groups_can_be_rendered_to_authorized_user()
    {
       $user = User::factory()->create();

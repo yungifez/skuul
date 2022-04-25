@@ -58,7 +58,7 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
 
             //semester routes
             Route::resource('semesters', SemesterController::class);
-            Route::post('semester/set-semester', ['App\Http\Controllers\SemesterController', 'setSemester'])->name('semesters.set-semester');
+            Route::post('semesters/set', ['App\Http\Controllers\SemesterController', 'setSemester'])->name('semesters.set-semester');
         });
 
         Route::middleware(['App\Http\Middleware\EnsureSemesterIsSet'])->group(function () {
@@ -74,7 +74,7 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
 
             //timetable-timeslot route
             Route::resource('timetables/{timetable}/manage/time-slots', TimetableTimeSlotController::Class);
-            Route::post('timetables/{timetable}/manage/time-slot/{time_slot}/record/create',['App\Http\Controllers\TimetableTimeSlotController', 'addTimetableRecord'])->name('timetables.records.create');
+            Route::post('timetables/{timetable}/manage/time-slots/{time_slot}/record/create',['App\Http\Controllers\TimetableTimeSlotController', 'addTimetableRecord'])->name('timetables.records.create');
            
         });
 
@@ -87,7 +87,7 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
 
         //academic year routes
         Route::resource('academic-years', AcademicYearController::class);
-        Route::post('academic-years/set academic year', ['App\Http\Controllers\AcademicYearController', 'setAcademicYear'])->name('academic-years.set-academic-year');
+        Route::post('academic-years/set', ['App\Http\Controllers\AcademicYearController', 'setAcademicYear'])->name('academic-years.set-academic-year');
 
         //subject routes
         Route::resource('subjects', SubjectController::class);

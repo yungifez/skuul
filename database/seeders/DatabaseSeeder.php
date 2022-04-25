@@ -2,9 +2,6 @@
 
 namespace Database\Seeders;
 
-use Database\Seeders\MyClassSeeder;
-use Database\Seeders\RunInProductionSeeder;
-use Database\Seeders\SectionSeeder;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -16,8 +13,8 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // \App\Models\User::factory(10)->create();
-        $this->call([RunInProductionSeeder::class,
+        $this->call([
+            RunInProductionSeeder::class,
             SchoolSeeder::class,
             RoleSeeder::class,
             PermissionSeeder::class,
@@ -25,6 +22,12 @@ class DatabaseSeeder extends Seeder
             MyClassSeeder::class,
             SectionSeeder::class,
             UserSeeder::class,
+            SubjectSeeder::class,
+            AcademicYearSeeder::class,
+            SemesterSeeder::class,
+            PromotionSeeder::class,
+            SyllabusSeeder::class,
+            TimetableSeeder::class,
         ]);
     }
 }

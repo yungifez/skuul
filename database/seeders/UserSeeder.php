@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Models\User;
+use Illuminate\Support\Str;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -79,15 +80,15 @@ class UserSeeder extends Seeder
             'blood_group' => 'B+',
             'email_verified_at' => now(),
         ]);
-
-        $student->assignRole('student');
-
         $student->studentRecord()->create([
             'my_class_id' => 1,
             'section_id' => 1,
-            'admission_number' => 1,
             'admission_date' => '22/04/04',
+            'is_graduated' => false,
+            'admission_number' => Str::random(10),
         ]);
+
+        $student->assignRole('student');
 
         $parent = User::create([
             'name' => 'John Doe',

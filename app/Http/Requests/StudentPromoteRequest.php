@@ -21,10 +21,10 @@ class StudentPromoteRequest extends FormRequest
     public function rules()
     {
         return [
-            'old_class' => 'required|exists:my_classes,id',
-            'new_class' => 'required|exists:my_classes,id',
-            'old_section' => 'required|exists:sections,id',
-            'new_section' => 'required|exists:sections,id',
+            'old_class_id' => 'required|exists:my_classes,id',
+            'new_class_id' => 'required|exists:my_classes,id',
+            'old_section_id' => 'required|exists:sections,id',
+            'new_section_id' => 'required|exists:sections,id',
             'student_id.*' => 'nullable|exists:users,id',
         ];
     }

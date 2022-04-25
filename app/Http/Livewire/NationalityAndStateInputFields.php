@@ -21,6 +21,7 @@ class NationalityAndStateInputFields extends Component
     {
         $this->nationalities = World::countries()->data->pluck('name');
 
+        //set nationality to null if not found
         if ($this->nationality != null && ! in_array($this->nationality, $this->nationalities->toArray())) {
             $this->nationality = null;
         }
@@ -29,14 +30,14 @@ class NationalityAndStateInputFields extends Component
     public function updatedNationality()
     {
         // $this->states = collect(World::where('name.common' , $this->nationality)->first()->hydrateStates()->states->pluck('name'));
-        $this->states =  World::countries([
+        $this->states =  collect(World::countries([
             'fields' => 'states',
             'filters' => [
                 'name' => $this->nationality,
             ]
-        ])->data->pluck('states')->first();
-        if (empty($this->states)) {
-            return $this->states = [['name' => $this->nationality]];
+        ])->data->pluck('states')->first());
+        if ($this->states->isEmpty()) {
+            $this->states = collect([['name' => $this->nationality]]);
         }
         $this->state = $this->states[0]['name'];
 
@@ -46,24 +47,24 @@ class NationalityAndStateInputFields extends Component
 
     public function loadInitialStates()
     {
-        if ($this->nationality != null) {
-            // $this->states =  collect(World::where('name.common' , $this->nationality)->first()->hydrateStates()->states->pluck('name'));
-            $this->states =  $this->states =  World::countries([
-                'fields' => 'states',
-                'filters' => [
-                    'name' => $this->nationality,
-                ]
-            ])->data->pluck('states')->first();
-
-        }else {
-        $this->states =  World::countries([
+        if ($this->nationality == null) {
+            $this->nationality = $this->nationalities->first();
+        }
+        $this->states = collect( World::countries([
             'fields' => 'states',
             'filters' => [
-                'name' => $this->nationalities->first(),
+                'name' => $this->nationality,
             ]
-        ])->data->pluck('states')->first();
+        ])->data->pluck('states')->first());
+        if ($this->states->isEmpty()) {
+            $this->states = collect([['name' => $this->nationality]]);
         }
-        
+        if ($this->state == null || in_array($this->state,$this->states->toArray())) {
+            $this->state = $this->states[0]['name'];
+        }
+
+        $this->dispatchBrowserEvent('nationality-updated',['nationality' => $this->nationality]);
+        $this->dispatchBrowserEvent('state-updated',['state' => $this->state]);
     }
 
     public function updatedState()

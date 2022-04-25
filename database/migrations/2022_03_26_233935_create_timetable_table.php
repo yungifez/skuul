@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('timetables', static function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('description')->nullable();
+            $table->longText('description')->nullable();
             $table->foreignId('semester_id')->constrained()->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('my_class_id')->constrained()->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
@@ -20,6 +20,6 @@ return new class extends Migration
 
     public function down(): void
     {
-        Schema::dropIfExists('timetable');
+        Schema::dropIfExists('timetables');
     }
 };

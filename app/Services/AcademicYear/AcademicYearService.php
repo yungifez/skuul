@@ -46,6 +46,17 @@ class AcademicYearService
         return session()->flash('success', "Academic year set for {$school->name} successfully");
     }
 
+    // update academic year
+
+    public function updateAcademicYear(AcademicYear $academicYear, $records)
+    {
+        $academicYear->start_year = $records['start_year'];
+        $academicYear->stop_year = $records['stop_year'];
+        $academicYear->save();
+
+        return session()->flash('success', 'Academic year updated successfully');
+    }
+
     //delete academic year
 
     public function deleteAcademicYear(AcademicYear $academicYear)

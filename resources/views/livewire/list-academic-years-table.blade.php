@@ -1,12 +1,10 @@
 <div>
     <p class='text-bold'>Academic year list</p>
-    <x-adminlte-datatable id="school-list-table" :heads="['S/N', 'start year','stop year','session displayed as', 'action', '', ]" class='text-capitalize' >
+    <x-adminlte-datatable id="school-list-table" :heads="['S/N','duration', 'action', '', ]" class='text-capitalize' >
         @foreach($academicYears as $academicYear)
             <tr>
                 <td>{{$loop->iteration}}</td>
-                <td>{{ $academicYear->start_year}}</td>
-                <td>{{ $academicYear->stop_year}}</td>
-                <td>{{ $academicYear->start_year}} - {{$academicYear->stop_year}}</td>
+                <td>{{ $academicYear->name()}}</td>
                 <td>
                     @livewire('dropdown-links', [
                         'links' => [

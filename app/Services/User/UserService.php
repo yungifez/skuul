@@ -36,6 +36,9 @@ class UserService
 
     public function createUser($record)
     {
+        if (!$record['other_names']) {
+            $record['other_names'] = null;
+        }
         $record['name'] = $this->createFullName($record['first_name'], $record['last_name'], $record['other_names']);
         $record['school_id'] = auth()->user()->school_id;
         $user = $this->createUserAction->create([
@@ -80,10 +83,21 @@ class UserService
 
     public function updateUser(User $user, $record)
     {
+        if (!$record['other_names']) {
+            $record['other_names'] = null;
+        }
+        
         $record['name'] = $this->createFullName($record['first_name'], $record['last_name'], $record['other_names']);
 
         $user = $this->updateUserProfileInformationAction->update($user, $record);
 
         return $user;
+    }
+
+    public function verifyUserIsOfRoleElseNotFound(User $user, $role)
+    {
+        if (!$this->verifyRole($user->id,$role)) {
+            abort(404);
+        }
     }
 }

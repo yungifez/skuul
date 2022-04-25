@@ -1,6 +1,6 @@
 <div>
     <p class='text-bold'>teacher list</p>
-    <x-adminlte-datatable id="school-list-table" :heads="['S/N', 'Profile picture', 'Name','email','gender' , 'address', '', '']" class='text-capitalize' >
+    <x-adminlte-datatable id="school-list-table" :heads="['S/N', 'Photo', 'Name','email','gender' , 'address', '', '']" class='text-capitalize' >
         @foreach($teachers as $teacher)
             <tr>
                 <td>{{$loop->iteration}}</td>
@@ -11,7 +11,7 @@
                 <td>{{$teacher->address}}</td>
                 <td>@livewire('dropdown-links', [
                     'links' => [
-                    ['href' => route("teachers.edit", $teacher->id), 'text' => 'Settings', 'icon' => 'fas fa-cog'],
+                    ['href' => route("teachers.edit", $teacher->id), 'text' => 'Edit profile', 'icon' => 'fas fa-cog'],
                     ['href' => route("teachers.show", $teacher->id), 'text' => 'View', 'icon' => 'fas fa-eye'],
                     ],
                 ],)</td>

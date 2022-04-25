@@ -70,7 +70,7 @@ class AcademicYearController extends Controller
      */
     public function edit(AcademicYear $academicYear)
     {
-        //
+        return view('pages.academic-year.edit', compact('academicYear'));
     }
 
     /**
@@ -80,9 +80,12 @@ class AcademicYearController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(AcademicYearStoreRequest $request, AcademicYear $academicYear)
     {
-        //
+        $dsta = $request->except('_token', '_method');
+        $this->academicYear->updateAcademicYear($academicYear, $dsta);
+
+        return back();
     }
 
     /**
