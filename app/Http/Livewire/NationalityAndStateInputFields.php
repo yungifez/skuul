@@ -37,7 +37,7 @@ class NationalityAndStateInputFields extends Component
             ]
         ])->data->pluck('states')->first());
         if ($this->states->isEmpty()) {
-            $this->states = [['name' => $this->nationality]];
+            $this->states = collect([['name' => $this->nationality]]);
         }
         $this->state = $this->states[0]['name'];
 
@@ -57,9 +57,8 @@ class NationalityAndStateInputFields extends Component
             ]
         ])->data->pluck('states')->first());
         if ($this->states->isEmpty()) {
-            $this->states = [['name' => $this->nationality]];
+            $this->states = collect([['name' => $this->nationality]]);
         }
-
         if ($this->state == null || in_array($this->state,$this->states->toArray())) {
             $this->state = $this->states[0]['name'];
         }

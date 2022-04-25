@@ -11,7 +11,7 @@
                 <td>{{$teacher->address}}</td>
                 <td>@livewire('dropdown-links', [
                     'links' => [
-                    ['href' => route("teachers.edit", $teacher->id), 'text' => 'Settings', 'icon' => 'fas fa-cog'],
+                    ['href' => route("teachers.edit", $teacher->id), 'text' => 'Edit profile', 'icon' => 'fas fa-cog'],
                     ['href' => route("teachers.show", $teacher->id), 'text' => 'View', 'icon' => 'fas fa-eye'],
                     ],
                 ],)</td>

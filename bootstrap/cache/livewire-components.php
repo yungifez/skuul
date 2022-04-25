@@ -26,6 +26,7 @@
   'edit-semester-form' => 'App\\Http\\Livewire\\EditSemesterForm',
   'edit-student-form' => 'App\\Http\\Livewire\\EditStudentForm',
   'edit-subject-form' => 'App\\Http\\Livewire\\EditSubjectForm',
+  'edit-teacher-form' => 'App\\Http\\Livewire\\EditTeacherForm',
   'edit-timetable-form' => 'App\\Http\\Livewire\\EditTimetableForm',
   'edit-user-fields' => 'App\\Http\\Livewire\\EditUserFields',
   'graduate-students' => 'App\\Http\\Livewire\\GraduateStudents',
@@ -57,6 +58,7 @@
   'show-section' => 'App\\Http\\Livewire\\ShowSection',
   'show-set-school' => 'App\\Http\\Livewire\\ShowSetSchool',
   'show-student-profile' => 'App\\Http\\Livewire\\ShowStudentProfile',
+  'show-teacher-profile' => 'App\\Http\\Livewire\\ShowTeacherProfile',
   'show-timetable' => 'App\\Http\\Livewire\\ShowTimetable',
   'show-user-profile' => 'App\\Http\\Livewire\\ShowUserProfile',
 );

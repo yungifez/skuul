@@ -71,16 +71,14 @@ class StudentService
         return session()->flash('success', 'Student Created Successfully');
     }
 
-   
-
-    public function updateStudent($student, $records)
+    public function updateStudent(User $student, $records)
     {
         $student = $this->user->updateUser($student, $records);
 
         return session()->flash('success', 'Student Updated Successfully');
     }
 
-    public function deleteStudent($student)
+    public function deleteStudent(User $student)
     {
         $student->delete();
 

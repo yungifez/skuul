@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Services\Teacher\TeacherService;
+use App\Models\User;
 use Illuminate\Http\Request;
+use App\Services\Teacher\TeacherService;
 
 class TeacherController extends Controller
 {
@@ -58,9 +59,11 @@ class TeacherController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(User $teacher )
     {
-        //
+        $this->authorize('view',[ $teacher, 'teacher']);
+
+        return view('pages.teacher.show', compact('teacher'));
     }
 
     /**
@@ -69,11 +72,13 @@ class TeacherController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(User $teacher)
     {
-        //
-    }
+        $this->authorize('update',[ $teacher, 'teacher']);
 
+        return view('pages.teacher.edit', compact('teacher'));
+    }
+ 
     /**
      * Update the specified resource in storage.
      *
@@ -81,9 +86,12 @@ class TeacherController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, User $teacher)
     {
-        //
+        $this->authorize('update',[ $teacher, 'teacher']);
+        $this->teacher->updateTeacher($teacher, $request->except('_token', '_method'));
+
+        return back();
     }
 
     /**
@@ -92,8 +100,11 @@ class TeacherController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(User $teacher)
     {
-        //
+        $this->authorize('delete',[ $teacher, 'teacher']);
+        $this->teacher->deleteTeacher($teacher);
+
+        return back();
     }
 }

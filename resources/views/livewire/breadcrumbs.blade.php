@@ -2,9 +2,9 @@
     @if (isset($paths))
         @foreach ($paths as $path)
             @if (!in_array('active', $path))
-                <li class="breadcrumb-item"><a href="{{$path['href']}}">{{__($path['text'])}}</a></li>
+                <li class="breadcrumb-item text-capitalize"><a href="{{$path['href']}}">{{__($path['text'])}}</a></li>
             @else
-                <li class="breadcrumb-item active">{{__($path['text'])}}</li>
+                <li class="breadcrumb-item active text-capitalize">{{__($path['text'])}}</li>
             @endif
          @endforeach
     @endif

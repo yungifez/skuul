@@ -537,12 +537,12 @@ return [
 
     'plugins' => [
         'DateRangePicker' => [
-            'active' => true,
+            'active' => false,
             'files' => [
                 [
                     'type' => 'js',
                     'asset' => true,
-                    'location' => 'vendor/daterangepicker/moment.min.js',
+                    'location' => 'vendor/moment/moment.min.js',
                 ],
                 [
                     'type' => 'js',
