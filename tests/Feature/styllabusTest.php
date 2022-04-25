@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
-class syllabusTest extends TestCase
+class SyllabusTest extends TestCase
 {
     use RefreshDatabase;
     public function unauthorized_user()

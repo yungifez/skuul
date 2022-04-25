@@ -5,7 +5,9 @@
     <x-adminlte-textarea name="address" placeholder="Enter school branch address" label="School Address">
         {{old('address') ? old('address') : $school->address}}
     </x-adminlte-textarea>
-    <x-adminlte-input name="initials" placeholder="Enter school initials" label="School initials" value="{{old('initials') ? old('initials') : $school->initials}}"/>    
+    <x-adminlte-input name="initials" placeholder="Enter school initials" label="School Initials" value="{{old('initials') ? old('initials') : $school->initials}}"/>   
+    <x-adminlte-input name="phone" type="tel" placeholder="Enter school phone number" label="School Phone Number" value="{{old('phone') ? old('phone') : $school->phone}}"/>
+    <x-adminlte-input name="email" type="email" placeholder="Enter school email" label="School Email" value="{{old('email') ? old('email') : $school->email}}"/>
     @csrf
     <x-adminlte-button label="Submit" theme="primary" icon="fas fa-paper-plane" type="submit"/>
 </form>

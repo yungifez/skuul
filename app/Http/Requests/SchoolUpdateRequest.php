@@ -22,6 +22,8 @@ class SchoolUpdateRequest extends FormRequest
         return [
             'name' => 'required|max:255',
             'address' => 'required|min:8',
+            'initials' => 'required|min:2',
+            'phone' => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:5',
         ];
     }
 }

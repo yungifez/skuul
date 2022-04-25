@@ -153,9 +153,17 @@ class SchoolTest extends TestCase
         $school = School::factory()->create();
         $user->school_id = $school->id;
         $user->save();
-        $response = $this->patch("/dashboard/schools/$school->id",['name'=>'Test school 2','address' => 'something street', 'initials' => 'TS2']);
+        $response = $this->patch("/dashboard/schools/$school->id",['name'=>'Test school 2','address' => 'something street', 'initials' => 'TS2', 'phone' => '123456789', 'email' => 'school@test.com']);
 
-        $this->assertEquals('Test school 2',$school->fresh()->name);
+        
+        $this->assertDatabaseHas('schools', [
+            'id' => $school->id,
+            'name' => 'Test school 2',
+            'address' => 'something street',
+            'initials' => 'TS2',
+            'phone' => '123456789',
+            'email' => 'school@test.com'
+        ]);
     }
 
     public function test_that_unauthorized_user_cannot_delete_school()

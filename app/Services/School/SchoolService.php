@@ -36,7 +36,12 @@ class SchoolService
 
     public function updateSchool(School $school, $records)
     {
-        $school->update($records);
+        $school->name = $records['name'];
+        $school->address = $records['address'];
+        $school->initials = $records['initials'];
+        $school->phone = $records['phone'];
+        $school->email = $records['email'];
+        $school->save();
         session()->flash('success', __('School updated successfully'));
 
         return $school;
