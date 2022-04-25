@@ -200,8 +200,8 @@ class TimetableTest extends TestCase
         $this->assertDatabaseMissing('timetable_time_slots',[
             'id' => $timeslot->id,
             'timetable_id' => $timeslot->timetable_id,
-            'start_time' => $timeslot->start_time,
-            'stop_time' => $timeslot->stop_time,
+            'start_time' => "$timeslot->start_time:00",
+            'stop_time' => "$timeslot->stop_time:00",
         ]);
     }
 
