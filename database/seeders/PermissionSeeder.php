@@ -246,6 +246,20 @@ class PermissionSeeder extends Seeder
             'name' => 'menu-timetable',
         ]);
 
+        //exam permissions
+        Permission::firstOrCreate([
+            'name' => 'create exam'
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read exam'
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update exam'
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete exam'
+        ]);
+
         /**
          * assign permissions to roles
          */

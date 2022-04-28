@@ -499,6 +499,26 @@ return [
                 ],
             ],
         ],
+        [
+            'type' => 'sidebar-menu-item',
+            'text' => 'Exam',
+            'icon' => 'fas fa-',
+            'can'  =>  'menu-exam',
+            'submenu' => [
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View Exams',
+                    'route' => 'exams.index',
+                    'can'  => 'read exam',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create Exam',
+                    'route' => 'exams.create',
+                    'can'  => 'create exam',
+                ],
+            ],
+        ],
     ],
 
     /*
