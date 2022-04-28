@@ -31,11 +31,13 @@ class TimeSlotService
     //create timetable record
     public function createTimetableRecord(TimetableTimeSlot $timeSlot, $data){
         //remove existing record
-        if ($timeSlot->weekdays->find($data['weekday_id'])) {
+        if ($timeSlot->weekdays->find($data['weekday_id']) || $data['subject_id'] == null) {
             $timeSlot->weekdays()->detach($data['weekday_id']);
         }
-        $timeSlot->weekdays()->attach($data['weekday_id'],['subject_id' => $data['subject_id']]);
-
+        if ($data['subject_id'] != null) {
+            $timeSlot->weekdays()->attach($data['weekday_id'],['subject_id' => $data['subject_id']]);
+        }
+        
         return session()->flash('success', __('Timetable record successfully created'));
     }
 }
