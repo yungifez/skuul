@@ -1,0 +1,21 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Relations\Pivot;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+
+class TimetableRecord extends Pivot
+{
+    use HasFactory;
+
+    /**
+     * Get the Subject that owns the TimeTableRecord
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function Subject()
+    {
+        return $this->belongsTo(Subject::class);
+    }
+}

@@ -3,8 +3,8 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
-use App\Models\User;
 use App\Models\Syllabus;
+use App\Traits\FeatureTestTrait;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -12,18 +12,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class SyllabusTest extends TestCase
 {
-    use RefreshDatabase;
-    public function unauthorized_user()
-    {
-        $user = User::factory()->create();
-        return $this->actingAs($user);
-    }
-    public function authorized_user(array $permission)
-    {
-        $user = User::factory()->create();
-        $user->givePermissionTo($permission);
-        return $this->actingAs($user);
-    }
+    use RefreshDatabase,FeatureTestTrait;
     
     // test unauthorized user can't view all syllabi 
 
