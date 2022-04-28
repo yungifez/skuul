@@ -49,7 +49,7 @@
                                     @isset($subjects)
                                         <option value=""></option>
                                         @foreach ($subjects as $subject)
-                                            <option value="{{$subject['id']}}" \
+                                            <option value="{{$subject['id']}}" 
                                             {{--checks if the subject is already associated with the time slot--}}
                                             @if(isset($record) && $record->timetableRecord->subject_id == $subject['id']) 
                                                 {{"selected"}}

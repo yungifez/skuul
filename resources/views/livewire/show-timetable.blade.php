@@ -25,12 +25,9 @@
                     {{--displays the time slots for each day of the week--}}
                     @foreach ($timeSlots as $timeSlot)
                         <td scope="col">
-                            @php
-                                $record = $timeSlot->weekdays()->where('weekday_id',$weekday->id)->where('weekday_id',$weekday->id)->latest()->first();
-                            @endphp
-                            @isset ($record)
-                                <p class="text-center">{{$this->subjects->find($record->timetableRecord->subject_id )->name}}</p>
-                            @endisset
+                            @if ($timeSlot->weekdays()->where('weekday_id',$weekday->id)->first() != null)
+                                {{$timeSlot->weekdays()->where('weekday_id',$weekday->id)->first()->timetableRecord->subject->name}}
+                            @endif
                         </td>
                     @endforeach
                 </tr>
