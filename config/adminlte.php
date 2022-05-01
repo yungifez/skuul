@@ -502,7 +502,7 @@ return [
         [
             'type' => 'sidebar-menu-item',
             'text' => 'Exam',
-            'icon' => 'fas fa-',
+            'icon' => 'fas fa-book-open',
             'can'  =>  'menu-exam',
             'submenu' => [
                 [

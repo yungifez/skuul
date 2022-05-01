@@ -210,6 +210,35 @@ class PermissionSeeder extends Seeder
             'name' => 'delete timetable'
         ]);
 
+        //exam permissions
+        Permission::firstOrCreate([
+            'name' => 'create exam'
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read exam'
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update exam'
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete exam'
+        ]);
+
+        //permission for grade system
+        Permission::firstOrCreate([
+            'name' => 'create grade system'
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read grade system'
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update grade system'
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete grade system'
+        ]);
+
+
 
         //header permissions (for controlling the menu headers)
         Permission::firstOrCreate([
@@ -246,19 +275,7 @@ class PermissionSeeder extends Seeder
             'name' => 'menu-timetable',
         ]);
 
-        //exam permissions
-        Permission::firstOrCreate([
-            'name' => 'create exam'
-        ]);
-        Permission::firstOrCreate([
-            'name' => 'read exam'
-        ]);
-        Permission::firstOrCreate([
-            'name' => 'update exam'
-        ]);
-        Permission::firstOrCreate([
-            'name' => 'delete exam'
-        ]);
+        
 
         /**
          * assign permissions to roles

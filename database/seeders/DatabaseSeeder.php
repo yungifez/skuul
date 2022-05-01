@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
             SyllabusSeeder::class,
             TimetableSeeder::class,
             ExamSeeder::class,
+            GradeSystemSeeder::class,
         ]);
     }
 }
