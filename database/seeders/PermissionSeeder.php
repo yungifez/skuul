@@ -238,6 +238,20 @@ class PermissionSeeder extends Seeder
             'name' => 'delete grade system'
         ]);
 
+        //permission for grade system
+        Permission::firstOrCreate([
+            'name' => 'create exam slot'
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read exam slot'
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update exam slot'
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete exam slot'
+        ]);
+
 
 
         //header permissions (for controlling the menu headers)
@@ -274,9 +288,12 @@ class PermissionSeeder extends Seeder
         Permission::firstOrCreate([
             'name' => 'menu-timetable',
         ]);
-
-        
-
+        Permission::firstOrCreate([
+            'name' => 'menu-exam',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'menu-grade-system',
+        ]);
         /**
          * assign permissions to roles
          */
@@ -294,6 +311,8 @@ class PermissionSeeder extends Seeder
             'menu-subject',
             'menu-syllabus',
             'menu-timetable',
+            'menu-exam',
+            'menu-grade-system',
             'manage school settings',
             'create section',
             'read section',
@@ -343,6 +362,18 @@ class PermissionSeeder extends Seeder
             'read timetable',
             'update timetable',
             'delete timetable',
+            'create exam',
+            'read exam',
+            'update exam',
+            'delete exam',
+            'create grade system',
+            'read grade system',
+            'update grade system',
+            'delete grade system',
+            'create exam slot',
+            'read exam slot',
+            'update exam slot',
+            'delete exam slot',
         ]);
 
         //assign permissions to teacher

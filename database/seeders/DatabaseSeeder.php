@@ -30,6 +30,7 @@ class DatabaseSeeder extends Seeder
             TimetableSeeder::class,
             ExamSeeder::class,
             GradeSystemSeeder::class,
+            ExamSlotSeeder::class,
         ]);
     }
 }

@@ -78,6 +78,8 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
            
             //exam routes
             Route::resource('exams', ExamController::class);
+            //exam slot routes
+            Route::resource('exams/{exam}/manage/exam-slots', ExamSlotController::class);
             
             //grade system routes
             Route::resource('grade-systems', GradeSystemController::class);
