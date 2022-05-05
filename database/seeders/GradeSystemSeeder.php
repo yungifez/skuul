@@ -15,7 +15,7 @@ class GradeSystemSeeder extends Seeder
      */
     public function run()
     {
-        GradeSystem::create([
+        GradeSystem::firstOrCreate([
             'id' => 1,
             'name' => 'A+',
             'remark' => 'Excellent',
@@ -24,7 +24,7 @@ class GradeSystemSeeder extends Seeder
             'class_group_id' => 1,
         ]);
 
-        GradeSystem::create([
+        GradeSystem::firstOrCreate([
             'id' => 2,
             'name' => 'A',
             'remark' => 'Very Good',
@@ -33,7 +33,7 @@ class GradeSystemSeeder extends Seeder
             'class_group_id' => 1,
         ]);
 
-        GradeSystem::create([
+        GradeSystem::firstOrCreate([
             'id' => 3,
             'name' => 'B+',
             'remark' => 'Good',
@@ -42,7 +42,7 @@ class GradeSystemSeeder extends Seeder
             'class_group_id' => 1,
         ]);
 
-        GradeSystem::create([
+        GradeSystem::firstOrCreate([
             'id' => 4,
             'name' => 'B',
             'remark' => 'Satisfactory',
@@ -51,7 +51,7 @@ class GradeSystemSeeder extends Seeder
             'class_group_id' => 1,
         ]);
 
-        GradeSystem::create([
+        GradeSystem::firstOrCreate([
             'id' => 5,
             'name' => 'C+',
             'remark' => 'Fair',
@@ -60,7 +60,7 @@ class GradeSystemSeeder extends Seeder
             'class_group_id' => 1,
         ]);
 
-        GradeSystem::create([
+        GradeSystem::firstOrCreate([
             'id' => 6,
             'name' => 'C',
             'remark' => 'Pass',
@@ -69,7 +69,7 @@ class GradeSystemSeeder extends Seeder
             'class_group_id' => 1,
         ]);
 
-        GradeSystem::create([
+        GradeSystem::firstOrCreate([
             'id' => 7,
             'name' => 'D',
             'remark' => 'Fail',
