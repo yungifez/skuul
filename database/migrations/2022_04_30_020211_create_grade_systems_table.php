@@ -11,7 +11,7 @@ return new class extends Migration
         Schema::create('grade_systems', static function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->string('remark');
+            $table->string('remark')->nullable();
             $table->string('grade_from');
             $table->string('grade_to');
             $table->foreignId('class_group_id')->constrained()->onDelete('cascade')->onUpdate('cascade');

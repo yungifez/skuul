@@ -16,20 +16,20 @@ class GradeSystemTest extends TestCase
         $testCases = [
             //check if grade range is in test range
             [
-                'grade_from' => 30,
-                'grade_to' => 200,
+                'grade_from' => 20,
+                'grade_to' => 70,
                 'expected' => true
             ],
             //check if test range is in grade Range
             [
                 'grade_from' => 50,
-                'grade_to' => 90,
+                'grade_to' => 55,
                 'expected' => true
             ],
             //check if test range starts from grade range and stops in another grade range
             [
-                'grade_from' => 100,
-                'grade_to' => 200,
+                'grade_from' => 50,
+                'grade_to' => 80,
                 'expected' => true
             ],
             //check if grade range starts at grade range and ends outside grade range
@@ -40,28 +40,28 @@ class GradeSystemTest extends TestCase
             ],
             //check if grade range starts outside test range and ends in grade range
             [
-                'grade_from' => 150,
-                'grade_to' => 200,
+                'grade_from' => 70,
+                'grade_to' =>  100,
                 'expected' => true
             ],
             //false when grade range is not in test range
             [
-                'grade_from' => 101,
-                'grade_to' => 199,
+                'grade_from' => 70,
+                'grade_to' => 79,
                 'expected' => false
             ]
         ];
         $grades = [
             [
                 'grade_from' => 40,
-                'grade_to' => 100
+                'grade_to' => 60
             ],[
-                'grade_from' => 800,
-                'grade_to' => 900
+                'grade_from' => 80,
+                'grade_to' => 100
             ],
             [
-                'grade_from' => 200,
-                'grade_to' => 300
+                'grade_from' => 20,
+                'grade_to' => 40
             ],
         ];
         $this->gradeSystemService = app(GradeSystemService::class);

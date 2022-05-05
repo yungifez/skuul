@@ -8,19 +8,19 @@ class GradeSystemService
 {
     //get all grade systems in class group
 
-    public function getAllGradeSystemsInClassGroup($classGroupId)
+    public function getAllGradesInClassGroup($classGroupId)
     {
-        $gradeSystems = GradeSystem::where('class_group_id', $classGroupId)->get();
-        return $gradeSystems;
+        $grades = GradeSystem::where('class_group_id', $classGroupId)->get();
+        return $grades;
     }
 
     //create grade system
 
     public function createGradeSystem($records)
     {
-        $grades = $this->getAllGradeSystemsInClassGroup($records['class_group_id']);
+        $gradesInDb = $this->getAllGradesInClassGroup($records['class_group_id']);
 
-        if ($grades =! null && $this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_to' => $records['grade_to']],$grades)) {
+        if ($gradesInDb =! null && $this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_to' => $records['grade_to']],$gradesInDb)) {
             return session()->flash('danger' , 'Grade is in another range in this class group');
         }
        
@@ -37,23 +37,30 @@ class GradeSystemService
 
     // edit grade system
 
-    public function updateGradeSystem(GradeSystem $gradeSystem, $records)
+    public function updateGradeSystem(GradeSystem $grade, $records)
     {
-        $grades = $this->getAllGradeSystemsInClassGroup($records['class_group_id']);
+        $gradesInDb = $this->getAllGradesInClassGroup($records['class_group_id'])->except($grade->id);
 
-        if ($grades =! null && $this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_to' => $records['grade_to']],$grades)) {
+        if ($gradesInDb =! null && $this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_to' => $records['grade_to']],$gradesInDb)) {
             return session()->flash('danger' , 'Grade is in another range in this class group');
         }
         
-        $gradeSystem->update([
+        $grade->update([
             'class_group_id' => $records['class_group_id'],
             'grade_from' => $records['grade_from'],
             'grade_to' => $records['grade_to'],
             'name' => $records['name'],
             'remark' => $records['remark']
         ]);
-        $gradeSystem->save();
-        return session()->flash('success' , 'Grade system updated successfully');
+        $grade->save();
+        return session()->flash('success' , 'Grade updated successfully');
+    }
+
+    public function deleteGradeSystem(GradeSystem $grade)
+    {
+        $grade->delete();
+
+        return session()->flash('success' , 'successfully deleted grade');
     }
 
     /**

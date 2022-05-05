@@ -501,7 +501,7 @@ return [
         ],
         [
             'type' => 'sidebar-menu-item',
-            'text' => 'Exam',
+            'text' => 'Exams',
             'icon' => 'fas fa-book-open',
             'can'  =>  'menu-exam',
             'submenu' => [
@@ -516,6 +516,26 @@ return [
                     'text' => 'Create Exam',
                     'route' => 'exams.create',
                     'can'  => 'create exam',
+                ],
+            ],
+        ],
+        [
+            'type' => 'sidebar-menu-item',
+            'text' => 'Grade systems',
+            'icon' => 'fa fa-graduation-cap',
+            'can'  =>  'menu-grade-system',
+            'submenu' => [
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View Grades',
+                    'route' => 'grade-systems.index',
+                    'can'  => 'read grade system',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create Grades',
+                    'route' => 'grade-systems.create',
+                    'can'  => 'create grade system',
                 ],
             ],
         ],

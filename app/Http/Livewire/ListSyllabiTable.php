@@ -19,11 +19,17 @@ class ListSyllabiTable extends Component
             $this->syllabi = $syllabusService->getAllSyllabiInSemesterAndClass($semester,$class);
         }else {
             $this->classes = $myClassService->getAllClasses();
-            $this->syllabi = $syllabusService->getAllSyllabiInSemesterAndClass($semester,$this->classes[0]['id']);
-        }
+            //make sure classes arent empty
+            if (!$this->classes->isEmpty()) {
+                $this->syllabi = $syllabusService->getAllSyllabiInSemesterAndClass($semester,$this->classes[0]['id']);
+            }else {
+                $this->classes = [];
+                $this->syllabi = collect([]);
+            }
 
         if($this->syllabi->isEmpty()){
             $this->syllabi = null;
+        }
         }
     }
 

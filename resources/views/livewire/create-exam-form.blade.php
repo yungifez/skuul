@@ -1,7 +1,7 @@
 <form action="{{route('exams.store')}}" method="POST">
     <p class="text-bold">Create Exam </p>
     @livewire('display-validation-error')
-    <x-adminlte-input name="name" label="Exam Name" placeholder="Enter semester name" fgroup-class="col-md-6"/>
+    <x-adminlte-input name="name" label="Exam Name" placeholder="Enter Exam name" fgroup-class="col-md-6"/>
     <x-adminlte-textarea name="description" label="Description" placeholder="Enter description" fgroup-class="col-md-6"/>
     <div class="col-md-6">
         <x-adminlte-input-date name="start_date" label="Start date" required :config="['format' => 'YYYY/MM/DD']" value="{{old('start_date')}}"/>

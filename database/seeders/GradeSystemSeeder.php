@@ -73,7 +73,7 @@ class GradeSystemSeeder extends Seeder
             'id' => 7,
             'name' => 'D',
             'remark' => 'Fail',
-            'grade_from' => '0',
+            'grade_from' => '20',
             'grade_to' => '39',
             'class_group_id' => 1,
         ]);

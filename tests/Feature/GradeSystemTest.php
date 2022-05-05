@@ -64,16 +64,16 @@ class GradeSystemTest extends TestCase
             ->post('/dashboard/grade-systems',[
                 'name' => 'test grade',
                 'remark' => 'test remarks',
-                'grade_from' => '101',
-                'grade_to' => '200',
+                'grade_from' => '0',
+                'grade_to' => '10',
                 'class_group_id' => '1',
             ]);
 
         $this->assertDatabaseHas('grade_systems',[
             'name' => 'test grade',
             'remark' => 'test remarks',
-            'grade_from' => '101',
-            'grade_to' => '200',
+            'grade_from' => '0',
+            'grade_to' => '10',
             'class_group_id' => '1',
         ]);
     }
@@ -113,8 +113,8 @@ class GradeSystemTest extends TestCase
             ->put('/dashboard/grade-systems/1',[
                 'name' => 'test grade',
                 'remark' => 'test remarks',
-                'grade_from' => '201',
-                'grade_to' => '300',
+                'grade_from' => '90',
+                'grade_to' => '100',
                 'class_group_id' => '1',
             ]);
 
@@ -122,8 +122,8 @@ class GradeSystemTest extends TestCase
             'id' => '1',
             'name' => 'test grade',
             'remark' => 'test remarks',
-            'grade_from' => '201',
-            'grade_to' => '300',
+            'grade_from' => '90',
+            'grade_to' => '100',
             'class_group_id' => '1',
         ]);
     }
@@ -146,11 +146,6 @@ class GradeSystemTest extends TestCase
 
         $this->assertDatabaseMissing('grade_systems',[
             'id' => '1',
-            'name' => 'test grade',
-            'remark' => 'test remarks',
-            'grade_from' => '1',
-            'grade_to' => '100',
-            'class_group_id' => '1',
         ]);
     }
          
