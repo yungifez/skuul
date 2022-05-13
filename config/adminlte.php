@@ -517,6 +517,18 @@ return [
                     'route' => 'exams.create',
                     'can'  => 'create exam',
                 ],
+                // [
+                //     'type' => 'sidebar-menu-item',
+                //     'text' => 'View Exam slots',
+                //     'route' => 'exam-slots.index',
+                //     'can'  => 'read exam slot',
+                // ],
+                // [
+                //     'type' => 'sidebar-menu-item',
+                //     'text' => 'Create Exam slot',
+                //     'route' => 'exam-slots.create',
+                //     'can'  => 'create exam slot',
+                // ]
             ],
         ],
         [

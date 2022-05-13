@@ -12,6 +12,8 @@
                         'links' => [
                             ['href' => route("exams.edit", $exam->id), 'text' => 'edit', 'icon' => 'fas fa-cog'],
                             ['href' => route("exams.show", $exam->id), 'text' => 'View', 'icon' => 'fas fa-eye'],
+                            ['href' => route("exam-slots.index", $exam->id), 'text' => 'Manage exam slots', 'icon' => 'fas fa-cog'],
+                            ['href' => route("exam-slots.create", $exam->id), 'text' => 'Create exam slots', 'Create exam slot', 'icon' => 'fas fa-key'],
                         ],
                     ],)
                 </td>

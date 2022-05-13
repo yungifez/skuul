@@ -93,4 +93,59 @@ class ExamSlotTest extends TestCase
             ->get("/dashboard/exams/1/manage/exam-slots/$examSlot->id/edit")
             ->assertSuccessful();
     }
+
+    //test unauthorized user cannot update exam slot
+
+    public function test_unauthorized_user_cant_update_exam_slot()
+    {
+        $examSlot = ExamSlot::factory()->create();
+        $this->unauthorized_user()
+            ->put("/dashboard/exams/1/manage/exam-slots/$examSlot->id", ['name' => 'test exam slot', 'description' => 'test description', 'total_marks' => '10'])
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('exam_slots', [
+            'id' => $examSlot->id,
+            'name' => 'test exam slot',
+            'description' => 'test description',
+            'total_marks' => '10'
+        ]);
+    }
+
+    //test authorized user can update exam slot
+
+    public function test_authorized_user_can_update_exam_slot()
+    {
+        $examSlot = ExamSlot::factory()->create();
+        $this->authorized_user(['update exam slot'])
+            ->put("/dashboard/exams/1/manage/exam-slots/$examSlot->id", ['name' => 'test exam slot', 'description' => 'test description', 'total_marks' => '10'])
+            ;
+
+        $this->assertDatabaseHas('exam_slots', [
+            'id' => $examSlot->id,
+            'name' => 'test exam slot',
+            'description' => 'test description',
+            'total_marks' => '10'
+        ]);
+    }
+
+    //test unauthorized user cannot delete exam slot
+
+    public function test_unauthorized_user_cant_delete_exam_slot()
+    {
+        $examSlot = ExamSlot::factory()->create();
+        $this->unauthorized_user()
+            ->delete("/dashboard/exams/1/manage/exam-slots/$examSlot->id")
+            ->assertForbidden() && $this->assertModelExists($examSlot);
+    }
+
+    //test authorized user can delete exam slot
+
+    public function test_authorized_user_can_delete_exam_slot()
+    {
+        $examSlot = ExamSlot::factory()->create();
+        $this->authorized_user(['delete exam slot'])
+            ->delete("/dashboard/exams/1/manage/exam-slots/$examSlot->id");
+            
+        $this->assertModelMissing($examSlot);
+    }
 }

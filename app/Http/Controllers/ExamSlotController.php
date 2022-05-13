@@ -58,7 +58,7 @@ class ExamSlotController extends Controller
      * @param  \App\Models\ExamSlot  $examSlot
      * @return \Illuminate\Http\Response
      */
-    public function show(ExamSlot $examSlot)
+    public function show(Exam $exam,ExamSlot $examSlot)
     {
         //
     }
@@ -71,7 +71,7 @@ class ExamSlotController extends Controller
      */
     public function edit(Exam $exam,ExamSlot $examSlot)
     {
-        return view('pages.exam.exam-slot.edit');
+        return view('pages.exam.exam-slot.edit', compact('examSlot','exam'));
     }
 
     /**
@@ -83,7 +83,10 @@ class ExamSlotController extends Controller
      */
     public function update(UpdateExamSlotRequest $request,Exam $exam , ExamSlot $examSlot)
     {
-        //
+        $data = $request->except('_token','_method');
+        $this->examSlot->updateExamSlot($examSlot,$data);
+
+        return back();
     }
 
     /**
@@ -92,8 +95,10 @@ class ExamSlotController extends Controller
      * @param  \App\Models\ExamSlot  $examSlot
      * @return \Illuminate\Http\Response
      */
-    public function destroy(ExamSlot $examSlot)
+    public function destroy(Exam $exam, ExamSlot $examSlot)
     {
-        //
+        $this->examSlot->deleteExamSlot($examSlot);
+
+        return back();
     }
 }
