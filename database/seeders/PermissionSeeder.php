@@ -238,7 +238,7 @@ class PermissionSeeder extends Seeder
             'name' => 'delete grade system'
         ]);
 
-        //permission for grade system
+        //permission for exam slots
         Permission::firstOrCreate([
             'name' => 'create exam slot'
         ]);
@@ -250,6 +250,20 @@ class PermissionSeeder extends Seeder
         ]);
         Permission::firstOrCreate([
             'name' => 'delete exam slot'
+        ]);
+
+        //permission for exam records
+        Permission::firstOrCreate([
+            'name' => 'create exam record'
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read exam record'
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update exam record'
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete exam record'
         ]);
 
 

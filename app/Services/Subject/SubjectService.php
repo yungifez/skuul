@@ -17,6 +17,13 @@ class SubjectService
         return Subject::where(['school_id' => auth()->user()->school_id])->get();
     }
 
+    //get subject by id
+
+    public function getSubjectById($id)
+    {
+        return Subject::find($id);
+    }
+
     //create subject
 
     public function createSubject($data)

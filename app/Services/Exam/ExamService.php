@@ -11,6 +11,13 @@ class ExamService
         return Exam::where('semester_id', $semester_id)->get();
     }
 
+    //get exam by id
+
+    public function getExamById($id)
+    {
+        return Exam::find($id);
+    }
+    
     public function createExam($records)
     {
         DB::transaction(function () use ($records)

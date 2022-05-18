@@ -2,9 +2,11 @@
     @csrf
     @livewire('display-validation-error')
     <x-adminlte-select name='my_class_id' id="my_class" label="Class"  fgroup-class="col-md-6" enable-old-support wire:model="class">
-        @foreach ($classes as $item)
-            <option value="{{$item['id']}}">{{$item['name']}}</option>
-        @endforeach
+        @isset($classes)
+            @foreach ($classes as $item)
+                <option value="{{$item['id']}}">{{$item['name']}}</option>
+            @endforeach
+        @endisset
     </x-adminlte-select>
     <x-adminlte-select name='subject_id' id="subject" label="Subject" wire:init="loadInitialSubjects" fgroup-class="col-md-6" enable-old-support wire:model="subject" >
         @isset($subjects)

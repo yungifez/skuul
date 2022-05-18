@@ -14,6 +14,12 @@ class ExamSlotService{
         return $exam->examSlots;
     }
 
+    //get examslot by id
+
+    public function getExamSlotById($id){
+        return ExamSlot::find($id);
+    }
+
     //create exam slot
 
     public function createExamSlot(Exam $exam, array $data){

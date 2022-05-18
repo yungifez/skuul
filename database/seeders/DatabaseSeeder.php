@@ -31,6 +31,7 @@ class DatabaseSeeder extends Seeder
             ExamSeeder::class,
             GradeSystemSeeder::class,
             ExamSlotSeeder::class,
+            ExamRecordSeeder::class
         ]);
     }
 }

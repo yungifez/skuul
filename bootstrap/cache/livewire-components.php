@@ -40,6 +40,7 @@
   'list-academic-years-table' => 'App\\Http\\Livewire\\ListAcademicYearsTable',
   'list-class-groups-table' => 'App\\Http\\Livewire\\ListClassGroupsTable',
   'list-classes-table' => 'App\\Http\\Livewire\\ListClassesTable',
+  'list-exam-records-table' => 'App\\Http\\Livewire\\ListExamRecordsTable',
   'list-exam-slots-table' => 'App\\Http\\Livewire\\ListExamSlotsTable',
   'list-exams-table' => 'App\\Http\\Livewire\\ListExamsTable',
   'list-grade-systems-table' => 'App\\Http\\Livewire\\ListGradeSystemsTable',
