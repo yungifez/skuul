@@ -1,10 +1,12 @@
 <div>
     @livewire('display-validation-error')
+    {{-- loading spinner --}}
     <div class="d-flex justify-content-center">
         <div wire:loading class="spinner-border" role="status">
             <p class="sr-only">Loading.....</p>
         </div>
     </div>
+    {{-- form for selecting exam record to display --}}
     <form wire:submit.prevent="fetchExamRecords('{{$exam}}','{{$section}}','{{$subject}}')" class="d-md-flex my-3">
         <div  class="d-md-flex col-md-10 px-0">
             <x-adminlte-select name="exam_id" label="Select exam"  fgroup-class="col-md-3" enable-old-support wire:model="exam">
@@ -25,11 +27,11 @@
                 @endisset
             </x-adminlte-select>
             <x-adminlte-select name="section" label="Section" fgroup-class="col-md-3" wire:model="section">
-                @if (isset($sections))
+                @isset($sections)
                     @foreach ($sections as $item)
                         <option value="{{$item['id']}}">{{$item['name']}}</option>
                     @endforeach
-                @endif
+                @endisset
             </x-adminlte-select>
         </div>
         <div class='col-md-2 h-inherit mt-auto mb-auto'>
@@ -37,6 +39,7 @@
         </div>
     </form>
     
+    {{-- table for displaying exam records --}}
     @isset($examSlots)
         <x-adminlte-card title="{{$examSelected->name}} exam records" theme="primary" icon=""  collapsible="" >
             <div class="d-md-flex">
@@ -52,6 +55,7 @@
                             <th>S/N</th>
                             <th style="min-width: 200px; min-height: 40px;">Name</th>
                             <th>Admission number:</th>
+                            {{--disolay all examslots as headers--}}
                             @foreach ($examSlots as $examSlot)
                                 <th style="min-width: 200px; min-height: 40px;" class="">{{$examSlot->name}} ({{$examSlot->total_marks}})</th>
                             @endforeach

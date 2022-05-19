@@ -48,9 +48,13 @@ class ListExamRecordsTable extends Component
 
     public function updatedClass()
     {
+        //get instance of class
         $class = app("App\Services\MyClass\MyClassService")->getClassById($this->class);
+        //get subjects in class
         $this->subjects = $class->subjects;
+        //get sections in class
         $this->sections = $class->sections;
+        //set subject and section if the fetched records aren't empty
         $this->subjects->count() ? $this->subject = $this->subjects[0]->id : $this->subject = null;
         $this->sections->count() ? $this->section = $this->sections[0]->id : $this->section = null;
     }

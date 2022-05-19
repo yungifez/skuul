@@ -388,6 +388,10 @@ class PermissionSeeder extends Seeder
             'read exam slot',
             'update exam slot',
             'delete exam slot',
+            'create exam record',
+            'read exam record',
+            'update exam record',
+            'delete exam record',
         ]);
 
         //assign permissions to teacher
@@ -396,6 +400,7 @@ class PermissionSeeder extends Seeder
             'header-academics',
             'menu-syllabus',
             'menu-timetable',
+            'menu-exam',
             'create syllabus',
             'read syllabus',
             'update syllabus',
@@ -404,6 +409,10 @@ class PermissionSeeder extends Seeder
             'read timetable',
             'update timetable',
             'delete timetable',
+            'create exam record',
+            'read exam record',
+            'update exam record',
+            'delete exam record',
         ]);
 
         //assign permissions to student
