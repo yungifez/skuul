@@ -19,7 +19,7 @@ class ListGradeSystemsTable extends Component
     public function mount(MyClassService $myClassService, GradeSystemService $gradeSystemService)
     {
         $this->classGroups = $myClassService->getAllClassGroups();
-        if ($this->classGroup != null) {
+        if ($this->classGroups != null) {
             $this->classGroup = $this->classGroups[0]->id;  
             $this->grades = $gradeSystemService->getAllGradesInClassGroup($this->classGroup)->load('classGroup')->sortBy('grade_to');
         }else {
