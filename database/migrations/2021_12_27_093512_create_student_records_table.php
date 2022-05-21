@@ -16,6 +16,8 @@ return new class extends Migration {
             $table->foreignId('section_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->boolean('is_graduated')->default(false);      
             $table->timestamps();
+            //admission number unique
+            $table->unique('admission_number');
         });
     }
 
