@@ -14,6 +14,13 @@ class GradeSystemService
         return $grades;
     }
 
+    //get grade from percent
+
+    public function getGrade($classGroup, $percentage)
+    {
+        return $this->getAllGradesInClassGroup($classGroup)->where('grade_from','<=',$percentage)->where('grade_to','>=',$percentage)->first();
+    }
+
     //create grade system
 
     public function createGradeSystem($records)

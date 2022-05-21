@@ -2,10 +2,22 @@
 namespace App\Services\Exam;
 
 use App\Models\Exam;
+use App\Models\User;
+use App\Models\Section;
+use App\Models\Subject;
 use Illuminate\Support\Facades\DB;
+use App\Services\Exam\ExamRecordService;
 
 class ExamService
 {
+    protected $examRecordService;
+    protected $examSlotService;
+    public function __construct(ExamRecordService $examRecordService, ExamSlotService $examSlotService)
+    {
+        $this->examRecordService = $examRecordService;
+        $this->examSlotService = $examSlotService;
+    }
+   
     public function getAllExamsInSemester($semester_id)
     {
         return Exam::where('semester_id', $semester_id)->get();
@@ -51,5 +63,22 @@ class ExamService
         $exam->delete();
 
         return session()->flash('success', 'Exam deleted successfully');
+    }
+
+    //calculate total marks attainable for each subject
+    public function totalMarksAttainableInEachSubject(Exam $exam)
+    {
+        $totalMarks = 0;
+        foreach ($exam->examSlots as $examSlot) {
+            $totalMarks += $examSlot->total_marks;
+        }
+        return $totalMarks;
+    }
+
+    //calculate total mark gotten in subject
+
+    public function calculateStudentTotalMarksInSubject(User $user,Subject $subject)
+    {
+        return $this->examRecordService->getAllUserExamRecordInSubject($user->id, $subject->id)->pluck('student_marks')->sum();
     }
 }

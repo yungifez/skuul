@@ -76,10 +76,13 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
             Route::resource('timetables/{timetable}/manage/time-slots', TimetableTimeSlotController::Class);
             Route::post('timetables/{timetable}/manage/time-slots/{time_slot}/record/create',['App\Http\Controllers\TimetableTimeSlotController', 'addTimetableRecord'])->name('timetables.records.create')->scopeBindings();
             
-            //add marks 
+            //manage exam record 
             Route::resource('exams/exam-records', ExamRecordController::class);
+            //exam tabulation sheet
+            Route::get('exams/tabulation-sheet', ['App\Http\Controllers\ExamController', 'tabulation'])->name('exams.tabulation');
             //exam routes
             Route::resource('exams', ExamController::class);
+            
             //exam slot routes
             Route::scopeBindings()->group(function () {
                Route::resource('exams/{exam}/manage/exam-slots', ExamSlotController::class);

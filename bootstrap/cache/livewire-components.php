@@ -35,6 +35,7 @@
   'edit-teacher-form' => 'App\\Http\\Livewire\\EditTeacherForm',
   'edit-timetable-form' => 'App\\Http\\Livewire\\EditTimetableForm',
   'edit-user-fields' => 'App\\Http\\Livewire\\EditUserFields',
+  'exam-tabulation' => 'App\\Http\\Livewire\\ExamTabulation',
   'graduate-students' => 'App\\Http\\Livewire\\GraduateStudents',
   'help-button' => 'App\\Http\\Livewire\\HelpButton',
   'list-academic-years-table' => 'App\\Http\\Livewire\\ListAcademicYearsTable',

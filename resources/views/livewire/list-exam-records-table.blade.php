@@ -76,37 +76,42 @@
                                     </td>
                                 @endforeach
                                 <td style="min-width: 200px; min-height: 40px;">
-                                    <x-adminlte-button label="Manage marks" data-toggle="modal" data-target="#manageStudentRecord-{{$student->id}}" class="bg-primary"/>
+                                    @can('update exam record', )
+                                        <x-adminlte-button label="Manage marks" data-toggle="modal" data-target="#manageStudentRecord-{{$student->id}}" class="bg-primary"/>
+                                    @endcan   
                                 </td>
                             </tr>
                             @endforeach
                         </tbody>
                     </table>
-                    @foreach ($students as $student)
-                    <x-adminlte-modal id="manageStudentRecord-{{$student->id}}" title="Exam record for {{$student->name}}" size="lg" theme="primary" icon="fas fa-bell" v-centered static-backdrop scrollable>
-                        <form action="{{route('exam-records.store')}}" method="POST">
-                            @foreach ($examSlots as $examSlot)
-                                @php 
-                                    $examRecord = $examRecords->where('user_id',$student->id)->where('subject_id', $subjectSelected->id)->where('exam_slot_id', $examSlot->id)->first();
-                                    $studentMarks = $examRecord ? $examRecord['student_marks'] : '0';
-                                @endphp
+                    @can('update exam record', )
+                        @foreach ($students as $student)
+                        {{-- modal for managing student exam record --}}
+                            <x-adminlte-modal id="manageStudentRecord-{{$student->id}}" title="Exam record for {{$student->name}}" size="lg" theme="primary" icon="fas fa-bell" v-centered static-backdrop scrollable>
+                                <form action="{{route('exam-records.store')}}" method="POST">
+                                    @foreach ($examSlots as $examSlot)
+                                        @php 
+                                            $examRecord = $examRecords->where('user_id',$student->id)->where('subject_id', $subjectSelected->id)->where('exam_slot_id', $examSlot->id)->first();
+                                            $studentMarks = $examRecord ? $examRecord['student_marks'] : '0';
+                                        @endphp
 
-                                <input type="hidden" name="exam_records[{{$loop->index}}][exam_slot_id]" value="{{$examSlot->id}}">
-                                <x-adminlte-input name="exam_records[{{$loop->index}}][student_marks]" label="{{$examSlot->name}} ({{$examSlot->total_marks}})" type="number" placeholder="Enter marks" value="{{$studentMarks}}" min="0" max="{{$examSlot->total_marks}}"/>
-                            @endforeach
-                            <input type="hidden" name="subject_id" value="{{$subjectSelected->id}}">
-                            <input type="hidden" name="user_id" value="{{$student->id}}">
-                            <input type="hidden" name="section_id" value="{{$sectionSelected->id}}">
-                            @csrf
-                            <div class='col-md-6'>
-                                <x-adminlte-button label="Submit" theme="primary" type="submit" class="col-md-12"/>
-                            </div>
-                            <x-slot name="footerSlot">
-                                <x-adminlte-button theme="danger" label="Dismiss" data-dismiss="modal"/>
-                            </x-slot>
-                        </form>
-                    </x-adminlte-modal>
-                    @endforeach
+                                        <input type="hidden" name="exam_records[{{$loop->index}}][exam_slot_id]" value="{{$examSlot->id}}">
+                                        <x-adminlte-input name="exam_records[{{$loop->index}}][student_marks]" label="{{$examSlot->name}} ({{$examSlot->total_marks}})" type="number" placeholder="Enter marks" value="{{$studentMarks}}" min="0" max="{{$examSlot->total_marks}}"/>
+                                    @endforeach
+                                    <input type="hidden" name="subject_id" value="{{$subjectSelected->id}}">
+                                    <input type="hidden" name="user_id" value="{{$student->id}}">
+                                    <input type="hidden" name="section_id" value="{{$sectionSelected->id}}">
+                                    @csrf
+                                    <div class='col-md-6'>
+                                        <x-adminlte-button label="Submit" theme="primary" type="submit" class="col-md-12"/>
+                                    </div>
+                                    <x-slot name="footerSlot">
+                                        <x-adminlte-button theme="danger" label="Dismiss" data-dismiss="modal"/>
+                                    </x-slot>
+                                </form>
+                            </x-adminlte-modal>
+                        @endforeach
+                    @endcan
                 </div>
             </div>
         </x-adminlte-card>

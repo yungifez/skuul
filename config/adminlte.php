@@ -523,6 +523,12 @@ return [
                     'route' => 'exam-records.index',
                     'can'  => 'read exam record',
                 ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Exam tabulation sheet',
+                    'route' => 'exams.tabulation',
+                    'can'  => 'view exam tabulation sheet',
+                ],
             ]
         ],
         [

@@ -23,6 +23,16 @@ class ExamRecordService{
         return ExamRecord::where(['section_id' => $section, 'subject_id' => $subject])->get();
     }
 
+    public function getAllExamRecordsInSection($section)
+    {
+        return ExamRecord::where('section_id', $section)->get();
+    }
+
+    public function getAllUserExamRecordInSubject($user, $subject)
+    {
+        return ExamRecord::where(['user_id' => $user, 'subject_id' => $subject]);
+    }
+
     public function createExamRecord($records)
     {
         if (auth()->user()->hasRole('teacher') && $this->subject->getSubjectById( $records['subject_id'])->teachers->where('id', auth()->user()->id)->isEmpty()) {

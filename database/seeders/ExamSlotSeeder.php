@@ -16,9 +16,9 @@ class ExamSlotSeeder extends Seeder
     public function run()
     {
         ExamSlot::firstOrCreate([
-            'name' => '1st CA',
+            'name' => 'Objective',
             'description' => 'written last week',
-            'total_marks' => 10,
+            'total_marks' => 40,
             'exam_id' => 1
         ]);
 

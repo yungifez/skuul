@@ -99,4 +99,12 @@ class ExamController extends Controller
 
         return back();
     }
+
+    /**
+     * Tabulation  for exams
+     */
+
+    public function tabulation(){
+        return view('pages.exam.tabulation');
+    }
 }

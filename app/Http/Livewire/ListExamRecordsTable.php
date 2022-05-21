@@ -13,11 +13,6 @@ use App\Services\Subject\SubjectService;
 
 class ListExamRecordsTable extends Component
 {
-    protected $rules = [
-        'section' => 'integer|exists:sections,id',
-        'exam' => 'integer|exists:exams,id',
-        'subject' => 'integer|exists:subjects,id',
-    ];
     protected $queryString = ['sectionSelectedId' , 'examSelectedId', 'subjectSelectedId'];
     public $semester, $exams, $exam, $classes, $class, $subjects, $subject, $sections, $section, $examRecords, $classSelected, $subjectSelected, $sectionSelected, $examSelected, $students, $sectionSelectedId, $examSelectedId, $subjectSelectedId;
 
@@ -59,7 +54,7 @@ class ListExamRecordsTable extends Component
         $this->sections->count() ? $this->section = $this->sections[0]->id : $this->section = null;
     }
 
-    public function fetchExamRecords(Exam $exam, Section $section, ?Subject $subject)
+    public function fetchExamRecords(Exam $exam, Section $section, Subject $subject)
     {
         $this->examSlots = $exam->examSlots;
         $this->examRecords = app('App\Services\Exam\ExamRecordService')->getAllExamRecordsInSectionAndSubject( $section->id, $subject->id);
