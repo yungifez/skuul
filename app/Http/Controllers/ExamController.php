@@ -105,6 +105,7 @@ class ExamController extends Controller
      */
 
     public function tabulation(){
+        $this->authorize("viewAny", Exam::Class);
         return view('pages.exam.tabulation');
     }
 }
