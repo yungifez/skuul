@@ -59,6 +59,7 @@ class ExamTabulation extends Component
         });
     }
 
+    //tabulates the result
     public function createTabulation(Exam $exam, Section $section)
     {
         //create tabulation 
@@ -87,7 +88,9 @@ class ExamTabulation extends Component
             //get appropriate grade
             $tabulatedRecords[$student->id]['grade'] =  $grade ? $grade->name : 'No Grade';
         }
-        Cache::put("exam-tabulation-".$exam->id."-".$section->id, $this->tabulatedRecords, 8000);
+
+        //creates cache for tabulation
+        Cache::put("exam-tabulation-".$exam->id."-".$section->id, $this->tabulatedRecords, 3600);
 
         return $tabulatedRecords;
     }
