@@ -88,11 +88,10 @@ class ExamTabulation extends Component
             //get appropriate grade
             $tabulatedRecords[$student->id]['grade'] =  $grade ? $grade->name : 'No Grade';
         }
-
         //creates cache for tabulation
         Cache::put("exam-tabulation-".$exam->id."-".$section->id, $this->tabulatedRecords, 3600);
-
-        return $tabulatedRecords;
+        
+        return collect($tabulatedRecords);
     }
 
     public function render()

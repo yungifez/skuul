@@ -35,18 +35,18 @@
                 <x-adminlte-button label="View records" theme="primary" type="submit" class="col-md-12"/>
             </div>
         </form>
-    
-        
+        {{-- table to display tabulation --}}
         @isset($subjects)
                 <p>Total obtainable marks in each subject: {{$totalMarksAttainableInEachSubject}}</p>
                 <p>Total Marks accross all subjects: {{$totalMarksAttainableInEachSubject * $subjects->count()}}</p>
                 @php
                     $heads = $subjects->sortBy('name')->pluck('name');
-                    $heads = $heads->prepend('Admission number')->prepend('Student name')->prepend('S/N');
-                    $heads = $heads->push('Total')->push('Percentage')->push('Grade');
+                    $heads = $heads->prepend('Admission number')->prepend('Student name')->prepend('Class Position');
+                    $heads = $heads->push('Total')->push('Percentage (%)')->push('Grade');
                 @endphp
+                {{--foreach displaus records in order of class positions--}}
                 <x-adminlte-datatable id="class-list-table" :heads="$heads" Class='text-capitalize' class="my-2">
-                    @foreach ($tabulatedRecords as $tabulatedRecord)
+                    @foreach ($tabulatedRecords->sortByDesc('total') as $tabulatedRecord)
                     <tr>
                         <td>{{$loop->iteration}}</td>
                         <td>{{$tabulatedRecord['student_name']}}</td>
