@@ -8,13 +8,13 @@
             <x-adminlte-input name="remark" label="Remark" placeholder="Grade remark eg Excellent" fgroup-class="col-md-6" value="{{$grade->remark}}"/>
             <x-adminlte-input type="number" name="grade_from" label="From" placeholder="Grade from eg 10" fgroup-class="col-md-6" value="{{$grade->grade_from}}"/>
             <x-adminlte-input type="number" name="grade_to" label="To" placeholder="Grade to eg 20" fgroup-class="col-md-6" value="{{$grade->grade_to}}"/>
-            <x-adminlte-select name="class_group_id" fgroup-class="col-md-6 mx-1" label="Class Group">
+            <x-adminlte-select name="class_group_id" fgroup-class="col-md-6 mx-1" label="Class Group" wire:model="classGroup">
                 @foreach ($classGroups as $classGroup)
                     <option value="{{$classGroup->id}}">{{$classGroup->name}}</option>
                 @endforeach
             </x-adminlte-select>
             <div class='col-12 my-2'>
-                <x-adminlte-button label="Create" theme="primary" icon="fas fa-key" type="submit" class="col-md-3"/>
+                <x-adminlte-button label="Edit" theme="primary" icon="fas fa-pen" type="submit" class="col-md-3"/>
             </div>
             @csrf
             @method("PUT")

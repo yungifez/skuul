@@ -104,8 +104,18 @@ class ExamController extends Controller
      * Tabulation  for exams
      */
 
-    public function tabulation(){
+    public function examTabulation(){
         $this->authorize("viewAny", Exam::Class);
         return view('pages.exam.tabulation');
     }
+
+    /**
+     * Tabulation for results
+     */
+
+     public function resultTabulation()
+     {
+        $this->authorize("viewAny", Exam::Class);
+        return view('pages.exam.result-tabulation');
+     }
 }

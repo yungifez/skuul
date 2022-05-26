@@ -79,7 +79,9 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
             //manage exam record 
             Route::resource('exams/exam-records', ExamRecordController::class);
             //exam tabulation sheet
-            Route::get('exams/tabulation-sheet', ['App\Http\Controllers\ExamController', 'tabulation'])->name('exams.tabulation');
+            Route::get('exams/tabulation-sheet', ['App\Http\Controllers\ExamController', 'examTabulation'])->name('exams.tabulation');
+             //exam tabulation sheet
+            Route::get('exams/result-tabulation-sheet', ['App\Http\Controllers\ExamController', 'resultTabulation'])->name('exams.result-tabulation');
             //exam routes
             Route::resource('exams', ExamController::class);
             

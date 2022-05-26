@@ -5,6 +5,7 @@ use App\Models\Exam;
 use App\Models\User;
 use App\Models\Section;
 use App\Models\Subject;
+use App\Models\Semester;
 use Illuminate\Support\Facades\DB;
 use App\Services\Exam\ExamRecordService;
 
@@ -65,8 +66,8 @@ class ExamService
         return session()->flash('success', 'Exam deleted successfully');
     }
 
-    //calculate total marks attainable for each subject
-    public function totalMarksAttainableInEachSubject(Exam $exam)
+    //calculate total marks attainable for each subject in exam
+    public function totalMarksAttainableInExamForSubject(Exam $exam)
     {
         $totalMarks = 0;
         foreach ($exam->examSlots as $examSlot) {
@@ -75,10 +76,29 @@ class ExamService
         return $totalMarks;
     }
 
-    //calculate total mark gotten in subject
+    //calculate total marks attainable for each subject in semester
+    public function totalMarksAttainableInSemesterForSubject(Semester $semester)
+    {
+        $totalMarks = 0;
+        $exams = $semester->exams;
+        //get all exam slots in exams
+            foreach ($exams as $exam ) {
+                $totalMarks += $exam->examSlots->sum(['total_marks']);
+            }
+            return $totalMarks;
+    }
+
+    //calculate total mark gotten in subject for exam
 
     public function calculateStudentTotalMarksInSubject(Exam $exam, User $user,Subject $subject)
     {
-        return $this->examRecordService->getAllUserExamRecordInSubject($exam, $user->id, $subject->id)->pluck('student_marks')->sum();
+        return $this->examRecordService->getAllUserExamRecordInExamForSubject($exam, $user->id, $subject->id)->pluck('student_marks')->sum();
+    }
+
+    //calculate student mark gottem in semester
+
+    public function calculateStudentTotalMarkInSubjectForSemester(Semester $semester,User $user,  Subject $subject)
+    {
+        return $this->examRecordService->getAllUserExamRecordInSemesterForSubject($semester, $user->id, $subject->id)->pluck('student_marks')->sum();
     }
 }

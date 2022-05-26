@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\Exam;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -21,5 +22,15 @@ class Semester extends Pivot
     public function school()
     {
         return $this->belongsTo(School::class);
+    }
+
+    /**
+     * Get all of the exams for the Semester
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function exams()
+    {
+        return $this->hasMany(Exam::class, 'semester_id',);
     }
 }

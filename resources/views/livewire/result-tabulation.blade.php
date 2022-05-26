@@ -11,19 +11,14 @@
             </div>
         </div>
         {{-- form for selecting class and section to display --}}
-        <form wire:submit.prevent="tabulate('{{$exam}}','{{$section}}')" class="d-md-flex my-3">
+        <form wire:submit.prevent="tabulate('{{$section}}')" class="d-md-flex my-3">
             <div class="d-md-flex col-md-10 px-0">
-                <x-adminlte-select name="exam_id" label="Select exam"  fgroup-class="col-md-4" enable-old-support wire:model="exam">
-                    @foreach ($exams as $item)
-                        <option value="{{$item['id']}}">{{$item['name']}}</option>
-                    @endforeach
-                </x-adminlte-select>
-                <x-adminlte-select name="class" label="Select class"  fgroup-class="col-md-4" enable-old-support wire:model="class">
+                <x-adminlte-select name="class" label="Select class"  fgroup-class="col-md-6" enable-old-support wire:model="class">
                     @foreach ($classes as $item)
                         <option value="{{$item['id']}}">{{$item['name']}}</option>
                     @endforeach
                 </x-adminlte-select>
-                <x-adminlte-select name="section" label="Section" fgroup-class="col-md-4" wire:model="section">
+                <x-adminlte-select name="section" label="Section" fgroup-class="col-md-6" wire:model="section">
                     @isset($sections)
                         @foreach ($sections as $item)
                             <option value="{{$item['id']}}">{{$item['name']}}</option>
@@ -38,7 +33,7 @@
         {{-- table to display tabulation --}}
         @isset($subjects)
                 <p>Total obtainable marks in each subject: {{$totalMarksAttainableInEachSubject}}</p>
-                <p>Total Marks across all subjects: {{$totalMarksAttainableInEachSubject * $subjects->count()}}</p>
+                <p>Total Marks a cross all subjects: {{$totalMarksAttainableInEachSubject * $subjects->count()}}</p>
                 @php
                     $heads = $subjects->sortBy('name')->pluck('name');
                     $heads = $heads->prepend('Admission number')->prepend('Student name')->prepend('Class Position');

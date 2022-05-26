@@ -519,14 +519,20 @@ return [
                 ],
                 [
                     'type' => 'sidebar-menu-item',
-                    'text' => 'View Exam records',
+                    'text' => 'Manage Exam records',
                     'route' => 'exam-records.index',
-                    'can'  => 'read exam record',
+                    'can'  => 'update exam record',
                 ],
                 [
                     'type' => 'sidebar-menu-item',
                     'text' => 'Exam tabulation sheet',
                     'route' => 'exams.tabulation',
+                    'can'  => 'read exam',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Result tabulation sheet',
+                    'route' => 'exams.result-tabulation',
                     'can'  => 'read exam',
                 ],
             ]

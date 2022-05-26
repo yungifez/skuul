@@ -59,6 +59,7 @@
   'nationality-and-state-input-fields' => 'App\\Http\\Livewire\\NationalityAndStateInputFields',
   'print-student-profile' => 'App\\Http\\Livewire\\PrintStudentProfile',
   'promote-students' => 'App\\Http\\Livewire\\PromoteStudents',
+  'result-tabulation' => 'App\\Http\\Livewire\\ResultTabulation',
   'school-set' => 'App\\Http\\Livewire\\SchoolSet',
   'semester-set' => 'App\\Http\\Livewire\\SemesterSet',
   'show-academic-year' => 'App\\Http\\Livewire\\ShowAcademicYear',

@@ -9,11 +9,12 @@ use App\Services\MyClass\MyClassService;
 class EditGradeSystemForm extends Component
 {
     public GradeSystem $grade;
-    public $classGroups;
+    public $classGroups, $classGroup;
 
     public function mount(MyClassService $myClassService)
     {
         $this->classGroups = $myClassService->getAllClassGroups();
+        $this->classGroup = $this->grade->class_group_id;
     }
     public function render()
     {
