@@ -2,6 +2,7 @@
 
 namespace App\Services\Exam;
 
+use App\Models\Exam;
 use App\Models\ExamRecord;
 use Illuminate\Support\Facades\DB;
 use App\Services\Exam\ExamSlotService;
@@ -28,9 +29,12 @@ class ExamRecordService{
         return ExamRecord::where('section_id', $section)->get();
     }
 
-    public function getAllUserExamRecordInSubject($user, $subject)
+    public function getAllUserExamRecordInSubject(Exam $exam, $user, $subject)
     {
-        return ExamRecord::where(['user_id' => $user, 'subject_id' => $subject]);
+        //get all exam slots in exam
+        $examSlots = $exam->examSlots->pluck('id');
+        //get all exam records in for user and subject
+        return ExamRecord::where(['user_id' => $user, 'subject_id' => $subject])->whereIn('exam_slot_id', $examSlots)->get();
     }
 
     public function createExamRecord($records)

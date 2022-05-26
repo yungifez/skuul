@@ -77,8 +77,8 @@ class ExamService
 
     //calculate total mark gotten in subject
 
-    public function calculateStudentTotalMarksInSubject(User $user,Subject $subject)
+    public function calculateStudentTotalMarksInSubject(Exam $exam, User $user,Subject $subject)
     {
-        return $this->examRecordService->getAllUserExamRecordInSubject($user->id, $subject->id)->pluck('student_marks')->sum();
+        return $this->examRecordService->getAllUserExamRecordInSubject($exam, $user->id, $subject->id)->pluck('student_marks')->sum();
     }
 }

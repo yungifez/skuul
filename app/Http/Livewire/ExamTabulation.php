@@ -52,8 +52,6 @@ class ExamTabulation extends Component
             return $studentRecord->user;
         });
 
-        //get all exam records in section
-        $this->examRecords = app('App\Services\Exam\ExamRecordService')->getAllExamRecordsInSection($section->id);
         $this->tabulatedRecords = Cache::get("exam-tabulation-".$exam->id."-".$section->id, function () use ($exam, $section) {
             return $this->createTabulation($exam, $section);
         });
@@ -72,7 +70,7 @@ class ExamTabulation extends Component
             $tabulatedRecords[$student->id]['admission_number'] = $student->studentRecord->admission_number;
             //loop through all subjects and add all marks
             foreach ($this->subjects->sortBy('name') as $subject ) {
-                $tabulatedRecords[$student->id]['student_marks'][$subject->id] = app('App\Services\Exam\ExamService')->calculateStudentTotalMarksInSubject($student, $subject);
+                $tabulatedRecords[$student->id]['student_marks'][$subject->id] = app('App\Services\Exam\ExamService')->calculateStudentTotalMarksInSubject($exam, $student, $subject);
                 //array used for calculating total marks
                 $totalSubjectMarks[] = $tabulatedRecords[$student->id]['student_marks'][$subject->id];
             }
@@ -81,7 +79,10 @@ class ExamTabulation extends Component
             //set total from summing each subject
             $tabulatedRecords[$student->id]['total'] = $totalSubjectMarks;
             //calculated percentage
-            $tabulatedRecords[$student->id]['percent'] =round( ($totalSubjectMarks / ($this->totalMarksAttainableInEachSubject * $this->subjects->count())) * 100, 2);
+            $totalMarks =$this->totalMarksAttainableInEachSubject * $this->subjects->count();
+            //make sure total marks is not 0
+            $totalMarks = $totalMarks ? $totalMarks : 1;
+            $tabulatedRecords[$student->id]['percent'] =round(  (($totalSubjectMarks / $totalMarks)) * 100, 2);
             $percentage = $tabulatedRecords[$student->id]['percent'];
 
             $grade = app('App\Services\GradeSystem\GradeSystemService')->getGrade($section->myClass->classGroup->id, $percentage);
