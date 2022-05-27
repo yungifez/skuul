@@ -18,6 +18,7 @@ class Exam extends Model
         'semester_id',
         'start_date',
         'stop_date',
+        'active',
     ];
 
     /**
@@ -29,6 +30,7 @@ class Exam extends Model
         'email_verified_at' => 'datetime',
         'start_date' => 'date:Y-m-d',
         'stop_date' => 'date:Y-m-d',
+        'active' => 'boolean',
     ];
 
     public function semester()

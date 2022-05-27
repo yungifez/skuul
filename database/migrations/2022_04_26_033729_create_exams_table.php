@@ -15,6 +15,7 @@ return new class extends Migration
             $table->foreignId('semester_id')->references('id')->on('semesters')->onDelete('cascade')->onUpdate('cascade');
             $table->date('start_date');
             $table->date('stop_date');
+            $table->boolean('active')->default(false);
             $table->timestamps();
         });
     }

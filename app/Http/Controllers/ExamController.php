@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Exam;
 use App\Services\Exam\ExamService;
 use App\Http\Requests\StoreExamRequest;
+use App\Http\Requests\UpdateExamStatus;
 use App\Http\Requests\UpdateExamRequest;
+use App\Http\Requests\UpdateExamStatusRequest;
 
 class ExamController extends Controller
 {
@@ -113,9 +115,23 @@ class ExamController extends Controller
      * Tabulation for results
      */
 
-     public function resultTabulation()
-     {
+    public function resultTabulation()
+    {
         $this->authorize("viewAny", Exam::Class);
         return view('pages.exam.result-tabulation');
-     }
+    }
+
+    /**
+     * Set exam status
+    */
+
+    public function setExamStatus(Exam $exam, UpdateExamStatusRequest $request)
+    {
+        $this->authorize("update", $exam);
+        //get status from request
+        $status = $request->status;
+        $this->exam->setExamStatus($exam, $status);
+
+        return back();
+    }
 }

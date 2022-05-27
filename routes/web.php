@@ -76,6 +76,8 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
             Route::resource('timetables/{timetable}/manage/time-slots', TimetableTimeSlotController::Class);
             Route::post('timetables/{timetable}/manage/time-slots/{time_slot}/record/create',['App\Http\Controllers\TimetableTimeSlotController', 'addTimetableRecord'])->name('timetables.records.create')->scopeBindings();
             
+            //set exam status
+            Route::post('exams/{exam}/set-status', ['App\Http\Controllers\ExamController', 'setExamStatus'])->name('exams.set-status');
             //manage exam record 
             Route::resource('exams/exam-records', ExamRecordController::class);
             //exam tabulation sheet

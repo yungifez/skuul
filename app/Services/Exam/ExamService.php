@@ -24,6 +24,11 @@ class ExamService
         return Exam::where('semester_id', $semester_id)->get();
     }
 
+    public function getActiveExamsInSemester($semester_id)
+    {
+        return Exam::where(['semester_id'=> $semester_id, 'active' => true])->get();
+    }
+
     //get exam by id
 
     public function getExamById($id)
@@ -57,6 +62,15 @@ class ExamService
         $exam->save();
 
         return session()->flash('success', 'Exam updated successfully');
+    }
+
+    //set exam active or inactive
+    public function setExamStatus(Exam $exam,bool $status)
+    {
+        $exam->active = $status;
+        $exam->save();
+
+        return session()->flash('success', 'Exam status changed successfully');
     }
 
     public function deleteExam(Exam $exam)

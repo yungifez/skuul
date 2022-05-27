@@ -18,4 +18,5 @@ class PrintService{
         );
         return $pdf->download("$name.pdf");
     }
+
 }
