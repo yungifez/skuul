@@ -7,19 +7,24 @@
         $heads = $heads->push('Total')->push('Percentage (%)')->push('Grade');
     @endphp
     {{--foreach displaus records in order of class positions--}}
-    <x-adminlte-datatable id="class-list-table" :heads="$heads" Class='text-capitalize' class="my-2">
-        @foreach ($tabulatedRecords->sortByDesc('total') as $tabulatedRecord)
-        <tr>
-            <td>{{$loop->iteration}}</td>
-            <td>{{$tabulatedRecord['student_name']}}</td>
-            <td>{{$tabulatedRecord['admission_number']}}</td>
-            @foreach ($tabulatedRecord['student_marks'] as $item)
-                <td>{{$item}}</td>
+    <div class="table-responsive">
+        <table class="table table-bordered">
+            @foreach ($heads as $head)
+                <th>{{$head}}</th>   
             @endforeach
-            <td>{{$tabulatedRecord['total']}}</td>
-            <td>{{$tabulatedRecord['percent']}}</td>
-            <td>{{$tabulatedRecord['grade']}}</td>
-        </tr>
-        @endforeach
-    </x-adminlte-datatable>
+             @foreach ($tabulatedRecords->sortByDesc('total') as $tabulatedRecord)
+            <tr>
+                <td>{{$loop->iteration}}</td>
+                <td>{{$tabulatedRecord['student_name']}}</td>
+                <td>{{$tabulatedRecord['admission_number']}}</td>
+                @foreach ($tabulatedRecord['student_marks'] as $item)
+                    <td>{{$item}}</td>
+                @endforeach
+                <td>{{$tabulatedRecord['total']}}</td>
+                <td>{{$tabulatedRecord['percent']}}</td>
+                <td>{{$tabulatedRecord['grade']}}</td>
+            </tr>
+            @endforeach
+        </table>
+    </div>
 </div>
