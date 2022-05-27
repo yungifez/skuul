@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Support\Facades\DB;
+use App\Models\Weekday;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class WeekdaySeeder extends Seeder
@@ -26,9 +27,7 @@ class WeekdaySeeder extends Seeder
         ];
         
         foreach ($weekdays as $weekday) {
-            Db::table('weekdays')->insert([
-                'name' => $weekday,
-            ]);
+            Weekday::firstOrCreate(['name' => $weekday]);
         }
     }
 }
