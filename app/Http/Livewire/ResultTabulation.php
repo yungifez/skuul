@@ -4,6 +4,7 @@ namespace App\Http\Livewire;
 
 use App\Models\Section;
 use Livewire\Component;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Cache;
 use App\Services\MyClass\MyClassService;
 use App\Services\Section\SectionService;
@@ -11,6 +12,8 @@ use App\Services\Section\SectionService;
 class ResultTabulation extends Component
 {
     public $section, $sections, $classes, $class, $semester, $tabulatedRecords;
+    protected $listeners = ['print'];
+    
     public function mount( SectionService $sectionService, MyClassService $myClassService)
     {
         //get semester and use it to fetch all exams in semester
@@ -103,14 +106,18 @@ class ResultTabulation extends Component
         return collect($tabulatedRecords);
     }
 
-    //print tabulation
+    //print function
 
-    public function printTabulation()
+    public function print()
     {
-        
+        //used pdf class direcltly, i used exam trabulation view since it contains same logiv
+        $pdf = Pdf::loadView('pages.exam.print-exam-tabulation',  ['tabulatedRecords' => $this->tabulatedRecords, 'totalMarksAttainableInEachSubject' => $this->totalMarksAttainableInEachSubject, 'subjects' => $this->subjects]);
+        $randomString = str()->random();
+        //save as pdf
+        $pdf->save("temp-pdf/result-tabulation$randomString.pdf");
+        //download
+        return response()->download("temp-pdf/result-tabulation$randomString.pdf" , "result-tabulation.pdf");
     }
-
-    
 
     public function render()
     {

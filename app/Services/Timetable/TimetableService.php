@@ -53,7 +53,7 @@ class TimetableService
     // print timetable
     public function printTimetable(string $name, string $view, array $data)
     {
-        return PrintService::createPdfFromView($name, $view, $data);
+        return PrintService::createPdfFromView($name, $view, $data)->download();
     }
 
     //delete timetable

@@ -33,6 +33,9 @@
         {{-- table to display tabulation --}}
         @isset($subjects)
             @livewire('mark-tabulation', ['tabulatedRecords' => $tabulatedRecords, 'totalMarksAttainableInEachSubject' => $totalMarksAttainableInEachSubject, 'subjects' => $subjects])
+            <div class='col-12 my-2'>
+                <x-adminlte-button label="Print" theme="primary" icon="fas fa-download" wire:click="$emit('print')" class="col-md-3"/>
+            </div>
         @endisset
     </div>
 </div>

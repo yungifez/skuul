@@ -5,6 +5,7 @@ namespace App\Http\Livewire;
 use App\Models\Exam;
 use App\Models\Section;
 use Livewire\Component;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\Exam\ExamService;
 use Illuminate\Support\Facades\Cache;
 use App\Services\MyClass\MyClassService;
@@ -13,6 +14,8 @@ use App\Services\Section\SectionService;
 class ExamTabulation extends Component
 {
     public $exam, $class, $section, $exams, $classes, $sections, $semester, $subjects, $students, $totalMarksAttainableInEachSubject, $tabulatedRecords, $grades;
+
+    protected $listeners = ['print'];
 
     public function mount(ExamService $examService, SectionService $sectionService, MyClassService $myClassService)
     {
@@ -110,6 +113,19 @@ class ExamTabulation extends Component
         Cache::put("exam-tabulation-".$exam->id."-".$section->id, $this->tabulatedRecords, 3600);
         
         return collect($tabulatedRecords);
+    }
+
+    //print function
+
+    public function print()
+    {
+        //used pdf class direcltly 
+        $pdf = Pdf::loadView('pages.exam.print-exam-tabulation',  ['tabulatedRecords' => $this->tabulatedRecords, 'totalMarksAttainableInEachSubject' => $this->totalMarksAttainableInEachSubject, 'subjects' => $this->subjects]);
+        $randomString = str()->random();
+        //save as pdf
+        $pdf->save("temp-pdf/exam-tabulation$randomString.pdf");
+        //download
+        return response()->download("temp-pdf/exam-tabulation$randomString.pdf" , "exam-tabulation.pdf");
     }
 
     public function render()

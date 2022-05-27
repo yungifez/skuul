@@ -32,8 +32,8 @@
             <img src="{{asset(config('app.logo'))}}" alt="" class="logo" >
         </div>
         <div>
-            <h1 class="text-capitalize text-center ">{{$student->school->name}}</h1>
-            <h4 class="text-capitalize text-center ">{{$student->school->address}}</h4>
+            <h1 class="text-capitalize text-center ">{{auth()->user()->school->name}}</h1>
+            <h4 class="text-capitalize text-center ">{{auth()->user()->school->address}}</h4>
         </div>
     </div>
     @yield('content')
