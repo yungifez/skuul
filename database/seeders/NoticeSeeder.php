@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\ExamRecord;
+use App\Models\Notice;
 use Illuminate\Database\Seeder;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
-class ExamRecordSeeder extends Seeder
+class NoticeSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -15,7 +15,6 @@ class ExamRecordSeeder extends Seeder
      */
     public function run()
     {
-        //uncomment the below when you really need to seed
-        // ExamRecord::factory()->count(3)->cphreate();
+        Notice::factory()->count(10)->create();
     }
 }

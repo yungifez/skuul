@@ -22,12 +22,14 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
 
     //manage school settings
     Route::get('schools/settings', ['App\Http\Controllers\SchoolController', 'settings'])->name('schools.settings')->middleware('App\Http\Middleware\EnsureSuperAdminHasSchoolId');
+    
     //School routes
     Route::resource('schools', SchoolController::class);
     Route::post('schools/set-school', ['App\Http\Controllers\SchoolController', 'setSchool'])->name('schools.setSchool');
 
     //super admin must be have school id set
     Route::middleware(['App\Http\Middleware\EnsureSuperAdminHasSchoolId'])->group(function () {
+        
         //dashboard route
         Route::get('/', function () {
             return view('dashboard');
@@ -43,6 +45,7 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
         Route::resource('sections', SectionController::class);
 
         Route::middleware(['App\Http\Middleware\EnsureAcademicYearIsSet'])->group(function () {
+            
             //promotion routes
             Route::get('students/promotions', ['App\Http\Controllers\PromotionController', 'index'])->name('students.promotions');
             Route::get('students/promote', ['App\Http\Controllers\PromotionController', 'promoteView'])->name('students.promote');
@@ -78,12 +81,16 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
             
             //set exam status
             Route::post('exams/{exam}/set-status', ['App\Http\Controllers\ExamController', 'setExamStatus'])->name('exams.set-status');
+            
             //manage exam record 
             Route::resource('exams/exam-records', ExamRecordController::class);
+            
             //exam tabulation sheet
             Route::get('exams/tabulation-sheet', ['App\Http\Controllers\ExamController', 'examTabulation'])->name('exams.tabulation');
-             //exam tabulation sheet
+            
+            //exam tabulation sheet
             Route::get('exams/result-tabulation-sheet', ['App\Http\Controllers\ExamController', 'resultTabulation'])->name('exams.result-tabulation');
+            
             //exam routes
             Route::resource('exams', ExamController::class);
             
@@ -109,5 +116,8 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
 
         //subject routes
         Route::resource('subjects', SubjectController::class);
+
+        //notice routes
+        Route::resource('notices', NoticeController::class);
     });
 });

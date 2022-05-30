@@ -32,7 +32,7 @@ class SyllabusService
 
         $data['file'] =  $data['file']->store(
             'syllabus/', 'public'
-        );;
+        );
 
         Syllabus::create([
             'name' => $data['name'],

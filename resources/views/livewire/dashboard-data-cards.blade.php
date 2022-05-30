@@ -1,3 +1,4 @@
+@hasanyrole('admin|super-admin')
 <div class="card">
     <div class="my-4 card-body">
         @can('read school')
@@ -46,3 +47,4 @@
     
     </div>
 </div>
+@endhasanyrole

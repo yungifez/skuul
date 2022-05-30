@@ -2,7 +2,7 @@
     <div class="my-4 card">
         <div class="card-body">
              
-            <form action="{{route('schools.setSchool')}}" method="POST" class="d-flex flex-column col-md-6 mx-auto mb-2">
+            <form action="{{route('schools.setSchool')}}" method="POST" class="d-flex flex-column mx-auto mb-2">
                 <x-adminlte-select name="school_id" label="Set working school branch" class="my-2">
                     @foreach ($schools as $school)
                         <option value="{{ $school->id }}" {{auth()->user()->school_id == $school->id ?'selected' : ''}}>{{$loop->iteration}}: {{ $school->name }} - {{$school->address}}</option>

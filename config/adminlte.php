@@ -461,6 +461,26 @@ return [
         ['header' => 'Academics', 'can' => 'header-academics'],
         [
             'type' => 'sidebar-menu-item',
+            'text' => 'Notices',
+            'icon' => 'fas fa-bell',
+            'can'  =>  'menu-notice',
+            'submenu' => [
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View notices',
+                    'route' => 'notices.index',
+                    'can'  => 'read notice',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create notice',
+                    'route' => 'notices.create',
+                    'can'  => 'create notice',
+                ],
+            ],
+        ],
+        [
+            'type' => 'sidebar-menu-item',
             'text' => 'Syllabi',
             'icon' => 'fas fa-list-alt',
             'can'  =>  'menu-syllabus',

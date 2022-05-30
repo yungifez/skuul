@@ -266,6 +266,23 @@ class PermissionSeeder extends Seeder
             'name' => 'delete exam record'
         ]);
 
+        //permission for notices
+
+        Permission::firstOrCreate([
+            'name' => 'create notice'
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'read notice'
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'update notice'
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'delete notice'
+        ]);
 
 
         //header permissions (for controlling the menu headers)
@@ -308,6 +325,9 @@ class PermissionSeeder extends Seeder
         Permission::firstOrCreate([
             'name' => 'menu-grade-system',
         ]);
+        Permission::firstOrCreate([
+            'name' => 'menu-notice',
+        ]);
         /**
          * assign permissions to roles
          */
@@ -327,6 +347,7 @@ class PermissionSeeder extends Seeder
             'menu-timetable',
             'menu-exam',
             'menu-grade-system',
+            'menu-notice',
             'manage school settings',
             'create section',
             'read section',
@@ -392,6 +413,10 @@ class PermissionSeeder extends Seeder
             'read exam record',
             'update exam record',
             'delete exam record',
+            'create notice',
+            'read notice',
+            'update notice',
+            'delete notice',
         ]);
 
         //assign permissions to teacher
@@ -401,6 +426,7 @@ class PermissionSeeder extends Seeder
             'menu-syllabus',
             'menu-timetable',
             'menu-exam',
+            'menu-notice',
             'create syllabus',
             'read syllabus',
             'update syllabus',
@@ -413,6 +439,7 @@ class PermissionSeeder extends Seeder
             'read exam record',
             'update exam record',
             'delete exam record',
+            'read notice'
         ]);
 
         //assign permissions to student
@@ -421,8 +448,10 @@ class PermissionSeeder extends Seeder
             'header-academics',
             'menu-syllabus',
             'menu-timetable',
+            'menu-notice',
             'read syllabus',
             'read timetable',
+            'read notice'
         ]);
         //assign permissions to parent
 
