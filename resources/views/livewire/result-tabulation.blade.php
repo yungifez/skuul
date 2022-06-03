@@ -32,9 +32,9 @@
         </form>
         {{-- table to display tabulation --}}
         @isset($subjects)
-            @livewire('mark-tabulation', ['tabulatedRecords' => $tabulatedRecords, 'totalMarksAttainableInEachSubject' => $totalMarksAttainableInEachSubject, 'subjects' => $subjects])
+            @livewire('mark-tabulation', ['tabulatedRecords' => $tabulatedRecords, 'totalMarksAttainableInEachSubject' => $totalMarksAttainableInEachSubject, 'subjects' => $subjects],key(str()->random()))
             <div class='col-12 my-2'>
-                <x-adminlte-button label="Print" theme="primary" icon="fas fa-download" wire:click="$emit('print')" class="col-md-3"/>
+                <x-adminlte-button label="Print" theme="primary" icon="fas fa-download" wire:click="$emit('print')" class="col-md-3" />
             </div>
         @endisset
     </div>
