@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('timetable_time_slot_id')->constrained()->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('weekday_id')->constrained()->onDelete('cascade')->onUpdate('cascade');
-            $table->foreignId('subject_id')->nullable()->constrained()->onDelete('cascade')->onUpdate('cascade');
+            $table->foreignId('subject_id')->constrained()->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
             $table->unique(['weekday_id','timetable_time_slot_id'],'time_slot_weekday');
         });

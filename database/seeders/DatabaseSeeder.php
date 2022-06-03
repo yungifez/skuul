@@ -28,6 +28,11 @@ class DatabaseSeeder extends Seeder
             PromotionSeeder::class,
             SyllabusSeeder::class,
             TimetableSeeder::class,
+            ExamSeeder::class,
+            GradeSystemSeeder::class,
+            ExamSlotSeeder::class,
+            ExamRecordSeeder::class,
+            NoticeSeeder::class,
         ]);
     }
 }

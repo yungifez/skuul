@@ -20,6 +20,7 @@ class UserSeeder extends Seeder
         DB::table('users')->delete();
 
         $superAdmin = User::create([
+            'id' => 1,
             'name' => 'John Doe',
             'email' => 'super@admin.com',
             'password' => Hash::make('password'),
@@ -36,6 +37,7 @@ class UserSeeder extends Seeder
         $superAdmin->assignRole('super-admin');
 
         $admin = User::create([
+            'id' => 2,
             'name' => 'Jane Doe',
             'email' => 'admin@admin.com',
             'password' => Hash::make('password'),
@@ -52,6 +54,7 @@ class UserSeeder extends Seeder
         $admin->assignRole('admin');
 
         $teacher = User::create([
+            'id' => 3,
             'name'     => 'John Doe',
             'email'    => 'teacher@teacher.com',
             'password' => Hash::make('password'),
@@ -68,6 +71,7 @@ class UserSeeder extends Seeder
         $teacher->assignRole('teacher');
 
         $student = User::create([
+            'id' => 4,
             'name' => 'Jane Doe',
             'email' => 'student@student.com',
             'password' => Hash::make('password'),

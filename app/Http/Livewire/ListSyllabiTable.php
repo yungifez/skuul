@@ -16,14 +16,20 @@ class ListSyllabiTable extends Component
         if (auth()->user()->hasRole('student')) {
             $this->class = auth()->user()->studentRecord->myClass->name;
             $class = auth()->user()->studentRecord->my_class_id;
-            $this->syllabi = $syllabusService->getAllSyllabiInSemesterAndClass($semester,$class);
+            $this->syllabi = $syllabusService->getAllSyllabiInSemesterAndClass($semester,$class)->load('subject');
         }else {
             $this->classes = $myClassService->getAllClasses();
-            $this->syllabi = $syllabusService->getAllSyllabiInSemesterAndClass($semester,$this->classes[0]['id']);
-        }
+            //make sure classes arent empty
+            if (!$this->classes->isEmpty()) {
+                $this->syllabi = $syllabusService->getAllSyllabiInSemesterAndClass($semester,$this->classes[0]['id'])->load('subject');
+            }else {
+                $this->classes = [];
+                $this->syllabi = collect([]);
+            }
 
         if($this->syllabi->isEmpty()){
             $this->syllabi = null;
+        }
         }
     }
 

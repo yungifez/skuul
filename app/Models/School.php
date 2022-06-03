@@ -15,7 +15,7 @@ class School extends Model
     use HasFactory;
 
     protected $fillable = [
-        'name', 'address', 'code', 'initials',
+        'name', 'address', 'code', 'initials', 'phone', 'email',
     ];
 
     public function classGroups()

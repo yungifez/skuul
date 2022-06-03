@@ -400,6 +400,26 @@ return [
         ],
         [
             'type' => 'sidebar-menu-item',
+            'text' => 'Admins',
+            'icon' => 'fas fa-user',
+            'can'  =>  'menu-admin',
+            'submenu' => [
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View admins',
+                    'route' => 'admins.index',
+                    'can'  => 'read admin',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create admin',
+                    'route' => 'admins.create',
+                    'can'  => 'create admin',
+                ],
+            ],
+        ],
+        [
+            'type' => 'sidebar-menu-item',
             'text' => 'Academic years',
             'icon' => 'fas fa-calendar',
             'can'  =>  'menu-academic-year',
@@ -461,6 +481,26 @@ return [
         ['header' => 'Academics', 'can' => 'header-academics'],
         [
             'type' => 'sidebar-menu-item',
+            'text' => 'Notices',
+            'icon' => 'fas fa-bell',
+            'can'  =>  'menu-notice',
+            'submenu' => [
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View notices',
+                    'route' => 'notices.index',
+                    'can'  => 'read notice',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create notice',
+                    'route' => 'notices.create',
+                    'can'  => 'create notice',
+                ],
+            ],
+        ],
+        [
+            'type' => 'sidebar-menu-item',
             'text' => 'Syllabi',
             'icon' => 'fas fa-list-alt',
             'can'  =>  'menu-syllabus',
@@ -496,6 +536,64 @@ return [
                     'text' => 'Create Timetable',
                     'route' => 'timetables.create',
                     'can'  => 'create timetable',
+                ],
+            ],
+        ],
+        [
+            'type' => 'sidebar-menu-item',
+            'text' => 'Exams',
+            'icon' => 'fas fa-book-open',
+            'can'  =>  'menu-exam',
+            'submenu' => [
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View Exams',
+                    'route' => 'exams.index',
+                    'can'  => 'read exam',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create Exam',
+                    'route' => 'exams.create',
+                    'can'  => 'create exam',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Manage Exam records',
+                    'route' => 'exam-records.index',
+                    'can'  => 'update exam record',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Exam tabulation sheet',
+                    'route' => 'exams.tabulation',
+                    'can'  => 'read exam',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Result tabulation sheet',
+                    'route' => 'exams.result-tabulation',
+                    'can'  => 'read exam',
+                ],
+            ]
+        ],
+        [
+            'type' => 'sidebar-menu-item',
+            'text' => 'Grade systems',
+            'icon' => 'fa fa-graduation-cap',
+            'can'  =>  'menu-grade-system',
+            'submenu' => [
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View Grades',
+                    'route' => 'grade-systems.index',
+                    'can'  => 'read grade system',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create Grades',
+                    'route' => 'grade-systems.create',
+                    'can'  => 'create grade system',
                 ],
             ],
         ],

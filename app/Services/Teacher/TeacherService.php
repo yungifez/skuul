@@ -25,9 +25,9 @@ class TeacherService
 
     public function createTeacher($record)
     {
-        $student = $this->user->createUser($record);
+        $teacher = $this->user->createUser($record);
 
-        $student->assignRole('teacher');
+        $teacher->assignRole('teacher');
 
         return session()->flash('success', 'Teacher Created Successfully');
     }
@@ -36,7 +36,7 @@ class TeacherService
 
     public function updateTeacher(User $teacher, $records)
     {
-        $this->user->updateUser($teacher, $records);
+        $this->user->updateUser($teacher, $records, 'teacher');
 
         return session()->flash('success', 'Teacher Updated Successfully');
     }

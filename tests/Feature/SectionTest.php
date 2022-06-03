@@ -3,180 +3,131 @@
 namespace Tests\Feature;
 
 use Tests\TestCase;
-use App\Models\User;
 use App\Models\Section;
+use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class SectionTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, FeatureTestTrait;
     public function test_view_all_sections_can_be_rendered_to_authorized_user()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(
-            ['read section']
-        );
-        $this->actingAs($user);
-        $response = $this->get('/dashboard/sections');
-
-        $response->assertOk();
+        $this->authorized_user(['read section'])
+            ->get('/dashboard/sections')
+            ->assertSuccessful();
     }
 
     public function test_view_all_sections_cannot_be_rendered_to_unauthorized_user()
     {
-        $user = User::factory()->create();
-
-        $this->actingAs($user);
-        $response = $this->get('/dashboard/sections');
-
-        $response->assertForbidden();
+        $this->unauthorized_user()
+            ->get('/dashboard/sections')
+            ->assertForbidden();
     }
 
     public function test_view_section_can_be_rendered_to_authorized_user()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(
-            ['read section']
-        );
-        $this->actingAs($user);
-        $response = $this->get('/dashboard/sections/1');
-
-        $response->assertOk();
+        $this->authorized_user(['read section'])
+            ->get('/dashboard/sections/1')
+            ->assertSuccessful();
     }
 
     public function test_view_section_cannot_be_rendered_to_unauthorized_user()
     {
-        $user = User::factory()->create();
-
-        $this->actingAs($user);
-        $response = $this->get('/dashboard/sections/1');
-
-        $response->assertForbidden();
+        $this->unauthorized_user()
+            ->get('/dashboard/sections/1')
+            ->assertForbidden();
     }
 
     public function test_create_section_can_be_rendered_to_authorized_user()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(
-            ['create section']
-        );
-        $this->actingAs($user);
-        $response = $this->get('/dashboard/sections/create');
-
-        $response->assertOk();
+        $this->authorized_user(['create section'])
+            ->get('/dashboard/sections/create')
+            ->assertSuccessful();
     }
 
     public function test_create_section_cannot_be_rendered_to_unauthorized_user()
     {
-        $user = User::factory()->create();
-
-        $this->actingAs($user);
-        $response = $this->get('/dashboard/sections/create');
-
-        $response->assertForbidden();
+        $this->unauthorized_user()
+            ->get('/dashboard/sections/create')
+            ->assertForbidden();
     }
 
     public function test_edit_section_can_be_rendered_to_authorized_user()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(
-            ['update section']
-        );
-        $this->actingAs($user);
-        $response = $this->get('/dashboard/sections/1/edit');
-
-        $response->assertOk();
+        $this->authorized_user(['update section'])
+            ->get('/dashboard/sections/1/edit')
+            ->assertSuccessful();
     }
 
     public function test_edit_section_cannot_be_rendered_to_unauthorized_user()
     {
-        $user = User::factory()->create();
-
-        $this->actingAs($user);
-        $response = $this->get('/dashboard/sections/1/edit');
-
-        $response->assertForbidden();
+        $this->unauthorized_user()
+            ->get('/dashboard/sections/1/edit')
+            ->assertForbidden();
     }
 
     public function test_user_can_create_section()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(
-            ['create section']
-        );
-        $this->actingAs($user);
-        $response = $this->post('/dashboard/sections', ['name' => 'Test section', 'my_class_id' => '1']);
-        $section = Section::where('name','Test section')->first();
-        
-        $this->assertModelExists($section);
+        $this->authorized_user(['create section'])
+            ->post('/dashboard/sections',['name' => 'Test section','my_class_id' => 1, ]);
+
+        $this->assertDatabaseHas('sections',[
+            'name' => 'Test section',
+            'my_class_id' => 1,
+        ]);
     }
 
     public function test_user_cannot_create_section()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-        $response = $this->post('/dashboard/sections', ['name' => 'Test section 2', 'my_class_id' => '1']);
-        $section = Section::where('name','Test section 2')->get();
-
-        $this->assertEquals(0, $section->count());
+        $this->unauthorized_user()
+            ->post('/dashboard/sections',['name' => 'Test section','my_class_id' => 1, ])
+            ->assertForbidden();
     }
 
     public function test_user_can_update_section()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(
-            ['update section']
-        );
-        $this->actingAs($user);
-        $response = $this->put('/dashboard/sections/1', ['name' => 'Test section jj', 'initials' => 'TS']);
-        $section = Section::where('name','Test section jj')->get();
+        $section = Section::factory()->create();
+        $this->authorized_user(['update section'])
+            ->put("/dashboard/sections/$section->id",['name' => 'Test section','my_class_id' => 1, ]);
 
-        $this->assertEquals(1, $section->count());
+        $this->assertDatabaseHas('sections',[
+            'id' => $section->id,
+            'name' => 'Test section',
+            'my_class_id' => 1,
+        ]);
     }
 
     public function test_user_cannot_update_section()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-        $response = $this->put('/dashboard/sections/1', ['name' => 'Test section 2', 'initials' => 'TS']);
-        $section = Section::where('name','Test section 2')->get();
-
-        $this->assertEquals(0, $section->count());
+        $section = Section::factory()->create();
+        $this->unauthorized_user()
+            ->put("/dashboard/sections/$section->id",['name' => 'Test section','my_class_id' => 1, ])
+            ->assertForbidden();
     }
 
     public function test_user_cannot_delete_section_with_users()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(
-            ['delete section']
-        );
-        $this->actingAs($user);
-        $response = $this->delete('/dashboard/sections/1');
-        $section = Section::where('id',1)->get();
+        $this->authorized_user(['delete section'])
+            ->delete('/dashboard/sections/1');
 
-        $this->assertEquals(1, $section->count());
+        $this->assertDatabaseHas('sections',[
+            'id' => 1,
+        ]);
     }
 
-    public function test_user_cannot_delete_section()
+    public function test_unauthorized_user_cannot_delete_section()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-        $response = $this->delete('/dashboard/sections/1');
-        $section = Section::where('id',1)->get();
-
-        $this->assertEquals(1, $section->count());
+        $this->unauthorized_user()
+            ->delete('/dashboard/sections/1')
+            ->assertForbidden();
     }
 
     public function test_user_can_delete_section_with_users()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(
-            ['delete section']
-        );
-        $this->actingAs($user);
         $section = Section::factory()->create();
-        $response = $this->delete("/dashboard/sections/$section->id");
+        $this->authorized_user(['delete section'])
+            ->delete("/dashboard/sections/$section->id");
   
         $this->assertModelMissing($section);
     }

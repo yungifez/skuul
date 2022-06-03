@@ -66,7 +66,7 @@ class StudentController extends Controller
      */
     public function show(User $student)
     {
-        $this->user->userwithRoleNotFound($student, 'student');
+        $this->student->user->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('view',[ $student, 'student']);
         $data['student'] = $student;
 

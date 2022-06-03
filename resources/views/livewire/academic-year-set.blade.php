@@ -1,5 +1,6 @@
 @can('set academic year')
-    <div class="my-2">
+<div class="card">
+    <div class="my-2 card-body">
         @livewire('help-button', ['target_id' => 'academic-year-set-help', 'text' => "Select an academic year for the school"])
         <form action="{{route('academic-years.set-academic-year')}}" method="POST" class="d-flex flex-column">
             @livewire('display-validation-error')
@@ -12,5 +13,6 @@
             <x-adminlte-button label="Set academic-year" theme="primary" icon="fas fa-key" class="col-lg-3 align-self-center" type="submit"/>
         </form>
     </div>
+</div>
 @endif
 

@@ -30,6 +30,8 @@
         </a>
     @endif
 
+    @livewire('list-notices-table')
+
     @livewire('display-status')
 @stop
 
