@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('name');
             $table->foreignId('academic_year_id')->nullable()->constrained()->onDelete('cascade')->onUpdate('cascade');
             $table->foreignId('school_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
-            $table->boolean('check_result');
+            $table->boolean('check_result')->default(false);
             $table->timestamps();
         });
     }
