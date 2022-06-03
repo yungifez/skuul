@@ -31,7 +31,7 @@
                         <td>{{$grade->name}}</td>
                         <td>{{$grade->remark}}</td>
                         <td>{{$grade->grade_from}}</td>
-                        <td>{{$grade->grade_to}}</td>
+                        <td>{{$grade->grade_till}}</td>
                         <td> @livewire('dropdown-links', [
                             'links' => [
                                 ['href' => route("grade-systems.edit", $grade->id), 'text' => 'Edit', 'icon' => 'fas fa-cog'],

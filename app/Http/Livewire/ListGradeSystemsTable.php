@@ -21,7 +21,7 @@ class ListGradeSystemsTable extends Component
         $this->classGroups = $myClassService->getAllClassGroups();
         if ($this->classGroups != null) {
             $this->classGroup = $this->classGroups[0]->id;  
-            $this->grades = $gradeSystemService->getAllGradesInClassGroup($this->classGroup)->load('classGroup')->sortBy('grade_to');
+            $this->grades = $gradeSystemService->getAllGradesInClassGroup($this->classGroup)->load('classGroup')->sortBy('grade_till');
         }else {
             //if no class gorups are present
             $this->classGroup = null;

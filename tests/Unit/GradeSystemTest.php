@@ -17,51 +17,51 @@ class GradeSystemTest extends TestCase
             //check if grade range is in test range
             [
                 'grade_from' => 20,
-                'grade_to' => 70,
+                'grade_till' => 70,
                 'expected' => true
             ],
             //check if test range is in grade Range
             [
                 'grade_from' => 50,
-                'grade_to' => 55,
+                'grade_till' => 55,
                 'expected' => true
             ],
             //check if test range starts from grade range and stops in another grade range
             [
                 'grade_from' => 50,
-                'grade_to' => 80,
+                'grade_till' => 80,
                 'expected' => true
             ],
             //check if grade range starts at grade range and ends outside grade range
             [
                 'grade_from' => 88,
-                'grade_to' => 150,
+                'grade_till' => 150,
                 'expected' => true
             ],
             //check if grade range starts outside test range and ends in grade range
             [
                 'grade_from' => 70,
-                'grade_to' =>  100,
+                'grade_till' =>  100,
                 'expected' => true
             ],
             //false when grade range is not in test range
             [
                 'grade_from' => 70,
-                'grade_to' => 79,
+                'grade_till' => 79,
                 'expected' => false
             ]
         ];
         $grades = [
             [
                 'grade_from' => 40,
-                'grade_to' => 60
+                'grade_till' => 60
             ],[
                 'grade_from' => 80,
-                'grade_to' => 100
+                'grade_till' => 100
             ],
             [
                 'grade_from' => 20,
-                'grade_to' => 40
+                'grade_till' => 40
             ],
         ];
         $this->gradeSystemService = app(GradeSystemService::class);

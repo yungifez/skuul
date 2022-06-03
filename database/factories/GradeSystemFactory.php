@@ -22,7 +22,7 @@ class GradeSystemFactory extends Factory
             'remark' => $this->faker->sentence,
             'class_group_id' => '1',
             'grade_from' => $grade_from,
-            'grade_to' => $grade_from = 100,
+            'grade_till' => $grade_from = 100,
         ];
     }
 }

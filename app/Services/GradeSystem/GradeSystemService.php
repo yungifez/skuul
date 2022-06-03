@@ -18,7 +18,7 @@ class GradeSystemService
 
     public function getGrade($classGroup, $percentage)
     {
-        return $this->getAllGradesInClassGroup($classGroup)->where('grade_from','<=',$percentage)->where('grade_to','>=',$percentage)->first();
+        return $this->getAllGradesInClassGroup($classGroup)->where('grade_from','<=',$percentage)->where('grade_till','>=',$percentage)->first();
     }
 
     //create grade system
@@ -27,14 +27,14 @@ class GradeSystemService
     {
         $gradesInDb = $this->getAllGradesInClassGroup($records['class_group_id']);
 
-        if ($gradesInDb =! null && $this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_to' => $records['grade_to']],$gradesInDb)) {
+        if ($gradesInDb =! null && $this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_till' => $records['grade_till']],$gradesInDb)) {
             return session()->flash('danger' , 'Grade is in another range in this class group');
         }
        
         GradeSystem::create([
             'class_group_id' => $records['class_group_id'],
             'grade_from' => $records['grade_from'],
-            'grade_to' => $records['grade_to'],
+            'grade_till' => $records['grade_till'],
             'name' => $records['name'],
             'remark' => $records['remark']
         ]);
@@ -48,14 +48,14 @@ class GradeSystemService
     {
         $gradesInDb = $this->getAllGradesInClassGroup($records['class_group_id'])->except($grade->id);
 
-        if ($gradesInDb =! null && $this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_to' => $records['grade_to']],$gradesInDb)) {
+        if ($gradesInDb =! null && $this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_till' => $records['grade_till']],$gradesInDb)) {
             return session()->flash('danger' , 'Grade is in another range in this class group');
         }
         
         $grade->update([
             'class_group_id' => $records['class_group_id'],
             'grade_from' => $records['grade_from'],
-            'grade_to' => $records['grade_to'],
+            'grade_till' => $records['grade_till'],
             'name' => $records['name'],
             'remark' => $records['remark']
         ]);
@@ -71,27 +71,27 @@ class GradeSystemService
     }
 
     /**
-     * @param array $grade with grade_from and grade_to 
-     * @param array $grades each with grade_from and grade_to (testing against)
+     * @param array $grade with grade_from and grade_till 
+     * @param array $grades each with grade_from and grade_till (testing against)
      */
 
     public function gradeRangeExists($grade, $grades)
     {
         foreach ($grades as $i) {
             //check if given grade is in range of grade in array
-            if ($grade['grade_from'] >= $i['grade_from'] && $grade['grade_to'] <= $i['grade_to']) {
+            if ($grade['grade_from'] >= $i['grade_from'] && $grade['grade_till'] <= $i['grade_till']) {
                 return true;
             }
             //check if array grade is in range of given grade
-            if ($i['grade_from'] >= $grade['grade_from'] && $i['grade_to'] <= $grade['grade_to']) {
+            if ($i['grade_from'] >= $grade['grade_from'] && $i['grade_till'] <= $grade['grade_till']) {
                 return true;
             }
             //check if given grade starts at array grade 
-            if (in_array($grade['grade_from'], range($i['grade_from'], $i['grade_to']))) {
+            if (in_array($grade['grade_from'], range($i['grade_from'], $i['grade_till']))) {
                 return true;
             }
             //check if given grade ends at array grade
-            if (in_array($grade['grade_to'], range($i['grade_from'], $i['grade_to']))) {
+            if (in_array($grade['grade_till'], range($i['grade_from'], $i['grade_till']))) {
                 return true;
             }
         }
