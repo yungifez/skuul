@@ -23,7 +23,7 @@
                 <th>Name</th>
                 <th>Remark</th>
                 <th>Grade from</th>
-                <th>Grade to</th>
+                <th>grade till</th>
                 <th></th>
                 <th></th>
                 @foreach ($grades as $grade)
