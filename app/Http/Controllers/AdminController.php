@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\Admin\AdminService;
 
@@ -40,7 +41,7 @@ class AdminController extends Controller
      */
     public function store(Request $request)
     {
-        $this->authorize('create',[ User::class, 'teacher']);
+        $this->authorize('create',[ User::class, 'admin']);
         $this->admin->createAdmin($request);
 
         return back();
@@ -52,9 +53,11 @@ class AdminController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(User $admin )
     {
-        //
+        $this->authorize('view',[ $admin, 'admin']);
+
+        return view('pages.admin.show', compact('admin'));
     }
 
     /**
@@ -63,9 +66,11 @@ class AdminController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(User $admin)
     {
-        //
+        $this->authorize('update',[ $admin, 'admin']);
+
+        return view('pages.admin.edit', compact('admin'));
     }
 
     /**
@@ -75,9 +80,12 @@ class AdminController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, User $admin)
     {
-        //
+        $this->authorize('update',[ $admin, 'admin']);
+        $this->admin->updateAdmin($admin, $request->except('_token', '_method'));
+
+        return back();
     }
 
     /**
@@ -86,8 +94,11 @@ class AdminController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(User $admin)
     {
-        //
+        $this->authorize('delete',[ $admin, 'admin']);
+        $this->admin->deleteAdmin($admin);
+
+        return back();
     }
 }

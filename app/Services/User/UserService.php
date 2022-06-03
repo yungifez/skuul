@@ -81,8 +81,14 @@ class UserService
         return $user->hasRole($role);
     }
 
-    public function updateUser(User $user, $record)
+    public function updateUser(User $user, $record, $role = null)
     {
+        if (isset($role)) {
+            if (!$this->verifyRole($user->id,$role)) {
+                abort('403', "User isn't a/an $role");
+            }
+        }
+       
         if (!$record['other_names']) {
             $record['other_names'] = null;
         }

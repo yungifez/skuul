@@ -36,7 +36,7 @@ class TeacherService
 
     public function updateTeacher(User $teacher, $records)
     {
-        $this->user->updateUser($teacher, $records);
+        $this->user->updateUser($teacher, $records, 'teacher');
 
         return session()->flash('success', 'Teacher Updated Successfully');
     }

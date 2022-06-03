@@ -24,6 +24,7 @@
   'display-validation-error' => 'App\\Http\\Livewire\\DisplayValidationError',
   'dropdown-links' => 'App\\Http\\Livewire\\DropdownLinks',
   'edit-academic-year-form' => 'App\\Http\\Livewire\\EditAcademicYearForm',
+  'edit-admin-form' => 'App\\Http\\Livewire\\EditAdminForm',
   'edit-class-form' => 'App\\Http\\Livewire\\EditClassForm',
   'edit-class-group-form' => 'App\\Http\\Livewire\\EditClassGroupForm',
   'edit-exam-form' => 'App\\Http\\Livewire\\EditExamForm',
