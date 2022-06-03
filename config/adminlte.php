@@ -400,6 +400,26 @@ return [
         ],
         [
             'type' => 'sidebar-menu-item',
+            'text' => 'Admins',
+            'icon' => 'fas fa-user',
+            'can'  =>  'menu-admin',
+            'submenu' => [
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'View admins',
+                    'route' => 'admins.index',
+                    'can'  => 'read admin',
+                ],
+                [
+                    'type' => 'sidebar-menu-item',
+                    'text' => 'Create admin',
+                    'route' => 'admins.create',
+                    'can'  => 'create admin',
+                ],
+            ],
+        ],
+        [
+            'type' => 'sidebar-menu-item',
             'text' => 'Academic years',
             'icon' => 'fas fa-calendar',
             'can'  =>  'menu-academic-year',

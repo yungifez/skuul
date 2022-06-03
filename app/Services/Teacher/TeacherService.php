@@ -25,9 +25,9 @@ class TeacherService
 
     public function createTeacher($record)
     {
-        $student = $this->user->createUser($record);
+        $teacher = $this->user->createUser($record);
 
-        $student->assignRole('teacher');
+        $teacher->assignRole('teacher');
 
         return session()->flash('success', 'Teacher Created Successfully');
     }

@@ -1,6 +1,6 @@
 <div class="card">
     <div class="card-header">
-        <h4 class="card-title">Exam tabilation</h4>
+        <h4 class="card-title">Result tabulation</h4>
     </div>
     <div class="card-body">
         @livewire('display-validation-error')
