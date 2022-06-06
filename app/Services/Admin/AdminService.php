@@ -7,6 +7,9 @@ use App\Services\User\UserService;
 
 class AdminService  
 {
+    /**
+     * @var UserService
+     */
     public $user;
 
     public function __construct( UserService $user)
@@ -14,32 +17,56 @@ class AdminService
         $this->user = $user;
     }
 
-    //gets active admins
+    /**
+     * Get all Admins.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection|static[]
+     */
     public function getAllAdmins()
     {
         return $this->user->getUsersByRole('admin');
     }
 
-    public function createAdmin($record)
+    /**
+     * Create Admin
+     *
+     * @param array|Collection $records
+     * @return App\Models\User
+     * 
+     * @return void
+     */
+    public function createAdmin($records)
     {
-        $admin = $this->user->createUser($record);
-
+        $admin = $this->user->createUser($records);
         $admin->assignRole('admin');
+        session()->flash('success', 'Admin Created Successfully');
 
-        return session()->flash('success', 'Admin Created Successfully');
+        return;
     }
 
-    //update admin method
-
+    /**
+     * Update Admin
+     * 
+     * @param App\Models\User $admin
+     * @param array|Collection $records
+     * 
+     * @return void
+     */
     public function updateAdmin(User $admin, $records)
     {
         $this->user->updateUser($admin, $records, 'admin');
+        session()->flash('success', 'Admin Updated Successfully');
 
-        return session()->flash('success', 'Admin Updated Successfully');
+        return;
     }
 
-    //delete admin method
-
+    /**
+     * Delete Admin
+     * 
+     * @param App\Models\User $admin
+     * 
+     * @return void
+     */
     public function deleteTeacher(User $admin)
     {
         $this->user->deleteUser($admin);
