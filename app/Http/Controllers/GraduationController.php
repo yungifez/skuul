@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\Student\StudentService;
 use App\Http\Requests\StudentGraduateRequest;
@@ -57,6 +58,7 @@ class GraduationController extends Controller
         if (!auth()->user()->can('reset graduation')) {
             return abort(403, 'Unauthorized action.');
         }
+        $this->student->user->verifyUserIsOfRoleElseNotFound($student,'student');
         $this->student->resetGraduation($student);
 
         return back();

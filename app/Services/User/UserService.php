@@ -24,6 +24,12 @@ class UserService
         return User::where('school_id', auth()->user()->school_id)->get();
     }
 
+    /**
+     * Get a user by id
+     *
+     * @param integer $id
+     * @return App\Models\User
+     */
     public function getUserById($id)
     {
         return User::find($id);

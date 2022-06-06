@@ -16,6 +16,7 @@ class ShowTimetable extends Component
         $this->weekdays = Weekday::all();
         $this->subjects = $this->timetable->MyClass->subjects;
     }
+    
     public function render()
     {
         return view('livewire.show-timetable');

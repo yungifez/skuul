@@ -6,23 +6,36 @@ use App\Models\User;
 use App\Models\Promotion;
 use Illuminate\Support\Str;
 use App\Services\User\UserService;
+use Illuminate\Support\Facades\DB;
 use App\Services\Print\PrintService;
 use App\Services\MyClass\MyClassService;
 
 class StudentService
 {
-    public $myClassService;
-
-    public $user;
+    public $myClassService, $user;
 
     public function __construct(MyClassService $myClass, UserService $user)
     {
         $this->myClass = $myClass;
         $this->user = $user;
     }
-  
-    //gets active students
+
+    /**
+     * Get all students in school
+     * 
+     * @return lluminate\Database\Eloquent\Collection
+     */
     public function getAllStudents()
+    {
+        return $this->user->getUsersByRole('student')->load('studentRecord');
+    }
+  
+    /**
+     * Get all active students in school
+     * 
+     * @return lluminate\Database\Eloquent\Collection
+     */
+    public function getAllActiveStudents()
     {
         return $this->user->getUsersByRole('student')->load('studentRecord')->filter(function ($student)
         {
@@ -30,8 +43,11 @@ class StudentService
         });
     }
 
-    //gets graduated students
-
+    /**
+     * Get all graduated students in school
+     * 
+     * @return lluminate\Database\Eloquent\Collection
+     */
     public function getAllGraduatedStudents()
     {
         return $this->user->getUsersByRole('student')->load('studentRecord')->filter(function ($student)
@@ -40,55 +56,90 @@ class StudentService
         });
     }
 
-    // get student by id
-
-    public function getStudentById($id)
+   /**
+    * Get a student by id
+    *
+    * @param array|int $id student id
+    * @return App\Models\User
+    */
+    public function getStudentById( $id)
     {
         return $this->user->getUserById($id)->load('studentRecord');
     }
 
-    //create student method
-
+    /**
+     * Create student
+     * 
+     * @param array $record Array of student record
+     * 
+     * @return void
+     */
     public function createStudent($record)
     {
+        DB::beginTransaction();
         $student = $this->user->createUser($record);
-
         $student->assignRole('student');
-
         $record['admission_number'] || $record['admission_number'] = $this->generateAdmissionNumber();
 
         if (! $this->myClass->getClassById($record['my_class_id'])->isSectionInClass($record['section_id'])) {
-            throw new \Exception('Section is not in the class');
+            session()->flash('danger', 'Section is not in class');
+            DB::rollBack();
+            return;
         }
-
+        
         $student->studentRecord()->create([
             'my_class_id' => $record['my_class_id'],
             'section_id' => $record['section_id'],
             'admission_number' => $record['admission_number'],
             'admission_date' => $record['admission_date'],
         ]);
+        DB::commit();
+        session()->flash('success', 'Student Created Successfully');
 
-        return session()->flash('success', 'Student Created Successfully');
+        return;
     }
 
+    /**
+     * Update student
+     * 
+     * @param App\Model\User $user 
+     * @param array $record Array of student record
+     * 
+     * @return void
+     */
     public function updateStudent(User $student, $records)
     {
         $student = $this->user->updateUser($student, $records);
+        session()->flash('success', 'Student Updated Successfully');
 
-        return session()->flash('success', 'Student Updated Successfully');
+        return;
     }
 
+    /**
+     * Delete student
+     * 
+     * @param App\Model\User $user 
+     * 
+     * @return void
+     */
     public function deleteStudent(User $student)
     {
         $student->delete();
+        session()->flash('success', 'Student Deleted Successfully');
 
-        return session()->flash('success', 'Student Deleted Successfully');
+        return;
     }
   
+    /**
+     * Generate admission number
+     * 
+     * @return string
+     */
     public function generateAdmissionNumber()
     {
         return Str::random(10);
     }
+    
     public function printProfile(string $name, string $view, array $data)
     {
         return PrintService::createPdfFromView($name, $view, $data)->download();
@@ -102,14 +153,12 @@ class StudentService
         $records['academic_year_id'] = auth()->user()->school->academic_year_id;
 
 
-        //check if the section is in  class
-        if (!$oldClass->isSectionInClass($records['old_section_id'])) {
-            throw new \Exception('Old section is not in the class');
+        if(!$oldClass->sections()->where('id', $records['old_section_id'])->exists()) {
+           return section()->flash('danger','Old section is not in old class');
         }
 
-        // make sure section is in class
-        if (!$newClass->isSectionInClass($records['new_section_id'])) {
-            throw new \Exception('New section is not in the class');
+        if(!$newClass->sections()->where('id', $records['new_section_id'])->exists()) {
+            return section()->flash('danger','New section is not in new class');
         }
 
         //make sure academic year is present
@@ -204,10 +253,8 @@ class StudentService
 
     //reset graduation method
 
-    public function resetGraduation($student)
+    public function resetGraduation(User $student)
     {
-        $student = $this->getStudentById($student);
-
         $student->studentRecord()->update([
             'is_graduated' => false
         ]);

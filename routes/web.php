@@ -57,7 +57,7 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
             Route::get('students/graduations', ['App\Http\Controllers\GraduationController', 'index'])->name('students.graduations');
             Route::get('students/graduate', ['App\Http\Controllers\GraduationController', 'graduateView'])->name('students.graduate');
             Route::post('students/graduate', ['App\Http\Controllers\GraduationController', 'graduate']);
-            Route::delete('students/graduations/{graduation}/reset', ['App\Http\Controllers\GraduationController', 'resetGraduation'])->name('students.graduations.reset');
+            Route::delete('students/graduations/{student}/reset', ['App\Http\Controllers\GraduationController', 'resetGraduation'])->name('students.graduations.reset');
 
             //semester routes
             Route::resource('semesters', SemesterController::class);

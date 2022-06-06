@@ -7,12 +7,19 @@ use App\Http\Requests\SchoolStoreRequest;
 use App\Http\Requests\SchoolUpdateRequest;
 use App\Models\School;
 use App\Services\School\SchoolService;
-use Illuminate\Http\Request;
 
 class SchoolController extends Controller
 {
+    /**
+     * @var SchoolService
+     */
     public $school;
 
+    /**
+     * SchoolController constructor.
+     *
+     * @param SchoolService $school
+     */
     public function __construct(SchoolService $school)
     {
         $this->school = $school;
@@ -106,11 +113,23 @@ class SchoolController extends Controller
         return back();
     }
 
+    /**
+     * Get settingd for authenticated user's school.
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function settings()
     {
         return redirect()->route('schools.edit', ['school'=> auth()->user()->school_id]);
     }
-
+    
+    /**
+     * Set the school.
+     *
+     * @param SchoolSetRequest $request
+     * 
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function setSchool(SchoolSetRequest $request)
     {
         $this->authorize('setSchool', School::class);

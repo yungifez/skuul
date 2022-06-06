@@ -10,14 +10,11 @@ use Illuminate\Http\Request;
 class StudentController extends Controller
 {
     public $student;
+    
     //construct method which assigns studentservice to student variable
-
     public function __construct(StudentService $student)
     {
         $this->student = $student;
-
-        //resource policy cant be used because of the role dependance of the user policy which needs be passed as a third parameter
-        // $this->authorizeResource(User::class, 'student');
     }
 
     /**
