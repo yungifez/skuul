@@ -13,6 +13,7 @@ class CreateExamSlotForm extends Component
     {
         $this->exam = $exam;
     }
+
     public function render()
     {
         return view('livewire.create-exam-slot-form');

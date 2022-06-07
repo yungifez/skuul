@@ -2,16 +2,18 @@
 
 namespace App\Http\Livewire;
 
-use Livewire\Component;
-use App\Services\MyClass\MyClassService;
 use App\Services\GradeSystem\GradeSystemService;
+use App\Services\MyClass\MyClassService;
+use Livewire\Component;
 
 class ListGradeSystemsTable extends Component
 {
-    public $classGroups, $classGroup, $grades;
+    public $classGroups;
+    public $classGroup;
+    public $grades;
 
     protected $rules = [
-        'classGroup' => 'integer'
+        'classGroup' => 'integer',
     ];
 
     public function mount(MyClassService $myClassService, GradeSystemService $gradeSystemService)
@@ -22,9 +24,9 @@ class ListGradeSystemsTable extends Component
         // Get all grades for first class group if class groups is not empty
         if ($this->classGroups != null && $this->classGroups->count() > 0) {
             //class groups are present
-            $this->classGroup = $this->classGroups[0]->id;  
+            $this->classGroup = $this->classGroups[0]->id;
             $this->grades = $gradeSystemService->getAllGradesInClassGroup($this->classGroup)->load('classGroup')->sortBy('grade_till');
-        }else {
+        } else {
             //if no class gorups are present
             $this->classGroup = null;
             $this->grades = collect();
@@ -36,6 +38,7 @@ class ListGradeSystemsTable extends Component
         //get all grades for selected class group
         $this->grades = app(GradeSystemService::class)->getAllGradesInClassGroup($this->classGroup)->load('classGroup');
     }
+
     public function render()
     {
         return view('livewire.list-grade-systems-table');

@@ -2,9 +2,9 @@
 
 namespace App\Http\Livewire;
 
+use App\Models\Timetable;
 use App\Models\Weekday;
 use Livewire\Component;
-use App\Models\Timetable;
 
 class ManageTimetable extends Component
 {
@@ -13,7 +13,7 @@ class ManageTimetable extends Component
     public $weekdays;
     public $subjects;
 
-    function mount()
+    public function mount()
     {
         $this->timeSlots = $this->timetable->timeSlots->sortBy('start_time');
         $this->weekdays = Weekday::all();

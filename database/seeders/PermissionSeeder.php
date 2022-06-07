@@ -19,10 +19,10 @@ class PermissionSeeder extends Seeder
         DB::table('permissions')->delete();
 
         /**
-         * Create all permissions
-         * 
+         * Create all permissions.
+         *
          * EVERYTHING HERE IS USED IN A SINGULAR SENSE
-        */
+         */
 
         // Permissions for school
         Permission::firstOrCreate([
@@ -144,146 +144,145 @@ class PermissionSeeder extends Seeder
 
         //Permission for student promotions
         Permission::firstOrCreate([
-            'name' => 'promote student'
+            'name' => 'promote student',
         ]);
         Permission::firstOrCreate([
-            'name' => 'read promotion'
+            'name' => 'read promotion',
         ]);
         Permission::firstOrCreate([
-            'name' => 'reset promotion'
+            'name' => 'reset promotion',
         ]);
 
         //permission for graduation
         Permission::firstOrCreate([
-            'name' => 'graduate student'
+            'name' => 'graduate student',
         ]);
         Permission::firstOrCreate([
-            'name' => 'view graduations'
+            'name' => 'view graduations',
         ]);
         Permission::firstOrCreate([
-            'name' => 'reset graduation'
+            'name' => 'reset graduation',
         ]);
 
         //permission for semesters
         Permission::firstOrCreate([
-            'name' => 'create semester'
+            'name' => 'create semester',
         ]);
         Permission::firstOrCreate([
-            'name' => 'read semester'
+            'name' => 'read semester',
         ]);
         Permission::firstOrCreate([
-            'name' => 'update semester'
+            'name' => 'update semester',
         ]);
         Permission::firstOrCreate([
-            'name' => 'delete semester'
+            'name' => 'delete semester',
         ]);
 
         Permission::firstOrCreate([
-            'name' => 'set semester'
+            'name' => 'set semester',
         ]);
 
         //permission for syllabus
         Permission::firstOrCreate([
-            'name' => 'create syllabus'
+            'name' => 'create syllabus',
         ]);
         Permission::firstOrCreate([
-            'name' => 'read syllabus'
+            'name' => 'read syllabus',
         ]);
         Permission::firstOrCreate([
-            'name' => 'update syllabus'
+            'name' => 'update syllabus',
         ]);
         Permission::firstOrCreate([
-            'name' => 'delete syllabus'
+            'name' => 'delete syllabus',
         ]);
 
         //permission for timetable
         Permission::firstOrCreate([
-            'name' => 'create timetable'
+            'name' => 'create timetable',
         ]);
         Permission::firstOrCreate([
-            'name' => 'read timetable'
+            'name' => 'read timetable',
         ]);
         Permission::firstOrCreate([
-            'name' => 'update timetable'
+            'name' => 'update timetable',
         ]);
         Permission::firstOrCreate([
-            'name' => 'delete timetable'
+            'name' => 'delete timetable',
         ]);
 
         //exam permissions
         Permission::firstOrCreate([
-            'name' => 'create exam'
+            'name' => 'create exam',
         ]);
         Permission::firstOrCreate([
-            'name' => 'read exam'
+            'name' => 'read exam',
         ]);
         Permission::firstOrCreate([
-            'name' => 'update exam'
+            'name' => 'update exam',
         ]);
         Permission::firstOrCreate([
-            'name' => 'delete exam'
+            'name' => 'delete exam',
         ]);
 
         //permission for grade system
         Permission::firstOrCreate([
-            'name' => 'create grade system'
+            'name' => 'create grade system',
         ]);
         Permission::firstOrCreate([
-            'name' => 'read grade system'
+            'name' => 'read grade system',
         ]);
         Permission::firstOrCreate([
-            'name' => 'update grade system'
+            'name' => 'update grade system',
         ]);
         Permission::firstOrCreate([
-            'name' => 'delete grade system'
+            'name' => 'delete grade system',
         ]);
 
         //permission for exam slots
         Permission::firstOrCreate([
-            'name' => 'create exam slot'
+            'name' => 'create exam slot',
         ]);
         Permission::firstOrCreate([
-            'name' => 'read exam slot'
+            'name' => 'read exam slot',
         ]);
         Permission::firstOrCreate([
-            'name' => 'update exam slot'
+            'name' => 'update exam slot',
         ]);
         Permission::firstOrCreate([
-            'name' => 'delete exam slot'
+            'name' => 'delete exam slot',
         ]);
 
         //permission for exam records
         Permission::firstOrCreate([
-            'name' => 'create exam record'
+            'name' => 'create exam record',
         ]);
         Permission::firstOrCreate([
-            'name' => 'read exam record'
+            'name' => 'read exam record',
         ]);
         Permission::firstOrCreate([
-            'name' => 'update exam record'
+            'name' => 'update exam record',
         ]);
         Permission::firstOrCreate([
-            'name' => 'delete exam record'
+            'name' => 'delete exam record',
         ]);
 
         //permission for notices
 
         Permission::firstOrCreate([
-            'name' => 'create notice'
+            'name' => 'create notice',
         ]);
 
         Permission::firstOrCreate([
-            'name' => 'read notice'
+            'name' => 'read notice',
         ]);
 
         Permission::firstOrCreate([
-            'name' => 'update notice'
+            'name' => 'update notice',
         ]);
 
         Permission::firstOrCreate([
-            'name' => 'delete notice'
+            'name' => 'delete notice',
         ]);
-
 
         //header permissions (for controlling the menu headers)
         Permission::firstOrCreate([
@@ -329,7 +328,7 @@ class PermissionSeeder extends Seeder
             'name' => 'menu-notice',
         ]);
         /**
-         * assign permissions to roles
+         * assign permissions to roles.
          */
 
         //assign permissions to admin
@@ -439,7 +438,7 @@ class PermissionSeeder extends Seeder
             'read exam record',
             'update exam record',
             'delete exam record',
-            'read notice'
+            'read notice',
         ]);
 
         //assign permissions to student
@@ -451,7 +450,7 @@ class PermissionSeeder extends Seeder
             'menu-notice',
             'read syllabus',
             'read timetable',
-            'read notice'
+            'read notice',
         ]);
         //assign permissions to parent
 

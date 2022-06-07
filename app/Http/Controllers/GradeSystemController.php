@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\GradeSystem;
 use App\Http\Requests\StoreGradeSystemRequest;
 use App\Http\Requests\UpdateGradeSystemRequest;
+use App\Models\GradeSystem;
 use App\Services\GradeSystem\GradeSystemService;
 
 class GradeSystemController extends Controller
@@ -16,6 +16,7 @@ class GradeSystemController extends Controller
         $this->gradeSystem = $gradeSystem;
         $this->authorizeResource(GradeSystem::class, 'grade_system');
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -39,7 +40,8 @@ class GradeSystemController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \App\Http\Requests\StoreGradeSystemRequest  $request
+     * @param \App\Http\Requests\StoreGradeSystemRequest $request
+     *
      * @return \Illuminate\Http\Response
      */
     public function store(StoreGradeSystemRequest $request)
@@ -53,7 +55,8 @@ class GradeSystemController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\GradeSystem  $gradeSystem
+     * @param \App\Models\GradeSystem $gradeSystem
+     *
      * @return \Illuminate\Http\Response
      */
     public function show(GradeSystem $gradeSystem)
@@ -64,7 +67,8 @@ class GradeSystemController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\GradeSystem  $gradeSystem
+     * @param \App\Models\GradeSystem $gradeSystem
+     *
      * @return \Illuminate\Http\Response
      */
     public function edit(GradeSystem $gradeSystem)
@@ -75,8 +79,9 @@ class GradeSystemController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\UpdateGradeSystemRequest  $request
-     * @param  \App\Models\GradeSystem  $gradeSystem
+     * @param \App\Http\Requests\UpdateGradeSystemRequest $request
+     * @param \App\Models\GradeSystem                     $gradeSystem
+     *
      * @return \Illuminate\Http\Response
      */
     public function update(UpdateGradeSystemRequest $request, GradeSystem $gradeSystem)
@@ -90,7 +95,8 @@ class GradeSystemController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\GradeSystem  $gradeSystem
+     * @param \App\Models\GradeSystem $gradeSystem
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy(GradeSystem $gradeSystem)

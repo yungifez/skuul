@@ -2,7 +2,6 @@
 
 namespace App\Http\Livewire;
 
-use App\Services\MyClass\MyClassService;
 use App\Services\Teacher\TeacherService;
 use Livewire\Component;
 

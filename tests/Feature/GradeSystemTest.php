@@ -2,14 +2,14 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class GradeSystemTest extends TestCase
 {
-    use RefreshDatabase,FeatureTestTrait;
+    use RefreshDatabase;
+    use FeatureTestTrait;
 
     //test unauthorized user can not see all grade systems
 
@@ -29,7 +29,7 @@ class GradeSystemTest extends TestCase
             ->assertSuccessful();
     }
 
-    //test unauthorized user can not see create grade system 
+    //test unauthorized user can not see create grade system
 
     public function test_unauthorized_user_can_not_see_create_grade_system()
     {
@@ -61,19 +61,19 @@ class GradeSystemTest extends TestCase
     public function test_authorized_user_can_create_grade_system()
     {
         $this->authorized_user(['create grade system'])
-            ->post('/dashboard/grade-systems',[
-                'name' => 'test grade',
-                'remark' => 'test remarks',
-                'grade_from' => '0',
-                'grade_till' => '10',
+            ->post('/dashboard/grade-systems', [
+                'name'           => 'test grade',
+                'remark'         => 'test remarks',
+                'grade_from'     => '0',
+                'grade_till'     => '10',
                 'class_group_id' => '1',
             ]);
 
-        $this->assertDatabaseHas('grade_systems',[
-            'name' => 'test grade',
-            'remark' => 'test remarks',
-            'grade_from' => '0',
-            'grade_till' => '10',
+        $this->assertDatabaseHas('grade_systems', [
+            'name'           => 'test grade',
+            'remark'         => 'test remarks',
+            'grade_from'     => '0',
+            'grade_till'     => '10',
             'class_group_id' => '1',
         ]);
     }
@@ -110,20 +110,20 @@ class GradeSystemTest extends TestCase
     public function test_authorized_user_can_update_grade_system()
     {
         $this->authorized_user(['update grade system'])
-            ->put('/dashboard/grade-systems/1',[
-                'name' => 'test grade',
-                'remark' => 'test remarks',
-                'grade_from' => '90',
-                'grade_till' => '100',
+            ->put('/dashboard/grade-systems/1', [
+                'name'           => 'test grade',
+                'remark'         => 'test remarks',
+                'grade_from'     => '90',
+                'grade_till'     => '100',
                 'class_group_id' => '1',
             ]);
 
-        $this->assertDatabaseHas('grade_systems',[
-            'id' => '1',
-            'name' => 'test grade',
-            'remark' => 'test remarks',
-            'grade_from' => '90',
-            'grade_till' => '100',
+        $this->assertDatabaseHas('grade_systems', [
+            'id'             => '1',
+            'name'           => 'test grade',
+            'remark'         => 'test remarks',
+            'grade_from'     => '90',
+            'grade_till'     => '100',
             'class_group_id' => '1',
         ]);
     }
@@ -144,9 +144,8 @@ class GradeSystemTest extends TestCase
         $this->authorized_user(['delete grade system'])
             ->delete('/dashboard/grade-systems/1');
 
-        $this->assertDatabaseMissing('grade_systems',[
+        $this->assertDatabaseMissing('grade_systems', [
             'id' => '1',
         ]);
     }
-         
 }

@@ -12,7 +12,7 @@ class ExamSlot extends Model
     protected $fillable = ['name', 'description', 'total_marks', 'exam_id'];
 
     /**
-     * Get the exam that owns the ExamSlot
+     * Get the exam that owns the ExamSlot.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */

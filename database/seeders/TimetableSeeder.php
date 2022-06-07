@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Timetable;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class TimetableSeeder extends Seeder
 {
@@ -16,8 +15,8 @@ class TimetableSeeder extends Seeder
     public function run()
     {
         Timetable::firstOrCreate([
-            'id' => 1,
-            'name' => 'Timetable 1',
+            'id'          => 1,
+            'name'        => 'Timetable 1',
             'description' => 'Timetable 1 description',
             'my_class_id' => 1,
             'semester_id' => 1,

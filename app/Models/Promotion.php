@@ -2,11 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\User;
-use App\Models\MyClass;
-use App\Models\Section;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Promotion extends Model
 {
@@ -27,7 +24,7 @@ class Promotion extends Model
     ];
 
     public function getLabelAttribute()
-    {    
+    {
         return "{$this->oldClass->name} - {$this->oldSection->name} to {$this->newClass->name} - {$this->newSection->name} year: {$this->academicYear->start_year} - {$this->academicYear->stop_year}";
     }
 

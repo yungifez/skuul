@@ -2,9 +2,8 @@
 
 namespace App\Http\Livewire;
 
-use App\Models\Exam;
-use Livewire\Component;
 use App\Services\Exam\ExamService;
+use Livewire\Component;
 
 class ListExamsTable extends Component
 {
@@ -12,6 +11,7 @@ class ListExamsTable extends Component
     {
         $this->exams = $examService->getAllExamsInSemester(auth()->user()->school->semester_id);
     }
+
     public function render()
     {
         return view('livewire.list-exams-table');

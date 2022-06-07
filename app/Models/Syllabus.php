@@ -2,20 +2,19 @@
 
 namespace App\Models;
 
-use App\Models\Subject;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Syllabus extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'name', 'description', 'file', 'subject_id', 'semester_id'
+        'name', 'description', 'file', 'subject_id', 'semester_id',
     ];
 
     /**
-     * Get the subject that owns the Syllabus
+     * Get the subject that owns the Syllabus.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */

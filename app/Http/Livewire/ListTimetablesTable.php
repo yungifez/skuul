@@ -3,10 +3,10 @@
 namespace App\Http\Livewire;
 
 use App\Models\Weekday;
-use Livewire\Component;
-use Illuminate\Support\Facades\App;
 use App\Services\MyClass\MyClassService;
 use App\Services\Timetable\TimetableService;
+use Illuminate\Support\Facades\App;
+use Livewire\Component;
 
 class ListTimetablesTable extends Component
 {
@@ -14,6 +14,7 @@ class ListTimetablesTable extends Component
     public $timetables;
     public $classes;
     public $weekdays;
+
     public function mount(TimetableService $timetableService, MyClassService $myClassService)
     {
         //get current semester
@@ -24,7 +25,7 @@ class ListTimetablesTable extends Component
             $this->class = auth()->user()->studentRecord->myClass->name;
             $class = auth()->user()->studentRecord->my_class_id;
             //get timetables in semester and class
-            $this->timetables = $timetableService->getAllTimetablesInSemesterAndClass($semester,$class);
+            $this->timetables = $timetableService->getAllTimetablesInSemesterAndClass($semester, $class);
         }
         //user isn't a student
         else {
@@ -32,13 +33,13 @@ class ListTimetablesTable extends Component
             $this->classes = $myClassService->getAllClasses();
             //set intial record
             if (!$this->classes->isEmpty()) {
-                $this->timetables = $timetableService->getAllTimetablesInSemesterAndClass($semester,$this->classes[0]['id']);
-            }else{
+                $this->timetables = $timetableService->getAllTimetablesInSemesterAndClass($semester, $this->classes[0]['id']);
+            } else {
                 $this->timetables = collect([]);
             }
         }
 
-        if($this->timetables->isEmpty()) {
+        if ($this->timetables->isEmpty()) {
             $this->timetables = null;
         }
 
@@ -50,9 +51,9 @@ class ListTimetablesTable extends Component
         //get current semester
         $semester = auth()->user()->school->semester_id;
         //get timetables in semester and class
-        $this->timetables = collect(App::make(TimetableService::class)->getAllTimetablesInSemesterAndClass($semester,$this->class));
+        $this->timetables = collect(App::make(TimetableService::class)->getAllTimetablesInSemesterAndClass($semester, $this->class));
 
-        if($this->timetables->isEmpty()) {
+        if ($this->timetables->isEmpty()) {
             $this->timetables = null;
         }
     }

@@ -6,7 +6,6 @@ use App\Http\Requests\SectionStoreRequest;
 use App\Http\Requests\SectionUpdateRequest;
 use App\Models\Section;
 use App\Services\Section\SectionService;
-use Illuminate\Http\Request;
 
 class SectionController extends Controller
 {
@@ -41,7 +40,8 @@ class SectionController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
+     *
      * @return \Illuminate\Http\Response
      */
     public function store(SectionStoreRequest $request)
@@ -55,7 +55,8 @@ class SectionController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function show(Section $section)
@@ -66,7 +67,8 @@ class SectionController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function edit(Section $section)
@@ -79,8 +81,9 @@ class SectionController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int                      $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function update(SectionUpdateRequest $request, Section $section)
@@ -95,7 +98,8 @@ class SectionController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy(Section $section)

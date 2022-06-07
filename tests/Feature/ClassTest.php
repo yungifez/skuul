@@ -2,16 +2,16 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\MyClass;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class ClassTest extends TestCase
 {
-    use RefreshDatabase,FeatureTestTrait;
-    
+    use RefreshDatabase;
+    use FeatureTestTrait;
+
     public function test_view_all_classes_can_be_rendered_to_authorized_user()
     {
         $this->authorized_user(['read class'])
@@ -57,18 +57,18 @@ class ClassTest extends TestCase
     public function test_authorized_user_can_create_class()
     {
         $this->authorized_user(['create class'])
-            ->post('/dashboard/classes',['name' => 'Test class','class_group_id' => '1']);
-                
-        $this->assertDatabaseHas('my_classes',[
-            'name' => 'Test class',
-            'class_group_id' => '1'
+            ->post('/dashboard/classes', ['name' => 'Test class', 'class_group_id' => '1']);
+
+        $this->assertDatabaseHas('my_classes', [
+            'name'           => 'Test class',
+            'class_group_id' => '1',
         ]);
     }
 
     public function test_unauthorized_user_can_not_create_class()
     {
         $this->unauthorized_user()
-            ->post('/dashboard/classes',['name' => 'Test class','class_group_id' => '1'])
+            ->post('/dashboard/classes', ['name' => 'Test class', 'class_group_id' => '1'])
             ->assertForbidden();
     }
 
@@ -76,12 +76,12 @@ class ClassTest extends TestCase
     {
         $class = MyClass::factory()->create();
         $this->authorized_user(['update class'])
-            ->put("/dashboard/classes/$class->id",['name' => 'Test class','class_group_id' => '1']);
+            ->put("/dashboard/classes/$class->id", ['name' => 'Test class', 'class_group_id' => '1']);
 
-        $this->assertDatabaseHas('my_classes',[
-            'id' => $class->id,
-            'name' => 'Test class',
-            'class_group_id' => '1'
+        $this->assertDatabaseHas('my_classes', [
+            'id'             => $class->id,
+            'name'           => 'Test class',
+            'class_group_id' => '1',
         ]);
     }
 
@@ -89,7 +89,7 @@ class ClassTest extends TestCase
     {
         $class = MyClass::factory()->create();
         $this->unauthorized_user()
-            ->put("/dashboard/classes/$class->id",['name' => 'Test class','class_group_id' => '1'])
+            ->put("/dashboard/classes/$class->id", ['name' => 'Test class', 'class_group_id' => '1'])
             ->assertForbidden();
     }
 

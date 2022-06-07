@@ -2,10 +2,10 @@
 
 namespace App\Http\Livewire;
 
-use Livewire\Component;
-use Illuminate\Support\Facades\App;
 use App\Services\MyClass\MyClassService;
 use App\Services\Student\StudentService;
+use Illuminate\Support\Facades\App;
+use Livewire\Component;
 
 class PromoteStudents extends Component
 {
@@ -19,9 +19,9 @@ class PromoteStudents extends Component
     public $students;
 
     protected $rules = [
-        'oldClass' => 'required|exists:my_classes,id',
+        'oldClass'   => 'required|exists:my_classes,id',
         'oldSection' => 'required|exists:sections,id',
-        'newClass' => 'required|exists:my_classes,id',
+        'newClass'   => 'required|exists:my_classes,id',
         'newSection' => 'required|exists:sections,id',
     ];
 
@@ -49,7 +49,7 @@ class PromoteStudents extends Component
         $this->oldSections = collect($this->classes->first()['sections']);
         $this->oldSection = $this->oldSections->first()['id'];
     }
-    
+
     public function loadInitialNewSections()
     {
         $this->newSections = collect($this->classes->first()['sections']);
@@ -67,6 +67,7 @@ class PromoteStudents extends Component
             return $student->studentRecord->my_class_id == $this->oldClass && $student->studentRecord->section_id == $this->oldSection;
         });
     }
+
     public function render()
     {
         return view('livewire.promote-students');

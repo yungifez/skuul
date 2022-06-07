@@ -2,15 +2,15 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\ExamSlot;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class ExamSlotTest extends TestCase
 {
-    use RefreshDatabase,FeatureTestTrait;
+    use RefreshDatabase;
+    use FeatureTestTrait;
 
     //test unauthorized user can not see all exam slots
 
@@ -62,16 +62,16 @@ class ExamSlotTest extends TestCase
     {
         $response = $this->authorized_user(['create exam slot'])
             ->post('/dashboard/exams/1/manage/exam-slots', [
-                'name' => 'test exam slot',
+                'name'        => 'test exam slot',
                 'description' => 'test description',
                 'total_marks' => 20,
             ]);
 
-         $this->assertDatabaseHas('exam_slots', [
-            'name' => 'test exam slot',
+        $this->assertDatabaseHas('exam_slots', [
+            'name'        => 'test exam slot',
             'description' => 'test description',
-            'total_marks' => 20
-        ]) ;
+            'total_marks' => 20,
+        ]);
     }
 
     //test unauthorized user cannot view edit exam slot
@@ -104,10 +104,10 @@ class ExamSlotTest extends TestCase
             ->assertForbidden();
 
         $this->assertDatabaseMissing('exam_slots', [
-            'id' => $examSlot->id,
-            'name' => 'test exam slot',
+            'id'          => $examSlot->id,
+            'name'        => 'test exam slot',
             'description' => 'test description',
-            'total_marks' => '10'
+            'total_marks' => '10',
         ]);
     }
 
@@ -117,14 +117,13 @@ class ExamSlotTest extends TestCase
     {
         $examSlot = ExamSlot::factory()->create();
         $this->authorized_user(['update exam slot'])
-            ->put("/dashboard/exams/1/manage/exam-slots/$examSlot->id", ['name' => 'test exam slot', 'description' => 'test description', 'total_marks' => '10'])
-            ;
+            ->put("/dashboard/exams/1/manage/exam-slots/$examSlot->id", ['name' => 'test exam slot', 'description' => 'test description', 'total_marks' => '10']);
 
         $this->assertDatabaseHas('exam_slots', [
-            'id' => $examSlot->id,
-            'name' => 'test exam slot',
+            'id'          => $examSlot->id,
+            'name'        => 'test exam slot',
             'description' => 'test description',
-            'total_marks' => '10'
+            'total_marks' => '10',
         ]);
     }
 
@@ -145,7 +144,7 @@ class ExamSlotTest extends TestCase
         $examSlot = ExamSlot::factory()->create();
         $this->authorized_user(['delete exam slot'])
             ->delete("/dashboard/exams/1/manage/exam-slots/$examSlot->id");
-            
+
         $this->assertModelMissing($examSlot);
     }
 }

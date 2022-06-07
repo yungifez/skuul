@@ -2,16 +2,16 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\User;
 use App\Models\School;
+use App\Models\User;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class SchoolTest extends TestCase
 {
-    use RefreshDatabase,FeatureTestTrait;
+    use RefreshDatabase;
+    use FeatureTestTrait;
 
     public function test_view_schools_can_be_rendered_to_authorized_user()
     {
@@ -44,13 +44,13 @@ class SchoolTest extends TestCase
     public function test_user_can_create_school()
     {
         $this->authorized_user(['create school'])
-            ->post('/dashboard/schools',['name' => 'Test school','address' => 'Test address', 'phone' => 'Test phone', 'email' => 'test@email.com','initials' => 'TS', ]);
+            ->post('/dashboard/schools', ['name' => 'Test school', 'address' => 'Test address', 'phone' => 'Test phone', 'email' => 'test@email.com', 'initials' => 'TS']);
 
-        $this->assertDatabaseHas('schools',[
-            'name' => 'Test school',
-            'address' => 'Test address',
-            'phone' => 'Test phone',
-            'email' => 'test@email.com',
+        $this->assertDatabaseHas('schools', [
+            'name'     => 'Test school',
+            'address'  => 'Test address',
+            'phone'    => 'Test phone',
+            'email'    => 'test@email.com',
             'initials' => 'TS',
         ]);
     }
@@ -58,7 +58,7 @@ class SchoolTest extends TestCase
     public function test_unauthorized_user_can_not_create_school()
     {
         $this->unauthorized_user()
-            ->post('/dashboard/schools',['name' => 'Test school','address' => 'Test address', 'phone' => 'Test phone', 'email' => 'test@email.com', 'initials' => 'TS', ])
+            ->post('/dashboard/schools', ['name' => 'Test school', 'address' => 'Test address', 'phone' => 'Test phone', 'email' => 'test@email.com', 'initials' => 'TS'])
             ->assertForbidden();
     }
 
@@ -93,7 +93,7 @@ class SchoolTest extends TestCase
     public function test_unauthorized_user_cannot_update_school()
     {
         $this->unauthorized_user()
-            ->put('/dashboard/schools/1',['name' => 'Test school','address' => 'Test address', 'phone' => 'Test phone', 'email' => 'test@email.com', 'initials' => 'TS', ])
+            ->put('/dashboard/schools/1', ['name' => 'Test school', 'address' => 'Test address', 'phone' => 'Test phone', 'email' => 'test@email.com', 'initials' => 'TS'])
             ->assertForbidden();
     }
 
@@ -101,15 +101,15 @@ class SchoolTest extends TestCase
     {
         $school = School::factory()->create();
         $this->authorized_user(['update school'])
-            ->patch("/dashboard/schools/$school->id",['name'=>'Test school 2','address' => 'something street', 'initials' => 'TS2', 'phone' => '123456789', 'email' => 'school@test.com']);
+            ->patch("/dashboard/schools/$school->id", ['name'=>'Test school 2', 'address' => 'something street', 'initials' => 'TS2', 'phone' => '123456789', 'email' => 'school@test.com']);
 
         $this->assertDatabaseHas('schools', [
-            'id' => $school->id,
-            'name' => 'Test school 2',
-            'address' => 'something street',
+            'id'       => $school->id,
+            'name'     => 'Test school 2',
+            'address'  => 'something street',
             'initials' => 'TS2',
-            'phone' => '123456789',
-            'email' => 'school@test.com'
+            'phone'    => '123456789',
+            'email'    => 'school@test.com',
         ]);
     }
 
@@ -124,7 +124,7 @@ class SchoolTest extends TestCase
     public function test_that_unauthorized_user_cannot_delete_School_if_it_is_their_current_school()
     {
         $this->authorized_user(['delete school'])
-            ->delete("/dashboard/schools/1");
+            ->delete('/dashboard/schools/1');
 
         $this->assertDatabaseHas('schools', [
             'id' => 1,
@@ -155,11 +155,11 @@ class SchoolTest extends TestCase
 
     public function test_super_admin_can_set_school()
     {
-        $user =  User::where('email','super@admin.com')->first();
+        $user = User::where('email', 'super@admin.com')->first();
         $this->actingAs($user);
         $school = School::factory()->create();
-        $response = $this->post("/dashboard/schools/set-school",['school_id' => $school->id]);
+        $response = $this->post('/dashboard/schools/set-school', ['school_id' => $school->id]);
 
-        $this->assertEquals($school->id,$user->fresh()->school_id);
+        $this->assertEquals($school->id, $user->fresh()->school_id);
     }
 }

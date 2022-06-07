@@ -49,7 +49,8 @@ class SchoolController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
+     *
      * @return \Illuminate\Http\Response
      */
     public function store(SchoolStoreRequest $request)
@@ -63,19 +64,22 @@ class SchoolController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function show(School $school)
     {
         $data['school'] = $school;
+
         return view('pages.school.show', $data);
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function edit(School $school)
@@ -88,8 +92,9 @@ class SchoolController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int                      $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function update(SchoolUpdateRequest $request, School $school)
@@ -103,7 +108,8 @@ class SchoolController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy(School $school)
@@ -122,12 +128,12 @@ class SchoolController extends Controller
     {
         return redirect()->route('schools.edit', ['school'=> auth()->user()->school_id]);
     }
-    
+
     /**
      * Set the school.
      *
      * @param SchoolSetRequest $request
-     * 
+     *
      * @return \Illuminate\Http\RedirectResponse
      */
     public function setSchool(SchoolSetRequest $request)

@@ -2,13 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\User;
-use App\Models\MyClass;
-use App\Models\Semester;
-use App\Models\ClassGroup;
-use App\Models\AcademicYear;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class School extends Model
 {
@@ -24,7 +19,7 @@ class School extends Model
     }
 
     /**
-     * Get all of the users for the School
+     * Get all of the users for the School.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
@@ -34,7 +29,7 @@ class School extends Model
     }
 
     /**
-     * Get all of the MyClasses for the School
+     * Get all of the MyClasses for the School.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
      */
@@ -44,28 +39,27 @@ class School extends Model
     }
 
     /**
-     * Get the AcademicYears for the School
+     * Get the AcademicYears for the School.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-
     public function academicYears()
     {
         return $this->hasMany(AcademicYear::class);
     }
 
     /**
-     * Get the academicYear associated with the School
+     * Get the academicYear associated with the School.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
     public function academicYear()
     {
-        return $this->hasOne(AcademicYear::class,'id', 'academic_year_id');
+        return $this->hasOne(AcademicYear::class, 'id', 'academic_year_id');
     }
 
     /**
-     * Get the semester associated with the School
+     * Get the semester associated with the School.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */

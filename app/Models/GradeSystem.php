@@ -2,15 +2,14 @@
 
 namespace App\Models;
 
-use App\Models\ClassGroup;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class GradeSystem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name','remark','grade_from','grade_till','class_group_id',];
+    protected $fillable = ['name', 'remark', 'grade_from', 'grade_till', 'class_group_id'];
 
     public function classGroup()
     {

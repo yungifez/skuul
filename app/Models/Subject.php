@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\MyClass;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -16,7 +14,7 @@ class Subject extends Model
     ];
 
     /**
-     * Get the class that owns the Subject
+     * Get the class that owns the Subject.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
@@ -26,12 +24,12 @@ class Subject extends Model
     }
 
     /**
-     * The teachers that belong to the Subject
+     * The teachers that belong to the Subject.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function teachers()
     {
-        return $this->belongsToMany(User::class, 'subject_user', );
+        return $this->belongsToMany(User::class, 'subject_user');
     }
 }

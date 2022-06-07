@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Syllabus;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class SyllabusSeeder extends Seeder
 {

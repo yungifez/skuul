@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\AcademicYear;
-use Illuminate\Http\Request;
 use App\Http\Requests\AcademicYearStoreRequest;
+use App\Models\AcademicYear;
 use App\Services\AcademicYear\AcademicYearService;
+use Illuminate\Http\Request;
 
 class AcademicYearController extends Controller
 {
@@ -40,7 +40,8 @@ class AcademicYearController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
+     *
      * @return \Illuminate\Http\Response
      */
     public function store(AcademicYearStoreRequest $request)
@@ -54,7 +55,8 @@ class AcademicYearController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function show(AcademicYear $academicYear)
@@ -65,7 +67,8 @@ class AcademicYearController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function edit(AcademicYear $academicYear)
@@ -76,8 +79,9 @@ class AcademicYearController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int                      $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function update(AcademicYearStoreRequest $request, AcademicYear $academicYear)
@@ -91,7 +95,8 @@ class AcademicYearController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy(AcademicYear $academicYear)

@@ -2,15 +2,15 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\Semester;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class SemesterTest extends TestCase
 {
-    use RefreshDatabase, FeatureTestTrait;
+    use RefreshDatabase;
+    use FeatureTestTrait;
     //test unauthorized user can not view all semesters
 
     public function test_unauthorized_user_cannot_view_all_semesters()
@@ -79,9 +79,9 @@ class SemesterTest extends TestCase
     public function test_authorized_user_can_store_a_semester()
     {
         $this->authorized_user(['create semester'])
-            ->post('/dashboard/semesters',['name' => 'Test semester','academic_year_id' => 1, ]);
+            ->post('/dashboard/semesters', ['name' => 'Test semester', 'academic_year_id' => 1]);
 
-        $this->assertDatabaseHas('semesters',['name' => 'Test semester', 'academic_year_id' => 1]);
+        $this->assertDatabaseHas('semesters', ['name' => 'Test semester', 'academic_year_id' => 1]);
     }
 
     //test unauthorized user can not update a semester
@@ -91,7 +91,7 @@ class SemesterTest extends TestCase
         $semester = Semester::factory()->create();
 
         $this->unauthorized_user()
-            ->put("/dashboard/semesters/$semester->id",['name' => 'Test semester','academic_year_id' => 1, ])
+            ->put("/dashboard/semesters/$semester->id", ['name' => 'Test semester', 'academic_year_id' => 1])
             ->assertForbidden();
     }
 
@@ -102,10 +102,10 @@ class SemesterTest extends TestCase
         $semester = Semester::factory()->create();
 
         $this->authorized_user(['update semester'])
-            ->put("/dashboard/semesters/$semester->id",['name' => 'Test semester', ]);
+            ->put("/dashboard/semesters/$semester->id", ['name' => 'Test semester']);
         $this->assertDatabaseHas('semesters', [
-            'id' => $semester->id,
-            'name' => 'Test semester'
+            'id'   => $semester->id,
+            'name' => 'Test semester',
         ]);
     }
 
@@ -125,7 +125,7 @@ class SemesterTest extends TestCase
     public function test_authorized_user_can_delete_a_semester()
     {
         $semester = Semester::factory()->create();
-        
+
         $this->authorized_user(['delete semester'])
             ->delete("/dashboard/semesters/$semester->id");
 
@@ -146,13 +146,13 @@ class SemesterTest extends TestCase
     public function test_authorized_user_can_set_semester()
     {
         $semester = Semester::factory()->create();
-        
+
         $this->authorized_user(['set semester'])
-            ->post("/dashboard/semesters/set", ['semester_id' => $semester->id]);
+            ->post('/dashboard/semesters/set', ['semester_id' => $semester->id]);
 
         $this->assertDatabaseHas('schools', [
-            'id' => auth()->user()->school->id,
-            'semester_id' => $semester->id
+            'id'          => auth()->user()->school->id,
+            'semester_id' => $semester->id,
         ]);
     }
 }
