@@ -57,7 +57,6 @@ class SchoolService
         $record['code'] = $this->generateSchoolCode();
         $school = School::create($record);
         session()->flash('success', __('School created successfully'));
-
     }
 
     /**
@@ -76,7 +75,6 @@ class SchoolService
         $school->email = $records['email'];
         $school->save();
         session()->flash('success', __('School updated successfully'));
-
     }
 
     /**
@@ -98,7 +96,6 @@ class SchoolService
             return;
         }
         session()->flash('danger', __('School not found'));
-
     }
 
     /**
@@ -127,6 +124,5 @@ class SchoolService
         }
         $school->delete();
         session()->flash('success', __('School deleted successfully'));
-
     }
 }

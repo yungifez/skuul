@@ -40,7 +40,6 @@ class AdminService
         $admin = $this->user->createUser($records);
         $admin->assignRole('admin');
         session()->flash('success', 'Admin Created Successfully');
-
     }
 
     /**
@@ -55,7 +54,6 @@ class AdminService
     {
         $this->user->updateUser($admin, $records, 'admin');
         session()->flash('success', 'Admin Updated Successfully');
-
     }
 
     /**

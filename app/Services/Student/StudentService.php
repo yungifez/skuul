@@ -96,7 +96,6 @@ class StudentService
         ]);
         DB::commit();
         session()->flash('success', 'Student Created Successfully');
-
     }
 
     /**
@@ -111,7 +110,6 @@ class StudentService
     {
         $student = $this->user->updateUser($student, $records);
         session()->flash('success', 'Student Updated Successfully');
-
     }
 
     /**
@@ -125,7 +123,6 @@ class StudentService
     {
         $student->delete();
         session()->flash('success', 'Student Deleted Successfully');
-
     }
 
     /**
