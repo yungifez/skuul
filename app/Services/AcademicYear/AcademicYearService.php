@@ -51,7 +51,6 @@ class AcademicYearService
         $records['school_id'] = auth()->user()->school_id;
         AcademicYear::create($records);
         session()->flash('success', 'Academic year created successfully');
-
     }
 
     /**
@@ -73,7 +72,6 @@ class AcademicYearService
         $school->semester_id = null;
         $school->save();
         session()->flash('success', "Academic year set for {$school->name} successfully");
-
     }
 
     /**
@@ -90,7 +88,6 @@ class AcademicYearService
         $academicYear->stop_year = $records['stop_year'];
         $academicYear->save();
         session()->flash('success', 'Academic year updated successfully');
-
     }
 
     /**
@@ -104,6 +101,5 @@ class AcademicYearService
     {
         $academicYear->delete();
         session()->flash('success', 'Academic year deleted successfully');
-
     }
 }

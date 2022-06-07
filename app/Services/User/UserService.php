@@ -166,6 +166,5 @@ class UserService
         if (!$this->verifyRole($user->id, $role)) {
             abort(404);
         }
-
     }
 }
