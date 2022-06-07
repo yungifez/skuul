@@ -12,7 +12,6 @@ class StoreSyllabusRequest extends FormRequest
      * @return bool
      */
 
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -21,10 +20,10 @@ class StoreSyllabusRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|string|max:255',
+            'name'        => 'required|string|max:255',
             'description' => 'required|string|max:255',
-            'file' => 'required|file|mimes:pdf|max:10000',
-            'subject_id' => 'required|integer|exists:subjects,id',
+            'file'        => 'required|file|mimes:pdf|max:10000',
+            'subject_id'  => 'required|integer|exists:subjects,id',
         ];
     }
 }

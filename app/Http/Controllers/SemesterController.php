@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Semester;
-use Illuminate\Http\Request;
-use App\Http\Requests\SetSemesterRequest;
-use App\Services\Semester\SemesterService;
 use App\Http\Requests\SemesterStoreRequest;
+use App\Http\Requests\SetSemesterRequest;
+use App\Models\Semester;
+use App\Services\Semester\SemesterService;
 
 class SemesterController extends Controller
 {
@@ -41,7 +40,8 @@ class SemesterController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
+     *
      * @return \Illuminate\Http\Response
      */
     public function store(SemesterStoreRequest $request)
@@ -55,7 +55,8 @@ class SemesterController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Semester  $semester
+     * @param \App\Models\Semester $semester
+     *
      * @return \Illuminate\Http\Response
      */
     public function show(Semester $semester)
@@ -66,7 +67,8 @@ class SemesterController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Semester  $semester
+     * @param \App\Models\Semester $semester
+     *
      * @return \Illuminate\Http\Response
      */
     public function edit(Semester $semester)
@@ -77,13 +79,14 @@ class SemesterController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Semester  $semester
+     * @param \Illuminate\Http\Request $request
+     * @param \App\Models\Semester     $semester
+     *
      * @return \Illuminate\Http\Response
      */
     public function update(SemesterStoreRequest $request, Semester $semester)
     {
-        $data = $request->except('_token','_method');
+        $data = $request->except('_token', '_method');
         $this->semester->updateSemester($semester, $data);
 
         return back();
@@ -92,7 +95,8 @@ class SemesterController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Semester  $semester
+     * @param \App\Models\Semester $semester
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy(Semester $semester)
@@ -103,15 +107,15 @@ class SemesterController extends Controller
     }
 
     /**
-     * Set school semester
+     * Set school semester.
      *
      * @return \Illuminate\Http\Response
      */
-
-    public function setSemester(SetSemesterRequest $request){
+    public function setSemester(SetSemesterRequest $request)
+    {
         $this->authorize('setSemester', Semester::class);
         $this->semester->setSemester($request->semester_id);
-        
+
         return back();
     }
 }

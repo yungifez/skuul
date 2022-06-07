@@ -40,9 +40,9 @@ class SectionService
         $section = Section::firstOrCreate($records);
 
         if ($section->wasRecentlyCreated) {
-            session()->flash('success' ,__('Section created successfully'));
-        }else {
-            session()->flash('danger' ,__('Section already exists'));
+            session()->flash('success', __('Section created successfully'));
+        } else {
+            session()->flash('danger', __('Section already exists'));
         }
 
         return $section;
@@ -60,7 +60,7 @@ class SectionService
     public function deleteSection(Section $section)
     {
         if ($section->studentRecords->count() > 0) {
-            return session()->flash('danger', __('Remove all students from section first'));;
+            return session()->flash('danger', __('Remove all students from section first'));
         }
         $section->delete();
         session()->flash('success', __('Section deleted successfully'));

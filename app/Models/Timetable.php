@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\TimetableTimeSlot;
-use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class Timetable extends Pivot
 {
@@ -28,12 +27,12 @@ class Timetable extends Pivot
     }
 
     /**
-     * Get all of the timeSlots for the Timetable
+     * Get all of the timeSlots for the Timetable.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function timeSlots()
     {
-        return $this->hasMany(TimetableTimeSlot::class,'timetable_id');
+        return $this->hasMany(TimetableTimeSlot::class, 'timetable_id');
     }
 }

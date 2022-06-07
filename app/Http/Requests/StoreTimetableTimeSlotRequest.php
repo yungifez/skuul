@@ -12,7 +12,6 @@ class StoreTimetableTimeSlotRequest extends FormRequest
      * @return bool
      */
 
-
     /**
      * Get the validation rules that apply to the request.
      *
@@ -22,7 +21,7 @@ class StoreTimetableTimeSlotRequest extends FormRequest
     {
         return [
             'start_time' => 'required|date_format:H:i',
-            'stop_time' => 'required|date_format:H:i|after:start_time',
+            'stop_time'  => 'required|date_format:H:i|after:start_time',
         ];
     }
 }

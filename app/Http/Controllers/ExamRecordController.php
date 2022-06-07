@@ -2,21 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ExamRecord;
-use App\Services\Exam\ExamRecordService;
 use App\Http\Requests\StoreExamRecordRequest;
 use App\Http\Requests\UpdateExamRecordRequest;
+use App\Models\ExamRecord;
+use App\Services\Exam\ExamRecordService;
 
 class ExamRecordController extends Controller
 {
-
     public $examRecord;
+
     public function __construct(ExamRecordService $examRecord)
     {
         $this->examRecord = $examRecord;
 
         $this->authorizeResource(ExamRecord::class, 'exam_record');
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -40,7 +41,8 @@ class ExamRecordController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \App\Http\Requests\StoreExamRecordRequest  $request
+     * @param \App\Http\Requests\StoreExamRecordRequest $request
+     *
      * @return \Illuminate\Http\Response
      */
     public function store(StoreExamRecordRequest $request)
@@ -55,7 +57,8 @@ class ExamRecordController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\ExamRecord  $examRecord
+     * @param \App\Models\ExamRecord $examRecord
+     *
      * @return \Illuminate\Http\Response
      */
     public function show(ExamRecord $examRecord)
@@ -66,7 +69,8 @@ class ExamRecordController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\ExamRecord  $examRecord
+     * @param \App\Models\ExamRecord $examRecord
+     *
      * @return \Illuminate\Http\Response
      */
     public function edit(ExamRecord $examRecord)
@@ -77,8 +81,9 @@ class ExamRecordController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\UpdateExamRecordRequest  $request
-     * @param  \App\Models\ExamRecord  $examRecord
+     * @param \App\Http\Requests\UpdateExamRecordRequest $request
+     * @param \App\Models\ExamRecord                     $examRecord
+     *
      * @return \Illuminate\Http\Response
      */
     public function update(UpdateExamRecordRequest $request, ExamRecord $examRecord)
@@ -89,7 +94,8 @@ class ExamRecordController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\ExamRecord  $examRecord
+     * @param \App\Models\ExamRecord $examRecord
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy(ExamRecord $examRecord)

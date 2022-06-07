@@ -2,15 +2,15 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class TimetableRecord extends Pivot
 {
     use HasFactory;
 
     /**
-     * Get the Subject that owns the TimeTableRecord
+     * Get the Subject that owns the TimeTableRecord.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */

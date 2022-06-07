@@ -3,16 +3,15 @@
 namespace App\Services\Timetable;
 
 use App\Models\Timetable;
-use Illuminate\Support\Facades\DB;
 use App\Services\Print\PrintService;
+use Illuminate\Support\Facades\DB;
 
 class TimetableService
 {
     //get all syllabus in semester and class
     public function getAllTimetablesInSemesterAndClass($semester_id, $class_id)
     {
-        return Timetable::where('semester_id', $semester_id)->get()->filter(function ($timetable) use ($class_id)
-        {
+        return Timetable::where('semester_id', $semester_id)->get()->filter(function ($timetable) use ($class_id) {
             return $timetable->my_class_id == $class_id;
         });
     }
@@ -21,13 +20,13 @@ class TimetableService
 
     public function createTimetable($data)
     {
-        DB::transaction(function() use ($data) {
+        DB::transaction(function () use ($data) {
             $data['semester_id'] = auth()->user()->school->semester_id;
-            if(!isset($data['description'])) {
+            if (!isset($data['description'])) {
                 $data['description'] = null;
             }
             Timetable::create([
-                'name' => $data['name'],
+                'name'        => $data['name'],
                 'description' => $data['description'],
                 'my_class_id' => $data['my_class_id'],
                 'semester_id' => $data['semester_id'],
@@ -41,7 +40,7 @@ class TimetableService
 
     public function updateTimetable(Timetable $timetable, $data)
     {
-        DB::transaction(function() use ($data, $timetable) {
+        DB::transaction(function () use ($data, $timetable) {
             $timetable->name = $data['name'];
             $timetable->description = $data['description'];
             $timetable->save();

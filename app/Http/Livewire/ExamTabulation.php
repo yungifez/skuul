@@ -4,16 +4,27 @@ namespace App\Http\Livewire;
 
 use App\Models\Exam;
 use App\Models\Section;
-use Livewire\Component;
-use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\Exam\ExamService;
-use Illuminate\Support\Facades\Cache;
 use App\Services\MyClass\MyClassService;
 use App\Services\Section\SectionService;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Support\Facades\Cache;
+use Livewire\Component;
 
 class ExamTabulation extends Component
 {
-    public $exam, $class, $section, $exams, $classes, $sections, $semester, $subjects, $students, $totalMarksAttainableInEachSubject, $tabulatedRecords, $grades;
+    public $exam;
+    public $class;
+    public $section;
+    public $exams;
+    public $classes;
+    public $sections;
+    public $semester;
+    public $subjects;
+    public $students;
+    public $totalMarksAttainableInEachSubject;
+    public $tabulatedRecords;
+    public $grades;
 
     protected $listeners = ['print'];
 
@@ -50,7 +61,7 @@ class ExamTabulation extends Component
     public function tabulate(Exam $exam, Section $section)
     {
         //get total marks attainable in each subject
-        $this->totalMarksAttainableInEachSubject = app('App\Services\Exam\ExamService')-> totalMarksAttainableInExamForSubject($exam);
+        $this->totalMarksAttainableInEachSubject = app('App\Services\Exam\ExamService')->totalMarksAttainableInExamForSubject($exam);
 
         //get all subjects in section
         $this->subjects = $section->myClass->subjects;
@@ -61,7 +72,7 @@ class ExamTabulation extends Component
         });
 
         //get tabulation from cache else create new one
-        $this->tabulatedRecords = Cache::get("exam-tabulation-".$exam->id."-".$section->id, function () use ($exam, $section) {
+        $this->tabulatedRecords = Cache::get('exam-tabulation-'.$exam->id.'-'.$section->id, function () use ($exam, $section) {
             return $this->createTabulation($exam, $section);
         });
     }
@@ -69,10 +80,10 @@ class ExamTabulation extends Component
     //tabulates the result
     private function createTabulation(Exam $exam, Section $section)
     {
-        //create tabulation 
+        //create tabulation
         $tabulatedRecords = [];
 
-        foreach ($this->students as $student ) {
+        foreach ($this->students as $student) {
 
             //array to hold tabulation values for each student
             $totalSubjectMarks = [];
@@ -82,7 +93,7 @@ class ExamTabulation extends Component
             $tabulatedRecords[$student->id]['admission_number'] = $student->studentRecord->admission_number;
 
             //loop through all subjects and add all marks
-            foreach ($this->subjects->sortBy('name') as $subject ) {
+            foreach ($this->subjects->sortBy('name') as $subject) {
                 $tabulatedRecords[$student->id]['student_marks'][$subject->id] = app('App\Services\Exam\ExamService')->calculateStudentTotalMarksInSubject($exam, $student, $subject);
 
                 //array used for calculating total marks
@@ -96,22 +107,22 @@ class ExamTabulation extends Component
             $tabulatedRecords[$student->id]['total'] = $totalSubjectMarks;
 
             //calculated percentage
-            $totalMarks =$this->totalMarksAttainableInEachSubject * $this->subjects->count();
+            $totalMarks = $this->totalMarksAttainableInEachSubject * $this->subjects->count();
 
             //make sure total marks is not 0
             $totalMarks = $totalMarks ? $totalMarks : 1;
-            $tabulatedRecords[$student->id]['percent'] =ceil(  (($totalSubjectMarks / $totalMarks)) * 100);
+            $tabulatedRecords[$student->id]['percent'] = ceil((($totalSubjectMarks / $totalMarks)) * 100);
             $percentage = $tabulatedRecords[$student->id]['percent'];
 
             $grade = app('App\Services\GradeSystem\GradeSystemService')->getGrade($section->myClass->classGroup->id, $percentage);
-            
+
             //get appropriate grade
-            $tabulatedRecords[$student->id]['grade'] =  $grade ? $grade->name : 'No Grade';
+            $tabulatedRecords[$student->id]['grade'] = $grade ? $grade->name : 'No Grade';
         }
 
         //creates cache for tabulation
-        Cache::put("exam-tabulation-".$exam->id."-".$section->id, $this->tabulatedRecords, 3600);
-        
+        Cache::put('exam-tabulation-'.$exam->id.'-'.$section->id, $this->tabulatedRecords, 3600);
+
         return collect($tabulatedRecords);
     }
 
@@ -119,13 +130,13 @@ class ExamTabulation extends Component
 
     public function print()
     {
-        //used pdf class direcltly 
-        $pdf = Pdf::loadView('pages.exam.print-exam-tabulation',  ['tabulatedRecords' => $this->tabulatedRecords, 'totalMarksAttainableInEachSubject' => $this->totalMarksAttainableInEachSubject, 'subjects' => $this->subjects]);
+        //used pdf class direcltly
+        $pdf = Pdf::loadView('pages.exam.print-exam-tabulation', ['tabulatedRecords' => $this->tabulatedRecords, 'totalMarksAttainableInEachSubject' => $this->totalMarksAttainableInEachSubject, 'subjects' => $this->subjects]);
         $randomString = str()->random();
         //save as pdf
         $pdf->save("temp-pdf/exam-tabulation$randomString.pdf");
         //download
-        return response()->download("temp-pdf/exam-tabulation$randomString.pdf" , "exam-tabulation.pdf");
+        return response()->download("temp-pdf/exam-tabulation$randomString.pdf", 'exam-tabulation.pdf');
     }
 
     public function render()

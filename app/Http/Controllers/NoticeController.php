@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Notice;
-use App\Services\Notice\NoticeService;
 use App\Http\Requests\StoreNoticeRequest;
 use App\Http\Requests\UpdateNoticeRequest;
+use App\Models\Notice;
+use App\Services\Notice\NoticeService;
 
 class NoticeController extends Controller
 {
     public $notice;
+
     public function __construct(NoticeService $notice)
     {
         $this->authorizeResource(Notice::class, 'notice');
@@ -39,7 +40,8 @@ class NoticeController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \App\Http\Requests\StoreNoticeRequest  $request
+     * @param \App\Http\Requests\StoreNoticeRequest $request
+     *
      * @return \Illuminate\Http\Response
      */
     public function store(StoreNoticeRequest $request)
@@ -52,7 +54,8 @@ class NoticeController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Notice  $notice
+     * @param \App\Models\Notice $notice
+     *
      * @return \Illuminate\Http\Response
      */
     public function show(Notice $notice)
@@ -63,7 +66,8 @@ class NoticeController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Notice  $notice
+     * @param \App\Models\Notice $notice
+     *
      * @return \Illuminate\Http\Response
      */
     public function edit(Notice $notice)
@@ -74,8 +78,9 @@ class NoticeController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\UpdateNoticeRequest  $request
-     * @param  \App\Models\Notice  $notice
+     * @param \App\Http\Requests\UpdateNoticeRequest $request
+     * @param \App\Models\Notice                     $notice
+     *
      * @return \Illuminate\Http\Response
      */
     public function update(UpdateNoticeRequest $request, Notice $notice)
@@ -86,7 +91,8 @@ class NoticeController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Notice  $notice
+     * @param \App\Models\Notice $notice
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy(Notice $notice)

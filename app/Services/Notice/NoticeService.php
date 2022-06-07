@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 class NoticeService
 {
     /**
-     * Get all notices
+     * Get all notices.
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
@@ -18,7 +18,7 @@ class NoticeService
     }
 
     /**
-     * Get present notices which are active
+     * Get present notices which are active.
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
@@ -30,31 +30,34 @@ class NoticeService
             ->where('active', 1)
             ->get();
     }
+
     /**
-     * Store notice 
-     * 
+     * Store notice.
+     *
      * @param array $data
+     *
      * @return session
      */
     public function storeNotice(array $data)
     {
-        if(isset($data['attachment'])) {
-            $data['attachment'] =  $data['attachment']->store(
-                'notice/', 'public'
+        if (isset($data['attachment'])) {
+            $data['attachment'] = $data['attachment']->store(
+                'notice/',
+                'public'
             );
-        }else{
+        } else {
             $data['attachment'] = null;
         }
 
         DB::beginTransaction();
 
         Notice::create([
-            'title' => $data['title'],
-            'content' => $data['content'],
+            'title'      => $data['title'],
+            'content'    => $data['content'],
             'start_date' => $data['start_date'],
-            'stop_date' => $data['stop_date'],
+            'stop_date'  => $data['stop_date'],
             'attachment' => $data['attachment'],
-            'school_id' => auth()->user()->school_id,
+            'school_id'  => auth()->user()->school_id,
         ]);
 
         DB::commit();

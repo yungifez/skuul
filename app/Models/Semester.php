@@ -2,16 +2,15 @@
 
 namespace App\Models;
 
-use App\Models\Exam;
-use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class Semester extends Pivot
 {
     use HasFactory;
-    
+
     protected $table = 'semesters';
-    
+
     protected $fillable = ['name', 'school_id', 'academic_year_id'];
 
     public function academicYear()
@@ -25,12 +24,12 @@ class Semester extends Pivot
     }
 
     /**
-     * Get all of the exams for the Semester
+     * Get all of the exams for the Semester.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function exams()
     {
-        return $this->hasMany(Exam::class, 'semester_id',);
+        return $this->hasMany(Exam::class, 'semester_id');
     }
 }

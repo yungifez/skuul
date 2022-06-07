@@ -13,12 +13,13 @@ class ExamPolicy
     /**
      * Determine whether the user can view any models.
      *
-     * @param  \App\Models\User  $user
+     * @param \App\Models\User $user
+     *
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function viewAny(User $user)
     {
-        if($user->can('read exam')) {
+        if ($user->can('read exam')) {
             return true;
         }
     }
@@ -26,13 +27,14 @@ class ExamPolicy
     /**
      * Determine whether the user can view the model.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Exam  $exam
+     * @param \App\Models\User $user
+     * @param \App\Models\Exam $exam
+     *
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function view(User $user, Exam $exam)
     {
-        if($user->can('read exam') && $exam->semester->school_id == $user->school_id) {
+        if ($user->can('read exam') && $exam->semester->school_id == $user->school_id) {
             return true;
         }
     }
@@ -40,7 +42,8 @@ class ExamPolicy
     /**
      * Determine whether the user can create models.
      *
-     * @param  \App\Models\User  $user
+     * @param \App\Models\User $user
+     *
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function create(User $user)
@@ -53,13 +56,14 @@ class ExamPolicy
     /**
      * Determine whether the user can update the model.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Exam  $exam
+     * @param \App\Models\User $user
+     * @param \App\Models\Exam $exam
+     *
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function update(User $user, Exam $exam)
     {
-        if($user->can('update exam') && $exam->semester->school_id == $user->school_id) {
+        if ($user->can('update exam') && $exam->semester->school_id == $user->school_id) {
             return true;
         }
     }
@@ -67,13 +71,14 @@ class ExamPolicy
     /**
      * Determine whether the user can delete the model.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Exam  $exam
+     * @param \App\Models\User $user
+     * @param \App\Models\Exam $exam
+     *
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function delete(User $user, Exam $exam)
     {
-        if($user->can('delete exam') && $exam->semester->school_id == $user->school_id) {
+        if ($user->can('delete exam') && $exam->semester->school_id == $user->school_id) {
             return true;
         }
     }
@@ -81,8 +86,9 @@ class ExamPolicy
     /**
      * Determine whether the user can restore the model.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Exam  $exam
+     * @param \App\Models\User $user
+     * @param \App\Models\Exam $exam
+     *
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function restore(User $user, Exam $exam)
@@ -93,8 +99,9 @@ class ExamPolicy
     /**
      * Determine whether the user can permanently delete the model.
      *
-     * @param  \App\Models\User  $user
-     * @param  \App\Models\Exam  $exam
+     * @param \App\Models\User $user
+     * @param \App\Models\Exam $exam
+     *
      * @return \Illuminate\Auth\Access\Response|bool
      */
     public function forceDelete(User $user, Exam $exam)

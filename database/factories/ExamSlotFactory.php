@@ -17,10 +17,10 @@ class ExamSlotFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->name,
+            'name'        => $this->faker->name,
             'description' => $this->faker->sentence,
-            'total_marks' => $this->faker->numberBetween(1,1000),
-            'exam_id' => 1
+            'total_marks' => $this->faker->numberBetween(1, 1000),
+            'exam_id'     => 1,
         ];
     }
 }

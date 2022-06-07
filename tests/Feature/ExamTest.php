@@ -2,17 +2,17 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\Exam;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class ExamTest extends TestCase
 {
-    use FeatureTestTrait,RefreshDatabase;
+    use FeatureTestTrait;
+    use RefreshDatabase;
 
-   //test unauthorized user cannot view all exams
+    //test unauthorized user cannot view all exams
 
     public function test_unauthorized_user_cant_view_all_exams()
     {
@@ -63,19 +63,19 @@ class ExamTest extends TestCase
     {
         $this->authorized_user(['create exam'])
             ->post('/dashboard/exams', [
-                'name' => 'test exam',
-                'semester_id'=> '1',
+                'name'        => 'test exam',
+                'semester_id' => '1',
                 'description' => 'test description',
-                'start_date' => '2020-01-01',
-                'stop_date' => '2020-01-01',
+                'start_date'  => '2020-01-01',
+                'stop_date'   => '2020-01-01',
             ]);
 
         $this->assertDatabaseHas('exams', [
-            'name' => 'test exam',
-            'semester_id'=> '1',
+            'name'        => 'test exam',
+            'semester_id' => '1',
             'description' => 'test description',
-            'start_date' => '2020-01-01',
-            'stop_date' => '2020-01-01',
+            'start_date'  => '2020-01-01',
+            'stop_date'   => '2020-01-01',
         ]);
     }
 
@@ -104,11 +104,11 @@ class ExamTest extends TestCase
         $exam = Exam::factory()->create();
         $this->unauthorized_user()
             ->put("/dashboard/exams/$exam->id", [
-                'name' => 'test',
-                'semester_id'=> '1',
+                'name'        => 'test',
+                'semester_id' => '1',
                 'description' => 'test',
-                'start_date' => '2018-01-01',
-                'stop_date' => '2018-01-01',
+                'start_date'  => '2018-01-01',
+                'stop_date'   => '2018-01-01',
             ])
             ->assertForbidden();
     }
@@ -120,24 +120,24 @@ class ExamTest extends TestCase
         $exam = Exam::factory()->create();
         $this->authorized_user(['update exam'])
             ->put("/dashboard/exams/$exam->id", [
-                'name' => 'test',
-                'semester_id'=> '1',
+                'name'        => 'test',
+                'semester_id' => '1',
                 'description' => 'test',
-                'start_date' => '2018-01-01',
-                'stop_date' => '2018-01-02',
+                'start_date'  => '2018-01-01',
+                'stop_date'   => '2018-01-02',
             ]);
 
         $this->assertDatabaseHas('exams', [
-            'id' => $exam->id,
-            'name' => 'test',
-            'semester_id'=> '1',
+            'id'          => $exam->id,
+            'name'        => 'test',
+            'semester_id' => '1',
             'description' => 'test',
-            'start_date' => '2018-01-01',
-            'stop_date' => '2018-01-02',
+            'start_date'  => '2018-01-01',
+            'stop_date'   => '2018-01-02',
         ]);
     }
 
-    //test unauthorized user cannot view exam 
+    //test unauthorized user cannot view exam
 
     public function test_unauthorized_user_cannot_view_exam()
     {
@@ -147,7 +147,7 @@ class ExamTest extends TestCase
             ->assertForbidden();
     }
 
-    //test unauthorized user cannot view exam 
+    //test unauthorized user cannot view exam
 
     public function test_authorized_user_can_view_exam()
     {
@@ -156,8 +156,8 @@ class ExamTest extends TestCase
             ->get("dashboard/exams/$exam->id/edit")
             ->assertForbidden();
     }
-    
-    //test unauthorized user cannot view exam 
+
+    //test unauthorized user cannot view exam
 
     public function test_unauthorized_user_cannot_delete_exam()
     {
@@ -167,7 +167,7 @@ class ExamTest extends TestCase
             ->assertForbidden();
     }
 
-    //test unauthorized user cannot view exam 
+    //test unauthorized user cannot view exam
 
     public function test_authorized_user_can_delete_exam()
     {

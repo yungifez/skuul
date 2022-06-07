@@ -3,7 +3,6 @@
 namespace App\Http\Livewire;
 
 use App\Services\MyClass\MyClassService;
-use App\Services\Subject\SubjectService;
 use Livewire\Component;
 
 class ListSubjectsTable extends Component

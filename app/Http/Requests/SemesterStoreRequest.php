@@ -11,7 +11,6 @@ class SemesterStoreRequest extends FormRequest
      *
      * @return bool
      */
-  
 
     /**
      * Get the validation rules that apply to the request.
@@ -21,7 +20,7 @@ class SemesterStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'string|max:256'
+            'name' => 'string|max:256',
         ];
     }
 }

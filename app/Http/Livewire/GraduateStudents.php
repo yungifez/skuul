@@ -2,10 +2,10 @@
 
 namespace App\Http\Livewire;
 
-use Livewire\Component;
-use Illuminate\Support\Facades\App;
 use App\Services\MyClass\MyClassService;
 use App\Services\Student\StudentService;
+use Illuminate\Support\Facades\App;
+use Livewire\Component;
 
 class GraduateStudents extends Component
 {
@@ -16,7 +16,7 @@ class GraduateStudents extends Component
     public $students;
 
     protected $rules = [
-        'class' => 'required|exists:my_classes,id',
+        'class'   => 'required|exists:my_classes,id',
         'section' => 'required|exists:sections,id',
     ];
 
@@ -45,6 +45,7 @@ class GraduateStudents extends Component
             return $student->studentRecord->my_class_id == $this->class && $student->studentRecord->section_id == $this->section;
         });
     }
+
     public function render()
     {
         return view('livewire.graduate-students');

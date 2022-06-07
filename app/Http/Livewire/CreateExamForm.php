@@ -2,8 +2,8 @@
 
 namespace App\Http\Livewire;
 
-use Livewire\Component;
 use App\Services\Semester\SemesterService;
+use Livewire\Component;
 
 class CreateExamForm extends Component
 {
@@ -13,6 +13,7 @@ class CreateExamForm extends Component
     {
         $this->semesters = $semesterService->getAllSemestersInAcademicYear(auth()->user()->school->academic_year_id);
     }
+
     public function render()
     {
         return view('livewire.create-exam-form');

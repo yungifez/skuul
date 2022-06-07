@@ -3,8 +3,8 @@
 namespace App\Http\Livewire;
 
 use App\Models\Exam;
-use Livewire\Component;
 use App\Services\Semester\SemesterService;
+use Livewire\Component;
 
 class EditExamForm extends Component
 {
@@ -14,6 +14,7 @@ class EditExamForm extends Component
     {
         $this->semesters = $semesterService->getAllSemestersInAcademicYear(auth()->user()->school->academic_year_id);
     }
+
     public function render()
     {
         return view('livewire.edit-exam-form');

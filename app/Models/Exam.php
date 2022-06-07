@@ -3,10 +3,8 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use App\Models\ExamSlot;
-use App\Models\Semester;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class Exam extends Model
 {
@@ -28,9 +26,9 @@ class Exam extends Model
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'start_date' => 'date:Y-m-d',
-        'stop_date' => 'date:Y-m-d',
-        'active' => 'boolean',
+        'start_date'        => 'date:Y-m-d',
+        'stop_date'         => 'date:Y-m-d',
+        'active'            => 'boolean',
     ];
 
     public function semester()
@@ -54,5 +52,4 @@ class Exam extends Model
     {
         return Carbon::parse($value)->format('Y/m/d');
     }
-
 }

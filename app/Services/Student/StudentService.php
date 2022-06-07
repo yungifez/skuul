@@ -2,17 +2,18 @@
 
 namespace App\Services\Student;
 
-use App\Models\User;
 use App\Models\Promotion;
-use Illuminate\Support\Str;
+use App\Models\User;
+use App\Services\MyClass\MyClassService;
+use App\Services\Print\PrintService;
 use App\Services\User\UserService;
 use Illuminate\Support\Facades\DB;
-use App\Services\Print\PrintService;
-use App\Services\MyClass\MyClassService;
+use Illuminate\Support\Str;
 
 class StudentService
 {
-    public $myClassService, $user;
+    public $myClassService;
+    public $user;
 
     public function __construct(MyClassService $myClass, UserService $user)
     {
@@ -21,57 +22,56 @@ class StudentService
     }
 
     /**
-     * Get all students in school
-     * 
+     * Get all students in school.
+     *
      * @return lluminate\Database\Eloquent\Collection
      */
     public function getAllStudents()
     {
         return $this->user->getUsersByRole('student')->load('studentRecord');
     }
-  
+
     /**
-     * Get all active students in school
-     * 
+     * Get all active students in school.
+     *
      * @return lluminate\Database\Eloquent\Collection
      */
     public function getAllActiveStudents()
     {
-        return $this->user->getUsersByRole('student')->load('studentRecord')->filter(function ($student)
-        {
+        return $this->user->getUsersByRole('student')->load('studentRecord')->filter(function ($student) {
             return $student->studentRecord->is_graduated == false;
         });
     }
 
     /**
-     * Get all graduated students in school
-     * 
+     * Get all graduated students in school.
+     *
      * @return lluminate\Database\Eloquent\Collection
      */
     public function getAllGraduatedStudents()
     {
-        return $this->user->getUsersByRole('student')->load('studentRecord')->filter(function ($student)
-        {
+        return $this->user->getUsersByRole('student')->load('studentRecord')->filter(function ($student) {
             return $student->studentRecord->is_graduated == true;
         });
     }
 
-   /**
-    * Get a student by id
-    *
-    * @param array|int $id student id
-    * @return App\Models\User
-    */
-    public function getStudentById( $id)
+    /**
+     * Get a student by id.
+     *
+     * @param array|int $id student id
+     *
+     * @return App\Models\User
+     */
+    public function getStudentById($id)
     {
         return $this->user->getUserById($id)->load('studentRecord');
     }
 
     /**
-     * Create student
-     * 
+     * Create student.
+     *
      * @param array $record Array of student record
-     * 
+     *
      * @return void
      */
     public function createStudent($record)
@@ -81,30 +81,30 @@ class StudentService
         $student->assignRole('student');
         $record['admission_number'] || $record['admission_number'] = $this->generateAdmissionNumber();
 
-        if (! $this->myClass->getClassById($record['my_class_id'])->isSectionInClass($record['section_id'])) {
+        if (!$this->myClass->getClassById($record['my_class_id'])->isSectionInClass($record['section_id'])) {
             session()->flash('danger', 'Section is not in class');
             DB::rollBack();
+
             return;
         }
-        
+
         $student->studentRecord()->create([
-            'my_class_id' => $record['my_class_id'],
-            'section_id' => $record['section_id'],
+            'my_class_id'      => $record['my_class_id'],
+            'section_id'       => $record['section_id'],
             'admission_number' => $record['admission_number'],
-            'admission_date' => $record['admission_date'],
+            'admission_date'   => $record['admission_date'],
         ]);
         DB::commit();
         session()->flash('success', 'Student Created Successfully');
 
-        return;
     }
 
     /**
-     * Update student
-     * 
-     * @param App\Model\User $user 
-     * @param array $record Array of student record
-     * 
+     * Update student.
+     *
+     * @param App\Model\User $user
+     * @param array          $record Array of student record
+     *
      * @return void
      */
     public function updateStudent(User $student, $records)
@@ -112,14 +112,13 @@ class StudentService
         $student = $this->user->updateUser($student, $records);
         session()->flash('success', 'Student Updated Successfully');
 
-        return;
     }
 
     /**
-     * Delete student
-     * 
-     * @param App\Model\User $user 
-     * 
+     * Delete student.
+     *
+     * @param App\Model\User $user
+     *
      * @return void
      */
     public function deleteStudent(User $student)
@@ -127,19 +126,18 @@ class StudentService
         $student->delete();
         session()->flash('success', 'Student Deleted Successfully');
 
-        return;
     }
-  
+
     /**
-     * Generate admission number
-     * 
+     * Generate admission number.
+     *
      * @return string
      */
     public function generateAdmissionNumber()
     {
         return Str::random(10);
     }
-    
+
     public function printProfile(string $name, string $view, array $data)
     {
         return PrintService::createPdfFromView($name, $view, $data)->download();
@@ -152,13 +150,12 @@ class StudentService
         $newClass = $this->myClass->getClassById($records['new_class_id']);
         $records['academic_year_id'] = auth()->user()->school->academic_year_id;
 
-
-        if(!$oldClass->sections()->where('id', $records['old_section_id'])->exists()) {
-           return section()->flash('danger','Old section is not in old class');
+        if (!$oldClass->sections()->where('id', $records['old_section_id'])->exists()) {
+            return section()->flash('danger', 'Old section is not in old class');
         }
 
-        if(!$newClass->sections()->where('id', $records['new_section_id'])->exists()) {
-            return section()->flash('danger','New section is not in new class');
+        if (!$newClass->sections()->where('id', $records['new_section_id'])->exists()) {
+            return section()->flash('danger', 'New section is not in new class');
         }
 
         //make sure academic year is present
@@ -179,20 +176,20 @@ class StudentService
             if (in_array($student->id, $records['student_id'])) {
                 $student->studentRecord()->update([
                     'my_class_id' => $records['new_class_id'],
-                    'section_id' => $records['new_section_id'],
+                    'section_id'  => $records['new_section_id'],
                 ]);
             }
         }
 
         // create promotion record
         Promotion::create([
-            'old_class_id' => $records['old_class_id'],
-            'new_class_id' => $records['new_class_id'],
-            'old_section_id' => $records['old_section_id'],
-            'new_section_id' => $records['new_section_id'],
-            'students' => $students->pluck('id'),
+            'old_class_id'     => $records['old_class_id'],
+            'new_class_id'     => $records['new_class_id'],
+            'old_section_id'   => $records['old_section_id'],
+            'new_section_id'   => $records['new_section_id'],
+            'students'         => $students->pluck('id'),
             'academic_year_id' => $records['academic_year_id'],
-            'school_id' => auth()->user()->school_id,
+            'school_id'        => auth()->user()->school_id,
         ]);
 
         return session()->flash('success', 'Students Promoted Successfully');
@@ -207,7 +204,7 @@ class StudentService
 
     public function getPromotionsByAcademicYearId($academicYearId)
     {
-        return Promotion::where('school_id', auth()->user()->school_id)->where('academic_year_id' , $academicYearId)->get();
+        return Promotion::where('school_id', auth()->user()->school_id)->where('academic_year_id', $academicYearId)->get();
     }
 
     // reset promotion method
@@ -219,7 +216,7 @@ class StudentService
         foreach ($students as $student) {
             $student->studentRecord()->update([
                 'my_class_id' => $promotion->old_class_id,
-                'section_id' => $promotion->old_section_id,
+                'section_id'  => $promotion->old_section_id,
             ]);
         }
 
@@ -243,7 +240,7 @@ class StudentService
         foreach ($students as $student) {
             if (in_array($student->id, $records['student_id'])) {
                 $student->studentRecord()->update([
-                    'is_graduated' => true
+                    'is_graduated' => true,
                 ]);
             }
         }
@@ -256,7 +253,7 @@ class StudentService
     public function resetGraduation(User $student)
     {
         $student->studentRecord()->update([
-            'is_graduated' => false
+            'is_graduated' => false,
         ]);
 
         return session()->flash('success', 'Graduation Reset Successfully');

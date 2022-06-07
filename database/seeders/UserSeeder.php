@@ -3,10 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Support\Str;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class UserSeeder extends Seeder
 {
@@ -20,123 +20,123 @@ class UserSeeder extends Seeder
         DB::table('users')->delete();
 
         $superAdmin = User::create([
-            'id' => 1,
-            'name' => 'John Doe',
-            'email' => 'super@admin.com',
-            'password' => Hash::make('password'),
-            'school_id' => 1,
-            'address' => 'super admin street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'blood_group' => 'B+',
+            'id'                => 1,
+            'name'              => 'John Doe',
+            'email'             => 'super@admin.com',
+            'password'          => Hash::make('password'),
+            'school_id'         => 1,
+            'address'           => 'super admin street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
+            'blood_group'       => 'B+',
             'email_verified_at' => now(),
         ]);
 
         $superAdmin->assignRole('super-admin');
 
         $admin = User::create([
-            'id' => 2,
-            'name' => 'Jane Doe',
-            'email' => 'admin@admin.com',
-            'password' => Hash::make('password'),
-            'school_id' => 1,
-            'address' => 'admin street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'blood_group' => 'B+',
+            'id'                => 2,
+            'name'              => 'Jane Doe',
+            'email'             => 'admin@admin.com',
+            'password'          => Hash::make('password'),
+            'school_id'         => 1,
+            'address'           => 'admin street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
+            'blood_group'       => 'B+',
             'email_verified_at' => now(),
         ]);
 
         $admin->assignRole('admin');
 
         $teacher = User::create([
-            'id' => 3,
-            'name'     => 'John Doe',
-            'email'    => 'teacher@teacher.com',
-            'password' => Hash::make('password'),
-            'school_id'=> 1,
-            'address' => 'teacher street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'blood_group' => 'B+',
+            'id'                => 3,
+            'name'              => 'John Doe',
+            'email'             => 'teacher@teacher.com',
+            'password'          => Hash::make('password'),
+            'school_id'         => 1,
+            'address'           => 'teacher street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
+            'blood_group'       => 'B+',
             'email_verified_at' => now(),
         ]);
 
         $teacher->assignRole('teacher');
 
         $student = User::create([
-            'id' => 4,
-            'name' => 'Jane Doe',
-            'email' => 'student@student.com',
-            'password' => Hash::make('password'),
-            'school_id'=> 1,
-            'address' => 'student street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'blood_group' => 'B+',
+            'id'                => 4,
+            'name'              => 'Jane Doe',
+            'email'             => 'student@student.com',
+            'password'          => Hash::make('password'),
+            'school_id'         => 1,
+            'address'           => 'student street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
+            'blood_group'       => 'B+',
             'email_verified_at' => now(),
         ]);
         $student->studentRecord()->create([
-            'my_class_id' => 1,
-            'section_id' => 1,
-            'admission_date' => '22/04/04',
-            'is_graduated' => false,
+            'my_class_id'      => 1,
+            'section_id'       => 1,
+            'admission_date'   => '22/04/04',
+            'is_graduated'     => false,
             'admission_number' => Str::random(10),
         ]);
 
         $student->assignRole('student');
 
         $parent = User::create([
-            'name' => 'John Doe',
-            'email' => 'parent@parent.com',
-            'password' => Hash::make('password'),
-            'school_id'=> 1,
-            'address' => 'parent street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'blood_group' => 'B+',
+            'name'              => 'John Doe',
+            'email'             => 'parent@parent.com',
+            'password'          => Hash::make('password'),
+            'school_id'         => 1,
+            'address'           => 'parent street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
+            'blood_group'       => 'B+',
             'email_verified_at' => now(),
         ]);
 
         $parent->assignRole('parent');
 
         $accountant = User::create([
-            'name' => 'Jane Doe',
-            'email' => 'accountant@accountant.com',
-            'password' => Hash::make('password'),
-            'school_id'=> 1,
-            'address' => 'accountant street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'blood_group' => 'B+',
+            'name'              => 'Jane Doe',
+            'email'             => 'accountant@accountant.com',
+            'password'          => Hash::make('password'),
+            'school_id'         => 1,
+            'address'           => 'accountant street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
+            'blood_group'       => 'B+',
             'email_verified_at' => now(),
         ]);
 
         $accountant->assignRole('accountant');
 
         $librarian = User::create([
-            'name' => 'John Doe',
-            'email' => 'libratian@librarian.com',
-            'password' => Hash::make('password'),
-            'school_id'=> 1,
-            'address' => 'librarian street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'blood_group' => 'B+',
+            'name'              => 'John Doe',
+            'email'             => 'libratian@librarian.com',
+            'password'          => Hash::make('password'),
+            'school_id'         => 1,
+            'address'           => 'librarian street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
+            'blood_group'       => 'B+',
             'email_verified_at' => now(),
         ]);
 

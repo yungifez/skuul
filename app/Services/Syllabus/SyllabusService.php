@@ -15,8 +15,7 @@ class SyllabusService
     //get all syllabus in semester and class
     public function getAllSyllabiInSemesterAndClass($semester_id, $class_id)
     {
-        return Syllabus::where('semester_id', $semester_id)->get()->load('subject')->filter(function ($semester) use ($class_id)
-        {
+        return Syllabus::where('semester_id', $semester_id)->get()->load('subject')->filter(function ($semester) use ($class_id) {
             return $semester->subject->myClass->id == $class_id;
         });
     }
@@ -30,15 +29,16 @@ class SyllabusService
     {
         $data['semester_id'] = auth()->user()->school->semester_id;
 
-        $data['file'] =  $data['file']->store(
-            'syllabus/', 'public'
+        $data['file'] = $data['file']->store(
+            'syllabus/',
+            'public'
         );
 
         Syllabus::create([
-            'name' => $data['name'],
+            'name'        => $data['name'],
             'description' => $data['description'],
-            'file' => $data['file'],
-            'subject_id' => $data['subject_id'],
+            'file'        => $data['file'],
+            'subject_id'  => $data['subject_id'],
             'semester_id' => $data['semester_id'],
         ]);
 

@@ -14,8 +14,8 @@ return [
     |
     */
 
-    'title' => env('APP_NAME'),
-    'title_prefix' => '',
+    'title'         => env('APP_NAME'),
+    'title_prefix'  => '',
     'title_postfix' => '',
 
     /*
@@ -30,7 +30,7 @@ return [
     |
     */
 
-    'use_ico_only' => false,
+    'use_ico_only'     => false,
     'use_full_favicon' => false,
 
     /*
@@ -45,12 +45,12 @@ return [
     |
     */
 
-    'logo' => env('APP_NAME'),
-    'logo_img' => env('LOGO_PATH'),
-    'logo_img_class' => 'brand-image img-circle elevation-3',
-    'logo_img_xl' => null,
+    'logo'              => env('APP_NAME'),
+    'logo_img'          => env('LOGO_PATH'),
+    'logo_img_class'    => 'brand-image img-circle elevation-3',
+    'logo_img_xl'       => null,
     'logo_img_xl_class' => 'brand-image-xs',
-    'logo_img_alt' => env('APP_NAME'),
+    'logo_img_alt'      => env('APP_NAME'),
 
     /*
     |--------------------------------------------------------------------------
@@ -64,12 +64,12 @@ return [
     |
     */
 
-    'usermenu_enabled' => true,
-    'usermenu_header' => false,
+    'usermenu_enabled'      => true,
+    'usermenu_header'       => false,
     'usermenu_header_class' => 'bg-primary',
-    'usermenu_image' => false,
-    'usermenu_desc' => false,
-    'usermenu_profile_url' => false,
+    'usermenu_image'        => false,
+    'usermenu_desc'         => false,
+    'usermenu_profile_url'  => false,
 
     /*
     |--------------------------------------------------------------------------
@@ -83,12 +83,12 @@ return [
     |
     */
 
-    'layout_topnav' => null,
-    'layout_boxed' => null,
+    'layout_topnav'        => null,
+    'layout_boxed'         => null,
     'layout_fixed_sidebar' => null,
-    'layout_fixed_navbar' => null,
-    'layout_fixed_footer' => null,
-    'layout_dark_mode' => null,
+    'layout_fixed_navbar'  => null,
+    'layout_fixed_footer'  => null,
+    'layout_dark_mode'     => null,
 
     /*
     |--------------------------------------------------------------------------
@@ -102,12 +102,12 @@ return [
     |
     */
 
-    'classes_auth_card' => 'card-outline card-primary',
+    'classes_auth_card'   => 'card-outline card-primary',
     'classes_auth_header' => '',
-    'classes_auth_body' => '',
+    'classes_auth_body'   => '',
     'classes_auth_footer' => '',
-    'classes_auth_icon' => '',
-    'classes_auth_btn' => 'btn-flat btn-primary',
+    'classes_auth_icon'   => '',
+    'classes_auth_btn'    => 'btn-flat btn-primary',
 
     /*
     |--------------------------------------------------------------------------
@@ -121,16 +121,16 @@ return [
     |
     */
 
-    'classes_body' => '',
-    'classes_brand' => '',
-    'classes_brand_text' => '',
-    'classes_content_wrapper' => '',
-    'classes_content_header' => '',
-    'classes_content' => '',
-    'classes_sidebar' => 'sidebar-dark-primary elevation-4',
-    'classes_sidebar_nav' => '',
-    'classes_topnav' => 'navbar-white navbar-light',
-    'classes_topnav_nav' => 'navbar-expand',
+    'classes_body'             => '',
+    'classes_brand'            => '',
+    'classes_brand_text'       => '',
+    'classes_content_wrapper'  => '',
+    'classes_content_header'   => '',
+    'classes_content'          => '',
+    'classes_sidebar'          => 'sidebar-dark-primary elevation-4',
+    'classes_sidebar_nav'      => '',
+    'classes_topnav'           => 'navbar-white navbar-light',
+    'classes_topnav_nav'       => 'navbar-expand',
     'classes_topnav_container' => 'container',
 
     /*
@@ -145,15 +145,15 @@ return [
     |
     */
 
-    'sidebar_mini' => 'lg',
-    'sidebar_collapse' => false,
-    'sidebar_collapse_auto_size' => false,
-    'sidebar_collapse_remember' => false,
+    'sidebar_mini'                            => 'lg',
+    'sidebar_collapse'                        => false,
+    'sidebar_collapse_auto_size'              => false,
+    'sidebar_collapse_remember'               => false,
     'sidebar_collapse_remember_no_transition' => true,
-    'sidebar_scrollbar_theme' => 'os-theme-light',
-    'sidebar_scrollbar_auto_hide' => 'l',
-    'sidebar_nav_accordion' => true,
-    'sidebar_nav_animation_speed' => 300,
+    'sidebar_scrollbar_theme'                 => 'os-theme-light',
+    'sidebar_scrollbar_auto_hide'             => 'l',
+    'sidebar_nav_accordion'                   => true,
+    'sidebar_nav_animation_speed'             => 300,
 
     /*
     |--------------------------------------------------------------------------
@@ -167,12 +167,12 @@ return [
     |
     */
 
-    'right_sidebar' => false,
-    'right_sidebar_icon' => 'fas fa-cogs',
-    'right_sidebar_theme' => 'dark',
-    'right_sidebar_slide' => true,
-    'right_sidebar_push' => true,
-    'right_sidebar_scrollbar_theme' => 'os-theme-light',
+    'right_sidebar'                     => false,
+    'right_sidebar_icon'                => 'fas fa-cogs',
+    'right_sidebar_theme'               => 'dark',
+    'right_sidebar_slide'               => true,
+    'right_sidebar_push'                => true,
+    'right_sidebar_scrollbar_theme'     => 'os-theme-light',
     'right_sidebar_scrollbar_auto_hide' => 'l',
 
     /*
@@ -187,14 +187,14 @@ return [
     |
     */
 
-    'use_route_url' => false,
-    'dashboard_url' => 'home',
-    'logout_url' => 'logout',
-    'login_url' => 'login',
-    'register_url' => 'register',
+    'use_route_url'      => false,
+    'dashboard_url'      => 'home',
+    'logout_url'         => 'logout',
+    'login_url'          => 'login',
+    'register_url'       => 'register',
     'password_reset_url' => 'password/reset',
     'password_email_url' => 'password/email',
-    'profile_url' => false,
+    'profile_url'        => false,
 
     /*
     |--------------------------------------------------------------------------
@@ -208,9 +208,9 @@ return [
     |
     */
 
-    'enabled_laravel_mix' => false,
+    'enabled_laravel_mix'  => false,
     'laravel_mix_css_path' => 'css/app.css',
-    'laravel_mix_js_path' => 'js/app.js',
+    'laravel_mix_js_path'  => 'js/app.js',
 
     /*
     |--------------------------------------------------------------------------
@@ -241,16 +241,16 @@ return [
             'text' => 'search',
         ],
         [
-            'type' => 'sidebar-menu-item',
-            'icon' => 'fas fa-tachometer-alt',
-            'text' => 'Dashboard',
+            'type'  => 'sidebar-menu-item',
+            'icon'  => 'fas fa-tachometer-alt',
+            'text'  => 'Dashboard',
             'route' => 'dashboard',
-        ], 
+        ],
         ['header' => 'Manage Profile'],
         [
-            'type' => 'sidebar-menu-item',
-            'icon' => 'fas fa-user',
-            'text' => 'User Profile',
+            'type'  => 'sidebar-menu-item',
+            'icon'  => 'fas fa-user',
+            'text'  => 'User Profile',
             'route' => 'profile.show',
         ],
         ['header' => 'Multi Schools Management', 'can' => 'header-schools'],
@@ -258,342 +258,342 @@ return [
             'type' => 'sidebar-menu-item',
             'text' => 'Schools',
             'icon' => 'fas fa-school',
-            'can'  =>  'menu-school',
+            'can'  => 'menu-school',
 
             'submenu' => [[
-                'type' => 'sidebar-menu-item',
-                'text' => 'View Schools',
+                'type'  => 'sidebar-menu-item',
+                'text'  => 'View Schools',
                 'route' => 'schools.index',
-                'can'  => 'read school',
+                'can'   => 'read school',
             ],
-            [
-                'type' => 'sidebar-menu-item',
-                'text' => 'Create School',
-                'route' => 'schools.create',
-                'can'  => 'create school',
-            ],]
+                [
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Create School',
+                    'route' => 'schools.create',
+                    'can'   => 'create school',
+                ], ],
         ],
         ['header' => 'Administration', 'can' => 'header-administrate'],
         [
-            'type' => 'sidebar-menu-item',
-            'icon' => 'fas fa-cog',
-            'text' => 'School Settings',
+            'type'  => 'sidebar-menu-item',
+            'icon'  => 'fas fa-cog',
+            'text'  => 'School Settings',
             'route' => 'schools.settings',
-            'can'  => 'manage school settings',
+            'can'   => 'manage school settings',
         ],
         [
-            'type' => 'sidebar-menu-item',
-            'text' => 'Classes',
-            'icon' => 'fas fa-chalkboard',
-            'can'  =>  'menu-class',
+            'type'    => 'sidebar-menu-item',
+            'text'    => 'Classes',
+            'icon'    => 'fas fa-chalkboard',
+            'can'     => 'menu-class',
             'submenu' => [
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'View Class Groups',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'View Class Groups',
                     'route' => 'class-groups.index',
-                    'can'  => 'read class group',
+                    'can'   => 'read class group',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Create Class Group',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Create Class Group',
                     'route' => 'class-groups.create',
-                    'can'  => 'create class group',
+                    'can'   => 'create class group',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'View Classes',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'View Classes',
                     'route' => 'classes.index',
-                    'can'  => 'read class',
+                    'can'   => 'read class',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Create Class',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Create Class',
                     'route' => 'classes.create',
-                    'can'  => 'create class',
+                    'can'   => 'create class',
                 ],
 
             ],
         ],
         [
-            'type' => 'sidebar-menu-item',
-            'text' => 'sections',
-            'icon' => 'fas fa-landmark',
-            'can'  =>  'menu-section',
+            'type'    => 'sidebar-menu-item',
+            'text'    => 'sections',
+            'icon'    => 'fas fa-landmark',
+            'can'     => 'menu-section',
             'submenu' => [
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'View sections',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'View sections',
                     'route' => 'sections.index',
-                    'can'  => 'read section',
+                    'can'   => 'read section',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Create section',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Create section',
                     'route' => 'sections.create',
-                    'can'  => 'create section',
+                    'can'   => 'create section',
                 ],
             ],
         ],
         [
-            'type' => 'sidebar-menu-item',
-            'text' => 'Students',
-            'icon' => 'fas fa-user',
-            'can'  =>  'menu-student',
+            'type'    => 'sidebar-menu-item',
+            'text'    => 'Students',
+            'icon'    => 'fas fa-user',
+            'can'     => 'menu-student',
             'submenu' => [
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'View students',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'View students',
                     'route' => 'students.index',
-                    'can'  => 'read student',
+                    'can'   => 'read student',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Create student',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Create student',
                     'route' => 'students.create',
-                    'can'  => 'create student',
+                    'can'   => 'create student',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Promote students',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Promote students',
                     'route' => 'students.promote',
-                    'can'  => 'promote student',
+                    'can'   => 'promote student',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Manage promotions',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Manage promotions',
                     'route' => 'students.promotions',
-                    'can'  => 'read promotion',
+                    'can'   => 'read promotion',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Graduate students',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Graduate students',
                     'route' => 'students.graduate',
-                    'can'  => 'graduate student',
+                    'can'   => 'graduate student',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Manage graduations',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Manage graduations',
                     'route' => 'students.graduations',
-                    'can'  => 'view graduations',
+                    'can'   => 'view graduations',
                 ],
-            ]
+            ],
         ],
         [
-            'type' => 'sidebar-menu-item',
-            'text' => 'Teachers',
-            'icon' => 'fas fa-user',
-            'can'  =>  'menu-teacher',
+            'type'    => 'sidebar-menu-item',
+            'text'    => 'Teachers',
+            'icon'    => 'fas fa-user',
+            'can'     => 'menu-teacher',
             'submenu' => [
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'View teachers',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'View teachers',
                     'route' => 'teachers.index',
-                    'can'  => 'read teacher',
+                    'can'   => 'read teacher',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Create teacher',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Create teacher',
                     'route' => 'teachers.create',
-                    'can'  => 'create teacher',
+                    'can'   => 'create teacher',
                 ],
             ],
         ],
         [
-            'type' => 'sidebar-menu-item',
-            'text' => 'Admins',
-            'icon' => 'fas fa-user',
-            'can'  =>  'menu-admin',
+            'type'    => 'sidebar-menu-item',
+            'text'    => 'Admins',
+            'icon'    => 'fas fa-user',
+            'can'     => 'menu-admin',
             'submenu' => [
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'View admins',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'View admins',
                     'route' => 'admins.index',
-                    'can'  => 'read admin',
+                    'can'   => 'read admin',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Create admin',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Create admin',
                     'route' => 'admins.create',
-                    'can'  => 'create admin',
+                    'can'   => 'create admin',
                 ],
             ],
         ],
         [
-            'type' => 'sidebar-menu-item',
-            'text' => 'Academic years',
-            'icon' => 'fas fa-calendar',
-            'can'  =>  'menu-academic-year',
+            'type'    => 'sidebar-menu-item',
+            'text'    => 'Academic years',
+            'icon'    => 'fas fa-calendar',
+            'can'     => 'menu-academic-year',
             'submenu' => [
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'View academic years',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'View academic years',
                     'route' => 'academic-years.index',
-                    'can'  => 'read academic year',
+                    'can'   => 'read academic year',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Create academic year',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Create academic year',
                     'route' => 'academic-years.create',
-                    'can'  => 'create academic year',
+                    'can'   => 'create academic year',
                 ],
             ],
         ],
         [
-            'type' => 'sidebar-menu-item',
-            'text' => 'Semesters',
-            'icon' => 'fas fa-clock',
-            'can'  =>  'menu-subject',
+            'type'    => 'sidebar-menu-item',
+            'text'    => 'Semesters',
+            'icon'    => 'fas fa-clock',
+            'can'     => 'menu-subject',
             'submenu' => [
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'View semesters',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'View semesters',
                     'route' => 'semesters.index',
-                    'can'  => 'read semester',
+                    'can'   => 'read semester',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Create semester',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Create semester',
                     'route' => 'semesters.create',
-                    'can'  => 'create semester',
+                    'can'   => 'create semester',
                 ],
             ],
         ],
         [
-            'type' => 'sidebar-menu-item',
-            'text' => 'Subjects',
-            'icon' => 'fas fa-lightbulb',
-            'can'  =>  'menu-subject',
+            'type'    => 'sidebar-menu-item',
+            'text'    => 'Subjects',
+            'icon'    => 'fas fa-lightbulb',
+            'can'     => 'menu-subject',
             'submenu' => [
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'View subjects',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'View subjects',
                     'route' => 'subjects.index',
-                    'can'  => 'read subject',
+                    'can'   => 'read subject',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Create subject',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Create subject',
                     'route' => 'subjects.create',
-                    'can'  => 'create subject',
+                    'can'   => 'create subject',
                 ],
             ],
         ],
         ['header' => 'Academics', 'can' => 'header-academics'],
         [
-            'type' => 'sidebar-menu-item',
-            'text' => 'Notices',
-            'icon' => 'fas fa-bell',
-            'can'  =>  'menu-notice',
+            'type'    => 'sidebar-menu-item',
+            'text'    => 'Notices',
+            'icon'    => 'fas fa-bell',
+            'can'     => 'menu-notice',
             'submenu' => [
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'View notices',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'View notices',
                     'route' => 'notices.index',
-                    'can'  => 'read notice',
+                    'can'   => 'read notice',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Create notice',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Create notice',
                     'route' => 'notices.create',
-                    'can'  => 'create notice',
+                    'can'   => 'create notice',
                 ],
             ],
         ],
         [
-            'type' => 'sidebar-menu-item',
-            'text' => 'Syllabi',
-            'icon' => 'fas fa-list-alt',
-            'can'  =>  'menu-syllabus',
+            'type'    => 'sidebar-menu-item',
+            'text'    => 'Syllabi',
+            'icon'    => 'fas fa-list-alt',
+            'can'     => 'menu-syllabus',
             'submenu' => [
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'View Syllabi',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'View Syllabi',
                     'route' => 'syllabi.index',
-                    'can'  => 'read syllabus',
+                    'can'   => 'read syllabus',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Create Syllabus',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Create Syllabus',
                     'route' => 'syllabi.create',
-                    'can'  => 'create syllabus',
+                    'can'   => 'create syllabus',
                 ],
             ],
         ],
         [
-            'type' => 'sidebar-menu-item',
-            'text' => 'Timetables',
-            'icon' => 'fas fa-tasks',
-            'can'  =>  'menu-timetable',
+            'type'    => 'sidebar-menu-item',
+            'text'    => 'Timetables',
+            'icon'    => 'fas fa-tasks',
+            'can'     => 'menu-timetable',
             'submenu' => [
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'View Timetables',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'View Timetables',
                     'route' => 'timetables.index',
-                    'can'  => 'read timetable',
+                    'can'   => 'read timetable',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Create Timetable',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Create Timetable',
                     'route' => 'timetables.create',
-                    'can'  => 'create timetable',
+                    'can'   => 'create timetable',
                 ],
             ],
         ],
         [
-            'type' => 'sidebar-menu-item',
-            'text' => 'Exams',
-            'icon' => 'fas fa-book-open',
-            'can'  =>  'menu-exam',
+            'type'    => 'sidebar-menu-item',
+            'text'    => 'Exams',
+            'icon'    => 'fas fa-book-open',
+            'can'     => 'menu-exam',
             'submenu' => [
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'View Exams',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'View Exams',
                     'route' => 'exams.index',
-                    'can'  => 'read exam',
+                    'can'   => 'read exam',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Create Exam',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Create Exam',
                     'route' => 'exams.create',
-                    'can'  => 'create exam',
+                    'can'   => 'create exam',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Manage Exam records',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Manage Exam records',
                     'route' => 'exam-records.index',
-                    'can'  => 'update exam record',
+                    'can'   => 'update exam record',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Exam tabulation sheet',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Exam tabulation sheet',
                     'route' => 'exams.tabulation',
-                    'can'  => 'read exam',
+                    'can'   => 'read exam',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Result tabulation sheet',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Result tabulation sheet',
                     'route' => 'exams.result-tabulation',
-                    'can'  => 'read exam',
+                    'can'   => 'read exam',
                 ],
-            ]
+            ],
         ],
         [
-            'type' => 'sidebar-menu-item',
-            'text' => 'Grade systems',
-            'icon' => 'fa fa-graduation-cap',
-            'can'  =>  'menu-grade-system',
+            'type'    => 'sidebar-menu-item',
+            'text'    => 'Grade systems',
+            'icon'    => 'fa fa-graduation-cap',
+            'can'     => 'menu-grade-system',
             'submenu' => [
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'View Grades',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'View Grades',
                     'route' => 'grade-systems.index',
-                    'can'  => 'read grade system',
+                    'can'   => 'read grade system',
                 ],
                 [
-                    'type' => 'sidebar-menu-item',
-                    'text' => 'Create Grades',
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Create Grades',
                     'route' => 'grade-systems.create',
-                    'can'  => 'create grade system',
+                    'can'   => 'create grade system',
                 ],
             ],
         ],
@@ -636,172 +636,171 @@ return [
     'plugins' => [
         'DateRangePicker' => [
             'active' => false,
-            'files' => [
+            'files'  => [
                 [
-                    'type' => 'js',
-                    'asset' => true,
+                    'type'     => 'js',
+                    'asset'    => true,
                     'location' => 'vendor/moment/moment.min.js',
                 ],
                 [
-                    'type' => 'js',
-                    'asset' => true,
+                    'type'     => 'js',
+                    'asset'    => true,
                     'location' => 'vendor/daterangepicker/daterangepicker.js',
                 ],
                 [
-                    'type' => 'css',
-                    'asset' => true,
+                    'type'     => 'css',
+                    'asset'    => true,
                     'location' => 'vendor/daterangepicker/daterangepicker.css',
                 ],
             ],
         ],
         'Datatables' => [
             'active' => true,
-            'files' => [
+            'files'  => [
                 [
-                    'type' => 'js',
-                    'asset' => true,
+                    'type'     => 'js',
+                    'asset'    => true,
                     'location' => 'vendor/datatables/js/jquery.dataTables.min.js',
                 ],
                 [
-                    'type' => 'js',
-                    'asset' => true,
+                    'type'     => 'js',
+                    'asset'    => true,
                     'location' => 'vendor/datatables/js/dataTables.bootstrap4.min.js',
                 ],
                 [
-                    'type' => 'css',
-                    'asset' => true,
+                    'type'     => 'css',
+                    'asset'    => true,
                     'location' => 'vendor/datatables/css/dataTables.bootstrap4.min.css',
                 ],
             ],
         ],
         'DatatablesPlugins' => [
             'active' => true,
-            'files' => [
+            'files'  => [
                 [
-                    'type' => 'js',
-                    'asset' => true,
+                    'type'     => 'js',
+                    'asset'    => true,
                     'location' => 'vendor/datatables-plugins/buttons/js/dataTables.buttons.min.js',
                 ],
                 [
-                    'type' => 'js',
-                    'asset' => true,
+                    'type'     => 'js',
+                    'asset'    => true,
                     'location' => 'vendor/datatables-plugins/buttons/js/buttons.bootstrap4.min.js',
                 ],
                 [
-                    'type' => 'js',
-                    'asset' => true,
+                    'type'     => 'js',
+                    'asset'    => true,
                     'location' => 'vendor/datatables-plugins/buttons/js/buttons.html5.min.js',
                 ],
                 [
-                    'type' => 'js',
-                    'asset' => true,
+                    'type'     => 'js',
+                    'asset'    => true,
                     'location' => 'vendor/datatables-plugins/buttons/js/buttons.print.min.js',
                 ],
                 [
-                    'type' => 'js',
-                    'asset' => true,
+                    'type'     => 'js',
+                    'asset'    => true,
                     'location' => 'vendor/datatables-plugins/jszip/jszip.min.js',
                 ],
                 [
-                    'type' => 'js',
-                    'asset' => true,
+                    'type'     => 'js',
+                    'asset'    => true,
                     'location' => 'vendor/datatables-plugins/pdfmake/pdfmake.min.js',
                 ],
                 [
-                    'type' => 'js',
-                    'asset' => true,
+                    'type'     => 'js',
+                    'asset'    => true,
                     'location' => 'vendor/datatables-plugins/pdfmake/vfs_fonts.js',
                 ],
                 [
-                    'type' => 'css',
-                    'asset' => true,
+                    'type'     => 'css',
+                    'asset'    => true,
                     'location' => 'vendor/datatables-plugins/buttons/css/buttons.bootstrap4.min.css',
                 ],
             ],
         ],
         'TempusDominusBs4' => [
             'active' => true,
-            'files' => [
+            'files'  => [
                 [
-                    'type' => 'js',
-                    'asset' => true,
+                    'type'     => 'js',
+                    'asset'    => true,
                     'location' => 'vendor/moment/moment.min.js',
                 ],
                 [
-                    'type' => 'js',
-                    'asset' => true,
+                    'type'     => 'js',
+                    'asset'    => true,
                     'location' => 'vendor/tempusdominus-bootstrap-4/js/tempusdominus-bootstrap-4.min.js',
                 ],
                 [
-                    'type' => 'css',
-                    'asset' => true,
+                    'type'     => 'css',
+                    'asset'    => true,
                     'location' => 'vendor/tempusdominus-bootstrap-4/css/tempusdominus-bootstrap-4.min.css',
                 ],
             ],
         ],
-    
 
         'Select2' => [
             'active' => true,
-            'files' => [
+            'files'  => [
                 [
-                    'type' => 'js',
-                    'asset' => true,
+                    'type'     => 'js',
+                    'asset'    => true,
                     'location' => 'vendor/select2/js/select2.full.min.js',
                 ],
                 [
-                    'type' => 'css',
-                    'asset' => true,
+                    'type'     => 'css',
+                    'asset'    => true,
                     'location' => 'vendor/select2/css/select2.min.css',
                 ],
                 [
-                    'type' => 'css',
-                    'asset' => true,
+                    'type'     => 'css',
+                    'asset'    => true,
                     'location' => 'vendor/select2-bootstrap4-theme/select2-bootstrap4.min.css',
                 ],
             ],
         ],
         'Chartjs' => [
             'active' => false,
-            'files' => [
+            'files'  => [
                 [
-                    'type' => 'js',
-                    'asset' => false,
+                    'type'     => 'js',
+                    'asset'    => false,
                     'location' => '//cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.0/Chart.bundle.min.js',
                 ],
             ],
         ],
         'Sweetalert2' => [
             'active' => false,
-            'files' => [
+            'files'  => [
                 [
-                    'type' => 'js',
-                    'asset' => false,
+                    'type'     => 'js',
+                    'asset'    => false,
                     'location' => '//cdn.jsdelivr.net/npm/sweetalert2@8',
                 ],
             ],
         ],
         'Pace' => [
             'active' => false,
-            'files' => [
+            'files'  => [
                 [
-                    'type' => 'css',
-                    'asset' => false,
+                    'type'     => 'css',
+                    'asset'    => false,
                     'location' => '//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/themes/blue/pace-theme-center-radar.min.css',
                 ],
                 [
-                    'type' => 'js',
-                    'asset' => false,
+                    'type'     => 'js',
+                    'asset'    => false,
                     'location' => '//cdnjs.cloudflare.com/ajax/libs/pace/1.0.2/pace.min.js',
                 ],
             ],
         ],
         'BsCustomFileInput' => [
             'active' => true,
-            'files' => [
+            'files'  => [
                 [
-                    'type' => 'js',
-                    'asset' => true,
+                    'type'     => 'js',
+                    'asset'    => true,
                     'location' => 'vendor/bs-custom-file-input/bs-custom-file-input.min.js',
                 ],
             ],
@@ -823,21 +822,21 @@ return [
 
     'iframe' => [
         'default_tab' => [
-            'url' => null,
+            'url'   => null,
             'title' => null,
         ],
         'buttons' => [
-            'close' => true,
-            'close_all' => true,
+            'close'           => true,
+            'close_all'       => true,
             'close_all_other' => true,
-            'scroll_left' => true,
-            'scroll_right' => true,
-            'fullscreen' => true,
+            'scroll_left'     => true,
+            'scroll_right'    => true,
+            'fullscreen'      => true,
         ],
         'options' => [
-            'loading_screen' => 1000,
+            'loading_screen'    => 1000,
             'auto_show_new_tab' => true,
-            'use_navbar_items' => true,
+            'use_navbar_items'  => true,
         ],
     ],
 

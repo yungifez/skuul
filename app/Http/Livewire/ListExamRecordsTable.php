@@ -5,18 +5,35 @@ namespace App\Http\Livewire;
 use App\Models\Exam;
 use App\Models\Section;
 use App\Models\Subject;
-use Livewire\Component;
 use App\Services\Exam\ExamService;
 use App\Services\MyClass\MyClassService;
 use App\Services\Section\SectionService;
 use App\Services\Subject\SubjectService;
+use Livewire\Component;
 
 class ListExamRecordsTable extends Component
 {
-    protected $queryString = ['sectionSelectedId' , 'examSelectedId', 'subjectSelectedId'];
-    public $semester, $exams, $exam, $classes, $class, $subjects, $subject, $sections, $section, $examRecords, $classSelected, $subjectSelected, $sectionSelected, $examSelected, $students, $sectionSelectedId, $examSelectedId, $subjectSelectedId;
+    protected $queryString = ['sectionSelectedId', 'examSelectedId', 'subjectSelectedId'];
+    public $semester;
+    public $exams;
+    public $exam;
+    public $classes;
+    public $class;
+    public $subjects;
+    public $subject;
+    public $sections;
+    public $section;
+    public $examRecords;
+    public $classSelected;
+    public $subjectSelected;
+    public $sectionSelected;
+    public $examSelected;
+    public $students;
+    public $sectionSelectedId;
+    public $examSelectedId;
+    public $subjectSelectedId;
 
-    public function mount(ExamService $examService, MyClassService $myClassService,SectionService $sectionService, SubjectService $subjectService)
+    public function mount(ExamService $examService, MyClassService $myClassService, SectionService $sectionService, SubjectService $subjectService)
     {
         //get semester and use it to fetch all exams in semester
         $this->semester = auth()->user()->school->semester;
@@ -27,7 +44,7 @@ class ListExamRecordsTable extends Component
         //sets subjects etc if class isnt empty
         if (!$this->classes->isEmpty()) {
             $this->subjects = $this->classes[0]->subjects;
-            $this->subject =  $this->subjects[0]->id;
+            $this->subject = $this->subjects[0]->id;
             $this->sections = $this->classes[0]->sections;
             $this->section = $this->sections[0]->id;
         }
@@ -57,9 +74,10 @@ class ListExamRecordsTable extends Component
     public function fetchExamRecords(Exam $exam, Section $section, Subject $subject)
     {
         $this->examSlots = $exam->examSlots;
-        $this->examRecords = app('App\Services\Exam\ExamRecordService')->getAllExamRecordsInSectionAndSubject( $section->id, $subject->id);
+        $this->examRecords = app('App\Services\Exam\ExamRecordService')->getAllExamRecordsInSectionAndSubject($section->id, $subject->id);
         if ($this->examSlots->isEmpty()) {
             $this->examSlots = null;
+
             return;
         }
         //set variables used for controlling state, holding state f=data and querystrings

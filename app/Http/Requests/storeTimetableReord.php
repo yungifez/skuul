@@ -21,7 +21,7 @@ class storeTimetableReord extends FormRequest
     {
         return [
             'subject_id' => 'nullable|exists:subjects,id|integer',
-            'weekday_id' => 'required|exists:weekdays,id|integer'
+            'weekday_id' => 'required|exists:weekdays,id|integer',
         ];
     }
 }

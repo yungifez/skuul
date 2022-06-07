@@ -13,7 +13,7 @@ class ListExamSlotsTable extends Component
     {
         $this->exam = $exam;
     }
-    
+
     public function render()
     {
         return view('livewire.list-exam-slots-table');
