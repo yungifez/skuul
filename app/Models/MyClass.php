@@ -2,11 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\ClassGroup;
-use App\Models\Section;
-use App\Models\StudentRecord;
-use App\Models\Subject;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -17,7 +12,7 @@ class MyClass extends Model
     protected $fillable = ['name', 'class_group_id'];
 
     /**
-     * Get the classGroup that owns the MyClass
+     * Get the classGroup that owns the MyClass.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
@@ -27,7 +22,7 @@ class MyClass extends Model
     }
 
     /**
-     * Get all of the sections for the MyClass
+     * Get all of the sections for the MyClass.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
@@ -37,7 +32,7 @@ class MyClass extends Model
     }
 
     /**
-     * Get all of the students for the MyClass
+     * Get all of the students for the MyClass.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
@@ -47,7 +42,7 @@ class MyClass extends Model
     }
 
     /**
-     * The subjects that belong to the MyClass
+     * The subjects that belong to the MyClass.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */

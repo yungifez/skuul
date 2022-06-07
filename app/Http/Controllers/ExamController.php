@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Exam;
-use App\Services\Exam\ExamService;
 use App\Http\Requests\StoreExamRequest;
-use App\Http\Requests\UpdateExamStatus;
 use App\Http\Requests\UpdateExamRequest;
 use App\Http\Requests\UpdateExamStatusRequest;
+use App\Models\Exam;
+use App\Services\Exam\ExamService;
 
 class ExamController extends Controller
 {
@@ -18,6 +17,7 @@ class ExamController extends Controller
         $this->exam = $exam;
         $this->authorizeResource(Exam::class, 'exam');
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -41,7 +41,8 @@ class ExamController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \App\Http\Requests\StoreExamRequest  $request
+     * @param \App\Http\Requests\StoreExamRequest $request
+     *
      * @return \Illuminate\Http\Response
      */
     public function store(StoreExamRequest $request)
@@ -55,7 +56,8 @@ class ExamController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\Exam  $exam
+     * @param \App\Models\Exam $exam
+     *
      * @return \Illuminate\Http\Response
      */
     public function show(Exam $exam)
@@ -66,7 +68,8 @@ class ExamController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\Exam  $exam
+     * @param \App\Models\Exam $exam
+     *
      * @return \Illuminate\Http\Response
      */
     public function edit(Exam $exam)
@@ -77,13 +80,14 @@ class ExamController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\UpdateExamRequest  $request
-     * @param  \App\Models\Exam  $exam
+     * @param \App\Http\Requests\UpdateExamRequest $request
+     * @param \App\Models\Exam                     $exam
+     *
      * @return \Illuminate\Http\Response
      */
     public function update(UpdateExamRequest $request, Exam $exam)
     {
-        $data = $request->except(['_method','_token']);
+        $data = $request->except(['_method', '_token']);
         $this->exam->updateExam($exam, $data);
 
         return back();
@@ -92,7 +96,8 @@ class ExamController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\Exam  $exam
+     * @param \App\Models\Exam $exam
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy(Exam $exam)
@@ -103,31 +108,31 @@ class ExamController extends Controller
     }
 
     /**
-     * Tabulation  for exams
+     * Tabulation  for exams.
      */
+    public function examTabulation()
+    {
+        $this->authorize('viewAny', Exam::class);
 
-    public function examTabulation(){
-        $this->authorize("viewAny", Exam::Class);
         return view('pages.exam.tabulation');
     }
 
     /**
-     * Tabulation for results
+     * Tabulation for results.
      */
-
     public function resultTabulation()
     {
-        $this->authorize("viewAny", Exam::Class);
+        $this->authorize('viewAny', Exam::class);
+
         return view('pages.exam.result-tabulation');
     }
 
     /**
-     * Set exam status
-    */
-
+     * Set exam status.
+     */
     public function setExamStatus(Exam $exam, UpdateExamStatusRequest $request)
     {
-        $this->authorize("update", $exam);
+        $this->authorize('update', $exam);
         //get status from request
         $status = $request->status;
         $this->exam->setExamStatus($exam, $status);

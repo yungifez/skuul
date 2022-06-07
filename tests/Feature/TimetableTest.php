@@ -2,16 +2,16 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\Timetable;
-use App\Traits\FeatureTestTrait;
 use App\Models\TimetableTimeSlot;
-use Illuminate\Foundation\Testing\WithFaker;
+use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
 
 class TimetableTest extends TestCase
 {
-    use RefreshDatabase, FeatureTestTrait;
+    use RefreshDatabase;
+    use FeatureTestTrait;
 
     // test unauthorized user can't view all timetables
 
@@ -72,8 +72,8 @@ class TimetableTest extends TestCase
     public function test_unauthorized_user_cant_update_timetable()
     {
         $this->unauthorized_user()
-            ->patch('/dashboard/timetables/1',[
-                'name' => 'Test timetable',
+            ->patch('/dashboard/timetables/1', [
+                'name'        => 'Test timetable',
                 'my_class_id' => 1,
                 'description' => 'Test timetable description',
             ])->assertForbidden();
@@ -86,15 +86,15 @@ class TimetableTest extends TestCase
         $timetable = Timetable::factory()->create();
 
         $this->authorized_user(['update timetable'])
-            ->patch("/dashboard/timetables/$timetable->id",[
-                'name' => 'Test timetable',
+            ->patch("/dashboard/timetables/$timetable->id", [
+                'name'        => 'Test timetable',
                 'my_class_id' => 1,
                 'description' => 'Test timetable description',
             ]);
 
-        $this->assertDatabaseHas('timetables',[
-            'id' => $timetable->id,
-            'name' => 'Test timetable',
+        $this->assertDatabaseHas('timetables', [
+            'id'          => $timetable->id,
+            'name'        => 'Test timetable',
             'my_class_id' => 1,
             'description' => 'Test timetable description',
         ]);
@@ -118,17 +118,18 @@ class TimetableTest extends TestCase
         $this->authorized_user(['delete timetable'])
             ->delete("/dashboard/timetables/$timetable->id");
 
-        $this->assertDatabaseMissing('timetables',[
-            'id' => $timetable->id,
-            'name' => $timetable->name,
+        $this->assertDatabaseMissing('timetables', [
+            'id'          => $timetable->id,
+            'name'        => $timetable->name,
             'my_class_id' => $timetable->my_class_id,
             'description' => $timetable->description,
-        ]); 
+        ]);
     }
 
-     //test unauthorized user can view manage timetable
+    //test unauthorized user can view manage timetable
 
-    public function test_unauthorized_user_cant_view_manage_timetable(){
+    public function test_unauthorized_user_cant_view_manage_timetable()
+    {
         $this->unauthorized_user()
             ->get('/dashboard/timetables/1/manage')
             ->assertForbidden();
@@ -136,7 +137,8 @@ class TimetableTest extends TestCase
 
     //test authorized user can view manage timetable
 
-    public function test_authorized_user_can_view_manage_timetable(){
+    public function test_authorized_user_can_view_manage_timetable()
+    {
         $this->authorized_user(['update timetable'])
             ->get('/dashboard/timetables/1/manage')
             ->assertOk();
@@ -144,35 +146,38 @@ class TimetableTest extends TestCase
 
     //test unauthorized user cannot store timetable time slot
 
-    public function test_unauthorized_user_cant_store_timetable_time_slot(){
+    public function test_unauthorized_user_cant_store_timetable_time_slot()
+    {
         $this->unauthorized_user()
-            ->post('/dashboard/timetables/1/manage/time-slots',[
+            ->post('/dashboard/timetables/1/manage/time-slots', [
                 'start_time' => '10:00',
-                'stop_time' => '11:00',
+                'stop_time'  => '11:00',
             ])->assertForbidden();
     }
 
     //test authorized user can store timetable time slot
 
-    public function test_authorized_user_can_store_timetable_time_slot(){
+    public function test_authorized_user_can_store_timetable_time_slot()
+    {
         $timetable = Timetable::factory()->create();
 
         $this->authorized_user(['update timetable'])
-            ->post("/dashboard/timetables/$timetable->id/manage/time-slots",[
+            ->post("/dashboard/timetables/$timetable->id/manage/time-slots", [
                 'start_time' => '10:00',
-                'stop_time' => '11:00',
+                'stop_time'  => '11:00',
             ]);
 
-        $this->assertDatabaseHas('timetable_time_slots',[
+        $this->assertDatabaseHas('timetable_time_slots', [
             'timetable_id' => $timetable->id,
-            'start_time' => '10:00:00',
-            'stop_time' => '11:00:00',
+            'start_time'   => '10:00:00',
+            'stop_time'    => '11:00:00',
         ]);
     }
 
     //test unatuorized user cannot delete timetable time slot
 
-    public function test_unauthorized_user_cant_delete_timetable_time_slot(){
+    public function test_unauthorized_user_cant_delete_timetable_time_slot()
+    {
         $timeslot = TimetableTimeSlot::factory()->create();
         $this->unauthorized_user()
             ->delete("/dashboard/timetables/1/manage/time-slots/$timeslot->id")
@@ -181,16 +186,17 @@ class TimetableTest extends TestCase
 
     //test authorized user can delete timetable time slot
 
-    public function test_authorized_user_can_delete_timetable_time_slot(){
+    public function test_authorized_user_can_delete_timetable_time_slot()
+    {
         $timeslot = TimetableTimeSlot::factory()->create();
         $this->authorized_user(['update timetable'])
             ->delete("/dashboard/timetables/1/manage/time-slots/$timeslot->id");
 
-        $this->assertDatabaseMissing('timetable_time_slots',[
-            'id' => $timeslot->id,
+        $this->assertDatabaseMissing('timetable_time_slots', [
+            'id'           => $timeslot->id,
             'timetable_id' => $timeslot->timetable_id,
-            'start_time' => "$timeslot->start_time:00",
-            'stop_time' => "$timeslot->stop_time:00",
+            'start_time'   => "$timeslot->start_time:00",
+            'stop_time'    => "$timeslot->stop_time:00",
         ]);
     }
 
@@ -200,7 +206,7 @@ class TimetableTest extends TestCase
     {
         $timeslot = TimetableTimeSlot::factory()->create();
         $this->unauthorized_user()
-            ->post("/dashboard/timetables/1/manage/time-slots/$timeslot->id/record/create",[
+            ->post("/dashboard/timetables/1/manage/time-slots/$timeslot->id/record/create", [
                 'weekday_id' => '1',
                 'subject_id' => 1,
             ])->assertForbidden();
@@ -212,15 +218,15 @@ class TimetableTest extends TestCase
     {
         $timeslot = TimetableTimeSlot::factory()->create();
         $this->authorized_user(['update timetable'])
-            ->post("/dashboard/timetables/1/manage/time-slots/$timeslot->id/record/create",[
+            ->post("/dashboard/timetables/1/manage/time-slots/$timeslot->id/record/create", [
                 'weekday_id' => '1',
                 'subject_id' => 1,
             ]);
 
-        $this->assertDatabaseHas('timetable_time_slot_weekday',[
+        $this->assertDatabaseHas('timetable_time_slot_weekday', [
             'timetable_time_slot_id' => $timeslot->id,
-            'weekday_id' => 1,
-            'subject_id' => 1,
+            'weekday_id'             => 1,
+            'subject_id'             => 1,
         ]);
     }
 }

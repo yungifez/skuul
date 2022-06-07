@@ -15,7 +15,7 @@ class SchoolService
 
     /**
      * User service constructor.
-     * 
+     *
      * @param App\Services\UserService $user
      */
     public function __construct(UserService $user)
@@ -25,7 +25,7 @@ class SchoolService
 
     /**
      * Get all schools.
-     * 
+     *
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getAllSchools()
@@ -35,8 +35,9 @@ class SchoolService
 
     /**
      * Get a school by id.
-     * 
+     *
      * @param int $id
+     *
      * @return \App\Models\School
      */
     public function getSchoolById($id)
@@ -45,10 +46,10 @@ class SchoolService
     }
 
     /**
-     * Create school
-     * 
+     * Create school.
+     *
      * @param array $record
-     * 
+     *
      * @return App\Models\School
      */
     public function createSchool($record)
@@ -57,14 +58,13 @@ class SchoolService
         $school = School::create($record);
         session()->flash('success', __('School created successfully'));
 
-        return;
     }
 
     /**
-     * Update school
-     * 
+     * Update school.
+     *
      * @param array $record
-     * 
+     *
      * @return App\Models\School
      */
     public function updateSchool(School $school, $records)
@@ -77,14 +77,13 @@ class SchoolService
         $school->save();
         session()->flash('success', __('School updated successfully'));
 
-        return;
     }
 
     /**
-     * Set authenticated user's school
-     * 
+     * Set authenticated user's school.
+     *
      * @param int $id
-     * 
+     *
      * @return void
      */
     public function setSchool($id)
@@ -100,12 +99,11 @@ class SchoolService
         }
         session()->flash('danger', __('School not found'));
 
-        return ;
     }
 
     /**
-     * Generate school code
-     * 
+     * Generate school code.
+     *
      * @return string
      */
     public function generateSchoolCode()
@@ -114,20 +112,21 @@ class SchoolService
     }
 
     /**
-     * Delete school
-     * 
+     * Delete school.
+     *
      * @param App\Models\School $school
-     * 
+     *
      * @return void
      */
     public function deleteSchool(School $school)
     {
         if ($school->users->count('id')) {
             session()->flash('danger', __('Remove all users from this school and make sure school is not set for any super admin'));
+
             return;
         }
         $school->delete();
-        session()->flash('success', __('School deleted successfully'));;
-        return;
+        session()->flash('success', __('School deleted successfully'));
+
     }
 }

@@ -29,7 +29,7 @@ class AcademicYearService
 
     /**
      * Get academic year by Id.
-     * 
+     *
      *@param int $id
      *
      * @return App\Models\AcademicYear
@@ -40,10 +40,10 @@ class AcademicYearService
     }
 
     /**
-     * Create academic year
-     * 
+     * Create academic year.
+     *
      * @param array|Collection $records
-     * 
+     *
      * @return void
      */
     public function createAcademicYear($records)
@@ -52,7 +52,6 @@ class AcademicYearService
         AcademicYear::create($records);
         session()->flash('success', 'Academic year created successfully');
 
-        return;
     }
 
     /**
@@ -60,6 +59,7 @@ class AcademicYearService
      *
      * @param int $academicYearId
      * @param int $schoolId
+     *
      * @return void
      */
     public function setAcademicYear($academicYearId, $schoolId = null)
@@ -74,14 +74,14 @@ class AcademicYearService
         $school->save();
         session()->flash('success', "Academic year set for {$school->name} successfully");
 
-        return;
     }
 
     /**
-     * Update Academic Year
+     * Update Academic Year.
      *
-     * @param AcademicYear $academicYear
+     * @param AcademicYear     $academicYear
      * @param array|Collection $records
+     *
      * @return void
      */
     public function updateAcademicYear(AcademicYear $academicYear, $records)
@@ -91,20 +91,19 @@ class AcademicYearService
         $academicYear->save();
         session()->flash('success', 'Academic year updated successfully');
 
-        return;
     }
 
     /**
-     * Delete an academic year
+     * Delete an academic year.
      *
      * @param AcademicYear $academicYear
+     *
      * @return void
      */
     public function deleteAcademicYear(AcademicYear $academicYear)
     {
         $academicYear->delete();
         session()->flash('success', 'Academic year deleted successfully');
-        
-        return;
+
     }
 }

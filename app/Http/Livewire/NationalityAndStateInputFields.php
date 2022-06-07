@@ -1,9 +1,9 @@
 <?php
 
 namespace App\Http\Livewire;
-use Nnjeim\World\World;
 
 use Livewire\Component;
+use Nnjeim\World\World;
 
 class NationalityAndStateInputFields extends Component
 {
@@ -14,7 +14,7 @@ class NationalityAndStateInputFields extends Component
 
     protected $rules = [
         'nationality' => 'string',
-        'state' => 'string',
+        'state'       => 'string',
     ];
 
     public function mount()
@@ -22,7 +22,7 @@ class NationalityAndStateInputFields extends Component
         $this->nationalities = World::countries()->data->pluck('name');
 
         //set nationality to null if not found
-        if ($this->nationality != null && ! in_array($this->nationality, $this->nationalities->toArray())) {
+        if ($this->nationality != null && !in_array($this->nationality, $this->nationalities->toArray())) {
             $this->nationality = null;
         }
     }
@@ -30,19 +30,19 @@ class NationalityAndStateInputFields extends Component
     public function updatedNationality()
     {
         // $this->states = collect(World::where('name.common' , $this->nationality)->first()->hydrateStates()->states->pluck('name'));
-        $this->states =  collect(World::countries([
-            'fields' => 'states',
+        $this->states = collect(World::countries([
+            'fields'  => 'states',
             'filters' => [
                 'name' => $this->nationality,
-            ]
+            ],
         ])->data->pluck('states')->first());
         if ($this->states->isEmpty()) {
             $this->states = collect([['name' => $this->nationality]]);
         }
         $this->state = $this->states[0]['name'];
 
-        $this->dispatchBrowserEvent('nationality-updated',['nationality' => $this->nationality]);
-        $this->dispatchBrowserEvent('state-updated',['state' => $this->state]);
+        $this->dispatchBrowserEvent('nationality-updated', ['nationality' => $this->nationality]);
+        $this->dispatchBrowserEvent('state-updated', ['state' => $this->state]);
     }
 
     public function loadInitialStates()
@@ -50,26 +50,26 @@ class NationalityAndStateInputFields extends Component
         if ($this->nationality == null) {
             $this->nationality = $this->nationalities->first();
         }
-        $this->states = collect( World::countries([
-            'fields' => 'states',
+        $this->states = collect(World::countries([
+            'fields'  => 'states',
             'filters' => [
                 'name' => $this->nationality,
-            ]
+            ],
         ])->data->pluck('states')->first());
         if ($this->states->isEmpty()) {
             $this->states = collect([['name' => $this->nationality]]);
         }
-        if ($this->state == null || in_array($this->state,$this->states->toArray())) {
+        if ($this->state == null || in_array($this->state, $this->states->toArray())) {
             $this->state = $this->states[0]['name'];
         }
 
-        $this->dispatchBrowserEvent('nationality-updated',['nationality' => $this->nationality]);
-        $this->dispatchBrowserEvent('state-updated',['state' => $this->state]);
+        $this->dispatchBrowserEvent('nationality-updated', ['nationality' => $this->nationality]);
+        $this->dispatchBrowserEvent('state-updated', ['state' => $this->state]);
     }
 
     public function updatedState()
     {
-        $this->dispatchBrowserEvent('state-updated',['state' => $this->state]);
+        $this->dispatchBrowserEvent('state-updated', ['state' => $this->state]);
     }
 
     public function render()

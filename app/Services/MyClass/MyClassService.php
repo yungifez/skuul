@@ -44,13 +44,13 @@ class MyClassService
 
     public function createClass($record)
     {
-        if (! $this->getClassGroupById($record['class_group_id'])) {
+        if (!$this->getClassGroupById($record['class_group_id'])) {
             return session()->flash('danger', __('Class group does not exists'));
         }
 
         $myClass = MyClass::firstOrCreate($record);
 
-        if (! $myClass->wasRecentlyCreated) {
+        if (!$myClass->wasRecentlyCreated) {
             session()->flash('danger', __('Class already exists'));
         } else {
             session()->flash('success', __('Class created successfully'));
@@ -65,7 +65,7 @@ class MyClassService
 
         $classGroup = ClassGroup::firstOrCreate($record);
 
-        if (! $classGroup->wasRecentlyCreated) {
+        if (!$classGroup->wasRecentlyCreated) {
             session()->flash('danger', __('Class group already exists'));
         } else {
             session()->flash('success', __('Class group created successfully'));
@@ -77,7 +77,7 @@ class MyClassService
     public function updateClass($myClass, $records)
     {
         $myClass->update([
-            'name' => $records['name'],
+            'name'           => $records['name'],
             'class_group_id' => $records['class_group_id'],
         ]);
         session()->flash('success', __('Class updated successfully'));
@@ -100,7 +100,7 @@ class MyClassService
     public function deleteClassGroup(ClassGroup $classGroup)
     {
         if ($classGroup->classes->count()) {
-            return session()->flash('danger',__('Remove all classes from this class group first'));
+            return session()->flash('danger', __('Remove all classes from this class group first'));
         }
         $classGroup->delete();
 
@@ -110,7 +110,7 @@ class MyClassService
     public function deleteClass(MyClass $class)
     {
         if ($class->studentRecords->count()) {
-            return session()->flash('danger',__('Remove all students from this class first'));
+            return session()->flash('danger', __('Remove all students from this class first'));
         }
         $class->delete();
 

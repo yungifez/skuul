@@ -35,9 +35,10 @@ class UserService
     }
 
     /**
-     * Get a user by id
+     * Get a user by id.
      *
-     * @param integer $id
+     * @param int $id
+     *
      * @return App\Models\User
      */
     public function getUserById($id)
@@ -46,10 +47,10 @@ class UserService
     }
 
     /**
-     * Get users by role
-     * 
+     * Get users by role.
+     *
      * @param string $role
-     * 
+     *
      * @return \Illuminate\Database\Eloquent\Collection|static[]
      */
     public function getUsersByRole($role)
@@ -58,10 +59,10 @@ class UserService
     }
 
     /**
-     * Create a new user
-     * 
+     * Create a new user.
+     *
      * @param array|Collection $records
-     * 
+     *
      * @return App\Models\User
      */
     public function createUser($record)
@@ -72,20 +73,20 @@ class UserService
         $record['name'] = $this->createFullName($record['first_name'], $record['last_name'], $record['other_names']);
         $record['school_id'] = auth()->user()->school_id;
         $user = $this->createUserAction->create([
-            'name' => $record['name'],
-            'email' => $record['email'],
-            'password' => $record['password'],
-            'school_id' => $record['school_id'],
-            'birthday' => $record['birthday'],
+            'name'                  => $record['name'],
+            'email'                 => $record['email'],
+            'password'              => $record['password'],
+            'school_id'             => $record['school_id'],
+            'birthday'              => $record['birthday'],
             'password_confirmation' => $record['password_confirmation'],
-            'address' => $record['address'],
-            'blood_group' => $record['blood_group'],
-            'religion' => $record['religion'],
-            'nationality' => $record['nationality'],
-            'state' => $record['state'],
-            'city' => $record['city'],
-            'gender' => $record['gender'],
-            'phone' => $record['phone'],
+            'address'               => $record['address'],
+            'blood_group'           => $record['blood_group'],
+            'religion'              => $record['religion'],
+            'nationality'           => $record['nationality'],
+            'state'                 => $record['state'],
+            'city'                  => $record['city'],
+            'gender'                => $record['gender'],
+            'phone'                 => $record['phone'],
         ]);
 
         if (isset($record['profile_photo'])) {
@@ -95,14 +96,13 @@ class UserService
         return $user;
     }
 
-
     /**
-     * Create full name from first name, last name and other names
-     * 
+     * Create full name from first name, last name and other names.
+     *
      * @param string $firstName
      * @param string $lastName
      * @param string $otherNames
-     * 
+     *
      * @return string
      */
     public function createFullName($firstname, $lastname, $othernames = null)
@@ -111,12 +111,12 @@ class UserService
     }
 
     /**
-     * Check if user has a role
-     * 
-     * @param int $id
+     * Check if user has a role.
+     *
+     * @param int    $id
      * @param string $role
-     * 
-     * @return boolean
+     *
+     * @return bool
      */
     public function verifyRole($id, $role)
     {
@@ -126,26 +126,26 @@ class UserService
     }
 
     /**
-     * Update user profile information
-     * 
-     * @param App\Models\User $user
+     * Update user profile information.
+     *
+     * @param App\Models\User  $user
      * @param array|Collection $records
-     * @param string|null $role
-     * 
+     * @param string|null      $role
+     *
      * @return App\Models\User
      */
     public function updateUser(User $user, $record, $role = null)
     {
         if (isset($role)) {
-            if (!$this->verifyRole($user->id,$role)) {
+            if (!$this->verifyRole($user->id, $role)) {
                 abort('403', "User isn't a/an $role");
             }
         }
-       
+
         if (!$record['other_names']) {
             $record['other_names'] = null;
         }
-        
+
         $record['name'] = $this->createFullName($record['first_name'], $record['last_name'], $record['other_names']);
 
         $user = $this->updateUserProfileInformationAction->update($user, $record);
@@ -154,19 +154,18 @@ class UserService
     }
 
     /**
-     * Delete a user
-     * 
+     * Delete a user.
+     *
      * @param App\Models\User $user
-     * @param string $role
-     * 
+     * @param string          $role
+     *
      * @return void
      */
     public function verifyUserIsOfRoleElseNotFound(User $user, $role)
     {
-        if (!$this->verifyRole($user->id,$role)) {
+        if (!$this->verifyRole($user->id, $role)) {
             abort(404);
         }
 
-        return;
     }
 }

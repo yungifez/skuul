@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ClassGroupStoreRequest;
 use App\Models\ClassGroup;
 use App\Services\MyClass\MyClassService;
-use Illuminate\Http\Request;
 
 class ClassGroupController extends Controller
 {
@@ -42,7 +41,8 @@ class ClassGroupController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param \Illuminate\Http\Request $request
+     *
      * @return \Illuminate\Http\Response
      */
     public function store(ClassGroupStoreRequest $request)
@@ -56,7 +56,8 @@ class ClassGroupController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function show(ClassGroup $classGroup)
@@ -69,7 +70,8 @@ class ClassGroupController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function edit(ClassGroup $classGroup)
@@ -82,8 +84,9 @@ class ClassGroupController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int                      $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function update(ClassGroupStoreRequest $request, ClassGroup $classGroup)
@@ -97,7 +100,8 @@ class ClassGroupController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy(ClassGroup $classGroup)

@@ -2,10 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\Weekday;
-use App\Models\TimetableRecord;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class TimetableTimeSlot extends Model
 {

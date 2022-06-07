@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Illuminate\Http\Request;
-use App\Services\Student\StudentService;
 use App\Http\Requests\StudentGraduateRequest;
+use App\Models\User;
+use App\Services\Student\StudentService;
 
 class GraduationController extends Controller
 {
     public $student;
+
     public function __construct(StudentService $student)
     {
         $this->student = $student;
@@ -21,10 +21,12 @@ class GraduationController extends Controller
      */
 
     // atuhorization is done in the controller
-    public function index(){
+    public function index()
+    {
         if (!auth()->user()->can('view graduations')) {
             return abort(403, 'Unauthorized action.');
         }
+
         return view('pages.student.graduation.index');
     }
 
@@ -35,6 +37,7 @@ class GraduationController extends Controller
         if (!auth()->user()->can('graduate student')) {
             return abort(403, 'Unauthorized action.');
         }
+
         return view('pages.student.graduation.graduate');
     }
 
@@ -58,7 +61,7 @@ class GraduationController extends Controller
         if (!auth()->user()->can('reset graduation')) {
             return abort(403, 'Unauthorized action.');
         }
-        $this->student->user->verifyUserIsOfRoleElseNotFound($student,'student');
+        $this->student->user->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->student->resetGraduation($student);
 
         return back();

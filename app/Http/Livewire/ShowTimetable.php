@@ -2,9 +2,9 @@
 
 namespace App\Http\Livewire;
 
+use App\Models\Timetable;
 use App\Models\Weekday;
 use Livewire\Component;
-use App\Models\Timetable;
 
 class ShowTimetable extends Component
 {
@@ -16,7 +16,7 @@ class ShowTimetable extends Component
         $this->weekdays = Weekday::all();
         $this->subjects = $this->timetable->MyClass->subjects;
     }
-    
+
     public function render()
     {
         return view('livewire.show-timetable');

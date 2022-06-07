@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Subject;
 use Illuminate\Database\Seeder;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 
 class SubjectSeeder extends Seeder
 {
@@ -16,18 +15,18 @@ class SubjectSeeder extends Seeder
     public function run()
     {
         Subject::firstOrCreate([
-            'id' => 1,
-            'name' => 'Maths',
-            'short_name' => 'mat',
+            'id'          => 1,
+            'name'        => 'Maths',
+            'short_name'  => 'mat',
             'my_class_id' => 1,
-            'school_id' => 1,
+            'school_id'   => 1,
         ]);
 
         Subject::firstOrCreate([
-            'name' => 'English',
-            'short_name' => 'eng',
+            'name'        => 'English',
+            'short_name'  => 'eng',
             'my_class_id' => 2,
-            'school_id' => 1,
+            'school_id'   => 1,
         ]);
     }
 }

@@ -5,14 +5,14 @@ namespace App\Services\Admin;
 use App\Models\User;
 use App\Services\User\UserService;
 
-class AdminService  
+class AdminService
 {
     /**
      * @var UserService
      */
     public $user;
 
-    public function __construct( UserService $user)
+    public function __construct(UserService $user)
     {
         $this->user = $user;
     }
@@ -28,11 +28,11 @@ class AdminService
     }
 
     /**
-     * Create Admin
+     * Create Admin.
      *
      * @param array|Collection $records
+     *
      * @return App\Models\User
-     * 
      * @return void
      */
     public function createAdmin($records)
@@ -41,15 +41,14 @@ class AdminService
         $admin->assignRole('admin');
         session()->flash('success', 'Admin Created Successfully');
 
-        return;
     }
 
     /**
-     * Update Admin
-     * 
-     * @param App\Models\User $admin
+     * Update Admin.
+     *
+     * @param App\Models\User  $admin
      * @param array|Collection $records
-     * 
+     *
      * @return void
      */
     public function updateAdmin(User $admin, $records)
@@ -57,14 +56,13 @@ class AdminService
         $this->user->updateUser($admin, $records, 'admin');
         session()->flash('success', 'Admin Updated Successfully');
 
-        return;
     }
 
     /**
-     * Delete Admin
-     * 
+     * Delete Admin.
+     *
      * @param App\Models\User $admin
-     * 
+     *
      * @return void
      */
     public function deleteTeacher(User $admin)

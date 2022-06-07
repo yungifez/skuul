@@ -2,8 +2,8 @@
 
 namespace App\Http\Livewire;
 
-use Livewire\Component;
 use App\Services\Admin\AdminService;
+use Livewire\Component;
 
 class ListAdminsTable extends Component
 {
@@ -13,6 +13,7 @@ class ListAdminsTable extends Component
     {
         $this->admins = $adminService->getAllAdmins();
     }
+
     public function render()
     {
         return view('livewire.list-admins-table');

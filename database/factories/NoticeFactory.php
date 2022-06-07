@@ -18,14 +18,15 @@ class NoticeFactory extends Factory
     {
         $startDate = $this->faker->dateTimeThisYear('+2 months');
         $stopDate = $startDate->add(date_interval_create_from_date_string('10 days'));
+
         return [
-            'title' => $this->faker->sentence,
-            'content' => $this->faker->paragraph,
+            'title'      => $this->faker->sentence,
+            'content'    => $this->faker->paragraph,
             'attachment' => $this->faker->imageUrl(),
             'start_date' => $startDate->format('Y-m-d'),
-            'stop_date' => $stopDate->format('Y-m-d'),
-            'active' => $this->faker->boolean,
-            'school_id' => 1,
+            'stop_date'  => $stopDate->format('Y-m-d'),
+            'active'     => $this->faker->boolean,
+            'school_id'  => 1,
         ];
     }
 }

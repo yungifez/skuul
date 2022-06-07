@@ -1,24 +1,24 @@
 <?php
+
 namespace App\Services\Exam;
 
 use App\Models\Exam;
-use App\Models\User;
-use App\Models\Section;
-use App\Models\Subject;
 use App\Models\Semester;
+use App\Models\Subject;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
-use App\Services\Exam\ExamRecordService;
 
 class ExamService
 {
     protected $examRecordService;
     protected $examSlotService;
+
     public function __construct(ExamRecordService $examRecordService, ExamSlotService $examSlotService)
     {
         $this->examRecordService = $examRecordService;
         $this->examSlotService = $examSlotService;
     }
-   
+
     public function getAllExamsInSemester($semester_id)
     {
         return Exam::where('semester_id', $semester_id)->get();
@@ -35,20 +35,19 @@ class ExamService
     {
         return Exam::find($id);
     }
-    
+
     public function createExam($records)
     {
-        DB::transaction(function () use ($records)
-        {
+        DB::transaction(function () use ($records) {
             $exam = Exam::create([
-                'name' => $records['name'],
+                'name'        => $records['name'],
                 'description' => $records['description'],
                 'semester_id' => $records['semester_id'],
-                'start_date' => $records['start_date'],
-                'stop_date' => $records['stop_date'],
+                'start_date'  => $records['start_date'],
+                'stop_date'   => $records['stop_date'],
             ]);
         });
-        
+
         return session()->flash('success', 'Exam created successfully');
     }
 
@@ -65,7 +64,7 @@ class ExamService
     }
 
     //set exam active or inactive
-    public function setExamStatus(Exam $exam,bool $status)
+    public function setExamStatus(Exam $exam, bool $status)
     {
         $exam->active = $status;
         $exam->save();
@@ -87,6 +86,7 @@ class ExamService
         foreach ($exam->examSlots as $examSlot) {
             $totalMarks += $examSlot->total_marks;
         }
+
         return $totalMarks;
     }
 
@@ -96,22 +96,23 @@ class ExamService
         $totalMarks = 0;
         $exams = $semester->exams;
         //get all exam slots in exams
-            foreach ($exams as $exam ) {
-                $totalMarks += $exam->examSlots->sum(['total_marks']);
-            }
-            return $totalMarks;
+        foreach ($exams as $exam) {
+            $totalMarks += $exam->examSlots->sum(['total_marks']);
+        }
+
+        return $totalMarks;
     }
 
     //calculate total mark gotten in subject for exam
 
-    public function calculateStudentTotalMarksInSubject(Exam $exam, User $user,Subject $subject)
+    public function calculateStudentTotalMarksInSubject(Exam $exam, User $user, Subject $subject)
     {
         return $this->examRecordService->getAllUserExamRecordInExamForSubject($exam, $user->id, $subject->id)->pluck('student_marks')->sum();
     }
 
     //calculate student mark gottem in semester
 
-    public function calculateStudentTotalMarkInSubjectForSemester(Semester $semester,User $user,  Subject $subject)
+    public function calculateStudentTotalMarkInSubjectForSemester(Semester $semester, User $user, Subject $subject)
     {
         return $this->examRecordService->getAllUserExamRecordInSemesterForSubject($semester, $user->id, $subject->id)->pluck('student_marks')->sum();
     }

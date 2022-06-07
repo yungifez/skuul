@@ -20,7 +20,7 @@ class MyClassStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required',
+            'name'           => 'required',
             'class_group_id' => 'required',
         ];
     }

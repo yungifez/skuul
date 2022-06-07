@@ -12,13 +12,12 @@ class UpdateExamStatusRequest extends FormRequest
      * @return bool
      */
 
-
     //prepare attribute for validation
     protected function prepareForValidation()
     {
-        if($this->status == 'active' || $this->status == 1 || $this->status =="on"){
+        if ($this->status == 'active' || $this->status == 1 || $this->status == 'on') {
             $this->merge(['status' => true]);
-        }elseif ($this->status == 'inactive' || $this->status == 0 || $this->status == "off" || $this->status == null) {
+        } elseif ($this->status == 'inactive' || $this->status == 0 || $this->status == 'off' || $this->status == null) {
             $this->merge(['status' => false]);
         }
     }
@@ -31,7 +30,7 @@ class UpdateExamStatusRequest extends FormRequest
     public function rules()
     {
         return [
-            'status' => "boolean"
+            'status' => 'boolean',
         ];
     }
 }
