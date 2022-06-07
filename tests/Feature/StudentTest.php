@@ -5,67 +5,46 @@ namespace Tests\Feature;
 use Tests\TestCase;
 use App\Models\User;
 use App\Models\Promotion;
+use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class StudentTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, FeatureTestTrait;
     //test view all students cannot be accessed by unauthorised users
     
     public function test_view_all_students_cannot_be_accessed_by_unauthorised_users()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-        $response = $this->get('/dashboard/students');
-
-        $response->assertForbidden();
+       $this->unauthorized_user()->get('dashboard/students/')->assertForbidden();
     }
 
     //test view all students can be accessed by authorised users
 
     public function test_view_all_students_can_be_accessed_by_authorised_users()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(['read student']);
-        $this->actingAs($user);
-        $response = $this->get('/dashboard/students');
-
-        $response->assertOk();
+        $this->authorized_user(['read student'])->get('dashboard/students')->assertOk();
     }
 
     //test create student cannot be accessed by unauthorised users
 
     public function test_create_student_cannot_be_accessed_by_unauthorised_users()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-        $response = $this->get('/dashboard/students/create');
-
-        $response->assertForbidden();
+        $this->unauthorized_user()->get('dashboard/students/create')->assertForbidden();
     }
 
     //test create student can be accessed by authorised users
 
     public function test_create_student_can_be_accessed_by_authorised_users()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(['create student']);
-        $this->actingAs($user);
-        $response = $this->get('/dashboard/students/create');
-
-        $response->assertOk();
+        $this->authorized_user(['create student'])->get('dashboard/students/create')->assertOk();
     }
 
     //test unauthorised users cannot create students
 
     public function test_unauthorised_users_cannot_create_students()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-        $response = $this->post('/dashboard/students', [
-            'first_name' => 'Test',
-            'last_name' => 'Student',
+        $this->unauthorized_user()->post('dashboard/students', [
             'email' => 'test@test.test',
             'password' => 'password',
             'password_confirmation' => 'password',
@@ -80,19 +59,14 @@ class StudentTest extends TestCase
             'my_class_id' => 1,
             'section_id' => 1,
             'admission_date' => '2004/04/22',
-        ]);
-
-        $response->assertForbidden();
+        ])->assertForbidden();
     }
 
     //test user can create student
 
     public function test_user_can_create_student()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(['create student']);
-        $this->actingAs($user);
-        $response = $this->post('/dashboard/students', [
+        $this->authorized_user(['create student'])->post('dashboard/students', [
             'first_name' => 'Test',
             'last_name' => 'Student',
             'other_name' => '',
@@ -109,19 +83,21 @@ class StudentTest extends TestCase
             'phone' => '08080808080',
             'my_class_id' => 1,
             'section_id' => 1,
-            'admission_date' => '2004/04/22',
+            'admission_date' => '2004/04/22',]);
+
+        $this->assertDatabaseHas('users', [
+            'email' => 'test@test.test',
+            'address' => 'test address',
+            'birthday' => '2004/04/22',
+            'phone' => '08080808080',
         ]);
-        $student = User::where('email', 'test@test.test')->first();
-        $studentRecord = $student->studentRecord;
-    
-        $this->assertModelExists($student) && $this->assertModelExists($studentRecord);
+
     }
 
     //test edit student cannot be accessed by unauthorised users
 
     public function test_edit_student_cannot_be_accessed_by_unauthorised_users()
     {
-        $user = User::factory()->create();
         $student = User::factory()->create();
         $student->assignRole('student');
         $student->studentRecord()->create([
@@ -130,19 +106,14 @@ class StudentTest extends TestCase
             'admission_date' => '22/04/04',
             'is_graduated' => false,
         ]);
-        $this->actingAs($user);
-        $response = $this->get("/dashboard/students/$student->id/edit");
-
-        $response->assertForbidden();
+        $this->unauthorized_user()->get('dashboard/students/'.$student->id.'/edit')->assertForbidden();
     }
 
     //test edit student can be accessed by authorised users
 
     public function test_edit_student_can_be_accessed_by_authorised_users()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(['update student']);
-        $this->actingAs($user);
+        
         $student = User::factory()->create();
         $student->assignRole('student');
         $student->studentRecord()->create([
@@ -151,18 +122,14 @@ class StudentTest extends TestCase
             'admission_date' => '22/04/04',
             'is_graduated' => false,
         ]);
-        $response = $this->get("/dashboard/students/$student->id/edit");
 
-        $response->assertOk();
+        $this->authorized_user(['update student'])->get('dashboard/students/'.$student->id.'/edit')->assertOk();
     }
 
     //test unauthorised users cannot edit students
 
     public function test_unauthorised_users_cannot_edit_students()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-
         $student = User::factory()->create();
         $student->assignRole('student');
         $student->studentRecord()->create([
@@ -171,7 +138,7 @@ class StudentTest extends TestCase
             'admission_date' => '22/04/04',
             'is_graduated' => false,
         ]);
-        $response = $this->patch("/dashboard/students/$student->id", [
+        $this->unauthorized_user()->put('dashboard/students/'.$student->id, [
             'first_name' => 'Test',
             'last_name' => 'Student 2',
             'email' => 'test@test.test',
@@ -187,10 +154,8 @@ class StudentTest extends TestCase
             'phone' => '08080808080',
             'my_class_id' => 1,
             'section_id' => 1,
-            'admission_date' => '2004/04/22',
-        ]);
-
-        $response->assertForbidden();
+            'admission_date' => '2004/04/22',])
+        ->assertForbidden();
     }
 
     
@@ -198,10 +163,6 @@ class StudentTest extends TestCase
 
     public function test_authorised_users_can_edit_students()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(['update student']);
-        $this->actingAs($user);
-
         $student = User::factory()->create();
         $student->assignRole('student');
         $student->studentRecord()->create([
@@ -210,7 +171,7 @@ class StudentTest extends TestCase
             'admission_date' => '22/04/04',
             'is_graduated' => false,
         ]);
-        $response = $this->put("/dashboard/students/$student->id", [
+        $this->authorized_user(['update student'])->put('dashboard/students/'.$student->id, [
             'first_name' => 'Test 2',
             'other_names' => 'Student 2',
             'last_name' => 'Student',
@@ -224,8 +185,7 @@ class StudentTest extends TestCase
             'blood_group' => 'a+',
             'address' => 'test address',
             'birthday' => '2004/04/22',
-            'phone' => '08080808080',
-        ]);
+            'phone' => '08080808080', ]);
 
         $student = User::where('email', 'test2@test.test')->first();
 
@@ -236,9 +196,6 @@ class StudentTest extends TestCase
 
     public function test_unauthorised_users_cannot_delete_students()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-
         $student = User::factory()->create();
         $student->assignRole('student');
         $student->studentRecord()->create([
@@ -247,19 +204,13 @@ class StudentTest extends TestCase
             'admission_date' => '22/04/04',
             'is_graduated' => false,
         ]);
-        $response = $this->delete("/dashboard/students/$student->id");
-
-        $response->assertForbidden();
+        $this->unauthorized_user()->delete('dashboard/students/'.$student->id)->assertForbidden();
     }
 
     //test authorised users can delete students
 
     public function test_authorised_users_can_delete_students()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(['delete student']);
-        $this->actingAs($user);
-
         $student = User::factory()->create();
         $student->assignRole('student');
         $student->studentRecord()->create([
@@ -268,7 +219,7 @@ class StudentTest extends TestCase
             'admission_date' => '22/04/04',
             'is_graduated' => false,
         ]);
-        $response = $this->delete("/dashboard/students/$student->id");
+        $this->authorized_user(['delete student'])->delete('dashboard/students/'.$student->id);
 
         $this->assertModelMissing($student);
     }
@@ -277,86 +228,52 @@ class StudentTest extends TestCase
 
     public function test_unauthorized_user_cannot_view_all_promotions()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-
-        $response = $this->get('/dashboard/students/promotions');
-
-        $response->assertForbidden();
+        $this->unauthorized_user()->get('dashboard/students/promotions')->assertForbidden();
     }
 
     //test authorized user can view all promotions
 
     public function test_authorized_user_can_view_all_promotions()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(['read promotion']);
-        $this->actingAs($user);
-
-        $response = $this->get('/dashboard/students/promotions');
-
-        $response->assertOk();
+        $this->authorized_user(['read promotion'])->get('dashboard/students/promotions')->assertOk();
     }
 
     //test unauthorized user cannot view promotion
 
     public function test_unauthorized_user_cannot_view_promotion()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-
         $promotion = Promotion::factory()->create();
 
-        $response = $this->get("/dashboard/students/promotions/$promotion->id");
-
-        $response->assertForbidden();
+        $this->unauthorized_user()->get('dashboard/students/promotions/'.$promotion->id)->assertForbidden();
     }
 
     //test authorized user can view promotion
 
     public function test_authorized_user_can_view_promotion()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(['read promotion']);
-        $this->actingAs($user);
-
         $promotion = Promotion::factory()->create();
 
-        $response = $this->get("/dashboard/students/promotions/$promotion->id");
-
-        $response->assertOk();
+        $this->authorized_user(['read promotion'])->get('dashboard/students/promotions/'.$promotion->id)->assertOk();
     }
 
     //tes unauthorized user cannot view promoteview
 
     public function test_unauthorized_user_cannot_view_promoteview()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-        $response = $this->get("/dashboard/students/promote");
-
-        $response->assertForbidden();
+        $this->unauthorized_user()->get("/dashboard/students/promote")->assertForbidden();
     }
 
     //test authorized user can view promoteview
 
     public function test_authorized_user_can_view_promoteview()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(['promote student']);
-        $this->actingAs($user);
-        $response = $this->get("/dashboard/students/promote");
-
-        $response->assertOk();
+        $this->authorized_user(['promote student'])->get("/dashboard/students/promote")->assertOk();
     }
 
     //test unauthorized user cannot promote students
 
     public function test_unauthorized_user_cannot_promote_students()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-
         $student = User::factory()->create();
         $student->assignRole('student');
         $student->studentRecord()->create([
@@ -365,32 +282,19 @@ class StudentTest extends TestCase
             'admission_date' => '22/04/04',
             'is_graduated' => false,
         ]);
-        $response = $this->post("/dashboard/students/promote", [
+        $this->unauthorized_user()->post("/dashboard/students/promote", [
             'student_id' =>[ $student->id],
             'old_class_id' => 1,
             'old_section_id' => 2,
             'new_class_id' => 1,
             'new_section_id' => 1,
-        ]);
-
-        $promotion = Promotion::where([
-            'old_class_id' => 1,
-            'old_section_id' => 2,
-            'new_class_id' => 1,
-            'new_section_id' => 1,
-        ])->whereJsonContains('students' , [$student->id])->first();
-
-        $response->assertForbidden();
+        ])->assertForbidden();
     }
 
     //test authorized user can promote students
 
     public function test_authorized_user_can_promote_students()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(['promote student']);
-        $this->actingAs($user);
-
         $student = User::factory()->create();
         $student->assignRole('student');
         $student->studentRecord()->create([
@@ -399,14 +303,13 @@ class StudentTest extends TestCase
             'admission_date' => '22/04/04',
             'is_graduated' => false,
         ]);
-        $response = $this->post("/dashboard/students/promote", [
+        $this->authorized_user(['promote student'])->post("/dashboard/students/promote", [
             'student_id' =>[ $student->id],
             'old_class_id' => 1,
             'old_section_id' => 2,
             'new_class_id' => 1,
             'new_section_id' => 1,
         ]);
-
         $promotion = Promotion::where([
             'old_class_id' => 1,
             'old_section_id' => 2,
@@ -421,27 +324,15 @@ class StudentTest extends TestCase
 
     public function test_unauthorized_user_cannot_delete_promotion()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-
-        $promotion = Promotion::factory()->create();
-
-        $response = $this->delete("/dashboard/students/promotions/$promotion->id/reset");
-
-        $response->assertForbidden();
+        $this->unauthorized_user()->delete('dashboard/students/promotions/1/reset')->assertForbidden();
     }
 
     //test authorized user can delete promotion
 
     public function test_authorized_user_can_delete_promotion()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(['reset promotion']);
-        $this->actingAs($user);
-
         $promotion = Promotion::factory()->create();
-
-        $response = $this->delete("/dashboard/students/promotions/$promotion->id/reset");
+        $this->authorized_user(['reset promotion'])->delete('dashboard/students/promotions/'.$promotion->id.'/reset');
 
         $this->assertModelMissing($promotion);
     }
@@ -450,34 +341,20 @@ class StudentTest extends TestCase
 
     public function test_unauthorized_user_cannot_view_all_graduations()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-
-        $response = $this->get('/dashboard/students/graduations');
-
-        $response->assertForbidden();
+        $this->unauthorized_user()->get('dashboard/students/graduations')->assertForbidden();
     }
 
     //test authorized user can view all graduations
 
     public function test_authorized_user_can_view_all_graduations()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(['view graduations']);
-        $this->actingAs($user);
-
-        $response = $this->get('/dashboard/students/graduations');
-
-        $response->assertOk();
+        $this->authorized_user(['view graduations'])->get('dashboard/students/graduations')->assertOk();
     }
 
     //test unauthorized user cannot graduate student
 
     public function test_unauthorized_user_cannot_graduate_student()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-
         $student = User::factory()->create();
         $student->assignRole('student');
         $student->studentRecord()->create([
@@ -486,10 +363,8 @@ class StudentTest extends TestCase
             'admission_date' => '22/04/04',
             'is_graduated' => false,
         ]);
-        $response = $this->post("/dashboard/students/graduate", [
-            'student_id' =>[ $student->id]
-        ]);
-
-        $response->assertForbidden();
+        $this->unauthorized_user()->post("/dashboard/students/graduate", [
+            'student_id' =>[ $student->id],
+        ])->assertForbidden();
     }
 }

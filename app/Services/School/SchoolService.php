@@ -8,32 +8,65 @@ use Illuminate\Support\Str;
 
 class SchoolService
 {
-    public $userService;
+    /**
+     * @var UserService
+     */
+    public $user;
 
-    public function __construct(UserService $userService)
+    /**
+     * User service constructor.
+     * 
+     * @param App\Services\UserService $user
+     */
+    public function __construct(UserService $user)
     {
-        $this->userService = $userService;
+        $this->user = $user;
     }
 
+    /**
+     * Get all schools.
+     * 
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
     public function getAllSchools()
     {
         return School::all();
     }
 
+    /**
+     * Get a school by id.
+     * 
+     * @param int $id
+     * @return \App\Models\School
+     */
     public function getSchoolById($id)
     {
-        return School::with('myClasses')->find($id);
+        return School::find($id);
     }
 
-    public function createSchool($records)
+    /**
+     * Create school
+     * 
+     * @param array $record
+     * 
+     * @return App\Models\School
+     */
+    public function createSchool($record)
     {
-        $records['code'] = $this->generateSchoolCode();
-        $school = School::create($records);
+        $record['code'] = $this->generateSchoolCode();
+        $school = School::create($record);
         session()->flash('success', __('School created successfully'));
 
-        return $school;
+        return;
     }
 
+    /**
+     * Update school
+     * 
+     * @param array $record
+     * 
+     * @return App\Models\School
+     */
     public function updateSchool(School $school, $records)
     {
         $school->name = $records['name'];
@@ -44,41 +77,57 @@ class SchoolService
         $school->save();
         session()->flash('success', __('School updated successfully'));
 
-        return $school;
+        return;
     }
 
+    /**
+     * Set authenticated user's school
+     * 
+     * @param int $id
+     * 
+     * @return void
+     */
     public function setSchool($id)
     {
         $school = $this->getSchoolById($id);
 
         if ($school->exists()) {
-            $user = $this->userService->getUserById(auth()->user()->id);
-            $user->school_id = $school->id;
-            $user->save();
+            auth()->user()->school_id = $school->id;
+            auth()->user()->save();
             session()->flash('success', __('School set successfully'));
 
-            return true;
+            return;
         }
-
         session()->flash('danger', __('School not found'));
 
-        return false;
+        return ;
     }
 
+    /**
+     * Generate school code
+     * 
+     * @return string
+     */
     public function generateSchoolCode()
     {
         return Str::random(10);
     }
 
-    // delete school
-
+    /**
+     * Delete school
+     * 
+     * @param App\Models\School $school
+     * 
+     * @return void
+     */
     public function deleteSchool(School $school)
     {
         if ($school->users->count('id')) {
-            return session()->flash('danger', __('Remove all users from this school and make sure school is not set for any super admin'));
+            session()->flash('danger', __('Remove all users from this school and make sure school is not set for any super admin'));
+            return;
         }
         $school->delete();
-    
-        return session()->flash('success', __('School deleted successfully'));;
+        session()->flash('success', __('School deleted successfully'));;
+        return;
     }
 }

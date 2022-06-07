@@ -13,7 +13,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('remark')->nullable();
             $table->string('grade_from');
-            $table->string('grade_to');
+            $table->string('grade_till');
             $table->foreignId('class_group_id')->constrained()->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });

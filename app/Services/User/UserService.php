@@ -8,10 +8,15 @@ use App\Models\User;
 
 class UserService
 {
+    /**
+     * @var CreateNewUser
+     */
     public $createUserAction;
 
+    /**
+     * @var UpdateUserProfileInformation
+     */
     public $updateUserProfileInformationAction;
-    //construct method which assigns CresteNewUser to createUserAction variable
 
     public function __construct(CreateNewUser $createUserAction, UpdateUserProfileInformation $updateUserProfileInformationAction)
     {
@@ -19,21 +24,46 @@ class UserService
         $this->updateUserProfileInformationAction = $updateUserProfileInformationAction;
     }
 
+    /**
+     * Get all users.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection|static[]
+     */
     public function getAllUsers()
     {
         return User::where('school_id', auth()->user()->school_id)->get();
     }
 
+    /**
+     * Get a user by id
+     *
+     * @param integer $id
+     * @return App\Models\User
+     */
     public function getUserById($id)
     {
         return User::find($id);
     }
 
+    /**
+     * Get users by role
+     * 
+     * @param string $role
+     * 
+     * @return \Illuminate\Database\Eloquent\Collection|static[]
+     */
     public function getUsersByRole($role)
     {
         return User::Role($role)->where('school_id', auth()->user()->school_id)->get();
     }
 
+    /**
+     * Create a new user
+     * 
+     * @param array|Collection $records
+     * 
+     * @return App\Models\User
+     */
     public function createUser($record)
     {
         if (!$record['other_names']) {
@@ -65,15 +95,29 @@ class UserService
         return $user;
     }
 
-    // name concatenation
 
+    /**
+     * Create full name from first name, last name and other names
+     * 
+     * @param string $firstName
+     * @param string $lastName
+     * @param string $otherNames
+     * 
+     * @return string
+     */
     public function createFullName($firstname, $lastname, $othernames = null)
     {
         return $firstname.' '.$lastname.' '.$othernames;
     }
 
-    // verify role
-
+    /**
+     * Check if user has a role
+     * 
+     * @param int $id
+     * @param string $role
+     * 
+     * @return boolean
+     */
     public function verifyRole($id, $role)
     {
         $user = $this->getUserById($id);
@@ -81,6 +125,15 @@ class UserService
         return $user->hasRole($role);
     }
 
+    /**
+     * Update user profile information
+     * 
+     * @param App\Models\User $user
+     * @param array|Collection $records
+     * @param string|null $role
+     * 
+     * @return App\Models\User
+     */
     public function updateUser(User $user, $record, $role = null)
     {
         if (isset($role)) {
@@ -100,10 +153,20 @@ class UserService
         return $user;
     }
 
+    /**
+     * Delete a user
+     * 
+     * @param App\Models\User $user
+     * @param string $role
+     * 
+     * @return void
+     */
     public function verifyUserIsOfRoleElseNotFound(User $user, $role)
     {
         if (!$this->verifyRole($user->id,$role)) {
             abort(404);
         }
+
+        return;
     }
 }

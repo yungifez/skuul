@@ -62,7 +62,7 @@ class ListExamRecordsTable extends Component
             $this->examSlots = null;
             return;
         }
-        //set variables used for controlling stat, holding state f=data and querystrings
+        //set variables used for controlling state, holding state f=data and querystrings
         $this->examSelected = $exam;
         $this->examSelectedId = $this->examSelected->id;
         $this->sectionSelected = $section;

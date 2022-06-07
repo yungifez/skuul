@@ -25,7 +25,7 @@ class TimeSlotService
     {
         $timeSlot->delete();
 
-        return session()->flash('success', __('Timeslot deleted successfully'));;
+        return session()->flash('success', __('Time slot deleted successfully'));;
     }
 
     //create timetable record

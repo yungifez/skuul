@@ -36,14 +36,6 @@ class MyClass extends Model
         return $this->hasMany(Section::class);
     }
 
-    //check if section is in a class
-    public function isSectionInClass($sectionId)
-    {
-        return self::whereHas('sections', function ($query) use ($sectionId) {
-            $query->where('id', $sectionId);
-        })->exists();
-    }
-
     /**
      * Get all of the students for the MyClass
      *

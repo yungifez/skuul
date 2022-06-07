@@ -7,7 +7,7 @@
             <x-adminlte-input name="name" label="Name" placeholder="Grade name eg A1" fgroup-class="col-md-6" value="{{$grade->name}}"/>
             <x-adminlte-input name="remark" label="Remark" placeholder="Grade remark eg Excellent" fgroup-class="col-md-6" value="{{$grade->remark}}"/>
             <x-adminlte-input type="number" name="grade_from" label="From" placeholder="Grade from eg 10" fgroup-class="col-md-6" value="{{$grade->grade_from}}"/>
-            <x-adminlte-input type="number" name="grade_to" label="To" placeholder="Grade to eg 20" fgroup-class="col-md-6" value="{{$grade->grade_to}}"/>
+            <x-adminlte-input type="number" name="grade_till" label="Till" placeholder="grade till eg 20" fgroup-class="col-md-6" value="{{$grade->grade_till}}"/>
             <x-adminlte-select name="class_group_id" fgroup-class="col-md-6 mx-1" label="Class Group" wire:model="classGroup">
                 @foreach ($classGroups as $classGroup)
                     <option value="{{$classGroup->id}}">{{$classGroup->name}}</option>

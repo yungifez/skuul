@@ -91,7 +91,7 @@ class ResultTabulation extends Component
 
             //make sure total marks is not 0
             $totalMarks = $totalMarks ? $totalMarks : 1;
-            $tabulatedRecords[$student->id]['percent'] =round(  (($totalSubjectMarks / $totalMarks)) * 100, 2);
+            $tabulatedRecords[$student->id]['percent'] =ceil(  (($totalSubjectMarks / $totalMarks)) * 100);
             $percentage = $tabulatedRecords[$student->id]['percent'];
 
             $grade = app('App\Services\GradeSystem\GradeSystemService')->getGrade($section->myClass->classGroup->id, $percentage);

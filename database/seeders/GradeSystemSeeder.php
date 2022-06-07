@@ -20,7 +20,7 @@ class GradeSystemSeeder extends Seeder
             'name' => 'A+',
             'remark' => 'Excellent',
             'grade_from' => '90',
-            'grade_to' => '100',
+            'grade_till' => '100',
             'class_group_id' => 1,
         ]);
 
@@ -29,7 +29,7 @@ class GradeSystemSeeder extends Seeder
             'name' => 'A',
             'remark' => 'Very Good',
             'grade_from' => '80',
-            'grade_to' => '89',
+            'grade_till' => '89',
             'class_group_id' => 1,
         ]);
 
@@ -38,7 +38,7 @@ class GradeSystemSeeder extends Seeder
             'name' => 'B+',
             'remark' => 'Good',
             'grade_from' => '70',
-            'grade_to' => '79',
+            'grade_till' => '79',
             'class_group_id' => 1,
         ]);
 
@@ -47,7 +47,7 @@ class GradeSystemSeeder extends Seeder
             'name' => 'B',
             'remark' => 'Satisfactory',
             'grade_from' => '60',
-            'grade_to' => '69',
+            'grade_till' => '69',
             'class_group_id' => 1,
         ]);
 
@@ -56,7 +56,7 @@ class GradeSystemSeeder extends Seeder
             'name' => 'C+',
             'remark' => 'Fair',
             'grade_from' => '50',
-            'grade_to' => '59',
+            'grade_till' => '59',
             'class_group_id' => 1,
         ]);
 
@@ -65,7 +65,7 @@ class GradeSystemSeeder extends Seeder
             'name' => 'C',
             'remark' => 'Pass',
             'grade_from' => '40',
-            'grade_to' => '49',
+            'grade_till' => '49',
             'class_group_id' => 1,
         ]);
 
@@ -74,7 +74,7 @@ class GradeSystemSeeder extends Seeder
             'name' => 'D',
             'remark' => 'Fail',
             'grade_from' => '20',
-            'grade_to' => '39',
+            'grade_till' => '39',
             'class_group_id' => 1,
         ]);
     }

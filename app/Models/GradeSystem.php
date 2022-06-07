@@ -10,7 +10,7 @@ class GradeSystem extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name','remark','grade_from','grade_to','class_group_id',];
+    protected $fillable = ['name','remark','grade_from','grade_till','class_group_id',];
 
     public function classGroup()
     {
