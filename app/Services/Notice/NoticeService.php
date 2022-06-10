@@ -36,7 +36,7 @@ class NoticeService
      *
      * @param array $data
      *
-     * @return session
+     * @return void
      */
     public function storeNotice(array $data)
     {
@@ -61,16 +61,24 @@ class NoticeService
         ]);
 
         DB::commit();
+    session()->flash('success', 'Notice created successfully');
 
-        return session()->flash('success', 'Notice created successfully');
+    return;
     }
 
-    //delete notice
+    /**
+     * Delete notice.
+     * 
+     * @param App\Models\Notice $notice
+     * 
+     * @return void
+     */
 
     public function deleteNotice(Notice $notice)
     {
         $notice->delete();
+        session()->flash('success', 'Notice deleted successfully');
 
-        return session()->flash('success', 'Notice deleted successfully');
+        return;
     }
 }
