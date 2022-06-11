@@ -40,7 +40,7 @@ class SectionController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param SectionStoreRequest $request
      *
      * @return \Illuminate\Http\Response
      */
@@ -55,8 +55,7 @@ class SectionController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param int $id
-     *
+     * @param Section $section
      * @return \Illuminate\Http\Response
      */
     public function show(Section $section)
@@ -67,8 +66,7 @@ class SectionController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param int $id
-     *
+     * @param Section $section
      * @return \Illuminate\Http\Response
      */
     public function edit(Section $section)
@@ -81,9 +79,8 @@ class SectionController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param int                      $id
-     *
+     * @param SectionUpdateRequest $request
+     * @param Section $section
      * @return \Illuminate\Http\Response
      */
     public function update(SectionUpdateRequest $request, Section $section)
@@ -98,8 +95,7 @@ class SectionController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param int $id
-     *
+     * @param Section $section
      * @return \Illuminate\Http\Response
      */
     public function destroy(Section $section)

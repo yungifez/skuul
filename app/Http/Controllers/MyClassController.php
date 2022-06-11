@@ -41,7 +41,7 @@ class MyClassController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param MyClassStoreRequest $request
      *
      * @return \Illuminate\Http\Response
      */
@@ -56,8 +56,7 @@ class MyClassController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param int $id
-     *
+     * @param MyClass $class
      * @return \Illuminate\Http\Response
      */
     public function show(MyClass $class)
@@ -70,8 +69,7 @@ class MyClassController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param int $id
-     *
+     * @param MyClass $class
      * @return \Illuminate\Http\Response
      */
     public function edit(MyClass $class)
@@ -84,9 +82,8 @@ class MyClassController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param int                      $id
-     *
+     * @param MyClassStoreRequest $request
+     * @param MyClass $class
      * @return \Illuminate\Http\Response
      */
     public function update(MyClassStoreRequest $request, MyClass $class)
@@ -100,8 +97,7 @@ class MyClassController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param int $id
-     *
+     * @param MyClass $class
      * @return \Illuminate\Http\Response
      */
     public function destroy(MyClass $class)

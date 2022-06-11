@@ -60,7 +60,7 @@ class StudentService
      *
      * @param array|int $id student id
      *
-     * @return App\Models\User
+     * @return \App\Models\User
      */
     public function getStudentById($id)
     {
@@ -101,9 +101,8 @@ class StudentService
     /**
      * Update student.
      *
-     * @param App\Model\User $user
-     * @param array          $record Array of student record
-     *
+     * @param User $student
+     * @param $records
      * @return void
      */
     public function updateStudent(User $student, $records)
@@ -115,8 +114,7 @@ class StudentService
     /**
      * Delete student.
      *
-     * @param App\Model\User $user
-     *
+     * @param User $student
      * @return void
      */
     public function deleteStudent(User $student)
