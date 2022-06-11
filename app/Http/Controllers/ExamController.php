@@ -108,7 +108,7 @@ class ExamController extends Controller
     }
 
     /**
-     * Tabulation  for exams.
+     * Tabulation for exams.
      */
     public function examTabulation()
     {
@@ -125,6 +125,16 @@ class ExamController extends Controller
         $this->authorize('viewAny', Exam::class);
 
         return view('pages.exam.result-tabulation');
+    }
+
+    /**
+     * Result checker.
+     */
+    public function resultChecker()
+    {
+        $this->authorize('checkResult', Exam::class);
+
+        return view('pages.exam.result-checker');
     }
 
     /**

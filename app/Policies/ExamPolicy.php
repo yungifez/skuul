@@ -108,4 +108,19 @@ class ExamPolicy
     {
         //
     }
+
+    /**
+     * Determine whether the user can check result.
+     *
+     * @param \App\Models\User $user
+     *
+     * @return \Illuminate\Auth\Access\Response|bool
+     */
+
+    public function checkResult(User $user){
+        if ($user->can('check result')) {
+            return true;
+        }
+    }
+
 }
