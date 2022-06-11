@@ -28,7 +28,7 @@ class GradeSystemService
     {
         $gradesInDb = $this->getAllGradesInClassGroup($records['class_group_id']);
 
-        if ($gradesInDb = !null && $this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_till' => $records['grade_till']], $gradesInDb)) {
+        if ($gradesInDb = $this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_till' => $records['grade_till']], $gradesInDb)) {
             return session()->flash('danger', 'Grade is in another range in this class group');
         }
 
@@ -49,7 +49,7 @@ class GradeSystemService
     {
         $gradesInDb = $this->getAllGradesInClassGroup($records['class_group_id'])->except($grade->id);
 
-        if ($gradesInDb = !null && $this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_till' => $records['grade_till']], $gradesInDb)) {
+        if ($gradesInDb = $this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_till' => $records['grade_till']], $gradesInDb)) {
             return session()->flash('danger', 'Grade is in another range in this class group');
         }
 

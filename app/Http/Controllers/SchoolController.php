@@ -49,7 +49,7 @@ class SchoolController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param SchoolStoreRequest $request
      *
      * @return \Illuminate\Http\Response
      */
@@ -64,7 +64,7 @@ class SchoolController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param int $id
+     * @param School $school
      *
      * @return \Illuminate\Http\Response
      */
@@ -78,7 +78,7 @@ class SchoolController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param int $id
+     * @param School $school
      *
      * @return \Illuminate\Http\Response
      */
@@ -92,8 +92,8 @@ class SchoolController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param int                      $id
+     * @param SchoolUpdateRequest $request
+     * @param School              $school
      *
      * @return \Illuminate\Http\Response
      */
@@ -108,7 +108,7 @@ class SchoolController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param int $id
+     * @param School $school
      *
      * @return \Illuminate\Http\Response
      */
@@ -120,7 +120,7 @@ class SchoolController extends Controller
     }
 
     /**
-     * Get settingd for authenticated user's school.
+     * Get settings for authenticated user's school.
      *
      * @return \Illuminate\Http\RedirectResponse
      */
