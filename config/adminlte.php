@@ -580,7 +580,7 @@ return [
                     'text'  => 'Result Checker',
                     'route' => 'exams.result-checker',
                     'can'   => 'check result',
-                ]
+                ],
             ],
         ],
         [

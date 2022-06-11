@@ -116,11 +116,10 @@ class ExamPolicy
      *
      * @return \Illuminate\Auth\Access\Response|bool
      */
-
-    public function checkResult(User $user){
+    public function checkResult(User $user)
+    {
         if ($user->can('check result')) {
             return true;
         }
     }
-
 }
