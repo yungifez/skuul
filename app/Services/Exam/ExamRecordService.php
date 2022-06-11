@@ -54,6 +54,23 @@ class ExamRecordService
         return ExamRecord::where(['user_id' => $user, 'subject_id' => $subject])->whereIn('exam_slot_id', $examSlots)->get();
     }
 
+    public function getAllUserExamRecordInSemester(Semester $semester, $user)
+    {
+        //get all exams
+        $exams = $semester->exams;
+        //create container variable for all exam slots in semster
+        $examSlots = [];
+        //get all exam slots in exams
+        foreach ($exams as $exam) {
+            $i = $exam->examSlots->pluck('id')->toArray();
+            foreach ($i as $j) {
+                $examSlots[] = $j;
+            }
+        }
+        //get all exam records in for user and subject
+        return ExamRecord::where(['user_id' => $user])->whereIn('exam_slot_id', $examSlots)->get();
+    }
+
     public function createExamRecord($records)
     {
         if (auth()->user()->hasRole('teacher') && $this->subject->getSubjectById($records['subject_id'])->teachers->where('id', auth()->user()->id)->isEmpty()) {

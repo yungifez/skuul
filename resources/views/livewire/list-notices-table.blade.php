@@ -8,8 +8,8 @@
                 <tr>
                     <td>{{$loop->iteration}}</td>
                     <td>{{ $notice->title}}</td>
-                    <td>{{ $notice->start_date}}</td>
-                    <td>{{$notice->stop_date}}</td>
+                    <td>{{ \Carbon\Carbon::parse($notice->start_date)->diffForHumans()}}</td>
+                    <td>{{ \Carbon\Carbon::parse($notice->stop_date)->diffForHumans()}}</td>
                     <td>@livewire('dropdown-links', [
                         'links' => [
                         ['href' => route("notices.show", $notice->id), 'text' => 'View', 'icon' => 'fas fa-eye'],
