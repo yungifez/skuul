@@ -62,7 +62,6 @@ class NoticeService
 
         DB::commit();
         session()->flash('success', 'Notice created successfully');
-
     }
 
     /**
@@ -76,6 +75,5 @@ class NoticeService
     {
         $notice->delete();
         session()->flash('success', 'Notice deleted successfully');
-
     }
 }
