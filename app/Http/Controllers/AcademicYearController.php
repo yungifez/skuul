@@ -86,8 +86,8 @@ class AcademicYearController extends Controller
      */
     public function update(AcademicYearStoreRequest $request, AcademicYear $academicYear)
     {
-        $dsta = $request->except('_token', '_method');
-        $this->academicYear->updateAcademicYear($academicYear, $dsta);
+        $data = $request->except('_token', '_method');
+        $this->academicYear->updateAcademicYear($academicYear, $data);
 
         return back();
     }

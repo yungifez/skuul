@@ -27,7 +27,7 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
     Route::resource('schools', SchoolController::class);
     Route::post('schools/set-school', ['App\Http\Controllers\SchoolController', 'setSchool'])->name('schools.setSchool');
 
-    //super admin must be have school id set
+    //super admin must have school id set
     Route::middleware(['App\Http\Middleware\EnsureSuperAdminHasSchoolId'])->group(function () {
 
         //dashboard route

@@ -65,7 +65,7 @@ class TimetableController extends Controller
     }
 
     /**
-     * Print timetsable.
+     * Print timetable.
      */
     public function print(Timetable $timetable)
     {

@@ -110,7 +110,7 @@ class ExamService
         return $this->examRecordService->getAllUserExamRecordInExamForSubject($exam, $user->id, $subject->id)->pluck('student_marks')->sum();
     }
 
-    //calculate student mark gottem in semester
+    //calculate student mark gotten in semester
 
     public function calculateStudentTotalMarkInSubjectForSemester(Semester $semester, User $user, Subject $subject)
     {

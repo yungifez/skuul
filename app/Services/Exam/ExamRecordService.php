@@ -41,7 +41,7 @@ class ExamRecordService
     {
         //get all exams
         $exams = $semester->exams;
-        //create container variable for all exam slots in semster
+        //create container variable for all exam slots in semester
         $examSlots = [];
         //get all exam slots in exams
         foreach ($exams as $exam) {
@@ -59,11 +59,11 @@ class ExamRecordService
         if (auth()->user()->hasRole('teacher') && $this->subject->getSubjectById($records['subject_id'])->teachers->where('id', auth()->user()->id)->isEmpty()) {
             return session()->flash('danger', 'You are not authorized to create exam record for this subject');
         }
-        //started transaction to make sure everythng ran smoothly before saving
+        //started transaction to make sure everything ran smoothly before saving
         DB::beginTransaction();
 
         foreach ($records['exam_records'] as $record) {
-            // makes sure student marks and exam slot id are not null just an extra check ad=s this is already doine in request class
+            // makes sure student marks and exam slot id are not null just an extra check ad=s this is already done in request class
             if ($record['student_marks'] == null || $this->examSlot->getExamSlotById($record['exam_slot_id'])->total_marks == null) {
                 //stop db transaction and return error
                 DB::rollback();
