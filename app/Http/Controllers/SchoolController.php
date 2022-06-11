@@ -120,7 +120,7 @@ class SchoolController extends Controller
     }
 
     /**
-     * Get settingd for authenticated user's school.
+     * Get settings for authenticated user's school.
      *
      * @return \Illuminate\Http\RedirectResponse
      */

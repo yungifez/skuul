@@ -11,7 +11,7 @@ class StudentController extends Controller
 {
     public $student;
 
-    //construct method which assigns studentservice to student variable
+    //construct method which assigns studentService to student variable
     public function __construct(StudentService $student)
     {
         $this->student = $student;

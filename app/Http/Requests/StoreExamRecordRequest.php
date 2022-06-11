@@ -19,7 +19,7 @@ class StoreExamRecordRequest extends FormRequest
      */
     public function rules()
     {
-        //max valiation for marks is handled in service class as there is no clean way of doing this
+        //max validation for marks is handled in service class as there is no clean way of doing this
         return [
             'section_id'   => 'required|integer|exists:sections,id',
             'subject_id'   => 'required|integer|exists:subjects,id',
