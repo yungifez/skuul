@@ -56,6 +56,7 @@ class AcademicYearController extends Controller
      * Display the specified resource.
      *
      * @param AcademicYear $academicYear
+     *
      * @return \Illuminate\Http\Response
      */
     public function show(AcademicYear $academicYear)
@@ -67,6 +68,7 @@ class AcademicYearController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param AcademicYear $academicYear
+     *
      * @return \Illuminate\Http\Response
      */
     public function edit(AcademicYear $academicYear)
@@ -78,7 +80,8 @@ class AcademicYearController extends Controller
      * Update the specified resource in storage.
      *
      * @param AcademicYearStoreRequest $request
-     * @param AcademicYear $academicYear
+     * @param AcademicYear             $academicYear
+     *
      * @return \Illuminate\Http\Response
      */
     public function update(AcademicYearStoreRequest $request, AcademicYear $academicYear)
@@ -93,6 +96,7 @@ class AcademicYearController extends Controller
      * Remove the specified resource from storage.
      *
      * @param AcademicYear $academicYear
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy(AcademicYear $academicYear)

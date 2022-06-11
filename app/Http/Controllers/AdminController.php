@@ -54,8 +54,10 @@ class AdminController extends Controller
      * Display the specified resource.
      *
      * @param User $admin
-     * @return \Illuminate\Http\Response
+     *
      * @throws \Illuminate\Auth\Access\AuthorizationException
+     *
+     * @return \Illuminate\Http\Response
      */
     public function show(User $admin)
     {
@@ -68,8 +70,10 @@ class AdminController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param User $admin
-     * @return \Illuminate\Http\Response
+     *
      * @throws \Illuminate\Auth\Access\AuthorizationException
+     *
+     * @return \Illuminate\Http\Response
      */
     public function edit(User $admin)
     {
@@ -82,9 +86,11 @@ class AdminController extends Controller
      * Update the specified resource in storage.
      *
      * @param \Illuminate\Http\Request $request
-     * @param User $admin
-     * @return \Illuminate\Http\Response
+     * @param User                     $admin
+     *
      * @throws \Illuminate\Auth\Access\AuthorizationException
+     *
+     * @return \Illuminate\Http\Response
      */
     public function update(Request $request, User $admin)
     {
@@ -98,8 +104,10 @@ class AdminController extends Controller
      * Remove the specified resource from storage.
      *
      * @param User $admin
-     * @return \Illuminate\Http\Response
+     *
      * @throws \Illuminate\Auth\Access\AuthorizationException
+     *
+     * @return \Illuminate\Http\Response
      */
     public function destroy(User $admin)
     {
