@@ -65,6 +65,7 @@ class SchoolController extends Controller
      * Display the specified resource.
      *
      * @param School $school
+     *
      * @return \Illuminate\Http\Response
      */
     public function show(School $school)
@@ -78,6 +79,7 @@ class SchoolController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param School $school
+     *
      * @return \Illuminate\Http\Response
      */
     public function edit(School $school)
@@ -91,7 +93,8 @@ class SchoolController extends Controller
      * Update the specified resource in storage.
      *
      * @param SchoolUpdateRequest $request
-     * @param School $school
+     * @param School              $school
+     *
      * @return \Illuminate\Http\Response
      */
     public function update(SchoolUpdateRequest $request, School $school)
@@ -106,6 +109,7 @@ class SchoolController extends Controller
      * Remove the specified resource from storage.
      *
      * @param School $school
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy(School $school)

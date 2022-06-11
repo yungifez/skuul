@@ -64,6 +64,7 @@ class SchoolService
      *
      * @param School $school
      * @param $records
+     *
      * @return App\Models\School
      */
     public function updateSchool(School $school, $records)

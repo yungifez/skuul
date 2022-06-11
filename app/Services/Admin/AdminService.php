@@ -45,7 +45,7 @@ class AdminService
     /**
      * Update Admin.
      *
-     * @param User $admin
+     * @param User             $admin
      * @param array|Collection $records
      *
      * @return void

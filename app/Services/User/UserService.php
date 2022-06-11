@@ -62,6 +62,7 @@ class UserService
      * Create a new user.
      *
      * @param $record
+     *
      * @return User
      */
     public function createUser($record)
@@ -101,6 +102,7 @@ class UserService
      * @param $firstname
      * @param $lastname
      * @param null $othernames
+     *
      * @return string
      */
     public function createFullName($firstname, $lastname, $othernames = null)
@@ -154,7 +156,7 @@ class UserService
     /**
      * Delete a user.
      *
-     * @param User $user
+     * @param User   $user
      * @param string $role
      *
      * @return void

@@ -92,8 +92,9 @@ class TimetableTimeSlotController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param Timetable $timetable
+     * @param Timetable         $timetable
      * @param TimetableTimeSlot $timeSlot
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy(Timetable $timetable, TimetableTimeSlot $timeSlot)

@@ -56,6 +56,7 @@ class SectionController extends Controller
      * Display the specified resource.
      *
      * @param Section $section
+     *
      * @return \Illuminate\Http\Response
      */
     public function show(Section $section)
@@ -67,6 +68,7 @@ class SectionController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param Section $section
+     *
      * @return \Illuminate\Http\Response
      */
     public function edit(Section $section)
@@ -80,7 +82,8 @@ class SectionController extends Controller
      * Update the specified resource in storage.
      *
      * @param SectionUpdateRequest $request
-     * @param Section $section
+     * @param Section              $section
+     *
      * @return \Illuminate\Http\Response
      */
     public function update(SectionUpdateRequest $request, Section $section)
@@ -96,6 +99,7 @@ class SectionController extends Controller
      * Remove the specified resource from storage.
      *
      * @param Section $section
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy(Section $section)

@@ -46,8 +46,9 @@ class StudentController extends Controller
      *
      * @param StudentStoreRequest $request
      *
-     * @return \Illuminate\Http\Response
      * @throws \Illuminate\Auth\Access\AuthorizationException
+     *
+     * @return \Illuminate\Http\Response
      */
     public function store(StudentStoreRequest $request)
     {
@@ -89,8 +90,10 @@ class StudentController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param User $student
-     * @return \Illuminate\Http\Response
+     *
      * @throws \Illuminate\Auth\Access\AuthorizationException
+     *
+     * @return \Illuminate\Http\Response
      */
     public function edit(User $student)
     {
@@ -105,9 +108,11 @@ class StudentController extends Controller
      * Update the specified resource in storage.
      *
      * @param \Illuminate\Http\Request $request
-     * @param User $student
-     * @return \Illuminate\Http\Response
+     * @param User                     $student
+     *
      * @throws \Illuminate\Auth\Access\AuthorizationException
+     *
+     * @return \Illuminate\Http\Response
      */
     public function update(Request $request, User $student)
     {
@@ -123,8 +128,10 @@ class StudentController extends Controller
      * Remove the specified resource from storage.
      *
      * @param User $student
-     * @return \Illuminate\Http\Response
+     *
      * @throws \Illuminate\Auth\Access\AuthorizationException
+     *
+     * @return \Illuminate\Http\Response
      */
     public function destroy(User $student)
     {

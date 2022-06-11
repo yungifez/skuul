@@ -103,6 +103,7 @@ class StudentService
      *
      * @param User $student
      * @param $records
+     *
      * @return void
      */
     public function updateStudent(User $student, $records)
@@ -115,6 +116,7 @@ class StudentService
      * Delete student.
      *
      * @param User $student
+     *
      * @return void
      */
     public function deleteStudent(User $student)

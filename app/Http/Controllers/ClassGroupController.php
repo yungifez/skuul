@@ -57,6 +57,7 @@ class ClassGroupController extends Controller
      * Display the specified resource.
      *
      * @param ClassGroup $classGroup
+     *
      * @return \Illuminate\Http\Response
      */
     public function show(ClassGroup $classGroup)
@@ -70,6 +71,7 @@ class ClassGroupController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param ClassGroup $classGroup
+     *
      * @return \Illuminate\Http\Response
      */
     public function edit(ClassGroup $classGroup)
@@ -83,7 +85,8 @@ class ClassGroupController extends Controller
      * Update the specified resource in storage.
      *
      * @param ClassGroupStoreRequest $request
-     * @param ClassGroup $classGroup
+     * @param ClassGroup             $classGroup
+     *
      * @return \Illuminate\Http\Response
      */
     public function update(ClassGroupStoreRequest $request, ClassGroup $classGroup)
@@ -98,6 +101,7 @@ class ClassGroupController extends Controller
      * Remove the specified resource from storage.
      *
      * @param ClassGroup $classGroup
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy(ClassGroup $classGroup)
