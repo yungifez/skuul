@@ -63,9 +63,9 @@ class PromotionController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param int $id
-     *
+     * @param Promotion $promotion
      * @return \Illuminate\Http\Response
+     * @throws \Illuminate\Auth\Access\AuthorizationException
      */
     public function show(Promotion $promotion)
     {

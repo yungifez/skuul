@@ -39,7 +39,7 @@ class UserService
      *
      * @param int $id
      *
-     * @return App\Models\User
+     * @return \App\Models\User
      */
     public function getUserById($id)
     {
@@ -61,9 +61,8 @@ class UserService
     /**
      * Create a new user.
      *
-     * @param array|Collection $records
-     *
-     * @return App\Models\User
+     * @param $record
+     * @return User
      */
     public function createUser($record)
     {
@@ -99,10 +98,9 @@ class UserService
     /**
      * Create full name from first name, last name and other names.
      *
-     * @param string $firstName
-     * @param string $lastName
-     * @param string $otherNames
-     *
+     * @param $firstname
+     * @param $lastname
+     * @param null $othernames
      * @return string
      */
     public function createFullName($firstname, $lastname, $othernames = null)
@@ -128,11 +126,11 @@ class UserService
     /**
      * Update user profile information.
      *
-     * @param App\Models\User  $user
-     * @param array|Collection $records
-     * @param string|null      $role
+     * @param User $user
+     * @param $record
+     * @param null $role
      *
-     * @return App\Models\User
+     * @return \App\Models\User
      */
     public function updateUser(User $user, $record, $role = null)
     {
@@ -156,8 +154,8 @@ class UserService
     /**
      * Delete a user.
      *
-     * @param App\Models\User $user
-     * @param string          $role
+     * @param User $user
+     * @param string $role
      *
      * @return void
      */
