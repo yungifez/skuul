@@ -39,7 +39,7 @@ class ExamTabulation extends Component
         $this->exams->count() ? $this->exam = $this->exams[0]->id : $this->exam = null;
         $this->classes = $myClassService->getAllClasses();
 
-        //sets subjects etc if class isnt empty
+        //sets subjects etc if class isn't empty
         if (!$this->classes->isEmpty()) {
             $this->sections = $this->classes[0]->sections;
             $this->section = $this->sections[0]->id;
@@ -130,7 +130,7 @@ class ExamTabulation extends Component
 
     public function print()
     {
-        //used pdf class direcltly
+        //used pdf class directly
         $pdf = Pdf::loadView('pages.exam.print-exam-tabulation', ['tabulatedRecords' => $this->tabulatedRecords, 'totalMarksAttainableInEachSubject' => $this->totalMarksAttainableInEachSubject, 'subjects' => $this->subjects]);
         $randomString = str()->random();
         //save as pdf

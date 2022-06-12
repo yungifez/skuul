@@ -25,7 +25,7 @@ class ResultTabulation extends Component
         $this->semester = auth()->user()->school->semester;
         $this->classes = $myClassService->getAllClasses();
 
-        //sets subjects etc if class isnt empty
+        //sets subjects etc if class isn't empty
         if (!$this->classes->isEmpty()) {
             $this->sections = $this->classes[0]->sections;
             $this->section = $this->sections[0]->id;
@@ -113,7 +113,7 @@ class ResultTabulation extends Component
 
     public function print()
     {
-        //used pdf class direcltly, i used exam trabulation view since it contains same logiv
+        //used pdf class directly, I used exam tabulation view since it contains same logic
         $pdf = Pdf::loadView('pages.exam.print-exam-tabulation', ['tabulatedRecords' => $this->tabulatedRecords, 'totalMarksAttainableInEachSubject' => $this->totalMarksAttainableInEachSubject, 'subjects' => $this->subjects]);
         $randomString = str()->random();
         //save as pdf

@@ -39,7 +39,7 @@ class SubjectController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param SubjectStoreRequest $request
      *
      * @return \Illuminate\Http\Response
      */
@@ -55,7 +55,7 @@ class SubjectController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param int $id
+     * @param Subject $subject
      *
      * @return \Illuminate\Http\Response
      */
@@ -67,7 +67,7 @@ class SubjectController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param int $id
+     * @param Subject $subject
      *
      * @return \Illuminate\Http\Response
      */
@@ -81,8 +81,8 @@ class SubjectController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param int                      $id
+     * @param SubjectStoreRequest $request
+     * @param Subject             $subject
      *
      * @return \Illuminate\Http\Response
      */
@@ -98,7 +98,7 @@ class SubjectController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param int $id
+     * @param Subject $subject
      *
      * @return \Illuminate\Http\Response
      */

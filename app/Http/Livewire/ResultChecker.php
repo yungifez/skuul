@@ -2,20 +2,32 @@
 
 namespace App\Http\Livewire;
 
-use App\Models\User;
-use Livewire\Component;
 use App\Models\Semester;
+use App\Models\User;
 use App\Services\MyClass\MyClassService;
 use App\Services\Section\SectionService;
+use Livewire\Component;
 
 class ResultChecker extends Component
 {
-    public $section, $sections, $classes, $class, $students, $student, $academicYears, $academicYear, $semesters, $semester, $exams, $examRecords, $subjects;
+    public $section;
+    public $sections;
+    public $classes;
+    public $class;
+    public $students;
+    public $student;
+    public $academicYears;
+    public $academicYear;
+    public $semesters;
+    public $semester;
+    public $exams;
+    public $examRecords;
+    public $subjects;
 
     //rules
     public $rules = [
         'academicYear' => 'integer|exists:academic_years,id',
-        'semester' => 'required',
+        'semester'     => 'required',
     ];
 
     public function mount(SectionService $sectionService, MyClassService $myClassService)
@@ -29,7 +41,6 @@ class ResultChecker extends Component
             if ($this->classes->isEmpty()) {
             return;
             }
-
             $this->class = $this->classes[0]->id;
             $this->updatedClass();
         }elseif (auth()->user()->hasRole('student')) {
@@ -47,7 +58,7 @@ class ResultChecker extends Component
         if ($this->semesters->isEmpty()) {
             return;
         }
-        
+
         $this->semester = $this->semesters[0]->id;
     }
 
@@ -62,12 +73,12 @@ class ResultChecker extends Component
         //set section if the fetched records aren't empty
         if ($this->sections->isEmpty()) {
             $this->students = null;
+
             return;
         }
-       $this->section = $this->sections[0]->id;
-      
-       $this->updatedSection();
-        
+        $this->section = $this->sections[0]->id;
+
+        $this->updatedSection();
     }
 
     public function updatedSection()
@@ -79,18 +90,18 @@ class ResultChecker extends Component
         $this->students = $section->studentRecords->map(function ($studentRecord) {
             return $studentRecord->user;
         });
-        
+
         //set student if the fetched records aren't empty
         $this->students->count() ? $this->student = $this->students[0]->id : $this->student = null;
     }
 
-    function checkResult(Semester $semester, User $student)
+    public function checkResult(Semester $semester, User $student)
     {
         // make sure user student isn't another role
         if (!$student->hasRole('student')) {
             abort(404, 'Student not found.');
         }
-       
+
         // fetch all exams, subjects and exam records for user in semester
         $this->exams = $semester->exams;
         $this->subjects = $student->studentRecord->myClass->subjects;

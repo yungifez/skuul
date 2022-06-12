@@ -32,7 +32,7 @@ class AdminService
      *
      * @param array|Collection $records
      *
-     * @return App\Models\User
+     * @return \App\Models\User
      * @return void
      */
     public function createAdmin($records)
@@ -45,7 +45,7 @@ class AdminService
     /**
      * Update Admin.
      *
-     * @param App\Models\User  $admin
+     * @param User             $admin
      * @param array|Collection $records
      *
      * @return void
@@ -59,7 +59,7 @@ class AdminService
     /**
      * Delete Admin.
      *
-     * @param App\Models\User $admin
+     * @param User $admin
      *
      * @return void
      */

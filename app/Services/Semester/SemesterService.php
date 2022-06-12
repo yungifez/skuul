@@ -44,7 +44,7 @@ class SemesterService
         $semester = $this->getSemesterById($semester);
         $school = auth()->user()->school;
         if ($semester->academicYear->id != $school->academic_year_id) {
-            return session()->flash('error', 'This semester isnt in your current academic year');
+            return session()->flash('error', 'This semester isn\'t in your current academic year');
         }
         $school->semester_id = $semester->id;
         $school->save();

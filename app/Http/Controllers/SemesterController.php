@@ -40,7 +40,7 @@ class SemesterController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
+     * @param SemesterStoreRequest $request
      *
      * @return \Illuminate\Http\Response
      */
@@ -79,8 +79,8 @@ class SemesterController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param \App\Models\Semester     $semester
+     * @param SemesterStoreRequest $request
+     * @param \App\Models\Semester $semester
      *
      * @return \Illuminate\Http\Response
      */
