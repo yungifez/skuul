@@ -31,7 +31,7 @@ class ResultChecker extends Component
     ];
 
     public function mount(SectionService $sectionService, MyClassService $myClassService)
-    {       
+    {
         $this->academicYears = auth()->user()->school->academicYears;
         $this->academicYear = $this->academicYears->first()->id;
         $this->updatedAcademicYear();
@@ -39,14 +39,15 @@ class ResultChecker extends Component
             $this->classes = $myClassService->getAllClasses();
 
             if ($this->classes->isEmpty()) {
-            return;
+                return;
             }
             $this->class = $this->classes[0]->id;
             $this->updatedClass();
-        }elseif (auth()->user()->hasRole('student')) {
+        } elseif (auth()->user()->hasRole('student')) {
             $this->checkResult(auth()->user()->school->semester, auth()->user());
         }
     }
+
     //updated academic year
     public function updatedAcademicYear()
     {
