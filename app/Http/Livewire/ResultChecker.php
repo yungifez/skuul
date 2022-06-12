@@ -19,21 +19,23 @@ class ResultChecker extends Component
     ];
 
     public function mount(SectionService $sectionService, MyClassService $myClassService)
-    {
+    {       
         $this->academicYears = auth()->user()->school->academicYears;
         $this->academicYear = $this->academicYears->first()->id;
         $this->updatedAcademicYear();
+        if (auth()->user()->hasRole('super admin') || auth()->user()->hasRole('admin') || auth()->user()->hasRole('teacher')) {
+            $this->classes = $myClassService->getAllClasses();
 
-        $this->classes = $myClassService->getAllClasses();
+            if ($this->classes->isEmpty()) {
+            return;
+            }
 
-        if ($this->classes->isEmpty()) {
-           return;
+            $this->class = $this->classes[0]->id;
+            $this->updatedClass();
+        }elseif (auth()->user()->hasRole('student')) {
+            $this->checkResult(auth()->user()->school->semester, auth()->user());
         }
-
-        $this->class = $this->classes[0]->id;
-        $this->updatedClass();
     }
-
     //updated academic year
     public function updatedAcademicYear()
     {
