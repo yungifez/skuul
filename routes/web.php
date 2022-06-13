@@ -82,6 +82,8 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
             //set exam status
             Route::post('exams/{exam}/set-status', ['App\Http\Controllers\ExamController', 'setExamStatus'])->name('exams.set-status');
 
+            // set publish result status
+            Route::post('exams/{exam}/set-publish-result-status', ['App\Http\Controllers\ExamController', 'setPublishResultStatus'])->name('exams.set-publish-result-status');
             //manage exam record
             Route::resource('exams/exam-records', ExamRecordController::class);
 

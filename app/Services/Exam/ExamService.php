@@ -72,6 +72,21 @@ class ExamService
         return session()->flash('success', 'Exam status changed successfully');
     }
 
+    /**
+     * Set result publish status for exam.
+     * 
+     * @param Exam $exam
+     * @param bool $status
+     * 
+     * @return void
+     */
+    public function setPublishResultStatus(Exam $exam, bool $status){
+        $exam->publish_result = $status;
+        $exam->save();
+
+        return session()->flash('success', 'Result published status changed successfully');
+    }
+
     public function deleteExam(Exam $exam)
     {
         $exam->delete();
