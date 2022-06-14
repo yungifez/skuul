@@ -153,22 +153,21 @@ class ExamController extends Controller
         return back();
     }
 
-/**
- * Set publish result status.
- * 
- * @param Exam $exam
- * @param UpdatePublishResultStatusRequest $request
- * 
- * @return \Illuminate\Http\Response
- */
-
+    /**
+     * Set publish result status.
+     *
+     * @param Exam                             $exam
+     * @param UpdatePublishResultStatusRequest $request
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function setPublishResultStatus(Exam $exam, UpdateExamStatusRequest $request)
     {
         $this->authorize('update', $exam);
         //get status from request
         $status = $request->status;
         $this->exam->setPublishResultStatus($exam, $status);
-    
+
         return back();
     }
 }
