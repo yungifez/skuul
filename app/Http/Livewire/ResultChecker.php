@@ -52,7 +52,6 @@ class ResultChecker extends Component
     public function updatedAcademicYear()
     {
         $academicYear = app("App\Services\AcademicYear\AcademicYearService")->getAcademicYearById($this->academicYear);
-
         //get semesters in academic year
         $this->semesters = $academicYear->semesters;
         $this->semester = null;

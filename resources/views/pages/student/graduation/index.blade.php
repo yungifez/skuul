@@ -13,7 +13,7 @@
     @livewire('breadcrumbs', ['paths' => [
         ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
         ['href'=> route('students.index'), 'text'=> 'Students'],
-        ['href'=> route('students.graduate'), 'text'=> "Graduations", 'active'],
+        ['href'=> route('students.graduate'), 'text'=> "Graduated Students", 'active'],
     ]])
 
 @stop

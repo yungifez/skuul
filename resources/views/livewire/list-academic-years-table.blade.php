@@ -3,7 +3,6 @@
         <h4 class="card-title">Academic year list</h4>
     </div>
     <div class="card-body">
-        <p class='text-bold'>Academic year list</p>
         <x-adminlte-datatable id="school-list-table" :heads="['S/N','duration', 'action', '', ]" class='text-capitalize' >
             @foreach($academicYears as $academicYear)
                 <tr>
