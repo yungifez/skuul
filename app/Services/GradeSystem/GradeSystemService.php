@@ -6,11 +6,17 @@ use App\Models\GradeSystem;
 
 class GradeSystemService
 {
-    //get all grade systems in class group
 
-    public function getAllGradesInClassGroup($classGroupId)
+    /**
+     * Get all grades in class group
+     * 
+     * @param int $classGroup_id
+     * 
+     * @return App\Model\GradeSystem
+     */
+    public function getAllGradesInClassGroup(int $classGroup_id)
     {
-        $grades = GradeSystem::where('class_group_id', $classGroupId)->get();
+        $grades = GradeSystem::where('class_group_id', $classGroup_id)->get();
 
         return $grades;
     }
