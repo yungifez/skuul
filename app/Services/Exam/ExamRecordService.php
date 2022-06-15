@@ -15,7 +15,7 @@ class ExamRecordService
      */
     protected ExamSlotService $examSlot;
     /**
-     * Subject service class
+     * Subject service class.
      *
      * @var App\Services\SubjectService
      */
@@ -28,23 +28,23 @@ class ExamRecordService
     }
 
     /**
-     * Get all exam records for all studentsin a class section for a semester
+     * Get all exam records for all studentsin a class section for a semester.
      *
      * @param int $section
      * @param int $subject
-     * 
+     *
      * @return App\Modles\ExamRecord
      */
-    public function getAllExamRecordsInSectionAndSubject(int $section,int $subject)
+    public function getAllExamRecordsInSectionAndSubject(int $section, int $subject)
     {
         return ExamRecord::where(['section_id' => $section, 'subject_id' => $subject])->get();
     }
 
     /**
-     * Get all exam records in section
+     * Get all exam records in section.
      *
      * @param int $section
-     * 
+     *
      * @return App\Models\ExamRecord
      */
     public function getAllExamRecordsInSection(int $section)
@@ -53,15 +53,15 @@ class ExamRecordService
     }
 
     /**
-     * Get all exam records for a subject
+     * Get all exam records for a subject.
      *
      * @param Exam $exam
-     * @param int $user
-     * @param int $subject
-     * 
+     * @param int  $user
+     * @param int  $subject
+     *
      * @return App\Models\ExamRecord
      */
-    public function getAllUserExamRecordInExamForSubject(Exam $exam,int $user,int $subject)
+    public function getAllUserExamRecordInExamForSubject(Exam $exam, int $user, int $subject)
     {
         //get all exam slots in exam
         $examSlots = $exam->examSlots->pluck('id');
@@ -70,12 +70,12 @@ class ExamRecordService
     }
 
     /**
-     * Get all exam records for a user in a subject and a specofoc semester
+     * Get all exam records for a user in a subject and a specofoc semester.
      *
      * @param Semester $semester
-     * @param int $user
-     * @param int $subject
-     * 
+     * @param int      $user
+     * @param int      $subject
+     *
      * @return App\Models\ExamRecord
      */
     public function getAllUserExamRecordInSemesterForSubject(Semester $semester, $user, $subject)
@@ -96,14 +96,14 @@ class ExamRecordService
     }
 
     /**
-     * Get all user exam records for user in a semester
+     * Get all user exam records for user in a semester.
      *
      * @param Semester $semester
-     * @param int $user
-     * 
+     * @param int      $user
+     *
      * @return App\Models\ExamRecord
      */
-    public function getAllUserExamRecordInSemester(Semester $semester,int $user)
+    public function getAllUserExamRecordInSemester(Semester $semester, int $user)
     {
         //get all exams
         $exams = $semester->exams;
@@ -121,9 +121,10 @@ class ExamRecordService
     }
 
     /**
-     * Create exam record
+     * Create exam record.
      *
      * @param array|object $records
+     *
      * @return void
      */
     public function createExamRecord($records)
@@ -170,6 +171,5 @@ class ExamRecordService
         DB::commit();
         session()->flash('success', 'Exam Records Created Successfully');
 
-        return;
     }
 }
