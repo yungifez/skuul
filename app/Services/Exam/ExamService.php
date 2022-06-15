@@ -121,13 +121,14 @@ class ExamService
 
     /**
      * Set result publish status for exam.
-     * 
+     *
      * @param Exam $exam
      * @param bool $status
-     * 
+     *
      * @return void
      */
-    public function setPublishResultStatus(Exam $exam, bool $status){
+    public function setPublishResultStatus(Exam $exam, bool $status)
+    {
         $exam->publish_result = $status;
         $exam->save();
 
