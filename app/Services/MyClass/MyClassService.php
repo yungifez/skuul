@@ -9,10 +9,10 @@ use App\Services\School\SchoolService;
 class MyClassService
 {
     /**
-     * School service variable
+     * School service variable.
      *
      * @var App\Services\SchoolService
-     */     
+     */
     public $school;
 
     //construct method
@@ -22,7 +22,7 @@ class MyClassService
     }
 
     /**
-     * Get all classes in school
+     * Get all classes in school.
      *
      * @return Illuminate\Support\Collection
      */
@@ -31,21 +31,21 @@ class MyClassService
         return collect($this->school->getSchoolById(auth()->user()->school_id)->myClasses->load('classGroup', 'sections')->all());
     }
 
-  /**
-   * Get all ClassGroups in school
-   *
-   * @return Illuminate\Eloquent\Collection
-   */
+    /**
+     * Get all ClassGroups in school.
+     *
+     * @return Illuminate\Eloquent\Collection
+     */
     public function getAllClassGroups()
     {
         return ClassGroup::where('school_id', auth()->user()->school_id)->get();
     }
 
     /**
-     * Get all classes in school
-     * 
+     * Get all classes in school.
+     *
      * @param int $id
-     * 
+     *
      * @return App\Models\MyClass
      */
     public function getClassById(int $id)
@@ -54,9 +54,10 @@ class MyClassService
     }
 
     /**
-     * Get class by id or else return 404
+     * Get class by id or else return 404.
      *
      * @param int $id
+     *
      * @return void
      */
     public function getClassByIdOrFail(int $id)
@@ -65,9 +66,10 @@ class MyClassService
     }
 
     /**
-     * Get class group by id
+     * Get class group by id.
      *
      * @param int $id
+     *
      * @return void
      */
     public function getClassGroupById(int $id)
@@ -76,9 +78,10 @@ class MyClassService
     }
 
     /**
-     * Create new class
+     * Create new class.
      *
      * @param array|object $record
+     *
      * @return App\Models\MyClass
      */
     public function createClass($record)
@@ -99,9 +102,10 @@ class MyClassService
     }
 
     /**
-     * Create new class group
+     * Create new class group.
      *
      * @param array|object $record
+     *
      * @return App\Models\ClassGroup
      */
     public function createClassGroup($record)
@@ -120,11 +124,11 @@ class MyClassService
     }
 
     /**
-     * Update class
+     * Update class.
      *
      * @param App\Models\MyClass $myClass
-     * @param array|object $records
-     * 
+     * @param array|object       $records
+     *
      * @return App\Models\MyClass
      */
     public function updateClass($myClass, $records)
@@ -139,11 +143,11 @@ class MyClassService
     }
 
     /**
-     * Update class group
-     * 
+     * Update class group.
+     *
      * @param App\Models\ClassGroup $classGroup
-     * @param array|object $records
-     * 
+     * @param array|object          $records
+     *
      * @return App\Models\ClassGroup
      */
     public function updateClassGroup(ClassGroup $classGroup, $records)
@@ -159,10 +163,10 @@ class MyClassService
     }
 
     /**
-     * Delete class group
-     * 
+     * Delete class group.
+     *
      * @param App\Models\ClassGroup $classGroup
-     * 
+     *
      * @return void
      */
     public function deleteClassGroup(ClassGroup $classGroup)
@@ -173,13 +177,13 @@ class MyClassService
         $classGroup->delete();
         session()->flash('success', __('Class group deleted successfully'));
 
-        return;
     }
 
     /**
-     * Delete class
+     * Delete class.
      *
      * @param App\Models\MyClass $class
+     *
      * @return void
      */
     public function deleteClass(MyClass $class)
@@ -190,6 +194,5 @@ class MyClassService
         $class->delete();
         session()->flash('success', __('Class deleted successfully'));
 
-        return;
     }
 }
