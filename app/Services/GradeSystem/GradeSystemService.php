@@ -6,12 +6,11 @@ use App\Models\GradeSystem;
 
 class GradeSystemService
 {
-
     /**
-     * Get all grades in class group
-     * 
+     * Get all grades in class group.
+     *
      * @param int $classGroup_id
-     * 
+     *
      * @return App\Model\GradeSystem
      */
     public function getAllGradesInClassGroup(int $classGroup_id)
