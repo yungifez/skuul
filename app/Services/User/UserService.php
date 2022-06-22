@@ -101,7 +101,7 @@ class UserService
      *
      * @param $firstname
      * @param $lastname
-     * @param null $othernames
+     * @param string|null $othernames
      *
      * @return string
      */

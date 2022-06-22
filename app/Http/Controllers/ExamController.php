@@ -10,6 +10,9 @@ use App\Services\Exam\ExamService;
 
 class ExamController extends Controller
 {
+    /**
+     * @var ExamService
+     */
     public ExamService $exam;
 
     public function __construct(ExamService $exam)
@@ -146,6 +149,24 @@ class ExamController extends Controller
         //get status from request
         $status = $request->status;
         $this->exam->setExamStatus($exam, $status);
+
+        return back();
+    }
+
+    /**
+     * Set publish result status.
+     *
+     * @param Exam                             $exam
+     * @param UpdatePublishResultStatusRequest $request
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function setPublishResultStatus(Exam $exam, UpdateExamStatusRequest $request)
+    {
+        $this->authorize('update', $exam);
+        //get status from request
+        $status = $request->status;
+        $this->exam->setPublishResultStatus($exam, $status);
 
         return back();
     }

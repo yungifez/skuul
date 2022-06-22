@@ -10,7 +10,14 @@ use Illuminate\Support\Facades\DB;
 
 class ExamService
 {
+    /**
+     * @var App\Services\Exam\ExamReordService
+     */
     protected $examRecordService;
+
+    /**
+     * @var App\Services\Exam\ExamSlotService
+     */
     protected $examSlotService;
 
     public function __construct(ExamRecordService $examRecordService, ExamSlotService $examSlotService)
@@ -19,23 +26,49 @@ class ExamService
         $this->examSlotService = $examSlotService;
     }
 
-    public function getAllExamsInSemester($semester_id)
+    /**
+     * Get all exams in a semester.
+     *
+     * @param int $semester_id
+     *
+     * @return void
+     */
+    public function getAllExamsInSemester(int $semester_id)
     {
         return Exam::where('semester_id', $semester_id)->get();
     }
 
-    public function getActiveExamsInSemester($semester_id)
+    /**
+     * Get active exams in a semester.
+     *
+     * @param int $semester_id
+     *
+     * @return void
+     */
+    public function getActiveExamsInSemester(int $semester_id)
     {
         return Exam::where(['semester_id'=> $semester_id, 'active' => true])->get();
     }
 
-    //get exam by id
-
-    public function getExamById($id)
+    /**
+     * get an exam by it's id.
+     *
+     * @param int $id
+     *
+     * @return App\Models\Exam
+     */
+    public function getExamById(int $id)
     {
         return Exam::find($id);
     }
 
+    /**
+     * Create exam in semester.
+     *
+     * @param array|object $records
+     *
+     * @return void
+     */
     public function createExam($records)
     {
         DB::transaction(function () use ($records) {
@@ -47,10 +80,18 @@ class ExamService
                 'stop_date'   => $records['stop_date'],
             ]);
         });
+        session()->flash('success', 'Exam created successfully');
 
-        return session()->flash('success', 'Exam created successfully');
     }
 
+    /**
+     * Update an exam.
+     *
+     * @param Exam         $exam
+     * @param array|object $records
+     *
+     * @return void
+     */
     public function updateExam(Exam $exam, $records)
     {
         $exam->name = $records['name'];
@@ -59,19 +100,49 @@ class ExamService
         $exam->start_date = $records['start_date'];
         $exam->stop_date = $records['stop_date'];
         $exam->save();
+        session()->flash('success', 'Exam updated successfully');
 
-        return session()->flash('success', 'Exam updated successfully');
     }
 
-    //set exam active or inactive
+    /**
+     * set status of exam to active or inactive.
+     *
+     * @param Exam $exam
+     * @param bool $status
+     *
+     * @return void
+     */
     public function setExamStatus(Exam $exam, bool $status)
     {
         $exam->active = $status;
         $exam->save();
+        session()->flash('success', 'Exam status changed successfully');
 
-        return session()->flash('success', 'Exam status changed successfully');
     }
 
+    /**
+     * Set result publish status for exam.
+     *
+     * @param Exam $exam
+     * @param bool $status
+     *
+     * @return void
+     */
+    public function setPublishResultStatus(Exam $exam, bool $status)
+    {
+        $exam->publish_result = $status;
+        $exam->save();
+
+        return session()->flash('success', 'Result published status changed successfully');
+    }
+
+    /**
+     * Delete exam.
+     *
+     * @param Exam $exam
+     *
+     * @return void
+     */
     public function deleteExam(Exam $exam)
     {
         $exam->delete();
@@ -79,7 +150,13 @@ class ExamService
         return session()->flash('success', 'Exam deleted successfully');
     }
 
-    //calculate total marks attainable for each subject in exam
+    /**
+     * Calculate total marks attainale in each subjects for an exam.
+     *
+     * @param Exam $exam
+     *
+     * @return int
+     */
     public function totalMarksAttainableInExamForSubject(Exam $exam)
     {
         $totalMarks = 0;
@@ -90,7 +167,13 @@ class ExamService
         return $totalMarks;
     }
 
-    //calculate total marks attainable for each subject in semester
+    /**
+     * Calculate total marks attainale in each subjects accross all exams in a semester.
+     *
+     * @param Exam $exam
+     *
+     * @return int
+     */
     public function totalMarksAttainableInSemesterForSubject(Semester $semester)
     {
         $totalMarks = 0;
@@ -103,15 +186,29 @@ class ExamService
         return $totalMarks;
     }
 
-    //calculate total mark gotten in subject for exam
-
+    /**
+     * Calculate total marks attainale accross all subjects in an exam.
+     *
+     * @param Exam    $exam
+     * @param User    $user
+     * @param Subject $subject
+     *
+     * @return int
+     */
     public function calculateStudentTotalMarksInSubject(Exam $exam, User $user, Subject $subject)
     {
         return $this->examRecordService->getAllUserExamRecordInExamForSubject($exam, $user->id, $subject->id)->pluck('student_marks')->sum();
     }
 
-    //calculate student mark gotten in semester
-
+    /**
+     * Calculate total marks gotten by student in semester across all exams in a subject.
+     *
+     * @param Semester $semester
+     * @param User     $user
+     * @param Subject  $subject
+     *
+     * @return int
+     */
     public function calculateStudentTotalMarkInSubjectForSemester(Semester $semester, User $user, Subject $subject)
     {
         return $this->examRecordService->getAllUserExamRecordInSemesterForSubject($semester, $user->id, $subject->id)->pluck('student_marks')->sum();

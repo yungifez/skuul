@@ -6,12 +6,12 @@
         @livewire('display-validation-error')
         <form wire:submit.prevent="loadStudents">
             <p class="text-bold">Please select class and section</p>
-            <x-adminlte-select name="class" label="Class" wire:model="class">
+            <x-adminlte-select name="class" label="Class" wire:model="class" fgroup-class="col-md-6">
                 @foreach ($classes as $class)
                     <option value="{{$class['id']}}">{{$class['name']}}</option>
                 @endforeach
             </x-adminlte-select>
-            <x-adminlte-select name="section" label="Section" wire:init="loadInitialSections" wire:model="section">
+            <x-adminlte-select name="section" label="Section" wire:init="loadInitialSections" wire:model="section" fgroup-class="col-md-6">
                 @isset($sections)
                     @foreach ($sections as $section)
                         <option value="{{$section['id']}}">{{$section['name']}}</option>
@@ -27,7 +27,7 @@
                     <h3 class="text-bold text-center">Choose what happens with each student</h3>
                     @foreach ($students as $student)
                         <div class="form-group">
-                            <x-adminlte-select name="student_id[]" id="student-{{$student->id}}" label="{{$student['name']}}">
+                            <x-adminlte-select name="student_id[]" id="student-{{$student->id}}" label="{{$student['name']}}" fgroup-class="col-md-6">
                                 <option value="{{$student['id']}}">Graduate</option>
                                 <option value="">Dont Graduate</option>
                             </x-adminlte-select>

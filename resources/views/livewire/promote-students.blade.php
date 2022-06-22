@@ -43,7 +43,7 @@
                     <input type="hidden" name="new_section_id" value="{{$newSection}}">
                     @foreach ($students as $student)
                         <div class="form-group">
-                            <x-adminlte-select name="student_id[]" id="student-{{$student->id}}" label="{{$student['name']}}">
+                            <x-adminlte-select name="student_id[]" id="student-{{$student->id}}" label="{{$student['name']}}" fgroup-class="col-md-6">
                                 <option value="{{$student['id']}}">Promote</option>
                                 <option value="">Dont promote</option>
                             </x-adminlte-select>
