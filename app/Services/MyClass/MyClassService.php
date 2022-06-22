@@ -176,7 +176,6 @@ class MyClassService
         }
         $classGroup->delete();
         session()->flash('success', __('Class group deleted successfully'));
-
     }
 
     /**
@@ -193,6 +192,5 @@ class MyClassService
         }
         $class->delete();
         session()->flash('success', __('Class deleted successfully'));
-
     }
 }
