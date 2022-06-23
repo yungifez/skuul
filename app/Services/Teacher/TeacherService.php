@@ -9,7 +9,7 @@ use App\Services\User\UserService;
 class TeacherService
 {
     /**
-     * User service variable
+     * User service variable.
      *
      * @var UserService
      */
@@ -26,9 +26,10 @@ class TeacherService
     }
 
     /**
-     * Create a new teacher
+     * Create a new teacher.
      *
      * @param collection $record
+     *
      * @return void
      */
     public function createTeacher($record)
@@ -37,14 +38,14 @@ class TeacherService
         $teacher->assignRole('teacher');
         session()->flash('success', 'Teacher Created Successfully');
 
-        return;
     }
 
     /**
-     * Update a teacher
+     * Update a teacher.
      *
-     * @param User $teacher
+     * @param User                    $teacher
      * @param array|object|collection $records
+     *
      * @return void
      */
     public function updateTeacher(User $teacher, $records)
@@ -55,9 +56,10 @@ class TeacherService
     }
 
     /**
-     * Delete teacher 
+     * Delete teacher.
      *
      * @param User $teacher
+     *
      * @return void
      */
     public function deleteTeacher(User $teacher)
@@ -68,12 +70,12 @@ class TeacherService
     }
 
     /**
-     * Print a uset profiel
+     * Print a uset profiel.
      *
      * @param string $name
      * @param string $view
-     * @param array $data
-     * 
+     * @param array  $data
+     *
      * @return mixed
      */
     public function printProfile(string $name, string $view, array $data)

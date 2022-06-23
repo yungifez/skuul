@@ -2,14 +2,13 @@
 
 namespace App\Http\Livewire;
 
-use Livewire\Component;
 use App\Services\Parent\ParentService;
-
+use Livewire\Component;
 
 class ListParentsTable extends Component
 {
     /**
-     * List of all parents in school
+     * List of all parents in school.
      *
      * @var \App\Model\User
      */
