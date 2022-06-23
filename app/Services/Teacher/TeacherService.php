@@ -8,7 +8,12 @@ use App\Services\User\UserService;
 
 class TeacherService
 {
-    public $user;
+    /**
+     * User service variable
+     *
+     * @var UserService
+     */
+    public userService $user;
 
     public function __construct(UserService $user)
     {
@@ -20,19 +25,28 @@ class TeacherService
         return $this->user->getUsersByRole('teacher')->load('teacherRecord');
     }
 
-    //create teacher method
-
+    /**
+     * Create a new teacher
+     *
+     * @param collection $record
+     * @return void
+     */
     public function createTeacher($record)
     {
         $teacher = $this->user->createUser($record);
-
         $teacher->assignRole('teacher');
+        session()->flash('success', 'Teacher Created Successfully');
 
-        return session()->flash('success', 'Teacher Created Successfully');
+        return;
     }
 
-    //update teacher method
-
+    /**
+     * Update a teacher
+     *
+     * @param User $teacher
+     * @param array|object|collection $records
+     * @return void
+     */
     public function updateTeacher(User $teacher, $records)
     {
         $this->user->updateUser($teacher, $records, 'teacher');
@@ -40,8 +54,12 @@ class TeacherService
         return session()->flash('success', 'Teacher Updated Successfully');
     }
 
-    //delete teacher method
-
+    /**
+     * Delete teacher 
+     *
+     * @param User $teacher
+     * @return void
+     */
     public function deleteTeacher(User $teacher)
     {
         $this->user->deleteUser($teacher);
@@ -49,8 +67,15 @@ class TeacherService
         return session()->flash('success', 'Teacher Deleted Successfully');
     }
 
-    //print teacher method
-
+    /**
+     * Print a uset profiel
+     *
+     * @param string $name
+     * @param string $view
+     * @param array $data
+     * 
+     * @return mixed
+     */
     public function printProfile(string $name, string $view, array $data)
     {
         return PrintService::createPdfFromView($name, $view, $data);

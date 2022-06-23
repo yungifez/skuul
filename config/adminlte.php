@@ -400,6 +400,26 @@ return [
         ],
         [
             'type'    => 'sidebar-menu-item',
+            'text'    => 'Parents',
+            'icon'    => 'fas fa-user',
+            'can'     => 'menu-parent',
+            'submenu' => [
+                [
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'View parents',
+                    'route' => 'parents.index',
+                    'can'   => 'read parent',
+                ],
+                [
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Create parent',
+                    'route' => 'parents.create',
+                    'can'   => 'create parent',
+                ],
+            ],
+        ],
+        [
+            'type'    => 'sidebar-menu-item',
             'text'    => 'Admins',
             'icon'    => 'fas fa-user',
             'can'     => 'menu-admin',

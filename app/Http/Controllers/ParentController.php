@@ -3,22 +3,22 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Services\Teacher\TeacherService;
 use Illuminate\Http\Request;
+use App\Services\Parent\ParentService;
 
-class TeacherController extends Controller
+class ParentController extends Controller
 {
-    /**
-     * TeacherService variable
+ /**
+     * ParentService variable
      *
-     * @var \App\Services\Teacher\TeacherService
+     * @var \App\Services\Parent\ParentService
      * 
      */
-    public TeacherService $teacher;
+    public ParentService $parent;
 
-    public function __construct(TeacherService $teacher)
+    public function __construct(ParentService $parent)
     {
-        $this->teacher = $teacher;
+        $this->parent = $parent;
     }
 
     /**
@@ -28,9 +28,9 @@ class TeacherController extends Controller
      */
     public function index()
     {
-        $this->authorize('viewAny', [User::class, 'teacher']);
+        $this->authorize('viewAny', [User::class, 'parent']);
 
-        return view('pages.teacher.index');
+        return view('pages.parent.index');
     }
 
     /**
@@ -40,9 +40,9 @@ class TeacherController extends Controller
      */
     public function create()
     {
-        $this->authorize('create', [User::class, 'teacher']);
+        $this->authorize('create', [User::class, 'parent']);
 
-        return view('pages.teacher.create');
+        return view('pages.parent.create');
     }
 
     /**
@@ -54,8 +54,8 @@ class TeacherController extends Controller
      */
     public function store(Request $request)
     {
-        $this->authorize('create', [User::class, 'teacher']);
-        $this->teacher->createTeacher($request);
+        $this->authorize('create', [User::class, 'parent']);
+        $this->parent->createParent($request);
 
         return back();
     }
@@ -63,49 +63,49 @@ class TeacherController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param User $teacher
+     * @param User $parent
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      *
      * @return \Illuminate\Http\Response
      */
-    public function show(User $teacher)
+    public function show(User $parent)
     {
-        $this->authorize('view', [$teacher, 'teacher']);
+        $this->authorize('view', [$parent, 'parent']);
 
-        return view('pages.teacher.show', compact('teacher'));
+        return view('pages.parent.show', compact('parent'));
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param User $teacher
+     * @param User $parent
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      *
      * @return \Illuminate\Http\Response
      */
-    public function edit(User $teacher)
+    public function edit(User $parent)
     {
-        $this->authorize('update', [$teacher, 'teacher']);
+        $this->authorize('update', [$parent, 'parent']);
 
-        return view('pages.teacher.edit', compact('teacher'));
+        return view('pages.parent.edit', compact('parent'));
     }
 
     /**
      * Update the specified resource in storage.
      *
      * @param \Illuminate\Http\Request $request
-     * @param User                     $teacher
+     * @param User                     $parent
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      *
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, User $teacher)
+    public function update(Request $request, User $parent)
     {
-        $this->authorize('update', [$teacher, 'teacher']);
-        $this->teacher->updateTeacher($teacher, $request->except('_token', '_method'));
+        $this->authorize('update', [$parent, 'parent']);
+        $this->parent->updateParent($parent, $request->except('_token', '_method'));
 
         return back();
     }
@@ -113,16 +113,16 @@ class TeacherController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param User $teacher
+     * @param User $parent
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      *
      * @return \Illuminate\Http\Response
      */
-    public function destroy(User $teacher)
+    public function destroy(User $parent)
     {
-        $this->authorize('delete', [$teacher, 'teacher']);
-        $this->teacher->deleteTeacher($teacher);
+        $this->authorize('delete', [$parent, 'parent']);
+        $this->parent->deleteParent($parent);
 
         return back();
     }
