@@ -9,10 +9,9 @@ use Illuminate\Http\Request;
 class TeacherController extends Controller
 {
     /**
-     * TeacherService variable
+     * TeacherService variable.
      *
      * @var \App\Services\Teacher\TeacherService
-     * 
      */
     public TeacherService $teacher;
 

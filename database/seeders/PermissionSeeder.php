@@ -128,8 +128,8 @@ class PermissionSeeder extends Seeder
             'name' => 'delete teacher',
         ]);
 
-         //Permission for parent
-         Permission::firstOrCreate([
+        //Permission for parent
+        Permission::firstOrCreate([
             'name' => 'create parent',
         ]);
         Permission::firstOrCreate([
