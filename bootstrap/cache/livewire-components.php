@@ -9,6 +9,7 @@
   'create-exam-slot-form' => 'App\\Http\\Livewire\\CreateExamSlotForm',
   'create-grade-system-form' => 'App\\Http\\Livewire\\CreateGradeSystemForm',
   'create-notice-form' => 'App\\Http\\Livewire\\CreateNoticeForm',
+  'create-parent-form' => 'App\\Http\\Livewire\\CreateParentForm',
   'create-school-form' => 'App\\Http\\Livewire\\CreateSchoolForm',
   'create-section-form' => 'App\\Http\\Livewire\\CreateSectionForm',
   'create-semester-form' => 'App\\Http\\Livewire\\CreateSemesterForm',

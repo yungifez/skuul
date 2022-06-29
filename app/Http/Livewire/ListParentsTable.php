@@ -17,7 +17,7 @@ class ListParentsTable extends Component
 
     public function mount(ParentService $parentService)
     {
-        $this->parents = $parentService->getAllParents();
+        $this->parents = $parentService->getAllParents()->sortBy('name');
     }
 
     public function render()
