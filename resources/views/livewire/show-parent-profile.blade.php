@@ -1,0 +1,1 @@
+@livewire('show-user-profile', ['user' => $parent])

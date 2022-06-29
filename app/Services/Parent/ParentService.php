@@ -2,6 +2,7 @@
 
 namespace App\Services\Parent;
 
+use App\Models\User;
 use App\Services\User\UserService;
 
 class ParentService 
