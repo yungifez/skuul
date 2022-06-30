@@ -41,7 +41,6 @@ class ParentService
         $parent = $this->user->createUser($record);
         $parent->assignRole('parent');
         session()->flash('success', 'parent Created Successfully');
-
     }
 
     /**
