@@ -32,7 +32,7 @@ class UserSeeder extends Seeder
             'city'              => 'lagos',
             'blood_group'       => 'B+',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
         ]);
 
         $superAdmin->assignRole('super-admin');
@@ -50,7 +50,7 @@ class UserSeeder extends Seeder
             'city'              => 'lagos',
             'blood_group'       => 'B+',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
 
         ]);
 
@@ -69,7 +69,7 @@ class UserSeeder extends Seeder
             'city'              => 'lagos',
             'blood_group'       => 'B+',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
 
         ]);
 
@@ -92,7 +92,7 @@ class UserSeeder extends Seeder
             'city'              => 'lagos',
             'blood_group'       => 'B+',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
 
         ]);
         $student->studentRecord()->create([
@@ -117,7 +117,7 @@ class UserSeeder extends Seeder
             'city'              => 'lagos',
             'blood_group'       => 'B+',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
 
         ]);
 
@@ -135,7 +135,7 @@ class UserSeeder extends Seeder
             'city'              => 'lagos',
             'blood_group'       => 'B+',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
 
         ]);
 
@@ -153,7 +153,7 @@ class UserSeeder extends Seeder
             'city'              => 'lagos',
             'blood_group'       => 'B+',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
 
         ]);
 
