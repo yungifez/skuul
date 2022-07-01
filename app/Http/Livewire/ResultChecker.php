@@ -35,7 +35,7 @@ class ResultChecker extends Component
         $this->academicYears = auth()->user()->school->academicYears;
         $this->academicYear = $this->academicYears->first()->id;
         $this->updatedAcademicYear();
-        if (auth()->user()->hasRole('super-admin') || auth()->user()->hasRole('admin') || auth()->user()->hasRole('teacher')) {
+        if (auth()->user()->hasAnyRole(['super-admin', 'admin', 'teacher'])) {
             $this->classes = $myClassService->getAllClasses();
 
             if ($this->classes->isEmpty()) {
