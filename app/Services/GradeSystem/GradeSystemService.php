@@ -56,7 +56,6 @@ class GradeSystemService
             'remark'         => $records['remark'],
         ]);
         session()->flash('success', 'Grade system created successfully');
-
     }
 
     /**
@@ -84,7 +83,6 @@ class GradeSystemService
         ]);
         $grade->save();
         session()->flash('success', 'Grade updated successfully');
-
     }
 
     /**
@@ -98,7 +96,6 @@ class GradeSystemService
     {
         $grade->delete();
         session()->flash('success', 'successfully deleted grade');
-
     }
 
     /**

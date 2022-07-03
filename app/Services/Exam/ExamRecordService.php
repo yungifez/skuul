@@ -170,6 +170,5 @@ class ExamRecordService
 
         DB::commit();
         session()->flash('success', 'Exam Records Created Successfully');
-
     }
 }
