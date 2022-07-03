@@ -53,7 +53,6 @@ class ExamSlotService
             ]);
         });
         session()->flash('success', 'Exam Slot Created Successfully');
-
     }
 
     /**
@@ -78,7 +77,6 @@ class ExamSlotService
         });
 
         session()->flash('success', 'Exam Slot Updated Successfully');
-
     }
 
     /**
@@ -92,6 +90,5 @@ class ExamSlotService
     {
         $examSlot->delete();
         session()->flash('success', 'Exam Slot Deleted Successfully');
-
     }
 }
