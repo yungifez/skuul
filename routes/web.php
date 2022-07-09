@@ -120,6 +120,8 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
 
         //parent routes
         Route::resource('parents', ParentController::class);
+        Route::get('parents/{parent}/assign-students-to-parent', ['App\Http\Controllers\ParentController', 'assignStudentsView'])->name('parents.assign-students');
+        Route::post('parents/{parent}/assign-students-to-parent', ['App\Http\Controllers\ParentController', 'assignStudent']);
 
         //academic year routes
         Route::resource('academic-years', AcademicYearController::class);

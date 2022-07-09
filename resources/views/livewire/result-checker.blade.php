@@ -5,12 +5,7 @@
     <div class="card-body">
         @if (!auth()->user()->hasRole('student'))
             @livewire('display-validation-error')
-            {{-- loading spinner --}}
-            <div class="d-flex justify-content-center">
-                <div wire:loading class="spinner-border" role="status">
-                    <p class="sr-only">Loading.....</p>
-                </div>
-            </div>
+            @livewire('loading-spinner')
             {{-- form for selecting class and section to display --}}
             <form wire:submit.prevent="checkResult('{{$semester}}', '{{$student}}')" class=" my-3">
                 <div class="col-12 d-md-flex px-0">

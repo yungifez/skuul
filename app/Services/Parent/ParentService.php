@@ -40,14 +40,16 @@ class ParentService
     {
         $parent = $this->user->createUser($record);
         $parent->assignRole('parent');
-        session()->flash('success', 'parent Created Successfully');
+        $parent->parentRecord()->create();
 
+
+        session()->flash('success', 'parent Created Successfully');
     }
 
     /**
      * Update a parent.
      *
-     * @param User                    $parent
+     * @param User $parent
      * @param array|object|collection $records
      *
      * @return void
@@ -85,5 +87,34 @@ class ParentService
     public function printProfile(string $name, string $view, array $data)
     {
         return PrintService::createPdfFromView($name, $view, $data);
+    }
+
+    /**
+     * Add student as child of parent or remove student from parent
+     *
+     * @param App\Models\Users $parent
+     * @param int $student
+     * @param bool $assign
+     * 
+     * @return void
+     */
+    public function assignStudentToParent(User $parent, int $student,bool $assign = true)
+    {
+        $student = $this->user->getUserById($student);
+        if (!$this->user->verifyRole($student->id, 'student')) {
+            session()->flash('danger', 'User is not a student');
+
+            return;
+        }
+        if ($assign == false) {
+            $parent->parentRecord->students()->detach($student);
+            session()->flash('success', 'Student successfully removed from parent');
+        }else{
+            $parent->parentRecord->students()->syncWithoutDetaching($student);
+            session()->flash('success', 'Student successfully assigned to parent');
+        }
+        
+
+        return;
     }
 }

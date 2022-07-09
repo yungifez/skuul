@@ -14,6 +14,7 @@
                         'links' => [
                         ['href' => route("parents.edit", $parent->id), 'text' => 'Edit profile', 'icon' => 'fas fa-cog'],
                         ['href' => route("parents.show", $parent->id), 'text' => 'View profile', 'icon' => 'fas fa-eye'],
+                        ['href' => route("parents.assign-students", $parent->id), 'text' => 'Assign students', 'icon' => 'fas fa fa-users'],
                         ],
                     ],)</td>
                     <td>

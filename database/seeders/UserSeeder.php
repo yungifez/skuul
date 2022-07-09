@@ -123,6 +123,8 @@ class UserSeeder extends Seeder
 
         $parent->assignRole('parent');
 
+        $parent->parentRecord()->create();
+
         $accountant = User::create([
             'name'              => 'Jane Doe',
             'email'             => 'accountant@accountant.com',

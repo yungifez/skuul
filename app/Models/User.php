@@ -3,14 +3,14 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Laravel\Sanctum\HasApiTokens;
+use Laravel\Jetstream\HasProfilePhoto;
+use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Notifications\Notifiable;
+use Laravel\Fortify\TwoFactorAuthenticatable;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Fortify\TwoFactorAuthenticatable;
-use Laravel\Jetstream\HasProfilePhoto;
-use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -94,6 +94,16 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * The parents that belong to the User
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function parents()
+    {
+        return $this->belongsToMany(ParentRecord::class);
+    }
+
+    /**
      * Get the teacherRecord associated with the User.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -104,7 +114,7 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the teacherRecord associated with the User.
+     * Get the parent records associated with the User.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */

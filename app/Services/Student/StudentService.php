@@ -2,22 +2,25 @@
 
 namespace App\Services\Student;
 
-use App\Models\Promotion;
 use App\Models\User;
-use App\Services\MyClass\MyClassService;
-use App\Services\Print\PrintService;
+use App\Models\Promotion;
+use Illuminate\Support\Str;
 use App\Services\User\UserService;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Str;
+use App\Services\Print\PrintService;
+use App\Services\MyClass\MyClassService;
+use App\Services\Section\SectionService;
 
 class StudentService
 {
     public $myClassService;
     public $user;
+    public $section;
 
-    public function __construct(MyClassService $myClass, UserService $user)
+    public function __construct(MyClassService $myClass, UserService $user, SectionService $section )
     {
         $this->myClass = $myClass;
+        $this->section = $section;
         $this->user = $user;
     }
 
@@ -80,8 +83,8 @@ class StudentService
         $student = $this->user->createUser($record);
         $student->assignRole('student');
         $record['admission_number'] || $record['admission_number'] = $this->generateAdmissionNumber();
-
-        if (!$this->myClass->getClassById($record['my_class_id'])->isSectionInClass($record['section_id'])) {
+        $section = $this->section->getSectionById($record['section_id']);
+        if (!$this->myClass->getClassById($record['my_class_id'])->sections->contains($section)) {
             session()->flash('danger', 'Section is not in class');
             DB::rollBack();
 
