@@ -26,7 +26,7 @@
                     @foreach ($timeSlots as $timeSlot)
                         <td scope="col">
                             @if ($timeSlot->weekdays()->where('weekday_id',$weekday->id)->first() != null)
-                                {{$timeSlot->weekdays()->where('weekday_id',$weekday->id)->first()?->timetableRecord->subject->name}}
+                                {{$timeSlot->weekdays()->where('weekday_id',$weekday->id)->first()?->timetableRecord?->subject?->name}}
                             @endif
                         </td>
                     @endforeach
