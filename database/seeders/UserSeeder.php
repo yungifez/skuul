@@ -17,27 +17,12 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('users')->delete();
+        //moved super admin to run in production seeder
+        $superAdmin = User::find(1);
+        $superAdmin->school_id = 1;
+        $superAdmin->save();
 
-        $superAdmin = User::create([
-            'id'                => 1,
-            'name'              => 'John Doe',
-            'email'             => 'super@admin.com',
-            'password'          => Hash::make('password'),
-            'school_id'         => 1,
-            'address'           => 'super admin street',
-            'birthday'          => '22/04/04',
-            'nationality'       => 'nigeria',
-            'state'             => 'lagos',
-            'city'              => 'lagos',
-            'blood_group'       => 'B+',
-            'email_verified_at' => now(),
-            'gender'            => 'male',
-        ]);
-
-        $superAdmin->assignRole('super-admin');
-
-        $admin = User::create([
+        $admin = User::firstOrCreate([
             'id'                => 2,
             'name'              => 'Jane Doe',
             'email'             => 'admin@admin.com',
