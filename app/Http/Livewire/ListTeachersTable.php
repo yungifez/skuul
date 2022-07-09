@@ -7,7 +7,7 @@ use Livewire\Component;
 
 class ListTeachersTable extends Component
 {
-    public $teacher;
+    public $teachers;
 
     public function mount(TeacherService $teacherService)
     {

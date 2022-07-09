@@ -94,6 +94,16 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * The parents that belong to the User.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function parents()
+    {
+        return $this->belongsToMany(ParentRecord::class);
+    }
+
+    /**
      * Get the teacherRecord associated with the User.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
@@ -101,6 +111,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function teacherRecord()
     {
         return $this->hasOne(TeacherRecord::class);
+    }
+
+    /**
+     * Get the parent records associated with the User.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function parentRecord()
+    {
+        return $this->hasOne(ParentRecord::class);
     }
 
     //get first name

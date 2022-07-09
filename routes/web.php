@@ -14,7 +14,11 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', function () {
-    return view('welcome');
+    return redirect()->route('dashboard');
+})->name('home');
+
+Route::get('/home', function () {
+    return redirect()->route('dashboard');
 })->name('home');
 
 //user must be authenticated
@@ -117,6 +121,11 @@ Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('A
 
         //teacher routes
         Route::resource('teachers', TeacherController::class);
+
+        //parent routes
+        Route::resource('parents', ParentController::class);
+        Route::get('parents/{parent}/assign-students-to-parent', ['App\Http\Controllers\ParentController', 'assignStudentsView'])->name('parents.assign-students');
+        Route::post('parents/{parent}/assign-students-to-parent', ['App\Http\Controllers\ParentController', 'assignStudent']);
 
         //academic year routes
         Route::resource('academic-years', AcademicYearController::class);

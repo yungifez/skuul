@@ -5,12 +5,7 @@
     <div class="card-body">
         @if (!auth()->user()->hasRole('student'))
             @livewire('display-validation-error')
-            {{-- loading spinner --}}
-            <div class="d-flex justify-content-center">
-                <div wire:loading class="spinner-border" role="status">
-                    <p class="sr-only">Loading.....</p>
-                </div>
-            </div>
+            @livewire('loading-spinner')
             {{-- form for selecting class and section to display --}}
             <form wire:submit.prevent="checkResult('{{$semester}}', '{{$student}}')" class=" my-3">
                 <div class="col-12 d-md-flex px-0">
@@ -28,24 +23,25 @@
                                 <option value="{{$item['id']}}">{{$item['name']}}</option>
                             @endforeach
                         @endisset
-
                     </x-adminlte-select>
-                
-                    <x-adminlte-select name="class" label="Class"  fgroup-class="col-md-2" enable-old-support wire:model="class">
-                        @isset($classes)
-                            @foreach ($classes as $item)
-                                <option value="{{$item['id']}}">{{$item['name']}}</option>
-                            @endforeach
-                        @endisset
-        
-                    </x-adminlte-select>
-                    <x-adminlte-select name="section" label="Section" fgroup-class="col-md-2" wire:model="section">
-                        @isset($sections)
-                            @foreach ($sections as $item)
-                                <option value="{{$item['id']}}">{{$item['name']}}</option>
-                            @endforeach
-                        @endisset
-                    </x-adminlte-select>
+                    {{--fields are not available to any role not in list--}}
+                    @hasanyrole('super-admin|admin|teacher')
+                        <x-adminlte-select name="class" label="Class"  fgroup-class="col-md-2" enable-old-support wire:model="class">
+                            @isset($classes)
+                                @foreach ($classes as $item)
+                                    <option value="{{$item['id']}}">{{$item['name']}}</option>
+                                @endforeach
+                            @endisset
+            
+                        </x-adminlte-select>
+                        <x-adminlte-select name="section" label="Section" fgroup-class="col-md-2" wire:model="section">
+                            @isset($sections)
+                                @foreach ($sections as $item)
+                                    <option value="{{$item['id']}}">{{$item['name']}}</option>
+                                @endforeach
+                            @endisset
+                        </x-adminlte-select>
+                    @endhasanyrole
                     <x-adminlte-select name="student" label="Student" fgroup-class="col-md-4" wire:model="student">
                         @isset($students)
                             @foreach ($students as $item)

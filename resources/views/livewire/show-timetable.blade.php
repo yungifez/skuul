@@ -10,7 +10,7 @@
                     <th scope="col" class="">
                         <p class="text-center">Time slots &#8594<br>Weekdays &#8595 </p>
                     </th>
-                    {{--table heading which disp;lays all the time slots--}}
+                    {{--table heading which displays all the time slots--}}
                     @foreach ($timeSlots as $timeSlot)
                     <th scope="col" >
                         <p class="text-center">{{$timeSlot->start_time}} - {{$timeSlot->stop_time}}</p>
@@ -26,7 +26,7 @@
                     @foreach ($timeSlots as $timeSlot)
                         <td scope="col">
                             @if ($timeSlot->weekdays()->where('weekday_id',$weekday->id)->first() != null)
-                                {{$timeSlot->weekdays()->where('weekday_id',$weekday->id)->first()->timetableRecord->subject->name}}
+                                {{$timeSlot->weekdays()->where('weekday_id',$weekday->id)->first()?->timetableRecord->subject->name}}
                             @endif
                         </td>
                     @endforeach

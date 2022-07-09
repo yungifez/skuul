@@ -128,6 +128,20 @@ class PermissionSeeder extends Seeder
             'name' => 'delete teacher',
         ]);
 
+        //Permission for parent
+        Permission::firstOrCreate([
+            'name' => 'create parent',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read teacher',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update parent',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete parent',
+        ]);
+
         //Permission for subject
         Permission::firstOrCreate([
             'name' => 'create subject',
@@ -312,6 +326,9 @@ class PermissionSeeder extends Seeder
             'name' => 'menu-teacher',
         ]);
         Permission::firstOrCreate([
+            'name' => 'menu-parent',
+        ]);
+        Permission::firstOrCreate([
             'name' => 'menu-academic-year',
         ]);
         Permission::firstOrCreate([
@@ -352,6 +369,7 @@ class PermissionSeeder extends Seeder
             'menu-exam',
             'menu-grade-system',
             'menu-notice',
+            'menu-parent',
             'manage school settings',
             'create section',
             'read section',
@@ -462,6 +480,18 @@ class PermissionSeeder extends Seeder
             'check result',
         ]);
         //assign permissions to parent
+        $parent = Role::where('name', 'parent')->first();
+        $parent->givePermissionTo([
+            'header-academics',
+            'menu-syllabus',
+            'menu-timetable',
+            'menu-notice',
+            'menu-exam',
+            'read syllabus',
+            'read timetable',
+            'read notice',
+            'check result',
+        ]);
 
         //assign permissions to librarian
 

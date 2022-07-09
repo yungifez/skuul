@@ -1,6 +1,6 @@
 <div class="card">
     <div class="card-header">
-        <h4 class="card-title">Teachers</h4>
+        <h4 class="card-title">Parents</h4>
     </div>
     <div class="card-body">
         <x-adminlte-datatable id="school-list-table" :heads="['S/N', 'Photo', 'Name','email','gender' , 'address', '', '']" class='text-capitalize' >
@@ -14,12 +14,12 @@
                     <td>{{$teacher->address}}</td>
                     <td>@livewire('dropdown-links', [
                         'links' => [
-                        ['href' => route("teachers.edit", $teacher->id), 'text' => 'Edit profile', 'icon' => 'fas fa-cog'],
-                        ['href' => route("teachers.show", $teacher->id), 'text' => 'View', 'icon' => 'fas fa-eye'],
+                        ['href' => route("parents.edit", $teacher->id), 'text' => 'Edit profile', 'icon' => 'fas fa-cog'],
+                        ['href' => route("parents.show", $teacher->id), 'text' => 'View profile', 'icon' => 'fas fa-eye'],
                         ],
                     ],)</td>
                     <td>
-                        @livewire('delete-modal', ['modal_id' => $teacher->id ,"action" => route('teachers.destroy', $teacher->id), 'item_name' => $teacher->name])
+                        @livewire('delete-modal', ['modal_id' => $teacher->id ,"action" => route('parents.destroy', $teacher->id), 'item_name' => $teacher->name])
                     </td>
                 </tr>
             @endforeach
