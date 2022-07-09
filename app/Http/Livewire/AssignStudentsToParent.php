@@ -3,15 +3,21 @@
 namespace App\Http\Livewire;
 
 use App\Models\User;
-use Livewire\Component;
 use App\Services\MyClass\MyClassService;
 use App\Services\Section\SectionService;
+use Livewire\Component;
 
 class AssignStudentsToParent extends Component
 {
     public User $parent;
-    public $classes, $class, $sections, $section, $students, $student, $children;
-  
+    public $classes;
+    public $class;
+    public $sections;
+    public $section;
+    public $students;
+    public $student;
+    public $children;
+
     public function mount(SectionService $sectionService, MyClassService $myClassService)
     {
         $this->classes = $myClassService->getAllClasses();
@@ -23,7 +29,7 @@ class AssignStudentsToParent extends Component
 
         $this->children = $this->parent->parentRecord->students;
     }
-    
+
     public function updatedClass()
     {
         //get instance of class
@@ -55,8 +61,8 @@ class AssignStudentsToParent extends Component
 
         //set student if the fetched records aren't empty
         $this->students->count() ? $this->student = $this->students[0]->id : $this->student = null;
-    }  
-    
+    }
+
     public function render()
     {
         return view('livewire.assign-students-to-parent');

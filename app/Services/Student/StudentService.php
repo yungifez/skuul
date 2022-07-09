@@ -2,14 +2,14 @@
 
 namespace App\Services\Student;
 
-use App\Models\User;
 use App\Models\Promotion;
-use Illuminate\Support\Str;
+use App\Models\User;
+use App\Services\MyClass\MyClassService;
+use App\Services\Print\PrintService;
+use App\Services\Section\SectionService;
 use App\Services\User\UserService;
 use Illuminate\Support\Facades\DB;
-use App\Services\Print\PrintService;
-use App\Services\MyClass\MyClassService;
-use App\Services\Section\SectionService;
+use Illuminate\Support\Str;
 
 class StudentService
 {
@@ -17,7 +17,7 @@ class StudentService
     public $user;
     public $section;
 
-    public function __construct(MyClassService $myClass, UserService $user, SectionService $section )
+    public function __construct(MyClassService $myClass, UserService $user, SectionService $section)
     {
         $this->myClass = $myClass;
         $this->section = $section;
