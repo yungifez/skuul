@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Illuminate\Http\Request;
-use App\Services\Parent\ParentService;
 use App\Http\Requests\AssignStudentRequedt;
+use App\Models\User;
+use App\Services\Parent\ParentService;
+use Illuminate\Http\Request;
 
 class ParentController extends Controller
 {
@@ -73,6 +73,7 @@ class ParentController extends Controller
     {
         $this->authorize('view', [$parent, 'parent']);
         $this->parent->user->verifyUserIsOfRoleElseNotFound($parent, 'parent');
+
         return view('pages.parent.show', compact('parent'));
     }
 
@@ -89,6 +90,7 @@ class ParentController extends Controller
     {
         $this->authorize('update', [$parent, 'parent']);
         $this->parent->user->verifyUserIsOfRoleElseNotFound($parent, 'parent');
+
         return view('pages.parent.edit', compact('parent'));
     }
 
@@ -130,23 +132,23 @@ class ParentController extends Controller
     }
 
     /**
-     * View for assigning students to parent
+     * View for assigning students to parent.
      *
      * @return \Illuminate\Http\Response
      */
     public function assignStudentsView(User $parent)
     {
         $this->parent->user->verifyUserIsOfRoleElseNotFound($parent, 'parent');
-        
-        return view('pages.parent.assign-students',compact('parent'));
+
+        return view('pages.parent.assign-students', compact('parent'));
     }
 
-    public function assignStudent(AssignStudentRequedt $request , User $parent)
+    public function assignStudent(AssignStudentRequedt $request, User $parent)
     {
         $this->parent->user->verifyUserIsOfRoleElseNotFound($parent, 'parent');
         $student = $request->student_id;
         //set to true if null
-        $request->assign == null ? $assign = true : $assign = $request->assign ;
+        $request->assign == null ? $assign = true : $assign = $request->assign;
         $this->parent->assignStudentToParent($parent, $student, $assign);
 
         return back();

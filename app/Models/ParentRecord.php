@@ -2,9 +2,8 @@
 
 namespace App\Models;
 
-use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 
 class ParentRecord extends Model
 {
@@ -21,7 +20,7 @@ class ParentRecord extends Model
     }
 
     /**
-     * The students that belong to the ParentRecord
+     * The students that belong to the ParentRecord.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
