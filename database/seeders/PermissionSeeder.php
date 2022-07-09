@@ -480,6 +480,18 @@ class PermissionSeeder extends Seeder
             'check result',
         ]);
         //assign permissions to parent
+        $parent = Role::where('name', 'parent')->first();
+        $parent->givePermissionTo([
+            'header-academics',
+            'menu-syllabus',
+            'menu-timetable',
+            'menu-notice',
+            'menu-exam',
+            'read syllabus',
+            'read timetable',
+            'read notice',
+            'check result',
+        ]);
 
         //assign permissions to librarian
 

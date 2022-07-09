@@ -23,24 +23,25 @@
                                 <option value="{{$item['id']}}">{{$item['name']}}</option>
                             @endforeach
                         @endisset
-
                     </x-adminlte-select>
-                
-                    <x-adminlte-select name="class" label="Class"  fgroup-class="col-md-2" enable-old-support wire:model="class">
-                        @isset($classes)
-                            @foreach ($classes as $item)
-                                <option value="{{$item['id']}}">{{$item['name']}}</option>
-                            @endforeach
-                        @endisset
-        
-                    </x-adminlte-select>
-                    <x-adminlte-select name="section" label="Section" fgroup-class="col-md-2" wire:model="section">
-                        @isset($sections)
-                            @foreach ($sections as $item)
-                                <option value="{{$item['id']}}">{{$item['name']}}</option>
-                            @endforeach
-                        @endisset
-                    </x-adminlte-select>
+                    {{--fields are not available to any role not in list--}}
+                    @hasanyrole('super-admin|admin|teacher')
+                        <x-adminlte-select name="class" label="Class"  fgroup-class="col-md-2" enable-old-support wire:model="class">
+                            @isset($classes)
+                                @foreach ($classes as $item)
+                                    <option value="{{$item['id']}}">{{$item['name']}}</option>
+                                @endforeach
+                            @endisset
+            
+                        </x-adminlte-select>
+                        <x-adminlte-select name="section" label="Section" fgroup-class="col-md-2" wire:model="section">
+                            @isset($sections)
+                                @foreach ($sections as $item)
+                                    <option value="{{$item['id']}}">{{$item['name']}}</option>
+                                @endforeach
+                            @endisset
+                        </x-adminlte-select>
+                    @endhasanyrole
                     <x-adminlte-select name="student" label="Student" fgroup-class="col-md-4" wire:model="student">
                         @isset($students)
                             @foreach ($students as $item)

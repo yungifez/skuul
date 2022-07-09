@@ -45,6 +45,11 @@ class ResultChecker extends Component
             $this->updatedClass();
         } elseif (auth()->user()->hasRole('student')) {
             $this->checkResult(auth()->user()->school->semester, auth()->user());
+        }elseif (auth()->user()->hasRole('parent')) {
+            //get parent's children
+            $this->students = auth()->user()->parentRecord->Students;
+            //set student if the fetched records aren't empty
+            $this->students->count() ? $this->student = $this->students[0]->id : $this->student = null;
         }
     }
 
