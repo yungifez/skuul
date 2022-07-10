@@ -31,27 +31,39 @@ cp .emv.example .env
 ```shell
 php artisan migrate
 ```
-* Seed database
-```shell
-php artisan db:seed
-```
-
+* Seed database 
+    
+    You can seed the database in 2 ways
+    - For production ie in your live server
+        ```shell
+        php artisan db:seed --class RunInProductionSeeder
+        ```
+    - For testing or development purposes
+        ```shell
+        php artisan db:seed
+        ```
 * Seed database to populate countries (takes approximately 10 minutes)
 ```shell
 php artisan db:seed --class=WorldSeeder
 ```
+* Set application logo by adding it in the public img folder and edit the .env logo path appropriately
+
 
 After running the above commands, you should be able to access the application at http::/localhost or your designated domain name depending on configuration.
 
 ## Setup
 * Log in to the application with the following credentials
-    * Email: Super@admin.com
+    * Email: super@admin.com
     * Password: password
     
-    You would be authenticated and redirected to the dashboard
-* Create a new school or work with the default school
-* Proceed to view schools and from the drop down, set the school you want to work with. Now any action you carry out will be carried out on the set school
-* Create an academic year and set it as the current academic year
+* if you are on production 
+    - When you log in, you would be redirected to a page with error message at the top right corner that says "Please set your school of operation first". At the menu, click on create schools
+    - On the page to create schools, provide a name, address and initial for your school and click on create school
+    - Click on view schools, select the current school and click on the button set scvhool
+    - You can now head over to the dashboard
+    - You can begin to add classes, students, teachers etc. Some operations would not work specifically all links under the academics section
+    - Head over to academic years, create a new academic year and a new semester then set the academic year and semester 
+* if you are on dev or testing, data is preset to test and use the application.
 
 ## Usage
 * Add class groups to the school
