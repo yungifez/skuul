@@ -37,7 +37,6 @@ class TeacherService
         $teacher = $this->user->createUser($record);
         $teacher->assignRole('teacher');
         session()->flash('success', 'Teacher Created Successfully');
-
     }
 
     /**
