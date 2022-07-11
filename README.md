@@ -51,7 +51,11 @@ php artisan migrate
 php artisan db:seed --class=WorldSeeder
 ```
 * Set application logo by adding it in the public img folder and edit the .env logo path appropriately
-
+* For development or testing purposes, you can use the laravel built in server by running 
+```shell
+php artisan serve
+```
+If you are running on production, visit your domain to verify it is working 
 
 After running the above commands, you should be able to access the application at http::/localhost or your designated domain name depending on configuration.
 
