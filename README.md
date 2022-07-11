@@ -25,7 +25,7 @@ composer install
 ```
 * Copy .env.example file into .env file and configure based on your environment
 ```shell
-cp .emv.example .env
+cp .env.example .env
 ```
 * Generate encryption key
 ```shell
