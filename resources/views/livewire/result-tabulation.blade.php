@@ -31,11 +31,13 @@
             </div>
         </form>
         {{-- table to display tabulation --}}
-        @isset($subjects)
+        @if ($createdTabulation == 1)
             @livewire('mark-tabulation', ['tabulatedRecords' => $tabulatedRecords, 'totalMarksAttainableInEachSubject' => $totalMarksAttainableInEachSubject, 'subjects' => $subjects],key(str()->random()))
             <div class='col-12 my-2'>
                 <x-adminlte-button label="Print" theme="primary" icon="fas fa-download" wire:click="$emit('print')" class="col-md-3" />
             </div>
+        @elseif($createdTabulation == 0)
+            <p>Something went wrong. Make sure there are students in this class</p>
         @endisset
     </div>
 </div>
