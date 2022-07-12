@@ -69,7 +69,7 @@ class ResultTabulation extends Component
         //create tabulation
         $tabulatedRecords = [];
         if ($this->students->isEmpty()) {
-            return $this->createdTabulation =  false;
+            return $this->createdTabulation = false;
         }
         foreach ($this->students as $student) {
             //array to hold tabulation values for each student
@@ -110,7 +110,7 @@ class ResultTabulation extends Component
         //creates cache for tabulation
         Cache::put('exam-tabulation-'.$section->id, $this->tabulatedRecords, 3600);
         $this->createdTabulation = true;
-        
+
         return collect($tabulatedRecords);
     }
 
