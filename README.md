@@ -7,7 +7,7 @@
 
 
 
-Skuul is a multi school management system that aims to make administration and school 
+Skuul is a multi school management system that aims to make school administration and activities a breeze by using the power of the internet and increased connectinity
 
 ## Requirements
 * Php 8.0 and above
