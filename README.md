@@ -1,11 +1,11 @@
 # Skuul school management system
 
->In search of good school management systems written in laravel, I tried so many although most were quite remarkably good they lacked some essential features that I would have loved in a school management system.
+>In search of good school management systems written in laravel, I tried so many although most were quite remarkably good they lacked some essential features that I would have loved in a school management system.This made me passionate in building my own school management system. Although it has been difficult, it's actually forming up into a quite useable project.
 
 ![schooldash-dahboard-page](https://user-images.githubusercontent.com/63137056/178576517-412251e7-d272-469f-8a98-ec407b599c7a.png)
 
 
-This made me passionate in building my own school management system. Although it has been difficult, it's actually forming up into a quite useable project.
+
 
 Skuul is a multi school management system that aims to make administration and school 
 
