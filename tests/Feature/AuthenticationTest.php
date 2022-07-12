@@ -2,10 +2,11 @@
 
 namespace Tests\Feature;
 
+use Tests\TestCase;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
 
 class AuthenticationTest extends TestCase
 {
@@ -21,6 +22,9 @@ class AuthenticationTest extends TestCase
     public function test_users_can_authenticate_using_the_login_screen()
     {
         $user = User::factory()->create();
+        //since factory produces random password, it had to be changed
+        $user->password = Hash::make('password');
+        $user->save();
 
         $response = $this->post('/login', [
             'email'    => $user->email,
