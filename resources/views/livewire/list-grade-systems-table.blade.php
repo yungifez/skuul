@@ -18,29 +18,32 @@
         @if($classGroups->find($classGroup) !== null)
             <h3 class="text-center" wire:loading.remove>{{" Grading system for ".$classGroups->find($classGroup)->name}}</h3>
         @endif
-        <table class="table col-12 table-bordered" wire:loading.remove>
-            <tbody class="">
-                <th>Name</th>
-                <th>Remark</th>
-                <th>Grade from</th>
-                <th>grade till</th>
-                <th></th>
-                <th></th>
-                @foreach ($grades as $grade)
-                    <tr>
-                        <td>{{$grade->name}}</td>
-                        <td>{{$grade->remark}}</td>
-                        <td>{{$grade->grade_from}}</td>
-                        <td>{{$grade->grade_till}}</td>
-                        <td> @livewire('dropdown-links', [
-                            'links' => [
-                                ['href' => route("grade-systems.edit", $grade->id), 'text' => 'Edit', 'icon' => 'fas fa-cog'],
-                            ],
-                        ],)</td>
-                        <td> @livewire('delete-modal', ['modal_id' => $grade->id ,"action" => route('grade-systems.destroy', $grade->id), 'item_name' => $grade->name])</td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table col-12 table-bordered" wire:loading.remove>
+                <tbody class="">
+                    <th>Name</th>
+                    <th>Remark</th>
+                    <th>Grade from</th>
+                    <th>grade till</th>
+                    <th></th>
+                    <th></th>
+                    @foreach ($grades as $grade)
+                        <tr>
+                            <td>{{$grade->name}}</td>
+                            <td>{{$grade->remark}}</td>
+                            <td>{{$grade->grade_from}}</td>
+                            <td>{{$grade->grade_till}}</td>
+                            <td> @livewire('dropdown-links', [
+                                'links' => [
+                                    ['href' => route("grade-systems.edit", $grade->id), 'text' => 'Edit', 'icon' => 'fas fa-cog'],
+                                ],
+                            ],)</td>
+                            <td> @livewire('delete-modal', ['modal_id' => $grade->id ,"action" => route('grade-systems.destroy', $grade->id), 'item_name' => $grade->name])</td>
+                        </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+        
     </div>
 </div>
