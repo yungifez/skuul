@@ -14,7 +14,7 @@
 @stop
 
 @section('content')
-
+    @livewire('display-status')
     <div>
         @if (Laravel\Fortify\Features::canUpdateProfileInformation())
             @livewire('profile.update-profile-information-form')
