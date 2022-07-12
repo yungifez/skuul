@@ -3,11 +3,15 @@
         {{ __('Update Password') }}
     </x-slot>
 
+
     <x-slot name="description">
         {{ __('Ensure your account is using a long, random password to stay secure.') }}
     </x-slot>
 
     <x-slot name="form">
+    <x-jet-action-message on="saved">
+        {{ __('Updated password') }}
+    </x-jet-action-message>
         <div class="w-md-75">
             <div class="form-group">
                 <x-jet-label for="current_password" value="{{ __('Current Password') }}" />
