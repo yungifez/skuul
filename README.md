@@ -63,6 +63,9 @@ After running the above commands, you should be able to access the application a
 * Log in to the application with the following credentials
     * Email: super@admin.com
     * Password: password
+
+* You would be prompted to change your password, change your passsword in the profile page to continue
+
     
 * if you are on production 
     - When you log in, you would be redirected to a page with error message at the top right corner that says "Please set your school of operation first". At the menu, click on create schools
