@@ -2,11 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Models\School;
-use App\Models\User;
-use App\Traits\FeatureTestTrait;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Models\User;
+use App\Models\School;
+use App\Traits\FeatureTestTrait;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class SchoolTest extends TestCase
 {
@@ -156,6 +157,10 @@ class SchoolTest extends TestCase
     public function test_super_admin_can_set_school()
     {
         $user = User::where('email', 'super@admin.com')->first();
+        //since factory produces random password, it had to be changed
+        $user->password = Hash::make('random-password-lolololololol');
+        $user->save();
+
         $this->actingAs($user);
         $school = School::factory()->create();
         $response = $this->post('/dashboard/schools/set-school', ['school_id' => $school->id]);

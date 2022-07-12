@@ -16,6 +16,9 @@ class UpdatePasswordTest extends TestCase
     public function test_password_can_be_updated()
     {
         $this->actingAs($user = User::factory()->create());
+         //since factory produces random password, it had to be changed
+         $user->password = Hash::make('password');
+         $user->save();
 
         Livewire::test(UpdatePasswordForm::class)
                 ->set('state', [
@@ -31,6 +34,9 @@ class UpdatePasswordTest extends TestCase
     public function test_current_password_must_be_correct()
     {
         $this->actingAs($user = User::factory()->create());
+         //since factory produces random password, it had to be changed
+         $user->password = Hash::make('password');
+         $user->save();
 
         Livewire::test(UpdatePasswordForm::class)
                 ->set('state', [
@@ -47,6 +53,9 @@ class UpdatePasswordTest extends TestCase
     public function test_new_passwords_must_match()
     {
         $this->actingAs($user = User::factory()->create());
+         //since factory produces random password, it had to be changed
+         $user->password = Hash::make('password');
+         $user->save();
 
         Livewire::test(UpdatePasswordForm::class)
                 ->set('state', [
