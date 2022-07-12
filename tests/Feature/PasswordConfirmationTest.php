@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
 use App\Models\User;
-use Laravel\Jetstream\Features;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Laravel\Jetstream\Features;
+use Tests\TestCase;
 
 class PasswordConfirmationTest extends TestCase
 {
@@ -26,9 +26,9 @@ class PasswordConfirmationTest extends TestCase
     public function test_password_can_be_confirmed()
     {
         $user = User::factory()->create();
-         //since factory produces random password, it had to be changed
-         $user->password = Hash::make('password123');
-         $user->save();
+        //since factory produces random password, it had to be changed
+        $user->password = Hash::make('password123');
+        $user->save();
 
         $response = $this->actingAs($user)->post('/user/confirm-password', [
             'password' => 'password123',
