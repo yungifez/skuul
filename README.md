@@ -123,6 +123,7 @@ Todo
 - Create logo
 - Need help creating demo video
 - Write docs using a tool like larecipe
+- Write issue and contribution template file
 etc
 
 
