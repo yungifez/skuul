@@ -22,7 +22,7 @@ Route::get('/home', function () {
 })->name('home');
 
 //user must be authenticated
-Route::middleware('auth:sanctum', 'verified')->prefix('dashboard')->namespace('App\Http\Controllers')->group(function () {
+Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefaultPasswordIsChanged')->prefix('dashboard')->namespace('App\Http\Controllers')->group(function () {
 
     //manage school settings
     Route::get('schools/settings', ['App\Http\Controllers\SchoolController', 'settings'])->name('schools.settings')->middleware('App\Http\Middleware\EnsureSuperAdminHasSchoolId');
