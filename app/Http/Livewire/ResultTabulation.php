@@ -17,6 +17,7 @@ class ResultTabulation extends Component
     public $class;
     public $semester;
     public $tabulatedRecords;
+    public $createdTabulation;
     protected $listeners = ['print'];
 
     public function mount(SectionService $sectionService, MyClassService $myClassService)
@@ -67,6 +68,9 @@ class ResultTabulation extends Component
     {
         //create tabulation
         $tabulatedRecords = [];
+        if ($this->students->isEmpty()) {
+            return $this->createdTabulation =  false;
+        }
         foreach ($this->students as $student) {
             //array to hold tabulation values for each student
             $totalSubjectMarks = [];
@@ -105,7 +109,8 @@ class ResultTabulation extends Component
 
         //creates cache for tabulation
         Cache::put('exam-tabulation-'.$section->id, $this->tabulatedRecords, 3600);
-
+        $this->createdTabulation = true;
+        
         return collect($tabulatedRecords);
     }
 
