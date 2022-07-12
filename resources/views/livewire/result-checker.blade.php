@@ -88,7 +88,7 @@
                             </table>
                         </div>
 
-                        <p>Total marks obtained - {{$examRecords->whereIn('exam_slot_id', $exam->examSlots()->pluck('id'))->sum('student_marks')}} / {{$exam->load('examSlots')->examSlots()->pluck('total_marks')->sum() * $subjects->count()}}</p>
+                        <p>Total marks obtained: {{$examRecords->whereIn('exam_slot_id', $exam->examSlots()->pluck('id'))->sum('student_marks')}} / {{$exam->load('examSlots')->examSlots()->pluck('total_marks')->sum() * $subjects->count()}}</p>
                    @else
                        <p>No exam records found</p>
                    @endif
