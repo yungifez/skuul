@@ -1,6 +1,6 @@
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Edit classs {{$class->name}}</h3>
+        <h3 class="card-title">Edit classs {{$myClass->name}}</h3>
     </div>
     <div class="card-body">
         <form action="{{route('classes.update', $myClass->id)}}" method="POST">
