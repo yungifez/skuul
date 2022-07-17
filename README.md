@@ -119,7 +119,7 @@ This project was highly inspired by 4jean/lavSMS
 Do you like the current state of this project?, you can support me or hire me for work
 
 Todo
-- Create demo site (for now, go to yungifez.xyz might be a mess but worth it)
+- Create demo site (for now, go to yungifez.xyz might be a mess but worth it. Log in to super admin account with password helloworld)
 - Create logo
 - Need help creating demo video
 - Write docs using a tool like larecipe
