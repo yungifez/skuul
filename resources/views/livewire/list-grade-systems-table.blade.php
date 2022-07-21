@@ -36,9 +36,10 @@
                             <td> @livewire('dropdown-links', [
                                 'links' => [
                                     ['href' => route("grade-systems.edit", $grade->id), 'text' => 'Edit', 'icon' => 'fas fa-cog'],
+                                    key(str()->random())
                                 ],
                             ],)</td>
-                            <td> @livewire('delete-modal', ['modal_id' => $grade->id ,"action" => route('grade-systems.destroy', $grade->id), 'item_name' => $grade->name])</td>
+                            <td> @livewire('delete-modal', ['modal_id' => $grade->id ,"action" => route('grade-systems.destroy', $grade->id), 'item_name' => $grade->name], key(str()->random()))</td>
                         </tr>
                     @endforeach
                 </tbody>
