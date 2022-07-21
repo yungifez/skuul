@@ -78,7 +78,8 @@ class ListExamRecordsTable extends Component
         $this->examRecords = app('App\Services\Exam\ExamRecordService')->getAllExamRecordsInSectionAndSubject($section->id, $subject->id);
         if ($this->examSlots->isEmpty()) {
             $this->examSlots = null;
-            $this->error = "No exam slots found";
+            $this->error = 'No exam slots found';
+
             return;
         }
         //set variables used for controlling state, holding state f=data and querystrings
