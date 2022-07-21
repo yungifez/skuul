@@ -119,7 +119,8 @@
                     </div>
                 </div>
             </x-adminlte-card>
-        
+        @elseif ($error)
+            Action could not be completed because {{$error}}
         @endisset
     </div>
 </div>
