@@ -59,6 +59,8 @@ class CreateNewUser implements CreatesNewUsers
             $user->sendEmailVerificationNotification();
         } catch (Throwable $e) {
             report("Could not send email to $user->email. $e");
+
+            return $user;
         }
 
         return $user;
