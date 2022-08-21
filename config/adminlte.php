@@ -30,7 +30,7 @@ return [
     |
     */
 
-    'use_ico_only'     => false,
+    'use_ico_only'     => true,
     'use_full_favicon' => false,
 
     /*
@@ -196,6 +196,28 @@ return [
     'password_email_url' => 'password/email',
     'profile_url'        => false,
 
+     /*
+    |--------------------------------------------------------------------------
+    | Preloader Animation
+    |--------------------------------------------------------------------------
+    |
+    | Here you can change the preloader animation configuration.
+    |
+    | For detailed instructions you can look the preloader section here:
+    | https://github.com/jeroennoten/Laravel-AdminLTE/wiki/Basic-Configuration
+    |
+    */
+
+    'preloader' => [
+        'enabled' => true,
+        'img' => [
+            'path' => env('LOGO_PATH','vendor/adminlte/dist/img/AdminLTELogo.png'),
+            'alt' => 'AdminLTE Preloader Image',
+            'effect' => 'animation__shake',
+            'width' => 60,
+            'height' => 60,
+        ],
+    ],
     /*
     |--------------------------------------------------------------------------
     | Laravel Mix
