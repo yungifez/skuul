@@ -196,7 +196,7 @@ return [
     'password_email_url' => 'password/email',
     'profile_url'        => false,
 
-     /*
+    /*
     |--------------------------------------------------------------------------
     | Preloader Animation
     |--------------------------------------------------------------------------
@@ -210,11 +210,11 @@ return [
 
     'preloader' => [
         'enabled' => true,
-        'img' => [
-            'path' => env('LOGO_PATH','vendor/adminlte/dist/img/AdminLTELogo.png'),
-            'alt' => 'AdminLTE Preloader Image',
+        'img'     => [
+            'path'   => env('LOGO_PATH', 'vendor/adminlte/dist/img/AdminLTELogo.png'),
+            'alt'    => 'AdminLTE Preloader Image',
             'effect' => 'animation__shake',
-            'width' => 60,
+            'width'  => 60,
             'height' => 60,
         ],
     ],
