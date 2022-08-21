@@ -19,7 +19,7 @@ Route::get('/', function () {
 
 Route::get('/home', function () {
     return redirect()->route('dashboard');
-})->name('home');
+});
 
 //user must be authenticated
 Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefaultPasswordIsChanged')->prefix('dashboard')->namespace('App\Http\Controllers')->group(function () {
