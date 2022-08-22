@@ -55,6 +55,7 @@ php artisan migrate
 php artisan db:seed --class=WorldSeeder
 ```
 * Set application logo by adding it in the public img folder and edit the .env logo path appropriately
+* Store favicon in path public/favicons/, the file should be called favicon.ico
 * For development or testing purposes, you can use the laravel built in server by running 
 ```shell
 php artisan serve
