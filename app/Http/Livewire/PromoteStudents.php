@@ -38,7 +38,6 @@ class PromoteStudents extends Component
             $this->loadInitialNewSections();
             $this->loadInitialOldSections();
         }
-       
     }
 
     public function updatedOldClass()
