@@ -55,6 +55,7 @@ class PromoteStudents extends Component
     {
         $this->oldSections = collect($this->classes->first()['sections']);
         if ($this->oldSections->isNotEmpty()) {    
+            
             $this->oldSection = $this->oldSections->first()['id'];
         }
     }
