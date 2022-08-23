@@ -6,7 +6,7 @@
         {{$notice->content}}
     </div>
     @isset($notice->attachment)
-        <a class="btn btn-primary col-md-3 m-3 " href="{{asset('storage/'.$notice->attachment)}}" download="{{$notice->title}}-notice">
+        <a class="btn btn-primary col-11 col-md-3 m-3 " href="{{asset('storage/'.$notice->attachment)}}" download="{{$notice->title}}-notice">
             <i class="fas fa-download "></i>
             Download attachment
         </a>

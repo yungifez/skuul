@@ -12,7 +12,7 @@
                     <option value="{{$class['id']}}">{{$class['name']}}</option>
                 @endforeach
             </x-adminlte-select>
-            <x-adminlte-select name="oldSection" label="Old section" wire:init="loadInitialOldSections" wire:model="oldSection" class="col-md-6">
+            <x-adminlte-select name="oldSection" label="Old section" wire:model="oldSection" class="col-md-6">
                 @isset($oldSections)
                     @foreach ($oldSections as $section)
                         <option value="{{$section['id']}}">{{$section['name']}}</option>
@@ -24,7 +24,7 @@
                     <option value="{{$class['id']}}">{{$class['name']}}</option>
                 @endforeach
             </x-adminlte-select>
-            <x-adminlte-select name="newSection" label="New section" wire:init="loadInitialNewSections" wire:model="newSection" class="col-md-6">
+            <x-adminlte-select name="newSection" label="New section" wire:model="newSection" class="col-md-6">
                 @isset($newSections)
                     @foreach ($newSections as $section)
                         <option value="{{$section['id']}}">{{$section['name']}}</option>
