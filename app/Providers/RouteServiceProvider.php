@@ -34,14 +34,8 @@ class RouteServiceProvider extends ServiceProvider
                 ->middleware('api')
                 ->group(base_path('routes/api.php'));
 
-            //custom routes specified by users including a frontend to their projects
-            Route::middleware('web')
-                ->group(base_path('routes/custom.php'));
-                
             Route::middleware('web')
                 ->group(base_path('routes/web.php'));
-            
-            
         });
     }
 
