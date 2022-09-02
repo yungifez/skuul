@@ -45,9 +45,13 @@ class ListExamRecordsTable extends Component
         //sets subjects etc if class isn't empty
         if (!$this->classes->isEmpty()) {
             $this->subjects = $this->classes[0]->subjects;
-            $this->subject = $this->subjects[0]->id;
+            if ($this->subjects->isNotEmpty()) {
+                $this->subject = $this->subjects[0]->id;
+            }
             $this->sections = $this->classes[0]->sections;
-            $this->section = $this->sections[0]->id;
+            if ($this->sections->isNotEmpty()) {
+                $this->section = $this->sections[0]->id;
+            }
         }
 
         //if url contains query strings pass them to fetch student to preserve state
