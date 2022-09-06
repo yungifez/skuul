@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\MyClassStoreRequest;
 use App\Models\MyClass;
 use App\Services\MyClass\MyClassService;
+use App\Http\Requests\MyClassStoreRequest;
+use App\Http\Requests\MyClassUpdateRequest;
 
 class MyClassController extends Controller
 {
@@ -89,7 +90,7 @@ class MyClassController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function update(MyClassStoreRequest $request, MyClass $class)
+    public function update(MyClassUpdateRequest $request, MyClass $class)
     {
         $data = $request->except('_token', '_method');
         $this->myClass->updateClass($class, $data);
