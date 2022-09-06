@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class MyClassStoreRequest extends FormRequest
@@ -19,9 +20,16 @@ class MyClassStoreRequest extends FormRequest
      */
     public function rules()
     {
+        $classGroupId = $this->get('class_group_id');
+
+        
         return [
-            'name'           => 'required',
-            'class_group_id' => 'required',
+            'name' => [
+                "required", 
+                //checks if there is a class with a name in class group
+                Rule::unique('my_classes','name')->where(fn ($query) => $query->where('class_group_id', $classGroupId)),
+            ],
+            'class_group_id' => 'required|exists:class_groups,id',
         ];
     }
 

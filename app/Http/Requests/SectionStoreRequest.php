@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SectionStoreRequest extends FormRequest
@@ -19,9 +20,17 @@ class SectionStoreRequest extends FormRequest
      */
     public function rules()
     {
+        $myClassId = $this->input('my_class_id');
+
+
         return [
-            'name'        => 'required',
-            'my_class_id' => 'required|exists:my_classes,id',
+            'name'        => [
+                'required',
+                Rule::unique('sections', 'name')->where('my_class_id',  $myClassId)
+            ],
+            'my_class_id' => [
+                'required',
+            ]
         ];
     }
 

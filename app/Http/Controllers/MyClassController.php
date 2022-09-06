@@ -48,7 +48,7 @@ class MyClassController extends Controller
      */
     public function store(MyClassStoreRequest $request)
     {
-        $data = $request->except('_token');
+        $data = $request->vlidated();
         $this->myClass->createClass($data);
 
         return redirect()->back();

@@ -3,7 +3,7 @@
     <div class="dropdown-menu" aria-labelledby="DropDownButton">
         @if (isset($links))
             @foreach ($links as $link)
-                <a href="{{$link['href']}}" class="dropdown-item">
+                <a href="{{$link['href']}}" class="dropdown-item text-capitalize">
                     <i class="{{$link['icon']}} pr-2"></i>
                     {{$link['text']}}
                 </a>

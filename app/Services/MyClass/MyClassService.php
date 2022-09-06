@@ -90,13 +90,8 @@ class MyClassService
             return session()->flash('danger', __('Class group does not exists'));
         }
 
-        $myClass = MyClass::firstOrCreate($record);
-
-        if (!$myClass->wasRecentlyCreated) {
-            session()->flash('danger', __('Class already exists'));
-        } else {
-            session()->flash('success', __('Class created successfully'));
-        }
+        $myClass = MyClass::create($record);
+        session()->flash('success', __('Class created successfully'));
 
         return $myClass;
     }
