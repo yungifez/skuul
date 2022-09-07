@@ -48,7 +48,7 @@ class MyClassController extends Controller
      */
     public function store(MyClassStoreRequest $request)
     {
-        $data = $request->vlidated();
+        $data = $request->validated();
         $this->myClass->createClass($data);
 
         return redirect()->back();
