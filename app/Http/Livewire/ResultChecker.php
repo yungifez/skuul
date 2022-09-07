@@ -10,19 +10,7 @@ use Livewire\Component;
 
 class ResultChecker extends Component
 {
-    public $section;
-    public $sections;
-    public $classes;
-    public $class;
-    public $students;
-    public $student;
-    public $academicYears;
-    public $academicYear;
-    public $semesters;
-    public $semester;
-    public $exams;
-    public $examRecords;
-    public $subjects;
+    public $section, $sections, $classes, $class, $students, $student, $academicYears, $academicYear, $semesters, $semester, $exams, $examRecords, $subjects, $preparedResults, $status, $studentName;
 
     //rules
     public $rules = [
@@ -107,12 +95,21 @@ class ResultChecker extends Component
         if (!$student->hasRole('student')) {
             abort(404, 'Student not found.');
         }
-
+        //set name that would be used in view
+        $this->studentName = $student->name;
         // fetch all exams, subjects and exam records for user in semester
         $this->exams = $semester->exams()->where('publish_result', true)->get();
+        if ($this->exams->isEmpty()) {
+            $this->status = "There are no exams with published results for now";
+            return $this->preparedResults = false;
+        }
+
         $this->subjects = $student->studentRecord->myClass->subjects;
+
         //fetch all students exam records in semester
         $this->examRecords = app("App\Services\Exam\ExamRecordService")->getAllUserExamRecordInSemester($semester, $student->id);
+
+        $this->preparedResults = true;
     }
 
     public function render()

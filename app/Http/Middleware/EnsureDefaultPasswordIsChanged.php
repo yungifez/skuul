@@ -21,7 +21,7 @@ class EnsureDefaultPasswordIsChanged
         if (Hash::check('password', auth()->user()->password)) {
             session()->flash('danger', 'Please change your password to proceed.');
 
-            return redirect()->route('profile.show');
+            return redirect()->route('profile.show',['#update-password']);
         }
 
         return $next($request);
