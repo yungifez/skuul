@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MyClass;
-use App\Services\MyClass\MyClassService;
 use App\Http\Requests\MyClassStoreRequest;
 use App\Http\Requests\MyClassUpdateRequest;
+use App\Models\MyClass;
+use App\Services\MyClass\MyClassService;
 
 class MyClassController extends Controller
 {
