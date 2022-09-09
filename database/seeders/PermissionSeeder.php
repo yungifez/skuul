@@ -133,7 +133,7 @@ class PermissionSeeder extends Seeder
             'name' => 'create parent',
         ]);
         Permission::firstOrCreate([
-            'name' => 'read teacher',
+            'name' => 'read parent',
         ]);
         Permission::firstOrCreate([
             'name' => 'update parent',
@@ -440,6 +440,10 @@ class PermissionSeeder extends Seeder
             'update notice',
             'delete notice',
             'check result',
+            'create parent',
+            'read parent',
+            'update parent',
+            'delete parent',
         ]);
 
         //assign permissions to teacher

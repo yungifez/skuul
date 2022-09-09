@@ -1,4 +1,5 @@
 /******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
 /***/ "./node_modules/alpinejs/dist/module.esm.js":
@@ -7,7 +8,6 @@
   \**************************************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   "default": () => (/* binding */ module_default)
@@ -2939,7 +2939,6 @@ var module_default = src_default;
   \*****************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var alpinejs__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! alpinejs */ "./node_modules/alpinejs/dist/module.esm.js");
 
@@ -2954,7 +2953,6 @@ alpinejs__WEBPACK_IMPORTED_MODULE_0__["default"].start();
   \*********************************/
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-"use strict";
 __webpack_require__.r(__webpack_exports__);
 // extracted by mini-css-extract-plugin
 
@@ -2965,9 +2963,11 @@ __webpack_require__.r(__webpack_exports__);
 /*!*************************************************!*\
   !*** ./resources/sass/dashboard/dashboard.scss ***!
   \*************************************************/
-/***/ (() => {
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
-throw new Error("Module build failed (from ./node_modules/mini-css-extract-plugin/dist/loader.js):\nModuleBuildError: Module build failed (from ./node_modules/sass-loader/dist/cjs.js):\nSassError: Top-level selectors may not contain the parent selector \"&\".\n  ╷\n7 │   &.bg-#{$name} {\n  │   ^^^^^^^^^^^^^^\n  ╵\n  node_modules/admin-lte/build/scss/mixins/_backgrounds.scss 7:3   background-variant()\n  node_modules/admin-lte/build/scss/_colors.scss 7:3               @import\n  node_modules/admin-lte/build/scss/parts/_miscellaneous.scss 9:9  @import\n  resources/sass/dashboard/dashboard.scss 31:9                     root stylesheet\n    at processResult (/var/www/html/node_modules/webpack/lib/NormalModule.js:758:19)\n    at /var/www/html/node_modules/webpack/lib/NormalModule.js:860:5\n    at /var/www/html/node_modules/loader-runner/lib/LoaderRunner.js:400:11\n    at /var/www/html/node_modules/loader-runner/lib/LoaderRunner.js:252:18\n    at context.callback (/var/www/html/node_modules/loader-runner/lib/LoaderRunner.js:124:13)\n    at Object.loader (/var/www/html/node_modules/sass-loader/dist/index.js:69:5)");
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
 
 /***/ })
 
@@ -3070,6 +3070,7 @@ throw new Error("Module build failed (from ./node_modules/mini-css-extract-plugi
 /******/ 		// [resolve, reject, Promise] = chunk loading, 0 = chunk loaded
 /******/ 		var installedChunks = {
 /******/ 			"/js/app": 0,
+/******/ 			"css/dashboard": 0,
 /******/ 			"css/app": 0
 /******/ 		};
 /******/ 		
@@ -3120,9 +3121,9 @@ throw new Error("Module build failed (from ./node_modules/mini-css-extract-plugi
 /******/ 	// startup
 /******/ 	// Load entry module and return exports
 /******/ 	// This entry module depends on other loaded chunks and execution need to be delayed
-/******/ 	__webpack_require__.O(undefined, ["css/app"], () => (__webpack_require__("./resources/js/app.js")))
-/******/ 	__webpack_require__.O(undefined, ["css/app"], () => (__webpack_require__("./resources/sass/app.scss")))
-/******/ 	var __webpack_exports__ = __webpack_require__.O(undefined, ["css/app"], () => (__webpack_require__("./resources/sass/dashboard/dashboard.scss")))
+/******/ 	__webpack_require__.O(undefined, ["css/dashboard","css/app"], () => (__webpack_require__("./resources/js/app.js")))
+/******/ 	__webpack_require__.O(undefined, ["css/dashboard","css/app"], () => (__webpack_require__("./resources/sass/app.scss")))
+/******/ 	var __webpack_exports__ = __webpack_require__.O(undefined, ["css/dashboard","css/app"], () => (__webpack_require__("./resources/sass/dashboard/dashboard.scss")))
 /******/ 	__webpack_exports__ = __webpack_require__.O(__webpack_exports__);
 /******/ 	
 /******/ })()
