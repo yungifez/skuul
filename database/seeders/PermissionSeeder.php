@@ -440,6 +440,10 @@ class PermissionSeeder extends Seeder
             'update notice',
             'delete notice',
             'check result',
+            'create parent',
+            'read parent',
+            'update parent',
+            'delete parent',
         ]);
 
         //assign permissions to teacher
