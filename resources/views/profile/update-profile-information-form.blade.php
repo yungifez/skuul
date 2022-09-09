@@ -70,9 +70,7 @@
             </div>
 
             <!-- birthday -->
-            <x-jet-label for="Birthday" value="{{ __('Birthday') }}" />
-            <x-jet-input id="birthday" type="date" class="{{ $errors->has('birthday') ? 'is-invalid' : '' }}"  wire:model="state.birthday"/>
-            <x-jet-input-error for="birthday" />
+            <x-adminlte-input-date name="birthday" :config="['format' => 'YYYY/MM/DD']" placeholder="Choose birth date..." label="Birthday (YYYY/MM/DD)"  fgroup-class="+" wire:model="state.birthday"/>
             @section('plugins.TempusDominusBs4', true)
 
             <div class="row col-12">
