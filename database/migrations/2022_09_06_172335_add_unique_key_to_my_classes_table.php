@@ -16,7 +16,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('my_classes', static function (Blueprint $table) {
-            //
+            $table->dropUnique('my_classes_class_group_id_name_unique');
         });
     }
 };
