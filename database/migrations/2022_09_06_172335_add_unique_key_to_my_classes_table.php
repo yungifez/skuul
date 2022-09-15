@@ -17,7 +17,7 @@ return new class() extends Migration {
         Schema::table('my_classes', static function (Blueprint $table) {
             //it's not what it looks like, please dont remove the drop foreign
             $table->dropForeign(['class_group_id']);
-            $table->dropUnique("my_classes_class_group_id_name_unique");
+            $table->dropUnique('my_classes_class_group_id_name_unique');
         });
     }
 };
