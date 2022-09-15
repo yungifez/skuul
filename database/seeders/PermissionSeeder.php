@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -16,7 +15,6 @@ class PermissionSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('permissions')->delete();
 
         /**
          * Create all permissions.

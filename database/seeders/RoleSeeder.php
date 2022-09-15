@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Role;
 
 class RoleSeeder extends Seeder
@@ -15,27 +14,25 @@ class RoleSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('roles')->delete();
-
-        Role::create([
+        Role::firstOrCreate([
             'name' => 'super-admin',
         ]);
-        Role::create([
+        Role::firstOrCreate([
             'name' => 'admin',
         ]);
-        Role::create([
+        Role::firstOrCreate([
             'name' => 'teacher',
         ]);
-        Role::create([
+        Role::firstOrCreate([
             'name' => 'student',
         ]);
-        Role::create([
+        Role::firstOrCreate([
             'name' => 'parent',
         ]);
-        Role::create([
+        Role::firstOrCreate([
             'name' => 'accountant',
         ]);
-        Role::create([
+        Role::firstOrCreate([
             'name' => 'librarian',
         ]);
     }
