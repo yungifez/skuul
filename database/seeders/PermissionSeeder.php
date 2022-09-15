@@ -16,7 +16,6 @@ class PermissionSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('permissions')->delete();
 
         /**
          * Create all permissions.
