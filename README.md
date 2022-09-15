@@ -15,6 +15,10 @@ Skuul is a multi school management system that aims to make school administratio
 * Since this project is running laravel 9, we suggest checking out the official requirements
 
 ## Installation
+To skip steps 4 down ( after composer install ), you can run the below command and it would guide you through the process automatically
+```shell
+php artisan skuul:innit
+ ```
 * Clone the repository by running the following command in your comamand line below (Or you can dowload zip file from github)
 ```shell
 git clone https://github.com/yungifez/skuul ./skuul
