@@ -3,9 +3,10 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class UserSeeder extends Seeder
 {
@@ -16,9 +17,25 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        //moved super admin to run in production seeder
-        $superAdmin = User::find(1);
-        $superAdmin->school_id = 1;
+        DB::table('users')->delete();
+
+        $superAdmin = User::firstOrCreate([
+            'id'                => 1,
+            'name'              => 'John Doe',
+            'email'             => 'super@admin.com',
+            'password'          => Hash::make('password'),
+            'school_id'         => 1,
+            'address'           => 'super admin street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
+            'blood_group'       => 'B+',
+            'email_verified_at' => now(),
+            'gender'            => 'male',
+        ]);
+
+        $superAdmin->assignRole('super-admin');
         $superAdmin->save();
 
         $admin = User::firstOrCreate([
