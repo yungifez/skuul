@@ -2,11 +2,11 @@
 
 namespace App\Console\Commands;
 
+use App\Actions\Fortify\PasswordValidationRules;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
-use App\Actions\Fortify\PasswordValidationRules;
 
 class CreateSuperAdmin extends Command
 {
@@ -33,51 +33,51 @@ class CreateSuperAdmin extends Command
     public function handle()
     {
         try {
-            $this->alert("Creating super admin");
-            $this->info("Fill in the following details. You can modify rest of profile at a later stage. Values can not be null");
+            $this->alert('Creating super admin');
+            $this->info('Fill in the following details. You can modify rest of profile at a later stage. Values can not be null');
             do {
-                # code...
-            
+                // code...
+
                 //don't allow null values hence do while
                 $firstName = null;
                 do {
-                    $firstName = $this->ask("First Name");
-                } while (is_null($firstName) );
+                    $firstName = $this->ask('First Name');
+                } while (is_null($firstName));
                 $lastName = null;
                 do {
-                    $lastName = $this->ask("Last Name" );
-                } while (is_null($lastName) );
+                    $lastName = $this->ask('Last Name');
+                } while (is_null($lastName));
                 $email = null;
                 do {
-                    $email = $this->ask("Email");
-                } while (is_null($email) );
+                    $email = $this->ask('Email');
+                } while (is_null($email));
                 do {
-                    $password = $this->secret("Password");
+                    $password = $this->secret('Password');
                 } while (is_null($password));
                 do {
-                    $passwordConfirmation = $this->secret("Confirm Password");
+                    $passwordConfirmation = $this->secret('Confirm Password');
                 } while (is_null($passwordConfirmation));
 
                 //validate the input
                 $validator = Validator::make([
-                    'first_name' => $firstName,
-                    'last_name' => $lastName,
-                    'email' => $email,
-                    'password' => $password,
-                    'password_confirmation' => $passwordConfirmation
+                    'first_name'            => $firstName,
+                    'last_name'             => $lastName,
+                    'email'                 => $email,
+                    'password'              => $password,
+                    'password_confirmation' => $passwordConfirmation,
                 ], [
                     'first_name' => ['required', 'string', 'max:511'],
-                    'last_name' => ['required', 'string', 'max:511'],
-                    'email'    => ['required', 'string', 'email', 'max:511', 'unique:users'],
-                    'password' => $this->passwordRules(),
+                    'last_name'  => ['required', 'string', 'max:511'],
+                    'email'      => ['required', 'string', 'email', 'max:511', 'unique:users'],
+                    'password'   => $this->passwordRules(),
                 ]);
 
                 //display validation error
                 foreach ($validator->errors()->all() as $error) {
                     $this->error($error);
                 }
-            } while ($validator->fails()); 
-            
+            } while ($validator->fails());
+
             //create super admin
             $superAdmin = User::firstOrCreate([
                 'name'              => "$firstName $lastName",
@@ -96,10 +96,9 @@ class CreateSuperAdmin extends Command
             $superAdmin->assignRole('super-admin');
             $superAdmin->save();
 
-            
             $this->line('Created super admin successfully');
-        } catch (\Throwable $th ) {
-            $this->error("Could not create super admin \n". $th);
+        } catch (\Throwable $th) {
+            $this->error("Could not create super admin \n".$th);
         }
     }
 }
