@@ -7,11 +7,11 @@ use App\Http\Requests\StoreTimetableTimeSlotRequest;
 use App\Http\Requests\UpdateTimetableTimeSlotRequest;
 use App\Models\Timetable;
 use App\Models\TimetableTimeSlot;
-use App\Services\Timetable\TimeslotService;
+use App\Services\Timetable\TimeSlotService;
 
 class TimetableTimeSlotController extends Controller
 {
-    public function __construct(TimeslotService $timeSlot)
+    public function __construct(TimeSlotService $timeSlot)
     {
         $this->timeSlot = $timeSlot;
         $this->authorizeResource(TimetableTimeSlot::class, 'time_slot');
