@@ -26,7 +26,9 @@ class CreateStudentForm extends Component
 
     public function loadInitialSections()
     {
-        $this->sections = collect(App::make(MyClassService::class)->getClassById($this->myClasses[0]['id'])->sections);
+        if($this->myClasses->isNotEmpty()){
+            $this->sections = collect(App::make(MyClassService::class)->getClassById($this->myClasses[0]['id'])->sections);
+        }
     }
 
     public function updatedMyClass()

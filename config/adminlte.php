@@ -212,7 +212,7 @@ return [
         'enabled' => true,
         'img'     => [
             'path'   => env('LOGO_PATH', 'vendor/adminlte/dist/img/AdminLTELogo.png'),
-            'alt'    => 'AdminLTE Preloader Image',
+            'alt'    => env("APP_NAME"),
             'effect' => 'animation__shake',
             'width'  => 60,
             'height' => 60,
