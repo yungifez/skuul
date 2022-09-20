@@ -30,11 +30,11 @@ class StudentStoreRequest extends FormRequest
     {
         return [
             'my_class_id.required' => 'Select a class',
-            'section_id.required' => 'Select a section',
+            'section_id.required'  => 'Select a section',
         ];
     }
 
-   /**
+    /**
      * Get custom attributes for validator errors.
      *
      * @return array
@@ -43,7 +43,7 @@ class StudentStoreRequest extends FormRequest
     {
         return [
             'my_class_id' => 'class selection',
-            'section_id' => 'section selection',
+            'section_id'  => 'section selection',
         ];
     }
 }
