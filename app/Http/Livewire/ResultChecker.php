@@ -10,22 +10,7 @@ use Livewire\Component;
 
 class ResultChecker extends Component
 {
-    public $section;
-    public $sections;
-    public $classes;
-    public $class;
-    public $students;
-    public $student;
-    public $academicYears;
-    public $academicYear;
-    public $semesters;
-    public $semester;
-    public $exams;
-    public $examRecords;
-    public $subjects;
-    public $preparedResults;
-    public $status;
-    public $studentName;
+    public $section, $sections, $classes, $class, $students, $student, $academicYears, $academicYear, $semesters, $semester, $exams, $examRecords, $subjects, $preparedResults, $status, $studentName;
 
     //rules
     public $rules = [
@@ -36,7 +21,7 @@ class ResultChecker extends Component
     public function mount(SectionService $sectionService, MyClassService $myClassService)
     {
         $this->academicYears = auth()->user()->school->academicYears;
-        $this->academicYear = $this->academicYears->first()->id;
+        $this->academicYear = auth()->user()->school->academicYear->id;
         $this->updatedAcademicYear();
         if (auth()->user()->hasAnyRole(['super-admin', 'admin', 'teacher'])) {
             $this->classes = $myClassService->getAllClasses();
@@ -120,10 +105,20 @@ class ResultChecker extends Component
             return $this->preparedResults = false;
         }
 
-        $this->subjects = $student->studentRecord->myClass->subjects;
-
         //fetch all students exam records in semester
         $this->examRecords = app("App\Services\Exam\ExamRecordService")->getAllUserExamRecordInSemester($semester, $student->id);
+
+        if ($this->academicYear != auth()->user()->school->academicYear) {
+            
+            $this->subjects = $this->examRecords->load('subject')->map(function ($examRecord)
+            {
+                return $examRecord->subject;
+            });
+
+            $this->subjects = $this->subjects->unique();
+        }else{
+            $this->subjects = $student->studentRecord->myClass->subjects;
+        }
 
         $this->preparedResults = true;
     }
