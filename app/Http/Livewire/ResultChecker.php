@@ -108,16 +108,22 @@ class ResultChecker extends Component
         //fetch all students exam records in semester
         $this->examRecords = app("App\Services\Exam\ExamRecordService")->getAllUserExamRecordInSemester($semester, $student->id);
 
-        if ($this->academicYear != auth()->user()->school->academicYear) {
+        if ($this->academicYear != auth()->user()->school->academicYear->id) {
             
             $this->subjects = $this->examRecords->load('subject')->map(function ($examRecord)
             {
                 return $examRecord->subject;
             });
 
-            $this->subjects = $this->subjects->unique();
+            $this->subjects = $this->subjects->unique()->filter();
         }else{
             $this->subjects = $student->studentRecord->myClass->subjects;
+        }
+
+        if ($this->subjects->isEmpty()) {
+            $this->status ="Subjects not present";
+            $this->preparedResults = false;
+            return;
         }
 
         $this->preparedResults = true;
