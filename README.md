@@ -10,9 +10,9 @@
 Skuul is a multi school management system that aims to make school administration and activities a breeze by using the power of the internet and increased connectinity
 
 ## Requirements
-* Php 8.0 and above
+* Php 8.0.2 and above
 * Composer 
-* Since this project is running laravel 9, we suggest checking out the official requirements
+* Since this project is running laravel 9, we suggest checking out the official requirements ![here](https://laravel.com/docs/9.x/upgrade#updating-dependencies)
 
 ## Installation
 To skip steps 4 down ( after composer install ), you can run the below command and it would guide you through the process automatically

@@ -6,7 +6,6 @@ use App\Models\Exam;
 use App\Models\Semester;
 use App\Models\Subject;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 
 class ExamService
 {
@@ -71,16 +70,16 @@ class ExamService
      */
     public function createExam($records)
     {
-        DB::transaction(function () use ($records) {
-            $exam = Exam::create([
-                'name'        => $records['name'],
-                'description' => $records['description'],
-                'semester_id' => $records['semester_id'],
-                'start_date'  => $records['start_date'],
-                'stop_date'   => $records['stop_date'],
-            ]);
-        });
+        $exam = Exam::create([
+            'name'        => $records['name'],
+            'description' => $records['description'],
+            'semester_id' => $records['semester_id'],
+            'start_date'  => $records['start_date'],
+            'stop_date'   => $records['stop_date'],
+        ]);
         session()->flash('success', 'Exam created successfully');
+
+        return;
     }
 
     /**
@@ -115,6 +114,8 @@ class ExamService
         $exam->active = $status;
         $exam->save();
         session()->flash('success', 'Exam status changed successfully');
+
+        return;
     }
 
     /**
@@ -129,8 +130,9 @@ class ExamService
     {
         $exam->publish_result = $status;
         $exam->save();
+        session()->flash('success', 'Result published status changed successfully');
 
-        return session()->flash('success', 'Result published status changed successfully');
+        return;
     }
 
     /**
@@ -143,8 +145,9 @@ class ExamService
     public function deleteExam(Exam $exam)
     {
         $exam->delete();
+        session()->flash('success', 'Exam deleted successfully');
 
-        return session()->flash('success', 'Exam deleted successfully');
+        return;
     }
 
     /**

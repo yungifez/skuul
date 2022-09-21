@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cc7f6409b3482f585bc831a2ef4d4db6",
+    "content-hash": "7dfe86ce6e71455a37c8b09b0426be83",
     "packages": [
         {
             "name": "almasaeed2010/adminlte",
@@ -1452,16 +1452,16 @@
         },
         {
             "name": "jeroennoten/laravel-adminlte",
-            "version": "v3.8.3",
+            "version": "v3.8.4",
             "source": {
                 "type": "git",
                 "url": "https://github.com/jeroennoten/Laravel-AdminLTE.git",
-                "reference": "593ea6654b44f4b8e49c923ce930d271909e46fb"
+                "reference": "f06dfd13a16b7449e89fb12a768184edd5db9bbc"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/jeroennoten/Laravel-AdminLTE/zipball/593ea6654b44f4b8e49c923ce930d271909e46fb",
-                "reference": "593ea6654b44f4b8e49c923ce930d271909e46fb",
+                "url": "https://api.github.com/repos/jeroennoten/Laravel-AdminLTE/zipball/f06dfd13a16b7449e89fb12a768184edd5db9bbc",
+                "reference": "f06dfd13a16b7449e89fb12a768184edd5db9bbc",
                 "shasum": ""
             },
             "require": {
@@ -1506,9 +1506,9 @@
             ],
             "support": {
                 "issues": "https://github.com/jeroennoten/Laravel-AdminLTE/issues",
-                "source": "https://github.com/jeroennoten/Laravel-AdminLTE/tree/v3.8.3"
+                "source": "https://github.com/jeroennoten/Laravel-AdminLTE/tree/v3.8.4"
             },
-            "time": "2022-08-10T14:39:01+00:00"
+            "time": "2022-08-18T15:19:54+00:00"
         },
         {
             "name": "laravel/fortify",
@@ -9417,7 +9417,7 @@
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
-        "php": "^8.0"
+        "php": "^8.0.2"
     },
     "platform-dev": [],
     "plugin-api-version": "2.2.0"

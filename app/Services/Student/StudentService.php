@@ -151,11 +151,11 @@ class StudentService
         $records['academic_year_id'] = auth()->user()->school->academic_year_id;
 
         if (!$oldClass->sections()->where('id', $records['old_section_id'])->exists()) {
-            return section()->flash('danger', 'Old section is not in old class');
+            return session()->flash('danger', 'Old section is not in old class');
         }
 
         if (!$newClass->sections()->where('id', $records['new_section_id'])->exists()) {
-            return section()->flash('danger', 'New section is not in new class');
+            return session()->flash('danger', 'New section is not in new class');
         }
 
         //make sure academic year is present

@@ -22,7 +22,7 @@
 @stop
 
 @section('content') 
-    @livewire('list-promotions-table')
+    @livewire('list-promotions-table',['academicYear'=> $currentAcademicYear->id])
     
     @livewire('display-status')
 @stop

@@ -43,11 +43,13 @@ class PromoteStudents extends Component
     public function updatedOldClass()
     {
         $this->oldSections = collect($this->classes->where('id', $this->oldClass)->first()['sections']);
+        $this->oldSection = $this->oldSections->first()['id'] ?? null;
     }
 
     public function updatedNewClass()
     {
         $this->newSections = collect($this->classes->where('id', $this->newClass)->first()['sections']);
+        $this->newSection = $this->newSections->first()['id'] ?? null;
     }
 
     public function loadInitialOldSections()
