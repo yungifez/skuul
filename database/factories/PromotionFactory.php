@@ -23,7 +23,7 @@ class PromotionFactory extends Factory
             'new_section_id'   => 2,
             'academic_year_id' => 1,
             'school_id'        => 1,
-            'students'         => [1],
+            'students'         => [4],
         ];
     }
 }

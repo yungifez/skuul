@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class AcademicYear extends Model
 {
@@ -29,5 +30,15 @@ class AcademicYear extends Model
     public function semesters()
     {
         return $this->hasMany(Semester::class);
+    }
+
+    /**
+     * The studentRecords that belong to the AcademicYear.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function studentRecords(): BelongsToMany
+    {
+        return $this->belongsToMany(StudentRecord::class)->as('studentAcademicYearBasedRecords')->using(AcademicYearStudentRecord::class)->withPivot('my_class_id', 'section_id');
     }
 }

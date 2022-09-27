@@ -98,6 +98,12 @@ class StudentService
             'admission_date'   => $record['admission_date'],
         ]);
         DB::commit();
+
+        $currentAcademicYear = auth()->user()->school->academicYear;
+        $student->studentRecord->load('academicYears')->academicYears()->sync([$currentAcademicYear->id => [
+            'my_class_id'      => $record['my_class_id'],
+            'section_id'       => $record['section_id'],
+        ]]);
         session()->flash('success', 'Student Created Successfully');
     }
 
@@ -171,6 +177,7 @@ class StudentService
             return session()->flash('danger', 'No students to promote');
         }
 
+        $currentAcademicYear = auth()->user()->school->academicYear;
         // update each student's class
         foreach ($students as $student) {
             if (in_array($student->id, $records['student_id'])) {
@@ -178,6 +185,10 @@ class StudentService
                     'my_class_id' => $records['new_class_id'],
                     'section_id'  => $records['new_section_id'],
                 ]);
+                $student->studentRecord->load('academicYears')->academicYears()->syncWithoutDetaching([$currentAcademicYear->id => [
+                    'my_class_id'      => $records['new_class_id'],
+                    'section_id'       => $records['new_section_id'],
+                ]]);
             }
         }
 
@@ -212,8 +223,13 @@ class StudentService
     public function resetPromotion($promotion)
     {
         $students = $this->getStudentById($promotion->students);
+        $currentAcademicYear = auth()->user()->school->academicYear;
 
         foreach ($students as $student) {
+            $student->studentRecord->load('academicYears')->academicYears()->syncWithoutDetaching([$currentAcademicYear->id => [
+                'my_class_id' => $promotion->old_class_id,
+                'section_id'  => $promotion->old_section_id,
+            ]]);
             $student->studentRecord()->update([
                 'my_class_id' => $promotion->old_class_id,
                 'section_id'  => $promotion->old_section_id,
