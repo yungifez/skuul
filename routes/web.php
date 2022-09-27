@@ -68,7 +68,7 @@ Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefault
             Route::post('semesters/set', ['App\Http\Controllers\SemesterController', 'setSemester'])->name('semesters.set-semester');
         });
 
-        Route::middleware(['App\Http\Middleware\EnsureSemesterIsSet'])->group(function () {
+        Route::middleware(['App\Http\Middleware\EnsureSemesterIsSet', 'App\Http\Middleware\EnsureStudentHasAcademicYearRecord'])->group(function () {
             //syllabi route
             Route::resource('syllabi', SyllabusController::class);
 

@@ -98,6 +98,7 @@ class ResultChecker extends Component
         //set name that would be used in view
         $this->studentName = $student->name;
         // fetch all exams, subjects and exam records for user in semester
+
         $this->exams = $semester->exams()->where('publish_result', true)->get();
         if ($this->exams->isEmpty()) {
             $this->status = 'There are no exams with published results for now';
@@ -108,17 +109,13 @@ class ResultChecker extends Component
         //fetch all students exam records in semester
         $this->examRecords = app("App\Services\Exam\ExamRecordService")->getAllUserExamRecordInSemester($semester, $student->id);
 
-        if ($this->academicYear != auth()->user()->school->academicYear->id) {
-            
-            $this->subjects = $this->examRecords->load('subject')->map(function ($examRecord)
-            {
-                return $examRecord->subject;
-            });
-
-            $this->subjects = $this->subjects->unique()->filter();
-        }else{
-            $this->subjects = $student->studentRecord->myClass->subjects;
+        $academicYearsWithStudentRecords = $student->studentRecord->academicYears()->where('academic_year_id', $this->academicYear)->first();
+        if (is_null($academicYearsWithStudentRecords)) {
+            $this->status ="No records this academic year, make sure user has been promoted this year";
+            $this->preparedResults = false;
+            return;
         }
+        $this->subjects = $academicYearsWithStudentRecords->studentAcademicYearBasedRecords->class->subjects;
 
         if ($this->subjects->isEmpty()) {
             $this->status ="Subjects not present";
