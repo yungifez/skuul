@@ -79,7 +79,6 @@ class ExamService
         ]);
         session()->flash('success', 'Exam created successfully');
 
-        return;
     }
 
     /**
@@ -115,7 +114,6 @@ class ExamService
         $exam->save();
         session()->flash('success', 'Exam status changed successfully');
 
-        return;
     }
 
     /**
@@ -132,7 +130,6 @@ class ExamService
         $exam->save();
         session()->flash('success', 'Result published status changed successfully');
 
-        return;
     }
 
     /**
@@ -147,7 +144,6 @@ class ExamService
         $exam->delete();
         session()->flash('success', 'Exam deleted successfully');
 
-        return;
     }
 
     /**

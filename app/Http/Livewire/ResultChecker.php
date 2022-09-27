@@ -10,7 +10,22 @@ use Livewire\Component;
 
 class ResultChecker extends Component
 {
-    public $section, $sections, $classes, $class, $students, $student, $academicYears, $academicYear, $semesters, $semester, $exams, $examRecords, $subjects, $preparedResults, $status, $studentName;
+    public $section;
+    public $sections;
+    public $classes;
+    public $class;
+    public $students;
+    public $student;
+    public $academicYears;
+    public $academicYear;
+    public $semesters;
+    public $semester;
+    public $exams;
+    public $examRecords;
+    public $subjects;
+    public $preparedResults;
+    public $status;
+    public $studentName;
 
     //rules
     public $rules = [
@@ -111,15 +126,17 @@ class ResultChecker extends Component
 
         $academicYearsWithStudentRecords = $student->studentRecord->academicYears()->where('academic_year_id', $this->academicYear)->first();
         if (is_null($academicYearsWithStudentRecords)) {
-            $this->status ="No records this academic year, make sure user has been promoted this year";
+            $this->status = 'No records this academic year, make sure user has been promoted this year';
             $this->preparedResults = false;
+
             return;
         }
         $this->subjects = $academicYearsWithStudentRecords->studentAcademicYearBasedRecords->class->subjects;
 
         if ($this->subjects->isEmpty()) {
-            $this->status ="Subjects not present";
+            $this->status = 'Subjects not present';
             $this->preparedResults = false;
+
             return;
         }
 
