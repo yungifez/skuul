@@ -42,6 +42,16 @@ class StudentRecord extends Model
     }
 
     /**
+     * Get the section that owns the StudentRecord.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function section()
+    {
+        return $this->belongsTo(Section::class);
+    }
+
+    /**
      * Get the user that owns the StudentRecord.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
@@ -70,5 +80,4 @@ class StudentRecord extends Model
     {
         return $this->academicYears()->wherePivot('academic_year_id', $this->user->school->academicYear->id);
     }
-
 }
