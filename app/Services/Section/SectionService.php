@@ -16,7 +16,7 @@ class SectionService
 
     public function getAllSections()
     {
-        $myClasses = $this->school->getSchoolById(auth()->user()->school_id)->myClasses->all();
+        $myClasses = $this->school->getSchoolById(auth()->user()->school_id)->myClasses->load('sections')->all();
 
         try {
             $sections = collect();

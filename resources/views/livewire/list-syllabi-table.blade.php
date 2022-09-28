@@ -1,6 +1,6 @@
 <div class="card">
     <div class="card-header">
-        <div class="card-title">Syllabus List</div>
+        <div class="card-title">Syllabi List</div>
     </div>
     <div class="card-body">
         @if (!auth()->user()->hasRole('student'))

@@ -18,6 +18,11 @@ return [
             'PDF' => 'Barryvdh\\DomPDF\\Facade\\Pdf',
         ],
     ],
+    'beyondcode/laravel-query-detector' => [
+        'providers' => [
+            0 => 'BeyondCode\\QueryDetector\\QueryDetectorServiceProvider',
+        ],
+    ],
     'fruitcake/laravel-cors' => [
         'providers' => [
             0 => 'Fruitcake\\Cors\\CorsServiceProvider',
