@@ -1,6 +1,6 @@
 @extends('adminlte::page')
 
-@section('title', __("view $timetable->name"))
+@section('title', __("View $timetable->name"))
 
 @section('content_header')
     <h1 class="font-weight-semibold">

@@ -106,7 +106,7 @@ class ExamRecordService
     public function getAllUserExamRecordInSemester(Semester $semester, int $user)
     {
         //get all exams
-        $exams = $semester->exams;
+        $exams = $semester->exams->load('examSlots');
         //create container variable for all exam slots in semster
         $examSlots = [];
         //get all exam slots in exams
