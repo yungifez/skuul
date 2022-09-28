@@ -3,10 +3,8 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use App\Models\AcademicYear;
-use Illuminate\Database\Eloquent\Model;
-use App\Models\AcademicYearStudentRecord;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class StudentRecord extends Model
@@ -60,9 +58,9 @@ class StudentRecord extends Model
     {
         return $this->belongsTo(User::class);
     }
-    
+
     /**
-     * The academicYears that belong to the StudentRecord
+     * The academicYears that belong to the StudentRecord.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
@@ -72,7 +70,7 @@ class StudentRecord extends Model
     }
 
     /**
-     * Get current academic year
+     * Get current academic year.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */

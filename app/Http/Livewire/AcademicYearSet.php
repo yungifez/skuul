@@ -8,7 +8,7 @@ use Livewire\Component;
 class AcademicYearSet extends Component
 {
     public $academicYears;
-    
+
     public function mount(AcademicYearService $academicYearService)
     {
         $this->academicYears = $academicYearService->getAllAcademicYears();
