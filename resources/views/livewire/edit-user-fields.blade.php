@@ -25,7 +25,7 @@
         @livewire('nationality-and-state-input-fields', ['nationality' => $user->nationality, 'state' => $user->state])
     </div>
     <x-adminlte-input name="city" label="City" placeholder="{{$role}}'s city" fgroup-class="col-md-4" enable-old-support value="{{$user->city}}"/>
-    <x-adminlte-input-file name="photo" placeholder="Choose a profile photo..." accept="image/*" fgroup-class="col-md-6" label="Profile photo (no changes would be made if no file is chosen)">
+    <x-adminlte-input-file name="profile_photo" placeholder="Choose a profile photo..." accept="image/*" fgroup-class="col-md-6" label="Profile photo (no changes would be made if no file is chosen)">
         <x-slot name="prependSlot">
             <div class="input-group-text bg-lightblue">
                 <i class="fas fa-upload"></i>

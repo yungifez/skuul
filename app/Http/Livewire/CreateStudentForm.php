@@ -22,10 +22,7 @@ class CreateStudentForm extends Component
     public function mount(MyClassService $myClassService)
     {
         $this->myClasses = $myClassService->getAllClasses();
-    }
 
-    public function loadInitialSections()
-    {
         if ($this->myClasses->isNotEmpty()) {
             $this->sections = collect(App::make(MyClassService::class)->getClassById($this->myClasses[0]['id'])->sections);
         }

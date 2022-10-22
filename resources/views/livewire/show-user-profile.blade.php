@@ -1,9 +1,7 @@
 <div class="container">
     {{-- written to support css 2.1 --}}
-    <div class="row justify-content-center text-center">
-        <img src="{{$user->profile_photo_url}}" class="rounded-circle" alt="user photo"  height="200px" width="200px" style="width: 175px;height: 175px; "/>
-    </div>
-    <div class="row my-2">
+    <div class="row justify-content-center text-center profile-image-wrapper">
+        <img src="{{url($user->profile_photo_url)}}" class="rounded-circle profile-image" alt="user photo"  height="200px" width="200px" style="width: 175px;height: 175px; margin:auto;"/>
         <h2 class="text-center col-md-12">{{$user->name}}</h2>
         <h4>Personal information</h4>
         <table class="table col-12 table-bordered">
