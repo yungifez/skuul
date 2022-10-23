@@ -135,8 +135,8 @@ class ExamTabulation extends Component
         //save as pdf
         return response()->streamDownload(
             fn () => print($pdf),
-            "exam-tabiulation.pdf"
-       );
+            'exam-tabiulation.pdf'
+        );
     }
 
     public function render()
