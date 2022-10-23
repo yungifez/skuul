@@ -3,7 +3,7 @@
 
     <div class="container card-body">
         <div class="row my-2">
-            <h4>Student information</h4>
+            <h4 class="text-center col-12">Student information</h4>
             <table class="table col-12 table-bordered">
                 <tbody class="">
                     <tr>
