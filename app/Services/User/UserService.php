@@ -148,6 +148,11 @@ class UserService
 
         $record['name'] = $this->createFullName($record['first_name'], $record['last_name'], $record['other_names']);
 
+        //update profile photo if present
+        if (isset($record['profile_photo'])) {
+            $user->updateProfilePhoto($record['profile_photo']);
+        }
+
         $user = $this->updateUserProfileInformationAction->update($user, $record);
 
         return $user;

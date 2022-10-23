@@ -17,7 +17,7 @@
 @endsection
 
 @section('content')
-    <a href="{{route('timetables.print',$timetable->id)}}" class="btn btn-primary">Print Timetable</a>
+    <a href="{{route('timetables.print',$timetable->id)}}" class="btn btn-primary my-3">Print Timetable</a>
     @livewire('show-timetable', ['timetable' => $timetable])
 
     @livewire('display-status')
