@@ -122,11 +122,13 @@ class ResultTabulation extends Component
     {
         //used pdf class directly, I used exam tabulation view since it contains same logic
         $pdf = Pdf::loadView('pages.exam.print-exam-tabulation', ['tabulatedRecords' => $this->tabulatedRecords, 'totalMarksAttainableInEachSubject' => $this->totalMarksAttainableInEachSubject, 'subjects' => $this->subjects]);
-        $randomString = str()->random();
-        //save as pdf
-        $pdf->save("temp-pdf/result-tabulation$randomString.pdf");
-        //download
-        return response()->download("temp-pdf/result-tabulation$randomString.pdf", 'result-tabulation.pdf');
+         //used pdf class directly
+         $pdf = Pdf::loadView('pages.exam.print-exam-tabulation', ['tabulatedRecords' => $this->tabulatedRecords, 'totalMarksAttainableInEachSubject' => $this->totalMarksAttainableInEachSubject, 'subjects' => $this->subjects])->output();
+         //save as pdf
+         return response()->streamDownload(
+             fn () => print($pdf),
+             "result-tabiulation.pdf"
+        );
     }
 
     public function render()

@@ -17,7 +17,7 @@
 @endsection
 
 @section('content')
-    <a href="{{route('students.print-profile',$student->id)}}" class="btn btn-primary">Print Profile</a>
+    <a href="{{route('students.print-profile',$student->id)}}" class="btn btn-primary my-2">Print Profile</a>
 
     @livewire('show-student-profile', ['student' => $student])
 

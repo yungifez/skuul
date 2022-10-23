@@ -44,8 +44,8 @@
         th{
             font-weight: 700;
         }
-        td, th{
-            padding: auto ;
+        td, th {
+            padding: 0.75rem;
         }
     </style>
     @yield('style')

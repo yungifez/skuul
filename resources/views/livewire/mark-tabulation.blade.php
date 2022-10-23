@@ -1,6 +1,6 @@
 <div>
     <p>Total obtainable marks in each subject: {{$totalMarksAttainableInEachSubject}}</p>
-    <p>Total Marks a cross all subjects: {{$totalMarksAttainableInEachSubject * $subjects->count()}}</p>
+    <p>Total Marks across all subjects: {{$totalMarksAttainableInEachSubject * $subjects->count()}}</p>
     @php
         $heads = $subjects->sortBy('name')->pluck('name');
         $heads = $heads->prepend('Admission number')->prepend('Student name')->prepend('Class Position');
