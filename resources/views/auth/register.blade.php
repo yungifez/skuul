@@ -1,4 +1,6 @@
-<x-guest-layout>
+@extends('layouts.register')
+
+@section('body')
     <div class="container">
         <div class="row justify-content-center my-5">
             <div class=" col-lg-10 my-4">
@@ -12,4 +14,4 @@
         </div>
     </div>
     @livewire('display-status')
-</x-guest-layout>
+@endsection

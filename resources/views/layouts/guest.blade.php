@@ -11,7 +11,7 @@
         <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700" rel="stylesheet">
 
         <!-- Styles -->
-        <link rel="stylesheet" href="{{ mix('css/dashboard.css') }}">
+        <link rel="stylesheet" href="{{ mix('css/app.css') }}">
         @livewireStyles
         
         <!--Shortcut icon-->
@@ -19,7 +19,6 @@
 
         <!-- Scripts -->
         <script src="{{ mix('js/app.js') }}" defer></script>
-        <script src="{{ mix('js/dashboard.js') }}" defer></script>
     </head>
     <body class="bg-light font-sans antialiased">
         {{ $slot }}

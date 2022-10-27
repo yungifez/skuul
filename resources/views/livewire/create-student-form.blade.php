@@ -24,7 +24,7 @@
                     @endif
                 </x-adminlte-select>
                 <x-adminlte-input name="admission_number" label="Admission number ( would be automatically created if left blank )" placeholder="Student's admission number" fgroup-class="col-md-6" enable-old-support/>
-                <x-adminlte-input-date name="admission_date" :config="['format' => 'YYYY/MM/DD']" placeholder="Choose student's admission date..." label="Date of admission"  fgroup-class="col-md-6" value="{{old('admission_date')}}"/>{{old('admission_date')}}
+                <x-adminlte-input-date type="date" name="admission_date" :config="['format' => 'YYYY/MM/DD']" placeholder="Choose student's admission date..." label="Date of admission"  fgroup-class="col-md-6" value="{{old('admission_date')}}"/>{{old('admission_date')}}
                 @csrf
                 <div class='col-12 my-2'>
                     <x-adminlte-button label="Create" theme="primary" icon="fas fa-key" type="submit" class="col-md-3"/>

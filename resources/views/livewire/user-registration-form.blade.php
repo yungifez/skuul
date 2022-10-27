@@ -33,7 +33,7 @@
                         route('register'), 'includeFormTag' => false], key(Str::random(10)))
                         @break
                 @default
-                    Role not found
+                    <p>Role not found</p>
                 @endswitch
             </div>
         </div>
@@ -41,4 +41,9 @@
     @else
         Couldn't create user, Roles not found.
     @endisset
+    <hr>
+    <p class="">
+        Already have an account? <a href="{{route('login')}}">Login here</a>
+    </p> 
+    
 </div>
