@@ -13,6 +13,8 @@ class CreateStudentForm extends Component
     public $sections;
     public $section;
     protected $myClassService;
+    public $school = null;
+    public bool $includeFormTag = true;
 
     protected $rules = [
         'myClass' => 'string',
@@ -21,7 +23,7 @@ class CreateStudentForm extends Component
 
     public function mount(MyClassService $myClassService)
     {
-        $this->myClasses = $myClassService->getAllClasses();
+        $this->myClasses = $myClassService->getAllClasses($this->school);
 
         if ($this->myClasses->isNotEmpty()) {
             $this->sections = collect(App::make(MyClassService::class)->getClassById($this->myClasses[0]['id'])->sections);

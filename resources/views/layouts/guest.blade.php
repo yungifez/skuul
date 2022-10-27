@@ -11,15 +11,19 @@
         <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700" rel="stylesheet">
 
         <!-- Styles -->
-        <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-
+        <link rel="stylesheet" href="{{ mix('css/dashboard.css') }}">
+        @livewireStyles
+        
         <!--Shortcut icon-->
         <link rel="shortcut icon" href="favicons/favicon.ico" type="image/x-icon">
 
         <!-- Scripts -->
         <script src="{{ mix('js/app.js') }}" defer></script>
+        <script src="{{ mix('js/dashboard.js') }}" defer></script>
     </head>
     <body class="bg-light font-sans antialiased">
         {{ $slot }}
     </body>
+    @livewireScripts
+    
 </html>

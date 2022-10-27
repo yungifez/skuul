@@ -21,6 +21,9 @@ Route::get('/home', function () {
     return redirect()->route('dashboard');
 });
 
+Route::get('/register', ['App\Http\Controllers\RegistrationController', 'registerView'])->name('register');
+Route::post('/register', ['App\Http\Controllers\RegistrationController', 'register']);
+
 //user must be authenticated
 Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefaultPasswordIsChanged')->prefix('dashboard')->namespace('App\Http\Controllers')->group(function () {
 

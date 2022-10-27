@@ -1,9 +1,11 @@
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Create Student</h3>
+        <h3 class="card-title">Create Student account</h3>
     </div>
     <div class="card-body">
+        @if ($includeFormTag = true)
         <form action="{{route('students.store')}}" method="POST" enctype="multipart/form-data">
+        @endif
             @livewire('create-user-fields', ['role' => 'Student'])
             <div class="row">
                 <h4 class="text-bold col-12 text-center">Class information</h4>
@@ -28,6 +30,8 @@
                     <x-adminlte-button label="Create" theme="primary" icon="fas fa-key" type="submit" class="col-md-3"/>
                 </div>
             </div>
+         @if ($includeFormTag = true)
         </form>
+        @endif
     </div>
 </div>

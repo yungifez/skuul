@@ -26,9 +26,10 @@ class MyClassService
      *
      * @return Illuminate\Support\Collection
      */
-    public function getAllClasses()
+    public function getAllClasses($school = null)
     {
-        return collect($this->school->getSchoolById(auth()->user()->school_id)->myClasses->load('classGroup', 'sections')->all());
+        $school = $school ?? auth()->user()->school_id;
+        return collect($this->school->getSchoolById($school)->myClasses->load('classGroup', 'sections')->all());
     }
 
     /**

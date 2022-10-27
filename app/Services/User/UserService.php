@@ -70,8 +70,9 @@ class UserService
         if (!$record['other_names']) {
             $record['other_names'] = null;
         }
+
         $record['name'] = $this->createFullName($record['first_name'], $record['last_name'], $record['other_names']);
-        $record['school_id'] = auth()->user()->school_id;
+        $record['school_id'] = $record['school_id'] ?? auth()->user()->school_id;
         $user = $this->createUserAction->create([
             'name'                  => $record['name'],
             'email'                 => $record['email'],
