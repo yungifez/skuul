@@ -13,7 +13,7 @@
                                 <td>{{$loop->iteration}}</td>
                                 <td>{{$subject->name}}</td>
                                 <td>{{$subject->short_name}}</td>
-                                <td>{{$subject->teachers()->count()}}</td>
+                                <td>{{$subject->teachers->count()}}</td>
                                 <td>@livewire('dropdown-links', [
                                     'links' => [
                                     ['href' => route("subjects.edit", $subject->id), 'text' => 'Edit', 'icon' => 'fas fa-cog'],

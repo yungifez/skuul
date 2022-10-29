@@ -29,7 +29,7 @@ class MyClassService
     public function getAllClasses($school = null)
     {
         $school = $school ?? auth()->user()->school_id;
-        return collect($this->school->getSchoolById($school)->myClasses->load('classGroup', 'sections')->all());
+        return $this->school->getSchoolById($school)->myClasses->load('classGroup', 'sections');
     }
 
     /**
