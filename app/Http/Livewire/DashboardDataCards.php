@@ -2,13 +2,13 @@
 
 namespace App\Http\Livewire;
 
-use Livewire\Component;
+use App\Services\MyClass\MyClassService;
 use App\Services\Parent\ParentService;
 use App\Services\School\SchoolService;
-use App\Services\MyClass\MyClassService;
 use App\Services\Section\SectionService;
 use App\Services\Student\StudentService;
 use App\Services\Teacher\TeacherService;
+use Livewire\Component;
 
 class DashboardDataCards extends Component
 {
