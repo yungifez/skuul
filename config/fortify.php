@@ -132,6 +132,7 @@ return [
     */
 
     'features' => [
+        //custom registration has been implemented, do not uncomment
         // Features::registration(),
         Features::resetPasswords(),
         Features::emailVerification(),
