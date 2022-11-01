@@ -96,7 +96,7 @@ class ResultChecker extends Component
         $section = app("App\Services\Section\SectionService")->getSectionById($this->section);
 
         //get students in section
-        $this->students = $section->studentRecords->map(function ($studentRecord) {
+        $this->students = $section->studentRecords->load('user')->map(function ($studentRecord) {
             return $studentRecord->user;
         });
 
