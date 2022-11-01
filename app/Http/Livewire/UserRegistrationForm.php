@@ -2,13 +2,17 @@
 
 namespace App\Http\Livewire;
 
+use App\Services\School\SchoolService;
 use Livewire\Component;
 use Spatie\Permission\Models\Role;
-use App\Services\School\SchoolService;
 
 class UserRegistrationForm extends Component
 {
-    public $roles, $role, $roleName, $schools, $school;
+    public $roles;
+    public $role;
+    public $roleName;
+    public $schools;
+    public $school;
     protected $queryString = ['school', 'role'];
 
     public function mount(SchoolService $schoolService)
@@ -19,7 +23,7 @@ class UserRegistrationForm extends Component
         $this->role = $this->role ?? $this->roles->first()->id;
         $this->updatedRole();
     }
-    
+
     public function updatedRole()
     {
         $role = $this->roles->find($this->role);
@@ -28,7 +32,6 @@ class UserRegistrationForm extends Component
 
     public function updatedSchool()
     {
-        
     }
 
     public function render()

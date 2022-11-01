@@ -16,15 +16,15 @@ class RegistrationController extends Controller
     public function register(Request $request)
     {
         $roles = Role::whereIn('name', ['teacher', 'student', 'parent'])->get();
-        $validated = $request->validate( [
+        $validated = $request->validate([
             'role' => [
                 'required',
-                Rule::in($roles->pluck('id'))
+                Rule::in($roles->pluck('id')),
             ],
             'school' => [
                 'required',
-                'exists:schools,id'
-            ]
+                'exists:schools,id',
+            ],
         ]);
 
         $role = $roles->find($request->role);
