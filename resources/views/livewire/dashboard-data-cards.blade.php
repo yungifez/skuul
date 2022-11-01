@@ -40,7 +40,7 @@
     
             <div class="col-lg-4">
                 @can('read subject')
-                    <x-adminlte-small-box title="{{$subjects}}" text="Subjects" icon=" text-dark" theme="purple" url="{{route('subjects.index')}}" url-text="View subjects" />
+                <x-adminlte-small-box title="{{$parents}}" text="Parents" icon=" text-dark" theme="purple" url="{{route('parents.index')}}" url-text="View Parents" />
                 @endcan
             </div>
         </div>

@@ -44,7 +44,8 @@
                 <div class="mb-0">
                     <div class="d-flex justify-content-end align-items-baseline">
                         @if (Route::has('password.request'))
-                            <a class="text-muted me-3" href="{{ route('password.request') }}">
+                            
+                            <a class="text-muted mx-3" href="{{ route('password.request') }}">
                                 {{ __('Forgot your password?') }}
                             </a>
                         @endif
@@ -55,6 +56,12 @@
                     </div>
                 </div>
             </form>
+            <hr>
+            <div> Dont Have An account? 
+                <a href="{{route('register')}}" class="">
+                    {{__('Create Account')}} 
+                </a>
+            </div>
         </div>
     </x-jet-authentication-card>
 </x-guest-layout>

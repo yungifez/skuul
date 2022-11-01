@@ -18,7 +18,7 @@ class ListPromotionsTable extends Component
         } else {
             $this->academicYear = $academicYearService->getAcademicYearById($this->academicYear);
         }
-        $this->promotions = $studentService->getPromotionsByAcademicYearId($this->academicYear->id);
+        $this->promotions = $studentService->getPromotionsByAcademicYearId($this->academicYear->id)->load('oldClass', 'oldSection', 'newClass', 'newSection');
     }
 
     public function render()

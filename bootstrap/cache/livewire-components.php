@@ -90,4 +90,5 @@ return [
     'show-teacher-profile'               => 'App\\Http\\Livewire\\ShowTeacherProfile',
     'show-timetable'                     => 'App\\Http\\Livewire\\ShowTimetable',
     'show-user-profile'                  => 'App\\Http\\Livewire\\ShowUserProfile',
+    'user-registration-form'             => 'App\\Http\\Livewire\\UserRegistrationForm',
 ];

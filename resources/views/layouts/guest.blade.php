@@ -11,8 +11,9 @@
         <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700" rel="stylesheet">
 
         <!-- Styles -->
-        <link rel="stylesheet" href="{{ asset('css/app.css') }}">
-
+        <link rel="stylesheet" href="{{ mix('css/app.css') }}">
+        @livewireStyles
+        
         <!--Shortcut icon-->
         <link rel="shortcut icon" href="favicons/favicon.ico" type="image/x-icon">
 
@@ -22,4 +23,6 @@
     <body class="bg-light font-sans antialiased">
         {{ $slot }}
     </body>
+    @livewireScripts
+    
 </html>

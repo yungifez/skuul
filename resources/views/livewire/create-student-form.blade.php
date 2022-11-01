@@ -1,9 +1,11 @@
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Create Student</h3>
+        <h3 class="card-title">Create Student account</h3>
     </div>
     <div class="card-body">
+        @if ($includeFormTag = true)
         <form action="{{route('students.store')}}" method="POST" enctype="multipart/form-data">
+        @endif
             @livewire('create-user-fields', ['role' => 'Student'])
             <div class="row">
                 <h4 class="text-bold col-12 text-center">Class information</h4>
@@ -22,12 +24,14 @@
                     @endif
                 </x-adminlte-select>
                 <x-adminlte-input name="admission_number" label="Admission number ( would be automatically created if left blank )" placeholder="Student's admission number" fgroup-class="col-md-6" enable-old-support/>
-                <x-adminlte-input-date name="admission_date" :config="['format' => 'YYYY/MM/DD']" placeholder="Choose student's admission date..." label="Date of admission"  fgroup-class="col-md-6" value="{{old('admission_date')}}"/>{{old('admission_date')}}
+                <x-adminlte-input-date type="date" name="admission_date" :config="['format' => 'YYYY/MM/DD']" placeholder="Choose student's admission date..." label="Date of admission"  fgroup-class="col-md-6" value="{{old('admission_date')}}"/>{{old('admission_date')}}
                 @csrf
                 <div class='col-12 my-2'>
                     <x-adminlte-button label="Create" theme="primary" icon="fas fa-key" type="submit" class="col-md-3"/>
                 </div>
             </div>
+         @if ($includeFormTag = true)
         </form>
+        @endif
     </div>
 </div>

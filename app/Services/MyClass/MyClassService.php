@@ -28,7 +28,7 @@ class MyClassService
      */
     public function getAllClasses()
     {
-        return collect($this->school->getSchoolById(auth()->user()->school_id)->myClasses->load('classGroup', 'sections')->all());
+        return $this->school->getSchoolById(auth()->user()->school_id)->myClasses->load('classGroup', 'sections');
     }
 
     /**

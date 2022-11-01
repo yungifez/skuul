@@ -79,31 +79,31 @@ class StudentService
      */
     public function createStudent($record)
     {
-        DB::beginTransaction();
-        $student = $this->user->createUser($record);
-        $student->assignRole('student');
         $record['admission_number'] || $record['admission_number'] = $this->generateAdmissionNumber();
         $section = $this->section->getSectionById($record['section_id']);
         if (!$this->myClass->getClassById($record['my_class_id'])->sections->contains($section)) {
             session()->flash('danger', 'Section is not in class');
-            DB::rollBack();
 
             return;
         }
 
-        $student->studentRecord()->create([
-            'my_class_id'      => $record['my_class_id'],
-            'section_id'       => $record['section_id'],
-            'admission_number' => $record['admission_number'],
-            'admission_date'   => $record['admission_date'],
-        ]);
-        DB::commit();
+        DB::transaction(function () use ($record) {
+            $student = $this->user->createUser($record);
+            $student->assignRole('student');
 
-        $currentAcademicYear = auth()->user()->school->academicYear;
-        $student->studentRecord->load('academicYears')->academicYears()->sync([$currentAcademicYear->id => [
-            'my_class_id'      => $record['my_class_id'],
-            'section_id'       => $record['section_id'],
-        ]]);
+            $student->studentRecord()->create([
+                'my_class_id'      => $record['my_class_id'],
+                'section_id'       => $record['section_id'],
+                'admission_number' => $record['admission_number'],
+                'admission_date'   => $record['admission_date'],
+            ]);
+
+            $currentAcademicYear = auth()->user()->school->academicYear;
+            $student->studentRecord->load('academicYears')->academicYears()->sync([$currentAcademicYear->id => [
+                'my_class_id'      => $record['my_class_id'],
+                'section_id'       => $record['section_id'],
+            ]]);
+        });
         session()->flash('success', 'Student Created Successfully');
     }
 
