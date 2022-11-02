@@ -42,7 +42,9 @@ class StudentService
     public function getAllActiveStudents()
     {
         return $this->user->getUsersByRole('student')->load('studentRecord')->filter(function ($student) {
-            return $student->studentRecord->is_graduated == false;
+            if ($student->studentRecord) {
+                return $student->studentRecord->is_graduated == false;
+            }
         });
     }
 
@@ -54,7 +56,7 @@ class StudentService
     public function getAllGraduatedStudents()
     {
         return $this->user->getUsersByRole('student')->load('studentRecord')->filter(function ($student) {
-            return $student->studentRecord->is_graduated == true;
+            return $student->studentRecord()->withoutGlobalScopes()->first()->is_graduated == true;
         });
     }
 
@@ -170,7 +172,7 @@ class StudentService
         }
 
         //get all students for promotion
-        $students = $this->getAllStudents()->whereIn('id', $records['student_id']);
+        $students = $this->getAllActiveStudents()->whereIn('id', $records['student_id']);
 
         // make sure there are students to promote
         if (!$students->count()) {
@@ -245,7 +247,7 @@ class StudentService
     public function graduateStudents($records)
     {
         //get all students for graduation
-        $students = $this->getAllStudents()->whereIn('id', $records['student_id']);
+        $students = $this->getAllActiveStudents()->whereIn('id', $records['student_id']);
 
         // make sure there are students to graduate
         if (!$students->count()) {

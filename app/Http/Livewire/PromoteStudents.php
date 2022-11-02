@@ -75,7 +75,7 @@ class PromoteStudents extends Component
         // it was with this line of code that I knew ive run mad
         // $this->students = App::make(MyClassService::class)->getClassById($this->oldClass)->sections->where('id', $this->oldSection)->load('studentRecords')->first()->studentRecords->load('user');
 
-        $this->students = App::make(StudentService::class)->getAllStudents()->load('studentRecord')->filter(function ($student) {
+        $this->students = App::make(StudentService::class)->getAllActiveStudents()->load('studentRecord')->filter(function ($student) {
             return $student->studentRecord->my_class_id == $this->oldClass && $student->studentRecord->section_id == $this->oldSection;
         });
     }
