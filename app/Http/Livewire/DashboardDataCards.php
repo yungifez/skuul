@@ -18,7 +18,7 @@ class DashboardDataCards extends Component
         $this->classGroups = $myClassService->getAllClassGroups()->count();
         $this->classes = $myClassService->getAllClasses()->count();
         $this->sections = $sectionService->getAllSections()->count();
-        $this->students = $studentService->getAllStudents()->count();
+        $this->students = $studentService->getAllActiveStudents()->count();
         $this->teachers = $teacherService->getAllTeachers()->count();
         $this->parents = $parentService->getAllParents()->count();
     }

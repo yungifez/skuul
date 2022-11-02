@@ -3,8 +3,9 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class StudentRecord extends Model
@@ -21,6 +22,19 @@ class StudentRecord extends Model
     protected $casts = [
         'admission_date' => 'datetime:Y-m-d',
     ];
+
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        //gets only active users
+        static::addGlobalScope('notGraduated', function (Builder $builder) {
+            $builder->where('is_graduated', 0);
+        });
+    }
 
     //accessor for admission_date
 

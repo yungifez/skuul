@@ -41,7 +41,7 @@ class GraduateStudents extends Component
     {
         $this->validate();
 
-        $this->students = App::make(StudentService::class)->getAllStudents()->load('studentRecord')->filter(function ($student) {
+        $this->students = App::make(StudentService::class)->getAllActiveStudents()->load('studentRecord')->filter(function ($student) {
             return $student->studentRecord->my_class_id == $this->class && $student->studentRecord->section_id == $this->section;
         });
     }
