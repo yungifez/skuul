@@ -1,4 +1,7 @@
 <div class="card">
+    <div class="card-header">
+        <h4 class="card-title">Edit {{$school->name}}</h4>
+    </div>
     <div class="card-body">
         <form action="{{route('schools.update', $school->id )}}" method="POST">
             @method('PUT')
