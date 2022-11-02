@@ -124,9 +124,9 @@ class ResultChecker extends Component
         //fetch all students exam records in semester
         $this->examRecords = app("App\Services\Exam\ExamRecordService")->getAllUserExamRecordInSemester($semester, $student->id);
 
-        $academicYearsWithStudentRecords = $student->studentRecord->academicYears()->where('academic_year_id', $this->academicYear)->first();
+        $academicYearsWithStudentRecords = $student->studentRecord()->withoutGlobalScopes()->first()->academicYears()->where('academic_year_id', $this->academicYear)->first();
         if (is_null($academicYearsWithStudentRecords)) {
-            $this->status = 'No records this academic year, make sure user has been promoted this year';
+            $this->status = 'No records this academic year, make sure user has been promoted this year or has not been graduated';
             $this->preparedResults = false;
 
             return;

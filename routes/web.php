@@ -25,7 +25,7 @@ Route::get('/register', ['App\Http\Controllers\RegistrationController', 'registe
 Route::post('/register', ['App\Http\Controllers\RegistrationController', 'register']);
 
 //user must be authenticated
-Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefaultPasswordIsChanged')->prefix('dashboard')->namespace('App\Http\Controllers')->group(function () {
+Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefaultPasswordIsChanged', 'App\Http\Middleware\PreventGraduatedStudent')->prefix('dashboard')->namespace('App\Http\Controllers')->group(function () {
 
     //manage school settings
     Route::get('schools/settings', ['App\Http\Controllers\SchoolController', 'settings'])->name('schools.settings')->middleware('App\Http\Middleware\EnsureSuperAdminHasSchoolId');
@@ -40,7 +40,7 @@ Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefault
         //dashboard route
         Route::get('/', function () {
             return view('dashboard');
-        })->name('dashboard');
+        })->name('dashboard')->withoutMiddleware(['App\Http\Middleware\PreventGraduatedStudent']);
 
         //class routes
         Route::resource('classes', MyClassController::class);
@@ -101,7 +101,7 @@ Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefault
             Route::get('exams/result-tabulation-sheet', ['App\Http\Controllers\ExamController', 'resultTabulation'])->name('exams.result-tabulation');
 
             //result checker
-            Route::get('exams/result-checker', ['App\Http\Controllers\ExamController', 'resultChecker'])->name('exams.result-checker');
+            Route::get('exams/result-checker', ['App\Http\Controllers\ExamController', 'resultChecker'])->name('exams.result-checker')->withoutMiddleware(['App\Http\Middleware\PreventGraduatedStudent']);;
 
             //exam routes
             Route::resource('exams', ExamController::class);
@@ -117,7 +117,7 @@ Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefault
 
         //student routes
         Route::resource('students', StudentController::class);
-        Route::get('students/{student}/print', ['App\Http\Controllers\StudentController', 'printProfile'])->name('students.print-profile');
+        Route::get('students/{student}/print', ['App\Http\Controllers\StudentController', 'printProfile'])->name('students.print-profile')->withoutMiddleware(['App\Http\Middleware\PreventGraduatedStudent']);;
 
         //admin routes
         Route::resource('admins', AdminController::class);
