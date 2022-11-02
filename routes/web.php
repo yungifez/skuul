@@ -117,7 +117,7 @@ Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefault
 
         //student routes
         Route::resource('students', StudentController::class);
-        Route::get('students/{student}/print', ['App\Http\Controllers\StudentController', 'printProfile'])->name('students.print-profile')->withoutMiddleware(['App\Http\Middleware\PreventGraduatedStudent']);;
+        Route::get('students/{student}/print', ['App\Http\Controllers\StudentController', 'printProfile'])->name('students.print-profile')->withoutMiddleware(['App\Http\Middleware\PreventGraduatedStudent']);
 
         //admin routes
         Route::resource('admins', AdminController::class);
