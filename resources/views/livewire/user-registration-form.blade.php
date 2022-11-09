@@ -1,4 +1,4 @@
-<div class="card-body">
+<div class="card">
     @isset($roles)
     <form action="{{route('register')}}" method="POST" enctype="multipart/form-data">
         <div class="card-body" >
