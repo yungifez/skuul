@@ -21,8 +21,10 @@ Route::get('/home', function () {
     return redirect()->route('dashboard');
 });
 
-// Route::get('/register', ['App\Http\Controllers\RegistrationController', 'registerView'])->name('register');
-// Route::post('/register', ['App\Http\Controllers\RegistrationController', 'register']);
+Route::middleware(['guest'])->group(function () {
+    Route::get('/register', ['App\Http\Controllers\RegistrationController', 'registerView'])->name('register');
+    Route::post('/register', ['App\Http\Controllers\RegistrationController', 'register']);
+});
 
 //user must be authenticated
 Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefaultPasswordIsChanged', 'App\Http\Middleware\PreventGraduatedStudent')->prefix('dashboard')->namespace('App\Http\Controllers')->group(function () {
@@ -50,6 +52,17 @@ Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefault
 
         //sections routes
         Route::resource('sections', SectionController::class);
+
+        Route::get('account-applications/change-status/{applicant}', ['App\Http\Controllers\AccountApplicationController', 'changeStatusView'])->name('account-applications.change-status');
+
+        Route::post('account-applications/change-status/{applicant}', ['App\Http\Controllers\AccountApplicationController', 'changeStatus']);
+
+        Route::get('account-applications/rejected-applications', ['App\Http\Controllers\AccountApplicationController', 'rejectedApplicationsView'])->name('account-applications.rejected-applications');
+        
+        //account application routes. We need the applicant instead of the record
+        Route::resource('account-applications', AccountApplicationController::class)->parameters([
+            'account-applications' => 'applicant'
+        ]);
 
         Route::middleware(['App\Http\Middleware\EnsureAcademicYearIsSet'])->group(function () {
 

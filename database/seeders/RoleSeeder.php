@@ -35,5 +35,8 @@ class RoleSeeder extends Seeder
         Role::firstOrCreate([
             'name' => 'librarian',
         ]);
+        Role::firstOrCreate([
+            'name' => 'applicant',
+        ]);
     }
 }

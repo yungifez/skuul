@@ -57,11 +57,11 @@
                 </div>
             </form>
             <hr>
-            {{-- <div> Dont Have An account? 
+            <div> Dont Have An account? 
                 <a href="{{route('register')}}" class="">
                     {{__('Create Account')}} 
                 </a>
-            </div> --}}
+            </div>
         </div>
     </x-jet-authentication-card>
 </x-guest-layout>

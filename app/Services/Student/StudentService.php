@@ -81,6 +81,23 @@ class StudentService
      */
     public function createStudent($record)
     {
+        DB::transaction(function () use ($record) {
+            $student = $this->user->createUser($record);
+            $student->assignRole('student');
+
+            $this->createStudentRecord($student, $record);
+        });
+        session()->flash('success', 'Student Created Successfully');
+    }
+
+    /**
+     * Create record for student
+     *
+     * @param [type] $record
+     * @return void
+     */
+    public function createStudentRecord($student, $record)
+    {
         $record['admission_number'] || $record['admission_number'] = $this->generateAdmissionNumber();
         $section = $this->section->getSectionById($record['section_id']);
         if (!$this->myClass->getClassById($record['my_class_id'])->sections->contains($section)) {
@@ -88,25 +105,20 @@ class StudentService
 
             return;
         }
+        
+        $student->studentRecord()->create([
+            'my_class_id'      => $record['my_class_id'],
+            'section_id'       => $record['section_id'],
+            'admission_number' => $record['admission_number'],
+            'admission_date'   => $record['admission_date'],
+        ]);
 
-        DB::transaction(function () use ($record) {
-            $student = $this->user->createUser($record);
-            $student->assignRole('student');
-
-            $student->studentRecord()->create([
-                'my_class_id'      => $record['my_class_id'],
-                'section_id'       => $record['section_id'],
-                'admission_number' => $record['admission_number'],
-                'admission_date'   => $record['admission_date'],
-            ]);
-
-            $currentAcademicYear = auth()->user()->school->academicYear;
-            $student->studentRecord->load('academicYears')->academicYears()->sync([$currentAcademicYear->id => [
-                'my_class_id'      => $record['my_class_id'],
-                'section_id'       => $record['section_id'],
-            ]]);
-        });
-        session()->flash('success', 'Student Created Successfully');
+        //create record history
+        $currentAcademicYear = auth()->user()->school->academicYear;
+        $student->studentRecord->load('academicYears')->academicYears()->sync([$currentAcademicYear->id => [
+            'my_class_id'      => $record['my_class_id'],
+            'section_id'       => $record['section_id'],
+        ]]);
     }
 
     /**
