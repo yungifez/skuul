@@ -74,6 +74,7 @@ Typically, you can update most of the time following these steps
 - composer update
 - php artisan optimize:clear
 - php artisan migrate (Make sure to backup database)
+- php artisan db:seed --class RunInProductionSeeder
 ## Setup
 * Log in to the application with the following credentials
     * Email: super@admin.com
