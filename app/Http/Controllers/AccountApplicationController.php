@@ -2,24 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Services\User\UserService;
-use App\Http\Requests\StoreAccountApplicationRequest;
-use App\Http\Requests\UpdateAccountApplicationRequest;
 use App\Http\Requests\AccountApplicationStatusChangeRequest;
+use App\Http\Requests\UpdateAccountApplicationRequest;
+use App\Models\User;
 use App\Services\AccountApplication\AccountApplicationService;
+use App\Services\User\UserService;
 
 class AccountApplicationController extends Controller
 {
     /**
-     * Contains account service instance
+     * Contains account service instance.
      *
      * @var AccountApplicationService
      */
     public AccountApplicationService $accountApplicationService;
 
     /**
-     * User service instance
+     * User service instance.
      *
      * @var UserService
      */
@@ -27,10 +26,10 @@ class AccountApplicationController extends Controller
 
     public function __construct(AccountApplicationService $accountApplicationService, UserService $userService)
     {
-        $this->accountApplicationService = $accountApplicationService; 
+        $this->accountApplicationService = $accountApplicationService;
         $this->userService = $userService;
-
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -46,7 +45,8 @@ class AccountApplicationController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\User $applicant
+     * @param \App\Models\User $applicant
+     *
      * @return \Illuminate\Http\Response
      */
     public function show(User $applicant)
@@ -54,13 +54,15 @@ class AccountApplicationController extends Controller
         $this->userService->verifyUserIsOfRoleElseNotFound($applicant, 'applicant');
         $this->authorize('view', [$applicant, 'applicant']);
         $data['applicant'] = $applicant;
+
         return view('pages.account-application.show', $data);
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\User  $applicant
+     * @param \App\Models\User $applicant
+     *
      * @return \Illuminate\Http\Response
      */
     public function edit(User $applicant)
@@ -68,14 +70,16 @@ class AccountApplicationController extends Controller
         $this->userService->verifyUserIsOfRoleElseNotFound($applicant, 'applicant');
         $this->authorize('update', [$applicant, 'applicant']);
         $data['applicant'] = $applicant;
+
         return view('pages.account-application.edit', $data);
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\UpdateAccountApplicationRequest  $request
-     * @param  \App\Models\User  $applicant
+     * @param \App\Http\Requests\UpdateAccountApplicationRequest $request
+     * @param \App\Models\User                                   $applicant
+     *
      * @return \Illuminate\Http\Response
      */
     public function update(UpdateAccountApplicationRequest $request, User $applicant)
@@ -91,7 +95,8 @@ class AccountApplicationController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\User $applicant
+     * @param \App\Models\User $applicant
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy(User $applicant)
@@ -105,22 +110,23 @@ class AccountApplicationController extends Controller
     }
 
     /**
-     * View for changing application status
+     * View for changing application status.
      *
      * @return void
      */
     public function changeStatusView(User $applicant)
     {
         $data['applicant'] = $applicant;
-        
+
         return view('pages.account-application.change-status', $data);
     }
 
     /**
-     * Change Application Statis
+     * Change Application Statis.
      *
-     * @param User $applicant
+     * @param User    $applicant
      * @param Request $request
+     *
      * @return void
      */
     public function changeStatus(User $applicant, AccountApplicationStatusChangeRequest $request)
@@ -132,7 +138,7 @@ class AccountApplicationController extends Controller
     }
 
     /**
-     * View rejected applications
+     * View rejected applications.
      *
      * @return void
      */

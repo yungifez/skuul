@@ -317,7 +317,6 @@ class PermissionSeeder extends Seeder
         Permission::firstOrCreate([
             'name' => 'change account application status',
         ]);
-        
 
         //header permissions (for controlling the menu headers)
         Permission::firstOrCreate([

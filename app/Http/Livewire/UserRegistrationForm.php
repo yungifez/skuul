@@ -11,7 +11,6 @@ class UserRegistrationForm extends Component
     public $roles;
     public $schools;
 
-    
     public function mount(SchoolService $schoolService)
     {
         $this->schools = $schoolService->getAllSchools();

@@ -91,9 +91,10 @@ class StudentService
     }
 
     /**
-     * Create record for student
+     * Create record for student.
      *
      * @param [type] $record
+     *
      * @return void
      */
     public function createStudentRecord($student, $record)
@@ -105,7 +106,7 @@ class StudentService
 
             return;
         }
-        
+
         $student->studentRecord()->create([
             'my_class_id'      => $record['my_class_id'],
             'section_id'       => $record['section_id'],

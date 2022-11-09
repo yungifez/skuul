@@ -2,21 +2,21 @@
 
 namespace App\Models;
 
-use App\Models\User;
-use Spatie\Permission\Models\Role;
-use Spatie\ModelStatus\HasStatuses;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Spatie\ModelStatus\HasStatuses;
+use Spatie\Permission\Models\Role;
 
 class AccountApplication extends Model
 {
-    use HasFactory, HasStatuses;
+    use HasFactory;
+    use HasStatuses;
 
     protected $fillable = ['role_id', 'user_id'];
 
     /**
-     * Get the user that owns the AccountApplication
+     * Get the user that owns the AccountApplication.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
@@ -26,7 +26,7 @@ class AccountApplication extends Model
     }
 
     /**
-     * Get the role that owns the AccountApplication
+     * Get the role that owns the AccountApplication.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
@@ -36,7 +36,7 @@ class AccountApplication extends Model
     }
 
     /**
-     * Possible account application statuses
+     * Possible account application statuses.
      *
      * @return void
      */

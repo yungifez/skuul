@@ -58,10 +58,10 @@ Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefault
         Route::post('account-applications/change-status/{applicant}', ['App\Http\Controllers\AccountApplicationController', 'changeStatus']);
 
         Route::get('account-applications/rejected-applications', ['App\Http\Controllers\AccountApplicationController', 'rejectedApplicationsView'])->name('account-applications.rejected-applications');
-        
+
         //account application routes. We need the applicant instead of the record
         Route::resource('account-applications', AccountApplicationController::class)->parameters([
-            'account-applications' => 'applicant'
+            'account-applications' => 'applicant',
         ]);
 
         Route::middleware(['App\Http\Middleware\EnsureAcademicYearIsSet'])->group(function () {
