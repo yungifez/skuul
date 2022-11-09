@@ -1,10 +1,10 @@
 {
-    "name": "laravel/laravel",
+    "name": "yungifez/skuul",
     "type": "project",
-    "description": "The Laravel Framework.",
+    "description": "A multi school management system.",
     "keywords": [
-        "framework",
-        "laravel"
+        "multi-school",
+        "school-management"
     ],
     "license": "MIT",
     "require": {
