@@ -135,7 +135,7 @@ class UserService
      *
      * @return \App\Models\User
      */
-    public function updateUser(User $user, $record,string $role = null)
+    public function updateUser(User $user, $record, string $role = null)
     {
         if (isset($role)) {
             if (!$this->verifyRole($user->id, $role)) {

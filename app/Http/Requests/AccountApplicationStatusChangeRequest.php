@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class AccountApplicationStatusChangeRequest extends FormRequest
 {
@@ -16,7 +16,7 @@ class AccountApplicationStatusChangeRequest extends FormRequest
     {
         //get the applicant and set variable if user is student
         $applicant = $this->route('applicant')->load('accountApplication', 'accountApplication.role');
-        $statuses =  $applicant->accountApplication->getAllStatuses();
+        $statuses = $applicant->accountApplication->getAllStatuses();
         $status = $this->input('status') ?? 'not found';
         if ($applicant->accountApplication->role->name == 'student' && $status == 'approved') {
             $applicantIsStudent = true;
@@ -26,7 +26,7 @@ class AccountApplicationStatusChangeRequest extends FormRequest
                 'my_class_id'      => 'required|exists:my_classes,id',
                 'section_id'       => 'required|exists:sections,id',
             ];
-        }else{
+        } else {
             $applicantIsStudent = false;
             $studentStoreRequestValidationArray = [];
         }
@@ -34,16 +34,15 @@ class AccountApplicationStatusChangeRequest extends FormRequest
         $rules = [
             'status' => [
                 'required',
-                Rule::in($statuses)
-            ], 
+                Rule::in($statuses),
+            ],
             'reason' => [
                 'sometimes',
-                'max:256'
-            ]
+                'max:256',
+            ],
         ];
         $rules = array_merge($rules, $studentStoreRequestValidationArray);
 
-        
         return  $rules;
     }
 }

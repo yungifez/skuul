@@ -3,7 +3,6 @@
 namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
@@ -11,17 +10,18 @@ use Illuminate\Queue\SerializesModels;
 
 class ApplicationStatusChanged extends Mailable
 {
-    use Queueable, SerializesModels;
+    use Queueable;
+    use SerializesModels;
 
     /**
-     * New status
+     * New status.
      *
      * @var string
      */
     public string $status;
 
     /**
-     * Message/ reason
+     * Message/ reason.
      *
      * @var string
      */

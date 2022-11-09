@@ -2,23 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\AccountApplication\AccountApplicationService;
+use App\Services\User\UserService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
-use App\Services\User\UserService;
 use Spatie\Permission\Models\Role;
-use App\Services\AccountApplication\AccountApplicationService;
 
 class RegistrationController extends Controller
 {
     /**
-     * Account application service instance
+     * Account application service instance.
      *
-     * @var AccountApplicationService $accountApplicationService
+     * @var AccountApplicationService
      */
     public AccountApplicationService $accountApplicationService;
-    
+
     /**
-     * User service instance
+     * User service instance.
      *
      * @var UserService
      */
@@ -61,6 +61,7 @@ class RegistrationController extends Controller
         $accountApplication->setStatus('Application Recieved', 'Application has been recieved, we would reach out to you for further information');
 
         session()->flash('success', 'Registration complete, you would recieve an email to verify your account');
+
         return back();
     }
 }

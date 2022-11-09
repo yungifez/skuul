@@ -3,9 +3,9 @@
 namespace App\Http\Livewire;
 
 use App\Models\User;
+use App\Services\School\SchoolService;
 use Livewire\Component;
 use Spatie\Permission\Models\Role;
-use App\Services\School\SchoolService;
 
 class EditAccountApplicationForm extends Component
 {
@@ -16,7 +16,7 @@ class EditAccountApplicationForm extends Component
     {
         $this->roles = Role::whereIn('name', ['teacher', 'student', 'parent'])->get();
     }
-    
+
     public function render()
     {
         return view('livewire.edit-account-application-form');

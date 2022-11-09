@@ -18,7 +18,7 @@ class ChangeAccountApplicationStatus extends Component
         $this->applicant = $applicant;
 
         //return null if no applicant record
-        if(is_null($this->applicant->accountApplication)){
+        if (is_null($this->applicant->accountApplication)) {
             return;
         }
         $this->statuses = $this->applicant->accountApplication->getAllStatuses();
@@ -31,10 +31,11 @@ class ChangeAccountApplicationStatus extends Component
     {
         if ($this->status == 'approved' && $this->applicant->accountApplication->role->name == 'student') {
             $this->studentRecordFields = true;
-        }else{
+        } else {
             $this->studentRecordFields = false;
         }
     }
+
     public function render()
     {
         return view('livewire.change-account-application-status');
