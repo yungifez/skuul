@@ -17,14 +17,15 @@
             <div class='col-12 my-2'>
                 <x-adminlte-button label="Register" theme="primary" icon="fas fa-key" type="submit" class="col-md-3"/>
             </div>
+            <p class="my-4 text-center">
+                Already have an account? <a href="{{route('login')}}">Login here</a>
+            </p> 
         </div>
     </form>
     @else
         Couldn't create user, Roles not found.
     @endisset
     <hr>
-    <p class="">
-        Already have an account? <a href="{{route('login')}}">Login here</a>
-    </p> 
+   
     
 </div>
