@@ -91,13 +91,13 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'hello@example.com'),
+        'address' => env('MAIL_FROM_ADDRESS', 'hello@skuul.test'),
         'name'    => env('MAIL_FROM_NAME', 'Example'),
     ],
 
-    'from' => [
-        'address' => env('MAIL_REPLY_ADDRESS', 'hello@example.com'),
-        'name'    => env('MAIL_REPLY_NAME', 'Example'),
+    'reply_to' => [
+        'address' => env('MAIL_REPLY_ADDRESS', 'contact@skuul.test'),
+        'name'    => env('MAIL_REPLY_NAME', env('APP_NAME')),
     ],
 
     /*
