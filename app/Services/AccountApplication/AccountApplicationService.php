@@ -101,7 +101,6 @@ class AccountApplicationService
         ]);
 
         session()->flash('success', 'Application updated successfully');
-
     }
 
     /**
@@ -141,7 +140,6 @@ class AccountApplicationService
         }
 
         Mail::to($applicant->email)->send(new ApplicationStatusChanged($record['status'], $record['reason']));
-
     }
 
     /**
@@ -155,6 +153,5 @@ class AccountApplicationService
     {
         $applicant->delete();
         session()->flash('success', 'Student Deleted Successfully');
-
     }
 }
