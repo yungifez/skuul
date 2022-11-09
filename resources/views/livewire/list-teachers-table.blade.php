@@ -3,13 +3,13 @@
         <h4 class="card-title">Teachers</h4>
     </div>
     <div class="card-body">
-        <x-adminlte-datatable id="school-list-table" :heads="['S/N', 'Photo', 'Name','email','gender' , 'address', '', '']" class='text-capitalize' >
+        <x-adminlte-datatable id="teacher-list-table" :heads="['S/N', 'Photo', 'Name','email','gender' , 'address', '', '']" class='text-capitalize' >
             @foreach($teachers as $teacher)
                 <tr>
                     <td>{{$loop->iteration}}</td>
                     <td><img src="{{$teacher->profile_photo_url}}" alt="" class="rounded-circle" height="50px" width="50px"></td>
                     <td>{{ $teacher->name}}</td>
-                    <td>{{ $teacher->email}}</td>
+                    <td style="text-transform: none">{{ $teacher->email}}</td>
                     <td>{{$teacher->gender}}</td>
                     <td>{{$teacher->address}}</td>
                     <td>@livewire('dropdown-links', [

@@ -301,6 +301,23 @@ class PermissionSeeder extends Seeder
             'name' => 'delete notice',
         ]);
 
+        //permission for applicant
+        Permission::firstOrCreate([
+            'name' => 'read applicant',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'update applicant',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'delete applicant',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'change account application status',
+        ]);
+
         //header permissions (for controlling the menu headers)
         Permission::firstOrCreate([
             'name' => 'header-administrate',
@@ -347,6 +364,9 @@ class PermissionSeeder extends Seeder
         Permission::firstOrCreate([
             'name' => 'menu-notice',
         ]);
+        Permission::firstOrCreate([
+            'name' => 'menu-account-application',
+        ]);
         /**
          * assign permissions to roles.
          */
@@ -368,6 +388,7 @@ class PermissionSeeder extends Seeder
             'menu-grade-system',
             'menu-notice',
             'menu-parent',
+            'menu-account-application',
             'manage school settings',
             'create section',
             'read section',
@@ -442,6 +463,10 @@ class PermissionSeeder extends Seeder
             'read parent',
             'update parent',
             'delete parent',
+            'read applicant',
+            'update applicant',
+            'delete applicant',
+            'change account application status',
         ]);
 
         //assign permissions to teacher

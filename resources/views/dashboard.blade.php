@@ -29,8 +29,15 @@
             theme="secondary"/>
         </a>
     @endif
+    
+    @can('read notice') 
+        @livewire('list-notices-table')
+    @endcan
 
-    @livewire('list-notices-table')
+    @if (auth()->user()->hasRole('applicant'))
+        {{--Contains status history--}}
+        @livewire('change-account-application-status', ['applicant' => auth()->user()])
+    @endif
 
     @livewire('display-status')
 @stop

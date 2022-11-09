@@ -63,6 +63,8 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
                 'phone'       => $input['phone'],
             ])->save();
         }
+
+        return $user;
     }
 
     /**
@@ -91,5 +93,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         ])->save();
 
         $user->sendEmailVerificationNotification();
+
+        return $user;
     }
 }

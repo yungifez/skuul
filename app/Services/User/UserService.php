@@ -123,19 +123,19 @@ class UserService
     {
         $user = $this->getUserById($id);
 
-        return $user->hasRole($role);
+        return $user->load('roles')->hasRole($role);
     }
 
     /**
      * Update user profile information.
      *
-     * @param User $user
+     * @param User $user User instance
      * @param $record
-     * @param null $role
+     * @param string $role Verify role before updating
      *
      * @return \App\Models\User
      */
-    public function updateUser(User $user, $record, $role = null)
+    public function updateUser(User $user, $record, string $role = null)
     {
         if (isset($role)) {
             if (!$this->verifyRole($user->id, $role)) {

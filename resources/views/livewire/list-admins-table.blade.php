@@ -9,7 +9,7 @@
                     <td>{{$loop->iteration}}</td>
                     <td><img src="{{$admin->profile_photo_url}}" alt="" class="rounded-circle" height="50px" width="50px"></td>
                     <td>{{ $admin->name}}</td>
-                    <td>{{ $admin->email}}</td>
+                    <td style="text-transform: none">{{ $admin->email}}</td>
                     <td>{{$admin->gender}}</td>
                     <td>{{$admin->address}}</td>
                     <td>@livewire('dropdown-links', [

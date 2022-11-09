@@ -4,11 +4,11 @@
     <x-adminlte-input name="first_name" label="First name" placeholder="{{$role}}'s first name" fgroup-class="col-md-3" enable-old-support/>
     <x-adminlte-input name="last_name" label="Last name" placeholder="{{$role}}'s last name" fgroup-class="col-md-3" enable-old-support/>
     <x-adminlte-input name="other_names" label="Other names" placeholder="{{$role}}'s other names" fgroup-class="col-md-6" enable-old-support/>
-    <x-adminlte-input name="email" label="Email address" placeholder="Enter {{$role}}'s email address" fgroup-class="col-md-4" enable-old-support/>
+    <x-adminlte-input name="email" type="email" label="Email address" placeholder="Enter {{$role}}'s email address" fgroup-class="col-md-4" enable-old-support/>
     <x-adminlte-input name="password" label=" Password" placeholder="input a password" fgroup-class="col-md-4" type="password"/>
     <x-adminlte-input name="password_confirmation" label="Confirm password" placeholder="input password again" fgroup-class="col-md-4" type="password"/>
     <h4 class="text-bold col-12 text-center">Personal information</h4>
-    <x-adminlte-input-date name="birthday" :config="['format' => 'YYYY/MM/DD']" placeholder="Choose {{$role}}'s birthday..." label="Birthday"  fgroup-class="col-md-3" value="{{old('birthday')}}"/>
+    <x-adminlte-input-date name="birthday" :config="['format' => 'YYYY/MM/DD']" placeholder="Choose {{$role}}'s birthday..." label="Birthday"  fgroup-class="col-md-3" value="{{old('birthday')}}" autocomplete="off"/>
     <x-adminlte-select name="gender" label="Gender" fgroup-class="col-md-3" enable-old-support>
         @php ($genders = ['Male', 'Female'])
         @foreach ($genders as $gender)

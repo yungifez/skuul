@@ -402,6 +402,26 @@ return [
         ],
         [
             'type'    => 'sidebar-menu-item',
+            'text'    => 'Account Applications',
+            'icon'    => 'fas fa-plus',
+            'can'     => 'menu-account-application',
+            'submenu' => [
+                [
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'View account applications',
+                    'route' => 'account-applications.index',
+                    'can'   => 'read applicant',
+                ],
+                [
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'View rejected applications',
+                    'route' => 'account-applications.rejected-applications',
+                    'can'   => 'read applicant',
+                ],
+            ],
+        ],
+        [
+            'type'    => 'sidebar-menu-item',
             'text'    => 'Teachers',
             'icon'    => 'fas fa-user',
             'can'     => 'menu-teacher',

@@ -6,7 +6,7 @@ use Livewire\Component;
 
 class CreateUserFields extends Component
 {
-    public string $role = 'user';
+    public string $role = 'User';
 
     public function render()
     {

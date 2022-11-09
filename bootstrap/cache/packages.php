@@ -113,6 +113,11 @@ return [
             'Flare' => 'Spatie\\LaravelIgnition\\Facades\\Flare',
         ],
     ],
+    'spatie/laravel-model-status' => [
+        'providers' => [
+            0 => 'Spatie\\ModelStatus\\ModelStatusServiceProvider',
+        ],
+    ],
     'spatie/laravel-permission' => [
         'providers' => [
             0 => 'Spatie\\Permission\\PermissionServiceProvider',

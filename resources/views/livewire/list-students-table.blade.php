@@ -15,7 +15,7 @@
                     <td>@isset($student->studentRecord->section)
                         {{$student->studentRecord->section->name}}
                     @endisset</td>
-                    <td>{{ $student->email}}</td>
+                    <td style="text-transform: none">{{ $student->email}}</td>
                     <td>{{$student->gender}}</td>
                     <td>{{$student->address}}</td>
                     <td>@livewire('dropdown-links', [

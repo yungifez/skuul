@@ -10,7 +10,7 @@
 Skuul is a multi school management system that aims to make school administration and activities a breeze by using the power of the internet and increased connectinity
 
 ## Requirements
-* Php 8.0.2 and above
+* Php 8.1 and above
 * Composer 
 * Since this project is running laravel 9, we suggest checking out the official requirements [here](https://laravel.com/docs/9.x/upgrade#updating-dependencies)
 
@@ -68,6 +68,13 @@ If you are running on production, visit your domain to verify it is working
 
 After running the above commands, you should be able to access the application at http::/localhost or your designated domain name depending on configuration.
 
+## Updating
+Typically, you can update most of the time following these steps
+- clone the new version
+- composer update
+- php artisan optimize:clear
+- php artisan migrate (Make sure to backup database)
+- php artisan db:seed --class RunInProductionSeeder
 ## Setup
 * Log in to the application with the following credentials
     * Email: super@admin.com
