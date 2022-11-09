@@ -5,6 +5,8 @@ namespace App\Services\AccountApplication;
 use App\Models\User;
 use App\Models\AccountApplication;
 use App\Services\User\UserService;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\ApplicationStatusChanged;
 use App\Services\Student\StudentService;
 
 class AccountApplicationService  
@@ -136,6 +138,8 @@ class AccountApplicationService
         }else{
             session()->flash('success' , 'Application status changed successfully');
         } 
+
+        Mail::to($applicant->email)->send(new ApplicationStatusChanged($record['status'], $record['reason']));
 
         return;
     }

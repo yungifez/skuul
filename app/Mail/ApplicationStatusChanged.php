@@ -14,13 +14,28 @@ class ApplicationStatusChanged extends Mailable
     use Queueable, SerializesModels;
 
     /**
+     * New status
+     *
+     * @var string
+     */
+    public string $status;
+
+    /**
+     * Message/ reason
+     *
+     * @var string
+     */
+    public string|null $reason;
+
+    /**
      * Create a new message instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($status, $reason = null)
     {
-        //
+        $this->status = $status;
+        $this->reason = $reason;
     }
 
     /**
@@ -43,7 +58,7 @@ class ApplicationStatusChanged extends Mailable
     public function content()
     {
         return new Content(
-            view: 'view.name',
+            markdown: 'emails.account-application.status-changed',
         );
     }
 
