@@ -10,6 +10,11 @@
             {{ session('success') }}
         </x-adminlte-alert>
     @endif
+    @if (session('info'))
+    <x-adminlte-alert theme="info" title="info" dismissable class="col-lg-4">
+        {{ session('info') }}
+    </x-adminlte-alert>
+    @endif
     <script>
         setTimeout(() => {
             document.querySelector('#status-display').remove()

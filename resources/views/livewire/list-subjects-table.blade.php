@@ -7,7 +7,7 @@
         
             @foreach ($classes as $class)
                 <x-adminlte-card title="Subjects under Class: {{$class->name}}" theme="primary" icon=""  collapsible="false">
-                    <x-adminlte-datatable id="school-list-table-{{$class->id}}" :heads="['S/N', 'Name','Short name', 'Teachers assigned', '', '']" class='text-capitalize ' >
+                    <x-adminlte-datatable id="school-list-table-{{$class->id}}" :heads="['S/N', 'Name','Short name', 'Teachers assigned', '', '']" class='text-capitalize ' bordered striped head-theme="dark" beautify>
                         @foreach($class->subjects as $subject)
                             <tr>
                                 <td>{{$loop->iteration}}</td>

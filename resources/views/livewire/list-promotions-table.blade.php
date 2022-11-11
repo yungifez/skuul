@@ -4,7 +4,7 @@
     </div>
     <div class="card-body">
         @livewire('help-button', ['target_id' => 'promotion-help-text', 'text' => "Reset button returns all students back to original class, make sure to verify all students promotion are to be reset before undergoing this action"])
-        <x-adminlte-datatable id="promotion-list-table" :heads="['S/N', 'From class','From Section','To class','To section', 'No of students','', '']" class='text-capitalize' >
+        <x-adminlte-datatable id="promotion-list-table" :heads="['S/N', 'From class','From Section','To class','To section', 'No of students','', '']" class='text-capitalize' bordered striped head-theme="dark" beautify>
             @foreach($promotions as $promotion)
                 <tr>
                     <td>{{$loop->iteration}}</td>

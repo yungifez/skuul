@@ -3,7 +3,7 @@
         <h4 class="card-title">Notices</h4>
     </div>
     <div class="card-body">
-        <x-adminlte-datatable id="notice-list-table" :heads="['S/N', 'Title','From','Till' , '', '']" class='text-capitalize' >
+        <x-adminlte-datatable id="notice-list-table" :heads="['S/N', 'Title','From','Till' , '', '']" class='text-capitalize' bordered striped head-theme="dark" beautify>
             @foreach($notices as $notice)
                 <tr>
                     <td>{{$loop->iteration}}</td>

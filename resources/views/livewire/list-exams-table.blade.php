@@ -4,7 +4,7 @@
     </div>
     <div class="card-body">
         @livewire('display-validation-error')
-        <x-adminlte-datatable id="school-list-table" :heads="['S/N','name', 'start date', 'stop date', '', '', '', '']" class='text-capitalize' >
+        <x-adminlte-datatable id="school-list-table" :heads="['S/N','name', 'start date', 'stop date', '', '', '', '']" class='text-capitalize' bordered striped head-theme="dark" beautify>
             @foreach($exams as $exam)
                 <tr>
                     <td>{{$loop->iteration}}</td>

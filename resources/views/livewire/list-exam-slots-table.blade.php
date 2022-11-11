@@ -4,7 +4,7 @@
     </div>
     <div class="card-body">
         <h3 class="text-center">Exam slots in {{$exam->name}}</h3>
-        <x-adminlte-datatable id="exam-slot-list-table" :heads="['S/N','name', 'Description', 'Maximum mark', '', '']" class='text-capitalize' >
+        <x-adminlte-datatable id="exam-slot-list-table" :heads="['S/N','name', 'Description', 'Maximum mark', '', '']" class='text-capitalize' bordered striped head-theme="dark" beautify >
             @foreach($exam->examSlots as $examSlot)
                 <tr>
                     <td>{{$loop->iteration}}</td>

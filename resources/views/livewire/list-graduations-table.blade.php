@@ -4,7 +4,7 @@
     </div>
     <div class="card-body">
         @livewire('help-button', ['target_id' => 'graduation-help-text', 'text' => "Manage graduated students"])
-        <x-adminlte-datatable id="graduation-list-table" :heads="['S/N','Profile photo', 'Name', 'email','gender' , '','', '']" class='text-capitalize' beautify>
+        <x-adminlte-datatable id="graduation-list-table" :heads="['S/N','Profile photo', 'Name', 'email','gender' , '','', '']" class='text-capitalize' bordered striped head-theme="dark" beautify>
             @foreach($students as $student)
                 <tr>
                     <td>{{$loop->iteration}}</td>
