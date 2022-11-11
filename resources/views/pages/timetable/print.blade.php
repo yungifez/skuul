@@ -7,5 +7,9 @@
 @endsection
 
 @section('style')
-    
+    <style>
+        td, th {
+            padding: 0.25rem;
+        }
+    </style>
 @endSection
