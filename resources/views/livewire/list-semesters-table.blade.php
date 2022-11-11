@@ -4,7 +4,7 @@
     </div>
     <div class="card-body">
         @livewire('semester-set')
-        <x-adminlte-datatable id="Semester-list-table" :heads="['S/N', 'Name', 'Action', '']" Class='text-capitalize'>
+        <x-adminlte-datatable id="Semester-list-table" :heads="['S/N', 'Name', 'Action', '']" Class='text-capitalize' bordered striped head-theme="dark" beautify>
             @foreach($semesters as $semester)
                 <tr>
                     <td>{{$loop->iteration}}</td>

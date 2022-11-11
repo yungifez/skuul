@@ -3,7 +3,7 @@
         <h4 class="card-title">Academic year list</h4>
     </div>
     <div class="card-body">
-        <x-adminlte-datatable id="school-list-table" :heads="['S/N','duration', 'action', '', ]" class='text-capitalize' >
+        <x-adminlte-datatable id="school-list-table" :heads="['S/N','duration', 'action', '', ]" class='text-capitalize' bordered striped head-theme="dark" beautify>
             @foreach($academicYears as $academicYear)
                 <tr>
                     <td>{{$loop->iteration}}</td>

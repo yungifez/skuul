@@ -34,7 +34,7 @@
             </div>
         </form>
         <div class="my-3">
-            <x-adminlte-datatable id="school-list-table" :heads="['S/N','Photo', 'Name','Class','Section', 'email', '',]" class='text-capitalize' >
+            <x-adminlte-datatable id="school-list-table" :heads="['S/N','Photo', 'Name','Class','Section', 'email', '',]" class='text-capitalize' bordered striped head-theme="dark" beautify>
                 @foreach($children as $student)
                     <tr>
                         <td>{{$loop->iteration}}</td>
