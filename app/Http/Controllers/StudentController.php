@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Illuminate\Http\Request;
-use App\Services\User\UserService;
-use App\Services\Student\StudentService;
 use App\Http\Requests\StudentStoreRequest;
+use App\Models\User;
+use App\Services\Student\StudentService;
+use App\Services\User\UserService;
+use Illuminate\Http\Request;
 
 class StudentController extends Controller
 {
     public $student;
     /**
-     * Instance of user service class
+     * Instance of user service class.
      *
      * @var UserService
      */
