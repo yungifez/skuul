@@ -17,7 +17,7 @@
                                 <td>@livewire('dropdown-links', [
                                     'links' => [
                                     ['href' => route("subjects.edit", $subject->id), 'text' => 'Edit', 'icon' => 'fas fa-cog'],
-                                    ['href' => route("subjects.show", $subject->id), 'text' => 'View', 'icon' => 'fas fa-eye'],
+                                    // ['href' => route("subjects.show", $subject->id), 'text' => 'View', 'icon' => 'fas fa-eye'],
                                     ],
                                 ],)</td>
                                 <td>

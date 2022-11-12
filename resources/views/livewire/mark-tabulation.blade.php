@@ -8,10 +8,18 @@
     @endphp
     {{--foreach displaus records in order of class positions--}}
     <div class="table-responsive">
-        <table class="table table-bordered">
-            @foreach ($heads as $head)
-                <th>{{$head}}</th>   
-            @endforeach
+        <style>
+            #mark-tabulation tr td,  #mark-tabulation tr th {
+                vertical-align: middle;
+                text-align: center;
+            }
+        </style>
+        <table class="table table-bordered table-striped" id="mark-tabulation">
+            <thead class="thead-dark">
+                @foreach ($heads as $head)
+                    <th>{{$head}}</th>   
+                @endforeach
+            </thead>
              @foreach ($tabulatedRecords->sortByDesc('total') as $tabulatedRecord)
             <tr>
                 <td>{{$loop->iteration}}</td>

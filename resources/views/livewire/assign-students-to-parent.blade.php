@@ -36,15 +36,14 @@
         <div class="my-3">
             <div class="table-responsive">
                 <style>
-                    #student-list tr td,  #student-list tr th {
+                    #children-list tr td,  #children-list tr th {
                         vertical-align: middle;
                         text-align: center;
                     }
                 </style>
-                <table id="student-list" style="width:100%" class="table table-bordered">
+                <table id="children-list" style="width:100%" class="table table-bordered table-striped">
                     <thead class="thead-dark">
                         <tr>
-                           
                             <th style="width:%">
                                 S/N
                             </th>
