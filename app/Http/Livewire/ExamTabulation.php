@@ -121,7 +121,7 @@ class ExamTabulation extends Component
         }
 
         //creates cache for tabulation
-        Cache::put('exam-tabulation-'.$exam->id.'-'.$section->id, $this->tabulatedRecords, 3600);
+        Cache::put('exam-tabulation-'.$exam->id.'-'.$section->id, $this->tabulatedRecords, 60);
 
         return collect($tabulatedRecords);
     }
