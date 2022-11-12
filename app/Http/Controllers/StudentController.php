@@ -2,19 +2,27 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StudentStoreRequest;
 use App\Models\User;
-use App\Services\Student\StudentService;
 use Illuminate\Http\Request;
+use App\Services\User\UserService;
+use App\Services\Student\StudentService;
+use App\Http\Requests\StudentStoreRequest;
 
 class StudentController extends Controller
 {
     public $student;
+    /**
+     * Instance of user service class
+     *
+     * @var UserService
+     */
+    public $userService;
 
     //construct method which assigns studentService to student variable
-    public function __construct(StudentService $student)
+    public function __construct(StudentService $student, UserService $userService)
     {
         $this->student = $student;
+        $this->userService = $userService;
     }
 
     /**
@@ -67,7 +75,7 @@ class StudentController extends Controller
      */
     public function show(User $student)
     {
-        $this->student->user->verifyUserIsOfRoleElseNotFound($student, 'student');
+        $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('view', [$student, 'student']);
         $data['student'] = $student;
 
@@ -79,7 +87,7 @@ class StudentController extends Controller
      */
     public function printProfile(User $student)
     {
-        $this->student->user->verifyUserIsOfRoleElseNotFound($student, 'student');
+        $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('view', [$student, 'student']);
         $data['student'] = $student;
 
@@ -97,7 +105,7 @@ class StudentController extends Controller
      */
     public function edit(User $student)
     {
-        $this->student->user->verifyUserIsOfRoleElseNotFound($student, 'student');
+        $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('update', [$student, 'student']);
         $data['student'] = $student;
 
@@ -116,7 +124,7 @@ class StudentController extends Controller
      */
     public function update(Request $request, User $student)
     {
-        $this->student->user->verifyUserIsOfRoleElseNotFound($student, 'student');
+        $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('update', [$student, 'student']);
         $data = $request->except('_token', '_method');
         $this->student->updateStudent($student, $data);
@@ -135,7 +143,7 @@ class StudentController extends Controller
      */
     public function destroy(User $student)
     {
-        $this->student->user->verifyUserIsOfRoleElseNotFound($student, 'student');
+        $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('delete', [$student, 'student']);
         $this->student->deleteStudent($student);
 

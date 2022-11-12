@@ -3,19 +3,21 @@
 namespace App\Services\Exam;
 
 use App\Models\Exam;
-use App\Models\Semester;
-use App\Models\Subject;
 use App\Models\User;
+use App\Models\Subject;
+use App\Models\Semester;
+use App\Services\Exam\ExamSlotService;
+use App\Services\Exam\ExamRecordService;
 
 class ExamService
 {
     /**
-     * @var App\Services\Exam\ExamReordService
+     * @var ExamRecordService
      */
     protected $examRecordService;
 
     /**
-     * @var App\Services\Exam\ExamSlotService
+     * @var ExamSlotService
      */
     protected $examSlotService;
 
