@@ -7,6 +7,9 @@
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>@yield('title')</title>
     <style>
+        *{
+            font-family: Helvetica, sans-serif;
+        }
         body{
             background-color: white;
         }
@@ -24,7 +27,7 @@
             border-radius: 50px;
         }
         p{
-            padding: 0.5rem;
+            padding: 0.45rem;
         }
         h1, h2, h3, h4, h5, h6 {
             text-align: center;
@@ -40,7 +43,9 @@
             border-collapse: collapse;
         }
         table {
-            width: 100%
+            width: 100%;
+            vertical-align: middle;
+            text-align: center;
         }
         th{
             font-weight: 700;
@@ -53,15 +58,15 @@
 </head>
 <body>
     
-    <div class=" my-2">
+    <header>
         <div class="logo-wrapper">
             <img src="{{public_path().'/'.config('app.logo')}}" alt="" class="logo" >
         </div>
         <div>
-            <h1 class="text-capitalize text-center ">{{auth()->user()->school->name}}</h1>
-            <h2 class="text-capitalize text-center ">{{auth()->user()->school->address}}</h2>
+            <h1 class=" ">{{auth()->user()->school->name}}</h1>
+            <h2 class="">{{auth()->user()->school->address}}</h2>
         </div>
-    </div>
+    </header>
     @yield('content')
 </body>
 </html>

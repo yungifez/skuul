@@ -94,7 +94,7 @@ class ListExamRecordsTable extends Component
         $this->classSelected = $section->myClass;
         $this->subjectSelected = $subject;
         $this->subjectSelectedId = $this->subjectSelected->id;
-        $this->students = $section->studentRecords->map(function ($studentRecord) {
+        $this->students = $section->studentRecords->load('user')->map(function ($studentRecord) {
             return $studentRecord->user;
         });
     }

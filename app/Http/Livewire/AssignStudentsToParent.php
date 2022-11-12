@@ -27,7 +27,7 @@ class AssignStudentsToParent extends Component
         $this->class = $this->classes[0]->id;
         $this->updatedClass();
 
-        $this->children = $this->parent->parentRecord->students;
+        $this->children = $this->parent->parentRecord->load('students', 'students.studentRecord', 'students.studentRecord.myClass', 'students.studentRecord.section')->students;
     }
 
     public function updatedClass()
@@ -55,7 +55,7 @@ class AssignStudentsToParent extends Component
         $section = app("App\Services\Section\SectionService")->getSectionById($this->section);
 
         //get students in section
-        $this->students = $section->studentRecords->map(function ($studentRecord) {
+        $this->students = $section->studentRecords->load('user')->map(function ($studentRecord) {
             return $studentRecord->user;
         });
 

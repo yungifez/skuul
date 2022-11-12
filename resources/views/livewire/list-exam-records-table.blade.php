@@ -53,9 +53,15 @@
                     <p class="col-md-3">Subject: {{$subjectSelected->name}}</p>
                 </div>
                 <div>
+                    <style>
+                        #list-exam-records tr td,  #list-exam-records tr th {
+                            vertical-align: middle;
+                            text-align: center;
+                        }
+                    </style>
                     <div class="table-responsive">
-                        <table class="table  table-bordered table-hover">
-                            <thead class="">
+                        <table class="table table-bordered table-hover table-striped" id="list-exam-records">
+                            <thead class="thead-dark">
                                 <th>S/N</th>
                                 <th style="min-width: 200px; min-height: 40px;">Name</th>
                                 <th>Admission number:</th>
@@ -66,7 +72,7 @@
                                 <th></th>
                             </thead>
                             <tbody>
-                                @foreach ($students as $student)
+                                @foreach ($students->load('studentRecord') as $student)
                                 <tr>
                                     <th scope="row">{{$loop->index + 1}}</th>
                                     <td>{{$student->name}}</td>

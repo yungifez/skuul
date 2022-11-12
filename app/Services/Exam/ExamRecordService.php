@@ -11,13 +11,13 @@ use Illuminate\Support\Facades\DB;
 class ExamRecordService
 {
     /**
-     * @var App\Services\Exam\ExamSlotService
+     * @var ExamSlotService
      */
     protected ExamSlotService $examSlot;
     /**
      * Subject service class.
      *
-     * @var App\Services\SubjectService
+     * @var SubjectService
      */
     protected SubjectService $subject;
 
@@ -136,7 +136,7 @@ class ExamRecordService
         DB::beginTransaction();
 
         foreach ($records['exam_records'] as $record) {
-            // makes sure student marks and exam slot id are not null just an extra check ad=s this is already done in request class
+            // makes sure student marks and exam slot id are not null just an extra check as this is already done in request class
             if ($record['student_marks'] == null || $this->examSlot->getExamSlotById($record['exam_slot_id'])->total_marks == null) {
                 //stop db transaction and return error
                 DB::rollback();

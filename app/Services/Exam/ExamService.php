@@ -10,12 +10,12 @@ use App\Models\User;
 class ExamService
 {
     /**
-     * @var App\Services\Exam\ExamReordService
+     * @var ExamRecordService
      */
     protected $examRecordService;
 
     /**
-     * @var App\Services\Exam\ExamSlotService
+     * @var ExamSlotService
      */
     protected $examSlotService;
 

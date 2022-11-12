@@ -13,15 +13,25 @@ use Illuminate\Support\Str;
 
 class StudentService
 {
+    /**
+     *Instance of class service.
+     *
+     * @var MyClassService
+     */
     public $myClassService;
-    public $user;
+    /**
+     * Instance of user service.
+     *
+     * @var UserService
+     */
+    public $userService;
     public $section;
 
-    public function __construct(MyClassService $myClass, UserService $user, SectionService $section)
+    public function __construct(MyClassService $myClass, UserService $userService, SectionService $section)
     {
         $this->myClass = $myClass;
         $this->section = $section;
-        $this->user = $user;
+        $this->userService = $userService;
     }
 
     /**
@@ -31,7 +41,7 @@ class StudentService
      */
     public function getAllStudents()
     {
-        return $this->user->getUsersByRole('student')->load('studentRecord');
+        return $this->userService->getUsersByRole('student')->load('studentRecord');
     }
 
     /**
@@ -41,7 +51,7 @@ class StudentService
      */
     public function getAllActiveStudents()
     {
-        return $this->user->getUsersByRole('student')->load('studentRecord')->filter(function ($student) {
+        return $this->userService->getUsersByRole('student')->load('studentRecord')->filter(function ($student) {
             if ($student->studentRecord) {
                 return $student->studentRecord->is_graduated == false;
             }
@@ -55,7 +65,7 @@ class StudentService
      */
     public function getAllGraduatedStudents()
     {
-        return $this->user->getUsersByRole('student')->load('studentRecord')->filter(function ($student) {
+        return $this->userService->getUsersByRole('student')->load('studentRecord')->filter(function ($student) {
             return $student->studentRecord()->withoutGlobalScopes()->first()->is_graduated == true;
         });
     }
@@ -69,7 +79,7 @@ class StudentService
      */
     public function getStudentById($id)
     {
-        return $this->user->getUserById($id)->load('studentRecord');
+        return $this->userService->getUserById($id)->load('studentRecord');
     }
 
     /**
@@ -82,7 +92,7 @@ class StudentService
     public function createStudent($record)
     {
         DB::transaction(function () use ($record) {
-            $student = $this->user->createUser($record);
+            $student = $this->userService->createUser($record);
             $student->assignRole('student');
 
             $this->createStudentRecord($student, $record);
@@ -132,7 +142,7 @@ class StudentService
      */
     public function updateStudent(User $student, $records)
     {
-        $student = $this->user->updateUser($student, $records);
+        $student = $this->userService->updateUser($student, $records);
         session()->flash('success', 'Student Updated Successfully');
     }
 

@@ -1,3 +1,4 @@
+{{--Written for css 2.1 support--}}
 <div class="card">
     <div class="card-header">
         <h4 class="card-title">{{ $timetable->name}}</h4>
@@ -11,12 +12,15 @@
                 <thead>
                     <tr> 
                         <th scope="col" class="">
-                            <p class="text-center">Time slots →<br>Weekdays ↓ </p>
+                            <p class="text-center">Time slots <span style="font-family: Dejavu Sans, sans-serif;">&rarr;</span><br>Weekdays <span style="font-family: Dejavu Sans, sans-serif;">&darr;</span> </p>
                         </th>
                         {{--table heading which displays all the time slots--}}
                         @foreach ($timeSlots as $timeSlot)
                         <th scope="col" >
-                            <p class="text-center">{{$timeSlot->start_time}} - {{$timeSlot->stop_time}}</p>
+                            <p class="text-center">
+                                {{$timeSlot->start_time}}
+                                <br> - <br> 
+                                {{$timeSlot->stop_time}}</p>
                         </th>
                         @endforeach
                     </tr>
@@ -28,7 +32,7 @@
                         {{--displays the time slots for each day of the week--}}
                         @foreach ($timeSlots as $timeSlot)
                             <td scope="col">
-                                <p>@if ($timeSlot->weekdays()->where('weekday_id',$weekday->id)->first() != null)
+                                <p class="print-small-text">@if ($timeSlot->weekdays()->where('weekday_id',$weekday->id)->first() != null)
                                     {{$timeSlot->weekdays()->where('weekday_id',$weekday->id)->first()?->timetableRecord?->subject?->name}}
                                 @endif</p>
                             </td>
