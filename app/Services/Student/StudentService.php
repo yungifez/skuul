@@ -14,13 +14,13 @@ use Illuminate\Support\Str;
 class StudentService
 {
     /**
-     *Instance of class service
+     *Instance of class service.
      *
      * @var MyClassService
      */
     public $myClassService;
     /**
-     * Instance of user service 
+     * Instance of user service.
      *
      * @var UserService
      */
