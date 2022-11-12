@@ -6,7 +6,6 @@ use App\Models\Section;
 use App\Services\MyClass\MyClassService;
 use App\Services\Section\SectionService;
 use Barryvdh\DomPDF\Facade\Pdf;
-use Illuminate\Support\Facades\Cache;
 use Livewire\Component;
 
 class ResultTabulation extends Component
@@ -58,9 +57,8 @@ class ResultTabulation extends Component
             return $studentRecord->user;
         });
 
-        $this->tabulatedRecords = Cache::get('result-tabulation-'.$section->id, function () use ($section) {
-            return $this->createTabulation($section);
-        });
+        $this->tabulatedRecords = $this->createTabulation($section);
+        
     }
 
     //tabulates the
@@ -109,8 +107,6 @@ class ResultTabulation extends Component
             $tabulatedRecords[$student->id]['grade'] = $grade ? $grade->name : 'No Grade';
         }
 
-        //creates cache for tabulation
-        Cache::put('exam-tabulation-'.$section->id, $this->tabulatedRecords, 60);
         $this->createdTabulation = true;
 
         return collect($tabulatedRecords);
