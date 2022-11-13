@@ -59,12 +59,12 @@ Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefault
 
         Route::get('account-applications/rejected-applications', ['App\Http\Controllers\AccountApplicationController', 'rejectedApplicationsView'])->name('account-applications.rejected-applications');
 
-        //account application routes. We need the applicant instead of the record
-        Route::resource('account-applications', AccountApplicationController::class)->parameters([
-            'account-applications' => 'applicant',
-        ]);
-
         Route::middleware(['App\Http\Middleware\EnsureAcademicYearIsSet'])->group(function () {
+
+            //account application routes. We need the applicant instead of the record
+            Route::resource('account-applications', AccountApplicationController::class)->parameters([
+                'account-applications' => 'applicant',
+            ]);
 
             //promotion routes
             Route::get('students/promotions', ['App\Http\Controllers\PromotionController', 'index'])->name('students.promotions');
