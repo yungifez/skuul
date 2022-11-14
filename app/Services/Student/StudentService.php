@@ -117,7 +117,9 @@ class StudentService
             return;
         }
 
-        $student->studentRecord()->create([
+        $student->studentRecord()->firstOrCreate([
+            'user_id' => $student->id,
+        ], [
             'my_class_id'      => $record['my_class_id'],
             'section_id'       => $record['section_id'],
             'admission_number' => $record['admission_number'],
