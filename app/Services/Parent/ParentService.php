@@ -4,6 +4,7 @@ namespace App\Services\Parent;
 
 use App\Models\User;
 use App\Services\User\UserService;
+use Illuminate\Support\Facades\DB;
 
 class ParentService
 {
@@ -38,9 +39,11 @@ class ParentService
      */
     public function createParent($record)
     {
-        $parent = $this->user->createUser($record);
-        $parent->assignRole('parent');
-        $parent->parentRecord()->create();
+        DB::transaction(function () use ($record){
+            $parent = $this->user->createUser($record);
+            $parent->assignRole('parent');
+            $parent->parentRecord()->create(['user_id'=> $parent->id]);
+        });
 
         session()->flash('success', 'parent Created Successfully');
     }

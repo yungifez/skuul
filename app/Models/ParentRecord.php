@@ -9,6 +9,7 @@ class ParentRecord extends Model
 {
     use HasFactory;
 
+    protected $fillable = ['user_id'];
     /**
      * Get the user that owns the StudentRecord.
      *
