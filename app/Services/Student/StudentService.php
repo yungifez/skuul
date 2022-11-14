@@ -127,7 +127,7 @@ class StudentService
         ]);
 
         //create record history
-        $currentAcademicYear = auth()->user()->school->academicYear;
+        $currentAcademicYear = $student->school->academicYear;
         $student->studentRecord->load('academicYears')->academicYears()->sync([$currentAcademicYear->id => [
             'my_class_id'      => $record['my_class_id'],
             'section_id'       => $record['section_id'],

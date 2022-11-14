@@ -80,7 +80,7 @@ class ResultTabulation extends Component
             $tabulatedRecords[$student->id]['admission_number'] = $student->studentRecord->admission_number;
 
             //loop through all subjects and add all marks
-            foreach ($this->subjects->sortBy('name') as $subject) {
+            foreach ($this->subjects as $subject) {
                 $tabulatedRecords[$student->id]['student_marks'][$subject->id] = app('App\Services\Exam\ExamService')->calculateStudentTotalMarkInSubjectForSemester($this->semester, $student, $subject);
 
                 //array used for calculating total marks

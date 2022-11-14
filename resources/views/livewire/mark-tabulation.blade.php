@@ -2,7 +2,7 @@
     <p>Total obtainable marks in each subject: {{$totalMarksAttainableInEachSubject}}</p>
     <p>Total Marks across all subjects: {{$totalMarksAttainableInEachSubject * $subjects->count()}}</p>
     @php
-        $heads = $subjects->sortBy('name')->pluck('name');
+        $heads = $subjects->pluck('name');
     @endphp
     {{--foreach displaus records in order of class positions--}}
     <div class="table-responsive">
