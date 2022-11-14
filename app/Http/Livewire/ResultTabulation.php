@@ -58,7 +58,6 @@ class ResultTabulation extends Component
         });
 
         $this->tabulatedRecords = $this->createTabulation($section);
-        
     }
 
     //tabulates the
