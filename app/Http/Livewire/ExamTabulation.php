@@ -72,7 +72,6 @@ class ExamTabulation extends Component
 
         //get tabulation from cache else create new one
         $this->tabulatedRecords = $this->createTabulation($exam, $section);
-        
     }
 
     //tabulates the result
@@ -117,7 +116,6 @@ class ExamTabulation extends Component
             //get appropriate grade
             $tabulatedRecords[$student->id]['grade'] = $grade ? $grade->name : 'No Grade';
         }
-
 
         return collect($tabulatedRecords);
     }

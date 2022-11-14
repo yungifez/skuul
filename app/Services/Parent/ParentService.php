@@ -39,7 +39,7 @@ class ParentService
      */
     public function createParent($record)
     {
-        DB::transaction(function () use ($record){
+        DB::transaction(function () use ($record) {
             $parent = $this->user->createUser($record);
             $parent->assignRole('parent');
             $parent->parentRecord()->create(['user_id'=> $parent->id]);
