@@ -5,7 +5,7 @@
     <div class="card-body">
         <form action="{{route('exams.store')}}" method="POST">
             @livewire('display-validation-error')
-            <x-adminlte-input name="name" label="Exam Name" placeholder="Enter Exam name" fgroup-class="col-md-6"/>
+            <x-adminlte-input name="name" label="Exam Name" placeholder="Enter Exam name" fgroup-class="col-md-6" enable-old-support/>
             <x-adminlte-textarea name="description" label="Description" placeholder="Enter description" fgroup-class="col-md-6"/>
             <div class="col-md-6">
                 <x-adminlte-input-date name="start_date" label="Start date" required :config="['format' => 'YYYY/MM/DD']" value="{{old('start_date')}}"/>
@@ -13,9 +13,9 @@
             <div class="col-md-6">
                 <x-adminlte-input-date name="stop_date" label="Stop date" required :config="['format' => 'YYYY/MM/DD']" value="{{old('stop_date')}}"/>
             </div>
-            <x-adminlte-select name="semester_id" label="Select Semester" fgroup-class="col-md-6" wire:loading.attr="disabled" wire:target="semester">
+            <x-adminlte-select name="semester_id" label="Select Semester" fgroup-class="col-md-6" wire:loading.attr="disabled" wire:target="semester" >
                 @foreach ($semesters as $item)
-                    <option value="{{$item['id']}}">{{$item['name']}}</option>
+                    <option value="{{$item['id']}}" @selected(auth()->user()->school->semester->id == $item['id'])>{{$item['name']}}</option>
                 @endforeach
             </x-adminlte-select>
             @csrf
