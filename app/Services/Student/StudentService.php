@@ -2,16 +2,15 @@
 
 namespace App\Services\Student;
 
-use App\Models\User;
-use App\Models\School;
 use App\Models\Promotion;
-use Illuminate\Support\Str;
+use App\Models\School;
 use App\Models\StudentRecord;
+use App\Models\User;
+use App\Services\MyClass\MyClassService;
+use App\Services\Print\PrintService;
+use App\Services\Section\SectionService;
 use App\Services\User\UserService;
 use Illuminate\Support\Facades\DB;
-use App\Services\Print\PrintService;
-use App\Services\MyClass\MyClassService;
-use App\Services\Section\SectionService;
 
 class StudentService
 {
@@ -174,13 +173,14 @@ class StudentService
         $schoolInitials = School::find($schoolId)->initials ?? auth()->user()->school->initials;
         $currentYear = date('y');
         do {
-            $admissionNumber = "$schoolInitials/$currentYear/".\mt_rand('100000','999999');
-            if(StudentRecord::where('admission_number', $admissionNumber )->count() <= 0){
+            $admissionNumber = "$schoolInitials/$currentYear/".\mt_rand('100000', '999999');
+            if (StudentRecord::where('admission_number', $admissionNumber)->count() <= 0) {
                 $uniqueAdmissionNumberFound = true;
-            }else{
+            } else {
                 $uniqueAdmissionNumberFound = false;
             }
         } while ($uniqueAdmissionNumberFound == false);
+
         return $admissionNumber;
     }
 
