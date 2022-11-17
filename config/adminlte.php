@@ -504,7 +504,7 @@ return [
             'type'    => 'sidebar-menu-item',
             'text'    => 'Semesters',
             'icon'    => 'fas fa-clock',
-            'can'     => 'menu-subject',
+            'can'     => 'menu-semester',
             'submenu' => [
                 [
                     'type'  => 'sidebar-menu-item',
@@ -537,6 +537,12 @@ return [
                     'text'  => 'Create subject',
                     'route' => 'subjects.create',
                     'can'   => 'create subject',
+                ],
+                [
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Assign teacher to subjects',
+                    'route' => 'subjects.assign-teacher',
+                    'can'   => 'update subject',
                 ],
             ],
         ],

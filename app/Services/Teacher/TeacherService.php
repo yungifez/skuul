@@ -20,6 +20,11 @@ class TeacherService
         $this->user = $user;
     }
 
+    /**
+     * Get all teachers in school
+     *
+     * @return void
+     */
     public function getAllTeachers()
     {
         return $this->user->getUsersByRole('teacher')->load('teacherRecord');
