@@ -3,6 +3,7 @@
 namespace App\Services\Subject;
 
 use App\Models\Subject;
+use App\Models\User;
 use App\Services\User\UserService;
 
 class SubjectService
@@ -84,5 +85,26 @@ class SubjectService
         $subject->delete();
 
         return session()->flash('success', 'Subject deleted successfully');
+    }
+
+    /**
+     * Assign a teacher to a list of subjects.
+     *
+     * @param User $teacher
+     * @param array!mixed $records Array or collection of ids
+     *
+     * @return void
+     */
+    public function assignTeacherToSubjects(User $teacher, $records)
+    {
+        try {
+            $teacher->subjects()->sync(array_filter(array_values($records['subjects'])));
+        } catch (\Throwable $th) {
+            session()->flash('danger', 'Could not assign teacher to subjects');
+
+            return;
+        }
+        session()->flash('success', 'Successfully assigned teacher to subjects');
+
     }
 }

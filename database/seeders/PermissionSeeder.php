@@ -347,6 +347,9 @@ class PermissionSeeder extends Seeder
             'name' => 'menu-academic-year',
         ]);
         Permission::firstOrCreate([
+            'name' => 'menu-semester',
+        ]);
+        Permission::firstOrCreate([
             'name' => 'menu-subject',
         ]);
         Permission::firstOrCreate([
@@ -384,6 +387,7 @@ class PermissionSeeder extends Seeder
             'menu-subject',
             'menu-syllabus',
             'menu-timetable',
+            'menu-semester',
             'menu-exam',
             'menu-grade-system',
             'menu-notice',

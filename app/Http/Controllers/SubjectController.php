@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AssignTeacherToSubjectRequest;
 use App\Http\Requests\SubjectStoreRequest;
 use App\Models\Subject;
+use App\Models\User;
 use App\Services\Subject\SubjectService;
 
 class SubjectController extends Controller
@@ -105,6 +107,18 @@ class SubjectController extends Controller
     public function destroy(Subject $subject)
     {
         $this->subject->deleteSubject($subject);
+
+        return back();
+    }
+
+    public function assignTeacherView()
+    {
+        return view('pages.subject.assign-teacher');
+    }
+
+    public function assignTeacher(User $teacher, AssignTeacherToSubjectRequest $request)
+    {
+        $this->subject->assignTeacherToSubjects($teacher, $request->except('_token'));
 
         return back();
     }

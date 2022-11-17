@@ -147,6 +147,10 @@ Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefault
         Route::resource('academic-years', AcademicYearController::class);
         Route::post('academic-years/set', ['App\Http\Controllers\AcademicYearController', 'setAcademicYear'])->name('academic-years.set-academic-year');
 
+        //assign teachers to subject in class
+        Route::get('subjects/assign-teacher', ['App\Http\Controllers\SubjectController', 'assignTeacherVIew'])->name('subjects.assign-teacher');
+        Route::post('subjects/assign-teacher/{teacher}', ['App\Http\Controllers\SubjectController', 'assignTeacher'])->name('subjects.assign-teacher-to-subject');
+
         //subject routes
         Route::resource('subjects', SubjectController::class);
 
