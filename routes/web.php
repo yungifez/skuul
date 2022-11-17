@@ -154,7 +154,6 @@ Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefault
         //subject routes
         Route::resource('subjects', SubjectController::class);
 
-
         //notice routes
         Route::resource('notices', NoticeController::class);
     });

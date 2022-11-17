@@ -2,11 +2,11 @@
 
 namespace App\Http\Livewire;
 
-use App\Models\User;
 use App\Models\MyClass;
-use Livewire\Component;
+use App\Models\User;
 use App\Services\MyClass\MyClassService;
 use App\Services\Teacher\TeacherService;
+use Livewire\Component;
 
 class AssignTeacherToSubjects extends Component
 {
@@ -16,8 +16,8 @@ class AssignTeacherToSubjects extends Component
     public $subjects;
     public $teacher;
     /**
-     * State variable for teacher
-
+     * State variable for teacher.
+     *
      *
      * @var User
      */
@@ -30,7 +30,6 @@ class AssignTeacherToSubjects extends Component
         $this->teachers = $teacherService->getAllTeachers();
         $this->teacher = $this->teachers->first()->id;
     }
-
 
     public function fetchSubjects(MyClass $class, User $teacher)
     {

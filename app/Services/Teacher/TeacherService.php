@@ -21,7 +21,7 @@ class TeacherService
     }
 
     /**
-     * Get all teachers in school
+     * Get all teachers in school.
      *
      * @return void
      */
