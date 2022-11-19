@@ -7,7 +7,7 @@
             @foreach($admins as $admin)
                 <tr>
                     <td>{{$loop->iteration}}</td>
-                    <td><img src="{{$admin->profile_photo_url}}" alt="" class="rounded-circle" height="50px" width="50px"></td>
+                    <td><img src="{{$admin->profile_photo_url}}" alt="" class="rounded-circle" height="50px" width="50px" loading="lazy"></td>
                     <td>{{ $admin->name}}</td>
                     <td style="text-transform: none">{{ $admin->email}}</td>
                     <td>{{$admin->gender}}</td>
