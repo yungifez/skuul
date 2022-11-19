@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Subject;
-use App\Services\Subject\SubjectService;
-use App\Http\Requests\SubjectStoreRequest;
 use App\Http\Requests\AssignTeacherToSubjectRequest;
+use App\Http\Requests\SubjectStoreRequest;
+use App\Models\Subject;
+use App\Models\User;
+use App\Services\Subject\SubjectService;
 
 class SubjectController extends Controller
 {
