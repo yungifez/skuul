@@ -7,7 +7,7 @@
             @foreach($parents as $parent)
                 <tr>
                     <td>{{$loop->iteration}}</td>
-                    <td><img src="{{$parent->profile_photo_url}}" alt="" class="rounded-circle" height="50px" width="50px"></td>
+                    <td><img src="{{$parent->profile_photo_url}}" alt="" class="rounded-circle" height="50px" width="50px" loading="lazy"></td>
                     <td>{{$parent->name}}</td>
                     <td>{{$parent->email}}</td>
                     <td>@livewire('dropdown-links', [
