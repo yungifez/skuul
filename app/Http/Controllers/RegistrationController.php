@@ -37,31 +37,33 @@ class RegistrationController extends Controller
 
     public function register(Request $request)
     {
-        $roles = Role::whereIn('name', ['teacher', 'student', 'parent'])->get();
-        $validated = $request->validate([
-            'role' => [
-                'required',
-                Rule::in($roles->pluck('id')),
-            ],
-            'school' => [
-                'required',
-                'exists:schools,id',
-            ],
-        ]);
+        try {
+            $roles = Role::whereIn('name', ['teacher', 'student', 'parent'])->get();
+            $validated = $request->validate([
+                'role' => [
+                    'required',
+                    Rule::in($roles->pluck('id')),
+                ],
+                'school' => [
+                    'required',
+                    'exists:schools,id',
+                ],
+            ]);
 
-        $request['school_id'] = $request->school;
+            $request['school_id'] = $request->school;
 
-        $user = $this->userService->createUser($request);
+            $user = $this->userService->createUser($request);
 
-        //assign applicant role
-        $user->assignRole('applicant');
+            //assign applicant role
+            $user->assignRole('applicant');
 
-        $accountApplication = $this->accountApplicationService->createAccountApplication($user->id, $request->role);
+            $accountApplication = $this->accountApplicationService->createAccountApplication($user->id, $request->role);
+            $accountApplication->setStatus('Application Recieved', 'Application has been recieved, we would reach out to you for further information');
+        } catch (\Throwable $th) {
+            return back()->with('danger', 'Could not create account');
+        }
 
-        $accountApplication->setStatus('Application Recieved', 'Application has been recieved, we would reach out to you for further information');
 
-        session()->flash('success', 'Registration complete, you would recieve an email to verify your account');
-
-        return back();
+        return back()->with('success', 'Registration complete, you would recieve an email to verify your account');
     }
 }
