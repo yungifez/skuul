@@ -114,7 +114,7 @@ class ResultChecker extends Component
         $this->studentName = $student->name;
         // fetch all exams, subjects and exam records for user in semester
 
-        $this->exams = $semester->exams()->where('publish_result', true)->get();
+        $this->exams = $semester->exams()->where('publish_result', true)->get()->load('examSlots');
         if ($this->exams->isEmpty()) {
             $this->status = 'There are no exams with published results for now';
 
