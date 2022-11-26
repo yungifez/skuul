@@ -50,6 +50,7 @@ class AcademicYearController extends Controller
         try {
             $this->academicYear->createAcademicYear($data);
         } catch (\Throwable $th) {
+            report($th);
             return back()->with('danger', "Academic year could not be created successfully");
         }
         
@@ -95,6 +96,7 @@ class AcademicYearController extends Controller
         try {
             $this->academicYear->updateAcademicYear($academicYear, $data);  
         } catch (\Throwable $th) {
+            report($th);
             return back()->with('danger', 'Academic year could not be updated');
         }
 
@@ -113,6 +115,7 @@ class AcademicYearController extends Controller
         try {
             $this->academicYear->deleteAcademicYear($academicYear);
         } catch (\Throwable $th) {
+            report($th);
             return back()->with('danger', 'Academic year could not be deleted');
         }
         
@@ -127,6 +130,7 @@ class AcademicYearController extends Controller
         try {
             $this->academicYear->setAcademicYear($academicYear);
         } catch (\Throwable $th) {
+            report($th);
             return back()->with('danger', "Academic year could not be set for ".auth()->user()->school->name);
         }
         

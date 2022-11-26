@@ -123,7 +123,6 @@ class ExamService
     {
         $exam->publish_result = $status;
         $exam->save();
-        session()->flash('success', 'Result published status changed successfully');
     }
 
     /**

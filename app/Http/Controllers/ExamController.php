@@ -98,6 +98,7 @@ class ExamController extends Controller
         try {
             $this->exam->updateExam($exam, $data);
         } catch (\Throwable $th) {
+            report($th);
             return back()->with('danger', 'Exam could not be updated');
         }
         
@@ -160,6 +161,7 @@ class ExamController extends Controller
             $status = $request->status;
             $this->exam->setExamStatus($exam, $status);
         } catch (\Throwable $th) {
+            report($th);
             return back()->with('danger', 'Exam status could not be updated');
         }
        
@@ -176,11 +178,16 @@ class ExamController extends Controller
      */
     public function setPublishResultStatus(Exam $exam, UpdateExamStatusRequest $request)
     {
-        $this->authorize('update', $exam);
-        //get status from request
-        $status = $request->status;
-        $this->exam->setPublishResultStatus($exam, $status);
+        try {      
+            $this->authorize('update', $exam);
+            //get status from request
+            $status = $request->status;
+            $this->exam->setPublishResultStatus($exam, $status);
+        } catch (\Throwable $th) {
+            report($th);
+            return back()->with('danger', 'Result published status could not be updated');
+        }
 
-        return back();
+        return back()->with('success', 'Result published status updated successfully');
     }
 }
