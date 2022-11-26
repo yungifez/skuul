@@ -4,11 +4,13 @@ namespace App\Http\Livewire;
 
 use App\Models\Exam;
 use App\Models\Section;
+use Livewire\Component;
+use App\Models\ExamRecord;
+use App\Models\GradeSystem;
+use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\Exam\ExamService;
 use App\Services\MyClass\MyClassService;
 use App\Services\Section\SectionService;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Livewire\Component;
 
 class ExamTabulation extends Component
 {
@@ -80,7 +82,14 @@ class ExamTabulation extends Component
         //create tabulation
         $tabulatedRecords = [];
 
-        foreach ($this->students as $student) {
+        //get all relevant exam records
+        $examRecords = ExamRecord::whereIn('subject_id', $this->subjects->pluck('id'))->whereIn('user_id', $this->students->pluck('id'))->get();
+        //get all exam slots 
+        $examSlots = $exam->load('examSlots')->examSlots;
+        //get all grades in class group
+        $grades =  GradeSystem::where( 'class_group_id', $section->myClass->classGroup->id )->get();
+
+        foreach ($this->students->load('studentRecord') as $student) {
 
             //array to hold tabulation values for each student
             $totalSubjectMarks = [];
@@ -91,7 +100,7 @@ class ExamTabulation extends Component
 
             //loop through all subjects and add all marks
             foreach ($this->subjects as $subject) {
-                $tabulatedRecords[$student->id]['student_marks'][$subject->id] = app('App\Services\Exam\ExamService')->calculateStudentTotalMarksInSubject($exam, $student, $subject);
+                $tabulatedRecords[$student->id]['student_marks'][$subject->id] = $examRecords->where('user_id' , $student->id)->whereIn('exam_slot_id', $examSlots->pluck('id'))->where('subject_id' , $subject->id)->pluck('student_marks')->sum();
 
                 //array used for calculating total marks
                 $totalSubjectMarks[] = $tabulatedRecords[$student->id]['student_marks'][$subject->id];
@@ -110,9 +119,8 @@ class ExamTabulation extends Component
             $totalMarks = $totalMarks ? $totalMarks : 1;
             $tabulatedRecords[$student->id]['percent'] = ceil((($totalSubjectMarks / $totalMarks)) * 100);
             $percentage = $tabulatedRecords[$student->id]['percent'];
-
-            $grade = app('App\Services\GradeSystem\GradeSystemService')->getGrade($section->myClass->classGroup->id, $percentage);
-
+            $grade = $grades->where('grade_from', '<=', $percentage)->where('grade_till', '>=', $percentage)->first();
+            
             //get appropriate grade
             $tabulatedRecords[$student->id]['grade'] = $grade ? $grade->name : 'No Grade';
         }

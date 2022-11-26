@@ -77,7 +77,6 @@ class ExamService
             'start_date'  => $records['start_date'],
             'stop_date'   => $records['stop_date'],
         ]);
-        session()->flash('success', 'Exam created successfully');
     }
 
     /**
@@ -96,7 +95,6 @@ class ExamService
         $exam->start_date = $records['start_date'];
         $exam->stop_date = $records['stop_date'];
         $exam->save();
-        session()->flash('success', 'Exam updated successfully');
     }
 
     /**
@@ -111,7 +109,6 @@ class ExamService
     {
         $exam->active = $status;
         $exam->save();
-        session()->flash('success', 'Exam status changed successfully');
     }
 
     /**
@@ -169,7 +166,7 @@ class ExamService
     public function totalMarksAttainableInSemesterForSubject(Semester $semester)
     {
         $totalMarks = 0;
-        $exams = $semester->exams;
+        $exams = $semester->exams->load('examSlots');
         //get all exam slots in exams
         foreach ($exams as $exam) {
             $totalMarks += $exam->examSlots->sum(['total_marks']);
