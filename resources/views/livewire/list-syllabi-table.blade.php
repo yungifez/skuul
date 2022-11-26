@@ -17,8 +17,8 @@
                 <p class="sr-only">Loading.....</p>
             </div>
         </div>
-        @isset($syllabi)
-            @foreach ($syllabi as $syllabus)
+        @isset($syllabiPaginated)
+            @foreach ($syllabiPaginated as $syllabus)
                 <x-adminlte-card title="{{$syllabus->name}}" theme="primary" icon=""  collapsible="collapsed" wire.loading.remove>
                     <p>Subject: {{$syllabus->subject->name}}</p>
                     @if (isset($syllabus->description))
@@ -35,7 +35,8 @@
                         @endcan
                     </div>
                 </x-adminlte-card>
-            @endforeach
+                @endforeach
+                {{$syllabiPaginated->links()}}
         @else
             <p class="text-bold text-center" wire.loading.remove>No syllabus for this class at this time</p>
         @endisset
