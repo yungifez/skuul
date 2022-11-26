@@ -3,20 +3,18 @@
 namespace App\Http\Livewire;
 
 use App\Models\Section;
+use Livewire\Component;
+use Barryvdh\DomPDF\Facade\Pdf;
+use App\Traits\MarkTabulationTrait;
 use App\Services\MyClass\MyClassService;
 use App\Services\Section\SectionService;
-use Barryvdh\DomPDF\Facade\Pdf;
-use Livewire\Component;
 
 class ResultTabulation extends Component
 {
-    public $section;
-    public $sections;
-    public $classes;
-    public $class;
-    public $semester;
-    public $tabulatedRecords;
-    public $createdTabulation;
+    use MarkTabulationTrait;
+
+    public $section, $sections, $classes, $class, $semester, $tabulatedRecords, $createdTabulation;
+
     protected $listeners = ['print'];
 
     public function mount(SectionService $sectionService, MyClassService $myClassService)
@@ -46,77 +44,31 @@ class ResultTabulation extends Component
 
     public function tabulate(Section $section)
     {
-        //get total marks attainable in each subject
-        $this->totalMarksAttainableInEachSubject = app('App\Services\Exam\ExamService')->totalMarksAttainableInSemesterForSubject($this->semester);
-
         //get all subjects in section
-        $this->subjects = $section->myClass->subjects;
+        $subjects = $section->myClass->subjects;
 
         //get all students in section
-        $this->students = $section->studentRecords->map(function ($studentRecord) {
+        $students = $section->studentRecords->load('user')->map(function ($studentRecord) {
             return $studentRecord->user;
         });
 
-        $this->tabulatedRecords = $this->createTabulation($section);
-    }
-
-    //tabulates the
-    private function createTabulation(Section $section)
-    {
-        //create tabulation
-        $tabulatedRecords = [];
-        if ($this->students->isEmpty()) {
+        if ($students->isEmpty()) {
             $this->createdTabulation = false;
 
             return $tabulatedRecords;
         }
-        foreach ($this->students as $student) {
-            //array to hold tabulation values for each student
-            $totalSubjectMarks = [];
 
-            //set student name and admission number
-            $tabulatedRecords[$student->id]['student_name'] = $student->name;
-            $tabulatedRecords[$student->id]['admission_number'] = $student->studentRecord->admission_number;
-
-            //loop through all subjects and add all marks
-            foreach ($this->subjects as $subject) {
-                $tabulatedRecords[$student->id]['student_marks'][$subject->id] = app('App\Services\Exam\ExamService')->calculateStudentTotalMarkInSubjectForSemester($this->semester, $student, $subject);
-
-                //array used for calculating total marks
-                $totalSubjectMarks[] = $tabulatedRecords[$student->id]['student_marks'][$subject->id];
-            }
-
-            //turned to object
-            $totalSubjectMarks = collect($totalSubjectMarks)->sum();
-
-            //set total from summing each subject
-            $tabulatedRecords[$student->id]['total'] = $totalSubjectMarks;
-
-            //calculated percentage
-            $totalMarks = $this->totalMarksAttainableInEachSubject * $this->subjects->count();
-
-            //make sure total marks is not 0
-            $totalMarks = $totalMarks ? $totalMarks : 1;
-            $tabulatedRecords[$student->id]['percent'] = ceil((($totalSubjectMarks / $totalMarks)) * 100);
-            $percentage = $tabulatedRecords[$student->id]['percent'];
-
-            $grade = app('App\Services\GradeSystem\GradeSystemService')->getGrade($section->myClass->classGroup->id, $percentage);
-
-            //get appropriate grade
-            $tabulatedRecords[$student->id]['grade'] = $grade ? $grade->name : 'No Grade';
-        }
+        $examSlots = $this->semester->load('examSlots')->examSlots;
+        
+        $this->tabulatedRecords = $this->tabulateMarks($section->myClass->classGroup, $subjects, $students, $examSlots );
 
         $this->createdTabulation = true;
-
-        return collect($tabulatedRecords);
     }
 
     //print function
 
     public function print()
     {
-        //used pdf class directly, I used exam tabulation view since it contains same logic
-        $pdf = Pdf::loadView('pages.exam.print-exam-tabulation', ['tabulatedRecords' => $this->tabulatedRecords, 'totalMarksAttainableInEachSubject' => $this->totalMarksAttainableInEachSubject, 'subjects' => $this->subjects]);
         //used pdf class directly
         $pdf = Pdf::loadView('pages.exam.print-exam-tabulation', ['tabulatedRecords' => $this->tabulatedRecords, 'totalMarksAttainableInEachSubject' => $this->totalMarksAttainableInEachSubject, 'subjects' => $this->subjects])->output();
         //save as pdf

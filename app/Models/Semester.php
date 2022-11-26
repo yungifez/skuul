@@ -2,8 +2,11 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
+use App\Models\Exam;
+use App\Models\ExamSlot;
 use Illuminate\Database\Eloquent\Relations\Pivot;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Semester extends Pivot
 {
@@ -31,5 +34,15 @@ class Semester extends Pivot
     public function exams()
     {
         return $this->hasMany(Exam::class, 'semester_id');
+    }
+
+    /**
+     * Get all of the examSlots for the Semester
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function examSlots(): HasManyThrough
+    {
+        return $this->hasManyThrough(ExamSlot::class, Exam::class, 'semester_id');
     }
 }
