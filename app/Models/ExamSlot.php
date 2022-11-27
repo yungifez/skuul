@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class ExamSlot extends Model
 {
@@ -23,7 +23,7 @@ class ExamSlot extends Model
     }
 
     /**
-     * Get all of the examRecords for the ExamSlot
+     * Get all of the examRecords for the ExamSlot.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */

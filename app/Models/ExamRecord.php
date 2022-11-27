@@ -29,7 +29,7 @@ class ExamRecord extends Model
     }
 
     /**
-     * Get the examSlot that owns the ExamRecord
+     * Get the examSlot that owns the ExamRecord.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */

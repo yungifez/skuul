@@ -2,11 +2,9 @@
 
 namespace App\Models;
 
-use App\Models\Exam;
-use App\Models\ExamSlot;
-use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class Semester extends Pivot
 {
@@ -37,7 +35,7 @@ class Semester extends Pivot
     }
 
     /**
-     * Get all of the examSlots for the Semester
+     * Get all of the examSlots for the Semester.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
      */

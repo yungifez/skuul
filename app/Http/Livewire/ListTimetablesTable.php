@@ -3,12 +3,11 @@
 namespace App\Http\Livewire;
 
 use App\Models\Weekday;
-use Livewire\Component;
-use Livewire\WithPagination;
-use Illuminate\Support\Facades\App;
 use App\Services\MyClass\MyClassService;
 use App\Services\Timetable\TimetableService;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class ListTimetablesTable extends Component
 {
@@ -19,7 +18,6 @@ class ListTimetablesTable extends Component
     public $weekdays;
     protected $queryString = ['page'];
     protected $paginationTheme = 'bootstrap';
-
 
     public function mount(TimetableService $timetableService, MyClassService $myClassService)
     {
@@ -66,11 +64,12 @@ class ListTimetablesTable extends Component
 
     public function render()
     {
-        $currentPage  = $this->page ?? 1;
+        $currentPage = $this->page ?? 1;
         $perPage = 10;
         $statringPoint = ($currentPage * $perPage) - $perPage;
+
         return view('livewire.list-timetables-table', [
-            'timetablesPaginated' => (new LengthAwarePaginator(($this->timetables ?? collect())->slice($statringPoint, $perPage,true ) ,collect( $this->timetables)->count(), $perPage, LengthAwarePaginator::resolveCurrentPage(), [LengthAwarePaginator::resolveCurrentPath()]))
+            'timetablesPaginated' => (new LengthAwarePaginator(($this->timetables ?? collect())->slice($statringPoint, $perPage, true), collect($this->timetables)->count(), $perPage, LengthAwarePaginator::resolveCurrentPage(), [LengthAwarePaginator::resolveCurrentPath()])),
         ]);
     }
 }

@@ -4,19 +4,25 @@ namespace App\Http\Livewire;
 
 use App\Models\Exam;
 use App\Models\Section;
-use Livewire\Component;
-use App\Models\ExamRecord;
-use App\Models\GradeSystem;
-use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\Exam\ExamService;
-use App\Traits\MarkTabulationTrait;
 use App\Services\MyClass\MyClassService;
 use App\Services\Section\SectionService;
+use App\Traits\MarkTabulationTrait;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Livewire\Component;
 
 class ExamTabulation extends Component
 {
     use MarkTabulationTrait;
-    public $exam, $class, $section, $exams, $classes, $sections, $semester,$tabulatedRecords, $grades;
+    public $exam;
+    public $class;
+    public $section;
+    public $exams;
+    public $classes;
+    public $sections;
+    public $semester;
+    public $tabulatedRecords;
+    public $grades;
 
     protected $listeners = ['print'];
 
@@ -59,10 +65,10 @@ class ExamTabulation extends Component
         $students = $section->studentRecords()->with('user')->get()->map(function ($studentRecord) {
             return $studentRecord->user;
         });
-        //get all exam slots 
+        //get all exam slots
         $examSlots = $exam->load('examSlots')->examSlots;
 
-        $this->tabulatedRecords = $this->tabulateMarks($section->myClass->classGroup, $subjects, $students, $examSlots );
+        $this->tabulatedRecords = $this->tabulateMarks($section->myClass->classGroup, $subjects, $students, $examSlots);
     }
 
     //print function
