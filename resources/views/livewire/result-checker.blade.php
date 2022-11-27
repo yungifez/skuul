@@ -68,28 +68,24 @@
                                         @foreach ($exam->examSlots as $examSlot)
                                             <th>{{$examSlot->name}} ({{$examSlot->total_marks}})</th>
                                         @endforeach
-                                        <th class="text-primary">Total ({{$exam->load('examSlots')->examSlots()->pluck('total_marks')->sum()}})</th>
+                                        <th class="text-primary">Total ({{$exam->examSlots->pluck('total_marks')->sum()}})</th>
                                     </tr>
 
                                     @foreach ($subjects as $subject)                                
                                         <tr>
                                             <th>{{$subject->name}}</th>
                                             @foreach ($exam->examSlots as $examSlot)
-                                                <td class="text-center+">
-                                                    @if ($examRecords->where('subject_id' , $subject->id)->where('exam_slot_id' , $examSlot->id)->first())
-                                                        {{$examRecords->where('subject_id' , $subject->id)->where('exam_slot_id' , $examSlot->id)->first()->student_marks}}
-                                                    @else
-                                                        No record
-                                                    @endif
+                                                <td class="text-center">
+                                                        {{$examRecords->where('subject_id' , $subject->id)->where('exam_slot_id' , $examSlot->id)->first()->student_marks ?? "No record"}} 
                                                 </td>
                                             @endforeach
-                                            <th>{{$examRecords->where('subject_id' , $subject->id)->whereIn('exam_slot_id', $exam->examSlots()->pluck('id'))->sum('student_marks')}}</th>
+                                            <th>{{$examRecords->where('subject_id' , $subject->id)->whereIn('exam_slot_id', $exam->examSlots->pluck('id'))->sum('student_marks')}}</th>
                                         </tr>
                                     @endforeach
                                 </table>
                             </div>
 
-                            <p>Total marks obtained: {{$examRecords->whereIn('exam_slot_id', $exam->examSlots()->pluck('id'))->sum('student_marks')}} / {{$exam->load('examSlots')->examSlots()->pluck('total_marks')->sum() * $subjects->count()}}</p>
+                            <p>Total marks obtained: {{$examRecords->whereIn('exam_slot_id', $exam->examSlots->pluck('id'))->sum('student_marks')}} / {{$exam->examSlots->pluck('total_marks')->sum() * $subjects->count()}}</p>
                     @else
                         <p>No exam records found</p>
                     @endif

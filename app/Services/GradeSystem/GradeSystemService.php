@@ -30,7 +30,7 @@ class GradeSystemService
      */
     public function getGrade(int $classGroup, int $percentage)
     {
-        return $this->getAllGradesInClassGroup($classGroup)->where('grade_from', '<=', $percentage)->where('grade_till', '>=', $percentage)->first();
+        return GradeSystem::where([['grade_from', '<=', $percentage], ['grade_till', '>=', $percentage], ['class_group_id', $classGroup]])->first();
     }
 
     /**

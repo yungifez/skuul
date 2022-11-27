@@ -7,7 +7,7 @@
             @foreach($students as $student)
                 <tr>
                     <td>{{$loop->iteration}}</td>
-                    <td><img src="{{$student->profile_photo_url}}" alt="" class="rounded-circle" height="50px" width="50px" loading="lazy"></td>
+                    <td><img src="{{$student->profile_photo_url}}" alt="" class="rounded-circle" height="50px" width="50px"></td>
                     <td>{{ $student->name}}</td>
                     <td>@isset ($student->studentRecord->myClass)
                         {{$student->studentRecord->myClass->name}}

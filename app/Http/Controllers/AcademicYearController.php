@@ -47,9 +47,16 @@ class AcademicYearController extends Controller
     public function store(AcademicYearStoreRequest $request)
     {
         $data = $request->except('_token');
-        $this->academicYear->createAcademicYear($data);
 
-        return back();
+        try {
+            $this->academicYear->createAcademicYear($data);
+        } catch (\Throwable $th) {
+            report($th);
+
+            return back()->with('danger', 'Academic year could not be created successfully');
+        }
+
+        return back()->with('success', 'Academic year created successfully');
     }
 
     /**
@@ -87,9 +94,16 @@ class AcademicYearController extends Controller
     public function update(AcademicYearStoreRequest $request, AcademicYear $academicYear)
     {
         $data = $request->except('_token', '_method');
-        $this->academicYear->updateAcademicYear($academicYear, $data);
 
-        return back();
+        try {
+            $this->academicYear->updateAcademicYear($academicYear, $data);
+        } catch (\Throwable $th) {
+            report($th);
+
+            return back()->with('danger', 'Academic year could not be updated');
+        }
+
+        return back()->with('success', 'Academic year updated successfully');
     }
 
     /**
@@ -101,17 +115,30 @@ class AcademicYearController extends Controller
      */
     public function destroy(AcademicYear $academicYear)
     {
-        $this->academicYear->deleteAcademicYear($academicYear);
+        try {
+            $this->academicYear->deleteAcademicYear($academicYear);
+        } catch (\Throwable $th) {
+            report($th);
 
-        return back();
+            return back()->with('danger', 'Academic year could not be deleted');
+        }
+
+        return back()->with('success', 'Academic year deleted successfully');
     }
 
     public function setAcademicYear(request $request)
     {
         $this->authorize('setAcademicYear', AcademicYear::class);
         $academicYear = $request->academic_year_id;
-        $this->academicYear->setAcademicYear($academicYear);
 
-        return back();
+        try {
+            $this->academicYear->setAcademicYear($academicYear);
+        } catch (\Throwable $th) {
+            report($th);
+
+            return back()->with('danger', 'Academic year could not be set for '.auth()->user()->school->name);
+        }
+
+        return back()->with('success', 'Academic year set for '.auth()->user()->school->name.' successfully');
     }
 }

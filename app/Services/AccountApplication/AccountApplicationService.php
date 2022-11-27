@@ -34,7 +34,7 @@ class AccountApplicationService
     /**
      * Get all open applicants application records in the school.
      *
-     * @return void
+     * @return User
      */
     public function getAllOpenApplicantsAndApplicationRecords()
     {
@@ -52,7 +52,7 @@ class AccountApplicationService
     /**
      * Get all  applicants application records in the school.
      *
-     * @return void
+     * @return User
      */
     public function getAllRejectedApplicantsAndApplicationRecords()
     {
@@ -100,7 +100,7 @@ class AccountApplicationService
             'role_id' => $record['role_id'],
         ]);
 
-        session()->flash('success', 'Application updated successfully');
+        session();
     }
 
     /**
@@ -133,10 +133,6 @@ class AccountApplicationService
             //add supplied role and delete application record
             $applicant->syncRoles([$applicant->accountApplication->role->name]);
             $applicant->accountApplication->delete();
-
-            session()->flash('success', 'Application approved successfully');
-        } else {
-            session()->flash('success', 'Application status changed successfully');
         }
 
         Mail::to($applicant->email)->send(new ApplicationStatusChanged($record['status'], $record['reason']));
@@ -152,6 +148,5 @@ class AccountApplicationService
     public function deleteAccountApplicant(User $applicant)
     {
         $applicant->delete();
-        session()->flash('success', 'Student Deleted Successfully');
     }
 }

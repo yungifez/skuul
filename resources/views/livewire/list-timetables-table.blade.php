@@ -19,8 +19,8 @@
             </div>
         </div>
         
-        @isset($timetables)
-            @foreach ($timetables as $timetable)
+        @isset($timetablesPaginated)
+            @foreach ($timetablesPaginated as $timetable)
                 <x-adminlte-card title="{{$timetable->name}}" theme="primary" icon=""  collapsible="collapsed" :wire:key="$loop->index" wire:loading.remove>
                     <div class="d-grid gap-2 ">
                         @can('read timetable')
@@ -44,7 +44,9 @@
                         @endcan
                     </div>
                 </x-adminlte-card>
+
             @endforeach
+            {{$timetablesPaginated->links()}}
         @else
             <p class="text-center text-bold" wire:loading.remove>No Timetable for this class at this time</p>
         @endisset

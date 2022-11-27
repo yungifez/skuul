@@ -27,4 +27,14 @@ class ExamRecord extends Model
     {
         return $this->belongsTo(Subject::class);
     }
+
+    /**
+     * Get the examSlot that owns the ExamRecord.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function examSlot(): BelongsTo
+    {
+        return $this->belongsTo(ExamSlot::class);
+    }
 }

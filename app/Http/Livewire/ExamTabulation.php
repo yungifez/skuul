@@ -7,11 +7,13 @@ use App\Models\Section;
 use App\Services\Exam\ExamService;
 use App\Services\MyClass\MyClassService;
 use App\Services\Section\SectionService;
+use App\Traits\MarkTabulationTrait;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
 
 class ExamTabulation extends Component
 {
+    use MarkTabulationTrait;
     public $exam;
     public $class;
     public $section;
@@ -19,9 +21,6 @@ class ExamTabulation extends Component
     public $classes;
     public $sections;
     public $semester;
-    public $subjects;
-    public $students;
-    public $totalMarksAttainableInEachSubject;
     public $tabulatedRecords;
     public $grades;
 
@@ -59,65 +58,17 @@ class ExamTabulation extends Component
 
     public function tabulate(Exam $exam, Section $section)
     {
-        //get total marks attainable in each subject
-        $this->totalMarksAttainableInEachSubject = app('App\Services\Exam\ExamService')->totalMarksAttainableInExamForSubject($exam);
-
         //get all subjects in section
-        $this->subjects = $section->myClass->subjects;
+        $subjects = $section->myClass->subjects;
 
         //get all students in section
-        $this->students = $section->studentRecords()->with('user')->get()->map(function ($studentRecord) {
+        $students = $section->studentRecords()->with('user')->get()->map(function ($studentRecord) {
             return $studentRecord->user;
         });
+        //get all exam slots
+        $examSlots = $exam->load('examSlots')->examSlots;
 
-        //get tabulation from cache else create new one
-        $this->tabulatedRecords = $this->createTabulation($exam, $section);
-    }
-
-    //tabulates the result
-    private function createTabulation(Exam $exam, Section $section)
-    {
-        //create tabulation
-        $tabulatedRecords = [];
-
-        foreach ($this->students as $student) {
-
-            //array to hold tabulation values for each student
-            $totalSubjectMarks = [];
-
-            //set student name and admission number
-            $tabulatedRecords[$student->id]['student_name'] = $student->name;
-            $tabulatedRecords[$student->id]['admission_number'] = $student->studentRecord->admission_number;
-
-            //loop through all subjects and add all marks
-            foreach ($this->subjects as $subject) {
-                $tabulatedRecords[$student->id]['student_marks'][$subject->id] = app('App\Services\Exam\ExamService')->calculateStudentTotalMarksInSubject($exam, $student, $subject);
-
-                //array used for calculating total marks
-                $totalSubjectMarks[] = $tabulatedRecords[$student->id]['student_marks'][$subject->id];
-            }
-
-            //turned to object
-            $totalSubjectMarks = collect($totalSubjectMarks)->sum();
-
-            //set total from summing each subject
-            $tabulatedRecords[$student->id]['total'] = $totalSubjectMarks;
-
-            //calculated percentage
-            $totalMarks = $this->totalMarksAttainableInEachSubject * $this->subjects->count();
-
-            //make sure total marks is not 0
-            $totalMarks = $totalMarks ? $totalMarks : 1;
-            $tabulatedRecords[$student->id]['percent'] = ceil((($totalSubjectMarks / $totalMarks)) * 100);
-            $percentage = $tabulatedRecords[$student->id]['percent'];
-
-            $grade = app('App\Services\GradeSystem\GradeSystemService')->getGrade($section->myClass->classGroup->id, $percentage);
-
-            //get appropriate grade
-            $tabulatedRecords[$student->id]['grade'] = $grade ? $grade->name : 'No Grade';
-        }
-
-        return collect($tabulatedRecords);
+        $this->tabulatedRecords = $this->tabulateMarks($section->myClass->classGroup, $subjects, $students, $examSlots);
     }
 
     //print function

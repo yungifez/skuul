@@ -10,11 +10,11 @@ class AcademicYearService
     /**
      * @var SchoolService
      */
-    public $school;
+    public $schoolService;
 
-    public function __construct(SchoolService $school)
+    public function __construct(SchoolService $schoolService)
     {
-        $this->school = $school;
+        $this->schoolService = $schoolService;
     }
 
     /**
@@ -44,34 +44,12 @@ class AcademicYearService
      *
      * @param array|Collection $records
      *
-     * @return void
+     * @return AcademicYear
      */
     public function createAcademicYear($records)
     {
         $records['school_id'] = auth()->user()->school_id;
-        AcademicYear::create($records);
-        session()->flash('success', 'Academic year created successfully');
-    }
-
-    /**
-     * Set academic year as current.one in school.
-     *
-     * @param int $academicYearId
-     * @param int $schoolId
-     *
-     * @return void
-     */
-    public function setAcademicYear($academicYearId, $schoolId = null)
-    {
-        if (!isset($schoolId)) {
-            $schoolId = auth()->user()->school_id;
-        }
-        $school = $this->school->getSchoolById($schoolId);
-        $school->academic_year_id = $academicYearId;
-        //set semester id to null
-        $school->semester_id = null;
-        $school->save();
-        session()->flash('success', "Academic year set for {$school->name} successfully");
+        $academicYear = AcademicYear::create($records);
     }
 
     /**
@@ -87,7 +65,6 @@ class AcademicYearService
         $academicYear->start_year = $records['start_year'];
         $academicYear->stop_year = $records['stop_year'];
         $academicYear->save();
-        session()->flash('success', 'Academic year updated successfully');
     }
 
     /**
@@ -100,6 +77,25 @@ class AcademicYearService
     public function deleteAcademicYear(AcademicYear $academicYear)
     {
         $academicYear->delete();
-        session()->flash('success', 'Academic year deleted successfully');
+    }
+
+    /**
+     * Set academic year as current.one in school.
+     *
+     * @param int $academicYearId
+     * @param int $schoolId
+     *
+     * @return void
+     */
+    public function setAcademicYear($academicYearId, $schoolId = null)
+    {
+        if (!isset($schoolId)) {
+            $schoolId = auth()->user()->school_id;
+        }
+        $school = $this->schoolService->getSchoolById($schoolId);
+        $school->academic_year_id = $academicYearId;
+        //set semester id to null
+        $school->semester_id = null;
+        $school->save();
     }
 }
