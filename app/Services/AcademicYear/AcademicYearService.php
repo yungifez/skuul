@@ -51,7 +51,7 @@ class AcademicYearService
         $records['school_id'] = auth()->user()->school_id;
         $academicYear = AcademicYear::create($records);
     }
-    
+
     /**
      * Update Academic Year.
      *
@@ -66,7 +66,7 @@ class AcademicYearService
         $academicYear->stop_year = $records['stop_year'];
         $academicYear->save();
     }
-    
+
     /**
      * Delete an academic year.
      *

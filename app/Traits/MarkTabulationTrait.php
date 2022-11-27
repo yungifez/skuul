@@ -1,39 +1,39 @@
 <?php
 
 namespace App\Traits;
+
 use App\Models\ClassGroup;
 use App\Models\ExamRecord;
 use App\Models\GradeSystem;
 use Illuminate\Database\Eloquent\Collection;
 
 /**
- * Mark tabulation traits
+ * Mark tabulation traits.
  */
 trait MarkTabulationTrait
 {
-
     /**
-     * Highest amount of marks a student can get
+     * Highest amount of marks a student can get.
      *
      * @var int
      */
     public int $totalMarksAttainableInEachSubject;
 
     /**
-     * A collection of all subjects used in tabulation creation
+     * A collection of all subjects used in tabulation creation.
      *
      * @var Collection<Subjects>
      */
     public Collection $subjects;
 
     public Collection $students;
+
     /**
-     * 
-     * @param ClassGroup $classGroup
-     * @param Collection<Subjects> $subjects
-     * @param Collection<Students> $students
+     * @param ClassGroup            $classGroup
+     * @param Collection<Subjects>  $subjects
+     * @param Collection<Students>  $students
      * @param Collection<ExamSlots> $examSlots
-     * 
+     *
      * @return Collection
      */
     public function tabulateMarks(ClassGroup $classGroup, Collection $subjects, Collection $students, Collection $examSlots)
@@ -43,9 +43,9 @@ trait MarkTabulationTrait
 
         //get all relevant exam records
         $examRecords = ExamRecord::whereIn('subject_id', $subjects->pluck('id'))->whereIn('user_id', $students->pluck('id'))->get();
-        
+
         //get all grades in class group
-        $grades =  GradeSystem::where( 'class_group_id', $classGroup->id )->get();
+        $grades = GradeSystem::where('class_group_id', $classGroup->id)->get();
         $totalMarksAttainableInEachSubject = $examSlots->sum(['total_marks']);
 
         //set public variables
@@ -67,7 +67,7 @@ trait MarkTabulationTrait
 
             //loop through all subjects and add all marks
             foreach ($subjects as $subject) {
-                $tabulatedRecords[$student->id]['student_marks'][$subject->id] = $examRecords->where('user_id' , $student->id)->whereIn('exam_slot_id', $examSlots->pluck('id'))->where('subject_id' , $subject->id)->pluck('student_marks')->sum();
+                $tabulatedRecords[$student->id]['student_marks'][$subject->id] = $examRecords->where('user_id', $student->id)->whereIn('exam_slot_id', $examSlots->pluck('id'))->where('subject_id', $subject->id)->pluck('student_marks')->sum();
 
                 //array used for calculating total marks
                 $totalSubjectMarks[] = $tabulatedRecords[$student->id]['student_marks'][$subject->id];
@@ -87,10 +87,11 @@ trait MarkTabulationTrait
             $tabulatedRecords[$student->id]['percent'] = ceil((($totalSubjectMarks / $totalMarks)) * 100);
             $percentage = $tabulatedRecords[$student->id]['percent'];
             $grade = $grades->where('grade_from', '<=', $percentage)->where('grade_till', '>=', $percentage)->first();
-            
+
             //get appropriate grade
             $tabulatedRecords[$student->id]['grade'] = $grade ? $grade->name : 'No Grade';
         }
+
         return collect($tabulatedRecords);
     }
 }

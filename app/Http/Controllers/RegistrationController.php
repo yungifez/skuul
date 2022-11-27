@@ -63,7 +63,6 @@ class RegistrationController extends Controller
             return back()->with('danger', 'Could not create account');
         }
 
-
         return back()->with('success', 'Registration complete, you would recieve an email to verify your account');
     }
 }

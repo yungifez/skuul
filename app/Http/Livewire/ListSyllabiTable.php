@@ -2,18 +2,18 @@
 
 namespace App\Http\Livewire;
 
-use App\Models\User;
-use Livewire\Component;
-use Livewire\WithPagination;
-use Illuminate\Support\Facades\App;
 use App\Services\MyClass\MyClassService;
 use App\Services\Syllabus\SyllabusService;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class ListSyllabiTable extends Component
 {
     use WithPagination;
-    public $class, $syllabi, $classes;
+    public $class;
+    public $syllabi;
+    public $classes;
     protected $queryString = ['page'];
     protected $paginationTheme = 'bootstrap';
 
@@ -37,7 +37,6 @@ class ListSyllabiTable extends Component
             if ($this->syllabi->isEmpty()) {
                 $this->syllabi = null;
             }
-     
         }
     }
 
@@ -53,11 +52,12 @@ class ListSyllabiTable extends Component
 
     public function render()
     {
-        $currentPage  = $this->page ?? 1;
+        $currentPage = $this->page ?? 1;
         $perPage = 10;
         $statringPoint = ($currentPage * $perPage) - $perPage;
+
         return view('livewire.list-syllabi-table', [
-            'syllabiPaginated' => (new LengthAwarePaginator(($this->syllabi ?? collect())->slice($statringPoint, $perPage,true ),collect( $this->syllabi)->count(), $perPage, LengthAwarePaginator::resolveCurrentPage(), [LengthAwarePaginator::resolveCurrentPath()]))
+            'syllabiPaginated' => (new LengthAwarePaginator(($this->syllabi ?? collect())->slice($statringPoint, $perPage, true), collect($this->syllabi)->count(), $perPage, LengthAwarePaginator::resolveCurrentPage(), [LengthAwarePaginator::resolveCurrentPath()])),
         ]);
     }
 }

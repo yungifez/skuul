@@ -3,17 +3,23 @@
 namespace App\Http\Livewire;
 
 use App\Models\Section;
-use Livewire\Component;
-use Barryvdh\DomPDF\Facade\Pdf;
-use App\Traits\MarkTabulationTrait;
 use App\Services\MyClass\MyClassService;
 use App\Services\Section\SectionService;
+use App\Traits\MarkTabulationTrait;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Livewire\Component;
 
 class ResultTabulation extends Component
 {
     use MarkTabulationTrait;
 
-    public $section, $sections, $classes, $class, $semester, $tabulatedRecords, $createdTabulation;
+    public $section;
+    public $sections;
+    public $classes;
+    public $class;
+    public $semester;
+    public $tabulatedRecords;
+    public $createdTabulation;
 
     protected $listeners = ['print'];
 
@@ -59,8 +65,8 @@ class ResultTabulation extends Component
         }
 
         $examSlots = $this->semester->load('examSlots')->examSlots;
-        
-        $this->tabulatedRecords = $this->tabulateMarks($section->myClass->classGroup, $subjects, $students, $examSlots );
+
+        $this->tabulatedRecords = $this->tabulateMarks($section->myClass->classGroup, $subjects, $students, $examSlots);
 
         $this->createdTabulation = true;
     }

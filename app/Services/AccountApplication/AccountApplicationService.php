@@ -133,7 +133,6 @@ class AccountApplicationService
             //add supplied role and delete application record
             $applicant->syncRoles([$applicant->accountApplication->role->name]);
             $applicant->accountApplication->delete();
-
         }
 
         Mail::to($applicant->email)->send(new ApplicationStatusChanged($record['status'], $record['reason']));
