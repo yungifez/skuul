@@ -105,6 +105,5 @@ class SubjectService
             return;
         }
         session()->flash('success', 'Successfully assigned teacher to subjects');
-
     }
 }
