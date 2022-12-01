@@ -86,15 +86,8 @@ class AccountApplicationController extends Controller
     {
         $this->userService->verifyUserIsOfRoleElseNotFound($applicant, 'applicant');
         $this->authorize('update', [$applicant, 'applicant']);
-
-        try {
-            $data = $request->except('_method', '_token');
-            $this->accountApplicationService->updateAccountApplication($applicant, $data);
-        } catch (\Throwable $th) {
-            report($th);
-
-            return back()->with('danger', 'Application records could not be updated updated');
-        }
+        $data = $request->except('_method', '_token');
+        $this->accountApplicationService->updateAccountApplication($applicant, $data);
 
         return back()->with('success', 'Application records updated successfully');
     }
@@ -111,13 +104,7 @@ class AccountApplicationController extends Controller
         $this->userService->verifyUserIsOfRoleElseNotFound($applicant, 'applicant');
         $this->authorize('delete', [$applicant, 'applicant']);
 
-        try {
-            $this->accountApplicationService->deleteAccountApplicant($applicant);
-        } catch (\Throwable $th) {
-            report($th);
-
-            return back()->with('danger', 'Account Application Could Not Be Deleted');
-        }
+        $this->accountApplicationService->deleteAccountApplicant($applicant);
 
         return back()->with('success', 'Account Applicatio Deleted Successfully');
     }
@@ -145,14 +132,7 @@ class AccountApplicationController extends Controller
     public function changeStatus(User $applicant, AccountApplicationStatusChangeRequest $request)
     {
         $data = $request->validated();
-
-        try {
-            $this->accountApplicationService->changeStatus($applicant, $data);
-        } catch (\Throwable $th) {
-            report($th);
-
-            return back()->with('danger', 'Application status could not be updated');
-        }
+        $this->accountApplicationService->changeStatus($applicant, $data);
 
         return back()->with('success', 'Application status updated successfully');
     }

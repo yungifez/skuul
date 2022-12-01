@@ -28,6 +28,11 @@ class SendAccountStatusEmailChanged
      */
     public function handle(AccountStatusChanged $event)
     {
-        Mail::to($event->applicant->email)->send(new ApplicationStatusChanged($event->status, $event->reason));
+        try {
+            Mail::to($event->applicant->email)->send(new ApplicationStatusChanged($event->status, $event->reason));
+        } catch (\Throwable $th) {
+            report("Could not send email to $event->applicant->email");
+            return;
+        }
     }
 }

@@ -5,6 +5,7 @@ namespace App\Services\AccountApplication;
 use App\Models\User;
 use App\Models\AccountApplication;
 use App\Services\User\UserService;
+use Illuminate\Support\Facades\DB;
 use App\Events\AccountStatusChanged;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\ApplicationStatusChanged;
@@ -94,14 +95,14 @@ class AccountApplicationService
      */
     public function updateAccountApplication(User $applicant, object|array $record)
     {
-        $applicant = $this->userService->updateUser($applicant, $record, 'applicant');
-
-        //create record if record doesn't exist somehow else update
-        $applicant->accountApplication()->updateOrCreate([], [
-            'role_id' => $record['role_id'],
-        ]);
-
-        session();
+        DB::transaction(function () use($applicant, $record) {      
+            $applicant = $this->userService->updateUser($applicant, $record, 'applicant');
+    
+            //create record if record doesn't exist somehow else update
+            $applicant->accountApplication()->updateOrCreate([], [
+                'role_id' => $record['role_id'],
+            ]);
+        });
     }
 
     /**
@@ -114,34 +115,34 @@ class AccountApplicationService
      */
     public function changeStatus(User $applicant, $record)
     {
-        $applicant->accountApplication->setStatus($record['status'], $record['reason'] ?? null);
 
-        if ($applicant->accountApplication->status == 'approved') {
-
-            //create assosciated user records
-            switch ($applicant->accountApplication->role->name) {
-                case 'student':
-                    $this->studentService->createStudentRecord($applicant, $record);
-                    break;
-                case 'parent':
-                    $applicant->parentRecord()->create();
-                    break;
-                case 'teacher':
-                    $applicant->teacherRecord()->create();
-                    break;
+        DB::transaction(function () {
+            
+            $applicant->accountApplication->setStatus($record['status'], $record['reason'] ?? null);
+            
+            if ($applicant->accountApplication->status == 'approved') {
+                
+                //create assosciated user records
+                switch ($applicant->accountApplication->role->name) {
+                    case 'student':
+                        $this->studentService->createStudentRecord($applicant, $record);
+                        break;
+                    case 'parent':
+                        $applicant->parentRecord()->create();
+                        break;
+                    case 'teacher':
+                        $applicant->teacherRecord()->create();
+                        break;
+                }
+                            
+                //add supplied role and delete application record
+                $applicant->syncRoles([$applicant->accountApplication->role->name]);
+                $applicant->accountApplication->delete();
             }
-
-            //add supplied role and delete application record
-            $applicant->syncRoles([$applicant->accountApplication->role->name]);
-            $applicant->accountApplication->delete();
-        }
-
-        try {
-            AccountStatusChanged::dispatch($applicant, $record['status'], $record['reason']);
-        } catch (\Throwable $th) {
-            dd($th);
-        }
-       
+                        
+        });
+        
+        AccountStatusChanged::dispatch($applicant, $record['status'], $record['reason']);
     }
 
     /**

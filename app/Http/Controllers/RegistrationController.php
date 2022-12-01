@@ -38,34 +38,32 @@ class RegistrationController extends Controller
 
     public function register(Request $request)
     {
-        try {
-            $roles = Role::whereIn('name', ['teacher', 'student', 'parent'])->get();
-            $validated = $request->validate([
-                'role' => [
-                    'required',
-                    Rule::in($roles->pluck('id')),
-                ],
-                'school' => [
-                    'required',
-                    'exists:schools,id',
-                ],
-            ]);
+        $roles = Role::whereIn('name', ['teacher', 'student', 'parent'])->get();
+        $validated = $request->validate([
+            'role' => [
+                'required',
+                Rule::in($roles->pluck('id')),
+            ],
+            'school' => [
+                'required',
+                'exists:schools,id',
+            ],
+        ]);
 
-            $request['school_id'] = $request->school;
+        $request['school_id'] = $request->school;
 
-            $user = $this->userService->createUser($request);
+        $user = $this->userService->createUser($request);
 
-            //assign applicant role
-            $user->assignRole('applicant');
+        //assign applicant role
+        $user->assignRole('applicant');
 
-            $accountApplication = $this->accountApplicationService->createAccountApplication($user->id, $request->role);
-            $status = "Application Received";
-            $reason = "Application has been received, we would reach out to you for further information";
-            $accountApplication->setStatus($status, $reason);
+        $accountApplication = $this->accountApplicationService->createAccountApplication($user->id, $request->role);
 
-        } catch (\Throwable $th) {
-            return back()->with('danger', 'Could not create account');
-        }
+        $status = "Application Received";
+        $reason = "Application has been received, we would reach out to you for further information";
+        $accountApplication->setStatus($status, $reason);
+
+        //dispatch event
         AccountStatusChanged::dispatch($user, $status, $reason);
 
         return back()->with('success', 'Registration complete, you would recieve an email to verify your account');
