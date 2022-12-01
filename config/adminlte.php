@@ -671,6 +671,14 @@ return [
                 ],
             ],
         ],
+        [
+            'type'  => 'sidebar-menu-item',
+            'text'  => 'View Logs',
+            'url'   => "/logs",
+            'icon'  => 'fa fa-sticky-note',
+            //it checks with roles for now so this is to prevent other users from viewing menu item
+            'can'   => 'view logs',
+        ],
     ],
 
     /*
