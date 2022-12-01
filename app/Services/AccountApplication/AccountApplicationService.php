@@ -2,12 +2,13 @@
 
 namespace App\Services\AccountApplication;
 
-use App\Mail\ApplicationStatusChanged;
-use App\Models\AccountApplication;
 use App\Models\User;
-use App\Services\Student\StudentService;
+use App\Models\AccountApplication;
 use App\Services\User\UserService;
+use App\Events\AccountStatusChanged;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\ApplicationStatusChanged;
+use App\Services\Student\StudentService;
 
 class AccountApplicationService
 {
@@ -135,7 +136,12 @@ class AccountApplicationService
             $applicant->accountApplication->delete();
         }
 
-        Mail::to($applicant->email)->send(new ApplicationStatusChanged($record['status'], $record['reason']));
+        try {
+            AccountStatusChanged::dispatch($applicant, $record['status'], $record['reason']);
+        } catch (\Throwable $th) {
+            dd($th);
+        }
+       
     }
 
     /**
