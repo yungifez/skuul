@@ -70,7 +70,7 @@ class ExamRecordService
     }
 
     /**
-     * Get all exam records for a user in a subject and a specofoc semester.
+     * Get all exam records for a user in za subject and a specofoc semester.
      *
      * @param Semester $semester
      * @param int      $user
