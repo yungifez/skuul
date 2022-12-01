@@ -17,7 +17,7 @@ Skuul is a multi school management system that aims to make school administratio
 ## Installation
 To skip steps 4 down ( after composer install ), you can run the below command and it would guide you through the process automatically
 ```shell
-php artisan skuul:innit
+php artisan skuul:init
  ```
 * Clone the repository by running the following command in your comamand line below (Or you can dowload zip file from github)
 ```shell
