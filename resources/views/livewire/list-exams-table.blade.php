@@ -12,7 +12,7 @@
                     <td>{{$exam->start_date}}</td>
                     <td>{{$exam->stop_date}}</td>
                     <td>
-                        <form action="{{route('exams.set-status', $exam->id)}}" method="POST">
+                        <form action="{{route('exams.set-active-status', $exam->id)}}" method="POST">
                             {{--set exam status to active or inactive--}}
                             <div class="custom-control custom-switch">
                                 @csrf
