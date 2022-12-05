@@ -10,7 +10,7 @@ use App\Services\MyClass\MyClassService;
 class MyClassController extends Controller
 {
     /**
-     * Class service instance
+     * Class service instance.
      *
      * @var MyClassService
      */

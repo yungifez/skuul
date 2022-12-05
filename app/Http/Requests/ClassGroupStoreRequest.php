@@ -2,13 +2,11 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ClassGroupStoreRequest extends FormRequest
 {
-
-     
     /**
      * Prepare the data for validation.
      *
@@ -31,7 +29,7 @@ class ClassGroupStoreRequest extends FormRequest
         return [
             'name' => [
                 'required',
-                Rule::unique('class_groups' )->where(fn ($query) => $query->where('school_id', $this->input('school_id') ?? auth()->user()->school_id))
+                Rule::unique('class_groups')->where(fn ($query) => $query->where('school_id', $this->input('school_id') ?? auth()->user()->school_id)),
             ],
         ];
     }

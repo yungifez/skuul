@@ -2,14 +2,12 @@
 
 namespace App\Services\AccountApplication;
 
-use App\Models\User;
+use App\Events\AccountStatusChanged;
 use App\Models\AccountApplication;
+use App\Models\User;
+use App\Services\Student\StudentService;
 use App\Services\User\UserService;
 use Illuminate\Support\Facades\DB;
-use App\Events\AccountStatusChanged;
-use Illuminate\Support\Facades\Mail;
-use App\Mail\ApplicationStatusChanged;
-use App\Services\Student\StudentService;
 
 class AccountApplicationService
 {
@@ -95,9 +93,9 @@ class AccountApplicationService
      */
     public function updateAccountApplication(User $applicant, object|array $record)
     {
-        DB::transaction(function () use($applicant, $record) {      
+        DB::transaction(function () use ($applicant, $record) {
             $applicant = $this->userService->updateUser($applicant, $record, 'applicant');
-    
+
             //create record if record doesn't exist somehow else update
             $applicant->accountApplication()->updateOrCreate([], [
                 'role_id' => $record['role_id'],
@@ -115,13 +113,11 @@ class AccountApplicationService
      */
     public function changeStatus(User $applicant, $record)
     {
-
         DB::transaction(function () {
-            
             $applicant->accountApplication->setStatus($record['status'], $record['reason'] ?? null);
-            
+
             if ($applicant->accountApplication->status == 'approved') {
-                
+
                 //create assosciated user records
                 switch ($applicant->accountApplication->role->name) {
                     case 'student':
@@ -134,14 +130,13 @@ class AccountApplicationService
                         $applicant->teacherRecord()->create();
                         break;
                 }
-                            
+
                 //add supplied role and delete application record
                 $applicant->syncRoles([$applicant->accountApplication->role->name]);
                 $applicant->accountApplication->delete();
             }
-                        
         });
-        
+
         AccountStatusChanged::dispatch($applicant, $record['status'], $record['reason']);
     }
 

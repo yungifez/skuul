@@ -2,8 +2,8 @@
 
 namespace App\Services\GradeSystem;
 
-use App\Models\GradeSystem;
 use App\Exceptions\DuplicateRangeException;
+use App\Models\GradeSystem;
 
 class GradeSystemService
 {
@@ -38,7 +38,7 @@ class GradeSystemService
      * Create grade in gradesystem.
      *
      * @param array|object $records
-     * 
+     *
      * @throws DuplicateRangeException
      *
      * @return void
@@ -48,9 +48,8 @@ class GradeSystemService
         //get all grades in the class group
         $gradesInDb = $this->getAllGradesInClassGroup($records['class_group_id']);
 
-
         if ($this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_till' => $records['grade_till']], $gradesInDb)) {
-            throw new DuplicateRangeException("Grade range is in another range in class group");
+            throw new DuplicateRangeException('Grade range is in another range in class group');
         }
 
         GradeSystem::create([
@@ -67,7 +66,7 @@ class GradeSystemService
      *
      * @param GradeSystem  $grade
      * @param array|object $records
-     * 
+     *
      * @throws DuplicateRangeException
      *
      * @return void
@@ -77,7 +76,7 @@ class GradeSystemService
         $gradesInDb = $this->getAllGradesInClassGroup($records['class_group_id'])->except($grade->id);
 
         if ($gradesInDb = $this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_till' => $records['grade_till']], $gradesInDb)) {
-           throw new DuplicateRangeException("Grade range is in another range in class group");
+            throw new DuplicateRangeException('Grade range is in another range in class group');
         }
 
         $grade->update([

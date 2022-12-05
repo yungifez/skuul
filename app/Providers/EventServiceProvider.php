@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Providers;
+
 use App\Events\AccountStatusChanged;
 use App\Listeners\SendAccountStatusEmailChanged;
 use Illuminate\Auth\Events\Registered;
@@ -20,8 +21,8 @@ class EventServiceProvider extends ServiceProvider
             SendEmailVerificationNotification::class,
         ],
         AccountStatusChanged::class => [
-            SendAccountStatusEmailChanged::class
-        ]
+            SendAccountStatusEmailChanged::class,
+        ],
     ];
 
     /**

@@ -107,7 +107,7 @@ class ExamController extends Controller
     {
         $this->exam->deleteExam($exam);
 
-        return back()->with('success', 'Exam deleted successfully');;
+        return back()->with('success', 'Exam deleted successfully');
     }
 
     /**
