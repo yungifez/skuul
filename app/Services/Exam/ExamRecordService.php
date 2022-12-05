@@ -3,28 +3,30 @@
 namespace App\Services\Exam;
 
 use App\Models\Exam;
-use App\Models\ExamRecord;
 use App\Models\Semester;
-use App\Services\Subject\SubjectService;
+use App\Models\ExamRecord;
 use Illuminate\Support\Facades\DB;
+use App\Services\Subject\SubjectService;
+use App\Exceptions\InvalidValueException;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class ExamRecordService
 {
     /**
      * @var ExamSlotService
      */
-    protected ExamSlotService $examSlot;
+    protected ExamSlotService $examSlotService;
     /**
      * Subject service class.
      *
      * @var SubjectService
      */
-    protected SubjectService $subject;
+    protected SubjectService $subjectService;
 
-    public function __construct(ExamSlotService $examSlot, SubjectService $subject)
+    public function __construct(ExamSlotService $examSlotService, SubjectService $subjectService)
     {
-        $this->examSlot = $examSlot;
-        $this->subject = $subject;
+        $this->examSlotService = $examSlotService;
+        $this->subjectService = $subjectService;
     }
 
     /**
@@ -129,46 +131,33 @@ class ExamRecordService
      */
     public function createExamRecord($records)
     {
-        if (auth()->user()->hasRole('teacher') && $this->subject->getSubjectById($records['subject_id'])->teachers->where('id', auth()->user()->id)->isEmpty()) {
-            return session()->flash('danger', 'You are not authorized to create exam record for this subject');
-        }
-        //started transaction to make sure everything ran smoothly before saving
-        DB::beginTransaction();
-
-        foreach ($records['exam_records'] as $record) {
-            // makes sure student marks and exam slot id are not null just an extra check as this is already done in request class
-            if ($record['student_marks'] == null || $this->examSlot->getExamSlotById($record['exam_slot_id'])->total_marks == null) {
-                //stop db transaction and return error
-                DB::rollback();
-                session()->flash('danger', 'Incomplete records submitted');
-
-                return;
-            }
-
-            // checks if student marks is less than total marks
-            if ($record['student_marks'] > $this->examSlot->getExamSlotById($record['exam_slot_id'])->total_marks) {
-                //stop db transaction and return error
-                DB::rollback();
-                session()->flash('danger', 'Student marks cannot be greater than total marks');
-
-                return;
-            }
-
-            // creates exam record or updates if records already exists
-
-            ExamRecord::updateOrCreate(
-                ['user_id'         => $records['user_id'],
-                    'section_id'   => $records['section_id'],
-                    'subject_id'   => $records['subject_id'],
-                    'exam_slot_id' => $record['exam_slot_id'],
-                ],
-                [
-                    'student_marks' => $record['student_marks'],
-                ]
-            );
+        if (auth()->user()->hasRole('teacher') && $this->subjectService->getSubjectById($records['subject_id'])->teachers->where('id', auth()->user()->id)->isEmpty()) {
+            throw new AuthorizationException("Creating of exam record for this subject is unauthorised.");
         }
 
-        DB::commit();
-        session()->flash('success', 'Exam Records Created Successfully');
+        DB::transaction(function () use ($records) {
+            foreach ($records['exam_records'] as $record) {
+                //set mark if not present
+                $record['student_marks'] = $record['student_marks'] ?? null;
+    
+                // checks if student marks is less than total marks
+                if ($record['student_marks'] > $this->examSlotService->getExamSlotById($record['exam_slot_id'])->total_marks) {
+                    throw new InvalidValueException("Student marks cannot be greater than total marks", 1);
+                }
+    
+                // creates exam record or updates if records already exists
+    
+                ExamRecord::updateOrCreate(
+                    ['user_id'         => $records['user_id'],
+                        'section_id'   => $records['section_id'],
+                        'subject_id'   => $records['subject_id'],
+                        'exam_slot_id' => $record['exam_slot_id'],
+                    ],
+                    [
+                        'student_marks' => $record['student_marks'],
+                    ]
+                );
+            }
+        });
     }
 }

@@ -4,7 +4,7 @@ namespace App\Exceptions;
 
 use Exception;
 
-class DuplicateGradeRange extends Exception
+class DuplicateRangeException extends Exception
 {
      /**
      * Render the exception into an HTTP response.

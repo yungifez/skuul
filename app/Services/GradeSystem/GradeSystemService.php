@@ -3,7 +3,7 @@
 namespace App\Services\GradeSystem;
 
 use App\Models\GradeSystem;
-use App\Exceptions\DuplicateGradeRange;
+use App\Exceptions\DuplicateRangeException;
 
 class GradeSystemService
 {
@@ -39,7 +39,7 @@ class GradeSystemService
      *
      * @param array|object $records
      * 
-     * @throws DuplicateGradeRange
+     * @throws DuplicateRangeException
      *
      * @return void
      */
@@ -50,7 +50,7 @@ class GradeSystemService
 
 
         if ($this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_till' => $records['grade_till']], $gradesInDb)) {
-            throw new DuplicateGradeRange("Grade range is in another range in class group");
+            throw new DuplicateRangeException("Grade range is in another range in class group");
         }
 
         GradeSystem::create([
@@ -68,7 +68,7 @@ class GradeSystemService
      * @param GradeSystem  $grade
      * @param array|object $records
      * 
-     * @throws DuplicateGradeRange
+     * @throws DuplicateRangeException
      *
      * @return void
      */
@@ -77,7 +77,7 @@ class GradeSystemService
         $gradesInDb = $this->getAllGradesInClassGroup($records['class_group_id'])->except($grade->id);
 
         if ($gradesInDb = $this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_till' => $records['grade_till']], $gradesInDb)) {
-           throw new DuplicateGradeRange("Grade range is in another range in class group");
+           throw new DuplicateRangeException("Grade range is in another range in class group");
         }
 
         $grade->update([
