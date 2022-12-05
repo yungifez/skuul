@@ -39,7 +39,6 @@ class AdminService
     {
         $admin = $this->user->createUser($records);
         $admin->assignRole('admin');
-        session()->flash('success', 'Admin Created Successfully');
     }
 
     /**
@@ -53,7 +52,6 @@ class AdminService
     public function updateAdmin(User $admin, $records)
     {
         $this->user->updateUser($admin, $records, 'admin');
-        session()->flash('success', 'Admin Updated Successfully');
     }
 
     /**
@@ -63,10 +61,8 @@ class AdminService
      *
      * @return void
      */
-    public function deleteTeacher(User $admin)
+    public function deleteAdmin(User $admin)
     {
         $this->user->deleteUser($admin);
-
-        return session()->flash('success', 'Admin Deleted Successfully');
     }
 }

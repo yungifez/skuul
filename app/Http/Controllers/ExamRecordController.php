@@ -51,7 +51,7 @@ class ExamRecordController extends Controller
 
         $this->examRecord->createExamRecord($data);
 
-        return back();
+        return back()->with('success', 'Exam Records Created/updated Successfully');
     }
 
     /**

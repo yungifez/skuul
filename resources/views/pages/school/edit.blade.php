@@ -3,7 +3,7 @@
 @section('title', __("Edit $school->name"))
 
 @section('content_header')
-    <h1 class="font-weight-semibold">
+    <h1 class="">
         {{ __("Edit $school->name") }}
     </h1>
 

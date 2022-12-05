@@ -9,13 +9,17 @@ use App\Services\MyClass\MyClassService;
 
 class MyClassController extends Controller
 {
-    //create public properties
-    public $myClass;
+    /**
+     * Class service instance.
+     *
+     * @var MyClassService
+     */
+    public MyClassService $myClassService;
 
     //construct method
-    public function __construct(MyClassService $myClass)
+    public function __construct(MyClassService $myClassService)
     {
-        $this->myClass = $myClass;
+        $this->myClassService = $myClassService;
         $this->authorizeResource(MyClass::class, 'class');
     }
 
@@ -49,9 +53,9 @@ class MyClassController extends Controller
     public function store(MyClassStoreRequest $request)
     {
         $data = $request->validated();
-        $this->myClass->createClass($data);
+        $this->myClassService->createClass($data);
 
-        return redirect()->back();
+        return back()->with('success', __('Class created successfully'));
     }
 
     /**
@@ -92,10 +96,10 @@ class MyClassController extends Controller
      */
     public function update(MyClassUpdateRequest $request, MyClass $class)
     {
-        $data = $request->except('_token', '_method');
-        $this->myClass->updateClass($class, $data);
+        $data = $request->validated();
+        $this->myClassService->updateClass($class, $data);
 
-        return back();
+        return back()->with('success', __('Class updated successfully'));
     }
 
     /**
@@ -107,8 +111,8 @@ class MyClassController extends Controller
      */
     public function destroy(MyClass $class)
     {
-        $this->myClass->deleteClass($class);
+        $this->myClassService->deleteClass($class);
 
-        return back();
+        return back()->flash('success', __('Class deleted successfully'));
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Services\GradeSystem;
 
+use App\Exceptions\DuplicateRangeException;
 use App\Models\GradeSystem;
 
 class GradeSystemService
@@ -38,14 +39,17 @@ class GradeSystemService
      *
      * @param array|object $records
      *
+     * @throws DuplicateRangeException
+     *
      * @return void
      */
     public function createGradeSystem($records)
     {
+        //get all grades in the class group
         $gradesInDb = $this->getAllGradesInClassGroup($records['class_group_id']);
 
-        if ($gradesInDb = $this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_till' => $records['grade_till']], $gradesInDb)) {
-            return session()->flash('danger', 'Grade is in another range in this class group');
+        if ($this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_till' => $records['grade_till']], $gradesInDb)) {
+            throw new DuplicateRangeException('Grade range is in another range in class group');
         }
 
         GradeSystem::create([
@@ -55,7 +59,6 @@ class GradeSystemService
             'name'           => $records['name'],
             'remark'         => $records['remark'],
         ]);
-        session()->flash('success', 'Grade system created successfully');
     }
 
     /**
@@ -64,6 +67,8 @@ class GradeSystemService
      * @param GradeSystem  $grade
      * @param array|object $records
      *
+     * @throws DuplicateRangeException
+     *
      * @return void
      */
     public function updateGradeSystem(GradeSystem $grade, $records)
@@ -71,7 +76,7 @@ class GradeSystemService
         $gradesInDb = $this->getAllGradesInClassGroup($records['class_group_id'])->except($grade->id);
 
         if ($gradesInDb = $this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_till' => $records['grade_till']], $gradesInDb)) {
-            return session()->flash('danger', 'Grade is in another range in this class group');
+            throw new DuplicateRangeException('Grade range is in another range in class group');
         }
 
         $grade->update([
@@ -82,7 +87,6 @@ class GradeSystemService
             'remark'         => $records['remark'],
         ]);
         $grade->save();
-        session()->flash('success', 'Grade updated successfully');
     }
 
     /**
@@ -95,7 +99,6 @@ class GradeSystemService
     public function deleteGradeSystem(GradeSystem $grade)
     {
         $grade->delete();
-        session()->flash('success', 'successfully deleted grade');
     }
 
     /**

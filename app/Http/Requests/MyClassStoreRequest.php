@@ -8,19 +8,13 @@ use Illuminate\Validation\Rule;
 class MyClassStoreRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
-
-    /**
      * Get the validation rules that apply to the request.
      *
      * @return array
      */
     public function rules()
     {
-        $classGroupId = $this->get('class_group_id');
+        $classGroupId = $this->input('class_group_id');
 
         return [
             'name' => [

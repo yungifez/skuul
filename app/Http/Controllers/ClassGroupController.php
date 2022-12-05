@@ -3,18 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ClassGroupStoreRequest;
+use App\Http\Requests\UpdateClassGroupRequest;
 use App\Models\ClassGroup;
 use App\Services\MyClass\MyClassService;
 
 class ClassGroupController extends Controller
 {
-    //create public properties
-    public $myClass;
+    /**
+     * Class service class instance.
+     *
+     * @var MyClassService
+     */
+    public MyClassService $myClassService;
 
     //construct method
-    public function __construct(MyClassService $myClass)
+    public function __construct(MyClassService $myClassService)
     {
-        $this->myClass = $myClass;
+        $this->myClassService = $myClassService;
         $this->authorizeResource(ClassGroup::class, 'class_group');
     }
 
@@ -48,7 +53,7 @@ class ClassGroupController extends Controller
     public function store(ClassGroupStoreRequest $request)
     {
         $data = $request->except('_token');
-        $this->myClass->createClassGroup($data);
+        $this->myClassService->createClassGroup($data);
 
         return redirect()->back();
     }
@@ -84,17 +89,17 @@ class ClassGroupController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param ClassGroupStoreRequest $request
-     * @param ClassGroup             $classGroup
+     * @param UpdateClassGroupRequest $request
+     * @param ClassGroup              $classGroup
      *
      * @return \Illuminate\Http\Response
      */
-    public function update(ClassGroupStoreRequest $request, ClassGroup $classGroup)
+    public function update(UpdateClassGroupRequest $request, ClassGroup $classGroup)
     {
         $data = $request->except('_token', '_method', 'school_id');
-        $this->myClass->updateClassGroup($classGroup, $data);
+        $this->myClassService->updateClassGroup($classGroup, $data);
 
-        return back();
+        return back()->with('success', __('Class group updated successfully'));
     }
 
     /**
@@ -106,8 +111,8 @@ class ClassGroupController extends Controller
      */
     public function destroy(ClassGroup $classGroup)
     {
-        $this->myClass->deleteClassGroup($classGroup);
+        $this->myClassService->deleteClassGroup($classGroup);
 
-        return back();
+        return back()->with('success', __('Class group deleted successfully'));
     }
 }

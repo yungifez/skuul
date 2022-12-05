@@ -2,9 +2,8 @@
 
 @section('title', __('Dashboard'))
 
-
 @section('content_header')
-    <h1 class=" font-weight-semibold">
+    <h1 class="">
         {{ __('Dashboard') }}
     </h1>
 
@@ -40,5 +39,9 @@
     @endif
 
     @livewire('display-status')
+
+    @can('read applicant')
+        @livewire('list-account-applications-table')
+    @endcan
 @stop
 

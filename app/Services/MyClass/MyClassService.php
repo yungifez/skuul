@@ -2,6 +2,7 @@
 
 namespace App\Services\MyClass;
 
+use App\Exceptions\ResourceNotEmptyException;
 use App\Models\ClassGroup;
 use App\Models\MyClass;
 use App\Services\School\SchoolService;
@@ -11,14 +12,14 @@ class MyClassService
     /**
      * School service variable.
      *
-     * @var App\Services\SchoolService
+     * @var SchoolService
      */
-    public $school;
+    public SchoolService $school;
 
     //construct method
-    public function __construct(SchoolService $school)
+    public function __construct(SchoolService $schoolService)
     {
-        $this->school = $school;
+        $this->schoolService = $schoolService;
     }
 
     /**
@@ -28,7 +29,7 @@ class MyClassService
      */
     public function getAllClasses()
     {
-        return $this->school->getSchoolById(auth()->user()->school_id)->myClasses->load('classGroup', 'sections');
+        return $this->schoolService->getSchoolById(auth()->user()->school_id)->myClasses->load('classGroup', 'sections');
     }
 
     /**
@@ -62,7 +63,7 @@ class MyClassService
      */
     public function getClassByIdOrFail(int $id)
     {
-        return $this->school->getSchoolById(auth()->user()->school_id)->myClasses()->findOrFail($id);
+        return $this->schoolService->getSchoolById(auth()->user()->school_id)->myClasses()->findOrFail($id);
     }
 
     /**
@@ -86,12 +87,7 @@ class MyClassService
      */
     public function createClass($record)
     {
-        if (!$this->getClassGroupById($record['class_group_id'])) {
-            return session()->flash('danger', __('Class group does not exists'));
-        }
-
         $myClass = MyClass::create($record);
-        session()->flash('success', __('Class created successfully'));
 
         return $myClass;
     }
@@ -105,15 +101,7 @@ class MyClassService
      */
     public function createClassGroup($record)
     {
-        $record['school_id'] = auth()->user()->school_id;
-
-        $classGroup = ClassGroup::firstOrCreate($record);
-
-        if (!$classGroup->wasRecentlyCreated) {
-            session()->flash('danger', __('Class group already exists'));
-        } else {
-            session()->flash('success', __('Class group created successfully'));
-        }
+        $classGroup = ClassGroup::create($record);
 
         return $classGroup;
     }
@@ -121,20 +109,19 @@ class MyClassService
     /**
      * Update class.
      *
-     * @param App\Models\MyClass $myClass
+     * @param App\Models\MyClass $class
      * @param array|object       $records
      *
      * @return App\Models\MyClass
      */
-    public function updateClass($myClass, $records)
+    public function updateClass($class, $records)
     {
-        $myClass->update([
+        $class->update([
             'name'           => $records['name'],
             'class_group_id' => $records['class_group_id'],
         ]);
-        session()->flash('success', __('Class updated successfully'));
 
-        return $myClass;
+        return $class;
     }
 
     /**
@@ -152,7 +139,6 @@ class MyClassService
                 'name' => $records['name'],
             ]
         );
-        session()->flash('success', __('Class group updated successfully'));
 
         return $classGroup;
     }
@@ -162,15 +148,16 @@ class MyClassService
      *
      * @param App\Models\ClassGroup $classGroup
      *
+     * @throws ResourceNotEmptyException
+     *
      * @return void
      */
     public function deleteClassGroup(ClassGroup $classGroup)
     {
         if ($classGroup->classes->count()) {
-            return session()->flash('danger', __('Remove all classes from this class group first'));
+            throw new ResourceNotEmptyException('Class Group contains classes');
         }
         $classGroup->delete();
-        session()->flash('success', __('Class group deleted successfully'));
     }
 
     /**
@@ -178,12 +165,14 @@ class MyClassService
      *
      * @param App\Models\MyClass $class
      *
+     * @throws ResourceNotEmptyException
+     *
      * @return void
      */
     public function deleteClass(MyClass $class)
     {
         if ($class->studentRecords->count()) {
-            return session()->flash('danger', __('Remove all students from this class first'));
+            throw new ResourceNotEmptyException('Class contains students');
         }
         $class->delete();
         session()->flash('success', __('Class deleted successfully'));

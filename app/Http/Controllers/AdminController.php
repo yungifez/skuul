@@ -47,7 +47,7 @@ class AdminController extends Controller
         $this->authorize('create', [User::class, 'admin']);
         $this->admin->createAdmin($request);
 
-        return back();
+        return back()->with('success', 'Admin Created Successfully');
     }
 
     /**
@@ -97,7 +97,7 @@ class AdminController extends Controller
         $this->authorize('update', [$admin, 'admin']);
         $this->admin->updateAdmin($admin, $request->except('_token', '_method'));
 
-        return back();
+        return back()->with('success', 'Admin Updated Successfully');
     }
 
     /**
@@ -114,6 +114,6 @@ class AdminController extends Controller
         $this->authorize('delete', [$admin, 'admin']);
         $this->admin->deleteAdmin($admin);
 
-        return back();
+        return back()->with('success', 'Admin Deleted Successfully');
     }
 }

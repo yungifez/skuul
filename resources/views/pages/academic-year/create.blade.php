@@ -3,7 +3,7 @@
 @section('title', __('Create academic year'))
 
 @section('content_header')
-    <h1 class="font-weight-semibold">
+    <h1 class="">
         {{ __('Create academic year') }}
     </h1>
 

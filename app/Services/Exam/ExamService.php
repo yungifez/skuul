@@ -98,16 +98,16 @@ class ExamService
     }
 
     /**
-     * set status of exam to active or inactive.
+     * set if exam is active or not .
      *
      * @param Exam $exam
-     * @param bool $status
+     * @param bool $active
      *
      * @return void
      */
-    public function setExamStatus(Exam $exam, bool $status)
+    public function setExamActiveStatus(Exam $exam, bool $active)
     {
-        $exam->active = $status;
+        $exam->active = $active;
         $exam->save();
     }
 
@@ -135,7 +135,6 @@ class ExamService
     public function deleteExam(Exam $exam)
     {
         $exam->delete();
-        session()->flash('success', 'Exam deleted successfully');
     }
 
     /**
