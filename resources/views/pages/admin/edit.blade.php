@@ -3,7 +3,7 @@
 @section('title', __("Edit $admin->name"))
 
 @section('content_header')
-    <h1 class="
+    <h1 class="">
         {{ __("Edit $admin->name") }}
     </h1>
 

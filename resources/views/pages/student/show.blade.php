@@ -3,7 +3,7 @@
 @section('title', __("$student->name's profile"))
 
 @section('content_header')
-    <h1 class="
+    <h1 class="">
         {{ __("$student->name's profile") }}
     </h1>
 
