@@ -2,13 +2,13 @@
 
 namespace App\Services\Exam;
 
-use App\Models\Exam;
-use App\Models\Semester;
-use App\Models\ExamRecord;
-use Illuminate\Support\Facades\DB;
-use App\Services\Subject\SubjectService;
 use App\Exceptions\InvalidValueException;
+use App\Models\Exam;
+use App\Models\ExamRecord;
+use App\Models\Semester;
+use App\Services\Subject\SubjectService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\DB;
 
 class ExamRecordService
 {
@@ -132,21 +132,21 @@ class ExamRecordService
     public function createExamRecord($records)
     {
         if (auth()->user()->hasRole('teacher') && $this->subjectService->getSubjectById($records['subject_id'])->teachers->where('id', auth()->user()->id)->isEmpty()) {
-            throw new AuthorizationException("Creating of exam record for this subject is unauthorised.");
+            throw new AuthorizationException('Creating of exam record for this subject is unauthorised.');
         }
 
         DB::transaction(function () use ($records) {
             foreach ($records['exam_records'] as $record) {
                 //set mark if not present
                 $record['student_marks'] = $record['student_marks'] ?? null;
-    
+
                 // checks if student marks is less than total marks
                 if ($record['student_marks'] > $this->examSlotService->getExamSlotById($record['exam_slot_id'])->total_marks) {
-                    throw new InvalidValueException("Student marks cannot be greater than total marks", 1);
+                    throw new InvalidValueException('Student marks cannot be greater than total marks', 1);
                 }
-    
+
                 // creates exam record or updates if records already exists
-    
+
                 ExamRecord::updateOrCreate(
                     ['user_id'         => $records['user_id'],
                         'section_id'   => $records['section_id'],

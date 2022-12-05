@@ -2,11 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ClassGroup;
-use App\Services\MyClass\MyClassService;
 use App\Http\Requests\ClassGroupStoreRequest;
 use App\Http\Requests\UpdateClassGroupRequest;
-use App\Exceptions\ClassGroupNotEmptyException;
+use App\Models\ClassGroup;
+use App\Services\MyClass\MyClassService;
 
 class ClassGroupController extends Controller
 {
@@ -91,7 +90,7 @@ class ClassGroupController extends Controller
      * Update the specified resource in storage.
      *
      * @param UpdateClassGroupRequest $request
-     * @param ClassGroup             $classGroup
+     * @param ClassGroup              $classGroup
      *
      * @return \Illuminate\Http\Response
      */

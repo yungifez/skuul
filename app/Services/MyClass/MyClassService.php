@@ -2,10 +2,10 @@
 
 namespace App\Services\MyClass;
 
-use App\Models\MyClass;
-use App\Models\ClassGroup;
-use App\Services\School\SchoolService;
 use App\Exceptions\ResourceNotEmptyException;
+use App\Models\ClassGroup;
+use App\Models\MyClass;
+use App\Services\School\SchoolService;
 
 class MyClassService
 {
@@ -147,7 +147,7 @@ class MyClassService
      * Delete class group.
      *
      * @param App\Models\ClassGroup $classGroup
-     * 
+     *
      * @throws ResourceNotEmptyException
      *
      * @return void
@@ -155,7 +155,7 @@ class MyClassService
     public function deleteClassGroup(ClassGroup $classGroup)
     {
         if ($classGroup->classes->count()) {
-            throw new ResourceNotEmptyException("Class Group contains classes");
+            throw new ResourceNotEmptyException('Class Group contains classes');
         }
         $classGroup->delete();
     }
@@ -164,7 +164,7 @@ class MyClassService
      * Delete class.
      *
      * @param App\Models\MyClass $class
-     * 
+     *
      * @throws ResourceNotEmptyException
      *
      * @return void
@@ -172,7 +172,7 @@ class MyClassService
     public function deleteClass(MyClass $class)
     {
         if ($class->studentRecords->count()) {
-            throw new ResourceNotEmptyException("Class contains students");
+            throw new ResourceNotEmptyException('Class contains students');
         }
         $class->delete();
         session()->flash('success', __('Class deleted successfully'));

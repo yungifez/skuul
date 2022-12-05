@@ -2,10 +2,8 @@
 
 namespace App\Exceptions;
 
-use Throwable;
-use App\Exceptions\DuplicateRangeException;
-use App\Exceptions\ResourceNotEmptyException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
+use Throwable;
 
 class Handler extends ExceptionHandler
 {
@@ -17,7 +15,7 @@ class Handler extends ExceptionHandler
     protected $dontReport = [
         ResourceNotEmptyException::class,
         DuplicateRangeException::class,
-        InvalidValueException::class
+        InvalidValueException::class,
     ];
 
     /**

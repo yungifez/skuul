@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use App\Services\User\UserService;
-use Spatie\Permission\Models\Role;
 use App\Events\AccountStatusChanged;
 use App\Services\AccountApplication\AccountApplicationService;
+use App\Services\User\UserService;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Spatie\Permission\Models\Role;
 
 class RegistrationController extends Controller
 {
@@ -59,8 +59,8 @@ class RegistrationController extends Controller
 
         $accountApplication = $this->accountApplicationService->createAccountApplication($user->id, $request->role);
 
-        $status = "Application Received";
-        $reason = "Application has been received, we would reach out to you for further information";
+        $status = 'Application Received';
+        $reason = 'Application has been received, we would reach out to you for further information';
         $accountApplication->setStatus($status, $reason);
 
         //dispatch event
