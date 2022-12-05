@@ -3,7 +3,7 @@
 @section('title', __('Rejected Account Applications'))
 
 @section('content_header')
-    <h1 class=" font-weight-semibold">
+    <h1 class=" ">
         {{ __('Rejected Account Applications') }}
     </h1>
 

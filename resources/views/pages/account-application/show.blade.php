@@ -3,7 +3,7 @@
 @section('title', __("View $applicant->name's application"))
 
 @section('content_header')
-    <h1 class="font-weight-semibold">
+    <h1 class="">
         {{ __("View $applicant->name's application") }}
     </h1>
 

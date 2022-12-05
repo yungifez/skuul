@@ -4,7 +4,7 @@
 
 
 @section('content_header')
-    <h1 class=" font-weight-semibold">
+    <h1 class=" ">
         {{ __('Create exams') }}
     </h1>
 

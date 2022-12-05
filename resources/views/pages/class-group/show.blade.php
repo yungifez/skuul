@@ -3,7 +3,7 @@
 @section('title', __('Class Groups'))
 
 @section('content_header')
-    <h1 class="font-weight-semibold">
+    <h1 class="">
         {{ __('Class Groups') }}
     </h1>
 
