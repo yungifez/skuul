@@ -49,7 +49,7 @@ class GradeSystemController extends Controller
         $data = $request->except('_token');
         $this->gradeSystem->createGradeSystem($data);
 
-        return back();
+        return back()->with('success', 'Grade range created successfully');
     }
 
     /**
@@ -89,7 +89,7 @@ class GradeSystemController extends Controller
         $data = $request->except('_token');
         $this->gradeSystem->updateGradeSystem($gradeSystem, $data);
 
-        return back();
+        return back()->with('success', 'Grade range updated successfully');
     }
 
     /**
@@ -101,7 +101,7 @@ class GradeSystemController extends Controller
      */
     public function destroy(GradeSystem $gradeSystem)
     {
-        $this->gradeSystem->deleteGradeSystem($gradeSystem);
+        $this->gradeSystem->deleteGradeSystem($gradeSystem)->with('success', 'successfully deleted grade');
 
         return back();
     }

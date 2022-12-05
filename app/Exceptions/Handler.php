@@ -3,6 +3,7 @@
 namespace App\Exceptions;
 
 use Throwable;
+use App\Exceptions\DuplicateGradeRange;
 use App\Exceptions\ResourceNotEmptyException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
@@ -14,7 +15,8 @@ class Handler extends ExceptionHandler
      * @var array<int, class-string<Throwable>>
      */
     protected $dontReport = [
-        ResourceNotEmptyException::class
+        ResourceNotEmptyException::class,
+        DuplicateGradeRange::class
     ];
 
     /**

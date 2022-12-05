@@ -148,7 +148,7 @@ class MyClassService
      *
      * @param App\Models\ClassGroup $classGroup
      * 
-     * @throws ClassGroupNotEmptyException
+     * @throws ResourceNotEmptyException
      *
      * @return void
      */
@@ -164,6 +164,8 @@ class MyClassService
      * Delete class.
      *
      * @param App\Models\MyClass $class
+     * 
+     * @throws ResourceNotEmptyException
      *
      * @return void
      */
