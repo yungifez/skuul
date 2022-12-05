@@ -11,16 +11,16 @@ use App\Exceptions\ClassGroupNotEmptyException;
 class ClassGroupController extends Controller
 {
     /**
-     * Class service class instance. Note myClass is essentially same as school class.
+     * Class service class instance.
      *
      * @var MyClassService
      */
-    public MyClassService $myClass;
+    public MyClassService $myClassService;
 
     //construct method
-    public function __construct(MyClassService $myClass)
+    public function __construct(MyClassService $myClassService)
     {
-        $this->myClass = $myClass;
+        $this->myClassService = $myClassService;
         $this->authorizeResource(ClassGroup::class, 'class_group');
     }
 
@@ -54,7 +54,7 @@ class ClassGroupController extends Controller
     public function store(ClassGroupStoreRequest $request)
     {
         $data = $request->except('_token');
-        $this->myClass->createClassGroup($data);
+        $this->myClassService->createClassGroup($data);
 
         return redirect()->back();
     }
@@ -98,7 +98,7 @@ class ClassGroupController extends Controller
     public function update(UpdateClassGroupRequest $request, ClassGroup $classGroup)
     {
         $data = $request->except('_token', '_method', 'school_id');
-        $this->myClass->updateClassGroup($classGroup, $data);
+        $this->myClassService->updateClassGroup($classGroup, $data);
 
         return back()->with('success', __('Class group updated successfully'));
     }
@@ -112,7 +112,7 @@ class ClassGroupController extends Controller
      */
     public function destroy(ClassGroup $classGroup)
     {
-        $this->myClass->deleteClassGroup($classGroup);
+        $this->myClassService->deleteClassGroup($classGroup);
 
         return back()->with('success', __('Class group deleted successfully'));
     }
