@@ -2,9 +2,10 @@
 
 namespace App\Services\MyClass;
 
-use App\Models\ClassGroup;
 use App\Models\MyClass;
+use App\Models\ClassGroup;
 use App\Services\School\SchoolService;
+use App\Exceptions\ClassGroupNotEmptyException;
 
 class MyClassService
 {
@@ -105,15 +106,7 @@ class MyClassService
      */
     public function createClassGroup($record)
     {
-        $record['school_id'] = auth()->user()->school_id;
-
-        $classGroup = ClassGroup::firstOrCreate($record);
-
-        if (!$classGroup->wasRecentlyCreated) {
-            session()->flash('danger', __('Class group already exists'));
-        } else {
-            session()->flash('success', __('Class group created successfully'));
-        }
+        $classGroup = ClassGroup::create($record);
 
         return $classGroup;
     }
@@ -152,7 +145,6 @@ class MyClassService
                 'name' => $records['name'],
             ]
         );
-        session()->flash('success', __('Class group updated successfully'));
 
         return $classGroup;
     }
@@ -161,16 +153,17 @@ class MyClassService
      * Delete class group.
      *
      * @param App\Models\ClassGroup $classGroup
+     * 
+     * @throws ClassGroupNotEmptyException
      *
      * @return void
      */
     public function deleteClassGroup(ClassGroup $classGroup)
     {
         if ($classGroup->classes->count()) {
-            return session()->flash('danger', __('Remove all classes from this class group first'));
+            throw new ClassGroupNotEmptyException("Class Group contains classes");
         }
         $classGroup->delete();
-        session()->flash('success', __('Class group deleted successfully'));
     }
 
     /**
