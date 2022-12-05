@@ -4,14 +4,9 @@ namespace App\Exceptions;
 
 use Exception;
 
-class ClassGroupNotEmptyException extends Exception
+class ResourceNotEmptyException extends Exception
 {
-    public function report()
-    {
-        return false;
-    }
-
-        /**
+    /**
      * Render the exception into an HTTP response.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -22,7 +17,7 @@ class ClassGroupNotEmptyException extends Exception
         if ($request->is('api/*')) {
             return response()->json([
                 'message' => $this->getMesage()
-            ], 404);
+            ], 400);
         }else{
             return back()->with('danger', $this->getMessage());
         }

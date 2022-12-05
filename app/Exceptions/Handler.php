@@ -3,7 +3,7 @@
 namespace App\Exceptions;
 
 use Throwable;
-use App\Exceptions\ClassGroupNotEmptyException;
+use App\Exceptions\ResourceNotEmptyException;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
 class Handler extends ExceptionHandler
@@ -14,7 +14,7 @@ class Handler extends ExceptionHandler
      * @var array<int, class-string<Throwable>>
      */
     protected $dontReport = [
-        ClassGroupNotEmptyException::class
+        ResourceNotEmptyException::class
     ];
 
     /**
