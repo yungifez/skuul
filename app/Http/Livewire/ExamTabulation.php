@@ -3,6 +3,7 @@
 namespace App\Http\Livewire;
 
 use App\Models\Exam;
+use App\Models\MyClass;
 use App\Models\Section;
 use App\Services\Exam\ExamService;
 use App\Services\MyClass\MyClassService;
@@ -39,6 +40,7 @@ class ExamTabulation extends Component
 
         //sets subjects etc if class isn't empty
         if (!$this->classes->isEmpty()) {
+            $this->class = $this->classes[0]->id;
             $this->sections = $this->classes[0]->sections;
             $this->section = $this->sections[0]->id;
         }
@@ -56,19 +58,36 @@ class ExamTabulation extends Component
         $this->sections->count() ? $this->section = $this->sections[0]->id : $this->section = null;
     }
 
-    public function tabulate(Exam $exam, Section $section)
+    public function tabulate(Exam $exam, MyClass $myClass, $section)
     {
-        //get all subjects in section
-        $subjects = $section->myClass->subjects;
+        $section = Section::find($section);
 
-        //get all students in section
-        $students = $section->studentRecords()->with('user')->get()->map(function ($studentRecord) {
-            return $studentRecord->user;
-        });
+        if ($section == null) {
+            //get all subjects in class
+            $subjects = $myClass->subjects;
+
+            //get all students in class
+            $students = $myClass->studentRecords()->with('user')->get()->map(function ($studentRecord) {
+                return $studentRecord->user;
+            });
+
+            $classGroup = $myClass->classGroup;
+        } else {
+            //get all subjects in section
+            $subjects = $section->myClass->subjects;
+
+            //get all students in section
+            $students = $section->studentRecords()->with('user')->get()->map(function ($studentRecord) {
+                return $studentRecord->user;
+            });
+
+            $classGroup = $section->myClass->classGroup;
+        }
+
         //get all exam slots
         $examSlots = $exam->load('examSlots')->examSlots;
 
-        $this->tabulatedRecords = $this->tabulateMarks($section->myClass->classGroup, $subjects, $students, $examSlots);
+        $this->tabulatedRecords = $this->tabulateMarks($classGroup, $subjects, $students, $examSlots);
     }
 
     //print function

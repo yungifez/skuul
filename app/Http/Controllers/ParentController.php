@@ -57,7 +57,7 @@ class ParentController extends Controller
         $this->authorize('create', [User::class, 'parent']);
         $this->parent->createParent($request);
 
-        return back();
+        return back()->with('success', 'Parent Created Successfully');
     }
 
     /**
@@ -110,7 +110,7 @@ class ParentController extends Controller
         $this->parent->user->verifyUserIsOfRoleElseNotFound($parent, 'parent');
         $this->parent->updateParent($parent, $request->except('_token', '_method'));
 
-        return back();
+        return back()->with('success', 'Parent Updated Successfully');
     }
 
     /**
@@ -128,7 +128,7 @@ class ParentController extends Controller
         $this->parent->user->verifyUserIsOfRoleElseNotFound($parent, 'parent');
         $this->parent->deleteParent($parent);
 
-        return back();
+        return back()->with('success', 'Parent Deleted Successfully');
     }
 
     /**

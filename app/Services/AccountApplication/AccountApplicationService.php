@@ -113,7 +113,7 @@ class AccountApplicationService
      */
     public function changeStatus(User $applicant, $record)
     {
-        DB::transaction(function () use ($applicant, $record){
+        DB::transaction(function () use ($applicant, $record) {
             $applicant->accountApplication->setStatus($record['status'], $record['reason'] ?? null);
 
             if ($applicant->accountApplication->status == 'approved') {
