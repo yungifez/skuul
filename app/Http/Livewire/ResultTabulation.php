@@ -4,11 +4,11 @@ namespace App\Http\Livewire;
 
 use App\Models\MyClass;
 use App\Models\Section;
-use Livewire\Component;
-use Barryvdh\DomPDF\Facade\Pdf;
-use App\Traits\MarkTabulationTrait;
 use App\Services\MyClass\MyClassService;
 use App\Services\Section\SectionService;
+use App\Traits\MarkTabulationTrait;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Livewire\Component;
 
 class ResultTabulation extends Component
 {
@@ -63,11 +63,11 @@ class ResultTabulation extends Component
             });
 
             $classGroup = $myClass->classGroup;
-        }else{
+        } else {
             //get all subjects in section
             $subjects = $section->myClass->subjects;
 
-             //get all students in section
+            //get all students in section
             $students = $section->studentRecords->load('user')->map(function ($studentRecord) {
                 return $studentRecord->user;
             });

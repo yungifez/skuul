@@ -5,12 +5,12 @@ namespace App\Http\Livewire;
 use App\Models\Exam;
 use App\Models\MyClass;
 use App\Models\Section;
-use Livewire\Component;
-use Barryvdh\DomPDF\Facade\Pdf;
 use App\Services\Exam\ExamService;
-use App\Traits\MarkTabulationTrait;
 use App\Services\MyClass\MyClassService;
 use App\Services\Section\SectionService;
+use App\Traits\MarkTabulationTrait;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Livewire\Component;
 
 class ExamTabulation extends Component
 {
@@ -58,10 +58,10 @@ class ExamTabulation extends Component
         $this->sections->count() ? $this->section = $this->sections[0]->id : $this->section = null;
     }
 
-    public function tabulate(Exam $exam,MyClass $myClass , $section)
+    public function tabulate(Exam $exam, MyClass $myClass, $section)
     {
         $section = Section::find($section);
-        
+
         if ($section == null) {
             //get all subjects in class
             $subjects = $myClass->subjects;
@@ -72,7 +72,7 @@ class ExamTabulation extends Component
             });
 
             $classGroup = $myClass->classGroup;
-        }else{
+        } else {
             //get all subjects in section
             $subjects = $section->myClass->subjects;
 
