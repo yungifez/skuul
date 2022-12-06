@@ -175,6 +175,5 @@ class MyClassService
             throw new ResourceNotEmptyException('Class contains students');
         }
         $class->delete();
-        session()->flash('success', __('Class deleted successfully'));
     }
 }

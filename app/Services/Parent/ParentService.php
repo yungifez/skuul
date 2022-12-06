@@ -35,7 +35,7 @@ class ParentService
      *
      * @param collection $record
      *
-     * @return void
+     * @return User
      */
     public function createParent($record)
     {
@@ -45,7 +45,7 @@ class ParentService
             $parent->parentRecord()->create(['user_id'=> $parent->id]);
         });
 
-        session()->flash('success', 'parent Created Successfully');
+        return $parent;
     }
 
     /**
@@ -54,13 +54,13 @@ class ParentService
      * @param User                    $parent
      * @param array|object|collection $records
      *
-     * @return void
+     * @return User
      */
     public function updateParent(User $parent, $records)
     {
-        $this->user->updateUser($parent, $records, 'parent');
+        $parent = $this->user->updateUser($parent, $records, 'parent');
 
-        return session()->flash('success', 'Parent Updated Successfully');
+        return $parent;
     }
 
     /**
@@ -73,8 +73,6 @@ class ParentService
     public function deleteParent(User $parent)
     {
         $this->user->deleteUser($parent);
-
-        return session()->flash('success', 'Parent Deleted Successfully');
     }
 
     /**

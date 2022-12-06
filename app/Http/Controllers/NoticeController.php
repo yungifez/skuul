@@ -48,7 +48,7 @@ class NoticeController extends Controller
     {
         $this->notice->storeNotice($request->except('_token'));
 
-        return back();
+        return back()->with('success', 'Notice created successfully');
     }
 
     /**
@@ -99,6 +99,6 @@ class NoticeController extends Controller
     {
         $this->notice->deleteNotice($notice);
 
-        return back();
+        return back()->with('success', 'Notice deleted successfully');
     }
 }
