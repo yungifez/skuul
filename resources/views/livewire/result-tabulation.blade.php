@@ -11,7 +11,7 @@
             </div>
         </div>
         {{-- form for selecting class and section to display --}}
-        <form wire:submit.prevent="tabulate('{{$section}}')" class="d-md-flex my-3">
+        <form wire:submit.prevent="tabulate('{{$class}}','{{$section}}')" class="d-md-flex my-3">
             <div class="d-md-flex col-md-10 px-0">
                 <x-adminlte-select name="class" label="Class"  fgroup-class="col-md-6" enable-old-support wire:model="class">
                     @foreach ($classes as $item)
@@ -19,6 +19,7 @@
                     @endforeach
                 </x-adminlte-select>
                 <x-adminlte-select name="section" label="Section" fgroup-class="col-md-6" wire:model="section">
+                    <option value="null">Entire Class</option>
                     @isset($sections)
                         @foreach ($sections as $item)
                             <option value="{{$item['id']}}">{{$item['name']}}</option>
