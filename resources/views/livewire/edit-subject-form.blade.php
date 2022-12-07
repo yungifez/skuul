@@ -14,6 +14,8 @@
             </x-adminlte-select2>
             @csrf
             @method('PUT')
+            {{--select2 picker plugin--}}
+            @section('plugins.Select2', true)
             <x-adminlte-button label="Edit" theme="primary" icon="fas fa-key" type="submit"/>
         </form>
     </div>
