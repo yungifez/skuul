@@ -34,10 +34,12 @@
             </div>
         </x-slot>
     </x-adminlte-input-file>
+    @section('plugins.BsCustomFileInput', true)
     <x-adminlte-select name="religion" label="Religion" fgroup-class="col-md-6" enable-old-support>
         @php ($religions = ['Christianity', 'Islam', 'Hinduism', 'Buddhism', 'Other'])
         @foreach ($religions as $religion)
             <option value="{{$religion}}"  >{{$religion}}</option>
         @endforeach
     </x-adminlte-select>
+    @section('plugins.TempusDominusBs4', true)
 </div>

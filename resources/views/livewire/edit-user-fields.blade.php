@@ -38,4 +38,5 @@
             <option value="{{$religion}}" {{Str::lower($religion) == str::lower($user->religion) ? 'selected' : ''}} >{{$religion}}</option>
         @endforeach
     </x-adminlte-select>
+    @section('plugins.BsCustomFileInput', true)
 </div>

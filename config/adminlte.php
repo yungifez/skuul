@@ -757,7 +757,7 @@ return [
             ],
         ],
         'DatatablesPlugins' => [
-            'active' => true,
+            'active' => false,
             'files'  => [
                 [
                     'type'     => 'js',
@@ -802,7 +802,7 @@ return [
             ],
         ],
         'TempusDominusBs4' => [
-            'active' => true,
+            'active' => false,
             'files'  => [
                 [
                     'type'     => 'js',
@@ -823,7 +823,7 @@ return [
         ],
 
         'Select2' => [
-            'active' => true,
+            'active' => false,
             'files'  => [
                 [
                     'type'     => 'js',
@@ -878,7 +878,7 @@ return [
             ],
         ],
         'BsCustomFileInput' => [
-            'active' => true,
+            'active' => false,
             'files'  => [
                 [
                     'type'     => 'js',

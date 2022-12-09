@@ -18,6 +18,7 @@
             <div class='col-12 my-2'>
                 <x-adminlte-button label="Create" theme="primary" icon="fas fa-key" type="submit" class="col-md-3"/>
             </div>
+            @section('plugins.BsCustomFileInput', true)
         </form>
     </div>
 </div>

@@ -22,6 +22,7 @@
             <div class='col-12 my-2'>
                 <x-adminlte-button label="Create" theme="primary" icon="fas fa-key" type="submit" class="col-md-3"/>
             </div>
+            @section('plugins.TempusDominusBs4', true)
         </form>
     </div>
 </div>
