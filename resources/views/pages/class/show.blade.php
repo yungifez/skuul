@@ -1,10 +1,10 @@
 @extends('adminlte::page')
 
-@section('title', __('Classes'))
+@section('title', __("View $class->name"))
 
 @section('content_header')
     <h1 class="">
-        {{ __('Classes') }}
+        {{ __("View $class->name") }}
     </h1>
 
     @livewire('show-set-school')

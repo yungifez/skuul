@@ -67,9 +67,7 @@ class ExamTabulation extends Component
             $subjects = $myClass->subjects;
 
             //get all students in class
-            $students = $myClass->studentRecords()->with('user')->get()->map(function ($studentRecord) {
-                return $studentRecord->user;
-            });
+            $students = $myClass->students();
 
             $classGroup = $myClass->classGroup;
         } else {
@@ -77,9 +75,7 @@ class ExamTabulation extends Component
             $subjects = $section->myClass->subjects;
 
             //get all students in section
-            $students = $section->studentRecords()->with('user')->get()->map(function ($studentRecord) {
-                return $studentRecord->user;
-            });
+            $students = $section->students();
 
             $classGroup = $section->myClass->classGroup;
         }
