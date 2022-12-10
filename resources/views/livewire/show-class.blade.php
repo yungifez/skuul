@@ -9,7 +9,7 @@
         </ol>
         <h4 class="text-center text-semibold">Subject List</h4>
         <div class="table-responsive">
-            <table class="table col-8 table-bordered m-auto">
+            <table class="table col-md-8 table-bordered m-auto">
                 <thead>
                     <th>Subject</th>
                     <th>Offered By</th>
