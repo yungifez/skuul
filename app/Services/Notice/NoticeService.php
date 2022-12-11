@@ -73,6 +73,5 @@ class NoticeService
     public function deleteNotice(Notice $notice)
     {
         $notice->delete();
-        session();
     }
 }

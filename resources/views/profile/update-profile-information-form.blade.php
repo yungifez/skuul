@@ -71,7 +71,6 @@
 
             <!-- birthday -->
             <x-adminlte-input-date name="birthday" :config="['format' => 'YYYY/MM/DD']" placeholder="Choose birth date..." label="Birthday (YYYY/MM/DD)"  fgroup-class="+" wire:model="state.birthday"/>
-            @section('plugins.TempusDominusBs4', true)
 
             <div class="row col-12">
                 <!--Gender-->
@@ -136,4 +135,5 @@
 			</x-jet-button>
 		</div>
     </x-slot>
+    @section('plugins.TempusDominusBs4', true)
 </x-jet-form-section>

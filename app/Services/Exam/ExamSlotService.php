@@ -52,7 +52,6 @@ class ExamSlotService
                 'total_marks' => $data['total_marks'],
             ]);
         });
-        session()->flash('success', 'Exam Slot Created Successfully');
     }
 
     /**
@@ -75,8 +74,6 @@ class ExamSlotService
                 'total_marks' => $data['total_marks'],
             ]);
         });
-
-        session()->flash('success', 'Exam Slot Updated Successfully');
     }
 
     /**
@@ -89,6 +86,5 @@ class ExamSlotService
     public function deleteExamSlot(ExamSlot $examSlot)
     {
         $examSlot->delete();
-        session()->flash('success', 'Exam Slot Deleted Successfully');
     }
 }

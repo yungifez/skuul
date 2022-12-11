@@ -63,7 +63,7 @@ class StudentController extends Controller
         $this->authorize('create', [User::class, 'student']);
         $this->student->createStudent($request);
 
-        return back();
+        return back()->with('success', 'Student Created Successfully');
     }
 
     /**
@@ -129,7 +129,7 @@ class StudentController extends Controller
         $data = $request->except('_token', '_method');
         $this->student->updateStudent($student, $data);
 
-        return back();
+        return back()->with('success', 'Student Updated Successfully');
     }
 
     /**
@@ -147,6 +147,6 @@ class StudentController extends Controller
         $this->authorize('delete', [$student, 'student']);
         $this->student->deleteStudent($student);
 
-        return back();
+        return back()->with('success', 'Student Deleted Successfully');
     }
 }

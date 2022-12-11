@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\AssignStudentRequedt;
+use App\Http\Requests\AssignStudentRequest;
 use App\Models\User;
 use App\Services\Parent\ParentService;
 use Illuminate\Http\Request;
@@ -143,7 +143,15 @@ class ParentController extends Controller
         return view('pages.parent.assign-students', compact('parent'));
     }
 
-    public function assignStudent(AssignStudentRequedt $request, User $parent)
+    /**
+     * Undocumented function
+     *
+     * @param AssignStudentRequest $request
+     * @param User $parent
+     * 
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function assignStudent(AssignStudentRequest $request, User $parent)
     {
         $this->parent->user->verifyUserIsOfRoleElseNotFound($parent, 'parent');
         $student = $request->student_id;
@@ -151,6 +159,11 @@ class ParentController extends Controller
         $request->assign == null ? $assign = true : $assign = $request->assign;
         $this->parent->assignStudentToParent($parent, $student, $assign);
 
-        return back();
+        if ($assign == false) {
+            $message = "Student successfully removed from parent";
+        } else {
+            $message = "Student successfully assigned to parent";
+        }
+        return back()->with('success', $message);
     }
 }

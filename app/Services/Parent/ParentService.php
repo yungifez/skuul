@@ -2,9 +2,11 @@
 
 namespace App\Services\Parent;
 
+use App\Exceptions\InvalidUserException;
 use App\Models\User;
 use App\Services\User\UserService;
 use Illuminate\Support\Facades\DB;
+use App\Services\Print\PrintService;
 
 class ParentService
 {
@@ -39,10 +41,12 @@ class ParentService
      */
     public function createParent($record)
     {
-        DB::transaction(function () use ($record) {
+        $parent = DB::transaction(function () use ($record) {
             $parent = $this->user->createUser($record);
             $parent->assignRole('parent');
             $parent->parentRecord()->create(['user_id'=> $parent->id]);
+
+            return $parent;
         });
 
         return $parent;
@@ -102,16 +106,14 @@ class ParentService
     {
         $student = $this->user->getUserById($student);
         if (!$this->user->verifyRole($student->id, 'student')) {
-            session()->flash('danger', 'User is not a student');
+            throw new InvalidUserException('User is not a student', 1);
 
             return;
         }
         if ($assign == false) {
             $parent->parentRecord->students()->detach($student);
-            session()->flash('success', 'Student successfully removed from parent');
         } else {
             $parent->parentRecord->students()->syncWithoutDetaching($student);
-            session()->flash('success', 'Student successfully assigned to parent');
         }
     }
 }

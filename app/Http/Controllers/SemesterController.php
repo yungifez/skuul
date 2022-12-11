@@ -49,7 +49,7 @@ class SemesterController extends Controller
         $data = $request->except(['_token']);
         $this->semester->createSemester($data);
 
-        return back();
+        return back()->with('success', 'Successfully created semester');
     }
 
     /**
@@ -89,7 +89,7 @@ class SemesterController extends Controller
         $data = $request->except('_token', '_method');
         $this->semester->updateSemester($semester, $data);
 
-        return back();
+        return back()->with('success', 'Successfully updated semester');
     }
 
     /**
@@ -103,7 +103,7 @@ class SemesterController extends Controller
     {
         $this->semester->deleteSemester($semester);
 
-        return back();
+        return back()->with('success', 'Successfully deleted semester');
     }
 
     /**
@@ -114,8 +114,9 @@ class SemesterController extends Controller
     public function setSemester(SetSemesterRequest $request)
     {
         $this->authorize('setSemester', Semester::class);
-        $this->semester->setSemester($request->semester_id);
+        $semester = Semester::findOrFail($request->semester_id);
+        $this->semester->setSemester($semester);
 
-        return back();
+        return back()->with('success', 'Successfully set current semester');
     }
 }
