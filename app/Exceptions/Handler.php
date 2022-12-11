@@ -13,9 +13,7 @@ class Handler extends ExceptionHandler
      * @var array<int, class-string<Throwable>>
      */
     protected $dontReport = [
-        ResourceNotEmptyException::class,
-        DuplicateRangeException::class,
-        InvalidValueException::class,
+        ApplicationException::class
     ];
 
     /**
