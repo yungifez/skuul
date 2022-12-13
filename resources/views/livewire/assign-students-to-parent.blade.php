@@ -48,6 +48,9 @@
                                 S/N
                             </th>
                             <th style="width:%">
+                                Picture
+                            </th>
+                            <th style="width:%">
                                 Name
                             </th>
                             <th style="width:%">
@@ -67,6 +70,8 @@
                     @foreach($children as $student)
                         <tr>
                             <td>{{$loop->iteration}}</td>
+                            <td><img src="{{$student->profile_photo_url}}" alt="" class="rounded-circle" height="50px" width="50px"></td>
+                            <td>{{ $student->name}}</td>
                             <td>@isset ($student->studentRecord->myClass)
                                 {{$student->studentRecord->myClass->name}}
                             @endisset</td>
