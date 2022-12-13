@@ -58,9 +58,7 @@ class ResultTabulation extends Component
             $subjects = $myClass->subjects;
 
             //get all students in class
-            $students = $myClass->studentRecords->load('user')->map(function ($studentRecord) {
-                return $studentRecord->user;
-            });
+            $students = $myClass->students();
 
             $classGroup = $myClass->classGroup;
         } else {
@@ -68,9 +66,7 @@ class ResultTabulation extends Component
             $subjects = $section->myClass->subjects;
 
             //get all students in section
-            $students = $section->studentRecords->load('user')->map(function ($studentRecord) {
-                return $studentRecord->user;
-            });
+            $students = $section->students();
 
             $classGroup = $section->myClass->classGroup;
         }
@@ -78,7 +74,7 @@ class ResultTabulation extends Component
         if ($students->isEmpty()) {
             $this->createdTabulation = false;
 
-            return $tabulatedRecords;
+            return;
         }
 
         $examSlots = $this->semester->load('examSlots')->examSlots;

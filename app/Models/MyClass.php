@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 class MyClass extends Model
 {
@@ -49,5 +50,19 @@ class MyClass extends Model
     public function subjects()
     {
         return $this->hasMany(Subject::class);
+    }
+
+    /**
+     * Get the students in class.
+     *
+     * @return Collection
+     */
+    public function students()
+    {
+        $students = $this->loadMissing('studentRecords', 'studentRecords.user')->studentRecords->map(function ($studentRecord) {
+            return $studentRecord->user;
+        });
+
+        return $students;
     }
 }

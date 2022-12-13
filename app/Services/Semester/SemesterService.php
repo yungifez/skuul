@@ -2,72 +2,107 @@
 
 namespace App\Services\Semester;
 
+use App\Exceptions\InvalidValueException;
 use App\Models\Semester;
 
 class SemesterService
 {
-    //get all semesters
+    /**
+     * Get all semesters in school.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
     public function getAllSemesters()
     {
         return Semester::where(['school_id'=> auth()->user()->school_id])->get();
     }
 
-    //get semesters by academic year
-    public function getAllSemestersInAcademicYear($academicYear)
+    /**
+     * Get all semesters in academic year.
+     *
+     * @param int $academicYear
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getAllSemestersInAcademicYear(int $academicYear)
     {
         return $this->getAllSemesters()->where('academic_year_id', $academicYear);
     }
 
-    //get semester by id
-    public function getSemesterById($id)
+    /**
+     * Get semester by Id.
+     *
+     * @param int $id
+     *
+     * @return Semester
+     */
+    public function getSemesterById(int $id)
     {
         return Semester::find($id);
     }
 
+    /**
+     * Create a new semester.
+     *
+     * @param mixed $data
+     *
+     * @return Semester
+     */
     public function createSemester($data)
     {
         $data['academic_year_id'] = auth()->user()->school->academicYear->id;
         $data['school_id'] = auth()->user()->school->id;
-        Semester::create([
+        $semester = Semester::create([
             'name'             => $data['name'],
             'school_id'        => $data['school_id'],
             'academic_year_id' => $data['academic_year_id'],
         ]);
 
-        return session()->flash('success', 'Successfully created semester');
+        return $semester;
     }
 
-    //set semester as current school semester
-
-    public function setSemester($semester)
+    /**
+     * Set current semester.
+     *
+     * @param Semester $semester
+     *
+     * @throws InvalidValueException
+     *
+     * @return void
+     */
+    public function setSemester(Semester $semester)
     {
-        $semester = $this->getSemesterById($semester);
         $school = auth()->user()->school;
         if ($semester->academicYear->id != $school->academic_year_id) {
-            return session()->flash('error', 'This semester isn\'t in your current academic year');
+            throw new InvalidValueException('Semester not in academic year');
         }
         $school->semester_id = $semester->id;
         $school->save();
-
-        return session()->flash('success', 'Successfully set current semester');
     }
 
-    //update semester
-
+    /**
+     * Semester service.
+     *
+     * @param Semester $semester
+     * @param mixed    $data
+     *
+     * @return void
+     */
     public function updateSemester(Semester $semester, $data)
     {
         $semester->name = $data['name'];
         $semester->save();
-
-        return session()->flash('success', 'Successfully updated semester');
     }
 
-    //delete semester
-
+    /**
+     * Delete Semester.
+     *
+     * @param Semester $semester
+     *
+     * @return void
+     */
     public function deleteSemester(Semester $semester)
     {
         $semester->delete();
-
-        return session()->flash('success', 'Successfully deleted semester');
     }
 }

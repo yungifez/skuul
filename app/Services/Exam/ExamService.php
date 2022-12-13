@@ -30,7 +30,7 @@ class ExamService
      *
      * @param int $semester_id
      *
-     * @return void
+     * @return Collection
      */
     public function getAllExamsInSemester(int $semester_id)
     {

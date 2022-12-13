@@ -2,6 +2,8 @@
 
 namespace App\Services\Student;
 
+use App\Exceptions\EmptyRecordsException;
+use App\Exceptions\InvalidValueException;
 use App\Models\Promotion;
 use App\Models\School;
 use App\Models\StudentRecord;
@@ -26,19 +28,24 @@ class StudentService
      * @var UserService
      */
     public $userService;
-    public $section;
+    /**
+     * Instance of section service.
+     *
+     * @var SectionService
+     */
+    public SectionService $sectionService;
 
-    public function __construct(MyClassService $myClass, UserService $userService, SectionService $section)
+    public function __construct(MyClassService $myClassService, UserService $userService, SectionService $sectionService)
     {
-        $this->myClass = $myClass;
-        $this->section = $section;
+        $this->myClassService = $myClassService;
+        $this->sectionService = $sectionService;
         $this->userService = $userService;
     }
 
     /**
      * Get all students in school.
      *
-     * @return lluminate\Database\Eloquent\Collection
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getAllStudents()
     {
@@ -48,7 +55,7 @@ class StudentService
     /**
      * Get all active students in school.
      *
-     * @return lluminate\Database\Eloquent\Collection
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getAllActiveStudents()
     {
@@ -62,7 +69,7 @@ class StudentService
     /**
      * Get all graduated students in school.
      *
-     * @return lluminate\Database\Eloquent\Collection
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getAllGraduatedStudents()
     {
@@ -98,25 +105,24 @@ class StudentService
 
             $this->createStudentRecord($student, $record);
         });
-        session()->flash('success', 'Student Created Successfully');
     }
 
     /**
      * Create record for student.
      *
-     * @param User $student $name
-     * @param [type] $record
+     * @param User         $student $name
+     * @param array|object $record
+     *
+     * @throws InvalidValueException
      *
      * @return void
      */
     public function createStudentRecord(User $student, $record)
     {
         $record['admission_number'] || $record['admission_number'] = $this->generateAdmissionNumber();
-        $section = $this->section->getSectionById($record['section_id']);
-        if (!$this->myClass->getClassById($record['my_class_id'])->sections->contains($section)) {
-            session()->flash('danger', 'Section is not in class');
-
-            return;
+        $section = $this->sectionService->getSectionById($record['section_id']);
+        if (!$this->myClassService->getClassById($record['my_class_id'])->sections->contains($section)) {
+            throw new InvalidValueException('Section is not in class');
         }
 
         $student->studentRecord()->firstOrCreate([
@@ -147,7 +153,6 @@ class StudentService
     public function updateStudent(User $student, $records)
     {
         $student = $this->userService->updateUser($student, $records);
-        session()->flash('success', 'Student Updated Successfully');
     }
 
     /**
@@ -160,7 +165,6 @@ class StudentService
     public function deleteStudent(User $student)
     {
         $student->delete();
-        session()->flash('success', 'Student Deleted Successfully');
     }
 
     /**
@@ -184,29 +188,44 @@ class StudentService
         return $admissionNumber;
     }
 
+    /**
+     * Print srudent profile.
+     *
+     * @param string $name
+     * @param string $view
+     * @param array  $data
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function printProfile(string $name, string $view, array $data)
     {
         return PrintService::createPdfFromView($name, $view, $data)->download();
     }
 
-    //promote student method
+    /**
+     * Promote students.
+     *
+     * @param array<mixed> $records
+     *
+     * @return void
+     */
     public function promoteStudents($records)
     {
-        $oldClass = $this->myClass->getClassById($records['old_class_id']);
-        $newClass = $this->myClass->getClassById($records['new_class_id']);
-        $records['academic_year_id'] = auth()->user()->school->academic_year_id;
+        $oldClass = $this->myClassService->getClassById($records['old_class_id']);
+        $newClass = $this->myClassService->getClassById($records['new_class_id']);
+        $academicYear = auth()->user()->school->academic_year_id;
 
         if (!$oldClass->sections()->where('id', $records['old_section_id'])->exists()) {
-            return session()->flash('danger', 'Old section is not in old class');
+            throw new InvalidValueException('Old section is not in old class');
         }
 
         if (!$newClass->sections()->where('id', $records['new_section_id'])->exists()) {
-            return session()->flash('danger', 'New section is not in new class');
+            throw new InvalidValueException('New section is not in new class');
         }
 
         //make sure academic year is present
-        if ($records['academic_year_id'] == null) {
-            return session()->flash('danger', 'Academic year is not set');
+        if ($academicYear == null) {
+            throw new InvalidValueException('Academic year is not set');
         }
 
         //get all students for promotion
@@ -214,7 +233,7 @@ class StudentService
 
         // make sure there are students to promote
         if (!$students->count()) {
-            return session()->flash('danger', 'No students to promote');
+            throw new EmptyRecordsException('No students to promote', 1);
         }
 
         $currentAcademicYear = auth()->user()->school->academicYear;
@@ -239,28 +258,41 @@ class StudentService
             'old_section_id'   => $records['old_section_id'],
             'new_section_id'   => $records['new_section_id'],
             'students'         => $students->pluck('id'),
-            'academic_year_id' => $records['academic_year_id'],
+            'academic_year_id' => $academicYear,
             'school_id'        => auth()->user()->school_id,
         ]);
-
-        return session()->flash('success', 'Students Promoted Successfully');
     }
 
-    //get all promotion record
-
+    /**
+     * Get all promotions.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
     public function getAllPromotions()
     {
         return Promotion::where('school_id', auth()->user()->school_id)->get();
     }
 
-    public function getPromotionsByAcademicYearId($academicYearId)
+    /**
+     * Get promotions by academic year Id.
+     *
+     * @param int $academicYearId The Primary key of the academic year
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getPromotionsByAcademicYearId(int $academicYearId)
     {
         return Promotion::where('school_id', auth()->user()->school_id)->where('academic_year_id', $academicYearId)->get();
     }
 
-    // reset promotion method
-
-    public function resetPromotion($promotion)
+    /**
+     * Reset promotion.
+     *
+     * @param Promotion $promotion instance of promotion to reset
+     *
+     * @return void
+     */
+    public function resetPromotion(Promotion $promotion)
     {
         $students = $this->getStudentById($promotion->students);
         $currentAcademicYear = auth()->user()->school->academicYear;
@@ -277,11 +309,17 @@ class StudentService
         }
 
         $promotion->delete();
-
-        return session()->flash('success', 'Promotion Reset Successfully');
     }
 
-    //graduate student method
+    /**
+     * Graduate students.
+     *
+     * @param mixed $records
+     *
+     * @throws InvalidValueException
+     *
+     * @return void
+     */
     public function graduateStudents($records)
     {
         //get all students for graduation
@@ -289,7 +327,7 @@ class StudentService
 
         // make sure there are students to graduate
         if (!$students->count()) {
-            return session()->flash('danger', 'No students to graduate');
+            throw new InvalidValueException('No students to graduate');
         }
 
         // update each student's graduation status
@@ -300,18 +338,19 @@ class StudentService
                 ]);
             }
         }
-
-        return session()->flash('success', 'Students graduated Successfully');
     }
 
-    //reset graduation method
-
+    /**
+     * Reset Graduation.
+     *
+     * @param User $student
+     *
+     * @return void
+     */
     public function resetGraduation(User $student)
     {
         $student->studentRecord()->update([
             'is_graduated' => false,
         ]);
-
-        return session()->flash('success', 'Graduation Reset Successfully');
     }
 }

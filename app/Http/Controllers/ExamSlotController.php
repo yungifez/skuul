@@ -50,7 +50,7 @@ class ExamSlotController extends Controller
         $data = $request->except('_token');
         $this->examSlot->createExamSlot($exam, $data);
 
-        return back();
+        return back()->with('success', 'Exam Slot Created Successfully');
     }
 
     /**
@@ -90,7 +90,7 @@ class ExamSlotController extends Controller
         $data = $request->except('_token', '_method');
         $this->examSlot->updateExamSlot($examSlot, $data);
 
-        return back();
+        return back()->with('success', 'Exam Slot Updated Successfully');
     }
 
     /**
@@ -104,6 +104,6 @@ class ExamSlotController extends Controller
     {
         $this->examSlot->deleteExamSlot($examSlot);
 
-        return back();
+        return back()->with('success', 'Exam Slot Deleted Successfully');
     }
 }

@@ -29,6 +29,8 @@ class PromotionController extends Controller
 
     /**
      * promote view.
+     *
+     * @return \Illuminate\Http\Response
      */
     public function promoteView()
     {
@@ -38,7 +40,11 @@ class PromotionController extends Controller
     }
 
     /**
-     * promote student.
+     * Promote student.
+     *
+     * @param StudentPromoteRequest $request
+     *
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function promote(StudentPromoteRequest $request)
     {
@@ -46,18 +52,22 @@ class PromotionController extends Controller
         $data = collect($request->except('_token'));
         $this->student->promoteStudents($data);
 
-        return back();
+        return back()->with('success', 'Students Promoted Successfully');
     }
 
     /**
-     * reset promotion.
+     * Reset promotion.
+     *
+     * @param Promotion $promotion
+     *
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function resetPromotion(Promotion $promotion)
     {
         $this->authorize('reset', Promotion::class);
         $this->student->resetPromotion($promotion);
 
-        return back();
+        return back()->with('success', 'Promotion Reset Successfully');
     }
 
     /**

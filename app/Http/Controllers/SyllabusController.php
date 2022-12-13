@@ -47,7 +47,7 @@ class SyllabusController extends Controller
         $data = $request->except(['_token']);
         $this->syllabus->createSyllabus($data);
 
-        return back();
+        return back()->with('success', 'Successfully created Syllabus');
     }
 
     /**
@@ -98,6 +98,6 @@ class SyllabusController extends Controller
     {
         $this->syllabus->deleteSyllabus($syllabus);
 
-        return back();
+        return back()->with('success', 'Successfully deleted Syllabus');
     }
 }

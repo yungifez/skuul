@@ -49,7 +49,7 @@ class TimetableTimeSlotController extends Controller
         $data = $request->except('_token');
         $this->timeSlot->createTimeSlot($timetable, $data);
 
-        return back();
+        return back()->with('success', 'Time slot successfully created');
     }
 
     /**
@@ -101,7 +101,7 @@ class TimetableTimeSlotController extends Controller
     {
         $this->timeSlot->deleteTimeSlot($timeSlot);
 
-        return back();
+        return back()->with('success', __('Time slot deleted successfully'));
     }
 
     //timetable record
@@ -111,6 +111,6 @@ class TimetableTimeSlotController extends Controller
         $data = $request->except('_token');
         $this->timeSlot->createTimetableRecord($timeSlot, $data);
 
-        return back();
+        return back()->with('success', __('Timetable record successfully created'));
     }
 }

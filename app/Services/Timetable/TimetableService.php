@@ -4,7 +4,6 @@ namespace App\Services\Timetable;
 
 use App\Models\Timetable;
 use App\Services\Print\PrintService;
-use Illuminate\Support\Facades\DB;
 
 class TimetableService
 {
@@ -16,51 +15,61 @@ class TimetableService
         });
     }
 
-    //create timetable
-
+    /**
+     * Create timetable.
+     *
+     * @param mixed $data
+     *
+     * @return void
+     */
     public function createTimetable($data)
     {
-        DB::transaction(function () use ($data) {
-            $data['semester_id'] = auth()->user()->school->semester_id;
-            if (!isset($data['description'])) {
-                $data['description'] = null;
-            }
-            Timetable::create([
-                'name'        => $data['name'],
-                'description' => $data['description'],
-                'my_class_id' => $data['my_class_id'],
-                'semester_id' => $data['semester_id'],
-            ]);
-        });
-
-        return session()->flash('success', 'Timetable created successfully');
+        Timetable::create([
+            'name'        => $data['name'],
+            'description' => $data['description'] ?? null,
+            'my_class_id' => $data['my_class_id'],
+            'semester_id' => $data['semester_id'],
+        ]);
     }
 
-    //update timetable
-
+    /**
+     * Update timetable.
+     *
+     * @param Timetable $timetable
+     * @param mixed     $data
+     *
+     * @return void
+     */
     public function updateTimetable(Timetable $timetable, $data)
     {
-        DB::transaction(function () use ($data, $timetable) {
-            $timetable->name = $data['name'];
-            $timetable->description = $data['description'];
-            $timetable->save();
-        });
-
-        return session()->flash('success', 'Timetable updated successfully');
+        $timetable->name = $data['name'];
+        $timetable->description = $data['description'];
+        $timetable->save();
     }
 
-    // print timetable
+    /**
+     * Print timetable.
+     *
+     * @param string $name
+     * @param string $view
+     * @param array  $data
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function printTimetable(string $name, string $view, array $data)
     {
         return PrintService::createPdfFromView($name, $view, $data)->download();
     }
 
-    //delete timetable
-
+    /**
+     * Delete timetable.
+     *
+     * @param Timetable $timetable
+     *
+     * @return void
+     */
     public function deleteTimetable(Timetable $timetable)
     {
         $timetable->delete();
-
-        return session()->flash('success', 'Timetable deleted successfully');
     }
 }

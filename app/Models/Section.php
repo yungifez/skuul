@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -29,5 +30,19 @@ class Section extends Model
     public function studentRecords()
     {
         return $this->hasMany(StudentRecord::class);
+    }
+
+    /**
+     * Get the students in section.
+     *
+     * @return Collection
+     */
+    public function students()
+    {
+        $students = $this->loadMissing('studentRecords', 'studentRecords.user')->studentRecords->map(function ($studentRecord) {
+            return $studentRecord->user;
+        });
+
+        return $students;
     }
 }

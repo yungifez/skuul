@@ -2,69 +2,94 @@
 
 namespace App\Services\Section;
 
+use App\Exceptions\ResourceNotEmptyException;
 use App\Models\Section;
 use App\Services\School\SchoolService;
 
 class SectionService
 {
-    //construct method which calls on the SchoolService class
+    /**
+     * School service instance.
+     *
+     * @var SchoolService
+     */
+    public SchoolService $school;
 
     public function __construct(SchoolService $school)
     {
         $this->school = $school;
     }
 
+    /**
+     * Get all sections.
+     *
+     * @return \Illuminate\Support\Collection
+     */
     public function getAllSections()
     {
         $myClasses = $this->school->getSchoolById(auth()->user()->school_id)->myClasses->load('sections')->all();
-
-        try {
-            $sections = collect();
-            foreach ($myClasses as $myClass) {
-                $sections = $sections->merge($myClass->sections->all());
-            }
-
-            return $sections;
-        } catch (\Throwable $th) {
-            return session()->flash('danger', __('No sections found'));
+        $sections = collect();
+        foreach ($myClasses as $myClass) {
+            $sections = $sections->merge($myClass->sections->all());
         }
+
+        return $sections;
     }
 
-    public function getSectionById($id)
+    /**
+     * Get a section by Id.
+     *
+     * @param int $id
+     *
+     * @return void
+     */
+    public function getSectionById(int $id)
     {
         return Section::find($id);
     }
 
+    /**
+     * Create section.
+     *
+     * @param mixed $records
+     *
+     * @return void
+     */
     public function createSection($records)
     {
-        $section = Section::firstOrCreate($records);
-
-        if ($section->wasRecentlyCreated) {
-            session()->flash('success', __('Section created successfully'));
-        } else {
-            session()->flash('danger', __('Section already exists'));
-        }
+        $section = Section::create($records);
 
         return $section;
     }
 
+    /**
+     * Update section.
+     *
+     * @param Section $section
+     * @param mixed   $record
+     *
+     * @return void
+     */
     public function updateSection(Section $section, $record)
     {
         $section->name = $record->name;
         $section->save();
-        session()->flash('success', __('Section updated successfully'));
 
         return $section;
     }
 
+    /**
+     * Delete section.
+     *
+     * @param Section $section
+     *
+     * @return void
+     */
     public function deleteSection(Section $section)
     {
         if ($section->studentRecords->count() > 0) {
-            return session()->flash('danger', __('Remove all students from section first'));
+            throw new ResourceNotEmptyException('There are students in this section');
         }
         $section->delete();
-        session()->flash('success', __('Section deleted successfully'));
-
-        return $section;
     }
 }

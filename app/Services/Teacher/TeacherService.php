@@ -23,7 +23,7 @@ class TeacherService
     /**
      * Get all teachers in school.
      *
-     * @return void
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getAllTeachers()
     {
@@ -41,7 +41,6 @@ class TeacherService
     {
         $teacher = $this->user->createUser($record);
         $teacher->assignRole('teacher');
-        session()->flash('success', 'Teacher Created Successfully');
     }
 
     /**
@@ -55,8 +54,6 @@ class TeacherService
     public function updateTeacher(User $teacher, $records)
     {
         $this->user->updateUser($teacher, $records, 'teacher');
-
-        return session()->flash('success', 'Teacher Updated Successfully');
     }
 
     /**
@@ -69,8 +66,6 @@ class TeacherService
     public function deleteTeacher(User $teacher)
     {
         $this->user->deleteUser($teacher);
-
-        return session()->flash('success', 'Teacher Deleted Successfully');
     }
 
     /**

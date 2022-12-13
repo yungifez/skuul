@@ -8,19 +8,18 @@ use App\Services\Student\StudentService;
 
 class GraduationController extends Controller
 {
-    public $student;
+    public $Service;
 
-    public function __construct(StudentService $student)
+    public function __construct(StudentService $studentService)
     {
-        $this->student = $student;
+        $this->studentService = $studentService;
     }
+
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-
-    // authorization is done in the controller
     public function index()
     {
         if (!auth()->user()->can('view graduations')) {
@@ -30,8 +29,13 @@ class GraduationController extends Controller
         return view('pages.student.graduation.index');
     }
 
-    // graduate view method
-
+    /**
+     * Graduate view.
+     *
+     * @throws \Illuminate\Auth\Access\AuthorizationException
+     *
+     * @return \Illuminate\Http\Response
+     */
     public function graduateView()
     {
         if (!auth()->user()->can('graduate student')) {
@@ -41,29 +45,39 @@ class GraduationController extends Controller
         return view('pages.student.graduation.graduate');
     }
 
-    // graduate method
-
+    /**
+     * Graduate student.
+     *
+     * @param StudentGraduateRequest $request
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function graduate(StudentGraduateRequest $request)
     {
         if (!auth()->user()->can('graduate student')) {
             return abort(403, 'Unauthorized action.');
         }
         $data = collect($request->except('_token'));
-        $this->student->graduateStudents($data);
+        $this->studentService->graduateStudents($data);
 
-        return back();
+        return back()->with('success', 'Students graduated Successfully');
     }
 
-    //reset graduation method
-
+    /**
+     * Reset user graduation.
+     *
+     * @param User $student
+     *
+     * @return \Illuminate\Http\RedirectResponse
+     */
     public function resetGraduation(User $student)
     {
         if (!auth()->user()->can('reset graduation')) {
             return abort(403, 'Unauthorized action.');
         }
-        $this->student->user->verifyUserIsOfRoleElseNotFound($student, 'student');
-        $this->student->resetGraduation($student);
+        $this->studentService->user->verifyUserIsOfRoleElseNotFound($student, 'student');
+        $this->studentService->resetGraduation($student);
 
-        return back();
+        return back()->with('success', 'Graduation Reset Successfully');
     }
 }

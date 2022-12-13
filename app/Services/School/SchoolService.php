@@ -2,6 +2,7 @@
 
 namespace App\Services\School;
 
+use App\Exceptions\ResourceNotEmptyException;
 use App\Models\School;
 use App\Services\User\UserService;
 use Illuminate\Support\Str;
@@ -56,7 +57,8 @@ class SchoolService
     {
         $record['code'] = $this->generateSchoolCode();
         $school = School::create($record);
-        session()->flash('success', __('School created successfully'));
+
+        return $school;
     }
 
     /**
@@ -75,7 +77,6 @@ class SchoolService
         $school->phone = $records['phone'];
         $school->email = $records['email'];
         $school->save();
-        session()->flash('success', __('School updated successfully'));
     }
 
     /**
@@ -85,18 +86,10 @@ class SchoolService
      *
      * @return void
      */
-    public function setSchool($id)
+    public function setSchool(School $school)
     {
-        $school = $this->getSchoolById($id);
-
-        if ($school->exists()) {
-            auth()->user()->school_id = $school->id;
-            auth()->user()->save();
-            session()->flash('success', __('School set successfully'));
-
-            return;
-        }
-        session()->flash('danger', __('School not found'));
+        auth()->user()->school_id = $school->id;
+        auth()->user()->save();
     }
 
     /**
@@ -119,11 +112,10 @@ class SchoolService
     public function deleteSchool(School $school)
     {
         if ($school->users->count('id')) {
-            session()->flash('danger', __('Remove all users from this school and make sure school is not set for any super admin'));
+            throw new ResourceNotEmptyException('Remove all users from this school and make sure school is not set for any super admin');
 
             return;
         }
         $school->delete();
-        session()->flash('success', __('School deleted successfully'));
     }
 }

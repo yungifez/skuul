@@ -13,7 +13,7 @@ class PrintService
      * @param string $view
      * @param array  $data
      *
-     * @return void
+     * @return \Barryvdh\DomPDF\PDF
      */
     public static function createPdfFromView(string $name, string $view, array $data)
     {

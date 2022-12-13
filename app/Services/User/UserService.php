@@ -178,7 +178,7 @@ class UserService
      * @param User   $user
      * @param string $role
      *
-     * @return void
+     * @return response
      */
     public function verifyUserIsOfRoleElseNotFound(User $user, string $role)
     {

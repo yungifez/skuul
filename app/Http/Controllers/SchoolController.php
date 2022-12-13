@@ -58,7 +58,7 @@ class SchoolController extends Controller
         $data = $request->except('_token');
         $this->school->createSchool($data);
 
-        return back();
+        return back()->with('success', __('School created successfully'));
     }
 
     /**
@@ -102,7 +102,7 @@ class SchoolController extends Controller
         $data = $request->except('_token', '_method');
         $this->school->updateSchool($school, $data);
 
-        return back();
+        return back()->with('success', __('School updated successfully'));
     }
 
     /**
@@ -116,7 +116,7 @@ class SchoolController extends Controller
     {
         $this->school->deleteSchool($school);
 
-        return back();
+        return back()->with('success', __('School deleted successfully'));
     }
 
     /**
@@ -126,7 +126,7 @@ class SchoolController extends Controller
      */
     public function settings()
     {
-        return redirect()->route('schools.edit', ['school'=> auth()->user()->school_id]);
+        return redirect()->route('schools.edit', ['school' => auth()->user()->school_id]);
     }
 
     /**
@@ -139,9 +139,12 @@ class SchoolController extends Controller
     public function setSchool(SchoolSetRequest $request)
     {
         $this->authorize('setSchool', School::class);
-        $data = $request->only('school_id');
-        $this->school->setSchool($data['school_id']);
 
-        return back();
+        $schoolId = $request->input('school_id');
+        $school = School::findOrFail($schoolId);
+
+        $this->school->setSchool($school);
+
+        return back()->with('success', __('School set successfully'));
     }
 }

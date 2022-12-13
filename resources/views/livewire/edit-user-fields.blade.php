@@ -39,4 +39,5 @@
         @endforeach
     </x-adminlte-select>
     @section('plugins.BsCustomFileInput', true)
+    @section('plugins.TempusDominusBs4', true)
 </div>

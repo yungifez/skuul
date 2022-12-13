@@ -13,6 +13,7 @@ return new class() extends Migration {
             $table->string('short_name');
             $table->foreignId('school_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->foreignId('my_class_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
+            //corrected this unique key in 2022_09_02_141457_correct_unique_key_in_subjects_table
             $table->unique(['name', 'school_id']);
             $table->timestamps();
         });
