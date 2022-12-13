@@ -51,7 +51,7 @@ class SubjectController extends Controller
 
         $this->subject->createSubject($data);
 
-        return back();
+        return back()->with('success', 'Subject created successfully');
     }
 
     /**
@@ -94,7 +94,7 @@ class SubjectController extends Controller
 
         $this->subject->updateSubject($subject, $data);
 
-        return back();
+        return back()->with('success', 'Subject updated successfully');
     }
 
     /**
@@ -108,7 +108,7 @@ class SubjectController extends Controller
     {
         $this->subject->deleteSubject($subject);
 
-        return back();
+        return back()->with('success', 'Subject deleted successfully');
     }
 
     public function assignTeacherView()
@@ -120,6 +120,6 @@ class SubjectController extends Controller
     {
         $this->subject->assignTeacherToSubjects($teacher, $request->except('_token'));
 
-        return back();
+        return back()->with('success', 'Successfully assigned teacher to subjects');
     }
 }

@@ -47,9 +47,11 @@ class TimetableController extends Controller
     public function store(TimetableStoreRequest $request)
     {
         $data = $request->except('_token');
+        $data['semester_id'] = auth()->user()->school->semester_id;
+
         $this->timetable->createTimetable($data);
 
-        return back();
+        return back()->with('success', 'Timetable created successfully');
     }
 
     /**
@@ -99,7 +101,7 @@ class TimetableController extends Controller
         $data = $request->except('_token'.'_method');
         $this->timetable->updateTimetable($timetable, $data);
 
-        return back();
+        return back()->with('success', 'Timetable updated successfully');
     }
 
     /**
@@ -113,7 +115,7 @@ class TimetableController extends Controller
     {
         $this->timetable->deleteTimetable($timetable);
 
-        return back();
+        return back()->with('success', 'Timetable deleted successfully');
     }
 
     //manage timetable

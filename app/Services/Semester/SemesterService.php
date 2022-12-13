@@ -78,8 +78,14 @@ class SemesterService
         $school->save();
     }
 
-    //update semester
-
+   /**
+    * Semester service
+    *
+    * @param Semester $semester
+    * @param mixed $data
+    *
+    * @return void
+    */
     public function updateSemester(Semester $semester, $data)
     {
         $semester->name = $data['name'];

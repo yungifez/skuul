@@ -13,20 +13,35 @@ class SubjectService
         $this->user = $user;
     }
 
+    /**
+     * Get all subjects
+     *
+     * @return void
+     */
     public function getAllSubjects()
     {
         return Subject::where(['school_id' => auth()->user()->school_id])->get();
     }
 
-    //get subject by id
 
-    public function getSubjectById($id)
+    /**
+     * Get a subject by Id
+     *
+     * @param int $id
+     * @return void
+     */
+    public function getSubjectById(int $id)
     {
         return Subject::find($id);
     }
 
-    //create subject
-
+   
+    /**
+     * Create subject
+     *
+     * @param mixed $data
+     * @return void
+     */
     public function createSubject($data)
     {
         $subject = Subject::firstOrCreate([
@@ -50,13 +65,17 @@ class SubjectService
 
             $subject->teachers()->sync($teachers);
         }
-
-        return session()->flash('success', 'Subject created successfully');
     }
 
-    //update subject
-
-    public function updateSubject(object $subject, $data)
+   
+    /**
+     * Update subject
+     *
+     * @param Subject $subject
+     * @param mixed $data
+     * @return void
+     */
+    public function updateSubject(Subject $subject, $data)
     {
         $subject->name = $data['name'];
         $subject->short_name = $data['short_name'];
@@ -74,17 +93,18 @@ class SubjectService
         } else {
             $subject->teachers()->sync([]);
         }
-
-        return session()->flash('success', 'Subject updated successfully');
     }
 
-    //delete subject
-
+   
+    /**
+     * Delete subject
+     *
+     * @param Subject $subject
+     * @return void
+     */
     public function deleteSubject(Subject $subject)
     {
         $subject->delete();
-
-        return session()->flash('success', 'Subject deleted successfully');
     }
 
     /**
@@ -97,13 +117,6 @@ class SubjectService
      */
     public function assignTeacherToSubjects(User $teacher, $records)
     {
-        try {
-            $teacher->subjects()->sync(array_filter(array_values($records['subjects'])));
-        } catch (\Throwable $th) {
-            session()->flash('danger', 'Could not assign teacher to subjects');
-
-            return;
-        }
-        session()->flash('success', 'Successfully assigned teacher to subjects');
+        $teacher->subjects()->sync(array_filter(array_values($records['subjects'])));
     }
 }

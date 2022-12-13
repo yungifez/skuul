@@ -41,8 +41,6 @@ class SyllabusService
             'subject_id'  => $data['subject_id'],
             'semester_id' => $data['semester_id'],
         ]);
-
-        return session()->flash('success', 'Successfully created Syllabus');
     }
 
     public function updateSyllabus($id, $data)
@@ -54,7 +52,5 @@ class SyllabusService
     {
         Storage::disk('public')->delete($syllabus->file);
         $syllabus->delete();
-
-        return session()->flash('success', 'Successfully deleted Syllabus');
     }
 }

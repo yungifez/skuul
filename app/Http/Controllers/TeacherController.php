@@ -56,7 +56,7 @@ class TeacherController extends Controller
         $this->authorize('create', [User::class, 'teacher']);
         $this->teacher->createTeacher($request);
 
-        return back();
+        return back()->with('success', 'Teacher Created Successfully');
     }
 
     /**
@@ -106,7 +106,7 @@ class TeacherController extends Controller
         $this->authorize('update', [$teacher, 'teacher']);
         $this->teacher->updateTeacher($teacher, $request->except('_token', '_method'));
 
-        return back();
+        return back()->with('success', 'Teacher Updated Successfully');
     }
 
     /**
@@ -123,6 +123,6 @@ class TeacherController extends Controller
         $this->authorize('delete', [$teacher, 'teacher']);
         $this->teacher->deleteTeacher($teacher);
 
-        return back();
+        return back()->with('success', 'Teacher Deleted Successfully');
     }
 }
