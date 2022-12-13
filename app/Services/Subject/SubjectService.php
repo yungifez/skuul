@@ -8,6 +8,13 @@ use App\Services\User\UserService;
 
 class SubjectService
 {
+    /**
+     * Instance of user class
+     *
+     * @var UserService
+     */
+    public UserService $user;
+
     public function __construct(UserService $user)
     {
         $this->user = $user;
@@ -16,7 +23,7 @@ class SubjectService
     /**
      * Get all subjects
      *
-     * @return void
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getAllSubjects()
     {
@@ -28,7 +35,7 @@ class SubjectService
      * Get a subject by Id
      *
      * @param int $id
-     * @return void
+     * @return App\Models\Subject
      */
     public function getSubjectById(int $id)
     {

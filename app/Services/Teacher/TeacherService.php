@@ -23,7 +23,7 @@ class TeacherService
     /**
      * Get all teachers in school.
      *
-     * @return void
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getAllTeachers()
     {

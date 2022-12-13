@@ -49,7 +49,7 @@ class SectionController extends Controller
         $data = $request->except('_token');
         $this->section->createSection($data);
 
-        return back();
+        return back()->with('success', __('Section created successfully'));
     }
 
     /**
@@ -92,7 +92,7 @@ class SectionController extends Controller
 
         $this->section->updateSection($section, $request);
 
-        return back();
+        return back()->with('success', __('Section updated successfully'));
     }
 
     /**
@@ -106,6 +106,6 @@ class SectionController extends Controller
     {
         $this->section->deleteSection($section);
 
-        return back();
+        return back()->with('success', __('Section deleted successfully'));
     }
 }
