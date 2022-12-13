@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
 class MyClass extends Model
@@ -11,6 +11,7 @@ class MyClass extends Model
     use HasFactory;
 
     protected $fillable = ['name', 'class_group_id'];
+
     /**
      * Get the classGroup that owns the MyClass.
      *
@@ -61,6 +62,7 @@ class MyClass extends Model
         $students = $this->loadMissing('studentRecords', 'studentRecords.user')->studentRecords->map(function ($studentRecord) {
             return $studentRecord->user;
         });
+
         return $students;
     }
 }

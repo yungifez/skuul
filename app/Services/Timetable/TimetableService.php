@@ -4,7 +4,6 @@ namespace App\Services\Timetable;
 
 use App\Models\Timetable;
 use App\Services\Print\PrintService;
-use Illuminate\Support\Facades\DB;
 
 class TimetableService
 {
@@ -17,9 +16,10 @@ class TimetableService
     }
 
     /**
-     * Create timetable
+     * Create timetable.
      *
      * @param mixed $data
+     *
      * @return void
      */
     public function createTimetable($data)
@@ -33,10 +33,11 @@ class TimetableService
     }
 
     /**
-     * Update timetable
+     * Update timetable.
      *
      * @param Timetable $timetable
-     * @param mixed $data
+     * @param mixed     $data
+     *
      * @return void
      */
     public function updateTimetable(Timetable $timetable, $data)
@@ -47,12 +48,12 @@ class TimetableService
     }
 
     /**
-     * Print timetable
+     * Print timetable.
      *
      * @param string $name
      * @param string $view
-     * @param array $data
-     * 
+     * @param array  $data
+     *
      * @return \Illuminate\Http\Response
      */
     public function printTimetable(string $name, string $view, array $data)
@@ -60,12 +61,13 @@ class TimetableService
         return PrintService::createPdfFromView($name, $view, $data)->download();
     }
 
-   /**
-    * Delete timetable
-    *
-    * @param Timetable $timetable
-    * @return void
-    */
+    /**
+     * Delete timetable.
+     *
+     * @param Timetable $timetable
+     *
+     * @return void
+     */
     public function deleteTimetable(Timetable $timetable)
     {
         $timetable->delete();

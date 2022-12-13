@@ -57,7 +57,7 @@ class SchoolService
     {
         $record['code'] = $this->generateSchoolCode();
         $school = School::create($record);
-    
+
         return $school;
     }
 

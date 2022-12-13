@@ -74,7 +74,7 @@ class ResultTabulation extends Component
         if ($students->isEmpty()) {
             $this->createdTabulation = false;
 
-            return; 
+            return;
         }
 
         $examSlots = $this->semester->load('examSlots')->examSlots;

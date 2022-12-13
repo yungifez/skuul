@@ -110,9 +110,9 @@ class StudentService
     /**
      * Create record for student.
      *
-     * @param User $student $name
+     * @param User         $student $name
      * @param array|object $record
-     * 
+     *
      * @throws InvalidValueException
      *
      * @return void
@@ -122,7 +122,7 @@ class StudentService
         $record['admission_number'] || $record['admission_number'] = $this->generateAdmissionNumber();
         $section = $this->sectionService->getSectionById($record['section_id']);
         if (!$this->myClassService->getClassById($record['my_class_id'])->sections->contains($section)) {
-            throw new InvalidValueException("Section is not in class");
+            throw new InvalidValueException('Section is not in class');
         }
 
         $student->studentRecord()->firstOrCreate([
@@ -177,7 +177,7 @@ class StudentService
         $schoolInitials = School::find($schoolId)->initials ?? auth()->user()->school->initials;
         $currentYear = date('y');
         do {
-            $admissionNumber = "$schoolInitials/$currentYear/" . \mt_rand('100000', '999999');
+            $admissionNumber = "$schoolInitials/$currentYear/".\mt_rand('100000', '999999');
             if (StudentRecord::where('admission_number', $admissionNumber)->count() <= 0) {
                 $uniqueAdmissionNumberFound = true;
             } else {
@@ -189,12 +189,12 @@ class StudentService
     }
 
     /**
-     * Print srudent profile
+     * Print srudent profile.
      *
      * @param string $name
      * @param string $view
-     * @param array $data
-     * 
+     * @param array  $data
+     *
      * @return \Illuminate\Http\Response
      */
     public function printProfile(string $name, string $view, array $data)
@@ -203,9 +203,10 @@ class StudentService
     }
 
     /**
-     * Promote students
+     * Promote students.
      *
      * @param array<mixed> $records
+     *
      * @return void
      */
     public function promoteStudents($records)
@@ -215,16 +216,16 @@ class StudentService
         $academicYear = auth()->user()->school->academic_year_id;
 
         if (!$oldClass->sections()->where('id', $records['old_section_id'])->exists()) {
-            throw new InvalidValueException("Old section is not in old class");
+            throw new InvalidValueException('Old section is not in old class');
         }
 
         if (!$newClass->sections()->where('id', $records['new_section_id'])->exists()) {
-            throw new InvalidValueException("New section is not in new class");
+            throw new InvalidValueException('New section is not in new class');
         }
 
         //make sure academic year is present
         if ($academicYear == null) {
-            throw new InvalidValueException("Academic year is not set");
+            throw new InvalidValueException('Academic year is not set');
         }
 
         //get all students for promotion
@@ -232,7 +233,7 @@ class StudentService
 
         // make sure there are students to promote
         if (!$students->count()) {
-            throw new EmptyRecordsException("No students to promote", 1);
+            throw new EmptyRecordsException('No students to promote', 1);
         }
 
         $currentAcademicYear = auth()->user()->school->academicYear;
@@ -262,21 +263,21 @@ class StudentService
         ]);
     }
 
-   /**
-    * Get all promotions
-    *
-    * @return \Illuminate\Database\Eloquent\Collection
-    */
+    /**
+     * Get all promotions.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
     public function getAllPromotions()
     {
         return Promotion::where('school_id', auth()->user()->school_id)->get();
     }
 
     /**
-     * Get promotions by academic year Id
+     * Get promotions by academic year Id.
      *
      * @param int $academicYearId The Primary key of the academic year
-     * 
+     *
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getPromotionsByAcademicYearId(int $academicYearId)
@@ -284,12 +285,13 @@ class StudentService
         return Promotion::where('school_id', auth()->user()->school_id)->where('academic_year_id', $academicYearId)->get();
     }
 
-   /**
-    * Reset promotion
-    *
-    * @param Promotion $promotion instance of promotion to reset
-    * @return void
-    */
+    /**
+     * Reset promotion.
+     *
+     * @param Promotion $promotion instance of promotion to reset
+     *
+     * @return void
+     */
     public function resetPromotion(Promotion $promotion)
     {
         $students = $this->getStudentById($promotion->students);
@@ -310,12 +312,12 @@ class StudentService
     }
 
     /**
-     * Graduate students
+     * Graduate students.
      *
-     * @param mixed $records 
-     * 
+     * @param mixed $records
+     *
      * @throws InvalidValueException
-     * 
+     *
      * @return void
      */
     public function graduateStudents($records)
@@ -325,7 +327,7 @@ class StudentService
 
         // make sure there are students to graduate
         if (!$students->count()) {
-            throw new InvalidValueException("No students to graduate");
+            throw new InvalidValueException('No students to graduate');
         }
 
         // update each student's graduation status
@@ -339,9 +341,10 @@ class StudentService
     }
 
     /**
-     * Reset Graduation
+     * Reset Graduation.
      *
      * @param User $student
+     *
      * @return void
      */
     public function resetGraduation(User $student)

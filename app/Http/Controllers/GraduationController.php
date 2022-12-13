@@ -14,6 +14,7 @@ class GraduationController extends Controller
     {
         $this->studentService = $studentService;
     }
+
     /**
      * Display a listing of the resource.
      *
@@ -29,10 +30,10 @@ class GraduationController extends Controller
     }
 
     /**
-     * Graduate view
+     * Graduate view.
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
-     * 
+     *
      * @return \Illuminate\Http\Response
      */
     public function graduateView()
@@ -45,9 +46,10 @@ class GraduationController extends Controller
     }
 
     /**
-     * Graduate student
+     * Graduate student.
      *
      * @param StudentGraduateRequest $request
+     *
      * @return \Illuminate\Http\RedirectResponse
      */
     public function graduate(StudentGraduateRequest $request)
@@ -62,9 +64,10 @@ class GraduationController extends Controller
     }
 
     /**
-     * Reset user graduation
+     * Reset user graduation.
      *
      * @param User $student
+     *
      * @return \Illuminate\Http\RedirectResponse
      */
     public function resetGraduation(User $student)

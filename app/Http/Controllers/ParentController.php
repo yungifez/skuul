@@ -144,11 +144,11 @@ class ParentController extends Controller
     }
 
     /**
-     * Undocumented function
+     * Undocumented function.
      *
      * @param AssignStudentRequest $request
-     * @param User $parent
-     * 
+     * @param User                 $parent
+     *
      * @return \Illuminate\Http\RedirectResponse
      */
     public function assignStudent(AssignStudentRequest $request, User $parent)
@@ -160,10 +160,11 @@ class ParentController extends Controller
         $this->parent->assignStudentToParent($parent, $student, $assign);
 
         if ($assign == false) {
-            $message = "Student successfully removed from parent";
+            $message = 'Student successfully removed from parent';
         } else {
-            $message = "Student successfully assigned to parent";
+            $message = 'Student successfully assigned to parent';
         }
+
         return back()->with('success', $message);
     }
 }
