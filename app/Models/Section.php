@@ -32,8 +32,7 @@ class Section extends Model
         return $this->hasMany(StudentRecord::class);
     }
 
-
-     /**
+    /**
      * Get the students in section.
      *
      * @return Collection
@@ -43,6 +42,7 @@ class Section extends Model
         $students = $this->loadMissing('studentRecords', 'studentRecords.user')->studentRecords->map(function ($studentRecord) {
             return $studentRecord->user;
         });
+
         return $students;
     }
 }

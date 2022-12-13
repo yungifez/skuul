@@ -9,7 +9,7 @@ use App\Services\User\UserService;
 class SubjectService
 {
     /**
-     * Instance of user class
+     * Instance of user class.
      *
      * @var UserService
      */
@@ -21,7 +21,7 @@ class SubjectService
     }
 
     /**
-     * Get all subjects
+     * Get all subjects.
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
@@ -30,11 +30,11 @@ class SubjectService
         return Subject::where(['school_id' => auth()->user()->school_id])->get();
     }
 
-
     /**
-     * Get a subject by Id
+     * Get a subject by Id.
      *
      * @param int $id
+     *
      * @return App\Models\Subject
      */
     public function getSubjectById(int $id)
@@ -42,11 +42,11 @@ class SubjectService
         return Subject::find($id);
     }
 
-   
     /**
-     * Create subject
+     * Create subject.
      *
      * @param mixed $data
+     *
      * @return void
      */
     public function createSubject($data)
@@ -74,12 +74,12 @@ class SubjectService
         }
     }
 
-   
     /**
-     * Update subject
+     * Update subject.
      *
      * @param Subject $subject
-     * @param mixed $data
+     * @param mixed   $data
+     *
      * @return void
      */
     public function updateSubject(Subject $subject, $data)
@@ -102,11 +102,11 @@ class SubjectService
         }
     }
 
-   
     /**
-     * Delete subject
+     * Delete subject.
      *
      * @param Subject $subject
+     *
      * @return void
      */
     public function deleteSubject(Subject $subject)

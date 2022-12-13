@@ -29,7 +29,7 @@ class PromotionController extends Controller
 
     /**
      * promote view.
-     * 
+     *
      * @return \Illuminate\Http\Response
      */
     public function promoteView()
@@ -40,10 +40,10 @@ class PromotionController extends Controller
     }
 
     /**
-     * Promote student
+     * Promote student.
      *
      * @param StudentPromoteRequest $request
-     * 
+     *
      * @return \Illuminate\Http\RedirectResponse
      */
     public function promote(StudentPromoteRequest $request)
@@ -56,9 +56,10 @@ class PromotionController extends Controller
     }
 
     /**
-     * Reset promotion
+     * Reset promotion.
      *
      * @param Promotion $promotion
+     *
      * @return \Illuminate\Http\RedirectResponse
      */
     public function resetPromotion(Promotion $promotion)

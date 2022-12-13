@@ -4,15 +4,15 @@ namespace App\Services\Timetable;
 
 use App\Models\Timetable;
 use App\Models\TimetableTimeSlot;
-use Illuminate\Support\Facades\DB;
 
 class TimeSlotService
 {
     /**
-     * Create timetable time slot
+     * Create timetable time slot.
      *
      * @param Timetabke $timetable
-     * @param mixed $data
+     * @param mixed     $data
+     *
      * @return void
      */
     public function createTimeSlot(Timetable $timetable, $data)
@@ -31,10 +31,11 @@ class TimeSlotService
     }
 
     /**
-     * Create timetable time record
+     * Create timetable time record.
      *
      * @param TimetableTimeSlot $timeSlot
-     * @param mixec $data
+     * @param mixec             $data
+     *
      * @return void
      */
     public function createTimetableRecord(TimetableTimeSlot $timeSlot, $data)

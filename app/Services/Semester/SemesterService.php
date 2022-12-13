@@ -8,7 +8,7 @@ use App\Models\Semester;
 class SemesterService
 {
     /**
-     * Get all semesters in school
+     * Get all semesters in school.
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
@@ -18,9 +18,10 @@ class SemesterService
     }
 
     /**
-     * Get all semesters in academic year
+     * Get all semesters in academic year.
      *
      * @param int $academicYear
+     *
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getAllSemestersInAcademicYear(int $academicYear)
@@ -29,9 +30,10 @@ class SemesterService
     }
 
     /**
-     * Get semester by Id
+     * Get semester by Id.
      *
      * @param int $id
+     *
      * @return Semester
      */
     public function getSemesterById(int $id)
@@ -40,10 +42,10 @@ class SemesterService
     }
 
     /**
-     * Create a new semester
+     * Create a new semester.
      *
      * @param mixed $data
-     * 
+     *
      * @return Semester
      */
     public function createSemester($data)
@@ -60,43 +62,43 @@ class SemesterService
     }
 
     /**
-     * Set current semester
+     * Set current semester.
      *
      * @param Semester $semester
-     * 
+     *
      * @throws InvalidValueException
-     * 
+     *
      * @return void
      */
     public function setSemester(Semester $semester)
     {
         $school = auth()->user()->school;
         if ($semester->academicYear->id != $school->academic_year_id) {
-           throw new InvalidValueException("Semester not in academic year");
+            throw new InvalidValueException('Semester not in academic year');
         }
         $school->semester_id = $semester->id;
         $school->save();
     }
 
-   /**
-    * Semester service
-    *
-    * @param Semester $semester
-    * @param mixed $data
-    *
-    * @return void
-    */
+    /**
+     * Semester service.
+     *
+     * @param Semester $semester
+     * @param mixed    $data
+     *
+     * @return void
+     */
     public function updateSemester(Semester $semester, $data)
     {
         $semester->name = $data['name'];
         $semester->save();
     }
 
-
     /**
-     * Delete Semester
+     * Delete Semester.
      *
      * @param Semester $semester
+     *
      * @return void
      */
     public function deleteSemester(Semester $semester)

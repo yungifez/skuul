@@ -9,7 +9,7 @@ use App\Services\School\SchoolService;
 class SectionService
 {
     /**
-     * School service instance
+     * School service instance.
      *
      * @var SchoolService
      */
@@ -21,7 +21,7 @@ class SectionService
     }
 
     /**
-     * Get all sections
+     * Get all sections.
      *
      * @return \Illuminate\Support\Collection
      */
@@ -37,9 +37,10 @@ class SectionService
     }
 
     /**
-     * Get a section by Id
+     * Get a section by Id.
      *
-     * @param integer $id
+     * @param int $id
+     *
      * @return void
      */
     public function getSectionById(int $id)
@@ -48,9 +49,10 @@ class SectionService
     }
 
     /**
-     * Create section
+     * Create section.
      *
      * @param mixed $records
+     *
      * @return void
      */
     public function createSection($records)
@@ -61,10 +63,11 @@ class SectionService
     }
 
     /**
-     * Update section
+     * Update section.
      *
      * @param Section $section
-     * @param mixed $record
+     * @param mixed   $record
+     *
      * @return void
      */
     public function updateSection(Section $section, $record)
@@ -76,16 +79,16 @@ class SectionService
     }
 
     /**
-     * Delete section
+     * Delete section.
      *
      * @param Section $section
+     *
      * @return void
      */
     public function deleteSection(Section $section)
     {
         if ($section->studentRecords->count() > 0) {
-            throw new ResourceNotEmptyException("There are students in this section");
-            
+            throw new ResourceNotEmptyException('There are students in this section');
         }
         $section->delete();
     }

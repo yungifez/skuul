@@ -90,7 +90,7 @@ class ExamSlotController extends Controller
         $data = $request->except('_token', '_method');
         $this->examSlot->updateExamSlot($examSlot, $data);
 
-        return back()->with('success', 'Exam Slot Updated Successfully');;
+        return back()->with('success', 'Exam Slot Updated Successfully');
     }
 
     /**

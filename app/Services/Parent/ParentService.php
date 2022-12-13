@@ -4,9 +4,9 @@ namespace App\Services\Parent;
 
 use App\Exceptions\InvalidUserException;
 use App\Models\User;
+use App\Services\Print\PrintService;
 use App\Services\User\UserService;
 use Illuminate\Support\Facades\DB;
-use App\Services\Print\PrintService;
 
 class ParentService
 {

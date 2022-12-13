@@ -11,7 +11,7 @@ class ShowSection extends Component
 
     public function mount()
     {
-        $this->section = $this->section->load('studentRecords','studentRecords.user');
+        $this->section = $this->section->load('studentRecords', 'studentRecords.user');
         $this->students = $this->section->students();
     }
 

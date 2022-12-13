@@ -11,9 +11,9 @@ class ListStudentsTable extends Component
 
     public function mount(StudentService $studentService)
     {
-        if (!isset($this->students)) { 
+        if (!isset($this->students)) {
             $this->students = $studentService->getAllActiveStudents()->sortBy('name')->load('studentRecord', 'studentRecord.myClass', 'studentRecord.section');
-        }else {
+        } else {
             $this->students = $this->students->loadMissing('studentRecord', 'studentRecord.myClass', 'studentRecord.section');
         }
     }
