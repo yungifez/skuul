@@ -77,12 +77,12 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'birthday'          => $input['birthday'],
             'address'           => $input['address'],
             'blood_group'       => $input['blood_group'],
-            'religion'          => $input['religion'],
+            'religion'          => $input['religion'] ?? "",
             'nationality'       => $input['nationality'],
             'state'             => $input['state'],
             'city'              => $input['city'],
             'gender'            => $input['gender'],
-            'phone'             => $input['phone'],
+            'phone'             => $input['phone'] ?? "",
         ])->save();
 
         $user->sendEmailVerificationNotification();
