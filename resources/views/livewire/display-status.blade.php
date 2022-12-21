@@ -15,6 +15,13 @@
         {{ session('info') }}
     </x-adminlte-alert>
     @endif
+    <div class="alert alert-danger alert-dismissible fade hide" role="alert" wire:offline.class="show" wire:offline.remove="hide">
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+            <span class="sr-only">Close</span>
+        </button>
+        You are now offline. Please check your internet connection.
+    </div>
     <script>
         setTimeout(() => {
             document.querySelector('#status-display').remove()
