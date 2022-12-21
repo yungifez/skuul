@@ -13,11 +13,11 @@ class ExamController extends Controller
     /**
      * @var ExamService
      */
-    public ExamService $exam;
+    public ExamService $examService;
 
-    public function __construct(ExamService $exam)
+    public function __construct(ExamService $examService)
     {
-        $this->exam = $exam;
+        $this->examService = $examService;
         $this->authorizeResource(Exam::class, 'exam');
     }
 
@@ -51,7 +51,7 @@ class ExamController extends Controller
     public function store(StoreExamRequest $request)
     {
         $data = $request->except('_token');
-        $this->exam->createExam($data);
+        $this->examService->createExam($data);
 
         return back()->with('success', 'Exam created successfully');
     }
@@ -91,7 +91,7 @@ class ExamController extends Controller
     public function update(UpdateExamRequest $request, Exam $exam)
     {
         $data = $request->except(['_method', '_token']);
-        $this->exam->updateExam($exam, $data);
+        $this->examService->updateExam($exam, $data);
 
         return back()->with('success', 'Exam updated successfully');
     }
@@ -105,7 +105,7 @@ class ExamController extends Controller
      */
     public function destroy(Exam $exam)
     {
-        $this->exam->deleteExam($exam);
+        $this->examService->deleteExam($exam);
 
         return back()->with('success', 'Exam deleted successfully');
     }
@@ -148,7 +148,7 @@ class ExamController extends Controller
         $this->authorize('update', $exam);
         //get status from request
         $status = $request->status;
-        $this->exam->setExamActiveStatus($exam, $status);
+        $this->examService->setExamActiveStatus($exam, $status);
 
         return back()->with('success', 'Exam status updated successfully');
     }
@@ -166,7 +166,7 @@ class ExamController extends Controller
         $this->authorize('update', $exam);
         //get status from request
         $status = $request->status;
-        $this->exam->setPublishResultStatus($exam, $status);
+        $this->examService->setPublishResultStatus($exam, $status);
 
         return back()->with('success', 'Result published status updated successfully');
     }
