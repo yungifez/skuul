@@ -283,7 +283,7 @@ class StudentTest extends TestCase
     public function test_unauthorized_user_cannot_promote_students()
     {
         $student = User::factory()->create();
-        
+
         $student->assignRole('student');
         $student->studentRecord()->create([
             'my_class_id'    => 1,
