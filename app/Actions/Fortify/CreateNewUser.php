@@ -25,6 +25,7 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             'name'     => ['required', 'string', 'max:511'],
             'email'    => ['required', 'string', 'email:rfc,dns', 'max:511', 'unique:users'],
+            'photo'    => ['nullable', 'mimes:jpg,jpeg,png', 'max:1024'],
             'password' => $this->passwordRules(),
             // 'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['required', 'accepted'] : '',
             'school_id'   => ['required', 'exists:schools,id'],
@@ -55,10 +56,14 @@ class CreateNewUser implements CreatesNewUsers
             'phone'       => $input['phone'],
         ]);
 
+        if (isset($input['photo'])) {
+            $user->updateProfilePhoto($input['photo']);
+        }
+
         try {
             $user->sendEmailVerificationNotification();
         } catch (Throwable $e) {
-            report("Could not send email to $user->email. $e");
+            report("Could not verification send email to $user->email. $e");
 
             return $user;
         }

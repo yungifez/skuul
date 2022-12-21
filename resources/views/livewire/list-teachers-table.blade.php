@@ -3,10 +3,11 @@
         <h4 class="card-title">Teachers</h4>
     </div>
     <div class="card-body">
-        <x-adminlte-datatable id="teacher-list-table" :heads="['S/N', 'Name','email','gender' , 'address', '', '']" class='text-capitalize' bordered striped head-theme="dark" beautify >
+        <x-adminlte-datatable id="teacher-list-table" :heads="['S/N', 'Photo', 'Name','email','gender' , 'address', '', '']" class='text-capitalize' bordered striped head-theme="dark" beautify >
             @foreach($teachers as $teacher)
                 <tr>
                     <td>{{$loop->iteration}}</td>
+                    <td><img src="{{$teacher->profile_photo_url}}" alt="" class="rounded-circle" height="50px" width="50px" loading="lazy"></td>
                     <td>{{ $teacher->name}}</td>
                     <td style="text-transform: none">{{ $teacher->email}}</td>
                     <td>{{$teacher->gender}}</td>
