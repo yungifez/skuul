@@ -3,11 +3,10 @@
         <h4 class="card-title">Rejected Applicants</h4>
     </div>
     <div class="card-body">
-        <x-adminlte-datatable id="applicants-list-table" :heads="['S/N', 'Photo', 'Name','email' , 'Applying as', '', '']" class='text-capitalize' bordered striped head-theme="dark" beautify >
+        <x-adminlte-datatable id="applicants-list-table" :heads="['S/N', 'Name','email' , 'Applying as', '', '']" class='text-capitalize' bordered striped head-theme="dark" beautify >
             @foreach($applicants as $applicant)
                 <tr>
                     <td>{{$loop->iteration}}</td>
-                    <td><img src="{{$applicant->profile_photo_url}}" alt="" class="rounded-circle" height="50px" width="50px"></td>
                     <td>{{$applicant->name}}</td>
                     <td style="text-transform: none">{{$applicant->email}}</td>
                     <td>{{$applicant->accountApplication->role->name ?? 'Not found'}}</td>
