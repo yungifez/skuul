@@ -21,7 +21,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     {
         Validator::make($input, [
             'name'        => ['required', 'string', 'max:255'],
-            'email'       => ['required', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'email'       => ['required', 'email:rfc,dns', 'max:255', Rule::unique('users')->ignore($user->id)],
             'photo'       => ['nullable', 'mimes:jpg,jpeg,png', 'max:1024'],
             'birthday'    => ['required', 'date', 'before:today'],
             'address'     => ['required', 'string', 'max:500'],
@@ -37,13 +37,6 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         if (isset($input['photo'])) {
             $user->updateProfilePhoto($input['photo']);
         }
-        //set nullable fields to empty strings
-        if (!isset($input['religion'])) {
-            $input['religion'] = '';
-        }
-        if (!isset($input['phone'])) {
-            $input['phone'] = 'phone';
-        }
 
         if ($input['email'] !== $user->email &&
             $user instanceof MustVerifyEmail) {
@@ -55,12 +48,12 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
                 'birthday'    => $input['birthday'],
                 'address'     => $input['address'],
                 'blood_group' => $input['blood_group'],
-                'religion'    => $input['religion'],
+                'religion'    => $input['religion'] ?? '',
                 'nationality' => $input['nationality'],
                 'state'       => $input['state'],
                 'city'        => $input['city'],
                 'gender'      => $input['gender'],
-                'phone'       => $input['phone'],
+                'phone'       => $input['phone'] ?? '',
             ])->save();
         }
 
@@ -84,12 +77,12 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'birthday'          => $input['birthday'],
             'address'           => $input['address'],
             'blood_group'       => $input['blood_group'],
-            'religion'          => $input['religion'],
+            'religion'          => $input['religion'] ?? '',
             'nationality'       => $input['nationality'],
             'state'             => $input['state'],
             'city'              => $input['city'],
             'gender'            => $input['gender'],
-            'phone'             => $input['phone'],
+            'phone'             => $input['phone'] ?? '',
         ])->save();
 
         $user->sendEmailVerificationNotification();

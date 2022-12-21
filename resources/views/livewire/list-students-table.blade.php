@@ -3,11 +3,10 @@
         <h4 class="card-title">Student list</h4>
     </div>
     <div class="card-body">
-        <x-adminlte-datatable id="school-list-table" :heads="['S/N','Photo', 'Name','Class','Section', 'email','gender' , 'address', '', '']" class='text-capitalize' bordered striped head-theme="dark" beautify>
+        <x-adminlte-datatable id="school-list-table" :heads="['S/N', 'Name','Class','Section', 'email','gender' , 'address', '', '']" class='text-capitalize table-data' bordered striped head-theme="dark" beautify>
             @foreach($students as $student)
                 <tr>
                     <td>{{$loop->iteration}}</td>
-                    <td><img src="{{$student->profile_photo_url}}" alt="" class="rounded-circle" height="50px" width="50px"></td>
                     <td>{{ $student->name}}</td>
                     <td>@isset ($student->studentRecord->myClass)
                         {{$student->studentRecord->myClass->name}}
@@ -31,4 +30,6 @@
             @endforeach
         </x-adminlte-datatable>
     </div>
+
+    
 </div>

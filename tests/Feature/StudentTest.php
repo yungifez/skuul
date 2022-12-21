@@ -6,12 +6,15 @@ use App\Models\Promotion;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class StudentTest extends TestCase
 {
     use RefreshDatabase;
     use FeatureTestTrait;
+    use WithFaker;
+
     //test view all students cannot be accessed by unauthorised users
 
     public function test_view_all_students_cannot_be_accessed_by_unauthorised_users()
@@ -44,8 +47,9 @@ class StudentTest extends TestCase
 
     public function test_unauthorised_users_cannot_create_students()
     {
+        $email = $this->faker()->freeEmail();
         $this->unauthorized_user()->post('dashboard/students', [
-            'email'                 => 'test@test.test',
+            'email'                 => $email,
             'password'              => 'password',
             'password_confirmation' => 'password',
             'gender'                => 'male',
@@ -66,11 +70,13 @@ class StudentTest extends TestCase
 
     public function test_user_can_create_student()
     {
+        $email = $this->faker()->freeEmail();
+
         $this->authorized_user(['create student'])->post('dashboard/students', [
             'first_name'            => 'Test',
             'last_name'             => 'Student',
-            'other_name'            => '',
-            'email'                 => 'test@test.test',
+            'other_name'            => 'cody',
+            'email'                 => $email,
             'password'              => 'password',
             'password_confirmation' => 'password',
             'gender'                => 'male',
@@ -86,7 +92,7 @@ class StudentTest extends TestCase
             'admission_date'        => '2004/04/22', ]);
 
         $this->assertDatabaseHas('users', [
-            'email'    => 'test@test.test',
+            'email'    => $email,
             'address'  => 'test address',
             'birthday' => '2004/04/22',
             'phone'    => '08080808080',
@@ -128,6 +134,8 @@ class StudentTest extends TestCase
 
     public function test_unauthorised_users_cannot_edit_students()
     {
+        $email = $this->faker()->freeEmail();
+
         $student = User::factory()->create();
         $student->assignRole('student');
         $student->studentRecord()->create([
@@ -136,10 +144,11 @@ class StudentTest extends TestCase
             'admission_date' => '22/04/04',
             'is_graduated'   => false,
         ]);
+
         $this->unauthorized_user()->put('dashboard/students/'.$student->id, [
             'first_name'            => 'Test',
             'last_name'             => 'Student 2',
-            'email'                 => 'test@test.test',
+            'email'                 => $email,
             'password'              => 'password',
             'password_confirmation' => 'password',
             'gender'                => 'male',
@@ -168,11 +177,13 @@ class StudentTest extends TestCase
             'admission_date' => '22/04/04',
             'is_graduated'   => false,
         ]);
+        $email = $this->faker()->freeEmail();
+
         $this->authorized_user(['update student'])->put('dashboard/students/'.$student->id, [
             'first_name'            => 'Test 2',
             'other_names'           => 'Student 2',
             'last_name'             => 'Student',
-            'email'                 => 'test2@test.test',
+            'email'                 => $email,
             'password'              => 'password',
             'password_confirmation' => 'password',
             'gender'                => 'male',
@@ -184,7 +195,7 @@ class StudentTest extends TestCase
             'birthday'              => '2004/04/22',
             'phone'                 => '08080808080', ]);
 
-        $student = User::where('email', 'test2@test.test')->first();
+        $student = User::where('email', $email)->first();
 
         $this->assertModelExists($student);
     }
@@ -272,6 +283,7 @@ class StudentTest extends TestCase
     public function test_unauthorized_user_cannot_promote_students()
     {
         $student = User::factory()->create();
+
         $student->assignRole('student');
         $student->studentRecord()->create([
             'my_class_id'    => 1,
