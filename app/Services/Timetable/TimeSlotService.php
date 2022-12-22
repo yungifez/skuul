@@ -34,7 +34,7 @@ class TimeSlotService
      * Create timetable time record.
      *
      * @param TimetableTimeSlot $timeSlot
-     * @param mixec             $data
+     * @param mixed            $data
      *
      * @return void
      */

@@ -16,6 +16,8 @@ class AcademicYearSeeder extends Seeder
     {
         $academicYear = AcademicYear::firstOrCreate([
             'id'         => 1,
+            
+        ], [
             'school_id'  => 1,
             'start_year' => date('Y'),
             'stop_year'  => date('Y') + 1,
