@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class storeTimetableRecord extends FormRequest
 {
@@ -20,19 +20,20 @@ class storeTimetableRecord extends FormRequest
      */
     public function authorize()
     {
-        if (is_null($this->input('type')) || !in_array($this->input('type'),['subject', 'customTimetableItem'])) {
+        if (is_null($this->input('type')) || !in_array($this->input('type'), ['subject', 'customTimetableItem'])) {
             return false;
-        }else{
+        } else {
             return true;
         }
     }
+
     public function rules()
     {
         if ($this->input('type') == 'subject') {
             return [
                 'type' => [
                     'required',
-                    Rule::in(['subject', 'customTimetableItem'])
+                    Rule::in(['subject', 'customTimetableItem']),
                 ],
                 'id' => [
                     'nullable',
@@ -41,11 +42,11 @@ class storeTimetableRecord extends FormRequest
                 ],
                 'weekday_id' => 'required|exists:weekdays,id|integer',
             ];
-        }elseif($this->input('type') == 'customTimetableItem'){
+        } elseif ($this->input('type') == 'customTimetableItem') {
             return [
                 'type' => [
                     'required',
-                    Rule::in(['subject', 'customTimetableItem'])
+                    Rule::in(['subject', 'customTimetableItem']),
                 ],
                 'id' => [
                     'nullable',
@@ -54,12 +55,13 @@ class storeTimetableRecord extends FormRequest
                 ],
                 'weekday_id' => 'required|exists:weekdays,id|integer',
             ];
-        }else {
+        } else {
             $this->merge(['id' => null]);
+
             return [
                 'type' => [
                     'required',
-                    Rule::in(['subject', 'customTimetableItem'])
+                    Rule::in(['subject', 'customTimetableItem']),
                 ],
                 'id' => [
                     'nullable',
@@ -69,6 +71,5 @@ class storeTimetableRecord extends FormRequest
                 'weekday_id' => 'required|exists:weekdays,id|integer',
             ];
         }
-
     }
 }

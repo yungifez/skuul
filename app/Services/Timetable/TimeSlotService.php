@@ -34,7 +34,7 @@ class TimeSlotService
      * Create timetable time record.
      *
      * @param TimetableTimeSlot $timeSlot
-     * @param mixed            $data
+     * @param mixed             $data
      *
      * @return void
      */
@@ -44,7 +44,7 @@ class TimeSlotService
         if ($timeSlot->weekdays->find($data['weekday_id']) || $data['id'] == null) {
             $timeSlot->weekdays()->detach($data['weekday_id']);
         }
-        
+
         if ($data['id'] != null) {
             $timeSlot->weekdays()->attach($data['weekday_id'], ['timetable_time_slot_weekdayable_id' => $data['id'], 'timetable_time_slot_weekdayable_type' => $data['type']]);
         }

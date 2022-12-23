@@ -2,10 +2,10 @@
 
 namespace App\Http\Livewire;
 
-use App\Models\Weekday;
-use Livewire\Component;
 use App\Models\Timetable;
+use App\Models\Weekday;
 use App\Services\Timetable\TimetableService;
+use Livewire\Component;
 
 class ManageTimetable extends Component
 {

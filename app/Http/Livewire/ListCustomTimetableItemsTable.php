@@ -13,6 +13,7 @@ class ListCustomTimetableItemsTable extends Component
     {
         $this->customTimetableItems = $timetableService->getAllCustomTimetableItem();
     }
+
     public function render()
     {
         return view('livewire.list-custom-timetable-items-table');

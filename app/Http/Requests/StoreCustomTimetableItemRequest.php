@@ -2,8 +2,8 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreCustomTimetableItemRequest extends FormRequest
 {
@@ -27,17 +27,17 @@ class StoreCustomTimetableItemRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' =>[ 
+            'name' => [
                 'required',
                 'string',
                 'max:255',
-                 Rule::unique('custom_timetable_items')->where(fn ($query) => $query->where('school_id', $this->input('school_id') ?? auth()->user()->school_id)),
+                Rule::unique('custom_timetable_items')->where(fn ($query) => $query->where('school_id', $this->input('school_id') ?? auth()->user()->school_id)),
             ],
             'school_id' => [
                 'required',
                 'integer',
-                'exists:schools,id'
-            ]
+                'exists:schools,id',
+            ],
         ];
     }
 }

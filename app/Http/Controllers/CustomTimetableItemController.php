@@ -10,15 +10,16 @@ use App\Services\Timetable\TimetableService;
 class CustomTimetableItemController extends Controller
 {
     /**
-     * Instance of timetable service
+     * Instance of timetable service.
      *
      * @var TimetableService
      */
     public TimetableService $timetableService;
 
-    public function __construct(TimetableService $timetableService) {
+    public function __construct(TimetableService $timetableService)
+    {
         $this->timetableService = $timetableService;
-        $this->authorizeResource(CustomTimetableItem::class, "custom_timetable_item");
+        $this->authorizeResource(CustomTimetableItem::class, 'custom_timetable_item');
     }
 
     /**
@@ -44,7 +45,8 @@ class CustomTimetableItemController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \App\Http\Requests\StoreCustomTimetableItemRequest  $request
+     * @param \App\Http\Requests\StoreCustomTimetableItemRequest $request
+     *
      * @return \Illuminate\Http\Response
      */
     public function store(StoreCustomTimetableItemRequest $request)
@@ -57,7 +59,8 @@ class CustomTimetableItemController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\Models\CustomTimetableItem  $customTimetableItem
+     * @param \App\Models\CustomTimetableItem $customTimetableItem
+     *
      * @return \Illuminate\Http\Response
      */
     public function show(CustomTimetableItem $customTimetableItem)
@@ -68,21 +71,23 @@ class CustomTimetableItemController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param  \App\Models\CustomTimetableItem  $customTimetableItem
+     * @param \App\Models\CustomTimetableItem $customTimetableItem
+     *
      * @return \Illuminate\Http\Response
      */
     public function edit(CustomTimetableItem $customTimetableItem)
     {
         $data['customTimetableItem'] = $customTimetableItem;
 
-        return view('pages.timetable.custom-timetable-item.edit' , $data);
+        return view('pages.timetable.custom-timetable-item.edit', $data);
     }
 
     /**
      * Update the specified resource in storage.
      *
-     * @param  \App\Http\Requests\UpdateCustomTimetableItemRequest  $request
-     * @param  \App\Models\CustomTimetableItem  $customTimetableItem
+     * @param \App\Http\Requests\UpdateCustomTimetableItemRequest $request
+     * @param \App\Models\CustomTimetableItem                     $customTimetableItem
+     *
      * @return \Illuminate\Http\Response
      */
     public function update(UpdateCustomTimetableItemRequest $request, CustomTimetableItem $customTimetableItem)
@@ -96,13 +101,14 @@ class CustomTimetableItemController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  \App\Models\CustomTimetableItem  $customTimetableItem
+     * @param \App\Models\CustomTimetableItem $customTimetableItem
+     *
      * @return \Illuminate\Http\Response
      */
     public function destroy(CustomTimetableItem $customTimetableItem)
     {
         $this->timetableService->deleteCustomTimetableItem($customTimetableItem);
 
-        return back()->with('success' , "Custom timetable item deleted successfully");  
+        return back()->with('success', 'Custom timetable item deleted successfully');
     }
 }

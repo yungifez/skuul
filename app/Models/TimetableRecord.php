@@ -3,8 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Casts\Attribute;
-use Illuminate\Database\Eloquent\Relations\Pivot;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class TimetableRecord extends Pivot
 {
@@ -27,7 +27,7 @@ class TimetableRecord extends Pivot
     }
 
     /**
-     * Get the parent timetableRecordable model (subject or custom)
+     * Get the parent timetableRecordable model (subject or custom).
      */
     public function timetableRecordable()
     {
