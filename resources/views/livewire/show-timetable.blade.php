@@ -32,9 +32,16 @@
                         {{--displays the time slots for each day of the week--}}
                         @foreach ($timeSlots as $timeSlot)
                             <td scope="col">
-                                <p class="print-small-text">@if ($timeSlot->weekdays()->where('weekday_id',$weekday->id)->first() != null)
-                                    {{$timeSlot->weekdays()->where('weekday_id',$weekday->id)->first()?->timetableRecord?->subject?->name}}
-                                @endif</p>
+                                <p class="print-small-text">
+                                    @php
+                                        $pivot = $timeSlot->weekdays->find($weekday->id)?->timetableRecord;
+                                    @endphp
+                                    @if (!is_null($pivot) && $pivot->timetable_recordable_type == "subject")
+                                        {{$subjects->find($pivot->timetable_recordable_id)->name}}
+                                    @elseif (!is_null($pivot) && $pivot->timetable_recordable_type == "customTimetableItem")
+                                        {{$customItems->find($pivot->timetable_recordable_id)->name}}
+                                    @endif
+                                </p>
                             </td>
                         @endforeach
                     </tr>

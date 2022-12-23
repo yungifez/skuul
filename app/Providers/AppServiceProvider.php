@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
@@ -18,6 +19,11 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrap();
         Schema::defaultStringLength(100);
+        Relation::enforceMorphMap([
+            'subject'         => "App\Models\Subject",
+            'custom'          => "App\Models\CustomTimetableItems",
+            'App\Models\User' => 'App\Models\User',
+        ]);
     }
 
     /**

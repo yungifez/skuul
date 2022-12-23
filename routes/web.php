@@ -90,6 +90,7 @@ Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefault
 
             //timetable route
             Route::resource('timetables', TimetableController::class);
+            Route::resource('custom-timetable-items', CustomTimetableItemController::class);
 
             //manage timetable
             Route::get('timetables/{timetable}/manage', ['App\Http\Controllers\TimetableController', 'manage'])->name('timetables.manage');

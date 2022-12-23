@@ -34,18 +34,19 @@ class TimeSlotService
      * Create timetable time record.
      *
      * @param TimetableTimeSlot $timeSlot
-     * @param mixec             $data
+     * @param mixed             $data
      *
      * @return void
      */
     public function createTimetableRecord(TimetableTimeSlot $timeSlot, $data)
     {
         //remove existing record
-        if ($timeSlot->weekdays->find($data['weekday_id']) || $data['subject_id'] == null) {
+        if ($timeSlot->weekdays->find($data['weekday_id']) || $data['id'] == null) {
             $timeSlot->weekdays()->detach($data['weekday_id']);
         }
-        if ($data['subject_id'] != null) {
-            $timeSlot->weekdays()->attach($data['weekday_id'], ['subject_id' => $data['subject_id']]);
+
+        if ($data['id'] != null) {
+            $timeSlot->weekdays()->attach($data['weekday_id'], ['timetable_time_slot_weekdayable_id' => $data['id'], 'timetable_time_slot_weekdayable_type' => $data['type']]);
         }
     }
 }

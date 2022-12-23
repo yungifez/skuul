@@ -2,11 +2,11 @@
 
 namespace App\Policies;
 
-use App\Models\ClassGroup;
+use App\Models\CustomTimetableItem;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
-class ClassGroupPolicy
+class CustomTimetableItemPolicy
 {
     use HandlesAuthorization;
 
@@ -19,7 +19,7 @@ class ClassGroupPolicy
      */
     public function viewAny(User $user)
     {
-        if ($user->can('read class group')) {
+        if ($user->can('read custom timetable item')) {
             return true;
         }
     }
@@ -27,16 +27,14 @@ class ClassGroupPolicy
     /**
      * Determine whether the user can view the model.
      *
-     * @param \App\Models\User       $user
-     * @param \App\Models\ClassGroup $classGroup
+     * @param \App\Models\User                $user
+     * @param \App\Models\CustomTimetableItem $customTimetableItem
      *
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function view(User $user, ClassGroup $classGroup)
+    public function view(User $user, CustomTimetableItem $customTimetableItem)
     {
-        if ($user->can('read class group') && $user->school_id == $classGroup->school_id) {
-            return true;
-        }
+        //
     }
 
     /**
@@ -48,7 +46,7 @@ class ClassGroupPolicy
      */
     public function create(User $user)
     {
-        if ($user->can('create class group')) {
+        if ($user->can('create custom timetable item')) {
             return true;
         }
     }
@@ -56,14 +54,14 @@ class ClassGroupPolicy
     /**
      * Determine whether the user can update the model.
      *
-     * @param \App\Models\User       $user
-     * @param \App\Models\ClassGroup $classGroup
+     * @param \App\Models\User                $user
+     * @param \App\Models\CustomTimetableItem $customTimetableItem
      *
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function update(User $user, ClassGroup $classGroup)
+    public function update(User $user, CustomTimetableItem $customTimetableItem)
     {
-        if ($user->can('update class group') && $user->school_id == $classGroup->school_id) {
+        if ($user->can('update custom timetable item') && $user->school_id == $customTimetableItem->school->id) {
             return true;
         }
     }
@@ -71,14 +69,14 @@ class ClassGroupPolicy
     /**
      * Determine whether the user can delete the model.
      *
-     * @param \App\Models\User       $user
-     * @param \App\Models\ClassGroup $classGroup
+     * @param \App\Models\User                $user
+     * @param \App\Models\CustomTimetableItem $customTimetableItem
      *
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function delete(User $user, ClassGroup $classGroup)
+    public function delete(User $user, CustomTimetableItem $customTimetableItem)
     {
-        if ($user->can('delete class group') && $user->school_id == $classGroup->school_id) {
+        if ($user->can('delete custom timetable item') && $user->school_id == $customTimetableItem->school->id) {
             return true;
         }
     }
@@ -86,12 +84,12 @@ class ClassGroupPolicy
     /**
      * Determine whether the user can restore the model.
      *
-     * @param \App\Models\User       $user
-     * @param \App\Models\ClassGroup $classGroup
+     * @param \App\Models\User                $user
+     * @param \App\Models\CustomTimetableItem $customTimetableItem
      *
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function restore(User $user, ClassGroup $classGroup)
+    public function restore(User $user, CustomTimetableItem $customTimetableItem)
     {
         //
     }
@@ -99,12 +97,12 @@ class ClassGroupPolicy
     /**
      * Determine whether the user can permanently delete the model.
      *
-     * @param \App\Models\User       $user
-     * @param \App\Models\ClassGroup $classGroup
+     * @param \App\Models\User                $user
+     * @param \App\Models\CustomTimetableItem $customTimetableItem
      *
      * @return \Illuminate\Auth\Access\Response|bool
      */
-    public function forceDelete(User $user, ClassGroup $classGroup)
+    public function forceDelete(User $user, CustomTimetableItem $customTimetableItem)
     {
         //
     }

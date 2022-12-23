@@ -222,6 +222,20 @@ class PermissionSeeder extends Seeder
             'name' => 'delete timetable',
         ]);
 
+        //custom timetable item
+        Permission::firstOrCreate([
+            'name' => 'create custom timetable item',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read custom timetable item',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update custom timetable item',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete custom timetable item',
+        ]);
+
         //exam permissions
         Permission::firstOrCreate([
             'name' => 'create exam',
@@ -442,6 +456,10 @@ class PermissionSeeder extends Seeder
             'read timetable',
             'update timetable',
             'delete timetable',
+            'create custom timetable item',
+            'read custom timetable item',
+            'update custom timetable item',
+            'delete custom timetable item',
             'create exam',
             'read exam',
             'update exam',

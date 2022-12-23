@@ -207,8 +207,9 @@ class TimetableTest extends TestCase
         $timeslot = TimetableTimeSlot::factory()->create();
         $this->unauthorized_user()
             ->post("/dashboard/timetables/1/manage/time-slots/$timeslot->id/record/create", [
+                'type'       => 'subject',
                 'weekday_id' => '1',
-                'subject_id' => 1,
+                'id'         => 1,
             ])->assertForbidden();
     }
 
@@ -219,14 +220,15 @@ class TimetableTest extends TestCase
         $timeslot = TimetableTimeSlot::factory()->create();
         $this->authorized_user(['update timetable'])
             ->post("/dashboard/timetables/1/manage/time-slots/$timeslot->id/record/create", [
+                'type'       => 'subject',
                 'weekday_id' => '1',
-                'subject_id' => 1,
+                'id'         => 1,
             ]);
 
         $this->assertDatabaseHas('timetable_time_slot_weekday', [
-            'timetable_time_slot_id' => $timeslot->id,
-            'weekday_id'             => 1,
-            'subject_id'             => 1,
+            'timetable_time_slot_id'              => $timeslot->id,
+            'weekday_id'                          => 1,
+            'timetable_time_slot_weekdayable_id'  => 1,
         ]);
     }
 }

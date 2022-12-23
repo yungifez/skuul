@@ -32,4 +32,14 @@ class Subject extends Model
     {
         return $this->belongsToMany(User::class, 'subject_user');
     }
+
+    /**
+     * Get the subjects timetable records.
+     *
+     * @return void
+     */
+    public function timetableRecord()
+    {
+        return $this->morphOne(TimetableRecord::class, 'timetable_time_slot_weekdayable');
+    }
 }

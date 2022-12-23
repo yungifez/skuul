@@ -2,6 +2,7 @@
 
 namespace App\Services\Timetable;
 
+use App\Models\CustomTimetableItem;
 use App\Models\Timetable;
 use App\Services\Print\PrintService;
 
@@ -71,5 +72,51 @@ class TimetableService
     public function deleteTimetable(Timetable $timetable)
     {
         $timetable->delete();
+    }
+
+    /**
+     * Get all custom timetable items in school.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function getAllCustomTimetableItem()
+    {
+        return CustomTimetableItem::where('school_id', auth()->user()->school_id)->get();
+    }
+
+    /**
+     * Create custom timetable item.
+     *
+     * @param array<mixed> $record
+     *
+     * @return \App\Models\CustomTimetableItem
+     */
+    public function createCustomTimetableItem($record)
+    {
+        return CustomTimetableItem::create([
+            'name'      => $record['name'],
+            'school_id' => $record['school_id'],
+        ]);
+    }
+
+    /**
+     * Update a given customet timetable item.
+     *
+     * @param CustomTimetableItem $customTimetableItem
+     * @param array<mixed>        $record
+     *
+     * @return \App\Models\CustomTimetableItem
+     */
+    public function updateCustomTimetableItem(CustomTimetableItem $customTimetableItem, $record)
+    {
+        $customTimetableItem->name = $record['name'];
+        $customTimetableItem->save();
+
+        return $customTimetableItem;
+    }
+
+    public function deleteCustomTimetableItem(CustomTimetableItem $customTimetableItem)
+    {
+        $customTimetableItem->delete();
     }
 }
