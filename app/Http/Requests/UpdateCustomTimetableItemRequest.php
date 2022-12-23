@@ -2,12 +2,12 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateCustomTimetableItemRequest extends FormRequest
 {
-     /**
+    /**
      * Prepare the data for validation.
      *
      * @return void
@@ -26,18 +26,18 @@ class UpdateCustomTimetableItemRequest extends FormRequest
      */
     public function rules()
     {
-       return [
-        'name' =>[ 
-            'required',
-            'string',
-            'max:255',
-            Rule::unique('custom_timetable_items')->ignore($this->route()->parameter('custom_timetable_item')->id)->where(fn ($query) => $query->where('school_id', $this->input('school_id') ?? auth()->user()->school_id)),
-        ],
-        'school_id' => [
-            'required',
-            'integer',
-            'exists:schools,id'
-        ]
-    ];
+        return [
+            'name' => [
+                'required',
+                'string',
+                'max:255',
+                Rule::unique('custom_timetable_items')->ignore($this->route()->parameter('custom_timetable_item')->id)->where(fn ($query) => $query->where('school_id', $this->input('school_id') ?? auth()->user()->school_id)),
+            ],
+            'school_id' => [
+                'required',
+                'integer',
+                'exists:schools,id',
+            ],
+        ];
     }
 }

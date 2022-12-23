@@ -2,10 +2,9 @@
 
 namespace App\Models;
 
-use App\Models\School;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class CustomTimetableItem extends Model
 {
@@ -14,7 +13,7 @@ class CustomTimetableItem extends Model
     protected $fillable = ['name', 'school_id'];
 
     /**
-     * Get the school that owns the CustomTimetableItem
+     * Get the school that owns the CustomTimetableItem.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
@@ -23,8 +22,8 @@ class CustomTimetableItem extends Model
         return $this->belongsTo(School::class);
     }
 
-     /**
-     * Get the subjects timetable records
+    /**
+     * Get the subjects timetable records.
      *
      * @return void
      */

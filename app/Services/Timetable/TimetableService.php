@@ -73,9 +73,9 @@ class TimetableService
     {
         $timetable->delete();
     }
-    
+
     /**
-     * Get all custom timetable items in school
+     * Get all custom timetable items in school.
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
@@ -84,29 +84,28 @@ class TimetableService
         return CustomTimetableItem::where('school_id', auth()->user()->school_id)->get();
     }
 
-
     /**
-     * Create custom timetable item
+     * Create custom timetable item.
      *
      * @param array<mixed> $record
-     * 
+     *
      * @return \App\Models\CustomTimetableItem
      */
     public function createCustomTimetableItem($record)
     {
         return CustomTimetableItem::create([
-            'name' => $record['name'],
-            'school_id' => $record['school_id']
+            'name'      => $record['name'],
+            'school_id' => $record['school_id'],
         ]);
     }
 
     /**
-     * Update a given customet timetable item
+     * Update a given customet timetable item.
      *
      * @param CustomTimetableItem $customTimetableItem
-     * @param array<mixed> $record
-     * 
-     * @return  \App\Models\CustomTimetableItem
+     * @param array<mixed>        $record
+     *
+     * @return \App\Models\CustomTimetableItem
      */
     public function updateCustomTimetableItem(CustomTimetableItem $customTimetableItem, $record)
     {

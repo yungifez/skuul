@@ -222,7 +222,7 @@ class PermissionSeeder extends Seeder
             'name' => 'delete timetable',
         ]);
 
-        //custom timetable item 
+        //custom timetable item
         Permission::firstOrCreate([
             'name' => 'create custom timetable item',
         ]);
