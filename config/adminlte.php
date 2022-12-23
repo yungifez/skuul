@@ -605,6 +605,18 @@ return [
                     'route' => 'timetables.create',
                     'can'   => 'create timetable',
                 ],
+                [
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'View custom items',
+                    'route' => 'custom-timetable-items.index',
+                    'can'   => 'read custom timetable items',
+                ],
+                [
+                    'type'  => 'sidebar-menu-item',
+                    'text'  => 'Create Custom Items',
+                    'route' => 'custom-timetable-items.create',
+                    'can'   => 'create custom timetable items',
+                ],
             ],
         ],
         [

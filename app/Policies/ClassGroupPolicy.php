@@ -10,11 +10,6 @@ class ClassGroupPolicy
 {
     use HandlesAuthorization;
 
-    public function __construct(ClassGroup $classGroup)
-    {
-        return true;
-    }
-
     /**
      * Determine whether the user can view any models.
      *
