@@ -37,7 +37,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         if (isset($input['photo'])) {
             $user->updateProfilePhoto($input['photo']);
         }
-        
+
         if ($input['email'] !== $user->email &&
             $user instanceof MustVerifyEmail) {
             $this->updateVerifiedUser($user, $input);
@@ -48,12 +48,12 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
                 'birthday'    => $input['birthday'],
                 'address'     => $input['address'],
                 'blood_group' => $input['blood_group'],
-                'religion'    => $input['religion'] ?? "",
+                'religion'    => $input['religion'] ?? '',
                 'nationality' => $input['nationality'],
                 'state'       => $input['state'],
                 'city'        => $input['city'],
                 'gender'      => $input['gender'],
-                'phone'       => $input['phone'] ?? "",
+                'phone'       => $input['phone'] ?? '',
             ])->save();
         }
 
@@ -77,12 +77,12 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'birthday'          => $input['birthday'],
             'address'           => $input['address'],
             'blood_group'       => $input['blood_group'],
-            'religion'          => $input['religion'] ?? "",
+            'religion'          => $input['religion'] ?? '',
             'nationality'       => $input['nationality'],
             'state'             => $input['state'],
             'city'              => $input['city'],
             'gender'            => $input['gender'],
-            'phone'             => $input['phone'] ?? "",
+            'phone'             => $input['phone'] ?? '',
         ])->save();
 
         $user->sendEmailVerificationNotification();
