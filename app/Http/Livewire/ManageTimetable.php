@@ -11,16 +11,24 @@ class ManageTimetable extends Component
 {
     public Timetable $timetable;
     public $timeSlots;
+    public ?int $timeSlot;
     public $weekdays;
     public $subjects;
     public $customItems;
+    public $types;
+    public $type;
 
     public function mount(TimetableService $timetableService)
     {
         $this->timeSlots = $this->timetable->timeSlots->sortBy('start_time')->load('weekdays');
+        if ($this->timeSlots->isNotEmpty()) {
+            $this->timeSlot = $this->timeSlots->first()->id;
+        }
         $this->weekdays = Weekday::all();
         $this->subjects = $this->timetable->MyClass->subjects;
         $this->customItems = $timetableService->getAllCustomTimetableItem();
+        $this->types = ['subject', 'customTimetableItem'];
+        $this->type = $this->types[0];
     }
 
     public function render()

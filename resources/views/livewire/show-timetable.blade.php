@@ -12,7 +12,7 @@
                 <thead>
                     <tr> 
                         <th scope="col" class="">
-                            <p class="text-center">Time slots <span style="font-family: Dejavu Sans, sans-serif;">&rarr;</span><br>Weekdays <span style="font-family: Dejavu Sans, sans-serif;">&darr;</span> </p>
+                            <p class="text-center">Time slots <span style="font-family: Dejavu Sans, sans-serif;"><br>&rarr;</span><br>Weekdays <span style="font-family: Dejavu Sans, sans-serif;">&darr;</span> </p>
                         </th>
                         {{--table heading which displays all the time slots--}}
                         @foreach ($timeSlots as $timeSlot)
