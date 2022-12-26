@@ -58,6 +58,7 @@
             @endisset
         </div>
 
+        @livewire('loading-spinner')
         @livewire("show-timetable", ['timetable' => $timetable, 'showDescription' => false ], key('show-timetable'))
         
         {{--Create timeslot form--}}

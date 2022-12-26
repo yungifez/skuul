@@ -1,5 +1,5 @@
 {{--Written for css 2.1 support--}}
-<div class="card">
+<div class="card" wire:loading.remove>
     <div class="card-header">
         <h4 class="card-title">{{ $timetable->name}}</h4>
     </div>
