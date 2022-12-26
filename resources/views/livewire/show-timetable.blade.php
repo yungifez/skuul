@@ -4,9 +4,11 @@
         <h4 class="card-title">{{ $timetable->name}}</h4>
     </div>
     <div class="card-body">
-        @isset($timetable->description)
-            <p>{{$timetable->description}}</p>
-        @endisset
+        @if ($showDescription == true)  
+            @isset($timetable->description)
+                <p>{{$timetable->description}}</p>
+            @endisset
+        @endif
         <div class="table-responsive my-3">
             <table class="table table-bordered overflow-auto" style="overflow-x: scroll"> 
                 <thead>

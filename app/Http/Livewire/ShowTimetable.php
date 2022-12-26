@@ -14,6 +14,13 @@ class ShowTimetable extends Component
     public $subjects;
     public $customItems;
 
+    /**
+     * Determine if to show the timetable
+     *
+     * @var boolean
+     */
+    public bool $showDescription = true;
+
     public function mount(TimetableService $timetableService)
     {
         $this->timeSlots = $this->timetable->timeSlots->sortBy('start_time')->load('weekdays');
