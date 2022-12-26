@@ -2,10 +2,12 @@
 
 namespace App\Http\Livewire;
 
-use App\Models\Timetable;
 use App\Models\Weekday;
-use App\Services\Timetable\TimetableService;
 use Livewire\Component;
+use App\Models\Timetable;
+use App\Models\TimetableTimeSlot;
+use App\Services\Timetable\TimetableService;
+use Illuminate\Console\View\Components\Warn;
 
 class ShowTimetable extends Component
 {
@@ -28,6 +30,11 @@ class ShowTimetable extends Component
         $this->weekdays = Weekday::all();
         $this->subjects = $this->timetable->load('myClass')->MyClass->subjects;
         $this->customItems = $timetableService->getAllCustomTimetableItem();
+    }
+
+    public function emitCellInformationDetail(TimetableTimeSlot $timeSlot, Weekday $weekday)
+    {
+        $this->emit('timetableCellClicked', ['timeSlot' => $timeSlot, 'weekday' => $weekday]);
     }
 
     public function render()

@@ -9,10 +9,12 @@ use Livewire\Component;
 
 class ManageTimetable extends Component
 {
+    protected $listeners = ['timetableCellClicked' => 'setSelectFields'];
     public Timetable $timetable;
     public $timeSlots;
     public ?int $timeSlot;
     public $weekdays;
+    public $weekday;
     public $subjects;
     public $customItems;
     public $types;
@@ -29,6 +31,17 @@ class ManageTimetable extends Component
         $this->customItems = $timetableService->getAllCustomTimetableItem();
         $this->types = ['subject', 'customTimetableItem'];
         $this->type = $this->types[0];
+    }
+
+    public function setSelectFields($records)
+    {
+        $this->timeSlot = $records['timeSlot']['id'];
+        $this->weekday = $records['weekday']['id'];
+    }
+
+    public function updatedTimeSlot()
+    {
+        //
     }
 
     public function render()

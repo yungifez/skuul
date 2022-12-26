@@ -4,19 +4,19 @@
     </div>
     <div class="card-body">
         {{--form for creating timeSlots--}}
-        <div class="row mb-3">
+        <div class="row mb-3" id="create-timetable-record">
             @livewire('display-validation-error')
             <x-adminlte-select name="timeSlot" label="Time Slot"  fgroup-class="col-md-3" enable-old-support wire:model="timeSlot">
                 @isset($timeSlots)
                     @foreach ($timeSlots as $item)
-                        <option value="{{$item['id']}}"> {{$item->name}}</option>
+                        <option value="{{$item['id']}}" > {{$item->name}}</option>
                     @endforeach
                 @endisset
             </x-adminlte-select>
             @if(!is_null($timeSlot))
-                <form action="{{route('timetables.records.create',[$timetable->id,$timeSlot])}}" id="create-timetable-record" method="POST" class="row col-md-9" >
+                <form action="{{route('timetables.records.create',[$timetable->id,$timeSlot])}}" method="POST" class="row col-md-9" >
                     @csrf
-                    <x-adminlte-select name="weekday_id" label="Day of week"  fgroup-class="col-md-4" enable-old-support>
+                    <x-adminlte-select name="weekday_id" label="Day of week"  fgroup-class="col-md-4" enable-old-support wire:model="weekday">
                         @isset($weekdays)
                             @foreach ($weekdays as $item)
                                 <option value="{{$item['id']}}"> {{$item->name}}</option>
@@ -100,7 +100,7 @@
                             <td>{{$loop->iteration}}</td>
                             <td>{{ $timeSlot->name}}</td>
                             <td>
-                                @livewire('delete-modal', ['modal_id' => "timeslot-$timeSlot->id" ,"action" => route('time-slots.destroy',[$timetable->id, $timeSlot->id])."#time-slot-list-table", 'item_name' => "timeslot $timeSlot->start_time - $timeSlot->stop_time", 'button_class' => ''])
+                                @livewire('delete-modal', ['modal_id' => "timeslot-$timeSlot->id" ,"action" => route('time-slots.destroy',[$timetable->id, $timeSlot->id])."#time-slot-list-table", 'item_name' => "timeslot $timeSlot->start_time - $timeSlot->stop_time", 'button_class' => ''], key($timeSlot->id))
                             </td>
                         </tr>
                     @endforeach
@@ -108,4 +108,11 @@
             </div>
         </div>
     </div>
+    @push('js')
+        <script>
+            Livewire.on('timetableCellClicked', () => {
+                document.getElementById('create-timetable-record').scrollIntoView();
+            })
+        </script>
+    @endpush
 </div>

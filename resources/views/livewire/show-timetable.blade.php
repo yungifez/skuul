@@ -33,7 +33,7 @@
                         <td scope="col" ><p class=""><strong>{{$weekday->name}}</strong></p></td>
                         {{--displays the time slots for each day of the week--}}
                         @foreach ($timeSlots as $timeSlot)
-                            <td scope="col">
+                            <td scope="col" wire:click="emitCellInformationDetail({{$timeSlot->id}}, {{$weekday->id}})" wire:loading.class="prevent-click" >
                                 <p class="print-small-text">
                                     @php
                                         $pivot = $timeSlot->weekdays->find($weekday->id)?->timetableRecord;
@@ -50,6 +50,10 @@
                 @endforeach
             </table>
         </div>
-    
+        <style>
+            .prevent-click {
+                pointer-events: none;
+            }
+        </style>
     </div>
 </div>
