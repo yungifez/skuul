@@ -19,7 +19,7 @@
                         ],
                     ],)</td>
                     <td>
-                        @livewire('delete-modal', ['modal_id' => $promotion->id ,"action" => route('students.promotions.reset', $promotion->id), 'item_name' => "would be reset, all students returned to the old class", 'button_label' => "Reset"])
+                        @livewire('delete-modal', ['modal_id' => $promotion->id ,"action" => route('students.promotions.reset', $promotion->id), 'delete_message' => "This promotion would be reset and all students returned back to original class", 'button_label' => "Reset"])
                     </td>
                 </tr>
             @endforeach
