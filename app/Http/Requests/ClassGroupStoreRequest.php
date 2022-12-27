@@ -29,6 +29,7 @@ class ClassGroupStoreRequest extends FormRequest
         return [
             'name' => [
                 'required',
+                'max:255',
                 Rule::unique('class_groups')->where(fn ($query) => $query->where('school_id', $this->input('school_id') ?? auth()->user()->school_id)),
             ],
         ];

@@ -15,7 +15,7 @@ class SchoolStoreRequest extends FormRequest
     {
         return [
             'name'    => 'required|max:255',
-            'address' => 'required|min:8',
+            'address' => 'required|min:8|max:1000',
         ];
     }
 }

@@ -19,6 +19,7 @@ class MyClassStoreRequest extends FormRequest
         return [
             'name' => [
                 'required',
+                'max:255',
                 //checks if there is a class with a name in class group
                 Rule::unique('my_classes', 'name')->where(fn ($query) => $query->where('class_group_id', $classGroupId)),
             ],
