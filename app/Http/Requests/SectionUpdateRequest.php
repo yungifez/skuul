@@ -20,6 +20,7 @@ class SectionUpdateRequest extends FormRequest
         return [
             'name' => [
                 'required',
+                'max:255',
                 Rule::unique('sections', 'name')->ignore($sectionId)->where('my_class_id', $myClassId),
             ],
         ];

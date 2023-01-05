@@ -20,6 +20,7 @@ class MyClassUpdateRequest extends FormRequest
         return [
             'name' => [
                 'required',
+                'max:255',
                 //figure it out before changing
                 Rule::unique('my_classes', 'name')->ignore($myClassId)->where(fn ($query) => $query->where('class_group_id', $classGroupId)),
             ],

@@ -20,7 +20,7 @@ class SemesterStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'string|max:256',
+            'name' => 'string|max:255',
         ];
     }
 }

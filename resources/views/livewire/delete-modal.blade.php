@@ -6,14 +6,18 @@
             <div>
                 <i class="fas fa-trash text-danger fa-6x py-3"></i>
             </div>
-            <p>This item "{{$item_name ?? ''}}" and all related records would be deleted</p>
+            @isset($delete_message) 
+                {{$delete_message}}
+            @else
+                <p>This item "{{$item_name ?? ''}}" and all related records would be deleted</p>
+            @endisset
         </div>
         <x-slot name="footerSlot">
-            <x-adminlte-button label="close" data-dismiss="modal" theme="secondary" class="mr-auto"/>
+            <x-adminlte-button label="Close" data-dismiss="modal" theme="secondary" class="mr-auto"/>
             <form action="{{$action}}" method="post">
                 @csrf
                 @method('delete')
-                <x-adminlte-button label="continue with delete" type="submit" theme="danger"/>
+                <x-adminlte-button :label='"Continue With $button_label"' type="submit" theme="danger"/>
             </form>
         </x-slot>
     </x-adminlte-modal>
