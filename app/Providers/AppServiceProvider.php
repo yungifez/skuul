@@ -19,10 +19,9 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrap();
         Schema::defaultStringLength(100);
-        Relation::enforceMorphMap([
+        Relation::morphMap([
             'subject'         => "App\Models\Subject",
             'custom'          => "App\Models\CustomTimetableItems",
-            'App\Models\User' => 'App\Models\User',
         ]);
     }
 
