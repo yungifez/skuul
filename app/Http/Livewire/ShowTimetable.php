@@ -2,12 +2,11 @@
 
 namespace App\Http\Livewire;
 
-use App\Models\Weekday;
-use Livewire\Component;
 use App\Models\Timetable;
 use App\Models\TimetableTimeSlot;
+use App\Models\Weekday;
 use App\Services\Timetable\TimetableService;
-use Illuminate\Console\View\Components\Warn;
+use Livewire\Component;
 
 class ShowTimetable extends Component
 {
@@ -17,9 +16,9 @@ class ShowTimetable extends Component
     public $customItems;
 
     /**
-     * Determine if to show the timetable
+     * Determine if to show the timetable.
      *
-     * @var boolean
+     * @var bool
      */
     public bool $showDescription = true;
 
