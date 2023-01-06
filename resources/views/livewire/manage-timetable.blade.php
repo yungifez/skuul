@@ -64,7 +64,7 @@
                 <p class="sr-only">Loading.....</p>
             </div>
         </div>
-        @livewire("show-timetable", ['timetable' => $timetable, 'showDescription' => false ], key('show-timetable'))
+        @livewire("show-timetable", ['timetable' => $timetable, 'showDescription' => false, 'disableEmitCellInformationDetail' => false ], key('show-timetable'))
         
         {{--Create timeslot form--}}
         <form action="{{route('time-slots.store',$timetable->id)."#create-time-slot"}}" id="create-time-slot" method="post" class="col-12">
