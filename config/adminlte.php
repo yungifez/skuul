@@ -129,7 +129,7 @@ return [
     'classes_content'          => '',
     'classes_sidebar'          => env('ADMINLTE_CLASSES_SIDEBAR', 'sidebar-dark-primary elevation-4'),
     'classes_sidebar_nav'      => '',
-    'classes_topnav'           =>  env('ADMINLTE_CLASSES_TOPNAV', 'navbar-white navbar-light'),
+    'classes_topnav'           => env('ADMINLTE_CLASSES_TOPNAV', 'navbar-white navbar-light'),
     'classes_topnav_nav'       => 'navbar-expand',
     'classes_topnav_container' => 'container',
 
