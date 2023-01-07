@@ -17,7 +17,7 @@
                 <p class="sr-only">Loading.....</p>
             </div>
         </div>
-        @isset($syllabiPaginated)
+        @if(!$syllabiPaginated->isEmpty())
             @foreach ($syllabiPaginated as $syllabus)
                 <x-adminlte-card title="{{$syllabus->name}}" theme="primary" icon=""  collapsible="collapsed" wire.loading.remove>
                     <p>Subject: {{$syllabus->subject->name}}</p>

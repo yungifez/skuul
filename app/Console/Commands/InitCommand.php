@@ -19,7 +19,7 @@ class InitCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Easily Istall Skuul';
+    protected $description = 'Easily install Skuul';
 
     /**
      * No of attempts to be made to connect to the

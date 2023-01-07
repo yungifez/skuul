@@ -19,7 +19,7 @@
             </div>
         </div>
         
-        @isset($timetablesPaginated)
+        @if(!$timetablesPaginated->isEmpty())
             @foreach ($timetablesPaginated as $timetable)
                 <x-adminlte-card title="{{$timetable->name}}" theme="primary" icon=""  collapsible="collapsed" :wire:key="$loop->index" wire:loading.remove>
                     <div class="d-grid gap-2 ">
