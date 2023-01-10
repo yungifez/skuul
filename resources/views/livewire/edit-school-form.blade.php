@@ -6,8 +6,11 @@
         <form action="{{route('schools.update', $school->id )}}" method="POST">
             @method('PUT')
             @livewire('display-validation-error')
-            <x-adminlte-input name="name" placeholder="Enter name of school" label="School Name" value="{{$school->name}}" enable-old-support fgroup-class="col-md-6"/>
-            <x-adminlte-textarea name="address" placeholder="Enter school branch address" label="School Address" enable-old-support fgroup-class="col-md-6">
+            <p class="text-secondary">
+                {{__('All fields marked * are required')}}
+            </p>
+            <x-adminlte-input name="name" placeholder="Enter name of school" label="School Name *" value="{{$school->name}}" enable-old-support fgroup-class="col-md-6"/>
+            <x-adminlte-textarea name="address" placeholder="Enter school branch address" label="School Address *" enable-old-support fgroup-class="col-md-6">
                 {{$school->address}}
             </x-adminlte-textarea>
             <x-adminlte-input name="initials" placeholder="Enter school initials" label="School Initials" value="{{$school->initials}}" enable-old-support fgroup-class="col-md-6"/>   

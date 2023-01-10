@@ -174,10 +174,11 @@ class StudentService
      */
     public function generateAdmissionNumber($schoolId = null)
     {
-        $schoolInitials = School::find($schoolId)->initials ?? auth()->user()->school->initials;
+        $schoolInitials = (School::find($schoolId) ?? auth()->user()->school)->initials;
+        $schoolInitials != null ?? $schoolInitials .= "/" ;
         $currentYear = date('y');
         do {
-            $admissionNumber = "$schoolInitials/$currentYear/".\mt_rand('100000', '999999');
+            $admissionNumber = "$schoolInitials"."$currentYear/".\mt_rand('100000', '999999');
             if (StudentRecord::where('admission_number', $admissionNumber)->count() <= 0) {
                 $uniqueAdmissionNumberFound = true;
             } else {

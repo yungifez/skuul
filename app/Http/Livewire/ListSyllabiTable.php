@@ -28,7 +28,8 @@ class ListSyllabiTable extends Component
             $this->classes = $myClassService->getAllClasses();
             //make sure classes arent empty
             if (!$this->classes->isEmpty()) {
-                $this->syllabi = $syllabusService->getAllSyllabiInSemesterAndClass($semester, $this->classes[0]['id'])->load('subject');
+                $this->classes->load('subjects');
+                $this->syllabi = $syllabusService->getAllSyllabiInSemesterAndClass($semester, $this->classes[0]['id']);
             } else {
                 $this->classes = [];
                 $this->syllabi = collect([]);
@@ -56,6 +57,7 @@ class ListSyllabiTable extends Component
         $perPage = 10;
         $statringPoint = ($currentPage * $perPage) - $perPage;
 
+        //return a paginated resource
         return view('livewire.list-syllabi-table', [
             'syllabiPaginated' => (new LengthAwarePaginator(($this->syllabi ?? collect())->slice($statringPoint, $perPage, true), collect($this->syllabi)->count(), $perPage, LengthAwarePaginator::resolveCurrentPage(), [LengthAwarePaginator::resolveCurrentPath()])),
         ]);

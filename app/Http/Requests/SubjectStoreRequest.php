@@ -14,8 +14,8 @@ class SubjectStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'name'        => 'required|max:256',
-            'short_name'  => 'required|max:256',
+            'name'        => 'required|max:255',
+            'short_name'  => 'required|max:255',
             'my_class_id' => 'exists:my_classes,id',
             'teachers.*'  => 'exists:users,id',
         ];

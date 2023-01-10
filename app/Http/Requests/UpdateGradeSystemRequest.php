@@ -16,8 +16,8 @@ class UpdateGradeSystemRequest extends FormRequest
         return [
             'grade_from'     => 'required|numeric|gte:0|max:100',
             'grade_till'     => 'required|numeric|gt:grade_from|max:100',
-            'name'           => 'required|string',
-            'remark'         => 'nullable|string',
+            'name'           => 'required|string|max:255',
+            'remark'         => 'nullable|string|max:255',
             'class_group_id' => 'required|integer|exists:class_groups,id',
         ];
     }

@@ -21,7 +21,7 @@
         
         @if(!$timetablesPaginated->isEmpty())
             @foreach ($timetablesPaginated as $timetable)
-                <x-adminlte-card title="{{$timetable->name}}" theme="primary" icon=""  collapsible="collapsed" :wire:key="$loop->index" wire:loading.remove>
+                <x-adminlte-card title="{{$timetable->name}}" theme="secondary" icon=""  collapsible="collapsed" :wire:key="$loop->index" wire:loading.remove>
                     <div class="d-grid gap-2 ">
                         @can('read timetable')
                             <a class="btn btn-primary" href="{{route('timetables.show',$timetable->id)}}">

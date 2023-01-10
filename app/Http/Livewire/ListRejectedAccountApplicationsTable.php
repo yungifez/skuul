@@ -7,7 +7,7 @@ use Livewire\Component;
 
 class ListRejectedAccountApplicationsTable extends Component
 {
-    public $accountApplications;
+    public $applicants;
 
     public function mount(AccountApplicationService $accountApplicationService)
     {
