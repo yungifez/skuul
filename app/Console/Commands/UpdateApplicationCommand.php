@@ -53,7 +53,21 @@ class UpdateApplicationCommand extends Command
 
     public function fetchLatestCode()
     {
-        shell_exec('git fetch --all --tags && git checkout $(git rev-list --tags --max-count=1 ) && echo Updated codebase to  $(git rev-list --tags --max-count=1 )');
+        $oldVersion = shell_exec('git describe --tags');
+        
+        $oldVersion = $this->splitVersionNumber($oldVersion);
+            
+        shell_exec('git fetch --all --tags && git checkout $(git rev-list --tags --max-count=1 )');
+
+        $newVersion = shell_exec("git describe --tags $(git rev-list --tags --max-count=1)");
+
+        $newVersion = $this->splitVersionNumber($newVersion);
+
+        if ($oldVersion[0] != $newVersion[0]) {
+            $this->error('Update to major version is not allowed');
+
+            exit();
+        }
     }
 
     public function runUpdateCommands()
@@ -64,4 +78,12 @@ class UpdateApplicationCommand extends Command
         $this->call('db:seed', ['class', 'RunInProductionSeeder']);
     }
 
+    public function splitVersionNumber($versionNumber)
+    {
+        $versionNumber =  preg_replace('/-.*/', '', $versionNumber);
+        $versionNumber = preg_replace("/[a-zA-Z]/", "", $versionNumber);
+        $versionNumber = str_replace(PHP_EOL, '', $versionNumber);
+        $versionNumber  = explode('.', $versionNumber);
+        return $versionNumber;
+    }
 }
