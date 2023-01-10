@@ -28,14 +28,14 @@ class UpdateApplicationCommand extends Command
     public function handle()
     {
         try {
-           $this->intro();
-           $this->call('down');
-           $this->call('optimize:clear');
-           $this->fetchLatestCode();
-           $this->runUpdateCommands();
-           $this->optimize();
-           shell_exec("chmod 777 -R ./storage");
-           $this->call('up');
+            $this->intro();
+            $this->call('down');
+            $this->call('optimize:clear');
+            $this->fetchLatestCode();
+            $this->runUpdateCommands();
+            $this->optimize();
+            shell_exec('chmod 777 -R ./storage');
+            $this->call('up');
         } catch (\Throwable $th) {
             $this->error("Something went wrong!. Try updating manually. If error persists feel free to open an issue \n \n Exception -> ".$th);
         }
@@ -43,7 +43,7 @@ class UpdateApplicationCommand extends Command
 
     private function intro()
     {
-        $this->line("<bg=blue>Welcome to the Skuul update wizard</>");
+        $this->line('<bg=blue>Welcome to the Skuul update wizard</>');
         $this->warn("it's important to be connected to the internet,  always have a backup of both your codebase and your database before making updates. Review the release notes before updating, and test your system after updating to ensure everything is working correctly. If an issue arises, the community or dedicated support channels can provide help. Also, have a rollback plan in place.");
 
         sleep(2);
@@ -57,12 +57,12 @@ class UpdateApplicationCommand extends Command
     public function fetchLatestCode()
     {
         $oldVersion = shell_exec('git describe --tags');
-        
+
         $oldVersion = $this->splitVersionNumber($oldVersion);
-            
+
         shell_exec('git fetch --all --tags && git checkout $(git rev-list --tags --max-count=1 )');
 
-        $newVersion = shell_exec("git describe --tags $(git rev-list --tags --max-count=1)");
+        $newVersion = shell_exec('git describe --tags $(git rev-list --tags --max-count=1)');
 
         $newVersion = $this->splitVersionNumber($newVersion);
 
@@ -76,25 +76,26 @@ class UpdateApplicationCommand extends Command
     public function runUpdateCommands()
     {
         shell_exec('composer install');
-        
+
         $this->call('migrate');
-        
+
         $this->call('db:seed', ['--class' => 'RunInProductionSeeder']);
     }
 
     public function splitVersionNumber($versionNumber)
     {
-        $versionNumber =  preg_replace('/-.*/', '', $versionNumber);
-        $versionNumber = preg_replace("/[a-zA-Z]/", "", $versionNumber);
+        $versionNumber = preg_replace('/-.*/', '', $versionNumber);
+        $versionNumber = preg_replace('/[a-zA-Z]/', '', $versionNumber);
         $versionNumber = str_replace(PHP_EOL, '', $versionNumber);
-        $versionNumber  = explode('.', $versionNumber);
+        $versionNumber = explode('.', $versionNumber);
+
         return $versionNumber;
     }
 
     public function optimize()
     {
-        if (!$this->confirm("Do you want to optimize this application?")) {
-            return;  
+        if (!$this->confirm('Do you want to optimize this application?')) {
+            return;
         }
 
         $this->call('optimize');

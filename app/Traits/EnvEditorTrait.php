@@ -1,16 +1,17 @@
 <?php
 
 namespace App\Traits;
+
 /**
- * Env Editor Trait
+ * Env Editor Trait.
  */
 trait EnvEditorTrait
 {
-
     /**
-     * Write a new Env value to the env file the app is currently using
+     * Write a new Env value to the env file the app is currently using.
      *
      * @param array $values
+     *
      * @return void
      */
     public function setEnvironmentValue(array $values)
