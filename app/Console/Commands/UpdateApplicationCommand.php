@@ -39,7 +39,7 @@ class UpdateApplicationCommand extends Command
     private function intro()
     {
         $this->line("<bg=blue>Welcome to the Skuul update wizard</>");
-        $this->warn("it's important to always have a backup of both your codebase and your database before making updates. Review the release notes before updating, and test your system after updating to ensure everything is working correctly. If an issue arises, the community or dedicated support channels can provide help. Also, have a rollback plan in place.");
+        $this->warn("it's important to be connected to the internet,  always have a backup of both your codebase and your database before making updates. Review the release notes before updating, and test your system after updating to ensure everything is working correctly. If an issue arises, the community or dedicated support channels can provide help. Also, have a rollback plan in place.");
         // sleep(2);
 
         if (!$this->confirm('Do you wish to continue?')) {
@@ -50,7 +50,7 @@ class UpdateApplicationCommand extends Command
 
     public function fetchLatestCode()
     {
-       shell_exec('git fetch --all --tags && git checkout $(git tag --contains | tail -1) && echo Updated codebase to  $(git tag --contains | tail -1)');
+       shell_exec('git fetch --all --tags && git checkout $(git rev-list --tags --max-count=1 ) && echo Updated codebase to  $(git rev-list --tags --max-count=1 )');
     }
 
 }
