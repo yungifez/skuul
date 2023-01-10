@@ -5,9 +5,13 @@
     <div class="card-body">
         <form action="{{route('timetables.store')}}" method="POST">
             @csrf 
-            <x-adminlte-input name="name" label="Timetable name" placeholder="Enter timetable name" fgroup-class="col-md-6"/>
+            @livewire('display-validation-error')
+            <p class="text-secondary">
+                {{__('All fields marked * are required')}}
+            </p>
+            <x-adminlte-input name="name" label="Timetable name *" placeholder="Enter timetable name" fgroup-class="col-md-6"/>
             <x-adminlte-textarea name="description" label="Description" placeholder="Enter description" fgroup-class="col-md-6"/>
-            <x-adminlte-select name="my_class_id" label="Select class" fgroup-class="col-md-6" wire:model="class" wire:loading.attr="disabled" wire:target="class">
+            <x-adminlte-select name="my_class_id" label="Select class *" fgroup-class="col-md-6" wire:model="class" wire:loading.attr="disabled" wire:target="class">
                 @foreach ($classes as $item)
                     <option value="{{$item['id']}}">{{$item['name']}}</option>
                 @endforeach

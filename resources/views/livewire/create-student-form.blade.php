@@ -3,7 +3,7 @@
         <h3 class="card-title">Create Student account</h3>
     </div>
     <div class="card-body">
-        <form action="{{route('students.store')}}" method="POST" enctype="multipart/form-data">
+        <form action="{{route('students.store')}}" method="POST" enctype="multipart/form-data" autocomplete="off">
             @livewire('create-user-fields', ['role' => 'Student'])
             @livewire('create-student-record-fields')
             @csrf

@@ -2,11 +2,13 @@
 
 namespace App\Console\Commands;
 
+use App\Traits\EnvEditorTrait;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 
 class InitCommand extends Command
 {
+    use EnvEditorTrait;
     /**
      * The name and signature of the console command.
      *
@@ -19,7 +21,7 @@ class InitCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Easily Istall Skuul';
+    protected $description = 'Easily install Skuul';
 
     /**
      * No of attempts to be made to connect to the
@@ -189,7 +191,7 @@ class InitCommand extends Command
         if (false == $successfulConnection) {
             $this->error('Max db attempts exceecded please retry installation'.PHP_EOL);
 
-            throw new Exception('Max db connections reached.');
+            throw new \Exception('Max db connections reached.');
         }
 
         $this->newLine();
@@ -236,35 +238,5 @@ class InitCommand extends Command
         $this->call('db:seed', ['--class' => 'WorldSeeder']);
         $this->clearCaches();
         $this->alert('Installation Completed');
-    }
-
-    public function setEnvironmentValue(array $values)
-    {
-        $envFile = app()->environmentFilePath();
-        $str = file_get_contents($envFile);
-
-        if (count($values) > 0) {
-            foreach ($values as $envKey => $envValue) {
-                $str .= "\n"; // In case the searched variable is in the last line without \n
-                $keyPosition = strpos($str, "{$envKey}=");
-                $endOfLinePosition = strpos($str, "\n", $keyPosition);
-                $oldLine = substr($str, $keyPosition, $endOfLinePosition - $keyPosition);
-
-                // If environment variable does not exist, add it
-                if ($keyPosition === false || !$endOfLinePosition || !$oldLine) {
-                    $str .= "{$envKey}=\"{$envValue}\"\n";
-                } else {
-                    //else replace it
-                    $str = str_replace($oldLine, "{$envKey}=\"{$envValue}\"", $str);
-                }
-            }
-        }
-
-        $str = trim($str);
-        if (!file_put_contents($envFile, $str)) {
-            return false;
-        }
-
-        return true;
     }
 }

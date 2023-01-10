@@ -11,6 +11,6 @@
             <x-adminlte-button label="Create" theme="primary" icon="fas fa-key" type="submit" class="col-md-6"/>
         </div>
     </form>
-    @livewire('help-button', ['target_id' => 'class-group-help', 'text' => 'Custom timetable items are items that can be added to timetables in place of subjects eg lunch breaks etc.'])
+    @livewire('help-button', ['target_id' => 'class-group-help', 'text' => 'Custom timetable items are items that can be added to timetables other than subjects eg lunch breaks etc.'])
 </div>
 </div>

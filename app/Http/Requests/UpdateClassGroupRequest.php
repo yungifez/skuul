@@ -29,6 +29,7 @@ class UpdateClassGroupRequest extends FormRequest
         return [
             'name' => [
                 'required',
+                'max:255',
                 Rule::unique('class_groups')->ignore($this->route()->parameter('class_group')->id)->where(fn ($query) => $query->where('school_id', $this->input('school_id') ?? auth()->user()->school_id)),
             ],
         ];

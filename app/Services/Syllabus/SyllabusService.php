@@ -15,7 +15,7 @@ class SyllabusService
     //get all syllabus in semester and class
     public function getAllSyllabiInSemesterAndClass($semester_id, $class_id)
     {
-        return Syllabus::where('semester_id', $semester_id)->get()->load('subject')->filter(function ($semester) use ($class_id) {
+        return Syllabus::where('semester_id', $semester_id)->get()->load('subject', 'subject.myClass')->filter(function ($semester) use ($class_id) {
             return $semester->subject->myClass->id == $class_id;
         });
     }

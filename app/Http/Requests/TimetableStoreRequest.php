@@ -21,7 +21,7 @@ class TimetableStoreRequest extends FormRequest
     {
         return [
             'name'        => 'required|string|max:255',
-            'description' => 'nullable|string|max:255',
+            'description' => 'nullable|string|max:10000',
             'my_class_id' => 'required|integer|exists:my_classes,id',
         ];
     }
