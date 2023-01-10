@@ -33,6 +33,7 @@ class UpdateApplicationCommand extends Command
            $this->call('optimize:clear');
            $this->fetchLatestCode();
            $this->runUpdateCommands();
+           shell_exec("chmod 777 -R ./storage");
            $this->call('up');
         } catch (\Throwable $th) {
             $this->error("Something went wrong!. Try updating manually. If error persists feel free to open an issue \n \n Exception -> ".$th);
@@ -43,7 +44,8 @@ class UpdateApplicationCommand extends Command
     {
         $this->line("<bg=blue>Welcome to the Skuul update wizard</>");
         $this->warn("it's important to be connected to the internet,  always have a backup of both your codebase and your database before making updates. Review the release notes before updating, and test your system after updating to ensure everything is working correctly. If an issue arises, the community or dedicated support channels can provide help. Also, have a rollback plan in place.");
-        // sleep(2);
+        
+        sleep(2);
 
         if (!$this->confirm('Do you wish to continue?')) {
             $this->error('Operation cancelled, thank you for using Skuul');
@@ -73,9 +75,10 @@ class UpdateApplicationCommand extends Command
     public function runUpdateCommands()
     {
         shell_exec('composer install');
-
+        
         $this->call('migrate');
-        $this->call('db:seed', ['class', 'RunInProductionSeeder']);
+        
+        $this->call('db:seed', ['--class' => 'RunInProductionSeeder']);
     }
 
     public function splitVersionNumber($versionNumber)
