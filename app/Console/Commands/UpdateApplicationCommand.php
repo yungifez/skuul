@@ -33,6 +33,7 @@ class UpdateApplicationCommand extends Command
            $this->call('optimize:clear');
            $this->fetchLatestCode();
            $this->runUpdateCommands();
+           $this->optimize();
            shell_exec("chmod 777 -R ./storage");
            $this->call('up');
         } catch (\Throwable $th) {
@@ -44,7 +45,7 @@ class UpdateApplicationCommand extends Command
     {
         $this->line("<bg=blue>Welcome to the Skuul update wizard</>");
         $this->warn("it's important to be connected to the internet,  always have a backup of both your codebase and your database before making updates. Review the release notes before updating, and test your system after updating to ensure everything is working correctly. If an issue arises, the community or dedicated support channels can provide help. Also, have a rollback plan in place.");
-        
+
         sleep(2);
 
         if (!$this->confirm('Do you wish to continue?')) {
@@ -88,5 +89,17 @@ class UpdateApplicationCommand extends Command
         $versionNumber = str_replace(PHP_EOL, '', $versionNumber);
         $versionNumber  = explode('.', $versionNumber);
         return $versionNumber;
+    }
+
+    public function optimize()
+    {
+        if (!$this->confirm("Do you want to optimize this application?")) {
+            return;  
+        }
+
+        $this->call('optimize');
+        $this->call('view:cache');
+        $this->call('event:cache');
+        shell_exec('composer install --optimize-autoloader --no-dev ');
     }
 }
