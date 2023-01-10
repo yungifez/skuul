@@ -29,8 +29,11 @@ class UpdateApplicationCommand extends Command
     {
         try {
            $this->intro();
+           $this->call('down');
            $this->call('optimize:clear');
            $this->fetchLatestCode();
+           $this->runUpdateCommands();
+           $this->call('up');
         } catch (\Throwable $th) {
             $this->error("Something went wrong!. Try updating manually. If error persists feel free to open an issue \n \n Exception -> ".$th);
         }
@@ -50,7 +53,15 @@ class UpdateApplicationCommand extends Command
 
     public function fetchLatestCode()
     {
-       shell_exec('git fetch --all --tags && git checkout $(git rev-list --tags --max-count=1 ) && echo Updated codebase to  $(git rev-list --tags --max-count=1 )');
+        shell_exec('git fetch --all --tags && git checkout $(git rev-list --tags --max-count=1 ) && echo Updated codebase to  $(git rev-list --tags --max-count=1 )');
+    }
+
+    public function runUpdateCommands()
+    {
+        shell_exec('composer install');
+
+        $this->call('migrate');
+        $this->call('db:seed', ['class', 'RunInProductionSeeder']);
     }
 
 }
