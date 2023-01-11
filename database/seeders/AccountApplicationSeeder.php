@@ -3,8 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\AccountApplication;
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class AccountApplicationSeeder extends Seeder
@@ -16,6 +14,6 @@ class AccountApplicationSeeder extends Seeder
      */
     public function run()
     {
-       AccountApplication::factory()->count(10)->create();
+        AccountApplication::factory()->count(10)->create();
     }
 }

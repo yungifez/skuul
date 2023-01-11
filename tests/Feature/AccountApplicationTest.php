@@ -4,14 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\AccountApplication;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 
 class AccountApplicationTest extends TestCase
 {
     use FeatureTestTrait;
-  
+
     // test that unauthorized users cannot view account applications
 
     public function test_unauthorized_users_cannot_view_account_applications()

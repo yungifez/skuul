@@ -2,19 +2,19 @@
 
 namespace Database\Factories;
 
-use App\Models\User;
 use App\Models\MyClass;
 use App\Models\StudentRecord;
-use Illuminate\Support\Str;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Support\Str;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Model>
  */
 class StudentFactory extends Factory
 {
-
     protected $model = StudentRecord::class;
+
     /**
      * Define the model's default state.
      *
@@ -27,10 +27,11 @@ class StudentFactory extends Factory
         //if class doesnt have a section, create one (for testing sake)
         if ($class->sections->isEmpty() || $class->sections == null) {
             $class->sections()->create([
-                'name' => fake()->name()
+                'name' => fake()->name(),
             ]);
         }
         $student->assignRole('student');
+
         return [
             'user_id'          => $student->id,
             'my_class_id'      => $class->id,

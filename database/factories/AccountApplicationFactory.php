@@ -21,9 +21,10 @@ class AccountApplicationFactory extends Factory
         $applicant = User::factory()->create();
         $applicant->assignRole('applicant');
         $role = Role::whereIn('name', ['teacher', 'parent', 'student'])->inRandomOrder()->first();
+
         return [
             'user_id' => $applicant->id,
-            'role_id' => $role->id
+            'role_id' => $role->id,
         ];
     }
 }
