@@ -4,6 +4,12 @@
     <p class="text-secondary col-12">
         {{__('All fields marked * are required')}}
     </p>
+    <div class="col-12">
+        <img id="profile-picture" src="{{asset('application-images/user-profile-image.png')}}" alt="Profile Picture" class="rounded-circle profile-image justify-center mx-auto d-block" height="200px" width="200px" >
+        <x-adminlte-input-file name="profile_photo" placeholder="Select profile photo" accept="image/*" fgroup-class="col-md-4 mx-auto my-4"  id="profile-image-input">
+            
+        </x-adminlte-input-file>
+    </div>
     <x-adminlte-input name="first_name" label="First name *" placeholder="{{$role}}'s first name" fgroup-class="col-md-3" enable-old-support/>
     <x-adminlte-input name="last_name" label="Last name *" placeholder="{{$role}}'s last name" fgroup-class="col-md-3" enable-old-support/>
     <x-adminlte-input name="other_names" label="Other names *" placeholder="{{$role}}'s other names " fgroup-class="col-md-6" enable-old-support/>
@@ -30,13 +36,6 @@
         @livewire('nationality-and-state-input-fields', ['nationality' => old('nationality'), 'state' => old('state')])
     </div>
     <x-adminlte-input name="city" label="City *" placeholder="{{$role}}'s city" fgroup-class="col-md-4" enable-old-support/>
-    <x-adminlte-input-file name="profile_photo" placeholder="Choose a profile photo..." accept="image/*" fgroup-class="col-md-6" label="Profile photo">
-        <x-slot name="prependSlot">
-            <div class="input-group-text bg-lightblue">
-                <i class="fas fa-upload"></i>
-            </div>
-        </x-slot>
-    </x-adminlte-input-file>
     @section('plugins.BsCustomFileInput', true)
     <x-adminlte-select name="religion" label="Religion *" fgroup-class="col-md-6" enable-old-support>
         @php ($religions = ['Christianity', 'Islam', 'Hinduism', 'Buddhism', 'Other'])
@@ -45,4 +44,18 @@
         @endforeach
     </x-adminlte-select>
     @section('plugins.TempusDominusBs4', true)
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            document.getElementById("profile-image-input").addEventListener("change", function() {
+                var file = this.files[0];
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                var profilePicture = document.getElementById("profile-picture");
+                profilePicture.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            });
+        });
+    </script>
 </div>

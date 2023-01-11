@@ -3,11 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Events\AccountStatusChanged;
+use App\Http\Requests\RegistrationRequest;
 use App\Services\AccountApplication\AccountApplicationService;
 use App\Services\User\UserService;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Spatie\Permission\Models\Role;
 
 class RegistrationController extends Controller
 {
@@ -36,20 +34,8 @@ class RegistrationController extends Controller
         return view('auth.register');
     }
 
-    public function register(Request $request)
+    public function register(RegistrationRequest $request)
     {
-        $roles = Role::whereIn('name', ['teacher', 'student', 'parent'])->get();
-        $validated = $request->validate([
-            'role' => [
-                'required',
-                Rule::in($roles->pluck('id')),
-            ],
-            'school' => [
-                'required',
-                'exists:schools,id',
-            ],
-        ]);
-
         $request['school_id'] = $request->school;
 
         $user = $this->userService->createUser($request);

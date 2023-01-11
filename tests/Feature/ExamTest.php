@@ -177,4 +177,31 @@ class ExamTest extends TestCase
 
         $this->assertModelMissing($exam);
     }
+
+    //test authorized user can view exam tabulation
+
+    public function test_authorized_user_can_view_exam_tabulation()
+    {
+        $this->authorized_user(['read exam'])
+            ->get('dashboard/exams/tabulation-sheet')
+            ->assertSuccessful();
+    }
+
+    //test authorized user can view exam tabulation
+
+    public function test_authorized_user_can_view_result_tabulation()
+    {
+        $this->authorized_user(['read exam'])
+            ->get('dashboard/exams/result-tabulation-sheet')
+            ->assertSuccessful();
+    }
+
+    //test authorized user can view exam tabulation
+
+    public function test_authorized_user_can_view_result_checker()
+    {
+        $this->authorized_user(['check result'])
+            ->get('dashboard/exams/result-checker')
+            ->assertSuccessful();
+    }
 }
