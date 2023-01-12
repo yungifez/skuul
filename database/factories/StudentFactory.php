@@ -35,7 +35,7 @@ class StudentFactory extends Factory
         return [
             'user_id'          => $student->id,
             'my_class_id'      => $class->id,
-            'section_id'       => $class->sections->first()->id,
+            'section_id'       => $class->sections->first()->id ?? null,
             'admission_date'   => '22/04/04',
             'is_graduated'     => false,
             'admission_number' => Str::random(10),
