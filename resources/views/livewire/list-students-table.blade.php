@@ -17,16 +17,15 @@
                     <td style="text-transform: none">{{ $student->email}}</td>
                     <td>{{$student->gender}}</td>
                     <td>{{$student->address}}</td>
-                   
-                    <td><x-dropdown-links :links="[
-                        ['href' => route('students.edit', $student->id), 'text' => 'Manage profile', 'icon' => 'fas fa-pen'],
-                        ['href' => route('students.show', $student->id), 'text' => 'View', 'icon' => 'fas fa-eye']],
-                        "
-                    /></td>
-                    <td></td>
-                    {{-- <td>
+                    <td>@livewire('dropdown-links', [
+                        'links' => [
+                        ['href' => route("students.edit", $student->id), 'text' => 'Manage profile', 'icon' => 'fas fa-pen'],
+                        ['href' => route("students.show", $student->id), 'text' => 'View', 'icon' => 'fas fa-eye'],
+                        ],
+                    ],)</td>
+                    <td>
                         @livewire('delete-modal', ['modal_id' => $student->id ,"action" => route('students.destroy', $student->id), 'item_name' => $student->name])
-                    </td> --}}
+                    </td>
                 </tr>
             @endforeach
         </x-adminlte-datatable>
