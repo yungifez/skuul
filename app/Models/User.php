@@ -75,6 +75,20 @@ class User extends Authenticatable implements MustVerifyEmail
         'profile_photo_url',
     ];
 
+    public function scopeInSchool($query, ?School $school = null)
+    {
+        if ($school == null) {
+            $school = auth()->user()->school;
+        }
+        
+        return $query->where('school_id', $school->id);
+    }
+
+    public function scopeStudents($query)
+    {
+        return $query->role('student');
+    }
+
     /**
      * Get the school that owns the User.
      *
