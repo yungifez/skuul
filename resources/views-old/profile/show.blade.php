@@ -54,5 +54,5 @@
 
 @section('js')
      <!-- Scripts -->
-     <script src="{{ mix('js/app.js') }}" defer></script>
+     @vite('resources/js/app.js')
 @endsection
