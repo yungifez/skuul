@@ -19,7 +19,6 @@
         "axios": "^0.25",
         "bootstrap": "^4.6.0",
         "jquery": "^3.5.1",
-        "laravel-mix": "^6.0.49",
         "lodash": "^4.17.19",
         "overlayscrollbars": "^1.13.0",
         "popper.js": "^1.16.1",
@@ -28,6 +27,9 @@
         "resolve-url-loader": "^5.0.0",
         "sass": "^1.43.4",
         "sass-loader": "^12.1.0",
-        "tailwindcss": "^2.2.2"
+        "tailwindcss": "^2.2.2",
+        "vite": "^3.0.2",
+        "laravel-vite-plugin": "^0.6.0",
+        "autoprefixer": "^10.4.0"
     }
 }
