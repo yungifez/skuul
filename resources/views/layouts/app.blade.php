@@ -12,7 +12,7 @@
         <livewire:styles />
     </head>
     <body class="font-sans scroll-smooth">
-        <div x-data="{ menuOpen: false  }">
+        <div x-data="{ menuOpen: $persist(false)  }">
             <livewire:layouts.header/>
 
             <div class="lg:flex lg:flex-cols bg-gray-100 dark:bg-gray-700 dark:text-gray-50 min-h-screen" >

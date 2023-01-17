@@ -5,13 +5,13 @@
             <i class="fa fa-bars" aria-hidden="true"></i>
         </a>
         <a href="{{route('home')}}" class="hidden md:flex items-center justify-center">
-            <img src="{{config('adminlte.logo_img')}}" alt="" class="rounded-full w-14 h-14 border border-gray-200 shadow-lg">
+            <img src="{{config('adminlte.logo_img')}}" alt="" class="rounded-full w-12 h-12 border border-gray-200 shadow-lg">
             <h1 class="text-lg font-semibold mx-3 text-center capitalize">{{config('app.name')}}</h1>
         </a>
     </div>
-    <div class="flex justify-evenly items-center gap-6 px-5 h-full" x-data="{'dropDownOpen': false}">
-        <button>
-            <i class="far fa-moon text-xl" aria-hidden="true" id="dark-mode-switch"></i>
+    <div class="flex justify-evenly items-center gap-6 px-5 h-full" x-data="{'dropDownOpen': false, 'darkMode' : $persist(false) }">
+        <button @click="darkMode = !darkMode" x-effect="darkMode == true ? document.body.classList.add('dark') :  document.body.classList.remove('dark') ">
+            <i class="text-xl" :class="{'far fa-moon ' : darkMode == false, 'fas fa-moon' : darkMode == true}" aria-hidden="true" id="dark-mode-switch"></i>
             <p class="sr-only">Dark mode</p>
         </button>
         <button class="h-full"  @click="dropDownOpen = !dropDownOpen">
