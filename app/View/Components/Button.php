@@ -4,16 +4,17 @@ namespace App\View\Components;
 
 use Illuminate\View\Component;
 
-class authentication-card extends Component
+class Button extends Component
 {
+    public $class;
     /**
      * Create a new component instance.
      *
      * @return void
      */
-    public function __construct()
+    public function __construct($class = null)
     {
-        //
+        $this->class = $class;
     }
 
     /**
@@ -23,6 +24,6 @@ class authentication-card extends Component
      */
     public function render()
     {
-        return view('components.authentication-card');
+        return view('components.button');
     }
 }

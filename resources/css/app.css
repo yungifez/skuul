@@ -3,3 +3,15 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.beautify-scrollbar::-webkit-scrollbar{
+    width: 5px;
+    background-color: rgba(0, 0, 0, 0);
+}
+
+.beautify-scrollbar::-webkit-scrollbar-corner{
+        background-color: transparent;
+}
+.beautify-scrollbar::-webkit-scrollbar-thumb{
+    background-color: rgba(255,255, 255, 0.5);
+}

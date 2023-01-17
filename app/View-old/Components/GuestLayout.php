@@ -7,7 +7,7 @@ use Illuminate\View\Component;
 class GuestLayout extends Component
 {
     /**
-     * Get the view / contents that represents the component.
+     * Get the view / contents that represents the component./var/www/html/app/Traits/View
      *
      * @return \Illuminate\View\View
      */
