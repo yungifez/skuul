@@ -4,7 +4,7 @@ namespace App\View\Components;
 
 use Illuminate\View\Component;
 
-class Input extends Component
+class Textarea extends Component
 {
     public string $id, $name;
     public ?string $label, $class, $groupClass, $labelClass;
@@ -14,7 +14,7 @@ class Input extends Component
      *
      * @return void
      */
-    public function __construct(string $id,string $name, string $label = null,string $class = null,string $groupClass = null,string $labelClass = null)
+    public function __construct( $id, $name,  $label = null, $class = null, $groupClass = null, $labelClass = null)
     {
         $this->id = $id;
         $this->name = $name;
@@ -31,6 +31,6 @@ class Input extends Component
      */
     public function render()
     {
-        return view('components.input');
+        return view('components.textarea');
     }
 }

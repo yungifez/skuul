@@ -4,20 +4,22 @@ namespace App\View\Components;
 
 use Illuminate\View\Component;
 
-class Button extends Component
+class Select extends Component
 {
-    public $class;
-    public $icon;
 
+    public string $label;
+    public string $id;
+    public string $name;
     /**
      * Create a new component instance.
      *
      * @return void
      */
-    public function __construct($class = null, $icon = null)
+    public function __construct($label, $id, $name)
     {
-        $this->class = $class;
-        $this->icon = $icon;
+        $this->id = $id;
+        $this->label = $label;
+        $this->name = $name;
     }
 
     /**
@@ -27,6 +29,6 @@ class Button extends Component
      */
     public function render()
     {
-        return view('components.button');
+        return view('components.select');
     }
 }

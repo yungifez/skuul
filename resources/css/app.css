@@ -4,14 +4,33 @@
 @tailwind components;
 @tailwind utilities;
 
-.beautify-scrollbar::-webkit-scrollbar{
-    width: 5px;
-    background-color: rgba(0, 0, 0, 0);
-}
+@layer components{
+    .beautify-scrollbar::-webkit-scrollbar{
+        width: 5px;
+        background-color: rgba(0, 0, 0, 0);
+    }
 
-.beautify-scrollbar::-webkit-scrollbar-corner{
-        background-color: transparent;
-}
-.beautify-scrollbar::-webkit-scrollbar-thumb{
-    background-color: rgba(255,255, 255, 0.5);
+    .beautify-scrollbar::-webkit-scrollbar-corner{
+            background-color: transparent;
+    }
+    .beautify-scrollbar::-webkit-scrollbar-thumb{
+        background-color: rgba(255,255, 255, 0.5);
+    }
+
+    .card {
+        @apply  bg-white dark:bg-gray-800 rounded shadow border my-6
+    }
+
+    .card-header {
+        @apply px-4 md:px-7 py-2 border-b
+    }
+
+    .card-body {
+        @apply px-4 md:px-7 py-7
+    }
+
+    .card-title {
+        @apply text-lg
+    }
+
 }

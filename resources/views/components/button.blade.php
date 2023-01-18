@@ -1,3 +1,4 @@
-<button @class(["$class bg-blue-700 text-white px-4 py-1 border-2 rounded"] ) {{$attributes}}>
+<button @class(["$class bg-blue-600 hover:bg-opacity-90 active:bg-opacity-70 text-white py-2 px-4 border-2 dark:border-0 rounded my-3"] ) {{$attributes}}>
+    <i class="{{$icon}}" aria-hidden="true"></i>
     {{$slot}}
 </button>

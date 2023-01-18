@@ -8,4 +8,8 @@
 
 @section('content')
 
+    <livewire:set-school />
+
+    <livewire:dashboard-data-cards />
+
 @endsection

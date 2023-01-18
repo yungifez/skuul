@@ -55,7 +55,7 @@ class UserService
      */
     public function getUsersByRole($role)
     {
-        return User::Role($role)->school()->get();
+        return User::Role($role)->Inschool()->get();
     }
 
     /**
