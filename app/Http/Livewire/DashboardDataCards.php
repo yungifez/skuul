@@ -12,6 +12,8 @@ use Livewire\Component;
 
 class DashboardDataCards extends Component
 {
+    public $schools, $classes, $sections, $students, $classGroups, $teachers, $parents ;
+    
     public function mount(SchoolService $schoolService, MyClassService $myClassService, SectionService $sectionService, StudentService $studentService, TeacherService $teacherService, ParentService $parentService)
     {
         $this->schools = $schoolService->getAllSchools()->count();

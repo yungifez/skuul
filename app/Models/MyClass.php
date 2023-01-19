@@ -12,6 +12,11 @@ class MyClass extends Model
 
     protected $fillable = ['name', 'class_group_id'];
 
+    public function school()
+    {
+        $this->hasOneThrough(School::class, ClassGroup::class);
+    }
+
     /**
      * Get the classGroup that owns the MyClass.
      *

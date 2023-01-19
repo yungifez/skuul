@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\InSchool;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -22,6 +23,7 @@ class User extends Authenticatable implements MustVerifyEmail
     use Notifiable;
     use TwoFactorAuthenticatable;
     use HasRoles;
+    use InSchool;
 
     /**
      * The attributes that are mass assignable.
@@ -74,15 +76,6 @@ class User extends Authenticatable implements MustVerifyEmail
     protected $appends = [
         'profile_photo_url',
     ];
-
-    public function scopeInSchool($query, ?School $school = null)
-    {
-        if ($school == null) {
-            $school = auth()->user()->school;
-        }
-        
-        return $query->where('school_id', $school->id);
-    }
 
     public function scopeStudents($query)
     {

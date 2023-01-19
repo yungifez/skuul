@@ -14,7 +14,7 @@ class MyClassService
      *
      * @var SchoolService
      */
-    public SchoolService $school;
+    public SchoolService $schoolService;
 
     //construct method
     public function __construct(SchoolService $schoolService)
