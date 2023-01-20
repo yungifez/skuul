@@ -9,6 +9,5 @@
 @section('page_heading',  __('Create school'))
 
 @section('content' )
-    @livewire('display-status')
     @livewire('create-school-form')
 @endsection

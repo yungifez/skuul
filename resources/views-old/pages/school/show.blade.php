@@ -18,8 +18,4 @@
 
 @section('content')
     @livewire('show-school', ['school' => $school])
-
-    @livewire('display-status')
-
-    
 @endsection

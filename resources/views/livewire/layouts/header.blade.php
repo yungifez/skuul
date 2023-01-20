@@ -29,7 +29,7 @@
             <i class="fa fa-angle-down" aria-hidden="true"></i>
         </button>
         {{--User profile card--}}
-        <div class="absolute bg-blue-700 dark:bg-gray-800 top-16 w-5/6 border  md:w-2/6 lg:w-1/5 shadow-md right-2 flex flex-col items-center justify-center rounded p-4 text-white" x-show="dropDownOpen" x-transition>
+        <div class="absolute bg-blue-700 dark:bg-gray-800 top-16 w-5/6 border  md:w-2/6 lg:w-1/5 shadow-md right-2 flex flex-col items-center justify-center rounded p-4 text-white " x-show="dropDownOpen" x-transition style="display: none">
             <img src="{{auth()->user()->defaultProfilePhotoUrl()}}" alt="" class="rounded-full w-20 h-20 border border-gray-200 shadow-md">
             <h2 class="text-lg  font-bold">{{auth()->user()->name}}</h2>
             <p class="text-center">

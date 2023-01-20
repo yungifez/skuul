@@ -8,9 +8,5 @@
 @section('page_heading',  __("Edit School $school->name"))
 
 @section('content')
-
     @livewire('edit-school-form', ['school' => $school])
-
-    @livewire('display-status')
-
 @endsection

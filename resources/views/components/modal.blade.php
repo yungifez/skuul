@@ -5,7 +5,7 @@
         Delete
     </x-button>
 
-    <div class="w-screen h-screen fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center" @click="modal = false" x-show="modal" x-transition>
+    <div class="w-screen h-screen fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center" @click="modal = false" x-show="modal" style="display: none" x-transition>
         <div class="h-[50%] w-11/12 md:w-10/12 lg:w-8/12 xl:w-6/12 flex justify-between flex-col bg-white dark:bg-gray-900 rounded-xl border" @click.stop>
             <div class="{{$backgroundColour}} h-16 md:h-20 rounded-t-xl flex justify-between  items-center p-4">
                 <div class="flex gap-4">

@@ -8,10 +8,7 @@
 @section('page_heading', 'All schools')
 
 @section('content', )
-
     @livewire('set-school')
     
     @livewire('list-schools-table')
-
-    @livewire('display-status')
 @endsection

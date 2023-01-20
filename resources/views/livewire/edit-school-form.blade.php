@@ -4,7 +4,7 @@
     </div>
     <div class="card-body">
         <form action="{{route('schools.update', $school->id )}}" method="POST">
-            
+            <x-display-validation-errors />
             <p class="text-secondary">
                 {{__('All fields marked * are required')}}
             </p>

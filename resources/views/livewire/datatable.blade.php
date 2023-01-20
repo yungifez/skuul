@@ -10,20 +10,20 @@
             @endforeach
         </select>
     </div>
-    <div class="overflow-x-scroll beautify-scrollbar md:text-center">
+    <div class="overflow-x-scroll beautify-scrollbar text-center">
         <table class="border w-full my-4 table-auto">
             <thead class="border bg-gray-800 dark:bg-white dark:bg-opacity-20 text-white">
                 <th class="p-4">S/N</th>
                 @foreach ($columns as $column)
-                    <th class="capitalize p-4 border">{{$column['name'] ?? $column['property']}}</th>
+                    <th class="capitalize p-4 border whitespace-nowrap">{{$column['name'] ?? str_replace( '_' , ' ',$column['property'])}}</th>
                 @endforeach
             </thead>
             <tbody class="">
                 @foreach ($collection as $item)
                 <tr class="border odd:bg-white even:bg-slate-100 dark:odd:bg-inherit dark:even:bg-white dark:even:bg-opacity-5">
-                        <th class="border">{{$item->id}}</th>
+                        <th class="border w-24">{{ $collection->perPage() * ($collection->currentPage() - 1) + $loop->iteration }}</th>
                         @foreach ($columns as $column)
-                            <td class="p-2 border whitespace-nowrap">
+                            <td class="p-2 border w-60 whitespace-nowrap">
                                 @php 
                                     if (isset($column['relation'])) {
                                         foreach (explode('.',$column['relation']) as $i){
@@ -38,7 +38,7 @@
                                         {{ ($model?->{$column['method']}()) }}
                                     @elseif (array_key_exists('type', $column) && !empty($column['type']))
                                         @if ($column['type'] == 'delete')
-                                            <x-model title="Confirm {{$column['name']}}" background-colour="bg-red-600">
+                                            <x-modal title="Confirm {{$column['name']}}" background-colour="bg-red-600">
                                                 <div class="text-gray-800 dark:text-white">
                                                     <i class="fa fa-trash  text-7xl" aria-hidden="true"></i>
                                                     <p class="my-2">Are you sure you want to {{Str::lower($column['name'])}} this resource</p>
@@ -52,7 +52,7 @@
                                                         @csrf
                                                     </form>
                                                 </x-slot:footer>
-                                            </x-model>
+                                            </x-modal>
                                         @elseif ($column['type'] == 'dropdown')
                                             <x-dropdown >
                                                 @foreach ($column['links'] as $link)

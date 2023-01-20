@@ -9,7 +9,7 @@
             ['property' => 'initials' ], 
             ['property' => 'address'],
             ['property' => 'code'],
-            ['type' => 'dropdown', 'name' => 'Delete','links' => [
+            ['type' => 'dropdown', 'name' => 'actions','links' => [
                 ['href' => 'schools.edit', 'text' => 'Settings', 'icon' => 'fas fa-cog'],
                 ['href' => 'schools.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
             ]],
