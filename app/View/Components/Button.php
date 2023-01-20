@@ -8,16 +8,18 @@ class Button extends Component
 {
     public $class;
     public $icon;
+    public $label;
 
     /**
      * Create a new component instance.
      *
      * @return void
      */
-    public function __construct($class = null, $icon = null)
+    public function __construct($class = null, $icon = null, $label = null)
     {
         $this->class = $class;
         $this->icon = $icon;
+        $this->label = $label;
     }
 
     /**

@@ -21,6 +21,11 @@ class AcademicYear extends Model
         return "$this->start_year - $this->stop_year";
     }
 
+    public function getNameAttribute()
+    {
+        return "$this->start_year - $this->stop_year";
+    }
+
     public function school()
     {
         return $this->belongsTo(School::class);
