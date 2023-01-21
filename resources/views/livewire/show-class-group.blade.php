@@ -12,7 +12,7 @@
 
         <h4 class="text-center font-semibold text-2xl my-3">Grading system</h4> 
         <ol>
-            <livewire:datatable :model="App\Models\ClassGroup::class" uniqueId="schoolTablepage" :filters="[['name' => 'find' , 'arguments' => [ $classGroup->id]], ['name' => 'first'], ['name' => 'gradeSystem']]" :columns="
+            <livewire:datatable :model="App\Models\ClassGroup::class" uniqueId="schoolTablepage" :filters="[['name' => 'find' , 'arguments' => [ $classGroup->id ]], ['name' => 'gradeSystem']]" :columns="
             [
             ['property' => 'name'] , 
             ['property' => 'grade_from'] , 

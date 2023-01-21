@@ -3,17 +3,17 @@
         <h2 class="card-title">Create School</h2>
     </div>
     <div class="card-body">
-        <form action="{{route('schools.store')}}" method="POST" >
+        <form action="{{route('schools.store')}}" method="POST" class="md:w-6/12">
             <x-display-validation-errors />
             <p class="">
                 {{__('All fields marked * are required')}}
             </p>
-            <x-input name="name" id="name" type="text" placeholder="Enter name of school" label="School Name *" enable-old-support class="md:w-6/12"/>
-            <x-textarea id="address" name="address" placeholder="Enter school branch address" label="School Address *" enable-old-support class="md:w-6/12" />
-            <x-input name="initials" id="initials" type="text" placeholder="Enter school initials" label="School initials" enable-old-support class="md:w-6/12"/>
+            <x-input name="name" id="name" type="text" placeholder="Enter name of school" label="School Name *" enable-old-support />
+            <x-textarea id="address" name="address" placeholder="Enter school branch address" label="School Address *" enable-old-support  />
+            <x-input name="initials" id="initials" type="text" placeholder="Enter school initials" label="School initials" enable-old-support />
             @csrf
             <div class="w-full flex ">
-                <x-button theme="primary" icon="fas fa-key" type="submit" class="w-full md:w-3/12">
+                <x-button theme="primary" icon="fas fa-key" type="submit" class="w-full md:w-6/12">
                     Create
                 </x-button>
             </div>

@@ -1,4 +1,4 @@
-<nav class="fixed lg:sticky inset-0 h-screen w-full lg:w-72 shadow-lg flex duration-250 text-gray-100 transition-all dark:lg:border-r dark:border-white" :class="{'w-0 overflow-hidden lg:flex lg:w-20' : menuOpen == false}">
+<nav class="fixed lg:sticky inset-0 h-screen w-full lg:w-72 shadow-lg flex duration-250 text-gray-100 transition-all dark:lg:border-r dark:border-white z-40" :class="{'w-0 overflow-hidden lg:flex lg:w-20' : menuOpen == false}">
     <aside class="w-4/6 md:w-3/6 lg:w-full bg-gray-800 dark:bg-gray-900 shadow-md shadow-black border-x border-black overflow-scroll beautify-scrollbar">
         <a href="{{route('home')}}" class="flex md:hidden items-center justify-center border-b border-gray-200 p-4">
             <img src="{{asset(config('adminlte.logo_img'))  }}" alt="" class="rounded-full w-14 h-14 border border-gray-200 shadow-md">

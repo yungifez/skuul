@@ -60,19 +60,25 @@ class Datatable extends Component
             return $model;
         }
 
-        $searchFilter = function ($query)
+        //create closure with filters to be applied to model
+        $searchFilter = function ($query) use($model)
         {
             foreach ($this->columns as $column) {
-                if (array_key_exists('property', $column) && !empty($column['property'])) {
-                    
-                    //include count for id
-                    $query = call_user_func_array([$query, 'orWhere'],["id" , 'LIKE' , "%$this->search%"]);
+                if (!array_key_exists('property', $column) || empty($column['property'])) {
+                    break;
+                }
 
-                    if (array_key_exists('relation', $column)  && !empty($column['relation'])) {
-                        $query = call_user_func_array([$query, 'orWhereRelation'],[$column['relation'],$column['property'] ?? 'id' , 'LIKE' , "%$this->search%"])->toSQL();
-                    }else {
-                        $query = call_user_func_array([$query, 'orWhere'],[$column['property'] ?? 'id' , 'LIKE' , "%$this->search%"]);
-                    }
+                //get table name from either DatabaseBuilder or EloQuesnt database builder
+                $table = $model->getModel()->getTable() ?? $model?->getQuery()->getModel()->getTable();
+
+                if (array_key_exists('relation', $column)  && !empty($column['relation'])) {
+
+                    //filter relation 
+                    $query = call_user_func_array([$query, 'orWhereRelation'],[$column['relation'],$column['property'] , 'LIKE' , "%$this->search%"]);
+                }else {
+
+                    //filter olumn
+                    $query = call_user_func_array([$query, 'orWhere'],[$table. '.'.$column['property'] ?? 'id' , 'LIKE' , "%$this->search%"]);
                 }
             }
                 

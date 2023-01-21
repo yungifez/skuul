@@ -15,7 +15,7 @@
             <thead class="border bg-gray-800 dark:bg-white dark:bg-opacity-20 text-white">
                 <th class="p-4">S/N</th>
                 @foreach ($columns as $column)
-                    <th class="capitalize p-4 border whitespace-nowrap">{{$column['name'] ?? str_replace( '_' , ' ',$column['property'])}}</th>
+                    <th class="capitalize p-4 border whitespace-nowrap">{{str_replace('_' , ' ', Str::snake( $column['name'] ??  $column['property']))}}</th>
                 @endforeach
             </thead>
             <tbody class="">
@@ -39,7 +39,7 @@
                                     @elseif (array_key_exists('type', $column) && !empty($column['type']))
                                         @if ($column['type'] == 'delete')
                                             <x-modal title="Confirm {{$column['name']}}" background-colour="bg-red-600">
-                                                <div class="text-gray-800 dark:text-white">
+                                                <div class="text-gray-700 dark:text-white">
                                                     <i class="fa fa-trash  text-7xl" aria-hidden="true"></i>
                                                     <p class="my-2">Are you sure you want to {{Str::lower($column['name'])}} this resource</p>
                                                 </div>
@@ -61,7 +61,7 @@
                                             </x-dropdown>
                                         @endif
                                     @else
-                                        {{ ($model?->{$column['name'] ?? $column['property']}) }}
+                                        {{ ($model?->{$column['property'] ?? $column['name']}) }}
                                     @endif
                                 </p>
                             </td>

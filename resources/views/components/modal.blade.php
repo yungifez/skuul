@@ -12,11 +12,13 @@
                     <i class="{{$icon}} text-2xl" aria-hidden="true" ></i>
                     <h4 class="text-2xl font-semibold">{{$title}}</h4>
                 </div>
-                <i class="fas fa-x text-lg mx-2 cursor-pointer" @click="modal = false" aria-role="button" aria-hidden="true">
+                <i class="fas fa-x text-lg mx-2 cursor-pointer rounded" @click="modal = false" aria-role="button" aria-hidden="true">
                     <p class="sr-only">Close Modal</p>
                 </i>
             </div>
-            <div class="flex justify-center items-center flex-col">{{$slot}}</div>
+            <div class="flex justify-center items-center flex-col">
+                {{$slot}}
+            </div>
             <div class="border-t h-16 md:h-20 flex justify-between items-center p-4">
                 <x-button label="Close" class="bg-gray-600 text-white" @click="modal = false"/>
                 <div>
