@@ -23,7 +23,7 @@
                 <tr class="border odd:bg-white even:bg-slate-100 dark:odd:bg-inherit dark:even:bg-white dark:even:bg-opacity-5">
                         <th class="border w-24">{{ $collection->perPage() * ($collection->currentPage() - 1) + $loop->iteration }}</th>
                         @foreach ($columns as $column)
-                            <td class="p-2 border w-60 whitespace-nowrap">
+                            <td class="p-2 px-4 border w-60 whitespace-nowrap">
                                 @php 
                                     if (isset($column['relation'])) {
                                         foreach (explode('.',$column['relation']) as $i){
