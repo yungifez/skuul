@@ -139,7 +139,6 @@ class UserService
                 abort('403', "User isn't a/an $role");
             }
         }
-
         if (!$record['other_names']) {
             $record['other_names'] = null;
         }

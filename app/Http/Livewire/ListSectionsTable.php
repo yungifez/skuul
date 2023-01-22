@@ -14,7 +14,9 @@ class ListSectionsTable extends Component
     public function mount(MyClassService $myClassService)
     {
         $this->classes = $myClassService->getAllClasses();
-        $this->updatedClass();
+        if ($this->classes->isNotEmpty()) {
+            $this->updatedClass();
+        }
     }
 
     public function updatedClass()

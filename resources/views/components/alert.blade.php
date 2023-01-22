@@ -1,6 +1,6 @@
-@props(['colour' => 'bg-red-500', 'title', 'icon' => '', 'class' => ''])
+@props(['colour' => 'bg-red-500', 'title', 'icon' => 'fa fa-ban', 'class' => '', 'id' => 'alert'])
 
-<div @class(["$colour $class p-3 text-white rounded w-full"]) x-data="{'showAlert' : true}" x-show="showAlert" x-transition>
+<div @class(["$colour $class p-3 text-white rounded w-full"]) x-data="{'showAlert' : true}" x-show="showAlert" x-transition id="{{$id}}">
     <div class="flex gap-3 justify-between">
         <div class="flex gap-3 items-center">
             <i class="text-xl {{$icon}}"></i>

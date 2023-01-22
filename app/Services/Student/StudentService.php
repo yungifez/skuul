@@ -350,7 +350,7 @@ class StudentService
      */
     public function resetGraduation(User $student)
     {
-        $student->studentRecord()->update([
+        $student->graduatedStudentRecord()->update([
             'is_graduated' => false,
         ]);
     }

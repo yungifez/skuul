@@ -10,18 +10,19 @@ class Select extends Component
     public ?string $label;
     public string $id;
     public string $name;
-    public ?string $class;
+    public ?string $class, $groupClass;
     /**
      * Create a new component instance.
      *
      * @return void
      */
-    public function __construct($id, $name, $class = null, string $label = null)
+    public function __construct($id, $name, $class = null, string $label = null, $groupClass = null)
     {
         $this->id = $id;
         $this->label = $label;
         $this->name = $name;
         $this->class = $class;
+        $this->groupClass = $groupClass;
     }
 
     /**

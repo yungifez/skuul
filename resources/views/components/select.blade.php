@@ -1,4 +1,4 @@
-<div class="flex flex-col">
+<div class="{{$groupClass}} my-2 flex flex-col">
     @isset($label) 
         <label for="{{$id}}" class="my-3 font-bold ">{{$label}}</label>
     @endisset

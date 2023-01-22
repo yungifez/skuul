@@ -102,6 +102,16 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(StudentRecord::class);
     }
 
+     /**
+     * Get the studentRecord of graduation associated with the User.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function graduatedStudentRecord()
+    {
+        return $this->hasOne(StudentRecord::class)->withoutGlobalScopes()->where('is_Graduated', true);
+    }
+
     /**
      * The parents that belong to the User.
      *
@@ -148,10 +158,22 @@ class User extends Authenticatable implements MustVerifyEmail
         return explode(' ', $this->name)[0];
     }
 
+    //get first name
+    public function getFirstNameAttribute()
+    {
+        return $this->firstName();
+    }
+
     //get last name
     public function lastName()
     {
         return explode(' ', $this->name)[1];
+    }
+
+    //get last name
+    public function getLastNameAttribute()
+    {
+        return $this->lastName();
     }
 
     //get other names
@@ -160,6 +182,12 @@ class User extends Authenticatable implements MustVerifyEmail
         $names = array_diff_key(explode(' ', $this->name), array_flip([0, 1]));
 
         return implode(' ', $names);
+    }
+
+    //get other names
+    public function getOtherNamesAttribute()
+    {
+        return $this->otherNames();
     }
 
     public function defaultProfilePhotoUrl()
@@ -179,7 +207,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function getBirthdayAttribute($value)
     {
-        return Carbon::parse($value)->format('Y/m/d');
+        return Carbon::parse($value)->format('Y-m-d');
     }
 
     /**
