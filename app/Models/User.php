@@ -113,6 +113,16 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get the studentRecord of graduation associated with the User.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function allStudentRecords()
+    {
+        return $this->hasOne(StudentRecord::class)->withoutGlobalScopes();
+    }
+
+    /**
      * The parents that belong to the User.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany

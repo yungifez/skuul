@@ -299,11 +299,11 @@ class StudentService
         $currentAcademicYear = auth()->user()->school->academicYear;
 
         foreach ($students as $student) {
-            $student->studentRecord->load('academicYears')->academicYears()->syncWithoutDetaching([$currentAcademicYear->id => [
+            $student->allStudentRecords->load('academicYears')->academicYears()->syncWithoutDetaching([$currentAcademicYear->id => [
                 'my_class_id' => $promotion->old_class_id,
                 'section_id'  => $promotion->old_section_id,
             ]]);
-            $student->studentRecord()->update([
+            $student->allStudentRecords()->update([
                 'my_class_id' => $promotion->old_class_id,
                 'section_id'  => $promotion->old_section_id,
             ]);

@@ -27,7 +27,7 @@
             <option value="{{$bloodGroup}}" @selected(Str::lower($bloodGroup) == str::lower($user->blood_group))>{{$bloodGroup}}</option>
         @endforeach
     </x-select>
-    <x-input id="phone" name="phone" label="Phone number" placeholder="{{$role}}'s phone number" group-class="col-span-3" enable-old-support/>
+    <x-input id="phone" name="phone" label="Phone number" placeholder="{{$role}}'s phone number" group-class="col-span-3" enable-old-support value="{{$user->phone}}"/>
     <x-input id="address" name="address" placeholder="{{$role}}'s address" group-class="col-span-9 no-resize" label="Address *" enable-old-support value="{{$user->address}}"/>
     <x-select id="religion" name="religion" label="Religion *" group-class="col-span-3" >
         @php ($religions = ['Christianity', 'Islam', 'Hinduism', 'Buddhism', 'Other'])
