@@ -24,7 +24,7 @@
     <x-select id="blood-group" name="blood_group" label="Blood group *" group-class="col-span-3" enable-old-support>
         @php ($bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'Ab-', 'O+', 'O-'])
         @foreach ($bloodGroups as $bloodGroup)
-            <option value="{{$bloodGroup}}" @selected(Str::lower($bloodGroup) == str::lower($user->bloodGroup))>{{$bloodGroup}}</option>
+            <option value="{{$bloodGroup}}" @selected(Str::lower($bloodGroup) == str::lower($user->blood_group))>{{$bloodGroup}}</option>
         @endforeach
     </x-select>
     <x-input id="phone" name="phone" label="Phone number" placeholder="{{$role}}'s phone number" group-class="col-span-3" enable-old-support/>
