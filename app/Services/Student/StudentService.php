@@ -175,7 +175,7 @@ class StudentService
     public function generateAdmissionNumber($schoolId = null)
     {
         $schoolInitials = (School::find($schoolId) ?? auth()->user()->school)->initials;
-        $schoolInitials != null ?? $schoolInitials .= '/';
+        $schoolInitials != null && $schoolInitials .= '/';
         $currentYear = date('y');
         do {
             $admissionNumber = "$schoolInitials"."$currentYear/".\mt_rand('100000', '999999');
