@@ -92,7 +92,8 @@ class SubjectService
         if (isset($data['teachers'])) {
             $teachers = [];
             foreach ($data['teachers'] as $teacher) {
-                if ($this->user->verifyRole($teacher, 'teacher')) {
+                if ($this->user->getUserById($teacher)->exists() && $this->user->verifyRole($teacher, 'teacher')) {
+                    $teacher = intval($teacher);
                     $teachers[] = $teacher;
                 }
             }

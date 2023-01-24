@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
+use App\Models\User;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
 
 class Section extends Model
 {
@@ -39,9 +40,7 @@ class Section extends Model
      */
     public function students()
     {
-        $students = $this->loadMissing('studentRecords', 'studentRecords.user')->studentRecords->map(function ($studentRecord) {
-            return $studentRecord->user;
-        });
+        $students = User::students()->inSchool()->whereRelation('studentRecord.section','id', $this->id)->get();
 
         return $students;
     }

@@ -15,16 +15,21 @@
          ]
         "/>
         <h1 class="text-center text-xl md:text-3xl font-bold">Students in class</h1>
-        <livewire:datatable :model="App\Models\StudentRecord::class" uniqueId="students-list-table" :filters="[['name' => 'where' , 'arguments' => ['my_class_id' , $class->id]], ['name' => 'with' , 'arguments' => ['user' ,'section']]]" :columns="
+        <livewire:datatable :model="App\Models\User::class" uniqueId="students-list-table" 
+        :filters="[
+            ['name' => 'where' , 'arguments' => ['school_id' , auth()->user()->school_id]], 
+            ['name' => 'whereRelation' , 'arguments' => ['studentRecord','my_class_id' , $class->id]], 
+            ['name' => 'with' , 'arguments' => ['studentRecord' ,'studentRecord.section']]
+        ]" :columns="
             [
-            ['property' => 'name', 'relation' => 'user'] , 
-            ['property' => 'email', 'relation' => 'user'] , 
-            ['property' => 'name', 'name' => 'section name' ,'relation' => 'section'] , 
+            ['property' => 'name'] , 
+            ['property' => 'email'] , 
+            ['property' => 'name', 'name' => 'section name' ,'relation' => 'studentRecord.section'] , 
             ['type' => 'dropdown', 'name' => 'actions','links' => [
-                ['href' => 'students.edit', 'text' => 'Settings', 'icon' => 'fas fa-cog', 'relation' => 'user'],
-                ['href' => 'students.show', 'text' => 'View', 'icon' => 'fas fa-eye',  'relation' => 'user'],
+                ['href' => 'students.edit', 'text' => 'Settings', 'icon' => 'fas fa-cog'],
+                ['href' => 'students.show', 'text' => 'View', 'icon' => 'fas fa-eye',],
             ]],
-            ['type' => 'delete', 'name' => 'Delete', 'action' => 'students.destroy',  'relation' => 'user']
+            ['type' => 'delete', 'name' => 'Delete', 'action' => 'students.destroy']
          ]
         "/>
         <h1 class="text-center text-xl md:text-3xl font-bold">Subjects in class</h1>

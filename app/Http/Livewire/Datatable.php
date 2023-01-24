@@ -5,6 +5,7 @@ namespace App\Http\Livewire;
 use Livewire\Component;
 use Illuminate\Support\Str;
 use Livewire\WithPagination;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Database\Eloquent\Builder;
 
 class Datatable extends Component
@@ -23,6 +24,8 @@ class Datatable extends Component
         $this->model = $model;
         $this->filters = $filters;
         $this->uniqueId = $uniqueId ?? Str::random(10);
+
+        $this->encryptValues();
     }
 
     /**
@@ -88,6 +91,18 @@ class Datatable extends Component
         return $model = call_user_func_array([$model, 'where'], [$searchFilter]);
     }
 
+    public function encryptValues()
+    {
+        $this->filters = Crypt::encryptString(serialize($this->filters));
+        $this->model = Crypt::encryptString(serialize($this->model));
+    }
+
+    public function decryptValues()
+    {
+        $this->filters  = unserialize(Crypt::decryptString($this->filters));
+        $this->model  = unserialize(Crypt::decryptString($this->model));
+    }
+
     public function updatedPerPage()
     {
         $this->resetPage($this->uniqueId);
@@ -105,7 +120,9 @@ class Datatable extends Component
     
     public function render()
     {
+        $this->decryptValues();
         $collection = $this->BuildPagination();
+        $this->encryptValues();  
         return view('livewire.datatable', [
             'collection' => $collection
         ]);

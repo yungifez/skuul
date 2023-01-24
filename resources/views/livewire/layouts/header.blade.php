@@ -1,9 +1,9 @@
 <header class="bg-white dark:bg-gray-800 shadow-md dark:shadow-white h-16 w-full flex justify-between items-center py-2 dark:text-white border-b-2 dark:border-white">
     <div class="flex items-center">
-        <a href="#" class="text-2xl mx-3 dark:text-white text-gray-700 px-6" @click="menuOpen = !menuOpen">
+        <button role="button" class="text-2xl mx-3 dark:text-white text-gray-700 px-6" @click="menuOpen = !menuOpen">
             <p class="sr-only">Menu</p>
             <i class="fa fa-bars" aria-hidden="true"></i>
-        </a>
+        </button>
         <a href="{{route('home')}}" class="hidden md:flex items-center justify-center">
             <img src="{{asset(config('adminlte.logo_img'))}}" alt="" class="rounded-full w-12 h-12 border border-gray-200 shadow-lg">
             <h1 class="text-lg font-semibold mx-3 text-center capitalize">{{config('app.name')}}</h1>

@@ -125,6 +125,10 @@ class StudentService
             throw new InvalidValueException('Section is not in class');
         }
 
+        if (auth()->user()->school->academic_year_id == null) {
+            throw new EmptyRecordsException('Academic Year not set');
+        }
+
         $student->studentRecord()->firstOrCreate([
             'user_id' => $student->id,
         ], [

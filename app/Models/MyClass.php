@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
 use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class MyClass extends Model
 {
@@ -64,9 +65,8 @@ class MyClass extends Model
      */
     public function students()
     {
-        $students = $this->loadMissing('studentRecords', 'studentRecords.user')->studentRecords->map(function ($studentRecord) {
-            return $studentRecord->user;
-        });
+        $students = User::students()->inSchool()->whereRelation('studentRecord.myClass','id', $this->id)->get();
+
 
         return $students;
     }

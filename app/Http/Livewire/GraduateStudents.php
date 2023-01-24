@@ -33,8 +33,7 @@ class GraduateStudents extends Component
 
     public function loadInitialSections()
     {
-        $this->sections = collect($this->classes->first()['sections']);
-        $this->section = $this->sections->first()['id'];
+        $this->updatedClass();
     }
 
     public function loadStudents()
