@@ -29,7 +29,7 @@
                                 </a>
                                 @foreach ($menuItem['submenu'] as $submenu)
                                     @if ($submenu['can'] && auth()->user()->can($submenu['can']))
-                                        <a class="flex items-center gap-2 p-3 px-4 my-2 transition-all rounded  hover:bg-opacity-5 hover:bg-white" :class="{'h-0 my-auto overflow-hidden py-0' : submenu == false, 'bg-white text-black hover:bg-opacity-100' : {{( Route::currentRouteName() == $submenu['route'] ? '1': '0' )}} }" x-transition href="{{route($submenu['route'])}}"">
+                                        <a class="flex items-center gap-2 p-3 px-4 my-2 transition-all rounded  hover:bg-opacity-5 hover:bg-white whitespace-nowrap" :class="{'h-0 my-auto overflow-hidden py-0' : submenu == false, 'bg-white text-black hover:bg-opacity-100' : {{( Route::currentRouteName() == $submenu['route'] ? '1': '0' )}} }" x-transition href="{{route($submenu['route'])}}"">
                                             <i class="{{$submenu['icon'] ?? 'far fa-fw fa-circle'}} " aria-hidden="true"></i>
                                             <p x-show="menuOpen">{{$submenu['text']}}</p>
                                         </a>

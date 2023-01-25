@@ -2,18 +2,19 @@
 
 namespace App\Models;
 
-use App\Traits\InSchool;
 use Carbon\Carbon;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Foundation\Auth\User as Authenticatable;
-use Illuminate\Notifications\Notifiable;
-use Laravel\Fortify\TwoFactorAuthenticatable;
-use Laravel\Jetstream\HasProfilePhoto;
+use App\Traits\InSchool;
 use Laravel\Sanctum\HasApiTokens;
+use Laravel\Jetstream\HasProfilePhoto;
 use Spatie\Permission\Traits\HasRoles;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\Builder;
+use Laravel\Fortify\TwoFactorAuthenticatable;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -80,6 +81,34 @@ class User extends Authenticatable implements MustVerifyEmail
     public function scopeStudents($query)
     {
         return $query->role('student');
+    }
+
+    /**
+     * Active applicants
+     *
+     * @param Builder $query
+     * @return void
+     */
+    public function scopeApplicants($query)
+    {
+        return $query->role('applicant')->whereHas('accountApplication', function (Builder $query)
+        {
+            $query->otherCurrentStatus( 'rejected');
+        });
+    }
+
+    /**
+     * Active applicants
+     *
+     * @param Builder $query
+     * @return void
+     */
+    public function scopeRejectedApplicants($query)
+    {
+        return $query->role('applicant')->whereHas('accountApplication', function (Builder $query)
+        {
+            $query->currentStatus( 'rejected');
+        });
     }
 
     public function scopeActiveStudents($query)

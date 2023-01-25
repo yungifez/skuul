@@ -3,7 +3,7 @@
 
     <div class="card">
         <div class="card-body">
-            <div  class="w-full md:w-8/12 m-auto">
+            <div class="w-full md:w-8/12 m-auto">
                 <h4 class="text text-xl m-2">Student information</h4>
                 <x-show-table :body="[
                     ['Class ' .($studentRecord->is_graduated == 1 ?  'Graduated from' : '') , $studentRecord->myClass?->name],
