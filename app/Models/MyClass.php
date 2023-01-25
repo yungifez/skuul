@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class MyClass extends Model
 {
@@ -67,7 +68,16 @@ class MyClass extends Model
     {
         $students = User::students()->inSchool()->whereRelation('studentRecord.myClass','id', $this->id)->get();
 
-
         return $students;
+    }
+
+    /**
+     * Get all of the syllabi for the MyClass
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function syllabi(): HasManyThrough
+    {
+        return $this->hasManyThrough(Syllabus::class, Subject::class);
     }
 }

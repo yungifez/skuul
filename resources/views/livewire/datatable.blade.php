@@ -19,59 +19,65 @@
                 @endforeach
             </thead>
             <tbody class="">
-                @foreach ($collection as $item)
-                <tr class="border odd:bg-white even:bg-slate-100 dark:odd:bg-inherit dark:even:bg-white dark:even:bg-opacity-5">
-                        <th class="border w-24">{{ $collection->perPage() * ($collection->currentPage() - 1) + $loop->iteration }}</th>
-                        @foreach ($columns as $column)
-                            <td class="p-4 px-4 border w-60 whitespace-nowrap">
-                                @php 
-                                    $model = $item;
-                                    if (isset($column['relation'])) {
-                                        $relations = explode('.',$column['relation']);
-                                        foreach ($relations as $relation){
-                                            $model = $model->$relation;
+                @if ($collection->isNotEmpty())
+                    @foreach ($collection as $item)
+                        <tr class="border odd:bg-white even:bg-slate-100 dark:odd:bg-inherit dark:even:bg-white dark:even:bg-opacity-5">
+                            <th class="border w-24">{{ $collection->perPage() * ($collection->currentPage() - 1) + $loop->iteration }}</th>
+                            @foreach ($columns as $column)
+                                <td class="p-4 px-4 border w-60 whitespace-nowrap">
+                                    @php 
+                                        $model = $item;
+                                        if (isset($column['relation'])) {
+                                            $relations = explode('.',$column['relation']);
+                                            foreach ($relations as $relation){
+                                                $model = $model->$relation;
+                                            }
                                         }
-                                    }
-                                    if (is_array($model)) {
-                                        $model = collect($model);
-                                    }
-                                    
-                                @endphp
-                                <p>
-                                    @if (array_key_exists('method', $column) && !empty($column['method']))
-                                        {{ ($model?->{$column['method']}()) }}
-                                    @elseif (array_key_exists('type', $column) && !empty($column['type']))
-                                        @if ($column['type'] == 'delete')
-                                            <x-modal title="Confirm {{$column['name']}}" background-colour="bg-red-600">
-                                                <div class="text-gray-700 dark:text-white">
-                                                    <i class="fa fa-trash  text-7xl" aria-hidden="true"></i>
-                                                    <p class="my-2">Are you sure you want to {{Str::lower($column['name'])}} this resource</p>
-                                                </div>
-                                                <x-slot:footer>
-                                                    <form action="{{route($column['action'], $model->id)}}" method="POST">
-                                                        <x-button class="bg-red-600" icon="fa fa-trash" >
-                                                            Continue with {{Str::lower($column['name'])}}
-                                                        </x-button>
-                                                        @method('delete')
-                                                        @csrf
-                                                    </form>
-                                                </x-slot:footer>
-                                            </x-modal>
-                                        @elseif ($column['type'] == 'dropdown')
-                                            <x-dropdown >
-                                                @foreach ($column['links'] as $link)
-                                                    <a href="{{route($link['href'], $model->id)}}" class="flex items-center justify-start gap-2 py-4 px-6 hover:bg-white hover:bg-opacity-20 "><i class="{{$link['icon'] ?? ''}}" aria-hidden="true"></i>{{$link['text']}}</a>
-                                                @endforeach
-                                            </x-dropdown>
+                                        if (is_array($model)) {
+                                            $model = collect($model);
+                                        }
+                                        
+                                    @endphp
+                                    <p>
+                                        @if (array_key_exists('method', $column) && !empty($column['method']))
+                                            {{ ($model?->{$column['method']}()) }}
+                                        @elseif (array_key_exists('type', $column) && !empty($column['type']))
+                                            @if ($column['type'] == 'delete')
+                                                <x-modal title="Confirm {{$column['name']}}" background-colour="bg-red-600">
+                                                    <div class="text-gray-700 dark:text-white">
+                                                        <i class="fa fa-trash  text-7xl" aria-hidden="true"></i>
+                                                        <p class="my-2">Are you sure you want to {{Str::lower($column['name'])}} this resource</p>
+                                                    </div>
+                                                    <x-slot:footer>
+                                                        <form action="{{route($column['action'], $model->id)}}" method="POST">
+                                                            <x-button class="bg-red-600" icon="fa fa-trash" >
+                                                                Continue with {{Str::lower($column['name'])}}
+                                                            </x-button>
+                                                            @method('delete')
+                                                            @csrf
+                                                        </form>
+                                                    </x-slot:footer>
+                                                </x-modal>
+                                            @elseif ($column['type'] == 'dropdown')
+                                                <x-dropdown >
+                                                    @foreach ($column['links'] as $link)
+                                                        <a href="{{route($link['href'], $model->id)}}" class="flex items-center justify-start gap-2 py-4 px-6 hover:bg-white hover:bg-opacity-20 "><i class="{{$link['icon'] ?? ''}}" aria-hidden="true"></i>{{$link['text']}}</a>
+                                                    @endforeach
+                                                </x-dropdown>
+                                            @endif
+                                        @else
+                                            {{ ($model?->{$column['property'] ?? $column['name']}) }}
                                         @endif
-                                    @else
-                                        {{ ($model?->{$column['property'] ?? $column['name']}) }}
-                                    @endif
-                                </p>
-                            </td>
-                        @endforeach
+                                    </p>
+                                </td>
+                            @endforeach
+                        </tr>
+                    @endforeach
+                @else
+                    <tr w-full>
+                        <td class="p-4 capitalize" colspan="100%">No data to Show</td>
                     </tr>
-                @endforeach
+                @endif
             </tbody>
         </table>
     </div>
