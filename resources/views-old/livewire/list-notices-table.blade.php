@@ -12,7 +12,7 @@
                     <td>{{ \Carbon\Carbon::parse($notice->stop_date)->diffForHumans()}}</td>
                     <td>@livewire('dropdown-links', [
                         'links' => [
-                        ['href' => route("notices.show", $notice->id), 'text' => 'View', 'icon' => 'fas fa-eye'],
+                        ['href' => route("notices.zshow", $notice->id), 'text' => 'View', 'icon' => 'fas fa-eye'],
                         ],
                     ],)</td>
                     <td>

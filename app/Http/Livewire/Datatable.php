@@ -67,8 +67,10 @@ class Datatable extends Component
         $searchFilter = function ($query) use($model)
         {
             foreach ($this->columns as $column) {
-                if (!array_key_exists('property', $column) || empty($column['property'])) {
-                    break;
+                if (!array_key_exists('columnName', $column)) {
+                    if (!array_key_exists('property', $column) || empty($column['property'])) {
+                        break;
+                    }
                 }
 
                 //get table name from either DatabaseBuilder or EloQuesnt database builder
@@ -77,11 +79,11 @@ class Datatable extends Component
                 if (array_key_exists('relation', $column)  && !empty($column['relation'])) {
 
                     //filter relation 
-                    $query = call_user_func_array([$query, 'orWhereRelation'],[$column['relation'],$column['property'] , 'LIKE' , "%$this->search%"]);
+                    $query = call_user_func_array([$query, 'orWhereRelation'],[$column['relation'],$column['columnName'] ?? $column['property'] , 'LIKE' , "%$this->search%"]);
                 }else {
 
                     //filter olumn
-                    $query = call_user_func_array([$query, 'orWhere'],[$table. '.'.$column['property'] ?? 'id' , 'LIKE' , "%$this->search%"]);
+                    $query = call_user_func_array([$query, 'orWhere'],[$table. '.'.($column['columnName'] ?? $column['property']) ?? 'id' , 'LIKE' , "%$this->search%"]);
                 }
             }
                 

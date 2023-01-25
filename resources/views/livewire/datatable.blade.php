@@ -12,7 +12,7 @@
     </div>
     <div class="overflow-x-scroll beautify-scrollbar text-center">
         <table class="border w-full my-4 table-auto">
-            <thead class="border bg-gray-800 dark:bg-white dark:bg-opacity-20 text-white">
+            <thead class="border bg-gray-900 dark:bg-white dark:bg-opacity-20 text-white">
                 <th class="p-4">S/N</th>
                 @foreach ($columns as $column)
                     <th class="capitalize p-4 border whitespace-nowrap">{{str_replace('_' , ' ', Str::snake( $column['name'] ??  $column['property']))}}</th>
@@ -60,7 +60,7 @@
                                         @elseif ($column['type'] == 'dropdown')
                                             <x-dropdown >
                                                 @foreach ($column['links'] as $link)
-                                                    <a href="{{route($link['href'], $model->id)}}" class="flex items-center justify-start gap-2 p-2"><i class="{{$link['icon'] ?? ''}}" aria-hidden="true"></i>{{$link['text']}}</a>
+                                                    <a href="{{route($link['href'], $model->id)}}" class="flex items-center justify-start gap-2 py-4 px-6 hover:bg-white hover:bg-opacity-20 "><i class="{{$link['icon'] ?? ''}}" aria-hidden="true"></i>{{$link['text']}}</a>
                                                 @endforeach
                                             </x-dropdown>
                                         @endif
