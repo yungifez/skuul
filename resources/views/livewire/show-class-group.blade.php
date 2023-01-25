@@ -15,6 +15,7 @@
             <livewire:datatable :model="App\Models\ClassGroup::class" uniqueId="schoolTablepage" :filters="[['name' => 'find' , 'arguments' => [ $classGroup->id ]], ['name' => 'gradeSystem']]" :columns="
             [
             ['property' => 'name'] , 
+            ['property' => 'remark'] , 
             ['property' => 'grade_from'] , 
             ['property' => 'grade_till'] , 
             ['type' => 'dropdown', 'name' => 'actions','links' => [

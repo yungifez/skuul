@@ -1,0 +1,43 @@
+<?php
+
+namespace App\Http\Livewire;
+
+use Livewire\Component;
+use App\Services\MyClass\MyClassService;
+
+class ListGradeSystemsTable extends Component
+{
+    protected $queryString = ['classGroup'];
+    public $classGroups;
+    public $classGroup;
+
+    protected $rules = [
+        'classGroup' => 'integer',
+    ];
+
+    public function mount(MyClassService $myClassService)
+    {
+        // Get all class groups
+        $this->classGroups = $myClassService->getAllClassGroups();
+
+        // Get all grades for first class group if class groups is not empty
+        if ($this->classGroups != null && $this->classGroups->count() > 0) {
+            //class groups are present
+            $this->updatedClassGroup();
+        }
+    }
+
+    public function updatedClassGroup()
+    {
+        if ($this->classGroups->find($this->classGroup) == null) {
+            $this->classGroup = $this->classGroups?->first()->id;
+        }
+
+        $this->emit('$refresh');
+    }
+
+    public function render()
+    {
+        return view('livewire.list-grade-systems-table');
+    }
+}
