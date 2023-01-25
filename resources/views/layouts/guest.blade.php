@@ -18,6 +18,8 @@
     </head>
     <body class="bg-gray-100">
         @yield('body')
+        <livewire:display-status />
     </body>
     <livewire:scripts />
+    @vite(['resources/js/app.js'])
 </html>

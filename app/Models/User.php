@@ -82,6 +82,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $query->role('student');
     }
 
+    public function scopeActiveStudents($query)
+    {
+        return $query->whereRelation('studentRecord', 'is_graduated', 0);
+    }
+
     /**
      * Get the school that owns the User.
      *

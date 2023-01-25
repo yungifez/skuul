@@ -2,27 +2,24 @@
 
 namespace App\Http\Livewire;
 
-use App\Services\MyClass\MyClassService;
-use App\Services\Parent\ParentService;
-use App\Services\School\SchoolService;
-use App\Services\Section\SectionService;
-use App\Services\Student\StudentService;
-use App\Services\Teacher\TeacherService;
+use App\Models\User;
+use App\Models\School;
 use Livewire\Component;
+use App\Services\Section\SectionService;
 
 class DashboardDataCards extends Component
 {
     public $schools, $classes, $sections, $students, $classGroups, $teachers, $parents ;
     
-    public function mount(SchoolService $schoolService, MyClassService $myClassService, SectionService $sectionService, StudentService $studentService, TeacherService $teacherService, ParentService $parentService)
+    public function mount(SectionService $sectionService)
     {
-        $this->schools = $schoolService->getAllSchools()->count();
-        $this->classGroups = $myClassService->getAllClassGroups()->count();
-        $this->classes = $myClassService->getAllClasses()->count();
+        $this->schools = School::count();
+        $this->classGroups = auth()->user()->school->classGroups()->count();
+        $this->classes =  auth()->user()->school->myClasses()->count();
         $this->sections = $sectionService->getAllSections()->count();
-        $this->students = $studentService->getAllActiveStudents()->count();
-        $this->teachers = $teacherService->getAllTeachers()->count();
-        $this->parents = $parentService->getAllParents()->count();
+        $this->students = User::inSchool()->students()->activeStudents()->count();
+        $this->teachers = User::inSchool()->role('teacher')->count();
+        $this->parents =  User::inSchool()->role('parent')->count();
     }
 
     public function render()
