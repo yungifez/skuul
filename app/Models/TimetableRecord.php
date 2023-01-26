@@ -10,6 +10,8 @@ class TimetableRecord extends Pivot
 {
     use HasFactory;
 
+    protected $table = "timetable_time_slot_weekday";
+
     public function timetableRecordableType(): Attribute
     {
         return new Attribute(

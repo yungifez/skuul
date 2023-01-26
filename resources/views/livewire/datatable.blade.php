@@ -24,7 +24,7 @@
                         <tr class="border odd:bg-white even:bg-slate-100 dark:odd:bg-inherit dark:even:bg-white dark:even:bg-opacity-5">
                             <th class="border w-24">{{ $collection->perPage() * ($collection->currentPage() - 1) + $loop->iteration }}</th>
                             @foreach ($columns as $column)
-                                <td class="p-4 px-4 border w-60 whitespace-nowrap">
+                                <td class="p-4 border w-60 whitespace-nowrap">
                                     @php 
                                         $model = $item;
                                         if (isset($column['relation'])) {
@@ -61,7 +61,7 @@
                                             @elseif ($column['type'] == 'dropdown')
                                                 <x-dropdown >
                                                     @foreach ($column['links'] as $link)
-                                                        <a href="{{route($link['href'], $model->id)}}" class="flex items-center justify-start gap-2 py-4 px-6 hover:bg-white hover:bg-opacity-20 "><i class="{{$link['icon'] ?? ''}}" aria-hidden="true"></i>{{$link['text']}}</a>
+                                                        <a href="{{route($link['href'], $model->id)}}" class="flex capitalize items-center justify-start gap-2 py-3 px-6 hover:bg-white hover:bg-opacity-20 "><i class="{{$link['icon'] ?? ''}}" aria-hidden="true"></i>{{$link['text']}}</a>
                                                     @endforeach
                                                 </x-dropdown>
                                             @endif

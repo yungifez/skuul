@@ -11,6 +11,7 @@ use App\Services\Timetable\TimeSlotService;
 
 class TimetableTimeSlotController extends Controller
 {
+    public $timeSlot;
     public function __construct(TimeSlotService $timeSlot)
     {
         $this->timeSlot = $timeSlot;
@@ -44,10 +45,10 @@ class TimetableTimeSlotController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreTimetableTimeSlotRequest $request, Timetable $timetable)
+    public function store(StoreTimetableTimeSlotRequest $request)
     {
         $data = $request->except('_token');
-        $this->timeSlot->createTimeSlot($timetable, $data);
+        $this->timeSlot->createTimeSlot($data);
 
         return back()->with('success', 'Time slot successfully created');
     }
@@ -97,7 +98,7 @@ class TimetableTimeSlotController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Timetable $timetable, TimetableTimeSlot $timeSlot)
+    public function destroy(TimetableTimeSlot $timeSlot)
     {
         $this->timeSlot->deleteTimeSlot($timeSlot);
 

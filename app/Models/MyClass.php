@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
@@ -79,5 +80,15 @@ class MyClass extends Model
     public function syllabi(): HasManyThrough
     {
         return $this->hasManyThrough(Syllabus::class, Subject::class);
+    }
+
+    /**
+     * Get all of the timetables for the MyClass
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function timetables(): HasMany
+    {
+        return $this->hasMany(Timetable::class);
     }
 }

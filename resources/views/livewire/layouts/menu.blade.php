@@ -11,7 +11,7 @@
                     @if (isset($menuItem['header']) & (!isset($menuItem['can']) || auth()->user()->can($menuItem['can'])))
                         <p x-show="menuOpen" x-transition class="my-3">{{$menuItem['header']}}</p> 
                     @elseif(!isset($menuItem['can']) || auth()->user()->can($menuItem['can']))
-                        <div class="" x-data="{
+                        <div @click.outside="submenu = false" x-data="{
                             'submenu'  : {{ isset($menuItem['submenu']) && in_array(Route::currentRouteName() , array_column($menuItem['submenu']  , 'route')) ? '1' : '0'}}
                            }" >
                             @if (!isset($menuItem['submenu']))
@@ -20,7 +20,7 @@
                                     <p x-show="menuOpen">{{$menuItem['text']}}</p>
                                 </a>
                             @else
-                                <a class="flex items-center justify-between gap-2 p-3 my-2 px-4 rounded hover:bg-white hover:bg-opacity-5" href="#"  @click="submenu = !submenu" :class="{'bg-blue-600 hover:bg-blue-400 hover:bg-opacity-100' : {{in_array(Route::currentRouteName() , array_column($menuItem['submenu'] , 'route'))  ? '1' : '0'}} }">
+                                <a class="flex items-center justify-between gap-2 p-3 my-2 px-4 rounded hover:bg-white hover:bg-opacity-5"  @click="submenu = !submenu" :class="{'bg-blue-600 hover:bg-blue-400 hover:bg-opacity-100' : {{in_array(Route::currentRouteName() , array_column($menuItem['submenu'] , 'route'))  ? '1' : '0'}} }">
                                     <div class="flex items-center gap-2">
                                         <i class="{{$menuItem['icon'] ?? 'fa fa-circle'}} " aria-hidden="true" x-transition></i>
                                         <p x-show="menuOpen">{{$menuItem['text']}}</p>

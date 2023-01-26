@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html  lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+<html  lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="scroll-smooth">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +11,7 @@
         @vite('resources/css/app.css')
         <livewire:styles />
     </head>
-    <body class="font-sans scroll-smooth">
+    <body class="font-sans">
         <div x-data="{ menuOpen: window.innerWidth >=  1024 ? $persist(false) : false }">
             <livewire:layouts.header/>
             <div class="lg:flex lg:flex-cols text-gray-900 bg-gray-100 dark:bg-gray-700 dark:text-gray-50 min-h-screen" >
@@ -34,4 +34,5 @@
     </body>
     <livewire:scripts />
     @vite(['resources/js/app.js'])
+    @stack('scripts')
 </html>

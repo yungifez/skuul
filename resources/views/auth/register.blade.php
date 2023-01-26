@@ -3,7 +3,7 @@
 @section('title', 'Login')
 
 @section('body')
-    <x-partials.authentication-card class="md:w-10/12 lg:w-10/12 xl:w-10/12">
+    <x-partials.authentication-card class="md:w-10/12 lg:w-11/12 xl:w-11/12">
         <x-display-validation-errors />
         <livewire:registration-form />
         <div class="py-6">

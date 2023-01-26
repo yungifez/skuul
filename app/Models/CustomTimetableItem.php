@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphOne;
 
 class CustomTimetableItem extends Model
 {
@@ -25,9 +26,9 @@ class CustomTimetableItem extends Model
     /**
      * Get the subjects timetable records.
      *
-     * @return void
+     * @return MorphOne
      */
-    public function timetableRecord()
+    public function timetableRecord() : MorphOne
     {
         return $this->morphOne(TimetableRecord::class, 'timetable_time_slot_weekdayable');
     }

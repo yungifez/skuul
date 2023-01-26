@@ -15,9 +15,8 @@ class TimeSlotService
      *
      * @return void
      */
-    public function createTimeSlot(Timetable $timetable, $data)
+    public function createTimeSlot($data)
     {
-        $data['timetable_id'] = $timetable->id;
         TimetableTimeSlot::create([
             'start_time'   => $data['start_time'],
             'stop_time'    => $data['stop_time'],
