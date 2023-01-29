@@ -43,7 +43,7 @@
                                     {{ $session->ip_address }},
 
                                     @if ($session->is_current_device)
-                                        <span class="text-success font-weight-bold">{{ __('This device') }}</span>
+                                        <span class="text-green-500 font-bold">{{ __('This device') }}</span>
                                     @else
                                         {{ __('Last active') }} {{ $session->last_active }}
                                     @endif
@@ -79,7 +79,7 @@
             </div>
 
             <x-slot name="footer">
-                <x-button class="bg-red-600 text-sm px-2 md:px-4" wire:click="logoutOtherBrowserSessions" wire:loading.attr="disabled" x-init="$wire.on('loggedOut', () => {modal = false})">
+                <x-button class="bg-red-600 text-sm px-2 md:px-4" wire:click="logoutOtherBrowserSessions" wire:loading.attr="disabled" x-effect="modal = $wire.confirmingLogout">
                     {{ __('Log out Other Browser Sessions') }}
                 </x-button>
             </x-slot>
