@@ -12,9 +12,9 @@
             <x-textarea id="address" name="address" placeholder="Enter school branch address" label="School Address *" class="md:w-6/12">
                 {{$school->address}}
             </x-textarea>
-            <x-input id="initials" name="initials" placeholder="Enter school initials" label="School Initials" value="{{$school->initials}}" enable-old-support class="md:w-6/12"/>   
-            <x-input id="phone" name="phone" type="tel" placeholder="Enter school phone number" label="School Phone Number" value="{{ $school->phone}}"  enable-old-support class="md:w-6/12"/>
-            <x-input id="email" name="email" type="email" placeholder="Enter school email" label="School Email" value="{{ $school->email}}"  enable-old-support class="md:w-6/12"/>
+            <x-input id="initials" name="initials" placeholder="Enter school initials" label="School Initials" value="{{$school->initials}}" />   
+            <x-input id="phone" name="phone" type="tel" placeholder="Enter school phone number" label="School Phone Number" value="{{ $school->phone}}"  />
+            <x-input id="email" name="email" type="email" placeholder="Enter school email" label="School Email" value="{{ $school->email}}"  />
             @csrf
             @method('PUT')
             <div class="w-full flex ">

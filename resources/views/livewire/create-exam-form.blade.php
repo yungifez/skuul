@@ -8,7 +8,7 @@
             <p class="text-secondary">
                 {{__('All fields marked * are required')}}
             </p>
-            <x-input id="name" name="name" label="Exam Name *" placeholder="Enter Exam name" fgroup-class="col-md-6" enable-old-support/>
+            <x-input id="name" name="name" label="Exam Name *" placeholder="Enter Exam name" fgroup-class="col-md-6" 
             <x-textarea id="description" name="description" label="Description " placeholder="Enter description" fgroup-class="col-md-6"/>
             <div class="col-md-6">
                 <x-input id="start_date" type="date" name="start_date" label="Start date *" required  value="{{old('start_date')}}"/>

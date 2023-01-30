@@ -7,7 +7,7 @@
         <x-display-validation-errors/>
         <x-loading-spinner/>
         <div class="md:grid grid-cols-4 gap-2" id="create-timetable-record">
-            <x-select id="timeslot" name="timeSlot" label="Time Slot"  fgroup-class="col-md-3" enable-old-support wire:model="timeSlot">
+            <x-select id="timeslot" name="timeSlot" label="Time Slot"  fgroup-class="col-md-3" lot">
                 @isset($timeSlots)
                     @foreach ($timeSlots as $item)
                         <option value="{{$item['id']}}" > {{$item->name}}</option>
@@ -17,21 +17,21 @@
             @if(!is_null($timeSlot))
                 <form action="{{route('timetables.records.create',[$timeSlot])}}" method="POST" class="md:grid col-span-3 grid-cols-3 gap-2" >
                     @csrf
-                    <x-select id="weekday-id" name="weekday_id" label="Day of week"  fgroup-class="col-md-4" enable-old-support wire:model="weekday">
+                    <x-select id="weekday-id" name="weekday_id" label="Day of week"  fgroup-class="col-md-4" ay">
                         @isset($weekdays)
                             @foreach ($weekdays as $item)
                                 <option value="{{$item['id']}}"> {{$item->name}}</option>
                             @endforeach
                         @endisset
                     </x-select>
-                    <x-select id="type" name="type" label="Record Tyoe"  fgroup-class="col-md-4" enable-old-support wire:model="type">
+                    <x-select id="type" name="type" label="Record Tyoe"  fgroup-class="col-md-4" >
                         @isset($types)
                             @foreach ($types as $item)
                                 <option value="{{$item}}"> {{str()->title(str()->snake($item, " "))}}</option>
                             @endforeach
                         @endisset
                     </x-select>
-                    <x-select id="id" name="id" label="Subject/Custom Item"  fgroup-class="col-md-4" enable-old-support>
+                    <x-select id="id" name="id" label="Subject/Custom Item"  fgroup-class="col-md-4" 
                         <option  value=""></option>
                         @isset($types)
                             @switch($type)

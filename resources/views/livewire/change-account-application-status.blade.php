@@ -12,12 +12,12 @@
             @can('change account application status')
                 <form action="{{route('account-applications.change-status', $applicant->id)}}" method="POST" class="col-md-9 m-auto">
                     <x-select id="name" name="status" label="Status"
-                    wire:model="status" enable-old-support>
+                    wire:model="status" >
                         @foreach ($statuses as $status)
                             <option value="{{$status}}">{{ucwords($status)}}</option>
                         @endforeach
                     </x-select>
-                    <x-input id="reason" name="reason" label="Optional Reason/Message" placeholder="Application status reason or message eg user action required, no profile picture." enable-old-support/>
+                    <x-input id="reason" name="reason" label="Optional Reason/Message" placeholder="Application status reason or message eg user action required, no profile picture." />
                     @if ($studentRecordFields == true)
                         <livewire:create-student-record-fields/>
                     @endif
