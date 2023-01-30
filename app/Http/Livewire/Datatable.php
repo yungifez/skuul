@@ -73,7 +73,7 @@ class Datatable extends Component
                     }
                 }
 
-                //get table name from either DatabaseBuilder or EloQuesnt database builder
+                //get table name from either DatabaseBuilder or EloQuent model
                 $table = $model->getModel()->getTable() ?? $model?->getQuery()->getModel()->getTable();
 
                 if (array_key_exists('relation', $column)  && !empty($column['relation'])) {

@@ -40,11 +40,11 @@ class TimeSlotService
     public function createTimetableRecord(TimetableTimeSlot $timeSlot, $data)
     {
         //remove existing record
-        if ($timeSlot->weekdays->find($data['weekday_id']) || $data['id'] == null) {
+        if ($timeSlot->weekdays->find($data['weekday_id']) || !isset($data['id']) || $data['id'] != null) {
             $timeSlot->weekdays()->detach($data['weekday_id']);
         }
 
-        if ($data['id'] != null) {
+        if (isset($data['id']) && $data['id'] != null) {
             $timeSlot->weekdays()->attach($data['weekday_id'], ['timetable_time_slot_weekdayable_id' => $data['id'], 'timetable_time_slot_weekdayable_type' => $data['type']]);
         }
     }

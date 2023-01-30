@@ -15,7 +15,7 @@
                 @endisset
             </x-adminlte-select>
             @if(!is_null($timeSlot))
-                <form action="{{route('timetables.records.create',[$timetable->id,$timeSlot])}}" method="POST" class="md:grid col-span-3 grid-cols-3 gap-2" >
+                <form action="{{route('timetables.records.create',[$timeSlot])}}" method="POST" class="md:grid col-span-3 grid-cols-3 gap-2" >
                     @csrf
                     <x-select id="weekday-id" name="weekday_id" label="Day of week"  fgroup-class="col-md-4" enable-old-support wire:model="weekday">
                         @isset($weekdays)
@@ -24,7 +24,7 @@
                             @endforeach
                         @endisset
                     </x-select>
-                    <x-select id="type" name="type" label="Timetable Item"  fgroup-class="col-md-4" enable-old-support wire:model="type">
+                    <x-select id="type" name="type" label="Record Tyoe"  fgroup-class="col-md-4" enable-old-support wire:model="type">
                         @isset($types)
                             @foreach ($types as $item)
                                 <option value="{{$item}}"> {{str()->title(str()->snake($item, " "))}}</option>
@@ -59,7 +59,7 @@
         <livewire:show-timetable :timetable="$timetable" :showDescription="false" :disableEmitCellInformationDetail="false"/>
         
         {{--Create timeslot form--}}
-        <form action="{{route('time-slots.store',$timetable->id)."#create-time-slot"}}" id="create-time-slot" method="post" class="my-3 md:grid grid-cols-3 w-full items-end gap-4 ">
+        <form action="{{route('time-slots.store')."#create-time-slot"}}" id="create-time-slot" method="post" class="my-3 md:grid grid-cols-3 w-full items-end gap-4 ">
             <h4 class="col-span-3 text-center text-xl">Create time slot</h4>
             <input type="hidden" name="timetable_id" value="{{$timetable->id}}">
             <x-input id="start_time" name="start_time" type="time" placeholder="select a start time" label="Start time"/>
