@@ -16,7 +16,7 @@
     <x-input name="password" id="password" label=" Password *" placeholder="input a password" group-class="col-span-4" type="password"/>
     <x-input name="password_confirmation" id="password-confirmation" label="Confirm password *" placeholder="input password again" group-class="col-span-4" type="password"/>
     <h4 class="text-bold text-xl md:text-3xl col-span-12 text-center font-bold">Personal information</h4>
-    <x-input type="date" id="birthday" name="birthday" placeholder="Choose {{$role}}'s birthday..." label="Birthday *" group-class="col-span-3"/>
+    <x-input type="date" id="birthday" name="birthday" placeholder="Choose {{$role}}'s birthday..." label="Birthday *" group-class="col-span-3  w-full"/>
     <x-select id="gender" name="gender" label="Gender *" group-class="col-span-3" >
         @php ($genders = ['Male', 'Female'])
         @foreach ($genders as $gender)

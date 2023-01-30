@@ -14,7 +14,7 @@
     <x-input name="other_names" id="other-names" label="Other names *" placeholder="{{$role}}'s other names" group-class="col-span-6" value="{{$user->otherNames}}"/>
     <x-input name="email" id="email" type="email" label="Email address *" placeholder="Enter {{$role}}'s email address" group-class="col-span-4" value="{{$user->email}}" />
     <h4 class="text-bold text-xl md:text-3xl col-span-12 text-center font-bold">Personal information</h4>
-    <x-input type="date" id="birthday" name="birthday" placeholder="Choose {{$role}}'s birthday..." label="Birthday *" group-class="col-span-3" value="{{$user->birthday}}"/>
+    <x-input type="date" id="birthday" name="birthday" placeholder="Choose {{$role}}'s birthday..." label="Birthday *" group-class="col-span-3  w-full"  value="{{$user->birthday}}"/>
     <x-select id="gender" name="gender" label="Gender *" group-class="col-span-3" >
         @php ($genders = ['Male', 'Female'])
         @foreach ($genders as $gender)
