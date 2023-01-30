@@ -28,7 +28,7 @@ class CustomTimetableItem extends Model
      *
      * @return MorphOne
      */
-    public function timetableRecord() : MorphOne
+    public function timetableRecord(): MorphOne
     {
         return $this->morphOne(TimetableRecord::class, 'timetable_time_slot_weekdayable');
     }

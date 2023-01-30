@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Services\User\UserService;
-use App\Services\Student\StudentService;
 use App\Http\Requests\StudentGraduateRequest;
+use App\Models\User;
+use App\Services\Student\StudentService;
+use App\Services\User\UserService;
 
 class GraduationController extends Controller
 {

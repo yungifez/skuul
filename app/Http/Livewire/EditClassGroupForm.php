@@ -8,6 +8,7 @@ use Livewire\Component;
 class EditClassGroupForm extends Component
 {
     public ClassGroup $classGroup;
+
     public function render()
     {
         return view('livewire.edit-class-group-form');

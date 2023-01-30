@@ -12,6 +12,7 @@ use App\Services\Timetable\TimeSlotService;
 class TimetableTimeSlotController extends Controller
 {
     public $timeSlot;
+
     public function __construct(TimeSlotService $timeSlot)
     {
         $this->timeSlot = $timeSlot;
@@ -106,7 +107,7 @@ class TimetableTimeSlotController extends Controller
     }
 
     //timetable record
-    public function addTimetableRecord( TimetableTimeSlot $timeSlot, storeTimetableRecord $request)
+    public function addTimetableRecord(TimetableTimeSlot $timeSlot, storeTimetableRecord $request)
     {
         $timetable = $timeSlot->timetable;
         $this->authorize('update', $timetable);

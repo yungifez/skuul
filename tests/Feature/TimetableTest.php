@@ -162,10 +162,10 @@ class TimetableTest extends TestCase
         $timetable = Timetable::factory()->create();
 
         $this->authorized_user(['update timetable'])
-            ->post("/dashboard/timetables/manage/time-slots", [
-                'start_time' => '10:00',
-                'stop_time'  => '11:00',
-                'timetable_id' => $timetable->id
+            ->post('/dashboard/timetables/manage/time-slots', [
+                'start_time'   => '10:00',
+                'stop_time'    => '11:00',
+                'timetable_id' => $timetable->id,
             ]);
 
         $this->assertDatabaseHas('timetable_time_slots', [

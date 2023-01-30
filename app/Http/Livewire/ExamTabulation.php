@@ -92,10 +92,11 @@ class ExamTabulation extends Component
 
         if ($subjects->isEmpty()) {
             $this->createdTabulation = false;
-            return $this->error = "There are no subjects in this class";
+
+            return $this->error = 'There are no subjects in this class';
         }
 
-        $this->title = "Exam Marks For $titleFor in {$exam->name} for semester ".auth()->user()->school->semester->name." in academic year ".auth()->user()->school->academicYear->name;
+        $this->title = "Exam Marks For $titleFor in {$exam->name} for semester ".auth()->user()->school->semester->name.' in academic year '.auth()->user()->school->academicYear->name;
 
         //get all exam slots
         $examSlots = $exam->load('examSlots')->examSlots;

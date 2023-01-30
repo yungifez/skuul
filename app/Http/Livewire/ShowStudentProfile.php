@@ -16,7 +16,7 @@ class ShowStudentProfile extends Component
         $this->student = $this->student->loadMissing('studentRecord');
         $this->studentRecord = $this->student->studentRecord()->withoutGlobalScopes()->first();
     }
-    
+
     public function render()
     {
         return view('livewire.show-student-profile');

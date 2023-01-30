@@ -2,9 +2,9 @@
 
 namespace App\Http\Livewire;
 
-use Livewire\Component;
 use App\Models\GradeSystem;
 use App\Services\MyClass\MyClassService;
+use Livewire\Component;
 
 class EditGradeSystemForm extends Component
 {
@@ -17,7 +17,7 @@ class EditGradeSystemForm extends Component
         $this->classGroups = $myClassService->getAllClassGroups();
         $this->classGroup = $this->grade->class_group_id;
     }
-    
+
     public function render()
     {
         return view('livewire.edit-grade-system-form');

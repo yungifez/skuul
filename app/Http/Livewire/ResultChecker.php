@@ -32,7 +32,7 @@ class ResultChecker extends Component
         'semester'     => 'required',
     ];
 
-    public function mount( MyClassService $myClassService)
+    public function mount(MyClassService $myClassService)
     {
         $this->academicYears = auth()->user()->school->academicYears;
         $this->academicYear = auth()->user()->school->academicYear->id;

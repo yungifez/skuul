@@ -92,7 +92,7 @@ class UserPolicy
         if ($user->school_id != $model->school_id) {
             return false;
         }
-        
+
         if ($user->can("delete $role") && $user->school_id == $model->school_id) {
             return true;
         }
