@@ -82,7 +82,7 @@ class ResultTabulation extends Component
             return;
         }
 
-        $this->title = "Exam Marks For $titleFor in whole semester ".auth()->user()->school->semester->name." in academic year ".auth()->user()->school->academicYear->name;
+        $this->title = "Exam Marks For $titleFor in whole semester ".auth()->user()->school->semester->name.' in academic year '.auth()->user()->school->academicYear->name;
 
         $examSlots = $this->semester->load('examSlots')->examSlots;
 

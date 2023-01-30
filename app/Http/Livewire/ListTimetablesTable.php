@@ -2,8 +2,8 @@
 
 namespace App\Http\Livewire;
 
-use Livewire\Component;
 use App\Services\MyClass\MyClassService;
+use Livewire\Component;
 
 class ListTimetablesTable extends Component
 {
@@ -11,11 +11,11 @@ class ListTimetablesTable extends Component
     public $class;
     public $classes;
 
-    public function mount( MyClassService $myClassService)
+    public function mount(MyClassService $myClassService)
     {
         if (auth()->user()->hasRole('student')) {
-            return $this->class = auth()->user()->studentRecord->myClass->id;   
-        } 
+            return $this->class = auth()->user()->studentRecord->myClass->id;
+        }
 
         $this->classes = $myClassService->getAllClasses();
         if ($this->classes->isNotEmpty()) {
@@ -31,6 +31,7 @@ class ListTimetablesTable extends Component
 
         $this->emit('$refresh');
     }
+
     public function render()
     {
         return view('livewire.list-timetables-table');

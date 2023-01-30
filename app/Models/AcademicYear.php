@@ -2,8 +2,8 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
@@ -38,13 +38,13 @@ class AcademicYear extends Model
     }
 
     /**
-     * Get all of the exams for the AcademicYear
+     * Get all of the exams for the AcademicYear.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
      */
     public function exams(): HasManyThrough
     {
-        return $this->hasManyThrough(Exam::class, Semester::class, 'academic_year_id','semester_id','id','id');
+        return $this->hasManyThrough(Exam::class, Semester::class, 'academic_year_id', 'semester_id', 'id', 'id');
     }
 
     /**

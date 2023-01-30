@@ -2,15 +2,18 @@
 
 namespace App\Http\Livewire;
 
-use Livewire\Component;
-use Illuminate\Support\Facades\App;
 use App\Services\MyClass\MyClassService;
 use App\Services\Section\SectionService;
-use App\Services\Student\StudentService;
+use Illuminate\Support\Facades\App;
+use Livewire\Component;
 
 class GraduateStudents extends Component
 {
-    public $classes, $class, $sections, $section, $students;
+    public $classes;
+    public $class;
+    public $sections;
+    public $section;
+    public $students;
 
     protected $rules = [
         'class'   => 'required|exists:my_classes,id',

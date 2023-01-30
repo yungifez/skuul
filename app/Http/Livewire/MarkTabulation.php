@@ -9,7 +9,7 @@ class MarkTabulation extends Component
     public $tabulatedRecords;
     public $totalMarksAttainableInEachSubject;
     public $subjects;
-    public $title = "";
+    public $title = '';
 
     public function render()
     {

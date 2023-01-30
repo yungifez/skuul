@@ -6,13 +6,21 @@ use Illuminate\View\Component;
 
 class InfoBox extends Component
 {
-    public $icon, $title, $text, $url, $urlText, $colour, $class, $textColour;
+    public $icon;
+    public $title;
+    public $text;
+    public $url;
+    public $urlText;
+    public $colour;
+    public $class;
+    public $textColour;
+
     /**
      * Create a new component instance.
      *
      * @return void
      */
-    public function __construct(string $title,string $text, $colour = null, $icon = null, $class = null, $url = null, $urlText = null, $textColour = null)
+    public function __construct(string $title, string $text, $colour = null, $icon = null, $class = null, $url = null, $urlText = null, $textColour = null)
     {
         $this->title = $title;
         $this->icon = $icon;
