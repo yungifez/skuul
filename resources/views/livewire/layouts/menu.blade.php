@@ -23,7 +23,7 @@
                                 <a class="flex items-center justify-between gap-2 p-3 my-2 px-4 rounded hover:bg-white hover:bg-opacity-5"  @click="submenu = !submenu" :class="{'bg-blue-600 hover:bg-blue-400 hover:bg-opacity-100' : {{in_array(Route::currentRouteName() , array_column($menuItem['submenu'] , 'route'))  ? '1' : '0'}} }">
                                     <div class="flex items-center gap-2">
                                         <i class="{{$menuItem['icon'] ?? 'fa fa-circle'}} " aria-hidden="true" x-transition></i>
-                                        <p x-show="menuOpen">{{$menuItem['text']}}</p>
+                                        <p x-show="menuOpen" class="cursor-default">{{$menuItem['text']}}</p>
                                     </div>
                                     <i class="transition-all" :class="{'fas fa-angle-left' : submenu == false , 'fas fa-angle-down ' : submenu == true}" x-show="menuOpen"></i>
                                 </a>

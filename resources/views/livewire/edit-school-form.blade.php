@@ -3,13 +3,13 @@
         <h4 class="card-title">Edit {{$school->name}}</h4>
     </div>
     <div class="card-body">
-        <form action="{{route('schools.update', $school->id )}}" method="POST">
+        <form action="{{route('schools.update', $school->id )}}" method="POST" class="md:w-6/12">
             <x-display-validation-errors />
             <p class="text-secondary">
                 {{__('All fields marked * are required')}}
             </p>
-            <x-input id="name" name="name" placeholder="Enter name of school" label="School Name *" value="{{$school->name}}" class="md:w-6/12"/>
-            <x-textarea id="address" name="address" placeholder="Enter school branch address" label="School Address *" class="md:w-6/12">
+            <x-input id="name" name="name" placeholder="Enter name of school" label="School Name *" value="{{$school->name}}" />
+            <x-textarea id="address" name="address" placeholder="Enter school branch address" label="School Address *" >
                 {{$school->address}}
             </x-textarea>
             <x-input id="initials" name="initials" placeholder="Enter school initials" label="School Initials" value="{{$school->initials}}" />   
