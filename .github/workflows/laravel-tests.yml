@@ -21,8 +21,8 @@ jobs:
         php-version: '8.1'
     - uses: actions/checkout@v3
     - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
+      uses: actions/setup-node@v3
+      with:
           node-version: ${{ matrix.node-version }}
     - name: Set up MySQL
       run: |
@@ -32,6 +32,8 @@ jobs:
       run: php -r "file_exists('.env') || copy('.env.example', '.env');"
     - name: Install Dependencies
       run: composer install -q --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+    - name: Install Dependencies
+      run: npm install
     - name: Build Node Dependencies
       run: npm run build
     - name: Generate key
