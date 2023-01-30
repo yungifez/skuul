@@ -5,11 +5,12 @@
         <livewire:datatable :model="App\Models\AcademicYear::class" 
         :filters="[
             ['name' => 'find' , 'arguments' => [ $academicYear->id]],
-            ['name' => 'exams' ]
+            ['name' => 'exams' ],
+            ['name' => 'with', 'arguments' => ['semester']]
         ]"
         :columns="[
-            ['name' => 'name', 'property' => 'name'],
-            ['name' => 'name'],
+            ['property' => 'name'],
+            ['property' => 'name', 'relation' => 'semester'],
             ['type' => 'dropdown', 'name' => 'actions','links' => [
                 ['href' => 'exams.edit', 'text' => 'Edit', 'icon' => 'fas fa-cog',],
                 ['href' => 'exams.show', 'text' => 'View', 'icon' => 'fas fa-eye',  ],

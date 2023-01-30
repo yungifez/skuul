@@ -1,4 +1,4 @@
-@props(['backgroundColour' =>  'bg-blue-700', 'textColour' => 'text-white','title' => '', 'footer' => '', 'icon' => '', 'buttonText' => 'Delete', 'button'])
+@props(['backgroundColour' =>  'bg-blue-700', 'textColour' => 'text-white','title' => '', 'footer' => '', 'icon' => '', 'buttonText' => 'Delete', 'button', 'size' => 'base'])
 
 <div x-data="{modal : false}" class="{{$textColour}}">
     
@@ -10,10 +10,23 @@
         </x-button>
     @endisset
 
-    <div class="w-screen h-screen fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center" @click="modal = false" x-show="modal" style="display: none" x-transition {{$attributes}}>
-        <div class="h-[60%] w-11/12 md:w-10/12 lg:w-8/12 xl:w-6/12 flex justify-between flex-col bg-white dark:bg-gray-900 rounded-xl border" @click.stop>
+    @php
+        switch ($size) {
+            case 'base':
+                $sizeClass = "h-[60%] w-11/12 md:w-10/12 lg:w-8/12 xl:w-6/12";
+                break;
+            case 'lg':
+                $sizeClass = "h-[90%] w-11/12 ";
+            default:
+                $sizeClass = "h-[90%] w-11/12";
+                break;
+        }
+    @endphp
+
+    <div class=" w-screen h-screen fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center" @click="modal = false" x-show="modal" style="display: none" x-transition {{$attributes}}>
+        <div class="{{$sizeClass}} flex justify-between flex-col bg-white dark:bg-gray-900 rounded-xl border" @click.stop>
             <div class="{{$backgroundColour}} h-16 md:h-20 rounded-t-xl flex justify-between  items-center p-4">
-                <div class="flex gap-4">
+                <div class="flex gap-4 overflow-y-scroll beautify-scrollbar">
                     <i class="{{$icon}} text-2xl" aria-hidden="true" ></i>
                     <h4 class="text-2xl font-semibold">{{$title}}</h4>
                 </div>
@@ -21,7 +34,7 @@
                     <p class="sr-only">Close Modal</p>
                 </i>
             </div>
-            <div class="flex justify-center items-center flex-col">
+            <div class="flex justify-center items-center flex-col overflow-scroll beautify-scrollbar">
                 {{$slot}}
             </div>
             <div class="border-t h-16 md:h-20 flex justify-between items-center p-4">
