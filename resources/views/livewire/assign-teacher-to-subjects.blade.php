@@ -4,12 +4,12 @@
     </div>
     <div class="card-body">
         <form action="" wire:submit.prevent="fetchSubjects('{{$class}}', '{{$teacher}}')" class="md:grid gap-4 grid-cols-3 items-end">
-            <x-select id="class-id" name="my_class_id" label="Select class" fgroup-class="col-md-6" wire:model="class">
+            <x-select id="class-id" name="my_class_id" label="Select class"  wire:model="class">
                 @foreach ($classes as $item)
                     <option value="{{$item['id']}}">{{$item['name']}}</option>
                 @endforeach
             </x-select>
-            <x-select id="teacher_id" name="teacherId" label="Add teachers to class" fgroup-class="col-md-6" wire:model="teacher">
+            <x-select id="teacher_id" name="teacherId" label="Add teachers to class"  wire:model="teacher">
                 @foreach ($teachers as $teacher)
                     <option value="{{$teacher->id}}">{{$teacher->name}}</option>
                 @endforeach
@@ -35,7 +35,7 @@
                                     <tr>
                                         <td class="border p-2 whitespace-nowrap">{{$subject->name}}</td>
                                         <td class="border p-2">
-                                            <x-select name="subjects[]" id="subject-{{$subject->id}}" fgroup-class="col-md-6">
+                                            <x-select name="subjects[]" id="subject-{{$subject->id}}" >
                                                 <option value="{{$subject['id']}}">Include</option>
                                                 <option value="">Dont Include</option>
                                             </x-select>

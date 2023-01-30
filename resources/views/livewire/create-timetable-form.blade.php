@@ -9,9 +9,9 @@
             <p class="text-secondary">
                 {{__('All fields marked * are required')}}
             </p>
-            <x-input wire:ignore id="name" name="name" label="Timetable name *" placeholder="Enter timetable name" fgroup-class="col-md-6"/>
-            <x-textarea id="description" name="description" label="Description" placeholder="Enter description" fgroup-class="col-md-6"/>
-            <x-select id="cla" name="my_class_id" label="Select class *" fgroup-class="col-md-6" wire:model="class" wire:loading.attr="disabled" wire:target="class">
+            <x-input wire:ignore id="name" name="name" label="Timetable name *" placeholder="Enter timetable name" 
+            <x-textarea id="description" name="description" label="Description" placeholder="Enter description" 
+            <x-select id="cla" name="my_class_id" label="Select class *" e:loading.attr="disabled" wire:target="class">
                 @foreach ($classes as $item)
                     <option value="{{$item['id']}}">{{$item['name']}}</option>
                 @endforeach

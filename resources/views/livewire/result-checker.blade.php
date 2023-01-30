@@ -42,7 +42,7 @@
                             @endisset
                         </x-select>
                     @endhasanyrole
-                    <x-select id="student" name="student" label="Student" fgroup-class="col-md-4" wire:model="student" group-class="md:w-3/12">
+                    <x-select id="student" name="student" label="Student"  wire:model="student" group-class="md:w-3/12">
                         @isset($students)
                             @foreach ($students as $item)
                                 <option value="{{$item['id']}}">{{$item['name']}}</option>

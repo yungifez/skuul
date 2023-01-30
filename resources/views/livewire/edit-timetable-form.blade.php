@@ -6,11 +6,11 @@
         <form action="{{route('timetables.update',$timetable)}}" method="POST" class="md:w-1/2">
             @csrf 
             @method('PUT')
-            <x-input id="name" name="name" label="Timetable name" placeholder="Enter timetable name" fgroup-class="col-md-6" value="{{$timetable->name}}"/>
-            <x-textarea id="description" name="description" label="Description" placeholder="Enter description" fgroup-class="col-md-6">
+            <x-input id="name" name="name" label="Timetable name" placeholder="Enter timetable name" ame}}"/>
+            <x-textarea id="description" name="description" label="Description" placeholder="Enter description" 
                 {{$timetable->description}}
             </x-textarea>
-            <x-select id="class" name="my_class_id" label="Select class" fgroup-class="col-md-6" wire:model="class" wire:loading.attr="disabled" wire:target="class" disabled>
+            <x-select id="class" name="my_class_id" label="Select class" e:loading.attr="disabled" wire:target="class" disabled>
                 @foreach ($classes as $item)
                     <option value="{{$item['id']}}">{{$item['name']}}</option>
                 @endforeach

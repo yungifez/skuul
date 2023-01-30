@@ -9,12 +9,12 @@
         {{-- form for selecting class and section to display --}}
         <form wire:submit.prevent="tabulate('{{$class}}','{{$section}}')" class="d-md-flex my-3">
             <div class="md:grid grid-cols-2 gap-4">
-                <x-select id="class" name="class" label="Class"  fgroup-class="col-md-6"  wire:model="class">
+                <x-select id="class" name="class" label="Class"    wire:model="class">
                     @foreach ($classes as $item)
                         <option value="{{$item['id']}}">{{$item['name']}}</option>
                     @endforeach
                 </x-select>
-                <x-select id="section" name="section" label="Section" fgroup-class="col-md-6" wire:model="section">
+                <x-select id="section" name="section" label="Section"  wire:model="section">
                     <option value="null">Entire Class</option>
                     @isset($sections)
                         @foreach ($sections as $item)

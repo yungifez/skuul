@@ -8,15 +8,15 @@
             <p class="text-secondary">
                 {{__('All fields marked * are required')}}
             </p>
-            <x-input id="name" name="name" label="Exam Name *" placeholder="Enter Exam name" fgroup-class="col-md-6" 
-            <x-textarea id="description" name="description" label="Description " placeholder="Enter description" fgroup-class="col-md-6"/>
+            <x-input id="name" name="name" label="Exam Name *" placeholder="Enter Exam name"  
+            <x-textarea id="description" name="description" label="Description " placeholder="Enter description" />
             <div class="col-md-6">
                 <x-input id="start_date" type="date" name="start_date" label="Start date *" required  value="{{old('start_date')}}"/>
             </div>
             <div class="col-md-6">
                 <x-input type="date" id="date" name="stop_date" label="Stop date *" required value="{{old('stop_date')}}"/>
             </div>
-            <x-select id="select" name="semester_id" label="Select Semester *" fgroup-class="col-md-6" wire:loading.attr="disabled" wire:target="semester" >
+            <x-select id="select" name="semester_id" label="Select Semester *"  wire:loading.attr="disabled" wire:target="semester" >
                 @foreach ($semesters as $item)
                     <option value="{{$item['id']}}" @selected(auth()->user()->school->semester->id == $item['id'])>{{$item['name']}}</option>
                 @endforeach
