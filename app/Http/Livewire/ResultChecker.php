@@ -5,7 +5,6 @@ namespace App\Http\Livewire;
 use App\Models\Semester;
 use App\Models\User;
 use App\Services\MyClass\MyClassService;
-use App\Services\Section\SectionService;
 use Livewire\Component;
 
 class ResultChecker extends Component
@@ -33,7 +32,7 @@ class ResultChecker extends Component
         'semester'     => 'required',
     ];
 
-    public function mount(SectionService $sectionService, MyClassService $myClassService)
+    public function mount( MyClassService $myClassService)
     {
         $this->academicYears = auth()->user()->school->academicYears;
         $this->academicYear = auth()->user()->school->academicYear->id;
@@ -47,7 +46,7 @@ class ResultChecker extends Component
             $this->class = $this->classes[0]->id;
             $this->updatedClass();
         } elseif (auth()->user()->hasRole('student')) {
-            $this->checkResult(auth()->user()->school->semester, auth()->user());
+            $this->checkResult(auth()->user()->school->semester, auth()->user()->loadMissing('allStudentRecords'));
         } elseif (auth()->user()->hasRole('parent')) {
             //get parent's children
             $this->students = auth()->user()->parentRecord->Students;
@@ -122,7 +121,7 @@ class ResultChecker extends Component
         //fetch all students exam records in semester
         $this->examRecords = app("App\Services\Exam\ExamRecordService")->getAllUserExamRecordInSemester($semester, $student->id);
 
-        $academicYearsWithStudentRecords = $student->studentRecord()->withoutGlobalScopes()->first()->academicYears()->where('academic_year_id', $this->academicYear)->first();
+        $academicYearsWithStudentRecords = $student->allStudentRecords->academicYears()->where('academic_year_id', $this->academicYear)->first();
         if (is_null($academicYearsWithStudentRecords)) {
             $this->status = 'No records this academic year, make sure user has been promoted this year or has not been graduated';
             $this->preparedResults = false;

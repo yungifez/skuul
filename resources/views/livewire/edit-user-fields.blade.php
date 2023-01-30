@@ -15,20 +15,20 @@
     <x-input name="email" id="email" type="email" label="Email address *" placeholder="Enter {{$role}}'s email address" group-class="col-span-4" value="{{$user->email}}" />
     <h4 class="text-bold text-xl md:text-3xl col-span-12 text-center font-bold">Personal information</h4>
     <x-input type="date" id="birthday" name="birthday" placeholder="Choose {{$role}}'s birthday..." label="Birthday *" group-class="col-span-3" value="{{$user->birthday}}"/>
-    <x-select id="gender" name="gender" label="Gender *" group-class="col-span-3" 
+    <x-select id="gender" name="gender" label="Gender *" group-class="col-span-3" >
         @php ($genders = ['Male', 'Female'])
         @foreach ($genders as $gender)
             <option value="{{$gender}}" @selected(Str::lower($gender) == str::lower($user->gender)) >{{$gender}}</option>
         @endforeach
     </x-select>
-    <x-select id="blood-group" name="blood_group" label="Blood group *" group-class="col-span-3" 
+    <x-select id="blood-group" name="blood_group" label="Blood group *" group-class="col-span-3" >
         @php ($bloodGroups = ['A+', 'A-', 'B+', 'B-', 'AB+', 'Ab-', 'O+', 'O-'])
         @foreach ($bloodGroups as $bloodGroup)
             <option value="{{$bloodGroup}}" @selected(Str::lower($bloodGroup) == str::lower($user->blood_group))>{{$bloodGroup}}</option>
         @endforeach
     </x-select>
-    <x-input id="phone" name="phone" label="Phone number" placeholder="{{$role}}'s phone number" group-class="col-span-3" 
-    <x-input id="address" name="address" placeholder="{{$role}}'s address" group-class="col-span-9 no-resize" label="Address *" 
+    <x-input id="phone" name="phone" label="Phone number" placeholder="{{$role}}'s phone number" group-class="col-span-3"  value="{{$user->phone}}"/>
+    <x-input id="address" name="address" placeholder="{{$role}}'s address" group-class="col-span-9 no-resize" label="Address *"  value="{{$user->address}}"/>
     <x-select id="religion" name="religion" label="Religion *" group-class="col-span-3" >
         @php ($religions = ['Christianity', 'Islam', 'Hinduism', 'Buddhism', 'Other'])
         @foreach ($religions as $religion)

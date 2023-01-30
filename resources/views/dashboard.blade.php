@@ -8,8 +8,35 @@
 
 @section('content')
 
-    <livewire:set-school />
+@can('set school')
+    @livewire('set-school')
+@endcan
 
-    <livewire:dashboard-data-cards />
+@livewire('dashboard-data-cards')
 
+@livewire('set-academic-year')
+
+@if (auth()->user()->hasRole('student'))
+    <a href="{{route('students.print-profile',auth()->user()->id)}}" >
+        <div class="card bg-purple-500 dark:bg-purple-600 text-white md:text-2xl">
+            <div class="card-body flex gap-4 items-center justify-center">
+                <i class="fa fa-download" aria-hidden="true"></i>
+                <p class="font-bold">Download Profile</p>
+            </div>
+        </div>
+    </a>
+@endif
+
+@can('read notice') 
+    @livewire('list-notices-table')
+@endcan
+
+@if (auth()->user()->hasRole('applicant'))
+    {{--Contains status history--}}
+    @livewire('change-account-application-status', ['applicant' => auth()->user()])
+@endif
+
+@can('read applicant')
+    @livewire('list-account-applications-table')
+@endcan
 @endsection

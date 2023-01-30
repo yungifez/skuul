@@ -53,7 +53,7 @@
                                         <tr>
                                             <td class="border p-2 whitespace-nowrap">{{$student->name}}</td>
                                             <td class="border p-2">
-                                                <x-select name="student_id[]" id="student-{{$student->id}}" 
+                                                <x-select name="student_id[]" id="student-{{$student->id}}">
                                                     <option value="{{$student['id']}}">Promote</option>
                                                     <option value="">Dont promote</option>
                                                 </x-select>
