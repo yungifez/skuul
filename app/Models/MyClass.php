@@ -2,12 +2,11 @@
 
 namespace App\Models;
 
-use App\Models\User;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
+use Illuminate\Support\Collection;
 
 class MyClass extends Model
 {
@@ -67,13 +66,13 @@ class MyClass extends Model
      */
     public function students()
     {
-        $students = User::students()->inSchool()->whereRelation('studentRecord.myClass','id', $this->id)->get();
+        $students = User::students()->inSchool()->whereRelation('studentRecord.myClass', 'id', $this->id)->get();
 
         return $students;
     }
 
     /**
-     * Get all of the syllabi for the MyClass
+     * Get all of the syllabi for the MyClass.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
      */
@@ -83,7 +82,7 @@ class MyClass extends Model
     }
 
     /**
-     * Get all of the timetables for the MyClass
+     * Get all of the timetables for the MyClass.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */

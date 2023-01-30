@@ -2,24 +2,29 @@
 
 namespace App\Http\Livewire;
 
-use Livewire\Component;
-use Illuminate\Support\Str;
-use Livewire\WithPagination;
-use Illuminate\Support\Facades\Crypt;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\Crypt;
+use Illuminate\Support\Str;
+use Livewire\Component;
+use Livewire\WithPagination;
 
 class Datatable extends Component
 {
     use WithPagination;
     protected $listners = ['refresh' => '$refresh'];
-    public $model, $filters, $columns, $uniqueId, $search = null;
+    public $model;
+    public $filters;
+    public $columns;
+    public $uniqueId;
+    public $search = null;
     public int $perPage = 10;
 
     /**
      * @param string|Builder $model Pass model or query builder
+     *
      * @return void
      */
-    public function mount(string|Builder $model, array $columns,array $filters = [], $uniqueId = null)
+    public function mount(string|Builder $model, array $columns, array $filters = [], $uniqueId = null)
     {
         $this->model = $model;
         $this->filters = $filters;
@@ -29,17 +34,20 @@ class Datatable extends Component
     }
 
     /**
-     * Verify if a class is an eloquent model
+     * Verify if a class is an eloquent model.
      *
-     * @param Object $model
+     * @param object $model
+     *
      * @throws Exception
+     *
      * @return bool
      */
     public function verifyIsModel($model)
     {
         if (!is_subclass_of($model, 'Illuminate\Database\Eloquent\Model')) {
-            throw new \Exception(sprintf("Class %s is not a model", $model), 1);
+            throw new \Exception(sprintf('Class %s is not a model', $model), 1);
         }
+
         return 1;
     }
 
@@ -53,7 +61,7 @@ class Datatable extends Component
         }
 
         $model = $this->addSearchFilter($model);
-        
+
         return $model->paginate($this->perPage, ['*'], $this->uniqueId);
     }
 
@@ -64,8 +72,7 @@ class Datatable extends Component
         }
 
         //create closure with filters to be applied to model
-        $searchFilter = function ($query) use($model)
-        {
+        $searchFilter = function ($query) use ($model) {
             foreach ($this->columns as $column) {
                 if (!array_key_exists('columnName', $column)) {
                     if (!array_key_exists('property', $column) || empty($column['property'])) {
@@ -76,17 +83,17 @@ class Datatable extends Component
                 //get table name from either DatabaseBuilder or EloQuent model
                 $table = $model->getModel()->getTable() ?? $model?->getQuery()->getModel()->getTable();
 
-                if (array_key_exists('relation', $column)  && !empty($column['relation'])) {
+                if (array_key_exists('relation', $column) && !empty($column['relation'])) {
 
-                    //filter relation 
-                    $query = call_user_func_array([$query, 'orWhereRelation'],[$column['relation'],$column['columnName'] ?? $column['property'] , 'LIKE' , "%$this->search%"]);
-                }else {
+                    //filter relation
+                    $query = call_user_func_array([$query, 'orWhereRelation'], [$column['relation'], $column['columnName'] ?? $column['property'], 'LIKE', "%$this->search%"]);
+                } else {
 
                     //filter olumn
-                    $query = call_user_func_array([$query, 'orWhere'],[$table. '.'.($column['columnName'] ?? $column['property']) ?? 'id' , 'LIKE' , "%$this->search%"]);
+                    $query = call_user_func_array([$query, 'orWhere'], [$table.'.'.($column['columnName'] ?? $column['property']) ?? 'id', 'LIKE', "%$this->search%"]);
                 }
             }
-                
+
             return $query;
         };
 
@@ -101,8 +108,8 @@ class Datatable extends Component
 
     public function decryptValues()
     {
-        $this->filters  = unserialize(Crypt::decryptString($this->filters));
-        $this->model  = unserialize(Crypt::decryptString($this->model));
+        $this->filters = unserialize(Crypt::decryptString($this->filters));
+        $this->model = unserialize(Crypt::decryptString($this->model));
     }
 
     public function updatedPerPage()
@@ -119,14 +126,15 @@ class Datatable extends Component
     {
         return 'components.datatable-pagination-links-view';
     }
-    
+
     public function render()
     {
         $this->decryptValues();
         $collection = $this->BuildPagination();
-        $this->encryptValues();  
+        $this->encryptValues();
+
         return view('livewire.datatable', [
-            'collection' => $collection
+            'collection' => $collection,
         ]);
     }
 }

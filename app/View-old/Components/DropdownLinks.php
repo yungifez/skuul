@@ -6,11 +6,10 @@ use Illuminate\View\Component;
 
 class DropdownLinks extends Component
 {
-    
     public $button_label = 'actions';
 
     /**
-     * Array containing hrefs, texts and icons
+     * Array containing hrefs, texts and icons.
      *
      * @var array
      */

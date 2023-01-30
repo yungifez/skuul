@@ -13,7 +13,7 @@ class ShowAccountApplication extends Component
     {
         $this->applicant->loadMissing('accountApplication.statuses');
     }
-    
+
     public function render()
     {
         return view('livewire.show-account-application');

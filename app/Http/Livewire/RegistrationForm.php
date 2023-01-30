@@ -2,9 +2,9 @@
 
 namespace App\Http\Livewire;
 
+use App\Services\School\SchoolService;
 use Livewire\Component;
 use Spatie\Permission\Models\Role;
-use App\Services\School\SchoolService;
 
 class RegistrationForm extends Component
 {
@@ -16,6 +16,7 @@ class RegistrationForm extends Component
         $this->schools = $schoolService->getAllSchools();
         $this->roles = Role::whereIn('name', ['teacher', 'student', 'parent'])->get();
     }
+
     public function render()
     {
         return view('livewire.registration-form');

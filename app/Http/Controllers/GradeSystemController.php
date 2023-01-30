@@ -62,6 +62,7 @@ class GradeSystemController extends Controller
     public function show(GradeSystem $gradeSystem)
     {
         abort(404);
+
         return view('pages.grade-system.show', compact('gradeSystem'));
     }
 

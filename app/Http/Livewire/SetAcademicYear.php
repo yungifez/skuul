@@ -2,8 +2,8 @@
 
 namespace App\Http\Livewire;
 
-use Livewire\Component;
 use App\Services\AcademicYear\AcademicYearService;
+use Livewire\Component;
 
 class SetAcademicYear extends Component
 {
@@ -13,7 +13,7 @@ class SetAcademicYear extends Component
     {
         $this->academicYears = $academicYearService->getAllAcademicYears();
     }
-    
+
     public function render()
     {
         return view('livewire.set-academic-year');

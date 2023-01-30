@@ -3,16 +3,16 @@
 namespace App\Http\Livewire;
 
 use App\Models\Exam;
-use App\Models\User;
+use App\Models\ExamRecord;
 use App\Models\Section;
 use App\Models\Subject;
-use Livewire\Component;
-use App\Models\ExamRecord;
+use App\Models\User;
 use App\Services\Exam\ExamService;
 use App\Services\MyClass\MyClassService;
 use App\Services\Section\SectionService;
 use App\Services\Subject\SubjectService;
 use Illuminate\Database\Eloquent\Collection;
+use Livewire\Component;
 use Livewire\WithPagination;
 
 class ListExamRecordsTable extends Component
@@ -106,12 +106,12 @@ class ListExamRecordsTable extends Component
     {
         $section = $this->sections->find($this->section);
         if ($section != null && $section->exists()) {
-            $students =  User::students()->inSchool()->whereRelation('studentRecord.section','id', $section->id)->orderBy('name')->paginate(10);
+            $students = User::students()->inSchool()->whereRelation('studentRecord.section', 'id', $section->id)->orderBy('name')->paginate(10);
             $viewData = ['students' => $students];
-        }else{
+        } else {
             $viewData = [];
         }
-        
+
         return view('livewire.list-exam-records-table', $viewData);
     }
 }
