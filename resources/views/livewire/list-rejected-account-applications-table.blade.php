@@ -1,28 +1,22 @@
 <div class="card">
     <div class="card-header">
-        <h4 class="card-title">Rejected Applicants</h4>
+        <h4 class="card-title">Applicants</h4>
     </div>
     <div class="card-body">
-        <x-adminlte-datatable id="applicants-list-table" :heads="['S/N', 'Name','email' , 'Applying as', '', '']" class='text-capitalize' bordered striped head-theme="dark" beautify >
-            @foreach($applicants as $applicant)
-                <tr>
-                    <td>{{$loop->iteration}}</td>
-                    <td>{{$applicant->name}}</td>
-                    <td style="text-transform: none">{{$applicant->email}}</td>
-                    <td>{{$applicant->accountApplication->role->name ?? 'Not found'}}</td>
-                    <td>@livewire('dropdown-links', [
-                        'links' => [
-                        ['href' => route("account-applications.edit", $applicant->id), 'text' => 'Edit profile', 'icon' => 'fas fa-cog'],
-                        ['href' => route("account-applications.show", $applicant->id), 'text' => 'View profile', 'icon' => 'fas fa-eye'],
-                        ['href' => route("account-applications.change-status", $applicant->id), 'text' => 'Change Status ( make decision )', 'icon' => 'fas fa-balance-scale'],
-                        ],
-                    ],)</td>
-                    <td>
-                        @livewire('delete-modal', ['modal_id' => $applicant->id ,"action" => route('account-applications.destroy', $applicant->id), 'item_name' => $applicant->name])
-                    </td>
-                </tr>
-            @endforeach
-        </x-adminlte-datatable>
+        <livewire:datatable :model="App\Models\User::class"
+        :filters="[
+            ['name' => 'inSchool'],
+            ['name' => 'rejectedApplicants'],
+        ]"
+        :columns="[
+            ['property' => 'name'],
+            ['type' => 'dropdown', 'name' => 'actions','links' => [
+                ['href' => 'account-applications.edit', 'text' => 'Edit profile', 'icon' => 'fas fa-cog'],
+                ['href' => 'account-applications.show', 'text' => 'View profile', 'icon' => 'fas fa-eye'],
+                ['href' => 'account-applications.change-status', 'text' => 'Change Status ( make decision )', 'icon' => 'fas fa-balance-scale'],
+                ]],
+                ['type' => 'delete', 'name' => 'Delete', 'action' => 'account-applications.destroy']
+        ]"/>
     </div>
 </div>
 

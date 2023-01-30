@@ -37,4 +37,14 @@ class ExamRecord extends Model
     {
         return $this->belongsTo(ExamSlot::class);
     }
+
+    public function scopeinSubject($query, $subject_id)
+    {
+        return $query->where('subject_id', $subject_id);
+    }
+
+    public function scopeinSection($query, $section_id)
+    {
+        return $query->where('section_id', $section_id);
+    }
 }

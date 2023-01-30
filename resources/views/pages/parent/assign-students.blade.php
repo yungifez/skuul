@@ -1,25 +1,13 @@
-@extends('adminlte::page')
+@extends('layouts.app', ['breadcrumbs' => [
+    ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
+    ['href'=> route('parents.index'), 'text'=> 'Parents'],
+    ['href'=> route('parents.assign-students',$parent->id), 'text'=> "Assign students to $parent->name", 'active'],
+]])
 
-@section('title', __('Assign students to parent'))
+@section('title',  __("Assign students to $parent->name"))
 
+@section('page_heading', __("Assign students to $parent->name") )
 
-@section('content_header')
-    <h1 class=""> 
-        {{ __('Assign students to parent') }}
-    </h1>
-
-    @livewire('show-set-school')
-    
-    @livewire('breadcrumbs', ['paths' => [
-        ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-        ['href'=> route('parents.index'), 'text'=> 'Parents'],
-        ['href'=> route('parents.assign-students',$parent->id), 'text'=> "Assign students to $parent->name", 'active'],
-    ]])
-
-@stop
-
-@section('content') 
-    @livewire('assign-students-to-parent',['parent' => $parent])
-    
-    @livewire('display-status')
-@stop
+@section('content')
+    @livewire('assign-students-to-parent', ['parent' => $parent])
+@endsection

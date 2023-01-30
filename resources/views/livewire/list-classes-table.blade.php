@@ -1,26 +1,18 @@
-<div class="card">
+<div class="card" >
     <div class="card-header">
-        <h4 class="card-title">Class list</h4>
+        <h4 class="card-title">All Classes</h4>
     </div>
     <div class="card-body">
-        <x-adminlte-datatable id="class-list-table" :heads="['S/N', 'Name', 'Group', 'Action', '']" Class='text-capitalize' bordered striped head-theme="dark" beautify>
-            @foreach($myClasses as $myClass)
-                <tr>
-                    <td>{{$loop->iteration}}</td>
-                    <td>{{ $myClass->name}}</td>
-                    <td>{{$myClass->classGroup->name}}</td>
-                    <td>@livewire('dropdown-links', [
-                        'links' => [
-                        ['href' => route("classes.edit", $myClass->id), 'text' => 'edit', 'icon' => 'fas fa-cog'],
-                        ['href' => route("classes.show", $myClass->id), 'text' => 'View', 'icon' => 'fas fa-eye'],
-                        ],
-                    ],)</td>
-                    <td>
-                        @livewire('delete-modal', ['modal_id' => $myClass->id ,"action" => route('classes.destroy', $myClass->id), 'item_name' => $myClass->name])
-                    </td>
-                </tr>
-            @endforeach
-        </x-adminlte-datatable>
-    
+        <livewire:datatable :model="App\Models\School::class" uniqueId="class-list" :filters="[['name' => 'find' , 'arguments' => [auth()->user()->school_id]] , ['name' => 'myClasses'], ['name' => 'with', 'arguments' => ['classGroup']]]" :columns="
+        [
+            ['property' => 'name'] , 
+            ['property' => 'name', 'name' => 'classGroup', 'relation' => 'classGroup'] , 
+            ['type' => 'dropdown', 'name' => 'actions','links' => [
+                ['href' => 'classes.edit', 'text' => 'Settings', 'icon' => 'fas fa-cog'],
+                ['href' => 'classes.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
+            ]],
+            ['type' => 'delete', 'name' => 'Delete', 'action' => 'classes.destroy']
+         ]
+        "/>
     </div>
 </div>

@@ -3,45 +3,58 @@
         <h4 class="card-title">Graduate student </h4>
     </div>
     <div class="card-body">
-        @livewire('display-validation-error')
-        <form wire:submit.prevent="loadStudents">
-            <p class="text-bold">Please select class and section</p>
-            <x-adminlte-select name="class" label="Class" wire:model="class" fgroup-class="col-md-6">
+        <x-display-validation-errors/>
+        <form wire:submit.prevent="loadStudents" class="md:grid grid-cols-2 gap-4">
+            <x-select id="class" name="class" label="Class" wire:model="class" 
                 @foreach ($classes as $class)
                     <option value="{{$class['id']}}">{{$class['name']}}</option>
                 @endforeach
-            </x-adminlte-select>
-            <x-adminlte-select name="section" label="Section" wire:init="loadInitialSections" wire:model="section" fgroup-class="col-md-6">
+            </x-select>
+            <x-select id="section" name="section" label="Section" wire:init="loadInitialSections" wire:model="section" 
                 @isset($sections)
-                    @foreach ($sections as $section)
-                        <option value="{{$section['id']}}">{{$section['name']}}</option>
+                    @foreach ($sections as $item)
+                        <option value="{{$item['id']}}">{{$item['name']}}</option>
                     @endforeach
                 @endisset
-            </x-adminlte-select>
+            </x-select>
            
-            <x-adminlte-button label="Fetch students" theme="primary" icon="fas fa-key" type="submit"/>
+            <x-button label="Fetch students" icon="fas fa-paper-plane" type="submit" class="w-full md:w-6/12"/>
         </form>
-        @if (isset($students))
-            @if ($students->count() > 0)
-                <form action="{{route('students.graduate')}}" method="post" class="border border-primary my-3 p-3">
-                    <h3 class="text-bold text-center">Choose what happens with each student</h3>
-                    @foreach ($students as $student)
-                        <div class="form-group">
-                            <x-adminlte-select name="student_id[]" id="student-{{$student->id}}" label="{{$student['name']}}" fgroup-class="col-md-6">
-                                <option value="{{$student['id']}}">Graduate</option>
-                                <option value="">Dont Graduate</option>
-                            </x-adminlte-select>
+        <div wire:loading.remove.delay>
+            @if (isset($students))
+                @if ($students->count() > 0)
+                    <form ction="{{route('students.graduate')}}" method="post" class=" my-3 p-3">
+                        <div class="overflow-scroll beautify-scrollbar w-full">
+                            <table class="border w-full">
+                                <thead>
+                                    <th class="p-2 border">Student</th>
+                                    <th class="p-2 border">Choose Action</th>
+                                </thead>
+                                <tbody>
+                                    @foreach ($students as $student)
+                                        <tr>
+                                            <td class="border p-2 whitespace-nowrap">{{$student->name}}</td>
+                                            <td class="border p-2">
+                                                <x-select name="student_id[]" id="student-{{$student->id}}" 
+                                                    <option value="{{$student['id']}}">Graduate</option>
+                                                    <option value="">Dont graduate</option>
+                                                </x-select>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
                         </div>
-                    @endforeach
-                    @csrf
-                    <x-adminlte-button label="Graduate
-                     students" theme="primary" icon="fas fa-key" type="submit"/>
-                </form> 
-            @else
-                <x-adminlte-alert theme="danger" title="Danger" class="m-2">
-                    <p>No students found</p>
-                </x-adminlte-alert>
+                        @csrf
+                        <x-button label="Promote students" class="w-full md:w-3/12 " icon="fas fa-key" type="submit"/>
+                    </form> 
+                @else
+                    <x-alert title="Danger" id="{{Str::random('10')}}" class="my-2" wire:key="{{Str::random('10')}}">
+                        <p>No students found</p>
+                    </x-alert>
+                @endif
             @endif
-        @endif
+        </div>
     </div>
 </div>
+

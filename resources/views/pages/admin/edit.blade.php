@@ -1,25 +1,12 @@
-@extends('adminlte::page')
-
-@section('title', __("Edit $admin->name"))
-
-@section('content_header')
-    <h1 class="">
-        {{ __("Edit $admin->name") }}
-    </h1>
-
-    @livewire('show-set-school')
-    
-    @livewire('breadcrumbs', ['paths' => [
+@extends('layouts.app', ['breadcrumbs' => [
         ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
         ['href'=> route('admins.index'), 'text'=> 'admins' , ],
         ['href'=> route('admins.edit', $admin->id), 'text'=> "Edit $admin->name" , 'active']
-    ]])
-@endsection
+]])
+@section('title',  __("Edit $admin->name"))
+
+@section('page_heading',  __("Edit $admin->name"))
 
 @section('content')
-
-@livewire('edit-admin-form', ['admin' => $admin])
-
-@livewire('display-status')
-
+    @livewire('edit-admin-form', ['admin' => $admin])
 @endsection

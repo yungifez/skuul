@@ -1,25 +1,14 @@
-@extends('adminlte::page')
+@extends('layouts.app', ['breadcrumbs' => [
+     ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
+    ['href'=> route('timetables.index'), 'text'=> 'timetables'],
+    ['href'=> route('timetables.show', $timetable->id), 'text'=> "View $timetable->name", 'active'],
+]])
 
 @section('title', __("View $timetable->name"))
 
-@section('content_header')
-    <h1 class="">
-        {{ __("View $timetable->name") }}
-    </h1>
-
-    @livewire('show-set-school')
-
-    @livewire('breadcrumbs', ['paths' => [
-        ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-        ['href'=> route('timetables.index'), 'text'=> 'timetables'],
-        ['href'=> route('timetables.show', $timetable->id), 'text'=> "View $timetable->name", 'active'],
-    ]])
-@endsection
+@section('page_heading', __("View $timetable->name") )
 
 @section('content')
-    <a href="{{route('timetables.print',$timetable->id)}}" class="btn btn-primary my-3">Print Timetable</a>
+    <a href="{{route('timetables.print',$timetable->id)}}" class="bg-blue-600 py-2 px-4 text-white rounded">Print Timetable</a>
     @livewire('show-timetable', ['timetable' => $timetable])
-
-    @livewire('display-status')
-
 @endsection

@@ -1,32 +1,24 @@
-<div class="fixed-top d-flex flex-column align-items-end " style="z-index: 2000" id="status-display">
-    @if (session('danger'))
-        <x-adminlte-alert theme="danger" title="Danger" dismissable class="col-lg-4">
-            {{ session('danger') }}
-        </x-adminlte-alert>
-    @endif
-  
-    @if (session('success'))
-        <x-adminlte-alert theme="success" title="Success" dismissable class="col-lg-4">
-            {{ session('success') }}
-        </x-adminlte-alert>
-    @endif
-    @if (session('info'))
-    <x-adminlte-alert theme="info" title="info" dismissable class="col-lg-4">
-        {{ session('info') }}
-    </x-adminlte-alert>
-    @endif
-    <div class="alert alert-danger alert-dismissible fade hide" role="alert" wire:offline.class="show" wire:offline.remove="hide">
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-            <span class="sr-only">Close</span>
-        </button>
-        You are now offline. Please check your internet connection.
+<div>
+    <div class="fixed flex flex-col items-end top-0 right-0 w-screen lg:w-4/12" id="status-display">
+        @if (session('danger'))
+            <x-alert colour="bg-red-500" title="Danger" icon="fa fa-do-ban" dismissOnTimeout="true" >
+                {{ session('danger') }}
+            </x-alert>
+        @endif
+        @if (session('success'))
+            <x-alert colour="bg-green-500" title="Success" icon="fa fa-check" dismissOnTimeout="true" >
+                {{ session('success') }}
+            </x-alert>
+        @endif
+        @if (session('info'))
+            <x-alert colour="bg-yellow-500" title="info" dismissOnTimeout="true">
+                {{ session('info') }}
+            </x-alert>
+        @endif
+        <x-alert colour="bg-red-500" title="No Internet" :stack-icons="['fa fa-signal', 'fa fa-ban']" show="false">
+            <div  @offline.window="showAlert = true" @online.window="showAlert = false">
+                Your Device Has Gone Offline
+            </div>
+        </x-alert>
     </div>
-    <script>
-        setTimeout(() => {
-            document.querySelector('#status-display').remove()
-        }, 10000);
-    </script>
 </div>
-
-

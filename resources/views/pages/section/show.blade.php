@@ -1,25 +1,13 @@
-@extends('adminlte::page')
+@extends('layouts.app', ['breadcrumbs' => [
+    ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
+    ['href'=> route('sections.index'), 'text'=> 'sections'],
+    ['href'=> route('sections.show', $section->id), 'text'=> "View $section->name details", 'active'],
+]])
 
 @section('title', __("View $section->name details"))
 
-@section('content_header')
-    <h1 class="">
-        {{ __("View $section->name details") }}
-    </h1>
-
-    @livewire('show-set-school')
-
-    @livewire('breadcrumbs', ['paths' => [
-        ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-        ['href'=> route('sections.index'), 'text'=> 'sections'],
-        ['href'=> route('sections.show', $section->id), 'text'=> "View $section->name details", 'active'],
-    ]])
-@endsection
+@section('page_heading', __("View $section->name details") )
 
 @section('content')
     @livewire('show-section', ['section' => $section])
-
-    @livewire('display-status')
-
-    
 @endsection

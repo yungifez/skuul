@@ -7,9 +7,9 @@
             @livewire('edit-user-fields', ['role' => 'Student', 'user'=> $student]
             )
                 @csrf
-                @method('put')
+                @method('PUT')
                 <div class='col-12 my-2'>
-                    <x-adminlte-button label="Edit" theme="primary" icon="fas fa-pen" type="submit" class="col-md-3"/>
+                    <x-button label="Edit" theme="primary" icon="fas fa-pen" type="submit" class="w-full md:w-3/12"/>
                 </div>
         </form>
     </div>

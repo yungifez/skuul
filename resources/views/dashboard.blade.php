@@ -1,47 +1,42 @@
-@extends('adminlte::page')
+@extends('layouts.app', ['breadcrumbs' => [
+    ['href'=> route('dashboard'), 'text'=> 'Dashboard', 'active'],
+]])
 
 @section('title', __('Dashboard'))
 
-@section('content_header')
-    <h1 class="">
-        {{ __('Dashboard') }}
-    </h1>
-
-    @livewire('show-set-school')
-    
-    @livewire('breadcrumbs', ['paths' => [
-        ['href'=> route('dashboard'), 'text'=> 'Dashboard', 'active'],
-    ]])
-
-@stop
+@section('page_heading', 'Dashboard')
 
 @section('content')
-    
-    <div class="my-3">@livewire('school-set')</div>
-    @livewire('dashboard-data-cards')
-    
-    @livewire('academic-year-set')
 
-    @if (auth()->user()->hasRole('student'))
-        <a href="{{route('students.print-profile',auth()->user()->id)}}" >
-            <x-adminlte-small-box title="Download profile" text="click to download profile" icon="fas fa-download text-white"
-            theme="secondary"/>
-        </a>
-    @endif
-    
-    @can('read notice') 
-        @livewire('list-notices-table')
-    @endcan
+@can('set school')
+    @livewire('set-school')
+@endcan
 
-    @if (auth()->user()->hasRole('applicant'))
-        {{--Contains status history--}}
-        @livewire('change-account-application-status', ['applicant' => auth()->user()])
-    @endif
+@livewire('dashboard-data-cards')
 
-    @livewire('display-status')
+@livewire('set-academic-year')
 
-    @can('read applicant')
-        @livewire('list-account-applications-table')
-    @endcan
-@stop
+@if (auth()->user()->hasRole('student'))
+    <a href="{{route('students.print-profile',auth()->user()->id)}}" >
+        <div class="card bg-purple-500 dark:bg-purple-600 text-white md:text-2xl">
+            <div class="card-body flex gap-4 items-center justify-center">
+                <i class="fa fa-download" aria-hidden="true"></i>
+                <p class="font-bold">Download Profile</p>
+            </div>
+        </div>
+    </a>
+@endif
 
+@can('read notice') 
+    @livewire('list-notices-table')
+@endcan
+
+@if (auth()->user()->hasRole('applicant'))
+    {{--Contains status history--}}
+    @livewire('change-account-application-status', ['applicant' => auth()->user()])
+@endif
+
+@can('read applicant')
+    @livewire('list-account-applications-table')
+@endcan
+@endsection

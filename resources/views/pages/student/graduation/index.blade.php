@@ -1,25 +1,18 @@
-@extends('adminlte::page')
+@php
+    $currentAcademicYear = auth()->user()->school->load('academicYear')->academicYear;
+@endphp
 
-@section('title', __('Graduate Students'))
+@extends('layouts.app', ['breadcrumbs' => [
+    ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
+    ['href'=> route('students.index'), 'text'=> 'Students'],
+    ['href'=> route('students.graduate'), 'text'=> "Graduated Students", 'active'],
+]])
 
+@section('title', __('Manage Graduations'))
 
-@section('content_header')
-    <h1 class=""> 
-        {{ __('Manage Graduations') }}
-    </h1>
+@section('page_heading',  __('Manage Graduations'))
 
-    @livewire('show-set-school')
-    
-    @livewire('breadcrumbs', ['paths' => [
-        ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-        ['href'=> route('students.index'), 'text'=> 'Students'],
-        ['href'=> route('students.graduate'), 'text'=> "Graduated Students", 'active'],
-    ]])
+@section('content', )
 
-@stop
-
-@section('content') 
     @livewire('list-graduations-table')
-    
-    @livewire('display-status')
-@stop
+@endsection

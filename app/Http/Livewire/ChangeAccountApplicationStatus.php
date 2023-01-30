@@ -11,7 +11,6 @@ class ChangeAccountApplicationStatus extends Component
     public $statuses;
     public $status;
     public bool $studentRecordFields = false;
-    public $statusHistory;
 
     public function mount(User $applicant)
     {
@@ -22,7 +21,6 @@ class ChangeAccountApplicationStatus extends Component
             return;
         }
         $this->statuses = $this->applicant->accountApplication->getAllStatuses();
-        $this->statusHistory = $this->applicant->accountApplication->statuses;
         $this->status = $this->statuses[0];
         $this->updatedStatus();
     }

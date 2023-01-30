@@ -3,14 +3,12 @@
         <h3 class="card-title">Edit {{$customTimetableItem->name}}</h3>
     </div>
 <div class="card-body">  
-    <form action="{{route('custom-timetable-items.update', $customTimetableItem->id)}}" method="POST" class="mb-3">
-        @livewire('display-validation-error')
-        <x-adminlte-input name="name" label="Custom Timetable Item Name" placeholder="Enter custom timetable item name" fgroup-class="col-md-6" value="{{$customTimetableItem->name}}" enable-old-support/>
+    <form action="{{route('custom-timetable-items.update', $customTimetableItem->id)}}" method="POST" class="md:w-1/2">
+        <x-display-validation-errors/>
+        <x-input id="name" name="name" label="Custom Timetable Item Name" placeholder="Enter custom timetable item name" value="{{$customTimetableItem->name}}"/>
         @csrf
         @method('PUT')
-        <div class="col-md-3">
-            <x-adminlte-button label="Edit" theme="primary" icon="fas fa-cog" type="submit" class="col-md-6"/>
-        </div>
+        <x-button label="Edit" theme="primary" icon="fas fa-cog" type="submit" class="w-full md:w-1/2"/>
     </form>
 </div>
 </div>

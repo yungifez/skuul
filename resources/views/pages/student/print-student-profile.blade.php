@@ -8,6 +8,9 @@
 
 @section('style')
     <style>
+         table{
+            margin-bottom: 1rem; 
+        }
         td, th {
             padding: 1rem;
         }

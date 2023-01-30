@@ -1,25 +1,12 @@
-@extends('adminlte::page')
-
+@extends('layouts.app', ['breadcrumbs' => [
+    ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
+    ['href'=> route('semesters.index'), 'text'=> 'semesters' , ],
+    ['href'=> route('semesters.edit', $semester->id), 'text'=> "Edit $semester->name" , 'active']
+]])
 @section('title', __("Edit $semester->name"))
 
-@section('content_header')
-    <h1 class="">
-        {{ __("Edit $semester->name") }}
-    </h1>
-
-    @livewire('show-set-school')
-    
-    @livewire('breadcrumbs', ['paths' => [
-        ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-        ['href'=> route('semesters.index'), 'text'=> 'semesters' , ],
-        ['href'=> route('semesters.edit', $semester->id), 'text'=> "Edit $semester->name" , 'active']
-    ]])
-@endSection
+@section('page_heading',  __("Edit $semester->name"))
 
 @section('content')
-
-@livewire('edit-semester-form', ['semester' => $semester])
-
-@livewire('display-status')
-
-@endSection
+    @livewire('edit-semester-form', ['semester' => $semester]
+)@endsection

@@ -1,24 +1,12 @@
-@extends('adminlte::page')
+@extends('layouts.app', ['breadcrumbs' => [
+    ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
+    ['href'=> route('grade-systems.index'), 'text'=> 'Grade System', 'active'],
+]])
 
 @section('title', __('Grade systems'))
 
+@section('page_heading',  __('Grade systems'))
 
-@section('content_header')
-    <h1 class=""> 
-        {{ __('Grade systems') }}
-    </h1>
-
-    @livewire('show-set-school')
-    
-    @livewire('breadcrumbs', ['paths' => [
-        ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-        ['href'=> route('grade-systems.index'), 'text'=> 'Grade System', 'active'],
-    ]])
-
-@stop
-
-@section('content') 
+@section('content', )
     @livewire('list-grade-systems-table')
-    
-    @livewire('display-status')
-@stop
+@endsection

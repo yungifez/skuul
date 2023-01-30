@@ -46,7 +46,7 @@ class StudentRecord extends Model
 
     public function getAdmissionDateAttribute($value)
     {
-        return Carbon::parse($value)->format('Y/m/d');
+        return Carbon::parse($value)->format('Y-m-d');
     }
 
     /**

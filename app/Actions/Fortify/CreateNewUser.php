@@ -29,7 +29,7 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $this->passwordRules(),
             // 'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['required', 'accepted'] : '',
             'school_id'   => ['required', 'exists:schools,id'],
-            'birthday'    => ['required', 'date', 'date_format:Y/m/d', 'before:today'],
+            'birthday'    => ['required', 'date', 'before:today'],
             'address'     => ['required', 'string', 'max:500'],
             'blood_group' => ['required', 'string', 'max:255'],
             'religion'    => ['nullable', 'string', 'max:255'],

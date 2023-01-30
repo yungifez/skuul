@@ -16,6 +16,7 @@ class ExamTabulation extends Component
 {
     use MarkTabulationTrait;
     public $exam;
+    public $title;
     public $class;
     public $section;
     public $exams;
@@ -24,6 +25,8 @@ class ExamTabulation extends Component
     public $semester;
     public $tabulatedRecords;
     public $grades;
+    public $error;
+    public $createdTabulation;
 
     protected $listeners = ['print'];
 
@@ -62,6 +65,7 @@ class ExamTabulation extends Component
     {
         $section = Section::find($section);
 
+        // if no section, create class re
         if ($section == null) {
             //get all subjects in class
             $subjects = $myClass->subjects;
@@ -70,6 +74,10 @@ class ExamTabulation extends Component
             $students = $myClass->students();
 
             $classGroup = $myClass->classGroup;
+
+            $this->title = "Exam Marks For $myClass->name in $exam->name";
+
+            $titleFor = $myClass->name;
         } else {
             //get all subjects in section
             $subjects = $section->myClass->subjects;
@@ -78,12 +86,24 @@ class ExamTabulation extends Component
             $students = $section->students();
 
             $classGroup = $section->myClass->classGroup;
+
+            $titleFor = $section->name;
         }
+
+        if ($subjects->isEmpty()) {
+            $this->createdTabulation = false;
+
+            return $this->error = 'There are no subjects in this class';
+        }
+
+        $this->title = "Exam Marks For $titleFor in {$exam->name} for semester ".auth()->user()->school->semester->name.' in academic year '.auth()->user()->school->academicYear->name;
 
         //get all exam slots
         $examSlots = $exam->load('examSlots')->examSlots;
 
         $this->tabulatedRecords = $this->tabulateMarks($classGroup, $subjects, $students, $examSlots);
+
+        $this->createdTabulation = true;
     }
 
     //print function

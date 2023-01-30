@@ -1,24 +1,12 @@
-@extends('adminlte::page')
+@extends('layouts.app', ['breadcrumbs' => [
+    ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
+    ['href'=> route('account-applications.index'), 'text'=> 'Account Applications', 'active'],
+]])
 
-@section('title', __('Account Applications'))
+@section('title',  __('Account Applications'))
 
+@section('page_heading',   __('Account Applications'))
 
-@section('content_header')
-    <h1 class=" ">
-        {{ __('Account Applications') }}
-    </h1>
-
-    @livewire('show-set-school')
-    
-    @livewire('breadcrumbs', ['paths' => [
-        ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-        ['href'=> route('account-applications.index'), 'text'=> 'Account Applications', 'active'],
-    ]])
-
-@stop
-
-@section('content') 
+@section('content', )
     @livewire('list-account-applications-table')
-    
-    @livewire('display-status')
-@stop
+@endsection

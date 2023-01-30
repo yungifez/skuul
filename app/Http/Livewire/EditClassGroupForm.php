@@ -2,11 +2,12 @@
 
 namespace App\Http\Livewire;
 
+use App\Models\ClassGroup;
 use Livewire\Component;
 
 class EditClassGroupForm extends Component
 {
-    public $classGroup;
+    public ClassGroup $classGroup;
 
     public function render()
     {

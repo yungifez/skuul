@@ -1,24 +1,17 @@
-<div class="card">
+<div class="card" >
     <div class="card-header">
-        <h4 class="card-title">Class Groups</h4>
+        <h4 class="card-title">All Schools</h4>
     </div>
     <div class="card-body">
-        <x-adminlte-datatable id="school-list-table" :heads="['S/N', 'Name', 'action', '', ]" class='text-capitalize' bordered striped head-theme="dark" beautify>
-            @foreach($classGroups as $classGroup)
-                <tr>
-                    <td>{{$loop->iteration}}</td>
-                    <td>{{ $classGroup->name}}</td>
-                    <td>@livewire('dropdown-links', [
-                        'links' => [
-                        ['href' => route("class-groups.edit", $classGroup->id), 'text' => 'edit', 'icon' => 'fas fa-cog'],
-                        ['href' => route("class-groups.show", $classGroup->id), 'text' => 'View', 'icon' => 'fas fa-eye'],
-                        ],
-                    ],)</td>
-                    <td>
-                        @livewire('delete-modal', ['modal_id' => $classGroup->id ,"action" => route('class-groups.destroy', $classGroup->id), 'item_name' => $classGroup->name])
-                    </td>
-                </tr>
-            @endforeach
-        </x-adminlte-datatable>
+        <livewire:datatable :model="App\Models\ClassGroup::class" uniqueId="class-group-list" :filters="[['name' => 'where' , 'arguments' => ['school_id' , auth()->user()->school_id]]]" :columns="
+        [
+            ['property' => 'name'] , 
+            ['type' => 'dropdown', 'name' => 'actions','links' => [
+                ['href' => 'class-groups.edit', 'text' => 'Settings', 'icon' => 'fas fa-cog'],
+                ['href' => 'class-groups.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
+            ]],
+            ['type' => 'delete', 'name' => 'Delete', 'action' => 'class-groups.destroy']
+         ]
+        "/>
     </div>
 </div>

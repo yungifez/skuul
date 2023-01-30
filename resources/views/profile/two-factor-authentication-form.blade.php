@@ -1,4 +1,4 @@
-<x-jet-action-section>
+<x-partials.action-section>
     <x-slot name="title">
         {{ __('Two Factor Authentication') }}
     </x-slot>
@@ -8,7 +8,7 @@
     </x-slot>
 
     <x-slot name="content">
-        <h3 class="h5 font-weight-bold">
+        <h3 class="text-xl md:text-2xl font-bold">
             @if ($this->enabled)
                 {{ __('You have enabled two factor authentication.') }}
             @else
@@ -36,7 +36,7 @@
                     {{ __('Store these recovery codes in a secure password manager. They can be used to recover access to your account if your two factor authentication device is lost.') }}
                 </p>
 
-                <div class="bg-light rounded p-3">
+                <div class="dark:bg-gray-500 bg-gray-100 my-2 rounded p-3">
                     @foreach (json_decode(decrypt($this->user->two_factor_recovery_codes), true) as $code)
                         <div>{{ $code }}</div>
                     @endforeach
@@ -46,32 +46,32 @@
 
         <div class="mt-3">
             @if (! $this->enabled)
-                <x-jet-confirms-password wire:then="enableTwoFactorAuthentication">
-                    <x-jet-button type="button" wire:loading.attr="disabled">
+                <x-confirms-password wire:then="enableTwoFactorAuthentication">
+                    <x-button type="button" wire:loading.attr="disabled" class="bg-gray-500 w-3/12">
                         {{ __('Enable') }}
-                    </x-jet-button>
-                </x-jet-confirms-password>
+                    </x-button>
+                </x-confirms-password>
             @else
                 @if ($showingRecoveryCodes)
                     <x-jet-confirms-password wire:then="regenerateRecoveryCodes">
-                        <x-jet-secondary-button class="me-3">
+                        <x-button class=" bg-white text-black">
                             {{ __('Regenerate Recovery Codes') }}
-                        </x-jet-secondary-button>
+                        </x-button>
                     </x-jet-confirms-password>
                 @else
                     <x-jet-confirms-password wire:then="showRecoveryCodes">
-                        <x-jet-secondary-button class="me-3">
+                        <x-button class=" bg-white text-black">
                             {{ __('Show Recovery Codes') }}
-                        </x-jet-secondary-button>
+                        </x-button>
                     </x-jet-confirms-password>
                 @endif
 
                 <x-jet-confirms-password wire:then="disableTwoFactorAuthentication">
-                    <x-jet-danger-button wire:loading.attr="disabled">
+                    <x-button class="bg-red-600" wire:loading.attr="disabled">
                         {{ __('Disable') }}
-                    </x-jet-danger-button>
+                    </x-button>
                 </x-jet-confirms-password>
             @endif
         </div>
     </x-slot>
-</x-jet-action-section>
+</x-partials.action-section>

@@ -338,7 +338,7 @@ return [
         ],
         [
             'type'    => 'sidebar-menu-item',
-            'text'    => 'sections',
+            'text'    => 'Sections',
             'icon'    => 'fas fa-landmark',
             'can'     => 'menu-section',
             'submenu' => [

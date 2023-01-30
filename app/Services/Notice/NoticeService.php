@@ -25,8 +25,8 @@ class NoticeService
     public function getPresentNotices()
     {
         return Notice::where('school_id', auth()->user()->school_id)
-            ->where('start_date', '<=', date('Y-m-d'))
-            ->where('stop_date', '>=', date('Y-m-d'))
+            ->whereDate('start_date', '<=', date('Y-m-d'))
+            ->whereDate('stop_date', '>=', date('Y-m-d'))
             ->where('active', 1)
             ->get();
     }
