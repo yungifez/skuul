@@ -17,12 +17,16 @@
             <div class="lg:flex lg:flex-cols text-gray-900 bg-gray-100 dark:bg-gray-700 dark:text-gray-50 min-h-screen" >
                 <livewire:layouts.menu />
                 <main class="w-full max-w-full overflow-scroll beautify-scrollbar">
-                    <div class="bg-white dark:bg-gray-800 p-4 w-inherit  ">
+                    <div class="bg-white dark:bg-gray-800 p-4 w-100  ">
                         <h1 class="text-3xl my-2 capitalize font-semibold">@yield('page_heading')</h1>
-                        <x-show-set-school />
-                        @isset ($breadcrumbs)
-                            <x-breadcrumbs :paths="$breadcrumbs"/>
-                        @endif
+                        <div class="w-full">
+                            <x-show-set-school />
+                        </div>
+                        <div class="w-full">
+                            @isset ($breadcrumbs)
+                                <x-breadcrumbs :paths="$breadcrumbs"/>
+                            @endif
+                        </div>
                     </div>
                     <div class="p-4">
                         @yield('content') 
