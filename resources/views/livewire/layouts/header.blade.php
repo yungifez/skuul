@@ -5,7 +5,7 @@
             <i class="fa fa-bars" aria-hidden="true"></i>
         </button>
         <a href="{{route('home')}}" class="hidden md:flex items-center justify-center">
-            <img src="{{asset(config('adminlte.logo_img'))}}" alt="" class="rounded-full w-12 h-12 border border-gray-200 shadow-lg">
+            <img src="{{asset(config('app.logo'))}}" alt="" class="rounded-full w-12 h-12 border border-gray-200 shadow-lg">
             <h1 class="text-lg font-semibold mx-3 text-center capitalize">{{config('app.name')}}</h1>
         </a>
     </div>
@@ -26,7 +26,7 @@
                 <img src="{{auth()->user()->defaultProfilePhotoUrl()}}" alt="" class="rounded-full w-10 h-10 border border-gray-200 shadow-md">
                 <p class="hidden lg:block px-2"  >{{auth()->user()->name}}</p>
             </div>
-            <i class="fa fa-angle-down" aria-hidden="true"></i>
+            <i :class="{'transition-all' : true,'fas fa-angle-right' : dropDownOpen == false , 'fas fa-angle-down ' : dropDownOpen == true}" aria-hidden="true"></i>
         </button>
         {{--User profile card--}}
         <div class="absolute bg-blue-700 dark:bg-gray-800 top-16 w-5/6 border  md:w-2/6 lg:w-1/5 shadow-md right-2 flex flex-col items-center justify-center rounded p-4 text-white " x-show="dropDownOpen" x-transition style="display: none">
