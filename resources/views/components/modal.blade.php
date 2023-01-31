@@ -34,7 +34,7 @@
                     <p class="sr-only">Close Modal</p>
                 </i>
             </div>
-            <div class="flex justify-center items-center flex-col overflow-scroll beautify-scrollbar">
+            <div class="flex justify-center items-center flex-col overflow-scroll beautify-scrollbar text-black dark:text-white">
                 {{$slot}}
             </div>
             <div class="border-t h-16 md:h-20 flex justify-between items-center p-4">
