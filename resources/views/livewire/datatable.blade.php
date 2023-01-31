@@ -1,4 +1,5 @@
 <div>
+    <x-loading-spinner/>
     <div class="flex flex-col md:flex-row gap-4 items-center">
         <div class="flex gap-4 items-center">
             <label>Search</label>
