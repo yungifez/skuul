@@ -1,6 +1,6 @@
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Edit grade {{$grade->name}}</h3>
+        <h2 class="card-title">Edit grade {{$grade->name}}</h2>
     </div>
     <div class="card-body">
         <form action="{{route('grade-systems.update' ,$grade->id)}}" method="post" class="md:w-1/2">

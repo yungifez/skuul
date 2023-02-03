@@ -4,7 +4,7 @@
             <p class="sr-only">Menu</p>
             <i class="fa fa-bars" aria-hidden="true"></i>
         </button>
-        <a href="{{route('home')}}" class="hidden md:flex items-center justify-center">
+        <a href="{{route('home')}}" class="hidden md:flex items-center justify-center" aria-label="Home">
             <img src="{{asset(config('app.logo'))}}" alt="" class="rounded-full w-12 h-12 border border-gray-200 shadow-lg">
             <h1 class="text-lg font-semibold mx-3 text-center capitalize">{{config('app.name')}}</h1>
         </a>
@@ -22,6 +22,7 @@
         </button>
         {{--Click to open profile card--}}
         <button class="h-full flex items-center gap-2"  @click="dropDownOpen = !dropDownOpen">
+            <p class="sr-only">Open Profile Card</p>
             <div class="flex items-center h-full">
                 <img src="{{auth()->user()->defaultProfilePhotoUrl()}}" alt="" class="rounded-full w-10 h-10 border border-gray-200 shadow-md">
                 <p class="hidden lg:block px-2"  >{{auth()->user()->name}}</p>

@@ -15,14 +15,14 @@
             </div>
             @csrf
             <div class="flex justify-between md:justify-end gap-1 items-center">
-                <a href="{{route('password.request')}}" class="text-blue-800">Forgot your Password?</a>
+                <a href="{{route('password.request')}}" class="text-blue-800" aria-label="Forgot Password">Forgot your Password?</a>
                 <x-button class="my-3 px-6 md:px-10">
                     Log in
                 </x-button>
             </div>
         </form>
         <div class="py-6">
-            <p>Dont Have An account? <a href="{{route('register')}}" class="text-blue-800"> Create Account</a></p>
+            <p>Dont Have An account? <a href="{{route('register')}}" class="text-blue-800" aria-label="Register"> Create Account</a></p>
         </div>
     </x-partials.authentication-card>
 @endsection

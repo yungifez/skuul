@@ -12,9 +12,9 @@
                 <h4 class="font-bold text-center text-2xl my-4">School data</h4>
             @endcan
         
-            <div class="grid md:grid-cols-3 gap-4">
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                 @can('read class group')
-                    <x-info-box title="{{$classGroups}}" text="Class groups" colour="bg-orange-500"  text-colour="text-white" url="{{route('class-groups.index')}}" url-text="View class groups"/>
+                    <x-info-box title="{{$classGroups}}" text="Class groups" colour="bg-orange-600"  text-colour="text-white" url="{{route('class-groups.index')}}" url-text="View class groups"/>
                 @endcan 
                 @can('read class')
                     <x-info-box title="{{$classes}}" text="Classes" url="{{route('classes.index')}}" url-text="View classes" colour="bg-green-500"  text-colour="text-white"/>

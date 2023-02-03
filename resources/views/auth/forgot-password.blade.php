@@ -24,7 +24,7 @@
             </div>
         </form>
         <div class="p-3">
-            <p>Back to <a class="text-blue-700" href="{{route('login')}}">Login page</a></p>
+            <p>Back to <a class="text-blue-700" href="{{route('login')}}" aria-label="Login">Login page</a></p>
         </div>
        
     </x-partials.authentication-card>
