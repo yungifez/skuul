@@ -8,9 +8,9 @@
             <p class="">
                 {{__('All fields marked * are required')}}
             </p>
-            <x-input name="name" id="name" type="text" placeholder="Enter name of school" label="School Name *" 
-            <x-textarea id="address" name="address" placeholder="Enter school branch address" label="School Address *" 
-            <x-input name="initials" id="initials" type="text" placeholder="Enter school initials" label="School initials" 
+            <x-input name="name" id="name" type="text" placeholder="Enter name of school" label="School Name *" />
+            <x-textarea id="address" name="address" placeholder="Enter school branch address" label="School Address *" />
+            <x-input name="initials" id="initials" type="text" placeholder="Enter school initials" label="School initials" />
             @csrf
             <div class="w-full flex ">
                 <x-button theme="primary" icon="fas fa-key" type="submit" class="w-full md:w-6/12">
