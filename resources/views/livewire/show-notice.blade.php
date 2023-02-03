@@ -3,7 +3,7 @@
         <h4 class="card-title">View {{$notice->title}}</h4>
     </div>
     <div class="card-body">
-        <p class="mb-3">
+        <p class="mb-3 text-base">
             {{$notice->content}}
         </p>
         <div class="my-6">
