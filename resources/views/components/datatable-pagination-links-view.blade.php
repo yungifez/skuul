@@ -2,7 +2,7 @@
     @if ($paginator->hasPages())
         @php(isset($this->numberOfPaginatorsRendered[$paginator->getPageName()]) ? $this->numberOfPaginatorsRendered[$paginator->getPageName()]++ : $this->numberOfPaginatorsRendered[$paginator->getPageName()] = 1)
         <div>
-            <p class=" text-gray-900 dark:text-white text-center leading-5">
+            <p class=" text-gray-900 dark:text-white text-center text-sm md:text-base leading-5">
                 <span>{!! __('Showing') !!}</span>
                 <span class="font-medium">{{ $paginator->firstItem() }}</span>
                 <span>{!! __('to') !!}</span>

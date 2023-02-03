@@ -31,7 +31,7 @@
     }
 
     .card-title {
-        @apply text-lg
+        @apply md:text-lg
     }
 
 }
