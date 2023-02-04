@@ -5,7 +5,7 @@
             <label for="datatable-search-{{$uniqueId}}">Search</label>
             <input id="datatable-search-{{$uniqueId}}" type="search" wire:model.sebounce.500ms="search" class="dark:bg-inherit border rounded px-4 py-1 md:py-2">
         </div>
-        <select class="dark:bg-gray-800 px-4 py-2 border rounded" wire:model="perPage">
+        <select class="bg-white dark:bg-gray-800 px-4 py-2 border rounded" wire:model="perPage">
             @foreach ([5,10,20,25,100] as $item)
                 <option value="{{$item}}" class="bg-inherit">{{$item}}</option>
             @endforeach
