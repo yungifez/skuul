@@ -82,7 +82,7 @@ class UpdateApplicationCommand extends Command
     {
         $confirm = $this->confirm('Do you have node installed and want to build node dependencies?');
 
-        if($confirm == false){
+        if ($confirm == false) {
             return;
         }
 

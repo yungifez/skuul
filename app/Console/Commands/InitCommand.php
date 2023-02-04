@@ -116,7 +116,7 @@ class InitCommand extends Command
     {
         $confirm = $this->confirm('Do you have node installed and want to build node dependencies?');
 
-        if($confirm == false){
+        if ($confirm == false) {
             return;
         }
 
@@ -214,8 +214,8 @@ class InitCommand extends Command
 
     public function setMailCredentials()
     {
-        $confirm =  $this->confirm('Do you want to set your mail credentials now?');
-        if($confirm == false){
+        $confirm = $this->confirm('Do you want to set your mail credentials now?');
+        if ($confirm == false) {
             return;
         }
 
@@ -230,15 +230,15 @@ class InitCommand extends Command
         $mailReplyName = $this->ask('Mail Reply Name', getenv('MAIL_REPLY_NAME'));
 
         $mailCredentials = [
-            'MAIL_MAILER' => $mailMailer,
-            'MAIL_HOST'  => $mailHost,
-            'MAIL_PORT'  => $mailPort,
-            'MAIL_USERNAME' => $mailUsername,
-            'MAIL_PASSWORD'   =>   $mailPassword,
-            'MAIL_FROM_ADDRESS'   =>   $mailFromAddress,
-            'MAIL_FROM_NAME'   =>   $mailFromName,
-            'MAIL_REPLY_ADDRESS'   =>   $mailReplyAddress,
-            'MAIL_REPLY_NAME'   =>   $mailReplyName,
+            'MAIL_MAILER'          => $mailMailer,
+            'MAIL_HOST'            => $mailHost,
+            'MAIL_PORT'            => $mailPort,
+            'MAIL_USERNAME'        => $mailUsername,
+            'MAIL_PASSWORD'        => $mailPassword,
+            'MAIL_FROM_ADDRESS'    => $mailFromAddress,
+            'MAIL_FROM_NAME'       => $mailFromName,
+            'MAIL_REPLY_ADDRESS'   => $mailReplyAddress,
+            'MAIL_REPLY_NAME'      => $mailReplyName,
         ];
 
         $this->setEnvironmentValue($mailCredentials);
