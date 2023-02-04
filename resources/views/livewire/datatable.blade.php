@@ -3,9 +3,9 @@
     <div class="flex flex-col md:flex-row gap-4 items-center">
         <div class="flex gap-4 items-center">
             <label for="datatable-search-{{$uniqueId}}">Search</label>
-            <input id="datatable-search-{{$uniqueId}}" type="search" wire:model.sebounce.500ms="search" class="dark:bg-inherit border rounded px-4 py-1 md:py-2">
+            <input id="datatable-search-{{$uniqueId}}" type="search" wire:model.sebounce.500ms="search" class="border-gray-500 dark:bg-inherit border rounded px-4 py-1 md:py-2">
         </div>
-        <select class="bg-white dark:bg-gray-800 px-4 py-2 border rounded" wire:model="perPage">
+        <select class="bg-white dark:bg-gray-800 px-4 py-2 border border-gray-500 rounded" wire:model="perPage">
             @foreach ([5,10,20,25,100] as $item)
                 <option value="{{$item}}" class="bg-inherit">{{$item}}</option>
             @endforeach
