@@ -15,7 +15,7 @@ class SemesterSeeder extends Seeder
     public function run()
     {
         $semester = Semester::firstOrCreate([
-            'id'               => 1,
+            'id'               => 1,],[
             'name'             => 'Semester 1',
             'academic_year_id' => 1,
             'school_id'        => 1,

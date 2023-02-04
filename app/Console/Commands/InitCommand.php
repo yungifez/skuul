@@ -64,9 +64,11 @@ class InitCommand extends Command
             $this->generateEnv();
             $this->generateAppKey();
             $this->setAppEnvironmentDetails();
+            $this->buildNodeDependencies();
             $this->setDatabaseCredentials();
             $this->call('migrate', ['--force' => true]);
             $this->seedDatabase();
+            $this->setMailCredentials();
             $this->createSuperAdmin();
             $this->finishingTouches();
         } catch (\Throwable $th) {
@@ -108,6 +110,18 @@ class InitCommand extends Command
         } else {
             $this->info('Encryption key exists already -- skipping');
         }
+    }
+
+    public function buildNodeDependencies()
+    {
+        $confirm = $this->confirm('Do you have node installed and want to build node dependencies?');
+
+        if($confirm == false){
+            return;
+        }
+
+        shell_exec('npm install');
+        shell_exec('npm run build');
     }
 
     public function setAppEnvironmentDetails()
@@ -198,6 +212,38 @@ class InitCommand extends Command
         $this->line('Database set up successfully');
     }
 
+    public function setMailCredentials()
+    {
+        $confirm =  $this->confirm('Do you want to set your mail credentials now?');
+        if($confirm == false){
+            return;
+        }
+
+        $mailMailer = $this->ask('Mail Mailer', getenv('MAIL_MAILER'));
+        $mailHost = $this->ask('Mail Host', getenv('MAIL_HOST'));
+        $mailPort = $this->ask('Mail Port', getenv('MAIL_PORT'));
+        $mailUsername = $this->ask('Mail Username', getenv('MAIL_USERNAME'));
+        $mailPassword = $this->ask('Mail Password', getenv('MAIL_PASSWORD'));
+        $mailFromAddress = $this->ask('Mail From Address', getenv('MAIL_FROM_ADDRESS'));
+        $mailFromName = $this->ask('Mail From Name', getenv('MAIL_FROM_NAME'));
+        $mailReplyAddress = $this->ask('Mail Reply Address', getenv('MAIL_REPLY_ADDRESS'));
+        $mailReplyName = $this->ask('Mail Reply Name', getenv('MAIL_REPLY_NAME'));
+
+        $mailCredentials = [
+            'MAIL_MAILER' => $mailMailer,
+            'MAIL_HOST'  => $mailHost,
+            'MAIL_PORT'  => $mailPort,
+            'MAIL_USERNAME' => $mailUsername,
+            'MAIL_PASSWORD'   =>   $mailPassword,
+            'MAIL_FROM_ADDRESS'   =>   $mailFromAddress,
+            'MAIL_FROM_NAME'   =>   $mailFromName,
+            'MAIL_REPLY_ADDRESS'   =>   $mailReplyAddress,
+            'MAIL_REPLY_NAME'   =>   $mailReplyName,
+        ];
+
+        $this->setEnvironmentValue($mailCredentials);
+    }
+
     public function seedDatabase()
     {
         switch ($this->env) {
@@ -235,6 +281,7 @@ class InitCommand extends Command
     public function finishingTouches()
     {
         $this->line('Now to perform some finishing touches, this process might take a long time because the application is adding essential data into the application');
+        $this->call('storage:link');
         $this->call('db:seed', ['--class' => 'WorldSeeder']);
         $this->clearCaches();
         $this->alert('Installation Completed');

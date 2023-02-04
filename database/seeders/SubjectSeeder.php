@@ -16,6 +16,7 @@ class SubjectSeeder extends Seeder
     {
         Subject::firstOrCreate([
             'id'          => 1,
+        ],[
             'name'        => 'Maths',
             'short_name'  => 'mat',
             'my_class_id' => 1,
