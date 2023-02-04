@@ -33,6 +33,7 @@ class UpdateApplicationCommand extends Command
             $this->call('optimize:clear');
             $this->fetchLatestCode();
             $this->runUpdateCommands();
+            $this->buildNodeDependencies();
             $this->optimize();
             shell_exec('chmod 777 -R ./storage');
             $this->call('up');
@@ -58,19 +59,35 @@ class UpdateApplicationCommand extends Command
     {
         $oldVersion = shell_exec('git describe --tags');
 
-        $oldVersion = $this->splitVersionNumber($oldVersion);
+        $oldVersionAsArray = $this->splitVersionNumber($oldVersion);
 
         shell_exec('git fetch --all --tags && git checkout $(git rev-list --tags --max-count=1 )');
 
         $newVersion = shell_exec('git describe --tags $(git rev-list --tags --max-count=1)');
 
-        $newVersion = $this->splitVersionNumber($newVersion);
+        $newVersionAsArray = $this->splitVersionNumber($newVersion);
 
-        if ($oldVersion[0] != $newVersion[0]) {
+        $this->info('Old Version: '.$oldVersion);
+        $this->info('New Version: '.$newVersion);
+
+        if ($oldVersionAsArray[0] != $newVersionAsArray[0]) {
+            shell_exec('git checkout $(git rev-list --tags --max-count=1 )');
             $this->error('Update to major version is not allowed');
 
             exit();
         }
+    }
+
+    public function buildNodeDependencies()
+    {
+        $confirm = $this->confirm('Do you have node installed and want to build node dependencies?');
+
+        if ($confirm == false) {
+            return;
+        }
+
+        shell_exec('npm install');
+        shell_exec('npm run build');
     }
 
     public function runUpdateCommands()
