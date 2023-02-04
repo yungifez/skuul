@@ -20,7 +20,7 @@ return [
      */
     'logo' => env('LOGO_PATH'),
 
-      /**
+    /**
      * Application logo.
      */
     'favicon' => env('FAVICON_PATH', 'favicon/favicon.ico'),
