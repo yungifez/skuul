@@ -2,13 +2,14 @@
 
 namespace App\Services\Exam;
 
-use App\Exceptions\InvalidValueException;
 use App\Models\Exam;
-use App\Models\ExamRecord;
 use App\Models\Semester;
-use App\Services\Subject\SubjectService;
-use Illuminate\Auth\Access\AuthorizationException;
+use App\Models\ExamRecord;
+use App\Models\AcademicYear;
 use Illuminate\Support\Facades\DB;
+use App\Services\Subject\SubjectService;
+use App\Exceptions\InvalidValueException;
+use Illuminate\Auth\Access\AuthorizationException;
 
 class ExamRecordService
 {
@@ -98,6 +99,24 @@ class ExamRecordService
     }
 
     /**
+     * Get all user exam records for user in an academic year.
+     *
+     * @param Semester $semester
+     * @param int      $user
+     *
+     * @return App\Models\ExamRecord
+     */
+    public function getAllUserExamRecordInAcademicYear(AcademicYear $academicYear, int $user)
+    {
+        //get all exams
+        $exams = $academicYear->exams->load('examSlots');
+        $examSlots = $this->getAllExamSlotsInExams($exams);
+
+        //get all exam records in for user and subject
+        return ExamRecord::where(['user_id' => $user])->whereIn('exam_slot_id', $examSlots)->get();
+    }
+
+    /**
      * Get all user exam records for user in a semester.
      *
      * @param Semester $semester
@@ -109,6 +128,21 @@ class ExamRecordService
     {
         //get all exams
         $exams = $semester->exams->load('examSlots');
+
+        $examSlots = $this->getAllExamSlotsInExams($exams);
+       
+        //get all exam records in for user and subject
+        return ExamRecord::where(['user_id' => $user])->whereIn('exam_slot_id', $examSlots)->get();
+    }
+
+    /**
+     * Get all exam slots in exam
+     *
+     * @param $exams
+     * @return void
+     */
+    public function getAllExamSlotsInExams( $exams)
+    {
         //create container variable for all exam slots in semster
         $examSlots = [];
         //get all exam slots in exams
@@ -118,8 +152,8 @@ class ExamRecordService
                 $examSlots[] = $j;
             }
         }
-        //get all exam records in for user and subject
-        return ExamRecord::where(['user_id' => $user])->whereIn('exam_slot_id', $examSlots)->get();
+
+        return $examSlots;
     }
 
     /**
