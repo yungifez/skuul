@@ -53,24 +53,24 @@
                 </x-confirms-password>
             @else
                 @if ($showingRecoveryCodes)
-                    <x-jet-confirms-password wire:then="regenerateRecoveryCodes">
-                        <x-button class=" bg-white text-black">
+                    <x-confirms-password wire:then="regenerateRecoveryCodes">
+                        <x-button class=" bg-white text-black" wire:loading.attr="disabled">
                             {{ __('Regenerate Recovery Codes') }}
                         </x-button>
-                    </x-jet-confirms-password>
+                    </x-confirms-password>
                 @else
-                    <x-jet-confirms-password wire:then="showRecoveryCodes">
+                    <x-confirms-password wire:then="showRecoveryCodes">
                         <x-button class=" bg-white text-black">
                             {{ __('Show Recovery Codes') }}
                         </x-button>
-                    </x-jet-confirms-password>
+                    </x-confirms-password>
                 @endif
 
-                <x-jet-confirms-password wire:then="disableTwoFactorAuthentication">
+                <x-confirms-password wire:then="disableTwoFactorAuthentication">
                     <x-button class="bg-red-600" wire:loading.attr="disabled">
                         {{ __('Disable') }}
                     </x-button>
-                </x-jet-confirms-password>
+                </x-confirms-password>
             @endif
         </div>
     </x-slot>
