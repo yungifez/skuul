@@ -1,44 +1,37 @@
-<x-jet-form-section submit="updatePassword">
+<x-partials.form-section submit="updatePassword">
     <x-slot name="title">
         {{ __('Update Password') }}
     </x-slot>
-
 
     <x-slot name="description">
         {{ __('Ensure your account is using a long, random password to stay secure.') }}
     </x-slot>
 
     <x-slot name="form">
-    <x-jet-action-message on="saved">
+    <x-action-message on="saved">
         {{ __('Updated password') }}
-    </x-jet-action-message>
+    </x-action-message>
         <div class="w-md-75">
             <div class="form-group">
-                <x-jet-label for="current_password" value="{{ __('Current Password') }}" />
-                <x-jet-input id="current_password" type="password" class="{{ $errors->has('current_password') ? 'is-invalid' : '' }}"
-                             wire:model.defer="state.current_password" autocomplete="current-password" />
-                <x-jet-input-error for="current_password" />
+                <x-input id="current_password" type="password"
+                             wire:model.defer="state.current_password" autocomplete="current-password" name="current_password" label="Current Password"/>
             </div>
 
             <div class="form-group">
-                <x-jet-label for="password" value="{{ __('New Password') }}" />
-                <x-jet-input id="password" type="password" class="{{ $errors->has('password') ? 'is-invalid' : '' }}"
+                <x-input label="New Password" name="password" id="password" type="password"
                              wire:model.defer="state.password" autocomplete="new-password" />
-                <x-jet-input-error for="password" />
             </div>
 
             <div class="form-group">
-                <x-jet-label for="password_confirmation" value="{{ __('Confirm Password') }}" />
-                <x-jet-input id="password_confirmation" type="password" class="{{ $errors->has('password_confirmation') ? 'is-invalid' : '' }}"
+                <x-input name="password_confirmation" label="Confirm Password" id="password_confirmation" type="password"
                              wire:model.defer="state.password_confirmation" autocomplete="new-password" />
-                <x-jet-input-error for="password_confirmation" />
             </div>
         </div>
     </x-slot>
 
     <x-slot name="actions">
-        <x-jet-button>
+        <x-button class="w-6/12 lg:w-3/12">
             {{ __('Save') }}
-        </x-jet-button>
+        </x-button>
     </x-slot>
-</x-jet-form-section>
+</x-partials.form-section>

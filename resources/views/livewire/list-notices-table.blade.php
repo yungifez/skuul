@@ -3,25 +3,36 @@
         <h4 class="card-title">Notices</h4>
     </div>
     <div class="card-body">
-        <x-adminlte-datatable id="notice-list-table" :heads="['S/N', 'Title','From','Till' , '', '']" class='text-capitalize' bordered striped head-theme="dark" beautify>
-            @foreach($notices as $notice)
-                <tr>
-                    <td>{{$loop->iteration}}</td>
-                    <td>{{ $notice->title}}</td>
-                    <td>{{ \Carbon\Carbon::parse($notice->start_date)->diffForHumans()}}</td>
-                    <td>{{ \Carbon\Carbon::parse($notice->stop_date)->diffForHumans()}}</td>
-                    <td>@livewire('dropdown-links', [
-                        'links' => [
-                        ['href' => route("notices.show", $notice->id), 'text' => 'View', 'icon' => 'fas fa-eye'],
-                        ],
-                    ],)</td>
-                    <td>
-                        @can('delete notice', $notice)
-                            @livewire('delete-modal', ['modal_id' => $notice->id ,"action" => route('notices.destroy', $notice->id), 'item_name' => $notice->name])
-                        @endcan
-                    </td>
-                </tr>
-            @endforeach
-        </x-adminlte-datatable>
+        @can (['update notice', 'delete notice'])
+            <livewire:datatable :model="App\Models\Notice::class" 
+            :filters="[
+                ['name' => 'where', 'arguments' => ['school_id' , auth()->user()->school_id]]
+            ]"
+            :columns="[
+               [ 'property' => 'title'],
+               [ 'property' => 'start_date_for_humans', 'name' => 'Start Date', 'columnName' => 'start_date'],
+               [ 'property' => 'stop_date_for_humans', 'name' => 'Stop Date',  'columnName' => 'stop_date'],
+               ['name' => '' , 'type' => 'dropdown' , 'links' => [
+                    ['href' => 'notices.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
+               ]],
+               ['type' => 'delete' , 'name' => 'delete', 'action' => 'notices.destroy']
+            ]"
+            />
+        @else
+            <livewire:datatable :model="App\Models\Notice::class" 
+            :filters="[
+                ['name' => 'where', 'arguments' => ['school_id' , auth()->user()->school_id]],
+                ['name' => 'active']
+            ]"
+            :columns="[
+            [ 'property' => 'title'],
+            [ 'property' => 'start_date_for_humans', 'name' => 'Start Date', 'columnName' => 'start_date'],
+            [ 'property' => 'stop_date_for_humans', 'name' => 'Stop Date', 'columnName' => 'stop_date'],
+            ['name' => '' , 'type' => 'dropdown' , 'links' => [
+                ['href' => 'notices.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
+            ]],
+            ]"
+            />
+        @endcan
     </div>
 </div>

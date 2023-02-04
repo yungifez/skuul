@@ -1,36 +1,33 @@
-@if (!empty($myClasses))
 <div class="card">
     <div class="card-header">
         <h4 class="card-title">Section list</h4>
     </div>
     <div class="card-body">
-        @foreach ($myClasses as $myClass)
+        @if ($classes->isNotEmpty())
+            <x-select name="" id="class-select" class="md:w-6/12 my-4" wire:model="class">
+                @foreach ($classes as $item)
+                    <option value="{{$item->id}}">{{$item->name}}</option>
+                @endforeach
+            </x-select>
             <div>
-                <x-adminlte-card title="Sections under Class: {{$myClass->name}}" theme="secondary" icon=""  collapsible="collapsed">
-                    <x-adminlte-datatable id="sections-list-table-{{$myClass->id}}" :heads="['S/N', 'Name', '', '']" class='text-capitalize' bordered striped head-theme="dark" beautify>
-                    @foreach ($myClass->sections->all() as $section)
-                        <tr>
-                            <td>{{$loop->iteration}}</td>
-                            <td>{{$section->name}}</td>
-                            <td>@livewire('dropdown-links', [
-                                'links' => [
-                                ['href' => route("sections.edit", $section->id), 'text' => 'edit', 'icon' => 'fas fa-cog'],
-                                ['href' => route("sections.show", $section->id), 'text' => 'View', 'icon' => 'fas fa-eye'],
-                                ],
-                            ],)</td>
-                            <td>
-                                @livewire('delete-modal', ['modal_id' => $section->id ,"action" => route('sections.destroy', $section->id), 'item_name' => $section->name])
-                            </td>
-                        </tr>
-                    @endforeach
-                </x-adminlte-datatable>
-                </x-adminlte-card>
+                <x-loading-spinner wire:target="class" />
             </div>
-        @endforeach
+            @isset($class)
+                <div wire:loading.remove.delay>
+                    <livewire:datatable :wire:key="Str::random()" :model="App\Models\MyClass::class" uniqueId="section-list-table" :filters="[['name' => 'find' , 'arguments' => [$class]], ['name' => 'sections']]" :columns="
+                        [
+                        ['property' => 'name'] , 
+                        ['type' => 'dropdown', 'name' => 'actions','links' => [
+                            ['href' => 'sections.edit', 'text' => 'Settings', 'icon' => 'fas fa-cog'],
+                            ['href' => 'sections.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
+                        ]],
+                        ['type' => 'delete', 'name' => 'Delete', 'action' => 'sections.destroy']
+                    ]
+                    "/>
+                </div>
+            @endisset
+        @else
+            <p>No classes and sections created in this school</p>
+        @endif
     </div>
 </div>
-   
-
-@else
-    <p>No classes and sections created in this school</p>
-@endif

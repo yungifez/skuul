@@ -4,11 +4,11 @@
     </div>
     <div class="card-body">
         <form action="{{route('class-groups.update', $classGroup->id)}}" method="POST">
-            @livewire('display-validation-error')
-            <x-adminlte-input name="name" label="Name" placeholder="Enter class group name" fgroup-class="col-md-6" value="{{old('name') ? old('name') : $classGroup->name}}"/>
+            <x-display-validation-errors />
+            <x-input id="name" name="name" label="Name" placeholder="Enter class group name" class="md:w-6/12" value="{{$classGroup->name}}"/>
             @csrf
             @method('PUT')
-            <x-adminlte-button label="Save Changes" theme="primary" icon="fas fa-key" type="submit"/>
+            <x-button label="Save Changes" theme="primary" icon="fas fa-pen" type="submit"/>
         </form>
     </div>
 </div>

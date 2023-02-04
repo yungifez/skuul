@@ -12,7 +12,7 @@ class AssignTeacherToSubjects extends Component
 {
     public $teachers;
     public $classes;
-    public int $class;
+    public ?int $class;
     public $subjects;
     public $teacher;
     /**
@@ -26,9 +26,9 @@ class AssignTeacherToSubjects extends Component
     public function mount(TeacherService $teacherService, MyClassService $myclassService)
     {
         $this->classes = $myclassService->getAllClasses();
-        $this->class = $this->classes->first()->id;
+        $this->class = $this->classes->first()?->id;
         $this->teachers = $teacherService->getAllTeachers();
-        $this->teacher = $this->teachers->first()->id;
+        $this->teacher = $this->teachers->first()?->id;
     }
 
     public function fetchSubjects(MyClass $class, User $teacher)

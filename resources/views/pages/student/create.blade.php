@@ -1,25 +1,13 @@
-@extends('adminlte::page')
-
-@section('title', __('Create Students'))
-
-
-@section('content_header')
-    <h1 class=""> 
-        {{ __('Create students') }}
-    </h1>
-
-    @livewire('show-set-school')
-    
-    @livewire('breadcrumbs', ['paths' => [
+@extends('layouts.app', ['breadcrumbs' => [
         ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
         ['href'=> route('students.index'), 'text'=> 'Students'],
         ['href'=> route('students.create'), 'text'=> 'create', 'active'],
-    ]])
+]])
 
-@stop
+@section('title',  __('Create student'))
 
-@section('content') 
+@section('page_heading',   __('Create student'))
+
+@section('content' )
     @livewire('create-student-form')
-
-    @livewire('display-status')
-@stop
+@endsection

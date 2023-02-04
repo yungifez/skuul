@@ -1,16 +1,17 @@
 <div class="card">
-        <div class="card-header">
-            <h3 class="card-title">Create Class Group</h3>
-        </div>
-    <div class="card-body">  
-        <form action="{{route('class-groups.store')}}" method="POST" class="mb-3">
-            @livewire('display-validation-error')
-            <x-adminlte-input name="name" label="Class Group Name" placeholder="Enter class group name" fgroup-class="col-md-6"/>
+    <div class="card-header">
+        <h2 class="card-title">Create Class Group</h2>
+    </div>
+    <div class="card-body">
+        <form action="{{route('class-groups.store')}}" method="POST" >
+            <x-display-validation-errors />
+            <x-input name="name" id="name" type="text" placeholder="Enter name of class group" label="Class group Name *"  class="md:w-6/12"/>
             @csrf
-            <div class="col-md-3">
-                <x-adminlte-button label="Create" theme="primary" icon="fas fa-key" type="submit" class="col-md-6"/>
+            <div class="w-full flex ">
+                <x-button theme="primary" icon="fas fa-key" type="submit" class="w-full md:w-3/12">
+                    Create
+                </x-button>
             </div>
         </form>
-        @livewire('help-button', ['target_id' => 'class-group-help', 'text' => 'Class groups are used in grouping different types or levels of classes. Eg Primary, Secondary etc.'])
     </div>
 </div>

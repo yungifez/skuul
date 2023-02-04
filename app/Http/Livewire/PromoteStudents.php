@@ -3,7 +3,7 @@
 namespace App\Http\Livewire;
 
 use App\Services\MyClass\MyClassService;
-use App\Services\Student\StudentService;
+use App\Services\Section\SectionService;
 use Illuminate\Support\Facades\App;
 use Livewire\Component;
 
@@ -72,12 +72,7 @@ class PromoteStudents extends Component
     {
         $this->validate();
 
-        // it was with this line of code that I knew ive run mad
-        // $this->students = App::make(MyClassService::class)->getClassById($this->oldClass)->sections->where('id', $this->oldSection)->load('studentRecords')->first()->studentRecords->load('user');
-
-        $this->students = App::make(StudentService::class)->getAllActiveStudents()->load('studentRecord')->filter(function ($student) {
-            return $student->studentRecord->my_class_id == $this->oldClass && $student->studentRecord->section_id == $this->oldSection;
-        });
+        $this->students = App::make(SectionService::class)->getSectionById($this->oldSection)->students();
     }
 
     public function render()

@@ -13,8 +13,7 @@
         "doctrine/dbal": "^3.5",
         "fruitcake/laravel-cors": "^2.0.5",
         "guzzlehttp/guzzle": "^7.2",
-        "jeroennoten/laravel-adminlte": "^3.7",
-        "laravel/framework": "^9.0",
+        "laravel/framework": "^9.19",
         "laravel/jetstream": "^2.6",
         "laravel/sanctum": "^2.14",
         "laravel/tinker": "^2.7",
@@ -31,7 +30,6 @@
         "fakerphp/faker": "^1.9.1",
         "laravel/sail": "^1.13",
         "mockery/mockery": "^1.4.4",
-        "nascent-africa/jetstrap": "^2.5",
         "nunomaduro/collision": "^6.1",
         "phpunit/phpunit": "^9.5.10",
         "spatie/laravel-ignition": "^1.0"

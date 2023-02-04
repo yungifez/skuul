@@ -1,35 +1,20 @@
 <div class="card">
     <div class="card-header">
-        <h4 class="card-title">Student list</h4>
+        <h2 class="card-title">Students list</h2>
     </div>
     <div class="card-body">
-        <x-adminlte-datatable id="school-list-table" :heads="['S/N', 'Name','Class','Section', 'email','gender' , 'address', '', '']" class='text-capitalize table-data' bordered striped head-theme="dark" beautify>
-            @foreach($students as $student)
-                <tr>
-                    <td>{{$loop->iteration}}</td>
-                    <td>{{ $student->name}}</td>
-                    <td>@isset ($student->studentRecord->myClass)
-                        {{$student->studentRecord->myClass->name}}
-                    @endisset</td>
-                    <td>@isset($student->studentRecord->section)
-                        {{$student->studentRecord->section->name}}
-                    @endisset</td>
-                    <td style="text-transform: none">{{ $student->email}}</td>
-                    <td>{{$student->gender}}</td>
-                    <td>{{$student->address}}</td>
-                    <td>@livewire('dropdown-links', [
-                        'links' => [
-                        ['href' => route("students.edit", $student->id), 'text' => 'Manage profile', 'icon' => 'fas fa-pen'],
-                        ['href' => route("students.show", $student->id), 'text' => 'View', 'icon' => 'fas fa-eye'],
-                        ],
-                    ],)</td>
-                    <td>
-                        @livewire('delete-modal', ['modal_id' => $student->id ,"action" => route('students.destroy', $student->id), 'item_name' => $student->name])
-                    </td>
-                </tr>
-            @endforeach
-        </x-adminlte-datatable>
+        <livewire:datatable :model="App\Models\User::class" uniqueId="students-list-table" :filters="[['name' => 'students'], ['name' => 'inSchool'], ['name' => 'orderBy' , 'arguments' => ['name']], ['name' => 'has', 'arguments' => ['StudentRecord']], ['name' => 'with' , 'arguments' => ['studentRecord','studentRecord.section', 'studentRecord.myClass']]]" :columns="[
+            ['property' => 'name'] , 
+            ['property' => 'email'] , 
+            ['property' => 'admission_number' ,'relation' => 'studentRecord'] , 
+            ['property' => 'name', 'name' => 'Class' ,'relation' => 'studentRecord.myClass'] , 
+            ['property' => 'name', 'name' => 'section' ,'relation' => 'studentRecord.section'] , 
+            ['type' => 'dropdown', 'name' => 'actions','links' => [
+                ['href' => 'students.edit', 'text' => 'Manage Profile', 'icon' => 'fas fa-pen',],
+                ['href' => 'students.show', 'text' => 'View', 'icon' => 'fas fa-eye',  ],
+            ]],
+            ['type' => 'delete', 'name' => 'Delete', 'action' => 'students.destroy',]
+         ]
+        "/>
     </div>
-
-    
 </div>

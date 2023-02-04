@@ -61,7 +61,7 @@ class SemesterController extends Controller
      */
     public function show(Semester $semester)
     {
-        //
+        abort(404);
     }
 
     /**

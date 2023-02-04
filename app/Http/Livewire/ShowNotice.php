@@ -2,11 +2,12 @@
 
 namespace App\Http\Livewire;
 
+use App\Models\Notice;
 use Livewire\Component;
 
 class ShowNotice extends Component
 {
-    public $notice;
+    public Notice $notice;
 
     public function render()
     {

@@ -22,4 +22,9 @@ class ClassGroup extends Model
     {
         return $this->hasMany(MyClass::class);
     }
+
+    public function gradeSystem()
+    {
+        return $this->hasMany(GradeSystem::class);
+    }
 }

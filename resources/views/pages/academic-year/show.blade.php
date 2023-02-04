@@ -1,24 +1,13 @@
-@extends('adminlte::page')
+@extends('layouts.app', ['breadcrumbs' => [
+    ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
+    ['href'=> route('academic-years.index'), 'text'=> 'academic years'],
+    ['href'=> route('academic-years.show', $academicYear->id), 'text'=> "View {$academicYear->name()}", 'active'],
+]])
 
-@section('title', __("view {$academicYear->name()}"))
+@section('title', __("View {$academicYear->name}"))
 
-@section('content_header')
-    <h1 class="">
-        {{ __("View {$academicYear->name()}") }}
-    </h1>
-
-    @livewire('show-set-school')
-
-    @livewire('breadcrumbs', ['paths' => [
-        ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-        ['href'=> route('academic-years.index'), 'text'=> 'academic years'],
-        ['href'=> route('academic-years.show', $academicYear->id), 'text'=> "View {$academicYear->name()}", 'active'],
-    ]])
-@endsection
+@section('page_heading', __("View {$academicYear->name}") )
 
 @section('content')
     @livewire('show-academic-year', ['academicYear' => $academicYear])
-
-    @livewire('display-status')
-
 @endsection

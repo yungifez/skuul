@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Support\Collection;
 
 class MyClass extends Model
@@ -11,6 +13,11 @@ class MyClass extends Model
     use HasFactory;
 
     protected $fillable = ['name', 'class_group_id'];
+
+    public function school()
+    {
+        $this->hasOneThrough(School::class, ClassGroup::class);
+    }
 
     /**
      * Get the classGroup that owns the MyClass.
@@ -59,10 +66,28 @@ class MyClass extends Model
      */
     public function students()
     {
-        $students = $this->loadMissing('studentRecords', 'studentRecords.user')->studentRecords->map(function ($studentRecord) {
-            return $studentRecord->user;
-        });
+        $students = User::students()->inSchool()->whereRelation('studentRecord.myClass', 'id', $this->id)->get();
 
         return $students;
+    }
+
+    /**
+     * Get all of the syllabi for the MyClass.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function syllabi(): HasManyThrough
+    {
+        return $this->hasManyThrough(Syllabus::class, Subject::class);
+    }
+
+    /**
+     * Get all of the timetables for the MyClass.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function timetables(): HasMany
+    {
+        return $this->hasMany(Timetable::class);
     }
 }

@@ -1,21 +1,20 @@
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Edit grade {{$grade->name}}</h3>
+        <h2 class="card-title">Edit grade {{$grade->name}}</h2>
     </div>
     <div class="card-body">
-        <form action="{{route('grade-systems.update' ,$grade->id)}}" method="post">
-            <x-adminlte-input name="name" label="Name" placeholder="Grade name eg A1" fgroup-class="col-md-6" value="{{$grade->name}}"/>
-            <x-adminlte-input name="remark" label="Remark" placeholder="Grade remark eg Excellent" fgroup-class="col-md-6" value="{{$grade->remark}}"/>
-            <x-adminlte-input type="number" name="grade_from" label="From" placeholder="Grade from eg 10" fgroup-class="col-md-6" value="{{$grade->grade_from}}"/>
-            <x-adminlte-input type="number" name="grade_till" label="Till" placeholder="grade till eg 20" fgroup-class="col-md-6" value="{{$grade->grade_till}}"/>
-            <x-adminlte-select name="class_group_id" fgroup-class="col-md-6 mx-1" label="Class Group" wire:model="classGroup">
+        <form action="{{route('grade-systems.update' ,$grade->id)}}" method="post" class="md:w-1/2">
+            <x-input  id="name" name="name" label="Name" placeholder="Grade name eg A1"  value="{{$grade->name}}"/>
+            <x-input  id="remark" name="remark" label="Remark" placeholder="Grade remark eg Excellent"  value="{{$grade->remark}}"/>
+            <x-input  id="grade-from" type="number" name="grade_from" label="From" placeholder="Grade from eg 10"  value="{{$grade->grade_from}}"/>
+            <x-input  id="grade-till" type="number" name="grade_till" label="Till" placeholder="grade till eg 20"  value="{{$grade->grade_till}}"/>
+            <x-select id="class-group"  name="class_group_id" fgroup-class="col-md-6 mx-1" label="Class Group" wire:model="classGroup">
                 @foreach ($classGroups as $classGroup)
                     <option value="{{$classGroup->id}}">{{$classGroup->name}}</option>
                 @endforeach
-            </x-adminlte-select>
-            <div class='col-12 my-2'>
-                <x-adminlte-button label="Edit" theme="primary" icon="fas fa-pen" type="submit" class="col-md-3"/>
-            </div>
+            </x-select >
+            <x-button label="Edit" icon="fas fa-pen" type="submit" class="w-full md:w-1/2"/>
+            
             @csrf
             @method("PUT")
         </form>

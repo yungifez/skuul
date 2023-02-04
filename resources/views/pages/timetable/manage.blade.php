@@ -1,25 +1,13 @@
-@extends('adminlte::page')
+@extends('layouts.app', ['breadcrumbs' => [
+    ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
+    ['href'=> route('timetables.index'), 'text'=> 'timetables' , ],
+    ['href'=> route('timetables.manage', $timetable->id), 'text'=> "Manage $timetable->name" , 'active']
+]])
 
 @section('title', __("Manage $timetable->name"))
 
-@section('content_header')
-    <h1 class="">
-        {{ __("Manage $timetable->name") }}
-    </h1>
-
-    @livewire('show-set-school')
-    
-    @livewire('breadcrumbs', ['paths' => [
-        ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-        ['href'=> route('timetables.index'), 'text'=> 'timetables' , ],
-        ['href'=> route('timetables.manage', $timetable->id), 'text'=> "Manage $timetable->name" , 'active']
-    ]])
-@endsection
+@section('page_heading', __("Manage $timetable->name") )
 
 @section('content')
-
-@livewire('manage-timetable', ['timetable' => $timetable])
-
-@livewire('display-status')
-
+    @livewire('manage-timetable', ['timetable' => $timetable])
 @endsection

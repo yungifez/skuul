@@ -489,6 +489,10 @@ class PermissionSeeder extends Seeder
             'update applicant',
             'delete applicant',
             'change account application status',
+            'create custom timetable item',
+            'read custom timetable item',
+            'update custom timetable item',
+            'delete custom timetable item',
         ]);
 
         //assign permissions to teacher

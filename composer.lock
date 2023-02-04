@@ -4,51 +4,8 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "83ca07901af8e8759c1f2c81adaf82eb",
+    "content-hash": "8af2a05148c8d36b76e370609899134c",
     "packages": [
-        {
-            "name": "almasaeed2010/adminlte",
-            "version": "v3.2.0",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/ColorlibHQ/AdminLTE.git",
-                "reference": "bd4d9c72931f1dd28601b6bfb387554a381ad540"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/ColorlibHQ/AdminLTE/zipball/bd4d9c72931f1dd28601b6bfb387554a381ad540",
-                "reference": "bd4d9c72931f1dd28601b6bfb387554a381ad540",
-                "shasum": ""
-            },
-            "type": "library",
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Colorlib"
-                }
-            ],
-            "description": "AdminLTE - admin control panel and dashboard that's based on Bootstrap 4",
-            "homepage": "https://adminlte.io/",
-            "keywords": [
-                "JS",
-                "admin",
-                "back-end",
-                "css",
-                "less",
-                "responsive",
-                "template",
-                "theme",
-                "web"
-            ],
-            "support": {
-                "issues": "https://github.com/ColorlibHQ/AdminLTE/issues",
-                "source": "https://github.com/ColorlibHQ/AdminLTE/tree/v3.2.0"
-            },
-            "time": "2022-02-07T20:33:09+00:00"
-        },
         {
             "name": "asm89/stack-cors",
             "version": "v2.1.1",
@@ -1789,66 +1746,6 @@
             "time": "2020-06-13T08:05:20+00:00"
         },
         {
-            "name": "jeroennoten/laravel-adminlte",
-            "version": "v3.8.4",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/jeroennoten/Laravel-AdminLTE.git",
-                "reference": "f06dfd13a16b7449e89fb12a768184edd5db9bbc"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/jeroennoten/Laravel-AdminLTE/zipball/f06dfd13a16b7449e89fb12a768184edd5db9bbc",
-                "reference": "f06dfd13a16b7449e89fb12a768184edd5db9bbc",
-                "shasum": ""
-            },
-            "require": {
-                "almasaeed2010/adminlte": "3.2.*",
-                "laravel/framework": ">=6.0",
-                "php": ">=7.2.0"
-            },
-            "require-dev": {
-                "orchestra/testbench": ">=4.0",
-                "phpunit/phpunit": ">=9.1",
-                "scrutinizer/ocular": "^1.9"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "JeroenNoten\\LaravelAdminLte\\AdminLteServiceProvider"
-                    ]
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "JeroenNoten\\LaravelAdminLte\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Jeroen Noten",
-                    "email": "jeroennoten@me.com"
-                }
-            ],
-            "description": "Easy AdminLTE integration with Laravel",
-            "keywords": [
-                "AdminLTE",
-                "admin",
-                "administrator",
-                "laravel"
-            ],
-            "support": {
-                "issues": "https://github.com/jeroennoten/Laravel-AdminLTE/issues",
-                "source": "https://github.com/jeroennoten/Laravel-AdminLTE/tree/v3.8.4"
-            },
-            "time": "2022-08-18T15:19:54+00:00"
-        },
-        {
             "name": "laravel/fortify",
             "version": "v1.13.7",
             "source": {
@@ -2697,32 +2594,32 @@
         },
         {
             "name": "livewire/livewire",
-            "version": "v2.10.7",
+            "version": "v2.11.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/livewire/livewire.git",
-                "reference": "fa0441bf82f1674beecb3a8ad8a4ae428736ed18"
+                "reference": "8667099d5889cab760d1d0083cdcebaa3d595733"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/livewire/livewire/zipball/fa0441bf82f1674beecb3a8ad8a4ae428736ed18",
-                "reference": "fa0441bf82f1674beecb3a8ad8a4ae428736ed18",
+                "url": "https://api.github.com/repos/livewire/livewire/zipball/8667099d5889cab760d1d0083cdcebaa3d595733",
+                "reference": "8667099d5889cab760d1d0083cdcebaa3d595733",
                 "shasum": ""
             },
             "require": {
-                "illuminate/database": "^7.0|^8.0|^9.0",
-                "illuminate/support": "^7.0|^8.0|^9.0",
-                "illuminate/validation": "^7.0|^8.0|^9.0",
+                "illuminate/database": "^7.0|^8.0|^9.0|^10.0",
+                "illuminate/support": "^7.0|^8.0|^9.0|^10.0",
+                "illuminate/validation": "^7.0|^8.0|^9.0|^10.0",
                 "league/mime-type-detection": "^1.9",
                 "php": "^7.2.5|^8.0",
                 "symfony/http-kernel": "^5.0|^6.0"
             },
             "require-dev": {
                 "calebporzio/sushi": "^2.1",
-                "laravel/framework": "^7.0|^8.0|^9.0",
+                "laravel/framework": "^7.0|^8.0|^9.0|^10.0",
                 "mockery/mockery": "^1.3.1",
-                "orchestra/testbench": "^5.0|^6.0|^7.0",
-                "orchestra/testbench-dusk": "^5.2|^6.0|^7.0",
+                "orchestra/testbench": "^5.0|^6.0|^7.0|^8.0",
+                "orchestra/testbench-dusk": "^5.2|^6.0|^7.0|^8.0",
                 "phpunit/phpunit": "^8.4|^9.0",
                 "psy/psysh": "@stable"
             },
@@ -2758,7 +2655,7 @@
             "description": "A front-end framework for Laravel.",
             "support": {
                 "issues": "https://github.com/livewire/livewire/issues",
-                "source": "https://github.com/livewire/livewire/tree/v2.10.7"
+                "source": "https://github.com/livewire/livewire/tree/v2.11.0"
             },
             "funding": [
                 {
@@ -2766,7 +2663,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2022-08-08T13:52:53+00:00"
+            "time": "2023-01-15T23:43:31+00:00"
         },
         {
             "name": "masterminds/html5",
@@ -8128,70 +8025,6 @@
                 }
             ],
             "time": "2022-03-03T13:19:32+00:00"
-        },
-        {
-            "name": "nascent-africa/jetstrap",
-            "version": "v2.5.4",
-            "source": {
-                "type": "git",
-                "url": "https://github.com/nascent-africa/jetstrap.git",
-                "reference": "12012b2cf2563f7843dc90f41fc2e471c50c9547"
-            },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/nascent-africa/jetstrap/zipball/12012b2cf2563f7843dc90f41fc2e471c50c9547",
-                "reference": "12012b2cf2563f7843dc90f41fc2e471c50c9547",
-                "shasum": ""
-            },
-            "require": {
-                "illuminate/support": "^8.0|^9.0",
-                "php": "^7.3|^8.0"
-            },
-            "require-dev": {
-                "inertiajs/inertia-laravel": "^0.3",
-                "laravel/breeze": "^1.1",
-                "laravel/jetstream": "^2.3",
-                "orchestra/testbench": "^6.0|^7.0",
-                "phpunit/phpunit": "^9.3"
-            },
-            "type": "library",
-            "extra": {
-                "laravel": {
-                    "providers": [
-                        "NascentAfrica\\Jetstrap\\JetstrapServiceProvider"
-                    ],
-                    "aliases": {
-                        "Jetstrap": "NascentAfrica\\Jetstrap\\JetstrapFacade"
-                    }
-                }
-            },
-            "autoload": {
-                "psr-4": {
-                    "NascentAfrica\\Jetstrap\\": "src/NascentAfrica/Jetstrap/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Anitche Chisom",
-                    "email": "anitchec.dev@gmail.com",
-                    "role": "Developer"
-                }
-            ],
-            "description": "A Laravel 8 package to easily switch TailwindCSS resources generated by Laravel Jetstream to Bootstrap 4 or 5.",
-            "keywords": [
-                "bootstrap",
-                "jetstream",
-                "laravel"
-            ],
-            "support": {
-                "issues": "https://github.com/nascent-africa/jetstrap/issues",
-                "source": "https://github.com/nascent-africa/jetstrap"
-            },
-            "time": "2022-02-09T11:51:31+00:00"
         },
         {
             "name": "nunomaduro/collision",

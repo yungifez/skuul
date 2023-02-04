@@ -1,41 +1,48 @@
-<x-adminlte-card :title="$class->name.' overview'" theme="primary" icon="">
-    <div>
-        <p>Class group: {{$class->classGroup->name}} </p>
-        <h4 class="text-center text-semibold">Section List</h4> 
-        <ol>
-            @foreach ($class->sections as $section)
-                <li><a href="{{route('sections.show', $section->id)}}">{{$section->name}}</a></li>
-            @endforeach
-        </ol>
-        <h4 class="text-center text-semibold">Subject List</h4>
-        <div class="table-responsive">
-            <table class="table col-md-8 table-bordered m-auto">
-                <thead>
-                    <th>Subject</th>
-                    <th>Offered By</th>
-                </thead>
-                @foreach ($class->subjects as $subject)
-                <tr>
-                    <td>{{$subject->name}}</td>
-                    <td> 
-                        @foreach ($subject->teachers as $teacher)
-                            {{$loop->first  ? '' : ','}}
-                            <a href="{{route('teachers.show', $teacher)}}">{{$teacher->name}}</a>
-                            {{$loop->last ? '.' : ''}}
-                        @endforeach
-                    </td>
-                </tr>
-            @endforeach
-            </table>
-        </div>
-        <h4 class="text-center text-semibold mt-2">Student List (All sections)</h4> 
-        <ol>
-            @foreach ($students->sortBy('name') as $student)
-                <li>
-                    <a href="{{route('students.show', $student)}}">{{$student->name}}</a>
-                </li>
-            @endforeach
-        </ol>
-        <p>Contains {{$class->studentRecords->count()}} {{Str::plural('student', $class->studentRecords()->count())}}</p>
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">{{$class->name}}</h2>
     </div>
-</x-adminlte-card>
+    <div class="card-body">
+        <h1 class="text-center text-xl md:text-3xl font-bold">Sections in class</h1>
+        <livewire:datatable :model="App\Models\MyClass::class" uniqueId="section-list-table" :filters="[['name' => 'find' , 'arguments' => [$class->id]], ['name' => 'sections']]" :columns="
+            [
+            ['property' => 'name'] , 
+            ['type' => 'dropdown', 'name' => 'actions','links' => [
+                ['href' => 'sections.edit', 'text' => 'Settings', 'icon' => 'fas fa-cog'],
+                ['href' => 'sections.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
+            ]],
+            ['type' => 'delete', 'name' => 'Delete', 'action' => 'sections.destroy']
+         ]
+        "/>
+        <h1 class="text-center text-xl md:text-3xl font-bold">Students in class</h1>
+        <livewire:datatable :model="App\Models\User::class" uniqueId="students-list-table" 
+        :filters="[
+            ['name' => 'where' , 'arguments' => ['school_id' , auth()->user()->school_id]], 
+            ['name' => 'whereRelation' , 'arguments' => ['studentRecord','my_class_id' , $class->id]], 
+            ['name' => 'with' , 'arguments' => ['studentRecord' ,'studentRecord.section']]
+        ]" :columns="
+            [
+            ['property' => 'name'] , 
+            ['property' => 'email'] , 
+            ['property' => 'name', 'name' => 'section name' ,'relation' => 'studentRecord.section'] , 
+            ['type' => 'dropdown', 'name' => 'actions','links' => [
+                ['href' => 'students.edit', 'text' => 'Settings', 'icon' => 'fas fa-cog'],
+                ['href' => 'students.show', 'text' => 'View', 'icon' => 'fas fa-eye',],
+            ]],
+            ['type' => 'delete', 'name' => 'Delete', 'action' => 'students.destroy']
+         ]
+        "/>
+        <h1 class="text-center text-xl md:text-3xl font-bold">Subjects in class</h1>
+        <livewire:datatable :model="App\Models\Subject::class" uniqueId="subjects-list-table" :filters="[['name' => 'where' , 'arguments' => ['my_class_id' , $class->id]]]" :columns="
+            [
+            ['property' => 'name'] , 
+            ['method' => 'count' , 'name' => 'No of teachers', 'relation' => 'teachers'] , 
+            ['type' => 'dropdown', 'name' => 'actions','links' => [
+                ['href' => 'subjects.edit', 'text' => 'Settings', 'icon' => 'fas fa-cog'],
+                ['href' => 'subjects.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
+            ]],
+            ['type' => 'delete', 'name' => 'Delete', 'action' => 'subjects.destroy']
+         ]
+        "/>
+    </div>
+</div>

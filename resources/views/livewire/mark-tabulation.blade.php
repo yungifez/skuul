@@ -1,40 +1,37 @@
 <div>
-    <p>Total obtainable marks in each subject: {{$totalMarksAttainableInEachSubject}}</p>
-    <p>Total Marks across all subjects: {{$totalMarksAttainableInEachSubject * $subjects->count()}}</p>
+    <h3 class="text-center font-bold text-xl capitalize">{{$title ?? ''}}</h3>
+    <div class="md:flex justify-evenly my-4">
+        <p>Total obtainable marks in each subject: {{$totalMarksAttainableInEachSubject}}</p>
+        <p>Total Marks across all subjects: {{$totalMarksAttainableInEachSubject * $subjects->count()}}</p>
+    </div>
     @php
         $heads = $subjects->pluck('name');
     @endphp
     {{--foreach displaus records in order of class positions--}}
-    <div class="table-responsive">
-        <style>
-            #mark-tabulation tr td,  #mark-tabulation tr th {
-                vertical-align: middle;
-                text-align: center;
-            }
-        </style>
-        <table class="table table-bordered table-striped" id="mark-tabulation">
-            <thead class="thead-dark">
-                <th>Class Position</th>
-                <th>Name</th>
-                <th>Admission Number</th>
+    <div class="overflow-scroll beautify-scrollbar text-center">
+        <table class="w-full" id="mark-tabulation">
+            <thead class="">
+                <th class="border p-4">Class Position</th>
+                <th class="border p-4">Name</th>
+                <th class="border p-4">Admission Number</th>
                 @foreach ($heads as $head)
-                    <th class="hide-on-print">{{$head}}</th>   
+                    <th class="hide-on-print border p-4">{{$head}}</th>   
                 @endforeach
-                <th>Total Marks</th>
-                <th>Percentage (%)</th>
-                <th>Grade</th>
+                <th class="border p-4">Total Marks</th>
+                <th class="border p-4">Percentage (%)</th>
+                <th class="border p-4">Grade</th>
             </thead>
              @foreach ($tabulatedRecords->sortByDesc('total') as $tabulatedRecord)
             <tr>
-                <td>{{$loop->iteration}}</td>
-                <td>{{$tabulatedRecord['student_name']}}</td>
-                <td>{{$tabulatedRecord['admission_number']}}</td>
+                <td class="border p-4">{{$loop->iteration}}</td>
+                <td class="border p-4">{{$tabulatedRecord['student_name']}}</td>
+                <td class="border p-4">{{$tabulatedRecord['admission_number']}}</td>
                 @foreach ($tabulatedRecord['student_marks'] as $item)
-                    <td class="hide-on-print">{{$item}}</td>
+                    <td class="hide-on-print border p-4">{{$item}}</td>
                 @endforeach
-                <td>{{$tabulatedRecord['total']}}</td>
-                <td>{{$tabulatedRecord['percent']}}</td>
-                <td>{{$tabulatedRecord['grade']}}</td>
+                <td class="border p-4">{{$tabulatedRecord['total']}}</td>
+                <td class="border p-4">{{$tabulatedRecord['percent']}}</td>
+                <td class="border p-4">{{$tabulatedRecord['grade']}}</td>
             </tr>
             @endforeach
         </table>

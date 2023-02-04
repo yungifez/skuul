@@ -1,25 +1,14 @@
-@extends('adminlte::page')
+@extends('layouts.app', ['breadcrumbs' => [
+    ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
+    ['href'=> route('academic-years.index'), 'text'=> 'Academic years' , 'active']
+]])
 
 @section('title', __('Academic years'))
 
-@section('content_header')
-    <h1 class="">
-        {{ __('Academic years') }}
-    </h1>
+@section('page_heading',  __('Academic years'))
 
-    @livewire('show-set-school')
-    
-    @livewire('breadcrumbs', ['paths' => [
-        ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-        ['href'=> route('academic-years.index'), 'text'=> 'Academic years' , 'active']
-    ]])
-@endsection
-
-@section('content')
-
-    @livewire('academic-year-set')
+@section('content', )
+    @livewire('set-academic-year')
 
     @livewire('list-academic-years-table')
-
-    @livewire('display-status')
 @endsection

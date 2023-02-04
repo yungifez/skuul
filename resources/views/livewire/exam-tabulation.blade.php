@@ -3,45 +3,40 @@
         <h4 class="card-title">Exam tabulation</h4>
     </div>
     <div class="card-body">
-        @livewire('display-validation-error')
+        <x-display-validation-errors/>
         {{-- loading spinner --}}
-        <div class="d-flex justify-content-center">
-            <div wire:loading class="spinner-border" role="status">
-                <p class="sr-only">Loading.....</p>
-            </div>
-        </div>
+        <x-loading-spinner/>
         {{-- form for selecting class and section to display --}}
-        <form wire:submit.prevent="tabulate('{{$exam}}','{{$class}}' ,'{{$section}}')" class="d-md-flex my-3">
-            <div class="d-md-flex col-md-10 px-0">
-                <x-adminlte-select name="exam_id" label="Select exam"  fgroup-class="col-md-4" enable-old-support wire:model="exam">
+        <form wire:submit.prevent="tabulate('{{$exam}}','{{$class}}' ,'{{$section}}')" class="md:grid grid-cols-3 gap-4">
+                <x-select id="exam" name="exam_id" label="Select exam" wire:model="exam">
                     @foreach ($exams as $item)
                         <option value="{{$item['id']}}">{{$item['name']}}</option>
                     @endforeach
-                </x-adminlte-select>
-                <x-adminlte-select name="class" label="Select class"  fgroup-class="col-md-4" enable-old-support wire:model="class">
+                </x-select>
+                <x-select id="class" name="class" label="Select class" wire:model="class">
                     @foreach ($classes as $item)
                         <option value="{{$item['id']}}">{{$item['name']}}</option>
                     @endforeach
-                </x-adminlte-select>
-                <x-adminlte-select name="section" label="Section" fgroup-class="col-md-4" wire:model="section">
+                </x-select>
+                <x-select id="section" name="section" label="Section" wire:model="section">
                     @isset($sections)
                         <option value="null">Entire Class</option>
                         @foreach ($sections as $item)
                             <option value="{{$item['id']}}">{{$item['name']}}</option>
                         @endforeach
                     @endisset
-                </x-adminlte-select>
-            </div>
-            <div class='col-md-2 h-inherit mt-auto mb-auto'>
-                <x-adminlte-button label="View records" theme="primary" type="submit" class="col-md-12"/>
-            </div>
+                </x-select>
+
+            <x-button label="View records" theme="primary" type="submit" class="col-md-12"/>
         </form>
         {{-- table to display tabulation --}}
-        @isset($subjects)
-            @livewire('mark-tabulation', ['tabulatedRecords' => $tabulatedRecords, 'totalMarksAttainableInEachSubject' => $totalMarksAttainableInEachSubject, 'subjects' => $subjects] ,key(str()->random()))
+        @if($tabulatedRecords && $createdTabulation == true)
+            @livewire('mark-tabulation', ['tabulatedRecords' => $tabulatedRecords, 'totalMarksAttainableInEachSubject' => $totalMarksAttainableInEachSubject, 'subjects' => $subjects, 'title' => $title] ,key(str()->random()))
             <div class='col-12 my-2'>
-                <x-adminlte-button label="Print" theme="primary" icon="fas fa-download" wire:click="$emit('print')" class="col-md-3"/>
+                <x-button label="Print" theme="primary" icon="fas fa-download" wire:click="$emit('print')" class="col-md-3"/>
             </div>
+        @elseif (isset($error))
+            Something went wrong, {{$error}}.
         @endisset
     </div>
 </div>

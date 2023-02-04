@@ -3,20 +3,18 @@
         <h3 class="card-title">Edit subject {{$subject->name}}</h3>
     </div>
     <div class="card-body">
-        <form action="{{route('subjects.update', $subject->id)}}" method="POST">  
-            @livewire('display-validation-error')
-            <x-adminlte-input name="name" label="Subject Name" placeholder="Enter subject name" fgroup-class="col-md-6" value="{{$subject->name}}"/>
-            <x-adminlte-input name="short_name" label="Subject Short Name" placeholder="Enter subject short name" fgroup-class="col-md-6" value="{{$subject->short_name}}"/>
-            <x-adminlte-select2 id="teacher_id" name="teachers[]" label="Add teachers to class" :config='["placeholder" => "You can select multiple teachers...","allowClear" => true]' fgroup-class="col-md-6" enable-old-support multiple>
+        <form action="{{route('subjects.update', $subject->id)}}" method="POST" class="md:w-6/12">  
+        <x-display-validation-errors/>
+            <x-input id="name" name="name" label="Subject Name" placeholder="Enter subject name" value="{{$subject->name}}"/>
+            <x-input id="short-name" name="short_name" label="Subject Short Name" placeholder="Enter subject short name" value="{{$subject->short_name}}"/>
+            <x-select id="select" name="teachers[]" multiple label="Select Teachers" placeholder="Select teachers.....">
                 @foreach ($teachers as $teacher)
-                    <option value="{{$teacher->id}}" {{in_array($teacher->id,$assignedTeachersId) ? 'selected' : ''}}>{{$teacher->name}}</option>
+                    <option value="{{$teacher->id}}" @selected(in_array($teacher->id, $assignedTeachersId))>{{$teacher->name}}</option>
                 @endforeach
-            </x-adminlte-select2>
+            </x-select>
             @csrf
             @method('PUT')
-            {{--select2 picker plugin--}}
-            @section('plugins.Select2', true)
-            <x-adminlte-button label="Edit" theme="primary" icon="fas fa-key" type="submit"/>
+            <x-button label="Edit" icon="fas fa-key" type="submit" class="w-full md:w-1/2"/>
         </form>
     </div>
 </div>

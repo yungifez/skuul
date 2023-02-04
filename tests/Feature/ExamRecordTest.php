@@ -29,23 +29,6 @@ class ExamRecordTest extends TestCase
              ->assertSuccessful();
     }
 
-    //test unauthorized user cannot view create exam record
-
-    public function test_unauthorized_user_cant_view_create_exam_record()
-    {
-        $this->unauthorized_user()
-             ->get('/dashboard/exams/exam-records/create')
-             ->assertForbidden();
-    }
-    //test authorized user can view create exam record
-
-    public function test_user_can_view_create_exam_record()
-    {
-        $this->authorized_user(['create exam record'])
-             ->get('/dashboard/exams/exam-records/create')
-             ->assertOk();
-    }
-
     // test unauthorized user cannot create exam record
 
     public function test_unauthorized_user_cant_create_exam_record()

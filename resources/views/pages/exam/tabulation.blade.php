@@ -1,25 +1,12 @@
-@extends('adminlte::page')
+@extends('layouts.app', ['breadcrumbs' => [
+    ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
+    ['href'=> route('exams.index'), 'text'=> 'exams'],
+    ['href'=> route('exams.tabulation'), 'text'=> 'Exam tabulation', 'active'],]])
 
-@section('title', __('Exam tabulation'))
+@section('title',   __('Exam tabulation'))
 
+@section('page_heading',    __('Exam tabulation'))
 
-@section('content_header')
-    <h1 class=""> 
-        {{ __('Exam tabulation') }}
-    </h1>
-
-    @livewire('show-set-school')
-    
-    @livewire('breadcrumbs', ['paths' => [
-        ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-        ['href'=> route('exams.index'), 'text'=> 'exams'],
-        ['href'=> route('exams.tabulation'), 'text'=> 'Exam tabulation', 'active'],
-    ]])
-
-@stop
-
-@section('content') 
+@section('content', )
     @livewire('exam-tabulation')
-
-    @livewire('display-status')
-@stop
+@endsection

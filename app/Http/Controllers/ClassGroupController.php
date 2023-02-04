@@ -55,7 +55,7 @@ class ClassGroupController extends Controller
         $data = $request->except('_token');
         $this->myClassService->createClassGroup($data);
 
-        return redirect()->back();
+        return redirect()->back()->with('success', 'Class Group Created Successfully');
     }
 
     /**

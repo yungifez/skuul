@@ -46,12 +46,12 @@ class Exam extends Model
     //accessor for start date
     public function getStartDateAttribute($value)
     {
-        return Carbon::parse($value)->format('Y/m/d');
+        return Carbon::parse($value)->format('Y-m-d');
     }
 
     //accessor for stop date
     public function getStopDateAttribute($value)
     {
-        return Carbon::parse($value)->format('Y/m/d');
+        return Carbon::parse($value)->format('Y-m-d');
     }
 }

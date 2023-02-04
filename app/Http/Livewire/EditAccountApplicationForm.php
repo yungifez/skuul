@@ -3,7 +3,6 @@
 namespace App\Http\Livewire;
 
 use App\Models\User;
-use App\Services\School\SchoolService;
 use Livewire\Component;
 use Spatie\Permission\Models\Role;
 
@@ -12,7 +11,7 @@ class EditAccountApplicationForm extends Component
     public User $applicant;
     public $roles;
 
-    public function mount(SchoolService $schoolService)
+    public function mount()
     {
         $this->roles = Role::whereIn('name', ['teacher', 'student', 'parent'])->get();
     }

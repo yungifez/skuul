@@ -3,26 +3,16 @@
         <h4 class="card-title">Promotion list</h4>
     </div>
     <div class="card-body">
-        @livewire('help-button', ['target_id' => 'promotion-help-text', 'text' => "Reset button returns all students back to original class, make sure to verify all students promotion are to be reset before undergoing this action"])
-        <x-adminlte-datatable id="promotion-list-table" :heads="['S/N', 'From class','From Section','To class','To section', 'No of students','', '']" class='text-capitalize' bordered striped head-theme="dark" beautify>
-            @foreach($promotions as $promotion)
-                <tr>
-                    <td>{{$loop->iteration}}</td>
-                <td>{{ $promotion->oldClass->name}}</td>
-                    <td>{{ $promotion->oldSection->name}}</td>
-                    <td>{{$promotion->newClass->name}}</td>
-                    <td>{{$promotion->newSection->name}}</td>
-                <td>{{collect($promotion->students)->count()}}</td>
-                    <td>@livewire('dropdown-links', [
-                        'links' => [
-                        ['href' => route("students.promotions.show", $promotion->id), 'text' => 'View promoted students', 'icon' => 'fas fa-eye'],
-                        ],
-                    ],)</td>
-                    <td>
-                        @livewire('delete-modal', ['modal_id' => $promotion->id ,"action" => route('students.promotions.reset', $promotion->id), 'delete_message' => "This promotion would be reset and all students returned back to original class", 'button_label' => "Reset"])
-                    </td>
-                </tr>
-            @endforeach
-        </x-adminlte-datatable>
+        <livewire:datatable :model="App\Models\Promotion::Class" :filters="[['name' => 'where' , 'arguments' => ['academic_year_id', $academicYear->id]], ['name' => 'with' , 'arguments' => ['oldClass','newClass', 'oldSection', 'newSection']]]" :columns="[
+                ['property' => 'name', 'name' => 'Old Class' ,'relation' => 'oldClass'] , 
+                ['property' => 'name', 'name' => 'New Class' ,'relation' => 'newClass'] , 
+                ['property' => 'name', 'name' => 'Old Section' ,'relation' => 'oldSection'] , 
+                ['property' => 'name', 'name' => 'New Section' ,'relation' => 'newSection'] , 
+                ['method' => 'count', 'name' => 'New Section' ,'relation' => 'students'] , 
+                ['type' => 'dropdown', 'name' => 'actions','links' => [
+                    ['href' => 'students.promotions.show', 'text' => 'View Promoted Students', 'icon' => 'fas fa-eye',],
+                ]],
+                ['type' => 'delete', 'name' => 'Delete', 'action' => 'students.promotions.reset',]
+            ]"/>
     </div>
 </div>

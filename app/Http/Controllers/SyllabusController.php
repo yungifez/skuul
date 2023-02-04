@@ -59,7 +59,7 @@ class SyllabusController extends Controller
      */
     public function show(Syllabus $syllabus)
     {
-        abort(404);
+        return view('pages.syllabus.show', compact('syllabus'));
     }
 
     /**

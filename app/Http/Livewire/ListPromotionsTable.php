@@ -3,22 +3,20 @@
 namespace App\Http\Livewire;
 
 use App\Services\AcademicYear\AcademicYearService;
-use App\Services\Student\StudentService;
 use Livewire\Component;
 
 class ListPromotionsTable extends Component
 {
     public $academicYear;
-    public $promotions;
 
-    public function mount(StudentService $studentService, AcademicYearService $academicYearService)
+    public function mount(AcademicYearService $academicYearService)
     {
         if (!$this->academicYear) {
             $this->academicYear = auth()->user()->school->load('academicYear')->academicYear->first();
         } else {
             $this->academicYear = $academicYearService->getAcademicYearById($this->academicYear);
         }
-        $this->promotions = $studentService->getPromotionsByAcademicYearId($this->academicYear->id)->load('oldClass', 'oldSection', 'newClass', 'newSection');
+        // $this->promotions = $studentService->getPromotionsByAcademicYearId($this->academicYear->id)->load('oldClass', 'oldSection', 'newClass', 'newSection');
     }
 
     public function render()

@@ -1,46 +1,18 @@
-@livewire('show-user-profile', ['user' => $student])
-<div class="card">
+<div>
+    <livewire:show-user-profile :user="$student" />
 
-    <div class="container card-body">
-        <div class="row my-2">
-            <h4 class="text-center col-12">Student information</h4>
-            <table class="table col-12 table-bordered">
-                @php
-                    $studentRecord = $student->studentRecord()->withoutGlobalScopes()->first()
-                @endphp
-                <tbody class="">
-                    <tr>
-                        <th scope="row">
-                           @if ($studentRecord->is_graduated == true)
-                               Graduated From
-                           @endif Class:</th>
-                        <td>{{$studentRecord->myClass->name}}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">
-                            @if ($studentRecord->is_graduated == true)
-                               Graduated From
-                            @endif Section:</th>
-                        <td>{{$studentRecord->section->name}}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Admission no:</th>
-                        <td>{{$studentRecord->admission_number}}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Admission Date:</th>
-                        <td>{{$studentRecord->admission_date}}</td>
-                    </tr>
-                    <tr>
-                        <th scope="row">Graduated:</th>
-                        @if ($studentRecord->is_graduated == 0)
-                            <td>False</td>
-                        @else
-                            <td>True</td>
-                        @endif
-                    </tr>
-                </tbody>
-            </table>
+    <div class="card">
+        <div class="card-body">
+            <div class="w-full md:w-8/12 m-auto">
+                <h4 class="text text-xl m-2">Student information</h4>
+                <x-show-table :body="[
+                    ['Class ' .($studentRecord->is_graduated == 1 ?  'Graduated from' : '') , $studentRecord->myClass?->name],
+                    ['Section '.($studentRecord->is_graduated == 1 ?  'Graduated from' : '') , $studentRecord->section?->name],
+                    ['Admission Number' , $studentRecord->admission_number],
+                    ['Admission Date' , $studentRecord->admission_date],
+                    ['Graduated' , $studentRecord->is_graduated  ? 'Graduated' : 'Not Graduated'],
+                ]"/>
+            </div>
         </div>
     </div>
 </div>

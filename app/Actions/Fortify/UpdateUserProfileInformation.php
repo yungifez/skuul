@@ -32,7 +32,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'city'        => ['required', 'string', 'max:255'],
             'gender'      => ['required', 'string', 'max:255'],
             'phone'       => ['nullable', 'string', 'max:255'],
-        ])->validateWithBag('updateProfileInformation');
+        ])->validate();
 
         if (isset($input['photo'])) {
             $user->updateProfilePhoto($input['photo']);

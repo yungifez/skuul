@@ -43,8 +43,6 @@ class AccountApplicationService
 
             if ($status != 'rejected') {
                 return true;
-            } else {
-                return false;
             }
         });
     }

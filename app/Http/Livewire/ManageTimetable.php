@@ -39,11 +39,6 @@ class ManageTimetable extends Component
         $this->weekday = $records['weekday']['id'];
     }
 
-    public function updatedTimeSlot()
-    {
-        //
-    }
-
     public function render()
     {
         return view('livewire.manage-timetable');

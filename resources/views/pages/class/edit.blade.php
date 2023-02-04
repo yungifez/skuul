@@ -1,24 +1,12 @@
-@extends('adminlte::page')
-
-@section('title', __('Classes'))
-
-@section('content_header')
-    <h1 class="">
-        {{ __('Classes') }}
-    </h1>
-
-    @livewire('show-set-school')
-    
-    @livewire('breadcrumbs', ['paths' => [
+@extends('layouts.app', ['breadcrumbs' => [
         ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
         ['href'=> route('classes.index'), 'text'=> 'Classes' ],
-        ['href'=> route('classes.edit', $myClass->id), 'text'=> 'Edit' ]
-    ]])
-@endsection
+        ['href'=> route('classes.edit', $myClass->id), 'text'=> "Edit $myClass->name" ]
+]])
+@section('title', __("Edit class $myClass->name"))
+
+@section('page_heading',  __("Edit class $myClass->name "))
 
 @section('content')
-
     @livewire('edit-class-form', ['myClass' => $myClass])
-
-    @livewire('display-status')
 @endsection

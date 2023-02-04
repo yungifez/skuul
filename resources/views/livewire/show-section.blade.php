@@ -1,13 +1,24 @@
-<x-adminlte-card title="{{$section->name}}" theme="primary" icon="fas fa-lg fa-star">
-    <div>
-        <h4 class="text-center text-semibold">Student list</h4> 
-        <ol>
-            @foreach ($students->sortBy('name') as $student)
-                <li>
-                    <a href="{{route('students.show', $student)}}">{{$student->name}}</a>
-                </li>
-            @endforeach
-        </ol>
-        <p>Contains {{$students->count()}} {{Str::plural('student', $students->count())}}</p>
+<div class="card">
+    <div class="card-header">
+        <h2 class="card-title">{{$section->name}}</h2>
     </div>
-</x-adminlte-card>
+    <div class="card-body">
+        <h1 class="text-center text-xl md:text-3xl font-bold">Students in section</h1>
+        <livewire:datatable :model="App\Models\User::class" uniqueId="students-list-table" 
+        :filters="[
+            ['name' => 'where' , 'arguments' => ['school_id' , auth()->user()->school_id]], 
+            ['name' => 'whereRelation' , 'arguments' => ['studentRecord','section_id' , $section->id]],
+        ]"
+        :columns="
+            [
+            ['property' => 'name', ] , 
+            ['property' => 'email', ] , 
+            ['type' => 'dropdown', 'name' => 'actions','links' => [
+                ['href' => 'students.edit', 'text' => 'Settings', 'icon' => 'fas fa-cog', ],
+                ['href' => 'students.show', 'text' => 'View', 'icon' => 'fas fa-eye',  ],
+            ]],
+            ['type' => 'delete', 'name' => 'Delete', 'action' => 'students.destroy',  ]
+         ]
+        "/>
+    </div>
+</div>

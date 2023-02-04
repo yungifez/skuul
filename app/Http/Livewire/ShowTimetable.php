@@ -12,6 +12,8 @@ class ShowTimetable extends Component
 {
     public Timetable $timetable;
     public $weekDays;
+    public $timeSlots;
+    public $weekdays;
     public $subjects;
     public $customItems;
     public bool $disableEmitCellInformationDetail = true;
