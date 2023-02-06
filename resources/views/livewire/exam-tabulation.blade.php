@@ -27,13 +27,13 @@
                     @endisset
                 </x-select>
 
-            <x-button label="View records" theme="primary" type="submit" class="col-md-12"/>
+            <x-button label="View records" theme="primary" type="submit" class="w-full md:w-3/12"/>
         </form>
         {{-- table to display tabulation --}}
         @if($tabulatedRecords && $createdTabulation == true)
             @livewire('mark-tabulation', ['tabulatedRecords' => $tabulatedRecords, 'totalMarksAttainableInEachSubject' => $totalMarksAttainableInEachSubject, 'subjects' => $subjects, 'title' => $title] ,key(str()->random()))
             <div class='col-12 my-2'>
-                <x-button label="Print" theme="primary" icon="fas fa-download" wire:click="$emit('print')" class="col-md-3"/>
+                <x-button label="Print" theme="primary" icon="fas fa-download" wire:click="$emit('print')" class="w-full md:w-3/12"/>
             </div>
         @elseif (isset($error))
             Something went wrong, {{$error}}.
