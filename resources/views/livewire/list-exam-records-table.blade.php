@@ -81,7 +81,7 @@
                                     @endforeach
                                     @can('update exam record', )
                                         <td class="border whitespace-nowrap p-4">
-                                            <x-modal title="Exam Records For {{$student->name}}" background-colour="bg-blue-600" button-text="Manage Marks" size="lg">
+                                            <x-modal title="Exam Records For {{$student->name}}" background-colour="bg-blue-600" button-text="Manage Marks" size="lg" :wire:key="Str::Random(10)">
                                                 <form action="{{route('exam-records.store')}}" method="POST" class="overflow-y-scroll w-full p-4 text-left">
                                                     @foreach ($examSlots as $examSlot)
                                                         @php 
