@@ -58,7 +58,7 @@
         @if ($preparedResults == true)
             @isset($exams)
                 @foreach ($exams as $exam)
-                <h3 class="text-xl font-bold text-center my-2">{{$studentName}}'s result in {{$exam->name}}</h3>
+                <h3 class="md:text-xl font-bold text-center my-2">{{$studentName}}'s result in {{$exam->name}}</h3>
                     @if (!$exam->examSlots  ->isEmpty())
                         <div class="overflow-scroll beautify-scrollbar">
                             <table class="w-full " style="white-space: nowrap">
