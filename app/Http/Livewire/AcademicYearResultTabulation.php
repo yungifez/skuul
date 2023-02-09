@@ -4,10 +4,10 @@ namespace App\Http\Livewire;
 
 use App\Models\MyClass;
 use App\Models\Section;
-use Livewire\Component;
-use Barryvdh\DomPDF\Facade\Pdf;
-use App\Traits\MarkTabulationTrait;
 use App\Services\MyClass\MyClassService;
+use App\Traits\MarkTabulationTrait;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Livewire\Component;
 
 class AcademicYearResultTabulation extends Component
 {
@@ -24,7 +24,7 @@ class AcademicYearResultTabulation extends Component
 
     protected $listeners = ['print'];
 
-    public function mount( MyClassService $myClassService)
+    public function mount(MyClassService $myClassService)
     {
         //get semester and use it to fetch all exams in semester
         $this->academicYear = auth()->user()->school->academicYear;
@@ -84,8 +84,8 @@ class AcademicYearResultTabulation extends Component
         $this->title = "Exam Marks For $titleFor in academic year ".auth()->user()->school->academicYear->name;
 
         $examSlots = collect();
-        $this->academicYear->load('semesters')->semesters->each(function($semester) use(&$examSlots){
-           return $examSlots = $examSlots->merge($semester->load('examSlots')->examSlots);
+        $this->academicYear->load('semesters')->semesters->each(function ($semester) use (&$examSlots) {
+            return $examSlots = $examSlots->merge($semester->load('examSlots')->examSlots);
         });
 
         $this->tabulatedRecords = $this->tabulateMarks($classGroup, $subjects, $students, $examSlots);
@@ -105,6 +105,7 @@ class AcademicYearResultTabulation extends Component
             'result-tabiulation.pdf'
         );
     }
+
     public function render()
     {
         return view('livewire.academic-year-result-tabulation');

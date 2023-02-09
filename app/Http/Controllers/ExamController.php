@@ -130,7 +130,7 @@ class ExamController extends Controller
         return view('pages.exam.semester-result-tabulation');
     }
 
-     /**
+    /**
      * Tabulation for academic year results.
      */
     public function academicYearResultTabulation()
