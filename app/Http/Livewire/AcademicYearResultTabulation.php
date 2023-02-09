@@ -5,12 +5,11 @@ namespace App\Http\Livewire;
 use App\Models\MyClass;
 use App\Models\Section;
 use App\Services\MyClass\MyClassService;
-use App\Services\Section\SectionService;
 use App\Traits\MarkTabulationTrait;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Livewire\Component;
 
-class ResultTabulation extends Component
+class AcademicYearResultTabulation extends Component
 {
     use MarkTabulationTrait;
 
@@ -18,17 +17,17 @@ class ResultTabulation extends Component
     public $sections;
     public $classes;
     public $class;
-    public $semester;
+    public $academicYear;
     public $tabulatedRecords;
     public $createdTabulation;
     public $title;
 
     protected $listeners = ['print'];
 
-    public function mount(SectionService $sectionService, MyClassService $myClassService)
+    public function mount(MyClassService $myClassService)
     {
         //get semester and use it to fetch all exams in semester
-        $this->semester = auth()->user()->school->semester;
+        $this->academicYear = auth()->user()->school->academicYear;
         $this->classes = $myClassService->getAllClasses();
 
         //sets subjects etc if class isn't empty
@@ -82,9 +81,12 @@ class ResultTabulation extends Component
             return;
         }
 
-        $this->title = "Exam Marks For $titleFor in whole semester ".auth()->user()->school->semester->name.' in academic year '.auth()->user()->school->academicYear->name;
+        $this->title = "Exam Marks For $titleFor in academic year ".auth()->user()->school->academicYear->name;
 
-        $examSlots = $this->semester->load('examSlots')->examSlots;
+        $examSlots = collect();
+        $this->academicYear->load('semesters')->semesters->each(function ($semester) use (&$examSlots) {
+            return $examSlots = $examSlots->merge($semester->load('examSlots')->examSlots);
+        });
 
         $this->tabulatedRecords = $this->tabulateMarks($classGroup, $subjects, $students, $examSlots);
 
@@ -106,6 +108,6 @@ class ResultTabulation extends Component
 
     public function render()
     {
-        return view('livewire.result-tabulation');
+        return view('livewire.academic-year-result-tabulation');
     }
 }

@@ -1,7 +1,7 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
     ['href'=> route('exams.index'), 'text'=> 'Exams'],
-    ['href'=> route('exam-slots.index' ,$exam->id), 'text'=> 'Exam slots', 'active'],
+    ['href'=> route('exam-slots.index' ,$exam->id), 'text'=> 'Exam slots'],
     ['href'=> route('exam-slots.create',$exam->id), 'text'=> 'Create', 'active'],
 ]])
 

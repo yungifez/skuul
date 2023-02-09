@@ -75,7 +75,7 @@ class GradeSystemService
     {
         $gradesInDb = $this->getAllGradesInClassGroup($records['class_group_id'])->except($grade->id);
 
-        if ($gradesInDb = $this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_till' => $records['grade_till']], $gradesInDb)) {
+        if ($this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_till' => $records['grade_till']], $gradesInDb)) {
             throw new DuplicateRangeException('Grade range is in another range in class group');
         }
 

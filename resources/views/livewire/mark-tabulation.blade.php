@@ -1,8 +1,8 @@
-<div>
-    <h3 class="text-center font-bold text-xl capitalize">{{$title ?? ''}}</h3>
-    <div class="md:flex justify-evenly my-4">
+<div class="my-3">
+    <h3 class="text-center font-bold md:text-xl capitalize">{{$title ?? ''}}</h3>
+    <div class="md:flex justify-evenly my-4 text-xs md:text-base">
         <p>Total obtainable marks in each subject: {{$totalMarksAttainableInEachSubject}}</p>
-        <p>Total Marks across all subjects: {{$totalMarksAttainableInEachSubject * $subjects->count()}}</p>
+        <p>Total Marks attainable across all subjects: {{$totalMarksAttainableInEachSubject * $subjects->count()}}</p>
     </div>
     @php
         $heads = $subjects->pluck('name');

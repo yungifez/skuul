@@ -37,7 +37,7 @@ class CreateNewUser implements CreatesNewUsers
             'state'       => ['required', 'string', 'max:255'],
             'city'        => ['required', 'string', 'max:255'],
             'gender'      => ['required', 'string', 'max:255'],
-            'phone'       => ['string', 'max:255'],
+            'phone'       => ['nullable', 'string', 'max:255'],
         ])->validate();
 
         $user = User::create([

@@ -1,6 +1,6 @@
 <div class="card">
     <div class="card-header">
-        <h4 class="card-title">Result tabulation</h4>
+        <h4 class="card-title">Academic Year Result Tabulation</h4>
     </div>
     <div class="card-body">
         <x-display-validation-errors/>
@@ -23,12 +23,12 @@
                     @endisset
                 </x-select>
             </div>
-            <x-button label="View records" theme="primary" type="submit" class="w-3/12"/>
+            <x-button label="View records" theme="primary" type="submit" class="w-full md:w-3/12"/>
         </form>
         {{-- table to display tabulation --}}
         @if ($createdTabulation === true)
             @livewire('mark-tabulation', ['tabulatedRecords' => $tabulatedRecords, 'totalMarksAttainableInEachSubject' => $totalMarksAttainableInEachSubject, 'subjects' => $subjects, 'title' => $title ?? ''],key(str()->random()))
-                <x-button label="Print" theme="primary" icon="fas fa-download" wire:click="$emit('print')" class="col-md-3" />
+                <x-button label="Print" theme="primary" icon="fas fa-download" wire:click="$emit('print')" class="w-full md:w-3/12" />
         @elseif($createdTabulation === false)
             <p>Something went wrong. Make sure there are subjects in this class</p>
         @endisset
