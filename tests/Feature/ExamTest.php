@@ -196,14 +196,14 @@ class ExamTest extends TestCase
             ->assertSuccessful();
     }
 
-      //test authorized user can view exam tabulation
+    //test authorized user can view exam tabulation
 
-      public function test_authorized_user_can_view_academic_year_result_tabulation()
-      {
-          $this->authorized_user(['read exam'])
+    public function test_authorized_user_can_view_academic_year_result_tabulation()
+    {
+        $this->authorized_user(['read exam'])
               ->get('dashboard/exams/academic-year-result-tabulation')
               ->assertSuccessful();
-      }
+    }
 
     //test authorized user can view exam tabulation
 

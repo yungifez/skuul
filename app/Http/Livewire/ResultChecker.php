@@ -2,11 +2,11 @@
 
 namespace App\Http\Livewire;
 
-use App\Models\User;
-use Livewire\Component;
-use App\Models\Semester;
 use App\Models\AcademicYear;
+use App\Models\Semester;
+use App\Models\User;
 use App\Services\MyClass\MyClassService;
+use Livewire\Component;
 
 class ResultChecker extends Component
 {
@@ -114,11 +114,11 @@ class ResultChecker extends Component
         $this->studentName = $student->name;
         // fetch all exams, subjects and exam records for user in semester
 
-        if($semester != null && $semester->exists()){
+        if ($semester != null && $semester->exists()) {
             $this->exams = $semester->exams()->where('publish_result', true)->get()->load('examSlots');
             //fetch all students exam records in semester
             $this->examRecords = app("App\Services\Exam\ExamRecordService")->getAllUserExamRecordInSemester($semester, $student->id);
-        }else{
+        } else {
             $this->exams = $academicYear->exams()->where('publish_result', true)->get()->load('examSlots');
             $this->examRecords = app("App\Services\Exam\ExamRecordService")->getAllUserExamRecordInAcademicYear($academicYear, $student->id);
         }
