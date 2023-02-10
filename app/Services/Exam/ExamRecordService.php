@@ -2,14 +2,14 @@
 
 namespace App\Services\Exam;
 
-use App\Models\Exam;
-use App\Models\Semester;
-use App\Models\ExamRecord;
-use App\Models\AcademicYear;
-use Illuminate\Support\Facades\DB;
-use App\Services\Subject\SubjectService;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicYear;
+use App\Models\Exam;
+use App\Models\ExamRecord;
+use App\Models\Semester;
+use App\Services\Subject\SubjectService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\DB;
 
 class ExamRecordService
 {
@@ -130,18 +130,19 @@ class ExamRecordService
         $exams = $semester->exams->load('examSlots');
 
         $examSlots = $this->getAllExamSlotsInExams($exams);
-       
+
         //get all exam records in for user and subject
         return ExamRecord::where(['user_id' => $user])->whereIn('exam_slot_id', $examSlots)->get();
     }
 
     /**
-     * Get all exam slots in exam
+     * Get all exam slots in exam.
      *
      * @param $exams
+     *
      * @return void
      */
-    public function getAllExamSlotsInExams( $exams)
+    public function getAllExamSlotsInExams($exams)
     {
         //create container variable for all exam slots in semster
         $examSlots = [];
