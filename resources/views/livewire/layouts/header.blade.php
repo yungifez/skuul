@@ -24,7 +24,7 @@
         <button class="h-full flex items-center gap-2"  @click="dropDownOpen = !dropDownOpen">
             <p class="sr-only">Open Profile Card</p>
             <div class="flex items-center h-full">
-                <img src="{{auth()->user()->defaultProfilePhotoUrl()}}" alt="" class="rounded-full w-10 h-10 border border-gray-200 shadow-md">
+                <img src="{{auth()->user()->profile_photo_url}}" alt="" class="rounded-full w-10 h-10 border border-gray-200 shadow-md">
                 <p class="hidden lg:block px-2"  >{{auth()->user()->name}}</p>
             </div>
             <i :class="{'transition-all' : true,'fas fa-angle-right' : dropDownOpen == false , 'fas fa-angle-down ' : dropDownOpen == true}" aria-hidden="true"></i>
