@@ -1,7 +1,7 @@
 <div>
     <x-loading-spinner/>
     <div class="flex flex-col md:flex-row gap-4 items-center">
-        <div class="flex gap-4 items-center">
+        <div class="flex gap-4 items-center overflow-scroll beautify-scrollbar">
             <label for="datatable-search-{{$uniqueId}}">Search</label>
             <input id="datatable-search-{{$uniqueId}}" type="search" wire:model.sebounce.500ms="search" class="border-gray-500 dark:bg-inherit border rounded px-4 py-1 md:py-2">
         </div>

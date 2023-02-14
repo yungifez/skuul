@@ -4,11 +4,6 @@
 
 @section('body')
     <x-partials.authentication-card>
-        @if (session('status'))
-            <x-alert colour="bg-green-500" title="Success" icon="fa fa-check" dismissOnTimeout="true" >
-                {{ session('status') }}
-            </x-alert>
-        @endif
         <x-display-validation-errors />
         <form action="{{route('password.email')}}" class="p-7 border-b" method="POST">
             <p class="text-gray-600">
