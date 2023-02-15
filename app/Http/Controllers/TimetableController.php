@@ -97,7 +97,7 @@ class TimetableController extends Controller
     }
 
     /**
-     * Manage Timetable
+     * Manage Timetable.
      */
     public function manage(Timetable $timetable): View
     {

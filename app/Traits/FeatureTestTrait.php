@@ -7,7 +7,7 @@ use App\Models\User;
 trait FeatureTestTrait
 {
     /**
-     * Create an unauthorized user
+     * Create an unauthorized user.
      */
     public function unauthorized_user(): object
     {
@@ -17,7 +17,7 @@ trait FeatureTestTrait
     }
 
     /**
-     * Create an authorized user
+     * Create an authorized user.
      */
     public function authorized_user(array $permission): object
     {

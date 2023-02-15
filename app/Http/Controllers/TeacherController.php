@@ -20,7 +20,7 @@ class TeacherController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index() : View
+    public function index(): View
     {
         $this->authorize('viewAny', [User::class, 'teacher']);
 
@@ -30,7 +30,7 @@ class TeacherController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create() : View
+    public function create(): View
     {
         $this->authorize('create', [User::class, 'teacher']);
 
@@ -39,9 +39,8 @@ class TeacherController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
      */
-    public function store(Request $request) : RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $this->authorize('create', [User::class, 'teacher']);
         $this->teacherService->createTeacher($request);
@@ -55,7 +54,7 @@ class TeacherController extends Controller
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function show(User $teacher) : View
+    public function show(User $teacher): View
     {
         $this->authorize('view', [$teacher, 'teacher']);
 
@@ -68,7 +67,7 @@ class TeacherController extends Controller
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function edit(User $teacher) : View
+    public function edit(User $teacher): View
     {
         $this->authorize('update', [$teacher, 'teacher']);
 
@@ -81,7 +80,7 @@ class TeacherController extends Controller
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function update(Request $request, User $teacher) : RedirectResponse
+    public function update(Request $request, User $teacher): RedirectResponse
     {
         $this->authorize('update', [$teacher, 'teacher']);
         $this->teacherService->updateTeacher($teacher, $request->except('_token', '_method'));
@@ -95,7 +94,7 @@ class TeacherController extends Controller
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function destroy(User $teacher) : RedirectResponse
+    public function destroy(User $teacher): RedirectResponse
     {
         $this->authorize('delete', [$teacher, 'teacher']);
         $this->teacherService->deleteTeacher($teacher);

@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use Illuminate\View\View;
-use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
-use App\Services\Parent\ParentService;
 use App\Http\Requests\AssignStudentRequest;
+use App\Models\User;
+use App\Services\Parent\ParentService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class ParentController extends Controller
 {
@@ -43,9 +43,8 @@ class ParentController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
      */
-    public function store(Request $request) : RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $this->authorize('create', [User::class, 'parent']);
         $this->parentService->createParent($request);
@@ -87,7 +86,7 @@ class ParentController extends Controller
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function update(Request $request, User $parent) : RedirectResponse
+    public function update(Request $request, User $parent): RedirectResponse
     {
         $this->authorize('update', [$parent, 'parent']);
         $this->parentService->user->verifyUserIsOfRoleElseNotFound($parent, 'parent');
@@ -102,7 +101,7 @@ class ParentController extends Controller
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function destroy(User $parent) : RedirectResponse
+    public function destroy(User $parent): RedirectResponse
     {
         $this->authorize('delete', [$parent, 'parent']);
         $this->parentService->user->verifyUserIsOfRoleElseNotFound($parent, 'parent');
@@ -123,9 +122,9 @@ class ParentController extends Controller
     }
 
     /**
-     *  Assign or deassign student to parent
+     *  Assign or deassign student to parent.
      */
-    public function assignStudent(AssignStudentRequest $request, User $parent)  : RedirectResponse
+    public function assignStudent(AssignStudentRequest $request, User $parent): RedirectResponse
     {
         $this->authorize('update', [$parent, 'parent']);
 

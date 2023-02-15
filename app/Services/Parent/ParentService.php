@@ -33,7 +33,8 @@ class ParentService
     /**
      * Create a new parent.
      *
-     * @param  collection  $record
+     * @param collection $record
+     *
      * @return User
      */
     public function createParent($record)
@@ -52,7 +53,8 @@ class ParentService
     /**
      * Update a parent.
      *
-     * @param  array|object|collection  $records
+     * @param array|object|collection $records
+     *
      * @return User
      */
     public function updateParent(User $parent, $records)
@@ -87,16 +89,16 @@ class ParentService
     /**
      * Add student as child of parent or remove student from parent.
      *
-     * @param  App\Models\Users  $parent
-     * 
+     * @param App\Models\Users $parent
+     *
      * @throws InvalidUserException
-     * 
+     *
      * @return void
      */
     public function assignStudentToParent(User $parent, int $student, bool $assign = true)
     {
         $student = $this->user->getUserById($student);
-        if (! $this->user->verifyRole($student->id, 'student')) {
+        if (!$this->user->verifyRole($student->id, 'student')) {
             throw new InvalidUserException('User is not a student', 1);
 
             return;

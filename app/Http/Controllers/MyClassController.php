@@ -73,7 +73,7 @@ class MyClassController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  MyClassStoreRequest  $request
+     * @param MyClassStoreRequest $request
      */
     public function update(MyClassUpdateRequest $request, MyClass $class): RedirectResponse
     {

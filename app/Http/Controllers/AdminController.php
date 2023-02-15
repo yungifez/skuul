@@ -23,6 +23,7 @@ class AdminController extends Controller
     public function index(): View
     {
         $this->authorize('viewAny', [User::class, 'admin']);
+
         return view('pages.admin.index');
     }
 
@@ -32,13 +33,14 @@ class AdminController extends Controller
     public function create(): View
     {
         $this->authorize('create', [User::class, 'admin']);
+
         return view('pages.admin.create');
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request) : RedirectResponse
+    public function store(Request $request): RedirectResponse
     {
         $this->authorize('create', [User::class, 'admin']);
         $this->admin->createAdmin($request);
@@ -75,7 +77,7 @@ class AdminController extends Controller
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function update(Request $request, User $admin) : RedirectResponse
+    public function update(Request $request, User $admin): RedirectResponse
     {
         $this->authorize('update', [$admin, 'admin']);
         $this->admin->updateAdmin($admin, $request->except('_token', '_method'));
@@ -88,7 +90,7 @@ class AdminController extends Controller
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
-    public function destroy(User $admin) : RedirectResponse
+    public function destroy(User $admin): RedirectResponse
     {
         $this->authorize('delete', [$admin, 'admin']);
         $this->admin->deleteAdmin($admin);
