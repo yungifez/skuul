@@ -17,15 +17,11 @@ class AccountStatusChanged
 
     /**
      * The applicant whose account application was updated.
-     *
-     * @var User
      */
     public User $applicant;
 
     /**
      * The new status.
-     *
-     * @var string
      */
     public string $status;
 
@@ -39,9 +35,7 @@ class AccountStatusChanged
     /**
      * Create a new event instance.
      *
-     * @param User   $applicant
-     * @param string $status
-     * @param string $reason
+     * @param  string  $reason
      */
     public function __construct(User $applicant, string $status, ?string $reason = '')
     {

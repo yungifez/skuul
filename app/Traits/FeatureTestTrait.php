@@ -6,14 +6,20 @@ use App\Models\User;
 
 trait FeatureTestTrait
 {
-    public function unauthorized_user()
+    /**
+     * Create an unauthorized user.
+     */
+    public function unauthorized_user(): object
     {
         $user = User::factory()->create();
 
         return $this->actingAs($user);
     }
 
-    public function authorized_user(array $permission)
+    /**
+     * Create an authorized user.
+     */
+    public function authorized_user(array $permission): object
     {
         $user = User::factory()->create();
         $user->givePermissionTo($permission);

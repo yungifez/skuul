@@ -36,8 +36,6 @@ class Semester extends Pivot
 
     /**
      * Get all of the examSlots for the Semester.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
      */
     public function examSlots(): HasManyThrough
     {

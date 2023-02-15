@@ -11,15 +11,11 @@ class RegistrationController extends Controller
 {
     /**
      * Account application service instance.
-     *
-     * @var AccountApplicationService
      */
     public AccountApplicationService $accountApplicationService;
 
     /**
      * User service instance.
-     *
-     * @var UserService
      */
     public UserService $userService;
 

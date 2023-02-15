@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Validator;
 class CreateSuperAdmin extends Command
 {
     use PasswordValidationRules;
+
     /**
      * The name and signature of the console command.
      *
@@ -60,16 +61,16 @@ class CreateSuperAdmin extends Command
 
                 //validate the input
                 $validator = Validator::make([
-                    'first_name'            => $firstName,
-                    'last_name'             => $lastName,
-                    'email'                 => $email,
-                    'password'              => $password,
+                    'first_name' => $firstName,
+                    'last_name' => $lastName,
+                    'email' => $email,
+                    'password' => $password,
                     'password_confirmation' => $passwordConfirmation,
                 ], [
                     'first_name' => ['required', 'string', 'max:511'],
-                    'last_name'  => ['required', 'string', 'max:511'],
-                    'email'      => ['required', 'string', 'email', 'max:511', 'unique:users'],
-                    'password'   => $this->passwordRules(),
+                    'last_name' => ['required', 'string', 'max:511'],
+                    'email' => ['required', 'string', 'email', 'max:511', 'unique:users'],
+                    'password' => $this->passwordRules(),
                 ]);
 
                 //display validation error
@@ -80,16 +81,16 @@ class CreateSuperAdmin extends Command
 
             //create super admin
             $superAdmin = User::firstOrCreate([
-                'name'              => "$firstName $lastName",
-                'email'             => $email,
-                'password'          => Hash::make($password),
-                'address'           => 'super admin street',
-                'birthday'          => '22/04/04',
-                'nationality'       => 'nigeria',
-                'state'             => 'lagos',
-                'city'              => 'lagos',
-                'blood_group'       => 'A+',
-                'gender'            => 'male',
+                'name' => "$firstName $lastName",
+                'email' => $email,
+                'password' => Hash::make($password),
+                'address' => 'super admin street',
+                'birthday' => '22/04/04',
+                'nationality' => 'nigeria',
+                'state' => 'lagos',
+                'city' => 'lagos',
+                'blood_group' => 'A+',
+                'gender' => 'male',
             ]);
 
             //assign role

@@ -6,13 +6,13 @@ use App\Http\Requests\MyClassStoreRequest;
 use App\Http\Requests\MyClassUpdateRequest;
 use App\Models\MyClass;
 use App\Services\MyClass\MyClassService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class MyClassController extends Controller
 {
     /**
      * Class service instance.
-     *
-     * @var MyClassService
      */
     public MyClassService $myClassService;
 
@@ -25,32 +25,24 @@ class MyClassController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): View
     {
         return view('pages.class.index');
     }
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): View
     {
         return view('pages.class.create');
     }
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param MyClassStoreRequest $request
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function store(MyClassStoreRequest $request)
+    public function store(MyClassStoreRequest $request): RedirectResponse
     {
         $data = $request->validated();
         $this->myClassService->createClass($data);
@@ -60,12 +52,8 @@ class MyClassController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param MyClass $class
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function show(MyClass $class)
+    public function show(MyClass $class): View
     {
         $data['class'] = $class;
 
@@ -74,12 +62,8 @@ class MyClassController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param MyClass $class
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function edit(MyClass $class)
+    public function edit(MyClass $class): View
     {
         $data['myClass'] = $class;
 
@@ -89,12 +73,9 @@ class MyClassController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param MyClassStoreRequest $request
-     * @param MyClass             $class
-     *
-     * @return \Illuminate\Http\Response
+     * @param  MyClassStoreRequest  $request
      */
-    public function update(MyClassUpdateRequest $request, MyClass $class)
+    public function update(MyClassUpdateRequest $request, MyClass $class): RedirectResponse
     {
         $data = $request->validated();
         $this->myClassService->updateClass($class, $data);
@@ -104,12 +85,8 @@ class MyClassController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param MyClass $class
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function destroy(MyClass $class)
+    public function destroy(MyClass $class): RedirectResponse
     {
         $this->myClassService->deleteClass($class);
 

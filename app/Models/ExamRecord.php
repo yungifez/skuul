@@ -20,8 +20,6 @@ class ExamRecord extends Model
 
     /**
      * Get the subject that owns the ExamRecord.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function subject(): BelongsTo
     {
@@ -30,8 +28,6 @@ class ExamRecord extends Model
 
     /**
      * Get the examSlot that owns the ExamRecord.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function examSlot(): BelongsTo
     {

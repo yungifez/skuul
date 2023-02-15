@@ -14,13 +14,12 @@ class SemesterService
      */
     public function getAllSemesters()
     {
-        return Semester::where(['school_id'=> auth()->user()->school_id])->get();
+        return Semester::where(['school_id' => auth()->user()->school_id])->get();
     }
 
     /**
      * Get all semesters in academic year.
      *
-     * @param int $academicYear
      *
      * @return \Illuminate\Database\Eloquent\Collection
      */
@@ -32,7 +31,6 @@ class SemesterService
     /**
      * Get semester by Id.
      *
-     * @param int $id
      *
      * @return Semester
      */
@@ -44,8 +42,7 @@ class SemesterService
     /**
      * Create a new semester.
      *
-     * @param mixed $data
-     *
+     * @param  mixed  $data
      * @return Semester
      */
     public function createSemester($data)
@@ -53,8 +50,8 @@ class SemesterService
         $data['academic_year_id'] = auth()->user()->school->academicYear->id;
         $data['school_id'] = auth()->user()->school->id;
         $semester = Semester::create([
-            'name'             => $data['name'],
-            'school_id'        => $data['school_id'],
+            'name' => $data['name'],
+            'school_id' => $data['school_id'],
             'academic_year_id' => $data['academic_year_id'],
         ]);
 
@@ -64,11 +61,10 @@ class SemesterService
     /**
      * Set current semester.
      *
-     * @param Semester $semester
-     *
-     * @throws InvalidValueException
      *
      * @return void
+     *
+     * @throws InvalidValueException
      */
     public function setSemester(Semester $semester)
     {
@@ -83,9 +79,7 @@ class SemesterService
     /**
      * Semester service.
      *
-     * @param Semester $semester
-     * @param mixed    $data
-     *
+     * @param  mixed  $data
      * @return void
      */
     public function updateSemester(Semester $semester, $data)
@@ -97,7 +91,6 @@ class SemesterService
     /**
      * Delete Semester.
      *
-     * @param Semester $semester
      *
      * @return void
      */

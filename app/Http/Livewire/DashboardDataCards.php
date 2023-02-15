@@ -10,11 +10,17 @@ use Livewire\Component;
 class DashboardDataCards extends Component
 {
     public $schools;
+
     public $classes;
+
     public $sections;
+
     public $students;
+
     public $classGroups;
+
     public $teachers;
+
     public $parents;
 
     public function mount(SectionService $sectionService)

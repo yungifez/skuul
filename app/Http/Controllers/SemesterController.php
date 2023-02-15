@@ -6,6 +6,9 @@ use App\Http\Requests\SemesterStoreRequest;
 use App\Http\Requests\SetSemesterRequest;
 use App\Models\Semester;
 use App\Services\Semester\SemesterService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
 
 class SemesterController extends Controller
 {
@@ -19,32 +22,24 @@ class SemesterController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): View
     {
         return view('pages.semester.index');
     }
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): View
     {
         return view('pages.semester.create');
     }
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param SemesterStoreRequest $request
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function store(SemesterStoreRequest $request)
+    public function store(SemesterStoreRequest $request): RedirectResponse
     {
         $data = $request->except(['_token']);
         $this->semester->createSemester($data);
@@ -54,37 +49,24 @@ class SemesterController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param \App\Models\Semester $semester
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function show(Semester $semester)
+    public function show(Semester $semester): Response
     {
         abort(404);
     }
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param \App\Models\Semester $semester
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function edit(Semester $semester)
+    public function edit(Semester $semester): View
     {
         return view('pages.semester.edit', compact('semester'));
     }
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param SemesterStoreRequest $request
-     * @param \App\Models\Semester $semester
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function update(SemesterStoreRequest $request, Semester $semester)
+    public function update(SemesterStoreRequest $request, Semester $semester): RedirectResponse
     {
         $data = $request->except('_token', '_method');
         $this->semester->updateSemester($semester, $data);
@@ -94,12 +76,8 @@ class SemesterController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param \App\Models\Semester $semester
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function destroy(Semester $semester)
+    public function destroy(Semester $semester): RedirectResponse
     {
         $this->semester->deleteSemester($semester);
 
@@ -108,10 +86,8 @@ class SemesterController extends Controller
 
     /**
      * Set school semester.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function setSemester(SetSemesterRequest $request)
+    public function setSemester(SetSemesterRequest $request): RedirectResponse
     {
         $this->authorize('setSemester', Semester::class);
         $semester = Semester::findOrFail($request->semester_id);

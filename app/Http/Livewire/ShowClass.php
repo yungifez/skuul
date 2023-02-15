@@ -7,6 +7,7 @@ use Livewire\Component;
 class ShowClass extends Component
 {
     public $class;
+
     public $students;
 
     public function mount()

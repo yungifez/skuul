@@ -8,8 +8,11 @@ use Livewire\Component;
 class ChangeAccountApplicationStatus extends Component
 {
     public User $applicant;
+
     public $statuses;
+
     public $status;
+
     public bool $studentRecordFields = false;
 
     public function mount(User $applicant)

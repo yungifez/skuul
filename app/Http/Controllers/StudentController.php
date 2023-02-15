@@ -6,11 +6,15 @@ use App\Http\Requests\StudentStoreRequest;
 use App\Models\User;
 use App\Services\Student\StudentService;
 use App\Services\User\UserService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
 
 class StudentController extends Controller
 {
     public $student;
+
     /**
      * Instance of user service class.
      *
@@ -27,10 +31,8 @@ class StudentController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): View
     {
         $this->authorize('viewAny', [User::class, 'student']);
 
@@ -39,10 +41,8 @@ class StudentController extends Controller
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): View
     {
         $this->authorize('create', [User::class, 'student']);
 
@@ -52,13 +52,10 @@ class StudentController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param StudentStoreRequest $request
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function store(StudentStoreRequest $request)
+    public function store(StudentStoreRequest $request): RedirectResponse
     {
         $this->authorize('create', [User::class, 'student']);
         $this->student->createStudent($request);
@@ -68,12 +65,8 @@ class StudentController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param User $student
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function show(User $student)
+    public function show(User $student): View
     {
         $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('view', [$student, 'student']);
@@ -85,7 +78,7 @@ class StudentController extends Controller
     /**
      * Print student Profile.
      */
-    public function printProfile(User $student)
+    public function printProfile(User $student): Response
     {
         $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('view', [$student, 'student']);
@@ -97,13 +90,10 @@ class StudentController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param User $student
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function edit(User $student)
+    public function edit(User $student): View
     {
         $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('update', [$student, 'student']);
@@ -115,14 +105,10 @@ class StudentController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param User                     $student
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, User $student)
+    public function update(Request $request, User $student): RedirectResponse
     {
         $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('update', [$student, 'student']);
@@ -135,13 +121,10 @@ class StudentController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param User $student
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function destroy(User $student)
+    public function destroy(User $student): RedirectResponse
     {
         $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('delete', [$student, 'student']);

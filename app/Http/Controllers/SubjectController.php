@@ -7,6 +7,9 @@ use App\Http\Requests\SubjectStoreRequest;
 use App\Models\Subject;
 use App\Models\User;
 use App\Services\Subject\SubjectService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
 
 class SubjectController extends Controller
 {
@@ -23,7 +26,7 @@ class SubjectController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): View
     {
         return view('pages.subject.index');
     }
@@ -33,7 +36,7 @@ class SubjectController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): View
     {
         return view('pages.subject.create');
     }
@@ -41,11 +44,10 @@ class SubjectController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param SubjectStoreRequest $request
      *
      * @return \Illuminate\Http\Response
      */
-    public function store(SubjectStoreRequest $request)
+    public function store(SubjectStoreRequest $request): RedirectResponse
     {
         $data = $request->except(['_token']);
 
@@ -56,24 +58,19 @@ class SubjectController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param Subject $subject
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function show(Subject $subject)
+    public function show(Subject $subject): Response
     {
-        //
+        abort(404);
     }
 
     /**
      * Show the form for editing the specified resource.
      *
-     * @param Subject $subject
      *
      * @return \Illuminate\Http\Response
      */
-    public function edit(Subject $subject)
+    public function edit(Subject $subject): View
     {
         $data['subject'] = $subject;
 
@@ -83,12 +80,10 @@ class SubjectController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param SubjectStoreRequest $request
-     * @param Subject             $subject
      *
      * @return \Illuminate\Http\Response
      */
-    public function update(SubjectStoreRequest $request, Subject $subject)
+    public function update(SubjectStoreRequest $request, Subject $subject): RedirectResponse
     {
         $data = $request->except(['_token', '_method']);
 
@@ -100,11 +95,10 @@ class SubjectController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param Subject $subject
      *
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Subject $subject)
+    public function destroy(Subject $subject): RedirectResponse
     {
         $this->subject->deleteSubject($subject);
 

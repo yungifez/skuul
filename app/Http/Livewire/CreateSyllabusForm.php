@@ -9,8 +9,11 @@ use Livewire\Component;
 class CreateSyllabusForm extends Component
 {
     public $class;
+
     public $classes;
+
     public $subject;
+
     public $subjects;
 
     public function mount(MyClassService $myClassService)

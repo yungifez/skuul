@@ -5,7 +5,7 @@
     <div class="card-body">
         <x-display-validation-errors/>
         {{-- form for selecting user --}}
-        <form action="{{route('parents.assign-students', $parent->id)}}" method="POST" class=" md:grid grid-cols-3 gap-4">
+        <form action="{{route('parents.assign-student', $parent->id)}}" method="POST" class=" md:grid grid-cols-3 gap-4">
             <x-select id="class" name="class" label="Class"  wire:model="class">
                 @isset($classes)
                     @foreach ($classes as $item)
@@ -65,7 +65,7 @@
                             @endisset</td>
                             <td class="p-4 border">{{ $student->email}}</td>
                             <td class="p-4 border">
-                                <form action="{{route('parents.assign-students', $parent->id)}}" method="POST">
+                                <form action="{{route('parents.assign-student', $parent->id)}}" method="POST">
                                     <input type="hidden" name="student_id" value="{{$student->id}}">
                                     <input type="hidden" name="assign" value="0">
                                     @csrf

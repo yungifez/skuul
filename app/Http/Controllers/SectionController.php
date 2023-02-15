@@ -6,6 +6,8 @@ use App\Http\Requests\SectionStoreRequest;
 use App\Http\Requests\SectionUpdateRequest;
 use App\Models\Section;
 use App\Services\Section\SectionService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class SectionController extends Controller
 {
@@ -19,32 +21,24 @@ class SectionController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): View
     {
         return view('pages.section.index');
     }
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): View
     {
         return view('pages.section.create');
     }
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param SectionStoreRequest $request
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function store(SectionStoreRequest $request)
+    public function store(SectionStoreRequest $request): RedirectResponse
     {
         $data = $request->except('_token');
         $this->section->createSection($data);
@@ -54,24 +48,16 @@ class SectionController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param Section $section
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function show(Section $section)
+    public function show(Section $section): View
     {
         return view('pages.section.show', compact('section'));
     }
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param Section $section
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function edit(Section $section)
+    public function edit(Section $section): View
     {
         $data['section'] = $section;
 
@@ -80,13 +66,8 @@ class SectionController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param SectionUpdateRequest $request
-     * @param Section              $section
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function update(SectionUpdateRequest $request, Section $section)
+    public function update(SectionUpdateRequest $request, Section $section): RedirectResponse
     {
         $data = $request->except('_token', '_method');
 
@@ -97,12 +78,8 @@ class SectionController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param Section $section
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function destroy(Section $section)
+    public function destroy(Section $section): RedirectResponse
     {
         $this->section->deleteSection($section);
 

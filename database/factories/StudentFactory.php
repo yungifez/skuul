@@ -27,17 +27,17 @@ class StudentFactory extends Factory
         //if class doesnt have a section, create one (for testing sake)
         if ($class->sections->isEmpty() || $class->sections == null) {
             $class->sections()->create([
-                'name' => fake()->name(),
+                'name' => $this->faker->name(),
             ]);
         }
         $student->assignRole('student');
 
         return [
-            'user_id'          => $student->id,
-            'my_class_id'      => $class->id,
-            'section_id'       => $class->sections->first()->id ?? null,
-            'admission_date'   => '22/04/04',
-            'is_graduated'     => false,
+            'user_id' => $student->id,
+            'my_class_id' => $class->id,
+            'section_id' => $class->sections->first()->id ?? null,
+            'admission_date' => $this->faker->date(),
+            'is_graduated' => false,
             'admission_number' => Str::random(10),
         ];
     }

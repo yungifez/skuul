@@ -19,21 +19,21 @@ class UserFactory extends Factory
     public function definition()
     {
         return [
-            'name'              => $this->faker->name(),
-            'email'             => $this->faker->unique()->safeEmail(),
+            'name' => $this->faker->name(),
+            'email' => $this->faker->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password'          => Hash::make(Str::random(10)),
-            'remember_token'    => Str::random(10),
-            'address'           => $this->faker->address(),
-            'birthday'          => '2004/04/22',
-            'address'           => $this->faker->address(),
-            'school_id'         => 1,
-            'blood_group'       => 'a+',
-            'religion'          => 'christian',
-            'nationality'       => 'Nigerian',
-            'state'             => 'anambra',
-            'city'              => 'ngo',
-            'gender'            => 'male',
+            'password' => Hash::make(Str::random(10)),
+            'remember_token' => Str::random(10),
+            'address' => $this->faker->address(),
+            'birthday' => $this->faker->date(),
+            'address' => $this->faker->address(),
+            'school_id' => 1,
+            'blood_group' => 'a+',
+            'religion' => 'christian',
+            'nationality' => $this->faker->country(),
+            'state' => 'wyoming',
+            'city' => $this->faker->city(),
+            'gender' => 'male',
         ];
     }
 
@@ -58,7 +58,7 @@ class UserFactory extends Factory
      */
     public function withPersonalTeam()
     {
-        if (!Features::hasTeamFeatures()) {
+        if (! Features::hasTeamFeatures()) {
             return $this->state([]);
         }
 

@@ -8,7 +8,9 @@ use Livewire\Component;
 class ListGradeSystemsTable extends Component
 {
     protected $queryString = ['classGroup'];
+
     public $classGroups;
+
     public $classGroup;
 
     protected $rules = [

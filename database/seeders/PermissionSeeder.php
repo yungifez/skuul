@@ -15,7 +15,6 @@ class PermissionSeeder extends Seeder
      */
     public function run()
     {
-
         /**
          * Create all permissions.
          *
@@ -93,6 +92,20 @@ class PermissionSeeder extends Seeder
         ]);
         Permission::firstOrCreate([
             'name' => 'delete student',
+        ]);
+
+        //Permission for admins
+        Permission::firstOrCreate([
+            'name' => 'create admin',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read admin',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update admin',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete admin',
         ]);
 
         //Permission for academic year

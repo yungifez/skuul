@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 class Timetable extends Pivot
 {
     use HasFactory;
+
     protected $table = 'timetables';
+
     protected $fillable = [
         'name',
         'description',

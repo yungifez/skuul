@@ -11,8 +11,6 @@ class MyClassService
 {
     /**
      * School service variable.
-     *
-     * @var SchoolService
      */
     public SchoolService $schoolService;
 
@@ -45,7 +43,6 @@ class MyClassService
     /**
      * Get all classes in school.
      *
-     * @param int $id
      *
      * @return App\Models\MyClass
      */
@@ -57,7 +54,6 @@ class MyClassService
     /**
      * Get class by id or else return 404.
      *
-     * @param int $id
      *
      * @return void
      */
@@ -69,7 +65,6 @@ class MyClassService
     /**
      * Get class group by id.
      *
-     * @param int $id
      *
      * @return void
      */
@@ -81,8 +76,7 @@ class MyClassService
     /**
      * Create new class.
      *
-     * @param array|object $record
-     *
+     * @param  array|object  $record
      * @return App\Models\MyClass
      */
     public function createClass($record)
@@ -95,8 +89,7 @@ class MyClassService
     /**
      * Create new class group.
      *
-     * @param array|object $record
-     *
+     * @param  array|object  $record
      * @return App\Models\ClassGroup
      */
     public function createClassGroup($record)
@@ -109,15 +102,14 @@ class MyClassService
     /**
      * Update class.
      *
-     * @param App\Models\MyClass $class
-     * @param array|object       $records
-     *
+     * @param  App\Models\MyClass  $class
+     * @param  array|object  $records
      * @return App\Models\MyClass
      */
     public function updateClass($class, $records)
     {
         $class->update([
-            'name'           => $records['name'],
+            'name' => $records['name'],
             'class_group_id' => $records['class_group_id'],
         ]);
 
@@ -127,9 +119,8 @@ class MyClassService
     /**
      * Update class group.
      *
-     * @param App\Models\ClassGroup $classGroup
-     * @param array|object          $records
-     *
+     * @param  App\Models\ClassGroup  $classGroup
+     * @param  array|object  $records
      * @return App\Models\ClassGroup
      */
     public function updateClassGroup(ClassGroup $classGroup, $records)
@@ -146,11 +137,10 @@ class MyClassService
     /**
      * Delete class group.
      *
-     * @param App\Models\ClassGroup $classGroup
+     * @param  App\Models\ClassGroup  $classGroup
+     * @return void
      *
      * @throws ResourceNotEmptyException
-     *
-     * @return void
      */
     public function deleteClassGroup(ClassGroup $classGroup)
     {
@@ -163,11 +153,10 @@ class MyClassService
     /**
      * Delete class.
      *
-     * @param App\Models\MyClass $class
+     * @param  App\Models\MyClass  $class
+     * @return void
      *
      * @throws ResourceNotEmptyException
-     *
-     * @return void
      */
     public function deleteClass(MyClass $class)
     {

@@ -9,9 +9,7 @@ trait InSchool
     /**
      * Scopes school procied else scopes school of currently authenticated user.
      *
-     * @param Illuminate\Database\Eloquent\Builder $query
-     * @param School|null                          $school
-     *
+     * @param  Illuminate\Database\Eloquent\Builder  $query
      * @return Illuminate\Database\Eloquent\Builder
      */
     public function scopeInSchool($query, ?School $school = null)

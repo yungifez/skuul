@@ -8,6 +8,8 @@ use App\Http\Requests\UpdateTimetableTimeSlotRequest;
 use App\Models\Timetable;
 use App\Models\TimetableTimeSlot;
 use App\Services\Timetable\TimeSlotService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 
 class TimetableTimeSlotController extends Controller
 {
@@ -21,32 +23,27 @@ class TimetableTimeSlotController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): Response
     {
-        //
+        abort(404);
     }
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): Response
     {
-        //
+        abort(404);
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param \App\Http\Requests\StoreTimetableTimeSlotRequest $request
      *
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreTimetableTimeSlotRequest $request)
+    public function store(StoreTimetableTimeSlotRequest $request): RedirectResponse
     {
         $data = $request->except('_token');
         $this->timeSlot->createTimeSlot($data);
@@ -56,50 +53,35 @@ class TimetableTimeSlotController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param \App\Models\TimetableTimeSlot $timetableTimeSlot
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function show(TimetableTimeSlot $timetableTimeSlot)
+    public function show(TimetableTimeSlot $timetableTimeSlot): Response
     {
-        //
+        abort(404);
     }
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param \App\Models\TimetableTimeSlot $timetableTimeSlot
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function edit(TimetableTimeSlot $timetableTimeSlot)
+    public function edit(TimetableTimeSlot $timetableTimeSlot): Response
     {
-        //
+        abort(404);
     }
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param \App\Http\Requests\UpdateTimetableTimeSlotRequest $request
-     * @param \App\Models\TimetableTimeSlot                     $timetableTimeSlot
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function update(UpdateTimetableTimeSlotRequest $request, $timetable, TimetableTimeSlot $timetableTimeSlot)
+    public function update(UpdateTimetableTimeSlotRequest $request, $timetable, TimetableTimeSlot $timetableTimeSlot): Response
     {
-        //
+        abort(404);
     }
 
     /**
      * Remove the specified resource from storage.
      *
-     * @param Timetable         $timetable
-     * @param TimetableTimeSlot $timeSlot
-     *
+     * @param  Timetable  $timetable
      * @return \Illuminate\Http\Response
      */
-    public function destroy(TimetableTimeSlot $timeSlot)
+    public function destroy(TimetableTimeSlot $timeSlot): RedirectResponse
     {
         $this->timeSlot->deleteTimeSlot($timeSlot);
 
@@ -107,7 +89,7 @@ class TimetableTimeSlotController extends Controller
     }
 
     //timetable record
-    public function addTimetableRecord(TimetableTimeSlot $timeSlot, storeTimetableRecord $request)
+    public function addTimetableRecord(TimetableTimeSlot $timeSlot, storeTimetableRecord $request): RedirectResponse
     {
         $timetable = $timeSlot->timetable;
         $this->authorize('update', $timetable);

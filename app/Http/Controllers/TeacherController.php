@@ -4,28 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\Teacher\TeacherService;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class TeacherController extends Controller
 {
-    /**
-     * TeacherService variable.
-     *
-     * @var \App\Services\Teacher\TeacherService
-     */
-    public TeacherService $teacher;
+    public TeacherService $teacherService;
 
-    public function __construct(TeacherService $teacher)
+    public function __construct(TeacherService $teacherService)
     {
-        $this->teacher = $teacher;
+        $this->teacherService = $teacherService;
     }
 
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): View
     {
         $this->authorize('viewAny', [User::class, 'teacher']);
 
@@ -34,10 +29,8 @@ class TeacherController extends Controller
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): View
     {
         $this->authorize('create', [User::class, 'teacher']);
 
@@ -46,15 +39,11 @@ class TeacherController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param \Illuminate\Http\Request $request
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(Request $request): RedirectResponse
     {
         $this->authorize('create', [User::class, 'teacher']);
-        $this->teacher->createTeacher($request);
+        $this->teacherService->createTeacher($request);
 
         return back()->with('success', 'Teacher Created Successfully');
     }
@@ -62,13 +51,10 @@ class TeacherController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param User $teacher
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function show(User $teacher)
+    public function show(User $teacher): View
     {
         $this->authorize('view', [$teacher, 'teacher']);
 
@@ -78,13 +64,10 @@ class TeacherController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param User $teacher
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function edit(User $teacher)
+    public function edit(User $teacher): View
     {
         $this->authorize('update', [$teacher, 'teacher']);
 
@@ -94,17 +77,13 @@ class TeacherController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param User                     $teacher
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, User $teacher)
+    public function update(Request $request, User $teacher): RedirectResponse
     {
         $this->authorize('update', [$teacher, 'teacher']);
-        $this->teacher->updateTeacher($teacher, $request->except('_token', '_method'));
+        $this->teacherService->updateTeacher($teacher, $request->except('_token', '_method'));
 
         return back()->with('success', 'Teacher Updated Successfully');
     }
@@ -112,16 +91,13 @@ class TeacherController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param User $teacher
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function destroy(User $teacher)
+    public function destroy(User $teacher): RedirectResponse
     {
         $this->authorize('delete', [$teacher, 'teacher']);
-        $this->teacher->deleteTeacher($teacher);
+        $this->teacherService->deleteTeacher($teacher);
 
         return back()->with('success', 'Teacher Deleted Successfully');
     }

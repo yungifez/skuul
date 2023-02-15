@@ -8,7 +8,9 @@ use Livewire\Component;
 class ListSubjectsTable extends Component
 {
     protected $queryString = ['class'];
+
     public $classes;
+
     public $class;
 
     public function mount(MyClassService $myClassService)

@@ -9,6 +9,7 @@ use Livewire\Component;
 class EditExamSlotForm extends Component
 {
     public Exam $exam;
+
     public ExamSlot $examSlot;
 
     public function render()

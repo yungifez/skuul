@@ -10,8 +10,6 @@ class SubjectService
 {
     /**
      * Instance of user class.
-     *
-     * @var UserService
      */
     public UserService $user;
 
@@ -33,7 +31,6 @@ class SubjectService
     /**
      * Get a subject by Id.
      *
-     * @param int $id
      *
      * @return App\Models\Subject
      */
@@ -45,20 +42,19 @@ class SubjectService
     /**
      * Create subject.
      *
-     * @param mixed $data
-     *
+     * @param  mixed  $data
      * @return void
      */
     public function createSubject($data)
     {
         $subject = Subject::firstOrCreate([
-            'name'        => $data['name'],
-            'short_name'  => $data['short_name'],
-            'school_id'   => auth()->user()->school_id,
+            'name' => $data['name'],
+            'short_name' => $data['short_name'],
+            'school_id' => auth()->user()->school_id,
             'my_class_id' => $data['my_class_id'],
         ]);
 
-        if (!$subject->wasRecentlyCreated) {
+        if (! $subject->wasRecentlyCreated) {
             return session()->flash('danger', 'Subject already exists or something went wrong');
         }
 
@@ -77,9 +73,7 @@ class SubjectService
     /**
      * Update subject.
      *
-     * @param Subject $subject
-     * @param mixed   $data
-     *
+     * @param  mixed  $data
      * @return void
      */
     public function updateSubject(Subject $subject, $data)
@@ -106,7 +100,6 @@ class SubjectService
     /**
      * Delete subject.
      *
-     * @param Subject $subject
      *
      * @return void
      */
@@ -119,9 +112,7 @@ class SubjectService
     /**
      * Assign a teacher to a list of subjects.
      *
-     * @param User $teacher
      * @param array!mixed $records Array or collection of ids
-     *
      * @return void
      */
     public function assignTeacherToSubjects(User $teacher, $records)

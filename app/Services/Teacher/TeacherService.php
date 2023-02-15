@@ -10,8 +10,6 @@ class TeacherService
 {
     /**
      * User service variable.
-     *
-     * @var UserService
      */
     public userService $user;
 
@@ -33,8 +31,7 @@ class TeacherService
     /**
      * Create a new teacher.
      *
-     * @param collection $record
-     *
+     * @param  collection  $record
      * @return void
      */
     public function createTeacher($record)
@@ -46,9 +43,7 @@ class TeacherService
     /**
      * Update a teacher.
      *
-     * @param User                    $teacher
-     * @param array|object|collection $records
-     *
+     * @param  array|object|collection  $records
      * @return void
      */
     public function updateTeacher(User $teacher, $records)
@@ -59,7 +54,6 @@ class TeacherService
     /**
      * Delete teacher.
      *
-     * @param User $teacher
      *
      * @return void
      */
@@ -71,9 +65,6 @@ class TeacherService
     /**
      * Print a user profile.
      *
-     * @param string $name
-     * @param string $view
-     * @param array  $data
      *
      * @return mixed
      */

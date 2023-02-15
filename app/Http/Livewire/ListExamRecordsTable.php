@@ -18,25 +18,45 @@ use Livewire\WithPagination;
 class ListExamRecordsTable extends Component
 {
     use WithPagination;
+
     protected $queryString = ['sectionSelectedId', 'examSelectedId', 'subjectSelectedId'];
+
     public $semester;
+
     public Collection $exams;
+
     public $examSlots;
+
     public $exam;
+
     public $classes;
+
     public $class;
+
     public $subjects;
+
     public $subject;
+
     public $sections;
+
     public $section;
+
     public $examRecords;
+
     public $classSelected;
+
     public $subjectSelected;
+
     public $sectionSelected;
+
     public $examSelected;
+
     public $error;
+
     public $sectionSelectedId;
+
     public $examSelectedId;
+
     public $subjectSelectedId;
 
     public function mount(ExamService $examService, MyClassService $myClassService, SectionService $sectionService, SubjectService $subjectService)
@@ -48,7 +68,7 @@ class ListExamRecordsTable extends Component
         $this->exams->count() ? $this->exam = $this->exams[0]->id : $this->exam = null;
         $this->classes = $myClassService->getAllClasses();
         //sets subjects etc if class isn't empty
-        if (!$this->classes->isEmpty()) {
+        if (! $this->classes->isEmpty()) {
             $this->subjects = $this->classes[0]->subjects;
             if ($this->subjects->isNotEmpty()) {
                 $this->subject = $this->subjects[0]->id;

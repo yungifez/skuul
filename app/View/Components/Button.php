@@ -7,7 +7,9 @@ use Illuminate\View\Component;
 class Button extends Component
 {
     public $class;
+
     public $icon;
+
     public $label;
 
     /**

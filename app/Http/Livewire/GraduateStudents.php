@@ -10,13 +10,17 @@ use Livewire\Component;
 class GraduateStudents extends Component
 {
     public $classes;
+
     public $class;
+
     public $sections;
+
     public $section;
+
     public $students;
 
     protected $rules = [
-        'class'   => 'required|exists:my_classes,id',
+        'class' => 'required|exists:my_classes,id',
         'section' => 'required|exists:sections,id',
     ];
 

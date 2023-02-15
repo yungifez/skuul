@@ -15,12 +15,12 @@ class AcademicYearSeeder extends Seeder
     public function run()
     {
         $academicYear = AcademicYear::firstOrCreate([
-            'id'         => 1,
+            'id' => 1,
 
         ], [
-            'school_id'  => 1,
+            'school_id' => 1,
             'start_year' => date('Y'),
-            'stop_year'  => date('Y') + 1,
+            'stop_year' => date('Y') + 1,
         ]);
         $academicYear->school->academic_year_id = $academicYear->id;
         $academicYear->school->save();
