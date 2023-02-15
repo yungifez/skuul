@@ -62,13 +62,13 @@ class ExamSlotTest extends TestCase
     {
         $response = $this->authorized_user(['create exam slot'])
             ->post('/dashboard/exams/1/manage/exam-slots', [
-                'name'        => 'test exam slot',
+                'name' => 'test exam slot',
                 'description' => 'test description',
                 'total_marks' => 20,
             ]);
 
         $this->assertDatabaseHas('exam_slots', [
-            'name'        => 'test exam slot',
+            'name' => 'test exam slot',
             'description' => 'test description',
             'total_marks' => 20,
         ]);
@@ -104,8 +104,8 @@ class ExamSlotTest extends TestCase
             ->assertForbidden();
 
         $this->assertDatabaseMissing('exam_slots', [
-            'id'          => $examSlot->id,
-            'name'        => 'test exam slot',
+            'id' => $examSlot->id,
+            'name' => 'test exam slot',
             'description' => 'test description',
             'total_marks' => '10',
         ]);
@@ -120,8 +120,8 @@ class ExamSlotTest extends TestCase
             ->put("/dashboard/exams/1/manage/exam-slots/$examSlot->id", ['name' => 'test exam slot', 'description' => 'test description', 'total_marks' => '10']);
 
         $this->assertDatabaseHas('exam_slots', [
-            'id'          => $examSlot->id,
-            'name'        => 'test exam slot',
+            'id' => $examSlot->id,
+            'name' => 'test exam slot',
             'description' => 'test description',
             'total_marks' => '10',
         ]);

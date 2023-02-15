@@ -38,23 +38,23 @@ class ParentTest extends TestCase
     {
         $email = $this->faker()->freeEmail();
         $this->unauthorized_user()->post('dashboard/parents', [
-            'first_name'            => 'Test',
-            'last_name'             => 'parent',
-            'other_name'            => 'cody',
-            'email'                 => $email,
-            'password'              => 'password',
+            'first_name' => 'Test',
+            'last_name' => 'parent',
+            'other_name' => 'cody',
+            'email' => $email,
+            'password' => 'password',
             'password_confirmation' => 'password',
-            'gender'                => 'male',
-            'nationality'           => 'nigeria',
-            'state'                 => 'lagos',
-            'city'                  => 'lagos',
-            'blood_group'           => 'a+',
-            'address'               => 'test address',
-            'birthday'              => '2004/04/22',
-            'phone'                 => '08080808080',
-            'my_class_id'           => 1,
-            'section_id'            => 1,
-            'admission_date'        => '2004/04/22',
+            'gender' => 'male',
+            'nationality' => 'nigeria',
+            'state' => 'lagos',
+            'city' => 'lagos',
+            'blood_group' => 'a+',
+            'address' => 'test address',
+            'birthday' => '2004/04/22',
+            'phone' => '08080808080',
+            'my_class_id' => 1,
+            'section_id' => 1,
+            'admission_date' => '2004/04/22',
         ])->assertForbidden();
 
         $this->assertDatabaseMissing('users', [
@@ -67,30 +67,30 @@ class ParentTest extends TestCase
         $email = $this->faker()->freeEmail();
 
         $this->authorized_user(['create parent'])->post('dashboard/parents', [
-            'first_name'            => 'Test',
-            'last_name'             => 'parent',
-            'other_name'            => 'cody',
-            'email'                 => $email,
-            'password'              => 'password',
+            'first_name' => 'Test',
+            'last_name' => 'parent',
+            'other_name' => 'cody',
+            'email' => $email,
+            'password' => 'password',
             'password_confirmation' => 'password',
-            'gender'                => 'male',
-            'nationality'           => 'nigeria',
-            'state'                 => 'lagos',
-            'city'                  => 'lagos',
-            'blood_group'           => 'a+',
-            'address'               => 'test address',
-            'birthday'              => '2004/04/22',
-            'phone'                 => '08080808080',
-            'my_class_id'           => 1,
-            'section_id'            => 1,
-            'admission_date'        => '2004/04/22',
+            'gender' => 'male',
+            'nationality' => 'nigeria',
+            'state' => 'lagos',
+            'city' => 'lagos',
+            'blood_group' => 'a+',
+            'address' => 'test address',
+            'birthday' => '2004/04/22',
+            'phone' => '08080808080',
+            'my_class_id' => 1,
+            'section_id' => 1,
+            'admission_date' => '2004/04/22',
         ])->assertRedirect();
 
         $this->assertDatabaseHas('users', [
-            'email'    => $email,
-            'address'  => 'test address',
+            'email' => $email,
+            'address' => 'test address',
             'birthday' => '2004/04/22',
-            'phone'    => '08080808080',
+            'phone' => '08080808080',
         ]);
     }
 
@@ -116,22 +116,22 @@ class ParentTest extends TestCase
         $parent->assignRole('parent');
 
         $this->unauthorized_user()->put('dashboard/parents/'.$parent->id, [
-            'first_name'            => 'Test',
-            'last_name'             => 'parent 2',
-            'email'                 => $email,
-            'password'              => 'password',
+            'first_name' => 'Test',
+            'last_name' => 'parent 2',
+            'email' => $email,
+            'password' => 'password',
             'password_confirmation' => 'password',
-            'gender'                => 'male',
-            'nationality'           => 'nigeria',
-            'state'                 => 'lagos',
-            'city'                  => 'lagos',
-            'blood_group'           => 'a+',
-            'address'               => 'test address',
-            'birthday'              => '2004/04/22',
-            'phone'                 => '08080808080',
-            'my_class_id'           => 1,
-            'section_id'            => 1,
-            'admission_date'        => '2004/04/22',
+            'gender' => 'male',
+            'nationality' => 'nigeria',
+            'state' => 'lagos',
+            'city' => 'lagos',
+            'blood_group' => 'a+',
+            'address' => 'test address',
+            'birthday' => '2004/04/22',
+            'phone' => '08080808080',
+            'my_class_id' => 1,
+            'section_id' => 1,
+            'admission_date' => '2004/04/22',
         ])->assertForbidden();
 
         $this->assertDatabaseMissing('users', [
@@ -146,20 +146,20 @@ class ParentTest extends TestCase
         $email = $this->faker()->freeEmail();
 
         $this->authorized_user(['update parent'])->put('dashboard/parents/'.$parent->id, [
-            'first_name'            => 'Test 2',
-            'other_names'           => 'parent 2',
-            'last_name'             => 'parent',
-            'email'                 => $email,
-            'password'              => 'password',
+            'first_name' => 'Test 2',
+            'other_names' => 'parent 2',
+            'last_name' => 'parent',
+            'email' => $email,
+            'password' => 'password',
             'password_confirmation' => 'password',
-            'gender'                => 'male',
-            'nationality'           => 'nigeria',
-            'state'                 => 'lagos',
-            'city'                  => 'lagos',
-            'blood_group'           => 'a+',
-            'address'               => 'test address',
-            'birthday'              => '2004/04/22',
-            'phone'                 => '08080808080',
+            'gender' => 'male',
+            'nationality' => 'nigeria',
+            'state' => 'lagos',
+            'city' => 'lagos',
+            'blood_group' => 'a+',
+            'address' => 'test address',
+            'birthday' => '2004/04/22',
+            'phone' => '08080808080',
         ])->assertRedirect();
 
         $this->assertDatabaseHas('users', [
@@ -194,10 +194,10 @@ class ParentTest extends TestCase
         $student = User::factory()->create();
         $student->assignRole('student');
         $student->studentRecord()->create([
-            'my_class_id'    => 1,
-            'section_id'     => 2,
+            'my_class_id' => 1,
+            'section_id' => 2,
             'admission_date' => '22/04/04',
-            'is_graduated'   => false,
+            'is_graduated' => false,
         ]);
 
         $parent = User::factory()->create();
@@ -207,13 +207,13 @@ class ParentTest extends TestCase
         $this->unauthorized_user()
             ->post("dashboard/parents/$parent->id/assign-student-to-parent", [
                 'student_id' => $student->id,
-                'assign'     => true,
+                'assign' => true,
             ])
             ->assertForbidden();
 
         $this->assertDatabaseMissing('parent_record_user', [
             'parent_record_id' => $parent->parentRecord->id,
-            'user_id'          => $student->id,
+            'user_id' => $student->id,
         ]);
     }
 
@@ -222,10 +222,10 @@ class ParentTest extends TestCase
         $student = User::factory()->create();
         $student->assignRole('student');
         $student->studentRecord()->create([
-            'my_class_id'    => 1,
-            'section_id'     => 2,
+            'my_class_id' => 1,
+            'section_id' => 2,
             'admission_date' => '22/04/04',
-            'is_graduated'   => false,
+            'is_graduated' => false,
         ]);
 
         $parent = User::factory()->create();
@@ -235,13 +235,13 @@ class ParentTest extends TestCase
         $this->authorized_user(['update parent'])
             ->post("dashboard/parents/$parent->id/assign-student-to-parent", [
                 'student_id' => $student->id,
-                'assign'     => true,
+                'assign' => true,
             ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('parent_record_user', [
             'parent_record_id' => $parent->parentRecord->id,
-            'user_id'          => $student->id,
+            'user_id' => $student->id,
         ]);
     }
 }
