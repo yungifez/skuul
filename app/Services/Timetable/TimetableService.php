@@ -100,7 +100,7 @@ class TimetableService
     }
 
     /**
-     * Update a given customet timetable item.
+     * Update a given custom timetable item.
      *
      * @param CustomTimetableItem $customTimetableItem
      * @param array<mixed>        $record

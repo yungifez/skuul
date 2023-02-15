@@ -89,7 +89,7 @@ class Datatable extends Component
                     $query = call_user_func_array([$query, 'orWhereRelation'], [$column['relation'], $column['columnName'] ?? $column['property'], 'LIKE', "%$this->search%"]);
                 } else {
 
-                    //filter olumn
+                    //filter column
                     $query = call_user_func_array([$query, 'orWhere'], [$table.'.'.($column['columnName'] ?? $column['property']) ?? 'id', 'LIKE', "%$this->search%"]);
                 }
             }

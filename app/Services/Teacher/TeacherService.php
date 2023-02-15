@@ -69,7 +69,7 @@ class TeacherService
     }
 
     /**
-     * Print a uset profiel.
+     * Print a user profile.
      *
      * @param string $name
      * @param string $view

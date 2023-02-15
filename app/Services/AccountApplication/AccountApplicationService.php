@@ -102,7 +102,7 @@ class AccountApplicationService
     }
 
     /**
-     * Change application status or process accountcreation.
+     * Change application status or process account creation.
      *
      * @param User $applicant
      * @param $record
@@ -116,7 +116,7 @@ class AccountApplicationService
 
             if ($applicant->accountApplication->status == 'approved') {
 
-                //create assosciated user records
+                //create associated user records
                 switch ($applicant->accountApplication->role->name) {
                     case 'student':
                         $this->studentService->createStudentRecord($applicant, $record);

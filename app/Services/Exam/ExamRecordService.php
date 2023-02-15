@@ -31,7 +31,7 @@ class ExamRecordService
     }
 
     /**
-     * Get all exam records for all studentsin a class section for a semester.
+     * Get all exam records for all students in a class section for a semester.
      *
      * @param int $section
      * @param int $subject
@@ -73,7 +73,7 @@ class ExamRecordService
     }
 
     /**
-     * Get all exam records for a user in a subject and a specofoc semester.
+     * Get all exam records for a user in a subject and an específic semester.
      *
      * @param Semester $semester
      * @param int      $user
@@ -144,7 +144,7 @@ class ExamRecordService
      */
     public function getAllExamSlotsInExams($exams)
     {
-        //create container variable for all exam slots in semster
+        //create container variable for all exam slots in semester
         $examSlots = [];
         //get all exam slots in exams
         foreach ($exams as $exam) {
