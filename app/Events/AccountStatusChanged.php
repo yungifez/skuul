@@ -35,7 +35,7 @@ class AccountStatusChanged
     /**
      * Create a new event instance.
      *
-     * @param  string  $reason
+     * @param string $reason
      */
     public function __construct(User $applicant, string $status, ?string $reason = '')
     {

@@ -44,24 +44,24 @@ class ExamRecordTest extends TestCase
     {
         $this->authorized_user(['create exam record'])
             ->post('/dashboard/exams/exam-records', [
-                'user_id' => 4,
-                'section_id' => 1,
-                'subject_id' => 1,
+                'user_id'      => 4,
+                'section_id'   => 1,
+                'subject_id'   => 1,
                 'exam_records' => [
                     0 => [
-                        'exam_slot_id' => 1,
+                        'exam_slot_id'  => 1,
                         'student_marks' => 10,
                     ],
                     1 => [
-                        'exam_slot_id' => 10,
+                        'exam_slot_id'  => 10,
                         'student_marks' => 20,
                     ],
                 ],
             ])->assertRedirect() && $this->assertDatabaseHas('exam_records', [
-                'user_id' => 4,
-                'section_id' => 1,
-                'subject_id' => 1,
-                'exam_slot_id' => 1,
+                'user_id'       => 4,
+                'section_id'    => 1,
+                'subject_id'    => 1,
+                'exam_slot_id'  => 1,
                 'student_marks' => 10,
             ]);
     }
