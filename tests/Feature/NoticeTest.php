@@ -53,10 +53,10 @@ class NoticeTest extends TestCase
     {
         $this->unauthorized_user(['create notice'])
             ->post('dashboard/notices', [
-                'title'      => 'test',
-                'content'    => 'test',
+                'title' => 'test',
+                'content' => 'test',
                 'start_date' => '2019-01-01',
-                'stop_date'  => '2019-01-02',
+                'stop_date' => '2019-01-02',
             ])->assertForbidden();
     }
 
@@ -66,17 +66,17 @@ class NoticeTest extends TestCase
     {
         $response = $this->authorized_user(['create notice'])
             ->post('dashboard/notices', [
-                'title'      => 'Test Notice',
-                'content'    => 'Test Description',
+                'title' => 'Test Notice',
+                'content' => 'Test Description',
                 'start_date' => '2019-01-01',
-                'stop_date'  => '2019-01-02',
+                'stop_date' => '2019-01-02',
             ]);
 
         $response->assertRedirect() && $this->assertDatabaseHas('notices', [
-            'title'      => 'Test Notice',
-            'content'    => 'Test Description',
+            'title' => 'Test Notice',
+            'content' => 'Test Description',
             'start_date' => '2019-01-01',
-            'stop_date'  => '2019-01-02',
+            'stop_date' => '2019-01-02',
         ]);
     }
 
@@ -86,10 +86,10 @@ class NoticeTest extends TestCase
     {
         $this->authorized_user(['create notice'])
             ->post('dashboard/notices', [
-                'title'      => '',
-                'content'    => 'Test Description',
+                'title' => '',
+                'content' => 'Test Description',
                 'start_date' => '2019-01-01',
-                'stop_date'  => '2019-01-02',
+                'stop_date' => '2019-01-02',
             ])
             ->assertSessionHasErrors();
     }
@@ -100,10 +100,10 @@ class NoticeTest extends TestCase
     {
         $this->authorized_user(['create notice'])
             ->post('dashboard/notices', [
-                'title'      => 'Test Notice',
-                'content'    => '',
+                'title' => 'Test Notice',
+                'content' => '',
                 'start_date' => '2019-01-01',
-                'stop_date'  => '2019-01-01',
+                'stop_date' => '2019-01-01',
             ])
             ->assertSessionHasErrors();
     }
@@ -114,10 +114,10 @@ class NoticeTest extends TestCase
     {
         $this->authorized_user(['create notice'])
             ->post('dashboard/notices', [
-                'title'      => 'Test Notice',
-                'content'    => 'Test Description',
+                'title' => 'Test Notice',
+                'content' => 'Test Description',
                 'start_date' => '2019-01-01',
-                'stop_date'  => '2018-01-01',
+                'stop_date' => '2018-01-01',
             ])
             ->assertSessionHasErrors();
     }
