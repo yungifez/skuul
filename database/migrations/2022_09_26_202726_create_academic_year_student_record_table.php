@@ -9,10 +9,10 @@ return new class() extends Migration {
     {
         Schema::create('academic_year_student_record', static function (Blueprint $table) {
             $table->id();
-            $table->foreignId('academic_year_id')->notNullable()->onDelete('cascade')->onUpdate('cascade');
-            $table->foreignId('student_record_id')->notNullable()->onDelete('cascade')->onUpdate('cascade');
-            $table->foreignId('my_class_id')->notNullable()->onDelete('cascade')->onUpdate('cascade');
-            $table->foreignId('section_id')->notNullable()->onDelete('cascade')->onUpdate('cascade');
+            $table->foreignId('academic_year_id')->notNullable()->constrained()->onDelete('cascade')->onUpdate('cascade');
+            $table->foreignId('student_record_id')->notNullable()->constrained()->onDelete('cascade')->onUpdate('cascade');
+            $table->foreignId('my_class_id')->notNullable()->constrained()->onDelete('cascade')->onUpdate('cascade');
+            $table->foreignId('section_id')->notNullable()->constrained()->onDelete('cascade')->onUpdate('cascade');
             $table->timestamps();
         });
     }

@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Exam;
+use Illuminate\View\View;
+use Illuminate\Http\Response;
+use App\Services\Exam\ExamService;
+use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\StoreExamRequest;
 use App\Http\Requests\UpdateExamRequest;
 use App\Http\Requests\UpdateExamStatusRequest;
-use App\Models\Exam;
-use App\Services\Exam\ExamService;
 
 class ExamController extends Controller
 {
@@ -23,20 +26,16 @@ class ExamController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): View
     {
         return view('pages.exam.index');
     }
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): View
     {
         return view('pages.exam.create');
     }
@@ -45,10 +44,8 @@ class ExamController extends Controller
      * Store a newly created resource in storage.
      *
      * @param \App\Http\Requests\StoreExamRequest $request
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function store(StoreExamRequest $request)
+    public function store(StoreExamRequest $request): RedirectResponse
     {
         $data = $request->except('_token');
         $this->examService->createExam($data);
@@ -60,22 +57,18 @@ class ExamController extends Controller
      * Display the specified resource.
      *
      * @param \App\Models\Exam $exam
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function show(Exam $exam)
+    public function show(Exam $exam): Response
     {
-        // return view('pages.exam.show', compact('exam'));
+        abort(404);
     }
 
     /**
      * Show the form for editing the specified resource.
      *
      * @param \App\Models\Exam $exam
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function edit(Exam $exam)
+    public function edit(Exam $exam): View
     {
         return view('pages.exam.edit', compact('exam'));
     }
@@ -85,10 +78,9 @@ class ExamController extends Controller
      *
      * @param \App\Http\Requests\UpdateExamRequest $request
      * @param \App\Models\Exam                     $exam
-     *
-     * @return \Illuminate\Http\Response
+     * 
      */
-    public function update(UpdateExamRequest $request, Exam $exam)
+    public function update(UpdateExamRequest $request, Exam $exam): RedirectResponse
     {
         $data = $request->except(['_method', '_token']);
         $this->examService->updateExam($exam, $data);
@@ -100,10 +92,9 @@ class ExamController extends Controller
      * Remove the specified resource from storage.
      *
      * @param \App\Models\Exam $exam
-     *
-     * @return \Illuminate\Http\Response
+     * 
      */
-    public function destroy(Exam $exam)
+    public function destroy(Exam $exam): RedirectResponse
     {
         $this->examService->deleteExam($exam);
 
@@ -113,7 +104,7 @@ class ExamController extends Controller
     /**
      * Tabulation for exams.
      */
-    public function examTabulation()
+    public function examTabulation(): View
     {
         $this->authorize('viewAny', Exam::class);
 
@@ -123,7 +114,7 @@ class ExamController extends Controller
     /**
      * Tabulation for semester results.
      */
-    public function semesterResultTabulation()
+    public function semesterResultTabulation(): View
     {
         $this->authorize('viewAny', Exam::class);
 
@@ -133,7 +124,7 @@ class ExamController extends Controller
     /**
      * Tabulation for academic year results.
      */
-    public function academicYearResultTabulation()
+    public function academicYearResultTabulation(): View
     {
         $this->authorize('viewAny', Exam::class);
 
@@ -143,7 +134,7 @@ class ExamController extends Controller
     /**
      * Result checker.
      */
-    public function resultChecker()
+    public function resultChecker(): View
     {
         $this->authorize('checkResult', Exam::class);
 
@@ -152,8 +143,10 @@ class ExamController extends Controller
 
     /**
      * Set exam status.
+     * 
+     * @param UpdateExamStatusRequest $request
      */
-    public function setExamActiveStatus(Exam $exam, UpdateExamStatusRequest $request)
+    public function setExamActiveStatus(Exam $exam, UpdateExamStatusRequest $request): RedirectResponse
     {
         $this->authorize('update', $exam);
         //get status from request
@@ -168,10 +161,8 @@ class ExamController extends Controller
      *
      * @param Exam                             $exam
      * @param UpdatePublishResultStatusRequest $request
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function setPublishResultStatus(Exam $exam, UpdateExamStatusRequest $request)
+    public function setPublishResultStatus(Exam $exam, UpdateExamStatusRequest $request): RedirectResponse
     {
         $this->authorize('update', $exam);
         //get status from request

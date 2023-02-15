@@ -9,8 +9,8 @@ return new class() extends Migration {
     {
         Schema::create('parent_record_user', static function (Blueprint $table) {
             $table->id();
-            $table->foreignId('parent_record_id')->onDelete('cascade')->onUpdate('cascade');
-            $table->foreignId('user_id')->onDelete('cascade')->onUpdate('cascade');
+            $table->foreignId('parent_record_id')->constrained()->onDelete('cascade')->onUpdate('cascade');
+            $table->foreignId('user_id')->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->unique(['parent_record_id', 'user_id']);
             $table->timestamps();
         });

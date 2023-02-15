@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StudentStoreRequest;
 use App\Models\User;
-use App\Services\Student\StudentService;
-use App\Services\User\UserService;
+use Illuminate\View\View;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use App\Services\User\UserService;
+use Illuminate\Http\RedirectResponse;
+use App\Services\Student\StudentService;
+use App\Http\Requests\StudentStoreRequest;
 
 class StudentController extends Controller
 {
@@ -27,10 +30,8 @@ class StudentController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): View
     {
         $this->authorize('viewAny', [User::class, 'student']);
 
@@ -39,10 +40,8 @@ class StudentController extends Controller
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): View
     {
         $this->authorize('create', [User::class, 'student']);
 
@@ -55,10 +54,8 @@ class StudentController extends Controller
      * @param StudentStoreRequest $request
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function store(StudentStoreRequest $request)
+    public function store(StudentStoreRequest $request): RedirectResponse
     {
         $this->authorize('create', [User::class, 'student']);
         $this->student->createStudent($request);
@@ -70,10 +67,8 @@ class StudentController extends Controller
      * Display the specified resource.
      *
      * @param User $student
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function show(User $student)
+    public function show(User $student): View
     {
         $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('view', [$student, 'student']);
@@ -85,7 +80,7 @@ class StudentController extends Controller
     /**
      * Print student Profile.
      */
-    public function printProfile(User $student)
+    public function printProfile(User $student): Response
     {
         $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('view', [$student, 'student']);
@@ -100,10 +95,8 @@ class StudentController extends Controller
      * @param User $student
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function edit(User $student)
+    public function edit(User $student): View
     {
         $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('update', [$student, 'student']);
@@ -119,10 +112,8 @@ class StudentController extends Controller
      * @param User                     $student
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, User $student)
+    public function update(Request $request, User $student): RedirectResponse
     {
         $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('update', [$student, 'student']);
@@ -138,10 +129,8 @@ class StudentController extends Controller
      * @param User $student
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function destroy(User $student)
+    public function destroy(User $student): RedirectResponse
     {
         $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('delete', [$student, 'student']);

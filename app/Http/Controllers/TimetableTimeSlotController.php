@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Timetable;
+use Illuminate\Http\Response;
+use App\Models\TimetableTimeSlot;
+use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\storeTimetableRecord;
+use App\Services\Timetable\TimeSlotService;
 use App\Http\Requests\StoreTimetableTimeSlotRequest;
 use App\Http\Requests\UpdateTimetableTimeSlotRequest;
-use App\Models\Timetable;
-use App\Models\TimetableTimeSlot;
-use App\Services\Timetable\TimeSlotService;
 
 class TimetableTimeSlotController extends Controller
 {
@@ -24,9 +26,9 @@ class TimetableTimeSlotController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): Response
     {
-        //
+        abort(404);
     }
 
     /**
@@ -34,9 +36,9 @@ class TimetableTimeSlotController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): Response
     {
-        //
+        abort(404);
     }
 
     /**
@@ -46,7 +48,7 @@ class TimetableTimeSlotController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function store(StoreTimetableTimeSlotRequest $request)
+    public function store(StoreTimetableTimeSlotRequest $request): RedirectResponse
     {
         $data = $request->except('_token');
         $this->timeSlot->createTimeSlot($data);
@@ -61,9 +63,9 @@ class TimetableTimeSlotController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function show(TimetableTimeSlot $timetableTimeSlot)
+    public function show(TimetableTimeSlot $timetableTimeSlot): Response
     {
-        //
+        abort(404);
     }
 
     /**
@@ -73,9 +75,9 @@ class TimetableTimeSlotController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function edit(TimetableTimeSlot $timetableTimeSlot)
+    public function edit(TimetableTimeSlot $timetableTimeSlot): Response
     {
-        //
+        abort(404);
     }
 
     /**
@@ -86,9 +88,9 @@ class TimetableTimeSlotController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function update(UpdateTimetableTimeSlotRequest $request, $timetable, TimetableTimeSlot $timetableTimeSlot)
+    public function update(UpdateTimetableTimeSlotRequest $request, $timetable, TimetableTimeSlot $timetableTimeSlot): Response
     {
-        //
+        abort(404);
     }
 
     /**
@@ -99,7 +101,7 @@ class TimetableTimeSlotController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function destroy(TimetableTimeSlot $timeSlot)
+    public function destroy(TimetableTimeSlot $timeSlot): RedirectResponse
     {
         $this->timeSlot->deleteTimeSlot($timeSlot);
 
@@ -107,7 +109,7 @@ class TimetableTimeSlotController extends Controller
     }
 
     //timetable record
-    public function addTimetableRecord(TimetableTimeSlot $timeSlot, storeTimetableRecord $request)
+    public function addTimetableRecord(TimetableTimeSlot $timeSlot, storeTimetableRecord $request): RedirectResponse
     {
         $timetable = $timeSlot->timetable;
         $this->authorize('update', $timetable);

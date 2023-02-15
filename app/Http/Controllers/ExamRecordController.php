@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\View\View;
+use App\Models\ExamRecord;
+use Illuminate\Http\Response;
+use Illuminate\Http\RedirectResponse;
+use App\Services\Exam\ExamRecordService;
 use App\Http\Requests\StoreExamRecordRequest;
 use App\Http\Requests\UpdateExamRecordRequest;
-use App\Models\ExamRecord;
-use App\Services\Exam\ExamRecordService;
 
 class ExamRecordController extends Controller
 {
@@ -21,9 +24,8 @@ class ExamRecordController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): View
     {
         return view('pages.exam.exam-record.index');
     }
@@ -31,9 +33,8 @@ class ExamRecordController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): View
     {
         return view('pages.exam.exam-record.create');
     }
@@ -43,9 +44,8 @@ class ExamRecordController extends Controller
      *
      * @param \App\Http\Requests\StoreExamRecordRequest $request
      *
-     * @return \Illuminate\Http\Response
      */
-    public function store(StoreExamRecordRequest $request)
+    public function store(StoreExamRecordRequest $request): RedirectResponse
     {
         $data = $request->except('_token');
 
@@ -59,11 +59,10 @@ class ExamRecordController extends Controller
      *
      * @param \App\Models\ExamRecord $examRecord
      *
-     * @return \Illuminate\Http\Response
      */
-    public function show(ExamRecord $examRecord)
+    public function show(ExamRecord $examRecord): Response
     {
-        //
+        abort(404);
     }
 
     /**
@@ -71,11 +70,10 @@ class ExamRecordController extends Controller
      *
      * @param \App\Models\ExamRecord $examRecord
      *
-     * @return \Illuminate\Http\Response
      */
-    public function edit(ExamRecord $examRecord)
+    public function edit(ExamRecord $examRecord): Response
     {
-        //
+        abort(404);
     }
 
     /**
@@ -84,11 +82,10 @@ class ExamRecordController extends Controller
      * @param \App\Http\Requests\UpdateExamRecordRequest $request
      * @param \App\Models\ExamRecord                     $examRecord
      *
-     * @return \Illuminate\Http\Response
      */
-    public function update(UpdateExamRecordRequest $request, ExamRecord $examRecord)
+    public function update(UpdateExamRecordRequest $request, ExamRecord $examRecord): RedirectResponse
     {
-        //
+        abort(404);
     }
 
     /**
@@ -96,10 +93,9 @@ class ExamRecordController extends Controller
      *
      * @param \App\Models\ExamRecord $examRecord
      *
-     * @return \Illuminate\Http\Response
      */
-    public function destroy(ExamRecord $examRecord)
+    public function destroy(ExamRecord $examRecord): Response
     {
-        //
+        abort(404);
     }
 }

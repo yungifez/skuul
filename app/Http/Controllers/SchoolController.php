@@ -2,46 +2,44 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\School;
+use Illuminate\View\View;
+use Illuminate\Http\RedirectResponse;
+use App\Services\School\SchoolService;
 use App\Http\Requests\SchoolSetRequest;
 use App\Http\Requests\SchoolStoreRequest;
 use App\Http\Requests\SchoolUpdateRequest;
-use App\Models\School;
-use App\Services\School\SchoolService;
 
 class SchoolController extends Controller
 {
     /**
      * @var SchoolService
      */
-    public $school;
+    public $schoolService;
 
     /**
      * SchoolController constructor.
      *
-     * @param SchoolService $school
+     * @param SchoolService $schoolService
      */
-    public function __construct(SchoolService $school)
+    public function __construct(SchoolService $schoolService)
     {
-        $this->school = $school;
+        $this->schoolService = $schoolService;
         $this->authorizeResource(School::class, 'school');
     }
 
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): View
     {
         return view('pages.school.index');
     }
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): View
     {
         return view('pages.school.create');
     }
@@ -50,13 +48,11 @@ class SchoolController extends Controller
      * Store a newly created resource in storage.
      *
      * @param SchoolStoreRequest $request
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function store(SchoolStoreRequest $request)
+    public function store(SchoolStoreRequest $request): RedirectResponse
     {
         $data = $request->except('_token');
-        $this->school->createSchool($data);
+        $this->schoolService->createSchool($data);
 
         return back()->with('success', __('School created successfully'));
     }
@@ -65,10 +61,8 @@ class SchoolController extends Controller
      * Display the specified resource.
      *
      * @param School $school
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function show(School $school)
+    public function show(School $school): View
     {
         $data['school'] = $school;
 
@@ -79,10 +73,8 @@ class SchoolController extends Controller
      * Show the form for editing the specified resource.
      *
      * @param School $school
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function edit(School $school)
+    public function edit(School $school): View
     {
         $data['school'] = $school;
 
@@ -94,13 +86,11 @@ class SchoolController extends Controller
      *
      * @param SchoolUpdateRequest $request
      * @param School              $school
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function update(SchoolUpdateRequest $request, School $school)
+    public function update(SchoolUpdateRequest $request, School $school): RedirectResponse
     {
         $data = $request->except('_token', '_method');
-        $this->school->updateSchool($school, $data);
+        $this->schoolService->updateSchool($school, $data);
 
         return back()->with('success', __('School updated successfully'));
     }
@@ -109,22 +99,18 @@ class SchoolController extends Controller
      * Remove the specified resource from storage.
      *
      * @param School $school
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function destroy(School $school)
+    public function destroy(School $school): RedirectResponse
     {
-        $this->school->deleteSchool($school);
+        $this->schoolService->deleteSchool($school);
 
         return back()->with('success', __('School deleted successfully'));
     }
 
     /**
      * Get settings for authenticated user's school.
-     *
-     * @return \Illuminate\Http\RedirectResponse
      */
-    public function settings()
+    public function settings(): RedirectResponse
     {
         return redirect()->route('schools.edit', ['school' => auth()->user()->school_id]);
     }
@@ -133,17 +119,15 @@ class SchoolController extends Controller
      * Set the school.
      *
      * @param SchoolSetRequest $request
-     *
-     * @return \Illuminate\Http\RedirectResponse
      */
-    public function setSchool(SchoolSetRequest $request)
+    public function setSchool(SchoolSetRequest $request): RedirectResponse
     {
         $this->authorize('setSchool', School::class);
 
         $schoolId = $request->input('school_id');
         $school = School::findOrFail($schoolId);
 
-        $this->school->setSchool($school);
+        $this->schoolService->setSchool($school);
 
         return back()->with('success', __('School set successfully'));
     }

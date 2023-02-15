@@ -25,14 +25,14 @@ class UserFactory extends Factory
             'password'          => Hash::make(Str::random(10)),
             'remember_token'    => Str::random(10),
             'address'           => $this->faker->address(),
-            'birthday'          => '2004/04/22',
+            'birthday'          => $this->faker->date(),
             'address'           => $this->faker->address(),
             'school_id'         => 1,
             'blood_group'       => 'a+',
             'religion'          => 'christian',
-            'nationality'       => 'Nigerian',
-            'state'             => 'anambra',
-            'city'              => 'ngo',
+            'nationality'       => $this->faker->country(),
+            'state'             => 'wyoming',
+            'city'              => $this->faker->city(),
             'gender'            => 'male',
         ];
     }

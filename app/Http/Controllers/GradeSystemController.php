@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\View\View;
+use App\Models\GradeSystem;
+use Illuminate\Http\Response;
+use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\StoreGradeSystemRequest;
 use App\Http\Requests\UpdateGradeSystemRequest;
-use App\Models\GradeSystem;
 use App\Services\GradeSystem\GradeSystemService;
 
 class GradeSystemController extends Controller
@@ -19,20 +22,16 @@ class GradeSystemController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
+    */
+    public function index(): View
     {
         return view('pages.grade-system.index');
     }
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
+    */
+    public function create(): View
     {
         return view('pages.grade-system.create');
     }
@@ -41,10 +40,8 @@ class GradeSystemController extends Controller
      * Store a newly created resource in storage.
      *
      * @param \App\Http\Requests\StoreGradeSystemRequest $request
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function store(StoreGradeSystemRequest $request)
+    */
+    public function store(StoreGradeSystemRequest $request): RedirectResponse
     {
         $data = $request->except('_token');
         $this->gradeSystem->createGradeSystem($data);
@@ -56,24 +53,20 @@ class GradeSystemController extends Controller
      * Display the specified resource.
      *
      * @param \App\Models\GradeSystem $gradeSystem
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function show(GradeSystem $gradeSystem)
+    */
+    public function show(GradeSystem $gradeSystem): Response
     {
         abort(404);
 
-        return view('pages.grade-system.show', compact('gradeSystem'));
+        // return view('pages.grade-system.show', compact('gradeSystem'));
     }
 
     /**
      * Show the form for editing the specified resource.
      *
      * @param \App\Models\GradeSystem $gradeSystem
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(GradeSystem $gradeSystem)
+    */
+    public function edit(GradeSystem $gradeSystem): View
     {
         return view('pages.grade-system.edit', compact('gradeSystem'));
     }
@@ -83,10 +76,8 @@ class GradeSystemController extends Controller
      *
      * @param \App\Http\Requests\UpdateGradeSystemRequest $request
      * @param \App\Models\GradeSystem                     $gradeSystem
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function update(UpdateGradeSystemRequest $request, GradeSystem $gradeSystem)
+    */
+    public function update(UpdateGradeSystemRequest $request, GradeSystem $gradeSystem): RedirectResponse
     {
         $data = $request->except('_token');
         $this->gradeSystem->updateGradeSystem($gradeSystem, $data);
@@ -98,10 +89,8 @@ class GradeSystemController extends Controller
      * Remove the specified resource from storage.
      *
      * @param \App\Models\GradeSystem $gradeSystem
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(GradeSystem $gradeSystem)
+    */
+    public function destroy(GradeSystem $gradeSystem): RedirectResponse
     {
         $this->gradeSystem->deleteGradeSystem($gradeSystem);
 

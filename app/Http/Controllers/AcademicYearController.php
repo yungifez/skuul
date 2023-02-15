@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\AcademicYearStoreRequest;
+use Illuminate\View\View;
 use App\Models\AcademicYear;
-use App\Services\AcademicYear\AcademicYearService;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
+use App\Http\Requests\AcademicYearStoreRequest;
+use App\Services\AcademicYear\AcademicYearService;
 
 class AcademicYearController extends Controller
 {
@@ -20,9 +22,8 @@ class AcademicYearController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(): View
     {
         return view('pages.academic-year.index');
     }
@@ -30,9 +31,8 @@ class AcademicYearController extends Controller
     /**
      * Show the form for creating a new resource.
      *
-     * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create(): View
     {
         return view('pages.academic-year.create');
     }
@@ -42,9 +42,8 @@ class AcademicYearController extends Controller
      *
      * @param AcademicYearStoreRequest $request
      *
-     * @return \Illuminate\Http\Response
      */
-    public function store(AcademicYearStoreRequest $request)
+    public function store(AcademicYearStoreRequest $request): RedirectResponse
     {
         $data = $request->except('_token');
         $this->academicYear->createAcademicYear($data);
@@ -57,9 +56,8 @@ class AcademicYearController extends Controller
      *
      * @param AcademicYear $academicYear
      *
-     * @return \Illuminate\Http\Response
      */
-    public function show(AcademicYear $academicYear)
+    public function show(AcademicYear $academicYear): View
     {
         return view('pages.academic-year.show', compact('academicYear'));
     }
@@ -69,9 +67,8 @@ class AcademicYearController extends Controller
      *
      * @param AcademicYear $academicYear
      *
-     * @return \Illuminate\Http\Response
      */
-    public function edit(AcademicYear $academicYear)
+    public function edit(AcademicYear $academicYear): View
     {
         return view('pages.academic-year.edit', compact('academicYear'));
     }
@@ -82,7 +79,6 @@ class AcademicYearController extends Controller
      * @param AcademicYearStoreRequest $request
      * @param AcademicYear             $academicYear
      *
-     * @return \Illuminate\Http\Response
      */
     public function update(AcademicYearStoreRequest $request, AcademicYear $academicYear)
     {
@@ -96,17 +92,20 @@ class AcademicYearController extends Controller
      * Remove the specified resource from storage.
      *
      * @param AcademicYear $academicYear
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function destroy(AcademicYear $academicYear)
+    public function destroy(AcademicYear $academicYear): RedirectResponse
     {
         $this->academicYear->deleteAcademicYear($academicYear);
 
         return back()->with('success', 'Academic year deleted successfully');
     }
 
-    public function setAcademicYear(request $request)
+    /**
+     * Set academic year
+     *
+     * @param request $request
+     */
+    public function setAcademicYear(request $request): RedirectResponse
     {
         $this->authorize('setAcademicYear', AcademicYear::class);
         $academicYear = $request->academic_year_id;
