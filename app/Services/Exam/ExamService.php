@@ -61,26 +61,24 @@ class ExamService
     /**
      * Create exam in semester.
      *
-     * @param array|object $records
-     *
+     * @param  array|object  $records
      * @return void
      */
     public function createExam($records)
     {
         $exam = Exam::create([
-            'name'        => $records['name'],
+            'name' => $records['name'],
             'description' => $records['description'],
             'semester_id' => $records['semester_id'],
-            'start_date'  => $records['start_date'],
-            'stop_date'   => $records['stop_date'],
+            'start_date' => $records['start_date'],
+            'stop_date' => $records['stop_date'],
         ]);
     }
 
     /**
      * Update an exam.
      *
-     * @param array|object $records
-     *
+     * @param  array|object  $records
      * @return void
      */
     public function updateExam(Exam $exam, $records)
@@ -147,8 +145,7 @@ class ExamService
     /**
      * Calculate total marks attainale in each subjects accross all exams in a semester.
      *
-     * @param Exam $exam
-     *
+     * @param  Exam  $exam
      * @return int
      */
     public function totalMarksAttainableInSemesterForSubject(Semester $semester)
