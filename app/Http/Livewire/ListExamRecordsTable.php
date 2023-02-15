@@ -68,7 +68,7 @@ class ListExamRecordsTable extends Component
         $this->exams->count() ? $this->exam = $this->exams[0]->id : $this->exam = null;
         $this->classes = $myClassService->getAllClasses();
         //sets subjects etc if class isn't empty
-        if (! $this->classes->isEmpty()) {
+        if (!$this->classes->isEmpty()) {
             $this->subjects = $this->classes[0]->subjects;
             if ($this->subjects->isNotEmpty()) {
                 $this->subject = $this->subjects[0]->id;
