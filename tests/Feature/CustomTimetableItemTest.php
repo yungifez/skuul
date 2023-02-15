@@ -10,7 +10,9 @@ use Tests\TestCase;
 
 class CustomTimetableItemTest extends TestCase
 {
-    use FeatureTestTrait, RefreshDatabase, WithFaker;
+    use FeatureTestTrait;
+    use RefreshDatabase;
+    use WithFaker;
 
     public function test_unauthorized_users_cannot_see_all_custom_items(): void
     {
@@ -105,7 +107,7 @@ class CustomTimetableItemTest extends TestCase
 
         $this->assertDatabaseMissing('custom_timetable_items', [
             'name' => $name,
-            'id' => $customItem->id,
+            'id'   => $customItem->id,
         ]);
     }
 
@@ -122,7 +124,7 @@ class CustomTimetableItemTest extends TestCase
 
         $this->assertDatabaseHas('custom_timetable_items', [
             'name' => $name,
-            'id' => $customItem->id,
+            'id'   => $customItem->id,
         ]);
     }
 

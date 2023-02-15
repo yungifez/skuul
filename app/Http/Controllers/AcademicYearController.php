@@ -84,7 +84,7 @@ class AcademicYearController extends Controller
     }
 
     /**
-     * Set academic year
+     * Set academic year.
      */
     public function setAcademicYear(request $request): RedirectResponse
     {

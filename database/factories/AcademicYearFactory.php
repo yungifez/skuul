@@ -17,8 +17,8 @@ class AcademicYearFactory extends Factory
 
         return [
             'start_year' => $year,
-            'stop_year' => $year + 1,
-            'school_id' => 1,
+            'stop_year'  => $year + 1,
+            'school_id'  => 1,
         ];
     }
 }
