@@ -42,7 +42,8 @@ class SemesterService
     /**
      * Create a new semester.
      *
-     * @param  mixed  $data
+     * @param mixed $data
+     *
      * @return Semester
      */
     public function createSemester($data)
@@ -50,8 +51,8 @@ class SemesterService
         $data['academic_year_id'] = auth()->user()->school->academicYear->id;
         $data['school_id'] = auth()->user()->school->id;
         $semester = Semester::create([
-            'name' => $data['name'],
-            'school_id' => $data['school_id'],
+            'name'             => $data['name'],
+            'school_id'        => $data['school_id'],
             'academic_year_id' => $data['academic_year_id'],
         ]);
 
@@ -62,9 +63,9 @@ class SemesterService
      * Set current semester.
      *
      *
-     * @return void
-     *
      * @throws InvalidValueException
+     *
+     * @return void
      */
     public function setSemester(Semester $semester)
     {
@@ -79,7 +80,8 @@ class SemesterService
     /**
      * Semester service.
      *
-     * @param  mixed  $data
+     * @param mixed $data
+     *
      * @return void
      */
     public function updateSemester(Semester $semester, $data)
