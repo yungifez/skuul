@@ -12,25 +12,24 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     /**
      * Validate and update the given user's profile information.
      *
-     * @param mixed $user
-     *
+     * @param  mixed  $user
      * @return void
      */
     public function update($user, array $input)
     {
         Validator::make($input, [
-            'name'        => ['required', 'string', 'max:255'],
-            'email'       => ['required', 'email:rfc,dns', 'max:255', Rule::unique('users')->ignore($user->id)],
-            'photo'       => ['nullable', 'mimes:jpg,jpeg,png', 'max:1024'],
-            'birthday'    => ['required', 'date', 'before:today'],
-            'address'     => ['required', 'string', 'max:500'],
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email:rfc,dns', 'max:255', Rule::unique('users')->ignore($user->id)],
+            'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:1024'],
+            'birthday' => ['required', 'date', 'before:today'],
+            'address' => ['required', 'string', 'max:500'],
             'blood_group' => ['required', 'string', 'max:255'],
-            'religion'    => ['nullable', 'string', 'max:255'],
+            'religion' => ['nullable', 'string', 'max:255'],
             'nationality' => ['required', 'string', 'max:255'],
-            'state'       => ['required', 'string', 'max:255'],
-            'city'        => ['required', 'string', 'max:255'],
-            'gender'      => ['required', 'string', 'max:255'],
-            'phone'       => ['nullable', 'string', 'max:255'],
+            'state' => ['required', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:255'],
+            'gender' => ['required', 'string', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:255'],
         ])->validate();
 
         if (isset($input['photo'])) {
@@ -42,17 +41,17 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             $this->updateVerifiedUser($user, $input);
         } else {
             $user->forceFill([
-                'name'        => $input['name'],
-                'email'       => $input['email'],
-                'birthday'    => $input['birthday'],
-                'address'     => $input['address'],
+                'name' => $input['name'],
+                'email' => $input['email'],
+                'birthday' => $input['birthday'],
+                'address' => $input['address'],
                 'blood_group' => $input['blood_group'],
-                'religion'    => $input['religion'] ?? '',
+                'religion' => $input['religion'] ?? '',
                 'nationality' => $input['nationality'],
-                'state'       => $input['state'],
-                'city'        => $input['city'],
-                'gender'      => $input['gender'],
-                'phone'       => $input['phone'] ?? '',
+                'state' => $input['state'],
+                'city' => $input['city'],
+                'gender' => $input['gender'],
+                'phone' => $input['phone'] ?? '',
             ])->save();
         }
 
@@ -62,25 +61,24 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     /**
      * Update the given verified user's profile information.
      *
-     * @param mixed $user
-     *
+     * @param  mixed  $user
      * @return void
      */
     protected function updateVerifiedUser($user, array $input)
     {
         $user->forceFill([
-            'name'              => $input['name'],
-            'email'             => $input['email'],
+            'name' => $input['name'],
+            'email' => $input['email'],
             'email_verified_at' => null,
-            'birthday'          => $input['birthday'],
-            'address'           => $input['address'],
-            'blood_group'       => $input['blood_group'],
-            'religion'          => $input['religion'] ?? '',
-            'nationality'       => $input['nationality'],
-            'state'             => $input['state'],
-            'city'              => $input['city'],
-            'gender'            => $input['gender'],
-            'phone'             => $input['phone'] ?? '',
+            'birthday' => $input['birthday'],
+            'address' => $input['address'],
+            'blood_group' => $input['blood_group'],
+            'religion' => $input['religion'] ?? '',
+            'nationality' => $input['nationality'],
+            'state' => $input['state'],
+            'city' => $input['city'],
+            'gender' => $input['gender'],
+            'phone' => $input['phone'] ?? '',
         ])->save();
 
         $user->sendEmailVerificationNotification();
