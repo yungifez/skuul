@@ -74,7 +74,7 @@ class SectionTest extends TestCase
             ->post('/dashboard/sections', ['name' => 'Test section', 'my_class_id' => 1]);
 
         $this->assertDatabaseHas('sections', [
-            'name' => 'Test section',
+            'name'        => 'Test section',
             'my_class_id' => 1,
         ]);
     }
@@ -93,8 +93,8 @@ class SectionTest extends TestCase
             ->put("/dashboard/sections/$section->id", ['name' => 'Test section', 'my_class_id' => 1]);
 
         $this->assertDatabaseHas('sections', [
-            'id' => $section->id,
-            'name' => 'Test section',
+            'id'          => $section->id,
+            'name'        => 'Test section',
             'my_class_id' => 1,
         ]);
     }

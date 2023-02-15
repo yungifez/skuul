@@ -57,11 +57,11 @@ class SyllabusTest extends TestCase
         $file = Storage::fake('syllabi');
         $this->unauthorized_user()
         ->post('/dashboard/syllabi', [
-            'name' => 'Test syllabus',
+            'name'        => 'Test syllabus',
             'my_class_id' => 1,
-            'subject_id' => 1,
+            'subject_id'  => 1,
             'description' => 'Test syllabus description',
-            'file' => UploadedFile::fake()->create('test-syllabus.pdf', 100),
+            'file'        => UploadedFile::fake()->create('test-syllabus.pdf', 100),
         ])->assertForbidden();
     }
 
@@ -72,15 +72,15 @@ class SyllabusTest extends TestCase
         $file = Storage::fake('syllabi');
         $this->authorized_user(['create syllabus'])
         ->post('/dashboard/syllabi', [
-            'name' => 'Test syllabus',
-            'subject_id' => 1,
+            'name'        => 'Test syllabus',
+            'subject_id'  => 1,
             'description' => 'Test syllabus description',
-            'file' => UploadedFile::fake()->create('test-syllabus.pdf', 100),
+            'file'        => UploadedFile::fake()->create('test-syllabus.pdf', 100),
         ]);
 
         $this->assertDatabaseHas('syllabi', [
-            'name' => 'Test syllabus',
-            'subject_id' => 1,
+            'name'        => 'Test syllabus',
+            'subject_id'  => 1,
             'description' => 'Test syllabus description',
         ]);
     }
