@@ -106,7 +106,6 @@ class AccountApplicationService
             $applicant->accountApplication->setStatus($record['status'], $record['reason'] ?? null);
 
             if ($applicant->accountApplication->status == 'approved') {
-
                 //create associated user records
                 switch ($applicant->accountApplication->role->name) {
                     case 'student':
