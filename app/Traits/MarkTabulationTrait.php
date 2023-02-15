@@ -28,10 +28,9 @@ trait MarkTabulationTrait
     public Collection $students;
 
     /**
-     * @param Collection<Subjects>  $subjects
-     * @param Collection<Students>  $students
-     * @param Collection<ExamSlots> $examSlots
-     *
+     * @param  Collection<Subjects>  $subjects
+     * @param  Collection<Students>  $students
+     * @param  Collection<ExamSlots>  $examSlots
      * @return Collection
      */
     public function tabulateMarks(ClassGroup $classGroup, Collection|SupportCollection $subjects, Collection|SupportCollection $students, Collection|SupportCollection $examSlots)
