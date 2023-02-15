@@ -49,7 +49,7 @@ class UpdateApplicationCommand extends Command
 
         sleep(2);
 
-        if (! $this->confirm('Do you wish to continue?')) {
+        if (!$this->confirm('Do you wish to continue?')) {
             $this->error('Operation cancelled, thank you for using Skuul');
             exit();
         }
@@ -111,7 +111,7 @@ class UpdateApplicationCommand extends Command
 
     public function optimize()
     {
-        if (! $this->confirm('Do you want to optimize this application?')) {
+        if (!$this->confirm('Do you want to optimize this application?')) {
             return;
         }
 
