@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Section;
-use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
-use App\Services\Section\SectionService;
 use App\Http\Requests\SectionStoreRequest;
 use App\Http\Requests\SectionUpdateRequest;
+use App\Models\Section;
+use App\Services\Section\SectionService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class SectionController extends Controller
 {
@@ -37,8 +37,6 @@ class SectionController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param SectionStoreRequest $request
      */
     public function store(SectionStoreRequest $request): RedirectResponse
     {
@@ -50,8 +48,6 @@ class SectionController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param Section $section
      */
     public function show(Section $section): View
     {
@@ -60,8 +56,6 @@ class SectionController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param Section $section
      */
     public function edit(Section $section): View
     {
@@ -72,9 +66,6 @@ class SectionController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param SectionUpdateRequest $request
-     * @param Section              $section
      */
     public function update(SectionUpdateRequest $request, Section $section): RedirectResponse
     {
@@ -87,8 +78,6 @@ class SectionController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param Section $section
      */
     public function destroy(Section $section): RedirectResponse
     {

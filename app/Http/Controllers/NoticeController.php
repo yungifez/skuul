@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Notice;
-use Illuminate\View\View;
-use Illuminate\Http\Response;
-use Illuminate\Http\RedirectResponse;
-use App\Services\Notice\NoticeService;
 use App\Http\Requests\StoreNoticeRequest;
 use App\Http\Requests\UpdateNoticeRequest;
+use App\Models\Notice;
+use App\Services\Notice\NoticeService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
 
 class NoticeController extends Controller
 {
@@ -38,8 +38,6 @@ class NoticeController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param \App\Http\Requests\StoreNoticeRequest $request
      */
     public function store(StoreNoticeRequest $request): RedirectResponse
     {
@@ -50,8 +48,6 @@ class NoticeController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param \App\Models\Notice $notice
      */
     public function show(Notice $notice): View
     {
@@ -60,8 +56,6 @@ class NoticeController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param \App\Models\Notice $notice
      */
     public function edit(Notice $notice): Response
     {
@@ -70,9 +64,6 @@ class NoticeController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param \App\Http\Requests\UpdateNoticeRequest $request
-     * @param \App\Models\Notice                     $notice
      */
     public function update(UpdateNoticeRequest $request, Notice $notice): Response
     {
@@ -81,8 +72,6 @@ class NoticeController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param \App\Models\Notice $notice
      */
     public function destroy(Notice $notice): RedirectResponse
     {

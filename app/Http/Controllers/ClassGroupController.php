@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\View\View;
-use App\Models\ClassGroup;
-use Illuminate\Http\RedirectResponse;
-use App\Services\MyClass\MyClassService;
 use App\Http\Requests\ClassGroupStoreRequest;
 use App\Http\Requests\UpdateClassGroupRequest;
+use App\Models\ClassGroup;
+use App\Services\MyClass\MyClassService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class ClassGroupController extends Controller
 {
     /**
      * Class service class instance.
-     *
-     * @var MyClassService
      */
     public MyClassService $myClassService;
 
@@ -27,7 +25,6 @@ class ClassGroupController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
      */
     public function index(): View
     {
@@ -44,8 +41,6 @@ class ClassGroupController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param ClassGroupStoreRequest $request
      */
     public function store(ClassGroupStoreRequest $request): RedirectResponse
     {
@@ -57,9 +52,6 @@ class ClassGroupController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param ClassGroup $classGroup
-     * 
      */
     public function show(ClassGroup $classGroup): View
     {
@@ -70,9 +62,6 @@ class ClassGroupController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param ClassGroup $classGroup
-     * 
      */
     public function edit(ClassGroup $classGroup): View
     {
@@ -83,9 +72,6 @@ class ClassGroupController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param UpdateClassGroupRequest $request
-     * @param ClassGroup              $classGroup
      */
     public function update(UpdateClassGroupRequest $request, ClassGroup $classGroup): RedirectResponse
     {
@@ -97,9 +83,6 @@ class ClassGroupController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param ClassGroup $classGroup
-     *
      */
     public function destroy(ClassGroup $classGroup): RedirectResponse
     {

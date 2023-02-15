@@ -15,8 +15,6 @@ trait MarkTabulationTrait
 {
     /**
      * Highest amount of marks a student can get.
-     *
-     * @var int
      */
     public int $totalMarksAttainableInEachSubject;
 
@@ -30,11 +28,9 @@ trait MarkTabulationTrait
     public Collection $students;
 
     /**
-     * @param ClassGroup            $classGroup
-     * @param Collection<Subjects>  $subjects
-     * @param Collection<Students>  $students
-     * @param Collection<ExamSlots> $examSlots
-     *
+     * @param  Collection<Subjects>  $subjects
+     * @param  Collection<Students>  $students
+     * @param  Collection<ExamSlots>  $examSlots
      * @return Collection
      */
     public function tabulateMarks(ClassGroup $classGroup, Collection|SupportCollection $subjects, Collection|SupportCollection $students, Collection|SupportCollection $examSlots)
@@ -58,7 +54,6 @@ trait MarkTabulationTrait
         $students->load('studentRecord');
 
         foreach ($students as $student) {
-
             //array to hold tabulation values for each student
             $totalSubjectMarks = [];
 

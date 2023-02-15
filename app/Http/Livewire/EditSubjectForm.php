@@ -8,7 +8,9 @@ use Livewire\Component;
 class EditSubjectForm extends Component
 {
     public object $subject;
+
     public $teachers;
+
     public $assignedTeachersId;
 
     public function mount(TeacherService $teacherService)

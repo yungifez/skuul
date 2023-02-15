@@ -36,8 +36,6 @@ class Subject extends Model
 
     /**
      * Get the subjects timetable records.
-     *
-     * @return MorphOne
      */
     public function timetableRecord(): MorphOne
     {

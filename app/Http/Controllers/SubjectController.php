@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Models\Subject;
-use Illuminate\View\View;
-use Illuminate\Http\Response;
-use Illuminate\Http\RedirectResponse;
-use App\Services\Subject\SubjectService;
-use App\Http\Requests\SubjectStoreRequest;
 use App\Http\Requests\AssignTeacherToSubjectRequest;
+use App\Http\Requests\SubjectStoreRequest;
+use App\Models\Subject;
+use App\Models\User;
+use App\Services\Subject\SubjectService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
 
 class SubjectController extends Controller
 {
@@ -44,7 +44,6 @@ class SubjectController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param SubjectStoreRequest $request
      *
      * @return \Illuminate\Http\Response
      */
@@ -59,10 +58,6 @@ class SubjectController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param Subject $subject
-     *
-     * @return \Illuminate\Http\Response
      */
     public function show(Subject $subject): Response
     {
@@ -72,7 +67,6 @@ class SubjectController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param Subject $subject
      *
      * @return \Illuminate\Http\Response
      */
@@ -86,8 +80,6 @@ class SubjectController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param SubjectStoreRequest $request
-     * @param Subject             $subject
      *
      * @return \Illuminate\Http\Response
      */
@@ -103,7 +95,6 @@ class SubjectController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param Subject $subject
      *
      * @return \Illuminate\Http\Response
      */

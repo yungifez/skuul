@@ -34,7 +34,6 @@ class NoticeService
     /**
      * Store notice.
      *
-     * @param array $data
      *
      * @return void
      */
@@ -52,12 +51,12 @@ class NoticeService
         DB::beginTransaction();
 
         Notice::create([
-            'title'      => $data['title'],
-            'content'    => $data['content'],
+            'title' => $data['title'],
+            'content' => $data['content'],
             'start_date' => $data['start_date'],
-            'stop_date'  => $data['stop_date'],
+            'stop_date' => $data['stop_date'],
             'attachment' => $data['attachment'],
-            'school_id'  => auth()->user()->school_id,
+            'school_id' => auth()->user()->school_id,
         ]);
 
         DB::commit();
@@ -66,8 +65,7 @@ class NoticeService
     /**
      * Delete notice.
      *
-     * @param App\Models\Notice $notice
-     *
+     * @param  App\Models\Notice  $notice
      * @return void
      */
     public function deleteNotice(Notice $notice)

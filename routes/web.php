@@ -28,7 +28,6 @@ Route::middleware(['guest'])->group(function () {
 
 //user must be authenticated
 Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefaultPasswordIsChanged', 'App\Http\Middleware\PreventGraduatedStudent')->prefix('dashboard')->namespace('App\Http\Controllers')->group(function () {
-
     //manage school settings
     Route::get('schools/settings', ['App\Http\Controllers\SchoolController', 'settings'])->name('schools.settings')->middleware('App\Http\Middleware\EnsureSuperAdminHasSchoolId');
 
@@ -38,7 +37,6 @@ Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefault
 
     //super admin must have school id set
     Route::middleware(['App\Http\Middleware\EnsureSuperAdminHasSchoolId'])->group(function () {
-
         //dashboard route
         Route::get('/', function () {
             return view('dashboard');

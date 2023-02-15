@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Timetable;
-use Illuminate\Http\Response;
-use App\Models\TimetableTimeSlot;
-use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\storeTimetableRecord;
-use App\Services\Timetable\TimeSlotService;
 use App\Http\Requests\StoreTimetableTimeSlotRequest;
 use App\Http\Requests\UpdateTimetableTimeSlotRequest;
+use App\Models\Timetable;
+use App\Models\TimetableTimeSlot;
+use App\Services\Timetable\TimeSlotService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 
 class TimetableTimeSlotController extends Controller
 {
@@ -23,8 +23,6 @@ class TimetableTimeSlotController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
      */
     public function index(): Response
     {
@@ -33,8 +31,6 @@ class TimetableTimeSlotController extends Controller
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
      */
     public function create(): Response
     {
@@ -44,7 +40,6 @@ class TimetableTimeSlotController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param \App\Http\Requests\StoreTimetableTimeSlotRequest $request
      *
      * @return \Illuminate\Http\Response
      */
@@ -58,10 +53,6 @@ class TimetableTimeSlotController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param \App\Models\TimetableTimeSlot $timetableTimeSlot
-     *
-     * @return \Illuminate\Http\Response
      */
     public function show(TimetableTimeSlot $timetableTimeSlot): Response
     {
@@ -70,10 +61,6 @@ class TimetableTimeSlotController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param \App\Models\TimetableTimeSlot $timetableTimeSlot
-     *
-     * @return \Illuminate\Http\Response
      */
     public function edit(TimetableTimeSlot $timetableTimeSlot): Response
     {
@@ -82,11 +69,6 @@ class TimetableTimeSlotController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param \App\Http\Requests\UpdateTimetableTimeSlotRequest $request
-     * @param \App\Models\TimetableTimeSlot                     $timetableTimeSlot
-     *
-     * @return \Illuminate\Http\Response
      */
     public function update(UpdateTimetableTimeSlotRequest $request, $timetable, TimetableTimeSlot $timetableTimeSlot): Response
     {
@@ -96,9 +78,7 @@ class TimetableTimeSlotController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param Timetable         $timetable
-     * @param TimetableTimeSlot $timeSlot
-     *
+     * @param  Timetable  $timetable
      * @return \Illuminate\Http\Response
      */
     public function destroy(TimetableTimeSlot $timeSlot): RedirectResponse

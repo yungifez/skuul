@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Timetable;
-use Illuminate\View\View;
-use Illuminate\Http\Response;
-use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\TimetableStoreRequest;
-use App\Services\Timetable\TimetableService;
 use App\Http\Requests\TimetableUpdateRequest;
+use App\Models\Timetable;
+use App\Services\Timetable\TimetableService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
 
 class TimetableController extends Controller
 {
@@ -38,8 +38,6 @@ class TimetableController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param TimetableStoreRequest $request
      */
     public function store(TimetableStoreRequest $request): RedirectResponse
     {
@@ -53,8 +51,6 @@ class TimetableController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param \App\Models\Timetable $timetable
      */
     public function show(Timetable $timetable): View
     {
@@ -73,8 +69,6 @@ class TimetableController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param \App\Models\Timetable $timetable
      */
     public function edit(Timetable $timetable): View
     {
@@ -83,9 +77,6 @@ class TimetableController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param TimetableUpdateRequest $request
-     * @param \App\Models\Timetable  $timetable
      */
     public function update(TimetableUpdateRequest $request, Timetable $timetable): RedirectResponse
     {
@@ -97,8 +88,6 @@ class TimetableController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param \App\Models\Timetable $timetable
      */
     public function destroy(Timetable $timetable): RedirectResponse
     {
@@ -109,8 +98,6 @@ class TimetableController extends Controller
 
     /**
      * Manage Timetable
-     *
-     * @param Timetable $timetable
      */
     public function manage(Timetable $timetable): View
     {

@@ -15,6 +15,7 @@ class TimetableTimeSlot extends Model
         'stop_time',
         'timetable_id',
     ];
+
     protected $getDateFormat = 'H:i';
 
     public function startTime(): Attribute

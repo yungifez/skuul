@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Semester;
-use Illuminate\View\View;
-use Illuminate\Http\Response;
-use Illuminate\Http\RedirectResponse;
-use App\Http\Requests\SetSemesterRequest;
-use App\Services\Semester\SemesterService;
 use App\Http\Requests\SemesterStoreRequest;
+use App\Http\Requests\SetSemesterRequest;
+use App\Models\Semester;
+use App\Services\Semester\SemesterService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
 
 class SemesterController extends Controller
 {
@@ -38,8 +38,6 @@ class SemesterController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param SemesterStoreRequest $request
      */
     public function store(SemesterStoreRequest $request): RedirectResponse
     {
@@ -51,8 +49,6 @@ class SemesterController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param \App\Models\Semester $semester
      */
     public function show(Semester $semester): Response
     {
@@ -61,8 +57,6 @@ class SemesterController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param \App\Models\Semester $semester
      */
     public function edit(Semester $semester): View
     {
@@ -71,9 +65,6 @@ class SemesterController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param SemesterStoreRequest $request
-     * @param \App\Models\Semester $semester
      */
     public function update(SemesterStoreRequest $request, Semester $semester): RedirectResponse
     {
@@ -85,8 +76,6 @@ class SemesterController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param \App\Models\Semester $semester
      */
     public function destroy(Semester $semester): RedirectResponse
     {

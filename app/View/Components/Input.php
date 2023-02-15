@@ -7,11 +7,17 @@ use Illuminate\View\Component;
 class Input extends Component
 {
     public string $id;
+
     public string $name;
+
     public ?string $label;
+
     public ?string $class;
+
     public ?string $groupClass;
+
     public ?string $labelClass;
+
     public ?string $value;
 
     /**

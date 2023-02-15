@@ -9,7 +9,7 @@ trait FeatureTestTrait
     /**
      * Create an unauthorized user
      */
-    public function unauthorized_user(): Object
+    public function unauthorized_user(): object
     {
         $user = User::factory()->create();
 
@@ -18,10 +18,8 @@ trait FeatureTestTrait
 
     /**
      * Create an authorized user
-     *
-     * @param array $permission
      */
-    public function authorized_user(array $permission): Object
+    public function authorized_user(array $permission): object
     {
         $user = User::factory()->create();
         $user->givePermissionTo($permission);

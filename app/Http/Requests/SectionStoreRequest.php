@@ -23,7 +23,7 @@ class SectionStoreRequest extends FormRequest
         $myClassId = $this->input('my_class_id');
 
         return [
-            'name'        => [
+            'name' => [
                 'required',
                 'max:255',
                 Rule::unique('sections', 'name')->where('my_class_id', $myClassId),

@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\View\View;
-use App\Models\ExamRecord;
-use Illuminate\Http\Response;
-use Illuminate\Http\RedirectResponse;
-use App\Services\Exam\ExamRecordService;
 use App\Http\Requests\StoreExamRecordRequest;
 use App\Http\Requests\UpdateExamRecordRequest;
+use App\Models\ExamRecord;
+use App\Services\Exam\ExamRecordService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
 
 class ExamRecordController extends Controller
 {
@@ -23,7 +23,6 @@ class ExamRecordController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
      */
     public function index(): View
     {
@@ -32,7 +31,6 @@ class ExamRecordController extends Controller
 
     /**
      * Show the form for creating a new resource.
-     *
      */
     public function create(): View
     {
@@ -41,9 +39,6 @@ class ExamRecordController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param \App\Http\Requests\StoreExamRecordRequest $request
-     *
      */
     public function store(StoreExamRecordRequest $request): RedirectResponse
     {
@@ -56,9 +51,6 @@ class ExamRecordController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param \App\Models\ExamRecord $examRecord
-     *
      */
     public function show(ExamRecord $examRecord): Response
     {
@@ -67,9 +59,6 @@ class ExamRecordController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param \App\Models\ExamRecord $examRecord
-     *
      */
     public function edit(ExamRecord $examRecord): Response
     {
@@ -78,10 +67,6 @@ class ExamRecordController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param \App\Http\Requests\UpdateExamRecordRequest $request
-     * @param \App\Models\ExamRecord                     $examRecord
-     *
      */
     public function update(UpdateExamRecordRequest $request, ExamRecord $examRecord): RedirectResponse
     {
@@ -90,9 +75,6 @@ class ExamRecordController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param \App\Models\ExamRecord $examRecord
-     *
      */
     public function destroy(ExamRecord $examRecord): Response
     {

@@ -7,9 +7,13 @@ use Illuminate\View\Component;
 class Select extends Component
 {
     public ?string $label;
+
     public string $id;
+
     public string $name;
+
     public ?string $class;
+
     public ?string $groupClass;
 
     /**

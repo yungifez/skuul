@@ -10,14 +10,23 @@ use Livewire\Component;
 class ManageTimetable extends Component
 {
     protected $listeners = ['timetableCellClicked' => 'setSelectFields'];
+
     public Timetable $timetable;
+
     public $timeSlots;
+
     public ?int $timeSlot;
+
     public $weekdays;
+
     public $weekday;
+
     public $subjects;
+
     public $customItems;
+
     public $types;
+
     public $type;
 
     public function mount(TimetableService $timetableService)

@@ -21,7 +21,6 @@ class SendAccountStatusEmailChanged
     /**
      * Handle the event.
      *
-     * @param \App\Events\AccountStatusChanged $event
      *
      * @return void
      */

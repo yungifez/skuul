@@ -48,14 +48,14 @@ class CustomTimetableItemTest extends TestCase
     {
         $name = $this->faker->name();
         $response = $this->unauthorized_user()
-            ->post('/dashboard/custom-timetable-items',[
-                'name' => $name
+            ->post('/dashboard/custom-timetable-items', [
+                'name' => $name,
             ]);
 
         $response->assertForbidden();
-        
-        $this->assertDatabaseMissing('custom_timetable_items',[
-            'name' => $name
+
+        $this->assertDatabaseMissing('custom_timetable_items', [
+            'name' => $name,
         ]);
     }
 
@@ -63,14 +63,14 @@ class CustomTimetableItemTest extends TestCase
     {
         $name = $this->faker->name();
         $response = $this->authorized_user(['create custom timetable item'])
-            ->post('/dashboard/custom-timetable-items',[
-                'name' => $name
+            ->post('/dashboard/custom-timetable-items', [
+                'name' => $name,
             ]);
 
         $response->assertRedirect();
-        
-        $this->assertDatabaseHas('custom_timetable_items',[
-            'name' => $name
+
+        $this->assertDatabaseHas('custom_timetable_items', [
+            'name' => $name,
         ]);
     }
 
@@ -98,14 +98,14 @@ class CustomTimetableItemTest extends TestCase
         $name = $this->faker->name();
         $response = $this->unauthorized_user()
             ->put("/dashboard/custom-timetable-items/$customItem->id", [
-                'name' => $name
+                'name' => $name,
             ]);
 
         $response->assertForbidden();
 
-        $this->assertDatabaseMissing('custom_timetable_items',[
+        $this->assertDatabaseMissing('custom_timetable_items', [
             'name' => $name,
-            'id' => $customItem->id
+            'id' => $customItem->id,
         ]);
     }
 
@@ -115,14 +115,14 @@ class CustomTimetableItemTest extends TestCase
         $name = $this->faker->name();
         $response = $this->authorized_user(['update custom timetable item'])
             ->put("/dashboard/custom-timetable-items/$customItem->id", [
-                'name' => $name
+                'name' => $name,
             ]);
 
         $response->assertRedirect();
 
-        $this->assertDatabaseHas('custom_timetable_items',[
+        $this->assertDatabaseHas('custom_timetable_items', [
             'name' => $name,
-            'id' => $customItem->id
+            'id' => $customItem->id,
         ]);
     }
 

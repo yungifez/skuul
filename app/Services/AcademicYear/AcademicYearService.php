@@ -30,8 +30,7 @@ class AcademicYearService
     /**
      * Get academic year by Id.
      *
-     *@param int $id
-     *
+     *@param  int  $id
      * @return App\Models\AcademicYear
      */
     public function getAcademicYearById($id)
@@ -42,8 +41,7 @@ class AcademicYearService
     /**
      * Create academic year.
      *
-     * @param array|Collection $records
-     *
+     * @param  array|Collection  $records
      * @return AcademicYear
      */
     public function createAcademicYear($records)
@@ -55,9 +53,7 @@ class AcademicYearService
     /**
      * Update Academic Year.
      *
-     * @param AcademicYear     $academicYear
-     * @param array|Collection $records
-     *
+     * @param  array|Collection  $records
      * @return void
      */
     public function updateAcademicYear(AcademicYear $academicYear, $records)
@@ -70,7 +66,6 @@ class AcademicYearService
     /**
      * Delete an academic year.
      *
-     * @param AcademicYear $academicYear
      *
      * @return void
      */
@@ -82,14 +77,13 @@ class AcademicYearService
     /**
      * Set academic year as current.one in school.
      *
-     * @param int $academicYearId
-     * @param int $schoolId
-     *
+     * @param  int  $academicYearId
+     * @param  int  $schoolId
      * @return void
      */
     public function setAcademicYear($academicYearId, $schoolId = null)
     {
-        if (!isset($schoolId)) {
+        if (! isset($schoolId)) {
             $schoolId = auth()->user()->school_id;
         }
         $school = $this->schoolService->getSchoolById($schoolId);

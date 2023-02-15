@@ -23,7 +23,6 @@ class PromotionPolicy
     /**
      * Determine if the given user can view the promotion.
      *
-     * @param User $user
      *
      * @return bool
      */
@@ -37,7 +36,6 @@ class PromotionPolicy
     /**
      * Determine if the given user can create promotions.
      *
-     * @param User $user
      *
      * @return bool
      */
@@ -51,7 +49,6 @@ class PromotionPolicy
     /**
      * Determine if the given user can reset promotion.
      *
-     * @param User $user
      *
      * @return bool
      */
@@ -65,7 +62,6 @@ class PromotionPolicy
     /**
      * Determine if the given user can view the promotion.
      *
-     * @param User $user
      *
      * @return bool
      */

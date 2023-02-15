@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Promotion;
-use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
-use App\Services\Student\StudentService;
 use App\Http\Requests\StudentPromoteRequest;
+use App\Models\Promotion;
+use App\Services\Student\StudentService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class PromotionController extends Controller
 {
@@ -39,9 +39,6 @@ class PromotionController extends Controller
 
     /**
      * Promote student.
-     *
-     * @param StudentPromoteRequest $request
-     *
      */
     public function promote(StudentPromoteRequest $request): RedirectResponse
     {
@@ -54,9 +51,6 @@ class PromotionController extends Controller
 
     /**
      * Reset promotion.
-     *
-     * @param Promotion $promotion
-     *
      */
     public function resetPromotion(Promotion $promotion): RedirectResponse
     {
@@ -69,7 +63,6 @@ class PromotionController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param Promotion $promotion
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */

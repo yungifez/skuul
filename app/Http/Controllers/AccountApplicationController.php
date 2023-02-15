@@ -12,15 +12,11 @@ class AccountApplicationController extends Controller
 {
     /**
      * Contains account service instance.
-     *
-     * @var AccountApplicationService
      */
     public AccountApplicationService $accountApplicationService;
 
     /**
      * User service instance.
-     *
-     * @var UserService
      */
     public UserService $userService;
 
@@ -45,7 +41,6 @@ class AccountApplicationController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param \App\Models\User $applicant
      *
      * @return \Illuminate\Http\Response
      */
@@ -61,7 +56,6 @@ class AccountApplicationController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param \App\Models\User $applicant
      *
      * @return \Illuminate\Http\Response
      */
@@ -77,8 +71,6 @@ class AccountApplicationController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param \App\Http\Requests\UpdateAccountApplicationRequest $request
-     * @param \App\Models\User                                   $applicant
      *
      * @return \Illuminate\Http\Response
      */
@@ -95,7 +87,6 @@ class AccountApplicationController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param \App\Models\User $applicant
      *
      * @return \Illuminate\Http\Response
      */
@@ -124,9 +115,7 @@ class AccountApplicationController extends Controller
     /**
      * Change Application Statis.
      *
-     * @param User    $applicant
-     * @param Request $request
-     *
+     * @param  Request  $request
      * @return void
      */
     public function changeStatus(User $applicant, AccountApplicationStatusChangeRequest $request)

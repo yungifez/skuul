@@ -39,8 +39,6 @@ class AcademicYear extends Model
 
     /**
      * Get all of the exams for the AcademicYear.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
      */
     public function exams(): HasManyThrough
     {
@@ -49,8 +47,6 @@ class AcademicYear extends Model
 
     /**
      * The studentRecords that belong to the AcademicYear.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
     public function studentRecords(): BelongsToMany
     {

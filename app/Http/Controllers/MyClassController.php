@@ -2,19 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MyClass;
-use Illuminate\View\View;
-use Illuminate\Http\RedirectResponse;
-use App\Services\MyClass\MyClassService;
 use App\Http\Requests\MyClassStoreRequest;
 use App\Http\Requests\MyClassUpdateRequest;
+use App\Models\MyClass;
+use App\Services\MyClass\MyClassService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\View\View;
 
 class MyClassController extends Controller
 {
     /**
      * Class service instance.
-     *
-     * @var MyClassService
      */
     public MyClassService $myClassService;
 
@@ -43,8 +41,6 @@ class MyClassController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param MyClassStoreRequest $request
      */
     public function store(MyClassStoreRequest $request): RedirectResponse
     {
@@ -56,8 +52,6 @@ class MyClassController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param MyClass $class
      */
     public function show(MyClass $class): View
     {
@@ -68,8 +62,6 @@ class MyClassController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param MyClass $class
      */
     public function edit(MyClass $class): View
     {
@@ -81,8 +73,7 @@ class MyClassController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param MyClassStoreRequest $request
-     * @param MyClass             $class
+     * @param  MyClassStoreRequest  $request
      */
     public function update(MyClassUpdateRequest $request, MyClass $class): RedirectResponse
     {
@@ -94,8 +85,6 @@ class MyClassController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param MyClass $class
      */
     public function destroy(MyClass $class): RedirectResponse
     {

@@ -9,6 +9,7 @@ use Livewire\Component;
 class ShowStudentProfile extends Component
 {
     public User $student;
+
     public StudentRecord $studentRecord;
 
     public function mount()

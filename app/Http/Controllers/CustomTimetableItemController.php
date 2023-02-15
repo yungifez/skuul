@@ -2,20 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\View\View;
-use Illuminate\Http\Response;
-use App\Models\CustomTimetableItem;
-use Illuminate\Http\RedirectResponse;
-use App\Services\Timetable\TimetableService;
 use App\Http\Requests\StoreCustomTimetableItemRequest;
 use App\Http\Requests\UpdateCustomTimetableItemRequest;
+use App\Models\CustomTimetableItem;
+use App\Services\Timetable\TimetableService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
 
 class CustomTimetableItemController extends Controller
 {
     /**
      * Instance of timetable service.
-     *
-     * @var TimetableService
      */
     public TimetableService $timetableService;
 
@@ -43,8 +41,6 @@ class CustomTimetableItemController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param \App\Http\Requests\StoreCustomTimetableItemRequest $request
      */
     public function store(StoreCustomTimetableItemRequest $request): RedirectResponse
     {
@@ -55,18 +51,14 @@ class CustomTimetableItemController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param \App\Models\CustomTimetableItem $customTimetableItem
      */
-    public function show(CustomTimetableItem $customTimetableItem): Response 
+    public function show(CustomTimetableItem $customTimetableItem): Response
     {
         return abort(404);
     }
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param \App\Models\CustomTimetableItem $customTimetableItem
      */
     public function edit(CustomTimetableItem $customTimetableItem)
     {
@@ -77,9 +69,6 @@ class CustomTimetableItemController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param \App\Http\Requests\UpdateCustomTimetableItemRequest $request
-     * @param \App\Models\CustomTimetableItem                     $customTimetableItem
      */
     public function update(UpdateCustomTimetableItemRequest $request, CustomTimetableItem $customTimetableItem): RedirectResponse
     {
@@ -91,8 +80,6 @@ class CustomTimetableItemController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param \App\Models\CustomTimetableItem $customTimetableItem
      */
     public function destroy(CustomTimetableItem $customTimetableItem): RedirectResponse
     {

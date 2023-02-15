@@ -15,8 +15,6 @@ class ApplicationStatusChanged extends Mailable
 
     /**
      * New status.
-     *
-     * @var string
      */
     public string $status;
 

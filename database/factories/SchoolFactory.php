@@ -14,10 +14,10 @@ class SchoolFactory extends Factory
     public function definition()
     {
         return [
-            'name'    => $this->faker->name(),
+            'name' => $this->faker->name(),
             'address' => $this->faker->address(),
-            'initials'=> $this->faker->unique()->word(),
-            'code'    => $this->faker->unique()->randomNumber(5),
+            'initials' => $this->faker->unique()->word(),
+            'code' => $this->faker->unique()->randomNumber(5),
         ];
     }
 
@@ -25,11 +25,11 @@ class SchoolFactory extends Factory
     {
         return $this->state(function (array $attributes) {
             return [
-                'id'      => 1,
-                'name'    => 'Default school',
+                'id' => 1,
+                'name' => 'Default school',
                 'address' => $this->faker->address(),
-                'initials'=> $this->faker->unique()->word(),
-                'code'    => $this->faker->unique()->randomNumber(5),
+                'initials' => $this->faker->unique()->word(),
+                'code' => $this->faker->unique()->randomNumber(5),
             ];
         });
     }

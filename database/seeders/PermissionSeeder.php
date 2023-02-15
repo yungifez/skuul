@@ -15,7 +15,6 @@ class PermissionSeeder extends Seeder
      */
     public function run()
     {
-
         /**
          * Create all permissions.
          *

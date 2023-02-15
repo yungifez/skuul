@@ -16,8 +16,6 @@ class SchoolService
 
     /**
      * User service constructor.
-     *
-     * @param UserService $user
      */
     public function __construct(UserService $user)
     {
@@ -37,8 +35,7 @@ class SchoolService
     /**
      * Get a school by id.
      *
-     * @param int $id
-     *
+     * @param  int  $id
      * @return \App\Models\School
      */
     public function getSchoolById($id)
@@ -49,8 +46,7 @@ class SchoolService
     /**
      * Create school.
      *
-     * @param array $record
-     *
+     * @param  array  $record
      * @return App\Models\School
      */
     public function createSchool($record)
@@ -64,8 +60,6 @@ class SchoolService
     /**
      * Update school.
      *
-     * @param School $school
-     * @param $records
      *
      * @return App\Models\School
      */
@@ -82,8 +76,7 @@ class SchoolService
     /**
      * Set authenticated user's school.
      *
-     * @param int $id
-     *
+     * @param  int  $id
      * @return void
      */
     public function setSchool(School $school)
@@ -105,7 +98,6 @@ class SchoolService
     /**
      * Delete school.
      *
-     * @param School $school
      *
      * @return void
      */

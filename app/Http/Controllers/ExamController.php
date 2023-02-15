@@ -2,20 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Exam;
-use Illuminate\View\View;
-use Illuminate\Http\Response;
-use App\Services\Exam\ExamService;
-use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\StoreExamRequest;
 use App\Http\Requests\UpdateExamRequest;
 use App\Http\Requests\UpdateExamStatusRequest;
+use App\Models\Exam;
+use App\Services\Exam\ExamService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
 
 class ExamController extends Controller
 {
-    /**
-     * @var ExamService
-     */
     public ExamService $examService;
 
     public function __construct(ExamService $examService)
@@ -42,8 +39,6 @@ class ExamController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param \App\Http\Requests\StoreExamRequest $request
      */
     public function store(StoreExamRequest $request): RedirectResponse
     {
@@ -55,8 +50,6 @@ class ExamController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param \App\Models\Exam $exam
      */
     public function show(Exam $exam): Response
     {
@@ -65,8 +58,6 @@ class ExamController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param \App\Models\Exam $exam
      */
     public function edit(Exam $exam): View
     {
@@ -75,10 +66,6 @@ class ExamController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param \App\Http\Requests\UpdateExamRequest $request
-     * @param \App\Models\Exam                     $exam
-     * 
      */
     public function update(UpdateExamRequest $request, Exam $exam): RedirectResponse
     {
@@ -90,9 +77,6 @@ class ExamController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param \App\Models\Exam $exam
-     * 
      */
     public function destroy(Exam $exam): RedirectResponse
     {
@@ -143,8 +127,6 @@ class ExamController extends Controller
 
     /**
      * Set exam status.
-     * 
-     * @param UpdateExamStatusRequest $request
      */
     public function setExamActiveStatus(Exam $exam, UpdateExamStatusRequest $request): RedirectResponse
     {
@@ -159,8 +141,7 @@ class ExamController extends Controller
     /**
      * Set publish result status.
      *
-     * @param Exam                             $exam
-     * @param UpdatePublishResultStatusRequest $request
+     * @param  UpdatePublishResultStatusRequest  $request
      */
     public function setPublishResultStatus(Exam $exam, UpdateExamStatusRequest $request): RedirectResponse
     {

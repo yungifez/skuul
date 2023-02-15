@@ -15,24 +15,35 @@ use Livewire\Component;
 class ExamTabulation extends Component
 {
     use MarkTabulationTrait;
+
     public $exam;
+
     public $title;
+
     public $class;
+
     public $section;
+
     public $exams;
+
     public $classes;
+
     public $sections;
+
     public $semester;
+
     public $tabulatedRecords;
+
     public $grades;
+
     public $error;
+
     public $createdTabulation;
 
     protected $listeners = ['print'];
 
     public function mount(ExamService $examService, SectionService $sectionService, MyClassService $myClassService)
     {
-
         //get semester and use it to fetch all exams in semester
         $this->semester = auth()->user()->school->semester;
         $this->exams = $examService->getAllExamsInSemester($this->semester->id);
@@ -42,7 +53,7 @@ class ExamTabulation extends Component
         $this->classes = $myClassService->getAllClasses();
 
         //sets subjects etc if class isn't empty
-        if (!$this->classes->isEmpty()) {
+        if (! $this->classes->isEmpty()) {
             $this->class = $this->classes[0]->id;
             $this->sections = $this->classes[0]->sections;
             $this->section = $this->sections[0]->id;

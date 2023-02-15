@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\View\View;
-use App\Models\AcademicYear;
-use Illuminate\Http\Request;
-use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\AcademicYearStoreRequest;
+use App\Models\AcademicYear;
 use App\Services\AcademicYear\AcademicYearService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class AcademicYearController extends Controller
 {
@@ -21,7 +21,6 @@ class AcademicYearController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
      */
     public function index(): View
     {
@@ -30,7 +29,6 @@ class AcademicYearController extends Controller
 
     /**
      * Show the form for creating a new resource.
-     *
      */
     public function create(): View
     {
@@ -39,9 +37,6 @@ class AcademicYearController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
-     * @param AcademicYearStoreRequest $request
-     *
      */
     public function store(AcademicYearStoreRequest $request): RedirectResponse
     {
@@ -53,9 +48,6 @@ class AcademicYearController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param AcademicYear $academicYear
-     *
      */
     public function show(AcademicYear $academicYear): View
     {
@@ -64,9 +56,6 @@ class AcademicYearController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     * @param AcademicYear $academicYear
-     *
      */
     public function edit(AcademicYear $academicYear): View
     {
@@ -75,10 +64,6 @@ class AcademicYearController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param AcademicYearStoreRequest $request
-     * @param AcademicYear             $academicYear
-     *
      */
     public function update(AcademicYearStoreRequest $request, AcademicYear $academicYear)
     {
@@ -90,8 +75,6 @@ class AcademicYearController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param AcademicYear $academicYear
      */
     public function destroy(AcademicYear $academicYear): RedirectResponse
     {
@@ -102,8 +85,6 @@ class AcademicYearController extends Controller
 
     /**
      * Set academic year
-     *
-     * @param request $request
      */
     public function setAcademicYear(request $request): RedirectResponse
     {

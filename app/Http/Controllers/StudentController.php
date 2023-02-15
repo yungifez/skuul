@@ -2,18 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StudentStoreRequest;
 use App\Models\User;
-use Illuminate\View\View;
-use Illuminate\Http\Request;
-use Illuminate\Http\Response;
+use App\Services\Student\StudentService;
 use App\Services\User\UserService;
 use Illuminate\Http\RedirectResponse;
-use App\Services\Student\StudentService;
-use App\Http\Requests\StudentStoreRequest;
+use Illuminate\Http\Request;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
 
 class StudentController extends Controller
 {
     public $student;
+
     /**
      * Instance of user service class.
      *
@@ -51,7 +52,6 @@ class StudentController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param StudentStoreRequest $request
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
@@ -65,8 +65,6 @@ class StudentController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     * @param User $student
      */
     public function show(User $student): View
     {
@@ -92,7 +90,6 @@ class StudentController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @param User $student
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
@@ -108,8 +105,6 @@ class StudentController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param \Illuminate\Http\Request $request
-     * @param User                     $student
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
@@ -126,7 +121,6 @@ class StudentController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param User $student
      *
      * @throws \Illuminate\Auth\Access\AuthorizationException
      */
