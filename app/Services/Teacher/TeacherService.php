@@ -31,7 +31,8 @@ class TeacherService
     /**
      * Create a new teacher.
      *
-     * @param  collection  $record
+     * @param collection $record
+     *
      * @return void
      */
     public function createTeacher($record)
@@ -43,7 +44,8 @@ class TeacherService
     /**
      * Update a teacher.
      *
-     * @param  array|object|collection  $records
+     * @param array|object|collection $records
+     *
      * @return void
      */
     public function updateTeacher(User $teacher, $records)

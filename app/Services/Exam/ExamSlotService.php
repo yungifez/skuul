@@ -22,7 +22,8 @@ class ExamSlotService
     /**
      * Get an exam slot by id.
      *
-     * @param  int  $id
+     * @param int $id
+     *
      * @return App\Models\ExamSlot
      */
     public function getExamSlotById($id)
@@ -39,11 +40,11 @@ class ExamSlotService
     public function createExamSlot(Exam $exam, array $data)
     {
         DB::transaction(function () use ($data, $exam) {
-            if (! isset($data['description'])) {
+            if (!isset($data['description'])) {
                 $data['description'] = null;
             }
             $exam->examSlots()->create([
-                'name' => $data['name'],
+                'name'        => $data['name'],
                 'description' => $data['description'],
                 'total_marks' => $data['total_marks'],
             ]);
@@ -59,11 +60,11 @@ class ExamSlotService
     public function updateExamSlot(ExamSlot $examSlot, array $data)
     {
         DB::transaction(function () use ($data, $examSlot) {
-            if (! isset($data['description'])) {
+            if (!isset($data['description'])) {
                 $data['description'] = null;
             }
             $examSlot->update([
-                'name' => $data['name'],
+                'name'        => $data['name'],
                 'description' => $data['description'],
                 'total_marks' => $data['total_marks'],
             ]);
