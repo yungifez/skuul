@@ -17,8 +17,8 @@ class TimetableFactory extends Factory
     public function definition()
     {
         return [
-            'id' => $this->faker->numberBetween(1, 10000),
-            'name' => $this->faker->name,
+            'id'          => $this->faker->numberBetween(1, 10000),
+            'name'        => $this->faker->name,
             'description' => $this->faker->text,
             'my_class_id' => 1,
             'semester_id' => 1,
