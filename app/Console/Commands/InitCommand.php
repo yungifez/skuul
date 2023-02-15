@@ -89,7 +89,7 @@ class InitCommand extends Command
     {
         $this->newLine();
         $this->line('Generating .env file.....');
-        if (!file_exists(base_path('.env'))) {
+        if (! file_exists(base_path('.env'))) {
             $this->components->task('Copying .env file', static function (): void {
                 copy(base_path('.env.example'), base_path('.env'));
             });
@@ -104,7 +104,7 @@ class InitCommand extends Command
         $this->line('Generating app encryption key');
 
         $key = $this->laravel['config']['app.key'];
-        if (!$key) {
+        if (! $key) {
             $this->call('key:generate');
         } else {
             $this->info('Encryption key exists already -- skipping');
@@ -229,15 +229,15 @@ class InitCommand extends Command
         $mailReplyName = $this->ask('Mail Reply Name', getenv('MAIL_REPLY_NAME'));
 
         $mailCredentials = [
-            'MAIL_MAILER'        => $mailMailer,
-            'MAIL_HOST'          => $mailHost,
-            'MAIL_PORT'          => $mailPort,
-            'MAIL_USERNAME'      => $mailUsername,
-            'MAIL_PASSWORD'      => $mailPassword,
-            'MAIL_FROM_ADDRESS'  => $mailFromAddress,
-            'MAIL_FROM_NAME'     => $mailFromName,
+            'MAIL_MAILER' => $mailMailer,
+            'MAIL_HOST' => $mailHost,
+            'MAIL_PORT' => $mailPort,
+            'MAIL_USERNAME' => $mailUsername,
+            'MAIL_PASSWORD' => $mailPassword,
+            'MAIL_FROM_ADDRESS' => $mailFromAddress,
+            'MAIL_FROM_NAME' => $mailFromName,
             'MAIL_REPLY_ADDRESS' => $mailReplyAddress,
-            'MAIL_REPLY_NAME'    => $mailReplyName,
+            'MAIL_REPLY_NAME' => $mailReplyName,
         ];
 
         $this->setEnvironmentValue($mailCredentials);
