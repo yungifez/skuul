@@ -15,14 +15,14 @@ class SectionSeeder extends Seeder
     public function run()
     {
         Section::firstOrCreate([
-            'id'          => 1,
-            'name'        => 'Gold',
+            'id' => 1,
+            'name' => 'Gold',
             'my_class_id' => 1,
         ]);
 
         Section::firstOrCreate([
-            'id'          => 2,
-            'name'        => 'Ruby',
+            'id' => 2,
+            'name' => 'Ruby',
             'my_class_id' => 1,
         ]);
     }
