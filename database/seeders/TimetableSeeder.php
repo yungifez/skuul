@@ -17,7 +17,7 @@ class TimetableSeeder extends Seeder
         Timetable::firstOrCreate([
             'id' => 1,
         ], [
-            'name' => 'Timetable 1',
+            'name'        => 'Timetable 1',
             'description' => 'Timetable 1 description',
             'my_class_id' => 1,
             'semester_id' => 1,
