@@ -35,8 +35,7 @@ class SchoolService
     /**
      * Get a school by id.
      *
-     * @param int $id
-     *
+     * @param  int  $id
      * @return \App\Models\School
      */
     public function getSchoolById($id)
@@ -47,8 +46,7 @@ class SchoolService
     /**
      * Create school.
      *
-     * @param array $record
-     *
+     * @param  array  $record
      * @return App\Models\School
      */
     public function createSchool($record)
@@ -78,8 +76,7 @@ class SchoolService
     /**
      * Set authenticated user's school.
      *
-     * @param int $id
-     *
+     * @param  int  $id
      * @return void
      */
     public function setSchool(School $school)
