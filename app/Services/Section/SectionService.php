@@ -48,7 +48,8 @@ class SectionService
     /**
      * Create section.
      *
-     * @param  mixed  $records
+     * @param mixed $records
+     *
      * @return void
      */
     public function createSection($records)
@@ -61,7 +62,8 @@ class SectionService
     /**
      * Update section.
      *
-     * @param  mixed  $record
+     * @param mixed $record
+     *
      * @return void
      */
     public function updateSection(Section $section, $record)
