@@ -20,11 +20,11 @@ class ExamFactory extends Factory
         $stop = $this->faker->dateTimeBetween($start, $start->format('Y-m-d H:i:s').' +10 days');
 
         return [
-            'name'        => $this->faker->word,
+            'name' => $this->faker->word,
             'description' => $this->faker->sentence,
             'semester_id' => '1',
-            'start_date'  => $start,
-            'stop_date'   => $stop,
+            'start_date' => $start,
+            'stop_date' => $stop,
         ];
     }
 }
