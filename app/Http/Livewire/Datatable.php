@@ -27,7 +27,8 @@ class Datatable extends Component
     public int $perPage = 10;
 
     /**
-     * @param  string|Builder  $model Pass model or query builder
+     * @param string|Builder $model Pass model or query builder
+     *
      * @return void
      */
     public function mount(string|Builder $model, array $columns, array $filters = [], $uniqueId = null)
@@ -42,14 +43,15 @@ class Datatable extends Component
     /**
      * Verify if a class is an eloquent model.
      *
-     * @param  object  $model
-     * @return bool
+     * @param object $model
      *
      * @throws Exception
+     *
+     * @return bool
      */
     public function verifyIsModel($model)
     {
-        if (! is_subclass_of($model, 'Illuminate\Database\Eloquent\Model')) {
+        if (!is_subclass_of($model, 'Illuminate\Database\Eloquent\Model')) {
             throw new \Exception(sprintf('Class %s is not a model', $model), 1);
         }
 
@@ -79,8 +81,8 @@ class Datatable extends Component
         //create closure with filters to be applied to model
         $searchFilter = function ($query) use ($model) {
             foreach ($this->columns as $column) {
-                if (! array_key_exists('columnName', $column)) {
-                    if (! array_key_exists('property', $column) || empty($column['property'])) {
+                if (!array_key_exists('columnName', $column)) {
+                    if (!array_key_exists('property', $column) || empty($column['property'])) {
                         break;
                     }
                 }
@@ -88,7 +90,7 @@ class Datatable extends Component
                 //get table name from either DatabaseBuilder or EloQuent model
                 $table = $model->getModel()->getTable() ?? $model?->getQuery()->getModel()->getTable();
 
-                if (array_key_exists('relation', $column) && ! empty($column['relation'])) {
+                if (array_key_exists('relation', $column) && !empty($column['relation'])) {
                     //filter relation
                     $query = call_user_func_array([$query, 'orWhereRelation'], [$column['relation'], $column['columnName'] ?? $column['property'], 'LIKE', "%$this->search%"]);
                 } else {
