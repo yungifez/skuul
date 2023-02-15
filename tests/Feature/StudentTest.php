@@ -49,6 +49,9 @@ class StudentTest extends TestCase
     {
         $email = $this->faker()->freeEmail();
         $this->unauthorized_user()->post('dashboard/students', [
+            'first_name' => 'Test',
+            'last_name' => 'Student',
+            'other_name' => 'cody',
             'email' => $email,
             'password' => 'password',
             'password_confirmation' => 'password',
@@ -64,11 +67,15 @@ class StudentTest extends TestCase
             'section_id' => 1,
             'admission_date' => '2004/04/22',
         ])->assertForbidden();
+
+        $this->assertDatabaseMissing('users',[
+            'email' => $email,
+        ]);
     }
 
     //test user can create student
 
-    public function test_user_can_create_student()
+    public function test_authorized_user_can_create_student()
     {
         $email = $this->faker()->freeEmail();
 
@@ -101,7 +108,7 @@ class StudentTest extends TestCase
 
     //test edit student cannot be accessed by unauthorised users
 
-    public function test_edit_student_cannot_be_accessed_by_unauthorised_users()
+    public function test_edit_student_cannot_be_accessed_to_unauthorised_users()
     {
         $student = User::factory()->create();
         $student->assignRole('student');
@@ -130,9 +137,7 @@ class StudentTest extends TestCase
         $this->authorized_user(['update student'])->get('dashboard/students/'.$student->id.'/edit')->assertOk();
     }
 
-    //test unauthorised users cannot edit students
-
-    public function test_unauthorised_users_cannot_edit_students()
+    public function test_unauthorised_users_cannot_update_students()
     {
         $email = $this->faker()->freeEmail();
 
@@ -163,11 +168,13 @@ class StudentTest extends TestCase
             'section_id' => 1,
             'admission_date' => '2004/04/22', ])
         ->assertForbidden();
+
+        $this->assertDatabaseMissing('users',[
+            'email' => $email,
+        ]);
     }
 
-    //test authorised users can edit students
-
-    public function test_authorised_users_can_edit_students()
+    public function test_authorised_users_can_update_students()
     {
         $student = User::factory()->create();
         $student->assignRole('student');
@@ -193,11 +200,12 @@ class StudentTest extends TestCase
             'blood_group' => 'a+',
             'address' => 'test address',
             'birthday' => '2004/04/22',
-            'phone' => '08080808080', ]);
+            'phone' => '08080808080', 
+        ]);
 
-        $student = User::where('email', $email)->first();
-
-        $this->assertModelExists($student);
+        $this->assertDatabaseHas('users',[
+            'email' => $email,
+        ]);
     }
 
     //test unauthorised users cannot delete students

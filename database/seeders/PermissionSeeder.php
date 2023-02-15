@@ -94,6 +94,20 @@ class PermissionSeeder extends Seeder
             'name' => 'delete student',
         ]);
 
+        //Permission for admins
+        Permission::firstOrCreate([
+            'name' => 'create admin',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read admin',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update admin',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete admin',
+        ]);
+
         //Permission for academic year
         Permission::firstOrCreate([
             'name' => 'create academic year',

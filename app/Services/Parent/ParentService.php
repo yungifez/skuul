@@ -88,6 +88,9 @@ class ParentService
      * Add student as child of parent or remove student from parent.
      *
      * @param  App\Models\Users  $parent
+     * 
+     * @throws InvalidUserException
+     * 
      * @return void
      */
     public function assignStudentToParent(User $parent, int $student, bool $assign = true)
