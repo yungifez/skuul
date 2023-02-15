@@ -35,10 +35,10 @@ class SyllabusService
         );
 
         Syllabus::create([
-            'name' => $data['name'],
+            'name'        => $data['name'],
             'description' => $data['description'],
-            'file' => $data['file'],
-            'subject_id' => $data['subject_id'],
+            'file'        => $data['file'],
+            'subject_id'  => $data['subject_id'],
             'semester_id' => $data['semester_id'],
         ]);
     }
