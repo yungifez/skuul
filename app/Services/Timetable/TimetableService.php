@@ -19,14 +19,13 @@ class TimetableService
     /**
      * Create timetable.
      *
-     * @param mixed $data
-     *
+     * @param  mixed  $data
      * @return void
      */
     public function createTimetable($data)
     {
         Timetable::create([
-            'name'        => $data['name'],
+            'name' => $data['name'],
             'description' => $data['description'] ?? null,
             'my_class_id' => $data['my_class_id'],
             'semester_id' => $data['semester_id'],
@@ -36,8 +35,7 @@ class TimetableService
     /**
      * Update timetable.
      *
-     * @param mixed $data
-     *
+     * @param  mixed  $data
      * @return void
      */
     public function updateTimetable(Timetable $timetable, $data)
@@ -82,14 +80,13 @@ class TimetableService
     /**
      * Create custom timetable item.
      *
-     * @param array<mixed> $record
-     *
+     * @param  array<mixed>  $record
      * @return \App\Models\CustomTimetableItem
      */
     public function createCustomTimetableItem($record)
     {
         return CustomTimetableItem::create([
-            'name'      => $record['name'],
+            'name' => $record['name'],
             'school_id' => $record['school_id'],
         ]);
     }
@@ -97,8 +94,7 @@ class TimetableService
     /**
      * Update a given customet timetable item.
      *
-     * @param array<mixed> $record
-     *
+     * @param  array<mixed>  $record
      * @return \App\Models\CustomTimetableItem
      */
     public function updateCustomTimetableItem(CustomTimetableItem $customTimetableItem, $record)
