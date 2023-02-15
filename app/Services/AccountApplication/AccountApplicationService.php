@@ -78,8 +78,9 @@ class AccountApplicationService
     /**
      * Update account application.
      *
-     * @param  User  $user
-     * @param  object  $record
+     * @param User   $user
+     * @param object $record
+     *
      * @return void
      */
     public function updateAccountApplication(User $applicant, object|array $record)

@@ -22,9 +22,9 @@ class AccountApplicationStatusChangeRequest extends FormRequest
             $applicantIsStudent = true;
             $studentStoreRequestValidationArray = [
                 'admission_number' => 'nullable|unique:student_records,admission_number',
-                'admission_date' => 'required|date',
-                'my_class_id' => 'required|exists:my_classes,id',
-                'section_id' => 'required|exists:sections,id',
+                'admission_date'   => 'required|date',
+                'my_class_id'      => 'required|exists:my_classes,id',
+                'section_id'       => 'required|exists:sections,id',
             ];
         } else {
             $applicantIsStudent = false;

@@ -65,8 +65,9 @@ class ExamRecordService
     /**
      * Get all exam records for a user in a subject and an específic semester.
      *
-     * @param  int  $user
-     * @param  int  $subject
+     * @param int $user
+     * @param int $subject
+     *
      * @return App\Models\ExamRecord
      */
     public function getAllUserExamRecordInSemesterForSubject(Semester $semester, $user, $subject)
@@ -89,7 +90,8 @@ class ExamRecordService
     /**
      * Get all user exam records for user in an academic year.
      *
-     * @param  Semester  $semester
+     * @param Semester $semester
+     *
      * @return App\Models\ExamRecord
      */
     public function getAllUserExamRecordInAcademicYear(AcademicYear $academicYear, int $user)
@@ -143,7 +145,8 @@ class ExamRecordService
     /**
      * Create exam record.
      *
-     * @param  array|object  $records
+     * @param array|object $records
+     *
      * @return void
      */
     public function createExamRecord($records)
@@ -165,9 +168,9 @@ class ExamRecordService
                 // creates exam record or updates if records already exists
 
                 ExamRecord::updateOrCreate(
-                    ['user_id' => $records['user_id'],
-                        'section_id' => $records['section_id'],
-                        'subject_id' => $records['subject_id'],
+                    ['user_id'         => $records['user_id'],
+                        'section_id'   => $records['section_id'],
+                        'subject_id'   => $records['subject_id'],
                         'exam_slot_id' => $record['exam_slot_id'],
                     ],
                     [

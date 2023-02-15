@@ -62,18 +62,18 @@ class GradeSystemTest extends TestCase
     {
         $this->authorized_user(['create grade system'])
             ->post('/dashboard/grade-systems', [
-                'name' => 'test grade',
-                'remark' => 'test remarks',
-                'grade_from' => '0',
-                'grade_till' => '10',
+                'name'           => 'test grade',
+                'remark'         => 'test remarks',
+                'grade_from'     => '0',
+                'grade_till'     => '10',
                 'class_group_id' => '1',
             ]);
 
         $this->assertDatabaseHas('grade_systems', [
-            'name' => 'test grade',
-            'remark' => 'test remarks',
-            'grade_from' => '0',
-            'grade_till' => '10',
+            'name'           => 'test grade',
+            'remark'         => 'test remarks',
+            'grade_from'     => '0',
+            'grade_till'     => '10',
             'class_group_id' => '1',
         ]);
     }
@@ -111,19 +111,19 @@ class GradeSystemTest extends TestCase
     {
         $this->authorized_user(['update grade system'])
             ->put('/dashboard/grade-systems/1', [
-                'name' => 'test grade',
-                'remark' => 'test remarks',
-                'grade_from' => '90',
-                'grade_till' => '100',
+                'name'           => 'test grade',
+                'remark'         => 'test remarks',
+                'grade_from'     => '90',
+                'grade_till'     => '100',
                 'class_group_id' => '1',
             ]);
 
         $this->assertDatabaseHas('grade_systems', [
-            'id' => '1',
-            'name' => 'test grade',
-            'remark' => 'test remarks',
-            'grade_from' => '90',
-            'grade_till' => '100',
+            'id'             => '1',
+            'name'           => 'test grade',
+            'remark'         => 'test remarks',
+            'grade_from'     => '90',
+            'grade_till'     => '100',
             'class_group_id' => '1',
         ]);
     }
