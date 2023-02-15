@@ -194,7 +194,7 @@ class StudentService
     }
 
     /**
-     * Print srudent profile.
+     * Print student profile.
      *
      * @param string $name
      * @param string $view

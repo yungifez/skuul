@@ -138,7 +138,7 @@ class ExamService
     }
 
     /**
-     * Calculate total marks attainale in each subjects for an exam.
+     * Calculate total marks attainable in each subjects for an exam.
      *
      * @param Exam $exam
      *
@@ -155,7 +155,7 @@ class ExamService
     }
 
     /**
-     * Calculate total marks attainale in each subjects accross all exams in a semester.
+     * Calculate total marks attainable in each subject across all exams in a semester.
      *
      * @param Exam $exam
      *

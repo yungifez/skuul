@@ -106,7 +106,7 @@ class AccountApplicationController extends Controller
 
         $this->accountApplicationService->deleteAccountApplicant($applicant);
 
-        return back()->with('success', 'Account Applicatio Deleted Successfully');
+        return back()->with('success', 'Account Application Deleted Successfully');
     }
 
     /**
@@ -122,7 +122,7 @@ class AccountApplicationController extends Controller
     }
 
     /**
-     * Change Application Statis.
+     * Change Application Status.
      *
      * @param User    $applicant
      * @param Request $request
