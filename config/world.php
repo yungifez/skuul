@@ -30,11 +30,11 @@ return [
     |--------------------------------------------------------------------------
     */
     'modules' => [
-        'states'     => true,
-        'cities'     => true,
-        'timezones'  => true,
+        'states' => true,
+        'cities' => true,
+        'timezones' => true,
         'currencies' => true,
-        'languages'  => true,
+        'languages' => true,
     ],
     /*
     |--------------------------------------------------------------------------
@@ -49,91 +49,91 @@ return [
     */
     'migrations' => [
         'countries' => [
-            'table_name'      => 'countries',
+            'table_name' => 'countries',
             'optional_fields' => [
                 'phone_code' => [
                     'required' => true,
-                    'type'     => 'string',
-                    'length'   => 5,
+                    'type' => 'string',
+                    'length' => 5,
                 ],
                 'iso3' => [
                     'required' => true,
-                    'type'     => 'string',
-                    'length'   => 3,
+                    'type' => 'string',
+                    'length' => 3,
                 ],
                 'native' => [
                     'required' => false,
-                    'type'     => 'string',
+                    'type' => 'string',
                 ],
                 'region' => [
                     'required' => true,
-                    'type'     => 'string',
+                    'type' => 'string',
                 ],
                 'subregion' => [
                     'required' => true,
-                    'type'     => 'string',
+                    'type' => 'string',
                 ],
                 'latitude' => [
                     'required' => false,
-                    'type'     => 'string',
+                    'type' => 'string',
                 ],
                 'longitude' => [
                     'required' => false,
-                    'type'     => 'string',
+                    'type' => 'string',
                 ],
                 'emoji' => [
                     'required' => false,
-                    'type'     => 'string',
+                    'type' => 'string',
                 ],
                 'emojiU' => [
                     'required' => false,
-                    'type'     => 'string',
+                    'type' => 'string',
                 ],
             ],
         ],
         'states' => [
-            'table_name'      => 'states',
+            'table_name' => 'states',
             'optional_fields' => [
                 'country_code' => [
                     'required' => true,
-                    'type'     => 'string',
-                    'length'   => 3,
+                    'type' => 'string',
+                    'length' => 3,
                 ],
                 'state_code' => [
                     'required' => false,
-                    'type'     => 'string',
-                    'length'   => 3,
+                    'type' => 'string',
+                    'length' => 3,
                 ],
                 'latitude' => [
                     'required' => false,
-                    'type'     => 'string',
+                    'type' => 'string',
                 ],
                 'longitude' => [
                     'required' => false,
-                    'type'     => 'string',
+                    'type' => 'string',
                 ],
             ],
         ],
         'cities' => [
-            'table_name'      => 'cities',
+            'table_name' => 'cities',
             'optional_fields' => [
                 'country_code' => [
                     'required' => true,
-                    'type'     => 'string',
-                    'length'   => 3,
+                    'type' => 'string',
+                    'length' => 3,
                 ],
                 'state_code' => [
                     'required' => false,
-                    'type'     => 'string',
-                    'length'   => 3,
+                    'type' => 'string',
+                    'length' => 3,
                 ],
                 'latitude' => [
                     'required' => false,
-                    'type'     => 'string',
+                    'type' => 'string',
                 ],
                 'longitude' => [
                     'required' => false,
-                    'type'     => 'string',
+                    'type' => 'string',
                 ],
             ],
         ],
