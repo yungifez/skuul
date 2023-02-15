@@ -17,13 +17,13 @@ class PromotionFactory extends Factory
     public function definition()
     {
         return [
-            'old_class_id'     => 1,
-            'new_class_id'     => 2,
-            'old_section_id'   => 1,
-            'new_section_id'   => 2,
+            'old_class_id' => 1,
+            'new_class_id' => 2,
+            'old_section_id' => 1,
+            'new_section_id' => 2,
             'academic_year_id' => 1,
-            'school_id'        => 1,
-            'students'         => [4],
+            'school_id' => 1,
+            'students' => [4],
         ];
     }
 }
