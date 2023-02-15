@@ -33,11 +33,11 @@ class StudentFactory extends Factory
         $student->assignRole('student');
 
         return [
-            'user_id' => $student->id,
-            'my_class_id' => $class->id,
-            'section_id' => $class->sections->first()->id ?? null,
-            'admission_date' => $this->faker->date(),
-            'is_graduated' => false,
+            'user_id'          => $student->id,
+            'my_class_id'      => $class->id,
+            'section_id'       => $class->sections->first()->id ?? null,
+            'admission_date'   => $this->faker->date(),
+            'is_graduated'     => false,
             'admission_number' => Str::random(10),
         ];
     }
