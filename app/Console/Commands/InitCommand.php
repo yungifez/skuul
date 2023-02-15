@@ -40,8 +40,8 @@ class InitCommand extends Command
     public function handle()
     {
         $this->line("
-        
-        .----------------. .----------------. .----------------. .----------------. .----------------. 
+
+        .----------------. .----------------. .----------------. .----------------. .----------------.
         | .--------------. | .--------------. | .--------------. | .--------------. | .--------------. |
         | |    _______   | | |  ___  ____   | | | _____  _____ | | | _____  _____ | | |   _____      | |
         | |   /  ___  |  | | | |_  ||_  _|  | | ||_   _||_   _|| | ||_   _||_   _|| | |  |_   _|     | |
@@ -51,7 +51,7 @@ class InitCommand extends Command
         | |  |_______.'  | | | |____||____| | | |    `.__.'    | | |    `.__.'    | | |  |________|  | |
         | |              | | |              | | |              | | |              | | |              | |
         | '--------------' | '--------------' | '--------------' | '--------------' | '--------------' |
-        '----------------' '----------------' '----------------' '----------------' '----------------' 
+        '----------------' '----------------' '----------------' '----------------' '----------------'
         ");
         $this->info(
             'The installation would now begin.'
@@ -175,7 +175,7 @@ class InitCommand extends Command
                 //exit if connection could be made
                 break;
             } catch (\Throwable $th) {
-                $this->error("Couldn't connect with credentials. You would be prompted to enter/re-enter database credentails and connection would be retried. Not sure what these are?, you can reach out to your host's support or ask for help on github");
+                $this->error("Couldn't connect with credentials. You would be prompted to enter/re-enter database credentials and connection would be retried. Not sure what these are?, you can reach out to your host's support or ask for help on github");
                 $this->newLine();
                 $this->line('Database details');
                 $this->info('Attributes in parentheses are the default');
@@ -202,7 +202,7 @@ class InitCommand extends Command
 
         //if connection could not be made, max attempts were reached but could not connect to db
         if (false == $successfulConnection) {
-            $this->error('Max db attempts exceecded please retry installation'.PHP_EOL);
+            $this->error('Max db attempts exceeded please retry installation'.PHP_EOL);
 
             throw new \Exception('Max db connections reached.');
         }

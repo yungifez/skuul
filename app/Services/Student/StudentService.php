@@ -188,7 +188,7 @@ class StudentService
     }
 
     /**
-     * Print srudent profile.
+     * Print student profile.
      *
      *
      * @return \Illuminate\Http\Response

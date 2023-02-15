@@ -63,7 +63,7 @@ class TeacherService
     }
 
     /**
-     * Print a uset profiel.
+     * Print a user profile.
      *
      *
      * @return mixed

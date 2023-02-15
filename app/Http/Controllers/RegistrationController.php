@@ -48,6 +48,6 @@ class RegistrationController extends Controller
         //dispatch event
         AccountStatusChanged::dispatch($user, $status, $reason);
 
-        return back()->with('success', 'Registration complete, you would recieve an email to verify your account');
+        return back()->with('success', 'Registration complete, you would receive an email to verify your account');
     }
 }

@@ -58,7 +58,7 @@ class GradeSystemService
     }
 
     /**
-     * Update frade in gradesystem.
+     * Update grade in gradesystem.
      *
      * @param  array|object  $records
      * @return void

@@ -92,7 +92,7 @@ class TimetableService
     }
 
     /**
-     * Update a given customet timetable item.
+     * Update a given custom timetable item.
      *
      * @param  array<mixed>  $record
      * @return \App\Models\CustomTimetableItem
