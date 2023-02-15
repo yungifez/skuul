@@ -19,11 +19,11 @@ class SyllabusFactory extends Factory
         $file = \Illuminate\Http\UploadedFile::fake()->create('test.pdf')->store('pdfs');
 
         return [
-            'name' => $this->faker->sentence,
+            'name'        => $this->faker->sentence,
             'description' => $this->faker->paragraph,
-            'subject_id' => 1,
+            'subject_id'  => 1,
             'semester_id' => 1,
-            'file' => $file,
+            'file'        => $file,
         ];
     }
 }
