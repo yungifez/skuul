@@ -46,7 +46,7 @@ class ClassGroupTest extends TestCase
             ->post('/dashboard/class-groups', ['name' => 'test class group']);
 
         $this->assertDatabaseHas('class_groups', [
-            'name'      => 'test class group',
+            'name' => 'test class group',
             'school_id' => 1,
         ]);
     }
@@ -81,8 +81,8 @@ class ClassGroupTest extends TestCase
             ->put("/dashboard/class-groups/$classGroup->id", ['name' => 'test class group']);
 
         $this->assertDatabaseHas('class_groups', [
-            'id'        => $classGroup->id,
-            'name'      => 'test class group',
+            'id' => $classGroup->id,
+            'name' => 'test class group',
             'school_id' => 1,
         ]);
     }
