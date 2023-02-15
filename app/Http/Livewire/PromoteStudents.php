@@ -26,9 +26,9 @@ class PromoteStudents extends Component
     public $students;
 
     protected $rules = [
-        'oldClass' => 'required|exists:my_classes,id',
+        'oldClass'   => 'required|exists:my_classes,id',
         'oldSection' => 'required|exists:sections,id',
-        'newClass' => 'required|exists:my_classes,id',
+        'newClass'   => 'required|exists:my_classes,id',
         'newSection' => 'required|exists:sections,id',
     ];
 
