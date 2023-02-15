@@ -63,19 +63,19 @@ class ExamTest extends TestCase
     {
         $this->authorized_user(['create exam'])
             ->post('/dashboard/exams', [
-                'name' => 'test exam',
+                'name'        => 'test exam',
                 'semester_id' => '1',
                 'description' => 'test description',
-                'start_date' => '2020-01-01',
-                'stop_date' => '2020-01-01',
+                'start_date'  => '2020-01-01',
+                'stop_date'   => '2020-01-01',
             ]);
 
         $this->assertDatabaseHas('exams', [
-            'name' => 'test exam',
+            'name'        => 'test exam',
             'semester_id' => '1',
             'description' => 'test description',
-            'start_date' => '2020-01-01',
-            'stop_date' => '2020-01-01',
+            'start_date'  => '2020-01-01',
+            'stop_date'   => '2020-01-01',
         ]);
     }
 
@@ -104,11 +104,11 @@ class ExamTest extends TestCase
         $exam = Exam::factory()->create();
         $this->unauthorized_user()
             ->put("/dashboard/exams/$exam->id", [
-                'name' => 'test',
+                'name'        => 'test',
                 'semester_id' => '1',
                 'description' => 'test',
-                'start_date' => '2018-01-01',
-                'stop_date' => '2018-01-01',
+                'start_date'  => '2018-01-01',
+                'stop_date'   => '2018-01-01',
             ])
             ->assertForbidden();
     }
@@ -120,20 +120,20 @@ class ExamTest extends TestCase
         $exam = Exam::factory()->create();
         $this->authorized_user(['update exam'])
             ->put("/dashboard/exams/$exam->id", [
-                'name' => 'test',
+                'name'        => 'test',
                 'semester_id' => '1',
                 'description' => 'test',
-                'start_date' => '2018-01-01',
-                'stop_date' => '2018-01-02',
+                'start_date'  => '2018-01-01',
+                'stop_date'   => '2018-01-02',
             ]);
 
         $this->assertDatabaseHas('exams', [
-            'id' => $exam->id,
-            'name' => 'test',
+            'id'          => $exam->id,
+            'name'        => 'test',
             'semester_id' => '1',
             'description' => 'test',
-            'start_date' => '2018-01-01',
-            'stop_date' => '2018-01-02',
+            'start_date'  => '2018-01-01',
+            'stop_date'   => '2018-01-02',
         ]);
     }
 
