@@ -15,7 +15,7 @@ class AcademicYearStoreRequest extends FormRequest
     {
         return [
             'start_year' => 'required|digits:4|integer|min:1900',
-            'stop_year'  => 'required|digits:4|integer|min:1900|gt:start_year',
+            'stop_year' => 'required|digits:4|integer|min:1900|gt:start_year',
         ];
     }
 }
