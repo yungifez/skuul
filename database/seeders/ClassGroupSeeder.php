@@ -15,23 +15,23 @@ class ClassGroupSeeder extends Seeder
     public function run()
     {
         ClassGroup::firstOrcreate([
-            'id' => 1,
-            'name' => 'Kindergarten',
+            'id'        => 1,
+            'name'      => 'Kindergarten',
             'school_id' => 1,
         ]);
         ClassGroup::firstOrcreate([
-            'id' => 2,
-            'name' => 'Nursery',
+            'id'        => 2,
+            'name'      => 'Nursery',
             'school_id' => 1,
         ]);
         ClassGroup::firstOrcreate([
-            'id' => 3,
-            'name' => 'Primary',
+            'id'        => 3,
+            'name'      => 'Primary',
             'school_id' => 1,
         ]);
         ClassGroup::firstOrcreate([
-            'id' => 4,
-            'name' => 'Secondary',
+            'id'        => 4,
+            'name'      => 'Secondary',
             'school_id' => 1,
         ]);
         ClassGroup::factory()->times(4)->create();
