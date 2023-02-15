@@ -20,7 +20,7 @@ class storeTimetableRecord extends FormRequest
      */
     public function authorize()
     {
-        if (is_null($this->input('type')) || ! in_array($this->input('type'), ['subject', 'customTimetableItem'])) {
+        if (is_null($this->input('type')) || !in_array($this->input('type'), ['subject', 'customTimetableItem'])) {
             return false;
         } else {
             return true;
