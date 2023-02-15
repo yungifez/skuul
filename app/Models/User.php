@@ -66,7 +66,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'birthday'          => 'datetime:Y-m-d',
+        'birthday' => 'datetime:Y-m-d',
     ];
 
     /**
@@ -86,8 +86,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Active applicants.
      *
-     * @param Builder $query
-     *
+     * @param  Builder  $query
      * @return void
      */
     public function scopeApplicants($query)
@@ -100,8 +99,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Active applicants.
      *
-     * @param Builder $query
-     *
+     * @param  Builder  $query
      * @return void
      */
     public function scopeRejectedApplicants($query)
