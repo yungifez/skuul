@@ -141,7 +141,7 @@ class ExamController extends Controller
     /**
      * Set publish result status.
      *
-     * @param  UpdatePublishResultStatusRequest  $request
+     * @param UpdatePublishResultStatusRequest $request
      */
     public function setPublishResultStatus(Exam $exam, UpdateExamStatusRequest $request): RedirectResponse
     {
