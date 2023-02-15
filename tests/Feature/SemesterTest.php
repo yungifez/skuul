@@ -104,7 +104,7 @@ class SemesterTest extends TestCase
         $this->authorized_user(['update semester'])
             ->put("/dashboard/semesters/$semester->id", ['name' => 'Test semester']);
         $this->assertDatabaseHas('semesters', [
-            'id' => $semester->id,
+            'id'   => $semester->id,
             'name' => 'Test semester',
         ]);
     }
@@ -151,7 +151,7 @@ class SemesterTest extends TestCase
             ->post('/dashboard/semesters/set', ['semester_id' => $semester->id]);
 
         $this->assertDatabaseHas('schools', [
-            'id' => auth()->user()->school->id,
+            'id'          => auth()->user()->school->id,
             'semester_id' => $semester->id,
         ]);
     }
