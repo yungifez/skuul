@@ -115,7 +115,8 @@ class AccountApplicationController extends Controller
     /**
      * Change Application Status.
      *
-     * @param  Request  $request
+     * @param Request $request
+     *
      * @return void
      */
     public function changeStatus(User $applicant, AccountApplicationStatusChangeRequest $request)

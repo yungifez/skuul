@@ -81,7 +81,8 @@ class StudentService
     /**
      * Get a student by id.
      *
-     * @param  array|int  $id student id
+     * @param array|int $id student id
+     *
      * @return \App\Models\User
      */
     public function getStudentById($id)
@@ -92,7 +93,8 @@ class StudentService
     /**
      * Create student.
      *
-     * @param  array  $record Array of student record
+     * @param array $record Array of student record
+     *
      * @return void
      */
     public function createStudent($record)
@@ -108,17 +110,18 @@ class StudentService
     /**
      * Create record for student.
      *
-     * @param  User  $student $name
-     * @param  array|object  $record
-     * @return void
+     * @param User         $student $name
+     * @param array|object $record
      *
      * @throws InvalidValueException
+     *
+     * @return void
      */
     public function createStudentRecord(User $student, $record)
     {
         $record['admission_number'] || $record['admission_number'] = $this->generateAdmissionNumber();
         $section = $this->sectionService->getSectionById($record['section_id']);
-        if (! $this->myClassService->getClassById($record['my_class_id'])->sections->contains($section)) {
+        if (!$this->myClassService->getClassById($record['my_class_id'])->sections->contains($section)) {
             throw new InvalidValueException('Section is not in class');
         }
 
@@ -129,17 +132,17 @@ class StudentService
         $student->studentRecord()->firstOrCreate([
             'user_id' => $student->id,
         ], [
-            'my_class_id' => $record['my_class_id'],
-            'section_id' => $record['section_id'],
+            'my_class_id'      => $record['my_class_id'],
+            'section_id'       => $record['section_id'],
             'admission_number' => $record['admission_number'],
-            'admission_date' => $record['admission_date'],
+            'admission_date'   => $record['admission_date'],
         ]);
 
         //create record history
         $currentAcademicYear = $student->school->academicYear;
         $student->studentRecord->load('academicYears')->academicYears()->sync([$currentAcademicYear->id => [
             'my_class_id' => $record['my_class_id'],
-            'section_id' => $record['section_id'],
+            'section_id'  => $record['section_id'],
         ]]);
     }
 
@@ -201,7 +204,8 @@ class StudentService
     /**
      * Promote students.
      *
-     * @param  array<mixed>  $records
+     * @param array<mixed> $records
+     *
      * @return void
      */
     public function promoteStudents($records)
@@ -210,11 +214,11 @@ class StudentService
         $newClass = $this->myClassService->getClassById($records['new_class_id']);
         $academicYear = auth()->user()->school->academic_year_id;
 
-        if (! $oldClass->sections()->where('id', $records['old_section_id'])->exists()) {
+        if (!$oldClass->sections()->where('id', $records['old_section_id'])->exists()) {
             throw new InvalidValueException('Old section is not in old class');
         }
 
-        if (! $newClass->sections()->where('id', $records['new_section_id'])->exists()) {
+        if (!$newClass->sections()->where('id', $records['new_section_id'])->exists()) {
             throw new InvalidValueException('New section is not in new class');
         }
 
@@ -227,7 +231,7 @@ class StudentService
         $students = $this->getAllActiveStudents()->whereIn('id', $records['student_id']);
 
         // make sure there are students to promote
-        if (! $students->count()) {
+        if (!$students->count()) {
             throw new EmptyRecordsException('No students to promote', 1);
         }
 
@@ -237,24 +241,24 @@ class StudentService
             if (in_array($student->id, $records['student_id'])) {
                 $student->studentRecord()->update([
                     'my_class_id' => $records['new_class_id'],
-                    'section_id' => $records['new_section_id'],
+                    'section_id'  => $records['new_section_id'],
                 ]);
                 $student->studentRecord->load('academicYears')->academicYears()->syncWithoutDetaching([$currentAcademicYear->id => [
                     'my_class_id' => $records['new_class_id'],
-                    'section_id' => $records['new_section_id'],
+                    'section_id'  => $records['new_section_id'],
                 ]]);
             }
         }
 
         // create promotion record
         Promotion::create([
-            'old_class_id' => $records['old_class_id'],
-            'new_class_id' => $records['new_class_id'],
-            'old_section_id' => $records['old_section_id'],
-            'new_section_id' => $records['new_section_id'],
-            'students' => $students->pluck('id'),
+            'old_class_id'     => $records['old_class_id'],
+            'new_class_id'     => $records['new_class_id'],
+            'old_section_id'   => $records['old_section_id'],
+            'new_section_id'   => $records['new_section_id'],
+            'students'         => $students->pluck('id'),
             'academic_year_id' => $academicYear,
-            'school_id' => auth()->user()->school_id,
+            'school_id'        => auth()->user()->school_id,
         ]);
     }
 
@@ -271,7 +275,8 @@ class StudentService
     /**
      * Get promotions by academic year Id.
      *
-     * @param  int  $academicYearId The Primary key of the academic year
+     * @param int $academicYearId The Primary key of the academic year
+     *
      * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getPromotionsByAcademicYearId(int $academicYearId)
@@ -282,7 +287,8 @@ class StudentService
     /**
      * Reset promotion.
      *
-     * @param  Promotion  $promotion instance of promotion to reset
+     * @param Promotion $promotion instance of promotion to reset
+     *
      * @return void
      */
     public function resetPromotion(Promotion $promotion)
@@ -293,11 +299,11 @@ class StudentService
         foreach ($students as $student) {
             $student->allStudentRecords->load('academicYears')->academicYears()->syncWithoutDetaching([$currentAcademicYear->id => [
                 'my_class_id' => $promotion->old_class_id,
-                'section_id' => $promotion->old_section_id,
+                'section_id'  => $promotion->old_section_id,
             ]]);
             $student->allStudentRecords()->update([
                 'my_class_id' => $promotion->old_class_id,
-                'section_id' => $promotion->old_section_id,
+                'section_id'  => $promotion->old_section_id,
             ]);
         }
 
@@ -307,10 +313,11 @@ class StudentService
     /**
      * Graduate students.
      *
-     * @param  mixed  $records
-     * @return void
+     * @param mixed $records
      *
      * @throws InvalidValueException
+     *
+     * @return void
      */
     public function graduateStudents($records)
     {
@@ -318,7 +325,7 @@ class StudentService
         $students = $this->getAllActiveStudents()->whereIn('id', $records['student_id']);
 
         // make sure there are students to graduate
-        if (! $students->count()) {
+        if (!$students->count()) {
             throw new InvalidValueException('No students to graduate');
         }
 
