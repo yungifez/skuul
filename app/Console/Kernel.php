@@ -13,7 +13,7 @@ class Kernel extends ConsoleKernel
      *
      * @return void
      */
-    protected function schedule(Schedule $schedule):void
+    protected function schedule(Schedule $schedule): void
     {
         // $schedule->command('inspire')->hourly();
     }
@@ -23,7 +23,7 @@ class Kernel extends ConsoleKernel
      *
      * @return void
      */
-    protected function commands():void
+    protected function commands(): void
     {
         $this->load(__DIR__.'/Commands');
 

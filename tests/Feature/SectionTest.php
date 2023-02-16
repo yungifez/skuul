@@ -106,7 +106,7 @@ class SectionTest extends TestCase
         $this->unauthorized_user()
             ->put("/dashboard/sections/$section->id", ['name' => 'Test section', 'my_class_id' => $section->myClass->id])
             ->assertForbidden();
-        
+
         $this->assertDatabaseMissing('sections', [
             'id'          => $section->id,
             'name'        => 'Test section',
