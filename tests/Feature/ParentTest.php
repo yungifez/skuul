@@ -2,11 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use App\Traits\FeatureTestTrait;
-use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
+use App\Models\User;
+use App\Models\StudentRecord;
+use App\Traits\FeatureTestTrait;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class ParentTest extends TestCase
 {
@@ -191,14 +192,7 @@ class ParentTest extends TestCase
 
     public function test_unauthorised_users_cannot_assign_student_to_parent()
     {
-        $student = User::factory()->create();
-        $student->assignRole('student');
-        $student->studentRecord()->create([
-            'my_class_id'    => 1,
-            'section_id'     => 2,
-            'admission_date' => '22/04/04',
-            'is_graduated'   => false,
-        ]);
+        $student = StudentRecord::factory()->create();
 
         $parent = User::factory()->create();
         $parent->parentRecord()->create(['user_id' => $parent->id]);
@@ -206,27 +200,20 @@ class ParentTest extends TestCase
 
         $this->unauthorized_user()
             ->post("dashboard/parents/$parent->id/assign-student-to-parent", [
-                'student_id' => $student->id,
+                'student_id' => $student->user->id,
                 'assign'     => true,
             ])
             ->assertForbidden();
 
         $this->assertDatabaseMissing('parent_record_user', [
             'parent_record_id' => $parent->parentRecord->id,
-            'user_id'          => $student->id,
+            'user_id'          => $student->user->id,
         ]);
     }
 
     public function test_authorised_users_can_assign_student_to_parent()
     {
-        $student = User::factory()->create();
-        $student->assignRole('student');
-        $student->studentRecord()->create([
-            'my_class_id'    => 1,
-            'section_id'     => 2,
-            'admission_date' => '22/04/04',
-            'is_graduated'   => false,
-        ]);
+        $student = StudentRecord::factory()->create();
 
         $parent = User::factory()->create();
         $parent->parentRecord()->create(['user_id' => $parent->id]);
@@ -234,14 +221,14 @@ class ParentTest extends TestCase
 
         $this->authorized_user(['update parent'])
             ->post("dashboard/parents/$parent->id/assign-student-to-parent", [
-                'student_id' => $student->id,
+                'student_id' =>$student->user->id,
                 'assign'     => true,
             ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('parent_record_user', [
             'parent_record_id' => $parent->parentRecord->id,
-            'user_id'          => $student->id,
+            'user_id'          => $student->user->id,
         ]);
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Exam;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -16,11 +17,12 @@ class ExamSlotFactory extends Factory
      */
     public function definition()
     {
+        $exam =  Exam::query()->whereRelation('semester', 'id', 1)->inRandomOrder()->first();
         return [
             'name'        => $this->faker->name,
             'description' => $this->faker->sentence,
-            'total_marks' => $this->faker->numberBetween(1, 1000),
-            'exam_id'     => 1,
+            'total_marks' => $this->faker->numberBetween(1, 100),
+            'exam_id'     => $exam->id,
         ];
     }
 }

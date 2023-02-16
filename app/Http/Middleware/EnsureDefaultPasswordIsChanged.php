@@ -17,6 +17,9 @@ class EnsureDefaultPasswordIsChanged
      */
     public function handle(Request $request, Closure $next)
     {
+        if (app()->isLocal() && app()->hasDebugModeEnabled()) {
+            return $next($request);
+        }
         if (Hash::check('password', auth()->user()->password)) {
             session()->flash('danger', 'Please change your password to proceed.');
 

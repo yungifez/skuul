@@ -16,9 +16,9 @@
                 $sizeClass = "h-[60%] w-11/12 md:w-10/12 lg:w-8/12 xl:w-6/12";
                 break;
             case 'lg':
-                $sizeClass = "h-[90%] w-11/12 ";
+                $sizeClass = "h-[90%] w-11/12 lg:w-9/12";
             default:
-                $sizeClass = "h-[90%] w-11/12";
+                $sizeClass = "h-[90%] w-11/12 lg:w-9/12";
                 break;
         }
     @endphp

@@ -25,5 +25,7 @@ class SectionSeeder extends Seeder
             'name'        => 'Ruby',
             'my_class_id' => 1,
         ]);
+
+        Section::factory()->count(10)->create();
     }
 }

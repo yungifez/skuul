@@ -40,7 +40,7 @@ class ExamService
      * Get active exams in a semester.
      *
      *
-     * @return void
+     * @return mixed
      */
     public function getActiveExamsInSemester(int $semester_id)
     {

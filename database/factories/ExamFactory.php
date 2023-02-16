@@ -25,6 +25,8 @@ class ExamFactory extends Factory
             'semester_id' => '1',
             'start_date'  => $start,
             'stop_date'   => $stop,
+            'active'      => $this->faker->boolean(),
+            'publish_result'      => $this->faker->boolean(),
         ];
     }
 }

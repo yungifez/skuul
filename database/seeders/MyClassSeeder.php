@@ -49,5 +49,6 @@ class MyClassSeeder extends Seeder
             'name'           => 'Primary 2',
             'class_group_id' => 4,
         ]);
+        MyClass::factory()->count(5)->create();
     }
 }
