@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Promotion;
+use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -110,47 +111,25 @@ class StudentTest extends TestCase
 
     public function test_edit_student_cannot_be_accessed_to_unauthorised_users()
     {
-        $student = User::factory()->create();
-        $student->assignRole('student');
-        $student->studentRecord()->create([
-            'my_class_id'    => 1,
-            'section_id'     => 1,
-            'admission_date' => '22/04/04',
-            'is_graduated'   => false,
-        ]);
-        $this->unauthorized_user()->get('dashboard/students/'.$student->id.'/edit')->assertForbidden();
+        $student = StudentRecord::factory()->create();
+        $this->unauthorized_user()->get('dashboard/students/'.$student->user->id.'/edit')->assertForbidden();
     }
 
     //test edit student can be accessed by authorised users
 
     public function test_edit_student_can_be_accessed_by_authorised_users()
     {
-        $student = User::factory()->create();
-        $student->assignRole('student');
-        $student->studentRecord()->create([
-            'my_class_id'    => 1,
-            'section_id'     => 1,
-            'admission_date' => '22/04/04',
-            'is_graduated'   => false,
-        ]);
-
-        $this->authorized_user(['update student'])->get('dashboard/students/'.$student->id.'/edit')->assertOk();
+        $student = StudentRecord::factory()->create();
+        $this->authorized_user(['update student'])->get('dashboard/students/'.$student->user->id.'/edit')->assertOk();
     }
 
     public function test_unauthorised_users_cannot_update_students()
     {
         $email = $this->faker()->freeEmail();
 
-        $student = User::factory()->create();
-        $student->assignRole('student');
-        $student->studentRecord()->create([
-            'my_class_id'    => 1,
-            'section_id'     => 1,
-            'admission_date' => '22/04/04',
-            'is_graduated'   => false,
-        ]);
+        $student = StudentRecord::factory()->create();
 
-        $this->unauthorized_user()->put('dashboard/students/'.$student->id, [
+        $this->unauthorized_user()->put('dashboard/students/'.$student->user->id, [
             'first_name'            => 'Test',
             'last_name'             => 'Student 2',
             'email'                 => $email,
@@ -176,17 +155,10 @@ class StudentTest extends TestCase
 
     public function test_authorised_users_can_update_students()
     {
-        $student = User::factory()->create();
-        $student->assignRole('student');
-        $student->studentRecord()->create([
-            'my_class_id'    => 1,
-            'section_id'     => 1,
-            'admission_date' => '22/04/04',
-            'is_graduated'   => false,
-        ]);
+        $student = StudentRecord::factory()->create();
         $email = $this->faker()->freeEmail();
 
-        $this->authorized_user(['update student'])->put('dashboard/students/'.$student->id, [
+        $this->authorized_user(['update student'])->put('dashboard/students/'.$student->user->id, [
             'first_name'            => 'Test 2',
             'other_names'           => 'Student 2',
             'last_name'             => 'Student',
@@ -212,30 +184,16 @@ class StudentTest extends TestCase
 
     public function test_unauthorised_users_cannot_delete_students()
     {
-        $student = User::factory()->create();
-        $student->assignRole('student');
-        $student->studentRecord()->create([
-            'my_class_id'    => 1,
-            'section_id'     => 1,
-            'admission_date' => '22/04/04',
-            'is_graduated'   => false,
-        ]);
-        $this->unauthorized_user()->delete('dashboard/students/'.$student->id)->assertForbidden();
+        $student = StudentRecord::factory()->create();
+        $this->unauthorized_user()->delete('dashboard/students/'.$student->user->id)->assertForbidden();
     }
 
     //test authorised users can delete students
 
     public function test_authorised_users_can_delete_students()
     {
-        $student = User::factory()->create();
-        $student->assignRole('student');
-        $student->studentRecord()->create([
-            'my_class_id'    => 1,
-            'section_id'     => 1,
-            'admission_date' => '22/04/04',
-            'is_graduated'   => false,
-        ]);
-        $this->authorized_user(['delete student'])->delete('dashboard/students/'.$student->id);
+        $student = StudentRecord::factory()->create();
+        $this->authorized_user(['delete student'])->delete('dashboard/students/'.$student->user->id);
 
         $this->assertModelMissing($student);
     }
@@ -290,17 +248,9 @@ class StudentTest extends TestCase
 
     public function test_unauthorized_user_cannot_promote_students()
     {
-        $student = User::factory()->create();
-
-        $student->assignRole('student');
-        $student->studentRecord()->create([
-            'my_class_id'    => 1,
-            'section_id'     => 2,
-            'admission_date' => '22/04/04',
-            'is_graduated'   => false,
-        ]);
+        $student = StudentRecord::factory()->create();
         $this->unauthorized_user()->post('/dashboard/students/promote', [
-            'student_id'     => [$student->id],
+            'student_id'     => [$student->user->id],
             'old_class_id'   => 1,
             'old_section_id' => 2,
             'new_class_id'   => 1,
@@ -312,16 +262,9 @@ class StudentTest extends TestCase
 
     public function test_authorized_user_can_promote_students()
     {
-        $student = User::factory()->create();
-        $student->assignRole('student');
-        $student->studentRecord()->create([
-            'my_class_id'    => 1,
-            'section_id'     => 2,
-            'admission_date' => '22/04/04',
-            'is_graduated'   => false,
-        ]);
+        $student = StudentRecord::factory()->create();
         $this->authorized_user(['promote student'])->post('/dashboard/students/promote', [
-            'student_id'     => [$student->id],
+            'student_id'     => [$student->user->id],
             'old_class_id'   => 1,
             'old_section_id' => 2,
             'new_class_id'   => 1,
@@ -332,7 +275,7 @@ class StudentTest extends TestCase
             'old_section_id' => 2,
             'new_class_id'   => 1,
             'new_section_id' => 1,
-        ])->whereJsonContains('students', [$student->id])->first();
+        ])->whereJsonContains('students', [$student->user->id])->first();
 
         $this->assertModelExists($promotion);
     }
@@ -372,16 +315,9 @@ class StudentTest extends TestCase
 
     public function test_unauthorized_user_cannot_graduate_student()
     {
-        $student = User::factory()->create();
-        $student->assignRole('student');
-        $student->studentRecord()->create([
-            'my_class_id'    => 1,
-            'section_id'     => 2,
-            'admission_date' => '22/04/04',
-            'is_graduated'   => false,
-        ]);
+        $student = StudentRecord::factory()->create();
         $this->unauthorized_user()->post('/dashboard/students/graduate', [
-            'student_id' => [$student->id],
+            'student_id' => [$student->user->id],
         ])->assertForbidden();
     }
 }

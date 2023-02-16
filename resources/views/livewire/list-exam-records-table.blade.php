@@ -67,7 +67,7 @@
                             </thead>
                             <tbody>
                                 @foreach ($students->load('studentRecord') as $student)
-                                <tr>
+                                <tr id="student-{{$student->id}}">
                                     <th class="border whitespace-nowrap p-4">{{ $students->perPage() * ($students->currentPage() - 1) + $loop->iteration }}</th>
                                     <td class="border whitespace-nowrap p-4">{{$student->name}}</td>
                                     <td class="border whitespace-nowrap p-4">{{$student->studentRecord->admission_number}}</td>
@@ -82,7 +82,7 @@
                                     @can('update exam record', )
                                         <td class="border whitespace-nowrap p-4">
                                             <x-modal title="Exam Records For {{$student->name}}" background-colour="bg-blue-600" button-text="Manage Marks" size="lg" :wire:key="Str::Random(10)">
-                                                <form action="{{route('exam-records.store')}}" method="POST" class="overflow-y-scroll w-full p-4 text-left">
+                                                <form action="{{route('exam-records.store')}}#student-{{$student->id}}" method="POST" class="overflow-y-scroll beautify-scrollbar w-full p-4 text-left">
                                                     @foreach ($examSlots as $examSlot)
                                                         @php 
                                                             $examRecord = $examRecords->where('user_id',$student->id)->where('subject_id', $subjectSelected->id)->where('exam_slot_id', $examSlot->id)->first();

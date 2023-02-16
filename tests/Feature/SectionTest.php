@@ -90,12 +90,13 @@ class SectionTest extends TestCase
     {
         $section = Section::factory()->create();
         $this->authorized_user(['update section'])
-            ->put("/dashboard/sections/$section->id", ['name' => 'Test section', 'my_class_id' => 1]);
+            ->put("/dashboard/sections/$section->id", ['name' => 'Test section', 'my_class_id' => $section->myClass->id])
+            ->assertRedirect();
 
         $this->assertDatabaseHas('sections', [
             'id'          => $section->id,
             'name'        => 'Test section',
-            'my_class_id' => 1,
+            'my_class_id' => $section->myClass->id,
         ]);
     }
 
@@ -103,8 +104,14 @@ class SectionTest extends TestCase
     {
         $section = Section::factory()->create();
         $this->unauthorized_user()
-            ->put("/dashboard/sections/$section->id", ['name' => 'Test section', 'my_class_id' => 1])
+            ->put("/dashboard/sections/$section->id", ['name' => 'Test section', 'my_class_id' => $section->myClass->id])
             ->assertForbidden();
+
+        $this->assertDatabaseMissing('sections', [
+            'id'          => $section->id,
+            'name'        => 'Test section',
+            'my_class_id' => $section->myClass->id,
+        ]);
     }
 
     public function test_user_cannot_delete_section_with_users()

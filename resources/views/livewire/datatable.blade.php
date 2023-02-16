@@ -46,7 +46,7 @@
                                             @if ($column['type'] == 'delete')
                                                 <x-modal title="Confirm {{$column['name']}}" background-colour="bg-red-600">
                                                     <div class="text-gray-700 dark:text-white">
-                                                        <i class="fa fa-trash  text-7xl" aria-hidden="true"></i>
+                                                        <i class="fa fa-trash text-7xl" aria-hidden="true"></i>
                                                         <p class="my-2">Are you sure you want to {{Str::lower($column['name'])}} this resource</p>
                                                     </div>
                                                     <x-slot:footer>

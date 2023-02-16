@@ -41,7 +41,7 @@ class AcademicYearResultTabulation extends Component
         if (!$this->classes->isEmpty()) {
             $this->class = $this->classes[0]->id;
             $this->sections = $this->classes[0]->sections;
-            $this->section = $this->sections[0]->id;
+            $this->updatedClass();
         }
     }
 

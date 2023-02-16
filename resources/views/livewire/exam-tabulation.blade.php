@@ -27,7 +27,7 @@
                     @endisset
                 </x-select>
 
-            <x-button label="View records" theme="primary" type="submit" class="w-full md:w-3/12"/>
+            <x-button label="View records" theme="primary" type="submit" class="w-full md:w-5/12"/>
         </form>
         {{-- table to display tabulation --}}
         @if($tabulatedRecords && $createdTabulation == true)

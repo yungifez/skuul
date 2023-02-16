@@ -11,11 +11,13 @@ class ManageTimetable extends Component
 {
     protected $listeners = ['timetableCellClicked' => 'setSelectFields'];
 
+    protected $queryString = ['weekday', 'type', 'timeSlot'];
+
     public Timetable $timetable;
 
     public $timeSlots;
 
-    public ?int $timeSlot;
+    public $timeSlot;
 
     public $weekdays;
 
@@ -33,13 +35,13 @@ class ManageTimetable extends Component
     {
         $this->timeSlots = $this->timetable->timeSlots->sortBy('start_time')->load('weekdays');
         if ($this->timeSlots->isNotEmpty()) {
-            $this->timeSlot = $this->timeSlots->first()->id;
+            $this->timeSlot ?? $this->timeSlot = $this->timeSlots->first()->id;
         }
         $this->weekdays = Weekday::all();
         $this->subjects = $this->timetable->MyClass->subjects;
         $this->customItems = $timetableService->getAllCustomTimetableItem();
         $this->types = ['subject', 'customTimetableItem'];
-        $this->type = $this->types[0];
+        $this->type ?? $this->types[0];
     }
 
     public function setSelectFields($records)

@@ -80,7 +80,7 @@ class ExamSlotTest extends TestCase
     {
         $examSlot = ExamSlot::factory()->create();
         $this->unauthorized_user()
-            ->get("/dashboard/exams/1/manage/exam-slots/$examSlot->id/edit")
+            ->get("/dashboard/exams/{$examSlot->exam->id}/manage/exam-slots/$examSlot->id/edit")
             ->assertForbidden();
     }
 
@@ -90,7 +90,7 @@ class ExamSlotTest extends TestCase
     {
         $examSlot = ExamSlot::factory()->create();
         $this->authorized_user(['update exam slot'])
-            ->get("/dashboard/exams/1/manage/exam-slots/$examSlot->id/edit")
+            ->get("/dashboard/exams/{$examSlot->exam->id}/manage/exam-slots/$examSlot->id/edit")
             ->assertSuccessful();
     }
 
@@ -100,7 +100,7 @@ class ExamSlotTest extends TestCase
     {
         $examSlot = ExamSlot::factory()->create();
         $this->unauthorized_user()
-            ->put("/dashboard/exams/1/manage/exam-slots/$examSlot->id", ['name' => 'test exam slot', 'description' => 'test description', 'total_marks' => '10'])
+            ->put("/dashboard/exams/{$examSlot->exam->id}/manage/exam-slots/$examSlot->id", ['name' => 'test exam slot', 'description' => 'test description', 'total_marks' => '10'])
             ->assertForbidden();
 
         $this->assertDatabaseMissing('exam_slots', [
@@ -117,7 +117,7 @@ class ExamSlotTest extends TestCase
     {
         $examSlot = ExamSlot::factory()->create();
         $this->authorized_user(['update exam slot'])
-            ->put("/dashboard/exams/1/manage/exam-slots/$examSlot->id", ['name' => 'test exam slot', 'description' => 'test description', 'total_marks' => '10']);
+            ->put("/dashboard/exams/{$examSlot->exam->id}/manage/exam-slots/$examSlot->id", ['name' => 'test exam slot', 'description' => 'test description', 'total_marks' => '10']);
 
         $this->assertDatabaseHas('exam_slots', [
             'id'          => $examSlot->id,
@@ -133,7 +133,7 @@ class ExamSlotTest extends TestCase
     {
         $examSlot = ExamSlot::factory()->create();
         $this->unauthorized_user()
-            ->delete("/dashboard/exams/1/manage/exam-slots/$examSlot->id")
+            ->delete("/dashboard/exams/{$examSlot->exam->id}/manage/exam-slots/$examSlot->id")
             ->assertForbidden() && $this->assertModelExists($examSlot);
     }
 
@@ -143,7 +143,7 @@ class ExamSlotTest extends TestCase
     {
         $examSlot = ExamSlot::factory()->create();
         $this->authorized_user(['delete exam slot'])
-            ->delete("/dashboard/exams/1/manage/exam-slots/$examSlot->id");
+            ->delete("/dashboard/exams/{$examSlot->exam->id}/manage/exam-slots/$examSlot->id");
 
         $this->assertModelMissing($examSlot);
     }

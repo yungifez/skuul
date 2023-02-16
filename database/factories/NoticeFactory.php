@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,7 +18,8 @@ class NoticeFactory extends Factory
     public function definition()
     {
         $startDate = $this->faker->dateTimeThisYear('+2 months');
-        $stopDate = $startDate->add(date_interval_create_from_date_string('10 days'));
+        $days = mt_rand(1, 30);
+        $stopDate = Carbon::instance($startDate)->addDays($days);
 
         return [
             'title'      => $this->faker->sentence,

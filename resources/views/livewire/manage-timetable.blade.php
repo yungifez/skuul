@@ -12,10 +12,13 @@
                     @foreach ($timeSlots as $item)
                         <option value="{{$item['id']}}" > {{$item->name}}</option>
                     @endforeach 
+                    @if ($timeSlots->isEmpty()) 
+                        <option selected>Create Time Slot first</option>
+                    @endif
                 @endisset
             </x-adminlte-select>
             @if(!is_null($timeSlot))
-                <form action="{{route('timetables.records.create',[$timeSlot])}}" method="POST" class="md:grid col-span-3 grid-cols-3 gap-2" >
+                <form action="{{route('timetables.records.create',[$timeSlot])}}#create-timetable-record" method="POST" class="md:grid col-span-3 grid-cols-3 gap-2" >
                     @csrf
                     <x-select id="weekday-id" name="weekday_id" label="Day of week"  wire:model="weekday">
                         @isset($weekdays)
