@@ -18,7 +18,7 @@ class NoticeFactory extends Factory
     public function definition()
     {
         $startDate = $this->faker->dateTimeThisYear('+2 months');
-        $days = mt_rand(1,30);
+        $days = mt_rand(1, 30);
         $stopDate = Carbon::instance($startDate)->addDays($days);
 
         return [

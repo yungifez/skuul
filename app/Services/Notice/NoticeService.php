@@ -32,13 +32,13 @@ class NoticeService
 
     /**
      * Store notice.
-     * 
+     *
      * @return App\Model\Notice
      */
     public function storeNotice(array $data)
     {
         if (isset($data['attachment'])) {
-            $data['attachment'] = $data['attachment']->store('notice/','public');
+            $data['attachment'] = $data['attachment']->store('notice/', 'public');
         } else {
             $data['attachment'] = null;
         }
