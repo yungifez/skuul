@@ -21,6 +21,13 @@ class ExamSlotSeeder extends Seeder
             'exam_id'     => 1,
         ]);
 
+        ExamSlot::firstOrCreate([
+            'name'        => 'Theory',
+            'description' => 'lol',
+            'total_marks' => 60,
+            'exam_id'     => 1,
+        ]);
+
         ExamSlot::factory()->count(10)->create();
     }
 }

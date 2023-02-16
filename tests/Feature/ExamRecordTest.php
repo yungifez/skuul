@@ -53,7 +53,7 @@ class ExamRecordTest extends TestCase
                         'student_marks' => 10,
                     ],
                     1 => [
-                        'exam_slot_id'  => 10,
+                        'exam_slot_id'  => 2,
                         'student_marks' => 20,
                     ],
                 ],
