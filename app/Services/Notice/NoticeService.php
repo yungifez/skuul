@@ -3,7 +3,6 @@
 namespace App\Services\Notice;
 
 use App\Models\Notice;
-use Illuminate\Support\Facades\DB;
 
 class NoticeService
 {
@@ -33,24 +32,17 @@ class NoticeService
 
     /**
      * Store notice.
-     *
-     *
-     * @return void
+     * 
+     * @return App\Model\Notice
      */
     public function storeNotice(array $data)
     {
         if (isset($data['attachment'])) {
-            $data['attachment'] = $data['attachment']->store(
-                'notice/',
-                'public'
-            );
+            $data['attachment'] = $data['attachment']->store('notice/','public');
         } else {
             $data['attachment'] = null;
         }
-
-        DB::beginTransaction();
-
-        Notice::create([
+        $notice = Notice::create([
             'title'      => $data['title'],
             'content'    => $data['content'],
             'start_date' => $data['start_date'],
@@ -59,7 +51,7 @@ class NoticeService
             'school_id'  => auth()->user()->school_id,
         ]);
 
-        DB::commit();
+        return $notice;
     }
 
     /**
