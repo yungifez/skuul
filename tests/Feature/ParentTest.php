@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\User;
 use App\Models\StudentRecord;
+use App\Models\User;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
+use Tests\TestCase;
 
 class ParentTest extends TestCase
 {
@@ -221,7 +221,7 @@ class ParentTest extends TestCase
 
         $this->authorized_user(['update parent'])
             ->post("dashboard/parents/$parent->id/assign-student-to-parent", [
-                'student_id' =>$student->user->id,
+                'student_id' => $student->user->id,
                 'assign'     => true,
             ])
             ->assertRedirect();

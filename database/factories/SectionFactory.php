@@ -15,6 +15,7 @@ class SectionFactory extends Factory
     public function definition()
     {
         $class = MyClass::query()->whereRelation('classGroup', 'school_id', 1)->inRandomOrder()->first();
+
         return [
             'name'        => $this->faker->name,
             'my_class_id' => $class->id,
