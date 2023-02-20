@@ -15,7 +15,7 @@ class FeeCategoryPolicy
         if ($user->can('read fee category')) {
             return true;
         }
-            
+
         return null;
     }
 
@@ -24,10 +24,10 @@ class FeeCategoryPolicy
      */
     public function view(User $user, FeeCategory $feeCategory): ?bool
     {
-        if ($user->can('read fee category') && $feeCategory->school->id == auth()->user()->school->id ) {
+        if ($user->can('read fee category') && $feeCategory->school->id == auth()->user()->school->id) {
             return true;
         }
-            
+
         return null;
     }
 
