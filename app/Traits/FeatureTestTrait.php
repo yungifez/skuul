@@ -19,10 +19,10 @@ trait FeatureTestTrait
     /**
      * Create an authorized user.
      */
-    public function authorized_user(array $permission): object
+    public function authorized_user(array $permissions): object
     {
         $user = User::factory()->create();
-        $user->givePermissionTo($permission);
+        $user->givePermissionTo($permissions);
 
         return $this->actingAs($user);
     }

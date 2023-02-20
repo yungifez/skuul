@@ -82,6 +82,9 @@ Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefault
         });
 
         Route::middleware(['App\Http\Middleware\EnsureSemesterIsSet'])->group(function () {
+            //fee categories routes
+            Route::resource('fees/fee-categories', FeeCategoryController::class);
+
             //syllabi route
             Route::resource('syllabi', SyllabusController::class);
 

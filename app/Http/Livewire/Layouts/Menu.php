@@ -272,6 +272,26 @@ class Menu extends Component
             ],
             [
                 'type'    => 'menu-item',
+                'text'    => 'Fees',
+                'icon'    => 'fas fa-dollar',
+                'can'     => 'menu-semester',
+                'submenu' => [
+                    [
+                        'type'  => 'menu-item',
+                        'text'  => 'View Fee Categories',
+                        'route' => 'fee-categories.index',
+                        'can'   => 'read fee category',
+                    ],
+                    [
+                        'type'  => 'menu-item',
+                        'text'  => 'Create Fee Category',
+                        'route' => 'fee-categories.create',
+                        'can'   => 'create fee category',
+                    ],
+                ],
+            ],
+            [
+                'type'    => 'menu-item',
                 'text'    => 'Subjects',
                 'icon'    => 'fas fa-lightbulb',
                 'can'     => 'menu-subject',

@@ -345,6 +345,24 @@ class PermissionSeeder extends Seeder
             'name' => 'change account application status',
         ]);
 
+        //permissions for fee categories
+
+        Permission::firstOrCreate([
+            'name' => 'create fee category',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'read fee category',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'update fee category',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'delete fee category',
+        ]);
+
         //header permissions (for controlling the menu headers)
         Permission::firstOrCreate([
             'name' => 'header-administrate',
