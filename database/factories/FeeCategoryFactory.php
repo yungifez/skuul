@@ -17,9 +17,9 @@ class FeeCategoryFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->name(),
-            'school_id' => 1,
-            'description'  => $this->faker->sentence()
+            'name'         => $this->faker->name(),
+            'school_id'    => 1,
+            'description'  => $this->faker->sentence(),
         ];
     }
 }

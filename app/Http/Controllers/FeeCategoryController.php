@@ -2,18 +2,18 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\View\View;
-use App\Models\FeeCategory;
-use Illuminate\Http\Response;
-use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\StoreFeeCategoryRequest;
 use App\Http\Requests\UpdateFeeCategoryRequest;
+use App\Models\FeeCategory;
 use App\Services\Fee\FeeCategoryService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
 
 class FeeCategoryController extends Controller
 {
     /**
-     * Service instance of fee category
+     * Service instance of fee category.
      *
      * @var FeeCategoryService
      */
@@ -24,7 +24,7 @@ class FeeCategoryController extends Controller
         $this->authorizeResource(FeeCategory::class, 'fee_category');
         $this->feeCategoryService = $feeCategoryService;
     }
-    
+
     /**
      * Display a listing of the resource.
      */
