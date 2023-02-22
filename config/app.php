@@ -29,7 +29,7 @@ return [
      * -----------------------------------------------------------------------
      * Currency Used by application
      * -----------------------------------------------------------------------
-     * Return a short code eg GBP, USD or NGN
+     * Return a short code eg GBP, USD or NGN.
      */
     'currency' => env('APP_CURRENCY', 'NGN'),
     /*

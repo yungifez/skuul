@@ -15,7 +15,7 @@ class UpdateFeeRequest extends FormRequest
     {
         return [
             'name'            => 'required|max:1024',
-            'description'     => 'nullable|max:10000'
+            'description'     => 'nullable|max:10000',
         ];
     }
 }

@@ -3,15 +3,18 @@
 namespace Tests\Feature;
 
 use App\Models\Fee;
-use Tests\TestCase;
 use App\Models\FeeCategory;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
+use Tests\TestCase;
 
 class FeeTest extends TestCase
 {
-    use WithFaker, RefreshDatabase, FeatureTestTrait;
+    use WithFaker;
+    use RefreshDatabase;
+    use FeatureTestTrait;
+
     public function test_unauthorized_user_cannot_view_all_fees()
     {
         $this->unauthorized_user()
@@ -47,15 +50,15 @@ class FeeTest extends TestCase
         $feeCategory = FeeCategory::factory()->create();
 
         $this->unauthorized_user()
-            ->post('dashboard/fees',[
-                'name'  => $name,
-                'description'  => $description,
-                'fee_category_id'  => $feeCategory->id
+            ->post('dashboard/fees', [
+                'name'             => $name,
+                'description'      => $description,
+                'fee_category_id'  => $feeCategory->id,
             ])
             ->assertForbidden();
-        
-        $this->assertDatabaseMissing('fees',[
-            'name'    =>  $name
+
+        $this->assertDatabaseMissing('fees', [
+            'name'    => $name,
         ]);
     }
 
@@ -66,15 +69,15 @@ class FeeTest extends TestCase
         $feeCategory = FeeCategory::factory()->create();
 
         $this->authorized_user(['create fee'])
-            ->post('dashboard/fees',[
-                'name'  => $name,
-                'description'  => $description,
-                'fee_category_id'  => $feeCategory->id
+            ->post('dashboard/fees', [
+                'name'             => $name,
+                'description'      => $description,
+                'fee_category_id'  => $feeCategory->id,
             ])
             ->assertRedirect();
-        
-        $this->assertDatabaseHas('fees',[
-            'name'    =>  $name
+
+        $this->assertDatabaseHas('fees', [
+            'name'    => $name,
         ]);
     }
 
@@ -101,15 +104,15 @@ class FeeTest extends TestCase
         $description = $this->faker->sentence();
 
         $this->unauthorized_user()
-            ->put("dashboard/fees/$fee->id",[
-                'name' => $name,
-                'description' => $description
+            ->put("dashboard/fees/$fee->id", [
+                'name'        => $name,
+                'description' => $description,
             ])
             ->assertForbidden();
 
-        $this->assertDatabaseMissing('fees',[
-            'id' => $fee->id,
-            'name' => $name
+        $this->assertDatabaseMissing('fees', [
+            'id'   => $fee->id,
+            'name' => $name,
         ]);
     }
 
@@ -120,15 +123,15 @@ class FeeTest extends TestCase
         $description = $this->faker->sentence();
 
         $this->authorized_user(['update fee'])
-            ->put("dashboard/fees/$fee->id",[
-                'name' => $name,
-                'description' => $description
+            ->put("dashboard/fees/$fee->id", [
+                'name'        => $name,
+                'description' => $description,
             ])
             ->assertRedirect();
 
-        $this->assertDatabaseHas('fees',[
-            'id' => $fee->id,
-            'name' => $name
+        $this->assertDatabaseHas('fees', [
+            'id'   => $fee->id,
+            'name' => $name,
         ]);
     }
 

@@ -7,16 +7,16 @@ use App\Models\Fee;
 class FeeService
 {
     /**
-     * Store a new fee
-     * 
+     * Store a new fee.
+     *
      * @param array $records
      */
-    public function storeFee($records) : Fee
+    public function storeFee($records): Fee
     {
         $fee = Fee::create([
-            'name' => $records['name'],
-            'description'  => $records['description'] ?? null,
-            'fee_category_id'  => $records['fee_category_id']
+            'name'             => $records['name'],
+            'description'      => $records['description'] ?? null,
+            'fee_category_id'  => $records['fee_category_id'],
         ]);
 
         return $fee;
@@ -25,8 +25,8 @@ class FeeService
     /**
      * Update a fee.
      *
-     * @param Fee $fee
-     * @param array    $record
+     * @param Fee   $fee
+     * @param array $record
      */
     public function updateFee(Fee $fee, $record): Fee
     {
@@ -39,11 +39,11 @@ class FeeService
     }
 
     /**
-     * Delete a fee
+     * Delete a fee.
      *
      * @param Fee $fee
      */
-    public function deleteFee(Fee $fee) : bool|null
+    public function deleteFee(Fee $fee): bool|null
     {
         return $fee->delete();
     }
