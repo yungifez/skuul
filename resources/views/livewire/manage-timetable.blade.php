@@ -55,7 +55,7 @@
                             @endswitch
                         @endisset
                     </x-select>
-                    <x-button label="Attach" theme="primary" type="submit" class="col-md-3"/>
+                    <x-button label="Attach" theme="primary" type="submit" class="w-full md:w-3/12"/>
                 </form>
             @endisset
         </div>
