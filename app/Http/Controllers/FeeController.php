@@ -12,7 +12,6 @@ use Illuminate\View\View;
 
 class FeeController extends Controller
 {
-
     public FeeService $feeService;
 
     public function __construct(FeeService $feeService)
@@ -43,7 +42,7 @@ class FeeController extends Controller
     public function store(StoreFeeRequest $request): RedirectResponse
     {
         $this->feeService->storeFee($request->validated());
-        
+
         return back()->with('success', 'Fee Created Successfully');
     }
 

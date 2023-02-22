@@ -363,9 +363,9 @@ class PermissionSeeder extends Seeder
             'name' => 'delete fee category',
         ]);
 
-         //permissions for fees
+        //permissions for fees
 
-         Permission::firstOrCreate([
+        Permission::firstOrCreate([
             'name' => 'create fee',
         ]);
 

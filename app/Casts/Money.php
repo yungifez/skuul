@@ -3,15 +3,15 @@
 namespace App\Casts;
 
 use Brick\Money\Money as BrickMoney;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
+use Illuminate\Database\Eloquent\Model;
 
 class Money implements CastsAttributes
 {
     /**
      * Cast the given value.
      *
-     * @param  array<string, mixed>  $attributes
+     * @param array<string, mixed> $attributes
      */
     public function get(Model $model, string $key, mixed $value, array $attributes): BrickMoney
     {
@@ -21,13 +21,14 @@ class Money implements CastsAttributes
     /**
      * Prepare the given value for storage.
      *
-     * @param  array<string, mixed>  $attributes
+     * @param array<string, mixed> $attributes
      */
     public function set(Model $model, string $key, mixed $value, array $attributes): mixed
     {
-        if (! $value instanceof BrickMoney) {
+        if (!$value instanceof BrickMoney) {
             return $value;
         }
+
         return $value->getMinorAmount()->toInt();
     }
 }
