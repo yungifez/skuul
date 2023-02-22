@@ -3,7 +3,7 @@
         <h2 class="card-title">{{$class->name}}</h2>
     </div>
     <div class="card-body">
-        <h1 class="text-center text-xl md:text-3xl font-bold">Sections in class</h1>
+        <h3 class="text-center text-lg md:text-3xl font-bold my-5">Sections in class</h1>
         <livewire:datatable :model="App\Models\MyClass::class" uniqueId="section-list-table" :filters="[['name' => 'find' , 'arguments' => [$class->id]], ['name' => 'sections']]" :columns="
             [
             ['property' => 'name'] , 
@@ -14,7 +14,7 @@
             ['type' => 'delete', 'name' => 'Delete', 'action' => 'sections.destroy']
          ]
         "/>
-        <h1 class="text-center text-xl md:text-3xl font-bold">Students in class</h1>
+        <h3 class="text-center text-lg md:text-3xl font-bold my-5">Students in class</h1>
         <livewire:datatable :model="App\Models\User::class" uniqueId="students-list-table" 
         :filters="[
             ['name' => 'where' , 'arguments' => ['school_id' , auth()->user()->school_id]], 
@@ -32,7 +32,7 @@
             ['type' => 'delete', 'name' => 'Delete', 'action' => 'students.destroy']
          ]
         "/>
-        <h1 class="text-center text-xl md:text-3xl font-bold">Subjects in class</h1>
+        <h3 class="text-center text-lg md:text-3xl font-bold my-5">Subjects in class</h1>
         <livewire:datatable :model="App\Models\Subject::class" uniqueId="subjects-list-table" :filters="[['name' => 'where' , 'arguments' => ['my_class_id' , $class->id]]]" :columns="
             [
             ['property' => 'name'] , 

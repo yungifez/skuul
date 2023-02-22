@@ -288,6 +288,18 @@ class Menu extends Component
                         'route' => 'fee-categories.create',
                         'can'   => 'create fee category',
                     ],
+                    [
+                        'type'  => 'menu-item',
+                        'text'  => 'View Fees',
+                        'route' => 'fees.index',
+                        'can'   => 'read fee',
+                    ],
+                    [
+                        'type'  => 'menu-item',
+                        'text'  => 'Create Fee',
+                        'route' => 'fees.create',
+                        'can'   => 'create fee',
+                    ],
                 ],
             ],
             [
