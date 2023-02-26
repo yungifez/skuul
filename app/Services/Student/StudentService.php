@@ -198,7 +198,7 @@ class StudentService
      */
     public function printProfile(string $name, string $view, array $data)
     {
-        return PrintService::createPdfFromView($name, $view, $data)->download();
+        return PrintService::createPdfFromView( $view, $data)->download($name.".pdf");
     }
 
     /**

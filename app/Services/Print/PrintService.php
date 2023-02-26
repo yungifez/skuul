@@ -12,7 +12,7 @@ class PrintService
      *
      * @return \Barryvdh\DomPDF\PDF
      */
-    public static function createPdfFromView(string $name, string $view, array $data)
+    public static function createPdfFromView(string $view, array $data)
     {
         $pdf = Pdf::loadView($view, $data);
         $pdf->getDomPDF()->setHttpContext(

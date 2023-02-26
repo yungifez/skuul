@@ -381,6 +381,24 @@ class PermissionSeeder extends Seeder
             'name' => 'delete fee',
         ]);
 
+          //permissions for fee invoices
+
+          Permission::firstOrCreate([
+            'name' => 'create fee invoice',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'read fee invoice',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'update fee invoice',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'delete fee invoice',
+        ]);
+
         //header permissions (for controlling the menu headers)
         Permission::firstOrCreate([
             'name' => 'header-administrate',

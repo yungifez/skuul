@@ -300,6 +300,18 @@ class Menu extends Component
                         'route' => 'fees.create',
                         'can'   => 'create fee',
                     ],
+                    [
+                        'type'  => 'menu-item',
+                        'text'  => 'View Fee Invoices',
+                        'route' => 'fee-invoices.index',
+                        'can'   => 'read fee invoice',
+                    ],
+                    [
+                        'type'  => 'menu-item',
+                        'text'  => 'Create Fee Invoice',
+                        'route' => 'fee-invoices.create',
+                        'can'   => 'create fee invoices',
+                    ],
                 ],
             ],
             [

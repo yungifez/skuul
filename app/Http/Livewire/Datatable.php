@@ -14,6 +14,8 @@ class Datatable extends Component
 
     protected $listners = ['refresh' => '$refresh'];
 
+    protected $queryString = ['perPage', 'search'];
+
     public $model;
 
     public $filters;

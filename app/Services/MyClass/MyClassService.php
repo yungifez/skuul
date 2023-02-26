@@ -2,6 +2,7 @@
 
 namespace App\Services\MyClass;
 
+use App\Exceptions\InvalidValueException;
 use App\Exceptions\ResourceNotEmptyException;
 use App\Models\ClassGroup;
 use App\Models\MyClass;
@@ -64,9 +65,6 @@ class MyClassService
 
     /**
      * Get class group by id.
-     *
-     *
-     * @return void
      */
     public function getClassGroupById(int $id)
     {
@@ -82,6 +80,10 @@ class MyClassService
      */
     public function createClass($record)
     {
+        $classGroup = $this->getClassGroupById($record['class_group_id']);
+        if ($classGroup->school->id != auth()->user()->school->id) {
+            throw new InvalidValueException('ClassGroup Is Not In Class');
+        }
         $myClass = MyClass::create($record);
 
         return $myClass;
