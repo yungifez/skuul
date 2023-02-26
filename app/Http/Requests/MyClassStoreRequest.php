@@ -2,9 +2,9 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Database\Query\Builder;
+use Illuminate\Foundation\Http\FormRequest;
 
 class MyClassStoreRequest extends FormRequest
 {
@@ -26,7 +26,7 @@ class MyClassStoreRequest extends FormRequest
             ],
             'class_group_id' => [
                 'required',
-                Rule::exists('classGroup', 'id')->where(function (Builder $query) {
+                Rule::exists('class_groups', 'id')->where(function (Builder $query) {
                     return $query->where('school_id', auth()->user()->school->id);
                 }),
             ],
