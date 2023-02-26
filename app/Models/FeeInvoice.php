@@ -4,28 +4,28 @@ namespace App\Models;
 
 use App\Casts\Money;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class FeeInvoice extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['name', 'note','issue_date', 'due_date', 'user_id'];
+    protected $fillable = ['name', 'note', 'issue_date', 'due_date', 'user_id'];
 
     protected $casts = [
         'issue_date' => 'datetime',
-        'due_date' => 'datetime',
-        'amount' => Money::class,
-        'fine' => Money::class,
-        'paid' => Money::class,
-        'waiver' => Money::class,
+        'due_date'   => 'datetime',
+        'amount'     => Money::class,
+        'fine'       => Money::class,
+        'paid'       => Money::class,
+        'waiver'     => Money::class,
     ];
-    
+
     /**
-     * Get the user that owns the FeeInvoice
+     * Get the user that owns the FeeInvoice.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
@@ -35,7 +35,7 @@ class FeeInvoice extends Model
     }
 
     /**
-     * Get all of the feeInvoiceRecords for the FeeInvoice
+     * Get all of the feeInvoiceRecords for the FeeInvoice.
      *
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
@@ -44,35 +44,32 @@ class FeeInvoice extends Model
         return $this->hasMany(FeeInvoiceRecord::class);
     }
 
-    public function scopeisDue(Builder $query) : void
+    public function scopeisDue(Builder $query): void
     {
-        $query->whereHas('FeeInvoiceRecords', function ($query)
-        {
+        $query->whereHas('FeeInvoiceRecords', function ($query) {
             return $query->isDue();
         });
     }
 
-    public function scopeisPaid(Builder $query) : void
+    public function scopeisPaid(Builder $query): void
     {
-        $query->whereHas('FeeInvoiceRecords', function ($query)
-        {
+        $query->whereHas('FeeInvoiceRecords', function ($query) {
             return $query->isPaid();
         });
     }
 
     private function getSumOfFieldFromRecords($attribute)
     {
-        $total =  $this->loadMissing('feeInvoiceRecords')->feeInvoiceRecords->map( function ($model)
-        {
+        $total = $this->loadMissing('feeInvoiceRecords')->feeInvoiceRecords->map(function ($model) {
             return $model->getAttributes();
-        })->sum($attribute);  
+        })->sum($attribute);
 
         return $this->castAttribute($attribute, $total);
     }
 
     public function getAmountAttribute()
     {
-       return $this->getSumOfFieldFromRecords('amount');
+        return $this->getSumOfFieldFromRecords('amount');
     }
 
     public function getPaidAttribute()

@@ -381,9 +381,9 @@ class PermissionSeeder extends Seeder
             'name' => 'delete fee',
         ]);
 
-          //permissions for fee invoices
+        //permissions for fee invoices
 
-          Permission::firstOrCreate([
+        Permission::firstOrCreate([
             'name' => 'create fee invoice',
         ]);
 

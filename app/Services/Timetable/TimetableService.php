@@ -55,7 +55,7 @@ class TimetableService
      */
     public function printTimetable(string $name, string $view, array $data)
     {
-        return PrintService::createPdfFromView($view, $data)->download($name.".pdf");
+        return PrintService::createPdfFromView($view, $data)->download($name.'.pdf');
     }
 
     /**
