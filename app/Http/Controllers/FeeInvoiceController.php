@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\View\View;
-use App\Models\FeeInvoice;
-use Illuminate\Http\Response;
-use Illuminate\Http\RedirectResponse;
-use App\Services\Fee\FeeInvoiceService;
 use App\Http\Requests\StoreFeeInvoiceRequest;
 use App\Http\Requests\UpdateFeeInvoiceRequest;
+use App\Models\FeeInvoice;
+use App\Services\Fee\FeeInvoiceService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
 
 class FeeInvoiceController extends Controller
 {
@@ -23,7 +23,7 @@ class FeeInvoiceController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index() : View
+    public function index(): View
     {
         return view('pages.fee.fee-invoice.index');
     }
@@ -31,7 +31,7 @@ class FeeInvoiceController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create() : View
+    public function create(): View
     {
         return view('pages.fee.fee-invoice.create');
     }
@@ -39,7 +39,7 @@ class FeeInvoiceController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreFeeInvoiceRequest $request) : RedirectResponse
+    public function store(StoreFeeInvoiceRequest $request): RedirectResponse
     {
         $this->feeInvoiceService->storeFeeInvoice($request->validated());
 
@@ -49,15 +49,15 @@ class FeeInvoiceController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(FeeInvoice $feeInvoice) : View
+    public function show(FeeInvoice $feeInvoice): View
     {
-        return view('pages.fee.fee-invoice.show',compact('feeInvoice'));
+        return view('pages.fee.fee-invoice.show', compact('feeInvoice'));
     }
 
-     /**
+    /**
      * Display the specified resource.
      */
-    public function print(FeeInvoice $feeInvoice) : Response
+    public function print(FeeInvoice $feeInvoice): Response
     {
         return $this->feeInvoiceService->printFeeInvoice($feeInvoice->name, 'pages.fee.fee-invoice.print', compact('feeInvoice'));
     }
@@ -65,7 +65,7 @@ class FeeInvoiceController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(FeeInvoice $feeInvoice) : View
+    public function edit(FeeInvoice $feeInvoice): View
     {
         //
     }
@@ -73,7 +73,7 @@ class FeeInvoiceController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateFeeInvoiceRequest $request, FeeInvoice $feeInvoice) : RedirectResponse
+    public function update(UpdateFeeInvoiceRequest $request, FeeInvoice $feeInvoice): RedirectResponse
     {
         //
     }
@@ -81,7 +81,7 @@ class FeeInvoiceController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(FeeInvoice $feeInvoice) : RedirectResponse
+    public function destroy(FeeInvoice $feeInvoice): RedirectResponse
     {
         //
     }

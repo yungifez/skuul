@@ -82,8 +82,7 @@ class FeeController extends Controller
         return back()->with('success', 'Fee Deleted Successfully');
     }
 
-    public function bulkStore() : RedirectResponse
+    public function bulkStore(): RedirectResponse
     {
-        
     }
 }

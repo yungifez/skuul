@@ -10,7 +10,7 @@ class ShowFeeInvoice extends Component
 
     public function mount()
     {
-        $this->feeInvoice->loadMissing('feeInvoiceRecords','feeInvoiceRecords.fee');
+        $this->feeInvoice->loadMissing('feeInvoiceRecords', 'feeInvoiceRecords.fee');
     }
 
     public function render()

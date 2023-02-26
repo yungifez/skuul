@@ -30,7 +30,7 @@ class ListFeeInvoicesTable extends Component
             case 'paid':
                 $this->queryAddon = [['name' => 'isPaid']];
                 break;
-            
+
             default:
                 $this->queryAddon = [];
                 break;

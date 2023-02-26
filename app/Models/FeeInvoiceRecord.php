@@ -3,21 +3,21 @@
 namespace App\Models;
 
 use App\Casts\Money;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class FeeInvoiceRecord extends Model
 {
     use HasFactory;
-    
+
     protected $fillable = ['paid', 'amount', 'waiver', 'fine', 'fee_id'];
 
     protected $casts = [
         'amount' => Money::class,
-        'fine' => Money::class,
-        'paid' => Money::class,
+        'fine'   => Money::class,
+        'paid'   => Money::class,
         'waiver' => Money::class,
     ];
 
@@ -31,8 +31,8 @@ class FeeInvoiceRecord extends Model
         $query->whereRaw('(amount + fine) < ( paid + waiver) ');
     }
 
-        /**
-     * Get the fee that owns the FeeInvoice
+    /**
+     * Get the fee that owns the FeeInvoice.
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
@@ -40,5 +40,4 @@ class FeeInvoiceRecord extends Model
     {
         return $this->belongsTo(Fee::class);
     }
-
 }

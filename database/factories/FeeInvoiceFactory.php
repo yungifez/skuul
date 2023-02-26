@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
-use Carbon\Carbon;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -22,13 +22,13 @@ class FeeInvoiceFactory extends Factory
         $issueDate = $this->faker->dateTimeThisYear('+2 months');
         $days = mt_rand(10, 50);
         $dueDate = Carbon::instance($issueDate)->addDays($days);
-        
+
         return [
-            'name' => $this->faker->name(),
-            'note' => $this->faker->sentence(),
-            'user_id' => $student->id,
+            'name'       => $this->faker->name(),
+            'note'       => $this->faker->sentence(),
+            'user_id'    => $student->id,
             'issue_date' => $issueDate,
-            'due_date'  => $dueDate
+            'due_date'   => $dueDate,
         ];
     }
 }

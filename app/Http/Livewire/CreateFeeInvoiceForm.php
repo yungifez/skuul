@@ -3,11 +3,11 @@
 namespace App\Http\Livewire;
 
 use App\Models\Fee;
-use App\Models\User;
+use App\Models\FeeCategory;
 use App\Models\MyClass;
 use App\Models\Section;
+use App\Models\User;
 use Livewire\Component;
-use App\Models\FeeCategory;
 
 class CreateFeeInvoiceForm extends Component
 {
@@ -18,7 +18,11 @@ class CreateFeeInvoiceForm extends Component
     public $addedFees;
     public $addedStudents;
     public $classes;
-    public $class, $sections, $section, $students, $student;
+    public $class;
+    public $sections;
+    public $section;
+    public $students;
+    public $student;
 
     public function mount()
     {
@@ -45,7 +49,7 @@ class CreateFeeInvoiceForm extends Component
         if ($this->sections != null && $this->sections->isNotEmpty()) {
             $this->section = $this->sections->first()->id;
             $this->updatedSection();
-        }else {
+        } else {
             $this->sections = null;
             $this->students = null;
         }
@@ -59,7 +63,7 @@ class CreateFeeInvoiceForm extends Component
                 $this->student = $this->students->first()->id;
                 $this->updatedStudent();
             }
-        }else {
+        } else {
             $this->students = null;
             $this->student = null;
         }
@@ -79,7 +83,7 @@ class CreateFeeInvoiceForm extends Component
 
         if ($fee == null || !$fee->exists()) {
             $this->addedFees = $this->addedFees->merge($feeCategory->fees);
-        }else{
+        } else {
             $this->addedFees = $this->addedFees->push($fee);
         }
 
@@ -91,15 +95,15 @@ class CreateFeeInvoiceForm extends Component
         $section = Section::find($section);
         $student = User::students()->inSchool()->find($student);
 
-       if ($student != null && $student->exists()) {
+        if ($student != null && $student->exists()) {
             $this->addedStudents = $this->addedStudents->push($student->load('studentRecord'));
-       }elseif ($section != null && $section->exists()) {
+        } elseif ($section != null && $section->exists()) {
             $this->addedStudents = $this->addedStudents->merge($section->students()->load('studentRecord'));
-       }else {
+        } else {
             $this->addedStudents = $this->addedStudents->merge($class->students()->load('studentRecord'));
-       }
+        }
 
-       $this->addedStudents = $this->addedStudents->keyBy('id');
+        $this->addedStudents = $this->addedStudents->keyBy('id');
     }
 
     public function removeStudent($student)
@@ -115,8 +119,8 @@ class CreateFeeInvoiceForm extends Component
     public function setOldValues()
     {
         $oldRecords = collect(old('records'));
-        if($oldRecords->isNotEmpty()){
-            $fees = Fee::whereRelation('feeCategory','school_id', auth()->user()->school_id)->whereIn('id',$oldRecords->pluck('fee_id'))->get();
+        if ($oldRecords->isNotEmpty()) {
+            $fees = Fee::whereRelation('feeCategory', 'school_id', auth()->user()->school_id)->whereIn('id', $oldRecords->pluck('fee_id'))->get();
 
             $this->addedFees = $this->addedFees->merge($fees);
 
@@ -124,8 +128,8 @@ class CreateFeeInvoiceForm extends Component
         }
 
         $oldStudents = collect(old('users'));
-        if($oldStudents->isNotEmpty()){
-            $students = User::students()->inSchool()->whereIn('id',$oldStudents)->get();
+        if ($oldStudents->isNotEmpty()) {
+            $students = User::students()->inSchool()->whereIn('id', $oldStudents)->get();
 
             $this->addedStudents = $this->addedStudents->merge($students);
 

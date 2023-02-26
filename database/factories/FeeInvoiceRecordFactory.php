@@ -26,12 +26,12 @@ class FeeInvoiceRecordFactory extends Factory
         $feeInvoice = FeeInvoice::query()->inRandomOrder()->whereRelation('user', 'school_id', 1)->first();
 
         return [
-            'fee_id'  => $fee->id,
+            'fee_id'         => $fee->id,
             'fee_invoice_id' => $feeInvoice->id,
-            'amount' => $amount,
-            'waiver'  => $waiver,
-            'paid' => $paid,
-            'fine' => $fine,
+            'amount'         => $amount,
+            'waiver'         => $waiver,
+            'paid'           => $paid,
+            'fine'           => $fine,
         ];
     }
 }

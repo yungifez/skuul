@@ -72,6 +72,6 @@ class TeacherService
      */
     public function printProfile(string $name, string $view, array $data)
     {
-        return PrintService::createPdfFromView( $view, $data);
+        return PrintService::createPdfFromView($view, $data);
     }
 }
