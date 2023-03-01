@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Response;
-use App\Models\FeeInvoiceRecord;
-use App\Services\Fee\FeeInvoiceRecordService;
 use App\Http\Requests\StoreFeeInvoiceRecordRequest;
 use App\Http\Requests\UpdateFeeInvoiceRecordRequest;
+use App\Models\FeeInvoiceRecord;
+use App\Services\Fee\FeeInvoiceRecordService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 
 class FeeInvoiceRecordController extends Controller
 {
@@ -21,7 +21,7 @@ class FeeInvoiceRecordController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index() : Response
+    public function index(): Response
     {
         abort(404);
     }
@@ -29,7 +29,7 @@ class FeeInvoiceRecordController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create() : Response
+    public function create(): Response
     {
         abort(404);
     }
@@ -37,7 +37,7 @@ class FeeInvoiceRecordController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreFeeInvoiceRecordRequest $request) : RedirectResponse
+    public function store(StoreFeeInvoiceRecordRequest $request): RedirectResponse
     {
         $this->feeInvoiceRecordService->storeFeeInvoiceRecord($request->validated());
 
@@ -47,7 +47,7 @@ class FeeInvoiceRecordController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(FeeInvoiceRecord $feeInvoiceRecord) : Response
+    public function show(FeeInvoiceRecord $feeInvoiceRecord): Response
     {
         abort(404);
     }
@@ -55,7 +55,7 @@ class FeeInvoiceRecordController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(FeeInvoiceRecord $feeInvoiceRecord) : Response
+    public function edit(FeeInvoiceRecord $feeInvoiceRecord): Response
     {
         abort(404);
     }
@@ -63,7 +63,7 @@ class FeeInvoiceRecordController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateFeeInvoiceRecordRequest $request, FeeInvoiceRecord $feeInvoiceRecord) : RedirectResponse
+    public function update(UpdateFeeInvoiceRecordRequest $request, FeeInvoiceRecord $feeInvoiceRecord): RedirectResponse
     {
         $this->feeInvoiceRecordService->updateFeeInvoiceRecord($feeInvoiceRecord, $request->validated());
 
