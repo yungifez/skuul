@@ -10,35 +10,36 @@ use App\Models\FeeInvoiceRecord;
 class FeeInvoiceRecordService
 {
     /**
-     * Store a new fee invoice record
-     * 
+     * Store a new fee invoice record.
+     *
      * @param array $records
      *
      * @return $feeInvoiceRecord
      */
     public function storeFeeInvoiceRecord($records)
     {
-        $fee = Fee::where('id' , $records['fee_id'])->whereRelation('feeCategory', 'school_id', auth()->user()->school_id)->get();
-        $feeInvoice = FeeInvoice::where('id' , $records['fee_invoice_id'])->whereRelation('user', 'school_id', auth()->user()->school_id)->get();
+        $fee = Fee::where('id', $records['fee_id'])->whereRelation('feeCategory', 'school_id', auth()->user()->school_id)->get();
+        $feeInvoice = FeeInvoice::where('id', $records['fee_invoice_id'])->whereRelation('user', 'school_id', auth()->user()->school_id)->get();
 
         if ($fee->isEmpty() || $feeInvoice->isEmpty()) {
             throw new InvalidValueException("The fee you selected doesn't exist");
         }
-  
+
         FeeInvoiceRecord::create([
             'fee_invoice_id' => $records['fee_invoice_id'],
-            'fee_id' => $records['fee_id'],
-            'amount' => $records['amount'] ,
-            'waiver' => $records['waiver'] ?? 0,
-            'fine'   => $records['fine'] ?? 0,
+            'fee_id'         => $records['fee_id'],
+            'amount'         => $records['amount'],
+            'waiver'         => $records['waiver'] ?? 0,
+            'fine'           => $records['fine'] ?? 0,
         ]);
     }
 
     /**
-     * Update a fee invoice record
+     * Update a fee invoice record.
      *
      * @param FeeInvoiceRecord $feeInvoiceRecord
-     * @param  $records
+     * @param                  $records
+     *
      * @return void
      */
     public function updateFeeInvoiceRecord(FeeInvoiceRecord $feeInvoiceRecord, $records)
@@ -51,9 +52,10 @@ class FeeInvoiceRecordService
     }
 
     /**
-     * Delete a fee invoice
+     * Delete a fee invoice.
      *
      * @param FeeInvoiceRecord $feeInvoiceRecord
+     *
      * @return void
      */
     public function deleteFeeInvoiceRecord(FeeInvoiceRecord $feeInvoiceRecord)

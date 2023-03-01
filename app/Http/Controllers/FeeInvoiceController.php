@@ -59,7 +59,8 @@ class FeeInvoiceController extends Controller
      */
     public function print(FeeInvoice $feeInvoice): Response
     {
-        $this->authorize('view',$feeInvoice);
+        $this->authorize('view', $feeInvoice);
+
         return $this->feeInvoiceService->printFeeInvoice($feeInvoice->name, 'pages.fee.fee-invoice.print', compact('feeInvoice'));
     }
 

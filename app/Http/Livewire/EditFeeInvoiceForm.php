@@ -16,12 +16,12 @@ class EditFeeInvoiceForm extends Component
 
     protected $rules = [
         'feeCategory' => 'integer|exists:fee_categories,id',
-        'fee'         => 'nullable|integer'
+        'fee'         => 'nullable|integer',
     ];
 
     public function mount()
     {
-        $this->feeInvoice->loadMissing('feeInvoiceRecords','feeInvoiceRecords.fee');
+        $this->feeInvoice->loadMissing('feeInvoiceRecords', 'feeInvoiceRecords.fee');
         $this->feeCategories = FeeCategory::inSchool()->get();
         if ($this->feeCategories != null && $this->feeCategories->isNotEmpty()) {
             $this->feeCategory = $this->feeCategories->first();
@@ -34,10 +34,10 @@ class EditFeeInvoiceForm extends Component
         $feeCategory = $this->feeCategories->find($this->feeCategory);
 
         if ($feeCategory == null || !$feeCategory->exists()) {
-           return abort(404);
+            return abort(404);
         }
 
-        $this->fees = $feeCategory->fees()->whereNotIn('id',$this->feeInvoice->feeInvoiceRecords->pluck('fee_id'))->get();
+        $this->fees = $feeCategory->fees()->whereNotIn('id', $this->feeInvoice->feeInvoiceRecords->pluck('fee_id'))->get();
 
         if ($this->fees != null && !$this->fees->isEmpty()) {
             $this->fee = $this->fees->first();

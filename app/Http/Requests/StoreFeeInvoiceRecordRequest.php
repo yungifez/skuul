@@ -2,8 +2,6 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Validation\Rule;
-use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Http\FormRequest;
 
 class StoreFeeInvoiceRecordRequest extends FormRequest
@@ -17,9 +15,9 @@ class StoreFeeInvoiceRecordRequest extends FormRequest
     {
         return [
             'fee_invoice_id' => [
-                'required', 
-                'integer', 
-                'exists:fee_invoices,id'
+                'required',
+                'integer',
+                'exists:fee_invoices,id',
             ],
             'fee_id' => 'required|integer|exists:fees,id',
             'amount' => 'required|integer|min:1',

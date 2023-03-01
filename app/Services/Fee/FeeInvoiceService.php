@@ -51,14 +51,14 @@ class FeeInvoiceService
                 $feeInvoice->feeInvoiceRecords()->createMany($records['records']);
             }
         });
-
     }
 
     /**
-     * Update a fee invoice
+     * Update a fee invoice.
      *
      * @param FeeInvoice $feeInvoice
-     * @param  $records
+     * @param            $records
+     *
      * @return void
      */
     public function updateFeeInvoice(FeeInvoice $feeInvoice, $records)
@@ -73,9 +73,10 @@ class FeeInvoiceService
     }
 
     /**
-     * Generate a new fee invoice name
+     * Generate a new fee invoice name.
      *
      * @param int $schoolId
+     *
      * @return void
      */
     public function generateInvoiceNumber(int $schoolId = null)
@@ -96,11 +97,12 @@ class FeeInvoiceService
     }
 
     /**
-     * Print Fee Invoice
+     * Print Fee Invoice.
      *
      * @param string $name
      * @param string $view
-     * @param array $data
+     * @param array  $data
+     *
      * @return void
      */
     public function printFeeInvoice(string $name, string $view, array $data)
