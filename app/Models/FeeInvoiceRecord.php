@@ -12,7 +12,7 @@ class FeeInvoiceRecord extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['paid', 'amount', 'waiver', 'fine', 'fee_id'];
+    protected $fillable = ['paid', 'amount', 'waiver', 'fine', 'fee_id','fee_invoice_id'];
 
     protected $casts = [
         'amount' => Money::class,

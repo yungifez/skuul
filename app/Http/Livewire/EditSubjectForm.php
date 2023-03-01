@@ -16,7 +16,7 @@ class EditSubjectForm extends Component
     public function mount(TeacherService $teacherService)
     {
         $this->teachers = $teacherService->getAllTeachers();
-        $this->assignedTeachersId = $this->subject->teachers()->get()->pluck('id')->toArray();
+        $this->assignedTeachersId = $this->subject->teachers()->get()->pluck('id')->all();
     }
 
     public function render()

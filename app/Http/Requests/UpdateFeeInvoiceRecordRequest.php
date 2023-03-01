@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateFeeInvoiceRequest extends FormRequest
+class UpdateFeeInvoiceRecordRequest extends FormRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -14,9 +14,9 @@ class UpdateFeeInvoiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'issue_date' => 'required|date',
-            'due_date'   => 'required|date|after_or_equal:issue_date',
-            'note'       => 'nullable|max:10000',
+            'amount' => 'required|integer|min:1',
+            'waiver' => 'nullable|integer|min:0|lt:amount',
+            'fine'   => 'nullable|integer|min:0',
         ];
     }
 }

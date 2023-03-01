@@ -128,7 +128,7 @@
                                         <x-input type="number" :id="$addedFee['id'].'-fine'" name="records[{{$addedFee['id']}}][fine]" class="w-40 md:w-full" x-model.number="fine"/>
                                     </td>
                                     <td class="border p-4 text-center whitespace-nowrap">
-                                       <p x-text="((parseInt(amount) - parseInt(waiver) + parseInt(fine)) || 0).toLocaleString()"></p>
+                                       <p x-text="((parseInt(amount) - parseInt(waiver) + parseInt(fine) ) || 0).toLocaleString()"></p>
                                     </td>
                                     <td class="border p-4 text-center whitespace-nowrap">
                                         <input type="hidden" name="records[{{$addedFee['id']}}][fee_id]" value="{{$addedFee['id']}}">

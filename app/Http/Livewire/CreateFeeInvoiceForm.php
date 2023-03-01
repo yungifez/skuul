@@ -132,9 +132,8 @@ class CreateFeeInvoiceForm extends Component
             $students = User::students()->inSchool()->whereIn('id', $oldStudents)->get();
 
             $this->addedStudents = $this->addedStudents->merge($students);
-
-            $this->addedFees = $this->addedFees->unique('id');
         }
+        $this->addedFees = $this->addedFees->unique('id');
     }
 
     public function render()

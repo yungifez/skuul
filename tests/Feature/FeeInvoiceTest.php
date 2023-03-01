@@ -113,7 +113,7 @@ class FeeInvoiceTest extends TestCase
                 'issue_date' => $date,
                 'due_date'   => Carbon::instance($date)->addDay(),
                 'note'       => $this->faker()->sentence(),
-                'users'      => $students->pluck('id')->toArray(),
+                'users'      => $students->pluck('id')->all(),
                 'records'    => $records,
             ])
             ->assertRedirect();
@@ -144,6 +144,42 @@ class FeeInvoiceTest extends TestCase
 
         $this->authorized_user(['read fee invoice'])
             ->get("dashboard/fees/fee-invoices/$feeInvoice->id")
+            ->assertSuccessful();
+    }
+
+    public function test_unauthorized_user_cannot_print_fee_invoice()
+    {
+        $feeInvoice = FeeInvoice::factory()->create();
+
+        $this->unauthorized_user()
+            ->get("dashboard/fees/fee-invoices/$feeInvoice->id/print")
+            ->assertForbidden();
+    }
+
+    public function test_authorized_user_can_print_fee_invoice()
+    {
+        $feeInvoice = FeeInvoice::factory()->create();
+
+        $this->authorized_user(['read fee invoice'])
+            ->get("dashboard/fees/fee-invoices/$feeInvoice->id/print")
+            ->assertSuccessful();
+    }
+
+    public function test_unauthorized_user_cannot_view_edit_page()
+    {
+        $feeInvoice = FeeInvoice::factory()->create();
+
+        $this->unauthorized_user()
+            ->get("dashboard/fees/fee-invoices/$feeInvoice->id/edit")
+            ->assertForbidden();
+    }
+
+    public function test_authorized_user_can_view_edit_page()
+    {
+        $feeInvoice = FeeInvoice::factory()->create();
+
+        $this->authorized_user(['update fee invoice'])
+            ->get("dashboard/fees/fee-invoices/$feeInvoice->id/edit")
             ->assertSuccessful();
     }
 }

@@ -59,6 +59,7 @@ class FeeInvoiceController extends Controller
      */
     public function print(FeeInvoice $feeInvoice): Response
     {
+        $this->authorize('view',$feeInvoice);
         return $this->feeInvoiceService->printFeeInvoice($feeInvoice->name, 'pages.fee.fee-invoice.print', compact('feeInvoice'));
     }
 
@@ -67,7 +68,7 @@ class FeeInvoiceController extends Controller
      */
     public function edit(FeeInvoice $feeInvoice): View
     {
-        //
+        return view('pages.fee.fee-invoice.edit', compact('feeInvoice'));
     }
 
     /**
@@ -75,7 +76,9 @@ class FeeInvoiceController extends Controller
      */
     public function update(UpdateFeeInvoiceRequest $request, FeeInvoice $feeInvoice): RedirectResponse
     {
-        //
+        $this->feeInvoiceService->updateFeeInvoice($feeInvoice, $request->validated());
+
+        return back()->with('success', 'Fee Invoice Updated Successfully');
     }
 
     /**

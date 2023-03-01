@@ -1,11 +1,11 @@
-@props(['backgroundColour' =>  'bg-blue-700', 'textColour' => 'text-white','title' => '', 'footer' => '', 'icon' => '', 'buttonText' => 'Delete', 'button', 'size' => 'base'])
+@props(['backgroundColour' =>  'bg-blue-700', 'textColour' => 'text-white','title' => '', 'footer' => '', 'icon' => '', 'buttonText' => 'Delete', 'button', 'size' => 'base', 'modalButtonClass' => ''])
 
 <div x-data="{modal : false}" class="{{$textColour}}">
     
     @isset($button)
         {{$button}}
     @else
-        <x-button class="{{$backgroundColour}} rounded" icon="{{$icon}}" @click="modal = true">
+        <x-button class="{{$backgroundColour}} {{$modalButtonClass}} rounded" icon="{{$icon}}" @click="modal = true">
             {{$buttonText}}
         </x-button>
     @endisset

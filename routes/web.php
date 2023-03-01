@@ -85,7 +85,10 @@ Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefault
             //fee categories routes
             Route::resource('fees/fee-categories', FeeCategoryController::class);
             //fee invoice routes
+            Route::resource('fees/fee-invoices/fee-invoice-records', FeeInvoiceRecordController::class);
+
             Route::get('fees/fee-invoices/{fee_invoice}/print', ['App\Http\Controllers\FeeInvoiceController', 'print'])->name('fee-invoices.print');
+            
             Route::resource('fees/fee-invoices', FeeInvoiceController::class);
             //fee routes
             Route::resource('fees', FeeController::class);

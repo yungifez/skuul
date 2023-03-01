@@ -40,9 +40,11 @@ class FeeInvoicePolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, FeeInvoice $feeInvoice): bool
+    public function update(User $user, FeeInvoice $feeInvoice)
     {
-        //
+        if ($user->can('update fee invoice') && $feeInvoice->user->school_id == auth()->user()->school_id) {
+            return true;
+        }
     }
 
     /**

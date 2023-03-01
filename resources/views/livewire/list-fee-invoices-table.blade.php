@@ -22,12 +22,12 @@
                 ['name' => 'with', 'arguments' => ['user','user.studentRecord.myClass','user.studentRecord.section']]
         ], $queryAddon)"
             :columns="[
-                ['name' => 'User\'s Name', 'property' => 'name', 'relation' => 'user'],
+                ['property' => 'name',],
+                ['name' => 'Student\'s Name', 'property' => 'name', 'relation' => 'user'],
                 ['name' => 'Class', 'property' => 'name', 'relation' => 'user.studentRecord.myClass'],
                 ['name' => 'Section', 'property' => 'name', 'relation' => 'user.studentRecord.section'],
                 ['name' => 'paid'],
                 ['property'=>'balance'],
-                ['property' => 'issue_date'],
                 ['property' => 'due_date'],
                 ['name' => 'Actions', 'type' => 'dropdown' , 'links' => [
                     ['href' => 'fee-invoices.edit', 'text' => 'edit', 'icon' => 'fas fa-cog'],

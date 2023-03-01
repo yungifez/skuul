@@ -54,7 +54,31 @@ class FeeInvoiceService
 
     }
 
-    public function generateInvoiceNumber($schoolId = null)
+    /**
+     * Update a fee invoice
+     *
+     * @param FeeInvoice $feeInvoice
+     * @param  $records
+     * @return void
+     */
+    public function updateFeeInvoice(FeeInvoice $feeInvoice, $records)
+    {
+        $feeInvoice->update([
+            'issue_date' => $records['issue_date'],
+            'due_date'   => $records['due_date'],
+            'note'       => $records['note'] ?? null,
+        ]);
+
+        return $feeInvoice;
+    }
+
+    /**
+     * Generate a new fee invoice name
+     *
+     * @param int $schoolId
+     * @return void
+     */
+    public function generateInvoiceNumber(int $schoolId = null)
     {
         $schoolInitials = (School::find($schoolId) ?? auth()->user()->school)->initials;
         $schoolInitials != null && $schoolInitials .= '-';
@@ -71,6 +95,14 @@ class FeeInvoiceService
         return $invoiceNumber;
     }
 
+    /**
+     * Print Fee Invoice
+     *
+     * @param string $name
+     * @param string $view
+     * @param array $data
+     * @return void
+     */
     public function printFeeInvoice(string $name, string $view, array $data)
     {
         return PrintService::createPdfFromView($view, $data)->download($name.'.pdf');

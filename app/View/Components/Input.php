@@ -20,12 +20,14 @@ class Input extends Component
 
     public ?string $value;
 
+    public ?string $errorBag;
+
     /**
      * Create a new component instance.
      *
      * @return void
      */
-    public function __construct(string $id, string $name, $value = null, string $label = null, string $class = null, string $groupClass = null, string $labelClass = null)
+    public function __construct(string $id, string $name, $value = null, string $label = null, string $class = null, string $groupClass = null, string $labelClass = null, string $errorBag = 'default')
     {
         $this->id = $id;
         $this->name = $name;
@@ -34,6 +36,7 @@ class Input extends Component
         $this->groupClass = $groupClass;
         $this->labelClass = $labelClass;
         $this->value = $value;
+        $this->errorBag = $errorBag;
     }
 
     /**

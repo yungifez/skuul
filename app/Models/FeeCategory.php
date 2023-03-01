@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\InSchool;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FeeCategory extends Model
 {
+    use InSchool;
     use HasFactory;
     use SoftDeletes;
     protected $fillable = ['name', 'description', 'school_id'];
