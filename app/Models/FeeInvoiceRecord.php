@@ -28,7 +28,7 @@ class FeeInvoiceRecord extends Model
 
     public function scopeIsPaid(Builder $query)
     {
-        $query->whereRaw('(amount + fine) < ( paid + waiver) ');
+        $query->whereRaw('(amount + fine) <= ( paid + waiver) ');
     }
 
     /**
