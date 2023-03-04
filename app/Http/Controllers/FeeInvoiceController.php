@@ -89,4 +89,13 @@ class FeeInvoiceController extends Controller
     {
         //
     }
+
+    public function payView(FeeInvoice $feeInvoice) : View
+    {
+        $this->authorize('update', $feeInvoice);
+
+        return view('pages.fee.fee-invoice.pay', compact('feeInvoice'));
+    }
+
+    
 }

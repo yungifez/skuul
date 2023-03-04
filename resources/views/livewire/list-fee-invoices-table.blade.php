@@ -32,6 +32,7 @@
                 ['name' => 'Actions', 'type' => 'dropdown' , 'links' => [
                     ['href' => 'fee-invoices.edit', 'text' => 'edit', 'icon' => 'fas fa-cog'],
                     ['href' => 'fee-invoices.show', 'text' => 'view', 'icon' => 'fas fa-eye'],
+                    ['href' => 'fee-invoices.pay', 'text' => 'Add Payment   ', 'icon' => 'fas fa-money-check-alt'],
                 ]],
                 ['type' => 'delete', 'name' => 'Delete', 'action' => 'fee-invoices.destroy',]
             ]"

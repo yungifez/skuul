@@ -4,8 +4,8 @@ namespace App\Services\Fee;
 
 use App\Exceptions\InvalidValueException;
 use App\Models\Fee;
-use App\Models\FeeInvoice;
 use App\Models\FeeInvoiceRecord;
+use Brick\Money\Money;
 
 class FeeInvoiceRecordService
 {
@@ -61,5 +61,27 @@ class FeeInvoiceRecordService
     public function deleteFeeInvoiceRecord(FeeInvoiceRecord $feeInvoiceRecord)
     {
         $feeInvoiceRecord->delete();
+    }
+
+    /**
+     * Add a new paymeny
+     *
+     * @param FeeInvoiceRecord $feeInvoiceRecord
+     * @param array $records
+     * @return void
+     */
+    public function addPayment(FeeInvoiceRecord $feeInvoiceRecord, $records)
+    {
+        $pay = Money::of($records['pay'], config('app.currency'));
+
+        $paid = $feeInvoiceRecord->paid;
+
+        $newAmount = $paid->plus($pay);
+
+        $feeInvoiceRecord->update([
+            'paid' => $newAmount
+        ]);
+
+        return;
     }
 }

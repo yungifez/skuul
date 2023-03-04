@@ -26,7 +26,12 @@ class Datatable extends Component
 
     public $search = null;
 
-    public int $perPage = 10;
+    public $perPage = 10;
+
+    protected $rules = [
+        'perPage'  => 'nullable|integer',
+        'search'  => 'nullable|string'
+    ];
 
     /**
      * @param string|Builder $model Pass model or query builder
@@ -62,6 +67,7 @@ class Datatable extends Component
 
     public function BuildPagination()
     {
+        $this->validate();
         $model = app()->make($this->model);
         $this->verifyIsModel($model);
 
