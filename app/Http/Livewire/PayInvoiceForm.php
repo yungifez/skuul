@@ -12,6 +12,7 @@ class PayInvoiceForm extends Component
     {
         $this->feeInvoice->loadMissing('feeInvoiceRecords', 'feeInvoiceRecords.fee');
     }
+
     public function render()
     {
         return view('livewire.pay-invoice-form');

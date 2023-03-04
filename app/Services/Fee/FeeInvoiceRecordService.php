@@ -64,10 +64,11 @@ class FeeInvoiceRecordService
     }
 
     /**
-     * Add a new paymeny
+     * Add a new paymeny.
      *
      * @param FeeInvoiceRecord $feeInvoiceRecord
-     * @param array $records
+     * @param array            $records
+     *
      * @return void
      */
     public function addPayment(FeeInvoiceRecord $feeInvoiceRecord, $records)
@@ -79,9 +80,8 @@ class FeeInvoiceRecordService
         $newAmount = $paid->plus($pay);
 
         $feeInvoiceRecord->update([
-            'paid' => $newAmount
+            'paid' => $newAmount,
         ]);
 
-        return;
     }
 }
