@@ -30,7 +30,7 @@ class Datatable extends Component
 
     protected $rules = [
         'perPage'  => 'nullable|integer',
-        'search'  => 'nullable|string'
+        'search'   => 'nullable|string',
     ];
 
     /**

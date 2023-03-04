@@ -14,7 +14,7 @@ class PayFeeInvoiceRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'pay' => "required|integer:min:-10000000000000|max:10000000000000",
+            'pay' => 'required|integer:min:-10000000000000|max:10000000000000',
         ];
     }
 }
