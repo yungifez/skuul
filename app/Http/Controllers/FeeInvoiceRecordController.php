@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Response;
-use App\Models\FeeInvoiceRecord;
-use Illuminate\Http\RedirectResponse;
 use App\Http\Requests\PayFeeInvoiceRequest;
-use App\Services\Fee\FeeInvoiceRecordService;
 use App\Http\Requests\StoreFeeInvoiceRecordRequest;
 use App\Http\Requests\UpdateFeeInvoiceRecordRequest;
+use App\Models\FeeInvoiceRecord;
+use App\Services\Fee\FeeInvoiceRecordService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 
 class FeeInvoiceRecordController extends Controller
 {
@@ -74,14 +74,14 @@ class FeeInvoiceRecordController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(FeeInvoiceRecord $feeInvoiceRecord) :  RedirectResponse
+    public function destroy(FeeInvoiceRecord $feeInvoiceRecord): RedirectResponse
     {
         $this->feeInvoiceRecordService->deleteFeeInvoiceRecord($feeInvoiceRecord);
 
         return back()->with('success', 'Fee Removed From Fee Invoice Successfully');
     }
 
-    public function pay(FeeInvoiceRecord $feeInvoiceRecord, PayFeeInvoiceRequest $request) : RedirectResponse
+    public function pay(FeeInvoiceRecord $feeInvoiceRecord, PayFeeInvoiceRequest $request): RedirectResponse
     {
         $this->feeInvoiceRecordService->addPayment($feeInvoiceRecord, $request->validated());
 
