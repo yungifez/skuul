@@ -20,7 +20,7 @@ class FeeInvoiceRecordPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, FeeInvoiceRecord $feeInvoiceRecord) 
+    public function view(User $user, FeeInvoiceRecord $feeInvoiceRecord)
     {
         if ($user->can('read fee invoice') && $feeInvoiceRecord->feeInvoice->user->school_id == auth()->user()->school_id) {
             return true;
@@ -30,7 +30,7 @@ class FeeInvoiceRecordPolicy
     /**
      * Determine whether the user can create models.
      */
-    public function create(User $user) 
+    public function create(User $user)
     {
         if ($user->can('create fee invoice record')) {
             return true;
@@ -40,7 +40,7 @@ class FeeInvoiceRecordPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, FeeInvoiceRecord $feeInvoiceRecord) 
+    public function update(User $user, FeeInvoiceRecord $feeInvoiceRecord)
     {
         if ($user->can('update fee invoice record') && $feeInvoiceRecord->feeInvoice->user->school_id == auth()->user()->school_id) {
             return true;
