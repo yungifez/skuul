@@ -53,61 +53,38 @@
                         <p class="">Subject: {{$subjectSelected->name}}</p>
                     </div>
 
-                    <div class="overflow-x-scroll beautify-scrollbar">
-                        <table class="border w-full my-4 table-auto text-center" id="list-exam-records">
-                            <thead class="thead-dark">
-                                <th class="border whitespace-nowrap p-4">S/N</th>
-                                <th class="border whitespace-nowrap p-4">Name</th>
-                                <th class="border whitespace-nowrap p-4">Admission number:</th>
-                                {{--disolay all examslots as headers--}}
+                    @foreach ($students as $student)
+                        <div wire:key="{{Str::Random('10')}}">
+                            <div class=" relative bottom-20" id="student-{{$student->id}}"></div>
+                            <form action="{{route('exam-records.store')}}#student-{{$student->id}}" class="md:grid grid-rows-1 grid-flow-col-dense gap-4 overflow-scroll beautify-scrollbar border-b items-center my-5 p-3 " method="POST">
+                                <p class="md:w-40 font-bold">{{ $students->perPage() * ($students->currentPage() - 1) + $loop->iteration }}. {{$student->name}}</p>
                                 @foreach ($examSlots as $examSlot)
-                                    <th class="border whitespace-nowrap p-4">{{$examSlot->name}} ({{$examSlot->total_marks}})</th>
-                                @endforeach
-                                <th class="border"></th>
-                            </thead>
-                            <tbody>
-                                @foreach ($students->load('studentRecord') as $student)
-                                <tr id="student-{{$student->id}}">
-                                    <th class="border whitespace-nowrap p-4">{{ $students->perPage() * ($students->currentPage() - 1) + $loop->iteration }}</th>
-                                    <td class="border whitespace-nowrap p-4">{{$student->name}}</td>
-                                    <td class="border whitespace-nowrap p-4">{{$student->studentRecord->admission_number}}</td>
-                                    @foreach ($examSlots as $examSlot)
-                                        <td class="border whitespace-nowrap p-4">
-                                            @php 
-                                            $examRecord = $examRecords->where('user_id',$student->id)->where('subject_id', $subjectSelected->id)->where('exam_slot_id', $examSlot->id)->first()
-                                            @endphp
-                                           {{$examRecord ? $examRecord['student_marks'] : '0'}}
-                                        </td>
-                                    @endforeach
-                                    @can('update exam record', )
-                                        <td class="border whitespace-nowrap p-4">
-                                            <x-modal title="Exam Records For {{$student->name}}" background-colour="bg-blue-600" button-text="Manage Marks" size="lg" :wire:key="Str::Random(10)">
-                                                <form action="{{route('exam-records.store')}}#student-{{$student->id}}" method="POST" class="overflow-y-scroll beautify-scrollbar w-full p-4 text-left">
-                                                    @foreach ($examSlots as $examSlot)
-                                                        @php 
-                                                            $examRecord = $examRecords->where('user_id',$student->id)->where('subject_id', $subjectSelected->id)->where('exam_slot_id', $examSlot->id)->first();
-                                                            $studentMarks = $examRecord ? $examRecord['student_marks'] : '0';
-                                                        @endphp
-                
-                                                        <input type="hidden" name="exam_records[{{$loop->index}}][exam_slot_id]" value="{{$examSlot->id}}">
-                                                        <x-input id="student-{{$student->id}}" name="exam_records[{{$loop->index}}][student_marks]" label="{{$examSlot->name}} ({{$examSlot->total_marks}})" type="number" placeholder="Enter marks" value="{{$studentMarks}}" min="0" max="{{$examSlot->total_marks}}"/>
-                                                    @endforeach
-                                                    <input type="hidden" name="subject_id" value="{{$subjectSelected->id}}">
-                                                    <input type="hidden" name="user_id" value="{{$student->id}}">
-                                                    <input type="hidden" name="section_id" value="{{$sectionSelected->id}}">
-                                                    @csrf
-                                                        <x-button label="Submit" theme="primary" type="submit" class="w-full md:w-4/12"/>
-                                                </form>
-                                            </x-modal>
-                                        </td>
+                                    @php 
+                                        $examRecord = $examRecords->where('user_id',$student->id)->where('subject_id', $subjectSelected->id)->where('exam_slot_id', $examSlot->id)->first();
+                                        $studentMarks = $examRecord ? $examRecord['student_marks'] : '0';
+                                    @endphp
+                                    @can('update exam record')
+                                        
+                                        <input type="hidden" name="exam_records[{{$loop->index}}][exam_slot_id]" value="{{$examSlot->id}}">
+                                        <x-input id="student-{{$student->id}}" name="exam_records[{{$loop->index}}][student_marks]" label="{{$examSlot->name}} ({{$examSlot->total_marks}})" type="number" placeholder="Enter marks" value="{{$studentMarks}}" min="0" max="{{$examSlot->total_marks}}" class="min-w-[10rem]" label-class="whitespace-nowrap"/>
+                                    @else
+                                        <p>{{$studentMarks}}</p>
                                     @endcan
-                                </tr>
+
                                 @endforeach
-                            </tbody>
-                        </table>
-                        
-                    </div>
-                    {{$students->links()}}
+                                <input type="hidden" name="subject_id" value="{{$subjectSelected->id}}">
+                                <input type="hidden" name="user_id" value="{{$student->id}}">
+                                <input type="hidden" name="section_id" value="{{$sectionSelected->id}}">
+                                @csrf
+                                @can('update exam record')
+                                    
+                                    <x-button label="Submit" theme="primary" type="submit" class="w-full min-w-[12rem] place-self-end"/>
+                                @endcan
+                            </form>
+                        </div>
+                    @endforeach
+                  
+                {{$students->links('components.datatable-pagination-links-view')}}
                 </div>
             </div>
         @elseif ($error)
