@@ -399,6 +399,24 @@ class PermissionSeeder extends Seeder
             'name' => 'delete fee invoice',
         ]);
 
+        //fee invoice record
+
+        Permission::firstOrCreate([
+            'name' => 'create fee invoice record',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'read fee invoice record',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'update fee invoice record',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'delete fee invoice record',
+        ]);
+
         //header permissions (for controlling the menu headers)
         Permission::firstOrCreate([
             'name' => 'header-administrate',
@@ -451,6 +469,9 @@ class PermissionSeeder extends Seeder
         Permission::firstOrCreate([
             'name' => 'menu-account-application',
         ]);
+        Permission::firstOrCreate([
+            'name' => 'menu-fee',
+        ]);
         /**
          * assign permissions to roles.
          */
@@ -474,6 +495,7 @@ class PermissionSeeder extends Seeder
             'menu-notice',
             'menu-parent',
             'menu-account-application',
+            'menu-fee',
             'manage school settings',
             'create section',
             'read section',
@@ -560,6 +582,22 @@ class PermissionSeeder extends Seeder
             'read custom timetable item',
             'update custom timetable item',
             'delete custom timetable item',
+            'create fee',
+            'read fee',
+            'update fee',
+            'delete fee',
+            'create fee category',
+            'read fee category',
+            'update fee category',
+            'delete fee category',
+            'create fee invoice',
+            'read fee invoice',
+            'update fee invoice',
+            'delete fee invoice',
+            'create fee invoice record',
+            'read fee invoice record',
+            'update fee invoice record',
+            'delete fee invoice record',
         ]);
 
         //assign permissions to teacher

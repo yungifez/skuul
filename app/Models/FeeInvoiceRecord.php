@@ -40,4 +40,14 @@ class FeeInvoiceRecord extends Model
     {
         return $this->belongsTo(Fee::class);
     }
+    
+    /**
+     * Get the feeInvoice that owns the FeeInvoiceRecord
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function feeInvoice(): BelongsTo
+    {
+        return $this->belongsTo(FeeInvoice::class);
+    }
 }

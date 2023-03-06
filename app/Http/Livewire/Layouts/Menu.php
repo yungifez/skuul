@@ -274,7 +274,7 @@ class Menu extends Component
                 'type'    => 'menu-item',
                 'text'    => 'Fees',
                 'icon'    => 'fas fa-dollar',
-                'can'     => 'menu-semester',
+                'can'     => 'menu-fee',
                 'submenu' => [
                     [
                         'type'  => 'menu-item',

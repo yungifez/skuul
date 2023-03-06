@@ -17,6 +17,8 @@ class FeeInvoiceRecordController extends Controller
     public function __construct(FeeInvoiceRecordService $feeInvoiceRecordService)
     {
         $this->feeInvoiceRecordService = $feeInvoiceRecordService;
+
+        $this->authorizeResource(FeeInvoiceRecord::class, 'fee_invoice_record');
     }
 
     /**
@@ -83,6 +85,7 @@ class FeeInvoiceRecordController extends Controller
 
     public function pay(FeeInvoiceRecord $feeInvoiceRecord, PayFeeInvoiceRequest $request): RedirectResponse
     {
+        $this->authorize('update', [$feeInvoiceRecord]);
         $this->feeInvoiceRecordService->addPayment($feeInvoiceRecord, $request->validated());
 
         return back()->with('success', 'Payment added to Fee Successfully');
