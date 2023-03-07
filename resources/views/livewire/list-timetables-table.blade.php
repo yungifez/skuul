@@ -23,11 +23,11 @@
             :columns="[
                 ['property' => 'name'],
                 ['type' => 'dropdown', 'name' => 'actions','links' => [
-                    ['href' => 'timetables.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
-                    ['href' => 'timetables.edit', 'text' => 'Edit', 'icon' => 'fas fa-pen'],
-                    ['href' => 'timetables.manage', 'text' => 'Build', 'icon' => 'fas fa-hammer'],
+                    ['href' => 'timetables.show', 'text' => 'View', 'icon' => 'fas fa-eye',  'can' => 'read timetable'],
+                    ['href' => 'timetables.edit', 'text' => 'Edit', 'icon' => 'fas fa-pen',  'can' => 'edit timetable'],
+                    ['href' => 'timetables.manage', 'text' => 'Build', 'icon' => 'fas fa-hammer',  'can' => 'edit timetable'],
                 ]],
-                ['type' => 'delete', 'name' => 'Delete', 'action' => 'timetables.destroy']
+                ['type' => 'delete', 'name' => 'Delete', 'action' => 'timetables.destroy', 'can' => 'delete timetable']
             ]"
             />
         </div>

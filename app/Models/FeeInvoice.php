@@ -53,8 +53,8 @@ class FeeInvoice extends Model
 
     public function scopeisPaid(Builder $query): void
     {
-        $query->whereHas('FeeInvoiceRecords', function ($query) {
-            return $query->isPaid();
+        $query->whereDoesntHave('FeeInvoiceRecords', function ($query) {
+            return $query->isDue();
         });
     }
 

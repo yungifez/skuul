@@ -31,7 +31,7 @@
     }
 
     .card-title {
-        @apply md:text-lg
+        @apply md:text-lg capitalize
     }
 
 }

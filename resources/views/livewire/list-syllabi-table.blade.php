@@ -23,9 +23,9 @@
             :columns="[
                 ['property' => 'name'],
                 ['type' => 'dropdown', 'name' => 'actions','links' => [
-                    ['href' => 'syllabi.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
+                    ['href' => 'syllabi.show', 'text' => 'View', 'icon' => 'fas fa-eye', 'can' => 'read syllabus'],
                 ]],
-                ['type' => 'delete', 'name' => 'Delete', 'action' => 'syllabi.destroy',]
+                ['type' => 'delete', 'name' => 'Delete', 'action' => 'syllabi.destroy', 'can' => 'delete syllabus']
             ]"
             />
         </div>

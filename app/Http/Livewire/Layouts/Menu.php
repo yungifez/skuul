@@ -310,7 +310,7 @@ class Menu extends Component
                         'type'  => 'menu-item',
                         'text'  => 'Create Fee Invoice',
                         'route' => 'fee-invoices.create',
-                        'can'   => 'create fee invoices',
+                        'can'   => 'create fee invoice',
                     ],
                 ],
             ],
@@ -465,13 +465,13 @@ class Menu extends Component
             ],
             [
                 'type'    => 'menu-item',
-                'text'    => 'Grade systems',
+                'text'    => 'Grade Systems',
                 'icon'    => 'fa fa-graduation-cap',
                 'can'     => 'menu-grade-system',
                 'submenu' => [
                     [
                         'type'  => 'menu-item',
-                        'text'  => 'View Grades',
+                        'text'  => 'View Grading System',
                         'route' => 'grade-systems.index',
                         'can'   => 'read grade system',
                     ],

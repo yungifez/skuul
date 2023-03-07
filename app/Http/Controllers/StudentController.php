@@ -66,13 +66,17 @@ class StudentController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(User $student): View
+    public function show(User $student): View|Response
     {
         $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('view', [$student, 'student']);
-        $data['student'] = $student;
 
-        return view('pages.student.show', $data);
+        //restrict parents from seeing other students profiles
+        if (auth()->user()->hasRole('parent') && $student->parents()->where('parent_records.user_id', auth()->user()->id)->count() <= 0 ) {
+            abort(404);
+        }
+
+        return view('pages.student.show', compact('student'));
     }
 
     /**
@@ -83,6 +87,11 @@ class StudentController extends Controller
         $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('view', [$student, 'student']);
         $data['student'] = $student;
+
+        //restrict parents from seeing other students profiles
+        if (auth()->user()->hasRole('parent') && $student->parents()->where('parent_records.user_id', auth()->user()->id)->count() <= 0 ) {
+            abort(404);
+        }
 
         return $this->student->printProfile($data['student']->name, 'pages.student.print-student-profile', $data);
     }
