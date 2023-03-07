@@ -636,7 +636,7 @@ class PermissionSeeder extends Seeder
         $student->syncPermissions([
             'header-academics',
             'header-administrate',
-            'menu-fee', 
+            'menu-fee',
             'menu-syllabus',
             'menu-timetable',
             'menu-notice',
@@ -659,7 +659,7 @@ class PermissionSeeder extends Seeder
             'menu-timetable',
             'menu-notice',
             'menu-exam',
-            'menu-fee', 
+            'menu-fee',
             'menu-grade-system',
             'menu-student',
             'read student',
