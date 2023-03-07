@@ -39,4 +39,5 @@
 @can('read applicant')
     @livewire('list-account-applications-table')
 @endcan
+
 @endsection

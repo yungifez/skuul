@@ -119,7 +119,7 @@ class ResultChecker extends Component
 
     public function checkResult(AcademicYear $academicYear, $semester, User $student)
     {
-        $semester = Semester::find($semester)->first();
+        $semester = Semester::find($semester)?->first();
 
         // make sure user student isn't another role
         if (!$student->hasRole('student')) {
