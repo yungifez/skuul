@@ -22,7 +22,7 @@ class ListGradeSystemsTable extends Component
         // Get all class groups
         $this->classGroups = $myClassService->getAllClassGroups();
 
-        if (auth()->user()->hasRole('student') ) {
+        if (auth()->user()->hasRole('student')) {
             $this->classGroup = auth()->user()->studentRecord->myClass->ClassGroup->id;
         }
 

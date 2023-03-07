@@ -72,7 +72,7 @@ class StudentController extends Controller
         $this->authorize('view', [$student, 'student']);
 
         //restrict parents from seeing other students profiles
-        if (auth()->user()->hasRole('parent') && $student->parents()->where('parent_records.user_id', auth()->user()->id)->count() <= 0 ) {
+        if (auth()->user()->hasRole('parent') && $student->parents()->where('parent_records.user_id', auth()->user()->id)->count() <= 0) {
             abort(404);
         }
 
@@ -89,7 +89,7 @@ class StudentController extends Controller
         $data['student'] = $student;
 
         //restrict parents from seeing other students profiles
-        if (auth()->user()->hasRole('parent') && $student->parents()->where('parent_records.user_id', auth()->user()->id)->count() <= 0 ) {
+        if (auth()->user()->hasRole('parent') && $student->parents()->where('parent_records.user_id', auth()->user()->id)->count() <= 0) {
             abort(404);
         }
 
