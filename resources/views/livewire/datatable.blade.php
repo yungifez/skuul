@@ -81,7 +81,16 @@
                                                 </form>
                                                 @endif
                                             @else
-                                                {{ ($model?->{$column['property'] ?? $column['name']}) }}
+                                                @php
+                                                    $property = ($model?->{$column['property'] ?? $column['name']})
+                                                @endphp
+                                                @if ($property instanceof \Carbon\Carbon)
+                                                    {{$property->format('Y/m/d')}}
+                                                @elseif($property instanceof \Brick\Money\Money)
+                                                    {{$property->formatTo(app()->getLocale())}}
+                                                @else
+                                                    {{$property}}
+                                                @endif
                                             @endif
                                         </p>
                                     </td>

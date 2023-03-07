@@ -16,8 +16,8 @@ class FeeInvoice extends Model
     protected $fillable = ['name', 'note', 'issue_date', 'due_date', 'user_id'];
 
     protected $casts = [
-        'issue_date' => 'datetime',
-        'due_date'   => 'datetime',
+        'issue_date' => 'datetime:Y-m-d',
+        'due_date'   => 'datetime:Y-m-d',
         'amount'     => Money::class,
         'fine'       => Money::class,
         'paid'       => Money::class,
