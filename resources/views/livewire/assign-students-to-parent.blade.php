@@ -34,47 +34,43 @@
 
         <div class="my-3">
             <div class="table-responsive">
-                <style>
-                    #children-list tr td,  #children-list tr th {
-                        vertical-align: middle;
-                        text-align: center;
-                    }
-                </style>
-                <table id="children-list" style="width:100%" class="table table-bordered table-striped">
-                    <thead class="">
-                        <tr class="bg-gray-900 text-white">
-                            <th class="p-4 border">S/N</th>
-                            <th class="p-4 border">Name</th>
-                            <th class="p-4 border">Class</th>
-                            <th class="p-4 border">section</th>
-                            <th class="p-4 border">Email</th>
-                            <th class="p-4 border">
+                <div class="overflow-scroll beautify-scrollbar">
 
-                            </th>
-                        </tr>
-                    </thead>
-                    @foreach($children as $student)
-                        <tr>
-                            <td class="p-4 border">{{$loop->iteration}}</td>
-                            <td class="p-4 border">{{ $student->name}}</td>
-                            <td class="p-4 border">@isset ($student->studentRecord->myClass)
-                                {{$student->studentRecord->myClass->name}}
-                            @endisset</td>
-                            <td class="p-4 border">@isset($student->studentRecord->section)
-                                {{$student->studentRecord->section->name}}
-                            @endisset</td>
-                            <td class="p-4 border">{{ $student->email}}</td>
-                            <td class="p-4 border">
-                                <form action="{{route('parents.assign-student', $parent->id)}}" method="POST">
-                                    <input type="hidden" name="student_id" value="{{$student->id}}">
-                                    <input type="hidden" name="assign" value="0">
-                                    @csrf
-                                    <x-button label="Remove student" theme="primary" type="submit" class="col-md-12"/>
-                                </form>
-                            </td>
-                        </tr>
-                    @endforeach
-                </table>
+                    <table id="children-list" class="w-full">
+                        <thead class="">
+                            <tr class=" text-white">
+                                <th class="p-4 border">S/N</th>
+                                <th class="p-4 border">Name</th>
+                                <th class="p-4 border">Class</th>
+                                <th class="p-4 border">section</th>
+                                <th class="p-4 border">Email</th>
+                                <th class="p-4 border">
+                                </th>
+                            </tr>
+                        </thead>
+                        @foreach($children as $student)
+                            <tr>
+                                <td class="p-4 text-center border">{{$loop->iteration}}</td>
+                                <td class="p-4 text-center border">{{ $student->name}}</td>
+                                <td class="p-4 text-center border">@isset ($student->studentRecord->myClass)
+                                    {{$student->studentRecord->myClass->name}}
+                                @endisset</td>
+                                <td class="p-4 text-center border">@isset($student->studentRecord->section)
+                                    {{$student->studentRecord->section->name}}
+                                @endisset</td>
+                                <td class="p-4 text-center border">{{ $student->email}}</td>
+                                <td class="p-4 text-center border">
+                                    <form action="{{route('parents.assign-student', $parent->id)}}" method="POST">
+                                        <input type="hidden" name="student_id" value="{{$student->id}}">
+                                        <input type="hidden" name="assign" value="0">
+                                        @csrf
+                                        <x-button label="Remove student" theme="primary" type="submit" class="col-md-12"/>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </table>
+                </div>
             </div>
         </div>
     </div>
