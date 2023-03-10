@@ -188,7 +188,7 @@ class StudentTest extends TestCase
         $this->unauthorized_user()
             ->delete('dashboard/students/'.$student->user->id)
             ->assertForbidden();
-        
+
         $this->assertModelExists($student->user) && $this->assertNotSoftDeleted($student->user);
     }
 

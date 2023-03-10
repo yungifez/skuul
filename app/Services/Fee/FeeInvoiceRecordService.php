@@ -82,6 +82,5 @@ class FeeInvoiceRecordService
         $feeInvoiceRecord->update([
             'paid' => $newAmount,
         ]);
-
     }
 }
