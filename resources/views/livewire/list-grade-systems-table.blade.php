@@ -18,6 +18,7 @@
                 :filters="[
                 ['name' => 'where', 'arguments' => ['class_group_id' , $classGroup]],
                 ]"
+                uniqueId="list-grades-table"
                 :columns="[
                     ['property' => 'name'],
                     ['property' => 'remark'],

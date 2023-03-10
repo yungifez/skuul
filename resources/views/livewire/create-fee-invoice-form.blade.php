@@ -16,6 +16,10 @@
         </div>
         <div class="card-body">
             <div class="md:grid md:grid-cols-3 gap-4">
+                <x-loading-spinner wire:target="class"/>
+                <x-loading-spinner wire:target="section"/>
+                <x-loading-spinner wire:target="addStudent"/>
+
 
                 <x-select id="classes" name="" label="Class" wire:model="class">
                     @foreach ($classes as $item)
@@ -23,8 +27,8 @@
                     @endforeach
                 </x-select>
                 <x-select id="section" name="" label="Section" wire:model="section">
+                    <option value="">All Sections</option>
                     @isset($sections)
-                        <option value="">All Sections</option>
                         @foreach ($sections as $item)
                             <option value="{{$item->id}}">{{$item->name}}</option>
                         @endforeach
@@ -52,7 +56,7 @@
                         $addStudentArgument.=",null";
                     }
                 @endphp
-                <x-button type="button" label="Add Student" wire:click="addStudent({{$addStudentArgument}})" class="w-full"/>
+                <x-button type="button" label="Add Student" wire:click="addStudent({{$addStudentArgument}})" class="w-full" wire:loading.attr="disabled"/>
             </div>
             @if (!$addedStudents->isEmpty())
                 <div class="overflow-scroll beautify-scrollbar my-5">
@@ -71,7 +75,7 @@
                                     <td class="border p-4 text-center">{{$addedStudent['email']}}</td>
                                     <td class="border p-4 text-center whitespace-nowrap">
                                         <input type="hidden" name="users[]" value="{{$addedStudent['id']}}">
-                                        <x-button type="button" class="bg-red-600" label="Remove" wire:click="removeStudent({{$addedStudent['id']}})"/>
+                                        <x-button type="button" class="bg-red-600" label="Remove" wire:click="removeStudent({{$addedStudent['id']}})" wire:loading.disable/>
                                     </td>
                                 </tr>
                             @endforeach
@@ -86,6 +90,8 @@
             <h2 class="card-title">Fees To Include</h2>
         </div>
         <div class="card-body">
+            <x-loading-spinner wire:target="addFees"/>
+            <x-loading-spinner wire:target="feeCategory"/>
             <div class="md:grid grid-cols-2 items-end gap-4">
                 <x-select id="fee" name="" label="Fee Category" wire:model="feeCategory">
                     @foreach ($feeCategories as $item)
@@ -100,7 +106,7 @@
                         @endforeach
                     @endisset
                 </x-select>
-                <x-button type="button" label="Add Fee(s)" wire:click="addFee({{$feeCategory}}, {{$fee}})" class="w-full md:w-2/3"/>
+                <x-button type="button" label="Add Fee(s)" wire:click="addFee({{$feeCategory}}, {{$fee}})" class="w-full md:w-2/3" wire:loading.attr="disabled"/>
             </div>
             @if (!$addedFees->isEmpty())
                 <div class="overflow-scroll beautify-scrollbar my-5">
@@ -132,7 +138,7 @@
                                     </td>
                                     <td class="border p-4 text-center whitespace-nowrap">
                                         <input type="hidden" name="records[{{$addedFee['id']}}][fee_id]" value="{{$addedFee['id']}}">
-                                        <x-button class="bg-red-600" label="Remove" wire:click="removeFee({{$index}})" type="button"/>
+                                        <x-button class="bg-red-600" label="Remove" wire:click="removeFee({{$index}})" type="button" wire:loading.attr="disabled"/>
                                     </td>
                                 </tr>
                             @endforeach
@@ -143,5 +149,5 @@
         </div>
     </div>
     @csrf
-    <x-button label="Create Invoice" icon="fas fa-key" class="w-full md:w-3/12"/>
+    <x-button label="Create Invoice" icon="fas fa-key" class="w-full md:w-3/12" wire:loading.attr="disabled"/>
 </form>
