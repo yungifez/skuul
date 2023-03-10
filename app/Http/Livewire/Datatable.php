@@ -16,17 +16,7 @@ class Datatable extends Component
 
     protected $queryString = ['perPage', 'search'];
 
-    public $model;
-
-    public $filters;
-
-    public $columns;
-
-    public $uniqueId;
-
-    public $search = null;
-
-    public $perPage = 10;
+    public $model, $filters, $columns, $uniqueId, $search = null, $perPage = 10;
 
     protected $rules = [
         'perPage'  => 'nullable|integer',
