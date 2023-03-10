@@ -16,6 +16,7 @@ class ListFeeInvoicesTable extends Component
         $this->year = date('Y');
         $this->queryAddon = [];
         $this->updatedStatus();
+        $this->status = 'due';
     }
 
     public function updatedStatus()

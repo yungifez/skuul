@@ -2,10 +2,11 @@
 
 namespace App\Services\Fee;
 
-use App\Exceptions\InvalidValueException;
 use App\Models\Fee;
-use App\Models\FeeInvoiceRecord;
 use Brick\Money\Money;
+use App\Models\FeeInvoice;
+use App\Models\FeeInvoiceRecord;
+use App\Exceptions\InvalidValueException;
 
 class FeeInvoiceRecordService
 {
@@ -44,6 +45,15 @@ class FeeInvoiceRecordService
      */
     public function updateFeeInvoiceRecord(FeeInvoiceRecord $feeInvoiceRecord, $records)
     {
+
+        $amount = Money::ofMinor($records['amount'], config('app.currency'));
+        $waiver = Money::ofMinor($records['waiver'] ?? 0, config('app.currency'));
+        $fine =  Money::ofMinor($records['fine'] ?? 0, config('app.currency'));
+
+        if ($this->isPaymentHigherThanDue($amount,  $feeInvoiceRecord->paid, $waiver, $fine)) {
+            throw new InvalidValueException('Due Cannot be less than amount already paid');
+        }
+
         $feeInvoiceRecord->update([
             'amount' => $records['amount'],
             'waiver' => $records['waiver'] ?? 0,
@@ -74,13 +84,26 @@ class FeeInvoiceRecordService
     public function addPayment(FeeInvoiceRecord $feeInvoiceRecord, $records)
     {
         $pay = Money::of($records['pay'], config('app.currency'));
-
         $paid = $feeInvoiceRecord->paid;
-
         $newAmount = $paid->plus($pay);
 
+        if ($this->isPaymentHigherThanDue($feeInvoiceRecord->amount, $newAmount, $feeInvoiceRecord->waiver, $feeInvoiceRecord->fine)) {
+            throw new InvalidValueException('Payment cannot be higher than the total amount to pay');
+        }
+        
         $feeInvoiceRecord->update([
             'paid' => $newAmount,
         ]);
+    }
+
+    public function isPaymentHigherThanDue(Money $amount, Money $paid, Money $waiver, Money $fine)
+    {
+        $due = $amount->plus($fine)->minus($waiver);
+
+        if ($due->isLessThan($paid)) {
+            return true;
+        }
+
+        return false;
     }
 }
