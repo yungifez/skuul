@@ -185,7 +185,11 @@ class StudentTest extends TestCase
     public function test_unauthorised_users_cannot_delete_students()
     {
         $student = StudentRecord::factory()->create();
-        $this->unauthorized_user()->delete('dashboard/students/'.$student->user->id)->assertForbidden();
+        $this->unauthorized_user()
+            ->delete('dashboard/students/'.$student->user->id)
+            ->assertForbidden();
+        
+        $this->assertModelExists($student->user) && $this->assertNotSoftDeleted($student->user);
     }
 
     //test authorised users can delete students
@@ -195,7 +199,7 @@ class StudentTest extends TestCase
         $student = StudentRecord::factory()->create();
         $this->authorized_user(['delete student'])->delete('dashboard/students/'.$student->user->id);
 
-        $this->assertModelMissing($student);
+        $this->assertModelExists($student->user) && $this->assertSoftDeleted($student->user);
     }
 
     //test unauthorized user annot view all promotions

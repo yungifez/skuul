@@ -175,7 +175,7 @@ class AdminTest extends TestCase
             ->delete('dashboard/admins/'.$admin->id)
             ->assertForbidden();
 
-        $this->assertModelExists($admin);
+        $this->assertModelExists($admin) && $this->assertNotSoftDeleted($admin);
     }
 
     public function test_authorised_users_can_delete_admins()
@@ -186,6 +186,6 @@ class AdminTest extends TestCase
             ->delete('dashboard/admins/'.$admin->id)
             ->assertRedirect();
 
-        $this->assertModelMissing($admin);
+            $this->assertModelExists($admin) && $this->assertSoftDeleted($admin);
     }
 }

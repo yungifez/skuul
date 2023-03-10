@@ -175,7 +175,7 @@ class TeacherTest extends TestCase
             ->delete('dashboard/teachers/'.$teacher->id)
             ->assertForbidden();
 
-        $this->assertModelExists($teacher);
+        $this->assertModelExists($teacher) && $this->assertNotSoftDeleted($teacher);
     }
 
     public function test_authorised_users_can_delete_teachers()
@@ -186,6 +186,6 @@ class TeacherTest extends TestCase
             ->delete('dashboard/teachers/'.$teacher->id)
             ->assertRedirect();
 
-        $this->assertModelMissing($teacher);
+        $this->assertModelExists($teacher) && $this->assertSoftDeleted($teacher);
     }
 }

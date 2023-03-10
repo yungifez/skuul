@@ -176,7 +176,7 @@ class ParentTest extends TestCase
             ->delete('dashboard/parents/'.$parent->id)
             ->assertForbidden();
 
-        $this->assertModelExists($parent);
+        $this->assertModelExists($parent) && $this->assertNotSoftDeleted($parent);
     }
 
     public function test_authorised_users_can_delete_parents()
@@ -187,7 +187,7 @@ class ParentTest extends TestCase
             ->delete('dashboard/parents/'.$parent->id)
             ->assertRedirect();
 
-        $this->assertModelMissing($parent);
+        $this->assertModelExists($parent) &&  $this->assertSoftDeleted($parent);
     }
 
     public function test_unauthorised_users_cannot_assign_student_to_parent()
