@@ -3,7 +3,7 @@
         <div class="card-title">Fee Categories</div>
     </div>
     <div class="card-body">
-        <livewire:datatable :model="App\Models\FeeCategory::class"
+        <livewire:datatable unique_id="list-fee-categories-table" :model="App\Models\FeeCategory::class"
         :filters="[
             ['name' => 'where' , 'arguments' => ['school_id',auth()->user()->school_id]]
         ]"
