@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Route;
 | Here is where you can register web routes for your application. These
 | routes are loaded by the RouteServiceProvider within a group which
 | contains the "web" middleware group. Now create something great!
-| 
+|
 | Edit: haha we built something great
 | Should I add easter eggs?
 |
@@ -82,64 +82,64 @@ Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\EnsureDefault
             //semester routes
             Route::resource('semesters', SemesterController::class);
             Route::post('semesters/set', ['App\Http\Controllers\SemesterController', 'setSemester'])->name('semesters.set-semester');
-            
+
             Route::middleware(['App\Http\Middleware\EnsureSemesterIsSet'])->group(function () {
                 //fee categories routes
                 Route::resource('fees/fee-categories', FeeCategoryController::class);
-    
+
                 //fee invoice record routes
                 Route::post('fees/fee-invoices/fee-invoice-records/{fee_invoice_record}/pay', ['App\Http\Controllers\FeeInvoiceRecordController', 'pay'])->name('fee-invoices-records.pay');
                 Route::resource('fees/fee-invoices/fee-invoice-records', FeeInvoiceRecordController::class);
-    
+
                 //fee incvoice routes
                 Route::get('fees/fee-invoices/{fee_invoice}/pay', ['App\Http\Controllers\FeeInvoiceController', 'payView'])->name('fee-invoices.pay');
                 Route::get('fees/fee-invoices/{fee_invoice}/print', ['App\Http\Controllers\FeeInvoiceController', 'print'])->name('fee-invoices.print');
                 Route::resource('fees/fee-invoices', FeeInvoiceController::class);
-    
+
                 //fee routes
                 Route::resource('fees', FeeController::class);
-    
+
                 //syllabi route
                 Route::resource('syllabi', SyllabusController::class);
-    
+
                 //timetable route
                 Route::resource('timetables', TimetableController::class);
                 Route::resource('custom-timetable-items', CustomTimetableItemController::class);
-    
+
                 //manage timetable
                 Route::get('timetables/{timetable}/manage', ['App\Http\Controllers\TimetableController', 'manage'])->name('timetables.manage');
                 Route::get('timetables/{timetable}/print', ['App\Http\Controllers\TimetableController', 'print'])->name('timetables.print');
-    
+
                 //timetable-timeslot route
                 Route::resource('timetables/manage/time-slots', TimetableTimeSlotController::class);
                 Route::post('timetables/manage/time-slots/{time_slot}/record/create', ['App\Http\Controllers\TimetableTimeSlotController', 'addTimetableRecord'])->name('timetables.records.create')->scopeBindings();
-    
+
                 //set exam status
                 Route::post('exams/{exam}/set--active-status', ['App\Http\Controllers\ExamController', 'setExamActiveStatus'])->name('exams.set-active-status');
-    
+
                 // set publish result status
                 Route::post('exams/{exam}/set-publish-result-status', ['App\Http\Controllers\ExamController', 'setPublishResultStatus'])->name('exams.set-publish-result-status');
                 //manage exam record
                 Route::resource('exams/exam-records', ExamRecordController::class);
-    
+
                 //exam tabulation sheet
                 Route::get('exams/tabulation-sheet', ['App\Http\Controllers\ExamController', 'examTabulation'])->name('exams.tabulation');
-    
+
                 //result tabulation sheet
                 Route::get('exams/semester-result-tabulation', ['App\Http\Controllers\ExamController', 'semesterResultTabulation'])->name('exams.semester-result-tabulation');
                 Route::get('exams/academic-year-result-tabulation', ['App\Http\Controllers\ExamController', 'academicYearResultTabulation'])->name('exams.academic-year-result-tabulation');
-    
+
                 //result checker
                 Route::get('exams/result-checker', ['App\Http\Controllers\ExamController', 'resultChecker'])->name('exams.result-checker');
-    
+
                 //exam routes
                 Route::resource('exams', ExamController::class);
-    
+
                 //exam slot routes
                 Route::scopeBindings()->group(function () {
                     Route::resource('exams/{exam}/manage/exam-slots', ExamSlotController::class);
                 });
-    
+
                 //grade system routes
                 Route::resource('grade-systems', GradeSystemController::class);
             });
