@@ -186,6 +186,6 @@ class AdminTest extends TestCase
             ->delete('dashboard/admins/'.$admin->id)
             ->assertRedirect();
 
-            $this->assertModelExists($admin) && $this->assertSoftDeleted($admin);
+        $this->assertModelExists($admin) && $this->assertSoftDeleted($admin);
     }
 }
