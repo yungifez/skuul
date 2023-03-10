@@ -24,8 +24,8 @@
                 ['property' => 'name'],
                 ['type' => 'dropdown', 'name' => 'actions','links' => [
                     ['href' => 'timetables.show', 'text' => 'View', 'icon' => 'fas fa-eye',  'can' => 'read timetable'],
-                    ['href' => 'timetables.edit', 'text' => 'Edit', 'icon' => 'fas fa-pen',  'can' => 'edit timetable'],
-                    ['href' => 'timetables.manage', 'text' => 'Build', 'icon' => 'fas fa-hammer',  'can' => 'edit timetable'],
+                    ['href' => 'timetables.edit', 'text' => 'Edit', 'icon' => 'fas fa-pen',  'can' => 'update timetable'],
+                    ['href' => 'timetables.manage', 'text' => 'Build', 'icon' => 'fas fa-hammer',  'can' => 'update timetable'],
                 ]],
                 ['type' => 'delete', 'name' => 'Delete', 'action' => 'timetables.destroy', 'can' => 'delete timetable']
             ]"
