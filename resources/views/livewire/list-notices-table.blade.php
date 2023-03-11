@@ -13,7 +13,7 @@
                [ 'property' => 'title'],
                [ 'property' => 'start_date_for_humans', 'name' => 'Start Date', 'columnName' => 'start_date'],
                [ 'property' => 'stop_date_for_humans', 'name' => 'Stop Date',  'columnName' => 'stop_date'],
-               ['name' => '' , 'type' => 'dropdown' , 'links' => [
+               ['name' => 'actions' , 'type' => 'dropdown' , 'links' => [
                     ['href' => 'notices.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
                ]],
                ['type' => 'delete' , 'name' => 'delete', 'action' => 'notices.destroy']
@@ -29,7 +29,7 @@
             [ 'property' => 'title'],
             [ 'property' => 'start_date_for_humans', 'name' => 'Start Date', 'columnName' => 'start_date'],
             [ 'property' => 'stop_date_for_humans', 'name' => 'Stop Date', 'columnName' => 'stop_date'],
-            ['name' => '' , 'type' => 'dropdown' , 'links' => [
+            ['name' => 'action' , 'type' => 'dropdown' , 'links' => [
                 ['href' => 'notices.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
             ]],
             ]"

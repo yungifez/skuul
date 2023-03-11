@@ -11,6 +11,8 @@
             <x-input name="name" id="name" type="text" placeholder="Enter name of school" label="School Name *" />
             <x-textarea id="address" name="address" placeholder="Enter school branch address" label="School Address *" />
             <x-input name="initials" id="initials" type="text" placeholder="Enter school initials" label="School initials" />
+            <x-input name="phone" id="phone" type="text" placeholder="Enter school phone number" label="School Phone Number" type="tel" />
+            <x-input name="email" id="email" type="text" placeholder="Enter school Email" label="School Email address" type="email" />
             @csrf
             <div class="w-full flex ">
                 <x-button theme="primary" icon="fas fa-key" type="submit" class="w-full md:w-6/12">

@@ -18,7 +18,7 @@
             @csrf
             @method('PUT')
             <div class="w-full flex ">
-                <x-button theme="primary" icon="fas fa-paper-plane" type="submit" class="w-full md:w-3/12">
+                <x-button theme="primary" icon="fas fa-paper-plane" type="submit" class="w-full md:w-6/12">
                     Edit
                 </x-button>
             </div>
