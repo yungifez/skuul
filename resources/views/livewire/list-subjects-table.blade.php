@@ -25,7 +25,6 @@
                         ['name' => 'Number of teachers assigned', 'method' => 'count', 'relation' => 'teachers'],
                         ['type' => 'dropdown', 'name' => 'actions','links' => [
                             ['href' => 'subjects.edit', 'text' => 'Edit', 'icon' => 'fas fa-cog'],
-                            ['href' => 'subjects.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
                         ]],
                         ['type' => 'delete', 'name' => 'Delete', 'action' => 'subjects.destroy',]
                     ]"
