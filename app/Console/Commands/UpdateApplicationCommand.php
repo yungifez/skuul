@@ -51,7 +51,7 @@ class UpdateApplicationCommand extends Command
 
         if (!$this->confirm('Do you wish to continue?')) {
             $this->error('Operation cancelled, thank you for using Skuul');
-            exit();
+            exit;
         }
     }
 
@@ -74,7 +74,7 @@ class UpdateApplicationCommand extends Command
             shell_exec('git checkout $(git rev-list --tags --max-count=1 )');
             $this->error('Update to major version is not allowed');
 
-            exit();
+            exit;
         }
     }
 
