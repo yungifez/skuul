@@ -9,7 +9,7 @@
                     <option value="{{$item['id']}}">{{$item['name']}}</option>
                 @endforeach
             </x-select>
-            <x-select id="teacher_id" name="teacherId" label="Add teachers to class"  wire:model="teacher">
+            <x-select id="teacher_id" name="teacherId" label="Select Teacher"  wire:model="teacher">
                 @foreach ($teachers as $teacher)
                     <option value="{{$teacher->id}}">{{$teacher->name}}</option>
                 @endforeach

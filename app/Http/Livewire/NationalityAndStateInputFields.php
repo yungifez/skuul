@@ -25,7 +25,7 @@ class NationalityAndStateInputFields extends Component
         $this->nationalities = World::countries()->data->pluck('name');
 
         //set nationality to null if not found
-        if ($this->nationality != null && !in_array($this->nationality, $this->nationalities->toArray())) {
+        if ($this->nationality != null && !in_array($this->nationality, $this->nationalities->all())) {
             $this->nationality = null;
         }
     }
@@ -62,7 +62,7 @@ class NationalityAndStateInputFields extends Component
         if ($this->states->isEmpty()) {
             $this->states = collect([['name' => $this->nationality]]);
         }
-        if ($this->state == null || in_array($this->state, $this->states->toArray())) {
+        if ($this->state == null || in_array($this->state, $this->states->all())) {
             $this->state = $this->states[0]['name'];
         }
 

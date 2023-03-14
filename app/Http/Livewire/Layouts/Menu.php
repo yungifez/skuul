@@ -61,18 +61,6 @@ class Menu extends Component
                 'submenu' => [
                     [
                         'type'  => 'menu-item',
-                        'text'  => 'View Class Groups',
-                        'route' => 'class-groups.index',
-                        'can'   => 'read class group',
-                    ],
-                    [
-                        'type'  => 'menu-item',
-                        'text'  => 'Create Class Group',
-                        'route' => 'class-groups.create',
-                        'can'   => 'create class group',
-                    ],
-                    [
-                        'type'  => 'menu-item',
                         'text'  => 'View Classes',
                         'route' => 'classes.index',
                         'can'   => 'read class',
@@ -83,7 +71,18 @@ class Menu extends Component
                         'route' => 'classes.create',
                         'can'   => 'create class',
                     ],
-
+                    [
+                        'type'  => 'menu-item',
+                        'text'  => 'View Class Groups',
+                        'route' => 'class-groups.index',
+                        'can'   => 'read class group',
+                    ],
+                    [
+                        'type'  => 'menu-item',
+                        'text'  => 'Create Class Group',
+                        'route' => 'class-groups.create',
+                        'can'   => 'create class group',
+                    ],
                 ],
             ],
             [
@@ -272,6 +271,50 @@ class Menu extends Component
             ],
             [
                 'type'    => 'menu-item',
+                'text'    => 'Fees',
+                'icon'    => 'fas fa-dollar',
+                'can'     => 'menu-fee',
+                'submenu' => [
+                    [
+                        'type'  => 'menu-item',
+                        'text'  => 'View Fee Invoices',
+                        'route' => 'fee-invoices.index',
+                        'can'   => 'read fee invoice',
+                    ],
+                    [
+                        'type'  => 'menu-item',
+                        'text'  => 'Create Fee Invoice',
+                        'route' => 'fee-invoices.create',
+                        'can'   => 'create fee invoice',
+                    ],
+                    [
+                        'type'  => 'menu-item',
+                        'text'  => 'View Fees',
+                        'route' => 'fees.index',
+                        'can'   => 'read fee',
+                    ],
+                    [
+                        'type'  => 'menu-item',
+                        'text'  => 'Create Fee',
+                        'route' => 'fees.create',
+                        'can'   => 'create fee',
+                    ],
+                    [
+                        'type'  => 'menu-item',
+                        'text'  => 'View Fee Categories',
+                        'route' => 'fee-categories.index',
+                        'can'   => 'read fee category',
+                    ],
+                    [
+                        'type'  => 'menu-item',
+                        'text'  => 'Create Fee Category',
+                        'route' => 'fee-categories.create',
+                        'can'   => 'create fee category',
+                    ],
+                ],
+            ],
+            [
+                'type'    => 'menu-item',
                 'text'    => 'Subjects',
                 'icon'    => 'fas fa-lightbulb',
                 'can'     => 'menu-subject',
@@ -421,13 +464,13 @@ class Menu extends Component
             ],
             [
                 'type'    => 'menu-item',
-                'text'    => 'Grade systems',
+                'text'    => 'Grade Systems',
                 'icon'    => 'fa fa-graduation-cap',
                 'can'     => 'menu-grade-system',
                 'submenu' => [
                     [
                         'type'  => 'menu-item',
-                        'text'  => 'View Grades',
+                        'text'  => 'View Grading System',
                         'route' => 'grade-systems.index',
                         'can'   => 'read grade system',
                     ],
@@ -444,7 +487,7 @@ class Menu extends Component
                 'text'  => 'View Logs',
                 'route' => 'blv.index',
                 'icon'  => 'fa fa-sticky-note',
-                //it checks with roles for now so this is to prevent other users from viewing menu item
+                //this menu item checks with roles for now so this prevents other non super users from viewing menu item
                 'can' => 'view logs',
             ],
         ];

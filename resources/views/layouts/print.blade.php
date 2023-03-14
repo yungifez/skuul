@@ -13,12 +13,24 @@
         body{
             background-color: white;
         }
+        header{
+            display: table;
+            width: 100%;
+            margin-bottom:  1rem;
+        }
+        main{
+            width: 100%;
+        }
         .logo-wrapper{
-            margin-left: auto;
-            margin-right: auto;
-            margin-top: 10px;
-            margin-bottom: 10px;
-            max-width: fit-content;
+            display: table-cell;
+            vertical-align: middle;
+            width: 5%;
+        }
+        .site-identity{
+            display: table-cell;
+            width: 95%;
+        }
+        .site-identity *{
             text-align: center;
         }
         .logo{
@@ -36,7 +48,7 @@
             font-size: 2rem;
         }
         h2{
-            font-size: 1.5rem;
+            font-size: 1.2rem;
         }
         table,th,td {
             border: 1px solid rgba(46, 45, 45, 0.854);
@@ -57,16 +69,18 @@
     @yield('style')
 </head>
 <body>
-    
     <header>
         <div class="logo-wrapper">
             <img src="{{public_path().'/'.config('app.logo')}}" alt="" class="logo" >
         </div>
-        <div>
+        <div class="site-identity">
             <h1 class=" ">{{auth()->user()->school->name}}</h1>
             <h2 class="">{{auth()->user()->school->address}}</h2>
         </div>
     </header>
-    @yield('content')
+    
+    <main>
+        @yield('content')
+    </main>
 </body>
 </html>

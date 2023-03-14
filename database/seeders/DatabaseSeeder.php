@@ -32,6 +32,7 @@ class DatabaseSeeder extends Seeder
             ExamSlotSeeder::class,
             ExamRecordSeeder::class,
             NoticeSeeder::class,
+            FeeCategorySeeder::class,
         ]);
     }
 }

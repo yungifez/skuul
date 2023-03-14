@@ -81,7 +81,7 @@ trait MarkTabulationTrait
 
             //make sure total marks is not 0
             $totalMarks = $totalMarks ? $totalMarks : 1;
-            $tabulatedRecords[$student->id]['percent'] = ceil((($totalSubjectMarks / $totalMarks)) * 100);
+            $tabulatedRecords[$student->id]['percent'] = ceil(($totalSubjectMarks / $totalMarks) * 100);
             $percentage = $tabulatedRecords[$student->id]['percent'];
             $grade = $grades->where('grade_from', '<=', $percentage)->where('grade_till', '>=', $percentage)->first();
 

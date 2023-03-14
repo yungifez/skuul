@@ -4,7 +4,7 @@
     </div>
     <div class="card-body">
         @if (!auth()->user()->hasRole('student'))
-            <x-select id="my_class" label="Select a class to see timetable"  group-class="my-6" name="" wire:model="class">
+            <x-select id="my_class" label="Select a class to see timetable"  group-class="my-6 w-1/2" name="" wire:model="class">
                 @foreach ($classes as $item)
                     <option value="{{$item['id']}}">{{$item['name']}}</option>
                 @endforeach
@@ -23,11 +23,11 @@
             :columns="[
                 ['property' => 'name'],
                 ['type' => 'dropdown', 'name' => 'actions','links' => [
-                    ['href' => 'timetables.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
-                    ['href' => 'timetables.edit', 'text' => 'Edit', 'icon' => 'fas fa-pen'],
-                    ['href' => 'timetables.manage', 'text' => 'Build', 'icon' => 'fas fa-hammer'],
+                    ['href' => 'timetables.show', 'text' => 'View', 'icon' => 'fas fa-eye',  'can' => 'read timetable'],
+                    ['href' => 'timetables.edit', 'text' => 'Edit', 'icon' => 'fas fa-pen',  'can' => 'update timetable'],
+                    ['href' => 'timetables.manage', 'text' => 'Build', 'icon' => 'fas fa-hammer',  'can' => 'update timetable'],
                 ]],
-                ['type' => 'delete', 'name' => 'Delete', 'action' => 'timetables.destroy']
+                ['type' => 'delete', 'name' => 'Delete', 'action' => 'timetables.destroy', 'can' => 'delete timetable']
             ]"
             />
         </div>

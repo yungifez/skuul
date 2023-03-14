@@ -20,9 +20,11 @@ class SchoolUpdateRequest extends FormRequest
     public function rules()
     {
         return [
-            'name'    => 'required|max:255',
-            'address' => 'required|min:8|max:1000',
-            'phone'   => 'nullable|regex:/^([0-9\s\-\+\(\)]*)$/|min:5',
+            'name'     => 'required|max:255',
+            'address'  => 'required|min:8|max:1000',
+            'phone'    => 'nullable|max:255|min:5|regex:/^([0-9\s\-\+\(\)]*)$/',
+            'email'    => 'nullable|email|max:255',
+            'initials' => 'nullable|string|max:10',
         ];
     }
 }

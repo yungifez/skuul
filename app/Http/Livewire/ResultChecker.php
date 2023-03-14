@@ -62,7 +62,7 @@ class ResultChecker extends Component
             $this->class = $this->classes[0]->id;
             $this->updatedClass();
         } elseif (auth()->user()->hasRole('student')) {
-            $this->checkResult(auth()->user()->school->semester, auth()->user()->loadMissing('allStudentRecords'));
+            $this->checkResult(auth()->user()->school->academicYear, auth()->user()->school->semester, auth()->user()->loadMissing('allStudentRecords'));
         } elseif (auth()->user()->hasRole('parent')) {
             //get parent's children
             $this->students = auth()->user()->parentRecord->Students;
@@ -119,7 +119,7 @@ class ResultChecker extends Component
 
     public function checkResult(AcademicYear $academicYear, $semester, User $student)
     {
-        $semester = Semester::find($semester);
+        $semester = Semester::find($semester)?->first();
 
         // make sure user student isn't another role
         if (!$student->hasRole('student')) {

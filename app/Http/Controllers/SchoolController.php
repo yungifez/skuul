@@ -47,8 +47,7 @@ class SchoolController extends Controller
      */
     public function store(SchoolStoreRequest $request): RedirectResponse
     {
-        $data = $request->except('_token');
-        $this->schoolService->createSchool($data);
+        $this->schoolService->createSchool($request->validated());
 
         return back()->with('success', __('School created successfully'));
     }
@@ -58,9 +57,7 @@ class SchoolController extends Controller
      */
     public function show(School $school): View
     {
-        $data['school'] = $school;
-
-        return view('pages.school.show', $data);
+        return view('pages.school.show', compact('school'));
     }
 
     /**
@@ -68,9 +65,7 @@ class SchoolController extends Controller
      */
     public function edit(School $school): View
     {
-        $data['school'] = $school;
-
-        return view('pages.school.edit', $data);
+        return view('pages.school.edit', compact('school'));
     }
 
     /**
@@ -78,8 +73,7 @@ class SchoolController extends Controller
      */
     public function update(SchoolUpdateRequest $request, School $school): RedirectResponse
     {
-        $data = $request->except('_token', '_method');
-        $this->schoolService->updateSchool($school, $data);
+        $this->schoolService->updateSchool($school, $request->validated());
 
         return back()->with('success', __('School updated successfully'));
     }
@@ -103,7 +97,7 @@ class SchoolController extends Controller
     }
 
     /**
-     * Set the school.
+     * Set school.
      */
     public function setSchool(SchoolSetRequest $request): RedirectResponse
     {

@@ -22,6 +22,10 @@ class ListGradeSystemsTable extends Component
         // Get all class groups
         $this->classGroups = $myClassService->getAllClassGroups();
 
+        if (auth()->user()->hasRole('student')) {
+            $this->classGroup = auth()->user()->studentRecord->myClass->ClassGroup->id;
+        }
+
         // Get all grades for first class group if class groups is not empty
         if ($this->classGroups != null && $this->classGroups->count() > 0) {
             //class groups are present

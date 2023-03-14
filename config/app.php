@@ -24,6 +24,14 @@ return [
      * Application logo.
      */
     'favicon' => env('FAVICON_PATH', 'favicon/favicon.ico'),
+
+    /**
+     * -----------------------------------------------------------------------
+     * Currency Used by application
+     * -----------------------------------------------------------------------
+     * Return a short code eg GBP, USD or NGN.
+     */
+    'currency' => env('APP_CURRENCY', 'NGN'),
     /*
     |--------------------------------------------------------------------------
     | Application Environment

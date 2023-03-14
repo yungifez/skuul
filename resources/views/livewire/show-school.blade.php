@@ -11,6 +11,12 @@
                 'Initials', $school->initials
             ],
             [
+                'Email', $school->email
+            ],
+            [
+                'Phone', $school->phone
+            ],
+            [
                 'Current Academic Year', $school?->academicYear?->name()
             ],
             [

@@ -5,9 +5,9 @@
     ['href'=> route('exam-slots.create',$exam->id), 'text'=> 'Create', 'active'],
 ]])
 
-@section('title', __("Create Exam slots in {{$exam->name}}"))
+@section('title', __("Create Exam slots in $exam->name"))
 
-@section('page_heading',  __("Create Exam slots in {{$exam->name}}"))
+@section('page_heading',  __("Create Exam slots in $exam->name"))
 
 @section('content' )
     @livewire('create-exam-slot-form', ['exam' => $exam])

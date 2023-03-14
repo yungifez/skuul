@@ -14,17 +14,19 @@ class Datatable extends Component
 
     protected $listners = ['refresh' => '$refresh'];
 
+    protected $queryString = ['perPage', 'search'];
+
     public $model;
-
     public $filters;
-
     public $columns;
-
     public $uniqueId;
-
     public $search = null;
+    public $perPage = 10;
 
-    public int $perPage = 10;
+    protected $rules = [
+        'perPage'  => 'nullable|integer',
+        'search'   => 'nullable|string',
+    ];
 
     /**
      * @param string|Builder $model Pass model or query builder
@@ -60,6 +62,7 @@ class Datatable extends Component
 
     public function BuildPagination()
     {
+        $this->validate();
         $model = app()->make($this->model);
         $this->verifyIsModel($model);
 

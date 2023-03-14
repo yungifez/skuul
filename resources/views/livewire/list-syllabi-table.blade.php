@@ -4,7 +4,7 @@
     </div>
     <div class="card-body">
         @if (!auth()->user()->hasRole('student'))
-            <x-select id="my_class" label="Select a class to see syllabus"  group-class="my-6" name="" wire:model="class">
+            <x-select id="my_class" label="Select a class to see syllabus"  group-class="my-6 w-1/2" name="" wire:model="class">
                 @foreach ($classes as $item)
                     <option value="{{$item['id']}}">{{$item['name']}}</option>
                 @endforeach
@@ -23,9 +23,9 @@
             :columns="[
                 ['property' => 'name'],
                 ['type' => 'dropdown', 'name' => 'actions','links' => [
-                    ['href' => 'syllabi.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
+                    ['href' => 'syllabi.show', 'text' => 'View', 'icon' => 'fas fa-eye', 'can' => 'read syllabus'],
                 ]],
-                ['type' => 'delete', 'name' => 'Delete', 'action' => 'syllabi.destroy',]
+                ['type' => 'delete', 'name' => 'Delete', 'action' => 'syllabi.destroy', 'can' => 'delete syllabus']
             ]"
             />
         </div>

@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Database\Query\Builder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -23,7 +24,12 @@ class MyClassStoreRequest extends FormRequest
                 //checks if there is a class with a name in class group
                 Rule::unique('my_classes', 'name')->where(fn ($query) => $query->where('class_group_id', $classGroupId)),
             ],
-            'class_group_id' => 'required|exists:class_groups,id',
+            'class_group_id' => [
+                'required',
+                Rule::exists('class_groups', 'id')->where(function (Builder $query) {
+                    return $query->where('school_id', auth()->user()->school->id);
+                }),
+            ],
         ];
     }
 

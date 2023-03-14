@@ -345,6 +345,78 @@ class PermissionSeeder extends Seeder
             'name' => 'change account application status',
         ]);
 
+        //permissions for fee categories
+
+        Permission::firstOrCreate([
+            'name' => 'create fee category',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'read fee category',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'update fee category',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'delete fee category',
+        ]);
+
+        //permissions for fees
+
+        Permission::firstOrCreate([
+            'name' => 'create fee',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'read fee',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'update fee',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'delete fee',
+        ]);
+
+        //permissions for fee invoices
+
+        Permission::firstOrCreate([
+            'name' => 'create fee invoice',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'read fee invoice',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'update fee invoice',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'delete fee invoice',
+        ]);
+
+        //fee invoice record
+
+        Permission::firstOrCreate([
+            'name' => 'create fee invoice record',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'read fee invoice record',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'update fee invoice record',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'delete fee invoice record',
+        ]);
+
         //header permissions (for controlling the menu headers)
         Permission::firstOrCreate([
             'name' => 'header-administrate',
@@ -397,13 +469,16 @@ class PermissionSeeder extends Seeder
         Permission::firstOrCreate([
             'name' => 'menu-account-application',
         ]);
+        Permission::firstOrCreate([
+            'name' => 'menu-fee',
+        ]);
         /**
          * assign permissions to roles.
          */
 
         //assign permissions to admin
         $admin = Role::where('name', 'admin')->first();
-        $admin->givePermissionTo([
+        $admin->syncPermissions([
             'header-administrate',
             'header-academics',
             'menu-section',
@@ -420,6 +495,7 @@ class PermissionSeeder extends Seeder
             'menu-notice',
             'menu-parent',
             'menu-account-application',
+            'menu-fee',
             'manage school settings',
             'create section',
             'read section',
@@ -506,16 +582,39 @@ class PermissionSeeder extends Seeder
             'read custom timetable item',
             'update custom timetable item',
             'delete custom timetable item',
+            'create fee',
+            'read fee',
+            'update fee',
+            'delete fee',
+            'create fee category',
+            'read fee category',
+            'update fee category',
+            'delete fee category',
+            'create fee invoice',
+            'read fee invoice',
+            'update fee invoice',
+            'delete fee invoice',
+            'create fee invoice record',
+            'read fee invoice record',
+            'update fee invoice record',
+            'delete fee invoice record',
         ]);
 
         //assign permissions to teacher
         $teacher = Role::where('name', 'teacher')->first();
-        $teacher->givePermissionTo([
+        $teacher->syncPermissions([
             'header-academics',
+            'header-administrate',
             'menu-syllabus',
             'menu-timetable',
             'menu-exam',
             'menu-notice',
+            'menu-student',
+            'menu-grade-system',
+            'read student',
+            'read exam',
+            'read exam slot',
+            'read grade system',
             'create syllabus',
             'read syllabus',
             'update syllabus',
@@ -534,28 +633,41 @@ class PermissionSeeder extends Seeder
 
         //assign permissions to student
         $student = Role::where('name', 'student')->first();
-        $student->givePermissionTo([
+        $student->syncPermissions([
             'header-academics',
+            'header-administrate',
+            'menu-fee',
             'menu-syllabus',
             'menu-timetable',
             'menu-notice',
             'menu-exam',
+            'menu-grade-system',
             'read syllabus',
             'read timetable',
+            'read grade system',
             'read notice',
+            'read fee invoice',
             'check result',
         ]);
+
         //assign permissions to parent
         $parent = Role::where('name', 'parent')->first();
-        $parent->givePermissionTo([
+        $parent->syncPermissions([
             'header-academics',
+            'header-administrate',
             'menu-syllabus',
             'menu-timetable',
             'menu-notice',
             'menu-exam',
+            'menu-fee',
+            'menu-grade-system',
+            'menu-student',
+            'read student',
             'read syllabus',
             'read timetable',
+            'read grade system',
             'read notice',
+            'read fee invoice',
             'check result',
         ]);
 

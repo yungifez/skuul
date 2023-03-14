@@ -9,7 +9,7 @@ services:
     # ensure the UID and GID of the container user you create matches your local user. 
     # See https://aka.ms/vscode-remote/containers/non-root for details.
     #
-    # user: vscode
+    user: sail
 
     # Uncomment if you want to override the service's Dockerfile to one in the .devcontainer 
     # folder. Note that the path of the Dockerfile and context is relative to the *primary* 

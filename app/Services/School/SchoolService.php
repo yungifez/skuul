@@ -73,6 +73,8 @@ class SchoolService
         $school->phone = $records['phone'];
         $school->email = $records['email'];
         $school->save();
+
+        return $school;
     }
 
     /**

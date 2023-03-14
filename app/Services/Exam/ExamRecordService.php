@@ -78,7 +78,7 @@ class ExamRecordService
         $examSlots = [];
         //get all exam slots in exams
         foreach ($exams as $exam) {
-            $i = $exam->examSlots->pluck('id')->toArray();
+            $i = $exam->examSlots->pluck('id')->all();
             foreach ($i as $j) {
                 $examSlots[] = $j;
             }
@@ -133,7 +133,7 @@ class ExamRecordService
         $examSlots = [];
         //get all exam slots in exams
         foreach ($exams as $exam) {
-            $i = $exam->examSlots->pluck('id')->toArray();
+            $i = $exam->examSlots->pluck('id')->all();
             foreach ($i as $j) {
                 $examSlots[] = $j;
             }

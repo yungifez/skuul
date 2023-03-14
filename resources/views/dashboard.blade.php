@@ -32,11 +32,11 @@
 @endcan
 
 @if (auth()->user()->hasRole('applicant'))
-    {{--Contains status history--}}
-    @livewire('change-account-application-status', ['applicant' => auth()->user()])
+    @livewire('application-history', ['applicant' => auth()->user()])
 @endif
 
 @can('read applicant')
     @livewire('list-account-applications-table')
 @endcan
+
 @endsection

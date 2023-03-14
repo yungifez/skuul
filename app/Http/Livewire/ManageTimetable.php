@@ -41,7 +41,7 @@ class ManageTimetable extends Component
         $this->subjects = $this->timetable->MyClass->subjects;
         $this->customItems = $timetableService->getAllCustomTimetableItem();
         $this->types = ['subject', 'customTimetableItem'];
-        $this->type ?? $this->types[0];
+        $this->type = $this->type ?? $this->types[0];
     }
 
     public function setSelectFields($records)
