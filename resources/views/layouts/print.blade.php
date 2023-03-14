@@ -35,7 +35,7 @@
         }
         .logo{
             width: 100px;
-            height: 80px;
+            height: 100px;
             border-radius: 50px;
         }
         p{
