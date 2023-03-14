@@ -50,7 +50,7 @@ class SchoolTest extends TestCase
         $this->assertDatabaseHas('schools', [
             'name'     => 'Test school',
             'address'  => 'Test address',
-            'phone'    => '+12 345678',
+            'phone'    => '09011111111',
             'email'    => 'test@email.com',
             'initials' => 'TS',
         ]);
