@@ -45,12 +45,12 @@ class SchoolTest extends TestCase
     public function test_user_can_create_school()
     {
         $this->authorized_user(['create school'])
-            ->post('/dashboard/schools', ['name' => 'Test school', 'address' => 'Test address', 'phone' => 'Test phone', 'email' => 'test@email.com', 'initials' => 'TS']);
+            ->post('/dashboard/schools', ['name' => 'Test school', 'address' => 'Test address', 'phone' => '+123 456789', 'email' => 'test@email.com', 'initials' => 'TS']);
 
         $this->assertDatabaseHas('schools', [
             'name'     => 'Test school',
             'address'  => 'Test address',
-            'phone'    => '09011111111',
+            'phone'    => '+123 456789',
             'email'    => 'test@email.com',
             'initials' => 'TS',
         ]);
