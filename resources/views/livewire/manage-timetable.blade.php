@@ -6,7 +6,9 @@
         {{--form for creating timeSlots--}}
         <x-display-validation-errors/>
         <x-loading-spinner/>
-        <div class="md:grid grid-cols-4 gap-2" id="create-timetable-record">
+        <!--Adds scrolling offset-->
+        <div class=" relative bottom-24"id="create-timetable-record" ></div>
+        <div class="md:grid grid-cols-4 gap-2" >
             <x-select id="timeslot" name="timeSlot" label="Time Slot" wire:model="timeSlot">
                 @isset($timeSlots)
                     @foreach ($timeSlots as $item)

@@ -4,7 +4,7 @@
     </div>
     <div class="card-body">
         @if (!auth()->user()->hasRole('student'))
-            <x-select id="my_class" label="Select a class to see timetable"  group-class="my-6 w-1/2" name="" wire:model="class">
+            <x-select id="my_class" label="Select a class to see timetable"  group-class="my-6 md:w-1/2" name="" wire:model="class">
                 @foreach ($classes as $item)
                     <option value="{{$item['id']}}">{{$item['name']}}</option>
                 @endforeach
