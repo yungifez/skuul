@@ -43,9 +43,9 @@ class ExamController extends Controller
     public function store(StoreExamRequest $request): RedirectResponse
     {
         $data = $request->except('_token');
-        $this->examService->createExam($data);
+        $exam = $this->examService->createExam($data);
 
-        return back()->with('success', 'Exam created successfully');
+        return redirect()->route("exam-slots.create", $exam)->with('success', 'Exam created successfully, Now, create exam slots for the exam');
     }
 
     /**

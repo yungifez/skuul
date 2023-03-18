@@ -2,158 +2,157 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use App\Models\User;
+use App\Models\Subject;
+use App\Traits\FeatureTestTrait;
+use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class SubjectTest extends TestCase
 {
-    use RefreshDatabase;
+    use RefreshDatabase, FeatureTestTrait, WithFaker;
 
     public function test_unauthorized_user_cannot_see_all_subjects()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-        $response = $this->get('/dashboard/subjects');
-
-        $response->assertForbidden();
+        $this->unauthorized_user()
+            ->get('/dashboard/subjects')
+            ->assertForbidden();
     }
 
     public function test_authorized_user_can_see_all_subjects()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo('read subject');
-        $this->actingAs($user);
-        $response = $this->get('/dashboard/subjects');
-
-        $response->assertOk();
+        $this->authorized_user(['read subject'])
+            ->get('/dashboard/subjects')
+            ->assertOk();
     }
 
     public function test_unauthorized_user_cannot_view_create_subject()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-        $response = $this->get('/dashboard/subjects/create');
-
-        $response->assertForbidden();
+        $this->unauthorized_user()
+            ->get('/dashboard/subjects/create')
+            ->assertForbidden();
     }
 
     public function test_authorized_user_can_view_create_subject()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(['create subject']);
-        $this->actingAs($user);
-        $response = $this->get('/dashboard/subjects/create');
-
-        $response->assertOk();
+        $this->authorized_user(['create subject'])
+            ->get('/dashboard/subjects/create')
+            ->assertOk();
     }
 
     public function test_unauthorized_user_cannot_create_subject()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-        $response = $this->post('/dashboard/subjects', [
-            'name'        => 'Test Subject',
-            'short_name'  => 'TS',
-            'my_class_id' => 1,
-            'school_id'   => 1,
-        ]);
+        $name = $this->faker()->name;
+        $this->unauthorized_user()
+            ->post('/dashboard/subjects', [
+                'name'        => $name,
+                'short_name'  => 'TS',
+                'my_class_id' => 1,
+                'school_id'   => 1,
+            ])
+            ->assertForbidden();
 
-        $response->assertForbidden();
+        $this->assertDatabaseMissing('subjects',[
+            'name'  => $name
+        ]);
     }
 
     public function test_authorized_user_can_create_subject()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(['create subject']);
-        $this->actingAs($user);
-        $response = $this->post('/dashboard/subjects', [
-            'name'        => 'Test Subject',
-            'short_name'  => 'TS',
-            'my_class_id' => 1,
-            'school_id'   => 1,
-        ]);
-        $subject = \App\Models\Subject::where('name', 'Test Subject')->first();
+        $name = $this->faker()->name;
 
-        $this->assertModelExists($subject);
+       $this->authorized_user(['create subject']) 
+            ->post('/dashboard/subjects', [
+                'name'        => $name,
+                'short_name'  => 'TS',
+                'my_class_id' => 1,
+                'school_id'   => 1,
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('subjects',[
+            'name' => $name
+        ]);
     }
 
     public function test_unauthorized_user_cannot_view_edit_subject()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-        $response = $this->get('/dashboard/subjects/1/edit');
-
-        $response->assertForbidden();
+        $this->unauthorized_user()
+            ->get('/dashboard/subjects/1/edit')
+            ->assertForbidden();
     }
 
     public function test_authorized_user_can_view_edit_subject()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(['update subject']);
-        $this->actingAs($user);
-        $response = $this->get('/dashboard/subjects/1/edit');
-
-        $response->assertOk();
+        $this->authorized_user(['update subject'])
+            ->get('/dashboard/subjects/1/edit')
+            ->assertOk();
     }
 
     public function test_unauthorized_user_cannot_update_subject()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-        $response = $this->patch('/dashboard/subjects/1', [
-            'name'        => 'Test Subject 2',
-            'short_name'  => 'TS2',
-            'my_class_id' => 1,
-            'school_id'   => 1,
-        ]);
+        $subject = Subject::factory()->create();
+        $name = $this->faker->name;
+        $this->unauthorized_user()
+            ->patch("/dashboard/subjects/$subject->id", [
+                'name'        => $name,
+                'short_name'  => 'TS2',
+                'my_class_id' => 1,
+                'school_id'   => 1,
+            ])
+            ->assertForbidden();
 
-        $response->assertForbidden();
+        $this->assertDatabaseMissing('subjects', [
+            'id' => $subject->id,
+            'name'  => $name
+        ]);
     }
 
     public function test_authorized_user_can_update_subject()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(['update subject']);
-        $this->actingAs($user);
-        $subject = \App\Models\Subject::factory()->create();
-        $response = $this->patch("/dashboard/subjects/$subject->id", [
-            'name'        => 'Test Subject 2',
-            'short_name'  => 'TS2',
-            'my_class_id' => 1,
-            'school_id'   => 1,
-        ]);
+        $subject = Subject::factory()->create();
+        $name = $this->faker()->name;
+        $this->authorized_user(['update subject'])
+            ->patch("/dashboard/subjects/$subject->id", [
+                'name'        => $name,
+                'short_name'  => 'TS2',
+                'my_class_id' => 1,
+                'school_id'   => 1,
+            ])->assertRedirect();
 
-        $this->assertEquals('Test Subject 2', $subject->fresh()->name);
+        $this->assertEquals($name, $subject->fresh()->name);
     }
 
     public function test_unauthorized_user_cannot_delete_subject()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-        $response = $this->delete('/dashboard/subjects/1');
+        $subject = Subject::factory()->create();
+        $this->unauthorized_user()
+            ->delete("/dashboard/subjects/$subject->id")
+            ->assertForbidden();
 
-        $response->assertForbidden();
+        $this->assertModelExists($subject);
+
+        $this->assertNotSoftDeleted($subject);
     }
 
     public function test_authorized_user_can_delete_subject()
     {
-        $user = User::factory()->create();
-        $user->givePermissionTo(['delete subject']);
-        $this->actingAs($user);
-        $subject = \App\Models\Subject::factory()->create();
-        $response = $this->delete("/dashboard/subjects/{$subject->id}");
+        $subject = Subject::factory()->create();
+        $this->authorized_user(['delete subject'])
+            ->delete("/dashboard/subjects/$subject->id")
+            ->assertRedirect();
 
-        $this->assertModelMissing($subject);
+        $this->assertModelExists($subject);
+
+        $this->assertSoftDeleted($subject);
     }
 
     public function test_unathorized_user_cannot_view_subject()
     {
-        $user = User::factory()->create();
-        $this->actingAs($user);
-        $response = $this->get('/dashboard/subjects/1');
-
-        $response->assertForbidden();
+        $this->unauthorized_user()
+            ->get('/dashboard/subjects/1')
+            ->assertForbidden();
     }
 
     // public function test_authorized_user_can_view_subject()

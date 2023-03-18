@@ -63,7 +63,7 @@ class ExamService
      *
      * @param array|object $records
      *
-     * @return void
+     * @return Exam
      */
     public function createExam($records)
     {
@@ -74,6 +74,8 @@ class ExamService
             'start_date'  => $records['start_date'],
             'stop_date'   => $records['stop_date'],
         ]);
+
+        return $exam;
     }
 
     /**

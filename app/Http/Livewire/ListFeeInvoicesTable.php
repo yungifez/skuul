@@ -6,6 +6,7 @@ use Livewire\Component;
 
 class ListFeeInvoicesTable extends Component
 {
+    protected $queryString = ['status'];
     public $statuses = ['all', 'due', 'paid'];
     public $status;
     public $queryAddon;
@@ -15,8 +16,8 @@ class ListFeeInvoicesTable extends Component
     {
         $this->year = date('Y');
         $this->queryAddon = [];
+        $this->status = $this->status ?? 'due';
         $this->updatedStatus();
-        $this->status = 'due';
     }
 
     public function updatedStatus()
@@ -33,6 +34,7 @@ class ListFeeInvoicesTable extends Component
                 break;
 
             default:
+                $this->status = "all";
                 $this->queryAddon = [];
                 break;
         }
