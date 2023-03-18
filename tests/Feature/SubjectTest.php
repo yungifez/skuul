@@ -2,16 +2,18 @@
 
 namespace Tests\Feature;
 
-use Tests\TestCase;
-use App\Models\User;
 use App\Models\Subject;
+use App\Models\User;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\WithFaker;
+use Tests\TestCase;
 
 class SubjectTest extends TestCase
 {
-    use RefreshDatabase, FeatureTestTrait, WithFaker;
+    use RefreshDatabase;
+    use FeatureTestTrait;
+    use WithFaker;
 
     public function test_unauthorized_user_cannot_see_all_subjects()
     {
@@ -53,8 +55,8 @@ class SubjectTest extends TestCase
             ])
             ->assertForbidden();
 
-        $this->assertDatabaseMissing('subjects',[
-            'name'  => $name
+        $this->assertDatabaseMissing('subjects', [
+            'name'  => $name,
         ]);
     }
 
@@ -62,17 +64,17 @@ class SubjectTest extends TestCase
     {
         $name = $this->faker()->name;
 
-       $this->authorized_user(['create subject']) 
-            ->post('/dashboard/subjects', [
-                'name'        => $name,
-                'short_name'  => 'TS',
-                'my_class_id' => 1,
-                'school_id'   => 1,
-            ])
-            ->assertRedirect();
+        $this->authorized_user(['create subject'])
+             ->post('/dashboard/subjects', [
+                 'name'        => $name,
+                 'short_name'  => 'TS',
+                 'my_class_id' => 1,
+                 'school_id'   => 1,
+             ])
+             ->assertRedirect();
 
-        $this->assertDatabaseHas('subjects',[
-            'name' => $name
+        $this->assertDatabaseHas('subjects', [
+            'name' => $name,
         ]);
     }
 
@@ -104,8 +106,8 @@ class SubjectTest extends TestCase
             ->assertForbidden();
 
         $this->assertDatabaseMissing('subjects', [
-            'id' => $subject->id,
-            'name'  => $name
+            'id'    => $subject->id,
+            'name'  => $name,
         ]);
     }
 

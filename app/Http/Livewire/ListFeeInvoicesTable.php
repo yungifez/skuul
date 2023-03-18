@@ -34,7 +34,7 @@ class ListFeeInvoicesTable extends Component
                 break;
 
             default:
-                $this->status = "all";
+                $this->status = 'all';
                 $this->queryAddon = [];
                 break;
         }
