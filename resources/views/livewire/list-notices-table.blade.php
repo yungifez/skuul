@@ -27,8 +27,6 @@
             ]"
             :columns="[
             [ 'property' => 'title'],
-            [ 'property' => 'start_date_for_humans', 'name' => 'Start Date', 'columnName' => 'start_date'],
-            [ 'property' => 'stop_date_for_humans', 'name' => 'Stop Date', 'columnName' => 'stop_date'],
             ['name' => 'action' , 'type' => 'dropdown' , 'links' => [
                 ['href' => 'notices.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
             ]],

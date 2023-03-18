@@ -21,7 +21,7 @@
                 <p> Student Admission Number: {{$feeInvoice->user->studentRecord->admission_number}}</p>
             </div>
         </div>
-        <div class="w-full">
+        <div class="w-full my-4">
             <p>Fee Invoice Issue Date: {{$feeInvoice->issue_date->format('F j, Y')}}</p>
             <p>Fee Invoice Due Date: {{$feeInvoice->due_date->format('F j, Y')}}</p>
         </div>
@@ -50,11 +50,11 @@
             </table>
         </div>
         <div class="my-3 text-right">
-            <p class="">Total Amount: {{$feeInvoice->amount}}</p>
-            <p>Total Waiver: {{$feeInvoice->waiver}}</p>
-            <p>Total Fine: {{$feeInvoice->fine}}</p>
-            <p>Total Paid: {{$feeInvoice->paid}}</p>
-            <p>Pending Amount: <span class="text-red-700 dark:text-white">{{$feeInvoice->balance}}</span></p>
+            <p class="my-1">Total Amount: {{$feeInvoice->amount}}</p>
+            <p class="my-1">Total Waiver: {{$feeInvoice->waiver}}</p>
+            <p class="my-1">Total Fine: {{$feeInvoice->fine}}</p>
+            <p class="my-1">Total Paid: {{$feeInvoice->paid}}</p>
+            <p class="my-1">Pending Amount: <span class="text-red-700 dark:text-white">{{$feeInvoice->balance}}</span></p>
         </div>
         <div class="my-3 text-xl md:text-3xl status ">
             @if ($feeInvoice->balance->isLessThanOrEqualTo(0))
