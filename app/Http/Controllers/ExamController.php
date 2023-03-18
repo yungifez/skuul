@@ -45,7 +45,7 @@ class ExamController extends Controller
         $data = $request->except('_token');
         $exam = $this->examService->createExam($data);
 
-        return redirect()->route("exam-slots.create", $exam)->with('success', 'Exam created successfully, Now, create exam slots for the exam');
+        return redirect()->route('exam-slots.create', $exam)->with('success', 'Exam created successfully, Now, create exam slots for the exam');
     }
 
     /**
