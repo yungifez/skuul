@@ -99,7 +99,9 @@ class ClassTest extends TestCase
         $this->authorized_user(['delete class'])
             ->delete("/dashboard/classes/$class->id");
 
-        $this->assertModelMissing($class);
+        $this->assertModelExists($class);
+
+        $this->assertSoftDeleted($class);
     }
 
     public function test_unauthorized_user_can_not_delete_class()
@@ -107,6 +109,8 @@ class ClassTest extends TestCase
         $class = MyClass::factory()->create();
         $this->unauthorized_user()
             ->delete("/dashboard/classes/$class->id")
-            ->assertForbidden() && $this->assertModelExists($class);
+            ->assertForbidden();
+            
+        $this->assertModelExists($class) && $this->assertNotSoftDeleted($class);
     }
 }
