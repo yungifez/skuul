@@ -110,7 +110,7 @@ class ClassTest extends TestCase
         $this->unauthorized_user()
             ->delete("/dashboard/classes/$class->id")
             ->assertForbidden();
-            
+
         $this->assertModelExists($class) && $this->assertNotSoftDeleted($class);
     }
 }
