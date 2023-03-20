@@ -102,10 +102,6 @@ class UserSeeder extends Seeder
             'is_graduated'     => false,
             'admission_number' => Str::random(10),
         ]);
-        $student->studentRecord->academicYears()->sync([$student->school->academicYear->id, [
-            'my_class_id' => $student->studentRecord->my_class_id,
-            'section_id'  => $student->studentRecord->section_id,
-        ]]);
 
         $student->assignRole('student');
 
