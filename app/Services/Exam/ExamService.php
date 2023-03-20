@@ -3,7 +3,6 @@
 namespace App\Services\Exam;
 
 use App\Exceptions\EmptyRecordsException;
-use App\Exceptions\InvalidValueException;
 use App\Models\Exam;
 use App\Models\Semester;
 use App\Models\Subject;
@@ -112,15 +111,16 @@ class ExamService
     /**
      * Set result publish status for exam.
      *
-     *@throws 
+     *@throws
+     *
      * @return void
      */
     public function setPublishResultStatus(Exam $exam, bool $status)
     {
         if ($exam->examSlots()->count() <= 0 && $status == 1) {
-            throw new EmptyRecordsException("Cannot publish result for exam without exam slots", 1);
+            throw new EmptyRecordsException('Cannot publish result for exam without exam slots', 1);
         }
-        
+
         $exam->publish_result = $status;
         $exam->save();
     }
