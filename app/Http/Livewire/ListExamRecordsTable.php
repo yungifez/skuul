@@ -124,7 +124,7 @@ class ListExamRecordsTable extends Component
 
     public function render()
     {
-        $section = $this->sections->find($this->section);
+        $section = $this->sectionSelected;
         if ($section != null && $section->exists()) {
             $students = User::students()->inSchool()->whereRelation('studentRecord.section', 'id', $section->id)->orderBy('name')->paginate(10);
             $viewData = ['students' => $students];

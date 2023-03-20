@@ -40,7 +40,7 @@
         </form>
         
         {{-- table for displaying exam records --}}
-        @if(isset($examSlots) && $students != null)
+        @if(isset($examSlots) && isset($students) && $students != null)
             <div class="card">
                 <div class="card-header">
                     <h4 class="card-title">{{$examSelected->name}} exam records</h4>

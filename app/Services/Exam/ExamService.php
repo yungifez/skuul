@@ -52,7 +52,7 @@ class ExamService
      * get an exam by it's id.
      *
      *
-     * @return App\Models\Exam
+     * @return \App\Models\Exam
      */
     public function getExamById(int $id)
     {

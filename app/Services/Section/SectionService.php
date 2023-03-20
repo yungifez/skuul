@@ -38,7 +38,7 @@ class SectionService
      * Get a section by Id.
      *
      *
-     * @return void
+     * @return \App\Models\Section
      */
     public function getSectionById(int $id)
     {

@@ -32,7 +32,7 @@ class SubjectService
      * Get a subject by Id.
      *
      *
-     * @return App\Models\Subject
+     * @return \App\Models\Subject
      */
     public function getSubjectById(int $id)
     {
