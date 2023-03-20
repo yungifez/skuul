@@ -71,7 +71,7 @@ class SemesterService
     {
         $school = auth()->user()->school;
         if ($semester->academicYear->id != $school->academic_year_id) {
-            throw new InvalidValueException('Semester not in academic year');
+            throw new InvalidValueException('Semester not in current academic year');
         }
         $school->semester_id = $semester->id;
         $school->save();

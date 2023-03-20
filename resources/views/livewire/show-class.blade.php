@@ -33,13 +33,12 @@
          ]
         "/>
         <h3 class="text-center text-lg md:text-3xl font-bold my-5">Subjects in class</h1>
-        <livewire:datatable :model="App\Models\Subject::class" uniqueId="subjects-list-table" :filters="[['name' => 'where' , 'arguments' => ['my_class_id' , $class->id]]]" :columns="
+        <livewire:datatable :model="App\Models\Subject::class" uniqueId="subjects-list-table" :filters="[['name' => 'where' , 'arguments' => ['my_class_id' , $class->id]],['name' => 'with' , 'arguments' => ['teachers']]]" :columns="
             [
             ['property' => 'name'] , 
             ['method' => 'count' , 'name' => 'No of teachers', 'relation' => 'teachers'] , 
             ['type' => 'dropdown', 'name' => 'actions','links' => [
                 ['href' => 'subjects.edit', 'text' => 'Settings', 'icon' => 'fas fa-cog'],
-                ['href' => 'subjects.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
             ]],
             ['type' => 'delete', 'name' => 'Delete', 'action' => 'subjects.destroy']
          ]

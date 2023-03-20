@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Carbon\Carbon;
-use Database\Factories\StudentFactory;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -35,11 +34,6 @@ class StudentRecord extends Model
         static::addGlobalScope('notGraduated', function (Builder $builder) {
             $builder->where('is_graduated', 0);
         });
-    }
-
-    public static function newFactory()
-    {
-        return StudentFactory::new();
     }
 
     //accessor for admission_date

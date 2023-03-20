@@ -35,7 +35,7 @@ class UpdateApplicationCommand extends Command
             $this->runUpdateCommands();
             $this->buildNodeDependencies();
             $this->optimize();
-            shell_exec('chmod 777 -R ./storage');
+            shell_exec('chmod 775 -R ./storage ./boostrap');
             $this->call('up');
         } catch (\Throwable $th) {
             $this->error("Something went wrong!. Try updating manually. If error persists feel free to open an issue \n \n Exception -> ".$th);
@@ -48,6 +48,12 @@ class UpdateApplicationCommand extends Command
         $this->warn("it's important to be connected to the internet,  always have a backup of both your codebase and your database before making updates. Review the release notes before updating, and test your system after updating to ensure everything is working correctly. If an issue arises, the community or dedicated support channels can provide help. Also, have a rollback plan in place.");
 
         sleep(2);
+
+        //verify user is not root
+        if (posix_getuid() == 0) {
+            $this->error('This Command cannot be run by root user, thank you for using Skuul');
+            exit;
+        }
 
         if (!$this->confirm('Do you wish to continue?')) {
             $this->error('Operation cancelled, thank you for using Skuul');
@@ -99,16 +105,6 @@ class UpdateApplicationCommand extends Command
         $this->call('db:seed', ['--class' => 'RunInProductionSeeder']);
     }
 
-    public function splitVersionNumber($versionNumber)
-    {
-        $versionNumber = preg_replace('/-.*/', '', $versionNumber);
-        $versionNumber = preg_replace('/[a-zA-Z]/', '', $versionNumber);
-        $versionNumber = str_replace(PHP_EOL, '', $versionNumber);
-        $versionNumber = explode('.', $versionNumber);
-
-        return $versionNumber;
-    }
-
     public function optimize()
     {
         if (!$this->confirm('Do you want to optimize this application?')) {
@@ -118,6 +114,16 @@ class UpdateApplicationCommand extends Command
         $this->call('optimize');
         $this->call('view:cache');
         $this->call('event:cache');
-        shell_exec('composer install --optimize-autoloader --no-dev ');
+        shell_exec('composer install --optimize-autoloader ');
+    }
+
+    private function splitVersionNumber($versionNumber)
+    {
+        $versionNumber = preg_replace('/-.*/', '', $versionNumber);
+        $versionNumber = preg_replace('/[a-zA-Z]/', '', $versionNumber);
+        $versionNumber = str_replace(PHP_EOL, '', $versionNumber);
+        $versionNumber = explode('.', $versionNumber);
+
+        return $versionNumber;
     }
 }

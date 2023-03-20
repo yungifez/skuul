@@ -2,6 +2,7 @@
 
 namespace App\Services\Exam;
 
+use App\Exceptions\EmptyRecordsException;
 use App\Models\Exam;
 use App\Models\Semester;
 use App\Models\Subject;
@@ -51,7 +52,7 @@ class ExamService
      * get an exam by it's id.
      *
      *
-     * @return App\Models\Exam
+     * @return \App\Models\Exam
      */
     public function getExamById(int $id)
     {
@@ -63,7 +64,7 @@ class ExamService
      *
      * @param array|object $records
      *
-     * @return void
+     * @return Exam
      */
     public function createExam($records)
     {
@@ -74,6 +75,8 @@ class ExamService
             'start_date'  => $records['start_date'],
             'stop_date'   => $records['stop_date'],
         ]);
+
+        return $exam;
     }
 
     /**
@@ -108,11 +111,16 @@ class ExamService
     /**
      * Set result publish status for exam.
      *
+     *@throws
      *
      * @return void
      */
     public function setPublishResultStatus(Exam $exam, bool $status)
     {
+        if ($exam->examSlots()->count() <= 0 && $status == 1) {
+            throw new EmptyRecordsException('Cannot publish result for exam without exam slots', 1);
+        }
+
         $exam->publish_result = $status;
         $exam->save();
     }

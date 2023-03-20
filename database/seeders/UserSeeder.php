@@ -94,7 +94,6 @@ class UserSeeder extends Seeder
             'blood_group'       => 'B+',
             'email_verified_at' => now(),
             'gender'            => 'male',
-
         ]);
         $student->studentRecord()->create([
             'my_class_id'      => 1,
