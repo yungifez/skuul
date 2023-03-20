@@ -104,13 +104,13 @@ class UpdateApplicationCommand extends Command
 
         $this->call('db:seed', ['--class' => 'RunInProductionSeeder']);
     }
-    
+
     public function optimize()
     {
         if (!$this->confirm('Do you want to optimize this application?')) {
             return;
         }
-        
+
         $this->call('optimize');
         $this->call('view:cache');
         $this->call('event:cache');
@@ -123,7 +123,7 @@ class UpdateApplicationCommand extends Command
         $versionNumber = preg_replace('/[a-zA-Z]/', '', $versionNumber);
         $versionNumber = str_replace(PHP_EOL, '', $versionNumber);
         $versionNumber = explode('.', $versionNumber);
-    
+
         return $versionNumber;
     }
 }
