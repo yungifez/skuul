@@ -4,12 +4,7 @@
     </div>
     <div class="card-body">
         <x-display-validation-errors/>
-        {{-- loading spinner --}}
-        <div class="d-flex justify-content-center">
-            <div wire:loading class="spinner-border" role="status">
-                <p class="sr-only">Loading.....</p>
-            </div>
-        </div>
+       
         {{-- form for selecting exam record to display --}}
         <form wire:submit.prevent="fetchExamRecords('{{$exam}}','{{$section}}','{{$subject}}')" class="md:grid gap-4 grid-cols-4 grid-rows-1  my-3 items-end">
             <x-select id="exam-id" name="exam_id" label="Select exam" wire:model="exam">
@@ -36,12 +31,14 @@
                     @endforeach
                 @endisset
             </x-select>
-            <x-button label="View records" theme="primary" type="submit" class="w-"/>
+            <x-button label="View records" theme="primary" type="submit" class="w-full "/>
         </form>
+
+        <x-loading-spinner/>
         
         {{-- table for displaying exam records --}}
         @if(isset($examSlots) && isset($students) && $students != null)
-            <div class="card">
+            <div class="card" wire:loading.remove.delay>
                 <div class="card-header">
                     <h4 class="card-title">{{$examSelected->name}} exam records</h4>
                 </div>
