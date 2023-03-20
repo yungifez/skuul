@@ -5,7 +5,6 @@ namespace Database\Factories;
 use App\Models\Section;
 use App\Models\StudentRecord;
 use App\Models\User;
-use Closure;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -40,11 +39,10 @@ class StudentRecordFactory extends Factory
 
     public function configure()
     {
-        return $this->afterCreating(function (StudentRecord $studentRecord)
-        {
+        return $this->afterCreating(function (StudentRecord $studentRecord) {
             $studentRecord->academicYears()->sync([$studentRecord->user->school->academicYear->id, [
                 'my_class_id' => $studentRecord->my_class_id,
-                'section_id'  => $studentRecord->section_id
+                'section_id'  => $studentRecord->section_id,
             ]]);
         });
     }
