@@ -37,11 +37,6 @@ class StudentRecord extends Model
         });
     }
 
-    public static function newFactory()
-    {
-        return StudentFactory::new();
-    }
-
     //accessor for admission_date
 
     public function getAdmissionDateAttribute($value)
