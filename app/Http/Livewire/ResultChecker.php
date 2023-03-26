@@ -120,7 +120,7 @@ class ResultChecker extends Component
     public function checkResult(AcademicYear $academicYear, $semester, User $student)
     {
         $semester = $this->semesters->find($semester);
-        
+
         // make sure user student isn't another role
         if (!$student->hasRole('student')) {
             abort(404, 'Student not found.');
