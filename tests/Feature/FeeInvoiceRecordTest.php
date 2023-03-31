@@ -84,7 +84,7 @@ class FeeInvoiceRecordTest extends TestCase
     {
         $feeInvoiceRecord = FeeInvoiceRecord::factory()->create();
 
-        $pay = mt_rand(0, ($feeInvoiceRecord->amount->minus($feeInvoiceRecord->waiver)->plus( $feeInvoiceRecord->fine))->getAmount()->toInt() );
+        $pay = mt_rand(1, ($feeInvoiceRecord->amount->minus($feeInvoiceRecord->waiver)->plus( $feeInvoiceRecord->fine))->getAmount()->toInt() );
 
         $this->unauthorized_user()
             ->post("dashboard/fees/fee-invoices/fee-invoice-records/$feeInvoiceRecord->id/pay", [
@@ -92,14 +92,14 @@ class FeeInvoiceRecordTest extends TestCase
             ])
             ->assertForbidden();
 
-        $this->assertNotEquals($pay, $feeInvoiceRecord->paid->minus($feeInvoiceRecord->fresh()->paid->getAmount()->toInt() ));
+        $this->assertNotEquals($pay, -$feeInvoiceRecord->paid->minus($feeInvoiceRecord->fresh()->paid )->getAmount()->toInt());
     }
 
     public function test_authorized_user_can_pay_fee_invoice_record()
     {
         $feeInvoiceRecord = FeeInvoiceRecord::factory()->create();
 
-        $pay = mt_rand(0, ($feeInvoiceRecord->amount->minus($feeInvoiceRecord->waiver)->plus( $feeInvoiceRecord->fine))->getAmount()->toInt() );
+        $pay = mt_rand(1, ($feeInvoiceRecord->amount->minus($feeInvoiceRecord->waiver)->plus( $feeInvoiceRecord->fine))->getAmount()->toInt() );
 
         $this->authorized_user(['update fee invoice record'])
             ->post("dashboard/fees/fee-invoices/fee-invoice-records/$feeInvoiceRecord->id/pay", [
