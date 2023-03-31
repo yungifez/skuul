@@ -50,9 +50,11 @@ class FeeInvoicePolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, FeeInvoice $feeInvoice): bool
+    public function delete(User $user, FeeInvoice $feeInvoice)
     {
-        //
+        if ($user->can('delete fee invoice') && $feeInvoice->user->school_id == auth()->user()->school_id) {
+            return true;
+        }
     }
 
     /**

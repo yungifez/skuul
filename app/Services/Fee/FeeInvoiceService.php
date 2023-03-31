@@ -109,4 +109,15 @@ class FeeInvoiceService
     {
         return PrintService::createPdfFromView($view, $data)->download($name.'.pdf');
     }
+
+    /**
+     * Delete a fee invoice
+     *
+     * @param FeeInvoice $feeInvoice
+     * @return void
+     */
+    public function deleteFeeInvoice(FeeInvoice $feeInvoice)
+    {
+        $feeInvoice->delete();
+    }
 }
