@@ -62,9 +62,7 @@ class CustomTimetableItemController extends Controller
      */
     public function edit(CustomTimetableItem $customTimetableItem)
     {
-        $data['customTimetableItem'] = $customTimetableItem;
-
-        return view('pages.timetable.custom-timetable-item.edit', $data);
+        return view('pages.timetable.custom-timetable-item.edit', compact('customTimetableItem'));
     }
 
     /**
@@ -72,8 +70,7 @@ class CustomTimetableItemController extends Controller
      */
     public function update(UpdateCustomTimetableItemRequest $request, CustomTimetableItem $customTimetableItem): RedirectResponse
     {
-        $data = $request->validated();
-        $this->timetableService->updateCustomTimetableItem($customTimetableItem, $data);
+        $this->timetableService->updateCustomTimetableItem($customTimetableItem,$request->validated());
 
         return back()->with('success', 'Custom timetable item updated successfully');
     }

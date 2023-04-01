@@ -55,9 +55,7 @@ class ClassGroupController extends Controller
      */
     public function show(ClassGroup $classGroup): View
     {
-        $data['classGroup'] = $classGroup;
-
-        return view('pages.class-group.show', $data);
+        return view('pages.class-group.show', compact('classGroup'));
     }
 
     /**
@@ -65,9 +63,7 @@ class ClassGroupController extends Controller
      */
     public function edit(ClassGroup $classGroup): View
     {
-        $data['classGroup'] = $classGroup;
-
-        return view('pages.class-group.edit', $data);
+        return view('pages.class-group.edit', compact('classGroup'));
     }
 
     /**
@@ -75,8 +71,7 @@ class ClassGroupController extends Controller
      */
     public function update(UpdateClassGroupRequest $request, ClassGroup $classGroup): RedirectResponse
     {
-        $data = $request->except('_token', '_method', 'school_id');
-        $this->myClassService->updateClassGroup($classGroup, $data);
+        $this->myClassService->updateClassGroup($classGroup, $request->validated());
 
         return back()->with('success', __('Class group updated successfully'));
     }

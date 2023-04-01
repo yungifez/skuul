@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\FeeInvoice;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -33,6 +34,9 @@ class DatabaseSeeder extends Seeder
             ExamRecordSeeder::class,
             NoticeSeeder::class,
             FeeCategorySeeder::class,
+            FeeSeeder::class,
+            FeeInvoiceSeeder::class,
+            FeeInvoiceRecordSeeder::class
         ]);
     }
 }

@@ -207,7 +207,7 @@ class FeeInvoiceTest extends TestCase
     {
         $feeInvoice = FeeInvoice::factory()->create();
         $issueDate = $this->faker->date();
-        $dueDate = $this->faker->date();
+        $dueDate = Carbon::parse($issueDate)->addDays(10);
 
         $this->authorized_user(['update fee invoice'])
             ->put("dashboard/fees/fee-invoices/$feeInvoice->id/", [
