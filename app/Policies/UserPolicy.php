@@ -111,4 +111,11 @@ class UserPolicy
     {
         //
     }
+
+    public function lockAccount(User $user, User $model)
+    {
+        if ($user->can('lock user account') && $model->school_id = $user->school_id) {
+            return true;
+        }
+    }
 }

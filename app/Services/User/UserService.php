@@ -175,4 +175,15 @@ class UserService
             abort(404);
         }
     }
+
+    /**
+     * Lock or Unlock a user account.
+     *
+     * @return void
+     */
+    public function lockUserAccount(User $user, $lock = true)
+    {
+        $user->locked = $lock;
+        $user->save();
+    }
 }

@@ -7,6 +7,7 @@
             ['property' => 'name'] , 
             ['property' => 'email'] ,
             ['property' => 'gender'] ,
+            ['property' => 'locked', 'name' => 'Locked' , 'type' => 'boolean-switch', 'action' => 'user.lock-account', 'field' => 'lock', 'true-statement' => 'Locked', 'false-statement' => 'Unlocked',  'can' => 'lock user'],
             ['type' => 'dropdown', 'name' => 'actions','links' => [
                 ['href' => 'parents.edit', 'text' => 'Manage Profile', 'icon' => 'fas fa-pen',],
                 ['href' => 'parents.show', 'text' => 'View', 'icon' => 'fas fa-eye',  ],
