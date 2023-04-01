@@ -70,7 +70,7 @@ class CustomTimetableItemController extends Controller
      */
     public function update(UpdateCustomTimetableItemRequest $request, CustomTimetableItem $customTimetableItem): RedirectResponse
     {
-        $this->timetableService->updateCustomTimetableItem($customTimetableItem,$request->validated());
+        $this->timetableService->updateCustomTimetableItem($customTimetableItem, $request->validated());
 
         return back()->with('success', 'Custom timetable item updated successfully');
     }

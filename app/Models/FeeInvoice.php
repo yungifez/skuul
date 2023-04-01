@@ -12,7 +12,8 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FeeInvoice extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
+    use SoftDeletes;
 
     protected $fillable = ['name', 'note', 'issue_date', 'due_date', 'user_id'];
 
