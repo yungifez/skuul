@@ -111,9 +111,10 @@ class FeeInvoiceService
     }
 
     /**
-     * Delete a fee invoice
+     * Delete a fee invoice.
      *
      * @param FeeInvoice $feeInvoice
+     *
      * @return void
      */
     public function deleteFeeInvoice(FeeInvoice $feeInvoice)

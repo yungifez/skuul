@@ -191,15 +191,15 @@ class FeeInvoiceTest extends TestCase
 
         $this->unauthorized_user()
             ->put("dashboard/fees/fee-invoices/$feeInvoice->id/", [
-                'issue_date' => $issueDate, 
-                'due_date'   => $dueDate
+                'issue_date' => $issueDate,
+                'due_date'   => $dueDate,
             ])
             ->assertForbidden();
 
         $this->assertDatabaseMissing('fee_invoices', [
-            'id'  => $feeInvoice->id,
+            'id'         => $feeInvoice->id,
             'issue_date' => $issueDate,
-            'due_date'   => $dueDate
+            'due_date'   => $dueDate,
         ]);
     }
 
@@ -212,15 +212,15 @@ class FeeInvoiceTest extends TestCase
         $this->authorized_user(['update fee invoice'])
             ->put("dashboard/fees/fee-invoices/$feeInvoice->id/", [
                 'issue_date' => $issueDate,
-                'due_date' => $dueDate,
+                'due_date'   => $dueDate,
 
             ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('fee_invoices', [
-            'id'  => $feeInvoice->id,
+            'id'         => $feeInvoice->id,
             'issue_date' => $issueDate,
-            'due_date'   => $dueDate
+            'due_date'   => $dueDate,
         ]);
     }
 
@@ -249,6 +249,4 @@ class FeeInvoiceTest extends TestCase
 
         $this->assertSoftDeleted($feeInvoice);
     }
-
-
 }
