@@ -182,4 +182,71 @@ class FeeInvoiceTest extends TestCase
             ->get("dashboard/fees/fee-invoices/$feeInvoice->id/edit")
             ->assertSuccessful();
     }
+
+    public function test_unauthorized_user_cannot_update_fee_invoice()
+    {
+        $feeInvoice = FeeInvoice::factory()->create();
+        $issueDate = $this->faker->date();
+        $dueDate = $this->faker->date();
+
+        $this->unauthorized_user()
+            ->put("dashboard/fees/fee-invoices/$feeInvoice->id/", [
+                'issue_date' => $issueDate,
+                'due_date'   => $dueDate,
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseMissing('fee_invoices', [
+            'id'         => $feeInvoice->id,
+            'issue_date' => $issueDate,
+            'due_date'   => $dueDate,
+        ]);
+    }
+
+    public function test_authorized_user_can_update_fee_invoice()
+    {
+        $feeInvoice = FeeInvoice::factory()->create();
+        $issueDate = $this->faker->date();
+        $dueDate = Carbon::parse($issueDate)->addDays(10);
+
+        $this->authorized_user(['update fee invoice'])
+            ->put("dashboard/fees/fee-invoices/$feeInvoice->id/", [
+                'issue_date' => $issueDate,
+                'due_date'   => $dueDate,
+
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('fee_invoices', [
+            'id'         => $feeInvoice->id,
+            'issue_date' => $issueDate,
+            'due_date'   => $dueDate,
+        ]);
+    }
+
+    public function test_unauthorized_user_cannot_delete_fee_invoice()
+    {
+        $feeInvoice = FeeInvoice::factory()->create();
+
+        $this->unauthorized_user()
+            ->delete("dashboard/fees/fee-invoices/$feeInvoice->id")
+            ->assertForbidden();
+
+        $this->assertModelExists($feeInvoice);
+
+        $this->assertNotSoftDeleted($feeInvoice);
+    }
+
+    public function test_authorized_user_can_delete_fee_invoice()
+    {
+        $feeInvoice = FeeInvoice::factory()->create();
+
+        $this->authorized_user(['delete fee invoice'])
+            ->delete("dashboard/fees/fee-invoices/$feeInvoice->id")
+            ->assertRedirect();
+
+        $this->assertModelExists($feeInvoice);
+
+        $this->assertSoftDeleted($feeInvoice);
+    }
 }

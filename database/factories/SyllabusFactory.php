@@ -16,7 +16,7 @@ class SyllabusFactory extends Factory
      */
     public function definition()
     {
-        $file = \Illuminate\Http\UploadedFile::fake()->create('test.pdf')->store('pdfs');
+        $file = \Illuminate\Http\UploadedFile::fake()->create("{$this->faker->name}.pdf")->store('pdfs');
 
         return [
             'name'        => $this->faker->sentence,

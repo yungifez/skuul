@@ -45,7 +45,7 @@ class ResultChecker extends Component
     //rules
     public $rules = [
         'academicYear' => 'integer|exists:academic_years,id',
-        'semester'     => 'required',
+        'semester'     => 'required|integer|exists:semesters_id',
     ];
 
     public function mount(MyClassService $myClassService)
@@ -119,7 +119,7 @@ class ResultChecker extends Component
 
     public function checkResult(AcademicYear $academicYear, $semester, User $student)
     {
-        $semester = Semester::find($semester)?->first();
+        $semester = $this->semesters->find($semester);
 
         // make sure user student isn't another role
         if (!$student->hasRole('student')) {

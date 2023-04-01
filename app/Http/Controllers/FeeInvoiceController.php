@@ -87,7 +87,9 @@ class FeeInvoiceController extends Controller
      */
     public function destroy(FeeInvoice $feeInvoice): RedirectResponse
     {
-        //
+        $this->feeInvoiceService->deleteFeeInvoice($feeInvoice);
+
+        return back()->with('success', 'Fee Invoice Deleted Successfully');
     }
 
     public function payView(FeeInvoice $feeInvoice): View

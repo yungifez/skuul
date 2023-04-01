@@ -14,7 +14,7 @@
 
         @isset($class)
         <div  wire:loading.remove.delay>
-            <livewire:datatable :wire:key="Str::Random(10)" :model="App\Models\MyClass::class"
+            <livewire:datatable unique_id="list-sylabii-table" :wire:key="Str::Random(10)" :model="App\Models\MyClass::class"
             :filters="[
                 ['name' => 'find' ,'arguments' => [ $class]],
                 ['name' => 'syllabi'],

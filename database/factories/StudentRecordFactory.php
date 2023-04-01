@@ -23,7 +23,7 @@ class StudentRecordFactory extends Factory
     public function definition()
     {
         $student = User::factory()->create();
-        $section = Section::query()->inRandomOrder()->whereRelation('myClass.classGroup', 'school_id', 1)->first();
+        $section = Section::query()->offset(rand(1, 4))->whereRelation('myClass.classGroup', 'school_id', 1)->first();
         $class = $section->myClass;
         $student->assignRole('student');
 
