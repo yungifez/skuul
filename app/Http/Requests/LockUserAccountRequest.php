@@ -6,7 +6,6 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class LockUserAccountRequest extends FormRequest
 {
-
     protected function prepareForValidation()
     {
         if ($this->lock == 'active' || $this->lock == 1 || $this->lock == 'on') {
@@ -16,7 +15,6 @@ class LockUserAccountRequest extends FormRequest
         }
     }
 
-        
     /**
      * Get the validation rules that apply to the request.
      *
@@ -25,7 +23,7 @@ class LockUserAccountRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'lock'   =>  'required|boolean'
+            'lock'   => 'required|boolean',
         ];
     }
 }
