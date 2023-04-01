@@ -177,7 +177,7 @@ class UserService
     }
 
     /**
-     * Lock or Unlock a user account
+     * Lock or Unlock a user account.
      *
      * @return void
      */
