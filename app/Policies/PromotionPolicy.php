@@ -9,7 +9,7 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 class PromotionPolicy
 {
     use HandlesAuthorization;
-    
+
     /**
      * Determine if the given user can view the promotion.
      */

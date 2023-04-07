@@ -2,11 +2,11 @@
 
 namespace App\Services\MyClass;
 
-use App\Models\MyClass;
-use App\Models\ClassGroup;
-use App\Services\School\SchoolService;
 use App\Exceptions\InvalidValueException;
 use App\Exceptions\ResourceNotEmptyException;
+use App\Models\ClassGroup;
+use App\Models\MyClass;
+use App\Services\School\SchoolService;
 use Illuminate\Database\Eloquent\Collection;
 
 class MyClassService
@@ -24,8 +24,8 @@ class MyClassService
 
     /**
      * Get all classes in school.
-    */
-    public function getAllClasses() : Collection
+     */
+    public function getAllClasses(): Collection
     {
         return $this->schoolService->getSchoolById(auth()->user()->school_id)->myClasses->load('classGroup', 'sections');
     }
@@ -33,7 +33,7 @@ class MyClassService
     /**
      * Get all ClassGroups in school.
      */
-    public function getAllClassGroups() : Collection
+    public function getAllClassGroups(): Collection
     {
         return ClassGroup::where('school_id', auth()->user()->school_id)->get();
     }
@@ -41,7 +41,7 @@ class MyClassService
     /**
      * Get all classes in school.
      */
-    public function getClassById(int $id) : MyClass
+    public function getClassById(int $id): MyClass
     {
         return MyClass::find($id);
     }
@@ -58,7 +58,7 @@ class MyClassService
 
     /**
      * Get class group by id.
-     * 
+     *
      * @param int $id
      */
     public function getClassGroupById(int $id)
@@ -102,7 +102,7 @@ class MyClassService
      * Update class.
      *
      * @param \App\Models\MyClass $class
-     * @param array|object       $records
+     * @param array|object        $records
      *
      * @return \App\Models\MyClass
      */
@@ -120,7 +120,7 @@ class MyClassService
      * Update class group.
      *
      * @param \App\Models\ClassGroup $classGroup
-     * @param array|object          $records
+     * @param array|object           $records
      *
      * @return \App\Models\ClassGroup
      */
