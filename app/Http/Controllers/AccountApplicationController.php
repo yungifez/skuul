@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\AccountApplicationStatusChangeRequest;
-use App\Http\Requests\UpdateAccountApplicationRequest;
 use App\Models\User;
-use App\Services\AccountApplication\AccountApplicationService;
 use App\Services\User\UserService;
+use Illuminate\Contracts\View\View;
+use App\Http\Requests\UpdateAccountApplicationRequest;
+use App\Http\Requests\AccountApplicationStatusChangeRequest;
+use App\Services\AccountApplication\AccountApplicationService;
+use Illuminate\Http\RedirectResponse;
 
 class AccountApplicationController extends Controller
 {
@@ -28,10 +30,8 @@ class AccountApplicationController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index() : View
     {
         $this->authorize('viewAny', [User::class, 'applicant']);
 
@@ -40,11 +40,8 @@ class AccountApplicationController extends Controller
 
     /**
      * Display the specified resource.
-     *
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function show(User $applicant)
+    public function show(User $applicant) : View
     {
         $this->userService->verifyUserIsOfRoleElseNotFound($applicant, 'applicant');
         $this->authorize('view', [$applicant, 'applicant']);
@@ -55,11 +52,8 @@ class AccountApplicationController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function edit(User $applicant)
+    public function edit(User $applicant) : View
     {
         $this->userService->verifyUserIsOfRoleElseNotFound($applicant, 'applicant');
         $this->authorize('update', [$applicant, 'applicant']);
@@ -70,11 +64,8 @@ class AccountApplicationController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function update(UpdateAccountApplicationRequest $request, User $applicant)
+    public function update(UpdateAccountApplicationRequest $request, User $applicant) : RedirectResponse
     {
         $this->userService->verifyUserIsOfRoleElseNotFound($applicant, 'applicant');
         $this->authorize('update', [$applicant, 'applicant']);
@@ -86,11 +77,8 @@ class AccountApplicationController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function destroy(User $applicant)
+    public function destroy(User $applicant) : RedirectResponse
     {
         $this->userService->verifyUserIsOfRoleElseNotFound($applicant, 'applicant');
         $this->authorize('delete', [$applicant, 'applicant']);
@@ -102,10 +90,8 @@ class AccountApplicationController extends Controller
 
     /**
      * View for changing application status.
-     *
-     * @return void
      */
-    public function changeStatusView(User $applicant)
+    public function changeStatusView(User $applicant) : View
     {
         $data['applicant'] = $applicant;
 
@@ -115,11 +101,9 @@ class AccountApplicationController extends Controller
     /**
      * Change Application Status.
      *
-     * @param Request $request
-     *
-     * @return void
+     * @param AccountApplicationStatusChangeRequest $request
      */
-    public function changeStatus(User $applicant, AccountApplicationStatusChangeRequest $request)
+    public function changeStatus(User $applicant, AccountApplicationStatusChangeRequest $request) : RedirectResponse
     {
         $data = $request->validated();
         $this->accountApplicationService->changeStatus($applicant, $data);
@@ -129,10 +113,8 @@ class AccountApplicationController extends Controller
 
     /**
      * View rejected applications.
-     *
-     * @return void
      */
-    public function rejectedApplicationsView()
+    public function rejectedApplicationsView() : View
     {
         return view('pages.account-application.rejected-applications');
     }

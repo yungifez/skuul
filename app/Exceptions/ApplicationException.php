@@ -12,13 +12,13 @@ class ApplicationException extends Exception
      *
      * @param \Illuminate\Http\Request $request
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\RedirectResponse|\Illuminate\Http\JsonResponse
      */
     public function render($request)
     {
         if ($request->is('api/*')) {
             return response()->json([
-                'message' => $this->getMesage(),
+                'message' => $this->getMessage(),
             ], 400);
         } else {
             return back()->with('danger', $this->getMessage())->withInput(Arr::Except(request()->post(), ['_token', '_method']));

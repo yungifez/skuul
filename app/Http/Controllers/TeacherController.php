@@ -43,7 +43,7 @@ class TeacherController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $this->authorize('create', [User::class, 'teacher']);
-        $this->teacherService->createTeacher($request);
+        $this->teacherService->createTeacher($request->except('_token'));
 
         return back()->with('success', 'Teacher Created Successfully');
     }

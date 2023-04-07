@@ -66,7 +66,7 @@ class UserService
      */
     public function createUser($record)
     {
-        if (!$record['other_names']) {
+        if (!isset($record['other_names'])) {
             $record['other_names'] = null;
         }
 

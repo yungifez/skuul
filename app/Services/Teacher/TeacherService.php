@@ -3,8 +3,9 @@
 namespace App\Services\Teacher;
 
 use App\Models\User;
-use App\Services\Print\PrintService;
 use App\Services\User\UserService;
+use App\Services\Print\PrintService;
+use Illuminate\Database\Eloquent\Collection;
 
 class TeacherService
 {
@@ -31,7 +32,7 @@ class TeacherService
     /**
      * Create a new teacher.
      *
-     * @param collection $record
+     * @param Collection|array $record
      *
      * @return void
      */

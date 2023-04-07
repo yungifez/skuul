@@ -33,7 +33,7 @@ class ParentService
     /**
      * Create a new parent.
      *
-     * @param collection $record
+     * @param array|collection $record
      *
      * @return User
      */

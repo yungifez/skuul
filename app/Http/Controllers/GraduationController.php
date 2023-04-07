@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StudentGraduateRequest;
 use App\Models\User;
-use App\Services\Student\StudentService;
 use App\Services\User\UserService;
+use Illuminate\Contracts\View\View;
+use App\Services\Student\StudentService;
+use App\Http\Requests\StudentGraduateRequest;
+use App\Models\Graduation;
+use Illuminate\Http\RedirectResponse;
 
 class GraduationController extends Controller
 {
@@ -21,62 +24,38 @@ class GraduationController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index() : View
     {
-        if (!auth()->user()->can('view graduations')) {
-            return abort(403, 'Unauthorized action.');
-        }
-
+        $this->authorize("ViewAny", Graduation::class);
         return view('pages.student.graduation.index');
     }
 
     /**
      * Graduate view.
-     *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
-     *
-     * @return \Illuminate\Http\Response
      */
-    public function graduateView()
+    public function graduateView() : View
     {
-        if (!auth()->user()->can('graduate student')) {
-            return abort(403, 'Unauthorized action.');
-        }
-
+        $this->authorize("graduate", Graduation::class);
         return view('pages.student.graduation.graduate');
     }
 
     /**
      * Graduate student.
-     *
-     *
-     * @return \Illuminate\Http\RedirectResponse
      */
-    public function graduate(StudentGraduateRequest $request)
+    public function graduate(StudentGraduateRequest $request) : RedirectResponse
     {
-        if (!auth()->user()->can('graduate student')) {
-            return abort(403, 'Unauthorized action.');
-        }
-        $data = collect($request->except('_token'));
-        $this->studentService->graduateStudents($data);
+        $this->authorize("graduate", Graduation::class);
+        $this->studentService->graduateStudents($request->except('_token'));
 
         return back()->with('success', 'Students graduated Successfully');
     }
 
     /**
      * Reset user graduation.
-     *
-     *
-     * @return \Illuminate\Http\RedirectResponse
      */
-    public function resetGraduation(User $student)
+    public function resetGraduation(User $student) : RedirectResponse
     {
-        if (!auth()->user()->can('reset graduation')) {
-            return abort(403, 'Unauthorized action.');
-        }
         $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->studentService->resetGraduation($student);
 

@@ -101,5 +101,8 @@ class CreateSuperAdmin extends Command
         } catch (\Throwable $th) {
             $this->error("Could not create super admin \n".$th);
         }
+
+        
+        return 0;
     }
 }

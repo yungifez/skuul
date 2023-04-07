@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class TimetableTimeSlot extends Model
 {
@@ -42,13 +44,12 @@ class TimetableTimeSlot extends Model
         );
     }
 
-    public function timetable()
+    public function timetable() : BelongsTo
     {
         return $this->belongsTo(Timetable::class);
     }
 
-    //many to many relationship with week days
-    public function weekdays()
+    public function weekdays() : BelongsToMany
     {
         //get pivot table as timetableRecords
         return $this->belongsToMany(Weekday::class)->as('timetableRecord')->withPivot(['timetable_time_slot_weekdayable_id', 'timetable_time_slot_weekdayable_type'])->withTimestamps()->using(TimetableRecord::class);

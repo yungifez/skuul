@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\storeTimetableRecord;
+use App\Models\Timetable;
+use Illuminate\Http\Response;
+use App\Models\TimetableTimeSlot;
+use Illuminate\Http\RedirectResponse;
+use App\Services\Timetable\TimeSlotService;
+use App\Http\Requests\StoreTimetableRecordRequest;
 use App\Http\Requests\StoreTimetableTimeSlotRequest;
 use App\Http\Requests\UpdateTimetableTimeSlotRequest;
-use App\Models\Timetable;
-use App\Models\TimetableTimeSlot;
-use App\Services\Timetable\TimeSlotService;
-use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Response;
 
 class TimetableTimeSlotController extends Controller
 {
@@ -39,9 +39,6 @@ class TimetableTimeSlotController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
-     *
-     * @return \Illuminate\Http\Response
      */
     public function store(StoreTimetableTimeSlotRequest $request): RedirectResponse
     {
@@ -78,9 +75,7 @@ class TimetableTimeSlotController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param Timetable $timetable
-     *
-     * @return \Illuminate\Http\Response
+     * @param TimetableTimeSlot $timeSlot
      */
     public function destroy(TimetableTimeSlot $timeSlot): RedirectResponse
     {
@@ -89,13 +84,17 @@ class TimetableTimeSlotController extends Controller
         return back()->with('success', __('Time slot deleted successfully'));
     }
 
-    //timetable record
-    public function addTimetableRecord(TimetableTimeSlot $timeSlot, storeTimetableRecord $request): RedirectResponse
+    /**
+     * Add Timetable record
+     *
+     * @param TimetableTimeSlot $timeSlot
+     * @param StoreTimetableRecordRequest $request
+     */
+    public function addTimetableRecord(TimetableTimeSlot $timeSlot, StoreTimetableRecordRequest $request): RedirectResponse
     {
         $timetable = $timeSlot->timetable;
         $this->authorize('update', $timetable);
-        $data = $request->except('_token');
-        $this->timeSlot->createTimetableRecord($timeSlot, $data);
+        $this->timeSlot->createTimetableRecord($timeSlot, $request->except('_token'));
 
         return back()->with('success', __('Timetable record successfully created'));
     }

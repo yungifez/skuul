@@ -23,8 +23,8 @@ class ChangeAccountApplicationStatus extends Component
         if (is_null($this->applicant->accountApplication)) {
             return;
         }
-        $this->statuses = $this->applicant->accountApplication->getAllStatuses();
-        $this->status = $this->statuses[0];
+        $this->statuses = $this->applicant->accountApplication->statuses()->get();
+        $this->status != null && $this->status = $this->statuses[0];
         $this->updatedStatus();
     }
 

@@ -2,11 +2,12 @@
 
 namespace App\Services\MyClass;
 
+use App\Models\MyClass;
+use App\Models\ClassGroup;
+use App\Services\School\SchoolService;
 use App\Exceptions\InvalidValueException;
 use App\Exceptions\ResourceNotEmptyException;
-use App\Models\ClassGroup;
-use App\Models\MyClass;
-use App\Services\School\SchoolService;
+use Illuminate\Database\Eloquent\Collection;
 
 class MyClassService
 {
@@ -23,31 +24,24 @@ class MyClassService
 
     /**
      * Get all classes in school.
-     *
-     * @return Illuminate\Support\Collection
-     */
-    public function getAllClasses()
+    */
+    public function getAllClasses() : Collection
     {
         return $this->schoolService->getSchoolById(auth()->user()->school_id)->myClasses->load('classGroup', 'sections');
     }
 
     /**
      * Get all ClassGroups in school.
-     *
-     * @return Illuminate\Eloquent\Collection
      */
-    public function getAllClassGroups()
+    public function getAllClassGroups() : Collection
     {
         return ClassGroup::where('school_id', auth()->user()->school_id)->get();
     }
 
     /**
      * Get all classes in school.
-     *
-     *
-     * @return App\Models\MyClass
      */
-    public function getClassById(int $id)
+    public function getClassById(int $id) : MyClass
     {
         return MyClass::find($id);
     }
@@ -55,8 +49,7 @@ class MyClassService
     /**
      * Get class by id or else return 404.
      *
-     *
-     * @return void
+     *@param int $id
      */
     public function getClassByIdOrFail(int $id)
     {
@@ -65,6 +58,8 @@ class MyClassService
 
     /**
      * Get class group by id.
+     * 
+     * @param int $id
      */
     public function getClassGroupById(int $id)
     {
@@ -76,7 +71,7 @@ class MyClassService
      *
      * @param array|object $record
      *
-     * @return App\Models\MyClass
+     * @return \App\Models\MyClass
      */
     public function createClass($record)
     {
@@ -94,7 +89,7 @@ class MyClassService
      *
      * @param array|object $record
      *
-     * @return App\Models\ClassGroup
+     * @return \App\Models\ClassGroup
      */
     public function createClassGroup($record)
     {
@@ -106,10 +101,10 @@ class MyClassService
     /**
      * Update class.
      *
-     * @param App\Models\MyClass $class
+     * @param \App\Models\MyClass $class
      * @param array|object       $records
      *
-     * @return App\Models\MyClass
+     * @return \App\Models\MyClass
      */
     public function updateClass($class, $records)
     {
@@ -124,10 +119,10 @@ class MyClassService
     /**
      * Update class group.
      *
-     * @param App\Models\ClassGroup $classGroup
+     * @param \App\Models\ClassGroup $classGroup
      * @param array|object          $records
      *
-     * @return App\Models\ClassGroup
+     * @return \App\Models\ClassGroup
      */
     public function updateClassGroup(ClassGroup $classGroup, $records)
     {
@@ -143,7 +138,7 @@ class MyClassService
     /**
      * Delete class group.
      *
-     * @param App\Models\ClassGroup $classGroup
+     * @param \App\Models\ClassGroup $classGroup
      *
      * @throws ResourceNotEmptyException
      *
@@ -160,7 +155,7 @@ class MyClassService
     /**
      * Delete class.
      *
-     * @param App\Models\MyClass $class
+     * @param \App\Models\MyClass $class
      *
      * @throws ResourceNotEmptyException
      *
