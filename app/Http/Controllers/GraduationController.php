@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
-use App\Services\User\UserService;
-use Illuminate\Contracts\View\View;
-use App\Services\Student\StudentService;
 use App\Http\Requests\StudentGraduateRequest;
 use App\Models\Graduation;
+use App\Models\User;
+use App\Services\Student\StudentService;
+use App\Services\User\UserService;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 
 class GraduationController extends Controller
@@ -25,27 +25,29 @@ class GraduationController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index() : View
+    public function index(): View
     {
-        $this->authorize("ViewAny", Graduation::class);
+        $this->authorize('ViewAny', Graduation::class);
+
         return view('pages.student.graduation.index');
     }
 
     /**
      * Graduate view.
      */
-    public function graduateView() : View
+    public function graduateView(): View
     {
-        $this->authorize("graduate", Graduation::class);
+        $this->authorize('graduate', Graduation::class);
+
         return view('pages.student.graduation.graduate');
     }
 
     /**
      * Graduate student.
      */
-    public function graduate(StudentGraduateRequest $request) : RedirectResponse
+    public function graduate(StudentGraduateRequest $request): RedirectResponse
     {
-        $this->authorize("graduate", Graduation::class);
+        $this->authorize('graduate', Graduation::class);
         $this->studentService->graduateStudents($request->except('_token'));
 
         return back()->with('success', 'Students graduated Successfully');
@@ -54,7 +56,7 @@ class GraduationController extends Controller
     /**
      * Reset user graduation.
      */
-    public function resetGraduation(User $student) : RedirectResponse
+    public function resetGraduation(User $student): RedirectResponse
     {
         $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->studentService->resetGraduation($student);

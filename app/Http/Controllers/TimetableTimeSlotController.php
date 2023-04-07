@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Timetable;
-use Illuminate\Http\Response;
-use App\Models\TimetableTimeSlot;
-use Illuminate\Http\RedirectResponse;
-use App\Services\Timetable\TimeSlotService;
 use App\Http\Requests\StoreTimetableRecordRequest;
 use App\Http\Requests\StoreTimetableTimeSlotRequest;
 use App\Http\Requests\UpdateTimetableTimeSlotRequest;
+use App\Models\Timetable;
+use App\Models\TimetableTimeSlot;
+use App\Services\Timetable\TimeSlotService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 
 class TimetableTimeSlotController extends Controller
 {
@@ -85,9 +85,9 @@ class TimetableTimeSlotController extends Controller
     }
 
     /**
-     * Add Timetable record
+     * Add Timetable record.
      *
-     * @param TimetableTimeSlot $timeSlot
+     * @param TimetableTimeSlot           $timeSlot
      * @param StoreTimetableRecordRequest $request
      */
     public function addTimetableRecord(TimetableTimeSlot $timeSlot, StoreTimetableRecordRequest $request): RedirectResponse

@@ -102,7 +102,6 @@ class CreateSuperAdmin extends Command
             $this->error("Could not create super admin \n".$th);
         }
 
-        
         return 0;
     }
 }
