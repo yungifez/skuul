@@ -5,6 +5,8 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Exam extends Model
 {
@@ -33,25 +35,13 @@ class Exam extends Model
         'publish_result'    => 'boolean',
     ];
 
-    public function semester()
+    public function semester() : BelongsTo
     {
         return $this->belongsTo(Semester::class);
     }
 
-    public function examSlots()
+    public function examSlots() : HasMany
     {
         return $this->hasMany(ExamSlot::class);
-    }
-
-    //accessor for start date
-    public function getStartDateAttribute($value)
-    {
-        return Carbon::parse($value)->format('Y-m-d');
-    }
-
-    //accessor for stop date
-    public function getStopDateAttribute($value)
-    {
-        return Carbon::parse($value)->format('Y-m-d');
     }
 }

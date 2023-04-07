@@ -35,7 +35,7 @@
             <h2 class="text-lg  font-bold">{{auth()->user()->name}}</h2>
             <p class="text-center">
                 @isset(auth()->user()->school)
-                    Academic year: {{auth()->user()->school->academicYear?->name()}} <br>
+                    Academic year: {{auth()->user()->school->academicYear?->name}} <br>
                     Semester: {{auth()->user()->school->semester?->name}}
                 @endif
             </p>

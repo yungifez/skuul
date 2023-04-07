@@ -28,9 +28,9 @@ trait MarkTabulationTrait
     public Collection $students;
 
     /**
-     * @param Collection<Subjects>  $subjects
-     * @param Collection<Students>  $students
-     * @param Collection<ExamSlots> $examSlots
+     * @param Collection<int, \App\Models\Subject>  $subjects
+     * @param Collection<int, \App\Models\Student>  $students
+     * @param Collection<int, \App\Models\ExamSlot> $examSlots
      *
      * @return Collection
      */

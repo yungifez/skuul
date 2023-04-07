@@ -4,6 +4,7 @@ namespace App\Services\AcademicYear;
 
 use App\Models\AcademicYear;
 use App\Services\School\SchoolService;
+use Illuminate\Database\Eloquent\Collection;
 
 class AcademicYearService
 {
@@ -19,10 +20,8 @@ class AcademicYearService
 
     /**
      * Get all academic years.
-     *
-     * @return \Illuminate\Database\Eloquent\Collection|static[]
      */
-    public function getAllAcademicYears()
+    public function getAllAcademicYears() : Collection|static
     {
         return AcademicYear::where('school_id', auth()->user()->school_id)->get();
     }
@@ -31,50 +30,45 @@ class AcademicYearService
      * Get academic year by Id.
      *
      *@param  int  $id
-     *
-     * @return App\Models\AcademicYear
      */
-    public function getAcademicYearById($id)
+    public function getAcademicYearById($id) : AcademicYear
     {
-        return AcademicYear::where('id', $id)->first();
+        return AcademicYear::find($id);
     }
 
     /**
      * Create academic year.
      *
      * @param array|Collection $records
-     *
-     * @return AcademicYear
      */
-    public function createAcademicYear($records)
+    public function createAcademicYear($records) : AcademicYear
     {
         $records['school_id'] = auth()->user()->school_id;
         $academicYear = AcademicYear::create($records);
+
+        return $academicYear;
     }
 
     /**
      * Update Academic Year.
      *
      * @param array|Collection $records
-     *
-     * @return void
      */
-    public function updateAcademicYear(AcademicYear $academicYear, $records)
+    public function updateAcademicYear(AcademicYear $academicYear, $records) : AcademicYear
     {
         $academicYear->start_year = $records['start_year'];
         $academicYear->stop_year = $records['stop_year'];
         $academicYear->save();
+
+        return $academicYear;
     }
 
     /**
      * Delete an academic year.
-     *
-     *
-     * @return void
      */
-    public function deleteAcademicYear(AcademicYear $academicYear)
+    public function deleteAcademicYear(AcademicYear $academicYear) : bool|null
     {
-        $academicYear->delete();
+        return $academicYear->delete();
     }
 
     /**
@@ -82,10 +76,8 @@ class AcademicYearService
      *
      * @param int $academicYearId
      * @param int $schoolId
-     *
-     * @return void
      */
-    public function setAcademicYear($academicYearId, $schoolId = null)
+    public function setAcademicYear($academicYearId, $schoolId = null) : bool
     {
         if (!isset($schoolId)) {
             $schoolId = auth()->user()->school_id;
@@ -94,6 +86,6 @@ class AcademicYearService
         $school->academic_year_id = $academicYearId;
         //set semester id to null
         $school->semester_id = null;
-        $school->save();
+        return $school->save();
     }
 }

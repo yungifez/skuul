@@ -3,6 +3,8 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class Timetable extends Pivot
@@ -18,22 +20,17 @@ class Timetable extends Pivot
         'my_class_id',
     ];
 
-    public function semester()
+    public function semester() : BelongsTo
     {
         return $this->belongsTo(Semester::class);
     }
 
-    public function MyClass()
+    public function myClass() : BelongsTo
     {
         return $this->belongsTo(MyClass::class);
     }
 
-    /**
-     * Get all of the timeSlots for the Timetable.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
-     */
-    public function timeSlots()
+    public function timeSlots() :  HasMany
     {
         return $this->hasMany(TimetableTimeSlot::class, 'timetable_id');
     }

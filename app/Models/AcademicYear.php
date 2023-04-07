@@ -2,14 +2,19 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class AcademicYear extends Model
 {
     use HasFactory;
+
+    public $name;
 
     protected $fillable = [
         'start_year',
@@ -17,22 +22,19 @@ class AcademicYear extends Model
         'school_id',
     ];
 
-    public function name()
+    protected function name() : Attribute
     {
-        return "$this->start_year - $this->stop_year";
+        return Attribute::make(
+            get: fn() => "$this->start_year - $this->stop_year",
+        );
     }
 
-    public function getNameAttribute()
-    {
-        return "$this->start_year - $this->stop_year";
-    }
-
-    public function school()
+    public function school() : BelongsTo
     {
         return $this->belongsTo(School::class);
     }
 
-    public function semesters()
+    public function semesters() : HasMany
     {
         return $this->hasMany(Semester::class);
     }
