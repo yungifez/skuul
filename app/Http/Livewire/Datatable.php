@@ -50,10 +50,10 @@ class Datatable extends Component
      *
      * @throws \App\Exceptions\InvalidClassException
      */
-    public function verifyIsModel($model) : bool
+    public function verifyIsModel($model): bool
     {
         if (!is_subclass_of($model, 'Illuminate\Database\Eloquent\Model')) {
-            throw new InvalidClassException(sprintf('Class %s is not a model', get_class( $model)), 1);
+            throw new InvalidClassException(sprintf('Class %s is not a model', get_class($model)), 1);
         }
 
         return true;

@@ -21,7 +21,7 @@ class AcademicYearService
     /**
      * Get all academic years.
      */
-    public function getAllAcademicYears() : Collection|static
+    public function getAllAcademicYears(): Collection|static
     {
         return AcademicYear::where('school_id', auth()->user()->school_id)->get();
     }
@@ -31,7 +31,7 @@ class AcademicYearService
      *
      *@param  int  $id
      */
-    public function getAcademicYearById($id) : AcademicYear
+    public function getAcademicYearById($id): AcademicYear
     {
         return AcademicYear::find($id);
     }
@@ -41,7 +41,7 @@ class AcademicYearService
      *
      * @param array|Collection $records
      */
-    public function createAcademicYear($records) : AcademicYear
+    public function createAcademicYear($records): AcademicYear
     {
         $records['school_id'] = auth()->user()->school_id;
         $academicYear = AcademicYear::create($records);
@@ -54,7 +54,7 @@ class AcademicYearService
      *
      * @param array|Collection $records
      */
-    public function updateAcademicYear(AcademicYear $academicYear, $records) : AcademicYear
+    public function updateAcademicYear(AcademicYear $academicYear, $records): AcademicYear
     {
         $academicYear->start_year = $records['start_year'];
         $academicYear->stop_year = $records['stop_year'];
@@ -66,7 +66,7 @@ class AcademicYearService
     /**
      * Delete an academic year.
      */
-    public function deleteAcademicYear(AcademicYear $academicYear) : bool|null
+    public function deleteAcademicYear(AcademicYear $academicYear): bool|null
     {
         return $academicYear->delete();
     }
@@ -77,7 +77,7 @@ class AcademicYearService
      * @param int $academicYearId
      * @param int $schoolId
      */
-    public function setAcademicYear($academicYearId, $schoolId = null) : bool
+    public function setAcademicYear($academicYearId, $schoolId = null): bool
     {
         if (!isset($schoolId)) {
             $schoolId = auth()->user()->school_id;
@@ -86,6 +86,7 @@ class AcademicYearService
         $school->academic_year_id = $academicYearId;
         //set semester id to null
         $school->semester_id = null;
+
         return $school->save();
     }
 }
