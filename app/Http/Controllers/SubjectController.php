@@ -81,7 +81,6 @@ class SubjectController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
      */
     public function destroy(Subject $subject): RedirectResponse
     {
@@ -90,13 +89,12 @@ class SubjectController extends Controller
         return back()->with('success', 'Subject deleted successfully');
     }
 
-
-    public function assignTeacherView() : View
+    public function assignTeacherView(): View
     {
         return view('pages.subject.assign-teacher');
     }
 
-    public function assignTeacher(User $teacher, AssignTeacherToSubjectRequest $request) : RedirectResponse
+    public function assignTeacher(User $teacher, AssignTeacherToSubjectRequest $request): RedirectResponse
     {
         $this->subject->assignTeacherToSubjects($teacher, $request->except('_token'));
 

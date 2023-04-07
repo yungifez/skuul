@@ -44,12 +44,12 @@ class TimetableTimeSlot extends Model
         );
     }
 
-    public function timetable() : BelongsTo
+    public function timetable(): BelongsTo
     {
         return $this->belongsTo(Timetable::class);
     }
 
-    public function weekdays() : BelongsToMany
+    public function weekdays(): BelongsToMany
     {
         //get pivot table as timetableRecords
         return $this->belongsToMany(Weekday::class)->as('timetableRecord')->withPivot(['timetable_time_slot_weekdayable_id', 'timetable_time_slot_weekdayable_type'])->withTimestamps()->using(TimetableRecord::class);
