@@ -66,11 +66,7 @@ class UserService
      */
     public function createUser($record)
     {
-        if (!isset($record['other_names'])) {
-            $record['other_names'] = null;
-        }
-
-        $record['name'] = $this->createFullName($record['first_name'], $record['last_name'], $record['other_names']);
+        $record['name'] = $this->createFullName($record['first_name'], $record['last_name'], $record['other_names'] ?? null);
         $record['school_id'] = $record['school_id'] ?? auth()->user()->school_id;
         $user = $this->createUserAction->create([
             'name'                  => $record['name'],
@@ -82,7 +78,7 @@ class UserService
             'password_confirmation' => $record['password_confirmation'],
             'address'               => $record['address'],
             'blood_group'           => $record['blood_group'],
-            'religion'              => $record['religion'],
+            'religion'              => $record['religion'] ?? null,
             'nationality'           => $record['nationality'],
             'state'                 => $record['state'],
             'city'                  => $record['city'],
