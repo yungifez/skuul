@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -35,12 +34,12 @@ class Exam extends Model
         'publish_result'    => 'boolean',
     ];
 
-    public function semester() : BelongsTo
+    public function semester(): BelongsTo
     {
         return $this->belongsTo(Semester::class);
     }
 
-    public function examSlots() : HasMany
+    public function examSlots(): HasMany
     {
         return $this->hasMany(ExamSlot::class);
     }

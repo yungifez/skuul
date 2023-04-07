@@ -20,17 +20,17 @@ class Timetable extends Pivot
         'my_class_id',
     ];
 
-    public function semester() : BelongsTo
+    public function semester(): BelongsTo
     {
         return $this->belongsTo(Semester::class);
     }
 
-    public function myClass() : BelongsTo
+    public function myClass(): BelongsTo
     {
         return $this->belongsTo(MyClass::class);
     }
 
-    public function timeSlots() :  HasMany
+    public function timeSlots(): HasMany
     {
         return $this->hasMany(TimetableTimeSlot::class, 'timetable_id');
     }

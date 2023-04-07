@@ -2,11 +2,11 @@
 
 namespace App\Services\Exam;
 
-use App\Models\Exam;
-use App\Models\User;
-use App\Models\Subject;
-use App\Models\Semester;
 use App\Exceptions\EmptyRecordsException;
+use App\Models\Exam;
+use App\Models\Semester;
+use App\Models\Subject;
+use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 
 class ExamService
