@@ -54,7 +54,7 @@ class MyClass extends Model
     /**
      * The subjects that belong to the MyClass.
      */
-    public function subjects() : HasMany
+    public function subjects(): HasMany
     {
         return $this->hasMany(Subject::class);
     }
@@ -62,7 +62,7 @@ class MyClass extends Model
     /**
      * Get the students in class.
      */
-    public function students() : Collection
+    public function students(): Collection
     {
         $students = User::students()->inSchool()->whereRelation('studentRecord.myClass', 'id', $this->id)->get();
 

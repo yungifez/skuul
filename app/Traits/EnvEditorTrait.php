@@ -10,7 +10,7 @@ trait EnvEditorTrait
     /**
      * Write a new Env value to the env file the app is currently using.
      */
-    public function setEnvironmentValue(array $values) : bool
+    public function setEnvironmentValue(array $values): bool
     {
         $envFile = app()->environmentFilePath();
         $str = file_get_contents($envFile);
