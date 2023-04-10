@@ -122,7 +122,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Get the school that owns the User.
      */
-    public function school() : BelongsTo
+    public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }

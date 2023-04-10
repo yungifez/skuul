@@ -12,7 +12,7 @@ trait InSchool
      *
      * @param \Illuminate\Database\Eloquent\Builder $query
      */
-    public function scopeInSchool($query, ?School $school = null) : Builder
+    public function scopeInSchool($query, ?School $school = null): Builder
     {
         $school == null ? $school = auth()->user()->school_id : $school->id;
 

@@ -35,7 +35,7 @@ class AccountApplication extends Model
     /**
      * Possible account application statuses.
      */
-    public function getAllStatuses() : Collection
+    public function getAllStatuses(): Collection
     {
         return collect(['approved', 'rejected', 'under review', 'user action required']);
     }

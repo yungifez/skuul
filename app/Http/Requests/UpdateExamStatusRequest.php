@@ -6,7 +6,6 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateExamStatusRequest extends FormRequest
 {
-
     protected function prepareForValidation()
     {
         if ($this->status == 'active' || $this->status == 1 || $this->status == 'on') {
