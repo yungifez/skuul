@@ -14,7 +14,7 @@ class AcademicYear extends Model
 {
     use HasFactory;
 
-    public $name;
+    protected $appends = ['name'];
 
     public AcademicYearStudentRecord $studentAcademicYearBasedRecords;
 
