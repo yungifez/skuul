@@ -16,6 +16,8 @@ class SchoolSetRequest extends FormRequest
         if (auth()->user()->hasRole('super-admin')) {
             return true;
         }
+
+        return false;
     }
 
     /**

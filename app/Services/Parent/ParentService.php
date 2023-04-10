@@ -2,11 +2,12 @@
 
 namespace App\Services\Parent;
 
-use App\Exceptions\InvalidUserException;
 use App\Models\User;
-use App\Services\Print\PrintService;
 use App\Services\User\UserService;
 use Illuminate\Support\Facades\DB;
+use App\Services\Print\PrintService;
+use App\Exceptions\InvalidUserException;
+use Illuminate\Database\Eloquent\Collection;
 
 class ParentService
 {
@@ -22,10 +23,8 @@ class ParentService
 
     /**
      * Get all parents in school.
-     *
-     * @return Illuminate\Eloquent\Database\Collection|static[]
      */
-    public function getAllParents()
+    public function getAllParents() : Collection|static
     {
         return $this->user->getUsersByRole('parent')->load('parentRecord');
     }

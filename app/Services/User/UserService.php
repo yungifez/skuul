@@ -2,9 +2,10 @@
 
 namespace App\Services\User;
 
-use App\Actions\Fortify\CreateNewUser;
-use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Models\User;
+use App\Actions\Fortify\CreateNewUser;
+use Illuminate\Database\Eloquent\Collection;
+use App\Actions\Fortify\UpdateUserProfileInformation;
 
 class UserService
 {
@@ -26,10 +27,8 @@ class UserService
 
     /**
      * Get all users.
-     *
-     * @return \Illuminate\Database\Eloquent\Collection|static[]
      */
-    public function getAllUsers()
+    public function getAllUsers() : Collection|static
     {
         return User::school()->get();
     }

@@ -6,13 +6,7 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class UpdateExamStatusRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
 
-    //prepare attribute for validation
     protected function prepareForValidation()
     {
         if ($this->status == 'active' || $this->status == 1 || $this->status == 'on') {

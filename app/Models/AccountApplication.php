@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Collection;
 use Spatie\ModelStatus\HasStatuses;
 use Spatie\Permission\Models\Role;
 
@@ -33,10 +34,8 @@ class AccountApplication extends Model
 
     /**
      * Possible account application statuses.
-     *
-     * @return void
      */
-    public function getAllStatuses()
+    public function getAllStatuses() : Collection
     {
         return collect(['approved', 'rejected', 'under review', 'user action required']);
     }

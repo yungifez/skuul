@@ -53,20 +53,16 @@ class MyClass extends Model
 
     /**
      * The subjects that belong to the MyClass.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
-    public function subjects()
+    public function subjects() : HasMany
     {
         return $this->hasMany(Subject::class);
     }
 
     /**
      * Get the students in class.
-     *
-     * @return Collection
      */
-    public function students()
+    public function students() : Collection
     {
         $students = User::students()->inSchool()->whereRelation('studentRecord.myClass', 'id', $this->id)->get();
 
