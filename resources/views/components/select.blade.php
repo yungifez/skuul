@@ -27,9 +27,9 @@
                                         <div class="flex justify-center items-center m-1 font-medium py-1 px-2  rounded-full text-inherit bg-inherit border border-gray-400 ">
                                             <div class="text-xs font-normal leading-none max-w-full flex-initial x-model="options[option]" x-text="options[option].text"></div>
                                             <div class="flex flex-auto flex-row-reverse">
-                                                <div x-on:click="remove(index,option)">
-                                                    <i class="fa fa-x mx-2"></i>
-                                                </div>
+                                                <button x-on:click="remove(index,option)">
+                                                    <i class="fa fa-x mx-2 "></i>
+                                                </button>
                                             </div>
                                         </div>
                                     </template>

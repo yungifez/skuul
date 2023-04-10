@@ -2,6 +2,7 @@
 
 namespace App\Services\Subject;
 
+use App\Exceptions\ResourceNotEmptyException;
 use App\Models\Subject;
 use App\Models\User;
 use App\Services\User\UserService;
@@ -48,15 +49,14 @@ class SubjectService
      */
     public function createSubject($data)
     {
-        $subject = Subject::firstOrCreate([
-            'name'        => $data['name'],
+        $subject = Subject::firstOrCreate(['name' => $data['name']], [
             'short_name'  => $data['short_name'],
             'school_id'   => auth()->user()->school_id,
             'my_class_id' => $data['my_class_id'],
         ]);
 
         if (!$subject->wasRecentlyCreated) {
-            return session()->flash('danger', 'Subject already exists or something went wrong');
+            throw new ResourceNotEmptyException('Subject already exists or something went wrong');
         }
 
         if (isset($data['teachers'])) {
