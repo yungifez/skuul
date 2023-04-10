@@ -89,8 +89,8 @@ class ParentService
      * Add student as child of parent or remove student from parent.
      *
      * @param \App\Models\User $parent
-     * @param int $student 
-     * @param bool $assign
+     * @param int              $student
+     * @param bool             $assign
      *
      * @throws InvalidUserException
      *
@@ -104,7 +104,7 @@ class ParentService
 
             return;
         }
-        
+
         if ($assign == false) {
             $parent->parentRecord->students()->detach($student);
         } else {
