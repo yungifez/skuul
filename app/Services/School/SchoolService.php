@@ -49,7 +49,7 @@ class SchoolService
      *
      * @param array $record
      *
-     * @return App\Models\School
+     * @return \App\Models\School
      */
     public function createSchool($record)
     {
@@ -63,7 +63,7 @@ class SchoolService
      * Update school.
      *
      *
-     * @return App\Models\School
+     * @return \App\Models\School
      */
     public function updateSchool(School $school, $records)
     {
@@ -80,7 +80,7 @@ class SchoolService
     /**
      * Set authenticated user's school.
      *
-     * @param int $id
+     * @param \App\Models\School
      *
      * @return void
      */

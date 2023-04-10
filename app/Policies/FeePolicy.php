@@ -60,7 +60,7 @@ class FeePolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Fee $fee): bool
+    public function restore(User $user, Fee $fee)
     {
         //
     }
@@ -68,7 +68,7 @@ class FeePolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Fee $fee): bool
+    public function forceDelete(User $user, Fee $fee)
     {
         //
     }

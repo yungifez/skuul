@@ -30,7 +30,7 @@ class AccountApplicationService
     /**
      * Get all open applicants application records in the school.
      *
-     * @return User
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getAllOpenApplicantsAndApplicationRecords()
     {
@@ -46,7 +46,7 @@ class AccountApplicationService
     /**
      * Get all  applicants application records in the school.
      *
-     * @return User
+     * @return \Illuminate\Database\Eloquent\Collection
      */
     public function getAllRejectedApplicantsAndApplicationRecords()
     {
@@ -63,8 +63,7 @@ class AccountApplicationService
 
     /**
      * Create application record.
-     *
-     *
+     * 
      * @return AccountApplication
      */
     public function createAccountApplication(int $userId, int $roleId)

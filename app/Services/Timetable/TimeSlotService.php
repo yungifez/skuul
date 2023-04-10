@@ -10,7 +10,6 @@ class TimeSlotService
     /**
      * Create timetable time slot.
      *
-     * @param Timetabke $timetable
      * @param mixed     $data
      *
      * @return void
@@ -24,6 +23,12 @@ class TimeSlotService
         ]);
     }
 
+    /**
+     * Delete Timetable
+     *
+     * @param TimetableTimeSlot $timeSlot
+     * @return void
+     */
     public function deleteTimeSlot(TimetableTimeSlot $timeSlot)
     {
         $timeSlot->delete();

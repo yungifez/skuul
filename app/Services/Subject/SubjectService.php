@@ -114,7 +114,7 @@ class SubjectService
     /**
      * Assign a teacher to a list of subjects.
      *
-     * @param array!mixed $records Array or collection of ids
+     * @param array|mixed $records Array or collection of ids
      *
      * @return void
      */

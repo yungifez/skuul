@@ -30,6 +30,7 @@ class UserService
      */
     public function getAllUsers(): Collection|static
     {
+        // @phpstan-ignore-next-line
         return User::school()->get();
     }
 
@@ -160,9 +161,6 @@ class UserService
 
     /**
      * verify user role or return 404.
-     *
-     *
-     * @return response
      */
     public function verifyUserIsOfRoleElseNotFound(User $user, string $role)
     {
