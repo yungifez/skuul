@@ -49,7 +49,7 @@ class SubjectService
      */
     public function createSubject($data)
     {
-        $subject = Subject::firstOrCreate([ 'name' => $data['name'],],[     
+        $subject = Subject::firstOrCreate(['name' => $data['name']], [
             'short_name'  => $data['short_name'],
             'school_id'   => auth()->user()->school_id,
             'my_class_id' => $data['my_class_id'],
