@@ -2,6 +2,7 @@
 
 namespace App\Http\Livewire;
 
+use App\Exceptions\InvalidClassException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Str;
@@ -47,17 +48,15 @@ class Datatable extends Component
      *
      * @param object $model
      *
-     * @throws Exception
-     *
-     * @return bool
+     * @throws \App\Exceptions\InvalidClassException
      */
-    public function verifyIsModel($model)
+    public function verifyIsModel($model): bool
     {
         if (!is_subclass_of($model, 'Illuminate\Database\Eloquent\Model')) {
-            throw new \Exception(sprintf('Class %s is not a model', $model), 1);
+            throw new InvalidClassException(sprintf('Class %s is not a model', get_class($model)), 1);
         }
 
-        return 1;
+        return true;
     }
 
     public function BuildPagination()
@@ -98,7 +97,7 @@ class Datatable extends Component
                     $query = call_user_func_array([$query, 'orWhereRelation'], [$column['relation'], $column['columnName'] ?? $column['property'], 'LIKE', "%$this->search%"]);
                 } else {
                     //filter column
-                    $query = call_user_func_array([$query, 'orWhere'], [$table.'.'.($column['columnName'] ?? $column['property']) ?? 'id', 'LIKE', "%$this->search%"]);
+                    $query = call_user_func_array([$query, 'orWhere'], [$table.'.'.($column['columnName'] ?? $column['property']), 'LIKE', "%$this->search%"]);
                 }
             }
 

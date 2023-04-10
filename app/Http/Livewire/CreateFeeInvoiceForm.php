@@ -61,7 +61,6 @@ class CreateFeeInvoiceForm extends Component
             $this->students = $this->sections->find($this->section)?->students();
             if ($this->students != null && $this->students->isNotEmpty()) {
                 $this->student = $this->students->first()->id;
-                $this->updatedStudent();
             }
         } else {
             $this->students = null;

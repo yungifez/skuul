@@ -6,6 +6,7 @@ use App\Exceptions\InvalidUserException;
 use App\Models\User;
 use App\Services\Print\PrintService;
 use App\Services\User\UserService;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 class ParentService
@@ -22,10 +23,8 @@ class ParentService
 
     /**
      * Get all parents in school.
-     *
-     * @return Illuminate\Eloquent\Database\Collection|static[]
      */
-    public function getAllParents()
+    public function getAllParents(): Collection|static
     {
         return $this->user->getUsersByRole('parent')->load('parentRecord');
     }
@@ -33,7 +32,7 @@ class ParentService
     /**
      * Create a new parent.
      *
-     * @param collection $record
+     * @param array|collection $record
      *
      * @return User
      */

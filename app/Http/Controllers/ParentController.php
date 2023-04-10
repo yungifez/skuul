@@ -47,7 +47,7 @@ class ParentController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $this->authorize('create', [User::class, 'parent']);
-        $this->parentService->createParent($request);
+        $this->parentService->createParent($request->except('_token'));
 
         return back()->with('success', 'Parent Created Successfully');
     }

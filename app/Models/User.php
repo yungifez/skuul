@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -52,7 +53,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * The attributes that should be hidden for serialization.
      *
-     * @var array
+     * @var array<int, string>
      */
     protected $hidden = [
         'password',
@@ -64,7 +65,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * The attributes that should be cast.
      *
-     * @var array
+     * @var array<string, string>
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
@@ -94,9 +95,9 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function scopeApplicants($query)
     {
-        return $query->role('applicant')->whereHas('accountApplication', function (Builder $query) {
+        return $query->whereHas('accountApplication', function (Builder $query) {
             $query->otherCurrentStatus('rejected');
-        });
+        })->role('applicant');
     }
 
     /**
@@ -120,10 +121,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Get the school that owns the User.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function school()
+    public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }

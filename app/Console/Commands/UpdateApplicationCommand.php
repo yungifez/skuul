@@ -40,6 +40,8 @@ class UpdateApplicationCommand extends Command
         } catch (\Throwable $th) {
             $this->error("Something went wrong!. Try updating manually. If error persists feel free to open an issue \n \n Exception -> ".$th);
         }
+
+        return 0;
     }
 
     private function intro()

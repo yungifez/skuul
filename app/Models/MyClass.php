@@ -2,12 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Collection;
 
 class MyClass extends Model
 {
@@ -53,20 +53,16 @@ class MyClass extends Model
 
     /**
      * The subjects that belong to the MyClass.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
-    public function subjects()
+    public function subjects(): HasMany
     {
         return $this->hasMany(Subject::class);
     }
 
     /**
      * Get the students in class.
-     *
-     * @return Collection
      */
-    public function students()
+    public function students(): Collection
     {
         $students = User::students()->inSchool()->whereRelation('studentRecord.myClass', 'id', $this->id)->get();
 

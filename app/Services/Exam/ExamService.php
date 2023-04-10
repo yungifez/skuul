@@ -7,6 +7,7 @@ use App\Models\Exam;
 use App\Models\Semester;
 use App\Models\Subject;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 
 class ExamService
 {

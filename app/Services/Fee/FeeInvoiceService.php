@@ -103,7 +103,7 @@ class FeeInvoiceService
      * @param string $view
      * @param array  $data
      *
-     * @return void
+     * @return \Illuminate\Http\Response
      */
     public function printFeeInvoice(string $name, string $view, array $data)
     {

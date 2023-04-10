@@ -23,8 +23,6 @@ class SubjectController extends Controller
 
     /**
      * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
      */
     public function index(): View
     {
@@ -33,8 +31,6 @@ class SubjectController extends Controller
 
     /**
      * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
      */
     public function create(): View
     {
@@ -43,9 +39,6 @@ class SubjectController extends Controller
 
     /**
      * Store a newly created resource in storage.
-     *
-     *
-     * @return \Illuminate\Http\Response
      */
     public function store(SubjectStoreRequest $request): RedirectResponse
     {
@@ -66,9 +59,6 @@ class SubjectController extends Controller
 
     /**
      * Show the form for editing the specified resource.
-     *
-     *
-     * @return \Illuminate\Http\Response
      */
     public function edit(Subject $subject): View
     {
@@ -79,9 +69,6 @@ class SubjectController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     *
-     * @return \Illuminate\Http\Response
      */
     public function update(SubjectStoreRequest $request, Subject $subject): RedirectResponse
     {
@@ -94,9 +81,6 @@ class SubjectController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
-     *
-     * @return \Illuminate\Http\Response
      */
     public function destroy(Subject $subject): RedirectResponse
     {
@@ -105,12 +89,12 @@ class SubjectController extends Controller
         return back()->with('success', 'Subject deleted successfully');
     }
 
-    public function assignTeacherView()
+    public function assignTeacherView(): View
     {
         return view('pages.subject.assign-teacher');
     }
 
-    public function assignTeacher(User $teacher, AssignTeacherToSubjectRequest $request)
+    public function assignTeacher(User $teacher, AssignTeacherToSubjectRequest $request): RedirectResponse
     {
         $this->subject->assignTeacherToSubjects($teacher, $request->except('_token'));
 

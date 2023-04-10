@@ -11,20 +11,7 @@ class PromotionPolicy
     use HandlesAuthorization;
 
     /**
-     * Create a new policy instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        //
-    }
-
-    /**
      * Determine if the given user can view the promotion.
-     *
-     *
-     * @return bool
      */
     public function viewAny(User $user)
     {
@@ -35,9 +22,6 @@ class PromotionPolicy
 
     /**
      * Determine if the given user can create promotions.
-     *
-     *
-     * @return bool
      */
     public function promote(User $user)
     {
@@ -48,9 +32,6 @@ class PromotionPolicy
 
     /**
      * Determine if the given user can reset promotion.
-     *
-     *
-     * @return bool
      */
     public function reset(User $user)
     {
@@ -61,9 +42,6 @@ class PromotionPolicy
 
     /**
      * Determine if the given user can view the promotion.
-     *
-     *
-     * @return bool
      */
     public function view(User $user, Promotion $promotion)
     {
