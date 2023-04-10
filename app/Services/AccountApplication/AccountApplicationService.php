@@ -63,7 +63,7 @@ class AccountApplicationService
 
     /**
      * Create application record.
-     * 
+     *
      * @return AccountApplication
      */
     public function createAccountApplication(int $userId, int $roleId)
