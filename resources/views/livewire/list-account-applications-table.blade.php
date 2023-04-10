@@ -10,6 +10,7 @@
         ]"
         :columns="[
             ['property' => 'name'],
+            ['property' => 'locked', 'name' => 'Locked' , 'type' => 'boolean-switch', 'action' => 'user.lock-account', 'field' => 'lock', 'true-statement' => 'Locked', 'false-statement' => 'Unlocked',  'can' => 'lock user'],
             ['type' => 'dropdown', 'name' => 'actions','links' => [
                 ['href' => 'account-applications.edit', 'text' => 'Edit profile', 'icon' => 'fas fa-cog'],
                 ['href' => 'account-applications.show', 'text' => 'View profile', 'icon' => 'fas fa-eye'],
