@@ -42,7 +42,7 @@ class RegistrationController extends Controller
 
         $accountApplication = $this->accountApplicationService->createAccountApplication($user->id, $request->role);
 
-        Auth::login($user); 
+        Auth::login($user);
 
         $status = 'Application Received';
         $reason = 'Application has been received, we would reach out to you for further information';
