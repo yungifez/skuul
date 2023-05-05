@@ -6,6 +6,7 @@ use App\Events\AccountStatusChanged;
 use App\Http\Requests\RegistrationRequest;
 use App\Services\AccountApplication\AccountApplicationService;
 use App\Services\User\UserService;
+use Auth;
 
 class RegistrationController extends Controller
 {
@@ -40,6 +41,8 @@ class RegistrationController extends Controller
         $user->assignRole('applicant');
 
         $accountApplication = $this->accountApplicationService->createAccountApplication($user->id, $request->role);
+
+        Auth::login($user); 
 
         $status = 'Application Received';
         $reason = 'Application has been received, we would reach out to you for further information';
