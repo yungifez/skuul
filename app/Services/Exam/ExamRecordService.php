@@ -30,7 +30,7 @@ class ExamRecordService
      * Get all exam records for all students in a class section for a semester.
      *
      *
-     * @return App\Modles\ExamRecord
+     * @return \App\Modles\ExamRecord
      */
     public function getAllExamRecordsInSectionAndSubject(int $section, int $subject)
     {
@@ -41,7 +41,7 @@ class ExamRecordService
      * Get all exam records in section.
      *
      *
-     * @return App\Models\ExamRecord
+     * @return \App\Models\ExamRecord
      */
     public function getAllExamRecordsInSection(int $section)
     {
@@ -52,7 +52,7 @@ class ExamRecordService
      * Get all exam records for a subject.
      *
      *
-     * @return App\Models\ExamRecord
+     * @return \App\Models\ExamRecord
      */
     public function getAllUserExamRecordInExamForSubject(Exam $exam, int $user, int $subject)
     {
@@ -68,7 +68,7 @@ class ExamRecordService
      * @param int $user
      * @param int $subject
      *
-     * @return App\Models\ExamRecord
+     * @return \App\Models\ExamRecord
      */
     public function getAllUserExamRecordInSemesterForSubject(Semester $semester, $user, $subject)
     {
@@ -92,7 +92,7 @@ class ExamRecordService
      *
      * @param Semester $semester
      *
-     * @return App\Models\ExamRecord
+     * @return \App\Models\ExamRecord
      */
     public function getAllUserExamRecordInAcademicYear(AcademicYear $academicYear, int $user)
     {
@@ -108,7 +108,7 @@ class ExamRecordService
      * Get all user exam records for user in a semester.
      *
      *
-     * @return App\Models\ExamRecord
+     * @return \App\Models\ExamRecord
      */
     public function getAllUserExamRecordInSemester(Semester $semester, int $user)
     {

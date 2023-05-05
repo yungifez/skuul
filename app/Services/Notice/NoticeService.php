@@ -33,7 +33,7 @@ class NoticeService
     /**
      * Store notice.
      *
-     * @return App\Model\Notice
+     * @return \App\Models\Notice
      */
     public function storeNotice(array $data)
     {
@@ -57,7 +57,7 @@ class NoticeService
     /**
      * Delete notice.
      *
-     * @param App\Models\Notice $notice
+     * @param \App\Models\Notice $notice
      *
      * @return void
      */

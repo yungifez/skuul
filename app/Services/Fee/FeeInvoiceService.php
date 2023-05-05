@@ -77,7 +77,7 @@ class FeeInvoiceService
      *
      * @param int $schoolId
      *
-     * @return void
+     * @return string
      */
     public function generateInvoiceNumber(int $schoolId = null)
     {
@@ -85,7 +85,7 @@ class FeeInvoiceService
         $schoolInitials != null && $schoolInitials .= '-';
 
         do {
-            $invoiceNumber = "Fee-Invoice-$schoolInitials".\mt_rand('100000000', '999999999');
+            $invoiceNumber = "Fee-Invoice-$schoolInitials".\mt_rand(100_000_000, 999_999_999);
             if (FeeInvoice::where('name', $invoiceNumber)->count() <= 0) {
                 $uniqueAdmissionNumberFound = true;
             } else {

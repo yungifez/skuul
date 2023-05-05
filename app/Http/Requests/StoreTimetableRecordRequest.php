@@ -12,12 +12,6 @@ class StoreTimetableRecordRequest extends FormRequest
      *
      * @return bool
      */
-
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array
-     */
     public function authorize()
     {
         if (is_null($this->input('type')) || !in_array($this->input('type'), ['subject', 'customTimetableItem'])) {
@@ -27,6 +21,11 @@ class StoreTimetableRecordRequest extends FormRequest
         }
     }
 
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array
+     */
     public function rules()
     {
         if ($this->input('type') == 'subject') {

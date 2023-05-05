@@ -24,7 +24,7 @@ class CreateNewUser implements CreatesNewUsers
         Validator::make($input, [
             'name'     => ['required', 'string', 'max:511'],
             'email'    => ['required', 'string', 'email:rfc,dns', 'max:511', 'unique:users'],
-            'photo'    => ['nullable', 'mimes:jpg,jpeg,png', 'max:1024'],
+            'photo'    => ['nullable', 'mimes:jpg,jpeg,png', 'max:3000'],
             'password' => $this->passwordRules(),
             // 'terms' => Jetstream::hasTermsAndPrivacyPolicyFeature() ? ['required', 'accepted'] : '',
             'school_id'   => ['required', 'exists:schools,id'],

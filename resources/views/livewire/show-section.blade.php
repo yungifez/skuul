@@ -14,7 +14,7 @@
             ['property' => 'name', ] , 
             ['property' => 'email', ] , 
             ['type' => 'dropdown', 'name' => 'actions','links' => [
-                ['href' => 'students.edit', 'text' => 'Settings', 'icon' => 'fas fa-cog', ],
+                ['href' => 'students.edit', 'text' => 'Manage Profile', 'icon' => 'fas fa-pen', ],
                 ['href' => 'students.show', 'text' => 'View', 'icon' => 'fas fa-eye',  ],
             ]],
             ['type' => 'delete', 'name' => 'Delete', 'action' => 'students.destroy',  ]

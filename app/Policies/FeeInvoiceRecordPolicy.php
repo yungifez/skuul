@@ -60,7 +60,7 @@ class FeeInvoiceRecordPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, FeeInvoiceRecord $feeInvoiceRecord): bool
+    public function restore(User $user, FeeInvoiceRecord $feeInvoiceRecord)
     {
         //
     }
@@ -68,7 +68,7 @@ class FeeInvoiceRecordPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, FeeInvoiceRecord $feeInvoiceRecord): bool
+    public function forceDelete(User $user, FeeInvoiceRecord $feeInvoiceRecord)
     {
         //
     }
