@@ -16,8 +16,6 @@ class AcademicYear extends Model
 
     protected $appends = ['name'];
 
-    public AcademicYearStudentRecord $studentAcademicYearBasedRecords;
-
     protected $fillable = [
         'start_year',
         'stop_year',
