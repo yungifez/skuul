@@ -15,12 +15,10 @@
             <h2 class="card-title">Students To Include</h2>
         </div>
         <div class="card-body">
+            <x-loading-spinner wire:target="class"/>
+            <x-loading-spinner wire:target="section"/>
+            <x-loading-spinner wire:target="addStudent"/>
             <div class="md:grid md:grid-cols-3 gap-4">
-                <x-loading-spinner wire:target="class"/>
-                <x-loading-spinner wire:target="section"/>
-                <x-loading-spinner wire:target="addStudent"/>
-
-
                 <x-select id="classes" name="" label="Class" wire:model="class">
                     @foreach ($classes as $item)
                         <option value="{{$item->id}}">{{$item->name}}</option>
@@ -106,7 +104,7 @@
                         @endforeach
                     @endisset
                 </x-select>
-                <x-button type="button" label="Add Fee(s)" wire:click="addFee({{$feeCategory}}, {{$fee}})" class="w-full md:w-2/3" wire:loading.attr="disabled"/>
+                <x-button type="button" label="Add Fee(s)" wire:click="addFee({{$feeCategory}}, {{$fee}})" class="w-full md:w-2/3" wire:loading.attr="disabled" />
             </div>
             @if (!$addedFees->isEmpty())
                 <div class="overflow-scroll beautify-scrollbar my-5">

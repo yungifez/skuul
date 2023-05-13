@@ -36,8 +36,12 @@
         <x-loading-spinner />
         <div wire:loading.remove.delay>
             @if (isset($students))
-                @if ($students->count() > 0)
-                    <form action="{{route('students.promote')}}" method="post" class=" my-3 p-3">
+            @if ($students->count() > 0)
+            <form action="{{route('students.promote')}}" method="post" class=" my-3 p-3">
+                <div class="grid grid-cols-1 lg:grid-cols-2 p-4 gap-4">
+                    <x-button label="Set All To Promote" @click="setAllSelectsToPromote()" type="button"/>
+                    <x-button label="Set All To Don't Promote" @click="setAllSelectsToDontPromote()" type="button"/>
+                </div>
                         <input type="hidden" name="old_class_id" value="{{$oldClass}}">
                         <input type="hidden" name="old_section_id" value="{{$oldSection}}">
                         <input type="hidden" name="new_class_id" value="{{$newClass}}">    
@@ -53,7 +57,7 @@
                                         <tr>
                                             <td class="border p-2 whitespace-nowrap">{{$student->name}}</td>
                                             <td class="border p-2">
-                                                <x-select name="student_id[]" id="student-{{$student->id}}">
+                                                <x-select name="student_id[]" id="student-{{$student->id}}" class="promote">
                                                     <option value="{{$student['id']}}">Promote</option>
                                                     <option value="">Dont promote</option>
                                                 </x-select>
@@ -75,3 +79,24 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+
+<script>
+    function setAllSelectsToDontPromote() {
+        let selects = document.getElementsByClassName('promote');
+        for (let i = 0; i < selects.length; i++) {
+            selects[i].selectedIndex = 1;
+        }
+    }
+
+    function setAllSelectsToPromote() {
+        let selects = document.getElementsByClassName('promote');
+        for (let i = 0; i < selects.length; i++) {
+            selects[i].selectedIndex = 0;
+        }
+    }
+</script>
+
+@endpush
+

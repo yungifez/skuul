@@ -25,6 +25,10 @@
                 @if ($students->count() > 0)
                     <form ction="{{route('students.graduate')}}" method="post" class=" my-3 p-3">
                         <div class="overflow-scroll beautify-scrollbar w-full">
+                            <div class="grid grid-cols-1 lg:grid-cols-2 p-4 gap-4">
+                                <x-button label="Set All To Graduate" @click="setAllSelectsToGraduate()" type="button"/>
+                                <x-button label="Set All To Don't Graduate" @click="setAllSelectsToDontGraduate()" type="button"/>
+                            </div>
                             <table class="border w-full">
                                 <thead>
                                     <th class="p-2 border">Student</th>
@@ -35,7 +39,7 @@
                                         <tr>
                                             <td class="border p-2 whitespace-nowrap">{{$student->name}}</td>
                                             <td class="border p-2">
-                                                <x-select name="student_id[]" id="student-{{$student->id}}" >
+                                                <x-select name="student_id[]" id="student-{{$student->id}}" class="graduate">
                                                     <option value="{{$student['id']}}">Graduate</option>
                                                     <option value="">Dont graduate</option>
                                                 </x-select>
@@ -46,7 +50,7 @@
                             </table>
                         </div>
                         @csrf
-                        <x-button label="Promote students" class="w-full md:w-3/12 " icon="fas fa-key" type="submit"/>
+                        <x-button label="Graduate students" class="w-full md:w-3/12 " icon="fas fa-key" type="submit"/>
                     </form> 
                 @else
                     <x-alert title="Danger" id="{{Str::random('10')}}" class="my-2" wire:key="{{Str::random('10')}}">
@@ -57,4 +61,24 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+
+<script>
+    function setAllSelectsToDontGraduate() {
+        let selects = document.getElementsByClassName('graduate');
+        for (let i = 0; i < selects.length; i++) {
+            selects[i].selectedIndex = 1;
+        }
+    }
+
+    function setAllSelectsToGraduate() {
+        let selects = document.getElementsByClassName('graduate');
+        for (let i = 0; i < selects.length; i++) {
+            selects[i].selectedIndex = 0;
+        }
+    }
+</script>
+
+@endpush
 
