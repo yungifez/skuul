@@ -6,6 +6,7 @@ use App\Exceptions\ResourceNotEmptyException;
 use App\Models\School;
 use App\Services\User\UserService;
 use Illuminate\Support\Str;
+use Storage;
 
 class SchoolService
 {
@@ -54,6 +55,12 @@ class SchoolService
     public function createSchool($record)
     {
         $record['code'] = $this->generateSchoolCode();
+
+        if (isset($record['logo'])) {
+            $record['logo_path'] = Storage::disk('public')->put('schools', $record['logo']);
+            unset($record['logo']);
+        }
+
         $school = School::create($record);
 
         return $school;
@@ -62,16 +69,20 @@ class SchoolService
     /**
      * Update school.
      *
-     *
      * @return \App\Models\School
      */
-    public function updateSchool(School $school, $records)
+    public function updateSchool(School $school, $record)
     {
-        $school->name = $records['name'];
-        $school->address = $records['address'];
-        $school->initials = $records['initials'];
-        $school->phone = $records['phone'];
-        $school->email = $records['email'];
+        $school->name = $record['name'];
+        $school->address = $record['address'];
+        $school->initials = $record['initials'];
+        $school->phone = $record['phone'];
+        $school->email = $record['email'];
+
+        if (isset($record['logo'])) {
+            $school->logo_path = Storage::disk('public')->put('schools', $record['logo']);
+        }
+
         $school->save();
 
         return $school;

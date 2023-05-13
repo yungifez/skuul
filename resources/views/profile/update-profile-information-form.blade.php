@@ -48,7 +48,9 @@
                         </x-button>
                     @endif
                 </div>
-                <x-jet-input-error for="photo" class="mt-2" />
+                @error('photo')
+                    <p class="text-red-700 dark:text-red-500 my-2">{{$message}}</p>
+                @enderror
             </div>
         @endif
         <div class="md:grid grid-cols-12 gap-4">

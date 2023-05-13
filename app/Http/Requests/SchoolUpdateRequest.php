@@ -7,12 +7,6 @@ use Illuminate\Foundation\Http\FormRequest;
 class SchoolUpdateRequest extends FormRequest
 {
     /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
-
-    /**
      * Get the validation rules that apply to the request.
      *
      * @return array
@@ -25,6 +19,7 @@ class SchoolUpdateRequest extends FormRequest
             'phone'    => 'nullable|max:255|min:5|regex:/^([0-9\s\-\+\(\)]*)$/',
             'email'    => 'nullable|email|max:255',
             'initials' => 'nullable|string|max:10',
+            'logo'     => ['nullable', 'image', 'max:3000'],
         ];
     }
 }
