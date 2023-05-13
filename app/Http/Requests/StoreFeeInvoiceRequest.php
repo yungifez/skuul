@@ -41,7 +41,7 @@ class StoreFeeInvoiceRequest extends FormRequest
             'records.required'          => 'No Fees added to this invoice',
             'records.*.amount.required' => 'Amount not set',
             'records.*.waiver.required' => 'Waiver not set',
-            'records.*.fine.required' => 'Fine not set',
+            'records.*.fine.required'   => 'Fine not set',
             'records.*.amount.integer'  => 'Amount must be a number',
             'records.*.amount.min'      => 'Amount must be greater than or equeal to 1',
             'records.*.waiver.integer'  => 'Waiver must be a number',
