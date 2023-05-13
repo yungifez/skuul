@@ -29,8 +29,8 @@ class StoreFeeInvoiceRequest extends FormRequest
             'records'          => 'required|array',
             'records.*.fee_id' => 'required|integer|exists:fees,id',
             'records.*.amount' => 'required|integer|min:1',
-            'records.*.waiver' => 'nullable|integer|min:0|lt:records.*.amount',
-            'records.*.fine'   => 'nullable|integer|min:0',
+            'records.*.waiver' => 'required|integer|min:0|lt:records.*.amount',
+            'records.*.fine'   => 'required|integer|min:0',
         ];
     }
 
@@ -40,6 +40,8 @@ class StoreFeeInvoiceRequest extends FormRequest
             'users.required'            => 'No users added to this invoice',
             'records.required'          => 'No Fees added to this invoice',
             'records.*.amount.required' => 'Amount not set',
+            'records.*.waiver.required' => 'Waiver not set',
+            'records.*.fine.required' => 'Fine not set',
             'records.*.amount.integer'  => 'Amount must be a number',
             'records.*.amount.min'      => 'Amount must be greater than or equeal to 1',
             'records.*.waiver.integer'  => 'Waiver must be a number',
