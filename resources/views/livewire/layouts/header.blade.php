@@ -5,7 +5,7 @@
             <i class="fa fa-bars" aria-hidden="true"></i>
         </button>
         <a href="{{route('home')}}" class="hidden md:flex items-center justify-center" aria-label="Home">
-            <img src="{{asset(config('app.logo'))}}" alt="" class="rounded-full w-12 h-12 border border-gray-200 shadow-lg">
+            <img src="{{asset(auth()->user()->school->logoURL ?? config('app.logo'))}}" alt="" class="rounded-full w-12 h-12 border border-gray-200 shadow-lg">
             <h1 class="text-lg font-semibold mx-3 text-center capitalize">{{config('app.name')}}</h1>
         </a>
     </div>

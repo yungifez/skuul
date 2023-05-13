@@ -71,7 +71,7 @@
 <body>
     <header>
         <div class="logo-wrapper">
-            <img src="{{public_path().'/'.config('app.logo')}}" alt="" class="logo" >
+            <img src="{{public_path().'/'.(auth()->user()->school->logoURL ?? config('app.logo'))}}" alt="" class="logo" >
         </div>
         <div class="site-identity">
             <h1 class=" ">{{auth()->user()->school->name}}</h1>

@@ -3,7 +3,7 @@
         <h4 class="card-title">Edit {{$school->name}}</h4>
     </div>
     <div class="card-body">
-        <form action="{{route('schools.update', $school->id )}}" method="POST" class="md:w-6/12">
+        <form action="{{route('schools.update', $school->id )}}" method="POST" class="md:w-6/12" enctype="multipart/form-data">
             <x-display-validation-errors />
             <p class="text-secondary">
                 {{__('All fields marked * are required')}}
@@ -15,6 +15,8 @@
             <x-input id="initials" name="initials" placeholder="Enter school initials" label="School Initials" value="{{$school->initials}}" />   
             <x-input id="phone" name="phone" type="tel" placeholder="Enter school phone number" label="School Phone Number" value="{{ $school->phone}}"  />
             <x-input id="email" name="email" type="email" placeholder="Enter school email" label="School Email" value="{{ $school->email}}"  />
+            <x-input name="logo" id="logo" type="file" />
+
             @csrf
             @method('PUT')
             <div class="w-full flex ">

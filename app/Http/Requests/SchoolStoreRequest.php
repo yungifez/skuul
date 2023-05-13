@@ -19,6 +19,7 @@ class SchoolStoreRequest extends FormRequest
             'phone'    => 'nullable|max:255|regex:/^([0-9\s\-\+\(\)]*)$/|min:5',
             'email'    => 'nullable|email|max:511',
             'initials' => 'nullable|max:10|string',
+            'logo'    => ['nullable', 'image', 'max:3000'],
         ];
     }
 }
