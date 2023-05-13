@@ -65,6 +65,7 @@ class UpdateApplicationCommand extends Command
 
     public function fetchLatestCode()
     {
+        $oldVersion = shell_exec('git reset --hard');
         $oldVersion = shell_exec('git describe --tags');
 
         $oldVersionAsArray = $this->splitVersionNumber($oldVersion);
