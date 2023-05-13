@@ -42,7 +42,7 @@ cp .env.example .env
 ```
 * Install node dependencies
 ```shell
-cp  npm install
+npm install
 ```
 * Build NPM assets
 ```shell
