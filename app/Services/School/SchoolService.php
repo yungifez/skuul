@@ -67,7 +67,6 @@ class SchoolService
     }
 
     /**
-     * 
      * Update school.
      *
      * @return \App\Models\School
@@ -83,7 +82,7 @@ class SchoolService
         if (isset($record['logo'])) {
             $school->logo_path = Storage::disk('public')->put('schools', $record['logo']);
         }
-        
+
         $school->save();
 
         return $school;
