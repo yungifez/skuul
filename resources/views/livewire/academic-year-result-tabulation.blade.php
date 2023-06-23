@@ -23,14 +23,14 @@
                     @endisset
                 </x-select>
             </div>
-            <x-button label="View records" theme="primary" type="submit" class="w-full md:w-5/12"/>
+            <x-button label="View records" theme="primary" type="submit" class="w-full"/>
         </form>
         {{-- table to display tabulation --}}
         @if ($createdTabulation === true)
             @livewire('mark-tabulation', ['tabulatedRecords' => $tabulatedRecords, 'totalMarksAttainableInEachSubject' => $totalMarksAttainableInEachSubject, 'subjects' => $subjects, 'title' => $title ?? ''],key(str()->random()))
                 <x-button label="Print" theme="primary" icon="fas fa-download" wire:click="$emit('print')" class="w-full md:w-3/12" />
         @elseif($createdTabulation === false)
-            <p>Something went wrong. Make sure there are subjects in this class</p>
+            <p class="text-center my-3 text-red-500 dark:text-red-300 ">Something went wrong. Make sure there are subjects in this class</p>
         @endisset
     </div>
 </div>
