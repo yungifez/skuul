@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\LockUserAccountRequest;
 use App\Models\User;
 use App\Services\User\UserService;
-use Illuminate\Http\Request;
 
 class LockUserAccountController extends Controller
 {
