@@ -58,8 +58,8 @@
         @if ($preparedResults == true)
             @isset($exams)
                 @foreach ($exams as $exam)
-                <h3 class="md:text-xl font-bold text-center my-2">{{$studentName}}'s result in {{$exam->name}}</h3>
-                    @if (!$exam->examSlots  ->isEmpty())
+                @if (!$exam->examSlots->isEmpty())
+                    <h3 class="md:text-xl font-bold text-center my-2">{{$studentName}}'s result in {{$exam->name}}</h3>
                         <div class="overflow-scroll beautify-scrollbar">
                             <table class="w-full " style="white-space: nowrap">
                                 <tr>
@@ -85,9 +85,7 @@
                         </div>
 
                         <p class="my-3">Total marks obtained: {{$examRecords->whereIn('exam_slot_id', $exam->examSlots->pluck('id'))->sum('student_marks')}} / {{$exam->examSlots->pluck('total_marks')->sum() * $subjects->count()}}</p>
-                    @else
-                        <p>No exam records found</p>
-                    @endif   
+                @endif   
                 @endforeach
             @endisset
         @elseif (isset($status))

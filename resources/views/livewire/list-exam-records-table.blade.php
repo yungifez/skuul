@@ -4,6 +4,11 @@
     </div>
     <div class="card-body">
         <x-display-validation-errors/>
+
+        <x-loading-spinner wire:target="exam"/>
+        <x-loading-spinner wire:target="class"/>
+        <x-loading-spinner wire:target="subject"/>
+        <x-loading-spinner wire:target="section"/>
        
         {{-- form for selecting exam record to display --}}
         <form wire:submit.prevent="fetchExamRecords('{{$exam}}','{{$section}}','{{$subject}}')" class="md:grid gap-4 grid-cols-4 grid-rows-1  my-3 items-end">
@@ -33,12 +38,12 @@
             </x-select>
             <x-button label="View records" theme="primary" type="submit" class="w-full "/>
         </form>
-
-        <x-loading-spinner/>
         
+        <x-loading-spinner wire:target="fetchExamRecords"/>
+
         {{-- table for displaying exam records --}}
         @if(isset($examSlots) && isset($students) && $students != null)
-            <div class="card" wire:loading.remove.delay>
+            <div class="card" wire:loading.remove.delay wire:target="fetchExamRecords">
                 <div class="card-header">
                     <h4 class="card-title">{{$examSelected->name}} exam records</h4>
                 </div>
