@@ -3,7 +3,6 @@
 namespace App\Http\Livewire;
 
 use App\Models\AcademicYear;
-use App\Models\Semester;
 use App\Models\User;
 use App\Services\MyClass\MyClassService;
 use Livewire\Component;

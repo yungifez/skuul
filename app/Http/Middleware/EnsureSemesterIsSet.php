@@ -10,7 +10,7 @@ class EnsureSemesterIsSet
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse)  $next
+     * @param \Closure(\Illuminate\Http\Request): (\Illuminate\Http\Response|\Illuminate\Http\RedirectResponse) $next
      *
      * @return \Illuminate\Http\Response|\Illuminate\Http\RedirectResponse
      */
