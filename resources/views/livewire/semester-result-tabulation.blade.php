@@ -23,7 +23,7 @@
                     @endisset
                 </x-select>
             </div>
-            <x-button label="View records" theme="primary" type="submit" class="w-full"/>
+            <x-button label="View records" theme="primary" type="submit" class="w-full md:w-1/4"/>
         </form>
         {{-- table to display tabulation --}}
         @if ($createdTabulation === true)

@@ -19,9 +19,11 @@ class ListExamRecordsTable extends Component
 {
     use WithPagination;
 
-    protected $queryString = ['sectionSelectedId', 'examSelectedId', 'subjectSelectedId'];
+    protected $queryString = ['sectionSelectedId', 'examSelectedId', 'subjectSelectedId', 'search'];
 
     public $semester;
+
+    public $search;
 
     public Collection $exams;
 
@@ -103,6 +105,7 @@ class ListExamRecordsTable extends Component
 
     public function fetchExamRecords(Exam $exam, Section $section, Subject $subject)
     {
+        $this->search = null;
         $this->examSlots = $exam->examSlots;
         $this->examRecords = ExamRecord::inSubject($subject->id)->inSection($section->id)->get();
         if ($this->examSlots->isEmpty()) {
@@ -126,7 +129,7 @@ class ListExamRecordsTable extends Component
     {
         $section = $this->sectionSelected;
         if ($section != null && $section->exists()) {
-            $students = User::students()->inSchool()->whereRelation('studentRecord.section', 'id', $section->id)->orderBy('name')->paginate(10);
+            $students = User::students()->inSchool()->whereRelation('studentRecord.section', 'id', $section->id)->where('name', 'LIKE', "%$this->search%")->orderBy('name')->paginate(10);
             $viewData = ['students' => $students];
         } else {
             $viewData = [];

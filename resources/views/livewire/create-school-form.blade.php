@@ -13,7 +13,7 @@
             <x-input name="initials" id="initials" type="text" placeholder="Enter school initials" label="School initials" />
             <x-input name="phone" id="phone" placeholder="Enter school phone number" label="School Phone Number" type="tel" />
             <x-input name="email" id="email" placeholder="Enter school Email" label="School Email address" type="email" />
-            <x-input name="logo" id="logo" type="file" />
+            <x-input name="logo" id="logo" type="file" label="Logo" />
             @csrf
             <div class="w-full flex ">
                 <x-button theme="primary" icon="fas fa-key" type="submit" class="w-full md:w-6/12">
