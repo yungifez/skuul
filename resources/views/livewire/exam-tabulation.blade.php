@@ -27,7 +27,7 @@
                     @endisset
                 </x-select>
 
-            <x-button label="View records" theme="primary" type="submit" class="w-full md:w-5/12"/>
+            <x-button label="View records" theme="primary" type="submit" class="w-full "/>
         </form>
         {{-- table to display tabulation --}}
         @if($tabulatedRecords && $createdTabulation == true)
@@ -36,7 +36,7 @@
                 <x-button label="Print" theme="primary" icon="fas fa-download" wire:click="$emit('print')" class="w-full md:w-3/12"/>
             </div>
         @elseif (isset($error))
-            Something went wrong, {{$error}}.
+            <p class="text-center text-red-700 dark:text-red-300 my-3">Something went wrong, {{$error}}</p> 
         @endisset
     </div>
 </div>

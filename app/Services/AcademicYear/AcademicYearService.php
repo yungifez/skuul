@@ -79,13 +79,14 @@ class AcademicYearService
      */
     public function setAcademicYear($academicYearId, $schoolId = null): bool
     {
+        $academicYear = AcademicYear::find($academicYearId);
         if (!isset($schoolId)) {
             $schoolId = auth()->user()->school_id;
         }
         $school = $this->schoolService->getSchoolById($schoolId);
         $school->academic_year_id = $academicYearId;
-        //set semester id to null
-        $school->semester_id = null;
+        //set semester id to first semester or null
+        $school->semester_id = $academicYear->semesters?->first()->id ?? null;
 
         return $school->save();
     }
