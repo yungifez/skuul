@@ -15,7 +15,7 @@
             <x-input id="initials" name="initials" placeholder="Enter school initials" label="School Initials" value="{{$school->initials}}" />   
             <x-input id="phone" name="phone" type="tel" placeholder="Enter school phone number" label="School Phone Number" value="{{ $school->phone}}"  />
             <x-input id="email" name="email" type="email" placeholder="Enter school email" label="School Email" value="{{ $school->email}}"  />
-            <x-input name="logo" id="logo" type="file" />
+            <x-input name="logo" id="logo" type="file"  label="Logo" />
 
             @csrf
             @method('PUT')
