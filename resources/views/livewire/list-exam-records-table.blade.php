@@ -55,6 +55,8 @@
                         <p class="">Subject: {{$subjectSelected->name}}</p>
                     </div>
 
+                    <x-input name="search" id="search" wire:model.debounce="search" placeholder="Search for student"/>
+
                     @foreach ($students as $student)
                         <div wire:key="{{Str::Random('10')}}">
                             <div class=" relative bottom-20" id="student-{{$student->id}}"></div>
