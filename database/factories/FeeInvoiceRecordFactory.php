@@ -19,9 +19,9 @@ class FeeInvoiceRecordFactory extends Factory
     public function definition(): array
     {
         $amount = mt_rand(1000, 10000000);
-        $waiver = mt_rand(0, $amount);
-        $fine = mt_rand(0, $amount);
-        $paid = mt_rand(0, $amount);
+        $waiver = mt_rand(0, 100);
+        $fine = mt_rand(0, 100);
+        $paid = mt_rand(0, 100);
         $fee = Fee::query()->offset(rand(1, 7))->whereRelation('feeCategory', 'school_id', 1)->first() ?? Fee::factory()->create();
         $feeInvoice = FeeInvoice::query()->inRandomOrder()->whereRelation('user', 'school_id', 1)->first() ?? FeeInvoice::factory()->create();
 
