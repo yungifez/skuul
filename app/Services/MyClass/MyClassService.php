@@ -49,7 +49,7 @@ class MyClassService
     /**
      * Get class by id or else return 404.
      *
-     *@param int $id
+     * @param int $id
      */
     public function getClassByIdOrFail(int $id)
     {
