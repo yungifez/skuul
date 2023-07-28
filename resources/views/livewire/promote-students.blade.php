@@ -55,7 +55,7 @@
                                 <tbody>
                                     @foreach ($students as $student)
                                         <tr>
-                                            <td class="border p-2 whitespace-nowrap">{{$student->name}}</td>
+                                            <td class="border p-2 whitespace-nowrap">{{$student->name}} - {{$student->studentRecord->admission_number}}</td>
                                             <td class="border p-2">
                                                 <x-select name="student_id[]" id="student-{{$student->id}}" class="promote">
                                                     <option value="{{$student['id']}}">Promote</option>
