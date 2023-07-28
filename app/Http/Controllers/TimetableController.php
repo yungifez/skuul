@@ -44,9 +44,9 @@ class TimetableController extends Controller
         $data = $request->except('_token');
         $data['semester_id'] = auth()->user()->school->semester_id;
 
-        $this->timetableService->createTimetable($data);
+        $timetable = $this->timetableService->createTimetable($data);
 
-        return back()->with('success', 'Timetable created successfully');
+        return to_route('timetables.manage', $timetable->id)->with('success', 'Timetable created successfully');
     }
 
     /**

@@ -21,11 +21,11 @@ class TimetableService
      *
      * @param mixed $data
      *
-     * @return void
+     * @return Timetable
      */
-    public function createTimetable($data)
+    public function createTimetable($data) : Timetable
     {
-        Timetable::create([
+        return Timetable::create([
             'name'        => $data['name'],
             'description' => $data['description'] ?? null,
             'my_class_id' => $data['my_class_id'],
