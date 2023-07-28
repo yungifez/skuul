@@ -23,7 +23,7 @@ class TimetableService
      *
      * @return Timetable
      */
-    public function createTimetable($data) : Timetable
+    public function createTimetable($data): Timetable
     {
         return Timetable::create([
             'name'        => $data['name'],
