@@ -29,7 +29,7 @@ class AcademicYearService
     /**
      * Get academic year by Id.
      *
-     *@param  int  $id
+     * @param int $id
      */
     public function getAcademicYearById($id): AcademicYear
     {
