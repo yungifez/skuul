@@ -79,12 +79,12 @@ class ResultChecker extends Component
         //get semesters in academic year
         $this->semesters = $academicYear->semesters;
         $this->semester = null;
-
+        
         if ($this->semesters->isEmpty()) {
             return;
         }
 
-        $this->semester = $this->semesters[0]->id;
+        $this->semester = ($this->semesters->find(auth()->user()->school->semester_id) ?? $this->semesters[0])->id;
     }
 
     public function updatedClass()

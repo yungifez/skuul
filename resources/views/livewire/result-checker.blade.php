@@ -21,7 +21,7 @@
                         <option value="">Entire Academic Year</option>
                         @isset($semesters)
                             @foreach ($semesters as $item)
-                                <option value="{{$item['id']}}">{{$item['name']}}</option>
+                                <option value="{{$item['id']}}" >{{$item['name']}}</option>
                             @endforeach
                         @endisset
                     </x-select>
@@ -66,6 +66,7 @@
                             @endforeach
                             <th class="p-3 border text-green-500 whitespace-nowrap min-w-[4rem] leading-3" style="writing-mode: vertical-rl;text-orientation: sideways;">Total ({{$exams->pluck('totalAttainableMarksInASubject')->sum()}})</th>
                             <th class="p-3 border text-green-500 whitespace-nowrap min-w-[4rem] leading-3" style="writing-mode: vertical-rl;text-orientation: sideways;">Grade</th>
+                            <td>Remark</td>
                         </thead>
                         <tbody>
                             @foreach ($subjects as $subject)
@@ -76,11 +77,17 @@
                                             {{$examRecords->whereIn('exam_slot_id', $exam->examSlots?->pluck('id'))->where('subject_id' , $subject->id)->pluck('student_marks')->sum()}} 
                                         </td>
                                     @endforeach
-                                    <td class="p-4 border text-green-500">
+                                    <td class="p-4 border text-green-500 text-left">
                                         {{$examRecords->where('subject_id' , $subject->id)->pluck('student_marks')->sum()}} 
                                     </td>
+                                    @php
+                                        $grade = app(App\Services\GradeSystem\GradeSystemService::class)->getGrade($selectedClass->classGroup->id,  $examRecords->where('subject_id' , $subject->id)->pluck('student_marks')->sum()/$exams->pluck('totalAttainableMarksInASubject')->sum())->name
+                                    @endphp
                                     <td class="p-4 border text-green-500">
-                                        {{app(App\Services\GradeSystem\GradeSystemService::class)->getGrade($selectedClass->classGroup->id,  $examRecords->where('subject_id' , $subject->id)->pluck('student_marks')->sum()/$exams->pluck('totalAttainableMarksInASubject')->sum())->name ?? 'No Grade'}}
+                                        {{$grade->name ?? 'No Grade'}}
+                                    </td>
+                                    <td class="p-4 border text-green-500">
+                                        {{$grade->remark ?? 'No Remark'}}
                                     </td>
                                 </tr>
                             @endforeach
