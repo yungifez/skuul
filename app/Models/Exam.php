@@ -43,4 +43,30 @@ class Exam extends Model
     {
         return $this->hasMany(ExamSlot::class);
     }
+
+    /**
+     * Calculate total marks attainable in each subjects for an exam.
+     *
+     * @return int|string
+     */
+    public function getTotalAttainableMarksInASubjectAttribute()
+    {
+        $totalMarks = 0;
+        foreach ($this->examSlots as $examSlot) {
+            $totalMarks += $examSlot->total_marks;
+        }
+
+        return $totalMarks;
+    }
+
+    /**
+     * Calculate total marks gotten by student in semester across all exams in a subject.
+     *
+     *
+     * @return int
+     */
+    public function calculateStudentTotalMarkInSubjectForSemester(Semester $semester, User $user, Subject $subject)
+    {
+        return $this->examRecordService->getAllUserExamRecordInSemesterForSubject($semester, $user->id, $subject->id)->pluck('student_marks')->sum();
+    }
 }

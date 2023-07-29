@@ -138,22 +138,6 @@ class ExamService
     }
 
     /**
-     * Calculate total marks attainable in each subjects for an exam.
-     *
-     *
-     * @return int
-     */
-    public function totalMarksAttainableInExamForSubject(Exam $exam)
-    {
-        $totalMarks = 0;
-        foreach ($exam->examSlots as $examSlot) {
-            $totalMarks += $examSlot->total_marks;
-        }
-
-        return $totalMarks;
-    }
-
-    /**
      * Calculate total marks attainable in each subject across all exams in a semester.
      *
      * @param Exam $exam
@@ -181,16 +165,5 @@ class ExamService
     public function calculateStudentTotalMarksInSubject(Exam $exam, User $user, Subject $subject)
     {
         return $this->examRecordService->getAllUserExamRecordInExamForSubject($exam, $user->id, $subject->id)->pluck('student_marks')->sum();
-    }
-
-    /**
-     * Calculate total marks gotten by student in semester across all exams in a subject.
-     *
-     *
-     * @return int
-     */
-    public function calculateStudentTotalMarkInSubjectForSemester(Semester $semester, User $user, Subject $subject)
-    {
-        return $this->examRecordService->getAllUserExamRecordInSemesterForSubject($semester, $user->id, $subject->id)->pluck('student_marks')->sum();
     }
 }

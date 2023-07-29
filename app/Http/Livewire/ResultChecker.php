@@ -41,6 +41,8 @@ class ResultChecker extends Component
 
     public $studentName;
 
+    public $selectedClass;
+
     //rules
     public $rules = [
         'academicYear' => 'integer|exists:academic_years,id',
@@ -160,6 +162,7 @@ class ResultChecker extends Component
         }
 
         $this->preparedResults = true;
+        $this->selectedClass = $academicYearsWithStudentRecords->studentAcademicYearBasedRecords->class;
     }
 
     public function render()

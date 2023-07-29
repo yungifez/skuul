@@ -5,7 +5,7 @@
     <div class="card-body">
         <form action="{{route('exam-slots.store', $exam->id)}}" method="post" class="w-1/2">
             <x-display-validation-errors/>
-            <x-input id="name" name="name" label="Exam slot Name" placeholder="Enter Exam slot name"  />
+            <x-input id="name" name="name" label="Exam slot name" placeholder="Enter Exam slot name"  />
             <x-textarea id="description" name="description" label="Description" placeholder="Enter description"  />
             <x-input id="total-marks" name="total_marks" label="Maximum marks obtainable" placeholder="Enter max mark"  type="number" />
             @csrf

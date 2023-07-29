@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -193,6 +194,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function accountApplication(): HasOne
     {
         return $this->hasOne(AccountApplication::class);
+    }
+
+    /**
+     * Get all of the feeInvoices for the User.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function feeInvoices(): HasMany
+    {
+        return $this->hasMany(FeeInvoice::class);
     }
 
     //get first name
