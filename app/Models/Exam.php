@@ -44,7 +44,7 @@ class Exam extends Model
         return $this->hasMany(ExamSlot::class);
     }
 
-        /**
+    /**
      * Calculate total marks attainable in each subjects for an exam.
      *
      * @return int|string
