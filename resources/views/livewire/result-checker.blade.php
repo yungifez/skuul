@@ -66,7 +66,7 @@
                             @endforeach
                             <th class="p-3 border text-green-500 whitespace-nowrap min-w-[4rem] leading-3" style="writing-mode: vertical-rl;text-orientation: sideways;">Total ({{$exams->pluck('totalAttainableMarksInASubject')->sum()}})</th>
                             <th class="p-3 border text-green-500 whitespace-nowrap min-w-[4rem] leading-3" style="writing-mode: vertical-rl;text-orientation: sideways;">Grade</th>
-                            <td>Remark</td>
+                            <th class="p-3 border text-green-500 whitespace-nowrap min-w-[4rem] leading-3" style="writing-mode: vertical-rl;text-orientation: sideways;">Remark</th>
                         </thead>
                         <tbody>
                             @foreach ($subjects as $subject)
@@ -81,7 +81,7 @@
                                         {{$examRecords->where('subject_id' , $subject->id)->pluck('student_marks')->sum()}} 
                                     </td>
                                     @php
-                                        $grade = app(App\Services\GradeSystem\GradeSystemService::class)->getGrade($selectedClass->classGroup->id,  $examRecords->where('subject_id' , $subject->id)->pluck('student_marks')->sum()/$exams->pluck('totalAttainableMarksInASubject')->sum())->name
+                                        $grade = app(App\Services\GradeSystem\GradeSystemService::class)->getGrade($selectedClass->classGroup->id, ( $examRecords->where('subject_id' , $subject->id)->pluck('student_marks')->sum()/$exams->pluck('totalAttainableMarksInASubject')->sum()) * 100)
                                     @endphp
                                     <td class="p-4 border text-green-500">
                                         {{$grade->name ?? 'No Grade'}}
