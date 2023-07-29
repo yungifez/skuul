@@ -84,7 +84,7 @@ class ResultChecker extends Component
             return;
         }
 
-        $this->semester = $this->semesters[0]->id;
+        $this->semester = ($this->semesters->find(auth()->user()->school->semester_id) ?? $this->semesters[0])->id;
     }
 
     public function updatedClass()
