@@ -35,7 +35,6 @@ class UpdateApplicationCommand extends Command
             $this->runUpdateCommands();
             $this->buildNodeDependencies();
             $this->optimize();
-            shell_exec('chmod 775 -R ./storage ./boostrap');
             $this->call('up');
         } catch (\Throwable $th) {
             $this->error("Something went wrong!. Try updating manually. If error persists feel free to open an issue \n \n Exception -> ".$th);
