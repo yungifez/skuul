@@ -15,6 +15,10 @@ class Money implements CastsAttributes
      */
     public function get(Model $model, string $key, mixed $value, array $attributes): BrickMoney
     {
+        if (is_null($value)) {
+            return null;
+        }
+
         return BrickMoney::ofMinor($value, config('app.currency'));
     }
 
@@ -25,6 +29,10 @@ class Money implements CastsAttributes
      */
     public function set(Model $model, string $key, mixed $value, array $attributes): mixed
     {
+        if (is_null($value)) {
+            return null;
+        }
+
         if (!$value instanceof BrickMoney) {
             return BrickMoney::of($value, config('app.currency'))->getMinorAmount()->toInt();
         }
