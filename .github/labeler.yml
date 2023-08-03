@@ -1,0 +1,32 @@
+
+# Label definitions for php files
+PHP:
+  - app/**
+  - config/**
+  - database/**
+  - routes/**
+  - tests/**
+
+# label definition for blade files
+blade:
+  - resources/views/**
+
+# label definition for js files
+js:
+  - resources/js/**
+
+# label definition for dependencies
+dependencies:
+  - composer.json
+  - package.json
+  - yarn.lock
+  - composer.lock
+
+# label definition for tests
+tests: 
+  - tests/**
+
+# label definition for github
+github:
+  - .github/**
+
