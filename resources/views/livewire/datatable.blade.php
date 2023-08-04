@@ -99,8 +99,8 @@
                         </tr>
                     @endforeach
                 @else
-                    <tr w-full>
-                        <td class="p-4 capitalize" colspan="100%">No data to Show</td>
+                    <tr>
+                        <td class="p-4 capitalize text-center" colspan="100%">No data to Show</td>
                     </tr>
                 @endif
             </tbody>
