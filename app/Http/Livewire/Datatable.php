@@ -36,6 +36,7 @@ class Datatable extends Component
 
     /**
      * @param string|Builder $model Pass model or query builder
+     *
      * @return void
      */
     public function mount(string|Builder $model, array $columns, array $filters = [], $uniqueId = null)
@@ -87,7 +88,7 @@ class Datatable extends Component
         //create closure with filters to be applied to model
         $searchFilter = function ($query) use ($model) {
             foreach ($this->columns as $column) {
-                if (array_key_exists('searchable', $column) && ! $column['searchable']) {
+                if (array_key_exists('searchable', $column) && !$column['searchable']) {
                     continue;
                 }
                 if (array_key_exists('type', $column)) {
