@@ -12,16 +12,19 @@ class Button extends Component
 
     public $label;
 
+    public $colour;
+
     /**
      * Create a new component instance.
      *
      * @return void
      */
-    public function __construct($class = null, $icon = null, $label = null)
+    public function __construct($class = null, $icon = null, $label = null, $colour = 'text-white  bg-blue-600')
     {
         $this->class = $class;
         $this->icon = $icon;
         $this->label = $label;
+        $this->colour = $colour;
     }
 
     /**

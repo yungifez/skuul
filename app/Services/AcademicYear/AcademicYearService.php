@@ -86,7 +86,9 @@ class AcademicYearService
         $school = $this->schoolService->getSchoolById($schoolId);
         $school->academic_year_id = $academicYearId;
         //set semester id to first semester or null
-        $school->semester_id = $academicYear->semesters?->first()->id ?? null;
+        $school->semester_id = $academicYear->semesters?->first()->id ?? $school->semester()->create([
+            'name' => 'First'
+        ]);
 
         return $school->save();
     }

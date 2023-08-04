@@ -3,6 +3,7 @@
 @php
     $confirmableId = md5($attributes->wire('then'));
 @endphp
+<x-loading-spinner wire:target="confirmPassword"/>
 
 <span
     {{ $attributes->wire('then') }}
