@@ -18,10 +18,15 @@ class Datatable extends Component
     protected $queryString = ['perPage', 'search'];
 
     public $model;
+
     public $filters;
+
     public $columns;
+
     public $uniqueId;
+
     public $search = null;
+
     public $perPage = 10;
 
     protected $rules = [
@@ -83,9 +88,16 @@ class Datatable extends Component
         //create closure with filters to be applied to model
         $searchFilter = function ($query) use ($model) {
             foreach ($this->columns as $column) {
+                if (array_key_exists('searchable', $column) && !$column['searchable']) {
+                    continue;
+                }
+                if (array_key_exists('type', $column)) {
+                    continue;
+                }
+
                 if (!array_key_exists('columnName', $column)) {
                     if (!array_key_exists('property', $column) || empty($column['property'])) {
-                        break;
+                        continue;
                     }
                 }
 

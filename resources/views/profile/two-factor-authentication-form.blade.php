@@ -54,13 +54,13 @@
             @else
                 @if ($showingRecoveryCodes)
                     <x-confirms-password wire:then="regenerateRecoveryCodes">
-                        <x-button class=" bg-white text-black" wire:loading.attr="disabled">
+                        <x-button class=" bg-white text-black" colour="" wire:loading.attr="disabled">
                             {{ __('Regenerate Recovery Codes') }}
                         </x-button>
                     </x-confirms-password>
                 @else
                     <x-confirms-password wire:then="showRecoveryCodes">
-                        <x-button class=" bg-white text-black">
+                        <x-button class=" bg-white text-black " colour="">
                             {{ __('Show Recovery Codes') }}
                         </x-button>
                     </x-confirms-password>
