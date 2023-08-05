@@ -4,8 +4,8 @@ namespace App\Console\Commands;
 
 use App\Traits\EnvEditorTrait;
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 
 class InitCommand extends Command
 {
