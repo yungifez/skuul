@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Traits\EnvEditorTrait;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
 
 class InitCommand extends Command
@@ -80,8 +81,8 @@ class InitCommand extends Command
     private function clearCaches(): void
     {
         $this->components->task('Clearing all caches', function (): void {
-            $this->call('config:clear');
-            $this->call('cache:clear');
+            Artisan::call('config:clear -q');
+            Artisan::call('cache:clear -q');
         });
     }
 
@@ -105,7 +106,7 @@ class InitCommand extends Command
 
         $key = $this->laravel['config']['app.key'];
         if (!$key) {
-            $this->call('key:generate');
+            Artisan::call('key:generate');
         } else {
             $this->info('Encryption key exists already -- skipping');
         }
@@ -151,7 +152,7 @@ class InitCommand extends Command
         $this->info('Please fill in the following details that would be used throughout the application, the input in the parenthesis would be used if left blank');
 
         $this->clearCaches();
-        $this->call('config:cache');
+        Artisan::call('config:cache -q');
         $appName = $this->ask('Application name', getenv('APP_NAME'));
         $appURL = $this->ask('Application URL', getenv('APP_URL'));
 
@@ -168,7 +169,7 @@ class InitCommand extends Command
         do {
             try {
                 $this->clearCaches();
-                $this->call('config:cache');
+                Artisan::call('config:cache -q');
                 DB::connection()->getPdo();
 
                 $successfulConnection = true;
@@ -189,8 +190,9 @@ class InitCommand extends Command
                 $dbData = ['DB_HOST' => $dbHost, 'DB_PORT' => $dbPort, 'DB_DATABASE' => $dbDatabase, 'DB_USERNAME' => $dbUsername, 'DB_PASSWORD' => $dbPassword];
                 $this->setEnvironmentValue($dbData);
                 // Set the config so that the next DB attempt uses refreshed credentials
-                $this->call('config:clear');
-                $this->call('config:cache');
+                $this->clearCaches();
+                Artisan::call('config:cache -q');
+
                 $maxAttemptsRemaining--;
             }
 
