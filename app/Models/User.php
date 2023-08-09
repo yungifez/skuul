@@ -82,6 +82,13 @@ class User extends Authenticatable implements MustVerifyEmail
         'profile_photo_url',
     ];
 
+    protected static function booted()
+    {
+        static::addGlobalScope('orderByName', function (Builder $builder) {
+            $builder->orderBy('name');
+        });
+    }
+
     public function scopeStudents($query)
     {
         return $query->role('student');
