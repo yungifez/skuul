@@ -39,7 +39,7 @@ Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\PreventLockAc
     Route::post('schools/set-school', ['App\Http\Controllers\SchoolController', 'setSchool'])->name('schools.setSchool');
 
     //super admin must have school id set
-    Route::middleware(['App\Http\Middleware\EnsureSuperAdminHasSchoolId', 'App\Http\Middleware\CreateCurrentAcademicYearRecord'])->group(function () {
+    Route::middleware(['App\Http\Middleware\EnsureSuperAdminHasSchoolId', ])->group(function () {
         //dashboard route
         Route::get('/', function () {
             return view('dashboard');
@@ -54,7 +54,7 @@ Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\PreventLockAc
         //sections routes
         Route::resource('sections', SectionController::class);
 
-        Route::middleware(['App\Http\Middleware\EnsureAcademicYearIsSet'])->group(function () {
+        Route::middleware(['App\Http\Middleware\EnsureAcademicYearIsSet', 'App\Http\Middleware\CreateCurrentAcademicYearRecord'])->group(function () {
             Route::get('account-applications/rejected-applications', ['App\Http\Controllers\AccountApplicationController', 'rejectedApplicationsView'])->name('account-applications.rejected-applications');
 
             //account application routes. We need the applicant instead of the record
