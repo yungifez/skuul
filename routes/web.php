@@ -39,7 +39,7 @@ Route::middleware('auth:sanctum', 'verified', 'App\Http\Middleware\PreventLockAc
     Route::post('schools/set-school', ['App\Http\Controllers\SchoolController', 'setSchool'])->name('schools.setSchool');
 
     //super admin must have school id set
-    Route::middleware(['App\Http\Middleware\EnsureSuperAdminHasSchoolId'])->group(function () {
+    Route::middleware(['App\Http\Middleware\EnsureSuperAdminHasSchoolId', 'App\Http\Middleware\CreateCurrentAcademicYearRecord'])->group(function () {
         //dashboard route
         Route::get('/', function () {
             return view('dashboard');
