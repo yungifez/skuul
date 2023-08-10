@@ -15,7 +15,7 @@ class CreateCurrentAcademicYearRecord
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if(auth()->user()?->studentRecord?->academicYears()->find(auth()->user()->school->academic_year_id) == null){
+        if(auth()->user()?->studentRecord && !auth()->user()?->studentRecord?->academicYears()->find(auth()->user()->school->academic_year_id)){
             auth()->user()->studentRecord->academicYears()->syncWithoutDetaching([
                 auth()->user()->school->academicYear->id => [
                     'my_class_id' => auth()->user()->studentRecord->my_class_id,
