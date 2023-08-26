@@ -1,4 +1,4 @@
-<div class="{{$groupClass}} my-2 flex flex-col">
+<div class="{{$groupClass}} my-2 flex flex-col"  x-data="{'oldValue' : '{{old($name) ?? null }}'}">
     @isset($label) 
     <label for="{{$id}}" class="my-3 font-semibold text-gray-700 dark:text-gray-50">{{$label}}</label>
     @endisset
