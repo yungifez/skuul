@@ -52,7 +52,7 @@ class TimeSlotService
         //i'm sorry for this
         if ($data['type'] == 'subject') {
             $data['type'] = 'App\Models\Subject';
-        }elseif ($data['type'] == 'customTimetableItem') {
+        } elseif ($data['type'] == 'customTimetableItem') {
             $data['type'] = 'App\Models\CustomTimetableItem';
         }
 
