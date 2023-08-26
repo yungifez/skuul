@@ -6,21 +6,21 @@
         <x-display-validation-errors/>
         {{-- form for selecting user --}}
         <form action="{{route('parents.assign-student', $parent->id)}}" method="POST" class=" md:grid grid-cols-3 gap-4">
-            <x-select id="class" name="class" label="Class"  wire:model="class">
+            <x-select id="class" name="class" label="Class"  wire:model.live="class">
                 @isset($classes)
                     @foreach ($classes as $item)
                         <option value="{{$item['id']}}">{{$item['name']}}</option>
                     @endforeach
                 @endisset
             </x-select>
-            <x-select id="section" name="section" label="Section" wire:model="section">
+            <x-select id="section" name="section" label="Section" wire:model.live="section">
                 @isset($sections)
                     @foreach ($sections as $item)
                         <option value="{{$item['id']}}">{{$item['name']}}</option>
                     @endforeach
                 @endisset
             </x-select>
-            <x-select id="student" name="student_id" label="Student" wire:model="student">
+            <x-select id="student" name="student_id" label="Student" wire:model.live="student">
                 @isset($students)
                     @foreach ($students as $item)
                         <option value="{{$item['id']}}">{{$item['name']}}</option>

@@ -9,7 +9,7 @@
         <!--Adds scrolling offset-->
         <div class=" relative bottom-24"id="create-timetable-record" ></div>
         <div class="md:grid grid-cols-4 gap-2" >
-            <x-select id="timeslot" name="timeSlot" label="Time Slot" wire:model="timeSlot">
+            <x-select id="timeslot" name="timeSlot" label="Time Slot" wire:model.live="timeSlot">
                 @isset($timeSlots)
                     @foreach ($timeSlots as $item)
                         <option value="{{$item['id']}}" > {{$item->name}}</option>
@@ -22,14 +22,14 @@
             @if(!is_null($timeSlot))
                 <form action="{{route('timetables.records.create',[$timeSlot])}}#create-timetable-record" method="POST" class="md:grid col-span-3 grid-cols-3 gap-2" >
                     @csrf
-                    <x-select id="weekday-id" name="weekday_id" label="Day of week"  wire:model="weekday">
+                    <x-select id="weekday-id" name="weekday_id" label="Day of week"  wire:model.live="weekday">
                         @isset($weekdays)
                             @foreach ($weekdays as $item)
                                 <option value="{{$item['id']}}"> {{$item->name}}</option>
                             @endforeach
                         @endisset
                     </x-select>
-                    <x-select id="type" name="type" label="Record Type" wire:model="type">
+                    <x-select id="type" name="type" label="Record Type" wire:model.live="type">
                         @isset($types)
                             @foreach ($types as $item)
                                 <option value="{{$item}}"> {{str()->title(str()->snake($item, " "))}}</option>

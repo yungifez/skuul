@@ -4,8 +4,8 @@
     </div>
     <div class="card-body">
         <form action="" class="my-5 md:grid grid-cols-2 gap-4">
-            <x-input-year id="year" name="year" label="Due Date Year" wire:model="year"/>
-            <x-select name="" wire:model="status" id="invoice-status" label="Invoice status" >
+            <x-input-year id="year" name="year" label="Due Date Year" wire:model.live="year"/>
+            <x-select name="" wire:model.live="status" id="invoice-status" label="Invoice status" >
                 @foreach ($statuses as $status)
                     <option value="{{$status}}">{{ucfirst($status)}}</option>
                 @endforeach
@@ -38,7 +38,7 @@
                     ['type' => 'delete', 'name' => 'Delete', 'action' => 'fee-invoices.destroy',]
                 ]"
                 />
-            @endunlessrole
+            @endhasanyrole
             @role('parent')
                 <livewire:datatable :model="App\Models\FeeInvoice::class" 
                 :wire:key="Str::Random(10)"

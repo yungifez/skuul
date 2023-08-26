@@ -5,7 +5,7 @@
     <div class="card-body">
         @if (!auth()->user()->hasRole('student'))
 
-        <x-select id="class-group" label="Select a class group to see grading system" group-class="my-6 md:w-6/12" name="" wire:model="classGroup">
+        <x-select id="class-group" label="Select a class group to see grading system" group-class="my-6 md:w-6/12" name="" wire:model.live="classGroup">
             @foreach ($classGroups as $item)
                 <option value="{{$item['id']}}">{{$item['name']}}</option>
             @endforeach

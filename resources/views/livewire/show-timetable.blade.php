@@ -41,9 +41,9 @@
                                     @php
                                         $pivot = $timeSlot->weekdays->find($weekday->id)?->timetableRecord;
                                     @endphp
-                                    @if (!is_null($pivot) && $pivot->timetable_recordable_type == "subject")
+                                    @if (!is_null($pivot) && $pivot->timetable_recordable_type == "App\Models\Subject")
                                         {{$subjects->find($pivot->timetable_recordable_id)?->name}}
-                                    @elseif (!is_null($pivot) && $pivot->timetable_recordable_type == "customTimetableItem")
+                                    @elseif (!is_null($pivot) && $pivot->timetable_recordable_type ==  "App\Models\CustomItem")
                                         {{$customItems->find($pivot->timetable_recordable_id)?->name}}
                                     @endif
                                 </p>

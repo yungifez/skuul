@@ -10,7 +10,7 @@
             <x-textarea id="description" name="description" label="Description" placeholder="Enter description" >
                 {{$timetable->description}}
             </x-textarea>
-            <x-select id="class" name="my_class_id" label="Select class"  wire:model="class" wire:loading.attr="disabled" wire:target="class" disabled>
+            <x-select id="class" name="my_class_id" label="Select class"  wire:model.live="class" wire:loading.attr="disabled" wire:target="class" disabled>
                 @foreach ($classes as $item)
                     <option value="{{$item['id']}}">{{$item['name']}}</option>
                 @endforeach

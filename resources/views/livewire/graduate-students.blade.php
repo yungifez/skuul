@@ -4,13 +4,13 @@
     </div>
     <div class="card-body">
         <x-display-validation-errors/>
-        <form wire:submit.prevent="loadStudents" class="md:grid grid-cols-2 gap-4">
-            <x-select id="class" name="class" label="Class" wire:model="class" >
+        <form wire:submit="loadStudents" class="md:grid grid-cols-2 gap-4">
+            <x-select id="class" name="class" label="Class" wire:model.live="class" >
                 @foreach ($classes as $class)
                     <option value="{{$class['id']}}">{{$class['name']}}</option>
                 @endforeach
             </x-select>
-            <x-select id="section" name="section" label="Section" wire:init="loadInitialSections" wire:model="section" >
+            <x-select id="section" name="section" label="Section" wire:init="loadInitialSections" wire:model.live="section" >
                 @isset($sections)
                     @foreach ($sections as $item)
                         <option value="{{$item['id']}}">{{$item['name']}}</option>

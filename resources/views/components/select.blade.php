@@ -1,9 +1,9 @@
 <div class="{{$groupClass}} my-2 flex flex-col">
     @isset($label) 
-    <label for="{{$id}}" class="my-3 font-semibold ">{{$label}}</label>
+    <label for="{{$id}}" class="my-3 font-semibold text-gray-700 dark:text-gray-50">{{$label}}</label>
     @endisset
     @if (!$attributes->has('multiple'))
-        <select name="{{$name}}" id="{{$id}}" @class(["$class p-2 border border-gray-400 focus:border-blue-500 bg-inherit dark:bg-gray-800", 'border-red-500' => $errors->has($name)]) {{$attributes}}>
+        <select name="{{$name}}" id="{{$id}}" @class(["$class p-2 border border-gray-400 focus:border-blue-500 bg-inherit dark:bg-gray-800", 'border-red-500' => $errors->has($name)]) {{$attributes}} @if(old($name) != null) x-model="oldValue" @endif x-init="oldValue !== '' && $dispatch('change', oldValue)">
             {{$slot}}
         </select>
     @else

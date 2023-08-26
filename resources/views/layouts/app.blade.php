@@ -42,6 +42,5 @@
     @livewire('display-status')
     </body>
     <livewire:scripts />
-    @vite(['resources/js/app.js'])
     @stack('scripts')
 </html>

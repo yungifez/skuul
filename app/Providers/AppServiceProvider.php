@@ -17,12 +17,6 @@ class AppServiceProvider extends ServiceProvider
     public function register()
     {
         Schema::defaultStringLength(100);
-        Relation::enforceMorphMap([
-            'subject'                       => "App\Models\Subject",
-            'customTimetableItem'           => "App\Models\CustomTimetableItem",
-            'App\Models\User'               => 'App\Models\User',
-            'App\Models\AccountApplication' => 'App\Models\AccountApplication',
-        ]);
     }
 
     /**

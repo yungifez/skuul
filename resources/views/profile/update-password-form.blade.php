@@ -14,17 +14,17 @@
         <div class="w-md-75">
             <div class="form-group">
                 <x-input id="current_password" type="password"
-                             wire:model.defer="state.current_password" autocomplete="current-password" name="current_password" label="Current Password"/>
+                             wire:model="state.current_password" autocomplete="current-password" name="current_password" label="Current Password"/>
             </div>
 
             <div class="form-group">
                 <x-input label="New Password" name="password" id="password" type="password"
-                             wire:model.defer="state.password" autocomplete="new-password" />
+                             wire:model="state.password" autocomplete="new-password" />
             </div>
 
             <div class="form-group">
                 <x-input name="password_confirmation" label="Confirm Password" id="password_confirmation" type="password"
-                             wire:model.defer="state.password_confirmation" autocomplete="new-password" />
+                             wire:model="state.password_confirmation" autocomplete="new-password" />
             </div>
         </div>
     </x-slot>
