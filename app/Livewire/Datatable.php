@@ -76,7 +76,7 @@ class Datatable extends Component
 
         $model = $this->addSearchFilter($model);
 
-        return $model->paginate($this->perPage,  pageName:  $this->uniqueId);
+        return $model->paginate($this->perPage, pageName:  $this->uniqueId);
     }
 
     public function addSearchFilter($model)

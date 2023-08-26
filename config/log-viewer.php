@@ -1,7 +1,5 @@
 <?php
 
-use Opcodes\LogViewer\Level;
-
 return [
 
     /*
@@ -69,9 +67,9 @@ return [
     |
     */
 
-    'middleware' => ['web', 'role:super-admin',  \Opcodes\LogViewer\Http\Middleware\AuthorizeLogViewer::class,],
+    'middleware' => ['web', 'role:super-admin',  \Opcodes\LogViewer\Http\Middleware\AuthorizeLogViewer::class],
 
-      /*
+    /*
     |--------------------------------------------------------------------------
     | Log Viewer API middleware.
     |--------------------------------------------------------------------------
@@ -85,7 +83,7 @@ return [
         \Opcodes\LogViewer\Http\Middleware\AuthorizeLogViewer::class,
     ],
 
-        /*
+    /*
     |--------------------------------------------------------------------------
     | Log Viewer Remote hosts.
     |--------------------------------------------------------------------------
@@ -196,7 +194,6 @@ return [
     */
 
     'cache_driver' => env('LOG_VIEWER_CACHE_DRIVER', null),
-
 
     /*
     |--------------------------------------------------------------------------
