@@ -1,9 +1,9 @@
 # Skuul school management system
 
 <p align="center">
-    <a href="https://packagist.org/projects/yungifez/skuul">
-        <img src="https://poser.pugx.org/yungifez/skuul/d/total.svg" alt="Total Downloads">
-    </a>
+    <!-- <a href="https://packagist.org/projects/yungifez/skuul">
+        <img src="https://poser.pugx.org/yungifez/skuul/d/total.svg" alt="Total Composer Downloads">
+    </a> -->
     <a href="https://packagist.org/projects/yungifez/skuul">
         <img src="https://poser.pugx.org/yungifez/skuul/v/stable.svg" alt="Latest Stable Version">
     </a>
