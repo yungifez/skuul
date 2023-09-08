@@ -14,21 +14,21 @@
                             'submenu'  : {{ isset($menuItem['submenu']) && in_array(Route::currentRouteName() , array_column($menuItem['submenu']  , 'route')) ? '1' : '0'}}
                            }" >
                             @if (!isset($menuItem['submenu']))
-                                <a class="flex items-center gap-2 p-3 px-4 my-2 rounded" href="{{route($menuItem['route'])}}" :class="{{Route::currentRouteName() == $menuItem['route'] ? '1' : '0'}} ? 'bg-blue-600 hover:bg-blue-400 hover:bg-opacity-100' : 'hover:bg-white hover:bg-opacity-5'" aria-label="{{$menuItem['text']}}">
+                                <a class="flex items-center gap-2 p-3 px-4 my-2 rounded" href="{{route($menuItem['route'])}}" :class="{{Route::currentRouteName() == $menuItem['route'] ? '1' : '0'}} ? 'bg-blue-600 hover:bg-blue-400 hover:bg-opacity-100' : 'hover:bg-white hover:bg-opacity-5'" aria-label="{{$menuItem['text']}}" wire:navigate>
                                     <i class="{{$menuItem['icon'] ?? 'fa fa-circle'}} " aria-hidden="true" x-transition></i>
                                     <p x-show="menuOpen">{{$menuItem['text']}}</p>
                                 </a>
                             @else
-                                <a class="flex items-center justify-between gap-2 p-3 my-2 px-4 rounded "  @click="submenu = !submenu" :class=" {{in_array(Route::currentRouteName() , array_column($menuItem['submenu'] , 'route'))  ? '1' : '0'}} ? 'bg-blue-600 hover:bg-blue-400 hover:bg-opacity-100' : 'hover:bg-white hover:bg-opacity-5' " >
+                                <div class="flex items-center justify-between gap-2 p-3 my-2 px-4 rounded "  @click="submenu = !submenu" :class=" {{in_array(Route::currentRouteName() , array_column($menuItem['submenu'] , 'route'))  ? '1' : '0'}} ? 'bg-blue-600 hover:bg-blue-400 hover:bg-opacity-100' : 'hover:bg-white hover:bg-opacity-5' " >
                                     <div class="flex items-center gap-2">
                                         <i class="{{$menuItem['icon'] ?? 'fa fa-circle'}} " aria-hidden="true" x-transition></i>
                                         <p x-show="menuOpen" class="cursor-default">{{$menuItem['text']}}</p>
                                     </div>
                                     <i class="transition-all" :class="{'fas fa-angle-left' : submenu == false , 'fas fa-angle-down ' : submenu == true}" x-show="menuOpen"></i>
-                                </a>
+                                </div>
                                 @foreach ($menuItem['submenu'] as $submenu)
                                     @if ($submenu['can'] && auth()->user()->can($submenu['can']))
-                                        <a class="flex items-center gap-2 p-3 px-4 my-2 transition-all rounded whitespace-nowrap  {{( Route::currentRouteName() == $submenu['route'] ? 'bg-white  text-black': 'hover:bg-white hover:bg-opacity-5' )}}" :class="{'h-0 my-auto overflow-hidden py-0' : submenu == false,}" x-transition href="{{route($submenu['route'])}}"" aria-label="{{$submenu['text']}}" @focus="submenu = true"  @blur="submenu = false">
+                                        <a class="flex items-center gap-2 p-3 px-4 my-2 transition-all rounded whitespace-nowrap  {{( Route::currentRouteName() == $submenu['route'] ? 'bg-white  text-black': 'hover:bg-white hover:bg-opacity-5' )}}" :class="{'h-0 my-auto overflow-hidden py-0' : submenu == false,}" x-transition href="{{route($submenu['route'])}}"" aria-label="{{$submenu['text']}}" @focus="submenu = true"  @blur="submenu = false"  wire:navigate>
                                             <i class="{{$submenu['icon'] ?? 'far fa-fw fa-circle'}} " aria-hidden="true"></i>
                                             <p x-show="menuOpen">{{$submenu['text']}}</p>
                                         </a>
