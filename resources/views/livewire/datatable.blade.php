@@ -11,7 +11,7 @@
             @endforeach
         </select>
     </div>
-    <div class="overflow-x-scroll beautify-scrollbar" wire:key="{{Str::random()}}">
+    <div class="overflow-x-scroll beautify-scrollbar" >
         <table class="border w-full my-4 table-auto">
             <thead class="border text-center bg-gray-900 dark:bg-white dark:bg-opacity-20 text-white">
                 <th class="p-4">S/N</th>
