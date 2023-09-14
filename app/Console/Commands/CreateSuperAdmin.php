@@ -6,7 +6,10 @@ use App\Actions\Fortify\PasswordValidationRules;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
+use function Laravel\Prompts\text;
+use function Laravel\Prompts\password;
 use Illuminate\Support\Facades\Validator;
+use function Laravel\Prompts\info;
 
 class CreateSuperAdmin extends Command
 {
@@ -34,30 +37,41 @@ class CreateSuperAdmin extends Command
     public function handle()
     {
         try {
+            $this->newLine();
             $this->alert('Creating super admin');
-            $this->info('Fill in the following details. You can modify rest of profile at a later stage. Values can not be null');
+            $this->info('Fill in the following details. You can modify the profile later with other information.');
             do {
-                // code...
-
                 //don't allow null values hence do while
-                $firstName = null;
-                do {
-                    $firstName = $this->ask('First Name');
-                } while (is_null($firstName));
-                $lastName = null;
-                do {
-                    $lastName = $this->ask('Last Name');
-                } while (is_null($lastName));
-                $email = null;
-                do {
-                    $email = $this->ask('Email');
-                } while (is_null($email));
-                do {
-                    $password = $this->secret('Password');
-                } while (is_null($password));
-                do {
-                    $passwordConfirmation = $this->secret('Confirm Password');
-                } while (is_null($passwordConfirmation));
+                $firstName = text('First name?', required: true, validate: fn(string $value) => match (true) {
+                    strlen($value) < 3 => 'The name must be at least 3 characters.',
+                    strlen($value) > 255 => 'The name must not exceed 255 characters.',
+                    default => null
+                });
+                $lastName = text('Last name?', required: true, validate: fn(string $value) => match (true) {
+                    strlen($value) < 3 => 'The name must be at least 3 characters.',
+                    strlen($value) > 255 => 'The name must not exceed 255 characters.',
+                    default => null
+                });
+                $email = text('Email?', required: true, validate: fn(string $value) => match (true) {
+                    strlen($value) < 3 => 'The email must be at least 3 characters.',
+                    strlen($value) > 511 => 'The email must not exceed 255 characters.',
+                    filter_var($value, FILTER_VALIDATE_EMAIL) === false => 'The email must be a valid email address.',
+                    default => null
+                });
+                $password =  password('What is your password?', 
+                required:true,
+                placeholder: 'Minimum 8 characters...',
+                validate: fn(string $value) => match (true) {
+                    strlen($value) < 8 => 'The password must be at least 8 characters.',
+                    default => null
+                });
+                $passwordConfirmation = password('Confirm your password?',
+                required:true,
+                placeholder: 'Input the same password...',
+                validate: fn(string $value) => match (true) {
+                    $value !== $password => 'The password confirmation does not match.',
+                    default => null
+                });
 
                 //validate the input
                 $validator = Validator::make([
@@ -67,8 +81,8 @@ class CreateSuperAdmin extends Command
                     'password'              => $password,
                     'password_confirmation' => $passwordConfirmation,
                 ], [
-                    'first_name' => ['required', 'string', 'max:511'],
-                    'last_name'  => ['required', 'string', 'max:511'],
+                    'first_name' => ['required', 'string', 'max:255'],
+                    'last_name'  => ['required', 'string', 'max:255'],
                     'email'      => ['required', 'string', 'email', 'max:511', 'unique:users'],
                     'password'   => $this->passwordRules(),
                 ]);
@@ -85,7 +99,7 @@ class CreateSuperAdmin extends Command
                 'email'       => $email,
                 'password'    => Hash::make($password),
                 'address'     => 'super admin street',
-                'birthday'    => '22/04/04',
+                'birthday'    => '1/1/1970',
                 'nationality' => 'nigeria',
                 'state'       => 'lagos',
                 'city'        => 'lagos',
