@@ -6,10 +6,10 @@ use App\Actions\Fortify\PasswordValidationRules;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Hash;
-use function Laravel\Prompts\text;
-use function Laravel\Prompts\password;
 use Illuminate\Support\Facades\Validator;
-use function Laravel\Prompts\info;
+
+use function Laravel\Prompts\password;
+use function Laravel\Prompts\text;
 
 class CreateSuperAdmin extends Command
 {
@@ -42,36 +42,40 @@ class CreateSuperAdmin extends Command
             $this->info('Fill in the following details. You can modify the profile later with other information.');
             do {
                 //don't allow null values hence do while
-                $firstName = text('First name?', required: true, validate: fn(string $value) => match (true) {
-                    strlen($value) < 3 => 'The name must be at least 3 characters.',
+                $firstName = text('First name?', required: true, validate: fn (string $value) => match (true) {
+                    strlen($value) < 3   => 'The name must be at least 3 characters.',
                     strlen($value) > 255 => 'The name must not exceed 255 characters.',
-                    default => null
+                    default              => null
                 });
-                $lastName = text('Last name?', required: true, validate: fn(string $value) => match (true) {
-                    strlen($value) < 3 => 'The name must be at least 3 characters.',
+                $lastName = text('Last name?', required: true, validate: fn (string $value) => match (true) {
+                    strlen($value) < 3   => 'The name must be at least 3 characters.',
                     strlen($value) > 255 => 'The name must not exceed 255 characters.',
-                    default => null
+                    default              => null
                 });
-                $email = text('Email?', required: true, validate: fn(string $value) => match (true) {
-                    strlen($value) < 3 => 'The email must be at least 3 characters.',
-                    strlen($value) > 511 => 'The email must not exceed 255 characters.',
+                $email = text('Email?', required: true, validate: fn (string $value) => match (true) {
+                    strlen($value) < 3                                  => 'The email must be at least 3 characters.',
+                    strlen($value) > 511                                => 'The email must not exceed 255 characters.',
                     filter_var($value, FILTER_VALIDATE_EMAIL) === false => 'The email must be a valid email address.',
-                    default => null
+                    default                                             => null
                 });
-                $password =  password('What is your password?', 
-                required:true,
-                placeholder: 'Minimum 8 characters...',
-                validate: fn(string $value) => match (true) {
-                    strlen($value) < 8 => 'The password must be at least 8 characters.',
-                    default => null
-                });
-                $passwordConfirmation = password('Confirm your password?',
-                required:true,
-                placeholder: 'Input the same password...',
-                validate: fn(string $value) => match (true) {
-                    $value !== $password => 'The password confirmation does not match.',
-                    default => null
-                });
+                $password = password(
+                    'What is your password?',
+                    required:true,
+                    placeholder: 'Minimum 8 characters...',
+                    validate: fn (string $value) => match (true) {
+                        strlen($value) < 8 => 'The password must be at least 8 characters.',
+                        default            => null
+                    }
+                );
+                $passwordConfirmation = password(
+                    'Confirm your password?',
+                    required:true,
+                    placeholder: 'Input the same password...',
+                    validate: fn (string $value) => match (true) {
+                        $value !== $password => 'The password confirmation does not match.',
+                        default              => null
+                    }
+                );
 
                 //validate the input
                 $validator = Validator::make([
