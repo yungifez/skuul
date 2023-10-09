@@ -21,7 +21,7 @@ class EditFeeInvoiceForm extends Component
 
     public function mount()
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
 
         $this->feeInvoice->loadMissing('feeInvoiceRecords', 'feeInvoiceRecords.fee');
         $this->feeCategories = FeeCategory::inSchool()->get();

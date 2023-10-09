@@ -12,8 +12,9 @@ class EditExamSlotForm extends Component
 
     public ExamSlot $examSlot;
 
-    function mount() {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+    public function mount()
+    {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
     }
 
     public function render()

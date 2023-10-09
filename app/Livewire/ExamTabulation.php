@@ -44,7 +44,7 @@ class ExamTabulation extends Component
 
     public function mount(ExamService $examService, SectionService $sectionService, MyClassService $myClassService)
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
 
         //get semester and use it to fetch all exams in semester
         $this->semester = auth()->user()->school->semester;
