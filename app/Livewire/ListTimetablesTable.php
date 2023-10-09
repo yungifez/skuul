@@ -15,7 +15,7 @@ class ListTimetablesTable extends Component
 
     public function mount(MyClassService $myClassService)
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
 
         if (auth()->user()->hasRole('student')) {
             return $this->class = auth()->user()->studentRecord->myClass->id;

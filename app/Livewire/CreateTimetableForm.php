@@ -13,7 +13,7 @@ class CreateTimetableForm extends Component
 
     public function mount(MyClassService $myClassService)
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
 
         $this->classes = $myClassService->getAllClasses();
     }

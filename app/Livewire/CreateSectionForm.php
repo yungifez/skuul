@@ -11,7 +11,7 @@ class CreateSectionForm extends Component
 
     public function mount(MyClassService $classService)
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
 
         $this->myClasses = $classService->getAllClasses();
     }

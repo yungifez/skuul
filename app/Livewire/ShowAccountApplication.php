@@ -11,7 +11,7 @@ class ShowAccountApplication extends Component
 
     public function mount()
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
 
         $this->applicant->loadMissing('accountApplication.statuses');
     }

@@ -8,9 +8,11 @@ class CreateUserFields extends Component
 {
     public string $role = 'User';
 
-    function mount() {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+    public function mount()
+    {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
     }
+
     public function render()
     {
         return view('livewire.create-user-fields');

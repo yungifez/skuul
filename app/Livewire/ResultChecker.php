@@ -51,7 +51,7 @@ class ResultChecker extends Component
 
     public function mount(MyClassService $myClassService)
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
 
         $this->academicYears = auth()->user()->school->academicYears;
         $this->academicYear = auth()->user()->school->academicYear->id;

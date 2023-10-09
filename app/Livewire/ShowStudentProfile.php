@@ -14,7 +14,7 @@ class ShowStudentProfile extends Component
 
     public function mount()
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
 
         $this->student = $this->student->loadMissing('studentRecord');
         $this->studentRecord = $this->student->studentRecord()->withoutGlobalScopes()->first();
