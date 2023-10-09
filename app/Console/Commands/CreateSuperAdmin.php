@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Hash;
 use function Laravel\Prompts\text;
 use function Laravel\Prompts\password;
 use Illuminate\Support\Facades\Validator;
-use function Laravel\Prompts\info;
 
 class CreateSuperAdmin extends Command
 {
@@ -73,7 +72,6 @@ class CreateSuperAdmin extends Command
                     default => null
                 });
 
-                //validate the input
                 $validator = Validator::make([
                     'first_name'            => $firstName,
                     'last_name'             => $lastName,
@@ -87,7 +85,6 @@ class CreateSuperAdmin extends Command
                     'password'   => $this->passwordRules(),
                 ]);
 
-                //display validation error
                 foreach ($validator->errors()->all() as $error) {
                     $this->error($error);
                 }

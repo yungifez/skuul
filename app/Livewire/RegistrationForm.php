@@ -14,6 +14,8 @@ class RegistrationForm extends Component
 
     public function mount(SchoolService $schoolService)
     {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+
         $this->schools = $schoolService->getAllSchools();
         $this->roles = Role::whereIn('name', ['teacher', 'student', 'parent'])->get();
     }

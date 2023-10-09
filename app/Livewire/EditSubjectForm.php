@@ -15,6 +15,8 @@ class EditSubjectForm extends Component
 
     public function mount(TeacherService $teacherService)
     {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+
         $this->teachers = $teacherService->getAllTeachers();
         $this->assignedTeachersId = $this->subject->teachers()->get()->pluck('id')->all();
     }

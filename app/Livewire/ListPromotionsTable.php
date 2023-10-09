@@ -11,6 +11,8 @@ class ListPromotionsTable extends Component
 
     public function mount(AcademicYearService $academicYearService)
     {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+
         if (!$this->academicYear) {
             $this->academicYear = auth()->user()->school->load('academicYear')->academicYear->first();
         } else {

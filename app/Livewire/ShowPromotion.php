@@ -13,6 +13,8 @@ class ShowPromotion extends Component
 
     public function mount(StudentService $studentService)
     {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+
         $this->students = $studentService->getStudentById($this->promotion->students);
     }
 

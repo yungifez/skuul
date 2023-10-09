@@ -11,6 +11,7 @@ class CreateClassForm extends Component
 
     public function mount(MyClassService $myClassService)
     {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
         $this->classGroups = $myClassService->getAllClassGroups();
     }
 

@@ -34,6 +34,8 @@ class PromoteStudents extends Component
 
     public function mount(MyclassService $myClassService)
     {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+
         $this->classes = $myClassService->getAllClasses();
 
         //set default values

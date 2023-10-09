@@ -26,6 +26,8 @@ class GraduateStudents extends Component
 
     public function mount(MyClassService $myClassService)
     {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+
         $this->classes = $myClassService->getAllClasses();  //set default values
         $this->class = $this->classes[0]->id;
     }

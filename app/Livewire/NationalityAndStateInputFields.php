@@ -22,6 +22,8 @@ class NationalityAndStateInputFields extends Component
 
     public function mount()
     {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+
         // @phpstan-ignore-next-line
         $this->nationalities = World::countries()->data->pluck('name');
 

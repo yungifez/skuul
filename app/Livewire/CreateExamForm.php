@@ -11,6 +11,7 @@ class CreateExamForm extends Component
 
     public function mount(SemesterService $semesterService)
     {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
         $this->semesters = $semesterService->getAllSemestersInAcademicYear(auth()->user()->school->academic_year_id);
     }
 

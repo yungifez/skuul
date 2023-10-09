@@ -11,6 +11,8 @@ class ShowAcademicYear extends Component
 
     public function mount(AcademicYear $academicYear)
     {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+
         $this->academicYear = $academicYear->loadMissing('semesters');
     }
 

@@ -14,6 +14,8 @@ class ListFeeInvoicesTable extends Component
 
     public function mount()
     {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+
         $this->year = date('Y');
         $this->queryAddon = [];
         $this->status = $this->status ?? 'due';

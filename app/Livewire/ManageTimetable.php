@@ -33,6 +33,8 @@ class ManageTimetable extends Component
 
     public function mount(TimetableService $timetableService)
     {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+
         $this->timeSlots = $this->timetable->timeSlots->sortBy('start_time')->load('weekdays');
         if ($this->timeSlots->isNotEmpty()) {
             $this->timeSlot ?? $this->timeSlot = $this->timeSlots->first()->id;

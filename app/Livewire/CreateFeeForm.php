@@ -11,6 +11,8 @@ class CreateFeeForm extends Component
 
     public function mount()
     {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+
         $this->feeCategories = FeeCategory::where('school_id', auth()->user()->school_id)->get();
     }
 

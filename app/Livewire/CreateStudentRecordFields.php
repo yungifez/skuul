@@ -17,14 +17,15 @@ class CreateStudentRecordFields extends Component
     public $section;
 
     protected $myClassService;
-
+    
     protected $rules = [
         'myClass' => 'string',
         'section' => 'string',
     ];
-
+    
     public function mount(MyClassService $myClassService)
     {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
         $this->myClasses = $myClassService->getAllClasses();
 
         if ($this->myClasses->isNotEmpty()) {

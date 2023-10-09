@@ -31,6 +31,8 @@ class ShowTimetable extends Component
 
     public function mount(TimetableService $timetableService)
     {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+
         $this->timeSlots = $this->timetable->timeSlots->sortBy('start_time')->load('weekdays');
         $this->weekdays = Weekday::all();
         $this->subjects = $this->timetable->load('myClass')->MyClass->subjects;

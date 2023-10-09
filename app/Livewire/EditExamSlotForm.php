@@ -12,6 +12,10 @@ class EditExamSlotForm extends Component
 
     public ExamSlot $examSlot;
 
+    function mount() {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+    }
+
     public function render()
     {
         return view('livewire.edit-exam-slot-form');

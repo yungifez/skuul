@@ -19,6 +19,8 @@ class ListGradeSystemsTable extends Component
 
     public function mount(MyClassService $myClassService)
     {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+
         // Get all class groups
         $this->classGroups = $myClassService->getAllClassGroups();
 

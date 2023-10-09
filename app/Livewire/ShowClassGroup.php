@@ -9,6 +9,10 @@ class ShowClassGroup extends Component
 {
     public ClassGroup $classGroup;
 
+    function mount() {
+        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag)->getMessages());
+    }
+
     public function render()
     {
         return view('livewire.show-class-group');
