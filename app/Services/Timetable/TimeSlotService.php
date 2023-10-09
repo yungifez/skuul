@@ -49,6 +49,13 @@ class TimeSlotService
             $timeSlot->weekdays()->detach($data['weekday_id']);
         }
 
+        //i'm sorry for this
+        if ($data['type'] == 'subject') {
+            $data['type'] = 'App\Models\Subject';
+        } elseif ($data['type'] == 'customTimetableItem') {
+            $data['type'] = 'App\Models\CustomTimetableItem';
+        }
+
         if (isset($data['id']) && $data['id'] != null) {
             $timeSlot->weekdays()->attach($data['weekday_id'], ['timetable_time_slot_weekdayable_id' => $data['id'], 'timetable_time_slot_weekdayable_type' => $data['type']]);
         }

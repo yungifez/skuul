@@ -11,7 +11,7 @@
             </p>
             <x-input wire:ignore id="name" name="name" label="Timetable name *" placeholder="Enter timetable name"/>
             <x-textarea id="description" name="description" label="Description" placeholder="Enter description"/>
-            <x-select id="class" name="my_class_id" label="Select class *" wire:model="class" wire:loading.attr="disabled" wire:target="class">
+            <x-select id="class" name="my_class_id" label="Select class *" wire:model.live="class" wire:loading.attr="disabled" wire:target="class">
                 @foreach ($classes as $item)
                     <option value="{{$item['id']}}">{{$item['name']}}</option>
                 @endforeach

@@ -6,7 +6,7 @@
         <p class="text-sm">{{$description}}</p>
     </div>
     <div class="col-span-8 card shadow-sm">
-        <form wire:submit.prevent="{{ $submit }}">
+        <form wire:submit="{{ $submit }}">
             <div class="card-body">
             {{ $form }}
             </div>

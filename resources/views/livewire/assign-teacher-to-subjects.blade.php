@@ -3,13 +3,13 @@
         <h4 class="card-title">Assign teachers to subjects</h4>
     </div>
     <div class="card-body">
-        <form action="" wire:submit.prevent="fetchSubjects('{{$class}}', '{{$teacher}}')" class="md:grid gap-4 grid-cols-3 items-end">
-            <x-select id="class-id" name="my_class_id" label="Select class"  wire:model="class">
+        <form action="" wire:submit="fetchSubjects('{{$class}}', '{{$teacher}}')" class="md:grid gap-4 grid-cols-3 items-end">
+            <x-select id="class-id" name="my_class_id" label="Select class"  wire:model.live="class">
                 @foreach ($classes as $item)
                     <option value="{{$item['id']}}">{{$item['name']}}</option>
                 @endforeach
             </x-select>
-            <x-select id="teacher_id" name="teacherId" label="Select Teacher"  wire:model="teacher">
+            <x-select id="teacher_id" name="teacherId" label="Select Teacher"  wire:model.live="teacher">
                 @foreach ($teachers as $teacher)
                     <option value="{{$teacher->id}}">{{$teacher->name}}</option>
                 @endforeach

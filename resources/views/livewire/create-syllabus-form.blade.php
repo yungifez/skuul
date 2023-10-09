@@ -9,14 +9,14 @@
             <p class="text-secondary">
                 {{__('All fields marked * are required')}}
             </p>
-            <x-select id="class" name='my_class_id' id="my_class" label="Class *" wire:model="class">
+            <x-select id="class" name='my_class_id' id="my_class" label="Class *" wire:model.live="class">
                 @isset($classes)
                     @foreach ($classes as $item)
                         <option value="{{$item['id']}}">{{$item['name']}}</option>
                     @endforeach
                 @endisset
             </x-select>
-            <x-select id="subject" name='subject_id' id="subject" label="Subject *" wire:init="loadInitialSubjects" wire:model="subject" >
+            <x-select id="subject" name='subject_id' id="subject" label="Subject *" wire:init="loadInitialSubjects" wire:model.live="subject" >
                 @isset($subjects)
                     @foreach ($subjects as $subject)
                         <option value="{{$subject['id']}}">{{$subject['name']}}</option>

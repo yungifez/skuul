@@ -4,7 +4,7 @@
     </div>
     <div class="card-body">
         @if ($classes->isNotEmpty())
-            <x-select name="" id="class-select" class="md:w-6/12 my-4" wire:model="class">
+            <x-select name="" id="class-select" class="md:w-6/12 my-4" wire:model.live="class">
                 @foreach ($classes as $item)
                     <option value="{{$item->id}}">{{$item->name}}</option>
                 @endforeach

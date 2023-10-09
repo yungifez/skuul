@@ -19,24 +19,24 @@
             <x-loading-spinner wire:target="section"/>
             <x-loading-spinner wire:target="addStudent"/>
             <div class="md:grid md:grid-cols-3 gap-4">
-                <x-select id="classes" name="" label="Class" wire:model="class">
+                <x-select id="classes" name="" label="Class" wire:model.live="class">
                     @foreach ($classes as $item)
                         <option value="{{$item->id}}">{{$item->name}}</option>
                     @endforeach
                 </x-select>
-                <x-select id="section" name="" label="Section" wire:model="section">
+                <x-select id="section" name="" label="Section" wire:model.live="section">
                     <option value="">All Sections</option>
                     @isset($sections)
                         @foreach ($sections as $item)
-                            <option value="{{$item->id}}">{{$item->name}}</option>
+                            <option value="{{$item->id}}" @selected($section == $item->id)>{{$item->name}}</option>
                         @endforeach
                     @endisset
                 </x-select>
-                <x-select id="student" name="" label="Student" wire:model="student">
+                <x-select id="student" name="" label="Student" wire:model.live="student">
                     <option value="">All Students</option>
                     @isset($students)
                         @foreach ($students as $item)
-                            <option value="{{$item->id}}">{{$item->name}}</option>
+                            <option value="{{$item->id}}" @selected($student == $item->id)>{{$item->name}}</option>
                         @endforeach
                     @endisset
                 </x-select>
@@ -91,16 +91,16 @@
             <x-loading-spinner wire:target="addFees"/>
             <x-loading-spinner wire:target="feeCategory"/>
             <div class="md:grid grid-cols-2 items-end gap-4">
-                <x-select id="fee" name="" label="Fee Category" wire:model="feeCategory">
+                <x-select id="fee" name="" label="Fee Category" wire:model.live="feeCategory">
                     @foreach ($feeCategories as $item)
                         <option value="{{$item->id}}">{{$item->name}}</option>
                     @endforeach
                 </x-select>
-                <x-select id="fee" name="" label="Fee" wire:model="fee">
+                <x-select id="fee" name="" label="Fee" wire:model.live="fee">
                     @isset($fees)
                         <option value="">All Fees </option>
                         @foreach ($fees as $item)
-                            <option value="{{$item->id}}">{{$item->name}}</option>
+                            <option value="{{$item->id}}" @selected($fee == $item->id)>{{$item->name}}</option>
                         @endforeach
                     @endisset
                 </x-select>

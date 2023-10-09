@@ -7,9 +7,9 @@
             <x-display-validation-errors/>
             <x-loading-spinner/>
             {{-- form for selecting class and section to display --}}
-            <form wire:submit.prevent="checkResult('{{$academicYear}}','{{$semester}}', '{{$student}}')" class="">
+            <form wire:submit="checkResult('{{$academicYear}}','{{$semester}}', '{{$student}}')" class="">
                 <div class="md:grid grid-cols-3 gap-4 items-end">
-                    <x-select id="academic-year" name="academic-year" label="Academic Year of exam"   wire:model="academicYear" group-class=" ">
+                    <x-select id="academic-year" name="academic-year" label="Academic Year of exam"   wire:model.live="academicYear" group-class=" ">
                         @isset($academicYears)
                             @foreach ($academicYears as $item)
                             <option value="{{$item['id']}}"> {{$item->name
@@ -17,7 +17,7 @@
                             @endforeach
                         @endisset
                     </x-select>
-                    <x-select id="semester" name="semester" label="Semester of exam"   wire:model="semester" group-class="">
+                    <x-select id="semester" name="semester" label="Semester of exam"   wire:model.live="semester" group-class="">
                         <option value="">Entire Academic Year</option>
                         @isset($semesters)
                             @foreach ($semesters as $item)
@@ -27,7 +27,7 @@
                     </x-select>
                     {{--fields are not available to any role not in list--}}
                     @hasanyrole('super-admin|admin|teacher')
-                        <x-select id="class" name="class" label="Current Class"   wire:model="class" group-class="">
+                        <x-select id="class" name="class" label="Current Class"   wire:model.live="class" group-class="">
                             @isset($classes)
                             @foreach ($classes as $item)
                             <option value="{{$item['id']}}">{{$item['name']}}</option>
@@ -35,7 +35,7 @@
                             @endisset
                             
                         </x-select>
-                        <x-select id="section" name="section" label="Current Section" fgroup-class="col-md-2" wire:model="section" group-class="">
+                        <x-select id="section" name="section" label="Current Section" fgroup-class="col-md-2" wire:model.live="section" group-class="">
                             @isset($sections)
                                 @foreach ($sections as $item)
                                     <option value="{{$item['id']}}">{{$item['name']}}</option>
@@ -43,7 +43,7 @@
                             @endisset
                         </x-select>
                     @endhasanyrole
-                    <x-select id="student" name="student" label="Student"  wire:model="student" group-class="">
+                    <x-select id="student" name="student" label="Student"  wire:model.live="student" group-class="">
                         @isset($students)
                             @foreach ($students as $item)
                                 <option value="{{$item['id']}}">{{$item['name']}}</option>

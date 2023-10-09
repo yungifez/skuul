@@ -1,11 +1,24 @@
 # Skuul school management system
 
+<p align="center">
+    <!-- <a href="https://packagist.org/packages/yungifez/skuul">
+        <img src="https://poser.pugx.org/yungifez/skuul/d/total.svg" alt="Total Composer Downloads">
+    </a> -->
+    <a href="https://packagist.org/packages/yungifez/skuul">
+        <img src="https://poser.pugx.org/yungifez/skuul/v/stable.svg" alt="Latest Stable Version">
+    </a>
+    <a href="https://packagist.org/packages/yungifez/skuul">
+        <img src="https://poser.pugx.org/yungifez/skuul/license.svg" alt="License">
+    </a>
+</p>
+
 >In search of good school management systems written in laravel, I tried so many although most were quite remarkably good they lacked some essential features that I would have loved in a school management system.This made me passionate in building my own school management system. Although it has been difficult, it's actually forming up into a quite useable project.
 
 ![schooldash-dahboard-page](https://user-images.githubusercontent.com/63137056/216740379-18cb9f1d-5e80-4bc8-8b99-07d08ea98da4.png)
 
 
 # CONGRATS V2 OF SKUUL IS OUT
+
 
 Skuul is awesome, but it had a few shortcomings when it came to some areas like UI speed and application slugishness as it grows. Version 2 fixes these issues and also improves on accessibility. 
 
