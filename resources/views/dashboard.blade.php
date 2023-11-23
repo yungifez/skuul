@@ -27,7 +27,7 @@
     </a>
 @endif
 
-@can('read notice') 
+@can('read notice')
     @livewire('list-notices-table')
 @endcan
 
