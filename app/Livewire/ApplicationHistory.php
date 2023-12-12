@@ -11,7 +11,6 @@ class ApplicationHistory extends Component
 
     public function mount()
     {
-
         $this->applicant->loadMissing('accountApplication', 'accountApplication.statuses');
     }
 

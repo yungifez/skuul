@@ -11,7 +11,6 @@ class SetSemester extends Component
 
     public function mount(SemesterService $semesterService)
     {
-
         $this->semesters = $semesterService->getAllSemestersInAcademicYear(auth()->user()->school->academicYear->id);
     }
 

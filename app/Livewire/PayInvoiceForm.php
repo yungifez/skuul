@@ -10,7 +10,6 @@ class PayInvoiceForm extends Component
 
     public function mount()
     {
-
         $this->feeInvoice->loadMissing('feeInvoiceRecords', 'feeInvoiceRecords.fee');
     }
 
