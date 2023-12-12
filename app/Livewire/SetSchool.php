@@ -11,8 +11,6 @@ class SetSchool extends Component
 
     public function mount(SchoolService $schoolService)
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
-
         $this->schools = $schoolService->getAllSchools();
     }
 

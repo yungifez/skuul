@@ -33,8 +33,6 @@ class AcademicYearResultTabulation extends Component
 
     public function mount(MyClassService $myClassService)
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
-
         //get semester and use it to fetch all exams in semester
         $this->academicYear = auth()->user()->school->academicYear;
         $this->classes = $myClassService->getAllClasses();

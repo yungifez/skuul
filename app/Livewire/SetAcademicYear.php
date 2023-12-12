@@ -11,8 +11,6 @@ class SetAcademicYear extends Component
 
     public function mount(AcademicYearService $academicYearService)
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
-
         $this->academicYears = $academicYearService->getAllAcademicYears();
     }
 

@@ -26,8 +26,6 @@ class CreateFeeInvoiceForm extends Component
 
     public function mount()
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
-
         $this->addedFees = collect();
         $this->addedStudents = collect();
         $this->feeCategories = FeeCategory::where('school_id', auth()->user()->school_id)->get();
