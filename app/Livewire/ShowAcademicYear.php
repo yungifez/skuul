@@ -11,7 +11,6 @@ class ShowAcademicYear extends Component
 
     public function mount(AcademicYear $academicYear)
     {
-
         $this->academicYear = $academicYear->loadMissing('semesters');
     }
 

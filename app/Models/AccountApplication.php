@@ -16,6 +16,7 @@ class AccountApplication extends Model
 
     protected $fillable = ['role_id', 'user_id'];
     protected $accountStatuses = ['approved', 'rejected', 'under review', 'user action required'];
+
     /**
      * Get the user that owns the AccountApplication.
      */

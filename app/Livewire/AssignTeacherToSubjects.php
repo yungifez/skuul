@@ -27,7 +27,6 @@ class AssignTeacherToSubjects extends Component
 
     public function mount(TeacherService $teacherService, MyClassService $myclassService)
     {
-
         $this->classes = $myclassService->getAllClasses();
         $this->class = $this->classes->first()?->id;
         $this->teachers = $teacherService->getAllTeachers();

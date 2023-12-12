@@ -9,7 +9,6 @@ class EditAcademicYearForm extends Component
 {
     public AcademicYear $academicYear;
 
-
     public function render()
     {
         return view('livewire.edit-academic-year-form');

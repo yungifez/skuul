@@ -11,7 +11,6 @@ class ShowAccountApplication extends Component
 
     public function mount()
     {
-
         $this->applicant->loadMissing('accountApplication.statuses');
     }
 

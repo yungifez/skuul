@@ -19,7 +19,6 @@ class ListGradeSystemsTable extends Component
 
     public function mount(MyClassService $myClassService)
     {
-
         // Get all class groups
         $this->classGroups = $myClassService->getAllClassGroups();
 
