@@ -63,6 +63,9 @@ class ListExamRecordsTable extends Component
 
     public function mount(ExamService $examService, MyClassService $myClassService, SectionService $sectionService, SubjectService $subjectService)
     {
+       //get semester and use it to fetch all exams in semester
+        $this->semester = auth()->user()->school->semester;
+        $this->exams = $examService->getActiveExamsInSemester($this->semester->id);
         //set exam as first exam if exams not empty
         $this->exams->count() ? $this->exam = $this->exams[0]->id : $this->exam = null;
         $this->classes = $myClassService->getAllClasses();
