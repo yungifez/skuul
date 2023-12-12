@@ -27,7 +27,6 @@ class AssignStudentsToParent extends Component
 
     public function mount(SectionService $sectionService, MyClassService $myClassService)
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
 
         $this->classes = $myClassService->getAllClasses();
         if ($this->classes->isEmpty()) {

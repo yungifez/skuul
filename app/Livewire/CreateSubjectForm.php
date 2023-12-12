@@ -14,7 +14,6 @@ class CreateSubjectForm extends Component
 
     public function mount(MyClassService $myClassService, TeacherService $teacherService)
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
         $this->classes = $myClassService->getAllClasses();
         $this->teachers = $teacherService->getAllTeachers();
     }

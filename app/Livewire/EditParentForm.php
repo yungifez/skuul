@@ -9,10 +9,6 @@ class EditParentForm extends Component
 {
     public User $parent;
 
-    public function mount()
-    {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
-    }
 
     public function render()
     {

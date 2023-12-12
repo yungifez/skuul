@@ -14,11 +14,6 @@ class MarkTabulation extends Component
 
     public $title = '';
 
-    public function mount()
-    {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
-    }
-
     public function render()
     {
         return view('livewire.mark-tabulation');

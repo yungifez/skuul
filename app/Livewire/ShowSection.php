@@ -12,8 +12,6 @@ class ShowSection extends Component
 
     public function mount()
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
-
         $this->section = $this->section->load('studentRecords', 'studentRecords.user');
         $this->students = $this->section->students();
     }

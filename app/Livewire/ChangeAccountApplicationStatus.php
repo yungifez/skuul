@@ -17,7 +17,6 @@ class ChangeAccountApplicationStatus extends Component
 
     public function mount(User $applicant)
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
 
         $this->applicant = $applicant;
 

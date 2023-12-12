@@ -9,11 +9,6 @@ class EditFeeForm extends Component
 {
     public Fee $fee;
 
-    public function mount()
-    {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
-    }
-
     public function render()
     {
         return view('livewire.edit-fee-form');

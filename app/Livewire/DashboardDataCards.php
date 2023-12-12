@@ -25,7 +25,6 @@ class DashboardDataCards extends Component
 
     public function mount(SectionService $sectionService)
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
 
         $this->schools = School::count();
         $this->classGroups = auth()->user()->school->classGroups()->count();

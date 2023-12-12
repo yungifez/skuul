@@ -25,7 +25,6 @@ class CreateStudentRecordFields extends Component
 
     public function mount(MyClassService $myClassService)
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
         $this->myClasses = $myClassService->getAllClasses();
 
         if ($this->myClasses->isNotEmpty()) {

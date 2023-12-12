@@ -16,8 +16,6 @@ class EditTimetableForm extends Component
 
     public function mount(MyClassService $myClassService)
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
-
         $this->classes = $myClassService->getAllClasses();
         $this->class = $this->timetable->myClass->id;
     }

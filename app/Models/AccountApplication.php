@@ -15,7 +15,7 @@ class AccountApplication extends Model
     use HasStatuses;
 
     protected $fillable = ['role_id', 'user_id'];
-
+    protected $accountStatuses = ['approved', 'rejected', 'under review', 'user action required'];
     /**
      * Get the user that owns the AccountApplication.
      */
@@ -37,6 +37,6 @@ class AccountApplication extends Model
      */
     public function getAllStatuses(): Collection
     {
-        return collect(['approved', 'rejected', 'under review', 'user action required']);
+        return collect($this->accountStatuses);
     }
 }
