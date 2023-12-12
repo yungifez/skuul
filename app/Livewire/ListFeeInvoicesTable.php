@@ -14,7 +14,6 @@ class ListFeeInvoicesTable extends Component
 
     public function mount()
     {
-
         $this->year = date('Y');
         $this->queryAddon = [];
         $this->status = $this->status ?? 'due';

@@ -14,7 +14,6 @@ class RegistrationForm extends Component
 
     public function mount(SchoolService $schoolService)
     {
-
         $this->schools = $schoolService->getAllSchools();
         $this->roles = Role::whereIn('name', ['teacher', 'student', 'parent'])->get();
     }

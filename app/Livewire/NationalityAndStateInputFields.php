@@ -22,7 +22,6 @@ class NationalityAndStateInputFields extends Component
 
     public function mount()
     {
-
         // @phpstan-ignore-next-line
         $this->nationalities = World::countries()->data->pluck('name');
 

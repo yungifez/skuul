@@ -11,7 +11,6 @@ class SetAcademicYear extends Component
 
     public function mount(AcademicYearService $academicYearService)
     {
-
         $this->academicYears = $academicYearService->getAllAcademicYears();
     }
 

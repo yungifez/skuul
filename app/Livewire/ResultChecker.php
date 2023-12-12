@@ -51,7 +51,6 @@ class ResultChecker extends Component
 
     public function mount(MyClassService $myClassService)
     {
-
         $this->academicYears = auth()->user()->school->academicYears;
         $this->academicYear = auth()->user()->school->academicYear->id;
         $this->updatedAcademicYear();

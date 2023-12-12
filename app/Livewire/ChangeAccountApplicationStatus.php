@@ -17,7 +17,6 @@ class ChangeAccountApplicationStatus extends Component
 
     public function mount(User $applicant)
     {
-
         $this->applicant = $applicant;
 
         //return null if no applicant record

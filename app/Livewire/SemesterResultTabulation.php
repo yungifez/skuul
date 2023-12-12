@@ -34,7 +34,6 @@ class SemesterResultTabulation extends Component
 
     public function mount(SectionService $sectionService, MyClassService $myClassService)
     {
-
         //get semester and use it to fetch all exams in semester
         $this->semester = auth()->user()->school->semester;
         $this->classes = $myClassService->getAllClasses();

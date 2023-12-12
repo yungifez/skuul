@@ -34,7 +34,6 @@ class PromoteStudents extends Component
 
     public function mount(MyclassService $myClassService)
     {
-
         $this->classes = $myClassService->getAllClasses();
 
         //set default values
