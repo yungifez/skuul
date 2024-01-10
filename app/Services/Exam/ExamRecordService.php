@@ -58,6 +58,7 @@ class ExamRecordService
     {
         //get all exam slots in exam
         $examSlots = $exam->examSlots->pluck('id');
+
         //get all exam records in for user and subject
         return ExamRecord::where(['user_id' => $user, 'subject_id' => $subject])->whereIn('exam_slot_id', $examSlots)->get();
     }
@@ -83,6 +84,7 @@ class ExamRecordService
                 $examSlots[] = $j;
             }
         }
+
         //get all exam records in for user and subject
         return ExamRecord::where(['user_id' => $user, 'subject_id' => $subject])->whereIn('exam_slot_id', $examSlots)->get();
     }
