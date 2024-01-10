@@ -106,6 +106,7 @@ class AcademicYearResultTabulation extends Component
     {
         //used pdf class directly
         $pdf = Pdf::loadView('pages.exam.print-exam-tabulation', ['tabulatedRecords' => $this->tabulatedRecords, 'totalMarksAttainableInEachSubject' => $this->totalMarksAttainableInEachSubject, 'subjects' => $this->subjects])->output();
+
         //save as pdf
         return response()->streamDownload(
             fn () => print($pdf),
