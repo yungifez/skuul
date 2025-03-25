@@ -66,7 +66,7 @@ class AcademicYearService
     /**
      * Delete an academic year.
      */
-    public function deleteAcademicYear(AcademicYear $academicYear): bool|null
+    public function deleteAcademicYear(AcademicYear $academicYear): ?bool
     {
         return $academicYear->delete();
     }
