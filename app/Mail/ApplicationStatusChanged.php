@@ -23,7 +23,7 @@ class ApplicationStatusChanged extends Mailable
      *
      * @var string
      */
-    public string|null $reason;
+    public ?string $reason;
 
     /**
      * Create a new message instance.

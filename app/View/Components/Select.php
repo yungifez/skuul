@@ -21,7 +21,7 @@ class Select extends Component
      *
      * @return void
      */
-    public function __construct($id, $name, $class = null, string $label = null, $groupClass = null)
+    public function __construct($id, $name, $class = null, ?string $label = null, $groupClass = null)
     {
         $this->id = $id;
         $this->label = $label;

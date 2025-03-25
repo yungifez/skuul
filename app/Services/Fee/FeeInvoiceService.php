@@ -79,7 +79,7 @@ class FeeInvoiceService
      *
      * @return string
      */
-    public function generateInvoiceNumber(int $schoolId = null)
+    public function generateInvoiceNumber(?int $schoolId = null)
     {
         $schoolInitials = (School::find($schoolId) ?? auth()->user()->school)->initials;
         $schoolInitials != null && $schoolInitials .= '-';
