@@ -49,7 +49,7 @@ class FeeCategoryService
      *
      * @return bool|null
      */
-    public function deleteFeeCategory(FeeCategory $feeCategory): bool|null
+    public function deleteFeeCategory(FeeCategory $feeCategory): ?bool
     {
         return $feeCategory->delete();
     }

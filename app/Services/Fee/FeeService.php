@@ -43,7 +43,7 @@ class FeeService
      *
      * @param Fee $fee
      */
-    public function deleteFee(Fee $fee): bool|null
+    public function deleteFee(Fee $fee): ?bool
     {
         return $fee->delete();
     }
