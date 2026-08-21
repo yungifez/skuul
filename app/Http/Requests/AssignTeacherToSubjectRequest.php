@@ -14,7 +14,7 @@ class AssignTeacherToSubjectRequest extends FormRequest
     public function rules()
     {
         return [
-            'subjects' => 'required',
+            'subjects'   => 'required',
             'subjects.*' => 'nullable|exists:subjects,id',
         ];
     }

@@ -127,7 +127,7 @@ class AccountStatusTest extends TestCase
         $this->authorized_user(['manage account access'])
             ->post(route('users.account-status', $target->id), [
                 'account_status' => AccountStatus::Suspended->value,
-                'reason' => 'Left the school',
+                'reason'         => 'Left the school',
             ])->assertRedirect();
 
         Event::assertDispatched(AccountStatusChanged::class, function (AccountStatusChanged $event) use ($target): bool {
@@ -175,7 +175,7 @@ class AccountStatusTest extends TestCase
         $user = User::factory()->invited()->create();
 
         $this->post('/login', [
-            'email' => $user->email,
+            'email'    => $user->email,
             'password' => 'password',
         ]);
 
@@ -189,7 +189,7 @@ class AccountStatusTest extends TestCase
         ]);
 
         $this->post('/login', [
-            'email' => $user->email,
+            'email'    => $user->email,
             'password' => 'Str0ng-Passw0rd!',
         ]);
 

@@ -231,15 +231,15 @@ class InitCommand extends Command
         $mailReplyName = $this->ask('Mail Reply Name', getenv('MAIL_REPLY_NAME'));
 
         $mailCredentials = [
-            'MAIL_MAILER' => $mailMailer,
-            'MAIL_HOST' => $mailHost,
-            'MAIL_PORT' => $mailPort,
-            'MAIL_USERNAME' => $mailUsername,
-            'MAIL_PASSWORD' => $mailPassword,
-            'MAIL_FROM_ADDRESS' => $mailFromAddress,
-            'MAIL_FROM_NAME' => $mailFromName,
+            'MAIL_MAILER'        => $mailMailer,
+            'MAIL_HOST'          => $mailHost,
+            'MAIL_PORT'          => $mailPort,
+            'MAIL_USERNAME'      => $mailUsername,
+            'MAIL_PASSWORD'      => $mailPassword,
+            'MAIL_FROM_ADDRESS'  => $mailFromAddress,
+            'MAIL_FROM_NAME'     => $mailFromName,
             'MAIL_REPLY_ADDRESS' => $mailReplyAddress,
-            'MAIL_REPLY_NAME' => $mailReplyName,
+            'MAIL_REPLY_NAME'    => $mailReplyName,
         ];
 
         $this->setEnvironmentValue($mailCredentials);

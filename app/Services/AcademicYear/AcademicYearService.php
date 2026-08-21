@@ -29,7 +29,7 @@ class AcademicYearService
     /**
      * Get academic year by Id.
      *
-     * @param  int  $id
+     * @param int $id
      */
     public function getAcademicYearById($id): AcademicYear
     {
@@ -39,7 +39,7 @@ class AcademicYearService
     /**
      * Create academic year.
      *
-     * @param  array|Collection  $records
+     * @param array|Collection $records
      */
     public function createAcademicYear($records): AcademicYear
     {
@@ -52,7 +52,7 @@ class AcademicYearService
     /**
      * Update Academic Year.
      *
-     * @param  array|Collection  $records
+     * @param array|Collection $records
      */
     public function updateAcademicYear(AcademicYear $academicYear, $records): AcademicYear
     {
@@ -74,8 +74,8 @@ class AcademicYearService
     /**
      * Set academic year as current.one in school.
      *
-     * @param  int  $academicYearId
-     * @param  int  $schoolId
+     * @param int $academicYearId
+     * @param int $schoolId
      */
     public function setAcademicYear($academicYearId, $schoolId = null): bool
     {
@@ -87,7 +87,7 @@ class AcademicYearService
         $school->academic_year_id = $academicYearId;
         // set semester id to first semester or null
         $school->semester_id = $academicYear->semesters?->first()->id ?? $school->academicYear->semesters()->create([
-            'name' => 'First',
+            'name'      => 'First',
             'school_id' => current_school_id(),
         ])->id;
 

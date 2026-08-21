@@ -65,7 +65,8 @@ class MyClassService
     /**
      * Create new class.
      *
-     * @param  array|object  $record
+     * @param array|object $record
+     *
      * @return MyClass
      */
     public function createClass($record)
@@ -82,7 +83,8 @@ class MyClassService
     /**
      * Create new class group.
      *
-     * @param  array|object  $record
+     * @param array|object $record
+     *
      * @return ClassGroup
      */
     public function createClassGroup($record)
@@ -95,14 +97,15 @@ class MyClassService
     /**
      * Update class.
      *
-     * @param  MyClass  $class
-     * @param  array|object  $records
+     * @param MyClass      $class
+     * @param array|object $records
+     *
      * @return MyClass
      */
     public function updateClass($class, $records)
     {
         $class->update([
-            'name' => $records['name'],
+            'name'           => $records['name'],
             'class_group_id' => $records['class_group_id'],
         ]);
 
@@ -112,7 +115,8 @@ class MyClassService
     /**
      * Update class group.
      *
-     * @param  array|object  $records
+     * @param array|object $records
+     *
      * @return ClassGroup
      */
     public function updateClassGroup(ClassGroup $classGroup, $records)
@@ -131,9 +135,9 @@ class MyClassService
      *
      *
      *
-     * @return void
-     *
      * @throws ResourceNotEmptyException
+     *
+     * @return void
      */
     public function deleteClassGroup(ClassGroup $classGroup)
     {
@@ -148,9 +152,9 @@ class MyClassService
      *
      *
      *
-     * @return void
-     *
      * @throws ResourceNotEmptyException
+     *
+     * @return void
      */
     public function deleteClass(MyClass $class)
     {

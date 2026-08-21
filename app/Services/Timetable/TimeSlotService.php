@@ -10,14 +10,15 @@ class TimeSlotService
     /**
      * Create timetable time slot.
      *
-     * @param  mixed  $data
+     * @param mixed $data
+     *
      * @return void
      */
     public function createTimeSlot($data)
     {
         TimetableTimeSlot::create([
-            'start_time' => $data['start_time'],
-            'stop_time' => $data['stop_time'],
+            'start_time'   => $data['start_time'],
+            'stop_time'    => $data['stop_time'],
             'timetable_id' => $data['timetable_id'],
         ]);
     }
@@ -36,7 +37,8 @@ class TimeSlotService
     /**
      * Create timetable time record.
      *
-     * @param  mixed  $data
+     * @param mixed $data
+     *
      * @return void
      */
     public function createTimetableRecord(TimetableTimeSlot $timeSlot, $data)

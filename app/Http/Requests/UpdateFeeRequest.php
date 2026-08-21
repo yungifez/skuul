@@ -15,7 +15,7 @@ class UpdateFeeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|max:1024',
+            'name'        => 'required|max:1024',
             'description' => 'nullable|max:10000',
         ];
     }

@@ -17,7 +17,7 @@ class UpdateFeeInvoiceRecordRequest extends FormRequest
         return [
             'amount' => 'required|integer|min:1',
             'waiver' => 'nullable|integer|min:0|lt:amount',
-            'fine' => 'nullable|integer|min:0',
+            'fine'   => 'nullable|integer|min:0',
         ];
     }
 }

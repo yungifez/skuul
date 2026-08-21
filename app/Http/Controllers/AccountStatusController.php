@@ -23,8 +23,8 @@ class AccountStatusController extends Controller
 
         match ($status) {
             AccountStatus::Suspended => $changeAccountStatus->suspend($user, $actor, $reason),
-            AccountStatus::Archived => $changeAccountStatus->archive($user, $actor, $reason),
-            default => $changeAccountStatus->reinstate($user, $actor, $reason),
+            AccountStatus::Archived  => $changeAccountStatus->archive($user, $actor, $reason),
+            default                  => $changeAccountStatus->reinstate($user, $actor, $reason),
         };
 
         return back()->with('success', "Set {$user->name}'s account to {$user->account_status->label()}.");

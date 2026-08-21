@@ -69,8 +69,8 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'birthday' => 'datetime:Y-m-d',
-        'account_status' => AccountStatus::class,
+        'birthday'          => 'datetime:Y-m-d',
+        'account_status'    => AccountStatus::class,
         'is_platform_admin' => 'boolean',
     ];
 
@@ -98,7 +98,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Limit the query to accounts that can sign in and use the application.
      *
-     * @param  Builder  $query
+     * @param Builder $query
      */
     public function scopeActiveAccounts($query): Builder
     {
@@ -113,7 +113,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Limit the query to people who can work in the given school.
      *
-     * @param  Builder  $query
+     * @param Builder $query
      */
     public function scopeOfSchool($query, School|int|null $school = null): Builder
     {

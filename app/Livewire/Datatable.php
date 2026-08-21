@@ -31,11 +31,12 @@ class Datatable extends Component
 
     protected $rules = [
         'perPage' => 'nullable|integer',
-        'search' => 'nullable|string',
+        'search'  => 'nullable|string',
     ];
 
     /**
-     * @param  string|Builder  $model  Pass model or query builder
+     * @param string|Builder $model Pass model or query builder
+     *
      * @return void
      */
     public function mount(string|Builder $model, array $columns, array $filters = [], $uniqueId = null)
@@ -50,7 +51,7 @@ class Datatable extends Component
     /**
      * Verify if a class is an eloquent model.
      *
-     * @param  object  $model
+     * @param object $model
      *
      * @throws InvalidClassException
      */

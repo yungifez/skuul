@@ -14,7 +14,9 @@ use RuntimeException;
  */
 class ChangeAccountStatus
 {
-    public function __construct(private RevokeAccountInvitation $revokeAccountInvitation) {}
+    public function __construct(private RevokeAccountInvitation $revokeAccountInvitation)
+    {
+    }
 
     /**
      * Stop access without deleting anything.

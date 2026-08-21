@@ -13,11 +13,11 @@ use Illuminate\Support\Carbon;
  *
  * The plain token never reaches the database. Only its hash is stored.
  *
- * @property int $id
- * @property int $user_id
- * @property int|null $invited_by
- * @property string $token_hash
- * @property Carbon $expires_at
+ * @property int         $id
+ * @property int         $user_id
+ * @property int|null    $invited_by
+ * @property string      $token_hash
+ * @property Carbon      $expires_at
  * @property Carbon|null $accepted_at
  * @property Carbon|null $revoked_at
  */
@@ -47,9 +47,9 @@ class AccountInvitation extends Model
     protected function casts(): array
     {
         return [
-            'expires_at' => 'datetime',
+            'expires_at'  => 'datetime',
             'accepted_at' => 'datetime',
-            'revoked_at' => 'datetime',
+            'revoked_at'  => 'datetime',
         ];
     }
 
@@ -76,7 +76,8 @@ class AccountInvitation extends Model
     /**
      * Limit the query to invitations that a person can still accept.
      *
-     * @param  Builder<AccountInvitation>  $query
+     * @param Builder<AccountInvitation> $query
+     *
      * @return Builder<AccountInvitation>
      */
     public function scopePending(Builder $query): Builder

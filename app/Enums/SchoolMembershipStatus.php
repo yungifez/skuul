@@ -31,9 +31,9 @@ enum SchoolMembershipStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Active => 'Active',
+            self::Active    => 'Active',
             self::Suspended => 'Suspended',
-            self::Ended => 'Ended',
+            self::Ended     => 'Ended',
         };
     }
 

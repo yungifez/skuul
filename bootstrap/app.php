@@ -30,8 +30,8 @@ return Application::configure(basePath: dirname(__DIR__))
                 SetActiveSchool::class,
             ])
             ->alias([
-                'role' => RoleMiddleware::class,
-                'permission' => PermissionMiddleware::class,
+                'role'               => RoleMiddleware::class,
+                'permission'         => PermissionMiddleware::class,
                 'role_or_permission' => RoleOrPermissionMiddleware::class,
             ]);
     })

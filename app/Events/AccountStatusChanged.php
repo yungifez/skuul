@@ -20,11 +20,11 @@ class AccountStatusChanged
     /**
      * Create a new event instance.
      *
-     * @param  User  $user  the account that changed
-     * @param  AccountStatus  $from  the previous state
-     * @param  AccountStatus  $to  the new state
-     * @param  User|null  $changedBy  the actor who made the change
-     * @param  string|null  $reason  why the change happened
+     * @param User          $user      the account that changed
+     * @param AccountStatus $from      the previous state
+     * @param AccountStatus $to        the new state
+     * @param User|null     $changedBy the actor who made the change
+     * @param string|null   $reason    why the change happened
      */
     public function __construct(
         public User $user,
@@ -32,5 +32,6 @@ class AccountStatusChanged
         public AccountStatus $to,
         public ?User $changedBy = null,
         public ?string $reason = null,
-    ) {}
+    ) {
+    }
 }
