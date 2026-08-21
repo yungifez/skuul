@@ -51,8 +51,8 @@ class FeeTest extends TestCase
 
         $this->unauthorized_user()
             ->post('dashboard/fees', [
-                'name' => $name,
-                'description' => $description,
+                'name'            => $name,
+                'description'     => $description,
                 'fee_category_id' => $feeCategory->id,
             ])
             ->assertForbidden();
@@ -70,8 +70,8 @@ class FeeTest extends TestCase
 
         $this->authorized_user(['create fee'])
             ->post('dashboard/fees', [
-                'name' => $name,
-                'description' => $description,
+                'name'            => $name,
+                'description'     => $description,
                 'fee_category_id' => $feeCategory->id,
             ])
             ->assertRedirect();
@@ -105,13 +105,13 @@ class FeeTest extends TestCase
 
         $this->unauthorized_user()
             ->put("dashboard/fees/$fee->id", [
-                'name' => $name,
+                'name'        => $name,
                 'description' => $description,
             ])
             ->assertForbidden();
 
         $this->assertDatabaseMissing('fees', [
-            'id' => $fee->id,
+            'id'   => $fee->id,
             'name' => $name,
         ]);
     }
@@ -124,13 +124,13 @@ class FeeTest extends TestCase
 
         $this->authorized_user(['update fee'])
             ->put("dashboard/fees/$fee->id", [
-                'name' => $name,
+                'name'        => $name,
                 'description' => $description,
             ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('fees', [
-            'id' => $fee->id,
+            'id'   => $fee->id,
             'name' => $name,
         ]);
     }

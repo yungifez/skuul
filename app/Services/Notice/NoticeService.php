@@ -44,12 +44,12 @@ class NoticeService
             $data['attachment'] = null;
         }
         $notice = Notice::create([
-            'title' => $data['title'],
-            'content' => $data['content'],
+            'title'      => $data['title'],
+            'content'    => $data['content'],
             'start_date' => $data['start_date'],
-            'stop_date' => $data['stop_date'],
+            'stop_date'  => $data['stop_date'],
             'attachment' => $data['attachment'],
-            'school_id' => current_school_id(),
+            'school_id'  => current_school_id(),
         ]);
 
         return $notice;

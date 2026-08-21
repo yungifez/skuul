@@ -28,9 +28,9 @@ class FeeInvoiceFactory extends Factory
             'note' => $this->faker->sentence(),
             // Roles are held per school, so only look for a student when the
             // caller does not name one.
-            'user_id' => fn () => User::ofSchool(1)->students()->activeStudents()->inRandomOrder()->first()?->id,
+            'user_id'    => fn () => User::ofSchool(1)->students()->activeStudents()->inRandomOrder()->first()?->id,
             'issue_date' => $issueDate,
-            'due_date' => $dueDate,
+            'due_date'   => $dueDate,
         ];
     }
 }

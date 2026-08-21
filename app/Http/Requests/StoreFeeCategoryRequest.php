@@ -22,9 +22,9 @@ class StoreFeeCategoryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
+            'name'        => 'required|string|max:255',
             'description' => 'nullable|string|max:10000',
-            'school_id' => 'required|integer|exists:schools,id',
+            'school_id'   => 'required|integer|exists:schools,id',
         ];
     }
 }

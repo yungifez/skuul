@@ -36,10 +36,10 @@ enum AccountStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Invited => 'Invited',
-            self::Active => 'Active',
+            self::Invited   => 'Invited',
+            self::Active    => 'Active',
             self::Suspended => 'Suspended',
-            self::Archived => 'Archived',
+            self::Archived  => 'Archived',
         };
     }
 
@@ -57,10 +57,10 @@ enum AccountStatus: string
     public function accessDeniedMessage(): string
     {
         return match ($this) {
-            self::Invited => 'This account is not active yet. Use your invitation link to set a password.',
+            self::Invited   => 'This account is not active yet. Use your invitation link to set a password.',
             self::Suspended => "This account is suspended. If this is an error, contact your school's administrator.",
-            self::Archived => "This account is archived. If this is an error, contact your school's administrator.",
-            self::Active => '',
+            self::Archived  => "This account is archived. If this is an error, contact your school's administrator.",
+            self::Active    => '',
         };
     }
 }

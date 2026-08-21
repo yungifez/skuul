@@ -11,8 +11,8 @@ class CreateCurrentAcademicYearRecord
     /**
      * Handle an incoming request.
      *
-     * @param  Closure(Request): (Response)  $next
-     * @param  Closure(Request): (Response)  $next
+     * @param Closure(Request): (Response) $next
+     * @param Closure(Request): (Response) $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -20,7 +20,7 @@ class CreateCurrentAcademicYearRecord
             auth()->user()->studentRecord->academicYears()->syncWithoutDetaching([
                 current_school()->academicYear->id => [
                     'my_class_id' => auth()->user()->studentRecord->my_class_id,
-                    'section_id' => auth()->user()->studentRecord->section_id,
+                    'section_id'  => auth()->user()->studentRecord->section_id,
                 ],
             ]);
         }

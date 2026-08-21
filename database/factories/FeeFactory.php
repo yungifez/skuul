@@ -22,8 +22,8 @@ class FeeFactory extends Factory
 
         return [
             'fee_Category_id' => $feeCategory->id,
-            'name' => $this->faker->name(),
-            'description' => $this->faker->sentence(),
+            'name'            => $this->faker->name(),
+            'description'     => $this->faker->sentence(),
         ];
     }
 }

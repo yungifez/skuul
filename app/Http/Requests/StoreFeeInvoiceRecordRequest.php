@@ -23,7 +23,7 @@ class StoreFeeInvoiceRecordRequest extends FormRequest
             'fee_id' => 'required|integer|exists:fees,id',
             'amount' => 'required|integer|min:1',
             'waiver' => 'nullable|integer|min:0|lt:amount',
-            'fine' => 'nullable|integer|min:0',
+            'fine'   => 'nullable|integer|min:0',
         ];
     }
 }

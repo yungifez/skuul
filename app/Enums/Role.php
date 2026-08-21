@@ -38,10 +38,10 @@ enum Role: string
     public function label(): string
     {
         return match ($this) {
-            self::Admin => 'Administrator',
+            self::Admin   => 'Administrator',
             self::Teacher => 'Teacher',
             self::Student => 'Student',
-            self::Parent => 'Parent',
+            self::Parent  => 'Parent',
         };
     }
 }

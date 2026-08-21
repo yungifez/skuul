@@ -20,7 +20,7 @@ trait FeatureTestTrait
     /**
      * Create a user who holds the given permissions in the working school.
      *
-     * @param  array<int, string>  $permissions
+     * @param array<int, string> $permissions
      */
     public function authorized_user(array $permissions, ?School $school = null): object
     {

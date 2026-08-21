@@ -9,7 +9,7 @@ class CreateSemesterForm extends Component
 {
     public function render()
     {
-        $this->setErrorBag(session()->get('errors', new MessageBag)->getMessages());
+        $this->setErrorBag(session()->get('errors', new MessageBag())->getMessages());
 
         return view('livewire.create-semester-form');
     }

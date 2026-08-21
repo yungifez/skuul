@@ -24,16 +24,16 @@ class FeeInvoiceRecordTest extends TestCase
         $this->unauthorized_user()
             ->post('dashboard/fees/fee-invoices/fee-invoice-records', [
                 'fee_invoice_id' => $feeInvoice->id,
-                'fee_id' => $fee->id,
-                'amount' => 100_000,
-                'waiver' => 80_000,
-                'fine' => 10_000,
+                'fee_id'         => $fee->id,
+                'amount'         => 100_000,
+                'waiver'         => 80_000,
+                'fine'           => 10_000,
             ])
             ->assertForbidden();
 
         $this->assertDatabaseMissing('fee_invoice_records', [
             'fee_invoice_id' => $feeInvoice->id,
-            'fee_id' => $fee->id,
+            'fee_id'         => $fee->id,
         ]);
     }
 
@@ -45,16 +45,16 @@ class FeeInvoiceRecordTest extends TestCase
         $this->authorized_user(['create fee invoice record'])
             ->post('dashboard/fees/fee-invoices/fee-invoice-records', [
                 'fee_invoice_id' => $feeInvoice->id,
-                'fee_id' => $fee->id,
-                'amount' => 100_000,
-                'waiver' => 80_000,
-                'fine' => 10_000,
+                'fee_id'         => $fee->id,
+                'amount'         => 100_000,
+                'waiver'         => 80_000,
+                'fine'           => 10_000,
             ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('fee_invoice_records', [
             'fee_invoice_id' => $feeInvoice->id,
-            'fee_id' => $fee->id,
+            'fee_id'         => $fee->id,
         ]);
     }
 
