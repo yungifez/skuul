@@ -4,6 +4,13 @@
 @source "../../resources/**/*.blade.php";
 @source "../../app/**/*.php";
 
+/* Alpine ships the x-cloak directive but no CSS. April UI declares this rule
+   too; keeping it here means the app's own x-cloak markup never depends on a
+   particular April UI version to stay hidden before Alpine starts. */
+[x-cloak] {
+    display: none !important;
+}
+
 @layer components {
     .beautify-scrollbar::-webkit-scrollbar {
         width: 5px;

@@ -9,7 +9,10 @@
                 @csrf
                 @method('PUT')
                 <div class='col-12 my-2'>
-                    <x-button label="Edit" theme="primary" icon="fas fa-pen" type="submit" class="w-full md:w-3/12"/>
+                    <april:button type="submit" class="w-full md:w-3/12">
+                        <x-lucide-pencil class="mr-2 size-4" />
+                        Edit
+                    </april:button>
                 </div>
         </form>
     </div>

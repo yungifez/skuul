@@ -9,10 +9,11 @@
         ]"
         :columns="[
             ['property' => 'name'],
+            ['name' => 'Period', 'type' => 'academic-period-status', 'relation' => 'exam.semester', 'route-prefix' => 'semesters'],
             ['property' => 'description'],
             ['property' => 'total_marks'],
             ['name' => 'Actions', 'type' => 'dropdown',  'can' => 'update exam slot'  , 'links' => [
-                ['href' => 'exam-slots.edit', 'text' => 'edit', 'icon' => 'fas fa-cog', 'pre-route-parameters' => [$exam->id]],
+                ['href' => 'exam-slots.edit', 'text' => 'edit', 'icon' => 'settings', 'pre-route-parameters' => [$exam->id]],
             ]],
             ['type' => 'delete', 'name' => 'Delete', 'action' => 'exam-slots.destroy', 'pre-route-parameters' => [$exam->id],  'can' => 'delete exam slot']
         ]"/>

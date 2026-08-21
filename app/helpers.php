@@ -107,3 +107,18 @@ if (!function_exists('feature_enabled')) {
         return features()->enabled($feature);
     }
 }
+
+if (!function_exists('sidebar_open')) {
+    /**
+     * Check if the sidebar should render open.
+     *
+     * April UI stores the choice in a plain cookie, which bootstrap/app.php
+     * keeps out of cookie encryption. Pass the result to the sidebar as
+     * defaultOpen so the first paint matches the last choice. The sidebar
+     * opens when nothing is stored yet.
+     */
+    function sidebar_open(): bool
+    {
+        return request()->cookie('sidebar_state') !== 'false';
+    }
+}

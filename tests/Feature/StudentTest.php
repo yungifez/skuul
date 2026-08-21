@@ -43,29 +43,37 @@ class StudentTest extends TestCase
         $this->authorized_user(['create student'])->get('dashboard/students/create')->assertOk();
     }
 
+    public function test_create_student_screen_collects_only_required_profile_information(): void
+    {
+        $this->authorized_user(['create student'])
+            ->get('dashboard/students/create')
+            ->assertOk()
+            ->assertSee('Full name *')
+            ->assertSee('Optional profile details')
+            ->assertDontSee('Blood group')
+            ->assertDontSee('Religion');
+    }
+
     // test unauthorised users cannot create students
 
     public function test_unauthorised_users_cannot_create_students()
     {
         $email = $this->faker()->freeEmail();
         $this->unauthorized_user()->post('dashboard/students', [
-            'first_name'            => 'Test',
-            'last_name'             => 'Student',
-            'other_name'            => 'cody',
-            'email'                 => $email,
-            'password'              => 'password',
+            'name' => 'Test Student cody',
+            'email' => $email,
+            'password' => 'password',
             'password_confirmation' => 'password',
-            'gender'                => 'male',
-            'nationality'           => 'nigeria',
-            'state'                 => 'lagos',
-            'city'                  => 'lagos',
-            'blood_group'           => 'a+',
-            'address'               => 'test address',
-            'birthday'              => '2004/04/22',
-            'phone'                 => '08080808080',
-            'my_class_id'           => 1,
-            'section_id'            => 1,
-            'admission_date'        => '2004/04/22',
+            'gender' => 'male',
+            'nationality' => 'nigeria',
+            'state' => 'lagos',
+            'city' => 'lagos',
+            'address' => 'test address',
+            'birthday' => '2004/04/22',
+            'phone' => '08080808080',
+            'my_class_id' => 1,
+            'section_id' => 1,
+            'admission_date' => '2004/04/22',
         ])->assertForbidden();
 
         $this->assertDatabaseMissing('users', [
@@ -80,29 +88,26 @@ class StudentTest extends TestCase
         $email = $this->faker()->freeEmail();
 
         $this->authorized_user(['create student'])->post('dashboard/students', [
-            'first_name'            => 'Test',
-            'last_name'             => 'Student',
-            'other_name'            => 'cody',
-            'email'                 => $email,
-            'password'              => 'password',
+            'name' => 'Test Student cody',
+            'email' => $email,
+            'password' => 'password',
             'password_confirmation' => 'password',
-            'gender'                => 'male',
-            'nationality'           => 'nigeria',
-            'state'                 => 'lagos',
-            'city'                  => 'lagos',
-            'blood_group'           => 'a+',
-            'address'               => 'test address',
-            'birthday'              => '2004/04/22',
-            'phone'                 => '08080808080',
-            'my_class_id'           => 1,
-            'section_id'            => 1,
-            'admission_date'        => '2004/04/22', ])->assertRedirect();
+            'gender' => 'male',
+            'nationality' => 'nigeria',
+            'state' => 'lagos',
+            'city' => 'lagos',
+            'address' => 'test address',
+            'birthday' => '2004/04/22',
+            'phone' => '08080808080',
+            'my_class_id' => 1,
+            'section_id' => 1,
+            'admission_date' => '2004/04/22', ])->assertRedirect();
 
         $this->assertDatabaseHas('users', [
-            'email'    => $email,
-            'address'  => 'test address',
+            'email' => $email,
+            'address' => 'test address',
             'birthday' => '2004/04/22',
-            'phone'    => '08080808080',
+            'phone' => '08080808080',
         ]);
     }
 
@@ -129,22 +134,20 @@ class StudentTest extends TestCase
         $student = StudentRecord::factory()->create();
 
         $this->unauthorized_user()->put('dashboard/students/'.$student->user->id, [
-            'first_name'            => 'Test',
-            'last_name'             => 'Student 2',
-            'email'                 => $email,
-            'password'              => 'password',
+            'name' => 'Test Student 2',
+            'email' => $email,
+            'password' => 'password',
             'password_confirmation' => 'password',
-            'gender'                => 'male',
-            'nationality'           => 'nigeria',
-            'state'                 => 'lagos',
-            'city'                  => 'lagos',
-            'blood_group'           => 'a+',
-            'address'               => 'test address',
-            'birthday'              => '2004/04/22',
-            'phone'                 => '08080808080',
-            'my_class_id'           => 1,
-            'section_id'            => 1,
-            'admission_date'        => '2004/04/22', ])
+            'gender' => 'male',
+            'nationality' => 'nigeria',
+            'state' => 'lagos',
+            'city' => 'lagos',
+            'address' => 'test address',
+            'birthday' => '2004/04/22',
+            'phone' => '08080808080',
+            'my_class_id' => 1,
+            'section_id' => 1,
+            'admission_date' => '2004/04/22', ])
             ->assertForbidden();
 
         $this->assertDatabaseMissing('users', [
@@ -158,20 +161,17 @@ class StudentTest extends TestCase
         $email = $this->faker()->freeEmail();
 
         $this->authorized_user(['update student'])->put('dashboard/students/'.$student->user->id, [
-            'first_name'            => 'Test 2',
-            'other_names'           => 'Student 2',
-            'last_name'             => 'Student',
-            'email'                 => $email,
-            'password'              => 'password',
+            'name' => 'Test 2 Student 2 Student',
+            'email' => $email,
+            'password' => 'password',
             'password_confirmation' => 'password',
-            'gender'                => 'male',
-            'nationality'           => 'nigeria',
-            'state'                 => 'lagos',
-            'city'                  => 'lagos',
-            'blood_group'           => 'a+',
-            'address'               => 'test address',
-            'birthday'              => '2004/04/22',
-            'phone'                 => '08080808080',
+            'gender' => 'male',
+            'nationality' => 'nigeria',
+            'state' => 'lagos',
+            'city' => 'lagos',
+            'address' => 'test address',
+            'birthday' => '2004/04/22',
+            'phone' => '08080808080',
         ]);
 
         $this->assertDatabaseHas('users', [
@@ -253,10 +253,10 @@ class StudentTest extends TestCase
     {
         $student = StudentRecord::factory()->create();
         $this->unauthorized_user()->post('/dashboard/students/promote', [
-            'student_id'     => [$student->user->id],
-            'old_class_id'   => 1,
+            'student_id' => [$student->user->id],
+            'old_class_id' => 1,
             'old_section_id' => 2,
-            'new_class_id'   => 1,
+            'new_class_id' => 1,
             'new_section_id' => 1,
         ])->assertForbidden();
     }
@@ -267,16 +267,16 @@ class StudentTest extends TestCase
     {
         $student = StudentRecord::factory()->create();
         $this->authorized_user(['promote student'])->post('/dashboard/students/promote', [
-            'student_id'     => [$student->user->id],
-            'old_class_id'   => 1,
+            'student_id' => [$student->user->id],
+            'old_class_id' => 1,
             'old_section_id' => 2,
-            'new_class_id'   => 1,
+            'new_class_id' => 1,
             'new_section_id' => 1,
         ]);
         $promotion = Promotion::where([
-            'old_class_id'   => 1,
+            'old_class_id' => 1,
             'old_section_id' => 2,
-            'new_class_id'   => 1,
+            'new_class_id' => 1,
             'new_section_id' => 1,
         ])->whereJsonContains('students', [$student->user->id])->first();
 

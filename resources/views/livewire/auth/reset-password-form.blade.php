@@ -3,10 +3,13 @@
         @csrf
         <input type="hidden" name="token" value="{{ $token }}">
 
-        <x-auth.field name="email" id="email" type="email" label="Email address" value="{{ $email }}" autocomplete="email" required />
-        <x-auth.field name="password" id="password" type="password" label="New password" autocomplete="new-password" required />
-        <x-auth.field name="password_confirmation" id="password_confirmation" type="password" label="Confirm new password" autocomplete="new-password" required />
+        <april:input-group name="email" id="email" type="email" label="Email address" value="{{ $email }}" autocomplete="email" required />
+        <april:input-group name="password" id="password" type="password" label="New password" autocomplete="new-password" required />
+        <april:input-group name="password_confirmation" id="password_confirmation" type="password" label="Confirm new password" autocomplete="new-password" required />
 
-        <x-auth.submit label="Reset password" class="w-full" />
+        <april:button type="submit" class="w-full justify-center" x-bind:disabled="submitting" x-bind:aria-busy="submitting">
+            <span x-show="! submitting">Reset password</span>
+            <span x-show="submitting" x-cloak>Working...</span>
+        </april:button>
     </form>
 </div>

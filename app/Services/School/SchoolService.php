@@ -2,9 +2,11 @@
 
 namespace App\Services\School;
 
+use App\Enums\PlatformPermission;
 use App\Exceptions\ResourceNotEmptyException;
 use App\Models\School;
 use App\Models\User;
+use App\Services\Authorization\SystemPermissionScope;
 use App\Services\User\UserService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
@@ -20,7 +22,7 @@ class SchoolService
     /**
      * User service constructor.
      */
-    public function __construct(UserService $user)
+    public function __construct(UserService $user, private SystemPermissionScope $systemPermissionScope)
     {
         $this->user = $user;
     }
@@ -49,7 +51,7 @@ class SchoolService
             return School::query()->whereRaw('1 = 0')->get();
         }
 
-        return $user->isPlatformAdmin()
+        return $this->systemPermissionScope->allows($user, PlatformPermission::AccessAllSchools)
             ? School::orderBy('name')->get()
             : $user->schools()->orderBy('name')->get();
     }
@@ -57,8 +59,7 @@ class SchoolService
     /**
      * Get a school by id.
      *
-     * @param int $id
-     *
+     * @param  int  $id
      * @return School
      */
     public function getSchoolById($id)
@@ -69,8 +70,7 @@ class SchoolService
     /**
      * Create school.
      *
-     * @param array $record
-     *
+     * @param  array  $record
      * @return School
      */
     public function createSchool($record)
@@ -118,7 +118,7 @@ class SchoolService
     {
         $user = auth()->user();
 
-        if (!$user->isPlatformAdmin() && !$user->belongsToSchool($school)) {
+        if (!$this->systemPermissionScope->allows($user, PlatformPermission::AccessAllSchools) && !$user->belongsToSchool($school)) {
             abort(403, 'You do not have access to that school.');
         }
 

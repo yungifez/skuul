@@ -64,17 +64,27 @@ class BrowserSessionsTest extends TestCase
         $this->assertDatabaseHas('sessions', ['id' => 'another-device']);
     }
 
+    public function test_the_confirmation_dialog_stays_hidden_until_alpine_starts()
+    {
+        $user = User::factory()->create(['password' => Hash::make('password')]);
+
+        $this->actingAs($user);
+
+        Livewire::test(LogoutOtherBrowserSessionsForm::class)
+            ->assertSeeHtml('x-bind="overlay" x-cloak');
+    }
+
     /**
      * Store a session record for a second device of the same person.
      */
     private function insertSessionRecord(string $id, int $userId): void
     {
         DB::table('sessions')->insert([
-            'id'            => $id,
-            'user_id'       => $userId,
-            'ip_address'    => '127.0.0.1',
-            'user_agent'    => 'phpunit',
-            'payload'       => '',
+            'id' => $id,
+            'user_id' => $userId,
+            'ip_address' => '127.0.0.1',
+            'user_agent' => 'phpunit',
+            'payload' => '',
             'last_activity' => now()->getTimestamp(),
         ]);
     }

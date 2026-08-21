@@ -7,7 +7,7 @@
         @foreach ($feeInvoice->feeInvoiceRecords as $record)
             <form action="{{route('fee-invoices-records.pay', $record->id)}}" method="POST" class="col-span-5 overflow-scroll beautify-scrollbar grid grid-rows-1 md:grid-cols-5 gap-2 items-center  border-b p-2 md:py-0" x-data="{'amount': {{$record->amount->getAmount()->toInt()}}, 'waiver': {{$record->waiver->getAmount()->toInt()}}, 'fine': {{$record->fine->getAmount()->toInt()}}, 'paid': {{$record->paid->getAmount()->toInt()}}, 'payment_amount' : 0 }">
                 <p class="font-bold  md:font-bold">{{$record->fee->name }}</p>
-                <x-input id="amount-{{$record['id']}}" name="pay" label="Payment Amount" type="number" x-model.number="payment_amount" error-bag="some-random-thing"/>
+                <april:input-group id="amount-{{$record['id']}}" name="pay" label="Payment Amount" type="number" x-model.number="payment_amount" error-bag="some-random-thing" />
                 <div class="md:place-self-center">
                     <p x-text="'Fee Amount: ' + amount"></p>
                     <p x-text="'Fee Waiver: ' + waiver"></p>
@@ -16,7 +16,10 @@
                 </div>
                 <p x-text="'Due: ' + (amount - waiver + fine - paid - payment_amount).toLocaleString()" class="md:place-self-center"></p>
                 <input type="hidden" value="{{$record->fee->id}}">
-                <x-button label="Add Payment" class="self-" icon="fas fa-money-check-alt"/>
+                <april:button class="self-end">
+                    <x-lucide-credit-card class="mr-2 size-4" />
+                    Add Payment
+                </april:button>
                 @csrf
             </form>
         @endforeach

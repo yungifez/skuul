@@ -9,6 +9,8 @@
             @yield('title', config('app.name', 'Skuul'))
         </title>
 
+        <x-partials.theme-script />
+
         <!-- Styles -->
         @vite('resources/css/app.css')
         @vite('resources/js/app.js')

@@ -1,17 +1,31 @@
 <div class="md:flex gap-2">
-    <x-select id="nationality" name="nationality" label="Nationality *" group-class="md:w-6/12"  wire:model.live="nationality"> 
+    <div class="flex w-full flex-col gap-2">
+        <april:label for="nationality">Nationality</april:label>
+        <april:select id="nationality" name="nationality" wire:model.live="nationality">
+            <option value="">Not specified</option>
         @foreach ($nationalities as $item)
             <option value="{{$item}}">{{$item}}</option>
         @endforeach
-    </x-select>
-    <x-select id="state" name="state" label="State *" group-class="md:w-6/12"  wire:init="loadInitialStates" wire:model.live="state">
+
+        </april:select>
+        @error('nationality')
+            <p class="text-sm text-destructive">{{ $message }}</p>
+        @enderror
+    </div>
+    <div class="flex w-full flex-col gap-2">
+        <april:label for="state">State</april:label>
+        <april:select id="state" name="state" wire:init="loadInitialStates" wire:model.live="state">
         @if (isset($states))
             @foreach ($states as $item)
                 <option value="{{$item['name']}}"  wire:key="{{ $loop->index }}">{{$item['name']}}</option>
             @endforeach
-        @else 
-            <option value="" disabled>Select a country first</option>
+        @else
+            <option value="">Not specified</option>
         @endif
-    </x-select>
+
+        </april:select>
+        @error('state')
+            <p class="text-sm text-destructive">{{ $message }}</p>
+        @enderror
+    </div>
 </div>
-    

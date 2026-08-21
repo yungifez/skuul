@@ -10,7 +10,7 @@
         :columns="[
             ['property' => 'name'],
             ['name' => 'Actions', 'type' => 'dropdown' , 'links' => [
-                ['href' => 'fee-categories.edit', 'text' => 'edit', 'icon' => 'fas fa-cog'],
+                ['href' => 'fee-categories.edit', 'text' => 'edit', 'icon' => 'settings'],
             ]],
             ['type' => 'delete', 'name' => 'Delete', 'action' => 'fee-categories.destroy',]
         ]"/>

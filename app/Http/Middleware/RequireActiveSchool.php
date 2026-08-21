@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\PlatformPermission;
 use App\Services\School\SchoolContext;
 use Closure;
 use Illuminate\Http\Request;
@@ -15,14 +16,12 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class RequireActiveSchool
 {
-    public function __construct(private SchoolContext $schoolContext)
-    {
-    }
+    public function __construct(private SchoolContext $schoolContext) {}
 
     /**
      * Handle an incoming request.
      *
-     * @param Closure(Request): (Response) $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -32,7 +31,7 @@ class RequireActiveSchool
 
         $user = $request->user();
 
-        if ($user !== null && !$user->isPlatformAdmin() && !$user->schoolMemberships()->active()->exists()) {
+        if ($user !== null && !$user->can(PlatformPermission::AccessAllSchools) && !$user->schoolMemberships()->active()->exists()) {
             abort(403, "You do not have access to any school. Contact your school's administrator.");
         }
 

@@ -196,48 +196,81 @@ enum AuditAction: string
     case TransferPackageReceived = 'transfer_package.received';
 
     /**
+     * An organization was created or updated.
+     */
+    case OrganizationCreated = 'organization.created';
+
+    case OrganizationUpdated = 'organization.updated';
+
+    /**
+     * A campus was assigned to an organization.
+     */
+    case SchoolOrganizationAssigned = 'school.organization_assigned';
+
+    /**
+     * A person was granted organization administration.
+     */
+    case OrganizationMembershipGranted = 'organization_membership.granted';
+
+    /**
+     * A person's organization scope was taken away. School access is kept.
+     */
+    case OrganizationMembershipRevoked = 'organization_membership.revoked';
+
+    /**
+     * The permissions delegated to an organization member were changed.
+     */
+    case OrganizationMembershipPermissionsChanged = 'organization_membership.permissions_changed';
+
+    /**
      * Get the label to show in the interface.
      */
     public function label(): string
     {
         return match ($this) {
-            self::RoleAttached                => 'Role given',
-            self::RoleDetached                => 'Role removed',
-            self::PermissionAttached          => 'Permission given',
-            self::PermissionDetached          => 'Permission removed',
-            self::AccountStatusChanged        => 'Account status changed',
-            self::EnrollmentStatusChanged     => 'Enrollment status changed',
-            self::EnrollmentPlaced            => 'Student placed in a class',
-            self::EnrollmentTransferred       => 'Enrollment transferred',
-            self::TeachingAssignmentCreated   => 'Teacher assigned to a subject',
-            self::TeachingAssignmentEnded     => 'Teaching assignment ended',
-            self::TimetablePublished          => 'Timetable published',
-            self::TimetableArchived           => 'Timetable archived',
-            self::TimetableRevised            => 'Timetable revision started',
-            self::LedgerTransactionPosted     => 'Ledger entry posted',
-            self::NoticePublished             => 'Notice published',
-            self::NoticeScheduled             => 'Notice scheduled',
-            self::NoticeExpired               => 'Notice expired',
-            self::ReportRequested             => 'Report requested',
-            self::ReportDownloaded            => 'Report downloaded',
-            self::FeatureEnabled              => 'Feature turned on',
-            self::FeatureDisabled             => 'Feature turned off',
-            self::IncidentReported            => 'Case recorded',
-            self::IncidentStatusChanged       => 'Case status changed',
+            self::RoleAttached => 'Role given',
+            self::RoleDetached => 'Role removed',
+            self::PermissionAttached => 'Permission given',
+            self::PermissionDetached => 'Permission removed',
+            self::AccountStatusChanged => 'Account status changed',
+            self::EnrollmentStatusChanged => 'Enrollment status changed',
+            self::EnrollmentPlaced => 'Student placed in a class',
+            self::EnrollmentTransferred => 'Enrollment transferred',
+            self::TeachingAssignmentCreated => 'Teacher assigned to a subject',
+            self::TeachingAssignmentEnded => 'Teaching assignment ended',
+            self::TimetablePublished => 'Timetable published',
+            self::TimetableArchived => 'Timetable archived',
+            self::TimetableRevised => 'Timetable revision started',
+            self::LedgerTransactionPosted => 'Ledger entry posted',
+            self::NoticePublished => 'Notice published',
+            self::NoticeScheduled => 'Notice scheduled',
+            self::NoticeExpired => 'Notice expired',
+            self::ReportRequested => 'Report requested',
+            self::ReportDownloaded => 'Report downloaded',
+            self::FeatureEnabled => 'Feature turned on',
+            self::FeatureDisabled => 'Feature turned off',
+            self::IncidentReported => 'Case recorded',
+            self::IncidentStatusChanged => 'Case status changed',
             self::AcademicPeriodStatusChanged => 'Academic period status changed',
-            self::ResultPublished             => 'Result published',
-            self::ResultRevised               => 'Result corrected',
-            self::ExamResultPublished         => 'Exam results published',
-            self::ExamResultUnpublished       => 'Exam results hidden',
-            self::SupportPlanOpened           => 'Support plan opened',
-            self::SupportPlanStatusChanged    => 'Support plan status changed',
-            self::HealthRecordUpdated         => 'Health record updated',
-            self::StaffLeaveRequested         => 'Leave requested',
-            self::StaffLeaveStatusChanged     => 'Leave status changed',
-            self::DataSharingRequested        => 'Records requested',
-            self::DataSharingStatusChanged    => 'Records request answered',
-            self::TransferPackageBuilt        => 'Records handed over',
-            self::TransferPackageReceived     => 'Records taken in',
+            self::ResultPublished => 'Result published',
+            self::ResultRevised => 'Result corrected',
+            self::ExamResultPublished => 'Exam results published',
+            self::ExamResultUnpublished => 'Exam results hidden',
+            self::SupportPlanOpened => 'Support plan opened',
+            self::SupportPlanStatusChanged => 'Support plan status changed',
+            self::HealthRecordUpdated => 'Health record updated',
+            self::StaffLeaveRequested => 'Leave requested',
+            self::StaffLeaveStatusChanged => 'Leave status changed',
+            self::DataSharingRequested => 'Records requested',
+            self::DataSharingStatusChanged => 'Records request answered',
+            self::TransferPackageBuilt => 'Records handed over',
+            self::TransferPackageReceived => 'Records taken in',
+            self::OrganizationCreated => 'Organization created',
+            self::OrganizationUpdated => 'Organization updated',
+            self::SchoolOrganizationAssigned => 'School assigned to organization',
+            self::OrganizationMembershipGranted => 'Organization administrator granted',
+            self::OrganizationMembershipRevoked => 'Organization administrator revoked',
+            self::OrganizationMembershipPermissionsChanged => 'Organization permissions changed',
         };
     }
 }

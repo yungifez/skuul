@@ -16,8 +16,7 @@ class UserService
         public SendAccountInvitation $sendAccountInvitationAction,
         public ChangeAccountStatus $changeAccountStatusAction,
         public UpdateUserProfileInformation $updateUserProfileInformationAction,
-    ) {
-    }
+    ) {}
 
     /**
      * Get all users.
@@ -30,8 +29,7 @@ class UserService
     /**
      * Get a user by id.
      *
-     * @param int|array<int, int> $id
-     *
+     * @param  int|array<int, int>  $id
      * @return User|Collection<int, User>|null
      */
     public function getUserById($id)
@@ -42,8 +40,7 @@ class UserService
     /**
      * Get users by role.
      *
-     * @param string $role
-     *
+     * @param  string  $role
      * @return Collection<int, User>
      */
     public function getUsersByRole($role)
@@ -58,27 +55,24 @@ class UserService
      * and sets their own password. Calling this again with the same email
      * updates the existing profile instead of creating a second login.
      *
-     * @param array|\Illuminate\Support\Collection $record
+     * @param  array|\Illuminate\Support\Collection  $record
      */
     public function createUser($record, bool $invite = true): User
     {
-        $record['name'] = $this->createFullName($record['first_name'], $record['last_name'], $record['other_names'] ?? null);
         $record['school_id'] = $record['school_id'] ?? current_school_id();
 
         $user = $this->provisionAccountAction->provision([
-            'name'        => $record['name'],
-            'email'       => $record['email'],
-            'photo'       => $record['profile_photo'] ?? null,
-            'school_id'   => $record['school_id'],
-            'birthday'    => $record['birthday'],
-            'address'     => $record['address'],
-            'blood_group' => $record['blood_group'],
-            'religion'    => $record['religion'] ?? null,
-            'nationality' => $record['nationality'],
-            'state'       => $record['state'],
-            'city'        => $record['city'],
-            'gender'      => $record['gender'],
-            'phone'       => $record['phone'] ?? null,
+            'name' => $record['name'],
+            'email' => $record['email'],
+            'photo' => $record['profile_photo'] ?? null,
+            'school_id' => $record['school_id'],
+            'birthday' => $record['birthday'] ?? null,
+            'address' => $record['address'] ?? null,
+            'nationality' => $record['nationality'] ?? null,
+            'state' => $record['state'] ?? null,
+            'city' => $record['city'] ?? null,
+            'gender' => $record['gender'] ?? null,
+            'phone' => $record['phone'] ?? null,
         ]);
 
         if ($invite && $user->isAwaitingInvitationAcceptance()) {
@@ -89,23 +83,10 @@ class UserService
     }
 
     /**
-     * Create full name from first name, last name and other names.
-     *
-     * @param string|null $othernames
-     *
-     * @return string
-     */
-    public function createFullName($firstname, $lastname, $othernames = null)
-    {
-        return $firstname.' '.$lastname.' '.$othernames;
-    }
-
-    /**
      * Check if user has a role.
      *
-     * @param int    $id
-     * @param string $role
-     *
+     * @param  int  $id
+     * @param  string  $role
      * @return bool
      */
     public function verifyRole($id, $role)
@@ -118,9 +99,8 @@ class UserService
     /**
      * Update user profile information.
      *
-     * @param User   $user User instance
-     * @param string $role Verify role before updating
-     *
+     * @param  User  $user  User instance
+     * @param  string  $role  Verify role before updating
      * @return User
      */
     public function updateUser(User $user, $record, ?string $role = null)
@@ -130,18 +110,22 @@ class UserService
                 abort('403', "User isn't a/an $role");
             }
         }
-        if (!$record['other_names']) {
-            $record['other_names'] = null;
-        }
-
-        $record['name'] = $this->createFullName($record['first_name'], $record['last_name'], $record['other_names']);
-
         // update profile photo if present
         if (isset($record['profile_photo'])) {
             $user->updateProfilePhoto($record['profile_photo']);
         }
 
-        $user = $this->updateUserProfileInformationAction->update($user, $record);
+        $user = $this->updateUserProfileInformationAction->update($user, [
+            'name' => $record['name'],
+            'email' => $record['email'],
+            'birthday' => $record['birthday'] ?? null,
+            'address' => $record['address'] ?? null,
+            'nationality' => $record['nationality'] ?? null,
+            'state' => $record['state'] ?? null,
+            'city' => $record['city'] ?? null,
+            'gender' => $record['gender'] ?? null,
+            'phone' => $record['phone'] ?? null,
+        ]);
 
         return $user;
     }
@@ -149,8 +133,7 @@ class UserService
     /**
      * Delete a user.
      *
-     * @param string $role
-     *
+     * @param  string  $role
      * @return void
      */
     public function deleteUser(User $user)

@@ -4,13 +4,13 @@
     </div>
     <div class="card-body">
         <livewire:datatable :model="App\Models\User::class" uniqueId="teachers-list-table" :filters="[['name' => 'role', 'arguments' => ['teacher']], ['name' => 'ofSchool'], ['name' => 'orderBy' , 'arguments' => ['name']]]" :columns="[
-            ['property' => 'name'] , 
+            ['property' => 'name'] ,
             ['property' => 'email'] ,
             ['property' => 'gender'] ,
             ['name' => 'Account', 'type' => 'account-status'],
             ['type' => 'dropdown', 'name' => 'actions','links' => [
-                ['href' => 'teachers.edit', 'text' => 'Manage Profile', 'icon' => 'fas fa-pen',],
-                ['href' => 'teachers.show', 'text' => 'View', 'icon' => 'fas fa-eye',  ],
+                ['href' => 'teachers.edit', 'text' => 'Manage Profile', 'icon' => 'pencil',],
+                ['href' => 'teachers.show', 'text' => 'View', 'icon' => 'eye',  ],
             ]],
             ['type' => 'delete', 'name' => 'Delete', 'action' => 'teachers.destroy',]
          ]

@@ -4,11 +4,14 @@
     </div>
     <div class="card-body">
         @if ($classes->isNotEmpty())
-            <x-select name="" id="class-select" class="md:w-6/12 my-4" wire:model.live="class">
+            <div class="flex w-full flex-col gap-2">
+                <april:select name="" id="class-select" class="md:w-6/12 my-4" wire:model.live="class">
                 @foreach ($classes as $item)
                     <option value="{{$item->id}}">{{$item->name}}</option>
                 @endforeach
-            </x-select>
+
+                </april:select>
+            </div>
             <div>
                 <x-loading-spinner wire:target="class" />
             </div>
@@ -24,7 +27,7 @@
                         ['property' => 'short_name'],
                         ['name' => 'Number of teachers assigned', 'method' => 'count', 'relation' => 'teachers'],
                         ['type' => 'dropdown', 'name' => 'actions','links' => [
-                            ['href' => 'subjects.edit', 'text' => 'Edit', 'icon' => 'fas fa-cog'],
+                            ['href' => 'subjects.edit', 'text' => 'Edit', 'icon' => 'settings'],
                         ]],
                         ['type' => 'delete', 'name' => 'Delete', 'action' => 'subjects.destroy',]
                     ]"

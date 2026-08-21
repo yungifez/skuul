@@ -5,11 +5,14 @@
     <div class="card-body">
         <form action="{{route('sections.update', $section->id)}}" method="POST" class="md:w-6/12">
             <x-display-validation-errors />
-            <x-input id="name" name="name" label="Section name" placeholder="Enter section name" value="{{$section->name}}" />
+            <april:input-group id="name" name="name" label="Section name" placeholder="Enter section name" value="{{$section->name}}" />
             @csrf
-            <x-input  id="class" name="class" label="Section class" placeholder="Enter section class" value="{{$section->myClass->name}}" disabled/>
+            <april:input-group id="class" name="class" label="Section class" placeholder="Enter section class" value="{{$section->myClass->name}}" disabled />
             @method('put')
-            <x-button label="Edit" theme="primary" icon="fas fa-key" type="submit" class="w-full md:w:1/2"/>
+            <april:button type="submit" class="w-full md:w:1/2">
+                <x-lucide-key class="mr-2 size-4" />
+                Edit
+            </april:button>
         </form>
     </div>
 </div>

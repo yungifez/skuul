@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\SchoolSetRequest;
 use App\Http\Requests\SchoolStoreRequest;
 use App\Http\Requests\SchoolUpdateRequest;
+use App\Models\Organization;
 use App\Models\School;
 use App\Services\School\SchoolService;
 use Illuminate\Http\RedirectResponse;
@@ -47,7 +48,11 @@ class SchoolController extends Controller
      */
     public function store(SchoolStoreRequest $request): RedirectResponse
     {
-        $this->schoolService->createSchool($request->validated());
+        $attributes = $request->validated();
+        $organization = Organization::findOrFail($attributes['organization_id']);
+
+        $this->authorize('createForOrganization', [School::class, $organization]);
+        $this->schoolService->createSchool($attributes);
 
         return back()->with('success', __('School created successfully'));
     }

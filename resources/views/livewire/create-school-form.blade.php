@@ -8,17 +8,30 @@
             <p class="">
                 {{__('All fields marked * are required')}}
             </p>
-            <x-input name="name" id="name" type="text" placeholder="Enter name of school" label="School Name *" />
-            <x-textarea id="address" name="address" placeholder="Enter school branch address" label="School Address *" />
-            <x-input name="initials" id="initials" type="text" placeholder="Enter school initials" label="School initials" />
-            <x-input name="phone" id="phone" placeholder="Enter school phone number" label="School Phone Number" type="tel" />
-            <x-input name="email" id="email" placeholder="Enter school Email" label="School Email address" type="email" />
-            <x-input name="logo" id="logo" type="file" label="Logo" />
+            <div class="flex w-full flex-col gap-2">
+                <april:label for="organization_id">Organization *</april:label>
+                <april:select name="organization_id" id="organization_id" required>
+                    <option value="">Select organization</option>
+                    @foreach ($organizations as $organization)
+                        <option value="{{ $organization->id }}" @selected(old('organization_id') == $organization->id)>{{ $organization->name }}</option>
+                    @endforeach
+                </april:select>
+            </div>
+            <april:input-group name="name" id="name" type="text" placeholder="Enter name of school" label="School Name *" />
+            <div class="flex w-full flex-col gap-2">
+                <april:label for="address">School Address *</april:label>
+                <april:textarea id="address" name="address" placeholder="Enter school branch address" />
+            </div>
+            <april:input-group name="initials" id="initials" type="text" placeholder="Enter school initials" label="School initials" />
+            <april:input-group name="phone" id="phone" placeholder="Enter school phone number" label="School Phone Number" type="tel" />
+            <april:input-group name="email" id="email" placeholder="Enter school Email" label="School Email address" type="email" />
+            <april:input-group name="logo" id="logo" type="file" label="Logo" />
             @csrf
             <div class="w-full flex ">
-                <x-button theme="primary" icon="fas fa-key" type="submit" class="w-full md:w-6/12">
+                <april:button type="submit" class="w-full md:w-6/12">
+<x-lucide-key class="mr-2 size-4" />
                     Create
-                </x-button>
+                </april:button>
             </div>
         </form>
     </div>

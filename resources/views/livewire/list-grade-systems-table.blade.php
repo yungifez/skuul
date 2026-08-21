@@ -5,16 +5,20 @@
     <div class="card-body">
         @if (!auth()->user()->hasRole(\App\Enums\Role::Student))
 
-        <x-select id="class-group" label="Select a class group to see grading system" group-class="my-6 md:w-6/12" name="" wire:model.live="classGroup">
+        <div class="flex w-full flex-col gap-2">
+            <april:label for="class-group">Select a class group to see grading system</april:label>
+            <april:select id="class-group" name="" wire:model.live="classGroup">
             @foreach ($classGroups as $item)
                 <option value="{{$item['id']}}">{{$item['name']}}</option>
             @endforeach
-        </x-select>
+
+            </april:select>
+        </div>
         @endif
         <x-loading-spinner/>
         <div wire:loading.remove.delay>
             @isset($classGroup)
-                <livewire:datatable :wire:key="Str::Random(10)" :model="App\Models\GradeSystem::class" 
+                <livewire:datatable :wire:key="Str::Random(10)" :model="App\Models\GradeSystem::class"
                 :filters="[
                 ['name' => 'where', 'arguments' => ['class_group_id' , $classGroup]],
                 ]"
@@ -25,7 +29,7 @@
                     ['property' => 'grade_from'],
                     ['property' => 'grade_till'],
                     ['type' => 'dropdown', 'name' => 'actions',  'can' => 'update grade system','links' => [
-                        ['href' => 'grade-systems.edit', 'text' => 'Settings', 'icon' => 'fas fa-cog'],
+                        ['href' => 'grade-systems.edit', 'text' => 'Settings', 'icon' => 'settings'],
                     ]],
                     ['type' => 'delete',  'can' => 'delete grade system' ,  'name' => 'Delete', 'action' => 'grade-systems.destroy']
                 ]"/>

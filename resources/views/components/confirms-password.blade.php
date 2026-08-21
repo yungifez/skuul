@@ -16,26 +16,22 @@
 </span>
 
 @once
-<x-modal x-effect="modal = $wire.confirmingPassword" button="">
-    <x-slot name="title">
-        {{ $title }}
-    </x-slot>
+<april:dialog dismissable x-effect="show = $wire.confirmingPassword">
+    <slot:content class="sm:max-w-md">
+        <april:dialog-header>
+            <slot:title>{{ $title }}</slot:title>
+            <slot:description>{{ $content }}</slot:description>
+        </april:dialog-header>
 
-        <p class="p-3 text-center">
-            {{ $content }}
-        </p>
-
-        <div class="mt-4 w-11/12 md:w-7/12 " x-data="{}" x-on:confirming-password.window="setTimeout(() => $refs.confirmable_password.focus(), 250)">
-            <x-input id="" type="password" name="confirmable_password" placeholder="{{ __('Password') }}"
-            wire:model="confirmablePassword"
-            x-ref="confirmable_password"
-            x-on:keydown.enter="confirmPassword" />
+        <div class="grid gap-4" x-data="{}" x-on:confirming-password.window="setTimeout(() => $refs.confirmable_password.focus(), 250)">
+            <april:input-group id="confirmable-password" type="password" name="confirmable_password" placeholder="{{ __('Password') }}" label="{{ __('Password') }}" wire:model="confirmablePassword" x-ref="confirmable_password" x-on:keydown.enter="confirmPassword" />
         </div>
 
-    <x-slot name="footer">
-        <x-button class="ms-2" wire:click="confirmPassword" wire:loading.attr="disabled">
-            {{ $button }}
-        </x-button>
-    </x-slot>
-</x--modal>
+        <april:dialog-footer>
+            <april:button class="ms-2" wire:click="confirmPassword" wire:loading.attr="disabled">
+                {{ $button }}
+            </april:button>
+        </april:dialog-footer>
+    </slot:content>
+</april:dialog>
 @endonce

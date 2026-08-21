@@ -9,36 +9,66 @@
         <x-loading-spinner wire:target="class"/>
         <x-loading-spinner wire:target="subject"/>
         <x-loading-spinner wire:target="section"/>
-       
+
         {{-- form for selecting exam record to display --}}
         <form wire:submit="fetchExamRecords('{{$exam}}','{{$section}}','{{$subject}}')" class="md:grid gap-4 grid-cols-4 grid-rows-1  my-3 items-end">
-            <x-select id="exam-id" name="exam_id" label="Select exam" wire:model.live="exam">
+            <div class="flex w-full flex-col gap-2">
+                <april:label for="exam-id">Select exam</april:label>
+                <april:select id="exam-id" name="exam_id" wire:model.live="exam">
                 @foreach ($exams as $item)
                     <option value="{{$item['id']}}">{{$item['name']}}</option>
                 @endforeach
-            </x-select>
-            <x-select id="class" name="class" label="Select class" wire:model.live="class">
+
+                </april:select>
+                @error('exam_id')
+                    <p class="text-sm text-destructive">{{ $message }}</p>
+                @enderror
+            </div>
+            <div class="flex w-full flex-col gap-2">
+                <april:label for="class">Select class</april:label>
+                <april:select id="class" name="class" wire:model.live="class">
                 @foreach ($classes as $item)
                     <option value="{{$item['id']}}">{{$item['name']}}</option>
                 @endforeach
-            </x-select>
-            <x-select id="subject" name='subject' id="subject" label="Select subject"   wire:model.live="subject" >
+
+                </april:select>
+                @error('class')
+                    <p class="text-sm text-destructive">{{ $message }}</p>
+                @enderror
+            </div>
+            <div class="flex w-full flex-col gap-2">
+                <april:label for="subject">Select subject</april:label>
+                <april:select id="subject" name='subject' id="subject" wire:model.live="subject">
                 @isset($subjects)
                     @foreach ($subjects as $subject)
                         <option value="{{$subject['id']}}">{{$subject['name']}}</option>
                     @endforeach
                 @endisset
-            </x-select>
-            <x-select id="section" name="section" label="Section"  wire:model.live="section">
+
+                </april:select>
+                @error('subject')
+                    <p class="text-sm text-destructive">{{ $message }}</p>
+                @enderror
+            </div>
+            <div class="flex w-full flex-col gap-2">
+                <april:label for="section">Section</april:label>
+                <april:select id="section" name="section" wire:model.live="section">
                 @isset($sections)
                     @foreach ($sections as $item)
                         <option value="{{$item['id']}}">{{$item['name']}}</option>
                     @endforeach
                 @endisset
-            </x-select>
-            <x-button label="View records" theme="primary" type="submit" class="w-full "/>
+
+                </april:select>
+                @error('section')
+                    <p class="text-sm text-destructive">{{ $message }}</p>
+                @enderror
+            </div>
+            <april:button type="submit" class="w-full ">
+                View records
+            </april:button>
         </form>
-        
+
         <x-loading-spinner wire:target="fetchExamRecords"/>
 
         {{-- table for displaying exam records --}}
@@ -55,7 +85,7 @@
                         <p class="">Subject: {{$subjectSelected->name}}</p>
                     </div>
 
-                    <x-input name="search" id="search" wire:model.live.debounce="search" placeholder="Search for student"/>
+                    <april:input-group name="search" id="search" wire:model.live.debounce="search" placeholder="Search for student" />
 
                     @foreach ($students as $student)
                         <div wire:key="{{Str::Random('10')}}">
@@ -63,14 +93,14 @@
                             <form action="{{route('exam-records.store')}}#student-{{$student->id}}" class="md:grid grid-rows-1 grid-flow-col-dense gap-4 overflow-scroll beautify-scrollbar border-b items-center my-5 p-3 " method="POST">
                                 <p class="md:w-40 font-bold">{{ $students->perPage() * ($students->currentPage() - 1) + $loop->iteration }}. {{$student->name}}</p>
                                 @foreach ($examSlots as $examSlot)
-                                    @php 
+                                    @php
                                         $examRecord = $examRecords->where('user_id',$student->id)->where('subject_id', $subjectSelected->id)->where('exam_slot_id', $examSlot->id)->first();
                                         $studentMarks = $examRecord ? $examRecord['student_marks'] : '0';
                                     @endphp
                                     @can('update exam record')
-                                        
+
                                         <input type="hidden" name="exam_records[{{$loop->index}}][exam_slot_id]" value="{{$examSlot->id}}">
-                                        <x-input id="student-{{$student->id}}" name="exam_records[{{$loop->index}}][student_marks]" label="{{$examSlot->name}} ({{$examSlot->total_marks}})" type="number" placeholder="Enter marks" value="{{$studentMarks}}" min="0" max="{{$examSlot->total_marks}}" class="min-w-[10rem]" label-class="whitespace-nowrap"/>
+                                        <april:input-group id="student-{{$student->id}}" name="exam_records[{{$loop->index}}][student_marks]" label="{{$examSlot->name}} ({{$examSlot->total_marks}})" type="number" placeholder="Enter marks" value="{{$studentMarks}}" min="0" max="{{$examSlot->total_marks}}" class="min-w-[10rem]" />
                                     @else
                                         <p>{{$studentMarks}}</p>
                                     @endcan
@@ -81,13 +111,15 @@
                                 <input type="hidden" name="section_id" value="{{$sectionSelected->id}}">
                                 @csrf
                                 @can('update exam record')
-                                    
-                                    <x-button label="Submit" theme="primary" type="submit" class="w-full min-w-[12rem] place-self-end"/>
+
+                                    <april:button type="submit" class="w-full min-w-[12rem] place-self-end">
+                                        Submit
+                                    </april:button>
                                 @endcan
                             </form>
                         </div>
                     @endforeach
-                  
+
                 {{$students->links('components.datatable-pagination-links-view')}}
                 </div>
             </div>

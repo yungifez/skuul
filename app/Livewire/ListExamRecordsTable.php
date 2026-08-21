@@ -64,7 +64,7 @@ class ListExamRecordsTable extends Component
     public function mount(ExamService $examService, MyClassService $myClassService, SectionService $sectionService, SubjectService $subjectService)
     {
         // get semester and use it to fetch all exams in semester
-        $this->semester = current_school()->semester;
+        $this->semester = current_semester();
         $this->exams = $examService->getActiveExamsInSemester($this->semester->id);
         // set exam as first exam if exams not empty
         $this->exams->count() ? $this->exam = $this->exams[0]->id : $this->exam = null;
@@ -129,7 +129,7 @@ class ListExamRecordsTable extends Component
     {
         $section = $this->sectionSelected;
         if ($section != null && $section->exists()) {
-            $students = User::students()->ofSchool()->whereRelation('studentRecord.section', 'id', $section->id)->where('name', 'LIKE', "%$this->search%")->orderBy('name')->paginate(10);
+            $students = User::students()->ofSchool()->activeStudents()->whereRelation('studentRecord.section', 'id', $section->id)->where('name', 'LIKE', "%$this->search%")->orderBy('name')->paginate(10);
             $viewData = ['students' => $students];
         } else {
             $viewData = [];

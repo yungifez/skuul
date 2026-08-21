@@ -21,6 +21,26 @@ class AuthenticationTest extends TestCase
         $response->assertSee('data-slot="button"', false);
     }
 
+    public function test_login_screen_has_accessible_credential_controls(): void
+    {
+        $response = $this->get('/login');
+
+        $response
+            ->assertOk()
+            ->assertSee('Email address')
+            ->assertSee('name="email"', false)
+            ->assertSee('autocomplete="email"', false)
+            ->assertSee('name="password"', false)
+            ->assertSee('autocomplete="current-password"', false)
+            ->assertSee('Remember me')
+            ->assertSee('Log in');
+
+        $html = (string) $response->getContent();
+
+        $this->assertSame(1, substr_count($html, 'id="email"'));
+        $this->assertSame(1, substr_count($html, 'id="password"'));
+    }
+
     public function test_users_can_authenticate_using_the_login_screen()
     {
         $user = User::factory()->create();
@@ -29,7 +49,7 @@ class AuthenticationTest extends TestCase
         $user->save();
 
         $response = $this->post('/login', [
-            'email'    => $user->email,
+            'email' => $user->email,
             'password' => 'password',
         ]);
 
@@ -42,7 +62,7 @@ class AuthenticationTest extends TestCase
         $user = User::factory()->create();
 
         $this->post('/login', [
-            'email'    => $user->email,
+            'email' => $user->email,
             'password' => 'wrong-password',
         ]);
 

@@ -47,29 +47,29 @@
         <div class="mt-3">
             @if (! $this->enabled)
                 <x-confirms-password wire:then="enableTwoFactorAuthentication">
-                    <x-button type="button" wire:loading.attr="disabled" class="bg-gray-500 w-3/12">
+                    <april:button type="button" variant="secondary" wire:loading.attr="disabled" class="w-3/12">
                         {{ __('Enable') }}
-                    </x-button>
+                    </april:button>
                 </x-confirms-password>
             @else
                 @if ($showingRecoveryCodes)
                     <x-confirms-password wire:then="regenerateRecoveryCodes">
-                        <x-button class=" bg-white text-black" colour="" wire:loading.attr="disabled">
+                        <april:button variant="outline" wire:loading.attr="disabled">
                             {{ __('Regenerate Recovery Codes') }}
-                        </x-button>
+                        </april:button>
                     </x-confirms-password>
                 @else
                     <x-confirms-password wire:then="showRecoveryCodes">
-                        <x-button class=" bg-white text-black " colour="">
+                        <april:button variant="outline">
                             {{ __('Show Recovery Codes') }}
-                        </x-button>
+                        </april:button>
                     </x-confirms-password>
                 @endif
 
                 <x-confirms-password wire:then="disableTwoFactorAuthentication">
-                    <x-button class="bg-red-600" wire:loading.attr="disabled">
+                    <april:button variant="destructive" wire:loading.attr="disabled">
                         {{ __('Disable') }}
-                    </x-button>
+                    </april:button>
                 </x-confirms-password>
             @endif
         </div>

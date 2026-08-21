@@ -18,53 +18,47 @@ use Illuminate\Support\Facades\Validator;
  */
 class ProvisionAccount
 {
-    public function __construct(private GrantSchoolMembership $grantSchoolMembership)
-    {
-    }
+    public function __construct(private GrantSchoolMembership $grantSchoolMembership) {}
 
     /**
      * Provision an account and return the user.
      *
-     * @param array<string, mixed> $input
+     * @param  array<string, mixed>  $input
      */
     public function provision(array $input): User
     {
         $data = Validator::make($input, [
-            'name'        => ['required', 'string', 'max:511'],
-            'email'       => ['required', 'string', 'email:rfc,dns', 'max:511'],
-            'photo'       => ['nullable', 'mimes:jpg,jpeg,png', 'max:3000'],
-            'school_id'   => ['required', 'exists:schools,id'],
-            'birthday'    => ['required', 'date', 'before:today'],
-            'address'     => ['required', 'string', 'max:500'],
-            'blood_group' => ['required', 'string', 'max:255'],
-            'religion'    => ['nullable', 'string', 'max:255'],
-            'nationality' => ['required', 'string', 'max:255'],
-            'state'       => ['required', 'string', 'max:255'],
-            'city'        => ['required', 'string', 'max:255'],
-            'gender'      => ['required', 'string', 'max:255'],
-            'phone'       => ['nullable', 'string', 'max:255'],
+            'name' => ['required', 'string', 'max:100'],
+            'email' => ['required', 'string', 'email:rfc,dns', 'max:100'],
+            'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:3000'],
+            'school_id' => ['required', 'exists:schools,id'],
+            'birthday' => ['nullable', 'date', 'before:today'],
+            'address' => ['nullable', 'string', 'max:100'],
+            'nationality' => ['nullable', 'string', 'max:100'],
+            'state' => ['nullable', 'string', 'max:100'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'gender' => ['nullable', 'string', 'max:100'],
+            'phone' => ['nullable', 'string', 'max:100'],
         ])->validate();
 
         $user = User::where('email', $data['email'])->first();
 
         if ($user === null) {
-            $user = new User();
+            $user = new User;
             $user->password = null;
             $user->account_status = AccountStatus::Invited;
         }
 
         $user->fill([
-            'name'        => $data['name'],
-            'email'       => $data['email'],
-            'birthday'    => $data['birthday'],
-            'address'     => $data['address'],
-            'blood_group' => $data['blood_group'],
-            'religion'    => $data['religion'] ?? null,
-            'nationality' => $data['nationality'],
-            'state'       => $data['state'],
-            'city'        => $data['city'],
-            'gender'      => $data['gender'],
-            'phone'       => $data['phone'] ?? null,
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'birthday' => $data['birthday'] ?? null,
+            'address' => $data['address'] ?? null,
+            'nationality' => $data['nationality'] ?? null,
+            'state' => $data['state'] ?? null,
+            'city' => $data['city'] ?? null,
+            'gender' => $data['gender'] ?? null,
+            'phone' => $data['phone'] ?? null,
         ]);
 
         $user->save();
@@ -72,8 +66,8 @@ class ProvisionAccount
         // School access is a membership record, never a column on the user.
         $this->grantSchoolMembership->grant($user, School::findOrFail($data['school_id']));
 
-        if (isset($input['photo'])) {
-            $user->updateProfilePhoto($input['photo']);
+        if (isset($data['photo'])) {
+            $user->updateProfilePhoto($data['photo']);
         }
 
         return $user;

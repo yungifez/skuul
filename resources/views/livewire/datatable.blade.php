@@ -29,7 +29,7 @@
                             @foreach ($columns as $column)
                                 @if (!isset($column['can']) || auth()->user()->can($column['can']))
                                     <td class="w-60 whitespace-nowrap border-l px-4 py-3">
-                                        @php 
+                                        @php
                                             $model = $item;
                                             if (isset($column['relation'])) {
                                                 $relations = explode('.',$column['relation']);
@@ -40,43 +40,74 @@
                                             if (is_array($model)) {
                                                 $model = collect($model);
                                             }
-                                            
+
                                         @endphp
                                         <p class="{{$column['class'] ?? null}}">
                                             @if (array_key_exists('method', $column) && !empty($column['method']))
                                                 {{ ($model?->{$column['method']}()) }}
                                             @elseif (array_key_exists('type', $column) && !empty($column['type']))
                                                 @if ($column['type'] == 'delete')
-                                                    <x-modal title="Confirm {{$column['name']}}" background-colour="bg-red-600">
-                                                        <div class="text-gray-700 text-center dark:text-white">
-                                                            <i class="fa fa-trash text-7xl" aria-hidden="true"></i>
-                                                            <p class="my-2">Are you sure you want to {{Str::lower($column['name'])}} this resource</p>
-                                                        </div>
-                                                        <x-slot:footer>
-                                                            <form action="{{route($column['action'],array_merge(($column['pre-route-parameters'] ?? []),[$model->id], ($column['post-route-parameters'] ?? [])))}}" method="POST">
-                                                                <x-button class="bg-red-600" icon="fa fa-trash" >
-                                                                    Continue with {{Str::lower($column['name'])}}
-                                                                </x-button>
-                                                                @method('delete')
-                                                                @csrf
-                                                            </form>
-                                                        </x-slot:footer>
-                                                    </x-modal>
+                                                    <april:alert-dialog>
+                                                        <slot:trigger>
+                                                            <april:button variant="outline" size="sm" type="button">
+                                                                <x-lucide-trash-2 class="mr-2 size-4" />
+                                                                {{$column['name']}}
+                                                            </april:button>
+                                                        </slot:trigger>
+                                                        <slot:content>
+                                                            <april:alert-dialog-header>
+                                                                <slot:title>Confirm {{$column['name']}}</slot:title>
+                                                                <slot:description>Are you sure you want to {{Str::lower($column['name'])}} this resource?</slot:description>
+                                                            </april:alert-dialog-header>
+                                                            <april:alert-dialog-footer>
+                                                                <april:alert-dialog-cancel>Cancel</april:alert-dialog-cancel>
+                                                                <form action="{{route($column['action'],array_merge(($column['pre-route-parameters'] ?? []),[$model->id], ($column['post-route-parameters'] ?? [])))}}" method="POST">
+                                                                    @method('delete')
+                                                                    @csrf
+                                                                    <april:button type="submit" variant="destructive">
+                                                                        <x-lucide-trash-2 class="mr-2 size-4" />
+                                                                        Continue with {{Str::lower($column['name'])}}
+                                                                    </april:button>
+                                                                </form>
+                                                            </april:alert-dialog-footer>
+                                                        </slot:content>
+                                                    </april:alert-dialog>
                                                 @elseif ($column['type'] == 'dropdown')
-                                                    <x-dropdown >
+                                                    <april:dropdown-menu>
+                                                        <slot:trigger>
+                                                            <april:button variant="outline" size="sm" type="button" aria-haspopup="true">
+                                                                Actions
+                                                                <x-lucide-chevron-down class="size-3.5" />
+                                                            </april:button>
+                                                        </slot:trigger>
+                                                        <slot:content class="min-w-40 p-1">
                                                         @foreach ($column['links'] as $link)
                                                             @if (!isset($link['can']) || auth()->user()->can($link['can']))
-                                                                <a href="{{route($link['href'],array_merge(($link['pre-route-parameters'] ?? []),[$model->id], ($link['post-route-parameters'] ?? [])))}}" class="flex capitalize items-center justify-start gap-2 py-3 px-6 hover:bg-white hover:bg-opacity-20 "><i class="{{$link['icon'] ?? ''}}" aria-hidden="true"></i>{{$link['text']}}</a>
+                                                                <a href="{{route($link['href'],array_merge(($link['pre-route-parameters'] ?? []),[$model->id], ($link['post-route-parameters'] ?? [])))}}" class="flex items-center justify-start gap-2 rounded px-3 py-2 text-left text-sm capitalize hover:bg-accent"><x-icon :name="'lucide-'.($link['icon'] ?? 'circle')" class="size-4" />{{$link['text']}}</a>
                                                             @endif
                                                         @endforeach
-                                                    </x-dropdown>
+                                                        </slot:content>
+                                                    </april:dropdown-menu>
                                                 @elseif($column['type'] == 'boolean-switch')
                                                 <form action="{{route($column['action'], $model->id)}}" method="POST" x-data>
                                                     @csrf
-                                                    <x-toggle :name="$column['field']" :checked="$model?->{$column['property'] ?? $column['name']}  == true"  :label-checked-text="$column['true-statement'] ?? 'yes'" :label-unchecked-text="$column['false-statement']?? 'no'" @Change="$nextTick(() => $el.form.submit())"/>
+                                                    <april:switch
+                                                        :name="$column['field']"
+                                                        :id="'toggle-'.$uniqueId.'-'.$model->id"
+                                                        :checked="$model?->{$column['property'] ?? $column['name']} == true"
+                                                        @change="$nextTick(() => $el.form.submit())"
+                                                    />
                                                 </form>
                                                 @elseif($column['type'] == 'account-status')
                                                     <x-account-status-control :user="$model" />
+                                                @elseif($column['type'] == 'academic-period-status')
+                                                    <x-academic-period-status-control :period="$model" :route-prefix="$column['route-prefix']" />
+                                                @elseif($column['type'] == 'academic-period-dates')
+                                                    <x-academic-period-dates :period="$model" />
+                                                @elseif($column['type'] == 'enrollment-status')
+                                                    <x-enrollment-status :enrollment="$model" />
+                                                @elseif($column['type'] == 'timetable-status')
+                                                    <x-timetable-status-control :timetable="$model" />
                                                 @elseif($column['type'] == 'image')
                                                     <div class="flex justify-center">
                                                         <img class="{{$column['img-class'] ?? " h-14 w-1/2 rounded-full"}}" loading="lazy" src="{{($model?->{$column['property'] ?? $column['name']}) }}" alt="">

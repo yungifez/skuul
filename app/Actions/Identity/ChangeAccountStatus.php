@@ -3,8 +3,10 @@
 namespace App\Actions\Identity;
 
 use App\Enums\AccountStatus;
+use App\Enums\PlatformPermission;
 use App\Events\AccountStatusChanged;
 use App\Models\User;
+use App\Services\Authorization\SystemPermissionScope;
 use RuntimeException;
 
 /**
@@ -14,9 +16,10 @@ use RuntimeException;
  */
 class ChangeAccountStatus
 {
-    public function __construct(private RevokeAccountInvitation $revokeAccountInvitation)
-    {
-    }
+    public function __construct(
+        private RevokeAccountInvitation $revokeAccountInvitation,
+        private SystemPermissionScope $systemPermissionScope,
+    ) {}
 
     /**
      * Stop access without deleting anything.
@@ -53,7 +56,7 @@ class ChangeAccountStatus
      */
     public function changeTo(User $user, AccountStatus $status, ?User $actor = null, ?string $reason = null): User
     {
-        if ($user->isPlatformAdmin() && !$status->canAccessApplication()) {
+        if ($this->systemPermissionScope->allows($user, PlatformPermission::ManagePlatform) && !$status->canAccessApplication()) {
             throw new RuntimeException('A platform administrator account cannot be suspended or archived.');
         }
 

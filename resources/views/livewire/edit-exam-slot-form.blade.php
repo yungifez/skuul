@@ -5,14 +5,18 @@
     <div class="card-body">
         <form action="{{route('exam-slots.update',[ $exam->id, $examSlot->id])}}" method="post" class="w-1/2">
             <x-display-validation-errors/>
-            <x-input id="name" name="name" label="Exam slot Name" placeholder="Enter Exam slot name"  value="{{$examSlot->name}}"/>
-            <x-textarea id="description" name="description" label="Description" placeholder="Enter description"  >
-                {{$examSlot->description}}
-            </x-textarea>
-            <x-input id="total_marks" name="total_marks" label="Maximum marks obtainable" placeholder="Enter max mark" type="number"  value="{{$examSlot->total_marks}}"/>
+            <april:input-group id="name" name="name" label="Exam slot Name" placeholder="Enter Exam slot name" value="{{$examSlot->name}}" />
+            <div class="flex w-full flex-col gap-2">
+                <april:label for="description">Description</april:label>
+                <april:textarea id="description" name="description" placeholder="Enter description">{{$examSlot->description}}</april:textarea>
+            </div>
+            <april:input-group id="total_marks" name="total_marks" label="Maximum marks obtainable" placeholder="Enter max mark" type="number" value="{{$examSlot->total_marks}}" />
             @csrf
             @method('PUT')
-            <x-button label="Edit" theme="primary" icon="fas fa-pen" type="submit" class="w-full md:w-1/2"/>
+            <april:button type="submit" class="w-full md:w-1/2">
+                <x-lucide-pencil class="mr-2 size-4" />
+                Edit
+            </april:button>
         </form>
     </div>
 </div>

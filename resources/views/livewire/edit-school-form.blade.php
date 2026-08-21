@@ -8,21 +8,23 @@
             <p class="text-secondary">
                 {{__('All fields marked * are required')}}
             </p>
-            <x-input id="name" name="name" placeholder="Enter name of school" label="School Name *" value="{{$school->name}}" />
-            <x-textarea id="address" name="address" placeholder="Enter school branch address" label="School Address *" >
-                {{$school->address}}
-            </x-textarea>
-            <x-input id="initials" name="initials" placeholder="Enter school initials" label="School Initials" value="{{$school->initials}}" />   
-            <x-input id="phone" name="phone" type="tel" placeholder="Enter school phone number" label="School Phone Number" value="{{ $school->phone}}"  />
-            <x-input id="email" name="email" type="email" placeholder="Enter school email" label="School Email" value="{{ $school->email}}"  />
-            <x-input name="logo" id="logo" type="file"  label="Logo" />
+            <april:input-group id="name" name="name" placeholder="Enter name of school" label="School Name *" value="{{$school->name}}" />
+            <div class="flex w-full flex-col gap-2">
+                <april:label for="address">School Address *</april:label>
+                <april:textarea id="address" name="address" placeholder="Enter school branch address">{{$school->address}}</april:textarea>
+            </div>
+            <april:input-group id="initials" name="initials" placeholder="Enter school initials" label="School Initials" value="{{$school->initials}}" />
+            <april:input-group id="phone" name="phone" type="tel" placeholder="Enter school phone number" label="School Phone Number" value="{{ $school->phone}}" />
+            <april:input-group id="email" name="email" type="email" placeholder="Enter school email" label="School Email" value="{{ $school->email}}" />
+            <april:input-group name="logo" id="logo" type="file" label="Logo" />
 
             @csrf
             @method('PUT')
             <div class="w-full flex ">
-                <x-button theme="primary" icon="fas fa-paper-plane" type="submit" class="w-full md:w-6/12">
+                <april:button type="submit" class="w-full md:w-6/12">
+<x-lucide-send class="mr-2 size-4" />
                     Edit
-                </x-button>
+                </april:button>
             </div>
         </form>
     </div>

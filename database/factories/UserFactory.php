@@ -2,8 +2,10 @@
 
 namespace Database\Factories;
 
+use App\Actions\Authorization\GrantSystemRole;
 use App\Actions\School\GrantSchoolMembership;
 use App\Enums\AccountStatus;
+use App\Enums\Role;
 use App\Models\School;
 use App\Models\Team;
 use App\Models\User;
@@ -22,21 +24,19 @@ class UserFactory extends Factory
     public function definition()
     {
         return [
-            'name'              => $this->faker->name(),
-            'email'             => $this->faker->unique()->safeEmail(),
+            'name' => $this->faker->name(),
+            'email' => $this->faker->unique()->safeEmail(),
             'email_verified_at' => now(),
-            'password'          => Hash::make(Str::random(10)),
-            'remember_token'    => Str::random(10),
-            'address'           => $this->faker->address(),
-            'birthday'          => $this->faker->date(),
-            'address'           => $this->faker->address(),
-            'blood_group'       => 'a+',
-            'religion'          => 'christian',
-            'nationality'       => $this->faker->country(),
-            'state'             => 'wyoming',
-            'city'              => $this->faker->city(),
-            'gender'            => 'male',
-            'account_status'    => AccountStatus::Active,
+            'password' => Hash::make(Str::random(10)),
+            'remember_token' => Str::random(10),
+            'address' => $this->faker->address(),
+            'birthday' => $this->faker->date(),
+            'address' => $this->faker->address(),
+            'nationality' => $this->faker->country(),
+            'state' => 'wyoming',
+            'city' => $this->faker->city(),
+            'gender' => 'male',
+            'account_status' => AccountStatus::Active,
         ];
     }
 
@@ -66,9 +66,7 @@ class UserFactory extends Factory
      */
     public function platformAdmin(): static
     {
-        return $this->state(fn (array $attributes): array => [
-            'is_platform_admin' => true,
-        ]);
+        return $this->afterCreating(fn (User $user) => app(GrantSystemRole::class)->grant($user, Role::PlatformAdmin));
     }
 
     /**
@@ -77,8 +75,8 @@ class UserFactory extends Factory
     public function invited(): static
     {
         return $this->state(fn (array $attributes): array => [
-            'password'          => null,
-            'account_status'    => AccountStatus::Invited,
+            'password' => null,
+            'account_status' => AccountStatus::Invited,
             'email_verified_at' => null,
         ]);
     }

@@ -23,16 +23,20 @@ queue is only for local development.
 
 Run these steps for every release.
 
-1. Build the image and push it to your registry.
-2. Put the site in maintenance mode: `php artisan down`.
-3. Start the new containers.
-4. Install dependencies: `composer install --no-dev --optimize-autoloader`.
-5. Build the front end: `npm ci && npm run build`.
-6. Run the migrations: `php artisan migrate --force`.
-7. Cache the configuration, routes, and views: `php artisan optimize`.
-8. Restart the queue workers: `php artisan queue:restart`.
-9. Leave maintenance mode: `php artisan up`.
-10. Check `/health`. It must answer with HTTP 200.
+1. Check out the active April UI `main` branch beside this repository.
+2. Build the image and push it to your registry.
+3. Put the site in maintenance mode: `php artisan down`.
+4. Start the new containers.
+5. Install dependencies: `composer install --no-dev --optimize-autoloader`.
+6. Build the front end: `npm ci && npm run build`.
+7. Run the migrations: `php artisan migrate --force`.
+8. Cache the configuration, routes, and views: `php artisan optimize`.
+9. Restart the queue workers: `php artisan queue:restart`.
+10. Leave maintenance mode: `php artisan up`.
+11. Check `/health`. It must answer with HTTP 200.
+
+The application uses a path repository. The release checkout must contain the
+current April UI `main` branch beside the application before Composer runs.
 
 Set these values before the first deployment:
 

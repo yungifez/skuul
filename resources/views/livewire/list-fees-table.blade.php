@@ -12,7 +12,7 @@
             ['property' => 'name'],
             ['property' => 'name', 'relation' => 'feeCategory', 'name' =>'Fee Category'],
             ['name' => 'Actions', 'type' => 'dropdown' , 'links' => [
-                ['href' => 'fees.edit', 'text' => 'edit', 'icon' => 'fas fa-cog'],
+                ['href' => 'fees.edit', 'text' => 'edit', 'icon' => 'settings'],
             ]],
             ['type' => 'delete', 'name' => 'Delete', 'action' => 'fees.destroy',]
         ]"/>

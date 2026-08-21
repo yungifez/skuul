@@ -6,10 +6,14 @@ use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Actions\Jetstream\DeleteUser;
+use App\Enums\OrganizationPermission;
+use App\Enums\PlatformPermission;
 use App\Events\AccountStatusChanged;
 use App\Listeners\RecordAccountStatusChange;
 use App\Listeners\RecordPermissionChanges;
 use App\Services\Academic\AcademicPeriodContext;
+use App\Services\Authorization\OrganizationPermissionScope;
+use App\Services\Authorization\SystemPermissionScope;
 use App\Services\Feature\FeatureManager;
 use App\Services\School\SchoolContext;
 use Illuminate\Auth\Events\Registered;
@@ -37,6 +41,12 @@ class AppServiceProvider extends ServiceProvider
         // One academic period per request, resolved after the school.
         $this->app->scoped(AcademicPeriodContext::class);
 
+        // Authorization results must not leak between requests or workers.
+        $this->app->scoped(SystemPermissionScope::class);
+
+        // Organization memberships are read once per request.
+        $this->app->scoped(OrganizationPermissionScope::class);
+
         // Feature answers are worked out once per request.
         $this->app->scoped(FeatureManager::class);
     }
@@ -45,10 +55,19 @@ class AppServiceProvider extends ServiceProvider
     {
         Schema::defaultStringLength(100);
 
-        // Platform access sits outside school roles. A school role name must
-        // never grant access above its own school.
-        Gate::after(function ($user): ?bool {
-            return $user->isPlatformAdmin() ? true : null;
+        // Global roles use the reserved Spatie system team and grant only
+        // permissions assigned to their role.
+        Gate::before(function ($user, string $ability): ?bool {
+            if (app(SystemPermissionScope::class)->allows($user, $ability)) {
+                return true;
+            }
+
+            // Global-only permissions cannot be granted in a school team.
+            if (PlatformPermission::tryFrom($ability) !== null || OrganizationPermission::tryFrom($ability) !== null) {
+                return false;
+            }
+
+            return null;
         });
 
         Event::listen(Registered::class, SendEmailVerificationNotification::class);

@@ -34,3 +34,6 @@ Change a placement only through
 `App\Actions\Enrollment\ChangeEnrollmentPlacement`; it checks the class, the
 section, the school, and the period, then writes the next record. Move a
 student between schools with `App\Actions\Enrollment\TransferEnrollment`.
+
+## Organization administration never grants campus data access
+Organizations own schools/campuses. Keep organization_memberships separate from school_memberships and Spatie's school_id team scope. An organization administrator may manage organization/campus setup, but operational records still require an active school membership and school-scoped permission.

@@ -5,10 +5,10 @@
     <div class="card-body">
         <livewire:datatable :model="App\Models\ClassGroup::class" uniqueId="class-group-list" :filters="[['name' => 'inSchool']]" :columns="
         [
-            ['property' => 'name'] , 
+            ['property' => 'name'] ,
             ['type' => 'dropdown', 'name' => 'actions','links' => [
-                ['href' => 'class-groups.edit', 'text' => 'Settings', 'icon' => 'fas fa-cog'],
-                ['href' => 'class-groups.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
+                ['href' => 'class-groups.edit', 'text' => 'Settings', 'icon' => 'settings'],
+                ['href' => 'class-groups.show', 'text' => 'View', 'icon' => 'eye'],
             ]],
             ['type' => 'delete', 'name' => 'Delete', 'action' => 'class-groups.destroy']
          ]

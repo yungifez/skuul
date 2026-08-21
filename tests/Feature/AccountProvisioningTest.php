@@ -28,18 +28,15 @@ class AccountProvisioningTest extends TestCase
     private function adminFields(string $email): array
     {
         return [
-            'first_name'  => 'Test',
-            'last_name'   => 'Admin',
-            'other_names' => 'Cody',
-            'email'       => $email,
-            'gender'      => 'male',
+            'name' => 'Test Admin Cody',
+            'email' => $email,
+            'gender' => 'male',
             'nationality' => 'nigeria',
-            'state'       => 'lagos',
-            'city'        => 'lagos',
-            'blood_group' => 'a+',
-            'address'     => 'test address',
-            'birthday'    => '2004/04/22',
-            'phone'       => '08080808080',
+            'state' => 'lagos',
+            'city' => 'lagos',
+            'address' => 'test address',
+            'birthday' => '2004/04/22',
+            'phone' => '08080808080',
         ];
     }
 
@@ -76,7 +73,7 @@ class AccountProvisioningTest extends TestCase
         $this->post('/logout');
 
         $this->post('/login', [
-            'email'    => $email,
+            'email' => $email,
             'password' => 'password',
         ]);
 

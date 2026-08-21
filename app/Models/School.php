@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\SchoolMembershipStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
@@ -12,19 +13,29 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * @property int|null          $academic_year_id
- * @property int|null          $semester_id
+ * @property int|null $academic_year_id
+ * @property int|null $semester_id
  * @property AcademicYear|null $academicYear
- * @property Semester|null     $semester
- * @property string            $name
+ * @property Semester|null $semester
+ * @property string $name
  */
 class School extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'name', 'address', 'code', 'initials', 'phone', 'email', 'logo_path',
+        'organization_id', 'name', 'address', 'code', 'initials', 'phone', 'email', 'logo_path',
     ];
+
+    /**
+     * Get the organization that owns this campus.
+     *
+     * @return BelongsTo<Organization, $this>
+     */
+    public function organization(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class);
+    }
 
     public function getLogoUrlAttribute()
     {

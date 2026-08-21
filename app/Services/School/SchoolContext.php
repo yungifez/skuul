@@ -2,8 +2,10 @@
 
 namespace App\Services\School;
 
+use App\Enums\PlatformPermission;
 use App\Models\School;
 use App\Models\User;
+use App\Services\Authorization\SystemPermissionScope;
 use Illuminate\Http\Request;
 use RuntimeException;
 use Spatie\Permission\PermissionRegistrar;
@@ -28,6 +30,8 @@ class SchoolContext
     private ?School $school = null;
 
     private bool $resolved = false;
+
+    public function __construct(private SystemPermissionScope $systemPermissionScope) {}
 
     /**
      * Get the active school, or null when none is set.
@@ -139,8 +143,9 @@ class SchoolContext
             return $membership->school;
         }
 
-        // A platform administrator may have no membership anywhere.
-        return $user->is_platform_admin ? School::orderBy('id')->first() : null;
+        return $this->systemPermissionScope->allows($user, PlatformPermission::AccessAllSchools)
+            ? School::orderBy('id')->first()
+            : null;
     }
 
     /**
@@ -148,7 +153,7 @@ class SchoolContext
      */
     public function schoolIfAllowed(User $user, int $schoolId): ?School
     {
-        if (!$user->is_platform_admin && !$user->belongsToSchool($schoolId)) {
+        if (!$this->systemPermissionScope->allows($user, PlatformPermission::AccessAllSchools) && !$user->belongsToSchool($schoolId)) {
             return null;
         }
 

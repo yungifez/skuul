@@ -4,11 +4,14 @@
     </div>
     <div class="card-body">
         @if ($classes->isNotEmpty())
-            <x-select name="" id="class-select" class="md:w-6/12 my-4" wire:model.live="class">
+            <div class="flex w-full flex-col gap-2">
+                <april:select name="" id="class-select" class="md:w-6/12 my-4" wire:model.live="class">
                 @foreach ($classes as $item)
                     <option value="{{$item->id}}">{{$item->name}}</option>
                 @endforeach
-            </x-select>
+
+                </april:select>
+            </div>
             <div>
                 <x-loading-spinner wire:target="class" />
             </div>
@@ -16,10 +19,10 @@
                 <div wire:loading.remove.delay>
                     <livewire:datatable :wire:key="Str::random()" :model="App\Models\MyClass::class" uniqueId="section-list-table" :filters="[['name' => 'find' , 'arguments' => [$class]], ['name' => 'sections']]" :columns="
                         [
-                        ['property' => 'name'] , 
+                        ['property' => 'name'] ,
                         ['type' => 'dropdown', 'name' => 'actions','links' => [
-                            ['href' => 'sections.edit', 'text' => 'Settings', 'icon' => 'fas fa-cog'],
-                            ['href' => 'sections.show', 'text' => 'View', 'icon' => 'fas fa-eye'],
+                            ['href' => 'sections.edit', 'text' => 'Settings', 'icon' => 'settings'],
+                            ['href' => 'sections.show', 'text' => 'View', 'icon' => 'eye'],
                         ]],
                         ['type' => 'delete', 'name' => 'Delete', 'action' => 'sections.destroy']
                     ]

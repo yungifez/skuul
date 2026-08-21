@@ -5,7 +5,10 @@
 
     <form action="{{ route('password.confirm') }}" method="POST" class="grid gap-5" x-data="{ submitting: false }" x-on:submit="submitting = true">
         @csrf
-        <x-auth.field name="password" id="password" type="password" label="Current password" autocomplete="current-password" autofocus required />
-        <x-auth.submit label="Confirm password" class="w-full" />
+        <april:input-group name="password" id="password" type="password" label="Current password" autocomplete="current-password" autofocus required />
+        <april:button type="submit" class="w-full justify-center" x-bind:disabled="submitting" x-bind:aria-busy="submitting">
+            <span x-show="! submitting">Confirm password</span>
+            <span x-show="submitting" x-cloak>Working...</span>
+        </april:button>
     </form>
 </div>

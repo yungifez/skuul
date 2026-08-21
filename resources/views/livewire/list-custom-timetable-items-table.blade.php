@@ -10,7 +10,7 @@
         :columns="[
             ['property' => 'name'],
             ['type' => 'dropdown' , 'name' => 'Actions', 'links' =>[
-                ['href' => 'custom-timetable-items.edit', 'text' => 'edit', 'icon' => 'fas fa-cog'],
+                ['href' => 'custom-timetable-items.edit', 'text' => 'edit', 'icon' => 'settings'],
             ]],
             ['type' => 'delete', 'name' => 'delete', 'action' => 'custom-timetable-items.destroy']
         ]"/>

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\AccountStatus;
 use App\Enums\EnrollmentStatus;
+use App\Enums\OrganizationMembershipStatus;
 use App\Enums\Role;
 use App\Enums\SchoolMembershipStatus;
 use Carbon\Carbon;
@@ -42,8 +43,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'password',
         'birthday',
         'address',
-        'blood_group',
-        'religion',
         'nationality',
         'phone',
         'state',
@@ -70,9 +69,8 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'birthday'          => 'datetime:Y-m-d',
-        'account_status'    => AccountStatus::class,
-        'is_platform_admin' => 'boolean',
+        'birthday' => 'datetime:Y-m-d',
+        'account_status' => AccountStatus::class,
     ];
 
     /**
@@ -99,7 +97,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Limit the query to accounts that can sign in and use the application.
      *
-     * @param Builder $query
+     * @param  Builder  $query
      */
     public function scopeActiveAccounts($query): Builder
     {
@@ -114,7 +112,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Limit the query to people who can work in the given school.
      *
-     * @param Builder $query
+     * @param  Builder  $query
      */
     public function scopeOfSchool($query, School|int|null $school = null): Builder
     {
@@ -134,6 +132,45 @@ class User extends Authenticatable implements MustVerifyEmail
     public function schoolMemberships(): HasMany
     {
         return $this->hasMany(SchoolMembership::class);
+    }
+
+    /**
+     * Get organization administration records for this person.
+     *
+     * This is intentionally separate from school membership. Organization
+     * administration does not open school records or grant school roles.
+     *
+     * @return HasMany<OrganizationMembership, $this>
+     */
+    public function organizationMemberships(): HasMany
+    {
+        return $this->hasMany(OrganizationMembership::class);
+    }
+
+    /**
+     * Get organizations this person has active scope in.
+     *
+     * @return BelongsToMany<Organization, $this>
+     */
+    public function organizations(): BelongsToMany
+    {
+        return $this->belongsToMany(Organization::class, 'organization_memberships')
+            ->withPivot(['status', 'joined_at', 'ended_at'])
+            ->wherePivot('status', OrganizationMembershipStatus::Active->value)
+            ->withTimestamps();
+    }
+
+    /**
+     * Check whether this person has active scope in the given organization.
+     */
+    public function administersOrganization(Organization|int $organization): bool
+    {
+        $organizationId = $organization instanceof Organization ? $organization->id : $organization;
+
+        return $this->organizationMemberships()
+            ->active()
+            ->where('organization_id', $organizationId)
+            ->exists();
     }
 
     /**
@@ -175,17 +212,6 @@ class User extends Authenticatable implements MustVerifyEmail
         $schoolId = current_school_id();
 
         return $schoolId !== null && $this->belongsToSchool($schoolId);
-    }
-
-    /**
-     * Check if this person administers the whole platform.
-     *
-     * Platform access sits outside school roles on purpose. A school role name
-     * must never grant access above its own school.
-     */
-    public function isPlatformAdmin(): bool
-    {
-        return (bool) $this->is_platform_admin;
     }
 
     /**
@@ -330,44 +356,6 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(FeeInvoice::class);
     }
 
-    // get first name
-    public function firstName()
-    {
-        return explode(' ', $this->name)[0];
-    }
-
-    // get first name
-    public function getFirstNameAttribute()
-    {
-        return $this->firstName();
-    }
-
-    // get last name
-    public function lastName()
-    {
-        return explode(' ', $this->name)[1];
-    }
-
-    // get last name
-    public function getLastNameAttribute()
-    {
-        return $this->lastName();
-    }
-
-    // get other names
-    public function otherNames()
-    {
-        $names = array_diff_key(explode(' ', $this->name), array_flip([0, 1]));
-
-        return implode(' ', $names);
-    }
-
-    // get other names
-    public function getOtherNamesAttribute()
-    {
-        return $this->otherNames();
-    }
-
     public function defaultProfilePhotoUrl()
     {
         $name = trim(collect(explode(' ', $this->name))->map(function ($segment) {
@@ -383,9 +371,9 @@ class User extends Authenticatable implements MustVerifyEmail
 
     // accessor for birthday
 
-    public function getBirthdayAttribute($value)
+    public function getBirthdayAttribute($value): ?string
     {
-        return Carbon::parse($value)->format('Y-m-d');
+        return $value === null ? null : Carbon::parse($value)->format('Y-m-d');
     }
 
     /**

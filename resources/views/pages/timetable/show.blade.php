@@ -9,6 +9,12 @@
 @section('page_heading', __("View $timetable->name") )
 
 @section('content')
-    <a href="{{route('timetables.print',$timetable->id)}}" class="bg-blue-600 py-2 px-4 text-white rounded">Print Timetable</a>
+    <div class="mb-4 flex flex-wrap items-center gap-3">
+        <x-timetable-status-control :timetable="$timetable" />
+        <april:button variant="outline" type="button" onclick="window.location='{{ route('timetables.print', $timetable->id) }}'">
+            <x-lucide-printer class="mr-2 size-4" />
+            Print timetable
+        </april:button>
+    </div>
     @livewire('show-timetable', ['timetable' => $timetable])
 @endsection

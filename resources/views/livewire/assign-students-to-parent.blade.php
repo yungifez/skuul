@@ -6,29 +6,52 @@
         <x-display-validation-errors/>
         {{-- form for selecting user --}}
         <form action="{{route('parents.assign-student', $parent->id)}}" method="POST" class=" md:grid grid-cols-3 gap-4">
-            <x-select id="class" name="class" label="Class"  wire:model.live="class">
+            <div class="flex w-full flex-col gap-2">
+                <april:label for="class">Class</april:label>
+                <april:select id="class" name="class" wire:model.live="class">
                 @isset($classes)
                     @foreach ($classes as $item)
                         <option value="{{$item['id']}}">{{$item['name']}}</option>
                     @endforeach
                 @endisset
-            </x-select>
-            <x-select id="section" name="section" label="Section" wire:model.live="section">
+
+                </april:select>
+                @error('class')
+                    <p class="text-sm text-destructive">{{ $message }}</p>
+                @enderror
+            </div>
+            <div class="flex w-full flex-col gap-2">
+                <april:label for="section">Section</april:label>
+                <april:select id="section" name="section" wire:model.live="section">
                 @isset($sections)
                     @foreach ($sections as $item)
                         <option value="{{$item['id']}}">{{$item['name']}}</option>
                     @endforeach
                 @endisset
-            </x-select>
-            <x-select id="student" name="student_id" label="Student" wire:model.live="student">
+
+                </april:select>
+                @error('section')
+                    <p class="text-sm text-destructive">{{ $message }}</p>
+                @enderror
+            </div>
+            <div class="flex w-full flex-col gap-2">
+                <april:label for="student">Student</april:label>
+                <april:select id="student" name="student_id" wire:model.live="student">
                 @isset($students)
                     @foreach ($students as $item)
                         <option value="{{$item['id']}}">{{$item['name']}}</option>
                     @endforeach
                 @endisset
-            </x-select> 
+
+                </april:select>
+                @error('student_id')
+                    <p class="text-sm text-destructive">{{ $message }}</p>
+                @enderror
+            </div>
             @csrf
-            <x-button label="Add student" type="submit" class="w-full"/>
+            <april:button type="submit" class="w-full">
+                Add student
+            </april:button>
         </form>
         <x-loading-spinner/>
 
@@ -64,7 +87,9 @@
                                         <input type="hidden" name="student_id" value="{{$student->id}}">
                                         <input type="hidden" name="assign" value="0">
                                         @csrf
-                                        <x-button label="Remove student" theme="primary" type="submit" class="col-md-12"/>
+                                        <april:button type="submit" class="w-full">
+                                            Remove student
+                                        </april:button>
                                     </form>
                                 </td>
                             </tr>

@@ -5,20 +5,37 @@
     <div class="card-body">
         <x-display-validation-errors/>
         <form wire:submit="loadStudents" class="md:grid grid-cols-2 gap-4">
-            <x-select id="class" name="class" label="Class" wire:model.live="class" >
+            <div class="flex w-full flex-col gap-2">
+                <april:label for="class">Class</april:label>
+                <april:select id="class" name="class" wire:model.live="class">
                 @foreach ($classes as $class)
                     <option value="{{$class['id']}}">{{$class['name']}}</option>
                 @endforeach
-            </x-select>
-            <x-select id="section" name="section" label="Section" wire:init="loadInitialSections" wire:model.live="section" >
+
+                </april:select>
+                @error('class')
+                    <p class="text-sm text-destructive">{{ $message }}</p>
+                @enderror
+            </div>
+            <div class="flex w-full flex-col gap-2">
+                <april:label for="section">Section</april:label>
+                <april:select id="section" name="section" wire:init="loadInitialSections" wire:model.live="section">
                 @isset($sections)
                     @foreach ($sections as $item)
                         <option value="{{$item['id']}}">{{$item['name']}}</option>
                     @endforeach
                 @endisset
-            </x-select>
-           
-            <x-button label="Fetch students" icon="fas fa-paper-plane" type="submit" class="w-full md:w-6/12"/>
+
+                </april:select>
+                @error('section')
+                    <p class="text-sm text-destructive">{{ $message }}</p>
+                @enderror
+            </div>
+
+            <april:button type="submit" class="w-full md:w-6/12">
+                <x-lucide-send class="mr-2 size-4" />
+                Fetch students
+            </april:button>
         </form>
         <div wire:loading.remove.delay>
             @if (isset($students))
@@ -26,8 +43,12 @@
                     <form ction="{{route('students.graduate')}}" method="post" class=" my-3 p-3">
                         <div class="overflow-scroll beautify-scrollbar w-full">
                             <div class="grid grid-cols-1 lg:grid-cols-2 p-4 gap-4">
-                                <x-button label="Set All To Graduate" @click="setAllSelectsToGraduate()" type="button"/>
-                                <x-button label="Set All To Don't Graduate" @click="setAllSelectsToDontGraduate()" type="button"/>
+                                <april:button @click="setAllSelectsToGraduate()" type="button">
+                                    Set All To Graduate
+                                </april:button>
+                                <april:button @click="setAllSelectsToDontGraduate()" type="button">
+                                    Set All To Don't Graduate
+                                </april:button>
                             </div>
                             <table class="border w-full">
                                 <thead>
@@ -39,10 +60,16 @@
                                         <tr>
                                             <td class="border p-2 whitespace-nowrap">{{$student->name}}</td>
                                             <td class="border p-2">
-                                                <x-select name="student_id[]" id="student-{{$student->id}}" class="graduate">
+                                                <div class="flex w-full flex-col gap-2">
+                                                    <april:select name="student_id[]" id="student-{{$student->id}}" class="graduate">
                                                     <option value="{{$student['id']}}">Graduate</option>
                                                     <option value="">Dont graduate</option>
-                                                </x-select>
+
+                                                    </april:select>
+                                                    @error('student_id[]')
+                                                        <p class="text-sm text-destructive">{{ $message }}</p>
+                                                    @enderror
+                                                </div>
                                             </td>
                                         </tr>
                                     @endforeach
@@ -50,12 +77,17 @@
                             </table>
                         </div>
                         @csrf
-                        <x-button label="Graduate students" class="w-full md:w-3/12 " icon="fas fa-key" type="submit"/>
-                    </form> 
+                        <april:button class="w-full md:w-3/12 " type="submit">
+                            <x-lucide-key class="mr-2 size-4" />
+                            Graduate students
+                        </april:button>
+                    </form>
                 @else
-                    <x-alert title="Danger" id="{{Str::random('10')}}" class="my-2" wire:key="{{Str::random('10')}}">
-                        <p>No students found</p>
-                    </x-alert>
+                    <april:alert variant="destructive" class="my-2" wire:key="{{Str::random('10')}}">
+                        <slot:icon><x-lucide-ban class="size-4" /></slot:icon>
+                        <slot:title>Danger</slot:title>
+                        <slot:description>No students found</slot:description>
+                    </april:alert>
                 @endif
             @endif
         </div>
@@ -81,4 +113,3 @@
 </script>
 
 @endpush
-

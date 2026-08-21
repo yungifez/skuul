@@ -8,21 +8,34 @@
             <p class="text-secondary">
                 {{__('All fields marked * are required')}}
             </p>
-            <x-input id="name" name="name" label="Exam Name *" placeholder="Enter Exam name"/>
-            <x-textarea id="description" name="description" label="Description " placeholder="Enter description" />
-            <div class="col-md-6">
-                <x-input id="start_date" type="date" name="start_date" label="Start date *" required  value="{{old('start_date')}}"/>
+            <april:input-group id="name" name="name" label="Exam Name *" placeholder="Enter Exam name" />
+            <div class="flex w-full flex-col gap-2">
+                <april:label for="description">Description</april:label>
+                <april:textarea id="description" name="description" placeholder="Enter description" />
             </div>
             <div class="col-md-6">
-                <x-input type="date" id="date" name="stop_date" label="Stop date *" required value="{{old('stop_date')}}"/>
+                <april:input-group id="start_date" type="date" name="start_date" label="Start date *" required value="{{old('start_date')}}" />
             </div>
-            <x-select id="select" name="semester_id" label="Select Semester *"  wire:loading.attr="disabled" wire:target="semester" >
+            <div class="col-md-6">
+                <april:input-group type="date" id="date" name="stop_date" label="Stop date *" required value="{{old('stop_date')}}" />
+            </div>
+            <div class="flex w-full flex-col gap-2">
+                <april:label for="select">Select Semester *</april:label>
+                <april:select id="select" name="semester_id" wire:loading.attr="disabled" wire:target="semester">
                 @foreach ($semesters as $item)
-                    <option value="{{$item['id']}}" @selected(current_school()->semester->id == $item['id'])>{{$item['name']}}</option>
+                    <option value="{{$item['id']}}" @selected(current_semester()->id == $item['id'])>{{$item['name']}}</option>
                 @endforeach
-            </x-select>
+
+                </april:select>
+                @error('semester_id')
+                    <p class="text-sm text-destructive">{{ $message }}</p>
+                @enderror
+            </div>
             @csrf
-            <x-button label="Create" icon="fas fa-key" type="submit" class="w-full md:w-6/12"/>
+            <april:button type="submit" class="w-full md:w-6/12">
+                <x-lucide-key class="mr-2 size-4" />
+                Create
+            </april:button>
         </form>
     </div>
 </div>

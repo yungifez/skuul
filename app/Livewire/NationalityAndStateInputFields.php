@@ -16,8 +16,8 @@ class NationalityAndStateInputFields extends Component
     public $state;
 
     protected $rules = [
-        'nationality' => 'string',
-        'state'       => 'string',
+        'nationality' => 'nullable|string',
+        'state' => 'nullable|string',
     ];
 
     public function mount()
@@ -33,9 +33,17 @@ class NationalityAndStateInputFields extends Component
 
     public function updatedNationality()
     {
-        // $this->states = collect(World::where('name.common' , $this->nationality)->first()->hydrateStates()->states->pluck('name'));
+        if (blank($this->nationality)) {
+            $this->states = collect();
+            $this->state = null;
+            $this->dispatch('nationality-updated', ['nationality' => null]);
+            $this->dispatch('state-updated', ['state' => null]);
+
+            return;
+        }
+
         $this->states = collect(World::countries([
-            'fields'  => 'states',
+            'fields' => 'states',
             'filters' => [
                 'name' => $this->nationality,
             ],
@@ -51,11 +59,14 @@ class NationalityAndStateInputFields extends Component
 
     public function loadInitialStates()
     {
-        if ($this->nationality == null) {
-            $this->nationality = $this->nationalities->first();
+        if (blank($this->nationality)) {
+            $this->states = collect();
+            $this->state = null;
+
+            return;
         }
         $this->states = collect(World::countries([
-            'fields'  => 'states',
+            'fields' => 'states',
             'filters' => [
                 'name' => $this->nationality,
             ],
@@ -63,7 +74,7 @@ class NationalityAndStateInputFields extends Component
         if ($this->states->isEmpty()) {
             $this->states = collect([['name' => $this->nationality]]);
         }
-        if ($this->state == null || in_array($this->state, $this->states->all())) {
+        if ($this->state === null || !$this->states->pluck('name')->contains($this->state)) {
             $this->state = $this->states[0]['name'];
         }
 

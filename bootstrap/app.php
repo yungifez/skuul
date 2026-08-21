@@ -27,15 +27,18 @@ return Application::configure(basePath: dirname(__DIR__))
             ->redirectUsersTo(fn (): string => config('fortify.home'))
             ->throttleApi()
             ->authenticateSessions()
+            // April UI writes the sidebar state from the browser, so it arrives
+            // as plain text and must skip cookie encryption to be readable.
+            ->encryptCookies(except: ['sidebar_state'])
             // Resolve the school and academic period for every signed-in web request.
             ->appendToGroup('web', [
                 SetActiveSchool::class,
                 SetActiveAcademicPeriod::class,
             ])
             ->alias([
-                'feature'            => EnsureFeatureIsEnabled::class,
-                'role'               => RoleMiddleware::class,
-                'permission'         => PermissionMiddleware::class,
+                'feature' => EnsureFeatureIsEnabled::class,
+                'role' => RoleMiddleware::class,
+                'permission' => PermissionMiddleware::class,
                 'role_or_permission' => RoleOrPermissionMiddleware::class,
             ]);
     })

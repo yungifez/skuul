@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enums\PlatformPermission;
 use App\Enums\Role;
 use App\Models\AcademicYear;
 use App\Models\User;
@@ -47,15 +48,15 @@ class ResultChecker extends Component
     // rules
     public $rules = [
         'academicYear' => 'integer|exists:academic_years,id',
-        'semester'     => 'required|integer|exists:semesters_id',
+        'semester' => 'required|integer|exists:semesters_id',
     ];
 
     public function mount(MyClassService $myClassService)
     {
         $this->academicYears = current_school()->academicYears;
-        $this->academicYear = current_school()->academicYear->id;
+        $this->academicYear = current_academic_year()->id;
         $this->updatedAcademicYear();
-        if (auth()->user()->isPlatformAdmin() || auth()->user()->hasAnyRole([Role::Admin, Role::Teacher])) {
+        if (auth()->user()->can(PlatformPermission::AccessAllSchools) || auth()->user()->hasAnyRole([Role::Admin, Role::Teacher])) {
             $this->classes = $myClassService->getAllClasses();
 
             if ($this->classes->isEmpty()) {
@@ -64,7 +65,7 @@ class ResultChecker extends Component
             $this->class = $this->classes[0]->id;
             $this->updatedClass();
         } elseif (auth()->user()->hasRole(Role::Student)) {
-            $this->checkResult(current_school()->academicYear, current_school()->semester, auth()->user()->loadMissing('allStudentRecords'));
+            $this->checkResult(current_academic_year(), current_semester(), auth()->user()->loadMissing('allStudentRecords'));
         } elseif (auth()->user()->hasRole(Role::Parent)) {
             // get parent's children
             $this->students = auth()->user()->parentRecord->Students;
@@ -85,7 +86,7 @@ class ResultChecker extends Component
             return;
         }
 
-        $this->semester = ($this->semesters->find(current_school()->semester_id) ?? $this->semesters[0])->id;
+        $this->semester = ($this->semesters->find(current_semester_id()) ?? $this->semesters[0])->id;
     }
 
     public function updatedClass()

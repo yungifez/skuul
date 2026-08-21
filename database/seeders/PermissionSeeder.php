@@ -2,6 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Enums\OrganizationPermission;
+use App\Enums\PlatformPermission;
+use App\Enums\Role as RoleName;
 use Illuminate\Database\Seeder;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -20,6 +23,14 @@ class PermissionSeeder extends Seeder
          *
          * EVERYTHING HERE IS USED IN A SINGULAR SENSE
          */
+        foreach ([
+            ...OrganizationPermission::all(),
+            PlatformPermission::AccessAllSchools,
+            PlatformPermission::AccessAllOrganizations,
+            PlatformPermission::ManagePlatform,
+        ] as $permission) {
+            Permission::findOrCreate($permission);
+        }
 
         // Permissions for school
         Permission::firstOrCreate([
@@ -827,6 +838,18 @@ class PermissionSeeder extends Seeder
             'read fee invoice',
             'check result',
         ]);
+
+        $organizationAdmin = Role::query()
+            ->where('name', RoleName::OrganizationAdmin)
+            ->whereNull('school_id')
+            ->firstOrFail();
+        $organizationAdmin->syncPermissions(OrganizationPermission::all());
+
+        $platformAdmin = Role::query()
+            ->where('name', RoleName::PlatformAdmin)
+            ->whereNull('school_id')
+            ->firstOrFail();
+        $platformAdmin->syncPermissions(Permission::query()->pluck('name')->all());
 
         // assign permissions to librarian
 

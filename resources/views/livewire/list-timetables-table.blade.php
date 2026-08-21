@@ -4,12 +4,16 @@
     </div>
     <div class="card-body">
         @if (!auth()->user()->hasRole(\App\Enums\Role::Student))
-            <x-select id="my_class" label="Select a class to see timetable"  group-class="my-6 md:w-1/2" name="" wire:model.live="class">
+            <div class="flex w-full flex-col gap-2">
+                <april:label for="my_class">Select a class to see timetable</april:label>
+                <april:select id="my_class" name="" wire:model.live="class">
                 @foreach ($classes as $item)
                     <option value="{{$item['id']}}">{{$item['name']}}</option>
                 @endforeach
-            </x-select>
-    
+
+                </april:select>
+            </div>
+
         @endif
 
         @isset($class)
@@ -18,14 +22,13 @@
             :filters="[
                 ['name' => 'find' ,'arguments' => [ $class]],
                 ['name' => 'timetables'],
-                ['name' => 'where' , 'arguments' =>[ 'semester_id' , current_school()->semester_id]]
+                ['name' => 'where' , 'arguments' =>[ 'semester_id' , current_semester_id()]]
             ]"
             :columns="[
                 ['property' => 'name'],
+                ['name' => 'Status', 'type' => 'timetable-status'],
                 ['type' => 'dropdown', 'name' => 'actions','links' => [
-                    ['href' => 'timetables.show', 'text' => 'View', 'icon' => 'fas fa-eye',  'can' => 'read timetable'],
-                    ['href' => 'timetables.edit', 'text' => 'Edit', 'icon' => 'fas fa-pen',  'can' => 'update timetable'],
-                    ['href' => 'timetables.manage', 'text' => 'Build', 'icon' => 'fas fa-hammer',  'can' => 'update timetable'],
+                    ['href' => 'timetables.show', 'text' => 'View', 'icon' => 'eye',  'can' => 'read timetable'],
                 ]],
                 ['type' => 'delete', 'name' => 'Delete', 'action' => 'timetables.destroy', 'can' => 'delete timetable']
             ]"

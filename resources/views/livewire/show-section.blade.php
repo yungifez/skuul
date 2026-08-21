@@ -4,18 +4,19 @@
     </div>
     <div class="card-body">
         <h1 class="text-center text-xl md:text-3xl font-bold my-3">Students in section</h1>
-        <livewire:datatable :model="App\Models\User::class" uniqueId="students-list-table" 
+        <livewire:datatable :model="App\Models\User::class" uniqueId="students-list-table"
         :filters="[
-            ['name' => 'ofSchool'], 
+            ['name' => 'ofSchool'],
+            ['name' => 'activeStudents'],
             ['name' => 'whereRelation' , 'arguments' => ['studentRecord','section_id' , $section->id]],
         ]"
         :columns="
             [
-            ['property' => 'name', ] , 
-            ['property' => 'email', ] , 
+            ['property' => 'name', ] ,
+            ['property' => 'email', ] ,
             ['type' => 'dropdown', 'name' => 'actions','links' => [
-                ['href' => 'students.edit', 'text' => 'Manage Profile', 'icon' => 'fas fa-pen', ],
-                ['href' => 'students.show', 'text' => 'View', 'icon' => 'fas fa-eye',  ],
+                ['href' => 'students.edit', 'text' => 'Manage Profile', 'icon' => 'pencil', ],
+                ['href' => 'students.show', 'text' => 'View', 'icon' => 'eye',  ],
             ]],
             ['type' => 'delete', 'name' => 'Delete', 'action' => 'students.destroy',  ]
          ]

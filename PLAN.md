@@ -1,6 +1,6 @@
 # Skuul Modernization Plan
 
-Status: Draft
+Status: Active stabilization
 
 Skuul is a multi-school management system. This plan separates the product into business features before we change the code.
 
@@ -26,6 +26,36 @@ Do not start a large rewrite from this document alone. Confirm each business dec
 7. Add a regression test for every security or data-integrity fix.
 8. Upgrade one vertical feature at a time.
 9. Keep the current Blade and Livewire screens until a replacement screen works.
+
+## Release-readiness gates
+
+These gates apply to every modernization release.
+
+1. Do not remove or transform personal data until the retention decision, data
+   migration, verification query, backup, and restore procedure are approved.
+2. Treat a deployed destructive migration as forward-only. Do not edit it.
+   Record the data loss, recover from a verified backup when possible, and
+   ship a separate remediation release.
+3. Test the active April UI development branch in CI before every deployment.
+   Resolve its Tailwind and Livewire contract in this application.
+4. Migrate one complete user workflow at a time. Each workflow needs server
+   tests, a rendered-page smoke test, and Chrome checks on desktop and mobile.
+5. A Chrome check must confirm that the workflow has no console errors, no
+   failed page assets, keyboard access to each control, and no critical
+   accessibility audit failures.
+6. Decide the organization and campus ownership model before adding more
+   school-owned feature tables. A school-only implementation is not a safe
+   substitute for an organization-and-campus model.
+7. Release only after CI runs the current test suite, Pint, Larastan, the
+   dependency audit, and the frontend build from a clean environment.
+
+Known data incident:
+
+- The migration `2026_08_21_300000_remove_religion_and_blood_group_from_users_table`
+  has run in the shared environment. It removed religion values and can remove
+  blood-group values that do not have an eligible health record. Do not deploy
+  this migration elsewhere. The data owner must assess a verified backup before
+  any recovery work starts.
 
 ## Feature map
 
@@ -241,9 +271,25 @@ Progress:
   `transfer_packages` is the source-labelled copy that was actually handed
   over: written once, read by the receiving school as a snapshot, and taken in
   by an explicit act.
-- Open: subdomain and custom-domain context, the organization-level overview
+- Done: the hierarchy now has three distinct levels. System Administrator is
+  the global Spatie `platform-admin` role with explicit platform permissions
+  in the reserved system team. An active `organization_memberships` record
+  limits scope, and the global Spatie `organization-admin` role grants the
+  Organization Administrator setup permissions without granting school data
+  access. School Administrator stays the existing `admin` role inside
+  Spatie's `school_id` team scope.
+- Done: legacy schools are safely given one private organization each during
+  the forward migration. They are not automatically grouped, so the migration
+  does not create cross-campus visibility by guesswork. A later, audited
+  `AssignSchoolToOrganization` action groups campuses when an authorized
+  person explicitly does so.
+- Done: Organization and school setup screens plus dashboard context show the
+  ownership hierarchy. The organization dashboard states that operational data
+  remains school-scoped.
+- Open: subdomain and custom-domain context, the organization-wide overview
   screen for people with several enrollments, billing groups across campuses,
-  and role management screens.
+  delegated organization permissions beyond organization administration, and
+  role management screens.
 
 ### 3. Academic setup and calendar
 
@@ -1238,7 +1284,7 @@ Open before implementation:
 
 ### Phase 0: Protect the current system
 
-Status: done.
+Status: in progress.
 
 - Fix assignment operators in authorization policies. Done.
 - Add cross-school authorization tests for every resource. Done in
@@ -1246,20 +1292,25 @@ Status: done.
 - Repair the test database configuration. Done. The suite runs in Sail.
 - Repair the Larastan configuration. Done. `phpstan-baseline.neon` holds the
   legacy typing backlog, so new errors fail the build.
-- Run the full test suite in Sail. Done. 442 tests pass.
+- Run the full test suite in Sail. The previous result of 442 tests is stale.
+  Record the current result and date after every release-readiness change.
 - Run Pint, Larastan, and `composer audit` in CI. Done in
   `.github/workflows/laravel-tests.yml`.
 
-Exit condition: security tests pass and the full test suite runs from a clean environment.
+Exit condition: security tests pass and the current full test suite runs from a
+clean environment.
 
 ### Phase 1: Confirm the business model
+
+Status: in progress.
 
 - Review each feature section with a school administrator and a teacher.
 - Write the valid states and transitions for each workflow.
 - Mark required behavior, optional behavior, and future behavior.
 - Decide which history must remain immutable.
 
-Exit condition: the cross-feature decisions have written answers.
+Exit condition: the cross-feature decisions have written answers and the pilot
+schools approve the required workflows.
 
 ### Phase 2: Establish domain boundaries
 
@@ -1292,7 +1343,8 @@ Exit condition: a new feature cannot read or write another school by missing one
 
 ### Phase 3: Modernize vertical features
 
-Status: the domain of every feature is done. The screens are Phase 4 work.
+Status: the domain foundation is implemented. Feature readiness varies because
+many workflows still have open screens, reports, and operational decisions.
 
 Work in this order unless business review changes it:
 
@@ -1323,21 +1375,37 @@ For each feature:
 6. Update the existing Livewire screen.
 7. Add the new UI only after the workflow is stable.
 
-Exit condition: each feature has documented rules, tests, and a working screen.
+Exit condition: each release feature has documented rules, tests, and a working
+screen. Do not describe other features as done.
 
 ### Phase 4: Improve the user interface
 
+Status: in progress. The first release slice is identity and account access.
+
+Resolved integration issue:
+
+- April UI input-group now renders passed attributes once. The identity slice
+  uses the standard input-group component again.
+
 - Keep Blade and Livewire during domain changes.
 - Adopt April UI as the component and visual language for the application. April UI is Blade, Livewire, Alpine, and Tailwind based, so it fits the current rendering stack without a Vue/Inertia rewrite.
-- Integrate the active April UI development branch while Laravel 13 support is being finalized. Validate the branch in this application instead of waiting for a tagged package release.
-- Resolve the Tailwind version contract between the active April UI branch and this application before migrating screens.
-- Keep a small compatibility layer around shared primitives (`button`, `input`, `select`, `modal`, `alert`, table, and layout components) so existing Livewire views can migrate incrementally.
+- Integrate the active April UI development branch. Validate it in this
+  application before every deployment.
+- Resolve the Tailwind version contract with the active April UI branch before
+  migrating a screen.
+- Replace shared primitives with April UI components by workflow. A temporary
+  adapter is allowed only when it has an owner, a removal condition, and a
+  target release. Do not keep permanent duplicate primitives.
 - Identify the screens with the most interaction and slowest workflows.
 - Replace the dashboard, authentication, navigation, forms, tables, and feedback states first.
-- Migrate feature screens by vertical slice, starting with one complete workflow before changing every view.
+- Migrate feature screens by vertical slice. Start with identity and account
+  access before changing more dashboard workflows.
 - Share authorization and validation with the server; UI components must not contain business rules.
 
-Exit condition: each migrated screen has feature tests and no duplicate business rules in JavaScript.
+Exit condition: each migrated screen has feature tests, a rendered-page smoke
+test, Chrome desktop and mobile checks, no critical accessibility failures, no
+console errors, no failed page assets, and no duplicate business rules in
+JavaScript.
 
 ### Frontend direction
 
@@ -1345,12 +1413,15 @@ Agreed decision:
 
 - The first frontend modernization uses April UI with Blade, Livewire, Alpine, and Tailwind. A Vue/Inertia rewrite is no longer the default plan.
 - April UI components replace the current ad-hoc Blade primitives while Livewire actions, validation, policies, and domain services remain intact.
-- UI replacement is incremental and reversible. Existing component names can be retained as wrappers while their markup changes to April UI.
-- The active April UI development branch and Tailwind version are explicit integration inputs. Compatibility is tested in this application and is not hidden behind Composer workarounds.
+- UI replacement is incremental and reversible. Remove a legacy primitive only
+  after every screen that uses it has passed the release-readiness gates.
+- The active April UI branch and Tailwind version are explicit integration
+  inputs. Compatibility is tested in this application and is not hidden behind
+  Composer workarounds.
 
 ### Phase 5: Operate the product
 
-Status: done.
+Status: partially complete.
 
 - Add queues for email and large reports. Done. Redis runs the queue in Sail
   and in production, and `queue:prune-failed` keeps the table small.
@@ -1367,7 +1438,8 @@ Status: done.
 - Monitor slow queries and failed jobs. Done in
   `App\Providers\MonitoringServiceProvider`.
 
-Exit condition: the system has repeatable deployment, backup, restore, and monitoring procedures.
+Exit condition: the system has repeatable deployment, backup, restore, and
+monitoring procedures that have passed a real restore rehearsal.
 
 ## Review format for each feature
 

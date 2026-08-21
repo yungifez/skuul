@@ -35,7 +35,7 @@ class SemesterResultTabulation extends Component
     public function mount(SectionService $sectionService, MyClassService $myClassService)
     {
         // get semester and use it to fetch all exams in semester
-        $this->semester = current_school()->semester;
+        $this->semester = current_semester();
         $this->classes = $myClassService->getAllClasses();
 
         // sets subjects etc if class isn't empty
@@ -89,7 +89,7 @@ class SemesterResultTabulation extends Component
             return;
         }
 
-        $this->title = "Exam Marks For $titleFor in whole semester ".current_school()->semester->name.' in academic year '.current_school()->academicYear->name;
+        $this->title = "Exam Marks For $titleFor in whole semester ".current_semester()->name.' in academic year '.current_academic_year()->name;
 
         $examSlots = $this->semester->load('examSlots')->examSlots;
 

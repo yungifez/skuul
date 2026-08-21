@@ -7,17 +7,18 @@
             <x-display-validation-errors/>
         </div>
         @unlessrole(['parent', 'student'])
-            <livewire:datatable :model="App\Models\User::class" uniqueId="students-list-table" :filters="[['name' => 'students'], ['name' => 'ofSchool'], ['name' => 'orderBy' , 'arguments' => ['name']], ['name' => 'has', 'arguments' => ['StudentRecord']], ['name' => 'with' , 'arguments' => ['studentRecord','studentRecord.section', 'studentRecord.myClass']]]" :columns="[
-                ['type' => 'image', 'property' => 'profile_photo_url'] , 
-                ['property' => 'name'] , 
-                ['property' => 'email'] , 
-                ['property' => 'admission_number' ,'relation' => 'studentRecord'] , 
-                ['property' => 'name', 'name' => 'Class' ,'relation' => 'studentRecord.myClass'] , 
-                ['property' => 'name', 'name' => 'section' ,'relation' => 'studentRecord.section'] , 
+            <livewire:datatable :model="App\Models\User::class" uniqueId="students-list-table" :filters="[['name' => 'students'], ['name' => 'ofSchool'], ['name' => 'orderBy' , 'arguments' => ['name']], ['name' => 'activeStudents'], ['name' => 'with' , 'arguments' => ['studentRecord','studentRecord.section', 'studentRecord.myClass']]]" :columns="[
+                ['type' => 'image', 'property' => 'profile_photo_url'] ,
+                ['property' => 'name'] ,
+                ['property' => 'email'] ,
+                ['property' => 'admission_number' ,'relation' => 'studentRecord'] ,
+                ['property' => 'name', 'name' => 'Class' ,'relation' => 'studentRecord.myClass'] ,
+                ['property' => 'name', 'name' => 'section' ,'relation' => 'studentRecord.section'] ,
+                ['name' => 'Enrollment', 'type' => 'enrollment-status', 'relation' => 'studentRecord'],
                 ['name' => 'Account', 'type' => 'account-status'],
                 ['type' => 'dropdown', 'name' => 'actions','links' => [
-                    ['href' => 'students.edit', 'text' => 'Manage Profile', 'icon' => 'fas fa-pen', 'can' => 'update student'],
-                    ['href' => 'students.show', 'text' => 'View', 'icon' => 'fas fa-eye',],
+                    ['href' => 'students.edit', 'text' => 'Manage Profile', 'icon' => 'pencil', 'can' => 'update student'],
+                    ['href' => 'students.show', 'text' => 'View', 'icon' => 'eye',],
                 ]],
                 ['type' => 'delete', 'name' => 'Delete', 'action' => 'students.destroy','can' => 'delete student']
             ]
@@ -25,20 +26,21 @@
         @endhasanyrole
         @hasanyrole('parent')
             <livewire:datatable :model="App\Models\User::class" uniqueId="students-list-table" :filters="[
-            ['name' => 'students'], 
+            ['name' => 'students'],
             ['name' => 'ofSchool'],
             ['name' => 'whereRelation', 'arguments' => ['parents', 'parent_records.user_id', auth()->user()->id]],
-            ['name' => 'orderBy' , 'arguments' => ['name']], 
-            ['name' => 'has', 'arguments' => ['StudentRecord']], 
-            ['name' => 'with' , 'arguments' => ['studentRecord','studentRecord.section', 'studentRecord.myClass']]]" 
+            ['name' => 'orderBy' , 'arguments' => ['name']],
+            ['name' => 'activeStudents'],
+            ['name' => 'with' , 'arguments' => ['studentRecord','studentRecord.section', 'studentRecord.myClass']]]"
             :columns="[
-                ['property' => 'name'] , 
-                ['property' => 'email'] , 
-                ['property' => 'admission_number' ,'relation' => 'studentRecord'] , 
-                ['property' => 'name', 'name' => 'Class' ,'relation' => 'studentRecord.myClass'] , 
-                ['property' => 'name', 'name' => 'section' ,'relation' => 'studentRecord.section'] , 
+                ['property' => 'name'] ,
+                ['property' => 'email'] ,
+                ['property' => 'admission_number' ,'relation' => 'studentRecord'] ,
+                ['property' => 'name', 'name' => 'Class' ,'relation' => 'studentRecord.myClass'] ,
+                ['property' => 'name', 'name' => 'section' ,'relation' => 'studentRecord.section'] ,
+                ['name' => 'Enrollment', 'type' => 'enrollment-status', 'relation' => 'studentRecord'],
                 ['type' => 'dropdown', 'name' => 'actions','links' => [
-                    ['href' => 'students.show', 'text' => 'View', 'icon' => 'fas fa-eye',  ],
+                    ['href' => 'students.show', 'text' => 'View', 'icon' => 'eye',  ],
                 ]],
             ]
             "/>
