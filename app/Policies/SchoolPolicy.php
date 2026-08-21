@@ -51,7 +51,9 @@ class SchoolPolicy
      */
     public function update(User $user, School $school)
     {
-        if ($user->can('update school')) {
+        if ($user->can('update school')
+            && ($user->isPlatformAdmin() || current_school_id() === $school->id)
+        ) {
             return true;
         }
 
@@ -65,7 +67,9 @@ class SchoolPolicy
      */
     public function delete(User $user, School $school)
     {
-        if ($user->can('delete school')) {
+        if ($user->can('delete school')
+            && ($user->isPlatformAdmin() || current_school_id() === $school->id)
+        ) {
             return true;
         }
     }

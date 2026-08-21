@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Actions\School\GrantSchoolMembership;
+use App\Enums\EnrollmentStatus;
 use App\Models\School;
 use App\Models\User;
 use Illuminate\Database\Seeder;
@@ -108,7 +109,7 @@ class UserSeeder extends Seeder
             'my_class_id' => 1,
             'section_id' => 1,
             'admission_date' => '22/04/04',
-            'is_graduated' => false,
+            'status' => EnrollmentStatus::Active,
             'admission_number' => Str::random(10),
         ]);
 

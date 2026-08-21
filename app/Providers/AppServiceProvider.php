@@ -6,6 +6,11 @@ use App\Actions\Fortify\ResetUserPassword;
 use App\Actions\Fortify\UpdateUserPassword;
 use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Actions\Jetstream\DeleteUser;
+use App\Events\AccountStatusChanged;
+use App\Listeners\RecordAccountStatusChange;
+use App\Listeners\RecordPermissionChanges;
+use App\Services\Academic\AcademicPeriodContext;
+use App\Services\Feature\FeatureManager;
 use App\Services\School\SchoolContext;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
@@ -28,6 +33,12 @@ class AppServiceProvider extends ServiceProvider
     {
         // One school context per request, shared by every query and policy.
         $this->app->scoped(SchoolContext::class);
+
+        // One academic period per request, resolved after the school.
+        $this->app->scoped(AcademicPeriodContext::class);
+
+        // Feature answers are worked out once per request.
+        $this->app->scoped(FeatureManager::class);
     }
 
     public function boot(): void
@@ -41,6 +52,10 @@ class AppServiceProvider extends ServiceProvider
         });
 
         Event::listen(Registered::class, SendEmailVerificationNotification::class);
+
+        // Sensitive changes go to the audit log as they happen.
+        Event::listen(AccountStatusChanged::class, RecordAccountStatusChange::class);
+        Event::subscribe(RecordPermissionChanges::class);
 
         RateLimiter::for('api', fn (Request $request): Limit => Limit::perMinute(60)->by($request->user()?->id ?: $request->ip()));
         RateLimiter::for('login', fn (Request $request): Limit => Limit::perMinute(5)->by($request->email.$request->ip()));

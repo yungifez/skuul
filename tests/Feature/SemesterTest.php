@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Semester;
+use App\Services\Academic\AcademicPeriodContext;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -146,14 +147,17 @@ class SemesterTest extends TestCase
 
     public function test_authorized_user_can_set_semester()
     {
-        $semester = Semester::factory()->create();
+        $semester = Semester::factory()->create([
+            'school_id' => current_school_id(),
+            'academic_year_id' => current_school()->academic_year_id,
+        ]);
+        $schoolBefore = current_school()->semester_id;
 
         $this->authorized_user(['set semester'])
-            ->post('/dashboard/semesters/set', ['semester_id' => $semester->id]);
+            ->post('/dashboard/semesters/set', ['semester_id' => $semester->id])
+            ->assertSessionHas(AcademicPeriodContext::SEMESTER_SESSION_KEY, $semester->id);
 
-        $this->assertDatabaseHas('schools', [
-            'id' => current_school_id(),
-            'semester_id' => $semester->id,
-        ]);
+        // The working semester belongs to the request, so the school row does not move.
+        $this->assertSame($schoolBefore, current_school()->fresh()->semester_id);
     }
 }

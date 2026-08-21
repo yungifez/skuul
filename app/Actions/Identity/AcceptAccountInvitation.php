@@ -47,15 +47,24 @@ class AcceptAccountInvitation
             'password' => $this->passwordRules(),
         ])->validate();
 
-        $invitation = $this->findPendingInvitation($token);
+        $tokenHash = AccountInvitation::hashToken($token);
 
-        if ($invitation === null) {
-            throw ValidationException::withMessages([
-                'token' => 'This invitation link is not valid, or it expired. Ask your administrator to send a new one.',
-            ]);
-        }
+        return DB::transaction(function () use ($tokenHash, $input): User {
+            // Lock the invitation before checking it so two simultaneous
+            // requests cannot both consume the same one-time token.
+            $invitation = AccountInvitation::query()
+                ->pending()
+                ->where('token_hash', $tokenHash)
+                ->lockForUpdate()
+                ->first();
 
-        return DB::transaction(function () use ($invitation, $input): User {
+            if ($invitation === null) {
+                throw ValidationException::withMessages([
+                    'token' => 'This invitation link is not valid, or it expired. Ask your administrator to send a new one.',
+                ]);
+            }
+
+            $invitation->load('user');
             $user = $invitation->user;
             $previousStatus = $user->account_status;
 

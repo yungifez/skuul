@@ -1,0 +1,243 @@
+<?php
+
+namespace App\Enums;
+
+/**
+ * The sensitive actions kept in the audit log.
+ *
+ * Each case is written to `audit_events.action`. Add a case when a new action
+ * must be answerable later with "who did this, to what, and when".
+ */
+enum AuditAction: string
+{
+    /**
+     * A role was given to a user.
+     */
+    case RoleAttached = 'role.attached';
+
+    /**
+     * A role was taken from a user.
+     */
+    case RoleDetached = 'role.detached';
+
+    /**
+     * A permission was given directly to a user or a role.
+     */
+    case PermissionAttached = 'permission.attached';
+
+    /**
+     * A permission was taken from a user or a role.
+     */
+    case PermissionDetached = 'permission.detached';
+
+    /**
+     * An account moved between access states.
+     */
+    case AccountStatusChanged = 'account.status_changed';
+
+    /**
+     * An enrollment moved between states.
+     */
+    case EnrollmentStatusChanged = 'enrollment.status_changed';
+
+    /**
+     * A student was placed in a class and section.
+     */
+    case EnrollmentPlaced = 'enrollment.placed';
+
+    /**
+     * An enrollment moved to another school.
+     */
+    case EnrollmentTransferred = 'enrollment.transferred';
+
+    /**
+     * A teacher was given a subject to teach.
+     */
+    case TeachingAssignmentCreated = 'teaching_assignment.created';
+
+    /**
+     * A teaching assignment was ended.
+     */
+    case TeachingAssignmentEnded = 'teaching_assignment.ended';
+
+    /**
+     * A timetable revision was published.
+     */
+    case TimetablePublished = 'timetable.published';
+
+    /**
+     * A timetable revision was archived.
+     */
+    case TimetableArchived = 'timetable.archived';
+
+    /**
+     * A new timetable revision was started from a published one.
+     */
+    case TimetableRevised = 'timetable.revised';
+
+    /**
+     * A balanced entry was written into the books.
+     */
+    case LedgerTransactionPosted = 'ledger.posted';
+
+    /**
+     * A notice was put on the board.
+     */
+    case NoticePublished = 'notice.published';
+
+    /**
+     * A notice was held for a later day.
+     */
+    case NoticeScheduled = 'notice.scheduled';
+
+    /**
+     * A notice passed its last day.
+     */
+    case NoticeExpired = 'notice.expired';
+
+    /**
+     * Somebody asked for a report.
+     */
+    case ReportRequested = 'report.requested';
+
+    /**
+     * Somebody downloaded a report file.
+     */
+    case ReportDownloaded = 'report.downloaded';
+
+    /**
+     * A feature was turned on for a school.
+     */
+    case FeatureEnabled = 'feature.enabled';
+
+    /**
+     * A feature was turned off for a school.
+     */
+    case FeatureDisabled = 'feature.disabled';
+
+    /**
+     * A behaviour or safeguarding case was recorded.
+     */
+    case IncidentReported = 'incident.reported';
+
+    /**
+     * A case moved between states.
+     */
+    case IncidentStatusChanged = 'incident.status_changed';
+
+    /**
+     * An academic year or semester was opened, closed, or reopened.
+     */
+    case AcademicPeriodStatusChanged = 'academic_period.status_changed';
+
+    /**
+     * A result was published from the gradebook.
+     */
+    case ResultPublished = 'result.published';
+
+    /**
+     * A published result was corrected with a new revision.
+     */
+    case ResultRevised = 'result.revised';
+
+    /**
+     * Exam results were made visible to students and parents.
+     */
+    case ExamResultPublished = 'exam.result_published';
+
+    /**
+     * Exam results were hidden again.
+     */
+    case ExamResultUnpublished = 'exam.result_unpublished';
+
+    /**
+     * A support plan was written for a child.
+     */
+    case SupportPlanOpened = 'support_plan.opened';
+
+    /**
+     * A support plan moved between states.
+     */
+    case SupportPlanStatusChanged = 'support_plan.status_changed';
+
+    /**
+     * A child's health record was written or changed.
+     */
+    case HealthRecordUpdated = 'health_record.updated';
+
+    /**
+     * A member of staff asked for days away.
+     */
+    case StaffLeaveRequested = 'staff_leave.requested';
+
+    /**
+     * A leave request was answered or recorded as taken.
+     */
+    case StaffLeaveStatusChanged = 'staff_leave.status_changed';
+
+    /**
+     * One school asked another for a student's records.
+     */
+    case DataSharingRequested = 'data_sharing.requested';
+
+    /**
+     * A request to share records was answered or taken back.
+     */
+    case DataSharingStatusChanged = 'data_sharing.status_changed';
+
+    /**
+     * Records were handed over in a transfer package.
+     */
+    case TransferPackageBuilt = 'transfer_package.built';
+
+    /**
+     * A transfer package was taken in by the school that asked for it.
+     */
+    case TransferPackageReceived = 'transfer_package.received';
+
+    /**
+     * Get the label to show in the interface.
+     */
+    public function label(): string
+    {
+        return match ($this) {
+            self::RoleAttached => 'Role given',
+            self::RoleDetached => 'Role removed',
+            self::PermissionAttached => 'Permission given',
+            self::PermissionDetached => 'Permission removed',
+            self::AccountStatusChanged => 'Account status changed',
+            self::EnrollmentStatusChanged => 'Enrollment status changed',
+            self::EnrollmentPlaced => 'Student placed in a class',
+            self::EnrollmentTransferred => 'Enrollment transferred',
+            self::TeachingAssignmentCreated => 'Teacher assigned to a subject',
+            self::TeachingAssignmentEnded => 'Teaching assignment ended',
+            self::TimetablePublished => 'Timetable published',
+            self::TimetableArchived => 'Timetable archived',
+            self::TimetableRevised => 'Timetable revision started',
+            self::LedgerTransactionPosted => 'Ledger entry posted',
+            self::NoticePublished => 'Notice published',
+            self::NoticeScheduled => 'Notice scheduled',
+            self::NoticeExpired => 'Notice expired',
+            self::ReportRequested => 'Report requested',
+            self::ReportDownloaded => 'Report downloaded',
+            self::FeatureEnabled => 'Feature turned on',
+            self::FeatureDisabled => 'Feature turned off',
+            self::IncidentReported => 'Case recorded',
+            self::IncidentStatusChanged => 'Case status changed',
+            self::AcademicPeriodStatusChanged => 'Academic period status changed',
+            self::ResultPublished => 'Result published',
+            self::ResultRevised => 'Result corrected',
+            self::ExamResultPublished => 'Exam results published',
+            self::ExamResultUnpublished => 'Exam results hidden',
+            self::SupportPlanOpened => 'Support plan opened',
+            self::SupportPlanStatusChanged => 'Support plan status changed',
+            self::HealthRecordUpdated => 'Health record updated',
+            self::StaffLeaveRequested => 'Leave requested',
+            self::StaffLeaveStatusChanged => 'Leave status changed',
+            self::DataSharingRequested => 'Records requested',
+            self::DataSharingStatusChanged => 'Records request answered',
+            self::TransferPackageBuilt => 'Records handed over',
+            self::TransferPackageReceived => 'Records taken in',
+        };
+    }
+}

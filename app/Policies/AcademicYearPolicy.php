@@ -83,4 +83,28 @@ class AcademicYearPolicy
             return true;
         }
     }
+
+    /**
+     * Determine whether the user can close the period.
+     */
+    public function close(User $user, AcademicYear $academicYear): ?bool
+    {
+        if ($user->can('close academic period') && current_school_id() === $academicYear->school_id) {
+            return true;
+        }
+
+        return null;
+    }
+
+    /**
+     * Determine whether the user can reopen the period.
+     */
+    public function reopen(User $user, AcademicYear $academicYear): ?bool
+    {
+        if ($user->can('reopen academic period') && current_school_id() === $academicYear->school_id) {
+            return true;
+        }
+
+        return null;
+    }
 }

@@ -17,17 +17,12 @@ class MyClass extends Model
 
     protected $fillable = ['name', 'class_group_id'];
 
-    public function school()
-    {
-        $this->hasOneThrough(School::class, ClassGroup::class);
-    }
-
     /**
      * Get the classGroup that owns the MyClass.
      *
-     * @return BelongsTo
+     * @return BelongsTo<ClassGroup, $this>
      */
-    public function classGroup()
+    public function classGroup(): BelongsTo
     {
         return $this->belongsTo(ClassGroup::class);
     }
@@ -35,9 +30,9 @@ class MyClass extends Model
     /**
      * Get all of the sections for the MyClass.
      *
-     * @return HasMany
+     * @return HasMany<Section, $this>
      */
-    public function sections()
+    public function sections(): HasMany
     {
         return $this->hasMany(Section::class);
     }
@@ -45,9 +40,9 @@ class MyClass extends Model
     /**
      * Get all of the students for the MyClass.
      *
-     * @return HasMany
+     * @return HasMany<StudentRecord, $this>
      */
-    public function studentRecords()
+    public function studentRecords(): HasMany
     {
         return $this->hasMany(StudentRecord::class);
     }
@@ -65,7 +60,7 @@ class MyClass extends Model
      */
     public function students(): Collection
     {
-        $students = User::students()->ofSchool()->whereRelation('studentRecord.myClass', 'id', $this->id)->get();
+        $students = User::students()->ofSchool()->activeStudents()->whereRelation('studentRecord.myClass', 'id', $this->id)->get();
 
         return $students;
     }

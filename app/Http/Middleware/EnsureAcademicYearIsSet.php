@@ -17,7 +17,7 @@ class EnsureAcademicYearIsSet
      */
     public function handle(Request $request, Closure $next)
     {
-        if (current_school()?->academicYear === null) {
+        if (current_academic_year() === null) {
             return redirect()->route('academic-years.index');
         }
 

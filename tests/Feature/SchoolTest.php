@@ -101,8 +101,8 @@ class SchoolTest extends TestCase
 
     public function test_authorized_user_can_update_school()
     {
-        $school = School::factory()->create();
-        $this->authorized_user(['update school'])
+        $school = $this->workingSchool();
+        $this->authorized_user(['update school'], $school)
             ->patch("/dashboard/schools/$school->id", ['name' => 'Test school 2', 'address' => 'something street', 'initials' => 'TS2', 'phone' => '123456789', 'email' => 'school@test.com']);
 
         $this->assertDatabaseHas('schools', [
@@ -112,6 +112,26 @@ class SchoolTest extends TestCase
             'initials' => 'TS2',
             'phone' => '123456789',
             'email' => 'school@test.com',
+        ]);
+    }
+
+    public function test_a_school_member_cannot_update_another_school()
+    {
+        $school = School::factory()->create(['name' => 'Other school']);
+
+        $this->authorized_user(['update school'])
+            ->patch("/dashboard/schools/$school->id", [
+                'name' => 'Changed school',
+                'address' => 'changed address',
+                'initials' => 'CS',
+                'phone' => '123456789',
+                'email' => 'changed@example.com',
+            ])
+            ->assertForbidden();
+
+        $this->assertDatabaseHas('schools', [
+            'id' => $school->id,
+            'name' => 'Other school',
         ]);
     }
 
@@ -138,7 +158,7 @@ class SchoolTest extends TestCase
         $school = School::factory()->create();
         $this->memberOf($school, User::factory()->create());
 
-        $this->authorized_user(['delete school'])
+        $this->authorized_user(['delete school'], $school)
             ->delete("/dashboard/schools/$school->id");
 
         $this->assertDatabaseHas('schools', [
@@ -148,11 +168,25 @@ class SchoolTest extends TestCase
 
     public function test_user_can_delete_school_with_no_users()
     {
+        // A school with no users has nobody who could hold a permission in it,
+        // so only a platform administrator can empty one out.
         $school = School::factory()->create();
-        $this->authorized_user(['delete school'])
+
+        $this->platform_admin()
             ->delete("/dashboard/schools/$school->id");
 
         $this->assertModelMissing($school);
+    }
+
+    public function test_a_school_member_cannot_delete_another_school()
+    {
+        $school = School::factory()->create();
+
+        $this->authorized_user(['delete school'])
+            ->delete("/dashboard/schools/$school->id")
+            ->assertForbidden();
+
+        $this->assertModelExists($school);
     }
 
     public function test_platform_admin_can_set_the_working_school()

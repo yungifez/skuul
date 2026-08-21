@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\InAcademicPeriod;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Exam extends Model
 {
     use HasFactory;
+    use InAcademicPeriod;
 
     protected $fillable = [
         'name',
@@ -34,11 +36,21 @@ class Exam extends Model
         'publish_result' => 'boolean',
     ];
 
+    /**
+     * Get the semester that owns the exam.
+     *
+     * @return BelongsTo<Semester, $this>
+     */
     public function semester(): BelongsTo
     {
         return $this->belongsTo(Semester::class);
     }
 
+    /**
+     * Get the slots of the exam.
+     *
+     * @return HasMany<ExamSlot, $this>
+     */
     public function examSlots(): HasMany
     {
         return $this->hasMany(ExamSlot::class);

@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Academic\ChangeAcademicPeriodStatus;
 use App\Http\Requests\SemesterStoreRequest;
 use App\Http\Requests\SetSemesterRequest;
 use App\Models\Semester;
 use App\Services\Semester\SemesterService;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
 
@@ -14,7 +16,7 @@ class SemesterController extends Controller
 {
     public $semester;
 
-    public function __construct(SemesterService $semester)
+    public function __construct(SemesterService $semester, private ChangeAcademicPeriodStatus $changeAcademicPeriodStatus)
     {
         $this->semester = $semester;
         $this->authorizeResource(Semester::class, 'semester');
@@ -82,6 +84,30 @@ class SemesterController extends Controller
         $this->semester->deleteSemester($semester);
 
         return back()->with('success', 'Successfully deleted semester');
+    }
+
+    /**
+     * Close the semester and freeze its records.
+     */
+    public function close(Request $request, Semester $semester): RedirectResponse
+    {
+        $this->authorize('close', $semester);
+
+        $this->changeAcademicPeriodStatus->close($semester, $request->user(), $request->input('reason'));
+
+        return back()->with('success', 'Semester closed successfully');
+    }
+
+    /**
+     * Reopen the semester so it accepts work again.
+     */
+    public function reopen(Request $request, Semester $semester): RedirectResponse
+    {
+        $this->authorize('reopen', $semester);
+
+        $this->changeAcademicPeriodStatus->reopen($semester, $request->user(), $request->input('reason'));
+
+        return back()->with('success', 'Semester reopened successfully');
     }
 
     /**

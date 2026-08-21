@@ -23,6 +23,9 @@ abstract class TestCase extends BaseTestCase
 
         if ($school !== null) {
             school_context()->set($school, remember: false);
+
+            // A request always works inside one academic period too.
+            academic_period_context()->resolveFor($school);
         }
     }
 }

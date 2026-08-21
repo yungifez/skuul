@@ -2,6 +2,7 @@
 
 namespace App\Services\AcademicYear;
 
+use App\Exceptions\InvalidValueException;
 use App\Models\AcademicYear;
 use App\Services\School\SchoolService;
 use Illuminate\Database\Eloquent\Collection;
@@ -58,6 +59,8 @@ class AcademicYearService
     {
         $academicYear->start_year = $records['start_year'];
         $academicYear->stop_year = $records['stop_year'];
+        $academicYear->starts_on = $records['starts_on'] ?? null;
+        $academicYear->ends_on = $records['ends_on'] ?? null;
         $academicYear->save();
 
         return $academicYear;
@@ -72,24 +75,45 @@ class AcademicYearService
     }
 
     /**
-     * Set academic year as current.one in school.
+     * Set the academic year this person works in.
+     *
+     * The choice belongs to the request, not to the school record. A school
+     * still keeps a default year for people who have not chosen one.
      *
      * @param  int  $academicYearId
-     * @param  int  $schoolId
+     *
+     * @throws InvalidValueException when the year belongs to another school
      */
-    public function setAcademicYear($academicYearId, $schoolId = null): bool
+    public function setAcademicYear($academicYearId): bool
     {
-        $academicYear = AcademicYear::find($academicYearId);
-        if (!isset($schoolId)) {
-            $schoolId = current_school_id();
+        $academicYear = academic_period_context()->allowedAcademicYear(school_context()->schoolOrFail(), $academicYearId);
+
+        if ($academicYear === null) {
+            throw new InvalidValueException('That academic year does not belong to this school');
         }
-        $school = $this->schoolService->getSchoolById($schoolId);
-        $school->academic_year_id = $academicYearId;
-        // set semester id to first semester or null
-        $school->semester_id = $academicYear->semesters?->first()->id ?? $school->academicYear->semesters()->create([
-            'name' => 'First',
-            'school_id' => current_school_id(),
-        ])->id;
+
+        academic_period_context()->setAcademicYear($academicYear);
+
+        // A year always opens on a semester, so make the first one if it has none.
+        $semester = $academicYear->semesters()->orderBy('id')->first()
+            ?? $academicYear->semesters()->create([
+                'name' => 'First',
+                'school_id' => $academicYear->school_id,
+            ]);
+
+        academic_period_context()->setSemester($semester);
+
+        return true;
+    }
+
+    /**
+     * Set the academic year a school opens in by default.
+     */
+    public function setSchoolDefaultAcademicYear(AcademicYear $academicYear): bool
+    {
+        $school = $this->schoolService->getSchoolById($academicYear->school_id);
+        $school->academic_year_id = $academicYear->id;
+        $school->semester_id = $academicYear->semesters()->orderBy('id')->first()?->id;
 
         return $school->save();
     }

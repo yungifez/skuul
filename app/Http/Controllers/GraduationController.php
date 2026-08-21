@@ -59,6 +59,7 @@ class GraduationController extends Controller
     public function resetGraduation(User $student): RedirectResponse
     {
         $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
+        $this->authorize('resetGraduation', [Graduation::class, $student]);
         $this->studentService->resetGraduation($student);
 
         return back()->with('success', 'Graduation Reset Successfully');

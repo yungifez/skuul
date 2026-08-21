@@ -2,6 +2,8 @@
 
 namespace App\Services\Exam;
 
+use App\Actions\Audit\RecordAuditEvent;
+use App\Enums\AuditAction;
 use App\Exceptions\EmptyRecordsException;
 use App\Models\Exam;
 use App\Models\Semester;
@@ -21,7 +23,7 @@ class ExamService
      */
     protected $examSlotService;
 
-    public function __construct(ExamRecordService $examRecordService, ExamSlotService $examSlotService)
+    public function __construct(ExamRecordService $examRecordService, ExamSlotService $examSlotService, private RecordAuditEvent $auditor)
     {
         $this->examRecordService = $examRecordService;
         $this->examSlotService = $examSlotService;
@@ -121,8 +123,19 @@ class ExamService
             throw new EmptyRecordsException('Cannot publish result for exam without exam slots', 1);
         }
 
+        $wasPublished = (bool) $exam->publish_result;
+
         $exam->publish_result = $status;
         $exam->save();
+
+        // Publication decides what students and parents can see, so record it.
+        if ($wasPublished !== $status) {
+            $this->auditor->record(
+                $status ? AuditAction::ExamResultPublished : AuditAction::ExamResultUnpublished,
+                $exam,
+                ['exam' => $exam->name, 'semester_id' => $exam->semester_id],
+            );
+        }
     }
 
     /**
@@ -148,7 +161,7 @@ class ExamService
         $exams = $semester->exams->load('examSlots');
         // get all exam slots in exams
         foreach ($exams as $exam) {
-            $totalMarks += $exam->examSlots->sum(['total_marks']);
+            $totalMarks += $exam->examSlots->sum('total_marks');
         }
 
         return $totalMarks;

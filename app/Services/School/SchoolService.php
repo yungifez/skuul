@@ -141,7 +141,7 @@ class SchoolService
      */
     public function deleteSchool(School $school)
     {
-        if ($school->users->count('id')) {
+        if ($school->users->isNotEmpty()) {
             throw new ResourceNotEmptyException('Remove all users from this school and make sure school is not set for any super admin');
 
             return;

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\InAcademicPeriod;
 use App\Traits\InSchool;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Promotion extends Model
 {
     use HasFactory;
+    use InAcademicPeriod;
     use InSchool;
 
     protected $fillable = [

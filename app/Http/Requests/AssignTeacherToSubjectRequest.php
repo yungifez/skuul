@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class AssignTeacherToSubjectRequest extends FormRequest
 {
@@ -14,8 +15,11 @@ class AssignTeacherToSubjectRequest extends FormRequest
     public function rules()
     {
         return [
-            'subjects' => 'required',
-            'subjects.*' => 'nullable|exists:subjects,id',
+            'subjects' => 'required|array',
+            'subjects.*' => [
+                'nullable',
+                Rule::exists('subjects', 'id')->where('school_id', current_school_id()),
+            ],
         ];
     }
 }

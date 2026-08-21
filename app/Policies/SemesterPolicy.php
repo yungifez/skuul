@@ -85,4 +85,28 @@ class SemesterPolicy
             return true;
         }
     }
+
+    /**
+     * Determine whether the user can close the period.
+     */
+    public function close(User $user, Semester $semester): ?bool
+    {
+        if ($user->can('close academic period') && current_school_id() === $semester->school_id) {
+            return true;
+        }
+
+        return null;
+    }
+
+    /**
+     * Determine whether the user can reopen the period.
+     */
+    public function reopen(User $user, Semester $semester): ?bool
+    {
+        if ($user->can('reopen academic period') && current_school_id() === $semester->school_id) {
+            return true;
+        }
+
+        return null;
+    }
 }

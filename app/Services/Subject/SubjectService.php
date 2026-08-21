@@ -2,8 +2,10 @@
 
 namespace App\Services\Subject;
 
+use App\Actions\Curriculum\AssignTeacher;
 use App\Exceptions\ResourceNotEmptyException;
 use App\Models\Subject;
+use App\Models\TeachingAssignment;
 use App\Models\User;
 use App\Services\User\UserService;
 use Illuminate\Database\Eloquent\Collection;
@@ -15,7 +17,7 @@ class SubjectService
      */
     public UserService $user;
 
-    public function __construct(UserService $user)
+    public function __construct(UserService $user, private AssignTeacher $assignTeacher)
     {
         $this->user = $user;
     }
@@ -67,7 +69,7 @@ class SubjectService
                 }
             }
 
-            $subject->teachers()->sync($teachers);
+            $this->syncTeachers($subject, $teachers);
         }
     }
 
@@ -92,9 +94,44 @@ class SubjectService
                     $teachers[] = $teacher;
                 }
             }
-            $subject->teachers()->sync($teachers);
+            $this->syncTeachers($subject, $teachers);
         } else {
-            $subject->teachers()->sync([]);
+            $this->syncTeachers($subject, []);
+        }
+    }
+
+    /**
+     * Make the teaching assignments of a subject match the given list.
+     *
+     * A teacher who is added gets an assignment for the working period. A
+     * teacher who is removed keeps the assignment, which is given an end date,
+     * so last year's records still say who taught.
+     *
+     * @param  array<int, int|string>  $teacherIds
+     */
+    public function syncTeachers(Subject $subject, array $teacherIds): void
+    {
+        $teacherIds = array_map('intval', array_filter(array_values($teacherIds)));
+
+        foreach ($teacherIds as $teacherId) {
+            $teacher = $this->user->getUserById($teacherId);
+
+            if ($teacher === null) {
+                continue;
+            }
+
+            $this->assignTeacher->assign($subject, $teacher, actor: auth()->user());
+        }
+
+        $running = TeachingAssignment::query()
+            ->where('subject_id', $subject->id)
+            ->runningOn()
+            ->get();
+
+        foreach ($running as $assignment) {
+            if (!in_array($assignment->user_id, $teacherIds, true)) {
+                $this->assignTeacher->end($assignment, actor: auth()->user());
+            }
         }
     }
 
@@ -118,6 +155,27 @@ class SubjectService
      */
     public function assignTeacherToSubjects(User $teacher, $records)
     {
-        $teacher->subjects()->sync(array_filter(array_values($records['subjects'])));
+        $subjectIds = array_map('intval', array_filter(array_values($records['subjects'] ?? [])));
+
+        foreach ($subjectIds as $subjectId) {
+            $subject = Subject::inSchool()->find($subjectId);
+
+            if ($subject === null) {
+                continue;
+            }
+
+            $this->assignTeacher->assign($subject, $teacher, actor: auth()->user());
+        }
+
+        $running = TeachingAssignment::inSchool()
+            ->forTeacher($teacher)
+            ->runningOn()
+            ->get();
+
+        foreach ($running as $assignment) {
+            if (!in_array($assignment->subject_id, $subjectIds, true)) {
+                $this->assignTeacher->end($assignment, actor: auth()->user());
+            }
+        }
     }
 }

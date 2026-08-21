@@ -3,14 +3,18 @@
 namespace App\Notifications;
 
 use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 use Illuminate\Support\Carbon;
 
 /**
  * Invite a provisioned person to set a password and sign in.
+ *
+ * Sending mail is slow, so the message goes to the queue. The screen that
+ * provisions the account does not wait for the mail server.
  */
-class AccountInvitationNotification extends Notification
+class AccountInvitationNotification extends Notification implements ShouldQueue
 {
     use Queueable;
 

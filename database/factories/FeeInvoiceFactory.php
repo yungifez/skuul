@@ -2,8 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Enums\EnrollmentStatus;
 use App\Models\FeeInvoice;
-use App\Models\User;
+use App\Models\StudentRecord;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -26,9 +27,14 @@ class FeeInvoiceFactory extends Factory
         return [
             'name' => $this->faker->name(),
             'note' => $this->faker->sentence(),
-            // Roles are held per school, so only look for a student when the
-            // caller does not name one.
-            'user_id' => fn () => User::ofSchool(1)->students()->activeStudents()->inRandomOrder()->first()?->id,
+            // Seeding runs outside a request, so read the enrollment straight
+            // from its school instead of the request-scoped relation. Only
+            // look for a student when the caller does not name one.
+            'user_id' => fn () => StudentRecord::query()
+                ->where('school_id', 1)
+                ->where('status', EnrollmentStatus::Active)
+                ->inRandomOrder()
+                ->value('user_id'),
             'issue_date' => $issueDate,
             'due_date' => $dueDate,
         ];

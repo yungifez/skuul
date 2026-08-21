@@ -11,6 +11,13 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 
+/**
+ * @property int|null $academic_year_id
+ * @property int|null $semester_id
+ * @property AcademicYear|null $academicYear
+ * @property Semester|null $semester
+ * @property string $name
+ */
 class School extends Model
 {
     use HasFactory;
@@ -26,6 +33,8 @@ class School extends Model
 
     /**
      * Get all the class groups in the school.
+     *
+     * @return HasMany<ClassGroup, $this>
      */
     public function classGroups(): HasMany
     {
@@ -34,6 +43,8 @@ class School extends Model
 
     /**
      * Get every access record for this school.
+     *
+     * @return HasMany<SchoolMembership, $this>
      */
     public function memberships(): HasMany
     {
@@ -42,6 +53,8 @@ class School extends Model
 
     /**
      * Get the people who can work in this school.
+     *
+     * @return BelongsToMany<User, $this>
      */
     public function users(): BelongsToMany
     {
@@ -53,6 +66,8 @@ class School extends Model
 
     /**
      * Get all of the MyClasses for the School.
+     *
+     * @return HasManyThrough<MyClass, ClassGroup, $this>
      */
     public function myClasses(): HasManyThrough
     {
@@ -61,6 +76,8 @@ class School extends Model
 
     /**
      * Get the AcademicYears for the School.
+     *
+     * @return HasMany<AcademicYear, $this>
      */
     public function academicYears(): HasMany
     {
@@ -69,6 +86,8 @@ class School extends Model
 
     /**
      * Get the academicYear associated with the School.
+     *
+     * @return HasOne<AcademicYear, $this>
      */
     public function academicYear(): HasOne
     {
@@ -77,6 +96,8 @@ class School extends Model
 
     /**
      * Get the semester associated with the School.
+     *
+     * @return HasOne<Semester, $this>
      */
     public function semester(): HasOne
     {

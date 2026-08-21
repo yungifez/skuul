@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\EnrollmentStatus;
 use App\Models\Model;
 use App\Models\Section;
 use App\Models\StudentRecord;
@@ -30,10 +31,11 @@ class StudentRecordFactory extends Factory
 
         return [
             'user_id' => $student->id,
+            'school_id' => $class->classGroup->school_id,
             'my_class_id' => $class->id,
             'section_id' => $class->sections->first()->id ?? null,
             'admission_date' => $this->faker->date(),
-            'is_graduated' => false,
+            'status' => EnrollmentStatus::Active,
             'admission_number' => Str::random(10),
         ];
     }

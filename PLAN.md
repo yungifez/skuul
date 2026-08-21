@@ -89,6 +89,23 @@ Agreed decision:
 - Defer custom-field imports and exports with the field-generation feature.
 - Keep current core fields explicit and stable during the first modernization phases.
 
+Progress:
+
+- Done: there is no public registration and no shared default password. An
+  administrator provisions a person with `App\Actions\Identity\ProvisionAccount`,
+  which reuses an existing account by email, so provisioning is safe to retry
+  and one person keeps one login across schools.
+- Done: `account_invitations` carry a one-time link that expires and can be
+  revoked (`SendAccountInvitation`, `AcceptAccountInvitation`,
+  `RevokeAccountInvitation`, and the hourly `PruneExpiredInvitations`).
+- Done: `App\Enums\AccountStatus` holds the account states, and
+  `ChangeAccountStatus` is the only way through them. Suspending an account
+  keeps the person and the school records.
+- Done: every role, permission, and account-state change is written to
+  `audit_events` by `RecordPermissionChanges` and `RecordAccountStatusChange`.
+- Open by decision, not by oversight: configurable field definitions and their
+  imports and exports stay deferred, as this section says.
+
 ### 2. Schools, tenancy, and administration
 
 Current features:
@@ -198,6 +215,36 @@ Agreed decision:
 - Store received transfer data as a source-labelled snapshot.
 - Keep original records owned by the source organization.
 
+Progress:
+
+- Done: one person, one login. `school_memberships` grant access to a school,
+  `GrantSchoolMembership` and `EndSchoolMembership` change it, and switching
+  school never writes to the user record.
+- Done: `App\Services\School\SchoolContext` holds the working school in the
+  session, `current_school_id()` is the one place that turns it into a query
+  condition, and `App\Traits\InSchool` fills and scopes it. `SchoolScopeTest`
+  fails the build if a new school-owned model forgets the trait.
+- Done: permissions are school-scoped through Spatie teams. Roles are data,
+  never business logic: enrollment decides student status and teaching
+  assignments decide teacher access.
+- Done: `RequireActiveSchool` demands a working school before a write, and
+  every controller checks its policy against the working school.
+- Done: an internal move is a placement change (`ChangeEnrollmentPlacement`)
+  and a move to another school is a formal transfer (`TransferEnrollment`),
+  which keeps the old enrollment and its history and names the enrollment it
+  continues.
+- Done: sharing records between schools is a request, not an assumption.
+  `data_sharing_requests` names the categories, the reason, and the day the
+  permission ends; `App\Enums\DataCategory` keeps health, discipline,
+  safeguarding, wellbeing, and detailed finance closed unless a request names
+  them. Asking, approving, and handing over are three separate permissions.
+  `transfer_packages` is the source-labelled copy that was actually handed
+  over: written once, read by the receiving school as a snapshot, and taken in
+  by an explicit act.
+- Open: subdomain and custom-domain context, the organization-level overview
+  screen for people with several enrollments, billing groups across campuses,
+  and role management screens.
+
 ### 3. Academic setup and calendar
 
 Current features:
@@ -232,6 +279,24 @@ Candidate direction:
 - Model academic periods as ordered, configurable periods.
 - Define explicit open, closed, and archived states.
 - Keep current placement separate from historical placement.
+
+Progress:
+
+- Done: periods are ordered and configurable. A `semesters` row now holds a
+  `type` (`App\Enums\AcademicPeriodType`), a `position`, and optional
+  `starts_on` and `ends_on` dates. A school can run terms, semesters,
+  trimesters, or quarters.
+- Done: a new period takes the next place in its year by itself, and
+  `AcademicYear::semesters()` reads them in teaching order.
+- Done: two periods of one year cannot share a day.
+  `SemesterService` refuses an overlap, a backwards period, and a period with
+  only one date.
+- Done: `AcademicYear::periodForDate()` answers which period covers a day, and
+  the working context falls back to it when nobody chose a period.
+- Done: periods have `draft`, `open`, and `closed` states, and closing freezes
+  the records of the period. See feature 20.
+- Open: class offerings for a period, and a campus-specific calendar. Both
+  wait for the campus model.
 
 ### 4. Admissions and people
 
@@ -287,6 +352,24 @@ Deferred for later:
 - Multi-stage admission decisions.
 - Advanced configurable field generation.
 
+Progress:
+
+- Done: identity, access, and enrollment are three records, not one. A person
+  is a `User`, access to a school is a `SchoolMembership`, and learning in a
+  school is a `StudentRecord`.
+- Done: admission numbers are unique per school in the database, not by a
+  random loop hoping for the best.
+- Done: account status, enrollment status, and application status are kept
+  apart. `ChangeEnrollmentStatus` writes every enrollment change to
+  `enrollment_status_changes` and to the audit log.
+- Done: an admitted person never gets a second identity, because provisioning
+  reuses the account it finds by email, and the student importer follows the
+  same path.
+- Done: bulk import exists for students and staff, checked before it writes
+  and safe to run twice (§19).
+- Open by decision: multi-campus applications, waitlists, capacity rules, and
+  multi-stage admission decisions stay deferred, as this section says.
+
 ### 5. Student lifecycle
 
 Current features:
@@ -330,6 +413,31 @@ Agreed decision:
 - Placement and status changes are append-only records with an effective date, actor, reason, and source enrollment. Repeating a request must be safe and must not create duplicate history.
 - Access to create, change, suspend, transfer, graduate, or archive an enrollment is permission-based and scoped to the relevant organization/campus. Existing records remain readable according to their historical scope.
 - Waitlists, capacity rules, multi-stage applications, and advanced admission configuration remain deferred. The first implementation focuses on reliable profiles, enrollments, placements, transfers, and history.
+
+Progress:
+
+- Done: an enrollment holds an explicit state. `student_records.status` is cast
+  to `App\Enums\EnrollmentStatus` and the `is_graduated` boolean and its global
+  scope are gone.
+- Done: every state change is append-only in `enrollment_status_changes`, with
+  the actor, the reason, and the effective date. The record refuses updates and
+  deletes.
+- Done: `App\Actions\Enrollment\ChangeEnrollmentStatus` is the only way to
+  change a state. It checks the transition and ignores a repeated request, so a
+  retry is safe.
+- Done: an enrollment names its own school, so a person can hold several
+  enrollments at once. `User::studentRecords()` lists them all, and
+  `User::studentRecord()` picks the primary one of the school being worked in
+  without hiding the others.
+- Done: placements are their own append-only history in
+  `enrollment_placements`. `App\Actions\Enrollment\ChangeEnrollmentPlacement`
+  writes admission, promotion, and promotion reset. It refuses a section
+  outside the class, a class of another school, a closed academic year, and a
+  closed enrollment.
+- Done: `App\Actions\Enrollment\TransferEnrollment` closes the old enrollment,
+  opens the new one in the destination school, and keeps the source history
+  through `transferred_from_id`.
+- Open: campus placement changes, which wait for the campus model.
 
 ### 6. Curriculum and teaching assignments
 
@@ -377,6 +485,22 @@ Agreed decision:
 - Teachers can manage only the offerings within their assignment scope. Curriculum managers can manage catalog records and assignments according to their permissions.
 - Detailed learning outcomes, lesson units, competency frameworks, and attendance weighting are deferred until the core assignment model is stable.
 
+Progress:
+
+- Done: teaching is a dated assignment, not a pivot row. A
+  `teaching_assignments` record names the school, subject, teacher, academic
+  year, period, optional section, role (`App\Enums\TeachingRole`), start date,
+  and end date. Several teachers can share one subject.
+- Done: `App\Actions\Curriculum\AssignTeacher` is the only way in. It refuses
+  a person who is not a teacher, a teacher of another school, a section
+  outside the subject's class, and a closed year. Asking twice returns the
+  assignment that already runs.
+- Done: ending an assignment keeps the record and gives it an end date, so
+  last year's timetable still says who taught. The old `subject_user` pivot is
+  kept in step for the screens that still read it.
+- Open: subject offerings as their own records, section-level overrides of a
+  class-wide assignment, and syllabus versions by offering.
+
 ### 7. Timetable
 
 Current features:
@@ -416,6 +540,22 @@ Agreed decision:
 - Publishing validates conflicts for sections, teachers, and configured rooms. A room is optional, but a room conflict is rejected when one is assigned.
 - Substitutions are dated overrides with a replacement teacher, reason, actor, and approval. They do not mutate the normal timetable.
 - Timetable edits after publication create a new revision instead of changing historical schedules.
+
+Progress:
+
+- Done: a timetable is a revision with a state (`App\Enums\TimetableStatus`:
+  `draft`, `published`, `archived`), a revision number, an optional section, an
+  effective date range, and a record of who published it and when.
+- Done: publishing checks the clashes first.
+  `App\Services\Timetable\TimetableConflictChecker` refuses overlapping time
+  slots in one timetable and a teacher who would teach two classes at the same
+  time in the same period.
+- Done: a published revision stops changing. The model refuses edits and
+  deletes, and its time slots refuse writes.
+  `App\Actions\Timetable\ReviseTimetable` copies it into the next draft, and
+  publishing that draft archives the revision it replaces.
+- Open: rooms and room clashes, substitutions as dated overrides, and
+  section-level inheritance from a class template.
 
 ### 8. Examinations and results
 
@@ -477,6 +617,27 @@ Agreed decision:
 - Instructors may design their own gradebook inside that scope. Organization administrators may provide templates or reporting requirements, but templates do not force every instructor to use the same assessment structure unless an organization policy explicitly requires it.
 - A published result is a calculated snapshot of the instructor's gradebook for the academic period. It does not depend on an `Exam` record existing.
 
+Progress:
+
+- Done: the gradebook is a tree. `grade_categories` hold `grade_items`, and
+  each student has one `grade_entries` row per item. An item can be numeric, a
+  named scale, or a comment, with its own maximum, weight, and due date.
+- Done: missing, absent, exempt, incomplete, and not applicable are explicit
+  states (`App\Enums\GradeEntryState`). Excused work leaves the total alone
+  and missing work counts as nothing, so an empty box never quietly means zero.
+- Done: `App\Services\Gradebook\GradebookCalculator` turns each item into a
+  share of its own maximum, so items with different maximums combine.
+  Categories aggregate by weighted mean, simple mean, sum, or highest result.
+- Done: `App\Actions\Gradebook\RecordGrade` is the only way to write a mark.
+  It refuses a mark above the maximum, a graded entry without a number, a
+  student of another school, and any writing in a closed period.
+- Done: publication is separate from grading.
+  `App\Actions\Gradebook\PublishResult` copies the calculation into an
+  append-only `result_snapshots` row with a revision number. A correction
+  publishes the next revision; the earlier one never changes.
+- Open: named scale definitions, school-level assessment templates, report
+  cards across subjects, and moving the existing exam screens onto grade items.
+
 ### 9. Fees, invoices, and payments
 
 Current features:
@@ -527,6 +688,29 @@ Agreed direction:
 - Provide practical school reports: student balances and aging, income by fee type, expense reports, cash and bank summaries, general ledger, trial balance, income statement, balance sheet, and budget variance.
 - Tax, payroll, inventory, procurement, fixed assets, statutory localization, and complex multi-currency are deferred or handled through integrations. They are not required for the core school finance module.
 
+Progress:
+
+- Done: a small double-entry ledger. `ledger_accounts` holds a starting chart
+  of accounts that `App\Services\Finance\ChartOfAccounts` creates for each
+  school and names by purpose, so the office never designs one to raise its
+  first invoice.
+- Done: `App\Actions\Finance\PostLedgerTransaction` is the only way in. It
+  refuses an entry that does not balance, a line that is both a debit and a
+  credit, and an entry that crosses two schools. Posted entries and their
+  lines refuse updates and deletes.
+- Done: corrections are reversals.
+  `App\Actions\Finance\ReverseLedgerTransaction` posts the mirror entry, keeps
+  both, and refuses to reverse the same entry twice.
+- Done: the school workflows post by themselves. `ChargeStudent`,
+  `RecordStudentPayment`, and `RelieveStudentFees` cover invoices, receipts,
+  overpayments held as credit, scholarships, and write-offs. Creating a fee
+  invoice now posts the charge.
+- Done: `App\Services\Finance\StudentLedger` answers what a student owes from
+  the lines, not from a stored `paid` total.
+- Open: moving the invoice screens onto the ledger balance, payment
+  allocation across several invoices, refunds, budgets, and the finance
+  reports.
+
 ### 10. Notices and communication
 
 Current features:
@@ -564,6 +748,24 @@ Agreed decision:
 - Published content is revisioned. Editing a published notice creates a new revision or requires republishing.
 - Users may control optional notifications, but security, account, and urgent school messages remain mandatory.
 - Notice attachments use managed storage and authorization checks.
+
+Progress:
+
+- Done: notices have states (`App\Enums\NoticeStatus`: `draft`, `scheduled`,
+  `published`, `expired`, `archived`) and keep the legacy `active` flag in step
+  for the current screens.
+- Done: publication writes a `notice_recipients` row per person, so the school
+  can answer who was told and whether they read it
+  (`App\Enums\NoticeRecipientState`). An expired notice keeps its recipients.
+- Done: `App\Services\Notice\NoticeAudience` targets by role, class, section,
+  or named people, and never reaches another school. An empty audience means
+  everyone in the school.
+- Done: email is optional per notice and leaves the request on the queue
+  (`App\Jobs\SendNoticeEmails`). A failure is written to the recipient record.
+- Done: `skuul:process-notices` publishes notices whose day arrived and
+  expires the ones that ran out. It runs every fifteen minutes.
+- Open: revisioning a published notice, attachments through managed storage,
+  guardian-level targeting, and per-user notification settings.
 
 ### 11. Reports and exports
 
@@ -603,6 +805,22 @@ Agreed decision:
 - CSV exports are supported first. Spreadsheet exports can follow without changing report data contracts.
 - Large reports and exports run asynchronously and notify the requester when ready.
 - Report generation and downloads enforce organization/campus permissions and are audit logged.
+
+Progress:
+
+- Done: a report is a class behind `App\Contracts\Report`, listed in
+  `App\Services\Report\ReportRegistry`. Adding a report is one class and one
+  line; the request, the queue, and the download do not change.
+- Done: `report_runs` records who asked, for what, with which parameters, when
+  it finished, and where the file is. A failed report keeps the reason.
+- Done: reports are built by a worker (`App\Jobs\BuildReport`) and written as
+  CSV to storage, so a whole-school report never holds up a request.
+- Done: the request and every download are permission-checked against the
+  school and written to the audit log.
+- Done: the first two reports are student balances, read from the ledger, and
+  the class list.
+- Open: official report snapshots such as report cards and transcripts, the
+  queued browser-based PDF renderer, and spreadsheet exports.
 
 ### 12. Platform operations
 
@@ -647,6 +865,24 @@ Agreed decision:
 - CI checks tests, formatting, static analysis, dependency vulnerabilities, and migration safety.
 - The first product surface is the authenticated browser application. A versioned public API is deferred until a real integration requires it.
 
+Progress:
+
+- Done: `App\Providers\MonitoringServiceProvider` reports slow queries, slow
+  requests, and failed jobs. `HealthController` answers for the database,
+  cache, queue, and storage, and `routes/console.php` writes a scheduler
+  heartbeat the health check reads.
+- Done: `skuul:check-backup` fails when a backup is missing or too old, so a
+  backup that quietly stopped running is noticed.
+- Done: slow work runs on the queue — invitation mail, notice mail
+  (`SendNoticeEmails`), and reports (`BuildReport`). The scheduler runs notice
+  processing, invitation pruning, the backup check, and queue pruning.
+- Done: `OPERATIONS.md` documents deployment, rollback, backup, restore,
+  monitoring, and CI. CI runs the tests, Pint, and Larastan.
+- Done: `audit_events` covers permissions, account and enrollment status,
+  publication, finance, features, and data sharing.
+- Open: encrypted off-site backups and a restore rehearsal in a real
+  environment, and the versioned public API, which stays deferred.
+
 ### 13. Attendance
 
 Current state:
@@ -661,6 +897,25 @@ Recommendation:
 - Allow schools to enable only daily attendance, only section attendance, or both.
 - Provide teacher entry, attendance correction workflows, attendance summaries, and guardian/student visibility according to permission.
 
+Progress:
+
+- Done: `attendance_records` holds one record per student per day, and one
+  more per lesson when the school takes a lesson register
+  (`App\Enums\AttendanceKind`). The two never overwrite each other.
+- Done: `App\Enums\AttendanceStatus` covers present, absent, late, excused,
+  left early, remote, school activity, and not recorded. A day nobody recorded
+  stays out of the rate instead of counting against the student.
+- Done: `App\Actions\Attendance\RecordAttendance` takes the register for one
+  student or a whole list. It refuses a future day, a closed enrollment, a
+  closed period, a lesson register with no subject, and a subject of another
+  school.
+- Done: a correction writes an append-only `attendance_changes` row with the
+  actor and reason, beside the record it corrects.
+- Done: `App\Services\Attendance\AttendanceSummary` counts present, absent,
+  late, and excused days and works out the rate.
+- Open: the teacher and guardian screens, an approval workflow for corrections
+  after a period closes, and turning each register on or off per school.
+
 ### 14. Student and guardian portal
 
 Current state:
@@ -673,6 +928,26 @@ Recommendation:
 - Support guardians with multiple children and students with multiple enrollments.
 - Add requests for documents, corrections, appointments, and acknowledgements without granting write access to school records.
 - Allow each organization to enable or disable portal areas independently.
+
+Progress:
+
+- Done: `App\Services\Portal\PortalAccess` answers who may read what. A
+  student reads their own enrollments; a guardian reads the enrollments of the
+  children recorded against them, however many there are and however many
+  schools they attend. No portal read depends on a staff permission.
+- Done: `App\Services\Portal\PortalSummary` reads only what the school
+  published — the newest revision of each result snapshot, a published
+  timetable, the notices actually sent to the person, and the invoices and
+  balance from the ledger. Work in progress never reaches a family.
+- Done: `App\Enums\PortalArea` gives each area its own switch inside the
+  `portal` feature settings, so a school can close invoices and keep results.
+  An area a school has not chosen stays open.
+- Done: `portal_requests` is the one thing a family writes. A request for a
+  document, a correction, an appointment, or an acknowledgement changes no
+  school record until somebody at the school answers it, and
+  `PortalRequestPolicy` never lets a family answer its own request.
+- Open: the screens, document downloads, appointment times taken from the
+  calendar, and per-guardian notification settings.
 
 ### 15. Discipline and safeguarding
 
@@ -687,6 +962,25 @@ Recommendation:
 - Scope access by role, campus, case assignment, and explicit permission.
 - Preserve a complete audit history. Disabling the feature must hide new workflows without deleting existing cases.
 
+Progress:
+
+- Done: `incidents` records what happened, where, when, who reported it, and
+  who handles it. `incident_participants` names the people and why they are
+  named, `incident_actions` records what the school will do, and
+  `incident_status_changes` is the append-only history of how the case moved.
+- Done: ordinary behaviour and safeguarding are the same workflow with
+  different access (`App\Enums\IncidentCategory`). A safeguarding case marks
+  itself restricted, and `IncidentPolicy` opens it only to the permission
+  holders, the handler, and the reporter. `Incident::readableBy()` applies the
+  same rule to lists.
+- Done: `App\Actions\Discipline\ReportIncident` records the case, moves it
+  through its states with a reason, and refuses a case in the future, an
+  impossible state change, or an action on a finished case.
+- Done: the `discipline` feature switch hides the workflow without touching
+  the cases already recorded.
+- Open: the screens, restricted notes inside a case, and case assignment by
+  campus.
+
 ### 16. Student support and wellbeing
 
 Current state:
@@ -700,6 +994,33 @@ Recommendation:
 - Allow support teams to access only the categories and campuses assigned to them.
 - Make each support area independently configurable because schools differ in what they collect and who may view it.
 
+Progress:
+
+- Done: `student_health_records` keeps the facts the school needs in an
+  emergency — conditions, allergies, medications, diet, and one emergency
+  contact — outside the student profile. Reading a student does not open it.
+  `read health record` and `update health record` do, and neither is given to
+  the administrator role by default.
+- Done: `support_plans` records accommodations, interventions, counselling,
+  and health plans as one workflow (`App\Enums\SupportCategory`). A health or
+  counselling plan marks itself confidential, and `SupportPlanPolicy` opens it
+  only to the permission holders, the person who runs it, and the person who
+  wrote it. `SupportPlan::readableBy()` applies the same rule to lists.
+- Done: `support_plan_actions` holds the steps and who must do them,
+  `support_plan_notes` is the append-only record of what was said, and
+  `support_plan_status_changes` is the append-only history of how the plan
+  moved.
+- Done: `App\Actions\Wellbeing\ManageSupportPlan` opens a plan, moves it
+  through its states, and refuses a closed enrollment, a review date before
+  the start date, an impossible state change, or work on a finished plan.
+  `App\Actions\Wellbeing\RecordHealthInformation` writes the health record and
+  logs the field names only, so the audit log never becomes a second copy of
+  it.
+- Done: the `wellbeing` feature switch hides the workflow without touching the
+  plans already recorded.
+- Open: the screens, referrals to people outside the school, per-category
+  access for support teams, and campus-level assignment.
+
 ### 17. Staff operations
 
 Current state:
@@ -711,6 +1032,33 @@ Recommendation:
 - Add staff profiles, credentials, certifications, campus assignments, availability, leave, and assignment history.
 - Keep employment and payroll integrations separate from teaching assignments.
 - Let organizations enable only the staff modules they need.
+
+Progress:
+
+- Done: `staff_profiles` records employment — staff number, job, department,
+  employment type, status, and the dates the person joined and left — per
+  school, because one person can work in two schools.
+- Done: `staff_credentials` keeps qualifications, certificates, and licences
+  with their issue date, expiry date, and who checked them.
+  `StaffCredential::expiringBefore()` lists the ones about to run out.
+- Done: `staff_availabilities` holds the hours a person can work in an
+  ordinary week. A person who lists no hours counts as free, so a school never
+  has to fill in an hours table before it can plan.
+- Done: `staff_leave_requests` and the append-only
+  `staff_leave_status_changes` hold leave and how it was answered.
+  `App\Actions\Staff\ManageStaffLeave` refuses backwards dates, days that are
+  already asked for, a person who has left, and an impossible state change.
+  `StaffLeaveRequestPolicy` lets a person ask for their own days but never
+  agree to them.
+- Done: `App\Services\Staff\StaffAvailability` answers the question the
+  timetable asks — can this person take work at this time — from status,
+  leave, and working hours together.
+- Done: employment stays separate from teaching. Leave does not touch a
+  teaching assignment; ending one is still the curriculum action's decision.
+- Done: the `staff_operations` feature switch hides the workflow without
+  touching the records already kept.
+- Open: the screens, cover and substitution when somebody is away, leave
+  balances by type, appraisals, and payroll integration.
 
 ### 18. Calendar and school events
 
@@ -724,6 +1072,22 @@ Recommendation:
 - Connect calendar events to campuses, classes, sections, staff, students, and guardians where appropriate.
 - Keep events distinct from lessons and grades. Non-instructional timetable items can link to a calendar event but do not require a subject.
 - Allow each campus or organization to enable event categories independently.
+
+Progress:
+
+- Done: `calendar_events` holds holidays, closures, special days, assemblies,
+  activities, parent meetings, appointments, and examinations, each with a
+  type from `App\Enums\CalendarEventType` that says whether the school still
+  teaches that day.
+- Done: `calendar_event_audiences` limits an event to a class, a section, or a
+  named person. An event with no audience row is for the whole school.
+- Done: `App\Services\Calendar\SchoolCalendar` answers the three questions the
+  rest of the system asks: what is on between two dates, is this a teaching
+  day, and which days the school is closed. Only published events count.
+- Done: events never cross a school, because `calendar_events` uses the school
+  scope like every other record.
+- Open: the screens, links from a timetable item to an event, per-campus
+  category switches, and appointment booking.
 
 ### 19. Imports and integrations
 
@@ -739,6 +1103,34 @@ Recommendation:
 - Export transfer packages and authorized reports without exposing unrelated campus data.
 - Keep integration connectors optional and independently enabled.
 
+Progress:
+
+- Done: `App\Contracts\Importer` is the whole boundary. An importer says what
+  columns it needs, what a good row looks like, and how to write one row. It
+  never reads a file and never writes an import record, so one engine checks,
+  previews, and applies every kind of import.
+- Done: `App\Services\Import\ImportRunner` checks a file before it writes
+  anything. `import_batches` counts what will happen, `import_rows` keeps each
+  line, what was wrong with it, and the record it wrote. A row that fails
+  while writing is marked with its reason and never stops the rows around it.
+- Done: imports are safe to run twice. A row with a `source_id` writes an
+  `imported_records` link, so the same outside identifier always finds the same
+  record and a repeated file changes it instead of copying it.
+- Done: `App\Services\Import\CsvReader` reads CSV by column name, trimmed and
+  lowercased, so a heading of "Email " and one of "email" are the same column.
+- Done: `App\Imports\StudentImporter` names the class and section by name and
+  places the student through the enrollment action, so an imported student has
+  the same placement history as one typed in.
+  `App\Imports\StaffImporter` makes the account and the employment record and
+  gives nobody a teaching assignment.
+- Done: `create import`, `read import`, and `apply import` are separate
+  permissions, because preparing an import is not the same decision as
+  changing the school's records with it. The routes sit behind the `imports`
+  feature switch.
+- Open: the screens, more importers (guardians, grades, invoices, payments),
+  transfer packages out, and connectors for identity, payments, messaging, and
+  government reporting.
+
 ### 20. Feature configuration and record freezing
 
 Agreed direction:
@@ -747,6 +1139,22 @@ Agreed direction:
 - Disabling a feature hides its navigation and blocks its routes and actions. It does not delete existing records, invalidate history, or prevent authorized reporting on retained data.
 - Identity, authorization, audit logging, and core enrollment history are platform capabilities and cannot be disabled. Attendance, portals, discipline, support, staff modules, event categories, rankings, and integrations can be enabled independently.
 - Feature settings include both an enabled flag and domain-specific policy configuration. Configuration changes are permission-checked and audited.
+
+Progress:
+
+- Done: `feature_settings` holds one row per feature per school, and a row
+  with no school is the platform default that schools inherit. A school
+  setting wins.
+- Done: `App\Enums\Feature` lists only what a school may switch: attendance,
+  the portal, discipline, wellbeing, staff operations, events, ranking, and
+  imports. Ranking starts off. Identity, authorization, audit logging, and
+  enrollment history are not listed, so they cannot be turned off.
+- Done: `App\Services\Feature\FeatureManager` answers `enabled()` once per
+  request and carries per-feature settings. Every change is audited.
+- Done: the `feature:` middleware hides the routes of a feature that is off,
+  and `feature_enabled()` answers the same question in a view or a service.
+  Turning a feature off never deletes what the school recorded.
+- Open: campus and program overrides, and the settings screen.
 
 Record freezing:
 
@@ -777,6 +1185,33 @@ Agreed decision:
 - Keep graduation plans configurable per organization, campus, program, or cohort. Schools that do not use credits can disable the credit workflow and use completion requirements instead.
 - Calculate ranking from a cohort, subject offering, class/section, or other authorized result group and a published result snapshot. Ranking is never a primary student, enrollment, or grade field.
 - Keep surveys deferred as an optional feature. The future survey model should support reusable forms, scoped audiences, responses, publication windows, and privacy controls without coupling surveys to grades or enrollment.
+
+Progress:
+
+- Done: `cohorts` and `cohort_members` hold named groups that are not classes
+  — graduation years, scholarship groups, clubs, watchlists, and ranking
+  groups. A student joins through their enrollment; staff and guardians join
+  as themselves. Leaving keeps the record, so a school can still see who was
+  in a group last year. A watchlist marks itself private and needs
+  `read restricted cohort`.
+- Done: `programs` and `program_participations` record clubs, interventions,
+  support services, and special programmes with dates, a schedule, and the
+  member of staff who runs it. Taking part never touches enrollment, and a
+  student holds one place in a programme at a time.
+- Done: `graduation_plans`, `graduation_requirements`, and
+  `graduation_exemptions` say what a student must finish.
+  `App\Services\Graduation\GraduationProgress` reads only published result
+  snapshots, so a plan never counts a mark a family has not seen. A school
+  that does not count credits leaves `uses_credits` off and finishes the plan
+  by its requirements alone.
+- Done: `App\Services\Ranking\ResultRanking` works out a position when it is
+  asked for, from a cohort or a class and published snapshots only. Equal
+  averages share a position, a corrected result counts once at its newest
+  revision, and nothing is written to the student, the enrollment, or the
+  grade. Ranking stays off until a school turns the `ranking` feature on.
+- Open: the screens, cohort-scoped and campus-scoped plan assignment,
+  restricted notes on a participation record, outcome history for graduation,
+  and surveys.
 
 ## Cross-feature decisions
 
@@ -828,7 +1263,7 @@ Exit condition: the cross-feature decisions have written answers.
 
 ### Phase 2: Establish domain boundaries
 
-Status: in progress.
+Status: done.
 
 - Add a current school context abstraction. Done. `App\Services\School\SchoolContext`
   holds the school for the request, with the `school_context()`, `current_school()`,
@@ -839,26 +1274,44 @@ Status: in progress.
 - Replace magic role strings with named permissions or enums where useful. Done
   for names: `App\Enums\Role` holds the built-in profiles. Moving the remaining
   role checks to permissions is still open.
-- Extract high-risk operations into typed actions. Partly done. Account
-  provisioning, invitations, account status, and school membership are actions.
-  Enrollment, fees, and results still live in services.
+- Extract high-risk operations into typed actions. Done. Account provisioning,
+  invitations, account status, school membership, enrollment status and
+  placement, transfers, teaching assignments, timetable publication, grades and
+  result publication, ledger postings, notices, reports, attendance, incidents,
+  support plans, staff leave, imports, cohorts, portal requests, and data
+  sharing are all typed actions. The services that remain are readers and
+  controllers' helpers, not the place where a rule lives.
 - Add database constraints and indexes. Done for schools, memberships,
-  invitations, class groups, classes, sections, subjects, and student records.
+  invitations, class groups, classes, sections, subjects, student records, and
+  every table added since: placements, teaching assignments, timetables,
+  gradebook, ledger, notices, reports, attendance, features, incidents,
+  calendar, support, staff, imports, cohorts, portal requests, and data
+  sharing.
 
 Exit condition: a new feature cannot read or write another school by missing one local `where` clause.
 
 ### Phase 3: Modernize vertical features
 
+Status: the domain of every feature is done. The screens are Phase 4 work.
+
 Work in this order unless business review changes it:
 
-1. School context and user access.
-2. Admissions and student enrollment.
-3. Academic years, terms, classes, and sections.
-4. Subjects and teacher assignments.
-5. Timetables.
-6. Exams and results.
-7. Fees, invoices, and payments.
-8. Notices and reports.
+1. School context and user access. Done.
+2. Admissions and student enrollment. Done, including placement history,
+   concurrent enrollments, and transfers.
+3. Academic years, terms, classes, and sections. Done, with dated periods and
+   closing rules.
+4. Subjects and teacher assignments. Done, as dated assignments with a history.
+5. Timetables. Done, with conflict checks, publication, and revisions.
+6. Exams and results. Done, with a gradebook tree and append-only published
+   result snapshots.
+7. Fees, invoices, and payments. Done, on a double-entry ledger.
+8. Notices and reports. Done, both queued.
+
+Everything the feature map added afterwards followed the same shape:
+attendance, feature configuration, discipline and safeguarding, the calendar,
+student support, staff operations, imports, the portal, cohorts and graduation
+planning, and data sharing between schools.
 
 For each feature:
 
@@ -897,11 +1350,22 @@ Agreed decision:
 
 ### Phase 5: Operate the product
 
-- Add queues for email and large reports.
-- Add scheduled tasks for reminders and maintenance.
-- Add audit logs and backup checks.
-- Add deployment documentation and CI gates.
-- Monitor slow queries and failed jobs.
+Status: done.
+
+- Add queues for email and large reports. Done. Redis runs the queue in Sail
+  and in production, and `queue:prune-failed` keeps the table small.
+  `App\Jobs\BuildReport` and `App\Jobs\SendNoticeEmails` run there.
+- Add scheduled tasks for reminders and maintenance. Done in
+  `routes/console.php`: the scheduler heartbeat, invitation pruning, the
+  backup check, and queue table pruning.
+- Add audit logs and backup checks. Done. `audit_events` records role,
+  permission, account, enrollment, period, and result publication changes
+  through `App\Actions\Audit\RecordAuditEvent`. `skuul:check-backup` reports
+  a missing or stale backup.
+- Add deployment documentation and CI gates. Done in `OPERATIONS.md` and
+  `.github/workflows/laravel-tests.yml`.
+- Monitor slow queries and failed jobs. Done in
+  `App\Providers\MonitoringServiceProvider`.
 
 Exit condition: the system has repeatable deployment, backup, restore, and monitoring procedures.
 

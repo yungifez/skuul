@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\InAcademicPeriod;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class ExamRecord extends Model
 {
     use HasFactory;
+    use InAcademicPeriod;
 
     protected $fillable = [
         'user_id',
@@ -20,6 +22,8 @@ class ExamRecord extends Model
 
     /**
      * Get the subject that owns the ExamRecord.
+     *
+     * @return BelongsTo<Subject, $this>
      */
     public function subject(): BelongsTo
     {
@@ -28,10 +32,22 @@ class ExamRecord extends Model
 
     /**
      * Get the examSlot that owns the ExamRecord.
+     *
+     * @return BelongsTo<ExamSlot, $this>
      */
     public function examSlot(): BelongsTo
     {
         return $this->belongsTo(ExamSlot::class);
+    }
+
+    /**
+     * Get the period that governs this mark.
+     *
+     * A mark belongs to the semester of the exam it was entered for.
+     */
+    public function governingAcademicPeriod(): AcademicYear|Semester|null
+    {
+        return $this->examSlot?->exam?->semester;
     }
 
     public function scopeinSubject($query, $subject_id)

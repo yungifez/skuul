@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Role;
 use App\Http\Requests\AssignTeacherToSubjectRequest;
 use App\Http\Requests\SubjectStoreRequest;
 use App\Models\Subject;
 use App\Models\User;
 use App\Services\Subject\SubjectService;
+use App\Services\User\UserService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
@@ -15,7 +17,7 @@ class SubjectController extends Controller
 {
     public $subject;
 
-    public function __construct(SubjectService $subject)
+    public function __construct(SubjectService $subject, private UserService $userService)
     {
         $this->subject = $subject;
         $this->authorizeResource(Subject::class, 'subject');
@@ -91,11 +93,18 @@ class SubjectController extends Controller
 
     public function assignTeacherView(): View
     {
+        $this->authorize('assignTeacher', Subject::class);
+
         return view('pages.subject.assign-teacher');
     }
 
     public function assignTeacher(User $teacher, AssignTeacherToSubjectRequest $request): RedirectResponse
     {
+        $this->authorize('assignTeacher', Subject::class);
+        $this->userService->verifyUserIsOfRoleElseNotFound($teacher, Role::Teacher->value);
+
+        abort_unless($teacher->belongsToCurrentSchool(), 403, 'That teacher does not work in this school.');
+
         $this->subject->assignTeacherToSubjects($teacher, $request->except('_token'));
 
         return back()->with('success', 'Successfully assigned teacher to subjects');

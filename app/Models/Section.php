@@ -41,7 +41,7 @@ class Section extends Model
      */
     public function students()
     {
-        $students = User::students()->ofSchool()->whereRelation('studentRecord.section', 'id', $this->id)->get();
+        $students = User::students()->ofSchool()->activeStudents()->whereRelation('studentRecord.section', 'id', $this->id)->get();
 
         return $students;
     }

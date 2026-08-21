@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Models\AcademicYear;
+use App\Models\School;
+use App\Services\Academic\AcademicPeriodContext;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -139,13 +141,24 @@ class AcademicYearTest extends TestCase
 
     public function test_authorized_user_can_set_academic_year()
     {
-        $academicYear = AcademicYear::factory()->create();
-        $this->authorized_user(['set academic year'])->post('/dashboard/academic-years/set', [
-            'academic_year_id' => $academicYear->id,
-        ]);
-        $this->assertDatabaseHas('schools', [
-            'id' => current_school_id(),
-            'academic_year_id' => $academicYear->id,
-        ]);
+        $academicYear = AcademicYear::factory()->create(['school_id' => current_school_id()]);
+        $schoolBefore = current_school()->academic_year_id;
+
+        $this->authorized_user(['set academic year'])
+            ->post('/dashboard/academic-years/set', ['academic_year_id' => $academicYear->id])
+            ->assertSessionHas(AcademicPeriodContext::YEAR_SESSION_KEY, $academicYear->id);
+
+        // The working year belongs to the request, so the school row does not move.
+        $this->assertSame($schoolBefore, current_school()->fresh()->academic_year_id);
+    }
+
+    public function test_an_academic_year_of_another_school_cannot_be_set()
+    {
+        $other = School::factory()->create();
+        $academicYear = AcademicYear::factory()->create(['school_id' => $other->id]);
+
+        $this->authorized_user(['set academic year'])
+            ->post('/dashboard/academic-years/set', ['academic_year_id' => $academicYear->id])
+            ->assertSessionMissing(AcademicPeriodContext::YEAR_SESSION_KEY);
     }
 }

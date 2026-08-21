@@ -35,7 +35,12 @@ class ExamSlotPolicy
      */
     public function create(User $user)
     {
-        if ($user->can('create exam slot')) {
+        $semester = current_semester();
+
+        if ($user->can('create exam slot')
+            && $semester?->isOpen()
+            && $semester->academicYear?->isOpen()
+        ) {
             return true;
         }
     }
@@ -45,7 +50,11 @@ class ExamSlotPolicy
      */
     public function update(User $user, ExamSlot $examSlot)
     {
-        if ($user->can('update exam slot') && $examSlot->exam->semester->school_id == current_school_id()) {
+        if ($user->can('update exam slot')
+            && $examSlot->exam->semester->isOpen()
+            && $examSlot->exam->semester->academicYear->isOpen()
+            && $examSlot->exam->semester->school_id == current_school_id()
+        ) {
             return true;
         }
     }
@@ -55,7 +64,11 @@ class ExamSlotPolicy
      */
     public function delete(User $user, ExamSlot $examSlot)
     {
-        if ($user->can('delete exam slot') && $examSlot->exam->semester->school_id == current_school_id()) {
+        if ($user->can('delete exam slot')
+            && $examSlot->exam->semester->isOpen()
+            && $examSlot->exam->semester->academicYear->isOpen()
+            && $examSlot->exam->semester->school_id == current_school_id()
+        ) {
             return true;
         }
     }

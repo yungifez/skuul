@@ -28,6 +28,8 @@ class FeeInvoice extends Model
 
     /**
      * Get the user that owns the FeeInvoice.
+     *
+     * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {
@@ -36,6 +38,8 @@ class FeeInvoice extends Model
 
     /**
      * Get all of the feeInvoiceRecords for the FeeInvoice.
+     *
+     * @return HasMany<FeeInvoiceRecord, $this>
      */
     public function feeInvoiceRecords(): HasMany
     {

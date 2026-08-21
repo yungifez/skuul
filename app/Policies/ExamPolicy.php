@@ -35,7 +35,12 @@ class ExamPolicy
      */
     public function create(User $user)
     {
-        if ($user->can('create exam')) {
+        $semester = current_semester();
+
+        if ($user->can('create exam')
+            && $semester?->isOpen()
+            && $semester->academicYear?->isOpen()
+        ) {
             return true;
         }
     }
@@ -45,7 +50,11 @@ class ExamPolicy
      */
     public function update(User $user, Exam $exam)
     {
-        if ($user->can('update exam') && $exam->semester->school_id == current_school_id()) {
+        if ($user->can('update exam')
+            && $exam->semester->isOpen()
+            && $exam->semester->academicYear->isOpen()
+            && $exam->semester->school_id == current_school_id()
+        ) {
             return true;
         }
     }
@@ -55,7 +64,11 @@ class ExamPolicy
      */
     public function delete(User $user, Exam $exam)
     {
-        if ($user->can('delete exam') && $exam->semester->school_id == current_school_id()) {
+        if ($user->can('delete exam')
+            && $exam->semester->isOpen()
+            && $exam->semester->academicYear->isOpen()
+            && $exam->semester->school_id == current_school_id()
+        ) {
             return true;
         }
     }

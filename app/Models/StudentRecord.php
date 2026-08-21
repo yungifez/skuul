@@ -2,18 +2,73 @@
 
 namespace App\Models;
 
+use App\Enums\EnrollmentStatus;
+use App\Traits\InSchool;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * One student enrollment in a school.
+ *
+ * @property int $id
+ * @property int|null $user_id
+ * @property int|null $school_id
+ * @property bool $is_primary
+ * @property EnrollmentStatus $status
+ * @property string|null $admission_number
+ * @property string|null $admission_date
+ * @property int|null $my_class_id
+ * @property int|null $section_id
+ */
 class StudentRecord extends Model
 {
     use HasFactory;
+    use InSchool;
 
-    protected $fillable = ['admission_number', 'admission_date', 'my_class_id', 'section_id', 'user_id'];
+    protected static function booted(): void
+    {
+        static::saving(function (StudentRecord $enrollment): void {
+            if (!$enrollment->is_primary || $enrollment->user_id === null) {
+                return;
+            }
+
+            $query = static::query()->where('user_id', $enrollment->user_id);
+
+            if ($enrollment->exists) {
+                $query->whereKeyNot($enrollment->getKey());
+            }
+
+            $query->update(['is_primary' => false]);
+        });
+    }
+
+    protected $fillable = [
+        'admission_number',
+        'admission_date',
+        'my_class_id',
+        'section_id',
+        'user_id',
+        'school_id',
+        'status',
+        'is_primary',
+        'transferred_from_id',
+    ];
+
+    /**
+     * The default values for a new enrollment.
+     *
+     * @var array<string, mixed>
+     */
+    protected $attributes = [
+        'status' => EnrollmentStatus::Active->value,
+        'is_primary' => true,
+    ];
 
     /**
      * The attributes that should be cast.
@@ -22,19 +77,46 @@ class StudentRecord extends Model
      */
     protected $casts = [
         'admission_date' => 'datetime:Y-m-d',
+        'status' => EnrollmentStatus::class,
+        'is_primary' => 'boolean',
     ];
 
     /**
-     * The "booted" method of the model.
+     * Limit the query to enrollments the student still attends.
      *
-     * @return void
+     * @param  Builder  $query
      */
-    protected static function booted()
+    public function scopeAttending($query): Builder
     {
-        // gets only active users
-        static::addGlobalScope('notGraduated', function (Builder $builder) {
-            $builder->where('is_graduated', 0);
-        });
+        return $query->where('status', EnrollmentStatus::Active);
+    }
+
+    /**
+     * Limit the query to enrollments in one state.
+     *
+     * @param  Builder  $query
+     */
+    public function scopeWithStatus($query, EnrollmentStatus $status): Builder
+    {
+        return $query->where('status', $status);
+    }
+
+    /**
+     * Limit the query to the enrollment each student leads with.
+     *
+     * @param  Builder  $query
+     */
+    public function scopePrimary($query): Builder
+    {
+        return $query->where('is_primary', true);
+    }
+
+    /**
+     * Check if the student finished the program.
+     */
+    public function isGraduated(): bool
+    {
+        return $this->status === EnrollmentStatus::Graduated;
     }
 
     // accessor for admission_date
@@ -45,33 +127,81 @@ class StudentRecord extends Model
     }
 
     /**
-     * Get the MyClass that owns the Section.
+     * Get the class the student is placed in.
      *
-     * @return BelongsTo
+     * @return BelongsTo<MyClass, $this>
      */
-    public function myClass()
+    public function myClass(): BelongsTo
     {
         return $this->belongsTo(MyClass::class);
     }
 
     /**
-     * Get the section that owns the StudentRecord.
+     * Get the section the student is placed in.
      *
-     * @return BelongsTo
+     * @return BelongsTo<Section, $this>
      */
-    public function section()
+    public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);
     }
 
     /**
-     * Get the user that owns the StudentRecord.
+     * Get the person this enrollment belongs to.
      *
-     * @return BelongsTo
+     * @return BelongsTo<User, $this>
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Get every recorded state change of this enrollment.
+     */
+    public function statusChanges(): HasMany
+    {
+        return $this->hasMany(EnrollmentStatusChange::class)->orderBy('effective_on')->orderBy('id');
+    }
+
+    /**
+     * Get every class and section this enrollment held, oldest first.
+     *
+     * @return HasMany<EnrollmentPlacement, $this>
+     */
+    public function placements(): HasMany
+    {
+        return $this->hasMany(EnrollmentPlacement::class)->orderBy('effective_on')->orderBy('id');
+    }
+
+    /**
+     * Get the placement the student holds now.
+     *
+     * @return HasOne<EnrollmentPlacement, $this>
+     */
+    public function currentPlacement(): HasOne
+    {
+        return $this->hasOne(EnrollmentPlacement::class)->ofMany(['effective_on' => 'max', 'id' => 'max']);
+    }
+
+    /**
+     * Get the school this enrollment belongs to.
+     *
+     * @return BelongsTo<School, $this>
+     */
+    public function school(): BelongsTo
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    /**
+     * Get the enrollment this one continues after a transfer.
+     *
+     * @return BelongsTo<StudentRecord, $this>
+     */
+    public function transferredFrom(): BelongsTo
+    {
+        return $this->belongsTo(StudentRecord::class, 'transferred_from_id');
     }
 
     /**
@@ -89,6 +219,6 @@ class StudentRecord extends Model
      */
     public function currentAcademicYear()
     {
-        return $this->academicYears()->wherePivot('academic_year_id', current_school()->academicYear->id);
+        return $this->academicYears()->wherePivot('academic_year_id', current_academic_year()->id);
     }
 }

@@ -1,6 +1,8 @@
 <?php
 
 use App\Exceptions\ApplicationException;
+use App\Http\Middleware\EnsureFeatureIsEnabled;
+use App\Http\Middleware\SetActiveAcademicPeriod;
 use App\Http\Middleware\SetActiveSchool;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -25,11 +27,13 @@ return Application::configure(basePath: dirname(__DIR__))
             ->redirectUsersTo(fn (): string => config('fortify.home'))
             ->throttleApi()
             ->authenticateSessions()
-            // Resolve the school being worked in for every signed-in web request.
+            // Resolve the school and academic period for every signed-in web request.
             ->appendToGroup('web', [
                 SetActiveSchool::class,
+                SetActiveAcademicPeriod::class,
             ])
             ->alias([
+                'feature' => EnsureFeatureIsEnabled::class,
                 'role' => RoleMiddleware::class,
                 'permission' => PermissionMiddleware::class,
                 'role_or_permission' => RoleOrPermissionMiddleware::class,

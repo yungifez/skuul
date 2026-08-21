@@ -124,6 +124,12 @@ class PermissionSeeder extends Seeder
         Permission::firstOrCreate([
             'name' => 'set academic year',
         ]);
+        Permission::firstOrCreate([
+            'name' => 'close academic period',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'reopen academic period',
+        ]);
 
         // Permission for teacher
         Permission::firstOrCreate([
@@ -333,6 +339,142 @@ class PermissionSeeder extends Seeder
             'name' => 'manage account access',
         ]);
 
+        // Permissions for discipline and safeguarding
+        Permission::firstOrCreate([
+            'name' => 'create incident',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read incident',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update incident',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete incident',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read safeguarding case',
+        ]);
+
+        // Permissions for student support and wellbeing
+        Permission::firstOrCreate([
+            'name' => 'create support plan',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read support plan',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update support plan',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete support plan',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read confidential support plan',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read health record',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update health record',
+        ]);
+
+        // Permissions for staff operations
+        Permission::firstOrCreate([
+            'name' => 'create staff profile',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read staff profile',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update staff profile',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete staff profile',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read staff leave',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'request staff leave',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'approve staff leave',
+        ]);
+
+        // Permissions for imports
+        Permission::firstOrCreate([
+            'name' => 'create import',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read import',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'apply import',
+        ]);
+
+        // Permissions for cohorts, programmes, and graduation planning
+        Permission::firstOrCreate([
+            'name' => 'create cohort',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read cohort',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update cohort',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete cohort',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read restricted cohort',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'create program',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read program',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update program',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete program',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'manage graduation plan',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read graduation plan',
+        ]);
+
+        // Permissions for the student and guardian portal
+        Permission::firstOrCreate([
+            'name' => 'read portal request',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'answer portal request',
+        ]);
+
+        // Permissions for sharing records between schools
+        Permission::firstOrCreate([
+            'name' => 'request data sharing',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'approve data sharing',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'fulfil data sharing',
+        ]);
+
+        // Permissions for reports
+        Permission::firstOrCreate([
+            'name' => 'create report',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read report',
+        ]);
+
         // permissions for fee categories
 
         Permission::firstOrCreate([
@@ -502,6 +644,8 @@ class PermissionSeeder extends Seeder
             'update academic year',
             'delete academic year',
             'set academic year',
+            'close academic period',
+            'reopen academic period',
             'create teacher',
             'read teacher',
             'update teacher',
@@ -559,6 +703,38 @@ class PermissionSeeder extends Seeder
             'update parent',
             'delete parent',
             'manage account access',
+            'create report',
+            'read report',
+            'create incident',
+            'read incident',
+            'update incident',
+            'delete incident',
+            'create support plan',
+            'read support plan',
+            'update support plan',
+            'delete support plan',
+            'create staff profile',
+            'read staff profile',
+            'update staff profile',
+            'delete staff profile',
+            'read staff leave',
+            'request staff leave',
+            'approve staff leave',
+            'create import',
+            'read import',
+            'apply import',
+            'create cohort',
+            'read cohort',
+            'update cohort',
+            'delete cohort',
+            'create program',
+            'read program',
+            'update program',
+            'delete program',
+            'manage graduation plan',
+            'read graduation plan',
+            'read portal request',
+            'answer portal request',
             'create custom timetable item',
             'read custom timetable item',
             'update custom timetable item',

@@ -1,0 +1,170 @@
+<?php
+
+namespace App\Actions\Curriculum;
+
+use App\Actions\Audit\RecordAuditEvent;
+use App\Enums\AuditAction;
+use App\Enums\Role;
+use App\Enums\TeachingRole;
+use App\Exceptions\InvalidValueException;
+use App\Models\AcademicYear;
+use App\Models\Section;
+use App\Models\Semester;
+use App\Models\Subject;
+use App\Models\TeachingAssignment;
+use App\Models\User;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+
+/**
+ * Give a teacher a subject to teach, and record when it started.
+ *
+ * Several teachers can share a subject, each in their own part, so an
+ * assignment is a record instead of a row in a pivot table. An assignment
+ * ends by taking an end date, which keeps last year's timetable readable.
+ */
+class AssignTeacher
+{
+    public function __construct(private RecordAuditEvent $auditor) {}
+
+    /**
+     * Give the teacher the subject.
+     *
+     * Asking twice returns the assignment that already runs.
+     *
+     * @throws InvalidValueException when the teacher, subject, or section does not fit
+     */
+    public function assign(
+        Subject $subject,
+        User $teacher,
+        TeachingRole $role = TeachingRole::Lead,
+        ?Section $section = null,
+        ?AcademicYear $academicYear = null,
+        ?Semester $semester = null,
+        ?User $actor = null,
+        ?CarbonInterface $startsOn = null,
+    ): TeachingAssignment {
+        $academicYear ??= current_academic_year();
+
+        if ($academicYear === null) {
+            throw new InvalidValueException('Set the academic year before you assign a teacher.');
+        }
+
+        $this->failIfRecordsDoNotFit($subject, $teacher, $section, $academicYear);
+
+        $running = TeachingAssignment::query()
+            ->where('subject_id', $subject->id)
+            ->forTeacher($teacher)
+            ->where('academic_year_id', $academicYear->id)
+            ->where('section_id', $section?->id)
+            ->runningOn($startsOn)
+            ->first();
+
+        if ($running !== null) {
+            return $running;
+        }
+
+        return DB::transaction(function () use ($subject, $teacher, $role, $section, $academicYear, $semester, $actor, $startsOn): TeachingAssignment {
+            $assignment = TeachingAssignment::create([
+                'school_id' => $subject->school_id,
+                'subject_id' => $subject->id,
+                'user_id' => $teacher->id,
+                'academic_year_id' => $academicYear->id,
+                'semester_id' => $semester === null ? current_semester_id() : $semester->id,
+                'section_id' => $section?->id,
+                'role' => $role,
+                'starts_on' => $startsOn ?? now(),
+            ]);
+
+            // The old pivot still feeds the screens, so keep it in step.
+            $subject->teachers()->syncWithoutDetaching([$teacher->id]);
+
+            $this->auditor->record(
+                AuditAction::TeachingAssignmentCreated,
+                $assignment,
+                [
+                    'subject_id' => $subject->id,
+                    'teacher_id' => $teacher->id,
+                    'role' => $role->value,
+                    'section_id' => $section?->id,
+                    'academic_year_id' => $academicYear->id,
+                ],
+                $actor,
+            );
+
+            return $assignment;
+        });
+    }
+
+    /**
+     * End the assignment on the given day.
+     *
+     * Ending it twice changes nothing.
+     */
+    public function end(TeachingAssignment $assignment, ?CarbonInterface $endsOn = null, ?User $actor = null): TeachingAssignment
+    {
+        if ($assignment->ends_on !== null) {
+            return $assignment;
+        }
+
+        return DB::transaction(function () use ($assignment, $endsOn, $actor): TeachingAssignment {
+            $assignment->ends_on = Carbon::parse($endsOn ?? now());
+            $assignment->save();
+
+            // This assignment still covers today, so leave it out when asking
+            // whether the teacher keeps the subject.
+            $stillTeaches = TeachingAssignment::query()
+                ->whereKeyNot($assignment->getKey())
+                ->where('subject_id', $assignment->subject_id)
+                ->forTeacher($assignment->user_id)
+                ->runningOn()
+                ->exists();
+
+            if (!$stillTeaches) {
+                $assignment->subject?->teachers()->detach($assignment->user_id);
+            }
+
+            $this->auditor->record(
+                AuditAction::TeachingAssignmentEnded,
+                $assignment,
+                [
+                    'subject_id' => $assignment->subject_id,
+                    'teacher_id' => $assignment->user_id,
+                    'ends_on' => $assignment->ends_on->toDateString(),
+                ],
+                $actor,
+            );
+
+            return $assignment;
+        });
+    }
+
+    /**
+     * Check that the teacher, the subject, and the section belong together.
+     *
+     * @throws InvalidValueException
+     */
+    private function failIfRecordsDoNotFit(Subject $subject, User $teacher, ?Section $section, AcademicYear $academicYear): void
+    {
+        if ($subject->school_id !== $academicYear->school_id) {
+            throw new InvalidValueException('The academic year belongs to another school.');
+        }
+
+        if (!$teacher->belongsToSchool($subject->school_id)) {
+            throw new InvalidValueException('The teacher does not work in this school.');
+        }
+
+        if (!$teacher->hasRole(Role::Teacher->value)) {
+            throw new InvalidValueException('Only a teacher can be assigned to a subject.');
+        }
+
+        if ($section !== null && $section->my_class_id !== $subject->my_class_id) {
+            throw new InvalidValueException('The section is not in the class of this subject.');
+        }
+
+        if ($academicYear->isClosed()) {
+            throw new InvalidValueException('The academic year is closed. Reopen it before you change teaching.');
+        }
+    }
+}

@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\TimetableStatus;
 use App\Models\Timetable;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -45,7 +46,12 @@ class TimetablePolicy
      */
     public function update(User $user, Timetable $timetable)
     {
-        if ($user->can('update timetable') && current_school_id() == $timetable->myClass->classGroup->school->id) {
+        if ($user->can('update timetable')
+            && $timetable->acceptsChanges()
+            && $timetable->semester->isOpen()
+            && $timetable->semester->academicYear->isOpen()
+            && current_school_id() == $timetable->myClass->classGroup->school->id
+        ) {
             return true;
         }
     }
@@ -55,9 +61,46 @@ class TimetablePolicy
      */
     public function delete(User $user, Timetable $timetable)
     {
-        if ($user->can('delete timetable') && current_school_id() == $timetable->myClass->classGroup->school->id) {
+        if ($user->can('delete timetable')
+            && !$timetable->isPublished()
+            && current_school_id() == $timetable->myClass->classGroup->school->id
+        ) {
             return true;
         }
+    }
+
+    /**
+     * Determine whether the user can publish the timetable.
+     */
+    public function publish(User $user, Timetable $timetable): ?bool
+    {
+        if ($user->can('update timetable')
+            && $timetable->status === TimetableStatus::Draft
+            && $timetable->semester->isOpen()
+            && $timetable->semester->academicYear->isOpen()
+            && current_school_id() == $timetable->myClass->classGroup->school->id
+        ) {
+            return true;
+        }
+
+        return null;
+    }
+
+    /**
+     * Determine whether the user can start a timetable revision.
+     */
+    public function revise(User $user, Timetable $timetable): ?bool
+    {
+        if ($user->can('update timetable')
+            && $timetable->status === TimetableStatus::Published
+            && $timetable->semester->isOpen()
+            && $timetable->semester->academicYear->isOpen()
+            && current_school_id() == $timetable->myClass->classGroup->school->id
+        ) {
+            return true;
+        }
+
+        return null;
     }
 
     /**

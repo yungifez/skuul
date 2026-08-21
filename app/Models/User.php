@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AccountStatus;
+use App\Enums\EnrollmentStatus;
 use App\Enums\Role;
 use App\Enums\SchoolMembershipStatus;
 use Carbon\Carbon;
@@ -107,7 +108,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function scopeActiveStudents($query)
     {
-        return $query->whereRelation('studentRecord', 'is_graduated', 0);
+        return $query->whereRelation('studentRecord', 'status', EnrollmentStatus::Active);
     }
 
     /**
@@ -188,33 +189,73 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the studentRecord associated with the User.
+     * Get every enrollment this person holds, in any school and any state.
      *
-     * @return HasOne
+     * A person can attend two schools at once, so this is the honest list.
+     *
+     * @return HasMany<StudentRecord, $this>
      */
-    public function studentRecord()
+    public function studentRecords(): HasMany
     {
-        return $this->hasOne(StudentRecord::class);
+        return $this->hasMany(StudentRecord::class);
     }
 
     /**
-     * Get the studentRecord of graduation associated with the User.
+     * Get the enrollment to show for this person in the school being worked in.
      *
-     * @return HasOne
+     * The primary enrollment wins, then the newest one. It never hides the
+     * others: read `studentRecords()` when you need them all.
+     *
+     * @return HasOne<StudentRecord, $this>
      */
-    public function graduatedStudentRecord()
+    public function studentRecord(): HasOne
     {
-        return $this->hasOne(StudentRecord::class)->withoutGlobalScopes()->where('is_Graduated', true);
+        return $this->enrollmentOfCurrentSchool();
     }
 
     /**
-     * Get the studentRecord of graduation associated with the User.
+     * Get the enrollment the student finished.
      *
-     * @return HasOne
+     * @return HasOne<StudentRecord, $this>
      */
-    public function allStudentRecords()
+    public function graduatedStudentRecord(): HasOne
     {
-        return $this->hasOne(StudentRecord::class)->withoutGlobalScopes();
+        return $this->enrollmentOfCurrentSchool()->where('status', EnrollmentStatus::Graduated);
+    }
+
+    /**
+     * Get the enrollment of the student in any state.
+     *
+     * @return HasOne<StudentRecord, $this>
+     */
+    public function allStudentRecords(): HasOne
+    {
+        return $this->enrollmentOfCurrentSchool();
+    }
+
+    /**
+     * Build the one-enrollment relation used by the screens.
+     *
+     * @return HasOne<StudentRecord, $this>
+     */
+    private function enrollmentOfCurrentSchool(): HasOne
+    {
+        // The school must limit both the search for the newest enrollment and
+        // the result, or another school's enrollment can win the aggregate.
+        $ofCurrentSchool = function ($query): void {
+            if (current_school_id() === null) {
+                $query->whereRaw('1 = 0');
+
+                return;
+            }
+
+            $query->where('student_records.school_id', current_school_id());
+        };
+
+        $relation = $this->hasOne(StudentRecord::class);
+        $ofCurrentSchool($relation);
+
+        return $relation->ofMany(['is_primary' => 'max', 'id' => 'max'], $ofCurrentSchool);
     }
 
     /**

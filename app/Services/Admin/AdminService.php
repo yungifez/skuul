@@ -22,7 +22,7 @@ class AdminService
     /**
      * Get all Admins.
      *
-     * @return \Illuminate\Database\Eloquent\Collection|static[]
+     * @return \Illuminate\Database\Eloquent\Collection<int, User>
      */
     public function getAllAdmins()
     {

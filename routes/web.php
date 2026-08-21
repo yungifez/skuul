@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\HealthController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -15,6 +16,9 @@ use Illuminate\Support\Facades\Route;
 | Should I add easter eggs?
 |
 */
+
+// The load balancer and the operations dashboard read this.
+Route::get('/health', HealthController::class)->name('health');
 
 Route::get('/', function () {
     return redirect()->route('dashboard');
@@ -55,6 +59,20 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         // sections routes
         Route::resource('sections', SectionController::class);
 
+        // report routes. A report reads whatever period it is given, so it
+        // does not need one to be set first.
+        Route::post('reports', ['App\Http\Controllers\ReportController', 'store'])->name('reports.store');
+        Route::get('reports/{reportRun}/download', ['App\Http\Controllers\ReportController', 'download'])->name('reports.download');
+
+        // import routes. An import reads the school, not the period, so it
+        // does not need a period to be set first. A school that turned imports
+        // off closes the way in without losing what it already imported.
+        Route::middleware(['feature:imports'])->group(function () {
+            Route::post('imports', ['App\Http\Controllers\ImportController', 'store'])->name('imports.store');
+            Route::post('imports/{importBatch}/apply', ['App\Http\Controllers\ImportController', 'apply'])->name('imports.apply');
+            Route::post('imports/{importBatch}/cancel', ['App\Http\Controllers\ImportController', 'cancel'])->name('imports.cancel');
+        });
+
         Route::middleware(['App\Http\Middleware\EnsureAcademicYearIsSet', 'App\Http\Middleware\CreateCurrentAcademicYearRecord'])->group(function () {
             // promotion routes
             Route::get('students/promotions', ['App\Http\Controllers\PromotionController', 'index'])->name('students.promotions');
@@ -72,6 +90,8 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             // semester routes
             Route::resource('semesters', SemesterController::class);
             Route::post('semesters/set', ['App\Http\Controllers\SemesterController', 'setSemester'])->name('semesters.set-semester');
+            Route::post('semesters/{semester}/close', ['App\Http\Controllers\SemesterController', 'close'])->name('semesters.close');
+            Route::post('semesters/{semester}/reopen', ['App\Http\Controllers\SemesterController', 'reopen'])->name('semesters.reopen');
 
             Route::middleware(['App\Http\Middleware\EnsureSemesterIsSet'])->group(function () {
                 // fee categories routes
@@ -99,6 +119,8 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 // manage timetable
                 Route::get('timetables/{timetable}/manage', ['App\Http\Controllers\TimetableController', 'manage'])->name('timetables.manage');
                 Route::get('timetables/{timetable}/print', ['App\Http\Controllers\TimetableController', 'print'])->name('timetables.print');
+                Route::post('timetables/{timetable}/publish', ['App\Http\Controllers\TimetableController', 'publish'])->name('timetables.publish');
+                Route::post('timetables/{timetable}/revise', ['App\Http\Controllers\TimetableController', 'revise'])->name('timetables.revise');
 
                 // timetable-timeslot route
                 Route::resource('timetables/manage/time-slots', TimetableTimeSlotController::class);
@@ -158,9 +180,11 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         // academic year routes
         Route::resource('academic-years', AcademicYearController::class);
         Route::post('academic-years/set', ['App\Http\Controllers\AcademicYearController', 'setAcademicYear'])->name('academic-years.set-academic-year');
+        Route::post('academic-years/{academic_year}/close', ['App\Http\Controllers\AcademicYearController', 'close'])->name('academic-years.close');
+        Route::post('academic-years/{academic_year}/reopen', ['App\Http\Controllers\AcademicYearController', 'reopen'])->name('academic-years.reopen');
 
         // assign teachers to subject in class
-        Route::get('subjects/assign-teacher', ['App\Http\Controllers\SubjectController', 'assignTeacherVIew'])->name('subjects.assign-teacher');
+        Route::get('subjects/assign-teacher', ['App\Http\Controllers\SubjectController', 'assignTeacherView'])->name('subjects.assign-teacher');
         Route::post('subjects/assign-teacher/{teacher}', ['App\Http\Controllers\SubjectController', 'assignTeacher'])->name('subjects.assign-teacher-to-subject');
 
         // subject routes

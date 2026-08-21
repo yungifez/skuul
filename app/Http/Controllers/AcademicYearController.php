@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Academic\ChangeAcademicPeriodStatus;
 use App\Http\Requests\AcademicYearStoreRequest;
 use App\Models\AcademicYear;
 use App\Services\AcademicYear\AcademicYearService;
@@ -13,7 +14,7 @@ class AcademicYearController extends Controller
 {
     public $academicYear;
 
-    public function __construct(AcademicYearService $academicYear)
+    public function __construct(AcademicYearService $academicYear, private ChangeAcademicPeriodStatus $changeAcademicPeriodStatus)
     {
         $this->academicYear = $academicYear;
         $this->authorizeResource(AcademicYear::class, 'academic_year');
@@ -81,6 +82,30 @@ class AcademicYearController extends Controller
         $this->academicYear->deleteAcademicYear($academicYear);
 
         return back()->with('success', 'Academic year deleted successfully');
+    }
+
+    /**
+     * Close the academic year and freeze its records.
+     */
+    public function close(Request $request, AcademicYear $academicYear): RedirectResponse
+    {
+        $this->authorize('close', $academicYear);
+
+        $this->changeAcademicPeriodStatus->close($academicYear, $request->user(), $request->input('reason'));
+
+        return back()->with('success', 'Academic year closed successfully');
+    }
+
+    /**
+     * Reopen the academic year so it accepts work again.
+     */
+    public function reopen(Request $request, AcademicYear $academicYear): RedirectResponse
+    {
+        $this->authorize('reopen', $academicYear);
+
+        $this->changeAcademicPeriodStatus->reopen($academicYear, $request->user(), $request->input('reason'));
+
+        return back()->with('success', 'Academic year reopened successfully');
     }
 
     /**

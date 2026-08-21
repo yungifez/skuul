@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Exceptions\InvalidValueException;
+use App\Traits\InAcademicPeriod;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 class TimetableTimeSlot extends Model
 {
     use HasFactory;
+    use InAcademicPeriod;
 
     protected $fillable = [
         'start_time',
@@ -20,6 +23,21 @@ class TimetableTimeSlot extends Model
     ];
 
     protected $getDateFormat = 'H:i';
+
+    /**
+     * A slot of a published timetable stops changing with it.
+     */
+    protected static function booted(): void
+    {
+        $failIfPublished = function (self $slot): void {
+            if ($slot->timetable?->isPublished()) {
+                throw new InvalidValueException('This timetable is published. Create a revision to change it.');
+            }
+        };
+
+        static::saving($failIfPublished);
+        static::deleting($failIfPublished);
+    }
 
     public function startTime(): Attribute
     {
@@ -45,9 +63,22 @@ class TimetableTimeSlot extends Model
         );
     }
 
+    /**
+     * Get the timetable that owns the slot.
+     *
+     * @return BelongsTo<Timetable, $this>
+     */
     public function timetable(): BelongsTo
     {
         return $this->belongsTo(Timetable::class);
+    }
+
+    /**
+     * Get the semester that governs this timetable slot.
+     */
+    public function governingAcademicPeriod(): AcademicYear|Semester|null
+    {
+        return $this->timetable?->semester;
     }
 
     public function weekdays(): BelongsToMany

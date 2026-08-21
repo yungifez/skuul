@@ -41,7 +41,7 @@ class UserService
      * Get users by role.
      *
      * @param  string  $role
-     * @return Collection|static[]
+     * @return Collection<int, User>
      */
     public function getUsersByRole($role)
     {

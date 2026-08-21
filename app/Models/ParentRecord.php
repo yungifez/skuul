@@ -16,9 +16,9 @@ class ParentRecord extends Model
     /**
      * Get the user that owns the StudentRecord.
      *
-     * @return BelongsTo
+     * @return BelongsTo<User, $this>
      */
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
@@ -26,9 +26,9 @@ class ParentRecord extends Model
     /**
      * The students that belong to the ParentRecord.
      *
-     * @return BelongsToMany
+     * @return BelongsToMany<User, $this>
      */
-    public function students()
+    public function students(): BelongsToMany
     {
         return $this->belongsToMany(User::class);
     }

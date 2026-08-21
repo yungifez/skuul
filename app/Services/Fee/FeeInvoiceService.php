@@ -2,6 +2,7 @@
 
 namespace App\Services\Fee;
 
+use App\Actions\Finance\ChargeStudent;
 use App\Exceptions\InvalidValueException;
 use App\Models\Fee;
 use App\Models\FeeInvoice;
@@ -13,6 +14,8 @@ use Illuminate\Support\Facades\DB;
 
 class FeeInvoiceService
 {
+    public function __construct(private ChargeStudent $chargeStudent) {}
+
     /**
      * Store a new Fee Invoice.
      *
@@ -50,8 +53,42 @@ class FeeInvoiceService
                 ]);
 
                 $feeInvoice->feeInvoiceRecords()->createMany($records['records']);
+
+                $this->chargeTheStudent($feeInvoice);
             }
         });
+    }
+
+    /**
+     * Put the invoice on the student's account in the books.
+     *
+     * The invoice screens still show their own totals, but what a student
+     * owes is answered by the ledger, which cannot drift.
+     */
+    private function chargeTheStudent(FeeInvoice $feeInvoice): void
+    {
+        $enrollment = $feeInvoice->user?->studentRecord;
+
+        if ($enrollment === null) {
+            return;
+        }
+
+        // Read the raw columns: they hold minor units, and the books hold
+        // major units.
+        $records = $feeInvoice->feeInvoiceRecords();
+        $minor = (int) $records->sum('amount') + (int) $records->clone()->sum('fine') - (int) $records->clone()->sum('waiver');
+        $amount = round($minor / 100, 2);
+
+        if ($amount <= 0) {
+            return;
+        }
+
+        $this->chargeStudent->charge(
+            enrollment: $enrollment,
+            amount: $amount,
+            description: "Invoice $feeInvoice->name",
+            source: $feeInvoice,
+        );
     }
 
     /**

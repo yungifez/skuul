@@ -23,9 +23,9 @@ class Subject extends Model
     /**
      * Get the class that owns the Subject.
      *
-     * @return BelongsTo
+     * @return BelongsTo<MyClass, $this>
      */
-    public function myClass()
+    public function myClass(): BelongsTo
     {
         return $this->belongsTo(MyClass::class);
     }

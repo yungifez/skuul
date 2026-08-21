@@ -138,6 +138,13 @@ return [
 
     'enable_wildcard_permission' => false,
 
+    /*
+     * Dispatch events when roles and permissions are attached or detached.
+     * The audit log listens to these events, so it must stay enabled.
+     */
+
+    'events_enabled' => true,
+
     'cache' => [
 
         /*

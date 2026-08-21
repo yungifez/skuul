@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\InAcademicPeriod;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,17 +11,26 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class ExamSlot extends Model
 {
     use HasFactory;
+    use InAcademicPeriod;
 
     protected $fillable = ['name', 'description', 'total_marks', 'exam_id'];
 
     /**
-     * Get the exam that owns the ExamSlot.
+     * Get the exam that owns the slot.
      *
-     * @return BelongsTo
+     * @return BelongsTo<Exam, $this>
      */
-    public function exam()
+    public function exam(): BelongsTo
     {
         return $this->belongsTo(Exam::class);
+    }
+
+    /**
+     * Get the semester that governs this exam slot.
+     */
+    public function governingAcademicPeriod(): AcademicYear|Semester|null
+    {
+        return $this->exam?->semester;
     }
 
     /**

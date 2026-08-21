@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\InSchool;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ClassGroup extends Model
 {
@@ -15,7 +16,12 @@ class ClassGroup extends Model
         'name', 'school_id',
     ];
 
-    public function school()
+    /**
+     * Get the school that owns the class group.
+     *
+     * @return BelongsTo<School, $this>
+     */
+    public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
     }
