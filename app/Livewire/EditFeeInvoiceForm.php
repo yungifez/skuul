@@ -8,15 +8,20 @@ use Livewire\Component;
 class EditFeeInvoiceForm extends Component
 {
     public $feeInvoice;
+
     public $feeCategories;
+
     public $feeCategory;
+
     public $fees;
+
     public $fee;
+
     public $errors;
 
     protected $rules = [
         'feeCategory' => 'integer|exists:fee_categories,id',
-        'fee'         => 'nullable|integer',
+        'fee' => 'nullable|integer',
     ];
 
     public function mount()

@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class() extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::table('timetable_time_slot_weekday', static function (Blueprint $table) {
@@ -13,13 +14,13 @@ return new class() extends Migration {
             $table->dropForeign(['subject_id']);
         });
 
-        //update all existing columns
+        // update all existing columns
         DB::update("UPDATE timetable_time_slot_weekday SET timetable_time_slot_weekdayable_type = 'App\Models\Subjects'");
     }
 
     public function down(): void
     {
-        //I'm too tired to comment on this
+        // I'm too tired to comment on this
         DB::table('timetable_time_slot_weekday')->where('timetable_time_slot_weekdayable_type', '!=', 'App\Models\Subjects')->delete();
 
         Schema::table('timetable_time_slot_weekday', static function (Blueprint $table) {

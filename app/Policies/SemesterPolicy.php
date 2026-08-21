@@ -25,7 +25,7 @@ class SemesterPolicy
      */
     public function view(User $user, Semester $semester)
     {
-        if ($user->can('read semester') && $user->school_id == $semester->school_id) {
+        if ($user->can('read semester') && current_school_id() == $semester->school_id) {
             return true;
         }
     }
@@ -45,7 +45,7 @@ class SemesterPolicy
      */
     public function update(User $user, Semester $semester)
     {
-        if ($user->can('update semester') && $user->school_id == $semester->school_id) {
+        if ($user->can('update semester') && current_school_id() == $semester->school_id) {
             return true;
         }
     }
@@ -55,7 +55,7 @@ class SemesterPolicy
      */
     public function delete(User $user, Semester $semester)
     {
-        if ($user->can('delete semester') && $user->school_id == $semester->school_id) {
+        if ($user->can('delete semester') && current_school_id() == $semester->school_id) {
             return true;
         }
     }

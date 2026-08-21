@@ -43,7 +43,7 @@ class AcademicYearPolicy
      */
     public function update(User $user, AcademicYear $academicYear)
     {
-        if ($user->can('update academic year') && $user->school_id == $academicYear->school_id) {
+        if ($user->can('update academic year') && current_school_id() == $academicYear->school_id) {
             return true;
         }
     }
@@ -53,7 +53,7 @@ class AcademicYearPolicy
      */
     public function delete(User $user, AcademicYear $academicYear)
     {
-        if ($user->can('delete academic year') && $user->school_id == $academicYear->school_id) {
+        if ($user->can('delete academic year') && current_school_id() == $academicYear->school_id) {
             return true;
         }
     }

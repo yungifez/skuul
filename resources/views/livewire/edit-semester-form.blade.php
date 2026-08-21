@@ -1,6 +1,6 @@
 <div class="card">
     <div class="card-header">
-        <h3 class="card-title">Edit {{$semester->name}} in session {{auth()->user()->school->academicYear->name}}</h3>
+        <h3 class="card-title">Edit {{$semester->name}} in session {{current_school()->academicYear->name}}</h3>
     </div>
     <div class="card-body">
         <form action="{{route('semesters.update', $semester->id)}}" method="POST" class="md:w-6/12">

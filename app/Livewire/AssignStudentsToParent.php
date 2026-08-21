@@ -39,13 +39,13 @@ class AssignStudentsToParent extends Component
 
     public function updatedClass()
     {
-        //get instance of class
+        // get instance of class
         $class = app("App\Services\MyClass\MyClassService")->getClassById($this->class);
 
-        //get sections in class
+        // get sections in class
         $this->sections = $class->sections;
 
-        //set section if the fetched records aren't empty
+        // set section if the fetched records aren't empty
         if ($this->sections->isEmpty()) {
             $this->students = null;
 
@@ -58,13 +58,13 @@ class AssignStudentsToParent extends Component
 
     public function updatedSection()
     {
-        //get instance of section
+        // get instance of section
         $section = app("App\Services\Section\SectionService")->getSectionById($this->section);
 
-        //get students in section
+        // get students in section
         $this->students = $section->students();
 
-        //set student if the fetched records aren't empty
+        // set student if the fetched records aren't empty
         $this->students->count() ? $this->student = $this->students[0]->id : $this->student = null;
     }
 

@@ -16,7 +16,7 @@ class ClassGroupController extends Controller
      */
     public MyClassService $myClassService;
 
-    //construct method
+    // construct method
     public function __construct(MyClassService $myClassService)
     {
         $this->myClassService = $myClassService;

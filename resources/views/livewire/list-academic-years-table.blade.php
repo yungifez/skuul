@@ -5,7 +5,7 @@
     <div class="card-body">
         <livewire:datatable :model="App\Models\AcademicYear::class" 
         :filters="[
-            ['name' => 'where' , 'arguments' => ['school_id' , auth()->user()->school_id]]
+            ['name' => 'inSchool']
         ]"
         :columns="[
             ['name' => 'Start Year', 'property' => 'start_year'],

@@ -93,7 +93,7 @@ class SchoolController extends Controller
      */
     public function settings(): RedirectResponse
     {
-        return redirect()->route('schools.edit', ['school' => auth()->user()->school_id]);
+        return redirect()->route('schools.edit', ['school' => current_school_id()]);
     }
 
     /**

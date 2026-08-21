@@ -3,27 +3,28 @@
 namespace App\Services\Notice;
 
 use App\Models\Notice;
+use Illuminate\Database\Eloquent\Collection;
 
 class NoticeService
 {
     /**
      * Get all notices.
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     public function getAllNotices()
     {
-        return Notice::where('school_id', auth()->user()->school_id)->get();
+        return Notice::inSchool()->get();
     }
 
     /**
      * Get present notices which are active.
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     public function getPresentNotices()
     {
-        return Notice::where('school_id', auth()->user()->school_id)
+        return Notice::inSchool()
             ->whereDate('start_date', '<=', date('Y-m-d'))
             ->whereDate('stop_date', '>=', date('Y-m-d'))
             ->where('active', 1)
@@ -33,7 +34,7 @@ class NoticeService
     /**
      * Store notice.
      *
-     * @return \App\Models\Notice
+     * @return Notice
      */
     public function storeNotice(array $data)
     {
@@ -43,12 +44,12 @@ class NoticeService
             $data['attachment'] = null;
         }
         $notice = Notice::create([
-            'title'      => $data['title'],
-            'content'    => $data['content'],
+            'title' => $data['title'],
+            'content' => $data['content'],
             'start_date' => $data['start_date'],
-            'stop_date'  => $data['stop_date'],
+            'stop_date' => $data['stop_date'],
             'attachment' => $data['attachment'],
-            'school_id'  => auth()->user()->school_id,
+            'school_id' => current_school_id(),
         ]);
 
         return $notice;
@@ -57,7 +58,6 @@ class NoticeService
     /**
      * Delete notice.
      *
-     * @param \App\Models\Notice $notice
      *
      * @return void
      */

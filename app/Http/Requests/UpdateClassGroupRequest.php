@@ -15,7 +15,7 @@ class UpdateClassGroupRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'school_id' => auth()->user()->school_id,
+            'school_id' => current_school_id(),
         ]);
     }
 
@@ -30,7 +30,7 @@ class UpdateClassGroupRequest extends FormRequest
             'name' => [
                 'required',
                 'max:255',
-                Rule::unique('class_groups')->ignore($this->route()->parameter('class_group')->id)->where(fn ($query) => $query->where('school_id', $this->input('school_id') ?? auth()->user()->school_id)),
+                Rule::unique('class_groups')->ignore($this->route()->parameter('class_group')->id)->where(fn ($query) => $query->where('school_id', $this->input('school_id') ?? current_school_id())),
             ],
         ];
     }

@@ -4,7 +4,8 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class() extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::create('student_records', static function (Blueprint $table) {
@@ -16,7 +17,7 @@ return new class() extends Migration {
             $table->foreignId('section_id')->nullable()->constrained()->onUpdate('cascade')->onDelete('cascade');
             $table->boolean('is_graduated')->default(false);
             $table->timestamps();
-            //admission number unique
+            // admission number unique
             $table->unique('admission_number');
         });
     }

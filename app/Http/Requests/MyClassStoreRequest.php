@@ -21,13 +21,13 @@ class MyClassStoreRequest extends FormRequest
             'name' => [
                 'required',
                 'max:255',
-                //checks if there is a class with a name in class group
+                // checks if there is a class with a name in class group
                 Rule::unique('my_classes', 'name')->where(fn ($query) => $query->where('class_group_id', $classGroupId)),
             ],
             'class_group_id' => [
                 'required',
                 Rule::exists('class_groups', 'id')->where(function (Builder $query) {
-                    return $query->where('school_id', auth()->user()->school->id);
+                    return $query->where('school_id', current_school_id());
                 }),
             ],
         ];

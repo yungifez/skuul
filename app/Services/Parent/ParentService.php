@@ -2,6 +2,7 @@
 
 namespace App\Services\Parent;
 
+use App\Enums\Role;
 use App\Exceptions\InvalidUserException;
 use App\Models\User;
 use App\Services\Print\PrintService;
@@ -32,15 +33,14 @@ class ParentService
     /**
      * Create a new parent.
      *
-     * @param array|collection $record
-     *
+     * @param  array|Collection  $record
      * @return User
      */
     public function createParent($record)
     {
         $parent = DB::transaction(function () use ($record) {
             $parent = $this->user->createUser($record);
-            $parent->assignRole('parent');
+            $parent->assignRole(Role::Parent);
             $parent->parentRecord()->create(['user_id' => $parent->id]);
 
             return $parent;
@@ -52,8 +52,7 @@ class ParentService
     /**
      * Update a parent.
      *
-     * @param array|object|collection $records
-     *
+     * @param  array|object|Collection  $records
      * @return User
      */
     public function updateParent(User $parent, $records)
@@ -88,13 +87,11 @@ class ParentService
     /**
      * Add student as child of parent or remove student from parent.
      *
-     * @param \App\Models\User $parent
-     * @param int              $student
-     * @param bool             $assign
      *
-     * @throws InvalidUserException
      *
      * @return void
+     *
+     * @throws InvalidUserException
      */
     public function assignStudentToParent(User $parent, int $student, bool $assign = true)
     {

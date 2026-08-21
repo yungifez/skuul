@@ -26,22 +26,22 @@ class PromoteStudents extends Component
     public $students;
 
     protected $rules = [
-        'oldClass'   => 'required|exists:my_classes,id',
+        'oldClass' => 'required|exists:my_classes,id',
         'oldSection' => 'required|exists:sections,id',
-        'newClass'   => 'required|exists:my_classes,id',
+        'newClass' => 'required|exists:my_classes,id',
         'newSection' => 'required|exists:sections,id',
     ];
 
-    public function mount(MyclassService $myClassService)
+    public function mount(MyClassService $myClassService)
     {
         $this->classes = $myClassService->getAllClasses();
 
-        //set default values
+        // set default values
         if ($this->classes->isNotEmpty()) {
             $this->oldClass = $this->classes[0]->id;
             $this->newClass = $this->classes[0]->id;
 
-            //load initial sections
+            // load initial sections
             $this->loadInitialNewSections();
             $this->loadInitialOldSections();
         }

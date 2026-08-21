@@ -15,7 +15,7 @@ class StoreCustomTimetableItemRequest extends FormRequest
     protected function prepareForValidation()
     {
         $this->merge([
-            'school_id' => auth()->user()->school_id,
+            'school_id' => current_school_id(),
         ]);
     }
 
@@ -31,7 +31,7 @@ class StoreCustomTimetableItemRequest extends FormRequest
                 'required',
                 'string',
                 'max:255',
-                Rule::unique('custom_timetable_items')->where(fn ($query) => $query->where('school_id', $this->input('school_id') ?? auth()->user()->school_id)),
+                Rule::unique('custom_timetable_items')->where(fn ($query) => $query->where('school_id', $this->input('school_id') ?? current_school_id())),
             ],
             'school_id' => [
                 'required',

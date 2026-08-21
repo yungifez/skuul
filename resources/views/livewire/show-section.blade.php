@@ -6,7 +6,7 @@
         <h1 class="text-center text-xl md:text-3xl font-bold my-3">Students in section</h1>
         <livewire:datatable :model="App\Models\User::class" uniqueId="students-list-table" 
         :filters="[
-            ['name' => 'where' , 'arguments' => ['school_id' , auth()->user()->school_id]], 
+            ['name' => 'ofSchool'], 
             ['name' => 'whereRelation' , 'arguments' => ['studentRecord','section_id' , $section->id]],
         ]"
         :columns="

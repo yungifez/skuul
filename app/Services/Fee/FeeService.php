@@ -9,14 +9,14 @@ class FeeService
     /**
      * Store a new fee.
      *
-     * @param array $records
+     * @param  array  $records
      */
     public function storeFee($records): Fee
     {
         $fee = Fee::create([
-            'name'             => $records['name'],
-            'description'      => $records['description'] ?? null,
-            'fee_category_id'  => $records['fee_category_id'],
+            'name' => $records['name'],
+            'description' => $records['description'] ?? null,
+            'fee_category_id' => $records['fee_category_id'],
         ]);
 
         return $fee;
@@ -25,14 +25,13 @@ class FeeService
     /**
      * Update a fee.
      *
-     * @param Fee   $fee
-     * @param array $record
+     * @param  array  $record
      */
     public function updateFee(Fee $fee, $record): Fee
     {
         $fee->update([
-            'name'         => $record['name'],
-            'description'  => $record['description'] ?? null,
+            'name' => $record['name'],
+            'description' => $record['description'] ?? null,
         ]);
 
         return $fee;
@@ -40,8 +39,6 @@ class FeeService
 
     /**
      * Delete a fee.
-     *
-     * @param Fee $fee
      */
     public function deleteFee(Fee $fee): ?bool
     {

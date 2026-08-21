@@ -50,7 +50,7 @@ class UpdateApplicationCommand extends Command
 
         sleep(2);
 
-        //verify user is not root
+        // verify user is not root
         if (posix_getuid() == 0) {
             $this->error('This Command cannot be run by root user, thank you for using Skuul');
             exit;

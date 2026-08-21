@@ -107,7 +107,7 @@ class CustomTimetableItemTest extends TestCase
 
         $this->assertDatabaseMissing('custom_timetable_items', [
             'name' => $name,
-            'id'   => $customItem->id,
+            'id' => $customItem->id,
         ]);
     }
 
@@ -124,7 +124,7 @@ class CustomTimetableItemTest extends TestCase
 
         $this->assertDatabaseHas('custom_timetable_items', [
             'name' => $name,
-            'id'   => $customItem->id,
+            'id' => $customItem->id,
         ]);
     }
 

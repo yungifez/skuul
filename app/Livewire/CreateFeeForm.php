@@ -11,7 +11,7 @@ class CreateFeeForm extends Component
 
     public function mount()
     {
-        $this->feeCategories = FeeCategory::where('school_id', auth()->user()->school_id)->get();
+        $this->feeCategories = FeeCategory::inSchool()->get();
     }
 
     public function render()

@@ -4,6 +4,7 @@ namespace App\Services\GradeSystem;
 
 use App\Exceptions\DuplicateRangeException;
 use App\Models\GradeSystem;
+use Illuminate\Database\Eloquent\Collection;
 
 class GradeSystemService
 {
@@ -11,7 +12,7 @@ class GradeSystemService
      * Get all grades in class group.
      *
      *
-     * @return App\Model\GradeSystem
+     * @return Collection<int, GradeSystem>
      */
     public function getAllGradesInClassGroup(int $classGroup_id)
     {
@@ -34,15 +35,14 @@ class GradeSystemService
     /**
      * Create grade in gradesystem.
      *
-     * @param array|object $records
+     * @param  array|object  $records
+     * @return void
      *
      * @throws DuplicateRangeException
-     *
-     * @return void
      */
     public function createGradeSystem($records)
     {
-        //get all grades in the class group
+        // get all grades in the class group
         $gradesInDb = $this->getAllGradesInClassGroup($records['class_group_id']);
 
         if ($this->gradeRangeExists(['grade_from' => $records['grade_from'], 'grade_till' => $records['grade_till']], $gradesInDb)) {
@@ -51,21 +51,20 @@ class GradeSystemService
 
         GradeSystem::create([
             'class_group_id' => $records['class_group_id'],
-            'grade_from'     => $records['grade_from'],
-            'grade_till'     => $records['grade_till'],
-            'name'           => $records['name'],
-            'remark'         => $records['remark'],
+            'grade_from' => $records['grade_from'],
+            'grade_till' => $records['grade_till'],
+            'name' => $records['name'],
+            'remark' => $records['remark'],
         ]);
     }
 
     /**
      * Update grade in gradesystem.
      *
-     * @param array|object $records
+     * @param  array|object  $records
+     * @return void
      *
      * @throws DuplicateRangeException
-     *
-     * @return void
      */
     public function updateGradeSystem(GradeSystem $grade, $records)
     {
@@ -77,10 +76,10 @@ class GradeSystemService
 
         $grade->update([
             'class_group_id' => $records['class_group_id'],
-            'grade_from'     => $records['grade_from'],
-            'grade_till'     => $records['grade_till'],
-            'name'           => $records['name'],
-            'remark'         => $records['remark'],
+            'grade_from' => $records['grade_from'],
+            'grade_till' => $records['grade_till'],
+            'name' => $records['name'],
+            'remark' => $records['remark'],
         ]);
         $grade->save();
     }
@@ -97,27 +96,26 @@ class GradeSystemService
     }
 
     /**
-     * @param array $grade  with grade_from and grade_till
-     * @param array $grades each with grade_from and grade_till (testing against)
-     *
+     * @param  array  $grade  with grade_from and grade_till
+     * @param  array  $grades  each with grade_from and grade_till (testing against)
      * @return bool
      */
     public function gradeRangeExists($grade, $grades)
     {
         foreach ($grades as $i) {
-            //check if given grade is in range of grade in array
+            // check if given grade is in range of grade in array
             if ($grade['grade_from'] >= $i['grade_from'] && $grade['grade_till'] <= $i['grade_till']) {
                 return true;
             }
-            //check if array grade is in range of given grade
+            // check if array grade is in range of given grade
             if ($i['grade_from'] >= $grade['grade_from'] && $i['grade_till'] <= $grade['grade_till']) {
                 return true;
             }
-            //check if given grade starts at array grade
+            // check if given grade starts at array grade
             if (in_array($grade['grade_from'], range($i['grade_from'], $i['grade_till']))) {
                 return true;
             }
-            //check if given grade ends at array grade
+            // check if given grade ends at array grade
             if (in_array($grade['grade_till'], range($i['grade_from'], $i['grade_till']))) {
                 return true;
             }

@@ -5,7 +5,7 @@
     <div class="card-body">
         <livewire:datatable :model="App\Models\CustomTimetableItem::class"
         :filters="[
-            ['name' => 'where', 'arguments' => ['school_id', auth()->user()->school_id] ]
+            ['name' => 'inSchool']
         ]"
         :columns="[
             ['property' => 'name'],

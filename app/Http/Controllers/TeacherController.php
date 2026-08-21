@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\Teacher\TeacherService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -52,7 +53,7 @@ class TeacherController extends Controller
      * Display the specified resource.
      *
      *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws AuthorizationException
      */
     public function show(User $teacher): View
     {
@@ -65,7 +66,7 @@ class TeacherController extends Controller
      * Show the form for editing the specified resource.
      *
      *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws AuthorizationException
      */
     public function edit(User $teacher): View
     {
@@ -78,7 +79,7 @@ class TeacherController extends Controller
      * Update the specified resource in storage.
      *
      *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws AuthorizationException
      */
     public function update(Request $request, User $teacher): RedirectResponse
     {
@@ -92,7 +93,7 @@ class TeacherController extends Controller
      * Remove the specified resource from storage.
      *
      *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws AuthorizationException
      */
     public function destroy(User $teacher): RedirectResponse
     {

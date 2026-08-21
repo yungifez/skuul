@@ -2,8 +2,10 @@
 
 namespace App\Services\Admin;
 
+use App\Enums\Role;
 use App\Models\User;
 use App\Services\User\UserService;
+use Illuminate\Support\Collection;
 
 class AdminService
 {
@@ -30,22 +32,19 @@ class AdminService
     /**
      * Create Admin.
      *
-     * @param array|Collection $records
-     *
-     * @return \App\Models\User
+     * @param  array<string, mixed>|Collection<string, mixed>  $records
      * @return void
      */
     public function createAdmin($records)
     {
         $admin = $this->user->createUser($records);
-        $admin->assignRole('admin');
+        $admin->assignRole(Role::Admin);
     }
 
     /**
      * Update Admin.
      *
-     * @param array|Collection $records
-     *
+     * @param  array<string, mixed>|Collection<string, mixed>  $records
      * @return void
      */
     public function updateAdmin(User $admin, $records)

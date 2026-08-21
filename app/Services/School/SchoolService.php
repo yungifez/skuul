@@ -4,7 +4,9 @@ namespace App\Services\School;
 
 use App\Exceptions\ResourceNotEmptyException;
 use App\Models\School;
+use App\Models\User;
 use App\Services\User\UserService;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Str;
 use Storage;
 
@@ -26,7 +28,7 @@ class SchoolService
     /**
      * Get all schools.
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     public function getAllSchools()
     {
@@ -34,11 +36,29 @@ class SchoolService
     }
 
     /**
+     * Get the schools a person may open.
+     *
+     * A platform administrator may open any school. Everyone else sees only
+     * the schools they hold an active membership in.
+     */
+    public function getSchoolsForUser(?User $user = null): Collection
+    {
+        $user ??= auth()->user();
+
+        if ($user === null) {
+            return School::query()->whereRaw('1 = 0')->get();
+        }
+
+        return $user->isPlatformAdmin()
+            ? School::orderBy('name')->get()
+            : $user->schools()->orderBy('name')->get();
+    }
+
+    /**
      * Get a school by id.
      *
-     * @param int $id
-     *
-     * @return \App\Models\School
+     * @param  int  $id
+     * @return School
      */
     public function getSchoolById($id)
     {
@@ -48,9 +68,8 @@ class SchoolService
     /**
      * Create school.
      *
-     * @param array $record
-     *
-     * @return \App\Models\School
+     * @param  array  $record
+     * @return School
      */
     public function createSchool($record)
     {
@@ -69,7 +88,7 @@ class SchoolService
     /**
      * Update school.
      *
-     * @return \App\Models\School
+     * @return School
      */
     public function updateSchool(School $school, $record)
     {
@@ -91,14 +110,17 @@ class SchoolService
     /**
      * Set authenticated user's school.
      *
-     * @param \App\Models\School
-     *
      * @return void
      */
     public function setSchool(School $school)
     {
-        auth()->user()->school_id = $school->id;
-        auth()->user()->save();
+        $user = auth()->user();
+
+        if (!$user->isPlatformAdmin() && !$user->belongsToSchool($school)) {
+            abort(403, 'You do not have access to that school.');
+        }
+
+        app(SchoolContext::class)->set($school);
     }
 
     /**

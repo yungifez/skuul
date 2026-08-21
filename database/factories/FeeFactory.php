@@ -2,11 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Models\Fee;
 use App\Models\FeeCategory;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Fee>
+ * @extends Factory<Fee>
  */
 class FeeFactory extends Factory
 {
@@ -21,8 +22,8 @@ class FeeFactory extends Factory
 
         return [
             'fee_Category_id' => $feeCategory->id,
-            'name'            => $this->faker->name(),
-            'description'     => $this->faker->sentence(),
+            'name' => $this->faker->name(),
+            'description' => $this->faker->sentence(),
         ];
     }
 }

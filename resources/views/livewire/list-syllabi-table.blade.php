@@ -3,7 +3,7 @@
         <div class="card-title">Syllabi List</div>
     </div>
     <div class="card-body">
-        @if (!auth()->user()->hasRole('student'))
+        @if (!auth()->user()->hasRole(\App\Enums\Role::Student))
             <x-select id="my_class" label="Select a class to see syllabus"  group-class="my-6 md:w-1/2" name="" wire:model.live="class">
                 @foreach ($classes as $item)
                     <option value="{{$item['id']}}">{{$item['name']}}</option>
@@ -18,7 +18,7 @@
             :filters="[
                 ['name' => 'find' ,'arguments' => [ $class]],
                 ['name' => 'syllabi'],
-                ['name' => 'where' , 'arguments' =>[ 'semester_id' , auth()->user()->school->semester_id]]
+                ['name' => 'where' , 'arguments' =>[ 'semester_id' , current_school()->semester_id]]
             ]"
             :columns="[
                 ['property' => 'name'],

@@ -15,9 +15,6 @@ class RoleSeeder extends Seeder
     public function run()
     {
         Role::firstOrCreate([
-            'name' => 'super-admin',
-        ]);
-        Role::firstOrCreate([
             'name' => 'admin',
         ]);
         Role::firstOrCreate([
@@ -34,9 +31,6 @@ class RoleSeeder extends Seeder
         ]);
         Role::firstOrCreate([
             'name' => 'librarian',
-        ]);
-        Role::firstOrCreate([
-            'name' => 'applicant',
         ]);
     }
 }

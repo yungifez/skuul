@@ -2,14 +2,18 @@
 
 namespace App\Models;
 
+use App\Traits\InSchool;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Subject extends Model
 {
     use HasFactory;
+    use InSchool;
     use SoftDeletes;
 
     protected $fillable = [
@@ -19,7 +23,7 @@ class Subject extends Model
     /**
      * Get the class that owns the Subject.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo
      */
     public function myClass()
     {
@@ -29,7 +33,7 @@ class Subject extends Model
     /**
      * The teachers that belong to the Subject.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     * @return BelongsToMany
      */
     public function teachers()
     {

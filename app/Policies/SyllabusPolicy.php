@@ -25,7 +25,7 @@ class SyllabusPolicy
      */
     public function view(User $user, Syllabus $syllabus)
     {
-        if ($user->can('read syllabus') && $user->school_id == $syllabus->subject->school_id) {
+        if ($user->can('read syllabus') && current_school_id() == $syllabus->subject->school_id) {
             return true;
         }
     }
@@ -45,7 +45,7 @@ class SyllabusPolicy
      */
     public function update(User $user, Syllabus $syllabus)
     {
-        if ($user->can('update syllabus') && $user->school_id == $syllabus->subject->school_id) {
+        if ($user->can('update syllabus') && current_school_id() == $syllabus->subject->school_id) {
             return true;
         }
     }
@@ -55,7 +55,7 @@ class SyllabusPolicy
      */
     public function delete(User $user, Syllabus $syllabus)
     {
-        if ($user->can('delete syllabus') && $user->school_id == $syllabus->subject->school_id) {
+        if ($user->can('delete syllabus') && current_school_id() == $syllabus->subject->school_id) {
             return true;
         }
     }

@@ -3,11 +3,11 @@
         <h2 class="card-title">Parents list</h2>
     </div>
     <div class="card-body">
-        <livewire:datatable :model="App\Models\User::class" uniqueId="parents-list-table" :filters="[['name' => 'role', 'arguments' => ['parent']], ['name' => 'inSchool'], ['name' => 'orderBy' , 'arguments' => ['name']]]" :columns="[
+        <livewire:datatable :model="App\Models\User::class" uniqueId="parents-list-table" :filters="[['name' => 'role', 'arguments' => ['parent']], ['name' => 'ofSchool'], ['name' => 'orderBy' , 'arguments' => ['name']]]" :columns="[
             ['property' => 'name'] , 
             ['property' => 'email'] ,
             ['property' => 'gender'] ,
-            ['property' => 'locked', 'name' => 'Locked' , 'type' => 'boolean-switch', 'action' => 'user.lock-account', 'field' => 'lock', 'true-statement' => 'Locked', 'false-statement' => 'Unlocked',  'can' => 'lock user'],
+            ['name' => 'Account', 'type' => 'account-status'],
             ['type' => 'dropdown', 'name' => 'actions','links' => [
                 ['href' => 'parents.edit', 'text' => 'Manage Profile', 'icon' => 'fas fa-pen',],
                 ['href' => 'parents.show', 'text' => 'View', 'icon' => 'fas fa-eye',  ],

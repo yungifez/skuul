@@ -1,14 +1,12 @@
-<div class="{{$class}} {{$colour}} {{$textColour}} shadow rounded">
-    <div class="p-2 md:p-3 text-center md:text-left md:flex gap-4 items-center justify-between border-b">
-        <div>
-            <h3 class="text-4xl md:text-5xl my-3 font-bold">{{$title}}</h3>
-            <p class="text-xl my-3">{{$text}}</p>
-        </div>
-        <i class="{{$icon}} m-4 text-center text-7xl hidden md:block" aria-hidden="true"></i>
-    </div>
+<april:card class="{{$class}} {{$colour}} {{$textColour}} border-transparent">
+    <slot:title class="flex items-center justify-between gap-4 text-3xl md:text-4xl">
+        <span>{{$title}}</span>
+        <i class="{{$icon}} hidden text-3xl opacity-80 md:block" aria-hidden="true"></i>
+    </slot:title>
+    <slot:description class="text-current/80">{{$text}}</slot:description>
     @isset ($url)
-        <div class="w-full bg-black bg-opacity-30 flex items-center justify-center">
-            <a href="{{$url}}" class="w-full py-2 md:py-3 text-center">{{$urlText ?? 'View'}} <i class="fa fa-arrow-circle-right" aria-hidden="true"></i></a>
-        </div>
+        <slot:footer class="-mx-6 -mb-6 mt-6 border-t border-white/20 bg-black/10 p-0">
+            <a href="{{$url}}" class="flex w-full items-center justify-between px-4 py-3 text-sm font-medium transition-colors hover:bg-black/10 md:px-5">{{$urlText ?? 'View'}} <i class="fa fa-arrow-right text-xs" aria-hidden="true"></i></a>
+        </slot:footer>
     @endif
-</div>
+</april:card>

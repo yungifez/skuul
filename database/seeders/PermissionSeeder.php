@@ -80,7 +80,7 @@ class PermissionSeeder extends Seeder
             'name' => 'delete section',
         ]);
 
-        //Permission for students
+        // Permission for students
         Permission::firstOrCreate([
             'name' => 'create student',
         ]);
@@ -94,7 +94,7 @@ class PermissionSeeder extends Seeder
             'name' => 'delete student',
         ]);
 
-        //Permission for admins
+        // Permission for admins
         Permission::firstOrCreate([
             'name' => 'create admin',
         ]);
@@ -108,7 +108,7 @@ class PermissionSeeder extends Seeder
             'name' => 'delete admin',
         ]);
 
-        //Permission for academic year
+        // Permission for academic year
         Permission::firstOrCreate([
             'name' => 'create academic year',
         ]);
@@ -125,7 +125,7 @@ class PermissionSeeder extends Seeder
             'name' => 'set academic year',
         ]);
 
-        //Permission for teacher
+        // Permission for teacher
         Permission::firstOrCreate([
             'name' => 'create teacher',
         ]);
@@ -139,7 +139,7 @@ class PermissionSeeder extends Seeder
             'name' => 'delete teacher',
         ]);
 
-        //Permission for parent
+        // Permission for parent
         Permission::firstOrCreate([
             'name' => 'create parent',
         ]);
@@ -153,7 +153,7 @@ class PermissionSeeder extends Seeder
             'name' => 'delete parent',
         ]);
 
-        //Permission for subject
+        // Permission for subject
         Permission::firstOrCreate([
             'name' => 'create subject',
         ]);
@@ -167,7 +167,7 @@ class PermissionSeeder extends Seeder
             'name' => 'delete subject',
         ]);
 
-        //Permission for student promotions
+        // Permission for student promotions
         Permission::firstOrCreate([
             'name' => 'promote student',
         ]);
@@ -178,7 +178,7 @@ class PermissionSeeder extends Seeder
             'name' => 'reset promotion',
         ]);
 
-        //permission for graduation
+        // permission for graduation
         Permission::firstOrCreate([
             'name' => 'graduate student',
         ]);
@@ -189,7 +189,7 @@ class PermissionSeeder extends Seeder
             'name' => 'reset graduation',
         ]);
 
-        //permission for semesters
+        // permission for semesters
         Permission::firstOrCreate([
             'name' => 'create semester',
         ]);
@@ -207,7 +207,7 @@ class PermissionSeeder extends Seeder
             'name' => 'set semester',
         ]);
 
-        //permission for syllabus
+        // permission for syllabus
         Permission::firstOrCreate([
             'name' => 'create syllabus',
         ]);
@@ -221,7 +221,7 @@ class PermissionSeeder extends Seeder
             'name' => 'delete syllabus',
         ]);
 
-        //permission for timetable
+        // permission for timetable
         Permission::firstOrCreate([
             'name' => 'create timetable',
         ]);
@@ -235,7 +235,7 @@ class PermissionSeeder extends Seeder
             'name' => 'delete timetable',
         ]);
 
-        //custom timetable item
+        // custom timetable item
         Permission::firstOrCreate([
             'name' => 'create custom timetable item',
         ]);
@@ -249,7 +249,7 @@ class PermissionSeeder extends Seeder
             'name' => 'delete custom timetable item',
         ]);
 
-        //exam permissions
+        // exam permissions
         Permission::firstOrCreate([
             'name' => 'create exam',
         ]);
@@ -263,7 +263,7 @@ class PermissionSeeder extends Seeder
             'name' => 'delete exam',
         ]);
 
-        //permission for grade system
+        // permission for grade system
         Permission::firstOrCreate([
             'name' => 'create grade system',
         ]);
@@ -277,7 +277,7 @@ class PermissionSeeder extends Seeder
             'name' => 'delete grade system',
         ]);
 
-        //permission for exam slots
+        // permission for exam slots
         Permission::firstOrCreate([
             'name' => 'create exam slot',
         ]);
@@ -291,7 +291,7 @@ class PermissionSeeder extends Seeder
             'name' => 'delete exam slot',
         ]);
 
-        //permission for exam records
+        // permission for exam records
         Permission::firstOrCreate([
             'name' => 'create exam record',
         ]);
@@ -305,12 +305,12 @@ class PermissionSeeder extends Seeder
             'name' => 'delete exam record',
         ]);
 
-        //check result permission
+        // check result permission
         Permission::firstOrCreate([
             'name' => 'check result',
         ]);
 
-        //permission for notices
+        // permission for notices
 
         Permission::firstOrCreate([
             'name' => 'create notice',
@@ -328,24 +328,12 @@ class PermissionSeeder extends Seeder
             'name' => 'delete notice',
         ]);
 
-        //permission for applicant
+        // permission for account access
         Permission::firstOrCreate([
-            'name' => 'read applicant',
+            'name' => 'manage account access',
         ]);
 
-        Permission::firstOrCreate([
-            'name' => 'update applicant',
-        ]);
-
-        Permission::firstOrCreate([
-            'name' => 'delete applicant',
-        ]);
-
-        Permission::firstOrCreate([
-            'name' => 'change account application status',
-        ]);
-
-        //permissions for fee categories
+        // permissions for fee categories
 
         Permission::firstOrCreate([
             'name' => 'create fee category',
@@ -363,7 +351,7 @@ class PermissionSeeder extends Seeder
             'name' => 'delete fee category',
         ]);
 
-        //permissions for fees
+        // permissions for fees
 
         Permission::firstOrCreate([
             'name' => 'create fee',
@@ -381,7 +369,7 @@ class PermissionSeeder extends Seeder
             'name' => 'delete fee',
         ]);
 
-        //permissions for fee invoices
+        // permissions for fee invoices
 
         Permission::firstOrCreate([
             'name' => 'create fee invoice',
@@ -399,7 +387,7 @@ class PermissionSeeder extends Seeder
             'name' => 'delete fee invoice',
         ]);
 
-        //fee invoice record
+        // fee invoice record
 
         Permission::firstOrCreate([
             'name' => 'create fee invoice record',
@@ -417,7 +405,7 @@ class PermissionSeeder extends Seeder
             'name' => 'delete fee invoice record',
         ]);
 
-        //header permissions (for controlling the menu headers)
+        // header permissions (for controlling the menu headers)
         Permission::firstOrCreate([
             'name' => 'header-administrate',
         ]);
@@ -467,16 +455,13 @@ class PermissionSeeder extends Seeder
             'name' => 'menu-notice',
         ]);
         Permission::firstOrCreate([
-            'name' => 'menu-account-application',
-        ]);
-        Permission::firstOrCreate([
             'name' => 'menu-fee',
         ]);
         /**
          * assign permissions to roles.
          */
 
-        //assign permissions to admin
+        // assign permissions to admin
         $admin = Role::where('name', 'admin')->first();
         $admin->syncPermissions([
             'header-administrate',
@@ -494,7 +479,6 @@ class PermissionSeeder extends Seeder
             'menu-grade-system',
             'menu-notice',
             'menu-parent',
-            'menu-account-application',
             'menu-fee',
             'manage school settings',
             'create section',
@@ -574,10 +558,7 @@ class PermissionSeeder extends Seeder
             'read parent',
             'update parent',
             'delete parent',
-            'read applicant',
-            'update applicant',
-            'delete applicant',
-            'change account application status',
+            'manage account access',
             'create custom timetable item',
             'read custom timetable item',
             'update custom timetable item',
@@ -600,7 +581,7 @@ class PermissionSeeder extends Seeder
             'delete fee invoice record',
         ]);
 
-        //assign permissions to teacher
+        // assign permissions to teacher
         $teacher = Role::where('name', 'teacher')->first();
         $teacher->syncPermissions([
             'header-academics',
@@ -631,7 +612,7 @@ class PermissionSeeder extends Seeder
             'check result',
         ]);
 
-        //assign permissions to student
+        // assign permissions to student
         $student = Role::where('name', 'student')->first();
         $student->syncPermissions([
             'header-academics',
@@ -650,7 +631,7 @@ class PermissionSeeder extends Seeder
             'check result',
         ]);
 
-        //assign permissions to parent
+        // assign permissions to parent
         $parent = Role::where('name', 'parent')->first();
         $parent->syncPermissions([
             'header-academics',
@@ -671,8 +652,8 @@ class PermissionSeeder extends Seeder
             'check result',
         ]);
 
-        //assign permissions to librarian
+        // assign permissions to librarian
 
-        //assign permissions to accountant
+        // assign permissions to accountant
     }
 }

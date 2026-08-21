@@ -16,8 +16,8 @@ class FeeInvoiceRecord extends Model
 
     protected $casts = [
         'amount' => Money::class,
-        'fine'   => Money::class,
-        'paid'   => Money::class,
+        'fine' => Money::class,
+        'paid' => Money::class,
         'waiver' => Money::class,
     ];
 
@@ -33,8 +33,6 @@ class FeeInvoiceRecord extends Model
 
     /**
      * Get the fee that owns the FeeInvoice.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function fee(): BelongsTo
     {
@@ -43,8 +41,6 @@ class FeeInvoiceRecord extends Model
 
     /**
      * Get the feeInvoice that owns the FeeInvoiceRecord.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function feeInvoice(): BelongsTo
     {

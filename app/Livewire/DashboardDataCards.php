@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enums\Role;
 use App\Models\School;
 use App\Models\User;
 use App\Services\Section\SectionService;
@@ -26,12 +27,12 @@ class DashboardDataCards extends Component
     public function mount(SectionService $sectionService)
     {
         $this->schools = School::count();
-        $this->classGroups = auth()->user()->school->classGroups()->count();
-        $this->classes = auth()->user()->school->myClasses()->count();
+        $this->classGroups = current_school()->classGroups()->count();
+        $this->classes = current_school()->myClasses()->count();
         $this->sections = $sectionService->getAllSections()->count();
-        $this->students = User::inSchool()->students()->activeStudents()->count();
-        $this->teachers = User::inSchool()->role('teacher')->count();
-        $this->parents = User::inSchool()->role('parent')->count();
+        $this->students = User::ofSchool()->students()->activeStudents()->count();
+        $this->teachers = User::ofSchool()->role(Role::Teacher)->count();
+        $this->parents = User::ofSchool()->role(Role::Parent)->count();
     }
 
     public function render()

@@ -3,10 +3,11 @@
 namespace Database\Factories;
 
 use App\Models\Exam;
+use App\Models\ExamSlot;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\ExamSlot>
+ * @extends Factory<ExamSlot>
  */
 class ExamSlotFactory extends Factory
 {
@@ -20,10 +21,10 @@ class ExamSlotFactory extends Factory
         $exam = Exam::query()->whereRelation('semester', 'id', 1)->inRandomOrder()->first();
 
         return [
-            'name'        => $this->faker->name,
+            'name' => $this->faker->name,
             'description' => $this->faker->sentence,
             'total_marks' => $this->faker->numberBetween(1, 100),
-            'exam_id'     => $exam->id,
+            'exam_id' => $exam->id,
         ];
     }
 }

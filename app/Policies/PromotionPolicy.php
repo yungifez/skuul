@@ -45,7 +45,7 @@ class PromotionPolicy
      */
     public function view(User $user, Promotion $promotion)
     {
-        if ($user->can('read promotion') && $promotion->school_id == auth()->user()->school_id) {
+        if ($user->can('read promotion') && $promotion->school_id == current_school_id()) {
             return true;
         }
     }

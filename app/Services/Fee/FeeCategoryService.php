@@ -9,16 +9,14 @@ class FeeCategoryService
     /**
      * Store a fee category.
      *
-     * @param array $record
-     *
-     * @return FeeCategory
+     * @param  array  $record
      */
     public function storeFeeCategory($record): FeeCategory
     {
         $feeCategory = FeeCategory::create([
-            'name'         => $record['name'],
-            'description'  => $record['description'] ?? null,
-            'school_id'    => $record['school_id'],
+            'name' => $record['name'],
+            'description' => $record['description'] ?? null,
+            'school_id' => $record['school_id'],
         ]);
 
         return $feeCategory;
@@ -27,16 +25,13 @@ class FeeCategoryService
     /**
      * Update a fee category.
      *
-     * @param FeeCategory $feeCategory
-     * @param array       $record
-     *
-     * @return $feeCategory
+     * @param  array<string, mixed>  $record
      */
     public function updateFeeCategory(FeeCategory $feeCategory, $record): FeeCategory
     {
         $feeCategory->update([
-            'name'         => $record['name'],
-            'description'  => $record['description'] ?? null,
+            'name' => $record['name'],
+            'description' => $record['description'] ?? null,
         ]);
 
         return $feeCategory;
@@ -44,10 +39,6 @@ class FeeCategoryService
 
     /**
      * Delete a fee category.
-     *
-     * @param FeeCategory $feeCategory
-     *
-     * @return bool|null
      */
     public function deleteFeeCategory(FeeCategory $feeCategory): ?bool
     {

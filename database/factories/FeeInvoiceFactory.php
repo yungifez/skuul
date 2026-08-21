@@ -2,12 +2,13 @@
 
 namespace Database\Factories;
 
+use App\Models\FeeInvoice;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\FeeInvoice>
+ * @extends Factory<FeeInvoice>
  */
 class FeeInvoiceFactory extends Factory
 {
@@ -18,17 +19,18 @@ class FeeInvoiceFactory extends Factory
      */
     public function definition(): array
     {
-        $student = User::where('school_id', 1)->students()->activeStudents()->inRandomOrder()->first();
         $issueDate = $this->faker->dateTimeThisYear('+2 months');
         $days = mt_rand(10, 50);
         $dueDate = Carbon::instance($issueDate)->addDays($days);
 
         return [
-            'name'       => $this->faker->name(),
-            'note'       => $this->faker->sentence(),
-            'user_id'    => $student->id,
+            'name' => $this->faker->name(),
+            'note' => $this->faker->sentence(),
+            // Roles are held per school, so only look for a student when the
+            // caller does not name one.
+            'user_id' => fn () => User::ofSchool(1)->students()->activeStudents()->inRandomOrder()->first()?->id,
             'issue_date' => $issueDate,
-            'due_date'   => $dueDate,
+            'due_date' => $dueDate,
         ];
     }
 }

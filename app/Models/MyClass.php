@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
@@ -24,7 +25,7 @@ class MyClass extends Model
     /**
      * Get the classGroup that owns the MyClass.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo
      */
     public function classGroup()
     {
@@ -34,7 +35,7 @@ class MyClass extends Model
     /**
      * Get all of the sections for the MyClass.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
     public function sections()
     {
@@ -44,7 +45,7 @@ class MyClass extends Model
     /**
      * Get all of the students for the MyClass.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
     public function studentRecords()
     {
@@ -64,7 +65,7 @@ class MyClass extends Model
      */
     public function students(): Collection
     {
-        $students = User::students()->inSchool()->whereRelation('studentRecord.myClass', 'id', $this->id)->get();
+        $students = User::students()->ofSchool()->whereRelation('studentRecord.myClass', 'id', $this->id)->get();
 
         return $students;
     }

@@ -2,12 +2,13 @@
 
 namespace App\Models;
 
-use App\Traits\InSchool;
+use App\Enums\AccountStatus;
+use App\Enums\Role;
+use App\Enums\SchoolMembershipStatus;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -23,12 +24,11 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens;
     use HasFactory;
-    use SoftDeletes;
     use HasProfilePhoto;
-    use Notifiable;
-    use TwoFactorAuthenticatable;
     use HasRoles;
-    use InSchool;
+    use Notifiable;
+    use SoftDeletes;
+    use TwoFactorAuthenticatable;
 
     /**
      * The attributes that are mass assignable.
@@ -48,7 +48,6 @@ class User extends Authenticatable implements MustVerifyEmail
         'state',
         'city',
         'gender',
-        'school_id',
     ];
 
     /**
@@ -70,7 +69,9 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'birthday'          => 'datetime:Y-m-d',
+        'birthday' => 'datetime:Y-m-d',
+        'account_status' => AccountStatus::class,
+        'is_platform_admin' => 'boolean',
     ];
 
     /**
@@ -91,35 +92,17 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function scopeStudents($query)
     {
-        return $query->role('student');
+        return $query->role(Role::Student);
     }
 
     /**
-     * Active applicants.
+     * Limit the query to accounts that can sign in and use the application.
      *
-     * @param Builder $query
-     *
-     * @return void
+     * @param  Builder  $query
      */
-    public function scopeApplicants($query)
+    public function scopeActiveAccounts($query): Builder
     {
-        return $query->whereHas('accountApplication', function (Builder $query) {
-            $query->otherCurrentStatus('rejected');
-        })->role('applicant');
-    }
-
-    /**
-     * Active applicants.
-     *
-     * @param Builder $query
-     *
-     * @return void
-     */
-    public function scopeRejectedApplicants($query)
-    {
-        return $query->role('applicant')->whereHas('accountApplication', function (Builder $query) {
-            $query->currentStatus('rejected');
-        });
+        return $query->where('account_status', AccountStatus::Active);
     }
 
     public function scopeActiveStudents($query)
@@ -128,17 +111,86 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the school that owns the User.
+     * Limit the query to people who can work in the given school.
+     *
+     * @param  Builder  $query
      */
-    public function school(): BelongsTo
+    public function scopeOfSchool($query, School|int|null $school = null): Builder
     {
-        return $this->belongsTo(School::class);
+        $schoolId = $school instanceof School ? $school->id : ($school ?? current_school_id());
+
+        return $query->whereHas('schoolMemberships', function (Builder $membership) use ($schoolId): void {
+            $membership->where('school_id', $schoolId)
+                ->where('status', SchoolMembershipStatus::Active);
+        });
+    }
+
+    /**
+     * Get every school access record for this person.
+     *
+     * @return HasMany<SchoolMembership, $this>
+     */
+    public function schoolMemberships(): HasMany
+    {
+        return $this->hasMany(SchoolMembership::class);
+    }
+
+    /**
+     * Get the schools this person can work in.
+     *
+     * @return BelongsToMany<School, $this>
+     */
+    public function schools(): BelongsToMany
+    {
+        return $this->belongsToMany(School::class, 'school_memberships')
+            ->withPivot(['status', 'is_primary', 'joined_at', 'ended_at'])
+            ->wherePivot('status', SchoolMembershipStatus::Active->value)
+            ->withTimestamps();
+    }
+
+    /**
+     * Get the school this person opens for organization-level work.
+     */
+    public function primarySchool(): ?School
+    {
+        return $this->schoolMemberships()->active()->primary()->first()?->school;
+    }
+
+    /**
+     * Check if this person can work in the given school.
+     */
+    public function belongsToSchool(School|int $school): bool
+    {
+        $schoolId = $school instanceof School ? $school->id : $school;
+
+        return $this->schoolMemberships()->active()->where('school_id', $schoolId)->exists();
+    }
+
+    /**
+     * Check if this person can work in the school of the current request.
+     */
+    public function belongsToCurrentSchool(): bool
+    {
+        $schoolId = current_school_id();
+
+        return $schoolId !== null && $this->belongsToSchool($schoolId);
+    }
+
+    /**
+     * Check if this person administers the whole platform.
+     *
+     * Platform access sits outside school roles on purpose. A school role name
+     * must never grant access above its own school.
+     */
+    public function isPlatformAdmin(): bool
+    {
+        return (bool) $this->is_platform_admin;
     }
 
     /**
      * Get the studentRecord associated with the User.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return HasOne
      */
     public function studentRecord()
     {
@@ -148,7 +200,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Get the studentRecord of graduation associated with the User.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return HasOne
      */
     public function graduatedStudentRecord()
     {
@@ -158,7 +210,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Get the studentRecord of graduation associated with the User.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return HasOne
      */
     public function allStudentRecords()
     {
@@ -168,7 +220,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * The parents that belong to the User.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     * @return BelongsToMany
      */
     public function parents()
     {
@@ -178,7 +230,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Get the teacherRecord associated with the User.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return HasOne
      */
     public function teacherRecord()
     {
@@ -188,7 +240,7 @@ class User extends Authenticatable implements MustVerifyEmail
     /**
      * Get the parent records associated with the User.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return HasOne
      */
     public function parentRecord()
     {
@@ -196,48 +248,72 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the AccountApplication associated with the User.
+     * Get the invitations issued for this account.
+     *
+     * @return HasMany<AccountInvitation, $this>
      */
-    public function accountApplication(): HasOne
+    public function accountInvitations(): HasMany
     {
-        return $this->hasOne(AccountApplication::class);
+        return $this->hasMany(AccountInvitation::class);
+    }
+
+    /**
+     * Get the invitation the person can still accept, if one exists.
+     */
+    public function pendingAccountInvitation(): ?AccountInvitation
+    {
+        return $this->accountInvitations()->pending()->latest()->first();
+    }
+
+    /**
+     * Check if the account can sign in and use the dashboard.
+     */
+    public function hasActiveAccount(): bool
+    {
+        return $this->account_status->canAccessApplication();
+    }
+
+    /**
+     * Check if the account is waiting for the person to set a password.
+     */
+    public function isAwaitingInvitationAcceptance(): bool
+    {
+        return $this->account_status === AccountStatus::Invited;
     }
 
     /**
      * Get all of the feeInvoices for the User.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function feeInvoices(): HasMany
     {
         return $this->hasMany(FeeInvoice::class);
     }
 
-    //get first name
+    // get first name
     public function firstName()
     {
         return explode(' ', $this->name)[0];
     }
 
-    //get first name
+    // get first name
     public function getFirstNameAttribute()
     {
         return $this->firstName();
     }
 
-    //get last name
+    // get last name
     public function lastName()
     {
         return explode(' ', $this->name)[1];
     }
 
-    //get last name
+    // get last name
     public function getLastNameAttribute()
     {
         return $this->lastName();
     }
 
-    //get other names
+    // get other names
     public function otherNames()
     {
         $names = array_diff_key(explode(' ', $this->name), array_flip([0, 1]));
@@ -245,7 +321,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return implode(' ', $names);
     }
 
-    //get other names
+    // get other names
     public function getOtherNamesAttribute()
     {
         return $this->otherNames();
@@ -264,7 +340,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return 'https://www.gravatar.com/avatar/'.$email.'?d=https%3A%2F%2Fui-avatars.com%2Fapi%2F/'.urlencode($name).'/300/EBF4FF/7F9CF5';
     }
 
-    //accessor for birthday
+    // accessor for birthday
 
     public function getBirthdayAttribute($value)
     {

@@ -1,0 +1,27 @@
+{
+    "agents": [
+        "claude_code",
+        "codex",
+        "grok_build",
+        "antigravity"
+    ],
+    "cloud": true,
+    "guidelines": true,
+    "mcp": true,
+    "nightwatch": false,
+    "packages": [
+        "spatie/laravel-permission",
+        "barryvdh/laravel-debugbar"
+    ],
+    "sail": true,
+    "skills": [
+        "infer-conventions",
+        "fortify-development",
+        "laravel-best-practices",
+        "livewire-development",
+        "tailwindcss-development",
+        "laravel-permission-development",
+        "debug-using-debugbar",
+        "deploying-laravel-cloud"
+    ]
+}

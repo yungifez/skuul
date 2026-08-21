@@ -25,7 +25,7 @@ class MyClassPolicy
      */
     public function view(User $user, MyClass $myClass)
     {
-        if ($user->can('read class') && $myClass->classGroup->school_id == $user->school_id) {
+        if ($user->can('read class') && $myClass->classGroup->school_id == current_school_id()) {
             return true;
         }
     }
@@ -45,7 +45,7 @@ class MyClassPolicy
      */
     public function update(User $user, MyClass $myClass)
     {
-        if ($user->can('update class') && $user->school_id == $myClass->classGroup->school_id) {
+        if ($user->can('update class') && current_school_id() == $myClass->classGroup->school_id) {
             return true;
         }
     }
@@ -55,7 +55,7 @@ class MyClassPolicy
      */
     public function delete(User $user, MyClass $myClass)
     {
-        if ($user->can('delete class') && $user->school_id == $myClass->classGroup->school_id) {
+        if ($user->can('delete class') && current_school_id() == $myClass->classGroup->school_id) {
             return true;
         }
     }

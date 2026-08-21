@@ -25,7 +25,7 @@ class NoticePolicy
      */
     public function view(User $user, Notice $notice)
     {
-        if ($user->can('read notice') && $user->school_id == $notice->school_id) {
+        if ($user->can('read notice') && current_school_id() == $notice->school_id) {
             return true;
         }
     }
@@ -45,7 +45,7 @@ class NoticePolicy
      */
     public function update(User $user, Notice $notice)
     {
-        if ($user->can('update notice') && $user->school_id == $notice->school_id) {
+        if ($user->can('update notice') && current_school_id() == $notice->school_id) {
             return true;
         }
     }
@@ -55,7 +55,7 @@ class NoticePolicy
      */
     public function delete(User $user, Notice $notice)
     {
-        if ($user->can('delete notice') && $user->school_id == $notice->school_id) {
+        if ($user->can('delete notice') && current_school_id() == $notice->school_id) {
             return true;
         }
     }

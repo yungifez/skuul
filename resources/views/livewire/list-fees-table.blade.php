@@ -5,7 +5,7 @@
     <div class="card-body">
         <livewire:datatable unique_id="list-fees-table" :model="App\Models\Fee::class"
         :filters="[
-            ['name' => 'whereRelation', 'arguments' => ['feeCategory','school_id', auth()->user()->school_id]],
+            ['name' => 'whereRelation', 'arguments' => ['feeCategory','school_id', current_school_id()]],
             ['name' => 'with', 'arguments' => ['feeCategory']]
         ]"
         :columns="[

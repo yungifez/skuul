@@ -12,24 +12,35 @@ use Livewire\Component;
 class CreateFeeInvoiceForm extends Component
 {
     public $feeCategories;
+
     public int $feeCategory;
+
     public $fees;
+
     public $fee = null;
+
     public $addedFees;
+
     public $addedStudents;
+
     public $classes;
+
     public $class;
+
     public $sections;
+
     public $section;
+
     public $students;
+
     public $student;
 
     public function mount()
     {
         $this->addedFees = collect();
         $this->addedStudents = collect();
-        $this->feeCategories = FeeCategory::where('school_id', auth()->user()->school_id)->get();
-        $this->classes = auth()->user()->school->myClasses;
+        $this->feeCategories = FeeCategory::inSchool()->get();
+        $this->classes = current_school()->myClasses;
         if ($this->classes->isNotEmpty()) {
             $this->class = $this->classes->first()->id;
             $this->updatedClass();
@@ -92,7 +103,7 @@ class CreateFeeInvoiceForm extends Component
     public function addStudent(MyClass $class, $section = null, $student = null)
     {
         $section = Section::find($section);
-        $student = User::students()->inSchool()->find($student);
+        $student = User::students()->ofSchool()->find($student);
 
         if ($student != null && $student->exists()) {
             $this->addedStudents = $this->addedStudents->push($student->load('studentRecord'));
@@ -119,7 +130,7 @@ class CreateFeeInvoiceForm extends Component
     {
         $oldRecords = collect(old('records'));
         if ($oldRecords->isNotEmpty()) {
-            $fees = Fee::whereRelation('feeCategory', 'school_id', auth()->user()->school_id)->whereIn('id', $oldRecords->pluck('fee_id'))->get();
+            $fees = Fee::whereRelation('feeCategory', 'school_id', current_school_id())->whereIn('id', $oldRecords->pluck('fee_id'))->get();
 
             $this->addedFees = $this->addedFees->merge($fees);
 
@@ -128,7 +139,7 @@ class CreateFeeInvoiceForm extends Component
 
         $oldStudents = collect(old('users'));
         if ($oldStudents->isNotEmpty()) {
-            $students = User::students()->inSchool()->whereIn('id', $oldStudents)->get();
+            $students = User::students()->ofSchool()->whereIn('id', $oldStudents)->get();
 
             $this->addedStudents = $this->addedStudents->merge($students);
         }

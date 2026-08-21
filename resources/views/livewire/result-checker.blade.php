@@ -3,7 +3,7 @@
         <h4 class="card-title">Result Checker</h4>
     </div>
     <div class="card-body">
-        @if (!auth()->user()->hasRole('student'))
+        @if (!auth()->user()->hasRole(\App\Enums\Role::Student))
             <x-display-validation-errors/>
             <x-loading-spinner/>
             {{-- form for selecting class and section to display --}}
@@ -26,7 +26,7 @@
                         @endisset
                     </x-select>
                     {{--fields are not available to any role not in list--}}
-                    @hasanyrole('super-admin|admin|teacher')
+                    @if (auth()->user()->isPlatformAdmin() || auth()->user()->hasAnyRole([\App\Enums\Role::Admin, \App\Enums\Role::Teacher]))
                         <x-select id="class" name="class" label="Current Class"   wire:model.live="class" group-class="">
                             @isset($classes)
                             @foreach ($classes as $item)
@@ -42,7 +42,7 @@
                                 @endforeach
                             @endisset
                         </x-select>
-                    @endhasanyrole
+                    @endif
                     <x-select id="student" name="student" label="Student"  wire:model.live="student" group-class="">
                         @isset($students)
                             @foreach ($students as $item)

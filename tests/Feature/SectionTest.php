@@ -9,8 +9,8 @@ use Tests\TestCase;
 
 class SectionTest extends TestCase
 {
-    use RefreshDatabase;
     use FeatureTestTrait;
+    use RefreshDatabase;
 
     public function test_view_all_sections_can_be_rendered_to_authorized_user()
     {
@@ -74,7 +74,7 @@ class SectionTest extends TestCase
             ->post('/dashboard/sections', ['name' => 'Test section', 'my_class_id' => 1]);
 
         $this->assertDatabaseHas('sections', [
-            'name'        => 'Test section',
+            'name' => 'Test section',
             'my_class_id' => 1,
         ]);
     }
@@ -94,8 +94,8 @@ class SectionTest extends TestCase
             ->assertRedirect();
 
         $this->assertDatabaseHas('sections', [
-            'id'          => $section->id,
-            'name'        => 'Test section',
+            'id' => $section->id,
+            'name' => 'Test section',
             'my_class_id' => $section->myClass->id,
         ]);
     }
@@ -108,8 +108,8 @@ class SectionTest extends TestCase
             ->assertForbidden();
 
         $this->assertDatabaseMissing('sections', [
-            'id'          => $section->id,
-            'name'        => 'Test section',
+            'id' => $section->id,
+            'name' => 'Test section',
             'my_class_id' => $section->myClass->id,
         ]);
     }

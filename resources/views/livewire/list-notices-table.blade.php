@@ -7,7 +7,7 @@
             <livewire:datatable :model="App\Models\Notice::class" 
             uniqueId="List-notice-table"
             :filters="[
-                ['name' => 'where', 'arguments' => ['school_id' , auth()->user()->school_id]]
+                ['name' => 'inSchool']
             ]"
             :columns="[
                [ 'property' => 'title'],
@@ -22,7 +22,7 @@
         @else
             <livewire:datatable :model="App\Models\Notice::class" 
             :filters="[
-                ['name' => 'where', 'arguments' => ['school_id' , auth()->user()->school_id]],
+                ['name' => 'inSchool'],
                 ['name' => 'active']
             ]"
             :columns="[

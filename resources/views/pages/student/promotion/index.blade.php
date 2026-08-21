@@ -1,5 +1,5 @@
 @php
-    $currentAcademicYear = auth()->user()->school->load('academicYear')->academicYear;
+    $currentAcademicYear = current_school()->load('academicYear')->academicYear;
 @endphp
 
 @extends('layouts.app', ['breadcrumbs' => [

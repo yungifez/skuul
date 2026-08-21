@@ -15,9 +15,9 @@ class StudentStoreRequest extends FormRequest
     {
         return [
             'admission_number' => 'nullable|unique:student_records,admission_number',
-            'admission_date'   => 'required|date',
-            'my_class_id'      => 'required|exists:my_classes,id',
-            'section_id'       => 'required|exists:sections,id',
+            'admission_date' => 'required|date',
+            'my_class_id' => 'required|exists:my_classes,id',
+            'section_id' => 'required|exists:sections,id',
         ];
     }
 
@@ -30,7 +30,7 @@ class StudentStoreRequest extends FormRequest
     {
         return [
             'my_class_id.required' => 'Select a class',
-            'section_id.required'  => 'Select a section',
+            'section_id.required' => 'Select a section',
         ];
     }
 
@@ -43,7 +43,7 @@ class StudentStoreRequest extends FormRequest
     {
         return [
             'my_class_id' => 'class selection',
-            'section_id'  => 'section selection',
+            'section_id' => 'section selection',
         ];
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Services\Admin\AdminService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -51,7 +52,7 @@ class AdminController extends Controller
     /**
      * Display the specified resource.
      *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws AuthorizationException
      */
     public function show(User $admin): View
     {
@@ -63,7 +64,7 @@ class AdminController extends Controller
     /**
      * Show the form for editing the specified resource.
      *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws AuthorizationException
      */
     public function edit(User $admin): View
     {
@@ -75,7 +76,7 @@ class AdminController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws AuthorizationException
      */
     public function update(Request $request, User $admin): RedirectResponse
     {
@@ -88,7 +89,7 @@ class AdminController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws AuthorizationException
      */
     public function destroy(User $admin): RedirectResponse
     {

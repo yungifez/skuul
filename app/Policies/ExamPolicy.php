@@ -25,7 +25,7 @@ class ExamPolicy
      */
     public function view(User $user, Exam $exam)
     {
-        if ($user->can('read exam') && $exam->semester->school_id == $user->school_id) {
+        if ($user->can('read exam') && $exam->semester->school_id == current_school_id()) {
             return true;
         }
     }
@@ -45,7 +45,7 @@ class ExamPolicy
      */
     public function update(User $user, Exam $exam)
     {
-        if ($user->can('update exam') && $exam->semester->school_id == $user->school_id) {
+        if ($user->can('update exam') && $exam->semester->school_id == current_school_id()) {
             return true;
         }
     }
@@ -55,7 +55,7 @@ class ExamPolicy
      */
     public function delete(User $user, Exam $exam)
     {
-        if ($user->can('delete exam') && $exam->semester->school_id == $user->school_id) {
+        if ($user->can('delete exam') && $exam->semester->school_id == current_school_id()) {
             return true;
         }
     }

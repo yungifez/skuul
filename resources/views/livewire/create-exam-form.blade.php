@@ -18,7 +18,7 @@
             </div>
             <x-select id="select" name="semester_id" label="Select Semester *"  wire:loading.attr="disabled" wire:target="semester" >
                 @foreach ($semesters as $item)
-                    <option value="{{$item['id']}}" @selected(auth()->user()->school->semester->id == $item['id'])>{{$item['name']}}</option>
+                    <option value="{{$item['id']}}" @selected(current_school()->semester->id == $item['id'])>{{$item['name']}}</option>
                 @endforeach
             </x-select>
             @csrf

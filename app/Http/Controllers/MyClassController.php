@@ -16,7 +16,7 @@ class MyClassController extends Controller
      */
     public MyClassService $myClassService;
 
-    //construct method
+    // construct method
     public function __construct(MyClassService $myClassService)
     {
         $this->myClassService = $myClassService;
@@ -72,8 +72,6 @@ class MyClassController extends Controller
 
     /**
      * Update the specified resource in storage.
-     *
-     * @param MyClassUpdateRequest $request
      */
     public function update(MyClassUpdateRequest $request, MyClass $class): RedirectResponse
     {

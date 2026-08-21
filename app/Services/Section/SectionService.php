@@ -5,6 +5,7 @@ namespace App\Services\Section;
 use App\Exceptions\ResourceNotEmptyException;
 use App\Models\Section;
 use App\Services\School\SchoolService;
+use Illuminate\Support\Collection;
 
 class SectionService
 {
@@ -21,11 +22,11 @@ class SectionService
     /**
      * Get all sections.
      *
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     public function getAllSections()
     {
-        $myClasses = $this->school->getSchoolById(auth()->user()->school_id)->myClasses->load('sections')->all();
+        $myClasses = $this->school->getSchoolById(current_school_id())->myClasses->load('sections')->all();
         $sections = collect();
         foreach ($myClasses as $myClass) {
             $sections = $sections->merge($myClass->sections->all());
@@ -38,7 +39,7 @@ class SectionService
      * Get a section by Id.
      *
      *
-     * @return \App\Models\Section
+     * @return Section
      */
     public function getSectionById(int $id)
     {
@@ -48,8 +49,7 @@ class SectionService
     /**
      * Create section.
      *
-     * @param mixed $records
-     *
+     * @param  mixed  $records
      * @return void
      */
     public function createSection($records)
@@ -62,8 +62,7 @@ class SectionService
     /**
      * Update section.
      *
-     * @param mixed $record
-     *
+     * @param  mixed  $record
      * @return void
      */
     public function updateSection(Section $section, $record)

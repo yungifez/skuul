@@ -1,5 +1,8 @@
 <?php
 
+use Opcodes\LogViewer\Http\Middleware\AuthorizeLogViewer;
+use Opcodes\LogViewer\Http\Middleware\EnsureFrontendRequestsAreStateful;
+
 return [
 
     /*
@@ -67,7 +70,7 @@ return [
     |
     */
 
-    'middleware' => ['web', 'role:super-admin',  \Opcodes\LogViewer\Http\Middleware\AuthorizeLogViewer::class],
+    'middleware' => ['web', 'role:super-admin',  AuthorizeLogViewer::class],
 
     /*
     |--------------------------------------------------------------------------
@@ -79,8 +82,8 @@ return [
     */
 
     'api_middleware' => [
-        \Opcodes\LogViewer\Http\Middleware\EnsureFrontendRequestsAreStateful::class,
-        \Opcodes\LogViewer\Http\Middleware\AuthorizeLogViewer::class,
+        EnsureFrontendRequestsAreStateful::class,
+        AuthorizeLogViewer::class,
     ],
 
     /*
@@ -154,7 +157,7 @@ return [
     */
 
     'exclude_files' => [
-        //'my_secret.log'
+        // 'my_secret.log'
     ],
 
     /*

@@ -24,10 +24,10 @@ class StoreTimetableTimeSlotRequest extends FormRequest
             'timetable_id' => [
                 'required',
                 'integer',
-                Rule::exists('timetables', 'id')->whereIn('my_class_id', auth()->user()->school->myClasses()->pluck('my_classes.id')),
+                Rule::exists('timetables', 'id')->whereIn('my_class_id', current_school()->myClasses()->pluck('my_classes.id')),
             ],
             'start_time' => 'required|date_format:H:i',
-            'stop_time'  => 'required|date_format:H:i|after:start_time',
+            'stop_time' => 'required|date_format:H:i|after:start_time',
         ];
     }
 }

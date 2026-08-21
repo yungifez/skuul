@@ -9,10 +9,10 @@ use Tests\TestCase;
 
 class ExamSlotTest extends TestCase
 {
-    use RefreshDatabase;
     use FeatureTestTrait;
+    use RefreshDatabase;
 
-    //test unauthorized user can not see all exam slots
+    // test unauthorized user can not see all exam slots
 
     public function test_unauthorized_user_can_not_see_all_exam_slots()
     {
@@ -21,7 +21,7 @@ class ExamSlotTest extends TestCase
             ->assertForbidden();
     }
 
-    //test authorized user can see all exam slots
+    // test authorized user can see all exam slots
 
     public function test_authorized_user_can_see_all_exam_slots()
     {
@@ -30,7 +30,7 @@ class ExamSlotTest extends TestCase
             ->assertSuccessful();
     }
 
-    //test unauthorized user cannot view create exam slot
+    // test unauthorized user cannot view create exam slot
 
     public function test_unauthorized_user_cant_view_create_exam_slot()
     {
@@ -38,7 +38,7 @@ class ExamSlotTest extends TestCase
             ->get('/dashboard/exams/1/manage/exam-slots/create')
             ->assertForbidden();
     }
-    //test authorized user can view create exam slot
+    // test authorized user can view create exam slot
 
     public function test_user_can_view_create_exam_slot()
     {
@@ -47,7 +47,7 @@ class ExamSlotTest extends TestCase
             ->assertOk();
     }
 
-    //test unauthorized user cannot create exam slot
+    // test unauthorized user cannot create exam slot
 
     public function test_unauthorized_user_cant_create_exam_slot()
     {
@@ -56,25 +56,25 @@ class ExamSlotTest extends TestCase
             ->assertForbidden();
     }
 
-    //test authorized user can create exam slot
+    // test authorized user can create exam slot
 
     public function test_authorized_user_can_create_exam_slot()
     {
         $response = $this->authorized_user(['create exam slot'])
             ->post('/dashboard/exams/1/manage/exam-slots', [
-                'name'        => 'test exam slot',
+                'name' => 'test exam slot',
                 'description' => 'test description',
                 'total_marks' => 20,
             ]);
 
         $this->assertDatabaseHas('exam_slots', [
-            'name'        => 'test exam slot',
+            'name' => 'test exam slot',
             'description' => 'test description',
             'total_marks' => 20,
         ]);
     }
 
-    //test unauthorized user cannot view edit exam slot
+    // test unauthorized user cannot view edit exam slot
 
     public function test_unauthorized_user_cant_view_edit_exam_slot()
     {
@@ -84,7 +84,7 @@ class ExamSlotTest extends TestCase
             ->assertForbidden();
     }
 
-    //test authorized user can view edit exam slot
+    // test authorized user can view edit exam slot
 
     public function test_authorized_user_can_view_edit_exam_slot()
     {
@@ -94,7 +94,7 @@ class ExamSlotTest extends TestCase
             ->assertSuccessful();
     }
 
-    //test unauthorized user cannot update exam slot
+    // test unauthorized user cannot update exam slot
 
     public function test_unauthorized_user_cant_update_exam_slot()
     {
@@ -104,14 +104,14 @@ class ExamSlotTest extends TestCase
             ->assertForbidden();
 
         $this->assertDatabaseMissing('exam_slots', [
-            'id'          => $examSlot->id,
-            'name'        => 'test exam slot',
+            'id' => $examSlot->id,
+            'name' => 'test exam slot',
             'description' => 'test description',
             'total_marks' => '10',
         ]);
     }
 
-    //test authorized user can update exam slot
+    // test authorized user can update exam slot
 
     public function test_authorized_user_can_update_exam_slot()
     {
@@ -120,14 +120,14 @@ class ExamSlotTest extends TestCase
             ->put("/dashboard/exams/{$examSlot->exam->id}/manage/exam-slots/$examSlot->id", ['name' => 'test exam slot', 'description' => 'test description', 'total_marks' => '10']);
 
         $this->assertDatabaseHas('exam_slots', [
-            'id'          => $examSlot->id,
-            'name'        => 'test exam slot',
+            'id' => $examSlot->id,
+            'name' => 'test exam slot',
             'description' => 'test description',
             'total_marks' => '10',
         ]);
     }
 
-    //test unauthorized user cannot delete exam slot
+    // test unauthorized user cannot delete exam slot
 
     public function test_unauthorized_user_cant_delete_exam_slot()
     {
@@ -137,7 +137,7 @@ class ExamSlotTest extends TestCase
             ->assertForbidden() && $this->assertModelExists($examSlot);
     }
 
-    //test authorized user can delete exam slot
+    // test authorized user can delete exam slot
 
     public function test_authorized_user_can_delete_exam_slot()
     {

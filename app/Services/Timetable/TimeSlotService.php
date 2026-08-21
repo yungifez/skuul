@@ -10,15 +10,14 @@ class TimeSlotService
     /**
      * Create timetable time slot.
      *
-     * @param mixed $data
-     *
+     * @param  mixed  $data
      * @return void
      */
     public function createTimeSlot($data)
     {
         TimetableTimeSlot::create([
-            'start_time'   => $data['start_time'],
-            'stop_time'    => $data['stop_time'],
+            'start_time' => $data['start_time'],
+            'stop_time' => $data['stop_time'],
             'timetable_id' => $data['timetable_id'],
         ]);
     }
@@ -26,7 +25,6 @@ class TimeSlotService
     /**
      * Delete Timetable.
      *
-     * @param TimetableTimeSlot $timeSlot
      *
      * @return void
      */
@@ -38,18 +36,17 @@ class TimeSlotService
     /**
      * Create timetable time record.
      *
-     * @param mixed $data
-     *
+     * @param  mixed  $data
      * @return void
      */
     public function createTimetableRecord(TimetableTimeSlot $timeSlot, $data)
     {
-        //remove existing record
+        // remove existing record
         if ($timeSlot->weekdays->find($data['weekday_id']) || !isset($data['id']) || $data['id'] != null) {
             $timeSlot->weekdays()->detach($data['weekday_id']);
         }
 
-        //i'm sorry for this
+        // i'm sorry for this
         if ($data['type'] == 'subject') {
             $data['type'] = 'App\Models\Subject';
         } elseif ($data['type'] == 'customTimetableItem') {

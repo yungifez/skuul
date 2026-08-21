@@ -1,12 +1,30 @@
-@props(['class' => '', 'width' => 'w-10/12 md:w-8/12 lg:w-5/12 xl:w-4/12', 'height' => 'min-h-[20%]'])
-<div class="flex flex-cols justify-center items-center my-12 flex-col">
-    <img src="{{@asset(config('app.logo'))}}" alt="" class="rounded-full w-28 h-28 border border-gray-200 shadow-lg my-4">
-    <div class="{{$class}} {{$width}} {{$height}}">
-        <div class="p-3 w-full flex flex-col justify-center items-center bg-white border border-gray-300 rounded">
-            {{$slot}}
+@props(['class' => '', 'width' => '', 'height' => '', 'title' => null, 'description' => null])
+
+<div class="relative flex min-h-screen items-center justify-center overflow-hidden bg-muted/30 px-4 py-10 sm:px-6">
+    <div class="pointer-events-none absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-accent/30 to-transparent" aria-hidden="true"></div>
+
+    <main class="relative w-full max-w-md {{ $class }} {{ $width }} {{ $height }}">
+        <div class="mb-8 flex flex-col items-center gap-3 text-center">
+            <img src="{{ asset(config('app.logo')) }}" alt="{{ config('app.name') }} logo" class="h-16 w-16 rounded-2xl border bg-background object-cover shadow-lg">
+            <p class="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">{{ config('app.name') }}</p>
         </div>
-        <div class="my-3">
-            {{$footer ?? null}}
-        </div>
-    </div>
+
+        <april:card class="w-full border-border/70 bg-card/95 shadow-xl shadow-black/5 backdrop-blur" header-class="border-0">
+            @if ($title)
+                <slot:title class="text-2xl tracking-tight">{{ $title }}</slot:title>
+            @endif
+            @if ($description)
+                <slot:description>{{ $description }}</slot:description>
+            @endif
+            <slot:content class="space-y-6">
+                {{ $slot }}
+            </slot:content>
+        </april:card>
+
+        @if (isset($footer))
+            <div class="pt-5 text-center text-sm text-muted-foreground">
+                {{ $footer }}
+            </div>
+        @endif
+    </main>
 </div>

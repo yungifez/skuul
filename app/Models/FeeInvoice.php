@@ -19,17 +19,15 @@ class FeeInvoice extends Model
 
     protected $casts = [
         'issue_date' => 'datetime:Y-m-d',
-        'due_date'   => 'datetime:Y-m-d',
-        'amount'     => Money::class,
-        'fine'       => Money::class,
-        'paid'       => Money::class,
-        'waiver'     => Money::class,
+        'due_date' => 'datetime:Y-m-d',
+        'amount' => Money::class,
+        'fine' => Money::class,
+        'paid' => Money::class,
+        'waiver' => Money::class,
     ];
 
     /**
      * Get the user that owns the FeeInvoice.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function user(): BelongsTo
     {
@@ -38,12 +36,24 @@ class FeeInvoice extends Model
 
     /**
      * Get all of the feeInvoiceRecords for the FeeInvoice.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function feeInvoiceRecords(): HasMany
     {
         return $this->hasMany(FeeInvoiceRecord::class);
+    }
+
+    /**
+     * Limit the query to invoices for people in one school.
+     *
+     * The school link lives on the person's membership, not on a column.
+     *
+     * @param  Builder<FeeInvoice>  $query
+     */
+    public function scopeOfSchool(Builder $query, School|int|null $school = null): Builder
+    {
+        $schoolId = $school instanceof School ? $school->id : ($school ?? current_school_id());
+
+        return $query->whereHas('user', fn (Builder $user) => $user->ofSchool($schoolId));
     }
 
     public function scopeisDue(Builder $query): void

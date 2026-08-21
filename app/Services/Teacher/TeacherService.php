@@ -2,6 +2,7 @@
 
 namespace App\Services\Teacher;
 
+use App\Enums\Role;
 use App\Models\User;
 use App\Services\Print\PrintService;
 use App\Services\User\UserService;
@@ -12,7 +13,7 @@ class TeacherService
     /**
      * User service variable.
      */
-    public userService $user;
+    public UserService $user;
 
     public function __construct(UserService $user)
     {
@@ -22,7 +23,7 @@ class TeacherService
     /**
      * Get all teachers in school.
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     public function getAllTeachers()
     {
@@ -32,21 +33,19 @@ class TeacherService
     /**
      * Create a new teacher.
      *
-     * @param Collection|array $record
-     *
+     * @param  Collection|array  $record
      * @return void
      */
     public function createTeacher($record)
     {
         $teacher = $this->user->createUser($record);
-        $teacher->assignRole('teacher');
+        $teacher->assignRole(Role::Teacher);
     }
 
     /**
      * Update a teacher.
      *
-     * @param array|object|collection $records
-     *
+     * @param  array|object|Collection  $records
      * @return void
      */
     public function updateTeacher(User $teacher, $records)

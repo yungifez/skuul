@@ -2,10 +2,12 @@
 
 namespace Database\Factories;
 
+use App\Models\Syllabus;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Illuminate\Http\UploadedFile;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Syllabus>
+ * @extends Factory<Syllabus>
  */
 class SyllabusFactory extends Factory
 {
@@ -16,14 +18,14 @@ class SyllabusFactory extends Factory
      */
     public function definition()
     {
-        $file = \Illuminate\Http\UploadedFile::fake()->create("{$this->faker->name}.pdf")->store('pdfs');
+        $file = UploadedFile::fake()->create("{$this->faker->name}.pdf")->store('pdfs');
 
         return [
-            'name'        => $this->faker->sentence,
+            'name' => $this->faker->sentence,
             'description' => $this->faker->paragraph,
-            'subject_id'  => 1,
+            'subject_id' => 1,
             'semester_id' => 1,
-            'file'        => $file,
+            'file' => $file,
         ];
     }
 }

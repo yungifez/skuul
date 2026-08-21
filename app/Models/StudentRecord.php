@@ -6,6 +6,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class StudentRecord extends Model
@@ -30,13 +31,13 @@ class StudentRecord extends Model
      */
     protected static function booted()
     {
-        //gets only active users
+        // gets only active users
         static::addGlobalScope('notGraduated', function (Builder $builder) {
             $builder->where('is_graduated', 0);
         });
     }
 
-    //accessor for admission_date
+    // accessor for admission_date
 
     public function getAdmissionDateAttribute($value)
     {
@@ -46,7 +47,7 @@ class StudentRecord extends Model
     /**
      * Get the MyClass that owns the Section.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo
      */
     public function myClass()
     {
@@ -56,7 +57,7 @@ class StudentRecord extends Model
     /**
      * Get the section that owns the StudentRecord.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo
      */
     public function section()
     {
@@ -66,7 +67,7 @@ class StudentRecord extends Model
     /**
      * Get the user that owns the StudentRecord.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo
      */
     public function user()
     {
@@ -84,10 +85,10 @@ class StudentRecord extends Model
     /**
      * Get current academic year.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     * @return BelongsToMany
      */
     public function currentAcademicYear()
     {
-        return $this->academicYears()->wherePivot('academic_year_id', $this->user->school->academicYear->id);
+        return $this->academicYears()->wherePivot('academic_year_id', current_school()->academicYear->id);
     }
 }

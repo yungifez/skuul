@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\GradeSystem;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\GradeSystem>
+ * @extends Factory<GradeSystem>
  */
 class GradeSystemFactory extends Factory
 {
@@ -19,11 +20,11 @@ class GradeSystemFactory extends Factory
         $grade_from = $this->faker->numberBetween(100, 1000);
 
         return [
-            'name'           => $this->faker->word,
-            'remark'         => $this->faker->sentence,
+            'name' => $this->faker->word,
+            'remark' => $this->faker->sentence,
             'class_group_id' => '1',
-            'grade_from'     => $grade_from,
-            'grade_till'     => $grade_from = 100,
+            'grade_from' => $grade_from,
+            'grade_till' => $grade_from = 100,
         ];
     }
 }

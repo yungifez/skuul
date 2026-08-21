@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\CustomTimetableItem;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\CustomTimetableItem>
+ * @extends Factory<CustomTimetableItem>
  */
 class CustomTimetableItemFactory extends Factory
 {
@@ -17,7 +18,7 @@ class CustomTimetableItemFactory extends Factory
     public function definition()
     {
         return [
-            'name'      => $this->faker->name(),
+            'name' => $this->faker->name(),
             'school_id' => 1,
         ];
     }

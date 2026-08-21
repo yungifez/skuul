@@ -131,7 +131,7 @@ class ExamController extends Controller
     public function setExamActiveStatus(Exam $exam, UpdateExamStatusRequest $request): RedirectResponse
     {
         $this->authorize('update', $exam);
-        //get status from request
+        // get status from request
         $status = $request->status;
         $this->examService->setExamActiveStatus($exam, $status);
 
@@ -140,13 +140,11 @@ class ExamController extends Controller
 
     /**
      * Set publish result status.
-     *
-     * @param UpdateExamStatusRequest $request
      */
     public function setPublishResultStatus(Exam $exam, UpdateExamStatusRequest $request): RedirectResponse
     {
         $this->authorize('update', $exam);
-        //get status from request
+        // get status from request
         $status = $request->status;
         $this->examService->setPublishResultStatus($exam, $status);
 

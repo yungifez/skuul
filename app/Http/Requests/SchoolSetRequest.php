@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\School;
 use Illuminate\Foundation\Http\FormRequest;
 
 class SchoolSetRequest extends FormRequest
@@ -13,11 +14,7 @@ class SchoolSetRequest extends FormRequest
      */
     public function authorize()
     {
-        if (auth()->user()->hasRole('super-admin')) {
-            return true;
-        }
-
-        return false;
+        return auth()->user()->can('setSchool', School::class);
     }
 
     /**

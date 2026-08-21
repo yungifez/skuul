@@ -1,5 +1,7 @@
 <?php
 
+use Spatie\ModelStatus\Status;
+
 return [
 
     /*
@@ -7,7 +9,7 @@ return [
      *
      * The model must be or extend `Spatie\ModelStatus\Status`.
      */
-    'status_model' => Spatie\ModelStatus\Status::class,
+    'status_model' => Status::class,
 
     /*
      * The name of the column which holds the ID of the model related to the statuses.

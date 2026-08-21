@@ -3,7 +3,7 @@
         <x-display-validation-errors />
         <x-select name="school_id" id="set-school-form" label="Set working school branch">
             @foreach ($schools as $school)
-                <option @selected(auth()->user()->school_id == $school->id) value="{{ $school->id }}" @selected(auth()->user()->school_id == $school->id)> {{ $school->name }} - {{$school->address}}</option>
+                <option @selected(current_school_id() == $school->id) value="{{ $school->id }}" @selected(current_school_id() == $school->id)> {{ $school->name }} - {{$school->address}}</option>
             @endforeach
         </x-select>
         @csrf

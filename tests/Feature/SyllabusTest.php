@@ -11,8 +11,8 @@ use Tests\TestCase;
 
 class SyllabusTest extends TestCase
 {
-    use RefreshDatabase;
     use FeatureTestTrait;
+    use RefreshDatabase;
 
     // test unauthorized user can't view all syllabi
 
@@ -32,7 +32,7 @@ class SyllabusTest extends TestCase
             ->assertOk();
     }
 
-    //test unauthorized user can't view create syllabus
+    // test unauthorized user can't view create syllabus
 
     public function test_unauthorized_user_cant_view_create_syllabus()
     {
@@ -41,7 +41,7 @@ class SyllabusTest extends TestCase
             ->assertForbidden();
     }
 
-    //test authorized user can view create syllabus
+    // test authorized user can view create syllabus
 
     public function test_user_can_view_create_syllabus()
     {
@@ -50,42 +50,42 @@ class SyllabusTest extends TestCase
             ->assertOk();
     }
 
-    //test unauthorized cant create syllabus
+    // test unauthorized cant create syllabus
 
     public function test_unauthorized_user_cant_create_syllabus()
     {
         $file = Storage::fake('syllabi');
         $this->unauthorized_user()
-        ->post('/dashboard/syllabi', [
-            'name'        => 'Test syllabus',
-            'my_class_id' => 1,
-            'subject_id'  => 1,
-            'description' => 'Test syllabus description',
-            'file'        => UploadedFile::fake()->create('test-syllabus.pdf', 100),
-        ])->assertForbidden();
+            ->post('/dashboard/syllabi', [
+                'name' => 'Test syllabus',
+                'my_class_id' => 1,
+                'subject_id' => 1,
+                'description' => 'Test syllabus description',
+                'file' => UploadedFile::fake()->create('test-syllabus.pdf', 100),
+            ])->assertForbidden();
     }
 
-    //test authorized user can create syllabus
+    // test authorized user can create syllabus
 
     public function test_authorized_user_can_create_syllabus()
     {
         $file = Storage::fake('syllabi');
         $this->authorized_user(['create syllabus'])
-        ->post('/dashboard/syllabi', [
-            'name'        => 'Test syllabus',
-            'subject_id'  => 1,
-            'description' => 'Test syllabus description',
-            'file'        => UploadedFile::fake()->create('test-syllabus.pdf', 100),
-        ]);
+            ->post('/dashboard/syllabi', [
+                'name' => 'Test syllabus',
+                'subject_id' => 1,
+                'description' => 'Test syllabus description',
+                'file' => UploadedFile::fake()->create('test-syllabus.pdf', 100),
+            ]);
 
         $this->assertDatabaseHas('syllabi', [
-            'name'        => 'Test syllabus',
-            'subject_id'  => 1,
+            'name' => 'Test syllabus',
+            'subject_id' => 1,
             'description' => 'Test syllabus description',
         ]);
     }
 
-    //test unauthorized user can't delete syllabus
+    // test unauthorized user can't delete syllabus
 
     public function test_unauthorized_user_cant_delete_syllabus()
     {
@@ -95,7 +95,7 @@ class SyllabusTest extends TestCase
             ->assertForbidden();
     }
 
-    //test authorized user can delete syllabus
+    // test authorized user can delete syllabus
 
     public function test_authorized_user_can_delete_syllabus()
     {

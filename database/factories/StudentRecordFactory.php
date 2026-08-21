@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Model;
 use App\Models\Section;
 use App\Models\StudentRecord;
 use App\Models\User;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Model>
+ * @extends Factory<Model>
  */
 class StudentRecordFactory extends Factory
 {
@@ -28,11 +29,11 @@ class StudentRecordFactory extends Factory
         $student->assignRole('student');
 
         return [
-            'user_id'          => $student->id,
-            'my_class_id'      => $class->id,
-            'section_id'       => $class->sections->first()->id ?? null,
-            'admission_date'   => $this->faker->date(),
-            'is_graduated'     => false,
+            'user_id' => $student->id,
+            'my_class_id' => $class->id,
+            'section_id' => $class->sections->first()->id ?? null,
+            'admission_date' => $this->faker->date(),
+            'is_graduated' => false,
             'admission_number' => Str::random(10),
         ];
     }

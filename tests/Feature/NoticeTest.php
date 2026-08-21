@@ -8,10 +8,10 @@ use Tests\TestCase;
 
 class NoticeTest extends TestCase
 {
-    use RefreshDatabase;
     use FeatureTestTrait;
+    use RefreshDatabase;
 
-    //test unauthorized user can not view all notices
+    // test unauthorized user can not view all notices
 
     public function test_unauthorized_user_can_not_view_all_notices()
     {
@@ -20,7 +20,7 @@ class NoticeTest extends TestCase
             ->assertForbidden();
     }
 
-    //test authorized user can view all notices
+    // test authorized user can view all notices
 
     public function test_authorized_user_can_view_all_notices()
     {
@@ -29,7 +29,7 @@ class NoticeTest extends TestCase
             ->assertSuccessful();
     }
 
-    //asser user cannot view create notice
+    // asser user cannot view create notice
 
     public function test_unauthorized_user_can_not_view_create_notice()
     {
@@ -38,7 +38,7 @@ class NoticeTest extends TestCase
             ->assertForbidden();
     }
 
-    //assert user can view create notice
+    // assert user can view create notice
 
     public function test_authorized_user_can_view_create_notice()
     {
@@ -47,77 +47,77 @@ class NoticeTest extends TestCase
             ->assertSuccessful();
     }
 
-    //assert unauthorized user can not create notice
+    // assert unauthorized user can not create notice
 
     public function test_unauthorized_user_can_not_create_notice()
     {
-        $this->unauthorized_user(['create notice'])
+        $this->unauthorized_user()
             ->post('dashboard/notices', [
-                'title'      => 'test',
-                'content'    => 'test',
+                'title' => 'test',
+                'content' => 'test',
                 'start_date' => '2019-01-01',
-                'stop_date'  => '2019-01-02',
+                'stop_date' => '2019-01-02',
             ])->assertForbidden();
     }
 
-    //assert user can create notice
+    // assert user can create notice
 
     public function test_authorized_user_can_create_notice()
     {
         $response = $this->authorized_user(['create notice'])
             ->post('dashboard/notices', [
-                'title'      => 'Test Notice',
-                'content'    => 'Test Description',
+                'title' => 'Test Notice',
+                'content' => 'Test Description',
                 'start_date' => '2019-01-01',
-                'stop_date'  => '2019-01-02',
+                'stop_date' => '2019-01-02',
             ]);
 
         $response->assertRedirect() && $this->assertDatabaseHas('notices', [
-            'title'      => 'Test Notice',
-            'content'    => 'Test Description',
+            'title' => 'Test Notice',
+            'content' => 'Test Description',
             'start_date' => '2019-01-01',
-            'stop_date'  => '2019-01-02',
+            'stop_date' => '2019-01-02',
         ]);
     }
 
-    //assert user can not create notice with invalid data
+    // assert user can not create notice with invalid data
 
     public function test_authorized_user_can_not_create_notice_with_invalid_data()
     {
         $this->authorized_user(['create notice'])
             ->post('dashboard/notices', [
-                'title'      => '',
-                'content'    => 'Test Description',
+                'title' => '',
+                'content' => 'Test Description',
                 'start_date' => '2019-01-01',
-                'stop_date'  => '2019-01-02',
+                'stop_date' => '2019-01-02',
             ])
             ->assertSessionHasErrors();
     }
 
-    //assert user can not create notice with invalid data
+    // assert user can not create notice with invalid data
 
     public function test_authorized_user_can_not_create_notice_with_invalid_data_2()
     {
         $this->authorized_user(['create notice'])
             ->post('dashboard/notices', [
-                'title'      => 'Test Notice',
-                'content'    => '',
+                'title' => 'Test Notice',
+                'content' => '',
                 'start_date' => '2019-01-01',
-                'stop_date'  => '2019-01-01',
+                'stop_date' => '2019-01-01',
             ])
             ->assertSessionHasErrors();
     }
 
-    //assert user can not create notice with invalid data
+    // assert user can not create notice with invalid data
 
     public function test_authorized_user_can_not_create_notice_with_invalid_data_3()
     {
         $this->authorized_user(['create notice'])
             ->post('dashboard/notices', [
-                'title'      => 'Test Notice',
-                'content'    => 'Test Description',
+                'title' => 'Test Notice',
+                'content' => 'Test Description',
                 'start_date' => '2019-01-01',
-                'stop_date'  => '2018-01-01',
+                'stop_date' => '2018-01-01',
             ])
             ->assertSessionHasErrors();
     }

@@ -20,11 +20,11 @@ class StoreNoticeRequest extends FormRequest
     public function rules()
     {
         return [
-            'title'      => 'required|string|max:255',
-            'content'    => 'required|string',
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
             'attachment' => 'nullable|file|mimes:jpeg,png,jpg,gif,svg,pdf,doc,docx|max:10000',
             'start_date' => 'date',
-            'stop_date'  => 'date|after:start_date',
+            'stop_date' => 'date|after:start_date',
         ];
     }
 }

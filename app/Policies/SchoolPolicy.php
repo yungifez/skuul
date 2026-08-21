@@ -25,9 +25,15 @@ class SchoolPolicy
      */
     public function view(User $user, School $school)
     {
-        if ($user->can('read school') && $user->school_id = $school->id) {
+        if (!$user->isPlatformAdmin() && !$user->belongsToSchool($school)) {
+            return false;
+        }
+
+        if ($user->can('read school')) {
             return true;
         }
+
+        return null;
     }
 
     /**
@@ -50,7 +56,7 @@ class SchoolPolicy
         }
 
         if ($user->can('manage school settings')) {
-            return $user->school_id == $school->id;
+            return current_school_id() === $school->id;
         }
     }
 
@@ -80,10 +86,18 @@ class SchoolPolicy
         //
     }
 
-    public function setSchool(User $user)
+    /**
+     * Determine whether the user can change the school they are working in.
+     *
+     * A platform administrator may open any school. Everyone else may only
+     * open a school they hold a membership in.
+     */
+    public function setSchool(User $user): ?bool
     {
-        if (auth()->user()->hasRole('super-admin')) {
+        if ($user->isPlatformAdmin()) {
             return true;
         }
+
+        return $user->schoolMemberships()->active()->exists() ? true : null;
     }
 }

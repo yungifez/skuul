@@ -2,6 +2,4 @@
 
 namespace App\Exceptions;
 
-class InvalidValueException extends ApplicationException
-{
-}
+class InvalidValueException extends ApplicationException {}

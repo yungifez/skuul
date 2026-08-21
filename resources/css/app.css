@@ -1,37 +1,38 @@
-@import "@fortawesome/fontawesome-free/css/all.css";
+@import "tailwindcss";
+@import "../../vendor/yungifez/april-ui/resources/css/april.css";
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@source "../../resources/**/*.blade.php";
+@source "../../app/**/*.php";
 
-@layer components{
-    .beautify-scrollbar::-webkit-scrollbar{
+@layer components {
+    .beautify-scrollbar::-webkit-scrollbar {
         width: 5px;
         height: 5px;
-        background-color: rgba(0, 0, 0, 0);
+        background-color: transparent;
     }
 
-    .beautify-scrollbar::-webkit-scrollbar-corner{
-            background-color: transparent;
+    .beautify-scrollbar::-webkit-scrollbar-corner {
+        background-color: transparent;
     }
-    .beautify-scrollbar::-webkit-scrollbar-thumb{
-        background-color: rgba(126, 143, 151, 0.5);
+
+    .beautify-scrollbar::-webkit-scrollbar-thumb {
+        background-color: hsl(var(--muted-foreground) / 0.35);
+        border-radius: 9999px;
     }
 
     .card {
-        @apply  bg-white dark:bg-gray-800 rounded shadow border my-6
+        @apply rounded-lg border bg-card text-card-foreground shadow-sm;
     }
 
     .card-header {
-        @apply px-4 md:px-7 py-2 border-b
+        @apply flex flex-col gap-1.5 border-b p-6;
     }
 
     .card-body {
-        @apply px-4 md:px-7 py-7
+        @apply p-6;
     }
 
     .card-title {
-        @apply md:text-lg capitalize font-semibold
+        @apply text-lg font-semibold leading-none tracking-tight;
     }
-
 }

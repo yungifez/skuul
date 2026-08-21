@@ -7,12 +7,7 @@ use Illuminate\Support\Facades\Storage;
 
 class SyllabusService
 {
-    public function getAllSyllabi()
-    {
-        return Syllabus::where('school_id', auth()->user()->school_id)->get();
-    }
-
-    //get all syllabus in semester and class
+    // get all syllabus in semester and class
     public function getAllSyllabiInSemesterAndClass($semester_id, $class_id)
     {
         return Syllabus::where('semester_id', $semester_id)->get()->load('subject', 'subject.myClass')->filter(function ($semester) use ($class_id) {
@@ -27,7 +22,7 @@ class SyllabusService
 
     public function createSyllabus($data)
     {
-        $data['semester_id'] = auth()->user()->school->semester_id;
+        $data['semester_id'] = current_school()->semester_id;
 
         $data['file'] = $data['file']->store(
             'syllabus/',
@@ -35,10 +30,10 @@ class SyllabusService
         );
 
         Syllabus::create([
-            'name'        => $data['name'],
+            'name' => $data['name'],
             'description' => $data['description'],
-            'file'        => $data['file'],
-            'subject_id'  => $data['subject_id'],
+            'file' => $data['file'],
+            'subject_id' => $data['subject_id'],
             'semester_id' => $data['semester_id'],
         ]);
     }

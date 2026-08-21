@@ -9,46 +9,46 @@ class GradeSystemTest extends TestCase
 {
     public $gradeSystemService;
 
-    //test if grade range exists
+    // test if grade range exists
 
     public function test_grade_range_exists()
     {
         $testCases = [
-            //check if grade range is in test range
+            // check if grade range is in test range
             [
                 'grade_from' => 20,
                 'grade_till' => 70,
-                'expected'   => true,
+                'expected' => true,
             ],
-            //check if test range is in grade Range
+            // check if test range is in grade Range
             [
                 'grade_from' => 50,
                 'grade_till' => 55,
-                'expected'   => true,
+                'expected' => true,
             ],
-            //check if test range starts from grade range and stops in another grade range
+            // check if test range starts from grade range and stops in another grade range
             [
                 'grade_from' => 50,
                 'grade_till' => 80,
-                'expected'   => true,
+                'expected' => true,
             ],
-            //check if grade range starts at grade range and ends outside grade range
+            // check if grade range starts at grade range and ends outside grade range
             [
                 'grade_from' => 88,
                 'grade_till' => 150,
-                'expected'   => true,
+                'expected' => true,
             ],
-            //check if grade range starts outside test range and ends in grade range
+            // check if grade range starts outside test range and ends in grade range
             [
                 'grade_from' => 70,
                 'grade_till' => 100,
-                'expected'   => true,
+                'expected' => true,
             ],
-            //false when grade range is not in test range
+            // false when grade range is not in test range
             [
                 'grade_from' => 70,
                 'grade_till' => 79,
-                'expected'   => false,
+                'expected' => false,
             ],
         ];
         $grades = [

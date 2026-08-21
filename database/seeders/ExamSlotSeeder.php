@@ -15,17 +15,17 @@ class ExamSlotSeeder extends Seeder
     public function run()
     {
         ExamSlot::firstOrCreate([
-            'name'        => 'Objective',
+            'name' => 'Objective',
             'description' => 'written last week',
             'total_marks' => 40,
-            'exam_id'     => 1,
+            'exam_id' => 1,
         ]);
 
         ExamSlot::firstOrCreate([
-            'name'        => 'Theory',
+            'name' => 'Theory',
             'description' => 'lol',
             'total_marks' => 60,
-            'exam_id'     => 1,
+            'exam_id' => 1,
         ]);
 
         ExamSlot::factory()->count(10)->create();

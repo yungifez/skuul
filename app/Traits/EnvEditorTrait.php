@@ -26,7 +26,7 @@ trait EnvEditorTrait
                 if ($keyPosition === false || !$endOfLinePosition || !$oldLine) {
                     $str .= "{$envKey}=\"{$envValue}\"\n";
                 } else {
-                    //else replace it
+                    // else replace it
                     $str = str_replace($oldLine, "{$envKey}=\"{$envValue}\"", $str);
                 }
             }

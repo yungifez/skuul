@@ -30,13 +30,12 @@ class Datatable extends Component
     public $perPage = 10;
 
     protected $rules = [
-        'perPage'  => 'nullable|integer',
-        'search'   => 'nullable|string',
+        'perPage' => 'nullable|integer',
+        'search' => 'nullable|string',
     ];
 
     /**
-     * @param string|Builder $model Pass model or query builder
-     *
+     * @param  string|Builder  $model  Pass model or query builder
      * @return void
      */
     public function mount(string|Builder $model, array $columns, array $filters = [], $uniqueId = null)
@@ -51,9 +50,9 @@ class Datatable extends Component
     /**
      * Verify if a class is an eloquent model.
      *
-     * @param object $model
+     * @param  object  $model
      *
-     * @throws \App\Exceptions\InvalidClassException
+     * @throws InvalidClassException
      */
     public function verifyIsModel($model): bool
     {
@@ -76,7 +75,7 @@ class Datatable extends Component
 
         $model = $this->addSearchFilter($model);
 
-        return $model->paginate($this->perPage, pageName:  $this->uniqueId);
+        return $model->paginate($this->perPage, pageName: $this->uniqueId);
     }
 
     public function addSearchFilter($model)
@@ -85,7 +84,7 @@ class Datatable extends Component
             return $model;
         }
 
-        //create closure with filters to be applied to model
+        // create closure with filters to be applied to model
         $searchFilter = function ($query) use ($model) {
             foreach ($this->columns as $column) {
                 if (array_key_exists('searchable', $column) && !$column['searchable']) {
@@ -101,14 +100,14 @@ class Datatable extends Component
                     }
                 }
 
-                //get table name from either DatabaseBuilder or EloQuent model
+                // get table name from either DatabaseBuilder or EloQuent model
                 $table = $model->getModel()->getTable() ?? $model?->getQuery()->getModel()->getTable();
 
                 if (array_key_exists('relation', $column) && !empty($column['relation'])) {
-                    //filter relation
+                    // filter relation
                     $query = call_user_func_array([$query, 'orWhereRelation'], [$column['relation'], $column['columnName'] ?? $column['property'], 'LIKE', "%$this->search%"]);
                 } else {
-                    //filter column
+                    // filter column
                     $query = call_user_func_array([$query, 'orWhere'], [$table.'.'.($column['columnName'] ?? $column['property']), 'LIKE', "%$this->search%"]);
                 }
             }

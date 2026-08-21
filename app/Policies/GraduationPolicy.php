@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\Role;
 use App\Models\User;
 
 class GraduationPolicy
@@ -22,11 +23,11 @@ class GraduationPolicy
 
     public function resetGraduation(User $user, User $model)
     {
-        if (!$model->hasRole('student')) {
+        if (!$model->hasRole(Role::Student)) {
             return false;
         }
 
-        if ($user->can('reset graduation') && $model->school_id == $user->school_id) {
+        if ($user->can('reset graduation') && $model->belongsToCurrentSchool()) {
             return true;
         }
     }

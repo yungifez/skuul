@@ -20,13 +20,13 @@ class GraduateStudents extends Component
     public $students;
 
     protected $rules = [
-        'class'   => 'required|exists:my_classes,id',
+        'class' => 'required|exists:my_classes,id',
         'section' => 'required|exists:sections,id',
     ];
 
     public function mount(MyClassService $myClassService)
     {
-        $this->classes = $myClassService->getAllClasses();  //set default values
+        $this->classes = $myClassService->getAllClasses();  // set default values
         $this->class = $this->classes[0]->id;
     }
 

@@ -8,6 +8,7 @@ use Livewire\Component;
 class ListStudentFeeInvoices extends Component
 {
     public User $student;
+
     public $feeInvoices;
 
     public function render()

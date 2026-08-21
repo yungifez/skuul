@@ -7,9 +7,13 @@ use Livewire\Component;
 class ListFeeInvoicesTable extends Component
 {
     protected $queryString = ['status'];
+
     public $statuses = ['all', 'due', 'paid'];
+
     public $status;
+
     public $queryAddon;
+
     public $year;
 
     public function mount()

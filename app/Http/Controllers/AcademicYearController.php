@@ -86,13 +86,13 @@ class AcademicYearController extends Controller
     /**
      * Set academic year.
      */
-    public function setAcademicYear(request $request): RedirectResponse
+    public function setAcademicYear(Request $request): RedirectResponse
     {
         $this->authorize('setAcademicYear', AcademicYear::class);
         $academicYear = $request->academic_year_id;
 
         $this->academicYear->setAcademicYear($academicYear);
 
-        return back()->with('success', 'Academic year set for '.auth()->user()->school->name.' successfully');
+        return back()->with('success', 'Academic year set for '.current_school()->name.' successfully');
     }
 }

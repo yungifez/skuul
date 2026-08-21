@@ -4,12 +4,12 @@
         <div class="md:flex justify-between my-3 parent-horizontal-align">
             <div class="py-3 border-t border-b horizontal-align">
                 <h3 class="text-lg">From:</h3>
-                <p class="font-bold">{{auth()->user()->school->name}}</p>
-                <p class="">Address: {{auth()->user()->school->address}}</p>
-                @if (($phone = auth()->user()->school->phone) != null)
+                <p class="font-bold">{{current_school()->name}}</p>
+                <p class="">Address: {{current_school()->address}}</p>
+                @if (($phone = current_school()->phone) != null)
                     <p class="">Phone: {{$phone}}</p>
                 @endif
-                @if (($email = auth()->user()->school->email) != null)
+                @if (($email = current_school()->email) != null)
                     <p class="">Email: {{$email}}</p>
                 @endif
             </div>
@@ -40,10 +40,10 @@
                         <tr>
                             <td class="p-4 border">{{$loop->iteration}}</td>
                             <td class="p-4 border">{{$record->fee->name}}</td>
-                            <td class="p-4 border">{{$record->amount->formatTo(app()->getLocale())}}</td>
-                            <td class="p-4 border">{{$record->waiver->formatTo(app()->getLocale())}}</td>
-                            <td class="p-4 border">{{$record->fine->formatTo(app()->getLocale())}}</td>
-                            <td class="p-4 border">{{$record->paid->formatTo(app()->getLocale())}}</td>
+                            <td class="p-4 border">{{$record->amount->formatToLocale(app()->getLocale())}}</td>
+                            <td class="p-4 border">{{$record->waiver->formatToLocale(app()->getLocale())}}</td>
+                            <td class="p-4 border">{{$record->fine->formatToLocale(app()->getLocale())}}</td>
+                            <td class="p-4 border">{{$record->paid->formatToLocale(app()->getLocale())}}</td>
                         </tr>
                     @endforeach
                 </tbody>

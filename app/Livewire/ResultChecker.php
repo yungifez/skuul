@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enums\Role;
 use App\Models\AcademicYear;
 use App\Models\User;
 use App\Services\MyClass\MyClassService;
@@ -43,18 +44,18 @@ class ResultChecker extends Component
 
     public $selectedClass;
 
-    //rules
+    // rules
     public $rules = [
         'academicYear' => 'integer|exists:academic_years,id',
-        'semester'     => 'required|integer|exists:semesters_id',
+        'semester' => 'required|integer|exists:semesters_id',
     ];
 
     public function mount(MyClassService $myClassService)
     {
-        $this->academicYears = auth()->user()->school->academicYears;
-        $this->academicYear = auth()->user()->school->academicYear->id;
+        $this->academicYears = current_school()->academicYears;
+        $this->academicYear = current_school()->academicYear->id;
         $this->updatedAcademicYear();
-        if (auth()->user()->hasAnyRole(['super-admin', 'admin', 'teacher'])) {
+        if (auth()->user()->isPlatformAdmin() || auth()->user()->hasAnyRole([Role::Admin, Role::Teacher])) {
             $this->classes = $myClassService->getAllClasses();
 
             if ($this->classes->isEmpty()) {
@@ -62,21 +63,21 @@ class ResultChecker extends Component
             }
             $this->class = $this->classes[0]->id;
             $this->updatedClass();
-        } elseif (auth()->user()->hasRole('student')) {
-            $this->checkResult(auth()->user()->school->academicYear, auth()->user()->school->semester, auth()->user()->loadMissing('allStudentRecords'));
-        } elseif (auth()->user()->hasRole('parent')) {
-            //get parent's children
+        } elseif (auth()->user()->hasRole(Role::Student)) {
+            $this->checkResult(current_school()->academicYear, current_school()->semester, auth()->user()->loadMissing('allStudentRecords'));
+        } elseif (auth()->user()->hasRole(Role::Parent)) {
+            // get parent's children
             $this->students = auth()->user()->parentRecord->Students;
-            //set student if the fetched records aren't empty
+            // set student if the fetched records aren't empty
             $this->students->count() ? $this->student = $this->students[0]->id : $this->student = null;
         }
     }
 
-    //updated academic year
+    // updated academic year
     public function updatedAcademicYear()
     {
         $academicYear = app("App\Services\AcademicYear\AcademicYearService")->getAcademicYearById($this->academicYear);
-        //get semesters in academic year
+        // get semesters in academic year
         $this->semesters = $academicYear->semesters;
         $this->semester = null;
 
@@ -84,18 +85,18 @@ class ResultChecker extends Component
             return;
         }
 
-        $this->semester = ($this->semesters->find(auth()->user()->school->semester_id) ?? $this->semesters[0])->id;
+        $this->semester = ($this->semesters->find(current_school()->semester_id) ?? $this->semesters[0])->id;
     }
 
     public function updatedClass()
     {
-        //get instance of class
+        // get instance of class
         $class = app("App\Services\MyClass\MyClassService")->getClassById($this->class);
 
-        //get sections in class
+        // get sections in class
         $this->sections = $class->sections;
 
-        //set section if the fetched records aren't empty
+        // set section if the fetched records aren't empty
         if ($this->sections->isEmpty()) {
             $this->students = null;
 
@@ -108,13 +109,13 @@ class ResultChecker extends Component
 
     public function updatedSection()
     {
-        //get instance of section
+        // get instance of section
         $section = app("App\Services\Section\SectionService")->getSectionById($this->section);
 
-        //get students in section
+        // get students in section
         $this->students = $section->students();
 
-        //set student if the fetched records aren't empty
+        // set student if the fetched records aren't empty
         $this->students->count() ? $this->student = $this->students[0]->id : $this->student = null;
     }
 
@@ -123,16 +124,16 @@ class ResultChecker extends Component
         $semester = $this->semesters->find($semester);
 
         // make sure user student isn't another role
-        if (!$student->hasRole('student')) {
+        if (!$student->hasRole(Role::Student)) {
             abort(404, 'Student not found.');
         }
-        //set name that would be used in view
+        // set name that would be used in view
         $this->studentName = $student->name;
         // fetch all exams, subjects and exam records for user in semester
 
         if ($semester != null && $semester->exists()) {
             $this->exams = $semester->exams()->where('publish_result', true)->get()->load('examSlots');
-            //fetch all students exam records in semester
+            // fetch all students exam records in semester
             $this->examRecords = app("App\Services\Exam\ExamRecordService")->getAllUserExamRecordInSemester($semester, $student->id);
         } else {
             $this->exams = $academicYear->exams()->where('publish_result', true)->get()->load('examSlots');

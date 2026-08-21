@@ -3,7 +3,7 @@
         <h4 class="card-title">All Classes</h4>
     </div>
     <div class="card-body">
-        <livewire:datatable :model="App\Models\School::class" uniqueId="class-list" :filters="[['name' => 'find' , 'arguments' => [auth()->user()->school_id]] , ['name' => 'myClasses'], ['name' => 'with', 'arguments' => ['classGroup']]]" :columns="
+        <livewire:datatable :model="App\Models\School::class" uniqueId="class-list" :filters="[['name' => 'find' , 'arguments' => [current_school_id()]] , ['name' => 'myClasses'], ['name' => 'with', 'arguments' => ['classGroup']]]" :columns="
         [
             ['property' => 'name'] , 
             ['property' => 'name', 'name' => 'classGroup', 'relation' => 'classGroup'] , 

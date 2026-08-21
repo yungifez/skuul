@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enums\Role;
 use App\Services\MyClass\MyClassService;
 use Livewire\Component;
 
@@ -15,7 +16,7 @@ class ListTimetablesTable extends Component
 
     public function mount(MyClassService $myClassService)
     {
-        if (auth()->user()->hasRole('student')) {
+        if (auth()->user()->hasRole(Role::Student)) {
             return $this->class = auth()->user()->studentRecord->myClass->id;
         }
 

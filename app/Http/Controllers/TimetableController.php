@@ -42,7 +42,7 @@ class TimetableController extends Controller
     public function store(TimetableStoreRequest $request): RedirectResponse
     {
         $data = $request->except('_token');
-        $data['semester_id'] = auth()->user()->school->semester_id;
+        $data['semester_id'] = current_school()->semester_id;
 
         $timetable = $this->timetableService->createTimetable($data);
 

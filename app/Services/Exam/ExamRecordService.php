@@ -2,6 +2,7 @@
 
 namespace App\Services\Exam;
 
+use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicYear;
 use App\Models\Exam;
@@ -9,6 +10,7 @@ use App\Models\ExamRecord;
 use App\Models\Semester;
 use App\Services\Subject\SubjectService;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 class ExamRecordService
@@ -30,7 +32,7 @@ class ExamRecordService
      * Get all exam records for all students in a class section for a semester.
      *
      *
-     * @return \App\Modles\ExamRecord
+     * @return Collection<int, ExamRecord>
      */
     public function getAllExamRecordsInSectionAndSubject(int $section, int $subject)
     {
@@ -41,7 +43,7 @@ class ExamRecordService
      * Get all exam records in section.
      *
      *
-     * @return \App\Models\ExamRecord
+     * @return ExamRecord
      */
     public function getAllExamRecordsInSection(int $section)
     {
@@ -52,32 +54,31 @@ class ExamRecordService
      * Get all exam records for a subject.
      *
      *
-     * @return \App\Models\ExamRecord
+     * @return ExamRecord
      */
     public function getAllUserExamRecordInExamForSubject(Exam $exam, int $user, int $subject)
     {
-        //get all exam slots in exam
+        // get all exam slots in exam
         $examSlots = $exam->examSlots->pluck('id');
 
-        //get all exam records in for user and subject
+        // get all exam records in for user and subject
         return ExamRecord::where(['user_id' => $user, 'subject_id' => $subject])->whereIn('exam_slot_id', $examSlots)->get();
     }
 
     /**
      * Get all exam records for a user in a subject and an específic semester.
      *
-     * @param int $user
-     * @param int $subject
-     *
-     * @return \App\Models\ExamRecord
+     * @param  int  $user
+     * @param  int  $subject
+     * @return ExamRecord
      */
     public function getAllUserExamRecordInSemesterForSubject(Semester $semester, $user, $subject)
     {
-        //get all exams
+        // get all exams
         $exams = $semester->exams;
-        //create container variable for all exam slots in semester
+        // create container variable for all exam slots in semester
         $examSlots = [];
-        //get all exam slots in exams
+        // get all exam slots in exams
         foreach ($exams as $exam) {
             $i = $exam->examSlots->pluck('id')->all();
             foreach ($i as $j) {
@@ -85,24 +86,23 @@ class ExamRecordService
             }
         }
 
-        //get all exam records in for user and subject
+        // get all exam records in for user and subject
         return ExamRecord::where(['user_id' => $user, 'subject_id' => $subject])->whereIn('exam_slot_id', $examSlots)->get();
     }
 
     /**
      * Get all user exam records for user in an academic year.
      *
-     * @param Semester $semester
-     *
-     * @return \App\Models\ExamRecord
+     * @param  Semester  $semester
+     * @return ExamRecord
      */
     public function getAllUserExamRecordInAcademicYear(AcademicYear $academicYear, int $user)
     {
-        //get all exams
+        // get all exams
         $exams = $academicYear->exams->load('examSlots');
         $examSlots = $this->getAllExamSlotsInExams($exams);
 
-        //get all exam records in for user and subject
+        // get all exam records in for user and subject
         return ExamRecord::where(['user_id' => $user])->whereIn('exam_slot_id', $examSlots)->get();
     }
 
@@ -110,16 +110,16 @@ class ExamRecordService
      * Get all user exam records for user in a semester.
      *
      *
-     * @return \App\Models\ExamRecord
+     * @return ExamRecord
      */
     public function getAllUserExamRecordInSemester(Semester $semester, int $user)
     {
-        //get all exams
+        // get all exams
         $exams = $semester->exams->load('examSlots');
 
         $examSlots = $this->getAllExamSlotsInExams($exams);
 
-        //get all exam records in for user and subject
+        // get all exam records in for user and subject
         return ExamRecord::where(['user_id' => $user])->whereIn('exam_slot_id', $examSlots)->get();
     }
 
@@ -131,9 +131,9 @@ class ExamRecordService
      */
     public function getAllExamSlotsInExams($exams)
     {
-        //create container variable for all exam slots in semester
+        // create container variable for all exam slots in semester
         $examSlots = [];
-        //get all exam slots in exams
+        // get all exam slots in exams
         foreach ($exams as $exam) {
             $i = $exam->examSlots->pluck('id')->all();
             foreach ($i as $j) {
@@ -147,19 +147,18 @@ class ExamRecordService
     /**
      * Create exam record.
      *
-     * @param array|object $records
-     *
+     * @param  array|object  $records
      * @return void
      */
     public function createExamRecord($records)
     {
-        if (auth()->user()->hasRole('teacher') && $this->subjectService->getSubjectById($records['subject_id'])->teachers->where('id', auth()->user()->id)->isEmpty()) {
+        if (auth()->user()->hasRole(Role::Teacher) && $this->subjectService->getSubjectById($records['subject_id'])->teachers->where('id', auth()->user()->id)->isEmpty()) {
             throw new AuthorizationException('Creating of exam record for this subject is unauthorised.');
         }
 
         DB::transaction(function () use ($records) {
             foreach ($records['exam_records'] as $record) {
-                //set mark if not present
+                // set mark if not present
                 $record['student_marks'] = $record['student_marks'] ?? null;
 
                 // checks if student marks is less than total marks
@@ -170,9 +169,9 @@ class ExamRecordService
                 // creates exam record or updates if records already exists
 
                 ExamRecord::updateOrCreate(
-                    ['user_id'         => $records['user_id'],
-                        'section_id'   => $records['section_id'],
-                        'subject_id'   => $records['subject_id'],
+                    ['user_id' => $records['user_id'],
+                        'section_id' => $records['section_id'],
+                        'subject_id' => $records['subject_id'],
                         'exam_slot_id' => $record['exam_slot_id'],
                     ],
                     [

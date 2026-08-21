@@ -20,7 +20,7 @@
                 {{ session('status') }}
             </x-alert>
         @endif
-        <x-alert colour="bg-red-500" title="No Internet" :stack-icons="['fa fa-signal', 'fa fa-ban']" show="false">
+        <x-alert colour="bg-red-500" title="No Internet" :stack-icons="['fa fa-signal', 'fa fa-ban']" :show="false">
             <div  @offline.window="showAlert = true" @online.window="showAlert = false">
                 Your Device Has Gone Offline
             </div>

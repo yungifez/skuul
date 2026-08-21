@@ -12,7 +12,7 @@ class ListPromotionsTable extends Component
     public function mount(AcademicYearService $academicYearService)
     {
         if (!$this->academicYear) {
-            $this->academicYear = auth()->user()->school->load('academicYear')->academicYear->first();
+            $this->academicYear = current_school()->load('academicYear')->academicYear->first();
         } else {
             $this->academicYear = $academicYearService->getAcademicYearById($this->academicYear);
         }

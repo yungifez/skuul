@@ -13,8 +13,8 @@ use Tests\TestCase;
 class FeeInvoiceRecordTest extends TestCase
 {
     use FeatureTestTrait;
-    use WithFaker;
     use RefreshDatabase;
+    use WithFaker;
 
     public function test_unauthorized_user_cannot_store_fee_invoice_record()
     {
@@ -23,17 +23,17 @@ class FeeInvoiceRecordTest extends TestCase
 
         $this->unauthorized_user()
             ->post('dashboard/fees/fee-invoices/fee-invoice-records', [
-                'fee_invoice_id'   => $feeInvoice->id,
-                'fee_id'           => $fee->id,
-                'amount'           => 100_000,
-                'waiver'           => 80_000,
-                'fine'             => 10_000,
+                'fee_invoice_id' => $feeInvoice->id,
+                'fee_id' => $fee->id,
+                'amount' => 100_000,
+                'waiver' => 80_000,
+                'fine' => 10_000,
             ])
             ->assertForbidden();
 
         $this->assertDatabaseMissing('fee_invoice_records', [
-            'fee_invoice_id'  => $feeInvoice->id,
-            'fee_id'          => $fee->id,
+            'fee_invoice_id' => $feeInvoice->id,
+            'fee_id' => $fee->id,
         ]);
     }
 
@@ -44,17 +44,17 @@ class FeeInvoiceRecordTest extends TestCase
 
         $this->authorized_user(['create fee invoice record'])
             ->post('dashboard/fees/fee-invoices/fee-invoice-records', [
-                'fee_invoice_id'   => $feeInvoice->id,
-                'fee_id'           => $fee->id,
-                'amount'           => 100_000,
-                'waiver'           => 80_000,
-                'fine'             => 10_000,
+                'fee_invoice_id' => $feeInvoice->id,
+                'fee_id' => $fee->id,
+                'amount' => 100_000,
+                'waiver' => 80_000,
+                'fine' => 10_000,
             ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('fee_invoice_records', [
-            'fee_invoice_id'  => $feeInvoice->id,
-            'fee_id'          => $fee->id,
+            'fee_invoice_id' => $feeInvoice->id,
+            'fee_id' => $fee->id,
         ]);
     }
 
@@ -90,7 +90,7 @@ class FeeInvoiceRecordTest extends TestCase
 
         $this->unauthorized_user()
             ->post("dashboard/fees/fee-invoices/fee-invoice-records/$feeInvoiceRecord->id/pay", [
-                'pay'   => $pay,
+                'pay' => $pay,
             ])
             ->assertForbidden();
 
@@ -107,7 +107,7 @@ class FeeInvoiceRecordTest extends TestCase
 
         $this->authorized_user(['update fee invoice record'])
             ->post("dashboard/fees/fee-invoices/fee-invoice-records/$feeInvoiceRecord->id/pay", [
-                'pay'   => $pay,
+                'pay' => $pay,
             ])
             ->assertRedirect();
 

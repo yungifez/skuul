@@ -74,8 +74,6 @@ class TimetableTimeSlotController extends Controller
 
     /**
      * Remove the specified resource from storage.
-     *
-     * @param TimetableTimeSlot $timeSlot
      */
     public function destroy(TimetableTimeSlot $timeSlot): RedirectResponse
     {
@@ -86,9 +84,6 @@ class TimetableTimeSlotController extends Controller
 
     /**
      * Add Timetable record.
-     *
-     * @param TimetableTimeSlot           $timeSlot
-     * @param StoreTimetableRecordRequest $request
      */
     public function addTimetableRecord(TimetableTimeSlot $timeSlot, StoreTimetableRecordRequest $request): RedirectResponse
     {

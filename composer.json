@@ -7,34 +7,45 @@
         "school-management"
     ],
     "license": "MIT",
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../april-ui",
+            "options": {
+                "symlink": true
+            }
+        }
+    ],
     "require": {
-        "php": "^8.1",
-        "barryvdh/laravel-dompdf": ">1.0",
-        "brick/money": "^0.8.0",
+        "php": "^8.3",
+        "barryvdh/laravel-dompdf": "^3.1",
+        "brick/money": "^0.14.0",
         "doctrine/dbal": "^3.5",
         "guzzlehttp/guzzle": "^7.2",
-        "laravel/framework": "^10.0",
-        "laravel/jetstream": "^4.0",
-        "laravel/prompts": "^0.1.6",
-        "laravel/sanctum": "^3.2",
-        "laravel/tinker": "^2.8",
-        "livewire/livewire": "^3.0",
+        "laravel/framework": "^13.0",
+        "laravel/jetstream": "^5.0",
+        "laravel/prompts": "^0.3.11",
+        "laravel/sanctum": "^4.0",
+        "laravel/tinker": "^3.0",
+        "livewire/livewire": "^4.0",
         "nnjeim/world": "^1.1",
         "opcodesio/log-viewer": "^3.1.1",
+        "yungifez/april-ui": "dev-main",
         "spatie/laravel-model-status": "^1.11",
-        "spatie/laravel-permission": "^5.5"
+        "spatie/laravel-permission": "^8.0"
     },
     "require-dev": {
-        "barryvdh/laravel-debugbar": "^3.6",
-        "barryvdh/laravel-ide-helper": "^2.12",
-        "beyondcode/laravel-query-detector": "^1.7",
+        "barryvdh/laravel-debugbar": "^4.0",
+        "barryvdh/laravel-ide-helper": "^3.0",
+        "beyondcode/laravel-query-detector": "^2.0",
         "fakerphp/faker": "^1.9.1",
+        "larastan/larastan": "^3.0",
+        "laravel/boost": "^2.5",
         "laravel/pint": "^1.5",
         "laravel/sail": "^1.18",
         "mockery/mockery": "^1.4.4",
-        "nunomaduro/collision": "^7.0",
-        "larastan/larastan": "^2.0",
-        "phpunit/phpunit": "^10.0",
+        "nunomaduro/collision": "^8.0",
+        "phpunit/phpunit": "^12.0",
         "spatie/laravel-ignition": "^2.0"
     },
     "autoload": {
@@ -42,7 +53,10 @@
             "App\\": "app/",
             "Database\\Factories\\": "database/factories/",
             "Database\\Seeders\\": "database/seeders/"
-        }
+        },
+        "files": [
+            "app/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {

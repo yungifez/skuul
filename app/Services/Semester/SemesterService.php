@@ -4,24 +4,25 @@ namespace App\Services\Semester;
 
 use App\Exceptions\InvalidValueException;
 use App\Models\Semester;
+use Illuminate\Database\Eloquent\Collection;
 
 class SemesterService
 {
     /**
      * Get all semesters in school.
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     public function getAllSemesters()
     {
-        return Semester::where(['school_id' => auth()->user()->school_id])->get();
+        return Semester::inSchool()->get();
     }
 
     /**
      * Get all semesters in academic year.
      *
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     public function getAllSemestersInAcademicYear(int $academicYear)
     {
@@ -42,17 +43,16 @@ class SemesterService
     /**
      * Create a new semester.
      *
-     * @param mixed $data
-     *
+     * @param  mixed  $data
      * @return Semester
      */
     public function createSemester($data)
     {
-        $data['academic_year_id'] = auth()->user()->school->academicYear->id;
-        $data['school_id'] = auth()->user()->school->id;
+        $data['academic_year_id'] = current_school()->academicYear->id;
+        $data['school_id'] = current_school_id();
         $semester = Semester::create([
-            'name'             => $data['name'],
-            'school_id'        => $data['school_id'],
+            'name' => $data['name'],
+            'school_id' => $data['school_id'],
             'academic_year_id' => $data['academic_year_id'],
         ]);
 
@@ -63,13 +63,14 @@ class SemesterService
      * Set current semester.
      *
      *
-     * @throws InvalidValueException
      *
      * @return void
+     *
+     * @throws InvalidValueException
      */
     public function setSemester(Semester $semester)
     {
-        $school = auth()->user()->school;
+        $school = current_school();
         if ($semester->academicYear->id != $school->academic_year_id) {
             throw new InvalidValueException('Semester not in current academic year');
         }
@@ -80,8 +81,7 @@ class SemesterService
     /**
      * Semester service.
      *
-     * @param mixed $data
-     *
+     * @param  mixed  $data
      * @return void
      */
     public function updateSemester(Semester $semester, $data)

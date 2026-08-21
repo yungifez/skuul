@@ -2,13 +2,16 @@
 
 namespace App\Models;
 
+use App\Traits\InSchool;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Semester extends Model
 {
     use HasFactory;
+    use InSchool;
 
     protected $table = 'semesters';
 
@@ -27,7 +30,7 @@ class Semester extends Model
     /**
      * Get all of the exams for the Semester.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
     public function exams()
     {

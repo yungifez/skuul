@@ -11,7 +11,7 @@ class SetSchool extends Component
 
     public function mount(SchoolService $schoolService)
     {
-        $this->schools = $schoolService->getAllSchools();
+        $this->schools = $schoolService->getSchoolsForUser();
     }
 
     public function render()

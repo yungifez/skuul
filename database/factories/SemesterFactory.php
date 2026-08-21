@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Semester;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Semester>
+ * @extends Factory<Semester>
  */
 class SemesterFactory extends Factory
 {
@@ -17,10 +18,9 @@ class SemesterFactory extends Factory
     public function definition()
     {
         return [
-            'id'               => $this->faker->numberBetween(1, 10000),
-            'name'             => $this->faker->unique()->word,
+            'name' => $this->faker->unique()->word,
             'academic_year_id' => 1,
-            'school_id'        => 1,
+            'school_id' => 1,
         ];
     }
 }

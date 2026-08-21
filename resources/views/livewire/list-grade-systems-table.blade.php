@@ -3,7 +3,7 @@
         <h4 class="card-title"> Grade systems list</h4>
     </div>
     <div class="card-body">
-        @if (!auth()->user()->hasRole('student'))
+        @if (!auth()->user()->hasRole(\App\Enums\Role::Student))
 
         <x-select id="class-group" label="Select a class group to see grading system" group-class="my-6 md:w-6/12" name="" wire:model.live="classGroup">
             @foreach ($classGroups as $item)

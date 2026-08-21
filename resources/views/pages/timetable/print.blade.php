@@ -3,7 +3,7 @@
 @section('title', $timetable->name)
 
 @section('content')
-    <h1 class="school-name">{{auth()->user()->school->name}}</h1>
+    <h1 class="school-name">{{current_school()->name}}</h1>
     @livewire('show-timetable', ['timetable' => $timetable])
 @endsection
 

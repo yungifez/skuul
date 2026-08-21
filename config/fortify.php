@@ -1,6 +1,5 @@
 <?php
 
-use App\Providers\RouteServiceProvider;
 use Laravel\Fortify\Features;
 
 return [
@@ -61,7 +60,7 @@ return [
     |
     */
 
-    'home' => RouteServiceProvider::HOME,
+    'home' => env('APP_HOME', '/dashboard'),
 
     /*
     |--------------------------------------------------------------------------
@@ -103,7 +102,7 @@ return [
     */
 
     'limiters' => [
-        'login'      => 'login',
+        'login' => 'login',
         'two-factor' => 'two-factor',
     ],
 
@@ -132,7 +131,7 @@ return [
     */
 
     'features' => [
-        //custom registration has been implemented, do not uncomment
+        // custom registration has been implemented, do not uncomment
         // Features::registration(),
         Features::resetPasswords(),
         Features::emailVerification(),

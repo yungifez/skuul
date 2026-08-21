@@ -24,7 +24,7 @@ class FeeCategoryPolicy
      */
     public function view(User $user, FeeCategory $feeCategory): ?bool
     {
-        if ($user->can('read fee category') && $feeCategory->school->id == auth()->user()->school->id) {
+        if ($user->can('read fee category') && $feeCategory->school->id == current_school_id()) {
             return true;
         }
 
@@ -48,7 +48,7 @@ class FeeCategoryPolicy
      */
     public function update(User $user, FeeCategory $feeCategory): ?bool
     {
-        if ($user->can('update fee category') && $feeCategory->school->id == auth()->user()->school->id) {
+        if ($user->can('update fee category') && $feeCategory->school->id == current_school_id()) {
             return true;
         }
 
@@ -60,7 +60,7 @@ class FeeCategoryPolicy
      */
     public function delete(User $user, FeeCategory $feeCategory): ?bool
     {
-        if ($user->can('delete fee category') && $feeCategory->school->id == auth()->user()->school->id) {
+        if ($user->can('delete fee category') && $feeCategory->school->id == current_school_id()) {
             return true;
         }
 

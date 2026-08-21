@@ -2,44 +2,35 @@
 
 namespace App\Services\User;
 
-use App\Actions\Fortify\CreateNewUser;
 use App\Actions\Fortify\UpdateUserProfileInformation;
+use App\Actions\Identity\ChangeAccountStatus;
+use App\Actions\Identity\ProvisionAccount;
+use App\Actions\Identity\SendAccountInvitation;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 
 class UserService
 {
-    /**
-     * @var CreateNewUser
-     */
-    public $createUserAction;
-
-    /**
-     * @var UpdateUserProfileInformation
-     */
-    public $updateUserProfileInformationAction;
-
-    public function __construct(CreateNewUser $createUserAction, UpdateUserProfileInformation $updateUserProfileInformationAction)
-    {
-        $this->createUserAction = $createUserAction;
-        $this->updateUserProfileInformationAction = $updateUserProfileInformationAction;
-    }
+    public function __construct(
+        public ProvisionAccount $provisionAccountAction,
+        public SendAccountInvitation $sendAccountInvitationAction,
+        public ChangeAccountStatus $changeAccountStatusAction,
+        public UpdateUserProfileInformation $updateUserProfileInformationAction,
+    ) {}
 
     /**
      * Get all users.
      */
     public function getAllUsers(): Collection|static
     {
-        // @phpstan-ignore-next-line
-        return User::school()->get();
+        return User::ofSchool()->get();
     }
 
     /**
      * Get a user by id.
      *
-     * @param int $id
-     *
-     * @return \App\Models\User
+     * @param  int|array<int, int>  $id
+     * @return User|Collection<int, User>|null
      */
     public function getUserById($id)
     {
@@ -49,42 +40,47 @@ class UserService
     /**
      * Get users by role.
      *
-     * @param string $role
-     *
-     * @return \Illuminate\Database\Eloquent\Collection|static[]
+     * @param  string  $role
+     * @return Collection|static[]
      */
     public function getUsersByRole($role)
     {
-        return User::Role($role)->Inschool()->get();
+        return User::role($role)->ofSchool()->get();
     }
 
     /**
-     * Create a new user.
+     * Provision an account for a new member of the school.
      *
+     * The account has no password. The person receives a one-time invitation
+     * and sets their own password. Calling this again with the same email
+     * updates the existing profile instead of creating a second login.
      *
-     * @return User
+     * @param  array|\Illuminate\Support\Collection  $record
      */
-    public function createUser($record)
+    public function createUser($record, bool $invite = true): User
     {
         $record['name'] = $this->createFullName($record['first_name'], $record['last_name'], $record['other_names'] ?? null);
-        $record['school_id'] = $record['school_id'] ?? auth()->user()->school_id;
-        $user = $this->createUserAction->create([
-            'name'                  => $record['name'],
-            'email'                 => $record['email'],
-            'photo'                 => $record['profile_photo'] ?? null,
-            'password'              => $record['password'],
-            'school_id'             => $record['school_id'],
-            'birthday'              => $record['birthday'],
-            'password_confirmation' => $record['password_confirmation'],
-            'address'               => $record['address'],
-            'blood_group'           => $record['blood_group'],
-            'religion'              => $record['religion'] ?? null,
-            'nationality'           => $record['nationality'],
-            'state'                 => $record['state'],
-            'city'                  => $record['city'],
-            'gender'                => $record['gender'],
-            'phone'                 => $record['phone'],
+        $record['school_id'] = $record['school_id'] ?? current_school_id();
+
+        $user = $this->provisionAccountAction->provision([
+            'name' => $record['name'],
+            'email' => $record['email'],
+            'photo' => $record['profile_photo'] ?? null,
+            'school_id' => $record['school_id'],
+            'birthday' => $record['birthday'],
+            'address' => $record['address'],
+            'blood_group' => $record['blood_group'],
+            'religion' => $record['religion'] ?? null,
+            'nationality' => $record['nationality'],
+            'state' => $record['state'],
+            'city' => $record['city'],
+            'gender' => $record['gender'],
+            'phone' => $record['phone'] ?? null,
         ]);
+
+        if ($invite && $user->isAwaitingInvitationAcceptance()) {
+            $this->sendAccountInvitationAction->send($user, auth()->user());
+        }
 
         return $user;
     }
@@ -92,8 +88,7 @@ class UserService
     /**
      * Create full name from first name, last name and other names.
      *
-     * @param string|null $othernames
-     *
+     * @param  string|null  $othernames
      * @return string
      */
     public function createFullName($firstname, $lastname, $othernames = null)
@@ -104,9 +99,8 @@ class UserService
     /**
      * Check if user has a role.
      *
-     * @param int    $id
-     * @param string $role
-     *
+     * @param  int  $id
+     * @param  string  $role
      * @return bool
      */
     public function verifyRole($id, $role)
@@ -119,10 +113,9 @@ class UserService
     /**
      * Update user profile information.
      *
-     * @param User   $user User instance
-     * @param string $role Verify role before updating
-     *
-     * @return \App\Models\User
+     * @param  User  $user  User instance
+     * @param  string  $role  Verify role before updating
+     * @return User
      */
     public function updateUser(User $user, $record, ?string $role = null)
     {
@@ -137,7 +130,7 @@ class UserService
 
         $record['name'] = $this->createFullName($record['first_name'], $record['last_name'], $record['other_names']);
 
-        //update profile photo if present
+        // update profile photo if present
         if (isset($record['profile_photo'])) {
             $user->updateProfilePhoto($record['profile_photo']);
         }
@@ -150,8 +143,7 @@ class UserService
     /**
      * Delete a user.
      *
-     * @param string $role
-     *
+     * @param  string  $role
      * @return void
      */
     public function deleteUser(User $user)
@@ -170,13 +162,18 @@ class UserService
     }
 
     /**
-     * Lock or Unlock a user account.
-     *
-     * @return void
+     * Suspend a user account without deleting the person profile.
      */
-    public function lockUserAccount(User $user, $lock = true)
+    public function suspendUserAccount(User $user, ?string $reason = null): User
     {
-        $user->locked = $lock;
-        $user->save();
+        return $this->changeAccountStatusAction->suspend($user, auth()->user(), $reason);
+    }
+
+    /**
+     * Return a suspended account to normal access.
+     */
+    public function reinstateUserAccount(User $user, ?string $reason = null): User
+    {
+        return $this->changeAccountStatusAction->reinstate($user, auth()->user(), $reason);
     }
 }

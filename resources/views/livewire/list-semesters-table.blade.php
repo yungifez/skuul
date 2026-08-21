@@ -1,11 +1,11 @@
 <div class="card">
     <div class="card-header">
-        <h4 class="card-title">Semester List for {{auth()->user()->school->academicYear->name}}</h4>
+        <h4 class="card-title">Semester List for {{current_school()->academicYear->name}}</h4>
     </div>
     <div class="card-body">
         <livewire:datatable :model="App\Models\Semester::class" 
         :filters="[
-            ['name' => 'where' , 'arguments' => ['academic_year_id' , auth()->user()->school->academicYear->id]]
+            ['name' => 'where' , 'arguments' => ['academic_year_id' , current_school()->academicYear->id]]
         ]"
         :columns="[
             ['property' => 'name'],

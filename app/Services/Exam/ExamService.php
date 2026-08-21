@@ -53,7 +53,7 @@ class ExamService
      * get an exam by it's id.
      *
      *
-     * @return \App\Models\Exam
+     * @return Exam
      */
     public function getExamById(int $id)
     {
@@ -63,18 +63,17 @@ class ExamService
     /**
      * Create exam in semester.
      *
-     * @param array|object $records
-     *
+     * @param  array|object  $records
      * @return Exam
      */
     public function createExam($records)
     {
         $exam = Exam::create([
-            'name'        => $records['name'],
+            'name' => $records['name'],
             'description' => $records['description'],
             'semester_id' => $records['semester_id'],
-            'start_date'  => $records['start_date'],
-            'stop_date'   => $records['stop_date'],
+            'start_date' => $records['start_date'],
+            'stop_date' => $records['stop_date'],
         ]);
 
         return $exam;
@@ -83,8 +82,7 @@ class ExamService
     /**
      * Update an exam.
      *
-     * @param array|object $records
-     *
+     * @param  array|object  $records
      * @return void
      */
     public function updateExam(Exam $exam, $records)
@@ -112,9 +110,10 @@ class ExamService
     /**
      * Set result publish status for exam.
      *
-     *@throws
      *
      * @return void
+     *
+     * @throws EmptyRecordsException
      */
     public function setPublishResultStatus(Exam $exam, bool $status)
     {
@@ -140,15 +139,14 @@ class ExamService
     /**
      * Calculate total marks attainable in each subject across all exams in a semester.
      *
-     * @param Exam $exam
-     *
+     * @param  Exam  $exam
      * @return int
      */
     public function totalMarksAttainableInSemesterForSubject(Semester $semester)
     {
         $totalMarks = 0;
         $exams = $semester->exams->load('examSlots');
-        //get all exam slots in exams
+        // get all exam slots in exams
         foreach ($exams as $exam) {
             $totalMarks += $exam->examSlots->sum(['total_marks']);
         }

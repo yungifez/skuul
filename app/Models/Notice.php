@@ -2,12 +2,15 @@
 
 namespace App\Models;
 
+use App\Traits\InSchool;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Notice extends Model
 {
     use HasFactory;
+    use InSchool;
 
     protected $fillable = [
         'title',
@@ -22,19 +25,19 @@ class Notice extends Model
     public function scopeActive($query)
     {
         $query->where('start_date', '<=', date('Y-m-d'))
-        ->where('stop_date', '>=', date('Y-m-d'))
-        ->where('active', 1);
+            ->where('stop_date', '>=', date('Y-m-d'))
+            ->where('active', 1);
     }
 
-    //used in view for displaying time on datatable
+    // used in view for displaying time on datatable
     public function getStartDateForHumansAttribute()
     {
-        return \Carbon\Carbon::parse($this->start_date)->diffForHumans();
+        return Carbon::parse($this->start_date)->diffForHumans();
     }
 
-    //used in view for displaying time on datatable
+    // used in view for displaying time on datatable
     public function getStopDateForHumansAttribute()
     {
-        return \Carbon\Carbon::parse($this->stop_date)->diffForHumans();
+        return Carbon::parse($this->stop_date)->diffForHumans();
     }
 }

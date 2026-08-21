@@ -4,10 +4,11 @@ namespace Database\Factories;
 
 use App\Models\Fee;
 use App\Models\FeeInvoice;
+use App\Models\FeeInvoiceRecord;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\FeeInvoiceRecord>
+ * @extends Factory<FeeInvoiceRecord>
  */
 class FeeInvoiceRecordFactory extends Factory
 {
@@ -23,15 +24,15 @@ class FeeInvoiceRecordFactory extends Factory
         $fine = mt_rand(0, 100);
         $paid = mt_rand(0, 100);
         $fee = Fee::query()->offset(rand(1, 7))->whereRelation('feeCategory', 'school_id', 1)->first() ?? Fee::factory()->create();
-        $feeInvoice = FeeInvoice::query()->inRandomOrder()->whereRelation('user', 'school_id', 1)->first() ?? FeeInvoice::factory()->create();
+        $feeInvoice = FeeInvoice::query()->inRandomOrder()->whereHas('user', fn ($user) => $user->ofSchool(1))->first() ?? FeeInvoice::factory()->create();
 
         return [
-            'fee_id'         => $fee->id,
+            'fee_id' => $fee->id,
             'fee_invoice_id' => $feeInvoice->id,
-            'amount'         => $amount,
-            'waiver'         => $waiver,
-            'paid'           => $paid,
-            'fine'           => $fine,
+            'amount' => $amount,
+            'waiver' => $waiver,
+            'paid' => $paid,
+            'fine' => $fine,
         ];
     }
 }

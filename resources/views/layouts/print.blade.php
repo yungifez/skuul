@@ -71,11 +71,11 @@
 <body>
     <header>
         <div class="logo-wrapper">
-            <img src="{{auth()->user()->school->logoURL ?? public_path().'/'.config('app.logo')}}" alt="" class="logo" >
+            <img src="{{current_school()->logoURL ?? public_path().'/'.config('app.logo')}}" alt="" class="logo" >
         </div>
         <div class="site-identity">
-            <h1 class=" ">{{auth()->user()->school->name}}</h1>
-            <h2 class="">{{auth()->user()->school->address}}</h2>
+            <h1 class=" ">{{current_school()->name}}</h1>
+            <h2 class="">{{current_school()->address}}</h2>
         </div>
     </header>
     

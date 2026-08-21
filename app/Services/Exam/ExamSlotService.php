@@ -4,6 +4,7 @@ namespace App\Services\Exam;
 
 use App\Models\Exam;
 use App\Models\ExamSlot;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
 class ExamSlotService
@@ -12,7 +13,7 @@ class ExamSlotService
      * Get all exam slots in exam.
      *
      *
-     * @return Illumiate\Database\Eloquent\Collection|static[]
+     * @return Collection<int, ExamSlot>
      */
     public function getAllExamSlots(Exam $exam)
     {
@@ -22,9 +23,8 @@ class ExamSlotService
     /**
      * Get an exam slot by id.
      *
-     * @param int $id
-     *
-     * @return App\Models\ExamSlot
+     * @param  int  $id
+     * @return ExamSlot|null
      */
     public function getExamSlotById($id)
     {
@@ -44,7 +44,7 @@ class ExamSlotService
                 $data['description'] = null;
             }
             $exam->examSlots()->create([
-                'name'        => $data['name'],
+                'name' => $data['name'],
                 'description' => $data['description'],
                 'total_marks' => $data['total_marks'],
             ]);
@@ -64,7 +64,7 @@ class ExamSlotService
                 $data['description'] = null;
             }
             $examSlot->update([
-                'name'        => $data['name'],
+                'name' => $data['name'],
                 'description' => $data['description'],
                 'total_marks' => $data['total_marks'],
             ]);

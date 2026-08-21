@@ -6,6 +6,7 @@ use App\Exceptions\ResourceNotEmptyException;
 use App\Models\Subject;
 use App\Models\User;
 use App\Services\User\UserService;
+use Illuminate\Database\Eloquent\Collection;
 
 class SubjectService
 {
@@ -22,18 +23,18 @@ class SubjectService
     /**
      * Get all subjects.
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     public function getAllSubjects()
     {
-        return Subject::where(['school_id' => auth()->user()->school_id])->get();
+        return Subject::inSchool()->get();
     }
 
     /**
      * Get a subject by Id.
      *
      *
-     * @return \App\Models\Subject
+     * @return Subject
      */
     public function getSubjectById(int $id)
     {
@@ -43,15 +44,14 @@ class SubjectService
     /**
      * Create subject.
      *
-     * @param mixed $data
-     *
+     * @param  mixed  $data
      * @return void
      */
     public function createSubject($data)
     {
         $subject = Subject::firstOrCreate(['name' => $data['name']], [
-            'short_name'  => $data['short_name'],
-            'school_id'   => auth()->user()->school_id,
+            'short_name' => $data['short_name'],
+            'school_id' => current_school_id(),
             'my_class_id' => $data['my_class_id'],
         ]);
 
@@ -74,8 +74,7 @@ class SubjectService
     /**
      * Update subject.
      *
-     * @param mixed $data
-     *
+     * @param  mixed  $data
      * @return void
      */
     public function updateSubject(Subject $subject, $data)
@@ -114,8 +113,7 @@ class SubjectService
     /**
      * Assign a teacher to a list of subjects.
      *
-     * @param array|mixed $records Array or collection of ids
-     *
+     * @param  array|mixed  $records  Array or collection of ids
      * @return void
      */
     public function assignTeacherToSubjects(User $teacher, $records)

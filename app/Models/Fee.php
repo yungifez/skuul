@@ -16,8 +16,6 @@ class Fee extends Model
 
     /**
      * Get the feeCategory that owns the Fee.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function feeCategory(): BelongsTo
     {

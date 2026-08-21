@@ -8,6 +8,7 @@ use App\Models\FeeInvoice;
 use App\Models\School;
 use App\Models\User;
 use App\Services\Print\PrintService;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
 class FeeInvoiceService
@@ -15,17 +16,17 @@ class FeeInvoiceService
     /**
      * Store a new Fee Invoice.
      *
-     * @param array $records
+     * @param  array  $records
      */
     public function storeFeeInvoice($records)
     {
-        $invalidFees = Fee::whereIn('id', collect($records['records'])->pluck('fee_id'))->whereRelation('feeCategory', 'school_id', '!=', auth()->user()->school_id)->get();
+        $invalidFees = Fee::whereIn('id', collect($records['records'])->pluck('fee_id'))->whereRelation('feeCategory', 'school_id', '!=', current_school_id())->get();
 
         if ($invalidFees->isNotEmpty()) {
             throw new InvalidValueException('Some Fees Are Not From This School', 1);
         }
         $invalidUsers = User::whereIn('id', collect($records['users']))->get()->contains(function ($user) {
-            if ($user->school_id != auth()->user()->school_id) {
+            if (current_school_id() != current_school_id()) {
                 return true;
             }
 
@@ -42,10 +43,10 @@ class FeeInvoiceService
             foreach ($records['users'] as $user) {
                 $feeInvoice = FeeInvoice::create([
                     'issue_date' => $records['issue_date'],
-                    'due_date'   => $records['due_date'],
-                    'note'       => $records['note'] ?? null,
-                    'name'       => $this->generateInvoiceNumber(),
-                    'user_id'    => $user,
+                    'due_date' => $records['due_date'],
+                    'note' => $records['note'] ?? null,
+                    'name' => $this->generateInvoiceNumber(),
+                    'user_id' => $user,
                 ]);
 
                 $feeInvoice->feeInvoiceRecords()->createMany($records['records']);
@@ -56,8 +57,6 @@ class FeeInvoiceService
     /**
      * Update a fee invoice.
      *
-     * @param FeeInvoice $feeInvoice
-     * @param            $records
      *
      * @return void
      */
@@ -65,8 +64,8 @@ class FeeInvoiceService
     {
         $feeInvoice->update([
             'issue_date' => $records['issue_date'],
-            'due_date'   => $records['due_date'],
-            'note'       => $records['note'] ?? null,
+            'due_date' => $records['due_date'],
+            'note' => $records['note'] ?? null,
         ]);
 
         return $feeInvoice;
@@ -75,13 +74,12 @@ class FeeInvoiceService
     /**
      * Generate a new fee invoice name.
      *
-     * @param int $schoolId
      *
      * @return string
      */
     public function generateInvoiceNumber(?int $schoolId = null)
     {
-        $schoolInitials = (School::find($schoolId) ?? auth()->user()->school)->initials;
+        $schoolInitials = (School::find($schoolId) ?? current_school())->initials;
         $schoolInitials != null && $schoolInitials .= '-';
 
         do {
@@ -99,11 +97,8 @@ class FeeInvoiceService
     /**
      * Print Fee Invoice.
      *
-     * @param string $name
-     * @param string $view
-     * @param array  $data
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function printFeeInvoice(string $name, string $view, array $data)
     {
@@ -113,7 +108,6 @@ class FeeInvoiceService
     /**
      * Delete a fee invoice.
      *
-     * @param FeeInvoice $feeInvoice
      *
      * @return void
      */

@@ -11,7 +11,7 @@ class CreateExamForm extends Component
 
     public function mount(SemesterService $semesterService)
     {
-        $this->semesters = $semesterService->getAllSemestersInAcademicYear(auth()->user()->school->academic_year_id);
+        $this->semesters = $semesterService->getAllSemestersInAcademicYear(current_school()->academic_year_id);
     }
 
     public function render()

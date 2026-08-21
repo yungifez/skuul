@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Section extends Model
 {
@@ -15,7 +17,7 @@ class Section extends Model
     /**
      * Get the MyClass that owns the Section.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return BelongsTo
      */
     public function myClass()
     {
@@ -25,7 +27,7 @@ class Section extends Model
     /**
      * Get the StudentRecords that owns the Section.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     * @return HasMany
      */
     public function studentRecords()
     {
@@ -39,7 +41,7 @@ class Section extends Model
      */
     public function students()
     {
-        $students = User::students()->inSchool()->whereRelation('studentRecord.section', 'id', $this->id)->get();
+        $students = User::students()->ofSchool()->whereRelation('studentRecord.section', 'id', $this->id)->get();
 
         return $students;
     }

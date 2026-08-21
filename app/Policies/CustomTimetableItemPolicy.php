@@ -43,7 +43,7 @@ class CustomTimetableItemPolicy
      */
     public function update(User $user, CustomTimetableItem $customTimetableItem)
     {
-        if ($user->can('update custom timetable item') && $user->school_id == $customTimetableItem->school->id) {
+        if ($user->can('update custom timetable item') && current_school_id() == $customTimetableItem->school->id) {
             return true;
         }
     }
@@ -53,7 +53,7 @@ class CustomTimetableItemPolicy
      */
     public function delete(User $user, CustomTimetableItem $customTimetableItem)
     {
-        if ($user->can('delete custom timetable item') && $user->school_id == $customTimetableItem->school->id) {
+        if ($user->can('delete custom timetable item') && current_school_id() == $customTimetableItem->school->id) {
             return true;
         }
     }

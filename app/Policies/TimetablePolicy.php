@@ -25,7 +25,7 @@ class TimetablePolicy
      */
     public function view(User $user, Timetable $timetable)
     {
-        if ($user->can('read timetable') && $user->school_id == $timetable->myClass->classGroup->school->id) {
+        if ($user->can('read timetable') && current_school_id() == $timetable->myClass->classGroup->school->id) {
             return true;
         }
     }
@@ -45,7 +45,7 @@ class TimetablePolicy
      */
     public function update(User $user, Timetable $timetable)
     {
-        if ($user->can('update timetable') && $user->school_id == $timetable->myClass->classGroup->school->id) {
+        if ($user->can('update timetable') && current_school_id() == $timetable->myClass->classGroup->school->id) {
             return true;
         }
     }
@@ -55,7 +55,7 @@ class TimetablePolicy
      */
     public function delete(User $user, Timetable $timetable)
     {
-        if ($user->can('delete timetable') && $user->school_id == $timetable->myClass->classGroup->school->id) {
+        if ($user->can('delete timetable') && current_school_id() == $timetable->myClass->classGroup->school->id) {
             return true;
         }
     }

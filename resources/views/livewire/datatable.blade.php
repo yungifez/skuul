@@ -1,34 +1,34 @@
 <div>
     <x-loading-spinner/>
-    <div class="flex flex-col md:flex-row gap-4 items-center">
-        <div class="flex gap-4 items-center overflow-scroll beautify-scrollbar">
-            <label for="datatable-search-{{$uniqueId}}">Search</label>
-            <input id="datatable-search-{{$uniqueId}}" type="search" wire:model.live.sebounce.500ms="search" class="border-gray-500 dark:bg-inherit border rounded px-4 py-1 md:py-2">
+    <div class="flex flex-col items-stretch gap-3 rounded-lg border bg-card p-4 text-card-foreground shadow-sm md:flex-row md:items-end">
+        <div class="flex flex-1 flex-col gap-2">
+            <april:label for="datatable-search-{{$uniqueId}}">Search</april:label>
+            <april:input id="datatable-search-{{$uniqueId}}" type="search" wire:model.live.debounce.500ms="search" placeholder="Search..." />
         </div>
-        <select class="bg-white dark:bg-gray-800 px-4 py-2 border border-gray-500 rounded" wire:model.live="perPage">
+        <april:native-select class="w-full md:w-32" wire:model.live="perPage" aria-label="Rows per page">
             @foreach ([5,10,20,25,100] as $item)
-                <option value="{{$item}}" class="bg-inherit">{{$item}}</option>
+                <option value="{{$item}}">{{$item}}</option>
             @endforeach
-        </select>
+        </april:native-select>
     </div>
-    <div class="overflow-x-scroll beautify-scrollbar" >
-        <table class="border w-full my-4 table-auto">
-            <thead class="border text-center bg-gray-900 dark:bg-white dark:bg-opacity-20 text-white">
-                <th class="p-4">S/N</th>
+    <div class="my-4 overflow-x-auto rounded-lg border bg-card text-card-foreground beautify-scrollbar">
+        <table class="w-full table-auto text-sm">
+            <thead class="border-b bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <th class="whitespace-nowrap px-4 py-3 font-medium">S/N</th>
                 @foreach ($columns as $column)
                     @if (!isset($column['can']) || auth()->user()->can($column['can']))
-                        <th class="capitalize p-4 border whitespace-nowrap">{{str_replace('_' , ' ', Str::snake( $column['name'] ??  $column['property']))}}</th>
+                        <th class="whitespace-nowrap border-l px-4 py-3 font-medium capitalize">{{str_replace('_' , ' ', Str::snake( $column['name'] ??  $column['property']))}}</th>
                     @endif
                 @endforeach
             </thead>
-            <tbody class="">
+            <tbody class="divide-y">
                 @if ($collection->isNotEmpty())
                     @foreach ($collection as $item)
-                        <tr class="border odd:bg-white even:bg-slate-100 dark:odd:bg-inherit dark:even:bg-white dark:even:bg-opacity-5">
-                            <th class="border w-24">{{ $collection->perPage() * ($collection->currentPage() - 1) + $loop->iteration }}</th>
+                        <tr class="transition-colors hover:bg-muted/50">
+                            <th class="w-24 px-4 py-3 text-left font-medium">{{ $collection->perPage() * ($collection->currentPage() - 1) + $loop->iteration }}</th>
                             @foreach ($columns as $column)
                                 @if (!isset($column['can']) || auth()->user()->can($column['can']))
-                                    <td class="p-4 border w-60 whitespace-nowrap">
+                                    <td class="w-60 whitespace-nowrap border-l px-4 py-3">
                                         @php 
                                             $model = $item;
                                             if (isset($column['relation'])) {
@@ -75,6 +75,8 @@
                                                     @csrf
                                                     <x-toggle :name="$column['field']" :checked="$model?->{$column['property'] ?? $column['name']}  == true"  :label-checked-text="$column['true-statement'] ?? 'yes'" :label-unchecked-text="$column['false-statement']?? 'no'" @Change="$nextTick(() => $el.form.submit())"/>
                                                 </form>
+                                                @elseif($column['type'] == 'account-status')
+                                                    <x-account-status-control :user="$model" />
                                                 @elseif($column['type'] == 'image')
                                                     <div class="flex justify-center">
                                                         <img class="{{$column['img-class'] ?? " h-14 w-1/2 rounded-full"}}" loading="lazy" src="{{($model?->{$column['property'] ?? $column['name']}) }}" alt="">
@@ -87,7 +89,7 @@
                                                 @if ($property instanceof \Carbon\Carbon)
                                                     {{$property->format('Y/m/d')}}
                                                 @elseif($property instanceof \Brick\Money\Money)
-                                                    {{$property->formatTo(app()->getLocale())}}
+                                                    {{$property->formatToLocale(app()->getLocale())}}
                                                 @else
                                                     {{$property}}
                                                 @endif
@@ -100,13 +102,13 @@
                     @endforeach
                 @else
                     <tr>
-                        <td class="p-4 capitalize text-center" colspan="100%">No data to Show</td>
+                        <td class="px-4 py-10 text-center capitalize text-muted-foreground" colspan="100%">No data to Show</td>
                     </tr>
                 @endif
             </tbody>
         </table>
     </div>
-    <div class="my-3">
+    <div class="my-3 flex justify-end">
         {{$collection->links()}}
     </div>
 </div>

@@ -22,7 +22,7 @@ class FeeInvoicePolicy
      */
     public function view(User $user, FeeInvoice $feeInvoice)
     {
-        if ($user->can('read fee invoice') && $feeInvoice->user->school_id == auth()->user()->school_id) {
+        if ($user->can('read fee invoice') && $feeInvoice->user->belongsToCurrentSchool()) {
             return true;
         }
     }
@@ -42,7 +42,7 @@ class FeeInvoicePolicy
      */
     public function update(User $user, FeeInvoice $feeInvoice)
     {
-        if ($user->can('update fee invoice') && $feeInvoice->user->school_id == auth()->user()->school_id) {
+        if ($user->can('update fee invoice') && $feeInvoice->user->belongsToCurrentSchool()) {
             return true;
         }
     }
@@ -52,7 +52,7 @@ class FeeInvoicePolicy
      */
     public function delete(User $user, FeeInvoice $feeInvoice)
     {
-        if ($user->can('delete fee invoice') && $feeInvoice->user->school_id == auth()->user()->school_id) {
+        if ($user->can('delete fee invoice') && $feeInvoice->user->belongsToCurrentSchool()) {
             return true;
         }
     }

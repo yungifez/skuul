@@ -17,7 +17,7 @@ class NationalityAndStateInputFields extends Component
 
     protected $rules = [
         'nationality' => 'string',
-        'state'       => 'string',
+        'state' => 'string',
     ];
 
     public function mount()
@@ -25,7 +25,7 @@ class NationalityAndStateInputFields extends Component
         // @phpstan-ignore-next-line
         $this->nationalities = World::countries()->data->pluck('name');
 
-        //set nationality to null if not found
+        // set nationality to null if not found
         if ($this->nationality != null && !in_array($this->nationality, $this->nationalities->all())) {
             $this->nationality = null;
         }
@@ -35,7 +35,7 @@ class NationalityAndStateInputFields extends Component
     {
         // $this->states = collect(World::where('name.common' , $this->nationality)->first()->hydrateStates()->states->pluck('name'));
         $this->states = collect(World::countries([
-            'fields'  => 'states',
+            'fields' => 'states',
             'filters' => [
                 'name' => $this->nationality,
             ],
@@ -55,7 +55,7 @@ class NationalityAndStateInputFields extends Component
             $this->nationality = $this->nationalities->first();
         }
         $this->states = collect(World::countries([
-            'fields'  => 'states',
+            'fields' => 'states',
             'filters' => [
                 'name' => $this->nationality,
             ],

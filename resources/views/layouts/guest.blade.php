@@ -11,14 +11,15 @@
 
         <!-- Styles -->
         @vite('resources/css/app.css')
+        @vite('resources/js/app.js')
         <livewire:styles />
         
         <!--Shortcut icon-->
         <link rel="shortcut icon" href="favicons/favicon.ico" type="image/x-icon">
     </head>
-    <body class="bg-gray-100">
+    <body class="min-h-screen bg-background text-foreground" data-ui="april">
         @yield('body')
         <livewire:display-status />
     </body>
-    <livewire:scripts />
+    @livewireScriptConfig
 </html>

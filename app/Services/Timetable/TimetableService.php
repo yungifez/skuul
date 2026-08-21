@@ -5,10 +5,12 @@ namespace App\Services\Timetable;
 use App\Models\CustomTimetableItem;
 use App\Models\Timetable;
 use App\Services\Print\PrintService;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\Response;
 
 class TimetableService
 {
-    //get all syllabus in semester and class
+    // get all syllabus in semester and class
     public function getAllTimetablesInSemesterAndClass($semester_id, $class_id)
     {
         return Timetable::where('semester_id', $semester_id)->get()->filter(function ($timetable) use ($class_id) {
@@ -19,14 +21,12 @@ class TimetableService
     /**
      * Create timetable.
      *
-     * @param mixed $data
-     *
-     * @return Timetable
+     * @param  mixed  $data
      */
     public function createTimetable($data): Timetable
     {
         return Timetable::create([
-            'name'        => $data['name'],
+            'name' => $data['name'],
             'description' => $data['description'] ?? null,
             'my_class_id' => $data['my_class_id'],
             'semester_id' => $data['semester_id'],
@@ -36,8 +36,7 @@ class TimetableService
     /**
      * Update timetable.
      *
-     * @param mixed $data
-     *
+     * @param  mixed  $data
      * @return void
      */
     public function updateTimetable(Timetable $timetable, $data)
@@ -51,7 +50,7 @@ class TimetableService
      * Print timetable.
      *
      *
-     * @return \Illuminate\Http\Response
+     * @return Response
      */
     public function printTimetable(string $name, string $view, array $data)
     {
@@ -72,24 +71,23 @@ class TimetableService
     /**
      * Get all custom timetable items in school.
      *
-     * @return \Illuminate\Database\Eloquent\Collection
+     * @return Collection
      */
     public function getAllCustomTimetableItem()
     {
-        return CustomTimetableItem::where('school_id', auth()->user()->school_id)->get();
+        return CustomTimetableItem::inSchool()->get();
     }
 
     /**
      * Create custom timetable item.
      *
-     * @param array<mixed> $record
-     *
-     * @return \App\Models\CustomTimetableItem
+     * @param  array<mixed>  $record
+     * @return CustomTimetableItem
      */
     public function createCustomTimetableItem($record)
     {
         return CustomTimetableItem::create([
-            'name'      => $record['name'],
+            'name' => $record['name'],
             'school_id' => $record['school_id'],
         ]);
     }
@@ -97,9 +95,8 @@ class TimetableService
     /**
      * Update a given custom timetable item.
      *
-     * @param array<mixed> $record
-     *
-     * @return \App\Models\CustomTimetableItem
+     * @param  array<mixed>  $record
+     * @return CustomTimetableItem
      */
     public function updateCustomTimetableItem(CustomTimetableItem $customTimetableItem, $record)
     {

@@ -8,7 +8,7 @@
                     </div>
                     <x-select id="name" name="academic_year_id" label="Change School Academic Year" group-class="w-full">
                         @foreach ($academicYears as $academicYear)
-                            <option value="{{ $academicYear->id }}" @selected($academicYear->id == auth()->user()->school->academic_year_id )> {{ $academicYear->name}}</option>
+                            <option value="{{ $academicYear->id }}" @selected($academicYear->id == current_school()->academic_year_id )> {{ $academicYear->name}}</option>
                         @endforeach
                     </x-select>
                     @csrf

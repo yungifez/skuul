@@ -16,7 +16,7 @@ class MyClassService
      */
     public SchoolService $schoolService;
 
-    //construct method
+    // construct method
     public function __construct(SchoolService $schoolService)
     {
         $this->schoolService = $schoolService;
@@ -27,7 +27,7 @@ class MyClassService
      */
     public function getAllClasses(): Collection
     {
-        return $this->schoolService->getSchoolById(auth()->user()->school_id)->myClasses->load('classGroup', 'sections');
+        return $this->schoolService->getSchoolById(current_school_id())->myClasses->load('classGroup', 'sections');
     }
 
     /**
@@ -35,7 +35,7 @@ class MyClassService
      */
     public function getAllClassGroups(): Collection
     {
-        return ClassGroup::where('school_id', auth()->user()->school_id)->get();
+        return ClassGroup::inSchool()->get();
     }
 
     /**
@@ -48,35 +48,30 @@ class MyClassService
 
     /**
      * Get class by id or else return 404.
-     *
-     * @param int $id
      */
     public function getClassByIdOrFail(int $id)
     {
-        return $this->schoolService->getSchoolById(auth()->user()->school_id)->myClasses()->findOrFail($id);
+        return $this->schoolService->getSchoolById(current_school_id())->myClasses()->findOrFail($id);
     }
 
     /**
      * Get class group by id.
-     *
-     * @param int $id
      */
     public function getClassGroupById(int $id)
     {
-        return ClassGroup::where('school_id', auth()->user()->school_id)->find($id);
+        return ClassGroup::inSchool()->find($id);
     }
 
     /**
      * Create new class.
      *
-     * @param array|object $record
-     *
-     * @return \App\Models\MyClass
+     * @param  array|object  $record
+     * @return MyClass
      */
     public function createClass($record)
     {
         $classGroup = $this->getClassGroupById($record['class_group_id']);
-        if ($classGroup->school->id != auth()->user()->school->id) {
+        if ($classGroup->school->id != current_school_id()) {
             throw new InvalidValueException('ClassGroup Is Not In Class');
         }
         $myClass = MyClass::create($record);
@@ -87,9 +82,8 @@ class MyClassService
     /**
      * Create new class group.
      *
-     * @param array|object $record
-     *
-     * @return \App\Models\ClassGroup
+     * @param  array|object  $record
+     * @return ClassGroup
      */
     public function createClassGroup($record)
     {
@@ -101,15 +95,14 @@ class MyClassService
     /**
      * Update class.
      *
-     * @param \App\Models\MyClass $class
-     * @param array|object        $records
-     *
-     * @return \App\Models\MyClass
+     * @param  MyClass  $class
+     * @param  array|object  $records
+     * @return MyClass
      */
     public function updateClass($class, $records)
     {
         $class->update([
-            'name'           => $records['name'],
+            'name' => $records['name'],
             'class_group_id' => $records['class_group_id'],
         ]);
 
@@ -119,10 +112,8 @@ class MyClassService
     /**
      * Update class group.
      *
-     * @param \App\Models\ClassGroup $classGroup
-     * @param array|object           $records
-     *
-     * @return \App\Models\ClassGroup
+     * @param  array|object  $records
+     * @return ClassGroup
      */
     public function updateClassGroup(ClassGroup $classGroup, $records)
     {
@@ -138,11 +129,11 @@ class MyClassService
     /**
      * Delete class group.
      *
-     * @param \App\Models\ClassGroup $classGroup
      *
-     * @throws ResourceNotEmptyException
      *
      * @return void
+     *
+     * @throws ResourceNotEmptyException
      */
     public function deleteClassGroup(ClassGroup $classGroup)
     {
@@ -155,11 +146,11 @@ class MyClassService
     /**
      * Delete class.
      *
-     * @param \App\Models\MyClass $class
      *
-     * @throws ResourceNotEmptyException
      *
      * @return void
+     *
+     * @throws ResourceNotEmptyException
      */
     public function deleteClass(MyClass $class)
     {

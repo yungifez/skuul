@@ -34,11 +34,11 @@ class SemesterResultTabulation extends Component
 
     public function mount(SectionService $sectionService, MyClassService $myClassService)
     {
-        //get semester and use it to fetch all exams in semester
-        $this->semester = auth()->user()->school->semester;
+        // get semester and use it to fetch all exams in semester
+        $this->semester = current_school()->semester;
         $this->classes = $myClassService->getAllClasses();
 
-        //sets subjects etc if class isn't empty
+        // sets subjects etc if class isn't empty
         if (!$this->classes->isEmpty()) {
             $this->class = $this->classes[0]->id;
             $this->sections = $this->classes[0]->sections;
@@ -48,13 +48,13 @@ class SemesterResultTabulation extends Component
 
     public function updatedClass()
     {
-        //get instance of class
+        // get instance of class
         $class = app("App\Services\MyClass\MyClassService")->getClassById($this->class);
 
-        //get sections in class
+        // get sections in class
         $this->sections = $class->sections;
 
-        //set section if the fetched records aren't empty
+        // set section if the fetched records aren't empty
         $this->sections->count() ? $this->section = $this->sections[0]->id : $this->section = null;
     }
 
@@ -65,17 +65,17 @@ class SemesterResultTabulation extends Component
         if ($section == null) {
             $subjects = $myClass->subjects;
 
-            //get all students in class
+            // get all students in class
             $students = $myClass->students();
 
             $classGroup = $myClass->classGroup;
 
             $titleFor = $myClass->name;
         } else {
-            //get all subjects in section
+            // get all subjects in section
             $subjects = $section->myClass->subjects;
 
-            //get all students in section
+            // get all students in section
             $students = $section->students();
 
             $classGroup = $section->myClass->classGroup;
@@ -89,7 +89,7 @@ class SemesterResultTabulation extends Component
             return;
         }
 
-        $this->title = "Exam Marks For $titleFor in whole semester ".auth()->user()->school->semester->name.' in academic year '.auth()->user()->school->academicYear->name;
+        $this->title = "Exam Marks For $titleFor in whole semester ".current_school()->semester->name.' in academic year '.current_school()->academicYear->name;
 
         $examSlots = $this->semester->load('examSlots')->examSlots;
 
@@ -98,16 +98,16 @@ class SemesterResultTabulation extends Component
         $this->createdTabulation = true;
     }
 
-    //print function
+    // print function
 
     public function print()
     {
-        //used pdf class directly
+        // used pdf class directly
         $pdf = Pdf::loadView('pages.exam.print-exam-tabulation', ['tabulatedRecords' => $this->tabulatedRecords, 'totalMarksAttainableInEachSubject' => $this->totalMarksAttainableInEachSubject, 'subjects' => $this->subjects])->output();
 
-        //save as pdf
+        // save as pdf
         return response()->streamDownload(
-            fn () => print($pdf),
+            fn () => print ($pdf),
             'result-tabiulation.pdf'
         );
     }

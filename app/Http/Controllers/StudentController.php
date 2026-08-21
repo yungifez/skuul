@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Role;
 use App\Http\Requests\StudentStoreRequest;
 use App\Models\User;
 use App\Services\Student\StudentService;
 use App\Services\User\UserService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -22,7 +24,7 @@ class StudentController extends Controller
      */
     public $userService;
 
-    //construct method which assigns studentService to student variable
+    // construct method which assigns studentService to student variable
     public function __construct(StudentService $student, UserService $userService)
     {
         $this->student = $student;
@@ -53,7 +55,7 @@ class StudentController extends Controller
      * Store a newly created resource in storage.
      *
      *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws AuthorizationException
      */
     public function store(StudentStoreRequest $request): RedirectResponse
     {
@@ -71,8 +73,8 @@ class StudentController extends Controller
         $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
         $this->authorize('view', [$student, 'student']);
 
-        //restrict parents from seeing other students profiles
-        if (auth()->user()->hasRole('parent') && $student->parents()->where('parent_records.user_id', auth()->user()->id)->count() <= 0) {
+        // restrict parents from seeing other students profiles
+        if (auth()->user()->hasRole(Role::Parent) && $student->parents()->where('parent_records.user_id', auth()->user()->id)->count() <= 0) {
             abort(404);
         }
 
@@ -88,8 +90,8 @@ class StudentController extends Controller
         $this->authorize('view', [$student, 'student']);
         $data['student'] = $student;
 
-        //restrict parents from seeing other students profiles
-        if (auth()->user()->hasRole('parent') && $student->parents()->where('parent_records.user_id', auth()->user()->id)->count() <= 0) {
+        // restrict parents from seeing other students profiles
+        if (auth()->user()->hasRole(Role::Parent) && $student->parents()->where('parent_records.user_id', auth()->user()->id)->count() <= 0) {
             abort(404);
         }
 
@@ -100,7 +102,7 @@ class StudentController extends Controller
      * Show the form for editing the specified resource.
      *
      *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws AuthorizationException
      */
     public function edit(User $student): View
     {
@@ -115,7 +117,7 @@ class StudentController extends Controller
      * Update the specified resource in storage.
      *
      *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws AuthorizationException
      */
     public function update(Request $request, User $student): RedirectResponse
     {
@@ -131,7 +133,7 @@ class StudentController extends Controller
      * Remove the specified resource from storage.
      *
      *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws AuthorizationException
      */
     public function destroy(User $student): RedirectResponse
     {

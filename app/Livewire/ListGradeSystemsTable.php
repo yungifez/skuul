@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enums\Role;
 use App\Services\MyClass\MyClassService;
 use Livewire\Component;
 
@@ -22,13 +23,13 @@ class ListGradeSystemsTable extends Component
         // Get all class groups
         $this->classGroups = $myClassService->getAllClassGroups();
 
-        if (auth()->user()->hasRole('student')) {
+        if (auth()->user()->hasRole(Role::Student)) {
             $this->classGroup = auth()->user()->studentRecord->myClass->ClassGroup->id;
         }
 
         // Get all grades for first class group if class groups is not empty
         if ($this->classGroups != null && $this->classGroups->count() > 0) {
-            //class groups are present
+            // class groups are present
             $this->updatedClassGroup();
         }
     }

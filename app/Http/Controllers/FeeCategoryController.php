@@ -14,8 +14,6 @@ class FeeCategoryController extends Controller
 {
     /**
      * Service instance of fee category.
-     *
-     * @var FeeCategoryService
      */
     public FeeCategoryService $feeCategoryService;
 

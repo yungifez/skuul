@@ -3,7 +3,7 @@
         <x-display-validation-errors />
         <x-select name="semester_id" id="set-semester-form" label="Change School Semester">
             @foreach ($semesters as $semester)
-                <option @selected(auth()->user()->school->semester_id == $semester->id) value="{{ $semester->id }}"> {{ $semester->name }}</option>
+                <option @selected(current_school()->semester_id == $semester->id) value="{{ $semester->id }}"> {{ $semester->name }}</option>
             @endforeach
         </x-select>
         @csrf

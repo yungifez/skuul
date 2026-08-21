@@ -26,7 +26,7 @@ class PasswordConfirmationTest extends TestCase
     public function test_password_can_be_confirmed()
     {
         $user = User::factory()->create();
-        //since factory produces random password, it had to be changed
+        // since factory produces random password, it had to be changed
         $user->password = Hash::make('password123');
         $user->save();
 

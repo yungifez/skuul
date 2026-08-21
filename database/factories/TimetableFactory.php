@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Timetable;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Timetable>
+ * @extends Factory<Timetable>
  */
 class TimetableFactory extends Factory
 {
@@ -17,8 +18,7 @@ class TimetableFactory extends Factory
     public function definition()
     {
         return [
-            'id'          => $this->faker->numberBetween(1, 10000),
-            'name'        => $this->faker->name,
+            'name' => $this->faker->name,
             'description' => $this->faker->text,
             'my_class_id' => 1,
             'semester_id' => 1,

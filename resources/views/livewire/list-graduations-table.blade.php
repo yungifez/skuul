@@ -4,7 +4,7 @@
     </div>
     <div class="card-body">
         <livewire:datatable :model="App\Models\User::class" uniqueId="students-list-table" 
-        :filters="[['name' => 'students'], ['name' => 'inSchool'], ['name' => 'orderBy' , 'arguments' => ['name']], ['name' => 'has', 'arguments' => ['graduatedStudentRecord']], ['name' => 'with', 'arguments' => ['graduatedStudentRecord', 'graduatedStudentRecord.myClass', 'graduatedStudentRecord.section']]]" :columns="[
+        :filters="[['name' => 'students'], ['name' => 'ofSchool'], ['name' => 'orderBy' , 'arguments' => ['name']], ['name' => 'has', 'arguments' => ['graduatedStudentRecord']], ['name' => 'with', 'arguments' => ['graduatedStudentRecord', 'graduatedStudentRecord.myClass', 'graduatedStudentRecord.section']]]" :columns="[
             ['property' => 'name'] , 
             ['property' => 'email'] , 
             ['property' => 'admission_number' ,'relation' => 'graduatedStudentRecord'] , 

@@ -16,7 +16,7 @@
 
 @livewire('set-academic-year')
 
-@if (auth()->user()->hasRole('student'))
+@if (auth()->user()->hasRole(\App\Enums\Role::Student))
     <a href="{{route('students.print-profile',auth()->user()->id)}}" aria-label="Download Profile">
         <div class="card bg-purple-500 dark:bg-purple-600 text-white md:text-2xl">
             <div class="card-body flex gap-4 items-center justify-center">
@@ -29,14 +29,6 @@
 
 @can('read notice')
     @livewire('list-notices-table')
-@endcan
-
-@if (auth()->user()->hasRole('applicant'))
-    @livewire('application-history', ['applicant' => auth()->user()])
-@endif
-
-@can('read applicant')
-    @livewire('list-account-applications-table')
 @endcan
 
 @endsection

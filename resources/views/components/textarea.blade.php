@@ -1,7 +1,9 @@
-<div @class(["$groupClass flex flex-col my-2"])>
-    <label for="{{$id}}"  @class(["$labelClass font-semibold my-3"])>{{$label}}</label>
-    <textarea id="{{$id}}" name="{{$name}}" @class(["$class border border-gray-500 p-2 rounded dark:bg-transparent", 'border-red-500' => $errors->has($name)]) {{$attributes}}>{{old($name) ?? ($slot != null ? $slot : '')}}</textarea>
+<div @class(["$groupClass flex flex-col gap-2 my-2"])>
+    @isset($label)
+        <april:label for="{{$id}}" class="{{$labelClass}}">{{$label}}</april:label>
+    @endisset
+    <textarea id="{{$id}}" name="{{$name}}" data-slot="textarea" @class(["$class flex min-h-[80px] rounded-md border bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 border-input", 'border-destructive' => $errors->has($name)]) {{$attributes}}>{{old($name) ?? ($slot != null ? $slot : '')}}</textarea>
     @error($name)
-        <p class="text-red-700 dark:text-red-500 my-2">{{$message}}</p>
+        <p class="text-sm text-destructive">{{$message}}</p>
     @enderror
 </div>

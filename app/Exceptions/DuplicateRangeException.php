@@ -2,6 +2,4 @@
 
 namespace App\Exceptions;
 
-class DuplicateRangeException extends ApplicationException
-{
-}
+class DuplicateRangeException extends ApplicationException {}

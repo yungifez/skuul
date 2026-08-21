@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\TimetableTimeSlot;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\TimetableTimeSlot>
+ * @extends Factory<TimetableTimeSlot>
  */
 class TimetableTimeSlotFactory extends Factory
 {
@@ -18,8 +19,8 @@ class TimetableTimeSlotFactory extends Factory
     {
         return [
             'timetable_id' => 1,
-            'start_time'   => $this->faker->time('H:i'),
-            'stop_time'    => $this->faker->time('H:i'),
+            'start_time' => $this->faker->time('H:i'),
+            'stop_time' => $this->faker->time('H:i'),
 
         ];
     }

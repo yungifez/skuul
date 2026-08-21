@@ -2,10 +2,11 @@
 
 namespace Database\Factories;
 
+use App\Models\Subject;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
- * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Subject>
+ * @extends Factory<Subject>
  */
 class SubjectFactory extends Factory
 {
@@ -17,10 +18,10 @@ class SubjectFactory extends Factory
     public function definition()
     {
         return [
-            'name'        => $this->faker->name,
-            'short_name'  => $this->faker->lexify('???'),
+            'name' => $this->faker->name,
+            'short_name' => $this->faker->lexify('???'),
             'my_class_id' => 1,
-            'school_id'   => 1,
+            'school_id' => 1,
         ];
     }
 }

@@ -9,8 +9,8 @@ use Tests\TestCase;
 
 class ClassGroupTest extends TestCase
 {
-    use RefreshDatabase;
     use FeatureTestTrait;
+    use RefreshDatabase;
 
     public function test_view_class_groups_can_be_rendered_to_authorized_user()
     {
@@ -36,8 +36,8 @@ class ClassGroupTest extends TestCase
     public function test_create_class_groups_can_not_be_rendered_to_unauthorized_user()
     {
         $this->unauthorized_user()
-      ->get('/dashboard/class-groups/create')
-      ->assertForbidden();
+            ->get('/dashboard/class-groups/create')
+            ->assertForbidden();
     }
 
     public function test_authorized_user_can_create_class_group()
@@ -46,7 +46,7 @@ class ClassGroupTest extends TestCase
             ->post('/dashboard/class-groups', ['name' => 'test class group']);
 
         $this->assertDatabaseHas('class_groups', [
-            'name'      => 'test class group',
+            'name' => 'test class group',
             'school_id' => 1,
         ]);
     }
@@ -54,24 +54,24 @@ class ClassGroupTest extends TestCase
     public function test_unauthorized_user_can_not_create_class_group()
     {
         $this->unauthorized_user()
-         ->post('/dashboard/class-groups', ['name' => 'test class group'])
-         ->assertForbidden();
+            ->post('/dashboard/class-groups', ['name' => 'test class group'])
+            ->assertForbidden();
     }
 
     public function test_edit_class_groups_can_be_rendered_to_authorized_user()
     {
         $classGroup = ClassGroup::factory()->create();
         $this->authorized_user(['read class group'])
-         ->get("/dashboard/class-groups/$classGroup->id")
-         ->assertOk();
+            ->get("/dashboard/class-groups/$classGroup->id")
+            ->assertOk();
     }
 
     public function test_edit_class_groups_can_not_be_rendered_to_unauthorized_user()
     {
         $classGroup = ClassGroup::factory()->create();
         $this->unauthorized_user()
-         ->get("/dashboard/class-groups/$classGroup->id")
-         ->assertForbidden();
+            ->get("/dashboard/class-groups/$classGroup->id")
+            ->assertForbidden();
     }
 
     public function test_authorized_user_can_edit_class_group()
@@ -81,8 +81,8 @@ class ClassGroupTest extends TestCase
             ->put("/dashboard/class-groups/$classGroup->id", ['name' => 'test class group']);
 
         $this->assertDatabaseHas('class_groups', [
-            'id'        => $classGroup->id,
-            'name'      => 'test class group',
+            'id' => $classGroup->id,
+            'name' => 'test class group',
             'school_id' => 1,
         ]);
     }
@@ -113,7 +113,7 @@ class ClassGroupTest extends TestCase
         $this->assertModelExists($classGroup);
     }
 
-    //test authorized user can view class group
+    // test authorized user can view class group
     public function test_authorized_user_can_view_class_group()
     {
         $classGroup = ClassGroup::factory()->create();
@@ -122,7 +122,7 @@ class ClassGroupTest extends TestCase
             ->assertOk();
     }
 
-    //test unauthorized user cant view class group
+    // test unauthorized user cant view class group
     public function test_authorized_user_cant_view_class_group()
     {
         $classGroup = ClassGroup::factory()->create();

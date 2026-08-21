@@ -2,12 +2,14 @@
 
 namespace App\Models;
 
+use App\Traits\InSchool;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class ClassGroup extends Model
 {
     use HasFactory;
+    use InSchool;
 
     protected $fillable = [
         'name', 'school_id',

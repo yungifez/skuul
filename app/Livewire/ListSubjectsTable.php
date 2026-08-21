@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Services\MyClass\MyClassService;
+use Illuminate\Support\MessageBag;
 use Livewire\Component;
 
 class ListSubjectsTable extends Component
@@ -15,7 +16,7 @@ class ListSubjectsTable extends Component
 
     public function mount(MyClassService $myClassService)
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
+        $this->setErrorBag(session()->get('errors', new MessageBag)->getMessages());
 
         $this->classes = $myClassService->getAllClasses();
         if ($this->classes->isNotEmpty()) {

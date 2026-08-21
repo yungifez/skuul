@@ -1,0 +1,853 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Method App\\Casts\\Money\:\:get\(\) should return Brick\\Money\\Money but returns null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Casts/Money.php
+
+		-
+			message: '#^Parameter \#1 \$view of function view expects view\-string\|null, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/ExamRecordController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Middleware/CreateCurrentAcademicYearRecord.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$my_class_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Middleware/CreateCurrentAcademicYearRecord.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$section_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Middleware/CreateCurrentAcademicYearRecord.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:academicYears\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Middleware/CreateCurrentAcademicYearRecord.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Auth\\AuthManager\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Middleware/CreateCurrentAcademicYearRecord.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Database\\Eloquent\\Model\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Middleware/CreateCurrentAcademicYearRecord.php
+
+		-
+			message: '#^Using nullsafe property access on non\-nullable type App\\Models\\User\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Middleware/CreateCurrentAcademicYearRecord.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$is_graduated\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Middleware/PreventGraduatedStudent.php
+
+		-
+			message: '#^Cannot access property \$id on object\|string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Http/Requests/MyClassUpdateRequest.php
+
+		-
+			message: '#^Cannot access property \$id on object\|string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Http/Requests/SectionUpdateRequest.php
+
+		-
+			message: '#^Cannot access property \$my_class_id on object\|string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Http/Requests/SectionUpdateRequest.php
+
+		-
+			message: '#^Cannot access property \$id on object\|string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Http/Requests/UpdateClassGroupRequest.php
+
+		-
+			message: '#^Cannot access property \$id on object\|string\.$#'
+			identifier: property.nonObject
+			count: 1
+			path: app/Http/Requests/UpdateCustomTimetableItemRequest.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$admission_number\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/AcademicYearResultTabulation.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$classGroup\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/AcademicYearResultTabulation.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Livewire/AcademicYearResultTabulation.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/AcademicYearResultTabulation.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$sections\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/AcademicYearResultTabulation.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$subjects\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/AcademicYearResultTabulation.php
+
+		-
+			message: '#^Method App\\Livewire\\AcademicYearResultTabulation\:\:tabulateMarks\(\) should return Illuminate\\Database\\Eloquent\\Collection but returns Illuminate\\Support\\Collection\<int, array\<string, mixed\>\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Livewire/AcademicYearResultTabulation.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,App\\Models\\ExamSlot\>\:\:sum\(\) expects \(callable\(App\\Models\\ExamSlot, int\)\: mixed\)\|string\|null, array\{''total_marks''\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Livewire/AcademicYearResultTabulation.php
+
+		-
+			message: '#^Parameter \#1 \$value of function collect contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Livewire/AcademicYearResultTabulation.php
+
+		-
+			message: '#^Property App\\Livewire\\AcademicYearResultTabulation\:\:\$subjects \(Illuminate\\Database\\Eloquent\\Collection&iterable\<App\\Traits\\Subjects\>\) does not accept Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Subject\>\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Livewire/AcademicYearResultTabulation.php
+
+		-
+			message: '#^Property App\\Livewire\\AcademicYearResultTabulation\:\:\$subjects has unknown class App\\Traits\\Subjects as its type\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Livewire/AcademicYearResultTabulation.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Livewire/AssignStudentsToParent.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$students\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/AssignStudentsToParent.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Livewire/AssignTeacherToSubjects.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/CreateFeeInvoiceForm.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/EditTimetableForm.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$admission_number\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/ExamTabulation.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$classGroup\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/ExamTabulation.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Livewire/ExamTabulation.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Livewire/ExamTabulation.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$sections\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/ExamTabulation.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$subjects\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/ExamTabulation.php
+
+		-
+			message: '#^Method App\\Livewire\\ExamTabulation\:\:tabulateMarks\(\) should return Illuminate\\Database\\Eloquent\\Collection but returns Illuminate\\Support\\Collection\<int, array\<string, mixed\>\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Livewire/ExamTabulation.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,App\\Models\\ExamSlot\>\:\:sum\(\) expects \(callable\(App\\Models\\ExamSlot, int\)\: mixed\)\|string\|null, array\{''total_marks''\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Livewire/ExamTabulation.php
+
+		-
+			message: '#^Parameter \#1 \$value of function collect contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Livewire/ExamTabulation.php
+
+		-
+			message: '#^Parameter \#4 \$examSlots of method App\\Livewire\\ExamTabulation\:\:tabulateMarks\(\) expects Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\ExamSlot\>, Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\> given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Livewire/ExamTabulation.php
+
+		-
+			message: '#^Property App\\Livewire\\ExamTabulation\:\:\$subjects \(Illuminate\\Database\\Eloquent\\Collection&iterable\<App\\Traits\\Subjects\>\) does not accept Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Subject\>\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Livewire/ExamTabulation.php
+
+		-
+			message: '#^Property App\\Livewire\\ExamTabulation\:\:\$subjects has unknown class App\\Traits\\Subjects as its type\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Livewire/ExamTabulation.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/GraduateStudents.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Livewire/ListExamRecordsTable.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$sections\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/ListExamRecordsTable.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$subjects\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/ListExamRecordsTable.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$myClass\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/ListGradeSystemsTable.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$myClass\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/ListSyllabiTable.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$myClass\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/ListTimetablesTable.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/ManageTimetable.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$subjects\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/ManageTimetable.php
+
+		-
+			message: '#^Call to an undefined static method Nnjeim\\World\\World\:\:countries\(\)\.$#'
+			identifier: staticMethod.notFound
+			count: 2
+			path: app/Livewire/NationalityAndStateInputFields.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Livewire/PromoteStudents.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$Students\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/ResultChecker.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Livewire/ResultChecker.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:academicYears\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Livewire/ResultChecker.php
+
+		-
+			message: '#^Parameter \#1 \$academicYear of method App\\Livewire\\ResultChecker\:\:checkResult\(\) expects App\\Models\\AcademicYear, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Livewire/ResultChecker.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$admission_number\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/SemesterResultTabulation.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$classGroup\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/SemesterResultTabulation.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Livewire/SemesterResultTabulation.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Livewire/SemesterResultTabulation.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$sections\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/SemesterResultTabulation.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$subjects\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/SemesterResultTabulation.php
+
+		-
+			message: '#^Method App\\Livewire\\SemesterResultTabulation\:\:tabulateMarks\(\) should return Illuminate\\Database\\Eloquent\\Collection but returns Illuminate\\Support\\Collection\<int, array\<string, mixed\>\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Livewire/SemesterResultTabulation.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,App\\Models\\ExamSlot\>\:\:sum\(\) expects \(callable\(App\\Models\\ExamSlot, int\)\: mixed\)\|string\|null, array\{''total_marks''\} given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Livewire/SemesterResultTabulation.php
+
+		-
+			message: '#^Parameter \#1 \$value of function collect contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Livewire/SemesterResultTabulation.php
+
+		-
+			message: '#^Property App\\Livewire\\SemesterResultTabulation\:\:\$subjects \(Illuminate\\Database\\Eloquent\\Collection&iterable\<App\\Traits\\Subjects\>\) does not accept Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Subject\>\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Livewire/SemesterResultTabulation.php
+
+		-
+			message: '#^Property App\\Livewire\\SemesterResultTabulation\:\:\$subjects has unknown class App\\Traits\\Subjects as its type\.$#'
+			identifier: class.notFound
+			count: 1
+			path: app/Livewire/SemesterResultTabulation.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/SetSemester.php
+
+		-
+			message: '#^Property App\\Livewire\\ShowStudentProfile\:\:\$studentRecord \(App\\Models\\StudentRecord\) does not accept Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Livewire/ShowStudentProfile.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$subjects\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Livewire/ShowTimetable.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Exam\:\:\$examRecordService\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Exam.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$total_marks\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Exam.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:school\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/Fee.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:isDue\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Models/FeeInvoice.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:ofSchool\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/FeeInvoice.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Models/Promotion.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$start_year\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Promotion.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$stop_year\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/Promotion.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/StudentRecord.php
+
+		-
+			message: '#^PHPDoc type array of property App\\Models\\User\:\:\$appends is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$appends\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^PHPDoc type array\<int, string\> of property App\\Models\\User\:\:\$hidden is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$hidden\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^PHPDoc type array\<string\> of property App\\Models\\User\:\:\$fillable is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$fillable\.$#'
+			identifier: property.phpDocType
+			count: 1
+			path: app/Models/User.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Policies/CustomTimetableItemPolicy.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$school_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Policies/ExamPolicy.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$semester\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Policies/ExamSlotPolicy.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Policies/FeeCategoryPolicy.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:belongsToCurrentSchool\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: app/Policies/FeeInvoicePolicy.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Policies/FeeInvoiceRecordPolicy.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$school_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Policies/FeePolicy.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\GradeSystem\:\:\$classGroup\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Policies/GradeSystemPolicy.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$school_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Policies/MyClassPolicy.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$classGroup\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Policies/SectionPolicy.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$school_id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Policies/SyllabusPolicy.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$classGroup\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Policies/TimetablePolicy.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 3
+			path: app/Policies/UserPolicy.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:semesters\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/AcademicYear/AcademicYearService.php
+
+		-
+			message: '#^Using nullsafe method call on non\-nullable type Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Services/AcademicYear/AcademicYearService.php
+
+		-
+			message: '#^Method App\\Services\\Admin\\AdminService\:\:getAllAdmins\(\) should return Illuminate\\Database\\Eloquent\\Collection\<int, static\(App\\Services\\Admin\\AdminService\)\> but returns Illuminate\\Database\\Eloquent\\Collection\<int, App\\Services\\User\\UserService\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/Admin/AdminService.php
+
+		-
+			message: '#^Type static\(App\\Services\\Admin\\AdminService\) in generic type Illuminate\\Database\\Eloquent\\Collection\<int, static\(App\\Services\\Admin\\AdminService\)\> in PHPDoc tag @return is not subtype of template type TModel of Illuminate\\Database\\Eloquent\\Model of class Illuminate\\Database\\Eloquent\\Collection\.$#'
+			identifier: generics.notSubtype
+			count: 1
+			path: app/Services/Admin/AdminService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$examSlots\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Exam/ExamRecordService.php
+
+		-
+			message: '#^Method App\\Services\\Exam\\ExamRecordService\:\:getAllExamRecordsInSection\(\) should return App\\Models\\ExamRecord but returns Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\ExamRecord\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/Exam/ExamRecordService.php
+
+		-
+			message: '#^Method App\\Services\\Exam\\ExamRecordService\:\:getAllExamSlotsInExams\(\) with return type void returns list but should not return anything\.$#'
+			identifier: return.void
+			count: 1
+			path: app/Services/Exam/ExamRecordService.php
+
+		-
+			message: '#^Method App\\Services\\Exam\\ExamRecordService\:\:getAllUserExamRecordInAcademicYear\(\) should return App\\Models\\ExamRecord but returns Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\ExamRecord\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/Exam/ExamRecordService.php
+
+		-
+			message: '#^Method App\\Services\\Exam\\ExamRecordService\:\:getAllUserExamRecordInExamForSubject\(\) should return App\\Models\\ExamRecord but returns Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\ExamRecord\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/Exam/ExamRecordService.php
+
+		-
+			message: '#^Method App\\Services\\Exam\\ExamRecordService\:\:getAllUserExamRecordInSemester\(\) should return App\\Models\\ExamRecord but returns Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\ExamRecord\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/Exam/ExamRecordService.php
+
+		-
+			message: '#^Method App\\Services\\Exam\\ExamRecordService\:\:getAllUserExamRecordInSemesterForSubject\(\) should return App\\Models\\ExamRecord but returns Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\ExamRecord\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/Exam/ExamRecordService.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$semester$#'
+			identifier: parameter.notFound
+			count: 1
+			path: app/Services/Exam/ExamRecordService.php
+
+		-
+			message: '#^Result of method App\\Services\\Exam\\ExamRecordService\:\:getAllExamSlotsInExams\(\) \(void\) is used\.$#'
+			identifier: method.void
+			count: 2
+			path: app/Services/Exam/ExamRecordService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$examSlots\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Exam/ExamService.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$exam$#'
+			identifier: parameter.notFound
+			count: 1
+			path: app/Services/Exam/ExamService.php
+
+		-
+			message: '#^Method App\\Services\\Exam\\ExamSlotService\:\:getAllExamSlots\(\) should return Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\ExamSlot\> but returns Illuminate\\Database\\Eloquent\\Collection\<int, Illuminate\\Database\\Eloquent\\Model\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/Exam/ExamSlotService.php
+
+		-
+			message: '#^Method App\\Services\\Fee\\FeeInvoiceService\:\:updateFeeInvoice\(\) with return type void returns App\\Models\\FeeInvoice but should not return anything\.$#'
+			identifier: return.void
+			count: 1
+			path: app/Services/Fee/FeeInvoiceService.php
+
+		-
+			message: '#^Method App\\Services\\GradeSystem\\GradeSystemService\:\:getGrade\(\) with return type void returns App\\Models\\GradeSystem\|null but should not return anything\.$#'
+			identifier: return.void
+			count: 1
+			path: app/Services/GradeSystem/GradeSystemService.php
+
+		-
+			message: '#^Parameter \#1 \$keys of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\GradeSystem\>\:\:except\(\) expects array\<mixed\>\|null, int given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/GradeSystem/GradeSystemService.php
+
+		-
+			message: '#^Parameter \#2 \$grades of method App\\Services\\GradeSystem\\GradeSystemService\:\:gradeRangeExists\(\) expects array, Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\GradeSystem\> given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Services/GradeSystem/GradeSystemService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ClassGroup\:\:\$classes\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/MyClass/MyClassService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:students\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Services/Parent/ParentService.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Services/Parent/ParentService.php
+
+		-
+			message: '#^Method Illuminate\\Support\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:count\(\) invoked with 1 parameter, 0 required\.$#'
+			identifier: arguments.count
+			count: 1
+			path: app/Services/School/SchoolService.php
+
+		-
+			message: '#^Property App\\Models\\School\:\:\$logo_path \(string\|null\) does not accept bool\.$#'
+			identifier: assign.propertyType
+			count: 1
+			path: app/Services/School/SchoolService.php
+
+		-
+			message: '#^Unreachable statement \- code above always terminates\.$#'
+			identifier: deadCode.unreachable
+			count: 1
+			path: app/Services/School/SchoolService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$sections\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Section/SectionService.php
+
+		-
+			message: '#^Method App\\Services\\Section\\SectionService\:\:createSection\(\) with return type void returns App\\Models\\Section but should not return anything\.$#'
+			identifier: return.void
+			count: 1
+			path: app/Services/Section/SectionService.php
+
+		-
+			message: '#^Method App\\Services\\Section\\SectionService\:\:updateSection\(\) with return type void returns App\\Models\\Section but should not return anything\.$#'
+			identifier: return.void
+			count: 1
+			path: app/Services/Section/SectionService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Semester\:\:\$academicYear\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Semester/SemesterService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Semester/SemesterService.php
+
+		-
+			message: '#^Access to an undefined property App\\Services\\User\\UserService\:\:\$studentRecord\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Student/StudentService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Services/Student/StudentService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$studentRecord\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Student/StudentService.php
+
+		-
+			message: '#^Call to an undefined method App\\Services\\User\\UserService\:\:studentRecord\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Services/Student/StudentService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:academicYears\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Services/Student/StudentService.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:studentRecord\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Services/Student/StudentService.php
+
+		-
+			message: '#^Parameter \#1 \$min of function mt_rand expects int, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Student/StudentService.php
+
+		-
+			message: '#^Parameter \#2 \$max of function mt_rand expects int, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/Student/StudentService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$myClass\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/Syllabus/SyllabusService.php
+
+		-
+			message: '#^Method App\\Services\\User\\UserService\:\:getUsersByRole\(\) should return Illuminate\\Database\\Eloquent\\Collection\<int, static\(App\\Services\\User\\UserService\)\> but returns Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\User\>\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Services/User/UserService.php
+
+		-
+			message: '#^PHPDoc tag @param references unknown parameter\: \$role$#'
+			identifier: parameter.notFound
+			count: 1
+			path: app/Services/User/UserService.php
+
+		-
+			message: '#^Parameter \#1 \$code of function abort expects Illuminate\\Contracts\\Support\\Responsable\|int\|Symfony\\Component\\HttpFoundation\\Response, string given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Services/User/UserService.php
+
+		-
+			message: '#^Type static\(App\\Services\\User\\UserService\) in generic type Illuminate\\Database\\Eloquent\\Collection\<int, static\(App\\Services\\User\\UserService\)\> in PHPDoc tag @return is not subtype of template type TModel of Illuminate\\Database\\Eloquent\\Model of class Illuminate\\Database\\Eloquent\\Collection\.$#'
+			identifier: generics.notSubtype
+			count: 1
+			path: app/Services/User/UserService.php
+
+		-
+			message: '#^Trait App\\Traits\\FeatureTestTrait is used zero times and is not analysed\.$#'
+			identifier: trait.unused
+			count: 1
+			path: app/Traits/FeatureTestTrait.php

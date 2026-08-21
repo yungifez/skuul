@@ -14,7 +14,7 @@ class ExamRecordSeeder extends Seeder
      */
     public function run()
     {
-        //uncomment the below when you really need to seed
+        // uncomment the below when you really need to seed
         // ExamRecord::factory()->count(3)->cphreate();
     }
 }

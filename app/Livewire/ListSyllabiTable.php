@@ -2,7 +2,9 @@
 
 namespace App\Livewire;
 
+use App\Enums\Role;
 use App\Services\MyClass\MyClassService;
+use Illuminate\Support\MessageBag;
 use Livewire\Component;
 
 class ListSyllabiTable extends Component
@@ -15,9 +17,9 @@ class ListSyllabiTable extends Component
 
     public function mount(MyClassService $myClassService)
     {
-        $this->setErrorBag(session()->get('errors', new \Illuminate\Support\MessageBag())->getMessages());
+        $this->setErrorBag(session()->get('errors', new MessageBag)->getMessages());
 
-        if (auth()->user()->hasRole('student')) {
+        if (auth()->user()->hasRole(Role::Student)) {
             return $this->class = auth()->user()->studentRecord->myClass->id;
         }
 

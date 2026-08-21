@@ -11,15 +11,14 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class FeeCategory extends Model
 {
-    use InSchool;
     use HasFactory;
+    use InSchool;
     use SoftDeletes;
+
     protected $fillable = ['name', 'description', 'school_id'];
 
     /**
      * Get the school that owns the FeeCategory.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function school(): BelongsTo
     {
@@ -28,8 +27,6 @@ class FeeCategory extends Model
 
     /**
      * Get all of the fees for the FeeCategory.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function fees(): HasMany
     {

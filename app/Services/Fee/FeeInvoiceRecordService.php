@@ -13,12 +13,12 @@ class FeeInvoiceRecordService
     /**
      * Store a new fee invoice record.
      *
-     * @param array $records
+     * @param  array  $records
      */
     public function storeFeeInvoiceRecord($records): FeeInvoiceRecord
     {
-        $fee = Fee::where('id', $records['fee_id'])->whereRelation('feeCategory', 'school_id', auth()->user()->school_id)->get();
-        $feeInvoice = FeeInvoice::where('id', $records['fee_invoice_id'])->whereRelation('user', 'school_id', auth()->user()->school_id)->get();
+        $fee = Fee::where('id', $records['fee_id'])->whereRelation('feeCategory', 'school_id', current_school_id())->get();
+        $feeInvoice = FeeInvoice::where('id', $records['fee_invoice_id'])->ofSchool()->get();
 
         if ($fee->isEmpty() || $feeInvoice->isEmpty()) {
             throw new InvalidValueException("The fee you selected doesn't exist");
@@ -26,10 +26,10 @@ class FeeInvoiceRecordService
 
         $feeInvoiceRecord = FeeInvoiceRecord::create([
             'fee_invoice_id' => $records['fee_invoice_id'],
-            'fee_id'         => $records['fee_id'],
-            'amount'         => $records['amount'],
-            'waiver'         => $records['waiver'] ?? 0,
-            'fine'           => $records['fine'] ?? 0,
+            'fee_id' => $records['fee_id'],
+            'amount' => $records['amount'],
+            'waiver' => $records['waiver'] ?? 0,
+            'fine' => $records['fine'] ?? 0,
         ]);
 
         return $feeInvoiceRecord;
@@ -37,9 +37,6 @@ class FeeInvoiceRecordService
 
     /**
      * Update a fee invoice record.
-     *
-     * @param FeeInvoiceRecord $feeInvoiceRecord
-     * @param                  $records
      */
     public function updateFeeInvoiceRecord(FeeInvoiceRecord $feeInvoiceRecord, $records): FeeInvoiceRecord
     {
@@ -54,7 +51,7 @@ class FeeInvoiceRecordService
         $feeInvoiceRecord->update([
             'amount' => $records['amount'],
             'waiver' => $records['waiver'] ?? 0,
-            'fine'   => $records['fine'] ?? 0,
+            'fine' => $records['fine'] ?? 0,
         ]);
 
         return $feeInvoiceRecord;
@@ -62,8 +59,6 @@ class FeeInvoiceRecordService
 
     /**
      * Delete a fee invoice.
-     *
-     * @param FeeInvoiceRecord $feeInvoiceRecord
      */
     public function deleteFeeInvoiceRecord(FeeInvoiceRecord $feeInvoiceRecord): void
     {
@@ -73,8 +68,7 @@ class FeeInvoiceRecordService
     /**
      * Add a new paymeny.
      *
-     * @param FeeInvoiceRecord $feeInvoiceRecord
-     * @param array            $records
+     * @param  array  $records
      */
     public function addPayment(FeeInvoiceRecord $feeInvoiceRecord, $records): FeeInvoiceRecord
     {

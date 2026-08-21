@@ -8,10 +8,10 @@ use Tests\TestCase;
 
 class GradeSystemTest extends TestCase
 {
-    use RefreshDatabase;
     use FeatureTestTrait;
+    use RefreshDatabase;
 
-    //test unauthorized user can not see all grade systems
+    // test unauthorized user can not see all grade systems
 
     public function test_unauthorized_user_can_not_see_all_grade_systems()
     {
@@ -20,7 +20,7 @@ class GradeSystemTest extends TestCase
             ->assertForbidden();
     }
 
-    //test authorized user can see all grade systems
+    // test authorized user can see all grade systems
 
     public function test_authorized_user_can_see_all_grade_systems()
     {
@@ -29,7 +29,7 @@ class GradeSystemTest extends TestCase
             ->assertSuccessful();
     }
 
-    //test unauthorized user can not see create grade system
+    // test unauthorized user can not see create grade system
 
     public function test_unauthorized_user_can_not_see_create_grade_system()
     {
@@ -38,7 +38,7 @@ class GradeSystemTest extends TestCase
             ->assertForbidden();
     }
 
-    //test authorized user can see create grade system
+    // test authorized user can see create grade system
 
     public function test_authorized_user_can_see_create_grade_system()
     {
@@ -47,7 +47,7 @@ class GradeSystemTest extends TestCase
             ->assertOk();
     }
 
-    //test unauthorized user can not create grade system
+    // test unauthorized user can not create grade system
 
     public function test_unauthorized_user_can_not_create_grade_system()
     {
@@ -56,29 +56,29 @@ class GradeSystemTest extends TestCase
             ->assertForbidden();
     }
 
-    //test authorized user can create grade system
+    // test authorized user can create grade system
 
     public function test_authorized_user_can_create_grade_system()
     {
         $this->authorized_user(['create grade system'])
             ->post('/dashboard/grade-systems', [
-                'name'           => 'test grade',
-                'remark'         => 'test remarks',
-                'grade_from'     => '0',
-                'grade_till'     => '10',
+                'name' => 'test grade',
+                'remark' => 'test remarks',
+                'grade_from' => '0',
+                'grade_till' => '10',
                 'class_group_id' => '1',
             ]);
 
         $this->assertDatabaseHas('grade_systems', [
-            'name'           => 'test grade',
-            'remark'         => 'test remarks',
-            'grade_from'     => '0',
-            'grade_till'     => '10',
+            'name' => 'test grade',
+            'remark' => 'test remarks',
+            'grade_from' => '0',
+            'grade_till' => '10',
             'class_group_id' => '1',
         ]);
     }
 
-    //test unauthorized user can not see edit grade system
+    // test unauthorized user can not see edit grade system
 
     public function test_unauthorized_user_can_not_see_edit_grade_system()
     {
@@ -87,7 +87,7 @@ class GradeSystemTest extends TestCase
             ->assertForbidden();
     }
 
-    //test authorized user can see edit grade system
+    // test authorized user can see edit grade system
 
     public function test_authorized_user_can_see_edit_grade_system()
     {
@@ -96,7 +96,7 @@ class GradeSystemTest extends TestCase
             ->assertOk();
     }
 
-    //test unauthorized user can not update grade system
+    // test unauthorized user can not update grade system
 
     public function test_unauthorized_user_can_not_update_grade_system()
     {
@@ -105,30 +105,30 @@ class GradeSystemTest extends TestCase
             ->assertForbidden();
     }
 
-    //test authorized user can update grade system
+    // test authorized user can update grade system
 
     public function test_authorized_user_can_update_grade_system()
     {
         $this->authorized_user(['update grade system'])
             ->put('/dashboard/grade-systems/1', [
-                'name'           => 'test grade',
-                'remark'         => 'test remarks',
-                'grade_from'     => '90',
-                'grade_till'     => '100',
+                'name' => 'test grade',
+                'remark' => 'test remarks',
+                'grade_from' => '90',
+                'grade_till' => '100',
                 'class_group_id' => '1',
             ]);
 
         $this->assertDatabaseHas('grade_systems', [
-            'id'             => '1',
-            'name'           => 'test grade',
-            'remark'         => 'test remarks',
-            'grade_from'     => '90',
-            'grade_till'     => '100',
+            'id' => '1',
+            'name' => 'test grade',
+            'remark' => 'test remarks',
+            'grade_from' => '90',
+            'grade_till' => '100',
             'class_group_id' => '1',
         ]);
     }
 
-    //test unauthorized user can not delete grade system
+    // test unauthorized user can not delete grade system
 
     public function test_unauthorized_user_can_not_delete_grade_system()
     {
@@ -137,7 +137,7 @@ class GradeSystemTest extends TestCase
             ->assertForbidden();
     }
 
-    //test authorized user can delete grade system
+    // test authorized user can delete grade system
 
     public function test_authorized_user_can_delete_grade_system()
     {

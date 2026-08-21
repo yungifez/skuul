@@ -23,13 +23,13 @@ class AcademicYearService
      */
     public function getAllAcademicYears(): Collection|static
     {
-        return AcademicYear::where('school_id', auth()->user()->school_id)->get();
+        return AcademicYear::inSchool()->get();
     }
 
     /**
      * Get academic year by Id.
      *
-     * @param int $id
+     * @param  int  $id
      */
     public function getAcademicYearById($id): AcademicYear
     {
@@ -39,11 +39,11 @@ class AcademicYearService
     /**
      * Create academic year.
      *
-     * @param array|Collection $records
+     * @param  array|Collection  $records
      */
     public function createAcademicYear($records): AcademicYear
     {
-        $records['school_id'] = auth()->user()->school_id;
+        $records['school_id'] = current_school_id();
         $academicYear = AcademicYear::create($records);
 
         return $academicYear;
@@ -52,7 +52,7 @@ class AcademicYearService
     /**
      * Update Academic Year.
      *
-     * @param array|Collection $records
+     * @param  array|Collection  $records
      */
     public function updateAcademicYear(AcademicYear $academicYear, $records): AcademicYear
     {
@@ -74,21 +74,21 @@ class AcademicYearService
     /**
      * Set academic year as current.one in school.
      *
-     * @param int $academicYearId
-     * @param int $schoolId
+     * @param  int  $academicYearId
+     * @param  int  $schoolId
      */
     public function setAcademicYear($academicYearId, $schoolId = null): bool
     {
         $academicYear = AcademicYear::find($academicYearId);
         if (!isset($schoolId)) {
-            $schoolId = auth()->user()->school_id;
+            $schoolId = current_school_id();
         }
         $school = $this->schoolService->getSchoolById($schoolId);
         $school->academic_year_id = $academicYearId;
-        //set semester id to first semester or null
+        // set semester id to first semester or null
         $school->semester_id = $academicYear->semesters?->first()->id ?? $school->academicYear->semesters()->create([
-            'name'      => 'First',
-            'school_id' => auth()->user()->school_id,
+            'name' => 'First',
+            'school_id' => current_school_id(),
         ])->id;
 
         return $school->save();

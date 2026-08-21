@@ -17,7 +17,7 @@
         <h3 class="text-center text-lg md:text-3xl font-bold my-5">Students in class</h1>
         <livewire:datatable :model="App\Models\User::class" uniqueId="students-list-table" 
         :filters="[
-            ['name' => 'where' , 'arguments' => ['school_id' , auth()->user()->school_id]], 
+            ['name' => 'ofSchool'], 
             ['name' => 'whereRelation' , 'arguments' => ['studentRecord','my_class_id' , $class->id]], 
             ['name' => 'with' , 'arguments' => ['studentRecord' ,'studentRecord.section']]
         ]" :columns="

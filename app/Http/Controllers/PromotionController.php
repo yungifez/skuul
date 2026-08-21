@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StudentPromoteRequest;
 use App\Models\Promotion;
 use App\Services\Student\StudentService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -64,7 +65,7 @@ class PromotionController extends Controller
      * Display the specified resource.
      *
      *
-     * @throws \Illuminate\Auth\Access\AuthorizationException
+     * @throws AuthorizationException
      */
     public function show(Promotion $promotion): View
     {

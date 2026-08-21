@@ -8,14 +8,17 @@ use Illuminate\Database\Eloquent\Builder;
 trait InSchool
 {
     /**
-     * Scopes school procied else scopes school of currently authenticated user.
+     * Limit the query to records owned by one school.
      *
-     * @param \Illuminate\Database\Eloquent\Builder $query
+     * With no argument this uses the school of the current request. This is the
+     * one place that turns "the school I am working in" into a query condition.
+     *
+     * @param  Builder  $query
      */
-    public function scopeInSchool($query, ?School $school = null): Builder
+    public function scopeInSchool($query, School|int|null $school = null): Builder
     {
-        $school == null ? $school = auth()->user()->school_id : $school->id;
+        $schoolId = $school instanceof School ? $school->id : ($school ?? current_school_id());
 
-        return $query->where('school_id', $school);
+        return $query->where($this->getTable().'.school_id', $schoolId);
     }
 }
