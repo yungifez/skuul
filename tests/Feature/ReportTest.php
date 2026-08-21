@@ -90,7 +90,7 @@ class ReportTest extends TestCase
         $this->authorized_user(['create report']);
         $run = ReportRun::create([
             'school_id' => $this->workingSchool()->id,
-            'type' => 'made-up-report',
+            'type'      => 'made-up-report',
         ]);
 
         try {

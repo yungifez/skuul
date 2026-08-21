@@ -37,8 +37,8 @@ class LedgerLine extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'debit' => 'float',
-        'credit' => 'float',
+        'debit'      => 'float',
+        'credit'     => 'float',
         'created_at' => 'datetime',
     ];
 

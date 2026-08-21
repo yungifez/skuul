@@ -61,7 +61,7 @@ class AcademicPeriodContextTest extends TestCase
         $school = $this->workingSchool();
         $year = AcademicYear::factory()->create(['school_id' => $school->id]);
         $semester = Semester::factory()->create([
-            'school_id' => $school->id,
+            'school_id'        => $school->id,
             'academic_year_id' => $school->academic_year_id,
         ]);
 
@@ -76,7 +76,7 @@ class AcademicPeriodContextTest extends TestCase
         $school = $this->workingSchool();
         $otherYear = AcademicYear::factory()->create(['school_id' => $school->id]);
         $semester = Semester::factory()->create([
-            'school_id' => $school->id,
+            'school_id'        => $school->id,
             'academic_year_id' => $otherYear->id,
         ]);
 

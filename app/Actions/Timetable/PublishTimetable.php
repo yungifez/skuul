@@ -25,14 +25,15 @@ class PublishTimetable
     public function __construct(
         private TimetableConflictChecker $conflictChecker,
         private RecordAuditEvent $auditor,
-    ) {}
+    ) {
+    }
 
     /**
      * Publish the revision.
      *
      * Publishing a revision that is already in use changes nothing.
      *
-     * @throws InvalidValueException when the state cannot follow the current one
+     * @throws InvalidValueException      when the state cannot follow the current one
      * @throws TimetableConflictException when entries clash
      */
     public function publish(Timetable $timetable, ?User $actor = null): Timetable
@@ -74,9 +75,9 @@ class PublishTimetable
                 AuditAction::TimetablePublished,
                 $timetable,
                 [
-                    'revision' => $timetable->revision,
+                    'revision'    => $timetable->revision,
                     'my_class_id' => $timetable->my_class_id,
-                    'section_id' => $timetable->section_id,
+                    'section_id'  => $timetable->section_id,
                     'semester_id' => $timetable->semester_id,
                 ],
                 $actor,

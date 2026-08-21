@@ -25,7 +25,9 @@ class BuildReport implements ShouldQueue
      */
     public int $tries = 2;
 
-    public function __construct(private int $reportRunId) {}
+    public function __construct(private int $reportRunId)
+    {
+    }
 
     /**
      * Build the report.
@@ -67,8 +69,8 @@ class BuildReport implements ShouldQueue
     /**
      * Turn the columns and rows into one CSV file.
      *
-     * @param  array<int, string>  $columns
-     * @param  array<int, array<int, string|int|float|null>>  $rows
+     * @param array<int, string>                            $columns
+     * @param array<int, array<int, string|int|float|null>> $rows
      */
     private function toCsv(array $columns, array $rows): string
     {

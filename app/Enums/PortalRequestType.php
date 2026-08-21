@@ -33,9 +33,9 @@ enum PortalRequestType: string
     public function label(): string
     {
         return match ($this) {
-            self::Document => 'Document request',
-            self::Correction => 'Correction request',
-            self::Appointment => 'Appointment request',
+            self::Document        => 'Document request',
+            self::Correction      => 'Correction request',
+            self::Appointment     => 'Appointment request',
             self::Acknowledgement => 'Acknowledgement',
         };
     }

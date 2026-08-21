@@ -17,7 +17,7 @@ class ListSyllabiTable extends Component
 
     public function mount(MyClassService $myClassService)
     {
-        $this->setErrorBag(session()->get('errors', new MessageBag)->getMessages());
+        $this->setErrorBag(session()->get('errors', new MessageBag())->getMessages());
 
         if (auth()->user()->hasRole(Role::Student)) {
             return $this->class = auth()->user()->studentRecord->myClass->id;

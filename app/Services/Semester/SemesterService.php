@@ -46,7 +46,8 @@ class SemesterService
     /**
      * Create a new semester.
      *
-     * @param  mixed  $data
+     * @param mixed $data
+     *
      * @return Semester
      */
     public function createSemester($data)
@@ -59,11 +60,11 @@ class SemesterService
         $this->failIfDatesDoNotFit($academicYear, $startsOn, $endsOn);
 
         $attributes = [
-            'name' => $data['name'],
-            'type' => $data['type'] ?? AcademicPeriodType::Semester->value,
-            'starts_on' => $startsOn,
-            'ends_on' => $endsOn,
-            'school_id' => current_school_id(),
+            'name'             => $data['name'],
+            'type'             => $data['type'] ?? AcademicPeriodType::Semester->value,
+            'starts_on'        => $startsOn,
+            'ends_on'          => $endsOn,
+            'school_id'        => current_school_id(),
             'academic_year_id' => $academicYear->id,
         ];
 
@@ -80,9 +81,9 @@ class SemesterService
      *
      *
      *
-     * @return void
-     *
      * @throws InvalidValueException
+     *
+     * @return void
      */
     public function setSemester(Semester $semester)
     {
@@ -98,7 +99,8 @@ class SemesterService
     /**
      * Semester service.
      *
-     * @param  mixed  $data
+     * @param mixed $data
+     *
      * @return void
      */
     public function updateSemester(Semester $semester, $data)

@@ -32,7 +32,8 @@ class AdminService
     /**
      * Create Admin.
      *
-     * @param  array<string, mixed>|Collection<string, mixed>  $records
+     * @param array<string, mixed>|Collection<string, mixed> $records
+     *
      * @return void
      */
     public function createAdmin($records)
@@ -44,7 +45,8 @@ class AdminService
     /**
      * Update Admin.
      *
-     * @param  array<string, mixed>|Collection<string, mixed>  $records
+     * @param array<string, mixed>|Collection<string, mixed> $records
+     *
      * @return void
      */
     public function updateAdmin(User $admin, $records)

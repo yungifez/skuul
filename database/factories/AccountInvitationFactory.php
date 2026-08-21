@@ -22,7 +22,7 @@ class AccountInvitationFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory()->invited(),
+            'user_id'    => User::factory()->invited(),
             'invited_by' => null,
             'token_hash' => AccountInvitation::hashToken(Str::random(64)),
             'expires_at' => now()->addHours(72),

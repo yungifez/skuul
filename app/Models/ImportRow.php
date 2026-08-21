@@ -12,8 +12,8 @@ use Illuminate\Database\Eloquent\Relations\MorphTo;
 /**
  * One line of an imported file, what was wrong with it, and what it wrote.
  *
- * @property ImportRowState $state
- * @property array<string, mixed> $payload
+ * @property ImportRowState          $state
+ * @property array<string, mixed>    $payload
  * @property array<int, string>|null $errors
  */
 class ImportRow extends Model
@@ -46,16 +46,17 @@ class ImportRow extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'state' => ImportRowState::class,
-        'payload' => 'array',
-        'errors' => 'array',
+        'state'       => ImportRowState::class,
+        'payload'     => 'array',
+        'errors'      => 'array',
         'line_number' => 'integer',
     ];
 
     /**
      * Limit the query to the rows that can be written.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeReady(Builder $query): Builder
@@ -66,7 +67,8 @@ class ImportRow extends Model
     /**
      * Limit the query to the rows that cannot be written.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeBroken(Builder $query): Builder

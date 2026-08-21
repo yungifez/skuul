@@ -46,24 +46,24 @@ class RecordAttendance
         return DB::transaction(function () use ($enrollment, $status, $day, $kind, $subject, $actor, $reason, $source): AttendanceRecord {
             $record = AttendanceRecord::firstOrNew([
                 'student_record_id' => $enrollment->id,
-                'attended_on' => $day->toDateString(),
-                'kind' => $kind->value,
-                'subject_id' => $subject?->id,
+                'attended_on'       => $day->toDateString(),
+                'kind'              => $kind->value,
+                'subject_id'        => $subject?->id,
             ]);
 
             $previous = $record->exists ? $record->status : null;
 
             $record->fill([
-                'school_id' => $enrollment->school_id ?? current_school_id(),
+                'school_id'        => $enrollment->school_id ?? current_school_id(),
                 'academic_year_id' => current_academic_year_id(),
-                'semester_id' => current_semester_id(),
-                'my_class_id' => $enrollment->my_class_id,
-                'section_id' => $enrollment->section_id,
-                'status' => $status,
-                'reason' => $reason,
-                'source' => $source,
-                'recorded_by' => $actor === null ? auth()->id() : $actor->id,
-                'recorded_at' => now(),
+                'semester_id'      => current_semester_id(),
+                'my_class_id'      => $enrollment->my_class_id,
+                'section_id'       => $enrollment->section_id,
+                'status'           => $status,
+                'reason'           => $reason,
+                'source'           => $source,
+                'recorded_by'      => $actor === null ? auth()->id() : $actor->id,
+                'recorded_at'      => now(),
             ]);
 
             $record->save();
@@ -72,10 +72,10 @@ class RecordAttendance
             if ($previous !== null && $previous !== $status) {
                 AttendanceChange::create([
                     'attendance_record_id' => $record->id,
-                    'from_status' => $previous,
-                    'to_status' => $status,
-                    'reason' => $reason,
-                    'changed_by' => $actor === null ? auth()->id() : $actor->id,
+                    'from_status'          => $previous,
+                    'to_status'            => $status,
+                    'reason'               => $reason,
+                    'changed_by'           => $actor === null ? auth()->id() : $actor->id,
                 ]);
             }
 
@@ -86,7 +86,8 @@ class RecordAttendance
     /**
      * Take the register for a whole list at once.
      *
-     * @param  array<int, array{enrollment: StudentRecord, status: AttendanceStatus, reason?: string|null}>  $entries
+     * @param array<int, array{enrollment: StudentRecord, status: AttendanceStatus, reason?: string|null}> $entries
+     *
      * @return array<int, AttendanceRecord>
      */
     public function recordMany(

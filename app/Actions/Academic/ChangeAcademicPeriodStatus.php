@@ -22,7 +22,9 @@ use Illuminate\Support\Facades\DB;
  */
 class ChangeAcademicPeriodStatus
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * Move the period to the given state.
@@ -53,11 +55,11 @@ class ChangeAcademicPeriodStatus
 
             AcademicPeriodStatusChange::create([
                 'period_type' => $period->getMorphClass(),
-                'period_id' => $period->id,
+                'period_id'   => $period->id,
                 'from_status' => $current,
-                'to_status' => $status,
-                'changed_by' => $actor?->id,
-                'reason' => $reason,
+                'to_status'   => $status,
+                'changed_by'  => $actor?->id,
+                'reason'      => $reason,
             ]);
 
             $this->auditor->record(

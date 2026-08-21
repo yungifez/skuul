@@ -35,8 +35,8 @@ class IncidentStatusChange extends Model
      */
     protected $casts = [
         'from_status' => IncidentStatus::class,
-        'to_status' => IncidentStatus::class,
-        'created_at' => 'datetime',
+        'to_status'   => IncidentStatus::class,
+        'created_at'  => 'datetime',
     ];
 
     /**

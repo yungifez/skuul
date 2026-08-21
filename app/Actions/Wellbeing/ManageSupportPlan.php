@@ -26,7 +26,9 @@ use Illuminate\Support\Facades\DB;
  */
 class ManageSupportPlan
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * Open a plan for one child.
@@ -56,16 +58,16 @@ class ManageSupportPlan
 
         return DB::transaction(function () use ($enrollment, $title, $category, $summary, $start, $review, $owner, $actor): SupportPlan {
             $plan = SupportPlan::create([
-                'school_id' => $enrollment->school_id,
+                'school_id'         => $enrollment->school_id,
                 'student_record_id' => $enrollment->id,
-                'category' => $category,
-                'title' => $title,
-                'summary' => $summary,
-                'starts_on' => $start,
-                'review_on' => $review,
-                'academic_year_id' => current_academic_year_id(),
-                'created_by' => $actor === null ? auth()->id() : $actor->id,
-                'assigned_to' => $owner?->id,
+                'category'          => $category,
+                'title'             => $title,
+                'summary'           => $summary,
+                'starts_on'         => $start,
+                'review_on'         => $review,
+                'academic_year_id'  => current_academic_year_id(),
+                'created_by'        => $actor === null ? auth()->id() : $actor->id,
+                'assigned_to'       => $owner?->id,
             ]);
 
             $this->auditor->record(
@@ -107,10 +109,10 @@ class ManageSupportPlan
 
             SupportPlanStatusChange::create([
                 'support_plan_id' => $plan->id,
-                'from_status' => $current,
-                'to_status' => $status,
-                'reason' => $reason,
-                'changed_by' => $actor === null ? auth()->id() : $actor->id,
+                'from_status'     => $current,
+                'to_status'       => $status,
+                'reason'          => $reason,
+                'changed_by'      => $actor === null ? auth()->id() : $actor->id,
             ]);
 
             $this->auditor->record(
@@ -142,10 +144,10 @@ class ManageSupportPlan
 
         return SupportPlanAction::create([
             'support_plan_id' => $plan->id,
-            'description' => $description,
-            'due_on' => $dueOn === null ? null : Carbon::parse($dueOn),
-            'assigned_to' => $assignee?->id,
-            'created_by' => $actor === null ? auth()->id() : $actor->id,
+            'description'     => $description,
+            'due_on'          => $dueOn === null ? null : Carbon::parse($dueOn),
+            'assigned_to'     => $assignee?->id,
+            'created_by'      => $actor === null ? auth()->id() : $actor->id,
         ]);
     }
 
@@ -180,8 +182,8 @@ class ManageSupportPlan
 
         return SupportPlanNote::create([
             'support_plan_id' => $plan->id,
-            'body' => $body,
-            'written_by' => $actor === null ? auth()->id() : $actor->id,
+            'body'            => $body,
+            'written_by'      => $actor === null ? auth()->id() : $actor->id,
         ]);
     }
 }

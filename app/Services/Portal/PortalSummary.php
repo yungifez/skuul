@@ -25,7 +25,8 @@ class PortalSummary
         private PortalAccess $access,
         private AttendanceSummary $attendance,
         private StudentLedger $ledger,
-    ) {}
+    ) {
+    }
 
     /**
      * Get the newest published result of each subject.
@@ -114,7 +115,7 @@ class PortalSummary
                 ->where('user_id', $enrollment->user_id)
                 ->orderByDesc('id')
                 ->get(),
-            'balance' => $this->ledger->balance($enrollment),
+            'balance'          => $this->ledger->balance($enrollment),
             'unapplied_credit' => $this->ledger->unappliedCredit($enrollment),
         ];
     }

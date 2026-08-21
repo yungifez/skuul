@@ -129,12 +129,12 @@ class PortalTest extends TestCase
         $this->unauthorized_user();
         $enrollment = $this->enrollment();
         AttendanceRecord::create([
-            'school_id' => $enrollment->school_id,
+            'school_id'         => $enrollment->school_id,
             'student_record_id' => $enrollment->id,
-            'academic_year_id' => current_academic_year_id(),
-            'semester_id' => current_semester_id(),
-            'attended_on' => now()->subDay()->toDateString(),
-            'status' => AttendanceStatus::Present,
+            'academic_year_id'  => current_academic_year_id(),
+            'semester_id'       => current_semester_id(),
+            'attended_on'       => now()->subDay()->toDateString(),
+            'status'            => AttendanceStatus::Present,
         ]);
 
         $attendance = app(PortalSummary::class)->attendance($enrollment);
@@ -149,7 +149,7 @@ class PortalTest extends TestCase
         $enrollment = $this->enrollment();
         $draft = Timetable::factory()->create([
             'my_class_id' => $enrollment->my_class_id,
-            'section_id' => $enrollment->section_id,
+            'section_id'  => $enrollment->section_id,
         ]);
 
         $summary = app(PortalSummary::class);
@@ -291,15 +291,15 @@ class PortalTest extends TestCase
     private function publishedResult(StudentRecord $enrollment, Subject $subject, float $percentage, int $revision = 1): ResultSnapshot
     {
         return ResultSnapshot::create([
-            'school_id' => $enrollment->school_id,
+            'school_id'         => $enrollment->school_id,
             'student_record_id' => $enrollment->id,
-            'subject_id' => $subject->id,
-            'academic_year_id' => current_academic_year_id(),
-            'semester_id' => current_semester_id(),
-            'revision' => $revision,
-            'percentage' => $percentage,
-            'payload' => ['percentage' => $percentage],
-            'published_at' => now(),
+            'subject_id'        => $subject->id,
+            'academic_year_id'  => current_academic_year_id(),
+            'semester_id'       => current_semester_id(),
+            'revision'          => $revision,
+            'percentage'        => $percentage,
+            'payload'           => ['percentage' => $percentage],
+            'published_at'      => now(),
         ]);
     }
 }

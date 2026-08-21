@@ -47,10 +47,10 @@ class ImportBatch extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'status' => ImportStatus::class,
-        'applied_at' => 'datetime',
-        'row_count' => 'integer',
-        'valid_count' => 'integer',
+        'status'        => ImportStatus::class,
+        'applied_at'    => 'datetime',
+        'row_count'     => 'integer',
+        'valid_count'   => 'integer',
         'invalid_count' => 'integer',
         'applied_count' => 'integer',
     ];

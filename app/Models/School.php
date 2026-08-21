@@ -12,11 +12,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * @property int|null $academic_year_id
- * @property int|null $semester_id
+ * @property int|null          $academic_year_id
+ * @property int|null          $semester_id
  * @property AcademicYear|null $academicYear
- * @property Semester|null $semester
- * @property string $name
+ * @property Semester|null     $semester
+ * @property string            $name
  */
 class School extends Model
 {

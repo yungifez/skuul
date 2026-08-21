@@ -31,18 +31,18 @@ class UserSeeder extends Seeder
         $join = fn (User $user) => app(GrantSchoolMembership::class)->grant($user, $school, true);
 
         $superAdmin = User::firstOrCreate([
-            'id' => 1,
-            'name' => 'John Doe',
-            'email' => 'super@admin.com',
-            'password' => Hash::make('password'),
-            'address' => 'super admin street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'blood_group' => 'B+',
+            'id'                => 1,
+            'name'              => 'John Doe',
+            'email'             => 'super@admin.com',
+            'password'          => Hash::make('password'),
+            'address'           => 'super admin street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
+            'blood_group'       => 'B+',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
         ]);
 
         $join($superAdmin);
@@ -50,18 +50,18 @@ class UserSeeder extends Seeder
         $superAdmin->save();
 
         $admin = User::firstOrCreate([
-            'id' => 2,
-            'name' => 'Jane Doe',
-            'email' => 'admin@admin.com',
-            'password' => Hash::make('password'),
-            'address' => 'admin street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'blood_group' => 'B+',
+            'id'                => 2,
+            'name'              => 'Jane Doe',
+            'email'             => 'admin@admin.com',
+            'password'          => Hash::make('password'),
+            'address'           => 'admin street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
+            'blood_group'       => 'B+',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
 
         ]);
 
@@ -69,18 +69,18 @@ class UserSeeder extends Seeder
         $admin->assignRole('admin');
 
         $teacher = User::create([
-            'id' => 3,
-            'name' => 'John Doe',
-            'email' => 'teacher@teacher.com',
-            'password' => Hash::make('password'),
-            'address' => 'teacher street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'blood_group' => 'B+',
+            'id'                => 3,
+            'name'              => 'John Doe',
+            'email'             => 'teacher@teacher.com',
+            'password'          => Hash::make('password'),
+            'address'           => 'teacher street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
+            'blood_group'       => 'B+',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
 
         ]);
 
@@ -92,24 +92,24 @@ class UserSeeder extends Seeder
         ]);
 
         $student = User::create([
-            'id' => 4,
-            'name' => 'Jane Doe',
-            'email' => 'student@student.com',
-            'password' => Hash::make('password'),
-            'address' => 'student street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'blood_group' => 'B+',
+            'id'                => 4,
+            'name'              => 'Jane Doe',
+            'email'             => 'student@student.com',
+            'password'          => Hash::make('password'),
+            'address'           => 'student street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
+            'blood_group'       => 'B+',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
         ]);
         $student->studentRecord()->create([
-            'my_class_id' => 1,
-            'section_id' => 1,
-            'admission_date' => '22/04/04',
-            'status' => EnrollmentStatus::Active,
+            'my_class_id'      => 1,
+            'section_id'       => 1,
+            'admission_date'   => '22/04/04',
+            'status'           => EnrollmentStatus::Active,
             'admission_number' => Str::random(10),
         ]);
 
@@ -117,17 +117,17 @@ class UserSeeder extends Seeder
         $student->assignRole('student');
 
         $parent = User::create([
-            'name' => 'John Doe',
-            'email' => 'parent@parent.com',
-            'password' => Hash::make('password'),
-            'address' => 'parent street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'blood_group' => 'B+',
+            'name'              => 'John Doe',
+            'email'             => 'parent@parent.com',
+            'password'          => Hash::make('password'),
+            'address'           => 'parent street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
+            'blood_group'       => 'B+',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
 
         ]);
 
@@ -137,17 +137,17 @@ class UserSeeder extends Seeder
         $parent->parentRecord()->create();
 
         $accountant = User::create([
-            'name' => 'Jane Doe',
-            'email' => 'accountant@accountant.com',
-            'password' => Hash::make('password'),
-            'address' => 'accountant street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'blood_group' => 'B+',
+            'name'              => 'Jane Doe',
+            'email'             => 'accountant@accountant.com',
+            'password'          => Hash::make('password'),
+            'address'           => 'accountant street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
+            'blood_group'       => 'B+',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
 
         ]);
 
@@ -155,17 +155,17 @@ class UserSeeder extends Seeder
         $accountant->assignRole('accountant');
 
         $librarian = User::create([
-            'name' => 'John Doe',
-            'email' => 'libratian@librarian.com',
-            'password' => Hash::make('password'),
-            'address' => 'librarian street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'blood_group' => 'B+',
+            'name'              => 'John Doe',
+            'email'             => 'libratian@librarian.com',
+            'password'          => Hash::make('password'),
+            'address'           => 'librarian street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
+            'blood_group'       => 'B+',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
 
         ]);
 

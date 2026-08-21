@@ -26,7 +26,7 @@ enum AttendanceKind: string
     public function label(): string
     {
         return match ($this) {
-            self::Daily => 'Daily register',
+            self::Daily  => 'Daily register',
             self::Period => 'Lesson register',
         };
     }

@@ -179,9 +179,9 @@ class CohortTest extends TestCase
         $subject = $this->subject();
         GraduationRequirement::create([
             'graduation_plan_id' => $plan->id,
-            'subject_id' => $subject->id,
-            'description' => 'Pass mathematics',
-            'pass_mark' => 50,
+            'subject_id'         => $subject->id,
+            'description'        => 'Pass mathematics',
+            'pass_mark'          => 50,
         ]);
 
         $progress = app(GraduationProgress::class);
@@ -201,9 +201,9 @@ class CohortTest extends TestCase
         $subject = $this->subject();
         GraduationRequirement::create([
             'graduation_plan_id' => $plan->id,
-            'subject_id' => $subject->id,
-            'description' => 'Pass mathematics',
-            'pass_mark' => 50,
+            'subject_id'         => $subject->id,
+            'description'        => 'Pass mathematics',
+            'pass_mark'          => 50,
         ]);
         $this->publishedResult($enrollment, $subject, 41);
 
@@ -221,13 +221,13 @@ class CohortTest extends TestCase
         $plan = $this->plan();
         $requirement = GraduationRequirement::create([
             'graduation_plan_id' => $plan->id,
-            'subject_id' => $this->subject()->id,
-            'description' => 'Pass mathematics',
+            'subject_id'         => $this->subject()->id,
+            'description'        => 'Pass mathematics',
         ]);
         GraduationExemption::create([
             'graduation_requirement_id' => $requirement->id,
-            'student_record_id' => $enrollment->id,
-            'reason' => 'Studied it at another school',
+            'student_record_id'         => $enrollment->id,
+            'reason'                    => 'Studied it at another school',
         ]);
 
         $progress = app(GraduationProgress::class)->for($plan, $enrollment);
@@ -245,16 +245,16 @@ class CohortTest extends TestCase
         $second = $this->subject();
         GraduationRequirement::create([
             'graduation_plan_id' => $plan->id,
-            'subject_id' => $first->id,
-            'description' => 'Pass mathematics',
-            'credits' => 4,
+            'subject_id'         => $first->id,
+            'description'        => 'Pass mathematics',
+            'credits'            => 4,
         ]);
         GraduationRequirement::create([
             'graduation_plan_id' => $plan->id,
-            'subject_id' => $second->id,
-            'description' => 'Pass english',
-            'credits' => 4,
-            'is_required' => false,
+            'subject_id'         => $second->id,
+            'description'        => 'Pass english',
+            'credits'            => 4,
+            'is_required'        => false,
         ]);
         $this->publishedResult($enrollment, $first, 80);
 
@@ -372,41 +372,41 @@ class CohortTest extends TestCase
     /**
      * Make a group in the working school.
      *
-     * @param  array<string, mixed>  $values
+     * @param array<string, mixed> $values
      */
     private function cohort(array $values = []): Cohort
     {
         return Cohort::create($values + [
             'school_id' => $this->workingSchool()->id,
-            'name' => 'Class of '.fake()->unique()->numberBetween(2030, 2999),
-            'type' => CohortType::GraduationYear,
+            'name'      => 'Class of '.fake()->unique()->numberBetween(2030, 2999),
+            'type'      => CohortType::GraduationYear,
         ]);
     }
 
     /**
      * Make a programme in the working school.
      *
-     * @param  array<string, mixed>  $values
+     * @param array<string, mixed> $values
      */
     private function program(array $values = []): Program
     {
         return Program::create($values + [
             'school_id' => $this->workingSchool()->id,
-            'name' => 'Chess club '.fake()->unique()->numberBetween(1, 9999),
-            'type' => ProgramType::Club,
+            'name'      => 'Chess club '.fake()->unique()->numberBetween(1, 9999),
+            'type'      => ProgramType::Club,
         ]);
     }
 
     /**
      * Make a graduation plan in the working school.
      *
-     * @param  array<string, mixed>  $values
+     * @param array<string, mixed> $values
      */
     private function plan(array $values = []): GraduationPlan
     {
         return GraduationPlan::create($values + [
             'school_id' => $this->workingSchool()->id,
-            'name' => 'Leaving plan '.fake()->unique()->numberBetween(1, 9999),
+            'name'      => 'Leaving plan '.fake()->unique()->numberBetween(1, 9999),
         ]);
     }
 
@@ -432,15 +432,15 @@ class CohortTest extends TestCase
     private function publishedResult(StudentRecord $enrollment, Subject $subject, float $percentage, int $revision = 1): ResultSnapshot
     {
         return ResultSnapshot::create([
-            'school_id' => $enrollment->school_id,
+            'school_id'         => $enrollment->school_id,
             'student_record_id' => $enrollment->id,
-            'subject_id' => $subject->id,
-            'academic_year_id' => current_academic_year_id(),
-            'semester_id' => current_semester_id(),
-            'revision' => $revision,
-            'percentage' => $percentage,
-            'payload' => ['percentage' => $percentage],
-            'published_at' => now(),
+            'subject_id'        => $subject->id,
+            'academic_year_id'  => current_academic_year_id(),
+            'semester_id'       => current_semester_id(),
+            'revision'          => $revision,
+            'percentage'        => $percentage,
+            'payload'           => ['percentage' => $percentage],
+            'published_at'      => now(),
         ]);
     }
 }

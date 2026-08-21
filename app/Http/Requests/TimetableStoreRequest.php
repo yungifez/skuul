@@ -20,7 +20,7 @@ class TimetableStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => 'required|string|max:255',
+            'name'        => 'required|string|max:255',
             'description' => 'nullable|string|max:10000',
             'my_class_id' => 'required|integer|exists:my_classes,id',
         ];

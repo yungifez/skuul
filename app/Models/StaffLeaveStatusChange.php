@@ -35,8 +35,8 @@ class StaffLeaveStatusChange extends Model
      */
     protected $casts = [
         'from_status' => LeaveStatus::class,
-        'to_status' => LeaveStatus::class,
-        'created_at' => 'datetime',
+        'to_status'   => LeaveStatus::class,
+        'created_at'  => 'datetime',
     ];
 
     /**

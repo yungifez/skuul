@@ -13,7 +13,7 @@ class FeeInvoiceRecordService
     /**
      * Store a new fee invoice record.
      *
-     * @param  array  $records
+     * @param array $records
      */
     public function storeFeeInvoiceRecord($records): FeeInvoiceRecord
     {
@@ -26,10 +26,10 @@ class FeeInvoiceRecordService
 
         $feeInvoiceRecord = FeeInvoiceRecord::create([
             'fee_invoice_id' => $records['fee_invoice_id'],
-            'fee_id' => $records['fee_id'],
-            'amount' => $records['amount'],
-            'waiver' => $records['waiver'] ?? 0,
-            'fine' => $records['fine'] ?? 0,
+            'fee_id'         => $records['fee_id'],
+            'amount'         => $records['amount'],
+            'waiver'         => $records['waiver'] ?? 0,
+            'fine'           => $records['fine'] ?? 0,
         ]);
 
         return $feeInvoiceRecord;
@@ -51,7 +51,7 @@ class FeeInvoiceRecordService
         $feeInvoiceRecord->update([
             'amount' => $records['amount'],
             'waiver' => $records['waiver'] ?? 0,
-            'fine' => $records['fine'] ?? 0,
+            'fine'   => $records['fine'] ?? 0,
         ]);
 
         return $feeInvoiceRecord;
@@ -68,7 +68,7 @@ class FeeInvoiceRecordService
     /**
      * Add a new paymeny.
      *
-     * @param  array  $records
+     * @param array $records
      */
     public function addPayment(FeeInvoiceRecord $feeInvoiceRecord, $records): FeeInvoiceRecord
     {

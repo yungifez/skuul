@@ -18,51 +18,53 @@ use Illuminate\Support\Facades\Validator;
  */
 class ProvisionAccount
 {
-    public function __construct(private GrantSchoolMembership $grantSchoolMembership) {}
+    public function __construct(private GrantSchoolMembership $grantSchoolMembership)
+    {
+    }
 
     /**
      * Provision an account and return the user.
      *
-     * @param  array<string, mixed>  $input
+     * @param array<string, mixed> $input
      */
     public function provision(array $input): User
     {
         $data = Validator::make($input, [
-            'name' => ['required', 'string', 'max:511'],
-            'email' => ['required', 'string', 'email:rfc,dns', 'max:511'],
-            'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:3000'],
-            'school_id' => ['required', 'exists:schools,id'],
-            'birthday' => ['required', 'date', 'before:today'],
-            'address' => ['required', 'string', 'max:500'],
+            'name'        => ['required', 'string', 'max:511'],
+            'email'       => ['required', 'string', 'email:rfc,dns', 'max:511'],
+            'photo'       => ['nullable', 'mimes:jpg,jpeg,png', 'max:3000'],
+            'school_id'   => ['required', 'exists:schools,id'],
+            'birthday'    => ['required', 'date', 'before:today'],
+            'address'     => ['required', 'string', 'max:500'],
             'blood_group' => ['required', 'string', 'max:255'],
-            'religion' => ['nullable', 'string', 'max:255'],
+            'religion'    => ['nullable', 'string', 'max:255'],
             'nationality' => ['required', 'string', 'max:255'],
-            'state' => ['required', 'string', 'max:255'],
-            'city' => ['required', 'string', 'max:255'],
-            'gender' => ['required', 'string', 'max:255'],
-            'phone' => ['nullable', 'string', 'max:255'],
+            'state'       => ['required', 'string', 'max:255'],
+            'city'        => ['required', 'string', 'max:255'],
+            'gender'      => ['required', 'string', 'max:255'],
+            'phone'       => ['nullable', 'string', 'max:255'],
         ])->validate();
 
         $user = User::where('email', $data['email'])->first();
 
         if ($user === null) {
-            $user = new User;
+            $user = new User();
             $user->password = null;
             $user->account_status = AccountStatus::Invited;
         }
 
         $user->fill([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'birthday' => $data['birthday'],
-            'address' => $data['address'],
+            'name'        => $data['name'],
+            'email'       => $data['email'],
+            'birthday'    => $data['birthday'],
+            'address'     => $data['address'],
             'blood_group' => $data['blood_group'],
-            'religion' => $data['religion'] ?? null,
+            'religion'    => $data['religion'] ?? null,
             'nationality' => $data['nationality'],
-            'state' => $data['state'],
-            'city' => $data['city'],
-            'gender' => $data['gender'],
-            'phone' => $data['phone'] ?? null,
+            'state'       => $data['state'],
+            'city'        => $data['city'],
+            'gender'      => $data['gender'],
+            'phone'       => $data['phone'] ?? null,
         ]);
 
         $user->save();

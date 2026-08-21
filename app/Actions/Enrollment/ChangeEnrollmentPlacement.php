@@ -26,7 +26,9 @@ use Illuminate\Support\Facades\DB;
  */
 class ChangeEnrollmentPlacement
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * Place the enrollment in the given class and section.
@@ -67,13 +69,13 @@ class ChangeEnrollmentPlacement
 
             EnrollmentPlacement::create([
                 'student_record_id' => $enrollment->id,
-                'academic_year_id' => $academicYear->id,
-                'semester_id' => $semester?->id,
-                'my_class_id' => $class->id,
-                'section_id' => $section?->id,
-                'effective_on' => $effectiveOn ?? now(),
-                'changed_by' => $actor?->id,
-                'reason' => $reason,
+                'academic_year_id'  => $academicYear->id,
+                'semester_id'       => $semester?->id,
+                'my_class_id'       => $class->id,
+                'section_id'        => $section?->id,
+                'effective_on'      => $effectiveOn ?? now(),
+                'changed_by'        => $actor?->id,
+                'reason'            => $reason,
             ]);
 
             // The enrollment keeps a pointer to where the student sits now.
@@ -83,7 +85,7 @@ class ChangeEnrollmentPlacement
 
             $enrollment->academicYears()->syncWithoutDetaching([$academicYear->id => [
                 'my_class_id' => $class->id,
-                'section_id' => $section?->id,
+                'section_id'  => $section?->id,
             ]]);
 
             $this->auditor->record(
@@ -91,9 +93,9 @@ class ChangeEnrollmentPlacement
                 $enrollment,
                 [
                     'academic_year_id' => $academicYear->id,
-                    'my_class_id' => $class->id,
-                    'section_id' => $section?->id,
-                    'reason' => $reason,
+                    'my_class_id'      => $class->id,
+                    'section_id'       => $section?->id,
+                    'reason'           => $reason,
                 ],
                 $actor,
             );

@@ -32,8 +32,8 @@ enum AcademicPeriodStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Draft => 'Draft',
-            self::Open => 'Open',
+            self::Draft  => 'Draft',
+            self::Open   => 'Open',
             self::Closed => 'Closed',
         };
     }
@@ -54,8 +54,8 @@ enum AcademicPeriodStatus: string
     public function allowedNext(): array
     {
         return match ($this) {
-            self::Draft => [self::Open, self::Closed],
-            self::Open => [self::Closed],
+            self::Draft  => [self::Open, self::Closed],
+            self::Open   => [self::Closed],
             self::Closed => [self::Open],
         };
     }

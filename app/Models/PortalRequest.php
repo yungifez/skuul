@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * Something a student or guardian asked the school for.
  *
- * @property PortalRequestType $type
+ * @property PortalRequestType   $type
  * @property PortalRequestStatus $status
  */
 class PortalRequest extends Model
@@ -40,7 +40,7 @@ class PortalRequest extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'type' => PortalRequestType::Document->value,
+        'type'   => PortalRequestType::Document->value,
         'status' => PortalRequestStatus::Submitted->value,
     ];
 
@@ -50,15 +50,16 @@ class PortalRequest extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'type' => PortalRequestType::class,
-        'status' => PortalRequestStatus::class,
+        'type'        => PortalRequestType::class,
+        'status'      => PortalRequestStatus::class,
         'answered_at' => 'datetime',
     ];
 
     /**
      * Limit the query to the requests still waiting for the school.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeOpen(Builder $query): Builder

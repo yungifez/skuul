@@ -44,11 +44,11 @@ enum DataSharingStatus: string
     {
         return match ($this) {
             self::Requested => 'Asked for',
-            self::Approved => 'Approved',
-            self::Declined => 'Declined',
+            self::Approved  => 'Approved',
+            self::Declined  => 'Declined',
             self::Fulfilled => 'Handed over',
-            self::Expired => 'Expired',
-            self::Revoked => 'Taken back',
+            self::Expired   => 'Expired',
+            self::Revoked   => 'Taken back',
         };
     }
 
@@ -69,7 +69,7 @@ enum DataSharingStatus: string
     {
         return match ($this) {
             self::Requested => [self::Approved, self::Declined, self::Expired, self::Revoked],
-            self::Approved => [self::Fulfilled, self::Expired, self::Revoked],
+            self::Approved  => [self::Fulfilled, self::Expired, self::Revoked],
             self::Fulfilled => [self::Revoked],
             self::Declined, self::Expired, self::Revoked => [],
         };

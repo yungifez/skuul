@@ -16,15 +16,15 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 /**
  * One student enrollment in a school.
  *
- * @property int $id
- * @property int|null $user_id
- * @property int|null $school_id
- * @property bool $is_primary
+ * @property int              $id
+ * @property int|null         $user_id
+ * @property int|null         $school_id
+ * @property bool             $is_primary
  * @property EnrollmentStatus $status
- * @property string|null $admission_number
- * @property string|null $admission_date
- * @property int|null $my_class_id
- * @property int|null $section_id
+ * @property string|null      $admission_number
+ * @property string|null      $admission_date
+ * @property int|null         $my_class_id
+ * @property int|null         $section_id
  */
 class StudentRecord extends Model
 {
@@ -66,7 +66,7 @@ class StudentRecord extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'status' => EnrollmentStatus::Active->value,
+        'status'     => EnrollmentStatus::Active->value,
         'is_primary' => true,
     ];
 
@@ -77,14 +77,14 @@ class StudentRecord extends Model
      */
     protected $casts = [
         'admission_date' => 'datetime:Y-m-d',
-        'status' => EnrollmentStatus::class,
-        'is_primary' => 'boolean',
+        'status'         => EnrollmentStatus::class,
+        'is_primary'     => 'boolean',
     ];
 
     /**
      * Limit the query to enrollments the student still attends.
      *
-     * @param  Builder  $query
+     * @param Builder $query
      */
     public function scopeAttending($query): Builder
     {
@@ -94,7 +94,7 @@ class StudentRecord extends Model
     /**
      * Limit the query to enrollments in one state.
      *
-     * @param  Builder  $query
+     * @param Builder $query
      */
     public function scopeWithStatus($query, EnrollmentStatus $status): Builder
     {
@@ -104,7 +104,7 @@ class StudentRecord extends Model
     /**
      * Limit the query to the enrollment each student leads with.
      *
-     * @param  Builder  $query
+     * @param Builder $query
      */
     public function scopePrimary($query): Builder
     {

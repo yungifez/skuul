@@ -10,7 +10,7 @@ class TimetableConflictException extends ApplicationException
     /**
      * Create the exception from the conflicts that were found.
      *
-     * @param  array<int, string>  $conflicts
+     * @param array<int, string> $conflicts
      */
     public function __construct(private array $conflicts)
     {

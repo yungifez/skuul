@@ -36,10 +36,10 @@ enum SupportCategory: string
     public function label(): string
     {
         return match ($this) {
-            self::Health => 'Health',
-            self::Counselling => 'Counselling',
+            self::Health        => 'Health',
+            self::Counselling   => 'Counselling',
             self::Accommodation => 'Accommodation',
-            self::Intervention => 'Intervention',
+            self::Intervention  => 'Intervention',
         };
     }
 

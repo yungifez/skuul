@@ -25,7 +25,8 @@ class FulfilDataSharingRequest
     public function __construct(
         private TransferPackageBuilder $builder,
         private RecordAuditEvent $auditor,
-    ) {}
+    ) {
+    }
 
     /**
      * Build the package the request allows.
@@ -45,12 +46,12 @@ class FulfilDataSharingRequest
         return DB::transaction(function () use ($request, $actor): TransferPackage {
             $package = TransferPackage::create([
                 'data_sharing_request_id' => $request->id,
-                'source_school_id' => $request->holding_school_id,
-                'destination_school_id' => $request->requesting_school_id,
-                'student_record_id' => $request->student_record_id,
-                'categories' => $request->categories,
-                'payload' => $this->builder->build($request),
-                'built_by' => $actor === null ? auth()->id() : $actor->id,
+                'source_school_id'        => $request->holding_school_id,
+                'destination_school_id'   => $request->requesting_school_id,
+                'student_record_id'       => $request->student_record_id,
+                'categories'              => $request->categories,
+                'payload'                 => $this->builder->build($request),
+                'built_by'                => $actor === null ? auth()->id() : $actor->id,
             ]);
 
             $request->status = DataSharingStatus::Fulfilled;
@@ -84,8 +85,8 @@ class FulfilDataSharingRequest
         }
 
         $package->forceFill([
-            'received_at' => now(),
-            'received_by' => $actor === null ? auth()->id() : $actor->id,
+            'received_at'                => now(),
+            'received_by'                => $actor === null ? auth()->id() : $actor->id,
             'received_student_record_id' => $enrollment?->id,
         ])->save();
 

@@ -22,7 +22,9 @@ use Illuminate\Support\Facades\DB;
  */
 class ChangeEnrollmentStatus
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * Move the enrollment to the given state.
@@ -60,11 +62,11 @@ class ChangeEnrollmentStatus
 
             EnrollmentStatusChange::create([
                 'student_record_id' => $enrollment->id,
-                'from_status' => $current,
-                'to_status' => $status,
-                'effective_on' => $effectiveOn ?? now(),
-                'changed_by' => $actor?->id,
-                'reason' => $reason,
+                'from_status'       => $current,
+                'to_status'         => $status,
+                'effective_on'      => $effectiveOn ?? now(),
+                'changed_by'        => $actor?->id,
+                'reason'            => $reason,
             ]);
 
             $this->auditor->record(

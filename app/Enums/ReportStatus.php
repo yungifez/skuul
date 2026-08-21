@@ -33,10 +33,10 @@ enum ReportStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Queued => 'Queued',
+            self::Queued  => 'Queued',
             self::Running => 'Building',
-            self::Ready => 'Ready',
-            self::Failed => 'Failed',
+            self::Ready   => 'Ready',
+            self::Failed  => 'Failed',
         };
     }
 }

@@ -31,7 +31,7 @@ class SupportPlanAction extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'due_on' => 'date',
+        'due_on'       => 'date',
         'completed_at' => 'datetime',
     ];
 

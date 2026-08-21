@@ -23,11 +23,11 @@ class SchoolMembershipFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
-            'school_id' => School::factory(),
-            'status' => SchoolMembershipStatus::Active,
+            'user_id'    => User::factory(),
+            'school_id'  => School::factory(),
+            'status'     => SchoolMembershipStatus::Active,
             'is_primary' => true,
-            'joined_at' => now(),
+            'joined_at'  => now(),
         ];
     }
 
@@ -37,9 +37,9 @@ class SchoolMembershipFactory extends Factory
     public function ended(): static
     {
         return $this->state(fn (array $attributes): array => [
-            'status' => SchoolMembershipStatus::Ended,
+            'status'     => SchoolMembershipStatus::Ended,
             'is_primary' => false,
-            'ended_at' => now(),
+            'ended_at'   => now(),
         ]);
     }
 

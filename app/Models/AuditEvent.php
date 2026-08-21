@@ -17,7 +17,7 @@ use RuntimeException;
  * The record is written once. It is never changed and never deleted, so the
  * log stays a trustworthy answer to "who did this, and when".
  *
- * @property AuditAction $action
+ * @property AuditAction          $action
  * @property array<string, mixed> $context
  */
 class AuditEvent extends Model
@@ -46,8 +46,8 @@ class AuditEvent extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'action' => AuditAction::class,
-        'context' => 'array',
+        'action'     => AuditAction::class,
+        'context'    => 'array',
         'created_at' => 'datetime',
     ];
 
@@ -98,7 +98,8 @@ class AuditEvent extends Model
     /**
      * Limit the query to one action.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeOfAction(Builder $query, AuditAction $action): Builder
@@ -109,7 +110,8 @@ class AuditEvent extends Model
     /**
      * Limit the query to the records of one subject.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeForSubject(Builder $query, Model $subject): Builder

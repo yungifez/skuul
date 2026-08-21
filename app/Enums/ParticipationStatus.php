@@ -34,7 +34,7 @@ enum ParticipationStatus: string
     {
         return match ($this) {
             self::Requested => 'Requested',
-            self::Active => 'Taking part',
+            self::Active    => 'Taking part',
             self::Completed => 'Completed',
             self::Withdrawn => 'Withdrawn',
         };
@@ -57,7 +57,7 @@ enum ParticipationStatus: string
     {
         return match ($this) {
             self::Requested => [self::Active, self::Withdrawn],
-            self::Active => [self::Completed, self::Withdrawn],
+            self::Active    => [self::Completed, self::Withdrawn],
             self::Completed => [],
             self::Withdrawn => [self::Active],
         };

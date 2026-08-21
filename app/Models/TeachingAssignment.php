@@ -19,9 +19,9 @@ use Illuminate\Support\Carbon;
  * end date, never by being deleted.
  *
  * @property TeachingRole $role
- * @property Carbon $starts_on
- * @property Carbon|null $ends_on
- * @property int|null $section_id
+ * @property Carbon       $starts_on
+ * @property Carbon|null  $ends_on
+ * @property int|null     $section_id
  */
 class TeachingAssignment extends Model
 {
@@ -55,15 +55,16 @@ class TeachingAssignment extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'role' => TeachingRole::class,
+        'role'      => TeachingRole::class,
         'starts_on' => 'date:Y-m-d',
-        'ends_on' => 'date:Y-m-d',
+        'ends_on'   => 'date:Y-m-d',
     ];
 
     /**
      * Limit the query to assignments that run on the given day.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeRunningOn(Builder $query, DateTimeInterface|string|null $date = null): Builder
@@ -79,7 +80,8 @@ class TeachingAssignment extends Model
     /**
      * Limit the query to the assignments of one teacher.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeForTeacher(Builder $query, User|int $teacher): Builder

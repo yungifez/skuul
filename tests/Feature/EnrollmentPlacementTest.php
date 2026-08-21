@@ -157,8 +157,8 @@ class EnrollmentPlacementTest extends TestCase
         $student = $enrollment->user;
 
         $second = StudentRecord::factory()->create([
-            'user_id' => $student->id,
-            'school_id' => $other->id,
+            'user_id'    => $student->id,
+            'school_id'  => $other->id,
             'is_primary' => false,
         ]);
 
@@ -177,8 +177,8 @@ class EnrollmentPlacementTest extends TestCase
         $student = $enrollment->user;
 
         $second = StudentRecord::factory()->create([
-            'user_id' => $student->id,
-            'school_id' => $this->workingSchool()->id,
+            'user_id'    => $student->id,
+            'school_id'  => $this->workingSchool()->id,
             'is_primary' => true,
         ]);
 

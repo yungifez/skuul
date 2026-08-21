@@ -30,12 +30,12 @@ class StudentRecordFactory extends Factory
         $student->assignRole('student');
 
         return [
-            'user_id' => $student->id,
-            'school_id' => $class->classGroup->school_id,
-            'my_class_id' => $class->id,
-            'section_id' => $class->sections->first()->id ?? null,
-            'admission_date' => $this->faker->date(),
-            'status' => EnrollmentStatus::Active,
+            'user_id'          => $student->id,
+            'school_id'        => $class->classGroup->school_id,
+            'my_class_id'      => $class->id,
+            'section_id'       => $class->sections->first()->id ?? null,
+            'admission_date'   => $this->faker->date(),
+            'status'           => EnrollmentStatus::Active,
             'admission_number' => Str::random(10),
         ];
     }

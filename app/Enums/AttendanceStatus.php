@@ -56,14 +56,14 @@ enum AttendanceStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Present => 'Present',
-            self::Absent => 'Absent',
-            self::Late => 'Late',
-            self::Excused => 'Excused',
-            self::LeftEarly => 'Left early',
-            self::Remote => 'Remote',
+            self::Present        => 'Present',
+            self::Absent         => 'Absent',
+            self::Late           => 'Late',
+            self::Excused        => 'Excused',
+            self::LeftEarly      => 'Left early',
+            self::Remote         => 'Remote',
             self::SchoolActivity => 'School activity',
-            self::NotRecorded => 'Not recorded',
+            self::NotRecorded    => 'Not recorded',
         };
     }
 

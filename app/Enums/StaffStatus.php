@@ -33,10 +33,10 @@ enum StaffStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Active => 'Active',
-            self::OnLeave => 'On leave',
+            self::Active    => 'Active',
+            self::OnLeave   => 'On leave',
             self::Suspended => 'Suspended',
-            self::Left => 'Left',
+            self::Left      => 'Left',
         };
     }
 

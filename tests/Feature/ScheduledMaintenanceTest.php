@@ -21,11 +21,11 @@ class ScheduledMaintenanceTest extends TestCase
         $user = $this->memberOf($this->workingSchool());
 
         $expired = AccountInvitation::factory()->create([
-            'user_id' => $user->id,
+            'user_id'    => $user->id,
             'expires_at' => now()->subDay(),
         ]);
         $pending = AccountInvitation::factory()->create([
-            'user_id' => $user->id,
+            'user_id'    => $user->id,
             'expires_at' => now()->addDay(),
         ]);
 
@@ -40,8 +40,8 @@ class ScheduledMaintenanceTest extends TestCase
         $user = $this->memberOf($this->workingSchool());
 
         $accepted = AccountInvitation::factory()->create([
-            'user_id' => $user->id,
-            'expires_at' => now()->subDay(),
+            'user_id'     => $user->id,
+            'expires_at'  => now()->subDay(),
             'accepted_at' => now()->subDays(2),
         ]);
 

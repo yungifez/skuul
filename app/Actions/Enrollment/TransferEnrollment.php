@@ -28,7 +28,8 @@ class TransferEnrollment
         private ChangeEnrollmentPlacement $changePlacement,
         private StudentService $studentService,
         private RecordAuditEvent $auditor,
-    ) {}
+    ) {
+    }
 
     /**
      * Transfer the enrollment to the destination school.
@@ -59,13 +60,13 @@ class TransferEnrollment
             $enrollment->save();
 
             $transferred = StudentRecord::create([
-                'user_id' => $enrollment->user_id,
-                'school_id' => $destination->id,
-                'status' => EnrollmentStatus::Active,
-                'is_primary' => true,
+                'user_id'             => $enrollment->user_id,
+                'school_id'           => $destination->id,
+                'status'              => EnrollmentStatus::Active,
+                'is_primary'          => true,
                 'transferred_from_id' => $enrollment->id,
-                'admission_number' => $this->studentService->generateAdmissionNumber($destination->id),
-                'admission_date' => now()->toDateString(),
+                'admission_number'    => $this->studentService->generateAdmissionNumber($destination->id),
+                'admission_date'      => now()->toDateString(),
             ]);
 
             if ($class !== null) {
@@ -83,10 +84,10 @@ class TransferEnrollment
                 AuditAction::EnrollmentTransferred,
                 $transferred,
                 [
-                    'from_school_id' => $enrollment->school_id,
-                    'to_school_id' => $destination->id,
+                    'from_school_id'     => $enrollment->school_id,
+                    'to_school_id'       => $destination->id,
                     'from_enrollment_id' => $enrollment->id,
-                    'reason' => $reason,
+                    'reason'             => $reason,
                 ],
                 $actor,
                 $destination,

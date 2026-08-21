@@ -16,8 +16,8 @@ class UpdateFeeInvoiceRequest extends FormRequest
     {
         return [
             'issue_date' => 'required|date',
-            'due_date' => 'required|date|after_or_equal:issue_date',
-            'note' => 'nullable|max:10000',
+            'due_date'   => 'required|date|after_or_equal:issue_date',
+            'note'       => 'nullable|max:10000',
         ];
     }
 }

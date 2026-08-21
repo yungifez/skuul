@@ -43,20 +43,20 @@ class CreateSuperAdmin extends Command
             do {
                 // don't allow null values hence do while
                 $firstName = text('First name?', required: true, validate: fn (string $value) => match (true) {
-                    strlen($value) < 3 => 'The name must be at least 3 characters.',
+                    strlen($value) < 3   => 'The name must be at least 3 characters.',
                     strlen($value) > 255 => 'The name must not exceed 255 characters.',
-                    default => null
+                    default              => null
                 });
                 $lastName = text('Last name?', required: true, validate: fn (string $value) => match (true) {
-                    strlen($value) < 3 => 'The name must be at least 3 characters.',
+                    strlen($value) < 3   => 'The name must be at least 3 characters.',
                     strlen($value) > 255 => 'The name must not exceed 255 characters.',
-                    default => null
+                    default              => null
                 });
                 $email = text('Email?', required: true, validate: fn (string $value) => match (true) {
-                    strlen($value) < 3 => 'The email must be at least 3 characters.',
-                    strlen($value) > 511 => 'The email must not exceed 255 characters.',
+                    strlen($value) < 3                                  => 'The email must be at least 3 characters.',
+                    strlen($value) > 511                                => 'The email must not exceed 255 characters.',
                     filter_var($value, FILTER_VALIDATE_EMAIL) === false => 'The email must be a valid email address.',
-                    default => null
+                    default                                             => null
                 });
                 $password = password(
                     'What is your password?',
@@ -64,7 +64,7 @@ class CreateSuperAdmin extends Command
                     placeholder: 'Minimum 8 characters...',
                     validate: fn (string $value) => match (true) {
                         strlen($value) < 8 => 'The password must be at least 8 characters.',
-                        default => null
+                        default            => null
                     }
                 );
                 $passwordConfirmation = password(
@@ -73,21 +73,21 @@ class CreateSuperAdmin extends Command
                     placeholder: 'Input the same password...',
                     validate: fn (string $value) => match (true) {
                         $value !== $password => 'The password confirmation does not match.',
-                        default => null
+                        default              => null
                     }
                 );
 
                 $validator = Validator::make([
-                    'first_name' => $firstName,
-                    'last_name' => $lastName,
-                    'email' => $email,
-                    'password' => $password,
+                    'first_name'            => $firstName,
+                    'last_name'             => $lastName,
+                    'email'                 => $email,
+                    'password'              => $password,
                     'password_confirmation' => $passwordConfirmation,
                 ], [
                     'first_name' => ['required', 'string', 'max:255'],
-                    'last_name' => ['required', 'string', 'max:255'],
-                    'email' => ['required', 'string', 'email', 'max:511', 'unique:users'],
-                    'password' => $this->passwordRules(),
+                    'last_name'  => ['required', 'string', 'max:255'],
+                    'email'      => ['required', 'string', 'email', 'max:511', 'unique:users'],
+                    'password'   => $this->passwordRules(),
                 ]);
 
                 foreach ($validator->errors()->all() as $error) {
@@ -97,16 +97,16 @@ class CreateSuperAdmin extends Command
 
             // create super admin
             $superAdmin = User::firstOrCreate([
-                'name' => "$firstName $lastName",
-                'email' => $email,
-                'password' => Hash::make($password),
-                'address' => 'super admin street',
-                'birthday' => '1/1/1970',
+                'name'        => "$firstName $lastName",
+                'email'       => $email,
+                'password'    => Hash::make($password),
+                'address'     => 'super admin street',
+                'birthday'    => '1/1/1970',
                 'nationality' => 'nigeria',
-                'state' => 'lagos',
-                'city' => 'lagos',
+                'state'       => 'lagos',
+                'city'        => 'lagos',
                 'blood_group' => 'A+',
-                'gender' => 'male',
+                'gender'      => 'male',
             ]);
 
             // Platform access is an explicit flag, not a school role.

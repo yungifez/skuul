@@ -39,10 +39,10 @@ enum LeaveStatus: string
     {
         return match ($this) {
             self::Requested => 'Requested',
-            self::Approved => 'Approved',
-            self::Declined => 'Declined',
+            self::Approved  => 'Approved',
+            self::Declined  => 'Declined',
             self::Cancelled => 'Cancelled',
-            self::Taken => 'Taken',
+            self::Taken     => 'Taken',
         };
     }
 
@@ -63,10 +63,10 @@ enum LeaveStatus: string
     {
         return match ($this) {
             self::Requested => [self::Approved, self::Declined, self::Cancelled],
-            self::Approved => [self::Taken, self::Cancelled],
-            self::Declined => [self::Requested],
+            self::Approved  => [self::Taken, self::Cancelled],
+            self::Declined  => [self::Requested],
             self::Cancelled => [],
-            self::Taken => [],
+            self::Taken     => [],
         };
     }
 

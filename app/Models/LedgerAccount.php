@@ -34,14 +34,15 @@ class LedgerAccount extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'type' => LedgerAccountType::class,
+        'type'      => LedgerAccountType::class,
         'is_active' => 'boolean',
     ];
 
     /**
      * Limit the query to the account that serves one purpose.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeForPurpose(Builder $query, string $purpose): Builder

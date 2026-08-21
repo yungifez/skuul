@@ -27,11 +27,11 @@ class EnrollmentStatusChangeFactory extends Factory
     {
         return [
             'student_record_id' => StudentRecord::factory(),
-            'from_status' => EnrollmentStatus::Active,
-            'to_status' => EnrollmentStatus::Graduated,
-            'effective_on' => now(),
-            'changed_by' => User::factory(),
-            'reason' => $this->faker->sentence(),
+            'from_status'       => EnrollmentStatus::Active,
+            'to_status'         => EnrollmentStatus::Graduated,
+            'effective_on'      => now(),
+            'changed_by'        => User::factory(),
+            'reason'            => $this->faker->sentence(),
         ];
     }
 

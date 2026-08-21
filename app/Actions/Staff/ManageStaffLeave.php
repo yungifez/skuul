@@ -24,7 +24,9 @@ use Illuminate\Support\Facades\DB;
  */
 class ManageStaffLeave
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * Ask for days away.
@@ -62,13 +64,13 @@ class ManageStaffLeave
 
         return DB::transaction(function () use ($profile, $start, $end, $type, $reason, $actor): StaffLeaveRequest {
             $request = StaffLeaveRequest::create([
-                'school_id' => $profile->school_id,
+                'school_id'        => $profile->school_id,
                 'staff_profile_id' => $profile->id,
-                'type' => $type,
-                'starts_on' => $start,
-                'ends_on' => $end,
-                'reason' => $reason,
-                'requested_by' => $actor === null ? auth()->id() : $actor->id,
+                'type'             => $type,
+                'starts_on'        => $start,
+                'ends_on'          => $end,
+                'reason'           => $reason,
+                'requested_by'     => $actor === null ? auth()->id() : $actor->id,
             ]);
 
             $this->auditor->record(
@@ -116,10 +118,10 @@ class ManageStaffLeave
 
             StaffLeaveStatusChange::create([
                 'staff_leave_request_id' => $request->id,
-                'from_status' => $current,
-                'to_status' => $status,
-                'reason' => $reason,
-                'changed_by' => $actor === null ? auth()->id() : $actor->id,
+                'from_status'            => $current,
+                'to_status'              => $status,
+                'reason'                 => $reason,
+                'changed_by'             => $actor === null ? auth()->id() : $actor->id,
             ]);
 
             $this->auditor->record(

@@ -19,7 +19,9 @@ use App\Services\Portal\PortalAccess;
  */
 class SubmitPortalRequest
 {
-    public function __construct(private PortalAccess $access) {}
+    public function __construct(private PortalAccess $access)
+    {
+    }
 
     /**
      * Send a request about one student.
@@ -48,12 +50,12 @@ class SubmitPortalRequest
         }
 
         return PortalRequest::create([
-            'school_id' => $enrollment->school_id,
+            'school_id'         => $enrollment->school_id,
             'student_record_id' => $enrollment->id,
-            'requested_by' => $person->id,
-            'type' => $type,
-            'subject' => $subject,
-            'message' => $message,
+            'requested_by'      => $person->id,
+            'type'              => $type,
+            'subject'           => $subject,
+            'message'           => $message,
         ]);
     }
 

@@ -70,7 +70,7 @@ class CheckBackup extends Command
     /**
      * Log the problem and end with a failure.
      *
-     * @param  array<string, mixed>  $context
+     * @param array<string, mixed> $context
      */
     private function reportFailure(string $message, array $context): int
     {

@@ -27,7 +27,8 @@ class StudentImporter implements Importer
     public function __construct(
         private ProvisionAccount $provisionAccount,
         private ChangeEnrollmentPlacement $changePlacement,
-    ) {}
+    ) {
+    }
 
     /**
      * Get the name people choose the import with.
@@ -84,22 +85,22 @@ class StudentImporter implements Importer
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:511'],
-            'email' => ['required', 'email:rfc', 'max:511'],
-            'birthday' => ['required', 'date', 'before:today'],
-            'gender' => ['required', 'string', 'max:255'],
-            'class' => ['required', 'string', 'max:255'],
-            'section' => ['required', 'string', 'max:255'],
+            'name'             => ['required', 'string', 'max:511'],
+            'email'            => ['required', 'email:rfc', 'max:511'],
+            'birthday'         => ['required', 'date', 'before:today'],
+            'gender'           => ['required', 'string', 'max:255'],
+            'class'            => ['required', 'string', 'max:255'],
+            'section'          => ['required', 'string', 'max:255'],
             'admission_number' => ['nullable', 'string', 'max:255'],
-            'admission_date' => ['nullable', 'date'],
-            'phone' => ['nullable', 'string', 'max:255'],
+            'admission_date'   => ['nullable', 'date'],
+            'phone'            => ['nullable', 'string', 'max:255'],
         ];
     }
 
     /**
      * Write one checked row.
      *
-     * @param  array<string, mixed>  $row
+     * @param array<string, mixed> $row
      *
      * @throws InvalidValueException when the class or section is not in this school
      */
@@ -130,10 +131,10 @@ class StudentImporter implements Importer
         $enrollment = StudentRecord::firstOrCreate(
             ['user_id' => $student->id, 'school_id' => current_school_id()],
             [
-                'my_class_id' => $class->id,
-                'section_id' => $section->id,
+                'my_class_id'      => $class->id,
+                'section_id'       => $section->id,
                 'admission_number' => $row['admission_number'] ?? null,
-                'admission_date' => Carbon::parse($row['admission_date'] ?? now()),
+                'admission_date'   => Carbon::parse($row['admission_date'] ?? now()),
             ],
         );
 
@@ -150,7 +151,7 @@ class StudentImporter implements Importer
     /**
      * Get the account this row belongs to, making it when it is new.
      *
-     * @param  array<string, mixed>  $row
+     * @param array<string, mixed> $row
      */
     private function accountFor(array $row, ?Model $existing): User
     {
@@ -159,18 +160,18 @@ class StudentImporter implements Importer
         }
 
         return $this->provisionAccount->provision([
-            'name' => $row['name'],
-            'email' => $row['email'],
-            'school_id' => current_school_id(),
-            'birthday' => $row['birthday'],
-            'gender' => $row['gender'],
-            'address' => $row['address'] ?? 'Not given',
+            'name'        => $row['name'],
+            'email'       => $row['email'],
+            'school_id'   => current_school_id(),
+            'birthday'    => $row['birthday'],
+            'gender'      => $row['gender'],
+            'address'     => $row['address'] ?? 'Not given',
             'blood_group' => $row['blood_group'] ?? 'Not given',
             'nationality' => $row['nationality'] ?? 'Not given',
-            'state' => $row['state'] ?? 'Not given',
-            'city' => $row['city'] ?? 'Not given',
-            'religion' => $row['religion'] ?? null,
-            'phone' => $row['phone'] ?? null,
+            'state'       => $row['state'] ?? 'Not given',
+            'city'        => $row['city'] ?? 'Not given',
+            'religion'    => $row['religion'] ?? null,
+            'phone'       => $row['phone'] ?? null,
         ]);
     }
 }

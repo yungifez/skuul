@@ -16,8 +16,8 @@ class StoreFeeRequest extends FormRequest
     {
         return [
             'fee_category_id' => 'required|integer|exists:fee_categories,id',
-            'name' => 'required|max:1024',
-            'description' => 'nullable|max:10000',
+            'name'            => 'required|max:1024',
+            'description'     => 'nullable|max:10000',
         ];
     }
 }

@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * A named group of people that is not a class and not a section.
  *
  * @property CohortType $type
- * @property bool $is_restricted
+ * @property bool       $is_restricted
  */
 class Cohort extends Model
 {
@@ -38,9 +38,9 @@ class Cohort extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'type' => CohortType::Other->value,
+        'type'          => CohortType::Other->value,
         'is_restricted' => false,
-        'is_active' => true,
+        'is_active'     => true,
     ];
 
     /**
@@ -49,9 +49,9 @@ class Cohort extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'type' => CohortType::class,
+        'type'          => CohortType::class,
         'is_restricted' => 'boolean',
-        'is_active' => 'boolean',
+        'is_active'     => 'boolean',
     ];
 
     /**
@@ -69,7 +69,8 @@ class Cohort extends Model
     /**
      * Limit the query to the groups still in use.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeActive(Builder $query): Builder

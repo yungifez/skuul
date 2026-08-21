@@ -191,16 +191,16 @@ class NoticePublicationTest extends TestCase
     /**
      * Create a notice in the working school.
      *
-     * @param  array<string, mixed>  $attributes
+     * @param array<string, mixed> $attributes
      */
     private function notice(array $attributes = []): Notice
     {
         return Notice::create($attributes + [
-            'title' => 'Sports day',
-            'content' => 'Sports day is on Friday.',
+            'title'      => 'Sports day',
+            'content'    => 'Sports day is on Friday.',
             'start_date' => now()->toDateString(),
-            'stop_date' => now()->addWeek()->toDateString(),
-            'school_id' => $this->workingSchool()->id,
+            'stop_date'  => now()->addWeek()->toDateString(),
+            'school_id'  => $this->workingSchool()->id,
         ]);
     }
 

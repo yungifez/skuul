@@ -38,8 +38,8 @@ return [
     */
 
     'backup' => [
-        'disk' => env('BACKUP_DISK', 'local'),
-        'path' => env('BACKUP_PATH', 'backups'),
+        'disk'          => env('BACKUP_DISK', 'local'),
+        'path'          => env('BACKUP_PATH', 'backups'),
         'max_age_hours' => (int) env('BACKUP_MAX_AGE_HOURS', 26),
     ],
 

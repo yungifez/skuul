@@ -23,12 +23,14 @@ use Illuminate\Support\Carbon;
  */
 class RequestDataSharing
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * Ask the school that holds the records.
      *
-     * @param  array<int, DataCategory>  $categories
+     * @param array<int, DataCategory> $categories
      *
      * @throws InvalidValueException when the schools are the same, no category is named, or the end date has passed
      */
@@ -56,14 +58,14 @@ class RequestDataSharing
 
         $request = DataSharingRequest::create([
             'requesting_school_id' => $requestingSchool->id,
-            'holding_school_id' => $enrollment->school_id,
-            'student_record_id' => $enrollment->id,
-            'categories' => array_values(array_unique(array_map(
+            'holding_school_id'    => $enrollment->school_id,
+            'student_record_id'    => $enrollment->id,
+            'categories'           => array_values(array_unique(array_map(
                 fn (DataCategory $category): string => $category->value,
                 $categories,
             ))),
-            'purpose' => $purpose,
-            'expires_on' => $expiry,
+            'purpose'      => $purpose,
+            'expires_on'   => $expiry,
             'requested_by' => $actor === null ? auth()->id() : $actor->id,
         ]);
 

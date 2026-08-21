@@ -45,8 +45,8 @@ class LedgerTransaction extends Model
      */
     protected $casts = [
         'transaction_date' => 'date:Y-m-d',
-        'posted_at' => 'datetime',
-        'created_at' => 'datetime',
+        'posted_at'        => 'datetime',
+        'created_at'       => 'datetime',
     ];
 
     /**

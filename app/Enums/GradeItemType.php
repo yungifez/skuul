@@ -29,8 +29,8 @@ enum GradeItemType: string
     {
         return match ($this) {
             self::Numeric => 'Numeric',
-            self::Scale => 'Scale',
-            self::Text => 'Comment only',
+            self::Scale   => 'Scale',
+            self::Text    => 'Comment only',
         };
     }
 

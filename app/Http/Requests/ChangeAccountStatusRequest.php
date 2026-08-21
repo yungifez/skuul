@@ -27,7 +27,7 @@ class ChangeAccountStatusRequest extends FormRequest
     {
         return [
             'account_status' => ['required', Rule::enum(AccountStatus::class)->except(AccountStatus::Invited)],
-            'reason' => ['nullable', 'string', 'max:500'],
+            'reason'         => ['nullable', 'string', 'max:500'],
         ];
     }
 }

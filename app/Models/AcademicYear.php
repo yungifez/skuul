@@ -17,12 +17,12 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property AcademicPeriodStatus $status
- * @property string $name
- * @property int $start_year
- * @property int $stop_year
- * @property Carbon|null $starts_on
- * @property Carbon|null $ends_on
- * @property int $school_id
+ * @property string               $name
+ * @property int                  $start_year
+ * @property int                  $stop_year
+ * @property Carbon|null          $starts_on
+ * @property Carbon|null          $ends_on
+ * @property int                  $school_id
  */
 class AcademicYear extends Model
 {
@@ -56,9 +56,9 @@ class AcademicYear extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'status' => AcademicPeriodStatus::class,
+        'status'    => AcademicPeriodStatus::class,
         'starts_on' => 'date:Y-m-d',
-        'ends_on' => 'date:Y-m-d',
+        'ends_on'   => 'date:Y-m-d',
     ];
 
     protected function name(): Attribute

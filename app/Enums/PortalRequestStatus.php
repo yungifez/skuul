@@ -39,9 +39,9 @@ enum PortalRequestStatus: string
     {
         return match ($this) {
             self::Submitted => 'Sent',
-            self::InReview => 'Being looked at',
-            self::Answered => 'Answered',
-            self::Declined => 'Declined',
+            self::InReview  => 'Being looked at',
+            self::Answered  => 'Answered',
+            self::Declined  => 'Declined',
             self::Cancelled => 'Withdrawn',
         };
     }
@@ -63,9 +63,9 @@ enum PortalRequestStatus: string
     {
         return match ($this) {
             self::Submitted => [self::InReview, self::Answered, self::Declined, self::Cancelled],
-            self::InReview => [self::Answered, self::Declined, self::Cancelled],
-            self::Answered => [],
-            self::Declined => [],
+            self::InReview  => [self::Answered, self::Declined, self::Cancelled],
+            self::Answered  => [],
+            self::Declined  => [],
             self::Cancelled => [],
         };
     }

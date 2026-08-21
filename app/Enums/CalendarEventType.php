@@ -58,15 +58,15 @@ enum CalendarEventType: string
     public function label(): string
     {
         return match ($this) {
-            self::Holiday => 'Holiday',
-            self::Closure => 'Closure',
-            self::SpecialDay => 'Special day',
-            self::Assembly => 'Assembly',
-            self::Activity => 'Activity',
+            self::Holiday       => 'Holiday',
+            self::Closure       => 'Closure',
+            self::SpecialDay    => 'Special day',
+            self::Assembly      => 'Assembly',
+            self::Activity      => 'Activity',
             self::ParentMeeting => 'Parent meeting',
-            self::Appointment => 'Appointment',
-            self::Examination => 'Examination',
-            self::Other => 'Event',
+            self::Appointment   => 'Appointment',
+            self::Examination   => 'Examination',
+            self::Other         => 'Event',
         };
     }
 

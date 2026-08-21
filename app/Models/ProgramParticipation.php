@@ -50,15 +50,16 @@ class ProgramParticipation extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'status' => ParticipationStatus::class,
+        'status'    => ParticipationStatus::class,
         'starts_on' => 'date',
-        'ends_on' => 'date',
+        'ends_on'   => 'date',
     ];
 
     /**
      * Limit the query to the places that are still held.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeRunning(Builder $query): Builder

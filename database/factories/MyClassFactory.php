@@ -17,7 +17,7 @@ class MyClassFactory extends Factory
         $classGroup = ClassGroup::query()->where('school_id', 1)->inRandomOrder()->first();
 
         return [
-            'name' => $this->faker->name,
+            'name'           => $this->faker->name,
             'class_group_id' => $classGroup->id,
         ];
     }

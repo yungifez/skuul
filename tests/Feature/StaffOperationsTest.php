@@ -64,15 +64,15 @@ class StaffOperationsTest extends TestCase
 
         $current = StaffCredential::create([
             'staff_profile_id' => $profile->id,
-            'type' => 'certificate',
-            'name' => 'First aid',
-            'expires_on' => now()->addYear(),
+            'type'             => 'certificate',
+            'name'             => 'First aid',
+            'expires_on'       => now()->addYear(),
         ]);
         $old = StaffCredential::create([
             'staff_profile_id' => $profile->id,
-            'type' => 'certificate',
-            'name' => 'Fire safety',
-            'expires_on' => now()->subDay(),
+            'type'             => 'certificate',
+            'name'             => 'Fire safety',
+            'expires_on'       => now()->subDay(),
         ]);
 
         $this->assertFalse($current->hasExpired());
@@ -210,9 +210,9 @@ class StaffOperationsTest extends TestCase
         $monday = now()->next('Monday');
         StaffAvailabilityRecord::create([
             'staff_profile_id' => $profile->id,
-            'day_of_week' => 1,
-            'starts_at' => '08:00:00',
-            'ends_at' => '12:00:00',
+            'day_of_week'      => 1,
+            'starts_at'        => '08:00:00',
+            'ends_at'          => '12:00:00',
         ]);
 
         $availability = app(StaffAvailability::class);

@@ -41,7 +41,8 @@ class ClassListReport implements Report
     /**
      * Build the rows of the report.
      *
-     * @param  array<string, mixed>  $parameters
+     * @param array<string, mixed> $parameters
+     *
      * @return Collection<int, array<int, mixed>>
      */
     public function rows(array $parameters = []): Collection

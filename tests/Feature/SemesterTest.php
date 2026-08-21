@@ -106,7 +106,7 @@ class SemesterTest extends TestCase
         $this->authorized_user(['update semester'])
             ->put("/dashboard/semesters/$semester->id", ['name' => 'Test semester']);
         $this->assertDatabaseHas('semesters', [
-            'id' => $semester->id,
+            'id'   => $semester->id,
             'name' => 'Test semester',
         ]);
     }
@@ -148,7 +148,7 @@ class SemesterTest extends TestCase
     public function test_authorized_user_can_set_semester()
     {
         $semester = Semester::factory()->create([
-            'school_id' => current_school_id(),
+            'school_id'        => current_school_id(),
             'academic_year_id' => current_school()->academic_year_id,
         ]);
         $schoolBefore = current_school()->semester_id;

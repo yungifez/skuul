@@ -16,9 +16,9 @@ class CsvReader
     /**
      * Read a file on the given disk.
      *
-     * @return array<int, array<string, string|null>>
-     *
      * @throws InvalidValueException when the file is missing or has no heading row
+     *
+     * @return array<int, array<string, string|null>>
      */
     public function read(string $path, string $disk = 'local'): array
     {
@@ -32,9 +32,9 @@ class CsvReader
     /**
      * Read CSV text.
      *
-     * @return array<int, array<string, string|null>>
-     *
      * @throws InvalidValueException when the text has no heading row
+     *
+     * @return array<int, array<string, string|null>>
      */
     public function parse(string $contents): array
     {

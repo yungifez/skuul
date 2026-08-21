@@ -57,14 +57,14 @@ enum Feature: string
     public function label(): string
     {
         return match ($this) {
-            self::Attendance => 'Attendance',
-            self::Portal => 'Student and guardian portal',
-            self::Discipline => 'Discipline and safeguarding',
-            self::Wellbeing => 'Student support and wellbeing',
+            self::Attendance      => 'Attendance',
+            self::Portal          => 'Student and guardian portal',
+            self::Discipline      => 'Discipline and safeguarding',
+            self::Wellbeing       => 'Student support and wellbeing',
             self::StaffOperations => 'Staff operations',
-            self::Events => 'Calendar and events',
-            self::Ranking => 'Rankings',
-            self::Imports => 'Imports and integrations',
+            self::Events          => 'Calendar and events',
+            self::Ranking         => 'Rankings',
+            self::Imports         => 'Imports and integrations',
         };
     }
 
@@ -78,7 +78,7 @@ enum Feature: string
     {
         return match ($this) {
             self::Ranking => false,
-            default => true,
+            default       => true,
         };
     }
 

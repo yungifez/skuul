@@ -39,7 +39,7 @@ class GraduationPlan extends Model
      */
     protected $attributes = [
         'uses_credits' => false,
-        'is_active' => true,
+        'is_active'    => true,
     ];
 
     /**
@@ -48,15 +48,16 @@ class GraduationPlan extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'uses_credits' => 'boolean',
-        'is_active' => 'boolean',
+        'uses_credits'     => 'boolean',
+        'is_active'        => 'boolean',
         'required_credits' => 'integer',
     ];
 
     /**
      * Limit the query to the plans still in use.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeActive(Builder $query): Builder

@@ -19,7 +19,9 @@ use Illuminate\Support\Facades\DB;
  */
 class ReviseTimetable
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * Copy the timetable into a new draft revision.
@@ -28,23 +30,23 @@ class ReviseTimetable
     {
         return DB::transaction(function () use ($timetable, $actor): Timetable {
             $draft = Timetable::create([
-                'name' => $timetable->name,
-                'description' => $timetable->description,
-                'status' => TimetableStatus::Draft,
-                'revision' => $timetable->revision + 1,
-                'semester_id' => $timetable->semester_id,
-                'my_class_id' => $timetable->my_class_id,
-                'section_id' => $timetable->section_id,
+                'name'           => $timetable->name,
+                'description'    => $timetable->description,
+                'status'         => TimetableStatus::Draft,
+                'revision'       => $timetable->revision + 1,
+                'semester_id'    => $timetable->semester_id,
+                'my_class_id'    => $timetable->my_class_id,
+                'section_id'     => $timetable->section_id,
                 'effective_from' => $timetable->effective_from,
-                'effective_to' => $timetable->effective_to,
+                'effective_to'   => $timetable->effective_to,
                 'revision_of_id' => $timetable->id,
             ]);
 
             foreach ($timetable->timeSlots()->get() as $slot) {
                 $copy = TimetableTimeSlot::create([
                     'timetable_id' => $draft->id,
-                    'start_time' => $slot->start_time,
-                    'stop_time' => $slot->stop_time,
+                    'start_time'   => $slot->start_time,
+                    'stop_time'    => $slot->stop_time,
                 ]);
 
                 $records = TimetableRecord::query()
@@ -53,9 +55,9 @@ class ReviseTimetable
 
                 foreach ($records as $record) {
                     TimetableRecord::create([
-                        'timetable_time_slot_id' => $copy->id,
-                        'weekday_id' => $record->weekday_id,
-                        'timetable_time_slot_weekdayable_id' => $record->timetable_time_slot_weekdayable_id,
+                        'timetable_time_slot_id'               => $copy->id,
+                        'weekday_id'                           => $record->weekday_id,
+                        'timetable_time_slot_weekdayable_id'   => $record->timetable_time_slot_weekdayable_id,
                         'timetable_time_slot_weekdayable_type' => $record->timetable_time_slot_weekdayable_type,
                     ]);
                 }

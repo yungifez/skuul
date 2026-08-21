@@ -47,7 +47,7 @@ class ResultChecker extends Component
     // rules
     public $rules = [
         'academicYear' => 'integer|exists:academic_years,id',
-        'semester' => 'required|integer|exists:semesters_id',
+        'semester'     => 'required|integer|exists:semesters_id',
     ];
 
     public function mount(MyClassService $myClassService)

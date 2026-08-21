@@ -34,9 +34,9 @@ enum GradeAggregation: string
     {
         return match ($this) {
             self::WeightedMean => 'Weighted mean',
-            self::SimpleMean => 'Simple mean',
-            self::Sum => 'Sum of points',
-            self::Highest => 'Highest result',
+            self::SimpleMean   => 'Simple mean',
+            self::Sum          => 'Sum of points',
+            self::Highest      => 'Highest result',
         };
     }
 

@@ -14,9 +14,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * One agreed plan of help for one child.
  *
- * @property SupportCategory $category
+ * @property SupportCategory   $category
  * @property SupportPlanStatus $status
- * @property bool $is_confidential
+ * @property bool              $is_confidential
  */
 class SupportPlan extends Model
 {
@@ -45,8 +45,8 @@ class SupportPlan extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'category' => SupportCategory::Intervention->value,
-        'status' => SupportPlanStatus::Draft->value,
+        'category'        => SupportCategory::Intervention->value,
+        'status'          => SupportPlanStatus::Draft->value,
         'is_confidential' => false,
     ];
 
@@ -56,12 +56,12 @@ class SupportPlan extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'category' => SupportCategory::class,
-        'status' => SupportPlanStatus::class,
+        'category'        => SupportCategory::class,
+        'status'          => SupportPlanStatus::class,
         'is_confidential' => 'boolean',
-        'starts_on' => 'date',
-        'review_on' => 'date',
-        'ends_on' => 'date',
+        'starts_on'       => 'date',
+        'review_on'       => 'date',
+        'ends_on'         => 'date',
     ];
 
     /**
@@ -79,7 +79,8 @@ class SupportPlan extends Model
     /**
      * Limit the query to the plans a person may read.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeReadableBy(Builder $query, User $user): Builder
@@ -98,7 +99,8 @@ class SupportPlan extends Model
     /**
      * Limit the query to the plans that still need work.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeOpen(Builder $query): Builder
@@ -113,7 +115,8 @@ class SupportPlan extends Model
     /**
      * Limit the query to the plans that are due for review.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeDueForReview(Builder $query): Builder

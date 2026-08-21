@@ -22,12 +22,14 @@ use Illuminate\Support\Facades\DB;
  */
 class PostLedgerTransaction
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * Post the entry.
      *
-     * @param  array<int, array{account: LedgerAccount|int, debit?: float, credit?: float, memo?: string|null, student_record_id?: int|null}>  $lines
+     * @param array<int, array{account: LedgerAccount|int, debit?: float, credit?: float, memo?: string|null, student_record_id?: int|null}> $lines
      *
      * @throws InvalidValueException when the entry does not balance
      */
@@ -44,25 +46,25 @@ class PostLedgerTransaction
 
         return DB::transaction(function () use ($description, $prepared, $date, $source, $actor, $reference, $reversalOf): LedgerTransaction {
             $transaction = LedgerTransaction::create([
-                'school_id' => $prepared['school_id'],
-                'reference' => $reference,
-                'description' => $description,
+                'school_id'        => $prepared['school_id'],
+                'reference'        => $reference,
+                'description'      => $description,
                 'transaction_date' => $date ?? now(),
-                'source_type' => $source?->getMorphClass(),
-                'source_id' => $source?->getKey(),
-                'reversal_of_id' => $reversalOf?->id,
-                'posted_at' => now(),
-                'posted_by' => $actor === null ? auth()->id() : $actor->id,
+                'source_type'      => $source?->getMorphClass(),
+                'source_id'        => $source?->getKey(),
+                'reversal_of_id'   => $reversalOf?->id,
+                'posted_at'        => now(),
+                'posted_by'        => $actor === null ? auth()->id() : $actor->id,
             ]);
 
             foreach ($prepared['lines'] as $line) {
                 LedgerLine::create([
                     'ledger_transaction_id' => $transaction->id,
-                    'ledger_account_id' => $line['account_id'],
-                    'debit' => $line['debit'],
-                    'credit' => $line['credit'],
-                    'memo' => $line['memo'],
-                    'student_record_id' => $line['student_record_id'],
+                    'ledger_account_id'     => $line['account_id'],
+                    'debit'                 => $line['debit'],
+                    'credit'                => $line['credit'],
+                    'memo'                  => $line['memo'],
+                    'student_record_id'     => $line['student_record_id'],
                 ]);
             }
 
@@ -70,8 +72,8 @@ class PostLedgerTransaction
                 AuditAction::LedgerTransactionPosted,
                 $transaction,
                 [
-                    'description' => $description,
-                    'total' => $prepared['total'],
+                    'description'    => $description,
+                    'total'          => $prepared['total'],
                     'reversal_of_id' => $reversalOf?->id,
                 ],
                 $actor,
@@ -84,10 +86,11 @@ class PostLedgerTransaction
     /**
      * Read the lines, check them, and say what the entry is worth.
      *
-     * @param  array<int, array<string, mixed>>  $lines
-     * @return array{school_id: int, total: float, lines: array<int, array{account_id: int, debit: float, credit: float, memo: string|null, student_record_id: int|null}>}
+     * @param array<int, array<string, mixed>> $lines
      *
      * @throws InvalidValueException
+     *
+     * @return array{school_id: int, total: float, lines: array<int, array{account_id: int, debit: float, credit: float, memo: string|null, student_record_id: int|null}>}
      */
     private function prepare(array $lines): array
     {
@@ -121,10 +124,10 @@ class PostLedgerTransaction
             $credit += $lineCredit;
 
             $prepared[] = [
-                'account_id' => $account->id,
-                'debit' => $lineDebit,
-                'credit' => $lineCredit,
-                'memo' => $line['memo'] ?? null,
+                'account_id'        => $account->id,
+                'debit'             => $lineDebit,
+                'credit'            => $lineCredit,
+                'memo'              => $line['memo'] ?? null,
                 'student_record_id' => $line['student_record_id'] ?? null,
             ];
         }
@@ -143,8 +146,8 @@ class PostLedgerTransaction
 
         return [
             'school_id' => $schoolIds[0],
-            'total' => round($debit, 2),
-            'lines' => $prepared,
+            'total'     => round($debit, 2),
+            'lines'     => $prepared,
         ];
     }
 }

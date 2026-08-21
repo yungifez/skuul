@@ -21,7 +21,8 @@ class ChargeStudent
     public function __construct(
         private PostLedgerTransaction $post,
         private ChartOfAccounts $chart,
-    ) {}
+    ) {
+    }
 
     /**
      * Charge the student.
@@ -47,16 +48,16 @@ class ChargeStudent
             description: $description,
             lines: [
                 [
-                    'account' => $this->chart->account('fees_receivable', $schoolId),
-                    'debit' => $amount,
+                    'account'           => $this->chart->account('fees_receivable', $schoolId),
+                    'debit'             => $amount,
                     'student_record_id' => $enrollment->id,
-                    'memo' => $description,
+                    'memo'              => $description,
                 ],
                 [
-                    'account' => $this->chart->account($incomePurpose, $schoolId),
-                    'credit' => $amount,
+                    'account'           => $this->chart->account($incomePurpose, $schoolId),
+                    'credit'            => $amount,
                     'student_record_id' => $enrollment->id,
-                    'memo' => $description,
+                    'memo'              => $description,
                 ],
             ],
             date: $date,

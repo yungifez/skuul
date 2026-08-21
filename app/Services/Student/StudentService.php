@@ -102,7 +102,8 @@ class StudentService
     /**
      * Get a student by id.
      *
-     * @param  array<int, int>|int  $id  student id
+     * @param array<int, int>|int $id student id
+     *
      * @return User|Collection<int, User>|null
      */
     public function getStudentById($id)
@@ -113,7 +114,8 @@ class StudentService
     /**
      * Create student.
      *
-     * @param  array  $record  Array of student record
+     * @param array $record Array of student record
+     *
      * @return void
      */
     public function createStudent($record)
@@ -129,11 +131,12 @@ class StudentService
     /**
      * Create record for student.
      *
-     * @param  User  $student  $name
-     * @param  array|object  $record
-     * @return void
+     * @param User         $student $name
+     * @param array|object $record
      *
      * @throws InvalidValueException
+     *
+     * @return void
      */
     public function createStudentRecord(User $student, $record)
     {
@@ -148,13 +151,13 @@ class StudentService
         }
 
         $enrollment = StudentRecord::firstOrCreate([
-            'user_id' => $student->id,
+            'user_id'   => $student->id,
             'school_id' => current_school_id(),
         ], [
-            'my_class_id' => $record['my_class_id'],
-            'section_id' => $record['section_id'],
+            'my_class_id'      => $record['my_class_id'],
+            'section_id'       => $record['section_id'],
             'admission_number' => $record['admission_number'],
-            'admission_date' => $record['admission_date'],
+            'admission_date'   => $record['admission_date'],
         ]);
 
         // The first placement starts the student's placement history.
@@ -225,7 +228,8 @@ class StudentService
     /**
      * Promote students.
      *
-     * @param  array<mixed>  $records
+     * @param array<mixed> $records
+     *
      * @return void
      */
     public function promoteStudents($records)
@@ -271,13 +275,13 @@ class StudentService
 
         // create promotion record
         Promotion::create([
-            'old_class_id' => $records['old_class_id'],
-            'new_class_id' => $records['new_class_id'],
-            'old_section_id' => $records['old_section_id'],
-            'new_section_id' => $records['new_section_id'],
-            'students' => $students->pluck('id'),
+            'old_class_id'     => $records['old_class_id'],
+            'new_class_id'     => $records['new_class_id'],
+            'old_section_id'   => $records['old_section_id'],
+            'new_section_id'   => $records['new_section_id'],
+            'students'         => $students->pluck('id'),
             'academic_year_id' => $academicYear,
-            'school_id' => current_school_id(),
+            'school_id'        => current_school_id(),
         ]);
     }
 
@@ -294,7 +298,8 @@ class StudentService
     /**
      * Get promotions by academic year Id.
      *
-     * @param  int  $academicYearId  The Primary key of the academic year
+     * @param int $academicYearId The Primary key of the academic year
+     *
      * @return Collection
      */
     public function getPromotionsByAcademicYearId(int $academicYearId)
@@ -305,7 +310,8 @@ class StudentService
     /**
      * Reset promotion.
      *
-     * @param  Promotion  $promotion  instance of promotion to reset
+     * @param Promotion $promotion instance of promotion to reset
+     *
      * @return void
      */
     public function resetPromotion(Promotion $promotion)
@@ -337,10 +343,11 @@ class StudentService
     /**
      * Graduate students.
      *
-     * @param  mixed  $records
-     * @return void
+     * @param mixed $records
      *
      * @throws InvalidValueException
+     *
+     * @return void
      */
     public function graduateStudents($records)
     {

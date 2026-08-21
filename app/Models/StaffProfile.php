@@ -20,7 +20,7 @@ use Illuminate\Support\Carbon;
  * school and not to the account.
  *
  * @property EmploymentType $employment_type
- * @property StaffStatus $status
+ * @property StaffStatus    $status
  */
 class StaffProfile extends Model
 {
@@ -46,7 +46,7 @@ class StaffProfile extends Model
      */
     protected $attributes = [
         'employment_type' => EmploymentType::FullTime->value,
-        'status' => StaffStatus::Active->value,
+        'status'          => StaffStatus::Active->value,
     ];
 
     /**
@@ -56,15 +56,16 @@ class StaffProfile extends Model
      */
     protected $casts = [
         'employment_type' => EmploymentType::class,
-        'status' => StaffStatus::class,
-        'joined_on' => 'date',
-        'left_on' => 'date',
+        'status'          => StaffStatus::class,
+        'joined_on'       => 'date',
+        'left_on'         => 'date',
     ];
 
     /**
      * Limit the query to the people who may be given work.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeEmployed(Builder $query): Builder
@@ -75,7 +76,8 @@ class StaffProfile extends Model
     /**
      * Limit the query to the people away on the given day.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeAwayOn(Builder $query, mixed $date): Builder

@@ -26,7 +26,7 @@ enum TeachingRole: string
     public function label(): string
     {
         return match ($this) {
-            self::Lead => 'Lead teacher',
+            self::Lead       => 'Lead teacher',
             self::Supporting => 'Supporting teacher',
         };
     }

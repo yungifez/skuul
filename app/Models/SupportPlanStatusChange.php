@@ -35,8 +35,8 @@ class SupportPlanStatusChange extends Model
      */
     protected $casts = [
         'from_status' => SupportPlanStatus::class,
-        'to_status' => SupportPlanStatus::class,
-        'created_at' => 'datetime',
+        'to_status'   => SupportPlanStatus::class,
+        'created_at'  => 'datetime',
     ];
 
     /**

@@ -34,7 +34,7 @@ class ChangeCohortMembership
         }
 
         $member = CohortMember::firstOrNew([
-            'cohort_id' => $cohort->id,
+            'cohort_id'         => $cohort->id,
             'student_record_id' => $enrollment->id,
         ]);
 
@@ -44,8 +44,8 @@ class ChangeCohortMembership
 
         $member->fill([
             'joined_on' => Carbon::parse($joinedOn ?? now()),
-            'left_on' => null,
-            'added_by' => $actor === null ? auth()->id() : $actor->id,
+            'left_on'   => null,
+            'added_by'  => $actor === null ? auth()->id() : $actor->id,
         ])->save();
 
         return $member;
@@ -62,7 +62,7 @@ class ChangeCohortMembership
     ): CohortMember {
         $member = CohortMember::firstOrNew([
             'cohort_id' => $cohort->id,
-            'user_id' => $person->id,
+            'user_id'   => $person->id,
         ]);
 
         if ($member->exists && $member->left_on === null) {
@@ -71,8 +71,8 @@ class ChangeCohortMembership
 
         $member->fill([
             'joined_on' => Carbon::parse($joinedOn ?? now()),
-            'left_on' => null,
-            'added_by' => $actor === null ? auth()->id() : $actor->id,
+            'left_on'   => null,
+            'added_by'  => $actor === null ? auth()->id() : $actor->id,
         ])->save();
 
         return $member;

@@ -15,7 +15,7 @@ use Illuminate\Support\Carbon;
 /**
  * One time a member of staff asked to be away.
  *
- * @property LeaveType $type
+ * @property LeaveType   $type
  * @property LeaveStatus $status
  */
 class StaffLeaveRequest extends Model
@@ -43,7 +43,7 @@ class StaffLeaveRequest extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'type' => LeaveType::Annual->value,
+        'type'   => LeaveType::Annual->value,
         'status' => LeaveStatus::Requested->value,
     ];
 
@@ -53,10 +53,10 @@ class StaffLeaveRequest extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'type' => LeaveType::class,
-        'status' => LeaveStatus::class,
-        'starts_on' => 'date',
-        'ends_on' => 'date',
+        'type'       => LeaveType::class,
+        'status'     => LeaveStatus::class,
+        'starts_on'  => 'date',
+        'ends_on'    => 'date',
         'decided_at' => 'datetime',
     ];
 
@@ -81,7 +81,8 @@ class StaffLeaveRequest extends Model
     /**
      * Limit the query to the requests that still block the days.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeHolding(Builder $query): Builder
@@ -92,7 +93,8 @@ class StaffLeaveRequest extends Model
     /**
      * Limit the query to the requests that touch the given days.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeOverlapping(Builder $query, mixed $startsOn, mixed $endsOn): Builder

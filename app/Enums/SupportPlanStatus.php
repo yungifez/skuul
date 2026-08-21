@@ -38,9 +38,9 @@ enum SupportPlanStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Draft => 'Draft',
-            self::Active => 'Active',
-            self::OnHold => 'On hold',
+            self::Draft     => 'Draft',
+            self::Active    => 'Active',
+            self::OnHold    => 'On hold',
             self::Completed => 'Completed',
             self::Cancelled => 'Cancelled',
         };
@@ -62,9 +62,9 @@ enum SupportPlanStatus: string
     public function allowedNext(): array
     {
         return match ($this) {
-            self::Draft => [self::Active, self::Cancelled],
-            self::Active => [self::OnHold, self::Completed, self::Cancelled],
-            self::OnHold => [self::Active, self::Completed, self::Cancelled],
+            self::Draft     => [self::Active, self::Cancelled],
+            self::Active    => [self::OnHold, self::Completed, self::Cancelled],
+            self::OnHold    => [self::Active, self::Completed, self::Cancelled],
             self::Completed => [self::Active],
             self::Cancelled => [],
         };

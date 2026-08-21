@@ -33,8 +33,8 @@ class EnrollmentStatusChange extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'from_status' => EnrollmentStatus::class,
-        'to_status' => EnrollmentStatus::class,
+        'from_status'  => EnrollmentStatus::class,
+        'to_status'    => EnrollmentStatus::class,
         'effective_on' => 'date:Y-m-d',
     ];
 

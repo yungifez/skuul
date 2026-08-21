@@ -26,7 +26,7 @@ enum IncidentCategory: string
     public function label(): string
     {
         return match ($this) {
-            self::Behaviour => 'Behaviour',
+            self::Behaviour    => 'Behaviour',
             self::Safeguarding => 'Safeguarding',
         };
     }

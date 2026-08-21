@@ -33,9 +33,9 @@ return Application::configure(basePath: dirname(__DIR__))
                 SetActiveAcademicPeriod::class,
             ])
             ->alias([
-                'feature' => EnsureFeatureIsEnabled::class,
-                'role' => RoleMiddleware::class,
-                'permission' => PermissionMiddleware::class,
+                'feature'            => EnsureFeatureIsEnabled::class,
+                'role'               => RoleMiddleware::class,
+                'permission'         => PermissionMiddleware::class,
                 'role_or_permission' => RoleOrPermissionMiddleware::class,
             ]);
     })
