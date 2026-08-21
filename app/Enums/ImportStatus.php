@@ -38,10 +38,10 @@ enum ImportStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Draft => 'Draft',
-            self::Checked => 'Checked',
-            self::Applied => 'Applied',
-            self::Failed => 'Failed',
+            self::Draft     => 'Draft',
+            self::Checked   => 'Checked',
+            self::Applied   => 'Applied',
+            self::Failed    => 'Failed',
             self::Cancelled => 'Cancelled',
         };
     }

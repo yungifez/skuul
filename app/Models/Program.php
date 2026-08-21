@@ -33,7 +33,7 @@ class Program extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'type' => ProgramType::Club->value,
+        'type'      => ProgramType::Club->value,
         'is_active' => true,
     ];
 
@@ -43,14 +43,15 @@ class Program extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'type' => ProgramType::class,
+        'type'      => ProgramType::class,
         'is_active' => 'boolean',
     ];
 
     /**
      * Limit the query to the programmes still running.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeActive(Builder $query): Builder

@@ -16,9 +16,9 @@ use Illuminate\Support\Carbon;
  * One revision of a class or section schedule.
  *
  * @property TimetableStatus $status
- * @property int $revision
- * @property int|null $section_id
- * @property Carbon|null $published_at
+ * @property int             $revision
+ * @property int|null        $section_id
+ * @property Carbon|null     $published_at
  */
 class Timetable extends Model
 {
@@ -48,7 +48,7 @@ class Timetable extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'status' => TimetableStatus::Draft->value,
+        'status'   => TimetableStatus::Draft->value,
         'revision' => 1,
     ];
 
@@ -58,11 +58,11 @@ class Timetable extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'status' => TimetableStatus::class,
-        'revision' => 'integer',
+        'status'         => TimetableStatus::class,
+        'revision'       => 'integer',
         'effective_from' => 'date:Y-m-d',
-        'effective_to' => 'date:Y-m-d',
-        'published_at' => 'datetime',
+        'effective_to'   => 'date:Y-m-d',
+        'published_at'   => 'datetime',
     ];
 
     /**
@@ -105,7 +105,8 @@ class Timetable extends Model
     /**
      * Limit the query to timetables in one state.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeWithStatus(Builder $query, TimetableStatus $status): Builder
@@ -116,7 +117,8 @@ class Timetable extends Model
     /**
      * Limit the query to the timetables the school teaches now.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopePublished(Builder $query): Builder

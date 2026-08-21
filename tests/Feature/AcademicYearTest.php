@@ -59,12 +59,12 @@ class AcademicYearTest extends TestCase
         $this->authorized_user(['create academic year'])
             ->post('/dashboard/academic-years', [
                 'start_year' => '3030',
-                'stop_year' => '4040',
+                'stop_year'  => '4040',
             ])->assertRedirect();
 
         $this->assertDatabaseHas('academic_years', [
             'start_year' => '3030',
-            'stop_year' => '4040',
+            'stop_year'  => '4040',
         ]);
     }
 
@@ -98,13 +98,13 @@ class AcademicYearTest extends TestCase
         $this->authorized_user(['update academic year'])
             ->put('/dashboard/academic-years/1', [
                 'start_year' => '3030',
-                'stop_year' => '4040',
+                'stop_year'  => '4040',
             ]);
 
         $this->assertDatabaseHas('academic_years', [
-            'id' => '1',
+            'id'         => '1',
             'start_year' => '3030',
-            'stop_year' => '4040',
+            'stop_year'  => '4040',
         ]);
     }
 

@@ -14,7 +14,7 @@ use RuntimeException;
  * labelled with where it came from, and never as its own record.
  *
  * @property array<string, mixed> $payload
- * @property array<int, string> $categories
+ * @property array<int, string>   $categories
  */
 class TransferPackage extends Model
 {
@@ -39,8 +39,8 @@ class TransferPackage extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'categories' => 'array',
-        'payload' => 'array',
+        'categories'  => 'array',
+        'payload'     => 'array',
         'received_at' => 'datetime',
     ];
 

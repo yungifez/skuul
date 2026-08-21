@@ -47,12 +47,12 @@ enum EnrollmentStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Active => 'Active',
-            self::Suspended => 'Suspended',
-            self::Withdrawn => 'Withdrawn',
+            self::Active      => 'Active',
+            self::Suspended   => 'Suspended',
+            self::Withdrawn   => 'Withdrawn',
             self::Transferred => 'Transferred',
-            self::Graduated => 'Graduated',
-            self::Archived => 'Archived',
+            self::Graduated   => 'Graduated',
+            self::Archived    => 'Archived',
         };
     }
 
@@ -80,12 +80,12 @@ enum EnrollmentStatus: string
     public function allowedNext(): array
     {
         return match ($this) {
-            self::Active => [self::Suspended, self::Withdrawn, self::Transferred, self::Graduated, self::Archived],
-            self::Suspended => [self::Active, self::Withdrawn, self::Transferred, self::Archived],
-            self::Withdrawn => [self::Active, self::Archived],
+            self::Active      => [self::Suspended, self::Withdrawn, self::Transferred, self::Graduated, self::Archived],
+            self::Suspended   => [self::Active, self::Withdrawn, self::Transferred, self::Archived],
+            self::Withdrawn   => [self::Active, self::Archived],
             self::Transferred => [self::Archived],
-            self::Graduated => [self::Active, self::Archived],
-            self::Archived => [],
+            self::Graduated   => [self::Active, self::Archived],
+            self::Archived    => [],
         };
     }
 

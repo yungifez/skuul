@@ -19,7 +19,8 @@ class ReportController extends Controller
     public function __construct(
         private RequestReport $requestReport,
         private RecordAuditEvent $auditor,
-    ) {}
+    ) {
+    }
 
     /**
      * Ask for a report.

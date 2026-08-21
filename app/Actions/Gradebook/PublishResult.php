@@ -23,7 +23,8 @@ class PublishResult
     public function __construct(
         private GradebookCalculator $calculator,
         private RecordAuditEvent $auditor,
-    ) {}
+    ) {
+    }
 
     /**
      * Publish the result of one enrollment in one subject.
@@ -51,28 +52,28 @@ class PublishResult
                 ->first();
 
             $snapshot = ResultSnapshot::create([
-                'school_id' => $subject->school_id,
+                'school_id'         => $subject->school_id,
                 'student_record_id' => $enrollment->id,
-                'subject_id' => $subject->id,
-                'academic_year_id' => $academicYearId,
-                'semester_id' => $semesterId,
-                'revision' => $previous === null ? 1 : $previous->revision + 1,
-                'percentage' => $result['percentage'],
-                'payload' => $result,
-                'reason' => $reason,
-                'published_at' => now(),
-                'published_by' => $actor === null ? auth()->id() : $actor->id,
+                'subject_id'        => $subject->id,
+                'academic_year_id'  => $academicYearId,
+                'semester_id'       => $semesterId,
+                'revision'          => $previous === null ? 1 : $previous->revision + 1,
+                'percentage'        => $result['percentage'],
+                'payload'           => $result,
+                'reason'            => $reason,
+                'published_at'      => now(),
+                'published_by'      => $actor === null ? auth()->id() : $actor->id,
             ]);
 
             $this->auditor->record(
                 $previous === null ? AuditAction::ResultPublished : AuditAction::ResultRevised,
                 $snapshot,
                 [
-                    'subject_id' => $subject->id,
+                    'subject_id'        => $subject->id,
                     'student_record_id' => $enrollment->id,
-                    'revision' => $snapshot->revision,
-                    'percentage' => $snapshot->percentage,
-                    'reason' => $reason,
+                    'revision'          => $snapshot->revision,
+                    'percentage'        => $snapshot->percentage,
+                    'reason'            => $reason,
                 ],
                 $actor,
             );

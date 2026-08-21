@@ -37,7 +37,7 @@ class AcceptAccountInvitation
     /**
      * Accept the invitation and activate the account.
      *
-     * @param  array<string, mixed>  $input
+     * @param array<string, mixed> $input
      *
      * @throws ValidationException when the token or the password is not valid
      */
@@ -69,10 +69,10 @@ class AcceptAccountInvitation
             $previousStatus = $user->account_status;
 
             $user->forceFill([
-                'password' => Hash::make($input['password']),
-                'account_status' => AccountStatus::Active,
+                'password'          => Hash::make($input['password']),
+                'account_status'    => AccountStatus::Active,
                 'email_verified_at' => $user->email_verified_at ?? now(),
-                'remember_token' => null,
+                'remember_token'    => null,
             ])->save();
 
             $invitation->forceFill(['accepted_at' => now()])->save();

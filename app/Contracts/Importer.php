@@ -51,7 +51,7 @@ interface Importer
      * names one, so the same file can be imported twice without making a
      * second copy.
      *
-     * @param  array<string, mixed>  $row
+     * @param array<string, mixed> $row
      */
     public function apply(array $row, ?Model $existing): Model;
 }

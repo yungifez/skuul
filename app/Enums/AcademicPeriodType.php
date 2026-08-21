@@ -41,11 +41,11 @@ enum AcademicPeriodType: string
     public function label(): string
     {
         return match ($this) {
-            self::Term => 'Term',
-            self::Semester => 'Semester',
+            self::Term      => 'Term',
+            self::Semester  => 'Semester',
             self::Trimester => 'Trimester',
-            self::Quarter => 'Quarter',
-            self::Other => 'Period',
+            self::Quarter   => 'Quarter',
+            self::Other     => 'Period',
         };
     }
 

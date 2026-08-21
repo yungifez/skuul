@@ -45,7 +45,7 @@ class SchoolScopeTest extends TestCase
         $missing = [];
 
         foreach ($this->modelClasses() as $class) {
-            $model = new $class;
+            $model = new $class();
 
             if (!Schema::hasColumn($model->getTable(), 'school_id')) {
                 continue;
@@ -86,8 +86,8 @@ class SchoolScopeTest extends TestCase
 
         $academicYear = AcademicYear::create([
             'start_year' => 2100,
-            'stop_year' => 2101,
-            'school_id' => $other->id,
+            'stop_year'  => 2101,
+            'school_id'  => $other->id,
         ]);
 
         $this->assertSame($other->id, $academicYear->school_id);

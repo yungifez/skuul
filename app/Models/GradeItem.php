@@ -17,8 +17,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * not care which, so a teacher is free to grade the way the subject needs.
  *
  * @property GradeItemType $type
- * @property float|null $max_points
- * @property float $weight
+ * @property float|null    $max_points
+ * @property float         $weight
  */
 class GradeItem extends Model
 {
@@ -46,8 +46,8 @@ class GradeItem extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'type' => GradeItemType::Numeric->value,
-        'weight' => 1,
+        'type'     => GradeItemType::Numeric->value,
+        'weight'   => 1,
         'position' => 1,
     ];
 
@@ -57,17 +57,18 @@ class GradeItem extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'type' => GradeItemType::class,
+        'type'       => GradeItemType::class,
         'max_points' => 'float',
-        'weight' => 'float',
-        'due_on' => 'date:Y-m-d',
-        'position' => 'integer',
+        'weight'     => 'float',
+        'due_on'     => 'date:Y-m-d',
+        'position'   => 'integer',
     ];
 
     /**
      * Limit the query to the items of one subject.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeForSubject(Builder $query, Subject|int $subject): Builder

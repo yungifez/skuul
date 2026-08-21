@@ -26,7 +26,9 @@ use Illuminate\Support\Facades\DB;
  */
 class AssignTeacher
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * Give the teacher the subject.
@@ -67,14 +69,14 @@ class AssignTeacher
 
         return DB::transaction(function () use ($subject, $teacher, $role, $section, $academicYear, $semester, $actor, $startsOn): TeachingAssignment {
             $assignment = TeachingAssignment::create([
-                'school_id' => $subject->school_id,
-                'subject_id' => $subject->id,
-                'user_id' => $teacher->id,
+                'school_id'        => $subject->school_id,
+                'subject_id'       => $subject->id,
+                'user_id'          => $teacher->id,
                 'academic_year_id' => $academicYear->id,
-                'semester_id' => $semester === null ? current_semester_id() : $semester->id,
-                'section_id' => $section?->id,
-                'role' => $role,
-                'starts_on' => $startsOn ?? now(),
+                'semester_id'      => $semester === null ? current_semester_id() : $semester->id,
+                'section_id'       => $section?->id,
+                'role'             => $role,
+                'starts_on'        => $startsOn ?? now(),
             ]);
 
             // The old pivot still feeds the screens, so keep it in step.
@@ -84,10 +86,10 @@ class AssignTeacher
                 AuditAction::TeachingAssignmentCreated,
                 $assignment,
                 [
-                    'subject_id' => $subject->id,
-                    'teacher_id' => $teacher->id,
-                    'role' => $role->value,
-                    'section_id' => $section?->id,
+                    'subject_id'       => $subject->id,
+                    'teacher_id'       => $teacher->id,
+                    'role'             => $role->value,
+                    'section_id'       => $section?->id,
                     'academic_year_id' => $academicYear->id,
                 ],
                 $actor,
@@ -131,7 +133,7 @@ class AssignTeacher
                 [
                     'subject_id' => $assignment->subject_id,
                     'teacher_id' => $assignment->user_id,
-                    'ends_on' => $assignment->ends_on->toDateString(),
+                    'ends_on'    => $assignment->ends_on->toDateString(),
                 ],
                 $actor,
             );

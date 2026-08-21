@@ -16,8 +16,8 @@ use Illuminate\Support\Carbon;
  * One day or event on the school calendar.
  *
  * @property CalendarEventType $type
- * @property Carbon $starts_at
- * @property Carbon $ends_at
+ * @property Carbon            $starts_at
+ * @property Carbon            $ends_at
  */
 class CalendarEvent extends Model
 {
@@ -45,8 +45,8 @@ class CalendarEvent extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'type' => CalendarEventType::Other->value,
-        'is_all_day' => true,
+        'type'         => CalendarEventType::Other->value,
+        'is_all_day'   => true,
         'is_published' => false,
     ];
 
@@ -56,17 +56,18 @@ class CalendarEvent extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'type' => CalendarEventType::class,
-        'is_all_day' => 'boolean',
+        'type'         => CalendarEventType::class,
+        'is_all_day'   => 'boolean',
         'is_published' => 'boolean',
-        'starts_at' => 'datetime',
-        'ends_at' => 'datetime',
+        'starts_at'    => 'datetime',
+        'ends_at'      => 'datetime',
     ];
 
     /**
      * Limit the query to the events that cover a day.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeCovering(Builder $query, DateTimeInterface|string $date): Builder
@@ -80,7 +81,8 @@ class CalendarEvent extends Model
     /**
      * Limit the query to the events between two days.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeBetween(Builder $query, DateTimeInterface|string $from, DateTimeInterface|string $to): Builder
@@ -92,7 +94,8 @@ class CalendarEvent extends Model
     /**
      * Limit the query to the events people can see.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopePublished(Builder $query): Builder

@@ -46,10 +46,10 @@ class MonitoringServiceProvider extends ServiceProvider
             }
 
             Log::warning('Slow query', [
-                'connection' => $query->connectionName,
+                'connection'   => $query->connectionName,
                 'milliseconds' => $query->time,
-                'sql' => $query->sql,
-                'bindings' => $query->bindings,
+                'sql'          => $query->sql,
+                'bindings'     => $query->bindings,
             ]);
         });
     }
@@ -70,9 +70,9 @@ class MonitoringServiceProvider extends ServiceProvider
 
         DB::whenQueryingForLongerThan($threshold, function (Connection $connection): void {
             Log::warning('Slow request', [
-                'connection' => $connection->getName(),
+                'connection'   => $connection->getName(),
                 'milliseconds' => $connection->totalQueryDuration(),
-                'path' => request()->path(),
+                'path'         => request()->path(),
             ]);
         });
     }
@@ -85,10 +85,10 @@ class MonitoringServiceProvider extends ServiceProvider
         Queue::failing(function (JobFailed $event): void {
             Log::error('Queue job failed', [
                 'connection' => $event->connectionName,
-                'queue' => $event->job->getQueue(),
-                'job' => $event->job->resolveName(),
-                'attempts' => $event->job->attempts(),
-                'exception' => $event->exception->getMessage(),
+                'queue'      => $event->job->getQueue(),
+                'job'        => $event->job->resolveName(),
+                'attempts'   => $event->job->attempts(),
+                'exception'  => $event->exception->getMessage(),
             ]);
         });
     }

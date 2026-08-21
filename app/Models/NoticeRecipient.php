@@ -44,9 +44,9 @@ class NoticeRecipient extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'state' => NoticeRecipientState::class,
+        'state'        => NoticeRecipientState::class,
         'delivered_at' => 'datetime',
-        'read_at' => 'datetime',
+        'read_at'      => 'datetime',
         'dismissed_at' => 'datetime',
     ];
 

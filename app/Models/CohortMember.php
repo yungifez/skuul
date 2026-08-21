@@ -34,7 +34,7 @@ class CohortMember extends Model
      */
     protected $casts = [
         'joined_on' => 'date',
-        'left_on' => 'date',
+        'left_on'   => 'date',
     ];
 
     /**
@@ -57,7 +57,8 @@ class CohortMember extends Model
     /**
      * Limit the query to the places held today.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeCurrent(Builder $query): Builder

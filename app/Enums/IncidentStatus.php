@@ -43,12 +43,12 @@ enum IncidentStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Reported => 'Reported',
+            self::Reported    => 'Reported',
             self::UnderReview => 'Under review',
-            self::Referred => 'Referred',
+            self::Referred    => 'Referred',
             self::ActionTaken => 'Action taken',
-            self::Resolved => 'Resolved',
-            self::Closed => 'Closed',
+            self::Resolved    => 'Resolved',
+            self::Closed      => 'Closed',
         };
     }
 
@@ -68,12 +68,12 @@ enum IncidentStatus: string
     public function allowedNext(): array
     {
         return match ($this) {
-            self::Reported => [self::UnderReview, self::Referred, self::ActionTaken, self::Resolved, self::Closed],
+            self::Reported    => [self::UnderReview, self::Referred, self::ActionTaken, self::Resolved, self::Closed],
             self::UnderReview => [self::Referred, self::ActionTaken, self::Resolved, self::Closed],
-            self::Referred => [self::UnderReview, self::ActionTaken, self::Resolved, self::Closed],
+            self::Referred    => [self::UnderReview, self::ActionTaken, self::Resolved, self::Closed],
             self::ActionTaken => [self::UnderReview, self::Resolved, self::Closed],
-            self::Resolved => [self::Closed, self::UnderReview],
-            self::Closed => [],
+            self::Resolved    => [self::Closed, self::UnderReview],
+            self::Closed      => [],
         };
     }
 

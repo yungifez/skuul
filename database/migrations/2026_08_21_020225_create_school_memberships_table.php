@@ -6,8 +6,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class() extends Migration {
     /**
      * Run the migrations.
      *
@@ -40,11 +39,11 @@ return new class extends Migration
 
                 foreach ($users as $user) {
                     $rows[] = [
-                        'user_id' => $user->id,
-                        'school_id' => $user->school_id,
-                        'status' => SchoolMembershipStatus::Active->value,
+                        'user_id'    => $user->id,
+                        'school_id'  => $user->school_id,
+                        'status'     => SchoolMembershipStatus::Active->value,
                         'is_primary' => true,
-                        'joined_at' => $user->created_at,
+                        'joined_at'  => $user->created_at,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ];

@@ -19,11 +19,11 @@ enum ProgramType: string
     public function label(): string
     {
         return match ($this) {
-            self::Club => 'Club',
-            self::Intervention => 'Intervention',
-            self::SupportService => 'Support service',
+            self::Club            => 'Club',
+            self::Intervention    => 'Intervention',
+            self::SupportService  => 'Support service',
             self::Extracurricular => 'Extracurricular activity',
-            self::Special => 'Special programme',
+            self::Special         => 'Special programme',
         };
     }
 

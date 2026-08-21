@@ -17,7 +17,9 @@ class PortalRequestPolicy
 {
     use HandlesAuthorization;
 
-    public function __construct(private PortalAccess $access) {}
+    public function __construct(private PortalAccess $access)
+    {
+    }
 
     /**
      * Determine whether the user can see a list of requests.

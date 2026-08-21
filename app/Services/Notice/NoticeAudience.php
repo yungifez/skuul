@@ -49,7 +49,8 @@ class NoticeAudience
      *
      * Returning null means the audience did not narrow the list at all.
      *
-     * @param  array<string, mixed>  $audience
+     * @param array<string, mixed> $audience
+     *
      * @return array<int, int>|null
      */
     private function userIds(array $audience, ?int $schoolId): ?array

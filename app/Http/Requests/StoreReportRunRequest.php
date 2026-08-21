@@ -16,7 +16,7 @@ class StoreReportRunRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type' => ['required', Rule::in(array_keys(app(ReportRegistry::class)->all()))],
+            'type'       => ['required', Rule::in(array_keys(app(ReportRegistry::class)->all()))],
             'parameters' => ['nullable', 'array'],
         ];
     }

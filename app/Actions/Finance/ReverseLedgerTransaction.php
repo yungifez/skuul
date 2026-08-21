@@ -16,7 +16,9 @@ use Carbon\CarbonInterface;
  */
 class ReverseLedgerTransaction
 {
-    public function __construct(private PostLedgerTransaction $post) {}
+    public function __construct(private PostLedgerTransaction $post)
+    {
+    }
 
     /**
      * Post the reversal of the entry.
@@ -38,10 +40,10 @@ class ReverseLedgerTransaction
         }
 
         $lines = $transaction->lines()->get()->map(fn ($line): array => [
-            'account' => $line->ledger_account_id,
-            'debit' => $line->credit,
-            'credit' => $line->debit,
-            'memo' => $line->memo,
+            'account'           => $line->ledger_account_id,
+            'debit'             => $line->credit,
+            'credit'            => $line->debit,
+            'memo'              => $line->memo,
             'student_record_id' => $line->student_record_id,
         ])->all();
 

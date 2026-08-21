@@ -25,7 +25,9 @@ class FeatureManager
      */
     private array $answers = [];
 
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * Check if the feature is on for the given school.
@@ -59,7 +61,7 @@ class FeatureManager
     /**
      * Turn the feature on for the school.
      *
-     * @param  array<string, mixed>|null  $config
+     * @param array<string, mixed>|null $config
      */
     public function enable(Feature $feature, School|int|null $school = null, ?User $actor = null, ?array $config = null): FeatureSetting
     {
@@ -101,7 +103,7 @@ class FeatureManager
     /**
      * Write the setting and record who changed it.
      *
-     * @param  array<string, mixed>|null  $config
+     * @param array<string, mixed>|null $config
      */
     private function set(Feature $feature, bool $enabled, School|int|null $school, ?User $actor, ?array $config = null): FeatureSetting
     {
@@ -110,8 +112,8 @@ class FeatureManager
         $setting = FeatureSetting::updateOrCreate(
             ['school_id' => $schoolId, 'feature' => $feature],
             array_filter([
-                'enabled' => $enabled,
-                'config' => $config,
+                'enabled'    => $enabled,
+                'config'     => $config,
                 'updated_by' => $actor === null ? auth()->id() : $actor->id,
             ], fn (mixed $value): bool => $value !== null),
         );

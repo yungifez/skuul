@@ -43,8 +43,8 @@ class HealthController extends Controller
 
                 return Cache::get('health:check') === 'ok';
             }),
-            'queue' => $this->check(fn (): bool => Queue::size() >= 0),
-            'storage' => $this->check(fn () => Storage::disk('public')->directoryExists('') || is_writable(storage_path())),
+            'queue'     => $this->check(fn (): bool => Queue::size() >= 0),
+            'storage'   => $this->check(fn () => Storage::disk('public')->directoryExists('') || is_writable(storage_path())),
             'scheduler' => $this->check(fn () => $this->schedulerIsFresh()),
         ];
 
@@ -53,7 +53,7 @@ class HealthController extends Controller
         return response()->json([
             'status' => $healthy ? 'ok' : 'failed',
             'checks' => $checks,
-            'time' => now()->toIso8601String(),
+            'time'   => now()->toIso8601String(),
         ], $healthy ? 200 : 503);
     }
 

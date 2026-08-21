@@ -15,7 +15,7 @@ class AssignStudentRequest extends FormRequest
     {
         return [
             'student_id' => 'required|integer|exists:users,id',
-            'assign' => 'nullable|boolean',
+            'assign'     => 'nullable|boolean',
         ];
     }
 }

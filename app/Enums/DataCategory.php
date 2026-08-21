@@ -28,16 +28,16 @@ enum DataCategory: string
     public function label(): string
     {
         return match ($this) {
-            self::Identity => 'Identity',
-            self::Guardians => 'Guardians',
-            self::Enrollment => 'Enrollment',
+            self::Identity        => 'Identity',
+            self::Guardians       => 'Guardians',
+            self::Enrollment      => 'Enrollment',
             self::AcademicResults => 'Published results',
-            self::Attendance => 'Attendance',
-            self::Health => 'Health',
-            self::Discipline => 'Discipline',
-            self::Safeguarding => 'Safeguarding',
-            self::Wellbeing => 'Support and wellbeing',
-            self::Finance => 'Detailed finance',
+            self::Attendance      => 'Attendance',
+            self::Health          => 'Health',
+            self::Discipline      => 'Discipline',
+            self::Safeguarding    => 'Safeguarding',
+            self::Wellbeing       => 'Support and wellbeing',
+            self::Finance         => 'Detailed finance',
         };
     }
 

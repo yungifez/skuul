@@ -47,11 +47,11 @@ enum CohortType: string
     {
         return match ($this) {
             self::GraduationYear => 'Graduation year',
-            self::Scholarship => 'Scholarship group',
-            self::Club => 'Club',
-            self::Watchlist => 'Watchlist',
-            self::RankingGroup => 'Ranking group',
-            self::Other => 'Other',
+            self::Scholarship    => 'Scholarship group',
+            self::Club           => 'Club',
+            self::Watchlist      => 'Watchlist',
+            self::RankingGroup   => 'Ranking group',
+            self::Other          => 'Other',
         };
     }
 

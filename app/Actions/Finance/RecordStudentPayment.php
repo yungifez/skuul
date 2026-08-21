@@ -24,12 +24,13 @@ class RecordStudentPayment
         private PostLedgerTransaction $post,
         private ChartOfAccounts $chart,
         private StudentLedger $ledger,
-    ) {}
+    ) {
+    }
 
     /**
      * Record the payment.
      *
-     * @param  string  $into  the purpose of the account the money went into
+     * @param string $into the purpose of the account the money went into
      *
      * @throws InvalidValueException when the amount is not positive
      */
@@ -54,27 +55,27 @@ class RecordStudentPayment
         $description ??= 'Payment received';
 
         $lines = [[
-            'account' => $this->chart->account($into, $schoolId),
-            'debit' => $amount,
+            'account'           => $this->chart->account($into, $schoolId),
+            'debit'             => $amount,
             'student_record_id' => $enrollment->id,
-            'memo' => $description,
+            'memo'              => $description,
         ]];
 
         if ($applied > 0) {
             $lines[] = [
-                'account' => $this->chart->account('fees_receivable', $schoolId),
-                'credit' => $applied,
+                'account'           => $this->chart->account('fees_receivable', $schoolId),
+                'credit'            => $applied,
                 'student_record_id' => $enrollment->id,
-                'memo' => $description,
+                'memo'              => $description,
             ];
         }
 
         if ($overpaid > 0) {
             $lines[] = [
-                'account' => $this->chart->account('unapplied_credits', $schoolId),
-                'credit' => $overpaid,
+                'account'           => $this->chart->account('unapplied_credits', $schoolId),
+                'credit'            => $overpaid,
                 'student_record_id' => $enrollment->id,
-                'memo' => 'Money held for a later invoice',
+                'memo'              => 'Money held for a later invoice',
             ];
         }
 

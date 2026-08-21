@@ -10,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * Whether one feature is on for one school.
  *
- * @property Feature $feature
+ * @property Feature                   $feature
  * @property array<string, mixed>|null $config
  */
 class FeatureSetting extends Model
@@ -33,7 +33,7 @@ class FeatureSetting extends Model
     protected $casts = [
         'feature' => Feature::class,
         'enabled' => 'boolean',
-        'config' => 'array',
+        'config'  => 'array',
     ];
 
     /**

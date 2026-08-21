@@ -252,7 +252,7 @@ class DataSharingTest extends TestCase
     /**
      * Make a request from another school for one enrollment here.
      *
-     * @param  array<int, DataCategory>  $categories
+     * @param array<int, DataCategory> $categories
      */
     private function request(
         array $categories,
@@ -283,15 +283,15 @@ class DataSharingTest extends TestCase
     private function publishedResult(StudentRecord $enrollment, float $percentage): ResultSnapshot
     {
         return ResultSnapshot::create([
-            'school_id' => $enrollment->school_id,
+            'school_id'         => $enrollment->school_id,
             'student_record_id' => $enrollment->id,
-            'subject_id' => Subject::factory()->create(['school_id' => $enrollment->school_id])->id,
-            'academic_year_id' => current_academic_year_id(),
-            'semester_id' => current_semester_id(),
-            'revision' => 1,
-            'percentage' => $percentage,
-            'payload' => ['percentage' => $percentage],
-            'published_at' => now(),
+            'subject_id'        => Subject::factory()->create(['school_id' => $enrollment->school_id])->id,
+            'academic_year_id'  => current_academic_year_id(),
+            'semester_id'       => current_semester_id(),
+            'revision'          => 1,
+            'percentage'        => $percentage,
+            'payload'           => ['percentage' => $percentage],
+            'published_at'      => now(),
         ]);
     }
 }

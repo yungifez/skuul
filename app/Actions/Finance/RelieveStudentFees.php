@@ -21,7 +21,8 @@ class RelieveStudentFees
     public function __construct(
         private PostLedgerTransaction $post,
         private ChartOfAccounts $chart,
-    ) {}
+    ) {
+    }
 
     /**
      * Give the student a scholarship or a waiver.
@@ -75,16 +76,16 @@ class RelieveStudentFees
             description: $description,
             lines: [
                 [
-                    'account' => $this->chart->account($expensePurpose, $schoolId),
-                    'debit' => $amount,
+                    'account'           => $this->chart->account($expensePurpose, $schoolId),
+                    'debit'             => $amount,
                     'student_record_id' => $enrollment->id,
-                    'memo' => $description,
+                    'memo'              => $description,
                 ],
                 [
-                    'account' => $this->chart->account('fees_receivable', $schoolId),
-                    'credit' => $amount,
+                    'account'           => $this->chart->account('fees_receivable', $schoolId),
+                    'credit'            => $amount,
                     'student_record_id' => $enrollment->id,
-                    'memo' => $description,
+                    'memo'              => $description,
                 ],
             ],
             date: $date,

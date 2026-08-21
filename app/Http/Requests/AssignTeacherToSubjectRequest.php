@@ -15,7 +15,7 @@ class AssignTeacherToSubjectRequest extends FormRequest
     public function rules()
     {
         return [
-            'subjects' => 'required|array',
+            'subjects'   => 'required|array',
             'subjects.*' => [
                 'nullable',
                 Rule::exists('subjects', 'id')->where('school_id', current_school_id()),

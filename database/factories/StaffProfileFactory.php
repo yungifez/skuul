@@ -21,13 +21,13 @@ class StaffProfileFactory extends Factory
     public function definition(): array
     {
         return [
-            'user_id' => User::factory(),
-            'staff_number' => strtoupper($this->faker->bothify('STF-####')),
-            'job_title' => $this->faker->jobTitle(),
-            'department' => $this->faker->word(),
+            'user_id'         => User::factory(),
+            'staff_number'    => strtoupper($this->faker->bothify('STF-####')),
+            'job_title'       => $this->faker->jobTitle(),
+            'department'      => $this->faker->word(),
             'employment_type' => EmploymentType::FullTime,
-            'status' => StaffStatus::Active,
-            'joined_on' => now()->subYear(),
+            'status'          => StaffStatus::Active,
+            'joined_on'       => now()->subYear(),
         ];
     }
 
@@ -37,7 +37,7 @@ class StaffProfileFactory extends Factory
     public function left(): static
     {
         return $this->state(fn (): array => [
-            'status' => StaffStatus::Left,
+            'status'  => StaffStatus::Left,
             'left_on' => now()->subMonth(),
         ]);
     }

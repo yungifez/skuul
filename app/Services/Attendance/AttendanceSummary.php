@@ -39,12 +39,12 @@ class AttendanceSummary
         $present = $counted->filter(fn (AttendanceRecord $record): bool => $record->status->countsAsPresent());
 
         return [
-            'present' => $present->count(),
-            'absent' => $counted->where('status', AttendanceStatus::Absent)->count(),
-            'late' => $counted->where('status', AttendanceStatus::Late)->count(),
-            'excused' => $counted->where('status', AttendanceStatus::Excused)->count(),
+            'present'  => $present->count(),
+            'absent'   => $counted->where('status', AttendanceStatus::Absent)->count(),
+            'late'     => $counted->where('status', AttendanceStatus::Late)->count(),
+            'excused'  => $counted->where('status', AttendanceStatus::Excused)->count(),
             'recorded' => $counted->count(),
-            'rate' => $counted->isEmpty() ? null : round(($present->count() / $counted->count()) * 100, 2),
+            'rate'     => $counted->isEmpty() ? null : round(($present->count() / $counted->count()) * 100, 2),
         ];
     }
 }

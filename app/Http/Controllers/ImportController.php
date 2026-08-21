@@ -16,7 +16,8 @@ class ImportController extends Controller
     public function __construct(
         private ImportRunner $runner,
         private CsvReader $reader,
-    ) {}
+    ) {
+    }
 
     /**
      * Check a file and keep what it would do.

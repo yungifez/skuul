@@ -39,7 +39,7 @@ enum ImportRowState: string
     {
         return match ($this) {
             self::Pending => 'Pending',
-            self::Valid => 'Ready',
+            self::Valid   => 'Ready',
             self::Invalid => 'Has errors',
             self::Applied => 'Written',
             self::Skipped => 'Skipped',

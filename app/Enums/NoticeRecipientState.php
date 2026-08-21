@@ -38,11 +38,11 @@ enum NoticeRecipientState: string
     public function label(): string
     {
         return match ($this) {
-            self::Pending => 'Pending',
+            self::Pending   => 'Pending',
             self::Delivered => 'Delivered',
-            self::Read => 'Read',
+            self::Read      => 'Read',
             self::Dismissed => 'Dismissed',
-            self::Failed => 'Failed',
+            self::Failed    => 'Failed',
         };
     }
 }

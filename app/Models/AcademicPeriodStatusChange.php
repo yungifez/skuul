@@ -34,7 +34,7 @@ class AcademicPeriodStatusChange extends Model
      */
     protected $casts = [
         'from_status' => AcademicPeriodStatus::class,
-        'to_status' => AcademicPeriodStatus::class,
+        'to_status'   => AcademicPeriodStatus::class,
     ];
 
     /**

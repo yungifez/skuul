@@ -49,10 +49,10 @@ class SchoolTest extends TestCase
             ->post('/dashboard/schools', ['name' => 'Test school', 'address' => 'Test address', 'phone' => '+123 456789', 'email' => 'test@email.com', 'initials' => 'TS']);
 
         $this->assertDatabaseHas('schools', [
-            'name' => 'Test school',
-            'address' => 'Test address',
-            'phone' => '+123 456789',
-            'email' => 'test@email.com',
+            'name'     => 'Test school',
+            'address'  => 'Test address',
+            'phone'    => '+123 456789',
+            'email'    => 'test@email.com',
             'initials' => 'TS',
         ]);
     }
@@ -106,12 +106,12 @@ class SchoolTest extends TestCase
             ->patch("/dashboard/schools/$school->id", ['name' => 'Test school 2', 'address' => 'something street', 'initials' => 'TS2', 'phone' => '123456789', 'email' => 'school@test.com']);
 
         $this->assertDatabaseHas('schools', [
-            'id' => $school->id,
-            'name' => 'Test school 2',
-            'address' => 'something street',
+            'id'       => $school->id,
+            'name'     => 'Test school 2',
+            'address'  => 'something street',
             'initials' => 'TS2',
-            'phone' => '123456789',
-            'email' => 'school@test.com',
+            'phone'    => '123456789',
+            'email'    => 'school@test.com',
         ]);
     }
 
@@ -121,16 +121,16 @@ class SchoolTest extends TestCase
 
         $this->authorized_user(['update school'])
             ->patch("/dashboard/schools/$school->id", [
-                'name' => 'Changed school',
-                'address' => 'changed address',
+                'name'     => 'Changed school',
+                'address'  => 'changed address',
                 'initials' => 'CS',
-                'phone' => '123456789',
-                'email' => 'changed@example.com',
+                'phone'    => '123456789',
+                'email'    => 'changed@example.com',
             ])
             ->assertForbidden();
 
         $this->assertDatabaseHas('schools', [
-            'id' => $school->id,
+            'id'   => $school->id,
             'name' => 'Other school',
         ]);
     }

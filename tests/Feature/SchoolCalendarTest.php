@@ -63,8 +63,8 @@ class SchoolCalendarTest extends TestCase
         $this->assertTrue($calendar->isTeachingDay());
 
         $this->event([
-            'title' => 'Founders day',
-            'type' => CalendarEventType::Holiday,
+            'title'        => 'Founders day',
+            'type'         => CalendarEventType::Holiday,
             'is_published' => true,
         ]);
 
@@ -92,11 +92,11 @@ class SchoolCalendarTest extends TestCase
         $this->authorized_user([]);
         $this->event(['title' => 'Founders day', 'type' => CalendarEventType::Holiday, 'is_published' => true]);
         $this->event([
-            'title' => 'Storm closure',
-            'type' => CalendarEventType::Closure,
+            'title'        => 'Storm closure',
+            'type'         => CalendarEventType::Closure,
             'is_published' => true,
-            'starts_at' => now()->addDays(3),
-            'ends_at' => now()->addDays(3),
+            'starts_at'    => now()->addDays(3),
+            'ends_at'      => now()->addDays(3),
         ]);
         $this->event(['title' => 'Club', 'type' => CalendarEventType::Activity, 'is_published' => true]);
 
@@ -113,13 +113,13 @@ class SchoolCalendarTest extends TestCase
         $forTheClass = $this->event(['title' => 'Class trip', 'is_published' => true]);
         CalendarEventAudience::create([
             'calendar_event_id' => $forTheClass->id,
-            'my_class_id' => $enrollment->my_class_id,
+            'my_class_id'       => $enrollment->my_class_id,
         ]);
         $otherClass = MyClass::factory()->create();
         $forAnotherClass = $this->event(['title' => 'Other trip', 'is_published' => true]);
         CalendarEventAudience::create([
             'calendar_event_id' => $forAnotherClass->id,
-            'my_class_id' => $otherClass->id,
+            'my_class_id'       => $otherClass->id,
         ]);
 
         $events = app(SchoolCalendar::class)->between(now()->subWeek(), now()->addWeek(), $enrollment->user);
@@ -143,15 +143,15 @@ class SchoolCalendarTest extends TestCase
     /**
      * Create an event in the working school.
      *
-     * @param  array<string, mixed>  $attributes
+     * @param array<string, mixed> $attributes
      */
     private function event(array $attributes = []): CalendarEvent
     {
         return CalendarEvent::create($attributes + [
             'school_id' => $this->workingSchool()->id,
-            'title' => 'School event',
+            'title'     => 'School event',
             'starts_at' => now()->startOfDay(),
-            'ends_at' => now()->endOfDay(),
+            'ends_at'   => now()->endOfDay(),
         ]);
     }
 }

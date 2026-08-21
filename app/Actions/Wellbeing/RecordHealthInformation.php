@@ -33,12 +33,14 @@ class RecordHealthInformation
         'notes',
     ];
 
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * Write the health record of one child.
      *
-     * @param  array<string, mixed>  $information
+     * @param array<string, mixed> $information
      */
     public function record(StudentRecord $enrollment, array $information, ?User $actor = null): StudentHealthRecord
     {

@@ -55,13 +55,13 @@ class ChangeProgramParticipation
         }
 
         return ProgramParticipation::create([
-            'school_id' => $program->school_id,
-            'program_id' => $program->id,
+            'school_id'         => $program->school_id,
+            'program_id'        => $program->id,
             'student_record_id' => $enrollment->id,
-            'starts_on' => Carbon::parse($startsOn ?? now()),
-            'schedule' => $schedule,
-            'staff_id' => $staff?->id,
-            'academic_year_id' => current_academic_year_id(),
+            'starts_on'         => Carbon::parse($startsOn ?? now()),
+            'schedule'          => $schedule,
+            'staff_id'          => $staff?->id,
+            'academic_year_id'  => current_academic_year_id(),
         ]);
     }
 

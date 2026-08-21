@@ -12,7 +12,7 @@ class ShowClassGroup extends Component
 
     public function mount()
     {
-        $this->setErrorBag(session()->get('errors', new MessageBag)->getMessages());
+        $this->setErrorBag(session()->get('errors', new MessageBag())->getMessages());
     }
 
     public function render()

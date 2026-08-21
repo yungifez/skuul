@@ -16,8 +16,8 @@ class FeeInvoiceRecord extends Model
 
     protected $casts = [
         'amount' => Money::class,
-        'fine' => Money::class,
-        'paid' => Money::class,
+        'fine'   => Money::class,
+        'paid'   => Money::class,
         'waiver' => Money::class,
     ];
 

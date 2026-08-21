@@ -211,7 +211,7 @@ class TeachingAssignmentTest extends TestCase
         $class = MyClass::factory()->create(['class_group_id' => $classGroup->id]);
 
         return Subject::factory()->create([
-            'school_id' => $this->workingSchool()->id,
+            'school_id'   => $this->workingSchool()->id,
             'my_class_id' => $class->id,
         ]);
     }

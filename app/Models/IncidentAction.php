@@ -29,7 +29,7 @@ class IncidentAction extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'due_on' => 'date:Y-m-d',
+        'due_on'       => 'date:Y-m-d',
         'completed_at' => 'datetime',
     ];
 

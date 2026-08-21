@@ -19,11 +19,11 @@ enum EmploymentType: string
     public function label(): string
     {
         return match ($this) {
-            self::FullTime => 'Full time',
-            self::PartTime => 'Part time',
-            self::Contract => 'Contract',
+            self::FullTime  => 'Full time',
+            self::PartTime  => 'Part time',
+            self::Contract  => 'Contract',
             self::Volunteer => 'Volunteer',
-            self::Intern => 'Intern',
+            self::Intern    => 'Intern',
         };
     }
 

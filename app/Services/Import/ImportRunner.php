@@ -24,12 +24,14 @@ use Throwable;
  */
 class ImportRunner
 {
-    public function __construct(private ImportRegistry $registry) {}
+    public function __construct(private ImportRegistry $registry)
+    {
+    }
 
     /**
      * Start an import and check every row.
      *
-     * @param  array<int, array<string, mixed>>  $rows
+     * @param array<int, array<string, mixed>> $rows
      *
      * @throws InvalidValueException when the file is missing a required column
      */
@@ -41,10 +43,10 @@ class ImportRunner
 
         return DB::transaction(function () use ($importer, $type, $rows, $sourceName, $actor): ImportBatch {
             $batch = ImportBatch::create([
-                'school_id' => current_school_id(),
-                'type' => $type,
+                'school_id'   => current_school_id(),
+                'type'        => $type,
                 'source_name' => $sourceName,
-                'created_by' => $actor === null ? auth()->id() : $actor->id,
+                'created_by'  => $actor === null ? auth()->id() : $actor->id,
             ]);
 
             $valid = 0;
@@ -59,17 +61,17 @@ class ImportRunner
                     'import_batch_id' => $batch->id,
                     // Line one is the heading, so the first row of data is line two.
                     'line_number' => $index + 2,
-                    'source_id' => $this->sourceIdOf($row),
-                    'payload' => $row,
-                    'state' => $isValid ? ImportRowState::Valid : ImportRowState::Invalid,
-                    'errors' => $errors === [] ? null : $errors,
+                    'source_id'   => $this->sourceIdOf($row),
+                    'payload'     => $row,
+                    'state'       => $isValid ? ImportRowState::Valid : ImportRowState::Invalid,
+                    'errors'      => $errors === [] ? null : $errors,
                 ]);
             }
 
             $batch->forceFill([
-                'status' => ImportStatus::Checked,
-                'row_count' => count($rows),
-                'valid_count' => $valid,
+                'status'        => ImportStatus::Checked,
+                'row_count'     => count($rows),
+                'valid_count'   => $valid,
                 'invalid_count' => $invalid,
             ])->save();
 
@@ -96,7 +98,7 @@ class ImportRunner
                 $subject = DB::transaction(fn (): Model => $this->write($importer, $batch, $row));
             } catch (Throwable $exception) {
                 $row->forceFill([
-                    'state' => ImportRowState::Invalid,
+                    'state'  => ImportRowState::Invalid,
                     'errors' => [$exception->getMessage()],
                 ])->save();
 
@@ -104,19 +106,19 @@ class ImportRunner
             }
 
             $row->forceFill([
-                'state' => ImportRowState::Applied,
+                'state'        => ImportRowState::Applied,
                 'subject_type' => $subject->getMorphClass(),
-                'subject_id' => $subject->getKey(),
+                'subject_id'   => $subject->getKey(),
             ])->save();
 
             $applied++;
         }
 
         $batch->forceFill([
-            'status' => ImportStatus::Applied,
+            'status'        => ImportStatus::Applied,
             'applied_count' => $applied,
             'invalid_count' => $batch->rows()->broken()->count(),
-            'applied_at' => now(),
+            'applied_at'    => now(),
         ])->save();
 
         return $batch;
@@ -167,7 +169,8 @@ class ImportRunner
     /**
      * Get what one row got wrong.
      *
-     * @param  array<string, mixed>  $row
+     * @param array<string, mixed> $row
+     *
      * @return array<int, string>
      */
     private function check(Importer $importer, array $row): array
@@ -180,7 +183,7 @@ class ImportRunner
     /**
      * Get the outside identifier a row names, when it names one.
      *
-     * @param  array<string, mixed>  $row
+     * @param array<string, mixed> $row
      */
     private function sourceIdOf(array $row): ?string
     {
@@ -192,7 +195,7 @@ class ImportRunner
     /**
      * Refuse a file that is missing a column the import needs.
      *
-     * @param  array<int, array<string, mixed>>  $rows
+     * @param array<int, array<string, mixed>> $rows
      *
      * @throws InvalidValueException when a required column is missing
      */

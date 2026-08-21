@@ -22,11 +22,11 @@ class SemesterStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'type' => ['nullable', Rule::in(AcademicPeriodType::values())],
-            'position' => ['nullable', 'integer', 'min:1', 'max:20'],
+            'name'      => ['required', 'string', 'max:255'],
+            'type'      => ['nullable', Rule::in(AcademicPeriodType::values())],
+            'position'  => ['nullable', 'integer', 'min:1', 'max:20'],
             'starts_on' => ['nullable', 'date'],
-            'ends_on' => ['nullable', 'date', 'after_or_equal:starts_on'],
+            'ends_on'   => ['nullable', 'date', 'after_or_equal:starts_on'],
         ];
     }
 }

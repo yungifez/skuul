@@ -36,7 +36,7 @@ class FeeInvoiceFactory extends Factory
                 ->inRandomOrder()
                 ->value('user_id'),
             'issue_date' => $issueDate,
-            'due_date' => $dueDate,
+            'due_date'   => $dueDate,
         ];
     }
 }

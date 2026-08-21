@@ -38,8 +38,8 @@ class AttendanceChange extends Model
      */
     protected $casts = [
         'from_status' => AttendanceStatus::class,
-        'to_status' => AttendanceStatus::class,
-        'created_at' => 'datetime',
+        'to_status'   => AttendanceStatus::class,
+        'created_at'  => 'datetime',
     ];
 
     /**

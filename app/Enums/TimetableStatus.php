@@ -32,9 +32,9 @@ enum TimetableStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Draft => 'Draft',
+            self::Draft     => 'Draft',
             self::Published => 'Published',
-            self::Archived => 'Archived',
+            self::Archived  => 'Archived',
         };
     }
 
@@ -54,9 +54,9 @@ enum TimetableStatus: string
     public function allowedNext(): array
     {
         return match ($this) {
-            self::Draft => [self::Published, self::Archived],
+            self::Draft     => [self::Published, self::Archived],
             self::Published => [self::Archived],
-            self::Archived => [],
+            self::Archived  => [],
         };
     }
 

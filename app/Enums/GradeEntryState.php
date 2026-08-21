@@ -46,11 +46,11 @@ enum GradeEntryState: string
     public function label(): string
     {
         return match ($this) {
-            self::Graded => 'Graded',
-            self::Missing => 'Missing',
-            self::Absent => 'Absent',
-            self::Exempt => 'Exempt',
-            self::Incomplete => 'Incomplete',
+            self::Graded        => 'Graded',
+            self::Missing       => 'Missing',
+            self::Absent        => 'Absent',
+            self::Exempt        => 'Exempt',
+            self::Incomplete    => 'Incomplete',
             self::NotApplicable => 'Not applicable',
         };
     }

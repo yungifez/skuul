@@ -30,7 +30,7 @@ class AccountInvitationTest extends TestCase
         $user = User::factory()->invited()->create();
 
         AccountInvitation::factory()->create(array_merge([
-            'user_id' => $user->id,
+            'user_id'    => $user->id,
             'token_hash' => AccountInvitation::hashToken($token),
         ], $invitationAttributes));
 
@@ -76,7 +76,7 @@ class AccountInvitationTest extends TestCase
         [$user, $token] = $this->invitedUserWithToken();
 
         $this->post("/invitations/$token", [
-            'password' => 'Str0ng-Passw0rd!',
+            'password'              => 'Str0ng-Passw0rd!',
             'password_confirmation' => 'Str0ng-Passw0rd!',
         ])->assertRedirect(route('dashboard'));
 
@@ -95,14 +95,14 @@ class AccountInvitationTest extends TestCase
         [, $token] = $this->invitedUserWithToken();
 
         $this->post("/invitations/$token", [
-            'password' => 'Str0ng-Passw0rd!',
+            'password'              => 'Str0ng-Passw0rd!',
             'password_confirmation' => 'Str0ng-Passw0rd!',
         ])->assertRedirect(route('dashboard'));
 
         $this->post('/logout');
 
         $this->post("/invitations/$token", [
-            'password' => 'An0ther-Passw0rd!',
+            'password'              => 'An0ther-Passw0rd!',
             'password_confirmation' => 'An0ther-Passw0rd!',
         ])->assertSessionHasErrors('token');
     }
@@ -112,7 +112,7 @@ class AccountInvitationTest extends TestCase
         [$user, $token] = $this->invitedUserWithToken(['expires_at' => now()->subHour()]);
 
         $this->post("/invitations/$token", [
-            'password' => 'Str0ng-Passw0rd!',
+            'password'              => 'Str0ng-Passw0rd!',
             'password_confirmation' => 'Str0ng-Passw0rd!',
         ])->assertSessionHasErrors('token');
 
@@ -125,7 +125,7 @@ class AccountInvitationTest extends TestCase
         [$user, $token] = $this->invitedUserWithToken();
 
         $this->post("/invitations/$token", [
-            'password' => 'abc',
+            'password'              => 'abc',
             'password_confirmation' => 'abc',
         ])->assertSessionHasErrors('password');
 

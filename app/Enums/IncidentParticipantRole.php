@@ -38,11 +38,11 @@ enum IncidentParticipantRole: string
     public function label(): string
     {
         return match ($this) {
-            self::Subject => 'Subject of the case',
+            self::Subject       => 'Subject of the case',
             self::AffectedParty => 'Affected party',
-            self::Witness => 'Witness',
-            self::Reporter => 'Reporter',
-            self::Handler => 'Handler',
+            self::Witness       => 'Witness',
+            self::Reporter      => 'Reporter',
+            self::Handler       => 'Handler',
         };
     }
 

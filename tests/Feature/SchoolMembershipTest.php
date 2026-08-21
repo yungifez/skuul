@@ -108,16 +108,16 @@ class SchoolMembershipTest extends TestCase
         $existing = User::factory()->create(['email' => $this->faker()->unique()->freeEmail()]);
 
         app(ProvisionAccount::class)->provision([
-            'name' => $existing->name,
-            'email' => $existing->email,
-            'school_id' => $second->id,
-            'birthday' => '2000-01-01',
-            'address' => 'a road',
+            'name'        => $existing->name,
+            'email'       => $existing->email,
+            'school_id'   => $second->id,
+            'birthday'    => '2000-01-01',
+            'address'     => 'a road',
             'blood_group' => 'a+',
             'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'gender' => 'male',
+            'state'       => 'lagos',
+            'city'        => 'lagos',
+            'gender'      => 'male',
         ]);
 
         $this->assertSame(1, User::where('email', $existing->email)->count());

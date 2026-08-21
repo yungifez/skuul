@@ -23,13 +23,13 @@ enum PortalArea: string
     public function label(): string
     {
         return match ($this) {
-            self::Results => 'Results',
+            self::Results    => 'Results',
             self::Attendance => 'Attendance',
-            self::Timetable => 'Timetable',
-            self::Notices => 'Notices',
-            self::Invoices => 'Invoices and payments',
-            self::Documents => 'Documents',
-            self::Requests => 'Requests',
+            self::Timetable  => 'Timetable',
+            self::Notices    => 'Notices',
+            self::Invoices   => 'Invoices and payments',
+            self::Documents  => 'Documents',
+            self::Requests   => 'Requests',
         };
     }
 

@@ -20,10 +20,10 @@ class RecordAuditEvent
     /**
      * Record the action.
      *
-     * @param  Model|null  $subject  the record the action was made on
-     * @param  array<string, mixed>  $context  extra facts worth keeping
-     * @param  User|null  $actor  the person who acted; the signed-in user by default
-     * @param  School|int|null  $school  the school the action belongs to
+     * @param Model|null           $subject the record the action was made on
+     * @param array<string, mixed> $context extra facts worth keeping
+     * @param User|null            $actor   the person who acted; the signed-in user by default
+     * @param School|int|null      $school  the school the action belongs to
      */
     public function record(
         AuditAction $action,
@@ -36,13 +36,13 @@ class RecordAuditEvent
         $schoolId = $school instanceof School ? $school->id : $school;
 
         return AuditEvent::create([
-            'school_id' => $schoolId ?? $this->schoolOf($subject) ?? current_school_id(),
-            'actor_id' => $actor?->id,
-            'action' => $action,
+            'school_id'    => $schoolId ?? $this->schoolOf($subject) ?? current_school_id(),
+            'actor_id'     => $actor?->id,
+            'action'       => $action,
             'subject_type' => $subject?->getMorphClass(),
-            'subject_id' => $subject?->getKey(),
-            'context' => $context === [] ? null : $context,
-            'ip_address' => request()->ip(),
+            'subject_id'   => $subject?->getKey(),
+            'context'      => $context === [] ? null : $context,
+            'ip_address'   => request()->ip(),
         ]);
     }
 

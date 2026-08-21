@@ -48,7 +48,7 @@ return [
 
     'middleware' => [
         'verify_csrf_token' => ValidateCsrfToken::class,
-        'encrypt_cookies' => EncryptCookies::class,
+        'encrypt_cookies'   => EncryptCookies::class,
     ],
 
 ];

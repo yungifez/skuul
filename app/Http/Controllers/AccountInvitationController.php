@@ -24,7 +24,7 @@ class AccountInvitationController extends Controller
 
         return view('auth.accept-invitation', [
             'token' => $token,
-            'user' => $invitation->user,
+            'user'  => $invitation->user,
         ]);
     }
 

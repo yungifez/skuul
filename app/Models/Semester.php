@@ -17,15 +17,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 /**
- * @property AcademicPeriodStatus $status
- * @property AcademicPeriodType $type
- * @property int $position
+ * @property AcademicPeriodStatus            $status
+ * @property AcademicPeriodType              $type
+ * @property int                             $position
  * @property \Illuminate\Support\Carbon|null $starts_on
  * @property \Illuminate\Support\Carbon|null $ends_on
- * @property string $name
- * @property int|null $academic_year_id
- * @property int $school_id
- * @property AcademicYear|null $academicYear
+ * @property string                          $name
+ * @property int|null                        $academic_year_id
+ * @property int                             $school_id
+ * @property AcademicYear|null               $academicYear
  */
 class Semester extends Model
 {
@@ -53,7 +53,7 @@ class Semester extends Model
      */
     protected $attributes = [
         'status' => AcademicPeriodStatus::Open->value,
-        'type' => AcademicPeriodType::Semester->value,
+        'type'   => AcademicPeriodType::Semester->value,
     ];
 
     /**
@@ -83,17 +83,18 @@ class Semester extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'status' => AcademicPeriodStatus::class,
-        'type' => AcademicPeriodType::class,
-        'position' => 'integer',
+        'status'    => AcademicPeriodStatus::class,
+        'type'      => AcademicPeriodType::class,
+        'position'  => 'integer',
         'starts_on' => 'date:Y-m-d',
-        'ends_on' => 'date:Y-m-d',
+        'ends_on'   => 'date:Y-m-d',
     ];
 
     /**
      * Read the periods in the order the school teaches them.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeOrdered(Builder $query): Builder

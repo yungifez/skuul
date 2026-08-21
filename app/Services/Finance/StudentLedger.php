@@ -14,7 +14,9 @@ use Illuminate\Support\Collection;
  */
 class StudentLedger
 {
-    public function __construct(private ChartOfAccounts $chart) {}
+    public function __construct(private ChartOfAccounts $chart)
+    {
+    }
 
     /**
      * Get what the student still owes.
