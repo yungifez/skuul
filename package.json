@@ -7,7 +7,7 @@
     "devDependencies": {
         "@tailwindcss/postcss": "^4.3.0",
         "autoprefixer": "^10.4.13",
-        "axios": "^1.15.2",
+        "axios": "^1.18.0",
         "laravel-vite-plugin": "^1.2.0",
         "lodash": "^4.17.23",
         "postcss": "^8.5.14",
