@@ -37,3 +37,19 @@ student between schools with `App\Actions\Enrollment\TransferEnrollment`.
 
 ## Organization administration never grants campus data access
 Organizations own schools/campuses. Keep organization_memberships separate from school_memberships and Spatie's school_id team scope. An organization administrator may manage organization/campus setup, but operational records still require an active school membership and school-scoped permission.
+
+## Organization authority is a permission set, not a role name
+`organization_memberships.permissions` is a JSON list of
+`App\Enums\OrganizationPermission` values, or null for full authority. A member
+holds a permission only when the global `organization-admin` Spatie role
+carries it AND the active membership in that one organization carries it, so
+delegation can only narrow, never widen. Ask
+`App\Services\Authorization\OrganizationPermissionScope::allows($user, $organization, $permission)`;
+never read the JSON column directly.
+
+Change scope through the actions:
+`GrantOrganizationMembership`, `RevokeOrganizationMembership`, and
+`SetOrganizationMemberPermissions`. Revoking keeps school memberships, keeps
+the row for history, and keeps the global role while another organization
+still needs it. An organization always keeps one member who can manage
+members: the last one cannot be revoked or delegated away.
