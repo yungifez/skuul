@@ -8,7 +8,7 @@
 @section('title', __('Calendar templates'))
 @section('page_heading', __('Calendar templates'))
 @section('page_actions')
-    <april:button href="{{ route('organizations.calendar-templates.create', $organization) }}"><x-lucide-plus class="size-4" />Add template</april:button>
+    <april:button-link href="{{ route('organizations.calendar-templates.create', $organization) }}" class="gap-1.5"><x-lucide-plus class="size-4" />Add template</april:button-link>
 @endsection
 
 @section('content')

@@ -61,35 +61,38 @@ class SidebarStateTest extends TestCase
         }
     }
 
-    public function test_an_open_submenu_paints_straight_away(): void
+    public function test_the_students_workspace_is_a_direct_link(): void
     {
         $html = $this->authorized_user(self::MENU_PERMISSIONS)
             ->get('dashboard/students')
             ->assertOk()
             ->getContent();
 
-        $panels = $this->submenuPanels($html);
-
-        $this->assertNotEmpty($panels);
-        foreach ($panels as $panel) {
-            $this->assertStringNotContainsString('x-cloak', $panel, 'The open submenu must not be cloaked.');
-        }
+        $this->assertStringContainsString(route('students.index'), $html);
+        $this->assertStringNotContainsString('View students', $this->withoutLivewireSnapshots($html));
     }
 
-    public function test_the_sidebar_shows_the_academic_period_feature(): void
+    public function test_the_sidebar_shows_the_replacement_academic_structure_without_legacy_navigation(): void
     {
         $this->authorized_user([
             'read admin',
+            'read academic year',
             'read academic period',
-            'create academic period',
+            'read class',
+            'read section',
+            'read subject',
         ])
             ->get('dashboard/admins')
             ->assertOk()
-            ->assertSee('Academic Periods')
-            ->assertSee('View academic periods')
-            ->assertSee('Create academic period')
+            ->assertSee('Academic cycles')
+            ->assertSee('Academic periods')
+            ->assertSee('Academic levels')
+            ->assertSee('Cycle sections')
+            ->assertSee('Course offerings')
             ->assertSee(route('academic-periods.index'), false)
-            ->assertDontSee('Semesters');
+            ->assertDontSee('View Classes')
+            ->assertDontSee('Class groups')
+            ->assertDontSee('Create academic period');
     }
 
     public function test_the_sidebar_shows_the_academic_period_result_sheet(): void
@@ -116,30 +119,29 @@ class SidebarStateTest extends TestCase
             ->get(route('organizations.index'))
             ->assertOk()
             ->assertSee('Organizations')
-            ->assertSee('View Organizations')
             ->assertSee(route('organizations.index'), false)
             ->assertDontSee(route('organizations.create'), false)
-            ->assertSee("x-bind:class=\"{ '-rotate-90': !open }\"", false);
+            ->assertDontSee('View Organizations');
     }
 
-    public function test_the_sidebar_hides_an_empty_multi_schools_section(): void
+    public function test_the_sidebar_hides_an_empty_organization_section(): void
     {
         $html = $this->authorized_user(['read admin'])
             ->get('dashboard/admins')
             ->assertOk()
             ->getContent();
 
-        $this->assertStringNotContainsString('Multi Schools Management', $this->withoutLivewireSnapshots($html));
+        $this->assertStringNotContainsString('Organization', $this->withoutLivewireSnapshots($html));
     }
 
-    public function test_the_multi_schools_section_uses_the_schools_menu_permission(): void
+    public function test_the_organization_section_uses_the_schools_menu_permission(): void
     {
         $html = $this->authorized_user(['read admin', 'read school'])
             ->get('dashboard/admins')
             ->assertOk()
             ->getContent();
 
-        $this->assertStringContainsString('Multi Schools Management', $this->withoutLivewireSnapshots($html));
+        $this->assertStringContainsString('Organization', $this->withoutLivewireSnapshots($html));
         $this->assertStringContainsString(route('schools.index'), $html);
     }
 

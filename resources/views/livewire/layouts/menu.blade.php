@@ -88,7 +88,7 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
                         </div>
                         @else
                         <april:sidebar-menu-item>
-                            <april:sidebar-menu-button-link href="{{route($menuItem['route'])}}" wire:navigate
+                            <april:sidebar-menu-button-link href="{{route($menuItem['route'], $menuItem['parameters'] ?? [])}}" wire:navigate
                                 class="{{Route::currentRouteName() == $menuItem['route'] ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground' : ''}}">
                                 <x-icon :name="'lucide-'.($menuItem['icon'] ?? 'circle')" class="w-4 shrink-0" />
                                 <span>{{$menuItem['text']}}</span>

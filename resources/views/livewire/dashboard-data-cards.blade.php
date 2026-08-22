@@ -44,7 +44,7 @@
                     <h3 class="mt-1 text-xl font-semibold tracking-tight">{{ $organization->name }}</h3>
                 </div>
 
-                <div class="grid gap-4 md:grid-cols-2">
+                <div class="grid gap-4 md:grid-cols-3">
                     <april:card>
                         <slot:title class="flex items-center justify-between gap-3 text-base">
                             <span class="flex items-center gap-3">
@@ -80,39 +80,87 @@
                             </april:button-link>
                         </slot:footer>
                     </april:card>
+
+                    @can('view', $organization)
+                        <april:card>
+                            <slot:title class="flex items-center justify-between gap-3 text-base">
+                                <span class="flex items-center gap-3">
+                                    <span class="flex size-10 items-center justify-center rounded-md bg-muted text-foreground">
+                                        <x-icon name="lucide-calendar-range" class="size-5" />
+                                    </span>
+                                    Calendar templates
+                                </span>
+                                <april:badge variant="outline">{{ number_format($calendarTemplates) }}</april:badge>
+                            </slot:title>
+                            <slot:description>Shared organization patterns for generating campus cycles.</slot:description>
+                            <slot:footer>
+                                <april:button-link href="{{ route('organizations.calendar-templates.index', $organization) }}" variant="link" size="none" class="gap-1 p-0">
+                                    Manage templates <span aria-hidden="true">→</span>
+                                </april:button-link>
+                            </slot:footer>
+                        </april:card>
+                    @endcan
                 </div>
             </section>
         @endif
 
         @php
-            $overviewStats = [
-                ['label' => 'Schools', 'value' => $schools, 'icon' => 'school', 'permission' => 'read school', 'href' => route('schools.index')],
-                ['label' => 'Organizations', 'value' => $organizations, 'icon' => 'building-2', 'permission' => null, 'href' => route('organizations.index'), 'platform_admin' => true],
-                ['label' => 'Class groups', 'value' => $classGroups, 'icon' => 'layers-3', 'permission' => 'read class group', 'href' => route('class-groups.index')],
-                ['label' => 'Classes', 'value' => $classes, 'icon' => 'presentation', 'permission' => 'read class', 'href' => route('classes.index')],
-                ['label' => 'Sections', 'value' => $sections, 'icon' => 'layout-list', 'permission' => 'read section', 'href' => route('sections.index')],
+            $academicStats = [
+                ['label' => 'Academic levels', 'value' => $academicLevels, 'icon' => 'presentation', 'permission' => 'read class', 'href' => route('academic-levels.index'), 'description' => 'Reusable levels configured for this school'],
+                ['label' => 'Cycle sections', 'value' => $cycleSections, 'icon' => 'landmark', 'permission' => 'read section', 'href' => route('academic-cycle-sections.index'), 'description' => 'Home sections in the current cycle'],
+                ['label' => 'Academic periods', 'value' => $academicPeriods, 'icon' => 'clock', 'permission' => 'read academic period', 'href' => route('academic-periods.index'), 'description' => 'Periods in the current academic cycle'],
+                ['label' => 'Course offerings', 'value' => $courseOfferings, 'icon' => 'book-marked', 'permission' => 'read subject', 'href' => route('course-offerings.index'), 'description' => 'Subjects configured for the current cycle'],
+            ];
+
+            $peopleStats = [
                 ['label' => 'Active students', 'value' => $students, 'icon' => 'users', 'permission' => 'read student', 'href' => route('students.index')],
                 ['label' => 'Teachers', 'value' => $teachers, 'icon' => 'graduation-cap', 'permission' => 'read teacher', 'href' => route('teachers.index')],
-                ['label' => 'Parents', 'value' => $parents, 'icon' => 'users', 'permission' => 'read subject', 'href' => route('parents.index')],
+                ['label' => 'Parents', 'value' => $parents, 'icon' => 'users', 'permission' => 'read parent', 'href' => route('parents.index')],
             ];
         @endphp
 
         <section class="space-y-4">
             <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Overview</p>
-                    <h3 class="mt-1 text-xl font-semibold tracking-tight">People and academic structure</h3>
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Academic setup</p>
+                    <h3 class="mt-1 text-xl font-semibold tracking-tight">The structure used for this cycle</h3>
                 </div>
                 <p class="text-sm text-muted-foreground">Updated from your current school context</p>
             </div>
 
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                @foreach ($overviewStats as $stat)
-                    @if (($stat['platform_admin'] ?? false) && ! auth()->user()->can(\App\Enums\PlatformPermission::AccessAllOrganizations))
-                        @continue
-                    @endif
-
+                @foreach ($academicStats as $stat)
                     @if ($stat['permission'] === null || auth()->user()->can($stat['permission']))
+                        <april:card>
+                            <slot:title class="flex items-center justify-between gap-3 text-base">
+                                <span>{{ $stat['label'] }}</span>
+                                <span class="flex size-9 items-center justify-center rounded-md bg-muted text-foreground">
+                                    <x-icon :name="'lucide-'.$stat['icon']" class="size-4" />
+                                </span>
+                            </slot:title>
+                            <slot:content class="flex flex-col">
+                                <p class="text-3xl font-semibold tracking-tight">{{ number_format($stat['value']) }}</p>
+                                <p class="mt-1 text-sm text-muted-foreground">{{ $stat['description'] }}</p>
+                                <april:separator />
+                                <april:button-link href="{{ $stat['href'] }}" variant="link" size="none" class="w-fit gap-1 p-0">
+                                    View details <span aria-hidden="true">→</span>
+                                </april:button-link>
+                            </slot:content>
+                        </april:card>
+                    @endif
+                @endforeach
+            </div>
+        </section>
+
+        <section class="space-y-4">
+            <div>
+                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">People</p>
+                <h3 class="mt-1 text-xl font-semibold tracking-tight">Everyone currently in scope</h3>
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach ($peopleStats as $stat)
+                    @if (auth()->user()->can($stat['permission']))
                         <april:card>
                             <slot:title class="flex items-center justify-between gap-3 text-base">
                                 <span>{{ $stat['label'] }}</span>
