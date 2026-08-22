@@ -27,7 +27,6 @@ class ExamFactory extends Factory
             'start_date' => $start,
             'stop_date' => $stop,
             'active' => $this->faker->boolean(),
-            'publish_result' => $this->faker->boolean(),
         ];
     }
 }

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Exam;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Tests\TestCase;
 
 class ExamTest extends TestCase
@@ -178,39 +179,13 @@ class ExamTest extends TestCase
         $this->assertModelMissing($exam);
     }
 
-    // test authorized user can view exam tabulation
-
-    public function test_authorized_user_can_view_exam_tabulation()
+    public function test_legacy_exam_result_routes_are_not_registered(): void
     {
-        $this->authorized_user(['read exam'])
-            ->get('dashboard/exams/tabulation-sheet')
-            ->assertSuccessful();
-    }
-
-    // test authorized user can view exam tabulation
-
-    public function test_authorized_user_can_view_academic_period_result_tabulation()
-    {
-        $this->authorized_user(['read exam'])
-            ->get('dashboard/exams/academic-period-result-tabulation')
-            ->assertSuccessful();
-    }
-
-    // test authorized user can view exam tabulation
-
-    public function test_authorized_user_can_view_academic_year_result_tabulation()
-    {
-        $this->authorized_user(['read exam'])
-            ->get('dashboard/exams/academic-year-result-tabulation')
-            ->assertSuccessful();
-    }
-
-    // test authorized user can view exam tabulation
-
-    public function test_authorized_user_can_view_result_checker()
-    {
-        $this->authorized_user(['check result'])
-            ->get('dashboard/exams/result-checker')
-            ->assertSuccessful();
+        $this->assertFalse(Route::has('exam-records.index'));
+        $this->assertFalse(Route::has('exams.tabulation'));
+        $this->assertFalse(Route::has('exams.academic-period-result-tabulation'));
+        $this->assertFalse(Route::has('exams.academic-year-result-tabulation'));
+        $this->assertFalse(Route::has('exams.result-checker'));
+        $this->assertFalse(Route::has('exams.set-publish-result-status'));
     }
 }

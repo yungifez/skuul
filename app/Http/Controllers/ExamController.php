@@ -86,46 +86,6 @@ class ExamController extends Controller
     }
 
     /**
-     * Tabulation for exams.
-     */
-    public function examTabulation(): View
-    {
-        $this->authorize('viewAny', Exam::class);
-
-        return view('pages.exam.tabulation');
-    }
-
-    /**
-     * Tabulation for academic period results.
-     */
-    public function academicPeriodResultTabulation(): View
-    {
-        $this->authorize('viewAny', Exam::class);
-
-        return view('pages.exam.academic-period-result-tabulation');
-    }
-
-    /**
-     * Tabulation for academic year results.
-     */
-    public function academicYearResultTabulation(): View
-    {
-        $this->authorize('viewAny', Exam::class);
-
-        return view('pages.exam.academic-year-result-tabulation');
-    }
-
-    /**
-     * Result checker.
-     */
-    public function resultChecker(): View
-    {
-        $this->authorize('checkResult', Exam::class);
-
-        return view('pages.exam.result-checker');
-    }
-
-    /**
      * Set exam status.
      */
     public function setExamActiveStatus(Exam $exam, UpdateExamStatusRequest $request): RedirectResponse
@@ -136,18 +96,5 @@ class ExamController extends Controller
         $this->examService->setExamActiveStatus($exam, $status);
 
         return back()->with('success', 'Exam status updated successfully');
-    }
-
-    /**
-     * Set publish result status.
-     */
-    public function setPublishResultStatus(Exam $exam, UpdateExamStatusRequest $request): RedirectResponse
-    {
-        $this->authorize('update', $exam);
-        // get status from request
-        $status = $request->status;
-        $this->examService->setPublishResultStatus($exam, $status);
-
-        return back()->with('success', 'Result published status updated successfully');
     }
 }

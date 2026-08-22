@@ -88,14 +88,4 @@ class ExamPolicy
     {
         //
     }
-
-    /**
-     * Determine whether the user can check result.
-     */
-    public function checkResult(User $user)
-    {
-        if ($user->can('check result')) {
-            return true;
-        }
-    }
 }

@@ -221,16 +221,6 @@ enum AuditAction: string
     case ResultRevised = 'result.revised';
 
     /**
-     * Exam results were made visible to students and parents.
-     */
-    case ExamResultPublished = 'exam.result_published';
-
-    /**
-     * Exam results were hidden again.
-     */
-    case ExamResultUnpublished = 'exam.result_unpublished';
-
-    /**
      * A support plan was written for a child.
      */
     case SupportPlanOpened = 'support_plan.opened';
@@ -350,8 +340,6 @@ enum AuditAction: string
             self::AcademicCycleSectionsRolledForward => 'Academic cycle sections rolled forward',
             self::ResultPublished => 'Result published',
             self::ResultRevised => 'Result corrected',
-            self::ExamResultPublished => 'Exam results published',
-            self::ExamResultUnpublished => 'Exam results hidden',
             self::SupportPlanOpened => 'Support plan opened',
             self::SupportPlanStatusChanged => 'Support plan status changed',
             self::HealthRecordUpdated => 'Health record updated',

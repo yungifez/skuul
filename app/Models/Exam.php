@@ -20,7 +20,6 @@ class Exam extends Model
         'start_date',
         'stop_date',
         'active',
-        'publish_result',
     ];
 
     /**
@@ -33,7 +32,6 @@ class Exam extends Model
         'start_date' => 'date:Y-m-d',
         'stop_date' => 'date:Y-m-d',
         'active' => 'boolean',
-        'publish_result' => 'boolean',
     ];
 
     /**
@@ -54,31 +52,5 @@ class Exam extends Model
     public function examSlots(): HasMany
     {
         return $this->hasMany(ExamSlot::class);
-    }
-
-    /**
-     * Calculate total marks attainable in each subjects for an exam.
-     *
-     * @return int|string
-     */
-    public function getTotalAttainableMarksInASubjectAttribute()
-    {
-        $totalMarks = 0;
-        foreach ($this->examSlots as $examSlot) {
-            $totalMarks += $examSlot->total_marks;
-        }
-
-        return $totalMarks;
-    }
-
-    /**
-     * Calculate total marks gotten by student in academic period across all exams in a subject.
-     *
-     *
-     * @return int
-     */
-    public function calculateStudentTotalMarkInSubjectForAcademicPeriod(AcademicPeriod $academicPeriod, User $user, Subject $subject)
-    {
-        return $this->examRecordService->getAllUserExamRecordInAcademicPeriodForSubject($academicPeriod, $user->id, $subject->id)->pluck('student_marks')->sum();
     }
 }

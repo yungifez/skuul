@@ -11,12 +11,9 @@ use App\Enums\EnrollmentStatus;
 use App\Enums\Role;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
-use App\Models\Exam;
-use App\Models\ExamSlot;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
-use App\Services\Exam\ExamService;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use RuntimeException;
@@ -122,41 +119,6 @@ class AuditEventTest extends TestCase
         $event = AuditEvent::ofAction(AuditAction::AcademicPeriodStatusChanged)->forSubject($year)->firstOrFail();
 
         $this->assertSame('closed', $event->context['to']);
-    }
-
-    public function test_publishing_exam_results_is_recorded(): void
-    {
-        $this->authorized_user([]);
-        $exam = Exam::factory()->create(['publish_result' => false]);
-        ExamSlot::factory()->create(['exam_id' => $exam->id]);
-
-        app(ExamService::class)->setPublishResultStatus($exam, true);
-
-        $event = AuditEvent::ofAction(AuditAction::ExamResultPublished)->forSubject($exam)->firstOrFail();
-
-        $this->assertSame($exam->name, $event->context['exam']);
-    }
-
-    public function test_hiding_exam_results_again_is_recorded(): void
-    {
-        $this->authorized_user([]);
-        $exam = Exam::factory()->create(['publish_result' => true]);
-        ExamSlot::factory()->create(['exam_id' => $exam->id]);
-
-        app(ExamService::class)->setPublishResultStatus($exam, false);
-
-        $this->assertNotNull(AuditEvent::ofAction(AuditAction::ExamResultUnpublished)->forSubject($exam)->first());
-    }
-
-    public function test_repeating_a_publication_records_nothing_new(): void
-    {
-        $this->authorized_user([]);
-        $exam = Exam::factory()->create(['publish_result' => true]);
-        ExamSlot::factory()->create(['exam_id' => $exam->id]);
-
-        app(ExamService::class)->setPublishResultStatus($exam, true);
-
-        $this->assertSame(0, AuditEvent::ofAction(AuditAction::ExamResultPublished)->forSubject($exam)->count());
     }
 
     public function test_a_record_belongs_to_the_school_it_was_made_in(): void

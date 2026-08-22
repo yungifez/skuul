@@ -95,17 +95,17 @@ class SidebarStateTest extends TestCase
             ->assertDontSee('Create academic period');
     }
 
-    public function test_the_sidebar_shows_the_academic_period_result_sheet(): void
+    public function test_the_sidebar_shows_the_gradebook_workspace(): void
     {
         $this->authorized_user([
             'read admin',
-            'read exam',
+            'menu-gradebook',
         ])
             ->get('dashboard/admins')
             ->assertOk()
-            ->assertSee('Academic Period Result Sheet')
-            ->assertSee(route('exams.academic-period-result-tabulation'), false)
-            ->assertDontSee('Semester Result Sheet');
+            ->assertSee('Gradebooks')
+            ->assertSee(route('course-offerings.index'), false)
+            ->assertDontSee('Exam records');
     }
 
     public function test_the_sidebar_shows_organizations_to_an_organization_administrator(): void

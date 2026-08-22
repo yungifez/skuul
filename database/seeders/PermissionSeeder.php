@@ -308,20 +308,6 @@ class PermissionSeeder extends Seeder
             'name' => 'delete exam slot',
         ]);
 
-        // permission for exam records
-        Permission::firstOrCreate([
-            'name' => 'create exam record',
-        ]);
-        Permission::firstOrCreate([
-            'name' => 'read exam record',
-        ]);
-        Permission::firstOrCreate([
-            'name' => 'update exam record',
-        ]);
-        Permission::firstOrCreate([
-            'name' => 'delete exam record',
-        ]);
-
         // Gradebook permissions
         Permission::firstOrCreate([
             'name' => 'read gradebook',
@@ -331,11 +317,6 @@ class PermissionSeeder extends Seeder
         ]);
         Permission::firstOrCreate([
             'name' => 'publish result',
-        ]);
-
-        // check result permission
-        Permission::firstOrCreate([
-            'name' => 'check result',
         ]);
 
         // permission for notices
@@ -715,10 +696,6 @@ class PermissionSeeder extends Seeder
             'read exam slot',
             'update exam slot',
             'delete exam slot',
-            'create exam record',
-            'read exam record',
-            'update exam record',
-            'delete exam record',
             'read gradebook',
             'manage gradebook',
             'publish result',
@@ -726,7 +703,6 @@ class PermissionSeeder extends Seeder
             'read notice',
             'update notice',
             'delete notice',
-            'check result',
             'create parent',
             'read parent',
             'update parent',
@@ -810,14 +786,9 @@ class PermissionSeeder extends Seeder
             'read timetable',
             'update timetable',
             'delete timetable',
-            'create exam record',
-            'read exam record',
-            'update exam record',
-            'delete exam record',
             'read gradebook',
             'manage gradebook',
             'read notice',
-            'check result',
         ]);
 
         // assign permissions to student
@@ -836,7 +807,6 @@ class PermissionSeeder extends Seeder
             'read grade system',
             'read notice',
             'read fee invoice',
-            'check result',
         ]);
 
         // assign permissions to parent
@@ -857,7 +827,6 @@ class PermissionSeeder extends Seeder
             'read grade system',
             'read notice',
             'read fee invoice',
-            'check result',
         ]);
 
         $organizationAdmin = Role::query()

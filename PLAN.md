@@ -590,8 +590,8 @@ Progress:
   `MyClass` and `Section`. Do not keep bridge columns, bridge relations, or
   parallel read paths. All new and changed operational records use the new
   identifiers only.
-- In progress: rebuild result tabulation and assessment screens on offerings
-  and cycle sections; they are the remaining subject and class-bound paths.
+- Done: assessment work happens in the course-offering gradebook. The former
+  class-bound exam-record, tabulation, and result-checker paths are removed.
 - Open: replace the remaining `subject_user` compatibility pivot with dated
   assignment queries. It must not remain a second source of truth.
 - Open: section-level timetable overrides and published syllabus revisions by
@@ -657,21 +657,17 @@ Progress:
 
 Current features:
 
-- Exams.
-- Exam slots.
-- Exam records and marks.
-- Active and published result flags.
-- Semester result tabulation.
-- Academic-year result tabulation.
-- Student and parent result checker.
+- Optional exam schedules.
+- Exam schedule slots.
 - Grade systems.
+- Course-offering gradebooks and published result revisions.
 
 Current assumptions:
 
-- Marks are entered per student, subject, and exam slot.
-- A teacher can enter marks when assigned to the subject.
-- Results become visible when a publish flag is set.
-- Grade rules are attached to a class group.
+- Exams describe a schedule. They do not contain marks or publish results.
+- Teachers record every assessment in the assigned course offering gradebook.
+- Published results are immutable gradebook snapshots, not an exam flag.
+- Grade rules apply to the course offering and its roster.
 
 Questions to decide:
 
@@ -746,8 +742,10 @@ Progress:
   publish official result revisions from the same screen. `read gradebook`,
   `manage gradebook`, and `publish result` are school-scoped Spatie
   permissions; teachers additionally need an assignment to that offering.
-- Open: named scale definitions, school-level assessment templates, report
-  cards across subjects, and removing the old exam-record/tabulation screens.
+- Done: legacy exam-record, tabulation, and result-checker screens, routes,
+  permissions, data, and schema are removed. Exam schedules remain optional.
+- Open: named scale definitions, school-level assessment templates, and report
+  cards across subjects.
 
 ### 9. Fees, invoices, and payments
 

@@ -10,7 +10,6 @@ use App\Models\AcademicPeriod;
 use App\Models\AcademicPeriodStatusChange;
 use App\Models\AcademicYear;
 use App\Models\Exam;
-use App\Models\ExamRecord;
 use App\Models\ExamSlot;
 use App\Models\School;
 use App\Models\Timetable;
@@ -137,19 +136,6 @@ class AcademicPeriodLifecycleTest extends TestCase
         $this->expectException(ClosedPeriodException::class);
 
         $exam->fresh()->delete();
-    }
-
-    public function test_marks_cannot_be_entered_in_a_closed_period(): void
-    {
-        $academicPeriod = $this->openAcademicPeriod();
-        $exam = Exam::factory()->create(['academic_period_id' => $academicPeriod->id]);
-        $slot = ExamSlot::factory()->create(['exam_id' => $exam->id]);
-
-        app(ChangeAcademicPeriodStatus::class)->close($academicPeriod);
-
-        $this->expectException(ClosedPeriodException::class);
-
-        ExamRecord::factory()->create(['exam_slot_id' => $slot->id]);
     }
 
     public function test_exam_slots_cannot_be_changed_in_a_closed_period(): void

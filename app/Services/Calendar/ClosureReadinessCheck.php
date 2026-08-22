@@ -65,7 +65,6 @@ class ClosureReadinessCheck
         return [
             $this->unpublishedTimetables($period),
             $this->ungradedItems($period),
-            $this->unpublishedExamResults($period),
         ];
     }
 
@@ -160,21 +159,6 @@ class ClosureReadinessCheck
             summary: 'Grade entries are still incomplete.',
             count: $count,
             blocking: true,
-        );
-    }
-
-    /**
-     * Count exams whose results were never published.
-     */
-    private function unpublishedExamResults(AcademicPeriod $period): ClosureFinding
-    {
-        $count = $period->exams()->where('publish_result', false)->count();
-
-        return new ClosureFinding(
-            key: 'unpublished_exam_results',
-            summary: 'Exam results are not published.',
-            count: $count,
-            blocking: false,
         );
     }
 }

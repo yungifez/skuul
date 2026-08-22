@@ -178,21 +178,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 // set exam status
                 Route::post('exams/{exam}/set--active-status', ['App\Http\Controllers\ExamController', 'setExamActiveStatus'])->name('exams.set-active-status');
 
-                // set publish result status
-                Route::post('exams/{exam}/set-publish-result-status', ['App\Http\Controllers\ExamController', 'setPublishResultStatus'])->name('exams.set-publish-result-status');
-                // manage exam record
-                Route::resource('exams/exam-records', ExamRecordController::class);
-
-                // exam tabulation sheet
-                Route::get('exams/tabulation-sheet', ['App\Http\Controllers\ExamController', 'examTabulation'])->name('exams.tabulation');
-
-                // result tabulation sheet
-                Route::get('exams/academic-period-result-tabulation', ['App\Http\Controllers\ExamController', 'academicPeriodResultTabulation'])->name('exams.academic-period-result-tabulation');
-                Route::get('exams/academic-year-result-tabulation', ['App\Http\Controllers\ExamController', 'academicYearResultTabulation'])->name('exams.academic-year-result-tabulation');
-
-                // result checker
-                Route::get('exams/result-checker', ['App\Http\Controllers\ExamController', 'resultChecker'])->name('exams.result-checker');
-
                 // exam routes
                 Route::resource('exams', ExamController::class);
 

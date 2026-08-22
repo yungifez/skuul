@@ -150,46 +150,10 @@ class Menu extends Component
             ],
             [
                 'type' => 'menu-item',
-                'text' => 'Exams',
-                'icon' => 'book-open',
-                'submenu' => [
-                    [
-                        'type' => 'menu-item',
-                        'text' => 'View Exams',
-                        'route' => 'exams.index',
-                        'can' => 'read exam',
-                    ],
-                    [
-                        'type' => 'menu-item',
-                        'text' => 'Exam records',
-                        'route' => 'exam-records.index',
-                        'can' => 'update exam record',
-                    ],
-                    [
-                        'type' => 'menu-item',
-                        'text' => 'Exam tabulation sheet',
-                        'route' => 'exams.tabulation',
-                        'can' => 'read exam',
-                    ],
-                    [
-                        'type' => 'menu-item',
-                        'text' => 'Academic Period Result Sheet',
-                        'route' => 'exams.academic-period-result-tabulation',
-                        'can' => 'read exam',
-                    ],
-                    [
-                        'type' => 'menu-item',
-                        'text' => 'Academic Year Result Sheet',
-                        'route' => 'exams.academic-year-result-tabulation',
-                        'can' => 'read exam',
-                    ],
-                    [
-                        'type' => 'menu-item',
-                        'text' => 'Result Checker',
-                        'route' => 'exams.result-checker',
-                        'can' => 'check result',
-                    ],
-                ],
+                'text' => 'Exam schedules',
+                'icon' => 'calendar-days',
+                'route' => 'exams.index',
+                'can' => 'read exam',
             ],
             [
                 'type' => 'menu-item',
