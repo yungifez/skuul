@@ -1042,7 +1042,11 @@ Progress:
   actor and reason, beside the record it corrects.
 - Done: `App\Services\Attendance\AttendanceSummary` counts present, absent,
   late, and excused days and works out the rate.
-- Open: the teacher and guardian screens, an approval workflow for corrections
+- Done: staff have a one-page daily home-section register. It restores marks
+  already taken for the selected day, submits the entire roster through the
+  audited attendance action, and is protected by school-scoped `read
+  attendance` and `take attendance` permissions.
+- Open: guardian attendance screens, an approval workflow for corrections
   after a period closes, and turning each register on or off per school.
 
 ### 14. Student and guardian portal
