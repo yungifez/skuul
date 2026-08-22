@@ -2,10 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Timetable\CreateSectionTimetableOverride;
 use App\Actions\Timetable\PublishTimetable;
 use App\Actions\Timetable\ReviseTimetable;
+use App\Http\Requests\CreateSectionTimetableOverrideRequest;
 use App\Http\Requests\TimetableStoreRequest;
 use App\Http\Requests\TimetableUpdateRequest;
+use App\Models\AcademicCycleSection;
 use App\Models\Timetable;
 use App\Services\Timetable\TimetableService;
 use Illuminate\Http\RedirectResponse;
@@ -21,6 +24,7 @@ class TimetableController extends Controller
         TimetableService $timetableService,
         private PublishTimetable $publishTimetable,
         private ReviseTimetable $reviseTimetable,
+        private CreateSectionTimetableOverride $createSectionTimetableOverride,
     ) {
         $this->timetableService = $timetableService;
         $this->authorizeResource(Timetable::class, 'timetable');
@@ -60,7 +64,9 @@ class TimetableController extends Controller
      */
     public function show(Timetable $timetable): View
     {
-        return view('pages.timetable.show', compact('timetable'));
+        $overrideSections = AcademicCycleSection::inSchool()->where('academic_year_id', $timetable->academicCycleSection->academic_year_id)->where('academic_level_id', $timetable->academicCycleSection->academic_level_id)->whereKeyNot($timetable->academic_cycle_section_id)->orderBy('position')->get(['id', 'name', 'label']);
+
+        return view('pages.timetable.show', compact('timetable', 'overrideSections'));
     }
 
     /**
@@ -132,5 +138,13 @@ class TimetableController extends Controller
         $draft = $this->reviseTimetable->revise($timetable, $request->user());
 
         return to_route('timetables.manage', $draft)->with('success', 'New timetable revision created');
+    }
+
+    public function createSectionOverride(CreateSectionTimetableOverrideRequest $request, Timetable $timetable): RedirectResponse
+    {
+        $section = AcademicCycleSection::inSchool()->findOrFail($request->integer('academic_cycle_section_id'));
+        $override = $this->createSectionTimetableOverride->create($timetable, $section, $request->user());
+
+        return to_route('timetables.manage', $override)->with('success', 'Section timetable draft created from the published template.');
     }
 }

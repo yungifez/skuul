@@ -600,7 +600,10 @@ Progress:
 - Done: published syllabi are immutable revisions by offering. Revising creates
   a draft successor; publishing it supersedes the former published revision and
   records both actions in the audit log.
-- Open: section-level timetable overrides.
+- Done: a published timetable can start an editable, section-owned override
+  draft for another home section in the same academic cycle. The override
+  copies the weekly schedule, keeps its template link, and then follows the
+  normal immutable revision and publication workflow.
 
 ### 7. Timetable
 

@@ -16,5 +16,20 @@
             Print timetable
         </april:button>
     </div>
+    @can('update', $timetable)
+        @if ($timetable->status === \App\Enums\TimetableStatus::Published && $overrideSections->isNotEmpty())
+            <form method="POST" action="{{ route('timetables.section-overrides.store', $timetable) }}" class="mb-4 flex flex-wrap items-end gap-3 rounded-md border p-4">
+                @csrf
+                <label class="flex flex-col gap-1 text-sm font-medium">Create an override for
+                    <select name="academic_cycle_section_id" class="rounded-md border border-input bg-background px-3 py-2" required>
+                        @foreach ($overrideSections as $section)
+                            <option value="{{ $section->id }}">{{ $section->label ?? $section->name }}</option>
+                        @endforeach
+                    </select>
+                </label>
+                <april:button type="submit">Create override draft</april:button>
+            </form>
+        @endif
+    @endcan
     @livewire('show-timetable', ['timetable' => $timetable])
 @endsection

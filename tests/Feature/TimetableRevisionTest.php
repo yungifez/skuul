@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\Curriculum\AssignTeacher;
+use App\Actions\Timetable\CreateSectionTimetableOverride;
 use App\Actions\Timetable\PublishTimetable;
 use App\Actions\Timetable\ReviseTimetable;
 use App\Enums\AuditAction;
@@ -138,6 +139,26 @@ class TimetableRevisionTest extends TestCase
 
         $this->assertSame(TimetableStatus::Archived, $first->fresh()->status);
         $this->assertSame(TimetableStatus::Published, $draft->fresh()->status);
+    }
+
+    public function test_a_section_can_start_an_override_from_a_published_template(): void
+    {
+        $this->authorized_user([]);
+        $template = $this->timetable();
+        TimetableTimeSlot::create(['timetable_id' => $template->id, 'start_time' => '08:00', 'stop_time' => '09:00']);
+        app(PublishTimetable::class)->publish($template);
+        $section = AcademicCycleSection::factory()->create([
+            'school_id' => $template->academicCycleSection->school_id,
+            'academic_year_id' => $template->academicCycleSection->academic_year_id,
+            'academic_level_id' => $template->academicCycleSection->academic_level_id,
+        ]);
+
+        $override = app(CreateSectionTimetableOverride::class)->create($template->fresh(), $section, auth()->user());
+
+        $this->assertSame(TimetableStatus::Draft, $override->status);
+        $this->assertSame($template->id, $override->template_timetable_id);
+        $this->assertSame($section->id, $override->academic_cycle_section_id);
+        $this->assertSame(1, $override->timeSlots()->count());
     }
 
     public function test_an_archived_timetable_cannot_be_published_again(): void

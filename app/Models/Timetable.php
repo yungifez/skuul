@@ -35,6 +35,7 @@ class Timetable extends Model
         'revision',
         'academic_period_id',
         'academic_cycle_section_id',
+        'template_timetable_id',
         'effective_from',
         'effective_to',
         'published_at',
@@ -158,6 +159,16 @@ class Timetable extends Model
     public function academicCycleSection(): BelongsTo
     {
         return $this->belongsTo(AcademicCycleSection::class);
+    }
+
+    /**
+     * Get the published template this section override started from.
+     *
+     * @return BelongsTo<Timetable, $this>
+     */
+    public function templateTimetable(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'template_timetable_id');
     }
 
     /**
