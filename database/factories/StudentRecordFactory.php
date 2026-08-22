@@ -7,7 +7,6 @@ use App\Enums\EnrollmentStatus;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
-use App\Models\Model;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
@@ -15,7 +14,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
 /**
- * @extends Factory<Model>
+ * @extends Factory<StudentRecord>
  */
 class StudentRecordFactory extends Factory
 {
@@ -28,22 +27,22 @@ class StudentRecordFactory extends Factory
      */
     public function definition()
     {
-        $student = User::factory()->create();
-        $school = School::query()->first() ?? School::factory()->create();
+        $student = User::query()->findOrFail(User::factory()->create()->getKey());
+        $school = School::query()->first() ?? School::query()->findOrFail(School::factory()->create()->getKey());
         $academicYear = AcademicYear::query()->where('school_id', $school->id)->first()
-            ?? AcademicYear::factory()->create(['school_id' => $school->id]);
+            ?? AcademicYear::query()->findOrFail(AcademicYear::factory()->create(['school_id' => $school->id])->getKey());
         $academicLevel = AcademicLevel::query()->where('school_id', $school->id)->first()
-            ?? AcademicLevel::factory()->create(['school_id' => $school->id]);
+            ?? AcademicLevel::query()->findOrFail(AcademicLevel::factory()->create(['school_id' => $school->id])->getKey());
         $academicCycleSection = AcademicCycleSection::query()
             ->where('school_id', $school->id)
             ->where('academic_year_id', $academicYear->id)
             ->first()
-            ?? AcademicCycleSection::factory()->create([
+            ?? AcademicCycleSection::query()->findOrFail(AcademicCycleSection::factory()->create([
                 'school_id' => $school->id,
                 'academic_year_id' => $academicYear->id,
                 'academic_level_id' => $academicLevel->id,
                 'status' => AcademicStructureStatus::Active,
-            ]);
+            ])->getKey());
         $student->assignRole('student');
 
         return [

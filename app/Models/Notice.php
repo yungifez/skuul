@@ -26,6 +26,10 @@ class Notice extends Model
         'title',
         'content',
         'attachment',
+        'attachment_disk',
+        'attachment_name',
+        'attachment_mime_type',
+        'attachment_size',
         'start_date',
         'stop_date',
         'active',
@@ -121,6 +125,14 @@ class Notice extends Model
     public function isPublished(): bool
     {
         return $this->status === NoticeStatus::Published;
+    }
+
+    /**
+     * Check whether the notice has a private attachment managed by this app.
+     */
+    public function hasManagedAttachment(): bool
+    {
+        return $this->attachment !== null && $this->attachment_disk === 'local';
     }
 
     /**

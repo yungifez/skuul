@@ -4,25 +4,23 @@ namespace App\Services\Notice;
 
 use App\Models\Notice;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 
 class NoticeService
 {
     /**
      * Get all notices.
-     *
-     * @return Collection
      */
-    public function getAllNotices()
+    public function getAllNotices(): Collection
     {
         return Notice::inSchool()->get();
     }
 
     /**
      * Get present notices which are active.
-     *
-     * @return Collection
      */
-    public function getPresentNotices()
+    public function getPresentNotices(): Collection
     {
         return Notice::inSchool()
             ->whereDate('start_date', '<=', date('Y-m-d'))
@@ -33,26 +31,43 @@ class NoticeService
 
     /**
      * Store notice.
-     *
-     * @return Notice
      */
-    public function storeNotice(array $data)
+    /**
+     * Store the attachment on the private disk and create the draft notice.
+     *
+     * @param  array{title: string, content: string, start_date: string, stop_date: string, attachment?: UploadedFile|null}  $data
+     */
+    public function storeNotice(array $data): Notice
     {
-        if (isset($data['attachment'])) {
-            $data['attachment'] = $data['attachment']->store('notice/', 'public');
-        } else {
-            $data['attachment'] = null;
-        }
-        $notice = Notice::create([
-            'title'      => $data['title'],
-            'content'    => $data['content'],
-            'start_date' => $data['start_date'],
-            'stop_date'  => $data['stop_date'],
-            'attachment' => $data['attachment'],
-            'school_id'  => current_school_id(),
-        ]);
+        /** @var UploadedFile|null $attachment */
+        $attachment = $data['attachment'] ?? null;
+        $schoolId = current_school_id();
+        $attachmentPath = null;
 
-        return $notice;
+        if ($attachment instanceof UploadedFile) {
+            $attachmentPath = $attachment->store("notice-attachments/$schoolId", 'local');
+        }
+
+        try {
+            return Notice::create([
+                'title' => $data['title'],
+                'content' => $data['content'],
+                'start_date' => $data['start_date'],
+                'stop_date' => $data['stop_date'],
+                'attachment' => $attachmentPath,
+                'attachment_disk' => $attachmentPath === null ? null : 'local',
+                'attachment_name' => $attachment?->getClientOriginalName(),
+                'attachment_mime_type' => $attachment?->getMimeType(),
+                'attachment_size' => $attachment?->getSize(),
+                'school_id' => $schoolId,
+            ]);
+        } catch (\Throwable $exception) {
+            if ($attachmentPath !== null) {
+                Storage::disk('local')->delete($attachmentPath);
+            }
+
+            throw $exception;
+        }
     }
 
     /**

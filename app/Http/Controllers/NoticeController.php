@@ -12,12 +12,9 @@ use Illuminate\View\View;
 
 class NoticeController extends Controller
 {
-    public $notice;
-
-    public function __construct(NoticeService $notice)
+    public function __construct(private NoticeService $notice)
     {
         $this->authorizeResource(Notice::class, 'notice');
-        $this->notice = $notice;
     }
 
     /**
@@ -41,7 +38,7 @@ class NoticeController extends Controller
      */
     public function store(StoreNoticeRequest $request): RedirectResponse
     {
-        $this->notice->storeNotice($request->except('_token'));
+        $this->notice->storeNotice($request->validated());
 
         return back()->with('success', 'Notice created successfully');
     }

@@ -893,8 +893,11 @@ Progress:
   original content and recipient evidence remain intact; publishing the
   successor atomically supersedes the previous version, so families see only
   the current communication.
-- Open: attachments through managed storage, guardian-level targeting, and
-  per-user notification settings.
+- Done: attachments use private managed storage with the original filename,
+  content type, and size retained as metadata. Download requires either the
+  staff notice policy or an enabled portal and a recipient relationship to the
+  student; attachments never use a public storage URL.
+- Open: guardian-level targeting and per-user notification settings.
 
 ### 11. Reports and exports
 
