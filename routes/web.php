@@ -241,10 +241,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::get('academic-years/{academic_year}/instructional-model', ['App\Http\Controllers\InstructionalModelController', 'edit'])->name('academic-years.instructional-model.edit');
         Route::put('academic-years/{academic_year}/instructional-model', ['App\Http\Controllers\InstructionalModelController', 'update'])->name('academic-years.instructional-model.update');
 
-        // assign teachers to subject in class
-        Route::get('subjects/assign-teacher', ['App\Http\Controllers\SubjectController', 'assignTeacherView'])->name('subjects.assign-teacher');
-        Route::post('subjects/assign-teacher/{teacher}', ['App\Http\Controllers\SubjectController', 'assignTeacher'])->name('subjects.assign-teacher-to-subject');
-
         // subject routes
         Route::resource('subjects', SubjectController::class);
 

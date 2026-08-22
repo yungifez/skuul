@@ -19,6 +19,12 @@ use Illuminate\Support\Carbon;
  * end date, never by being deleted.
  *
  * @property TeachingRole $role
+ * @property int $school_id
+ * @property int $subject_id
+ * @property int $user_id
+ * @property int $academic_year_id
+ * @property int $academic_period_id
+ * @property int $course_offering_id
  * @property Carbon $starts_on
  * @property Carbon|null $ends_on
  * @property int|null $academic_cycle_section_id

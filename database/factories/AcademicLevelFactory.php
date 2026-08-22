@@ -22,7 +22,7 @@ class AcademicLevelFactory extends Factory
         return [
             'school_id' => $school->id,
             'name' => fake()->unique()->words(2, true),
-            'code' => fake()->unique()->bothify('LVL-###'),
+            'code' => fake()->unique()->bothify('LVL-######'),
             'position' => fake()->numberBetween(1, 20),
         ];
     }

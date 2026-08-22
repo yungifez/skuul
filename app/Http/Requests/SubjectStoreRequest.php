@@ -14,8 +14,6 @@ class SubjectStoreRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255'],
             'short_name' => ['required', 'string', 'max:255'],
-            'teachers' => ['nullable', 'array'],
-            'teachers.*' => ['integer', 'exists:users,id'],
         ];
     }
 }

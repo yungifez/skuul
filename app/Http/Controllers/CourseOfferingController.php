@@ -112,13 +112,10 @@ class CourseOfferingController extends Controller
         $teacher = User::ofSchool()->findOrFail($data['teacher_id']);
 
         $this->assignTeacher->assign(
-            $courseOffering->subject,
+            $courseOffering,
             $teacher,
             TeachingRole::from($data['role']),
-            academicYear: $courseOffering->academicYear,
-            academicPeriod: $courseOffering->academicPeriod,
             actor: $request->user(),
-            courseOffering: $courseOffering,
         );
 
         return back()->with('success', 'Teacher assigned to the course offering.');

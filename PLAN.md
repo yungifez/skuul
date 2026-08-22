@@ -592,8 +592,11 @@ Progress:
   identifiers only.
 - Done: assessment work happens in the course-offering gradebook. The former
   class-bound exam-record, tabulation, and result-checker paths are removed.
-- Open: replace the remaining `subject_user` compatibility pivot with dated
-  assignment queries. It must not remain a second source of truth.
+- Done: the retired `subject_user` compatibility pivot, bulk assignment
+  route, component, and catalog-level teacher controls are removed. Every
+  teaching assignment now belongs to one course offering, and the database
+  rejects an assignment without one. Timetable conflict checks read the
+  dated offering assignments directly.
 - Open: section-level timetable overrides and published syllabus revisions by
   offering.
 

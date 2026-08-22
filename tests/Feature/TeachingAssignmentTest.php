@@ -10,115 +10,113 @@ use App\Enums\TeachingRole;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
+use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
+use App\Models\CourseOffering;
 use App\Models\School;
 use App\Models\Subject;
 use App\Models\TeachingAssignment;
 use App\Models\User;
-use App\Services\Subject\SubjectService;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 /**
- * Teaching is a dated assignment, so several teachers can share a subject.
+ * Teaching belongs to one dated course offering, not a subject catalog entry.
  */
 class TeachingAssignmentTest extends TestCase
 {
     use FeatureTestTrait;
     use RefreshDatabase;
 
-    public function test_a_teacher_takes_a_subject_for_the_working_year(): void
+    public function test_a_teacher_takes_a_course_offering_for_its_academic_period(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
+        $courseOffering = $this->courseOffering();
         $teacher = $this->teacher();
 
-        $assignment = app(AssignTeacher::class)->assign($subject, $teacher);
+        $assignment = app(AssignTeacher::class)->assign($courseOffering, $teacher);
 
-        $this->assertSame($subject->id, $assignment->subject_id);
+        $this->assertSame($courseOffering->subject_id, $assignment->subject_id);
+        $this->assertSame($courseOffering->id, $assignment->course_offering_id);
+        $this->assertSame($courseOffering->academic_period_id, $assignment->academic_period_id);
         $this->assertSame($teacher->id, $assignment->user_id);
-        $this->assertSame(current_academic_year_id(), $assignment->academic_year_id);
         $this->assertSame(TeachingRole::Lead, $assignment->role);
         $this->assertTrue($assignment->isRunningOn());
-        $this->assertTrue($subject->fresh()->teachers->contains($teacher));
     }
 
-    public function test_two_teachers_can_share_one_subject(): void
+    public function test_two_teachers_can_share_one_course_offering(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
-        $lead = $this->teacher();
-        $support = $this->teacher();
+        $courseOffering = $this->courseOffering();
 
         $action = app(AssignTeacher::class);
-        $action->assign($subject, $lead);
-        $action->assign($subject, $support, TeachingRole::Supporting);
+        $action->assign($courseOffering, $this->teacher());
+        $action->assign($courseOffering, $this->teacher(), TeachingRole::Supporting);
 
-        $this->assertSame(2, TeachingAssignment::where('subject_id', $subject->id)->runningOn()->count());
-        $this->assertSame(2, $subject->fresh()->teachers->count());
+        $this->assertSame(2, TeachingAssignment::query()->where('course_offering_id', $courseOffering->id)->runningOn()->count());
     }
 
     public function test_asking_twice_returns_the_same_assignment(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
+        $courseOffering = $this->courseOffering();
         $teacher = $this->teacher();
 
         $action = app(AssignTeacher::class);
-        $first = $action->assign($subject, $teacher);
-        $second = $action->assign($subject, $teacher);
+        $first = $action->assign($courseOffering, $teacher);
+        $second = $action->assign($courseOffering, $teacher);
 
         $this->assertSame($first->id, $second->id);
-        $this->assertSame(1, TeachingAssignment::where('subject_id', $subject->id)->count());
+        $this->assertSame(1, TeachingAssignment::query()->where('course_offering_id', $courseOffering->id)->count());
     }
 
-    public function test_an_assignment_can_cover_one_cycle_section(): void
+    public function test_an_assignment_can_cover_one_home_section_of_its_offering(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
-        $cycleSection = $this->cycleSection();
+        $courseOffering = $this->courseOffering();
+        $cycleSection = $this->cycleSection($courseOffering);
 
-        $assignment = app(AssignTeacher::class)->assign($subject, $this->teacher(), TeachingRole::Lead, $cycleSection);
+        $assignment = app(AssignTeacher::class)->assign($courseOffering, $this->teacher(), TeachingRole::Lead, $cycleSection);
 
         $this->assertSame($cycleSection->id, $assignment->academic_cycle_section_id);
     }
 
-    public function test_a_cycle_section_in_another_school_is_refused(): void
+    public function test_a_home_section_in_another_school_is_refused(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
-        $otherSchool = School::factory()->create();
-        $year = AcademicYear::factory()->create(['school_id' => $otherSchool->id]);
-        $level = AcademicLevel::factory()->create(['school_id' => $otherSchool->id]);
-        $cycleSection = AcademicCycleSection::factory()->create([
+        $courseOffering = $this->courseOffering();
+        $otherSchool = School::query()->findOrFail(School::factory()->create()->getKey());
+        $year = AcademicYear::query()->findOrFail(AcademicYear::factory()->create(['school_id' => $otherSchool->id])->getKey());
+        $level = AcademicLevel::query()->findOrFail(AcademicLevel::factory()->create(['school_id' => $otherSchool->id])->getKey());
+        $cycleSection = AcademicCycleSection::query()->findOrFail(AcademicCycleSection::factory()->create([
             'school_id' => $otherSchool->id,
             'academic_year_id' => $year->id,
             'academic_level_id' => $level->id,
-        ]);
+        ])->getKey());
 
         $this->expectException(InvalidValueException::class);
 
-        app(AssignTeacher::class)->assign($subject, $this->teacher(), TeachingRole::Lead, $cycleSection);
+        app(AssignTeacher::class)->assign($courseOffering, $this->teacher(), TeachingRole::Lead, $cycleSection);
     }
 
     public function test_a_person_who_is_not_a_teacher_is_refused(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
         $person = $this->memberOf($this->workingSchool());
 
         $this->expectException(InvalidValueException::class);
 
-        app(AssignTeacher::class)->assign($subject, $person);
+        app(AssignTeacher::class)->assign($this->courseOffering(), $person);
     }
 
     public function test_a_teacher_of_another_school_is_refused(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
-        $other = School::factory()->create();
+        $other = School::query()->findOrFail(School::factory()->create()->getKey());
         $stranger = $this->memberOf($other);
         school_context()->set($other, remember: false);
         $stranger->assignRole(Role::Teacher->value);
@@ -126,28 +124,25 @@ class TeachingAssignmentTest extends TestCase
 
         $this->expectException(InvalidValueException::class);
 
-        app(AssignTeacher::class)->assign($subject, $stranger);
+        app(AssignTeacher::class)->assign($this->courseOffering(), $stranger);
     }
 
-    public function test_a_closed_year_refuses_a_new_assignment(): void
+    public function test_a_closed_academic_cycle_refuses_a_new_assignment(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
-        $year = AcademicYear::factory()->create(['school_id' => $this->workingSchool()->id]);
-        app(ChangeAcademicPeriodStatus::class)->close($year);
+        $courseOffering = $this->courseOffering();
+        app(ChangeAcademicPeriodStatus::class)->close($courseOffering->academicYear);
 
         $this->expectException(InvalidValueException::class);
 
-        app(AssignTeacher::class)->assign($subject, $this->teacher(), TeachingRole::Lead, null, $year->fresh());
+        app(AssignTeacher::class)->assign($courseOffering->fresh(), $this->teacher());
     }
 
     public function test_ending_an_assignment_keeps_the_record(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
-        $teacher = $this->teacher();
         $action = app(AssignTeacher::class);
-        $assignment = $action->assign($subject, $teacher);
+        $assignment = $action->assign($this->courseOffering(), $this->teacher());
 
         $action->end($assignment);
 
@@ -155,7 +150,6 @@ class TeachingAssignmentTest extends TestCase
 
         $this->assertNotNull($assignment->ends_on);
         $this->assertFalse($assignment->isRunningOn(now()->addDay()));
-        $this->assertFalse($subject->fresh()->teachers->contains($teacher));
         $this->assertDatabaseHas('teaching_assignments', ['id' => $assignment->id]);
     }
 
@@ -163,7 +157,7 @@ class TeachingAssignmentTest extends TestCase
     {
         $this->authorized_user([]);
         $action = app(AssignTeacher::class);
-        $assignment = $action->assign($this->subject(), $this->teacher());
+        $assignment = $action->assign($this->courseOffering(), $this->teacher());
 
         $action->end($assignment, now()->subDay());
         $ended = $assignment->fresh()->ends_on;
@@ -175,63 +169,59 @@ class TeachingAssignmentTest extends TestCase
     public function test_assignments_are_written_to_the_audit_log(): void
     {
         $this->authorized_user([]);
-        $assignment = app(AssignTeacher::class)->assign($this->subject(), $this->teacher());
+        $assignment = app(AssignTeacher::class)->assign($this->courseOffering(), $this->teacher());
 
-        $this->assertNotNull(
-            AuditEvent::ofAction(AuditAction::TeachingAssignmentCreated)->forSubject($assignment)->first()
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::TeachingAssignmentCreated)->forSubject($assignment)->first());
+    }
+
+    public function test_the_subject_teacher_pivot_and_bulk_assignment_route_are_gone(): void
+    {
+        $this->assertFalse(Schema::hasTable('subject_user'));
+        $this->assertFalse(Route::has('subjects.assign-teacher'));
+        $this->assertFalse(Route::has('subjects.assign-teacher-to-subject'));
+    }
+
+    private function courseOffering(): CourseOffering
+    {
+        $academicYear = AcademicYear::query()->findOrFail(
+            current_academic_year_id() ?? AcademicYear::factory()->create([
+                'school_id' => $this->workingSchool()->id,
+            ])->getKey()
         );
-    }
-
-    public function test_the_subject_screen_writes_assignments(): void
-    {
-        $this->authorized_user([]);
-        $subject = $this->subject();
-        $teacher = $this->teacher();
-
-        app(SubjectService::class)->syncTeachers($subject, [$teacher->id]);
-
-        $this->assertSame(1, TeachingAssignment::where('subject_id', $subject->id)->runningOn()->count());
-    }
-
-    public function test_removing_a_teacher_from_the_screen_ends_the_assignment(): void
-    {
-        $this->authorized_user([]);
-        $subject = $this->subject();
-        $teacher = $this->teacher();
-        $service = app(SubjectService::class);
-        $service->syncTeachers($subject, [$teacher->id]);
-
-        $service->syncTeachers($subject, []);
-
-        $this->assertSame(0, TeachingAssignment::where('subject_id', $subject->id)->runningOn(now()->addDay())->count());
-        $this->assertSame(1, TeachingAssignment::where('subject_id', $subject->id)->count());
-    }
-
-    /**
-     * Create a subject in the working school.
-     */
-    private function subject(): Subject
-    {
-        return Subject::factory()->create([
+        $academicPeriod = AcademicPeriod::query()
+            ->where('academic_year_id', $academicYear->id)
+            ->firstOr(fn (): AcademicPeriod => AcademicPeriod::factory()->create([
+                'school_id' => $this->workingSchool()->id,
+                'academic_year_id' => $academicYear->id,
+            ]));
+        $academicLevel = AcademicLevel::query()->findOrFail(AcademicLevel::factory()->create([
             'school_id' => $this->workingSchool()->id,
-        ]);
-    }
+        ])->getKey());
+        $subject = Subject::query()->findOrFail(Subject::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+        ])->getKey());
 
-    private function cycleSection(): AcademicCycleSection
-    {
-        $academicYear = current_academic_year() ?? AcademicYear::factory()->create(['school_id' => $this->workingSchool()->id]);
-        $academicLevel = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id]);
-
-        return AcademicCycleSection::factory()->create([
+        return CourseOffering::factory()->create([
             'school_id' => $this->workingSchool()->id,
             'academic_year_id' => $academicYear->id,
+            'academic_period_id' => $academicPeriod->id,
             'academic_level_id' => $academicLevel->id,
+            'subject_id' => $subject->id,
         ]);
     }
 
-    /**
-     * Create a teacher of the working school.
-     */
+    private function cycleSection(CourseOffering $courseOffering): AcademicCycleSection
+    {
+        $cycleSection = AcademicCycleSection::query()->findOrFail(AcademicCycleSection::factory()->create([
+            'school_id' => $courseOffering->school_id,
+            'academic_year_id' => $courseOffering->academic_year_id,
+            'academic_level_id' => $courseOffering->academic_level_id,
+        ])->getKey());
+        $courseOffering->cycleSections()->attach($cycleSection);
+
+        return $cycleSection;
+    }
+
     private function teacher(): User
     {
         $teacher = $this->memberOf($this->workingSchool());

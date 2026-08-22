@@ -375,12 +375,4 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $value === null ? null : Carbon::parse($value)->format('Y-m-d');
     }
-
-    /**
-     * The subjects that belong to the User.
-     */
-    public function subjects(): BelongsToMany
-    {
-        return $this->belongsToMany(Subject::class);
-    }
 }

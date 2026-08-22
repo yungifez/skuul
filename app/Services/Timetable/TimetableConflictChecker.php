@@ -2,7 +2,9 @@
 
 namespace App\Services\Timetable;
 
+use App\Enums\RosterMode;
 use App\Models\Subject;
+use App\Models\TeachingAssignment;
 use App\Models\Timetable;
 use App\Models\TimetableRecord;
 use Illuminate\Support\Carbon;
@@ -108,17 +110,50 @@ class TimetableConflictChecker
             ->get();
 
         $slots = $timetable->timeSlots()->get()->keyBy('id');
+        $subjectMorphClass = (new Subject)->getMorphClass();
+        $subjects = Subject::query()
+            ->whereKey(
+                $records
+                    ->where('timetable_time_slot_weekdayable_type', $subjectMorphClass)
+                    ->pluck('timetable_time_slot_weekdayable_id')
+                    ->unique()
+            )
+            ->get()
+            ->keyBy('id');
+        $cycleSection = $timetable->academicCycleSection;
+        $assignmentsBySubject = $cycleSection === null || $subjects->isEmpty()
+            ? collect()
+            : TeachingAssignment::query()
+                ->whereIn('subject_id', $subjects->keys())
+                ->where('academic_period_id', $timetable->academic_period_id)
+                ->runningOn()
+                ->whereHas('courseOffering', function ($query) use ($cycleSection): void {
+                    $query->where(function ($offerings) use ($cycleSection): void {
+                        $offerings->whereHas('cycleSections', fn ($sections) => $sections->whereKey($cycleSection->id))
+                            ->orWhere(function ($offerings) use ($cycleSection): void {
+                                $offerings->where('roster_mode', RosterMode::AcademicLevel)
+                                    ->where('academic_level_id', $cycleSection->academic_level_id);
+                            });
+                    });
+                })
+                ->with('teacher:id,name')
+                ->get()
+                ->groupBy('subject_id');
 
         /** @var Collection<int, array{weekday_id: int, start_time: string, stop_time: string, teacher_ids: array<int, int>, teacher_names: array<int, string>}> $entries */
-        $entries = $records->map(function (TimetableRecord $record) use ($slots): ?array {
+        $entries = $records->map(function (TimetableRecord $record) use ($assignmentsBySubject, $slots, $subjectMorphClass, $subjects): ?array {
             $slot = $slots->get($record->timetable_time_slot_id);
-            $subject = $record->timetableRecordable()->first();
+            $subject = $record->timetable_time_slot_weekdayable_type === $subjectMorphClass
+                ? $subjects->get($record->timetable_time_slot_weekdayable_id)
+                : null;
 
             if ($slot === null || !$subject instanceof Subject) {
                 return null;
             }
 
-            $teachers = $subject->teachers()->get(['users.id', 'users.name']);
+            $teachers = $assignmentsBySubject->get($subject->id, collect())
+                ->map(fn (TeachingAssignment $assignment): ?\App\Models\User => $assignment->teacher)
+                ->filter();
 
             return [
                 'weekday_id' => (int) $record->weekday_id,

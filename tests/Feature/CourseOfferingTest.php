@@ -152,12 +152,9 @@ class CourseOfferingTest extends TestCase
         $teacher->assignRole(Role::Teacher->value);
 
         $assignment = app(AssignTeacher::class)->assign(
-            $subject,
+            $courseOffering,
             $teacher,
             TeachingRole::Lead,
-            academicYear: $academicYear,
-            academicPeriod: $academicPeriod,
-            courseOffering: $courseOffering,
         );
 
         $this->assertSame($courseOffering->id, $assignment->course_offering_id);

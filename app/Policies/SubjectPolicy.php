@@ -75,16 +75,4 @@ class SubjectPolicy
     {
         //
     }
-
-    /**
-     * Determine whether the user can assign teachers to subjects.
-     */
-    public function assignTeacher(User $user): ?bool
-    {
-        if ($user->can('update subject')) {
-            return true;
-        }
-
-        return null;
-    }
 }

@@ -14,8 +14,7 @@ use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
-use App\Models\ClassGroup;
-use App\Models\MyClass;
+use App\Models\CourseOffering;
 use App\Models\Subject;
 use App\Models\Timetable;
 use App\Models\TimetableRecord;
@@ -230,7 +229,16 @@ class TimetableRevisionTest extends TestCase
     {
         $timetable = $this->timetable();
         $subject = $this->subject();
-        app(AssignTeacher::class)->assign($subject, $teacher);
+        $cycleSection = $timetable->academicCycleSection;
+        $courseOffering = CourseOffering::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => $cycleSection->academic_year_id,
+            'academic_period_id' => $timetable->academic_period_id,
+            'academic_level_id' => $cycleSection->academic_level_id,
+            'subject_id' => $subject->id,
+        ]);
+        $courseOffering->cycleSections()->attach($cycleSection);
+        app(AssignTeacher::class)->assign($courseOffering, $teacher);
 
         $slot = TimetableTimeSlot::create([
             'timetable_id' => $timetable->id,
@@ -248,17 +256,10 @@ class TimetableRevisionTest extends TestCase
         return $timetable;
     }
 
-    /**
-     * Create a subject for the working school.
-     */
     private function subject(): Subject
     {
-        $classGroup = ClassGroup::factory()->create(['school_id' => $this->workingSchool()->id]);
-        $class = MyClass::factory()->create(['class_group_id' => $classGroup->id]);
-
         return Subject::factory()->create([
             'school_id' => $this->workingSchool()->id,
-            'my_class_id' => $class->id,
         ]);
     }
 
