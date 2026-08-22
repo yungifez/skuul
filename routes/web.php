@@ -55,6 +55,8 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::get('schools/settings', ['App\Http\Controllers\SchoolController', 'settings'])->name('schools.settings')->middleware('App\Http\Middleware\RequireActiveSchool');
     Route::get('schools/operating-profile', ['App\Http\Controllers\SchoolOperatingProfileController', 'edit'])->name('schools.operating-profile.edit')->middleware('App\Http\Middleware\RequireActiveSchool');
     Route::put('schools/operating-profile', ['App\Http\Controllers\SchoolOperatingProfileController', 'update'])->name('schools.operating-profile.update')->middleware('App\Http\Middleware\RequireActiveSchool');
+    Route::get('schools/features', ['App\Http\Controllers\FeatureSettingsController', 'edit'])->name('schools.features.edit')->middleware('App\Http\Middleware\RequireActiveSchool');
+    Route::put('schools/features', ['App\Http\Controllers\FeatureSettingsController', 'update'])->name('schools.features.update')->middleware('App\Http\Middleware\RequireActiveSchool');
 
     // School routes
     Route::resource('schools', SchoolController::class);

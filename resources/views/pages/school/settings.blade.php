@@ -111,6 +111,12 @@
                     <slot:description>Lesson times, rooms and the timetable learners and teachers follow each day.</slot:description>
                     <slot:footer><april:button-link href="{{ route('timetables.index') }}" variant="link" size="none" class="gap-1 p-0">Manage timetable <span aria-hidden="true">→</span></april:button-link></slot:footer>
                 </april:card>
+
+                <april:card>
+                    <slot:title class="flex items-center justify-between gap-3"><span>Tools your school uses</span><x-lucide-sliders-horizontal class="size-5 text-muted-foreground" /></slot:title>
+                    <slot:description>Choose which optional school tools are available to staff and families.</slot:description>
+                    <slot:footer><april:button-link href="{{ route('schools.features.edit') }}" variant="link" size="none" class="gap-1 p-0">Choose school tools <span aria-hidden="true">→</span></april:button-link></slot:footer>
+                </april:card>
             </div>
         </section>
     </div>
