@@ -100,11 +100,14 @@ class SchoolTest extends TestCase
             ->assertSuccessful();
     }
 
-    public function test_school_settings_redirects_to_edit_school()
+    public function test_school_setup_can_be_rendered_for_the_current_school()
     {
-        $this->authorized_user(['update school'])
+        $this->authorized_user(['manage school settings'])
             ->get('/dashboard/schools/settings')
-            ->assertRedirect('/dashboard/schools/1/edit');
+            ->assertSuccessful()
+            ->assertSee('Set up your school')
+            ->assertSee('How teaching works')
+            ->assertSee('Grades and classes');
     }
 
     public function test_unauthorized_user_cannot_update_school()

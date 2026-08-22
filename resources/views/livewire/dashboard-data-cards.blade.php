@@ -3,15 +3,15 @@
         <april:card>
             <slot:title class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                 <span>
-                    <span class="block text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">School operations</span>
-                    <span class="mt-2 block text-2xl font-semibold tracking-tight md:text-3xl">Your school at a glance</span>
+                    <span class="block text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Today at {{ current_school()->name }}</span>
+                    <span class="mt-2 block text-2xl font-semibold tracking-tight md:text-3xl">Your school, ready for the day</span>
                 </span>
                 <april:badge variant="secondary" class="w-fit gap-2">
                     <span class="size-2 rounded-full bg-emerald-500"></span>
                     Live school data
                 </april:badge>
             </slot:title>
-            <slot:description>Monitor the people and academic structure that keep {{ current_school()->name }} moving.</slot:description>
+            <slot:description>See the school year you are working in, then take care of what needs attention next.</slot:description>
             <slot:content>
                 <april:separator class="mb-6 mt-0" />
                 <div class="grid gap-4 sm:grid-cols-2">
@@ -20,7 +20,7 @@
                             <x-icon name="lucide-school" class="size-5" />
                         </span>
                         <div>
-                            <p class="text-sm font-medium">Current school</p>
+                            <p class="text-sm font-medium">You are working in</p>
                             <p class="text-sm text-muted-foreground">{{ current_school()->name }}</p>
                         </div>
                     </div>
@@ -29,7 +29,7 @@
                             <x-icon name="lucide-calendar-range" class="size-5" />
                         </span>
                         <div>
-                            <p class="text-sm font-medium">Current academic period</p>
+                            <p class="text-sm font-medium">School year and term</p>
                             <p class="text-sm text-muted-foreground">{{ current_academic_year()?->name ?? 'Not selected' }} · {{ current_academic_period()?->name ?? 'No academic period' }}</p>
                         </div>
                     </div>
@@ -106,10 +106,10 @@
 
         @php
             $academicStats = [
-                ['label' => 'Academic levels', 'value' => $academicLevels, 'icon' => 'presentation', 'permission' => 'read class', 'href' => route('academic-levels.index'), 'description' => 'Reusable levels configured for this school'],
-                ['label' => 'Cycle sections', 'value' => $cycleSections, 'icon' => 'landmark', 'permission' => 'read section', 'href' => route('academic-cycle-sections.index'), 'description' => 'Home sections in the current cycle'],
-                ['label' => 'Academic periods', 'value' => $academicPeriods, 'icon' => 'clock', 'permission' => 'read academic period', 'href' => route('academic-periods.index'), 'description' => 'Periods in the current academic cycle'],
-                ['label' => 'Course offerings', 'value' => $courseOfferings, 'icon' => 'book-marked', 'permission' => 'read subject', 'href' => route('course-offerings.index'), 'description' => 'Subjects configured for the current cycle'],
+                ['label' => 'Grades and class levels', 'value' => $academicLevels, 'icon' => 'presentation', 'permission' => 'read class', 'href' => route('academic-levels.index'), 'description' => 'The grades or classes your school teaches'],
+                ['label' => 'Classes this year', 'value' => $cycleSections, 'icon' => 'landmark', 'permission' => 'read section', 'href' => route('academic-cycle-sections.index'), 'description' => 'Arms, homerooms or sections prepared for this year'],
+                ['label' => 'Terms and reporting periods', 'value' => $academicPeriods, 'icon' => 'clock', 'permission' => 'read academic period', 'href' => route('academic-periods.index'), 'description' => 'The school terms, semesters or reporting periods in use'],
+                ['label' => 'Subjects being taught', 'value' => $courseOfferings, 'icon' => 'book-marked', 'permission' => 'read subject', 'href' => route('course-offerings.index'), 'description' => 'Subjects set up for the current school year'],
             ];
 
             $peopleStats = [
@@ -122,8 +122,8 @@
         <section class="space-y-4">
             <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Academic setup</p>
-                    <h3 class="mt-1 text-xl font-semibold tracking-tight">The structure used for this cycle</h3>
+                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">School-year setup</p>
+                    <h3 class="mt-1 text-xl font-semibold tracking-tight">What is ready for this school year</h3>
                 </div>
                 <p class="text-sm text-muted-foreground">Updated from your current school context</p>
             </div>

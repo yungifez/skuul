@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\SchoolSetRequest;
 use App\Http\Requests\SchoolStoreRequest;
 use App\Http\Requests\SchoolUpdateRequest;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
+use App\Models\CourseOffering;
 use App\Models\Organization;
 use App\Models\School;
 use App\Services\School\SchoolService;
@@ -96,9 +99,26 @@ class SchoolController extends Controller
     /**
      * Get settings for authenticated user's school.
      */
-    public function settings(): RedirectResponse
+    public function settings(): View
     {
-        return redirect()->route('schools.edit', ['school' => current_school_id()]);
+        $school = current_school();
+        $academicYear = current_academic_year();
+
+        $this->authorize('update', $school);
+
+        return view('pages.school.settings', [
+            'school' => $school,
+            'academicYear' => $academicYear,
+            'academicLevelsCount' => AcademicLevel::query()->inSchool($school)->count(),
+            'cycleSectionsCount' => AcademicCycleSection::query()
+                ->inSchool($school)
+                ->when($academicYear !== null, fn ($query) => $query->where('academic_year_id', $academicYear->id))
+                ->count(),
+            'courseOfferingsCount' => CourseOffering::query()
+                ->inSchool($school)
+                ->when($academicYear !== null, fn ($query) => $query->where('academic_year_id', $academicYear->id))
+                ->count(),
+        ]);
     }
 
     /**
