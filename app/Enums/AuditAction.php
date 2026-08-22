@@ -220,6 +220,12 @@ enum AuditAction: string
      */
     case ResultRevised = 'result.revised';
 
+    /** A cross-subject report card was published. */
+    case ReportCardPublished = 'report_card.published';
+
+    /** A report card was regenerated from corrected subject results. */
+    case ReportCardRevised = 'report_card.revised';
+
     /**
      * A reusable grading scale was created or changed.
      */
@@ -360,6 +366,8 @@ enum AuditAction: string
             self::AcademicCycleSectionsRolledForward => 'Academic cycle sections rolled forward',
             self::ResultPublished => 'Result published',
             self::ResultRevised => 'Result corrected',
+            self::ReportCardPublished => 'Report card published',
+            self::ReportCardRevised => 'Report card revised',
             self::GradingScaleSaved => 'Grading scale saved',
             self::GradingScaleDeleted => 'Grading scale deleted',
             self::AssessmentTemplateSaved => 'Assessment template saved',
