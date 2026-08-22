@@ -50,7 +50,7 @@ class SendNoticeEmails implements ShouldQueue
             ->pluck('email_enabled', 'user_id');
 
         foreach ($recipients as $recipient) {
-            if (($preferences[$recipient->user_id] ?? true) === false) {
+            if (!(bool) ($preferences[$recipient->user_id] ?? true)) {
                 continue;
             }
 
