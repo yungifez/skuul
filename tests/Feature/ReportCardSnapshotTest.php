@@ -8,6 +8,7 @@ use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\CourseOffering;
+use App\Models\ReportCardSnapshot;
 use App\Models\ResultSnapshot;
 use App\Models\StudentRecord;
 use App\Models\Subject;
@@ -45,6 +46,40 @@ class ReportCardSnapshotTest extends TestCase
 
         $this->assertSame(2, $revision->revision);
         $this->assertSame(1, $reportCard->fresh()->revision);
+    }
+
+    public function test_authorized_staff_can_publish_a_report_card_from_the_workspace(): void
+    {
+        $this->authorized_user(['read report', 'create report']);
+        [$student, $period] = $this->reportableStudent();
+
+        $this->get(route('report-cards.index'))
+            ->assertOk()
+            ->assertSee('Publish a report card');
+
+        $this->post(route('report-cards.store'), [
+            'student_record_id' => $student->id,
+            'academic_period_id' => $period->id,
+        ])->assertSessionHasNoErrors()->assertSessionHas('success');
+
+        $reportCard = ReportCardSnapshot::query()->sole();
+        $this->assertSame(1, ReportCardSnapshot::count());
+        $this->get(route('report-cards.show', $reportCard))
+            ->assertOk()
+            ->assertSee('Subject results');
+    }
+
+    /** @return array{StudentRecord, AcademicPeriod} */
+    private function reportableStudent(): array
+    {
+        $school = $this->workingSchool();
+        $academicYear = AcademicYear::factory()->create(['school_id' => $school->id]);
+        $period = AcademicPeriod::factory()->create(['school_id' => $school->id, 'academic_year_id' => $academicYear->id, 'status' => AcademicPeriodStatus::Closing]);
+        $student = StudentRecord::factory()->create(['school_id' => $school->id]);
+        $offering = $this->offering($school->id, $academicYear->id, $period->id);
+        ResultSnapshot::create(['school_id' => $school->id, 'student_record_id' => $student->id, 'course_offering_id' => $offering->id, 'revision' => 1, 'percentage' => 70, 'payload' => ['percentage' => 70], 'published_at' => now()]);
+
+        return [$student, $period];
     }
 
     private function offering(int $schoolId, int $academicYearId, int $academicPeriodId): CourseOffering

@@ -756,7 +756,12 @@ Progress:
   grading scales, points, weights, and ordering; they never copy learner marks,
   due dates, or published results. Each use is audited, and an unavailable
   grading scale blocks application rather than creating an invalid assessment.
-- Open: report cards across subjects.
+- Done: report cards are immutable, cross-subject snapshots. Authorized staff
+  publish one only while its period is closing or finished; it captures the
+  latest published result revision from each subject, an overall average, the
+  source IDs and revisions, actor, timestamp, and reason. A correction makes
+  a new report-card revision, and the report-card workspace lets staff issue,
+  list, and inspect the frozen subject rows.
 
 ### 9. Fees, invoices, and payments
 
@@ -939,8 +944,8 @@ Progress:
   school and written to the audit log.
 - Done: the first two reports are student balances, read from the ledger, and
   the class list.
-- Open: official report snapshots such as report cards and transcripts, the
-  queued browser-based PDF renderer, and spreadsheet exports.
+- Open: official transcript snapshots, the queued browser-based PDF renderer,
+  and spreadsheet exports.
 
 ### 12. Platform operations
 
