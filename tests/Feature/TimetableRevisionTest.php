@@ -264,6 +264,21 @@ class TimetableRevisionTest extends TestCase
         app(PublishTimetable::class)->publish($second);
     }
 
+    public function test_two_sections_cannot_use_the_same_room_at_the_same_time(): void
+    {
+        $this->authorized_user([]);
+        $first = $this->timetableWithLesson($this->teacher(), '08:00', '09:00');
+        $first->academicCycleSection->update(['room' => 'Science laboratory']);
+        app(PublishTimetable::class)->publish($first);
+
+        $second = $this->timetableWithLesson($this->teacher(), '08:00', '09:00');
+        $second->academicCycleSection->update(['room' => 'Science laboratory']);
+
+        $this->expectException(TimetableConflictException::class);
+
+        app(PublishTimetable::class)->publish($second);
+    }
+
     public function test_lessons_at_different_times_do_not_clash(): void
     {
         $this->authorized_user([]);

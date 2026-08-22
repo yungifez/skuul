@@ -661,7 +661,10 @@ Progress:
 - Done: sections can begin with a draft inherited from a published class
   template, while a dated cover record names the replacement teacher, reason,
   approving staff member, and date without mutating the normal timetable.
-- Open: rooms and room clashes.
+- Done: a section's optional home room is validated on publication, so two
+  sections cannot publish overlapping lessons into the same named room.
+- Open: a bookable facilities catalogue for labs, halls, vehicles, and shared
+  equipment, which can override the section's normal room for one entry.
 
 ### 8. Examinations and results
 

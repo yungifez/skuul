@@ -29,6 +29,7 @@ class TimetableConflictChecker
         return array_merge(
             $this->overlappingSlots($timetable),
             $this->teacherClashes($timetable),
+            $this->roomClashes($timetable),
         );
     }
 
@@ -99,9 +100,50 @@ class TimetableConflictChecker
     }
 
     /**
+     * Find sections that have claimed the same named room at the same time.
+     *
+     * A section room is optional, so schedules without one remain valid.
+     * Schools that use one stable homeroom per section gain room protection
+     * without having to configure a separate facilities catalogue first.
+     *
+     * @return array<int, string>
+     */
+    private function roomClashes(Timetable $timetable): array
+    {
+        $entries = $this->entriesOf($timetable);
+
+        if ($entries->isEmpty()) {
+            return [];
+        }
+
+        $published = Timetable::query()
+            ->published()
+            ->where('academic_period_id', $timetable->academic_period_id)
+            ->whereKeyNot($timetable->getKey())
+            ->get();
+        $conflicts = [];
+
+        foreach ($published as $other) {
+            foreach ($this->entriesOf($other) as $otherEntry) {
+                foreach ($entries as $entry) {
+                    if ($entry['room'] === null || $entry['room'] !== $otherEntry['room'] || $entry['weekday_id'] !== $otherEntry['weekday_id']) {
+                        continue;
+                    }
+
+                    if ($this->overlaps($entry['start_time'], $entry['stop_time'], $otherEntry['start_time'], $otherEntry['stop_time'])) {
+                        $conflicts[] = "{$entry['room']} is already in use by $other->name at {$entry['start_time']} on that day.";
+                    }
+                }
+            }
+        }
+
+        return array_values(array_unique($conflicts));
+    }
+
+    /**
      * Read the lessons of a timetable with the teachers who take them.
      *
-     * @return Collection<int, array{weekday_id: int, start_time: string, stop_time: string, teacher_ids: array<int, int>, teacher_names: array<int, string>}>
+     * @return Collection
      */
     private function entriesOf(Timetable $timetable): Collection
     {
@@ -140,8 +182,8 @@ class TimetableConflictChecker
                 ->get()
                 ->groupBy('subject_id');
 
-        /** @var Collection<int, array{weekday_id: int, start_time: string, stop_time: string, teacher_ids: array<int, int>, teacher_names: array<int, string>}> $entries */
-        $entries = $records->map(function (TimetableRecord $record) use ($assignmentsBySubject, $slots, $subjectMorphClass, $subjects): ?array {
+        /** @var Collection<int, array{weekday_id: int, start_time: string, stop_time: string, room: string|null, teacher_ids: array<int, int>, teacher_names: array<int|string, string>}> $entries */
+        $entries = $records->map(function (TimetableRecord $record) use ($assignmentsBySubject, $slots, $subjectMorphClass, $subjects, $timetable): ?array {
             $slot = $slots->get($record->timetable_time_slot_id);
             $subject = $record->timetable_time_slot_weekdayable_type === $subjectMorphClass
                 ? $subjects->get($record->timetable_time_slot_weekdayable_id)
@@ -159,12 +201,15 @@ class TimetableConflictChecker
                 'weekday_id' => (int) $record->weekday_id,
                 'start_time' => (string) $slot->start_time,
                 'stop_time' => (string) $slot->stop_time,
+                'room' => filled($timetable->academicCycleSection?->room) ? $timetable->academicCycleSection->room : null,
                 'teacher_ids' => $teachers->pluck('id')->map(fn ($id): int => (int) $id)->all(),
                 'teacher_names' => $teachers->pluck('name', 'id')->all(),
             ];
         })->filter()->values();
 
-        return $entries;
+        return $entries
+            ->map(fn (array $entry): array => $entry)
+            ->values();
     }
 
     /**
