@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * A section is never reused for another cycle.
  *
  * @property AcademicStructureStatus $status
+ * @property string $name
  */
 class AcademicCycleSection extends Model
 {

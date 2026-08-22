@@ -283,24 +283,6 @@ parameters:
 			path: app/Models/FeeInvoice.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
-			identifier: property.notFound
-			count: 4
-			path: app/Models/Promotion.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$start_year\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Models/Promotion.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$stop_year\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Models/Promotion.php
-
-		-
 			message: '#^PHPDoc type array of property App\\Models\\User\:\:\$appends is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$appends\.$#'
 			identifier: property.phpDocType
 			count: 1

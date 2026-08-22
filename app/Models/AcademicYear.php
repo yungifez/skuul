@@ -149,7 +149,7 @@ class AcademicYear extends Model
         return $this->belongsToMany(StudentRecord::class)
             ->as('studentAcademicYearBasedRecords')
             ->using(AcademicYearStudentRecord::class)
-            ->withPivot('my_class_id', 'section_id', 'academic_cycle_section_id');
+            ->withPivot('academic_cycle_section_id');
     }
 
     /**

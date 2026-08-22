@@ -6,12 +6,10 @@ use App\Actions\Enrollment\ChangeEnrollmentPlacement;
 use App\Actions\Enrollment\ChangeEnrollmentStatus;
 use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
-use App\Models\MyClass;
-use App\Models\Section;
+use App\Models\AcademicCycleSection;
 use App\Models\StudentRecord;
 use App\Models\User;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Component;
 
@@ -29,13 +27,9 @@ class ShowStudentProfile extends Component
 
     public string $statusEffectiveOn = '';
 
-    public array $classes = [];
+    public array $cycleSections = [];
 
-    public array $sections = [];
-
-    public ?int $placementClassId = null;
-
-    public ?int $placementSectionId = null;
+    public ?int $placementCycleSectionId = null;
 
     public string $placementReason = '';
 
@@ -45,14 +39,8 @@ class ShowStudentProfile extends Component
     {
         $this->statusEffectiveOn = now()->toDateString();
         $this->placementEffectiveOn = now()->toDateString();
-        $this->loadClasses();
+        $this->loadCycleSections();
         $this->refreshEnrollment();
-    }
-
-    public function updatedPlacementClassId(): void
-    {
-        $this->placementSectionId = null;
-        $this->sections = $this->classSections($this->placementClassId);
     }
 
     public function changeStatus(ChangeEnrollmentStatus $changeEnrollmentStatus): void
@@ -95,40 +83,33 @@ class ShowStudentProfile extends Component
         Gate::authorize('update', [$this->student, 'student']);
 
         if ($this->studentRecord === null) {
-            $this->addError('placementClassId', 'This person has no enrollment in the current school.');
+            $this->addError('placementCycleSectionId', 'This person has no enrollment in the current school.');
 
             return;
         }
 
         $this->validate([
-            'placementClassId' => ['required', 'integer'],
-            'placementSectionId' => ['nullable', 'integer'],
+            'placementCycleSectionId' => ['required', 'integer'],
             'placementReason' => ['nullable', 'string', 'max:1000'],
             'placementEffectiveOn' => ['required', 'date'],
         ]);
 
-        $class = MyClass::query()
-            ->whereKey($this->placementClassId)
-            ->whereHas('classGroup', fn (Builder $query): Builder => $query->where('school_id', current_school_id()))
+        $academicCycleSection = AcademicCycleSection::inSchool()
+            ->whereKey($this->placementCycleSectionId)
+            ->where('academic_year_id', current_academic_year_id())
             ->firstOrFail();
-
-        $section = $this->placementSectionId === null
-            ? null
-            : Section::query()->whereKey($this->placementSectionId)->whereBelongsTo($class, 'myClass')->firstOrFail();
 
         try {
             $changeEnrollmentPlacement->place(
                 enrollment: $this->studentRecord,
-                class: $class,
-                section: $section,
-                academicYear: current_academic_year(),
+                academicCycleSection: $academicCycleSection,
                 academicPeriod: current_academic_period(),
                 actor: auth()->user(),
                 reason: filled($this->placementReason) ? $this->placementReason : null,
                 effectiveOn: Carbon::parse($this->placementEffectiveOn),
             );
         } catch (InvalidValueException $exception) {
-            $this->addError('placementClassId', $exception->getMessage());
+            $this->addError('placementCycleSectionId', $exception->getMessage());
 
             return;
         }
@@ -151,19 +132,16 @@ class ShowStudentProfile extends Component
     {
         $this->student = $this->student->loadMissing([
             'studentRecord.placements.academicYear',
-            'studentRecord.placements.myClass',
-            'studentRecord.placements.section',
+            'studentRecord.placements.academicCycleSection.academicLevel',
         ]);
         $this->studentRecord = $this->student->studentRecord()
             ->with([
-                'myClass.classGroup',
-                'section',
+                'academicCycleSection.academicLevel',
                 'school',
                 'statusChanges.changedBy',
                 'placements.academicYear',
                 'placements.academicPeriod',
-                'placements.myClass',
-                'placements.section',
+                'placements.academicCycleSection.academicLevel',
                 'placements.changedBy',
             ])
             ->first();
@@ -180,38 +158,23 @@ class ShowStudentProfile extends Component
                 ->all();
 
         $this->statusSelection = $this->studentRecord?->status->value ?? '';
-        $this->placementClassId = $this->studentRecord?->my_class_id;
-        $this->placementSectionId = $this->studentRecord?->section_id;
-        $this->sections = $this->classSections($this->placementClassId);
+        $this->placementCycleSectionId = $this->studentRecord?->academic_cycle_section_id;
     }
 
-    private function loadClasses(): void
+    private function loadCycleSections(): void
     {
-        $this->classes = MyClass::query()
-            ->whereHas('classGroup', fn (Builder $query): Builder => $query->where('school_id', current_school_id()))
-            ->with('sections')
+        $this->cycleSections = AcademicCycleSection::inSchool()
+            ->with('academicLevel')
+            ->where('academic_year_id', current_academic_year_id())
+            ->orderBy('position')
             ->orderBy('name')
             ->get()
-            ->map(fn (MyClass $class): array => [
-                'id' => $class->id,
-                'name' => $class->name,
-                'sections' => $class->sections->map(fn (Section $section): array => [
-                    'id' => $section->id,
-                    'name' => $section->name,
-                ])->values()->all(),
+            ->map(fn (AcademicCycleSection $cycleSection): array => [
+                'id' => $cycleSection->id,
+                'name' => $cycleSection->label ?? $cycleSection->name,
+                'level' => $cycleSection->academicLevel->label ?? $cycleSection->academicLevel->name,
             ])
             ->values()
             ->all();
-    }
-
-    private function classSections(?int $classId): array
-    {
-        if ($classId === null) {
-            return [];
-        }
-
-        $class = collect($this->classes)->firstWhere('id', $classId);
-
-        return $class['sections'] ?? [];
     }
 }

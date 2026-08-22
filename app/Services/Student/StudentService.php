@@ -8,6 +8,7 @@ use App\Enums\EnrollmentStatus;
 use App\Enums\Role;
 use App\Exceptions\EmptyRecordsException;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
 use App\Models\Promotion;
 use App\Models\School;
 use App\Models\StudentRecord;
@@ -102,8 +103,7 @@ class StudentService
     /**
      * Get a student by id.
      *
-     * @param array<int, int>|int $id student id
-     *
+     * @param  array<int, int>|int  $id  student id
      * @return User|Collection<int, User>|null
      */
     public function getStudentById($id)
@@ -113,12 +113,8 @@ class StudentService
 
     /**
      * Create student.
-     *
-     * @param array $record Array of student record
-     *
-     * @return void
      */
-    public function createStudent($record)
+    public function createStudent(array $record): void
     {
         DB::transaction(function () use ($record) {
             $student = $this->userService->createUser($record);
@@ -131,40 +127,35 @@ class StudentService
     /**
      * Create record for student.
      *
-     * @param User         $student $name
-     * @param array|object $record
+     * @param  array<string, mixed>  $record
      *
      * @throws InvalidValueException
-     *
-     * @return void
      */
-    public function createStudentRecord(User $student, $record)
+    public function createStudentRecord(User $student, array $record): void
     {
-        $record['admission_number'] || $record['admission_number'] = $this->generateAdmissionNumber();
-        $section = $this->sectionService->getSectionById($record['section_id']);
-        if (!$this->myClassService->getClassById($record['my_class_id'])->sections->contains($section)) {
-            throw new InvalidValueException('Section is not in class');
-        }
+        $record['admission_number'] ??= $this->generateAdmissionNumber();
 
         if (current_academic_year_id() == null) {
             throw new EmptyRecordsException('Academic Year not set');
         }
 
+        $academicCycleSection = AcademicCycleSection::inSchool()
+            ->whereKey($record['academic_cycle_section_id'])
+            ->where('academic_year_id', current_academic_year_id())
+            ->firstOrFail();
+
         $enrollment = StudentRecord::firstOrCreate([
-            'user_id'   => $student->id,
+            'user_id' => $student->id,
             'school_id' => current_school_id(),
         ], [
-            'my_class_id'      => $record['my_class_id'],
-            'section_id'       => $record['section_id'],
             'admission_number' => $record['admission_number'],
-            'admission_date'   => $record['admission_date'],
+            'admission_date' => $record['admission_date'],
         ]);
 
         // The first placement starts the student's placement history.
         $this->changeEnrollmentPlacementAction->place(
             enrollment: $enrollment,
-            class: $this->myClassService->getClassById($record['my_class_id']),
-            section: $section,
+            academicCycleSection: $academicCycleSection,
             actor: auth()->user(),
             reason: 'Admission',
         );
@@ -228,60 +219,38 @@ class StudentService
     /**
      * Promote students.
      *
-     * @param array<mixed> $records
-     *
+     * @param  array<mixed>  $records
      * @return void
      */
     public function promoteStudents($records)
     {
-        $oldClass = $this->myClassService->getClassById($records['old_class_id']);
-        $newClass = $this->myClassService->getClassById($records['new_class_id']);
-        $academicYear = current_academic_year_id();
+        $source = AcademicCycleSection::inSchool()->findOrFail($records['source_academic_cycle_section_id']);
+        $destination = AcademicCycleSection::inSchool()->findOrFail($records['destination_academic_cycle_section_id']);
 
-        if (!$oldClass->sections()->where('id', $records['old_section_id'])->exists()) {
-            throw new InvalidValueException('Old section is not in old class');
-        }
-
-        if (!$newClass->sections()->where('id', $records['new_section_id'])->exists()) {
-            throw new InvalidValueException('New section is not in new class');
-        }
-
-        // make sure academic year is present
-        if ($academicYear == null) {
-            throw new InvalidValueException('Academic year is not set');
-        }
-
-        // get all students for promotion
-        $students = $this->getAllActiveStudents()->whereIn('id', $records['student_id']);
+        $students = $this->getAllActiveStudents()
+            ->whereIn('id', $records['student_id'])
+            ->filter(fn (User $student): bool => $student->studentRecord?->academic_cycle_section_id === $source->id);
 
         // make sure there are students to promote
         if (!$students->count()) {
             throw new EmptyRecordsException('No students to promote', 1);
         }
 
-        $newSection = $this->sectionService->getSectionById($records['new_section_id']);
-        // move each student, keeping the placement history
         foreach ($students as $student) {
-            if (in_array($student->id, $records['student_id']) && $student->studentRecord !== null) {
-                $this->changeEnrollmentPlacementAction->place(
-                    enrollment: $student->studentRecord,
-                    class: $newClass,
-                    section: $newSection,
-                    actor: auth()->user(),
-                    reason: 'Promotion',
-                );
-            }
+            $this->changeEnrollmentPlacementAction->place(
+                enrollment: $student->studentRecord,
+                academicCycleSection: $destination,
+                actor: auth()->user(),
+                reason: 'Promotion',
+            );
         }
 
-        // create promotion record
         Promotion::create([
-            'old_class_id'     => $records['old_class_id'],
-            'new_class_id'     => $records['new_class_id'],
-            'old_section_id'   => $records['old_section_id'],
-            'new_section_id'   => $records['new_section_id'],
-            'students'         => $students->pluck('id'),
-            'academic_year_id' => $academicYear,
-            'school_id'        => current_school_id(),
+            'source_academic_cycle_section_id' => $source->id,
+            'destination_academic_cycle_section_id' => $destination->id,
+            'students' => $students->pluck('id'),
+            'academic_year_id' => $destination->academic_year_id,
+            'school_id' => current_school_id(),
         ]);
     }
 
@@ -298,8 +267,7 @@ class StudentService
     /**
      * Get promotions by academic year Id.
      *
-     * @param int $academicYearId The Primary key of the academic year
-     *
+     * @param  int  $academicYearId  The Primary key of the academic year
      * @return Collection
      */
     public function getPromotionsByAcademicYearId(int $academicYearId)
@@ -310,16 +278,14 @@ class StudentService
     /**
      * Reset promotion.
      *
-     * @param Promotion $promotion instance of promotion to reset
-     *
+     * @param  Promotion  $promotion  instance of promotion to reset
      * @return void
      */
     public function resetPromotion(Promotion $promotion)
     {
         $students = $this->getStudentById($promotion->students);
-
-        $oldClass = $this->myClassService->getClassById($promotion->old_class_id);
-        $oldSection = $this->sectionService->getSectionById($promotion->old_section_id);
+        $sourceAcademicCycleSection = AcademicCycleSection::inSchool()
+            ->findOrFail($promotion->source_academic_cycle_section_id);
 
         foreach ($students as $student) {
             // A person listed in an old promotion may no longer hold an
@@ -330,8 +296,7 @@ class StudentService
 
             $this->changeEnrollmentPlacementAction->place(
                 enrollment: $student->allStudentRecords,
-                class: $oldClass,
-                section: $oldSection,
+                academicCycleSection: $sourceAcademicCycleSection,
                 actor: auth()->user(),
                 reason: 'Promotion reset',
             );
@@ -343,11 +308,10 @@ class StudentService
     /**
      * Graduate students.
      *
-     * @param mixed $records
+     * @param  mixed  $records
+     * @return void
      *
      * @throws InvalidValueException
-     *
-     * @return void
      */
     public function graduateStudents($records)
     {

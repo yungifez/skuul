@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use RuntimeException;
 
 /**
- * One class and section a student was placed in.
+ * One academic-cycle section a student was placed in.
  *
  * The record is written once. Moving a student to another class means writing
  * the next placement, so the school can always say where a student sat in any
@@ -17,9 +17,7 @@ use RuntimeException;
  * @property int $student_record_id
  * @property int $academic_year_id
  * @property int|null $academic_period_id
- * @property int $my_class_id
- * @property int|null $section_id
- * @property int|null $academic_cycle_section_id
+ * @property int $academic_cycle_section_id
  */
 class EnrollmentPlacement extends Model
 {
@@ -29,8 +27,6 @@ class EnrollmentPlacement extends Model
         'student_record_id',
         'academic_year_id',
         'academic_period_id',
-        'my_class_id',
-        'section_id',
         'academic_cycle_section_id',
         'effective_on',
         'changed_by',
@@ -88,26 +84,6 @@ class EnrollmentPlacement extends Model
     public function academicPeriod(): BelongsTo
     {
         return $this->belongsTo(AcademicPeriod::class);
-    }
-
-    /**
-     * Get the class the student was placed in.
-     *
-     * @return BelongsTo<MyClass, $this>
-     */
-    public function myClass(): BelongsTo
-    {
-        return $this->belongsTo(MyClass::class);
-    }
-
-    /**
-     * Get the section the student was placed in.
-     *
-     * @return BelongsTo<Section, $this>
-     */
-    public function section(): BelongsTo
-    {
-        return $this->belongsTo(Section::class);
     }
 
     /**

@@ -60,7 +60,7 @@ class StudentController extends Controller
     public function store(StudentStoreRequest $request): RedirectResponse
     {
         $this->authorize('create', [User::class, 'student']);
-        $this->student->createStudent($request);
+        $this->student->createStudent($request->validated());
 
         return back()->with('success', 'Student Created Successfully');
     }

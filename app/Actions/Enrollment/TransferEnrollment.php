@@ -6,9 +6,8 @@ use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AuditAction;
 use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
-use App\Models\MyClass;
+use App\Models\AcademicCycleSection;
 use App\Models\School;
-use App\Models\Section;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Student\StudentService;
@@ -28,8 +27,7 @@ class TransferEnrollment
         private ChangeEnrollmentPlacement $changePlacement,
         private StudentService $studentService,
         private RecordAuditEvent $auditor,
-    ) {
-    }
+    ) {}
 
     /**
      * Transfer the enrollment to the destination school.
@@ -39,8 +37,7 @@ class TransferEnrollment
     public function transfer(
         StudentRecord $enrollment,
         School $destination,
-        ?MyClass $class = null,
-        ?Section $section = null,
+        ?AcademicCycleSection $academicCycleSection = null,
         ?User $actor = null,
         ?string $reason = null,
     ): StudentRecord {
@@ -52,7 +49,7 @@ class TransferEnrollment
             throw new InvalidValueException('This enrollment is closed and cannot be transferred.');
         }
 
-        return DB::transaction(function () use ($enrollment, $destination, $class, $section, $actor, $reason): StudentRecord {
+        return DB::transaction(function () use ($enrollment, $destination, $academicCycleSection, $actor, $reason): StudentRecord {
             $this->changeStatus->change($enrollment, EnrollmentStatus::Transferred, $actor, $reason);
 
             // Only one enrollment leads the screens, and it is the new one.
@@ -60,21 +57,19 @@ class TransferEnrollment
             $enrollment->save();
 
             $transferred = StudentRecord::create([
-                'user_id'             => $enrollment->user_id,
-                'school_id'           => $destination->id,
-                'status'              => EnrollmentStatus::Active,
-                'is_primary'          => true,
+                'user_id' => $enrollment->user_id,
+                'school_id' => $destination->id,
+                'status' => EnrollmentStatus::Active,
+                'is_primary' => true,
                 'transferred_from_id' => $enrollment->id,
-                'admission_number'    => $this->studentService->generateAdmissionNumber($destination->id),
-                'admission_date'      => now()->toDateString(),
+                'admission_number' => $this->studentService->generateAdmissionNumber($destination->id),
+                'admission_date' => now()->toDateString(),
             ]);
 
-            if ($class !== null) {
+            if ($academicCycleSection !== null) {
                 $this->changePlacement->place(
                     enrollment: $transferred,
-                    class: $class,
-                    section: $section,
-                    academicYear: $destination->academicYear,
+                    academicCycleSection: $academicCycleSection,
                     actor: $actor,
                     reason: $reason,
                 );
@@ -84,10 +79,10 @@ class TransferEnrollment
                 AuditAction::EnrollmentTransferred,
                 $transferred,
                 [
-                    'from_school_id'     => $enrollment->school_id,
-                    'to_school_id'       => $destination->id,
+                    'from_school_id' => $enrollment->school_id,
+                    'to_school_id' => $destination->id,
                     'from_enrollment_id' => $enrollment->id,
-                    'reason'             => $reason,
+                    'reason' => $reason,
                 ],
                 $actor,
                 $destination,

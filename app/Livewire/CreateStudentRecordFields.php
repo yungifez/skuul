@@ -2,43 +2,32 @@
 
 namespace App\Livewire;
 
-use App\Services\MyClass\MyClassService;
-use Illuminate\Support\Facades\App;
+use App\Models\AcademicCycleSection;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class CreateStudentRecordFields extends Component
 {
-    public $myClasses;
+    /** @var array<int, array{id: int, level: string, name: string}> */
+    public array $cycleSections = [];
 
-    public $myClass;
-
-    public $sections;
-
-    public $section;
-
-    protected $myClassService;
-
-    protected $rules = [
-        'myClass' => 'string',
-        'section' => 'string',
-    ];
-
-    public function mount(MyClassService $myClassService)
+    public function mount(): void
     {
-        $this->myClasses = $myClassService->getAllClasses();
-
-        if ($this->myClasses->isNotEmpty()) {
-            $this->sections = collect(App::make(MyClassService::class)->getClassById($this->myClasses[0]['id'])->sections);
-        }
+        $this->cycleSections = AcademicCycleSection::inSchool()
+            ->with('academicLevel')
+            ->where('academic_year_id', current_academic_year_id())
+            ->orderBy('position')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (AcademicCycleSection $cycleSection): array => [
+                'id' => $cycleSection->id,
+                'level' => $cycleSection->academicLevel->label ?? $cycleSection->academicLevel->name,
+                'name' => $cycleSection->label ?? $cycleSection->name,
+            ])
+            ->all();
     }
 
-    public function updatedMyClass()
-    {
-        $this->reset('section');
-        $this->sections = collect(App::make(MyClassService::class)->getClassById($this->myClass)->sections);
-    }
-
-    public function render()
+    public function render(): View
     {
         return view('livewire.create-student-record-fields');
     }

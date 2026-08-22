@@ -30,8 +30,11 @@ class StudentStoreRequest extends FormRequest
                 Rule::unique('student_records', 'admission_number')->where(fn ($query) => $query->where('school_id', current_school_id())),
             ],
             'admission_date' => 'required|date',
-            'my_class_id' => 'required|exists:my_classes,id',
-            'section_id' => 'required|exists:sections,id',
+            'academic_cycle_section_id' => [
+                'required',
+                'integer',
+                Rule::exists('academic_cycle_sections', 'id')->where('school_id', current_school_id()),
+            ],
         ];
     }
 
@@ -43,8 +46,7 @@ class StudentStoreRequest extends FormRequest
     public function messages()
     {
         return [
-            'my_class_id.required' => 'Select a class',
-            'section_id.required' => 'Select a section',
+            'academic_cycle_section_id.required' => 'Select a home section',
         ];
     }
 
@@ -56,8 +58,7 @@ class StudentStoreRequest extends FormRequest
     public function attributes()
     {
         return [
-            'my_class_id' => 'class selection',
-            'section_id' => 'section selection',
+            'academic_cycle_section_id' => 'home section',
         ];
     }
 }

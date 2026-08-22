@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StudentPromoteRequest extends FormRequest
 {
@@ -20,11 +21,10 @@ class StudentPromoteRequest extends FormRequest
     public function rules()
     {
         return [
-            'old_class_id'   => 'required|exists:my_classes,id',
-            'new_class_id'   => 'required|exists:my_classes,id',
-            'old_section_id' => 'required|exists:sections,id',
-            'new_section_id' => 'required|exists:sections,id',
-            'student_id.*'   => 'nullable|exists:users,id',
+            'source_academic_cycle_section_id' => ['required', 'integer', Rule::exists('academic_cycle_sections', 'id')->where('school_id', current_school_id())],
+            'destination_academic_cycle_section_id' => ['required', 'integer', 'different:source_academic_cycle_section_id', Rule::exists('academic_cycle_sections', 'id')->where('school_id', current_school_id())],
+            'student_id' => ['required', 'array', 'min:1'],
+            'student_id.*' => ['integer', Rule::exists('users', 'id')],
         ];
     }
 }

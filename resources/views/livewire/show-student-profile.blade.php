@@ -21,12 +21,12 @@
                         <p class="mt-1 font-semibold">{{ $studentRecord->admission_date ?: 'Not recorded' }}</p>
                     </div>
                     <div class="rounded-lg border bg-muted/30 p-4">
-                        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Current class</p>
-                        <p class="mt-1 font-semibold">{{ $studentRecord->myClass?->name ?: 'Not placed' }}</p>
+                        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{{ school_term('level', 'Academic level') }}</p>
+                        <p class="mt-1 font-semibold">{{ $studentRecord->academicCycleSection?->academicLevel?->label ?? $studentRecord->academicCycleSection?->academicLevel?->name ?? 'Not placed' }}</p>
                     </div>
                     <div class="rounded-lg border bg-muted/30 p-4">
-                        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Current section</p>
-                        <p class="mt-1 font-semibold">{{ $studentRecord->section?->name ?: 'Not placed' }}</p>
+                        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{{ school_term('section', 'Home section') }}</p>
+                        <p class="mt-1 font-semibold">{{ $studentRecord->academicCycleSection?->label ?? $studentRecord->academicCycleSection?->name ?? 'Not placed' }}</p>
                     </div>
                 </div>
 
@@ -67,7 +67,7 @@
                         <form wire:submit="changePlacement" class="space-y-4">
                             <div>
                                 <h3 class="font-semibold">Change placement</h3>
-                                <p class="text-sm text-muted-foreground">A new placement keeps the previous class and section in history.</p>
+                                <p class="text-sm text-muted-foreground">A new placement keeps the previous academic level and home section in history.</p>
                             </div>
 
                             @if ($academicYear)
@@ -84,31 +84,17 @@
                                 </april:alert>
                             @endif
 
-                            <div class="grid gap-4 sm:grid-cols-2">
-                                <div class="flex flex-col gap-2">
-                                    <april:label for="placement-class">Class</april:label>
-                                    <april:select id="placement-class" wire:model.live="placementClassId" @disabled(!$academicYear || $studentRecord->status->isClosed())>
-                                        <option value="">Choose a class</option>
-                                        @foreach ($classes as $class)
-                                            <option value="{{ $class['id'] }}">{{ $class['name'] }}</option>
-                                        @endforeach
-                                    </april:select>
-                                    @error('placementClassId')
-                                        <p class="text-sm text-destructive">{{ $message }}</p>
-                                    @enderror
-                                </div>
-                                <div class="flex flex-col gap-2">
-                                    <april:label for="placement-section">Section</april:label>
-                                    <april:select id="placement-section" wire:model.live="placementSectionId" @disabled(!$placementClassId || !$academicYear || $studentRecord->status->isClosed())>
-                                        <option value="">No section</option>
-                                        @foreach ($sections as $section)
-                                            <option value="{{ $section['id'] }}">{{ $section['name'] }}</option>
-                                        @endforeach
-                                    </april:select>
-                                    @error('placementSectionId')
-                                        <p class="text-sm text-destructive">{{ $message }}</p>
-                                    @enderror
-                                </div>
+                            <div class="flex flex-col gap-2">
+                                <april:label for="placement-cycle-section">{{ school_term('section', 'Home section') }}</april:label>
+                                <select id="placement-cycle-section" wire:model.live="placementCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ !$academicYear || $studentRecord->status->isClosed() ? 'disabled' : '' }}>
+                                    <option value="">Choose a {{ school_term('section', 'home section') }}</option>
+                                    @foreach ($cycleSections as $cycleSection)
+                                        <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['level'] }} · {{ $cycleSection['name'] }}</option>
+                                    @endforeach
+                                </select>
+                                @error('placementCycleSectionId')
+                                    <p class="text-sm text-destructive">{{ $message }}</p>
+                                @enderror
                             </div>
 
                             <div class="grid gap-4 sm:grid-cols-2">
@@ -167,7 +153,7 @@
 
             <april:card>
                 <slot:title>Placement history</slot:title>
-                <slot:description>Every class and section assignment for this enrollment.</slot:description>
+                <slot:description>Every academic level and home-section assignment for this enrollment.</slot:description>
                 <slot:content>
                     @if ($studentRecord->placements->isNotEmpty())
                         <div class="overflow-x-auto">
@@ -183,7 +169,7 @@
                                     @foreach ($studentRecord->placements->sortByDesc('effective_on') as $placement)
                                         <tr wire:key="enrollment-placement-{{ $placement->id }}">
                                             <td class="px-2 py-3">{{ $placement->academicYear?->name ?: '—' }}<span class="block text-xs text-muted-foreground">{{ $placement->academicPeriod?->name }}</span></td>
-                                            <td class="px-2 py-3">{{ $placement->myClass?->name ?: '—' }}<span class="block text-xs text-muted-foreground">{{ $placement->section?->name ?: 'No section' }}</span></td>
+                                            <td class="px-2 py-3">{{ $placement->academicCycleSection?->academicLevel?->label ?? $placement->academicCycleSection?->academicLevel?->name ?? '—' }}<span class="block text-xs text-muted-foreground">{{ $placement->academicCycleSection?->label ?? $placement->academicCycleSection?->name ?? '—' }}</span></td>
                                             <td class="whitespace-nowrap px-2 py-3">{{ $placement->effective_on?->format('M j, Y') }}</td>
                                         </tr>
                                     @endforeach

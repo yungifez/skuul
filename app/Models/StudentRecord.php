@@ -23,8 +23,6 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property EnrollmentStatus $status
  * @property string|null $admission_number
  * @property string|null $admission_date
- * @property int|null $my_class_id
- * @property int|null $section_id
  * @property int|null $academic_cycle_section_id
  */
 class StudentRecord extends Model
@@ -52,8 +50,6 @@ class StudentRecord extends Model
     protected $fillable = [
         'admission_number',
         'admission_date',
-        'my_class_id',
-        'section_id',
         'academic_cycle_section_id',
         'user_id',
         'school_id',
@@ -129,29 +125,7 @@ class StudentRecord extends Model
     }
 
     /**
-     * Get the class the student is placed in.
-     *
-     * @return BelongsTo<MyClass, $this>
-     */
-    public function myClass(): BelongsTo
-    {
-        return $this->belongsTo(MyClass::class);
-    }
-
-    /**
-     * Get the section the student is placed in.
-     *
-     * @return BelongsTo<Section, $this>
-     */
-    public function section(): BelongsTo
-    {
-        return $this->belongsTo(Section::class);
-    }
-
-    /**
      * Get the exact cycle section the student is currently placed in.
-     *
-     * This remains nullable while historical placements use legacy records.
      *
      * @return BelongsTo<AcademicCycleSection, $this>
      */
@@ -226,7 +200,7 @@ class StudentRecord extends Model
         return $this->belongsToMany(AcademicYear::class)
             ->as('studentAcademicYearBasedRecords')
             ->using(AcademicYearStudentRecord::class)
-            ->withPivot('my_class_id', 'section_id', 'academic_cycle_section_id');
+            ->withPivot('academic_cycle_section_id');
     }
 
     /**

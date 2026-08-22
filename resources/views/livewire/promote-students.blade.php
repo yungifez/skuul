@@ -1,141 +1,58 @@
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title">Promote student</h4>
-    </div>
-    <div class="card-body">
-        <x-display-validation-errors/>
-        {{--Form for selecting class--}}
-        <form wire:submit="loadStudents" class="md:grid grid-cols-4 gap-2">
-            <p class="font-bold col-span-4">Please select class and section</p>
-            <div class="flex w-full flex-col gap-2">
-                <april:label for="old-class">Old class</april:label>
-                <april:select id="old-class" name="oldClass" wire:model.live="oldClass">
-                @foreach ($classes as $class)
-                    <option value="{{$class['id']}}">{{$class['name']}}</option>
-                @endforeach
-
-                </april:select>
-                @error('oldClass')
-                    <p class="text-sm text-destructive">{{ $message }}</p>
-                @enderror
-            </div>
-            <div class="flex w-full flex-col gap-2">
-                <april:label for="old-section">Old section</april:label>
-                <april:select id="old-section" name="oldSection" wire:model.live="oldSection">
-                @isset($oldSections)
-                    @foreach ($oldSections as $section)
-                        <option value="{{$section['id']}}">{{$section['name']}}</option>
-                    @endforeach
-                @endisset
-
-                </april:select>
-                @error('oldSection')
-                    <p class="text-sm text-destructive">{{ $message }}</p>
-                @enderror
-            </div>
-            <div class="flex w-full flex-col gap-2">
-                <april:label for="new-class">New class</april:label>
-                <april:select id="new-class" name="newClass" wire:model.live="newClass">
-                @foreach ($classes as $class)
-                    <option value="{{$class['id']}}">{{$class['name']}}</option>
-                @endforeach
-
-                </april:select>
-                @error('newClass')
-                    <p class="text-sm text-destructive">{{ $message }}</p>
-                @enderror
-            </div>
-            <div class="flex w-full flex-col gap-2">
-                <april:label for="new-section">New section</april:label>
-                <april:select id="new-section" name="newSection" wire:model.live="newSection">
-                @isset($newSections)
-                    @foreach ($newSections as $section)
-                        <option value="{{$section['id']}}">{{$section['name']}}</option>
-                    @endforeach
-                @endisset
-
-                </april:select>
-                @error('newSection')
-                    <p class="text-sm text-destructive">{{ $message }}</p>
-                @enderror
-            </div>
-            <april:button class="w-full  " type="submit">
-                <x-lucide-key class="mr-2 size-4" />
-                Fetch students
-            </april:button>
-        </form>
-        <div wire:loading.remove.delay>
-            <form action="{{ route('students.promote') }}" method="post" class="my-3 space-y-4">
-                <div class="flex flex-wrap gap-2">
-                    <april:button @click="setAllSelectsToPromote()" type="button">
-                        Set all to promote
-                    </april:button>
-                    <april:button @click="setAllSelectsToDontPromote()" type="button">
-                        Set all to keep
-                    </april:button>
+<div class="space-y-6">
+    <april:card>
+        <slot:title>Move learners to a new {{ school_term('section', 'home section') }}</slot:title>
+        <slot:description>Choose the current and destination sections, review the learners, then confirm the move. Each move remains in placement history.</slot:description>
+        <slot:content>
+            <form wire:submit="loadStudents" class="grid gap-4 md:grid-cols-3">
+                <div class="flex flex-col gap-2">
+                    <april:label for="promotion-source">Current {{ school_term('section', 'home section') }}</april:label>
+                    <select id="promotion-source" wire:model.live="sourceAcademicCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                        <option value="">Choose current section</option>
+                        @foreach ($cycleSections as $cycleSection)
+                            <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['label'] }}</option>
+                        @endforeach
+                    </select>
+                    @error('sourceAcademicCycleSectionId') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                 </div>
-
-                <input type="hidden" name="old_class_id" value="{{ $oldClass }}">
-                <input type="hidden" name="old_section_id" value="{{ $oldSection }}">
-                <input type="hidden" name="new_class_id" value="{{ $newClass }}">
-                <input type="hidden" name="new_section_id" value="{{ $newSection }}">
-
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead>
-                            <tr class="border-b text-muted-foreground">
-                                <th class="p-3">Student</th>
-                                <th class="p-3">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @forelse ($students ?? [] as $student)
-                                <tr class="border-b">
-                                    <td class="p-3">{{ $student->name }} <span class="text-muted-foreground">· {{ $student->studentRecord->admission_number }}</span></td>
-                                    <td class="p-3">
-                                        <april:select name="student_id[]" id="student-{{ $student->id }}" class="promote">
-                                            <option value="{{ $student->id }}">Promote</option>
-                                            <option value="">Keep in current class</option>
-                                        </april:select>
-                                    </td>
-                                </tr>
-                            @empty
-                                <tr>
-                                    <td colspan="2" class="p-6 text-center text-muted-foreground">
-                                        Fetch students to review promotion choices.
-                                    </td>
-                                </tr>
-                            @endforelse
-                        </tbody>
-                    </table>
+                <div class="flex flex-col gap-2">
+                    <april:label for="promotion-destination">Destination {{ school_term('section', 'home section') }}</april:label>
+                    <select id="promotion-destination" wire:model.live="destinationAcademicCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                        <option value="">Choose destination section</option>
+                        @foreach ($cycleSections as $cycleSection)
+                            <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['label'] }}</option>
+                        @endforeach
+                    </select>
+                    @error('destinationAcademicCycleSectionId') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                 </div>
-
-                @csrf
-                <april:button class="w-full md:w-auto" type="submit">
-                    <x-lucide-arrow-up-right class="mr-2 size-4" />
-                    Promote selected students
-                </april:button>
+                <div class="flex items-end">
+                    <april:button type="submit" wire:loading.attr="disabled" wire:target="loadStudents">Review learners</april:button>
+                </div>
             </form>
-        </div>
-    </div>
+        </slot:content>
+    </april:card>
+
+    @if ($students !== [])
+        <form action="{{ route('students.promote') }}" method="POST" class="space-y-4">
+            @csrf
+            <input type="hidden" name="source_academic_cycle_section_id" value="{{ $sourceAcademicCycleSectionId }}">
+            <input type="hidden" name="destination_academic_cycle_section_id" value="{{ $destinationAcademicCycleSectionId }}">
+            <april:card>
+                <slot:title>Confirm learner move</slot:title>
+                <slot:content>
+                    <div class="space-y-3">
+                        @foreach ($students as $student)
+                            <label class="flex items-center gap-3 rounded-md border p-3">
+                                <input type="checkbox" name="student_id[]" value="{{ $student['id'] }}" checked class="size-4 rounded border-input">
+                                <span class="font-medium">{{ $student['name'] }}</span>
+                                @if ($student['admission_number'])
+                                    <span class="text-sm text-muted-foreground">{{ $student['admission_number'] }}</span>
+                                @endif
+                            </label>
+                        @endforeach
+                    </div>
+                </slot:content>
+                <slot:footer><april:button type="submit">Move selected learners</april:button></slot:footer>
+            </april:card>
+        </form>
+    @endif
 </div>
-
-@push('scripts')
-
-<script>
-    function setAllSelectsToDontPromote() {
-        let selects = document.getElementsByClassName('promote');
-        for (let i = 0; i < selects.length; i++) {
-            selects[i].selectedIndex = 1;
-        }
-    }
-
-    function setAllSelectsToPromote() {
-        let selects = document.getElementsByClassName('promote');
-        for (let i = 0; i < selects.length; i++) {
-            selects[i].selectedIndex = 0;
-        }
-    }
-</script>
-
-@endpush

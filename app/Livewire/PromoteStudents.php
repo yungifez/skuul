@@ -2,87 +2,59 @@
 
 namespace App\Livewire;
 
-use App\Services\MyClass\MyClassService;
-use App\Services\Section\SectionService;
-use Illuminate\Support\Facades\App;
+use App\Models\AcademicCycleSection;
+use App\Models\User;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class PromoteStudents extends Component
 {
-    public $classes;
+    /** @var array<int, array{id: int, label: string}> */
+    public array $cycleSections = [];
 
-    public $oldClass;
+    public ?int $sourceAcademicCycleSectionId = null;
 
-    public $oldSections;
+    public ?int $destinationAcademicCycleSectionId = null;
 
-    public $oldSection;
+    /** @var array<int, array{id: int, name: string, admission_number: string|null}> */
+    public array $students = [];
 
-    public $newClass;
-
-    public $newSections;
-
-    public $newSection;
-
-    public $students;
-
-    protected $rules = [
-        'oldClass'   => 'required|exists:my_classes,id',
-        'oldSection' => 'required|exists:sections,id',
-        'newClass'   => 'required|exists:my_classes,id',
-        'newSection' => 'required|exists:sections,id',
-    ];
-
-    public function mount(MyClassService $myClassService)
+    public function mount(): void
     {
-        $this->classes = $myClassService->getAllClasses();
-
-        // set default values
-        if ($this->classes->isNotEmpty()) {
-            $this->oldClass = $this->classes[0]->id;
-            $this->newClass = $this->classes[0]->id;
-
-            // load initial sections
-            $this->loadInitialNewSections();
-            $this->loadInitialOldSections();
-        }
+        $this->cycleSections = AcademicCycleSection::inSchool()
+            ->with('academicLevel')
+            ->where('academic_year_id', current_academic_year_id())
+            ->orderBy('position')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (AcademicCycleSection $cycleSection): array => [
+                'id' => $cycleSection->id,
+                'label' => ($cycleSection->academicLevel->label ?? $cycleSection->academicLevel->name).' · '.($cycleSection->label ?? $cycleSection->name),
+            ])
+            ->all();
     }
 
-    public function updatedOldClass()
+    public function loadStudents(): void
     {
-        $this->oldSections = collect($this->classes->where('id', $this->oldClass)->first()['sections']);
-        $this->oldSection = $this->oldSections->first()['id'] ?? null;
+        $this->validate([
+            'sourceAcademicCycleSectionId' => ['required', 'integer'],
+            'destinationAcademicCycleSectionId' => ['required', 'integer', 'different:sourceAcademicCycleSectionId'],
+        ]);
+
+        $this->students = User::activeStudents()
+            ->whereHas('studentRecord', fn ($query) => $query->where('academic_cycle_section_id', $this->sourceAcademicCycleSectionId))
+            ->with('studentRecord:id,user_id,admission_number,academic_cycle_section_id')
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn (User $student): array => [
+                'id' => $student->id,
+                'name' => $student->name,
+                'admission_number' => $student->studentRecord?->admission_number,
+            ])
+            ->all();
     }
 
-    public function updatedNewClass()
-    {
-        $this->newSections = collect($this->classes->where('id', $this->newClass)->first()['sections']);
-        $this->newSection = $this->newSections->first()['id'] ?? null;
-    }
-
-    public function loadInitialOldSections()
-    {
-        $this->oldSections = collect($this->classes->first()['sections']);
-        if ($this->oldSections->isNotEmpty()) {
-            $this->oldSection = $this->oldSections->first()['id'];
-        }
-    }
-
-    public function loadInitialNewSections()
-    {
-        $this->newSections = collect($this->classes->first()['sections']);
-        if ($this->newSections->isNotEmpty()) {
-            $this->newSection = $this->newSections->first()['id'];
-        }
-    }
-
-    public function loadStudents()
-    {
-        $this->validate();
-
-        $this->students = App::make(SectionService::class)->getSectionById($this->oldSection)->students();
-    }
-
-    public function render()
+    public function render(): View
     {
         return view('livewire.promote-students');
     }

@@ -8,6 +8,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property AcademicCycleSection $sourceAcademicCycleSection
+ * @property AcademicCycleSection $destinationAcademicCycleSection
+ * @property AcademicYear $academicYear
+ */
 class Promotion extends Model
 {
     use HasFactory;
@@ -15,10 +20,8 @@ class Promotion extends Model
     use InSchool;
 
     protected $fillable = [
-        'old_class_id',
-        'new_class_id',
-        'old_section_id',
-        'new_section_id',
+        'source_academic_cycle_section_id',
+        'destination_academic_cycle_section_id',
         'academic_year_id',
         'students',
         'school_id',
@@ -28,29 +31,19 @@ class Promotion extends Model
         'students' => 'array',
     ];
 
-    public function getLabelAttribute()
+    public function getLabelAttribute(): string
     {
-        return "{$this->oldClass->name} - {$this->oldSection->name} to {$this->newClass->name} - {$this->newSection->name} year: {$this->academicYear->start_year} - {$this->academicYear->stop_year}";
+        return "{$this->sourceAcademicCycleSection->name} to {$this->destinationAcademicCycleSection->name} · {$this->academicYear->start_year}-{$this->academicYear->stop_year}";
     }
 
-    public function oldClass(): BelongsTo
+    public function sourceAcademicCycleSection(): BelongsTo
     {
-        return $this->belongsTo(MyClass::class, 'old_class_id');
+        return $this->belongsTo(AcademicCycleSection::class, 'source_academic_cycle_section_id');
     }
 
-    public function newClass(): BelongsTo
+    public function destinationAcademicCycleSection(): BelongsTo
     {
-        return $this->belongsTo(MyClass::class, 'new_class_id');
-    }
-
-    public function oldSection(): BelongsTo
-    {
-        return $this->belongsTo(Section::class, 'old_section_id');
-    }
-
-    public function newSection(): BelongsTo
-    {
-        return $this->belongsTo(Section::class, 'new_section_id');
+        return $this->belongsTo(AcademicCycleSection::class, 'destination_academic_cycle_section_id');
     }
 
     public function academicYear(): BelongsTo

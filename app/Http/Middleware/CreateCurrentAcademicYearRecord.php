@@ -33,14 +33,12 @@ class CreateCurrentAcademicYearRecord
             $enrollment !== null
             && $academicYear?->isOpen()
             && !$enrollment->status->isClosed()
-            && $enrollment->myClass !== null
+            && $enrollment->academicCycleSection !== null
             && !$enrollment->placements()->where('academic_year_id', $academicYear->id)->exists()
         ) {
             $this->changeEnrollmentPlacement->place(
                 enrollment: $enrollment,
-                class: $enrollment->myClass,
-                section: $enrollment->section,
-                academicYear: $academicYear,
+                academicCycleSection: $enrollment->academicCycleSection,
                 academicPeriod: current_academic_period(),
                 actor: $user,
                 reason: 'Academic year backfill',
