@@ -6,6 +6,7 @@ use App\Traits\InSchool;
 use Database\Factories\TranscriptSnapshotFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use RuntimeException;
 
 class TranscriptSnapshot extends Model
@@ -29,5 +30,11 @@ class TranscriptSnapshot extends Model
         static::deleting(function (): void {
             throw new RuntimeException('An issued transcript cannot be deleted.');
         });
+    }
+
+    /** @return BelongsTo<StudentRecord, $this> */
+    public function studentRecord(): BelongsTo
+    {
+        return $this->belongsTo(StudentRecord::class);
     }
 }

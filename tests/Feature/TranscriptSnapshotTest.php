@@ -10,6 +10,7 @@ use App\Models\CourseOffering;
 use App\Models\ResultSnapshot;
 use App\Models\StudentRecord;
 use App\Models\Subject;
+use App\Models\TranscriptSnapshot;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -38,6 +39,15 @@ class TranscriptSnapshotTest extends TestCase
         $this->assertSame(1, $transcript->revision);
         $this->assertCount(2, $transcript->payload['results']);
         $this->assertContains($latest->id, array_column($transcript->payload['results'], 'source_result_snapshot_id'));
+
+        $this->authorized_user(['read report', 'create report']);
+        $this->post(route('transcripts.store'), ['student_record_id' => $student->id])
+            ->assertSessionHasNoErrors()
+            ->assertSessionHas('success');
+        $this->get(route('transcripts.index'))
+            ->assertOk()
+            ->assertSee('Issued transcripts');
+        $this->assertSame(2, TranscriptSnapshot::count());
     }
 
     private function offering(int $schoolId, int $yearId, int $periodId): CourseOffering
