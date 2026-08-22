@@ -110,6 +110,19 @@ class SchoolTest extends TestCase
             ->assertSee('Grades and classes');
     }
 
+    public function test_a_school_can_save_its_familiar_operating_language(): void
+    {
+        $school = $this->workingSchool();
+        $this->authorized_user(['manage school settings'], $school)
+            ->put('/dashboard/schools/operating-profile', [
+                'preset' => 'home_sections',
+                'labels' => ['class_level' => 'Class', 'section' => 'Arm', 'period' => 'Term', 'course' => 'Subject', 'fee' => 'School fees'],
+            ])
+            ->assertRedirect('/dashboard/schools/settings');
+
+        $this->assertDatabaseHas('school_operating_profiles', ['school_id' => $school->id, 'preset' => 'home_sections']);
+    }
+
     public function test_unauthorized_user_cannot_update_school()
     {
         $this->unauthorized_user()

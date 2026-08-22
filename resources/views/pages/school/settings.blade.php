@@ -41,6 +41,12 @@
             </april:card>
 
             <april:card>
+                <slot:title class="flex items-center justify-between gap-3"><span>School language</span><x-lucide-languages class="size-5 text-muted-foreground" /></slot:title>
+                <slot:description>Choose the familiar words your school uses for classes, terms, subjects and fees.</slot:description>
+                <slot:footer><april:button-link href="{{ route('schools.operating-profile.edit') }}" variant="link" size="none" class="gap-1 p-0">Set school language <span aria-hidden="true">→</span></april:button-link></slot:footer>
+            </april:card>
+
+            <april:card>
                 <slot:title class="flex items-center justify-between gap-3"><span>Grades and classes</span><x-lucide-presentation class="size-5 text-muted-foreground" /></slot:title>
                 <slot:description>{{ $academicLevelsCount ? number_format($academicLevelsCount).' grade or class levels are ready.' : 'Add the grades or classes your school teaches.' }}</slot:description>
                 <slot:content><april:badge variant="{{ $academicLevelsCount ? 'secondary' : 'outline' }}">{{ $academicLevelsCount ? 'Ready' : 'Needs attention' }}</april:badge></slot:content>

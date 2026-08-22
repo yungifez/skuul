@@ -52,6 +52,12 @@ class School extends Model
         return $this->belongsTo(CalendarTemplate::class);
     }
 
+    /** @return HasOne<SchoolOperatingProfile, $this> */
+    public function operatingProfile(): HasOne
+    {
+        return $this->hasOne(SchoolOperatingProfile::class);
+    }
+
     /**
      * Get the template this campus generates cycles from.
      *
