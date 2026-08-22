@@ -21,13 +21,6 @@
 
 @section('content')
     <div class="space-y-6">
-        @if (session('success'))
-            <april:alert>
-                <slot:title>Saved</slot:title>
-                <slot:description>{{ session('success') }}</slot:description>
-            </april:alert>
-        @endif
-
         <x-display-validation-errors />
 
         <april:card>

@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\ImportStatus;
 use App\Http\Requests\StoreImportBatchRequest;
 use App\Models\ImportBatch;
 use App\Services\Import\CsvReader;
+use App\Services\Import\ImportRegistry;
 use App\Services\Import\ImportRunner;
+use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 /**
  * Load a file, show what it will do, then write it.
@@ -16,7 +21,65 @@ class ImportController extends Controller
     public function __construct(
         private ImportRunner $runner,
         private CsvReader $reader,
-    ) {
+        private ImportRegistry $registry,
+    ) {}
+
+    /**
+     * Show the imports the school has run, and the way to start another.
+     */
+    public function index(Request $request): View
+    {
+        $this->authorize('viewAny', ImportBatch::class);
+
+        $selectedType = $request->string('type')->toString() ?: null;
+        $selectedStatus = ImportStatus::tryFrom($request->string('status')->toString());
+
+        $batches = ImportBatch::query()
+            ->inSchool()
+            ->with('createdBy:id,name')
+            ->when($selectedType !== null, function (Builder $query) use ($selectedType): void {
+                $query->where('type', $selectedType);
+            })
+            ->when($selectedStatus !== null, function (Builder $query) use ($selectedStatus): void {
+                $query->where('status', $selectedStatus);
+            })
+            ->latest('id')
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('pages.import.index', [
+            'batches' => $batches,
+            'imports' => $this->registry->describe(),
+            'statuses' => ImportStatus::cases(),
+            'selectedType' => $selectedType,
+            'selectedStatus' => $selectedStatus,
+        ]);
+    }
+
+    /**
+     * Show what one import found, row by row.
+     */
+    public function show(Request $request, ImportBatch $importBatch): View
+    {
+        $this->authorize('view', $importBatch);
+
+        $importBatch->load('createdBy:id,name');
+
+        $selectedState = $request->string('state')->toString() ?: null;
+
+        $rows = $importBatch->rows()
+            ->when($selectedState !== null, function (Builder $query) use ($selectedState): void {
+                $query->where('state', $selectedState);
+            })
+            ->paginate(50)
+            ->withQueryString();
+
+        return view('pages.import.show', [
+            'batch' => $importBatch,
+            'rows' => $rows,
+            'columns' => $this->columnsOf($importBatch),
+            'selectedState' => $selectedState,
+        ]);
     }
 
     /**
@@ -36,7 +99,7 @@ class ImportController extends Controller
             actor: $request->user(),
         );
 
-        return back()->with(
+        return redirect()->route('imports.show', $batch)->with(
             'success',
             "The file was checked: $batch->valid_count rows are ready and $batch->invalid_count have errors."
         );
@@ -64,5 +127,20 @@ class ImportController extends Controller
         $this->runner->cancel($importBatch);
 
         return back()->with('success', 'The import was dropped.');
+    }
+
+    /**
+     * Get the column names the rows of this import carry.
+     *
+     * The rows hold whatever the file had, so the screen reads the first row
+     * rather than the importer. A file with an extra column still shows it.
+     *
+     * @return array<int, string>
+     */
+    private function columnsOf(ImportBatch $batch): array
+    {
+        $first = $batch->rows()->first();
+
+        return $first === null ? [] : array_keys($first->payload);
     }
 }

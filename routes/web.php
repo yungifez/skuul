@@ -137,11 +137,80 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::post('attendance/register', ['App\Http\Controllers\AttendanceRegisterController', 'store'])->name('attendance.register.store');
         Route::get('reports/{reportRun}/download', ['App\Http\Controllers\ReportController', 'download'])->name('reports.download');
 
+        // discipline routes. A case is written against the day it happened, so
+        // it does not need a period to be set first. A school that turned
+        // discipline off closes the way in without losing the cases it holds.
+        Route::middleware(['feature:discipline'])->group(function () {
+            Route::get('incidents', ['App\Http\Controllers\IncidentController', 'index'])->name('incidents.index');
+            Route::get('incidents/create', ['App\Http\Controllers\IncidentController', 'create'])->name('incidents.create');
+            Route::post('incidents', ['App\Http\Controllers\IncidentController', 'store'])->name('incidents.store');
+            Route::get('incidents/{incident}', ['App\Http\Controllers\IncidentController', 'show'])->name('incidents.show');
+            Route::put('incidents/{incident}/status', ['App\Http\Controllers\IncidentController', 'changeStatus'])->name('incidents.status.update');
+            Route::post('incidents/{incident}/actions', ['App\Http\Controllers\IncidentController', 'storeAction'])->name('incidents.actions.store');
+            Route::post('incidents/{incident}/actions/{incidentAction}/complete', ['App\Http\Controllers\IncidentController', 'completeAction'])->name('incidents.actions.complete');
+        });
+
+        // wellbeing routes. A plan of help runs across periods, so it does not
+        // need a period to be set first. Health facts are kept apart from the
+        // student profile, because reading a profile must not open them.
+        Route::middleware(['feature:wellbeing'])->group(function () {
+            Route::get('support-plans', ['App\Http\Controllers\SupportPlanController', 'index'])->name('support-plans.index');
+            Route::get('support-plans/create', ['App\Http\Controllers\SupportPlanController', 'create'])->name('support-plans.create');
+            Route::post('support-plans', ['App\Http\Controllers\SupportPlanController', 'store'])->name('support-plans.store');
+            Route::get('support-plans/{supportPlan}', ['App\Http\Controllers\SupportPlanController', 'show'])->name('support-plans.show');
+            Route::put('support-plans/{supportPlan}/status', ['App\Http\Controllers\SupportPlanController', 'changeStatus'])->name('support-plans.status.update');
+            Route::post('support-plans/{supportPlan}/actions', ['App\Http\Controllers\SupportPlanController', 'storeAction'])->name('support-plans.actions.store');
+            Route::post('support-plans/{supportPlan}/actions/{supportPlanAction}/complete', ['App\Http\Controllers\SupportPlanController', 'completeAction'])->name('support-plans.actions.complete');
+            Route::post('support-plans/{supportPlan}/notes', ['App\Http\Controllers\SupportPlanController', 'storeNote'])->name('support-plans.notes.store');
+
+            Route::get('health-records', ['App\Http\Controllers\StudentHealthRecordController', 'index'])->name('health-records.index');
+            Route::get('health-records/{studentRecord}', ['App\Http\Controllers\StudentHealthRecordController', 'edit'])->name('health-records.edit');
+            Route::put('health-records/{studentRecord}', ['App\Http\Controllers\StudentHealthRecordController', 'update'])->name('health-records.update');
+        });
+
+        // staff routes. Employment is not teaching, so these routes do not need
+        // an academic period. A school that turned staff operations off closes
+        // the way in without losing the records it holds.
+        Route::middleware(['feature:staff_operations'])->group(function () {
+            Route::get('staff-profiles', ['App\Http\Controllers\StaffProfileController', 'index'])->name('staff-profiles.index');
+            Route::get('staff-profiles/create', ['App\Http\Controllers\StaffProfileController', 'create'])->name('staff-profiles.create');
+            Route::post('staff-profiles', ['App\Http\Controllers\StaffProfileController', 'store'])->name('staff-profiles.store');
+            Route::get('staff-profiles/{staffProfile}', ['App\Http\Controllers\StaffProfileController', 'show'])->name('staff-profiles.show');
+            Route::put('staff-profiles/{staffProfile}', ['App\Http\Controllers\StaffProfileController', 'update'])->name('staff-profiles.update');
+            Route::post('staff-profiles/{staffProfile}/credentials', ['App\Http\Controllers\StaffProfileController', 'storeCredential'])->name('staff-profiles.credentials.store');
+            Route::post('staff-profiles/{staffProfile}/availabilities', ['App\Http\Controllers\StaffProfileController', 'storeAvailability'])->name('staff-profiles.availabilities.store');
+
+            Route::get('staff-leave', ['App\Http\Controllers\StaffLeaveRequestController', 'index'])->name('staff-leave.index');
+            Route::post('staff-leave', ['App\Http\Controllers\StaffLeaveRequestController', 'store'])->name('staff-leave.store');
+            Route::put('staff-leave/{staffLeaveRequest}/status', ['App\Http\Controllers\StaffLeaveRequestController', 'changeStatus'])->name('staff-leave.status.update');
+        });
+
+        // cohort and programme routes. A group of people is not a class, so
+        // these routes do not need an academic period. Cohorts are not one of
+        // the features a school can turn off; the permissions decide who sees
+        // them.
+        Route::get('cohorts', ['App\Http\Controllers\CohortController', 'index'])->name('cohorts.index');
+        Route::get('cohorts/create', ['App\Http\Controllers\CohortController', 'create'])->name('cohorts.create');
+        Route::post('cohorts', ['App\Http\Controllers\CohortController', 'store'])->name('cohorts.store');
+        Route::get('cohorts/{cohort}', ['App\Http\Controllers\CohortController', 'show'])->name('cohorts.show');
+        Route::put('cohorts/{cohort}', ['App\Http\Controllers\CohortController', 'update'])->name('cohorts.update');
+        Route::post('cohorts/{cohort}/members', ['App\Http\Controllers\CohortController', 'storeMember'])->name('cohorts.members.store');
+        Route::delete('cohorts/{cohort}/members/{cohortMember}', ['App\Http\Controllers\CohortController', 'removeMember'])->name('cohorts.members.destroy');
+
+        Route::get('programs', ['App\Http\Controllers\ProgramController', 'index'])->name('programs.index');
+        Route::get('programs/create', ['App\Http\Controllers\ProgramController', 'create'])->name('programs.create');
+        Route::post('programs', ['App\Http\Controllers\ProgramController', 'store'])->name('programs.store');
+        Route::get('programs/{program}', ['App\Http\Controllers\ProgramController', 'show'])->name('programs.show');
+        Route::post('programs/{program}/participations', ['App\Http\Controllers\ProgramController', 'storeParticipation'])->name('programs.participations.store');
+        Route::put('programs/{program}/participations/{programParticipation}', ['App\Http\Controllers\ProgramController', 'updateParticipation'])->name('programs.participations.update');
+
         // import routes. An import reads the school, not the period, so it
         // does not need a period to be set first. A school that turned imports
         // off closes the way in without losing what it already imported.
         Route::middleware(['feature:imports'])->group(function () {
+            Route::get('imports', ['App\Http\Controllers\ImportController', 'index'])->name('imports.index');
             Route::post('imports', ['App\Http\Controllers\ImportController', 'store'])->name('imports.store');
+            Route::get('imports/{importBatch}', ['App\Http\Controllers\ImportController', 'show'])->name('imports.show');
             Route::post('imports/{importBatch}/apply', ['App\Http\Controllers\ImportController', 'apply'])->name('imports.apply');
             Route::post('imports/{importBatch}/cancel', ['App\Http\Controllers\ImportController', 'cancel'])->name('imports.cancel');
         });

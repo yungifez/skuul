@@ -61,4 +61,28 @@ class ImportRegistry
 
         return $importers;
     }
+
+    /**
+     * Get what every import accepts, for the screen that explains them.
+     *
+     * @return array<int, array{key: string, title: string, required: array<int, string>, optional: array<int, string>}>
+     */
+    public function describe(): array
+    {
+        $imports = [];
+
+        foreach (self::IMPORTERS as $class) {
+            /** @var Importer $importer */
+            $importer = app($class);
+
+            $imports[] = [
+                'key' => $importer->key(),
+                'title' => $importer->title(),
+                'required' => $importer->requiredColumns(),
+                'optional' => $importer->optionalColumns(),
+            ];
+        }
+
+        return $imports;
+    }
 }

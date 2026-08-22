@@ -18,13 +18,6 @@
         @csrf
         @method('PUT')
 
-        @if (session('success'))
-            <april:alert>
-                <slot:title>Saved</slot:title>
-                <slot:description>{{ session('success') }}</slot:description>
-            </april:alert>
-        @endif
-
         <april:card>
             <slot:title>What this screen changes</slot:title>
             <slot:description>Turn a tool off to hide it from daily work. Nothing is deleted. The records stay safe, and reports that are allowed to read them still can.</slot:description>

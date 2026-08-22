@@ -173,6 +173,26 @@ class StudentRecord extends Model
     }
 
     /**
+     * Get the health facts the school keeps for this child.
+     *
+     * @return HasOne<StudentHealthRecord, $this>
+     */
+    public function healthRecord(): HasOne
+    {
+        return $this->hasOne(StudentHealthRecord::class);
+    }
+
+    /**
+     * Get the plans of help written for this child.
+     *
+     * @return HasMany<SupportPlan, $this>
+     */
+    public function supportPlans(): HasMany
+    {
+        return $this->hasMany(SupportPlan::class)->latest('id');
+    }
+
+    /**
      * Get the school this enrollment belongs to.
      *
      * @return BelongsTo<School, $this>

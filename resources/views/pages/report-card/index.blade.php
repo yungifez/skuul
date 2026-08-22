@@ -8,13 +8,6 @@
 
 @section('content')
     <div class="space-y-6">
-        @if (session('success'))
-            <april:alert>
-                <slot:title>Published</slot:title>
-                <slot:description>{{ session('success') }}</slot:description>
-            </april:alert>
-        @endif
-
         @if ($errors->has('report_card'))
             <april:alert variant="destructive">
                 <slot:title>The report card was not published</slot:title>

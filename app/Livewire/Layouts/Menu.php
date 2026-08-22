@@ -2,8 +2,14 @@
 
 namespace App\Livewire\Layouts;
 
+use App\Enums\Feature;
 use App\Models\CampusMoveRequest;
+use App\Models\Incident;
 use App\Models\Organization;
+use App\Models\StaffLeaveRequest;
+use App\Models\StaffProfile;
+use App\Models\StudentHealthRecord;
+use App\Models\SupportPlan;
 use Livewire\Component;
 
 class Menu extends Component
@@ -115,9 +121,23 @@ class Menu extends Component
                 'can'   => 'read parent',
             ],
             [
-                'type'  => 'menu-item',
-                'text'  => 'Administrators',
-                'icon'  => 'shield-check',
+                'type' => 'menu-item',
+                'text' => 'Groups',
+                'icon' => 'users-round',
+                'route' => 'cohorts.index',
+                'can' => 'read cohort',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Programmes',
+                'icon' => 'sparkles',
+                'route' => 'programs.index',
+                'can' => 'read cohort',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Administrators',
+                'icon' => 'shield-check',
                 'route' => 'admins.index',
                 'can'   => 'read admin',
             ],
@@ -181,11 +201,54 @@ class Menu extends Component
                 'can'   => 'read notice',
             ],
             [
-                'type'  => 'menu-item',
-                'text'  => 'Finance',
-                'icon'  => 'dollar-sign',
+                'type' => 'menu-item',
+                'text' => 'Cases',
+                'icon' => 'shield-alert',
+                'route' => 'incidents.index',
+                'visible' => feature_enabled(Feature::Discipline) && $user->can('viewAny', Incident::class),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Support plans',
+                'icon' => 'heart-handshake',
+                'route' => 'support-plans.index',
+                'visible' => feature_enabled(Feature::Wellbeing) && $user->can('viewAny', SupportPlan::class),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Health records',
+                'icon' => 'heart-pulse',
+                'route' => 'health-records.index',
+                'visible' => feature_enabled(Feature::Wellbeing) && $user->can('viewAny', StudentHealthRecord::class),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Staff',
+                'icon' => 'briefcase',
+                'route' => 'staff-profiles.index',
+                'visible' => feature_enabled(Feature::StaffOperations) && $user->can('viewAny', StaffProfile::class),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Staff leave',
+                'icon' => 'plane',
+                'route' => 'staff-leave.index',
+                'visible' => feature_enabled(Feature::StaffOperations) && $user->can('viewAny', StaffLeaveRequest::class),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Finance',
+                'icon' => 'dollar-sign',
+>>>>>>> 6cd11324 (Add screens for the five unreachable domains)
                 'route' => 'fee-invoices.index',
                 'can'   => 'read fee invoice',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Imports',
+                'icon' => 'upload',
+                'route' => 'imports.index',
+                'visible' => feature_enabled(Feature::Imports) && $user->can('read import'),
             ],
             ['header' => 'System'],
             [

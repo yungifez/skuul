@@ -8,13 +8,6 @@
 
 @section('content')
     <div class="mx-auto max-w-2xl space-y-6">
-        @if (session('success'))
-            <april:alert>
-                <slot:title>Saved</slot:title>
-                <slot:description>{{ session('success') }}</slot:description>
-            </april:alert>
-        @endif
-
         <april:card>
             <slot:title>Optional notice email</slot:title>
             <slot:description>Choose whether this school also emails you the notices it posts.</slot:description>

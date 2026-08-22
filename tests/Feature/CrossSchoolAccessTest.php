@@ -7,6 +7,7 @@ use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
+use App\Models\Cohort;
 use App\Models\CourseOffering;
 use App\Models\CustomTimetableItem;
 use App\Models\Exam;
@@ -14,11 +15,17 @@ use App\Models\ExamSlot;
 use App\Models\Fee;
 use App\Models\FeeCategory;
 use App\Models\FeeInvoice;
+use App\Models\ImportBatch;
+use App\Models\Incident;
 use App\Models\Notice;
+use App\Models\Program;
 use App\Models\Promotion;
 use App\Models\School;
+use App\Models\StaffProfile;
+use App\Models\StudentHealthRecord;
 use App\Models\StudentRecord;
 use App\Models\Subject;
+use App\Models\SupportPlan;
 use App\Models\Syllabus;
 use App\Models\Timetable;
 use App\Models\TimetableTimeSlot;
@@ -201,6 +208,52 @@ class CrossSchoolAccessTest extends TestCase
         $this->actAsFullyPermittedUser(['admin'])
             ->get("dashboard/admins/$admin->id")
             ->assertForbidden();
+    }
+
+    public function test_a_record_of_the_newer_domains_is_out_of_reach(): void
+    {
+        $enrollment = StudentRecord::where('school_id', $this->otherSchool->id)->firstOrFail();
+
+        $incident = Incident::create([
+            'school_id' => $this->otherSchool->id,
+            'reference' => 'CASE-99-AAAAAA',
+            'summary' => 'A case of the other school',
+            'occurred_at' => now()->subDay(),
+        ]);
+        $plan = SupportPlan::create([
+            'school_id' => $this->otherSchool->id,
+            'student_record_id' => $enrollment->id,
+            'title' => 'A plan of the other school',
+        ]);
+        StudentHealthRecord::create([
+            'school_id' => $this->otherSchool->id,
+            'student_record_id' => $enrollment->id,
+            'blood_group' => 'O+',
+        ]);
+        $staffProfile = StaffProfile::factory()->create(['school_id' => $this->otherSchool->id]);
+        $cohort = Cohort::create(['school_id' => $this->otherSchool->id, 'name' => 'A group of the other school']);
+        $program = Program::create(['school_id' => $this->otherSchool->id, 'name' => 'A programme of the other school']);
+        $batch = ImportBatch::create(['school_id' => $this->otherSchool->id, 'type' => 'staff']);
+
+        $actor = $this->authorized_user([
+            'read incident', 'update incident', 'read safeguarding case',
+            'read support plan', 'update support plan', 'read confidential support plan',
+            'read health record', 'update health record',
+            'read staff profile', 'update staff profile',
+            'read cohort', 'update cohort', 'read restricted cohort',
+            'read import', 'apply import',
+        ]);
+
+        $actor->get(route('incidents.show', $incident))->assertForbidden();
+        $actor->get(route('support-plans.show', $plan))->assertForbidden();
+        $actor->get(route('staff-profiles.show', $staffProfile))->assertForbidden();
+        $actor->get(route('cohorts.show', $cohort))->assertForbidden();
+        $actor->get(route('programs.show', $program))->assertForbidden();
+        $actor->get(route('imports.show', $batch))->assertForbidden();
+
+        // The health screens are keyed by the enrollment, which the working
+        // school does not hold, so the page is simply not there.
+        $actor->get(route('health-records.edit', $enrollment))->assertNotFound();
     }
 
     public function test_the_index_screens_only_count_the_working_school(): void
