@@ -18,6 +18,7 @@ use RuntimeException;
  * @property array<string, mixed> $payload
  * @property int $revision
  * @property float|null $percentage
+ * @property int|null $academic_period_id
  */
 class ResultSnapshot extends Model
 {

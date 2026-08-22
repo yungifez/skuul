@@ -12,6 +12,7 @@ use App\Models\StudentRecord;
 use App\Models\SupportPlan;
 use App\Services\Attendance\AttendanceSummary;
 use App\Services\Finance\StudentLedger;
+use Illuminate\Database\Eloquent\Collection;
 
 /**
  * Build the copy of a student's records that one school hands to another.
@@ -114,18 +115,30 @@ class TransferPackageBuilder
      */
     private function enrollment(StudentRecord $enrollment): array
     {
+        $enrollment->loadMissing([
+            'academicCycleSection.academicLevel',
+            'placements.academicCycleSection.academicLevel',
+        ]);
+
+        $currentCycleSection = $enrollment->academicCycleSection;
+
         return [
             'admission_number' => $enrollment->admission_number,
             'admission_date' => $enrollment->admission_date,
             'status' => $enrollment->status->value,
-            'class' => $enrollment->myClass?->name,
-            'section' => $enrollment->section?->name,
-            'placements' => $enrollment->placements()->get()->map(fn ($placement): array => [
-                'class_id' => $placement->my_class_id,
-                'section_id' => $placement->section_id,
-                'effective_on' => $placement->effective_on,
-                'reason' => $placement->reason,
-            ])->all(),
+            'academic_level' => $currentCycleSection === null ? null : ($currentCycleSection->academicLevel->label ?? $currentCycleSection->academicLevel->name),
+            'cycle_section' => $currentCycleSection === null ? null : ($currentCycleSection->label ?? $currentCycleSection->name),
+            'placements' => $enrollment->placements->map(function ($placement): array {
+                $cycleSection = $placement->academicCycleSection;
+
+                return [
+                    'academic_cycle_section_id' => $placement->academic_cycle_section_id,
+                    'academic_level' => $cycleSection === null ? null : ($cycleSection->academicLevel->label ?? $cycleSection->academicLevel->name),
+                    'cycle_section' => $cycleSection === null ? null : ($cycleSection->label ?? $cycleSection->name),
+                    'effective_on' => $placement->effective_on,
+                    'reason' => $placement->reason,
+                ];
+            })->all(),
         ];
     }
 
@@ -139,7 +152,8 @@ class TransferPackageBuilder
             ->with('subject')
             ->get()
             ->groupBy('subject_id')
-            ->map(fn ($rows) => $rows->sortByDesc('revision')->first())
+            ->map(fn (Collection $rows): ?ResultSnapshot => $rows->sortByDesc('revision')->first())
+            ->filter()
             ->map(fn (ResultSnapshot $snapshot): array => [
                 'subject' => $snapshot->subject?->name,
                 'academic_year_id' => $snapshot->academic_year_id,
