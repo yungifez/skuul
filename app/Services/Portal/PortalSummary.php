@@ -2,6 +2,7 @@
 
 namespace App\Services\Portal;
 
+use App\Enums\NoticeStatus;
 use App\Enums\PortalArea;
 use App\Models\FeeInvoice;
 use App\Models\NoticeRecipient;
@@ -92,6 +93,7 @@ class PortalSummary
 
         return NoticeRecipient::query()
             ->where('user_id', $enrollment->user_id)
+            ->whereHas('notice', fn ($query) => $query->where('status', NoticeStatus::Published))
             ->with('notice')
             ->orderByDesc('id')
             ->get();

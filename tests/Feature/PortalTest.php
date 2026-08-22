@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Actions\Portal\SubmitPortalRequest;
 use App\Enums\AttendanceStatus;
 use App\Enums\Feature;
+use App\Enums\NoticeRecipientState;
+use App\Enums\NoticeStatus;
 use App\Enums\PortalArea;
 use App\Enums\PortalRequestStatus;
 use App\Enums\PortalRequestType;
@@ -12,6 +14,8 @@ use App\Enums\TimetableStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\AttendanceRecord;
 use App\Models\CourseOffering;
+use App\Models\Notice;
+use App\Models\NoticeRecipient;
 use App\Models\PortalRequest;
 use App\Models\ResultSnapshot;
 use App\Models\School;
@@ -115,6 +119,35 @@ class PortalTest extends TestCase
 
         $this->assertSame(1, $results->count());
         $this->assertSame(71.0, $results->first()->percentage);
+    }
+
+    public function test_only_current_published_notices_reach_the_family(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $this->assertNotNull($enrollment->user_id);
+        $published = Notice::create([
+            'school_id' => $enrollment->school_id,
+            'title' => 'Current notice',
+            'content' => 'Current message.',
+            'start_date' => now()->toDateString(),
+            'stop_date' => now()->addWeek()->toDateString(),
+            'status' => NoticeStatus::Published,
+        ]);
+        $superseded = Notice::create([
+            'school_id' => $enrollment->school_id,
+            'title' => 'Old notice',
+            'content' => 'Old message.',
+            'start_date' => now()->toDateString(),
+            'stop_date' => now()->addWeek()->toDateString(),
+            'status' => NoticeStatus::Superseded,
+        ]);
+        NoticeRecipient::create(['notice_id' => $published->id, 'user_id' => $enrollment->user_id, 'state' => NoticeRecipientState::Delivered]);
+        NoticeRecipient::create(['notice_id' => $superseded->id, 'user_id' => $enrollment->user_id, 'state' => NoticeRecipientState::Delivered]);
+
+        $notices = app(PortalSummary::class)->notices($enrollment);
+
+        $this->assertSame([$published->id], $notices->pluck('notice_id')->all());
     }
 
     public function test_a_closed_results_area_shows_no_results(): void

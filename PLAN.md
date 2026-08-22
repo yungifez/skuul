@@ -901,6 +901,8 @@ Progress:
   records rather than retired class/section keys. Staff can choose home
   sections and explicitly include the guardians of those learners; request
   validation prevents a school from targeting another campus's group.
+- Done: the family portal has a notices screen that shows only messages sent
+  to that student and only while the delivered revision remains published.
 - Open: per-user notification settings.
 
 ### 11. Reports and exports

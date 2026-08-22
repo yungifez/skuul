@@ -45,6 +45,7 @@ Route::middleware(['guest'])->group(function () {
 Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive', 'App\Http\Middleware\PreventGraduatedStudent')->prefix('dashboard')->namespace('App\Http\Controllers')->group(function () {
     // Families use portal authorization, not a staff working-school membership.
     Route::get('portal/enrollments/{studentRecord}/attendance', ['App\Http\Controllers\PortalAttendanceController', 'show'])->name('portal.attendance.show');
+    Route::get('portal/enrollments/{studentRecord}/notices', ['App\Http\Controllers\PortalNoticeController', 'index'])->name('portal.notices.index');
     Route::get('notices/{notice}/attachment', NoticeAttachmentController::class)->name('notices.attachments.download');
     // Organization administration is separate from working-school access.
     Route::get('organizations/{organization}/members', ['App\Http\Controllers\OrganizationMemberController', 'index'])->name('organizations.members.index');
