@@ -944,8 +944,12 @@ Progress:
   school and written to the audit log.
 - Done: the first two reports are student balances, read from the ledger, and
   the class list.
-- Open: official transcript snapshots, the queued browser-based PDF renderer,
-  and spreadsheet exports.
+- Done: transcripts are immutable, revisioned, audited lifetime snapshots of
+  the latest official result in each subject offering across all academic
+  periods. Staff can issue and list them through the transcript workspace;
+  subsequent corrections issue the next revision rather than rewriting the
+  prior document.
+- Open: the queued browser-based PDF renderer and spreadsheet exports.
 
 ### 12. Platform operations
 
