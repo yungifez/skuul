@@ -66,6 +66,14 @@
                 <slot:content><april:badge variant="{{ $courseOfferingsCount ? 'secondary' : 'outline' }}">{{ $courseOfferingsCount ? 'Ready' : 'Needs attention' }}</april:badge></slot:content>
                 <slot:footer><april:button-link href="{{ route('course-offerings.index') }}" variant="link" size="none" class="gap-1 p-0">Manage subjects being taught <span aria-hidden="true">→</span></april:button-link></slot:footer>
             </april:card>
+
+            @can('manage grading scale')
+                <april:card>
+                    <slot:title class="flex items-center justify-between gap-3"><span>Grading scales</span><x-lucide-list-checks class="size-5 text-muted-foreground" /></slot:title>
+                    <slot:description>Set the familiar grade names teachers select when marking work.</slot:description>
+                    <slot:footer><april:button-link href="{{ route('grading-scales.index') }}" variant="link" size="none" class="gap-1 p-0">Manage grading scales <span aria-hidden="true">→</span></april:button-link></slot:footer>
+                </april:card>
+            @endcan
         </section>
 
         <section class="space-y-4">

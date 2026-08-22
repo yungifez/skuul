@@ -20,6 +20,8 @@ use App\Models\CourseOffering;
 use App\Models\GradeCategory;
 use App\Models\GradeEntry;
 use App\Models\GradeItem;
+use App\Models\GradingScale;
+use App\Models\GradingScaleOption;
 use App\Models\ResultSnapshot;
 use App\Models\StudentRecord;
 use App\Models\Subject;
@@ -158,6 +160,44 @@ class GradebookTest extends TestCase
         $action->record($note, $enrollment, comment: 'Reads with confidence.');
 
         $this->assertSame(70.0, app(GradebookCalculator::class)->calculate($courseOffering, $enrollment)['percentage']);
+    }
+
+    public function test_a_scale_option_records_its_configured_points(): void
+    {
+        $this->authorized_user([]);
+        $courseOffering = $this->courseOffering();
+        $scale = GradingScale::factory()->create(['school_id' => $courseOffering->school_id]);
+        $excellent = GradingScaleOption::factory()->create(['grading_scale_id' => $scale->id, 'label' => 'Excellent', 'points' => 5]);
+        $secure = GradingScaleOption::factory()->create(['grading_scale_id' => $scale->id, 'label' => 'Secure', 'points' => 3]);
+        $item = $this->item([
+            'type' => GradeItemType::Scale->value,
+            'grading_scale_id' => $scale->id,
+            'max_points' => 5,
+        ], $courseOffering);
+
+        $entry = app(RecordGrade::class)->record($item, $this->enrollment(), gradingScaleOptionId: $secure->id);
+
+        $this->assertSame($secure->id, $entry->grading_scale_option_id);
+        $this->assertSame(3.0, $entry->points);
+        $this->assertSame(60.0, app(GradebookCalculator::class)->calculate($courseOffering, $entry->studentRecord)['percentage']);
+        $this->assertNotSame($excellent->id, $entry->grading_scale_option_id);
+    }
+
+    public function test_a_scale_item_refuses_an_option_from_another_scale(): void
+    {
+        $this->authorized_user([]);
+        $courseOffering = $this->courseOffering();
+        $scale = GradingScale::factory()->create(['school_id' => $courseOffering->school_id]);
+        $item = $this->item([
+            'type' => GradeItemType::Scale->value,
+            'grading_scale_id' => $scale->id,
+            'max_points' => 5,
+        ], $courseOffering);
+        $outsideOption = GradingScaleOption::factory()->create();
+
+        $this->expectException(InvalidValueException::class);
+
+        app(RecordGrade::class)->record($item, $this->enrollment(), gradingScaleOptionId: $outsideOption->id);
     }
 
     public function test_categories_carry_their_own_weight(): void

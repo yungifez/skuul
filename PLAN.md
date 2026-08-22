@@ -714,6 +714,11 @@ Progress:
 - Done: the gradebook is a tree. `grade_categories` hold `grade_items`, and
   each student has one `grade_entries` row per item. An item can be numeric, a
   named scale, or a comment, with its own maximum, weight, and due date.
+- Done: named scales are school-owned reusable option sets, not class-bound
+  percentage ranges. Every scale option can be descriptive or all options can
+  carry configured points; a grade entry selects the exact option rather than
+  storing free text. Options already used in learner records are immutable,
+  while schools may add new options or deactivate a scale for future work.
 - Done: missing, absent, exempt, incomplete, and not applicable are explicit
   states (`App\Enums\GradeEntryState`). Excused work leaves the total alone
   and missing work counts as nothing, so an empty box never quietly means zero.
@@ -742,10 +747,10 @@ Progress:
   publish official result revisions from the same screen. `read gradebook`,
   `manage gradebook`, and `publish result` are school-scoped Spatie
   permissions; teachers additionally need an assignment to that offering.
-- Done: legacy exam-record, tabulation, and result-checker screens, routes,
-  permissions, data, and schema are removed. Exam schedules remain optional.
-- Open: named scale definitions, school-level assessment templates, and report
-  cards across subjects.
+- Done: legacy exam-record, tabulation, result-checker, and class-bound grade
+  system screens, routes, permissions, data, and schema are removed. Exam
+  schedules remain optional.
+- Open: school-level assessment templates and report cards across subjects.
 
 ### 9. Fees, invoices, and payments
 

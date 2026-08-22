@@ -157,10 +157,10 @@ class Menu extends Component
             ],
             [
                 'type' => 'menu-item',
-                'text' => 'Grade Systems',
+                'text' => 'Grading scales',
                 'icon' => 'graduation-cap',
-                'route' => 'grade-systems.index',
-                'can' => 'read grade system',
+                'route' => 'grading-scales.index',
+                'can' => 'manage grading scale',
             ],
             ['header' => 'Operations'],
             [

@@ -31,6 +31,7 @@ class GradeItem extends Model
         'grade_category_id',
         'name',
         'type',
+        'grading_scale_id',
         'max_points',
         'weight',
         'due_on',
@@ -91,6 +92,16 @@ class GradeItem extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(GradeCategory::class, 'grade_category_id');
+    }
+
+    /**
+     * Get the scale this item uses, when marks are selected from a scale.
+     *
+     * @return BelongsTo<GradingScale, $this>
+     */
+    public function gradingScale(): BelongsTo
+    {
+        return $this->belongsTo(GradingScale::class);
     }
 
     /**

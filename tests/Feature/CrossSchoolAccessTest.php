@@ -15,7 +15,6 @@ use App\Models\ExamSlot;
 use App\Models\Fee;
 use App\Models\FeeCategory;
 use App\Models\FeeInvoice;
-use App\Models\GradeSystem;
 use App\Models\MyClass;
 use App\Models\Notice;
 use App\Models\Promotion;
@@ -76,7 +75,6 @@ class CrossSchoolAccessTest extends TestCase
             'subject' => ['subject', 'dashboard/subjects/%d', ['subject']],
             'syllabus' => ['syllabus', 'dashboard/syllabi/%d', ['syllabus']],
             'exam' => ['exam', 'dashboard/exams/%d', ['exam']],
-            'grade system' => ['gradeSystem', 'dashboard/grade-systems/%d', ['grade system']],
             'notice' => ['notice', 'dashboard/notices/%d', ['notice']],
             'custom timetable item' => ['customTimetableItem', 'dashboard/custom-timetable-items/%d', ['custom timetable item']],
             'fee category' => ['feeCategory', 'dashboard/fees/fee-categories/%d', ['fee category']],
@@ -274,7 +272,6 @@ class CrossSchoolAccessTest extends TestCase
                 'course_offering_id' => $courseOffering->id,
             ]),
             'examSlot' => ExamSlot::factory()->create(['exam_id' => $exam->id]),
-            'gradeSystem' => GradeSystem::factory()->create(['class_group_id' => $classGroup->id]),
             'notice' => Notice::factory()->create(['school_id' => $this->otherSchool->id]),
             'customTimetableItem' => CustomTimetableItem::factory()->create(['school_id' => $this->otherSchool->id]),
             'fee' => Fee::factory()->create(['fee_Category_id' => $feeCategory->id]),

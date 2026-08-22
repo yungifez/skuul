@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Gradebook\PublishResult;
 use App\Actions\Gradebook\RecordGrade;
 use App\Enums\GradeEntryState;
+use App\Enums\GradeItemType;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
 use App\Http\Requests\PublishGradebookResultRequest;
@@ -12,6 +13,7 @@ use App\Http\Requests\StoreGradebookEntryRequest;
 use App\Http\Requests\StoreGradebookItemRequest;
 use App\Models\CourseOffering;
 use App\Models\GradeItem;
+use App\Models\GradingScale;
 use App\Models\ResultSnapshot;
 use App\Models\StudentRecord;
 use App\Services\Gradebook\CourseOfferingRoster;
@@ -45,7 +47,10 @@ class GradebookController extends Controller
         $gradeItems = $courseOffering->gradeItems()
             ->with([
                 'category:id,name',
+                'gradingScale:id,name',
+                'gradingScale.options:id,grading_scale_id,label,points,position',
                 'entries' => fn ($query) => $query->whereIn('student_record_id', $studentIds),
+                'entries.gradingScaleOption:id,label,points',
             ])
             ->orderBy('position')
             ->orderBy('id')
@@ -58,7 +63,14 @@ class GradebookController extends Controller
             ->unique('student_record_id')
             ->keyBy('student_record_id');
 
-        return view('pages.course-offering.gradebook', compact('courseOffering', 'gradeItems', 'publishedResults', 'students'));
+        $gradingScales = GradingScale::query()
+            ->inSchool()
+            ->where('is_active', true)
+            ->with('options')
+            ->orderBy('name')
+            ->get();
+
+        return view('pages.course-offering.gradebook', compact('courseOffering', 'gradeItems', 'gradingScales', 'publishedResults', 'students'));
     }
 
     /**
@@ -68,7 +80,26 @@ class GradebookController extends Controller
     {
         $this->authorize('manageGradebook', $courseOffering);
 
-        GradeItem::create($request->validated() + [
+        $attributes = $request->validated();
+
+        if ($attributes['type'] === GradeItemType::Scale->value) {
+            $scale = GradingScale::query()
+                ->inSchool()
+                ->findOrFail($attributes['grading_scale_id']);
+            $maximumPoints = $scale->options()->max('points');
+            $attributes['max_points'] = $maximumPoints === null ? null : (float) $maximumPoints;
+        }
+
+        if ($attributes['type'] === GradeItemType::Text->value) {
+            $attributes['max_points'] = null;
+            $attributes['grading_scale_id'] = null;
+        }
+
+        if ($attributes['type'] === GradeItemType::Numeric->value) {
+            $attributes['grading_scale_id'] = null;
+        }
+
+        GradeItem::create($attributes + [
             'school_id' => $courseOffering->school_id,
             'course_offering_id' => $courseOffering->id,
             'created_by' => $request->user()->id,
@@ -93,7 +124,7 @@ class GradebookController extends Controller
                 $enrollment,
                 GradeEntryState::from($data['state']),
                 $data['points'] === null ? null : (float) $data['points'],
-                $data['scale_value'] ?? null,
+                $data['grading_scale_option_id'] ?? null,
                 $data['comment'] ?? null,
                 $request->user(),
             );

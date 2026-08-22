@@ -5,6 +5,7 @@ use App\Http\Controllers\AcademicCycleSectionController;
 use App\Http\Controllers\AcademicLevelController;
 use App\Http\Controllers\CalendarTemplateController;
 use App\Http\Controllers\GradebookController;
+use App\Http\Controllers\GradingScaleController;
 use App\Http\Controllers\HealthController;
 use Illuminate\Support\Facades\Route;
 
@@ -65,6 +66,10 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
 
     // super admin must have school id set
     Route::middleware(['App\Http\Middleware\RequireActiveSchool'])->group(function () {
+        Route::resource('grading-scales', GradingScaleController::class)
+            ->parameters(['grading-scales' => 'gradingScale'])
+            ->only(['index', 'store', 'update', 'destroy']);
+
         // dashboard route
         Route::get('/', function () {
             return view('dashboard');
@@ -186,8 +191,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                     Route::resource('exams/{exam}/manage/exam-slots', ExamSlotController::class);
                 });
 
-                // grade system routes
-                Route::resource('grade-systems', GradeSystemController::class);
             });
         });
 

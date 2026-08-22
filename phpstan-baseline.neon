@@ -133,12 +133,6 @@ parameters:
 			path: app/Policies/FeePolicy.php
 
 		-
-			message: '#^Access to an undefined property App\\Models\\GradeSystem\:\:\$classGroup\.$#'
-			identifier: property.notFound
-			count: 3
-			path: app/Policies/GradeSystemPolicy.php
-
-		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$classGroup\.$#'
 			identifier: property.notFound
 			count: 3
@@ -155,24 +149,6 @@ parameters:
 			identifier: return.void
 			count: 1
 			path: app/Services/Fee/FeeInvoiceService.php
-
-		-
-			message: '#^Method App\\Services\\GradeSystem\\GradeSystemService\:\:getGrade\(\) with return type void returns App\\Models\\GradeSystem\|null but should not return anything\.$#'
-			identifier: return.void
-			count: 1
-			path: app/Services/GradeSystem/GradeSystemService.php
-
-		-
-			message: '#^Parameter \#1 \$keys of method Illuminate\\Database\\Eloquent\\Collection\<int,App\\Models\\GradeSystem\>\:\:except\(\) expects array\<mixed\>\|null, int given\.$#'
-			identifier: argument.type
-			count: 1
-			path: app/Services/GradeSystem/GradeSystemService.php
-
-		-
-			message: '#^Parameter \#2 \$grades of method App\\Services\\GradeSystem\\GradeSystemService\:\:gradeRangeExists\(\) expects array, Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\GradeSystem\> given\.$#'
-			identifier: argument.type
-			count: 2
-			path: app/Services/GradeSystem/GradeSystemService.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\ClassGroup\:\:\$classes\.$#'

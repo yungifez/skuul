@@ -28,7 +28,6 @@ class DatabaseSeeder extends Seeder
             SyllabusSeeder::class,
             TimetableSeeder::class,
             ExamSeeder::class,
-            GradeSystemSeeder::class,
             ExamSlotSeeder::class,
             NoticeSeeder::class,
             FeeCategorySeeder::class,

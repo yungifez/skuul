@@ -50,6 +50,15 @@
                             <input id="assessment-points" name="max_points" type="number" min="0.01" step="0.01" value="{{ old('max_points') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="100">
                         </div>
                         <div>
+                            <label for="assessment-scale" class="mb-1 block text-sm font-medium">Grading scale</label>
+                            <select id="assessment-scale" name="grading_scale_id" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                <option value="">Use only for a scale</option>
+                                @foreach ($gradingScales as $gradingScale)
+                                    <option value="{{ $gradingScale->id }}" @selected((string) old('grading_scale_id') === (string) $gradingScale->id)>{{ $gradingScale->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
                             <label for="assessment-weight" class="mb-1 block text-sm font-medium">Weight</label>
                             <input id="assessment-weight" name="weight" type="number" min="0.001" step="0.001" value="{{ old('weight', 1) }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                         </div>
@@ -76,7 +85,7 @@
                                     @foreach ($gradeItems as $gradeItem)
                                         <th class="min-w-56 px-3 py-2">
                                             <span class="block font-medium text-foreground">{{ $gradeItem->name }}</span>
-                                            <span class="text-xs">{{ $gradeItem->category?->name ? $gradeItem->category->name.' · ' : '' }}{{ $gradeItem->max_points ? $gradeItem->max_points.' points' : $gradeItem->type->label() }}</span>
+                                            <span class="text-xs">{{ $gradeItem->category?->name ? $gradeItem->category->name.' · ' : '' }}{{ $gradeItem->gradingScale?->name ?? ($gradeItem->max_points ? $gradeItem->max_points.' points' : $gradeItem->type->label()) }}</span>
                                         </th>
                                     @endforeach
                                     <th class="px-3 py-2">Official result</th>
@@ -97,12 +106,17 @@
                                                         @csrf
                                                         <input type="hidden" name="grade_item_id" value="{{ $gradeItem->id }}">
                                                         <input type="hidden" name="student_record_id" value="{{ $student->id }}">
-                                                        @if ($gradeItem->type->carriesPoints())
+                                                        @if ($gradeItem->type === \App\Enums\GradeItemType::Numeric)
                                                             <input aria-label="{{ $gradeItem->name }} for {{ $student->user?->name ?? $student->admission_number }}" name="points" type="number" min="0" step="0.01" max="{{ $gradeItem->max_points }}" value="{{ $entry?->points }}" class="min-w-0 rounded-md border border-input bg-background px-2 py-1.5" placeholder="Mark">
                                                         @elseif ($gradeItem->type === \App\Enums\GradeItemType::Text)
                                                             <input aria-label="{{ $gradeItem->name }} comment for {{ $student->user?->name ?? $student->admission_number }}" name="comment" value="{{ $entry?->comment }}" class="min-w-0 rounded-md border border-input bg-background px-2 py-1.5" placeholder="Comment">
                                                         @else
-                                                            <input aria-label="{{ $gradeItem->name }} grade for {{ $student->user?->name ?? $student->admission_number }}" name="scale_value" value="{{ $entry?->scale_value }}" class="min-w-0 rounded-md border border-input bg-background px-2 py-1.5" placeholder="Grade">
+                                                            <select aria-label="{{ $gradeItem->name }} grade for {{ $student->user?->name ?? $student->admission_number }}" name="grading_scale_option_id" class="min-w-0 rounded-md border border-input bg-background px-2 py-1.5">
+                                                                <option value="">Choose grade</option>
+                                                                @foreach ($gradeItem->gradingScale?->options ?? [] as $option)
+                                                                    <option value="{{ $option->id }}" @selected($entry?->grading_scale_option_id === $option->id)>{{ $option->label }}</option>
+                                                                @endforeach
+                                                            </select>
                                                         @endif
                                                         <select aria-label="Grade state" name="state" class="rounded-md border border-input bg-background px-2 py-1.5">
                                                             @foreach (\App\Enums\GradeEntryState::cases() as $state)
@@ -112,12 +126,11 @@
                                                         <april:button size="sm" type="submit" class="col-span-2">Save</april:button>
                                                     </form>
                                                 @else
-                                                    <span>{{ $entry?->points ?? $entry?->scale_value ?? $entry?->comment ?? '—' }}</span>
+                                                    <span>{{ $entry?->gradingScaleOption?->label ?? $entry?->points ?? $entry?->comment ?? '—' }}</span>
                                                     @if ($entry !== null && $entry->state !== \App\Enums\GradeEntryState::Graded)
                                                         <span class="block text-xs text-muted-foreground">{{ $entry->state->label() }}</span>
                                                     @endif
                                                 @endcan
-                                            </td>
                                         @endforeach
                                         @php($publishedResult = $publishedResults->get($student->id))
                                         <td class="px-3 py-3">

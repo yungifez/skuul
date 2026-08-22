@@ -221,6 +221,16 @@ enum AuditAction: string
     case ResultRevised = 'result.revised';
 
     /**
+     * A reusable grading scale was created or changed.
+     */
+    case GradingScaleSaved = 'grading_scale.saved';
+
+    /**
+     * A reusable grading scale was removed.
+     */
+    case GradingScaleDeleted = 'grading_scale.deleted';
+
+    /**
      * A support plan was written for a child.
      */
     case SupportPlanOpened = 'support_plan.opened';
@@ -340,6 +350,8 @@ enum AuditAction: string
             self::AcademicCycleSectionsRolledForward => 'Academic cycle sections rolled forward',
             self::ResultPublished => 'Result published',
             self::ResultRevised => 'Result corrected',
+            self::GradingScaleSaved => 'Grading scale saved',
+            self::GradingScaleDeleted => 'Grading scale deleted',
             self::SupportPlanOpened => 'Support plan opened',
             self::SupportPlanStatusChanged => 'Support plan status changed',
             self::HealthRecordUpdated => 'Health record updated',

@@ -280,18 +280,9 @@ class PermissionSeeder extends Seeder
             'name' => 'delete exam',
         ]);
 
-        // permission for grade system
+        // Grading scales are reusable school configuration, not class-specific ranges.
         Permission::firstOrCreate([
-            'name' => 'create grade system',
-        ]);
-        Permission::firstOrCreate([
-            'name' => 'read grade system',
-        ]);
-        Permission::firstOrCreate([
-            'name' => 'update grade system',
-        ]);
-        Permission::firstOrCreate([
-            'name' => 'delete grade system',
+            'name' => 'manage grading scale',
         ]);
 
         // permission for exam slots
@@ -594,9 +585,6 @@ class PermissionSeeder extends Seeder
             'name' => 'menu-exam',
         ]);
         Permission::firstOrCreate([
-            'name' => 'menu-grade-system',
-        ]);
-        Permission::firstOrCreate([
             'name' => 'menu-gradebook',
         ]);
         Permission::firstOrCreate([
@@ -625,7 +613,6 @@ class PermissionSeeder extends Seeder
             'menu-academic-period',
             'menu-exam',
             'menu-gradebook',
-            'menu-grade-system',
             'menu-notice',
             'menu-parent',
             'menu-fee',
@@ -688,10 +675,7 @@ class PermissionSeeder extends Seeder
             'read exam',
             'update exam',
             'delete exam',
-            'create grade system',
-            'read grade system',
-            'update grade system',
-            'delete grade system',
+            'manage grading scale',
             'create exam slot',
             'read exam slot',
             'update exam slot',
@@ -773,11 +757,9 @@ class PermissionSeeder extends Seeder
             'menu-gradebook',
             'menu-notice',
             'menu-student',
-            'menu-grade-system',
             'read student',
             'read exam',
             'read exam slot',
-            'read grade system',
             'create syllabus',
             'read syllabus',
             'update syllabus',
@@ -801,10 +783,8 @@ class PermissionSeeder extends Seeder
             'menu-timetable',
             'menu-notice',
             'menu-exam',
-            'menu-grade-system',
             'read syllabus',
             'read timetable',
-            'read grade system',
             'read notice',
             'read fee invoice',
         ]);
@@ -819,12 +799,10 @@ class PermissionSeeder extends Seeder
             'menu-notice',
             'menu-exam',
             'menu-fee',
-            'menu-grade-system',
             'menu-student',
             'read student',
             'read syllabus',
             'read timetable',
-            'read grade system',
             'read notice',
             'read fee invoice',
         ]);

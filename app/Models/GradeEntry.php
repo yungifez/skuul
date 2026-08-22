@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * different facts, and neither is a silent zero.
  *
  * @property GradeEntryState $state
- * @property float|null      $points
+ * @property float|null $points
  */
 class GradeEntry extends Model
 {
@@ -25,7 +25,7 @@ class GradeEntry extends Model
         'student_record_id',
         'state',
         'points',
-        'scale_value',
+        'grading_scale_option_id',
         'comment',
         'graded_by',
         'graded_at',
@@ -46,8 +46,8 @@ class GradeEntry extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'state'     => GradeEntryState::class,
-        'points'    => 'float',
+        'state' => GradeEntryState::class,
+        'points' => 'float',
         'graded_at' => 'datetime',
     ];
 
@@ -69,6 +69,16 @@ class GradeEntry extends Model
     public function studentRecord(): BelongsTo
     {
         return $this->belongsTo(StudentRecord::class);
+    }
+
+    /**
+     * Get the selected option for a scale-based mark.
+     *
+     * @return BelongsTo<GradingScaleOption, $this>
+     */
+    public function gradingScaleOption(): BelongsTo
+    {
+        return $this->belongsTo(GradingScaleOption::class);
     }
 
     /**

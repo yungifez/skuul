@@ -3,10 +3,12 @@
 namespace App\Actions\Gradebook;
 
 use App\Enums\GradeEntryState;
+use App\Enums\GradeItemType;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
 use App\Models\GradeEntry;
 use App\Models\GradeItem;
+use App\Models\GradingScaleOption;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Gradebook\CourseOfferingRoster;
@@ -33,11 +35,14 @@ class RecordGrade
         StudentRecord $enrollment,
         GradeEntryState $state = GradeEntryState::Graded,
         ?float $points = null,
-        ?string $scaleValue = null,
+        ?int $gradingScaleOptionId = null,
         ?string $comment = null,
         ?User $actor = null,
     ): GradeEntry {
-        $this->failIfRecordsDoNotFit($item, $enrollment, $state, $points);
+        $scaleOption = $this->scaleOptionFor($item, $state, $points, $gradingScaleOptionId);
+        $recordedPoints = $scaleOption === null ? $points : $scaleOption->points;
+
+        $this->failIfRecordsDoNotFit($item, $enrollment, $state, $recordedPoints);
 
         return GradeEntry::updateOrCreate(
             [
@@ -46,8 +51,8 @@ class RecordGrade
             ],
             [
                 'state' => $state,
-                'points' => $state->needsPoints() ? $points : null,
-                'scale_value' => $scaleValue,
+                'points' => $state->needsPoints() ? $recordedPoints : null,
+                'grading_scale_option_id' => $state->needsPoints() ? $scaleOption?->id : null,
                 'comment' => $comment,
                 'graded_by' => $actor === null ? auth()->id() : $actor->id,
                 'graded_at' => now(),
@@ -81,7 +86,7 @@ class RecordGrade
             return;
         }
 
-        if (!$item->type->carriesPoints()) {
+        if (!$item->type->carriesPoints() || $item->type === GradeItemType::Scale) {
             return;
         }
 
@@ -96,5 +101,49 @@ class RecordGrade
         if ($item->max_points !== null && $points > $item->max_points) {
             throw new InvalidValueException("A mark cannot be more than $item->max_points.");
         }
+    }
+
+    /**
+     * Resolve the selected level and make sure it belongs to this exact item scale.
+     *
+     * @throws InvalidValueException
+     */
+    private function scaleOptionFor(GradeItem $item, GradeEntryState $state, ?float $points, ?int $gradingScaleOptionId): ?GradingScaleOption
+    {
+        if ($item->type !== GradeItemType::Scale) {
+            if ($gradingScaleOptionId !== null) {
+                throw new InvalidValueException('Only a scale-based assessment can use a grade option.');
+            }
+
+            return null;
+        }
+
+        if ($points !== null) {
+            throw new InvalidValueException('Choose a grade option instead of entering a number for a scale-based assessment.');
+        }
+
+        if (!$state->needsPoints()) {
+            return null;
+        }
+
+        $item->loadMissing('gradingScale');
+
+        if ($item->gradingScale === null) {
+            throw new InvalidValueException('This scale-based assessment has no grading scale.');
+        }
+
+        if ($gradingScaleOptionId === null) {
+            throw new InvalidValueException('Choose a grade option.');
+        }
+
+        $option = GradingScaleOption::query()
+            ->whereBelongsTo($item->gradingScale)
+            ->find($gradingScaleOptionId);
+
+        if ($option === null) {
+            throw new InvalidValueException('Choose an option from this assessment’s grading scale.');
+        }
+
+        return $option;
     }
 }
