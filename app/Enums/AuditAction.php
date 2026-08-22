@@ -226,6 +226,10 @@ enum AuditAction: string
     /** A report card was regenerated from corrected subject results. */
     case ReportCardRevised = 'report_card.revised';
 
+    case TranscriptIssued = 'transcript.issued';
+
+    case TranscriptRevised = 'transcript.revised';
+
     /**
      * A reusable grading scale was created or changed.
      */
@@ -368,6 +372,8 @@ enum AuditAction: string
             self::ResultRevised => 'Result corrected',
             self::ReportCardPublished => 'Report card published',
             self::ReportCardRevised => 'Report card revised',
+            self::TranscriptIssued => 'Transcript issued',
+            self::TranscriptRevised => 'Transcript revised',
             self::GradingScaleSaved => 'Grading scale saved',
             self::GradingScaleDeleted => 'Grading scale deleted',
             self::AssessmentTemplateSaved => 'Assessment template saved',
