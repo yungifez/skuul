@@ -9,6 +9,9 @@ use App\Enums\AttendanceKind;
 use App\Enums\AttendanceStatus;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
+use App\Models\AcademicYear;
 use App\Models\AttendanceRecord;
 use App\Models\ClassGroup;
 use App\Models\MyClass;
@@ -226,7 +229,19 @@ class AttendanceTest extends TestCase
      */
     private function enrollment(): StudentRecord
     {
-        return StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $school = $this->workingSchool();
+        $academicYear = current_academic_year() ?? AcademicYear::factory()->create(['school_id' => $school->id]);
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
+        $cycleSection = AcademicCycleSection::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_level_id' => $academicLevel->id,
+        ]);
+
+        return StudentRecord::factory()->create([
+            'school_id' => $school->id,
+            'academic_cycle_section_id' => $cycleSection->id,
+        ]);
     }
 
     /**
@@ -238,7 +253,7 @@ class AttendanceTest extends TestCase
         $class = MyClass::factory()->create(['class_group_id' => $classGroup->id]);
 
         return Subject::factory()->create([
-            'school_id'   => $this->workingSchool()->id,
+            'school_id' => $this->workingSchool()->id,
             'my_class_id' => $class->id,
         ]);
     }

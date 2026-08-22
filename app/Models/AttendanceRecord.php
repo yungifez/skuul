@@ -30,8 +30,7 @@ class AttendanceRecord extends Model
         'student_record_id',
         'academic_year_id',
         'academic_period_id',
-        'my_class_id',
-        'section_id',
+        'academic_cycle_section_id',
         'subject_id',
         'kind',
         'attended_on',
@@ -95,6 +94,16 @@ class AttendanceRecord extends Model
     public function studentRecord(): BelongsTo
     {
         return $this->belongsTo(StudentRecord::class);
+    }
+
+    /**
+     * Get the exact home section where this register was taken.
+     *
+     * @return BelongsTo<AcademicCycleSection, $this>
+     */
+    public function academicCycleSection(): BelongsTo
+    {
+        return $this->belongsTo(AcademicCycleSection::class);
     }
 
     /**

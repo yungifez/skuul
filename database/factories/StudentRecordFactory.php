@@ -2,9 +2,13 @@
 
 namespace Database\Factories;
 
+use App\Enums\AcademicStructureStatus;
 use App\Enums\EnrollmentStatus;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
+use App\Models\AcademicYear;
 use App\Models\Model;
-use App\Models\Section;
+use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -25,17 +29,29 @@ class StudentRecordFactory extends Factory
     public function definition()
     {
         $student = User::factory()->create();
-        $section = Section::query()->offset(rand(1, 4))->whereRelation('myClass.classGroup', 'school_id', 1)->first();
-        $class = $section->myClass;
+        $school = School::query()->first() ?? School::factory()->create();
+        $academicYear = AcademicYear::query()->where('school_id', $school->id)->first()
+            ?? AcademicYear::factory()->create(['school_id' => $school->id]);
+        $academicLevel = AcademicLevel::query()->where('school_id', $school->id)->first()
+            ?? AcademicLevel::factory()->create(['school_id' => $school->id]);
+        $academicCycleSection = AcademicCycleSection::query()
+            ->where('school_id', $school->id)
+            ->where('academic_year_id', $academicYear->id)
+            ->first()
+            ?? AcademicCycleSection::factory()->create([
+                'school_id' => $school->id,
+                'academic_year_id' => $academicYear->id,
+                'academic_level_id' => $academicLevel->id,
+                'status' => AcademicStructureStatus::Active,
+            ]);
         $student->assignRole('student');
 
         return [
-            'user_id'          => $student->id,
-            'school_id'        => $class->classGroup->school_id,
-            'my_class_id'      => $class->id,
-            'section_id'       => $class->sections->first()->id ?? null,
-            'admission_date'   => $this->faker->date(),
-            'status'           => EnrollmentStatus::Active,
+            'user_id' => $student->id,
+            'school_id' => $school->id,
+            'academic_cycle_section_id' => $academicCycleSection->id,
+            'admission_date' => $this->faker->date(),
+            'status' => EnrollmentStatus::Active,
             'admission_number' => Str::random(10),
         ];
     }

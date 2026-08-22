@@ -57,8 +57,7 @@ class RecordAttendance
                 'school_id' => $enrollment->school_id ?? current_school_id(),
                 'academic_year_id' => current_academic_year_id(),
                 'academic_period_id' => current_academic_period_id(),
-                'my_class_id' => $enrollment->my_class_id,
-                'section_id' => $enrollment->section_id,
+                'academic_cycle_section_id' => $enrollment->academic_cycle_section_id,
                 'status' => $status,
                 'reason' => $reason,
                 'source' => $source,
@@ -127,6 +126,10 @@ class RecordAttendance
 
         if ($enrollment->status->isClosed()) {
             throw new InvalidValueException('This enrollment is closed. It cannot take attendance.');
+        }
+
+        if ($enrollment->academic_cycle_section_id === null) {
+            throw new InvalidValueException('Place the student in a home section before taking attendance.');
         }
 
         if ($kind === AttendanceKind::Period && $subject === null) {
