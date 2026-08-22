@@ -750,7 +750,13 @@ Progress:
 - Done: legacy exam-record, tabulation, result-checker, and class-bound grade
   system screens, routes, permissions, data, and schema are removed. Exam
   schedules remain optional.
-- Open: school-level assessment templates and report cards across subjects.
+- Done: authorized staff can save an existing course-offering gradebook as a
+  reusable school assessment template and apply it only to a blank gradebook in
+  the same school. Templates copy categories, aggregation, item types, named
+  grading scales, points, weights, and ordering; they never copy learner marks,
+  due dates, or published results. Each use is audited, and an unavailable
+  grading scale blocks application rather than creating an invalid assessment.
+- Open: report cards across subjects.
 
 ### 9. Fees, invoices, and payments
 

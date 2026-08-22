@@ -27,6 +27,20 @@
         @endif
 
         @can('manageGradebook', $courseOffering)
+            @if ($gradeItems->isEmpty() && $courseOffering->gradeCategories->isEmpty() && $assessmentTemplates->isNotEmpty())
+                <april:card>
+                    <slot:title>Start from a school template</slot:title>
+                    <slot:description>Copy a proven assessment structure into this empty gradebook, then add any subject-specific assessments before entering learner grades.</slot:description>
+                    <slot:content>
+                        <form method="POST" action="{{ route('course-offerings.gradebook.templates.apply', $courseOffering) }}" class="flex flex-col gap-3 sm:flex-row sm:items-end">
+                            @csrf
+                            <div class="min-w-0 flex-1"><label for="assessment-template" class="mb-1 block text-sm font-medium">Template</label><select id="assessment-template" name="assessment_template_id" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">@foreach ($assessmentTemplates as $assessmentTemplate)<option value="{{ $assessmentTemplate->id }}" @selected((string) old('assessment_template_id') === (string) $assessmentTemplate->id)>{{ $assessmentTemplate->name }} · {{ $assessmentTemplate->categories_count }} categories, {{ $assessmentTemplate->items_count }} assessments</option>@endforeach</select>@error('assessment_template_id')<p class="mt-1 text-sm text-destructive">{{ $message }}</p>@enderror</div>
+                            <april:button type="submit">Apply template</april:button>
+                        </form>
+                    </slot:content>
+                </april:card>
+            @endif
+
             <april:card>
                 <slot:title>Add an assessment</slot:title>
                 <slot:description>Add assignments, tests, projects, observations, or exam papers without leaving this gradebook.</slot:description>
@@ -66,6 +80,21 @@
                     </form>
                 </slot:content>
             </april:card>
+
+            @if ($gradeItems->isNotEmpty() || $courseOffering->gradeCategories->isNotEmpty())
+                <april:card>
+                    <slot:title>Reuse this assessment structure</slot:title>
+                    <slot:description>Save the categories and assessments you have configured as a school template. It carries no learner grades, due dates, or published results.</slot:description>
+                    <slot:content>
+                        <form method="POST" action="{{ route('course-offerings.gradebook.templates.store', $courseOffering) }}" class="grid gap-3 md:grid-cols-[1fr_2fr_auto]">
+                            @csrf
+                            <div><input name="template_name" value="{{ old('template_name') }}" required class="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Template name">@error('template_name')<p class="mt-1 text-sm text-destructive">{{ $message }}</p>@enderror</div>
+                            <div><input name="description" value="{{ old('description') }}" class="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="When should staff use this template?">@error('description')<p class="mt-1 text-sm text-destructive">{{ $message }}</p>@enderror</div>
+                            <april:button type="submit">Save as template</april:button>
+                        </form>
+                    </slot:content>
+                </april:card>
+            @endif
         @endcan
 
         <april:card>

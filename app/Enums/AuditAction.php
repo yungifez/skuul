@@ -231,6 +231,16 @@ enum AuditAction: string
     case GradingScaleDeleted = 'grading_scale.deleted';
 
     /**
+     * A reusable assessment structure was captured from a gradebook.
+     */
+    case AssessmentTemplateSaved = 'assessment_template.saved';
+
+    /**
+     * A reusable assessment structure was copied into a course offering.
+     */
+    case AssessmentTemplateApplied = 'assessment_template.applied';
+
+    /**
      * A support plan was written for a child.
      */
     case SupportPlanOpened = 'support_plan.opened';
@@ -352,6 +362,8 @@ enum AuditAction: string
             self::ResultRevised => 'Result corrected',
             self::GradingScaleSaved => 'Grading scale saved',
             self::GradingScaleDeleted => 'Grading scale deleted',
+            self::AssessmentTemplateSaved => 'Assessment template saved',
+            self::AssessmentTemplateApplied => 'Assessment template applied',
             self::SupportPlanOpened => 'Support plan opened',
             self::SupportPlanStatusChanged => 'Support plan status changed',
             self::HealthRecordUpdated => 'Health record updated',

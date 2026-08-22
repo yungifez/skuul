@@ -2,15 +2,20 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Gradebook\ApplyAssessmentTemplate;
+use App\Actions\Gradebook\CreateAssessmentTemplateFromGradebook;
 use App\Actions\Gradebook\PublishResult;
 use App\Actions\Gradebook\RecordGrade;
 use App\Enums\GradeEntryState;
 use App\Enums\GradeItemType;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
+use App\Http\Requests\ApplyAssessmentTemplateRequest;
 use App\Http\Requests\PublishGradebookResultRequest;
+use App\Http\Requests\StoreAssessmentTemplateRequest;
 use App\Http\Requests\StoreGradebookEntryRequest;
 use App\Http\Requests\StoreGradebookItemRequest;
+use App\Models\AssessmentTemplate;
 use App\Models\CourseOffering;
 use App\Models\GradeItem;
 use App\Models\GradingScale;
@@ -24,6 +29,8 @@ class GradebookController extends Controller
 {
     public function __construct(
         private CourseOfferingRoster $roster,
+        private ApplyAssessmentTemplate $applyAssessmentTemplate,
+        private CreateAssessmentTemplateFromGradebook $createAssessmentTemplate,
         private RecordGrade $recordGrade,
         private PublishResult $publishResult,
     ) {}
@@ -69,8 +76,14 @@ class GradebookController extends Controller
             ->with('options')
             ->orderBy('name')
             ->get();
+        $assessmentTemplates = AssessmentTemplate::query()
+            ->inSchool()
+            ->where('is_active', true)
+            ->withCount(['categories', 'items'])
+            ->orderBy('name')
+            ->get();
 
-        return view('pages.course-offering.gradebook', compact('courseOffering', 'gradeItems', 'gradingScales', 'publishedResults', 'students'));
+        return view('pages.course-offering.gradebook', compact('assessmentTemplates', 'courseOffering', 'gradeItems', 'gradingScales', 'publishedResults', 'students'));
     }
 
     /**
@@ -106,6 +119,32 @@ class GradebookController extends Controller
         ]);
 
         return back()->with('success', 'Assessment added to the gradebook.');
+    }
+
+    /** Save this offering's configured structure as a reusable school template. */
+    public function storeAssessmentTemplate(StoreAssessmentTemplateRequest $request, CourseOffering $courseOffering): RedirectResponse
+    {
+        try {
+            $this->createAssessmentTemplate->create($courseOffering, $request->validated('template_name'), $request->validated('description'), $request->user());
+        } catch (InvalidValueException $exception) {
+            return back()->withErrors(['gradebook' => $exception->getMessage()]);
+        }
+
+        return back()->with('success', 'Assessment template saved for your school.');
+    }
+
+    /** Apply a school template before this offering receives working marks. */
+    public function applyAssessmentTemplate(ApplyAssessmentTemplateRequest $request, CourseOffering $courseOffering): RedirectResponse
+    {
+        $template = AssessmentTemplate::query()->inSchool()->findOrFail($request->validated('assessment_template_id'));
+
+        try {
+            $this->applyAssessmentTemplate->apply($template, $courseOffering, $request->user());
+        } catch (ClosedPeriodException|InvalidValueException $exception) {
+            return back()->withErrors(['gradebook' => $exception->getMessage()]);
+        }
+
+        return back()->with('success', 'Assessment template applied.');
     }
 
     /**
