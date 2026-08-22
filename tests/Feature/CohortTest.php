@@ -11,6 +11,7 @@ use App\Enums\ParticipationStatus;
 use App\Enums\ProgramType;
 use App\Exceptions\InvalidValueException;
 use App\Models\Cohort;
+use App\Models\CourseOffering;
 use App\Models\GraduationExemption;
 use App\Models\GraduationPlan;
 use App\Models\GraduationRequirement;
@@ -34,6 +35,9 @@ class CohortTest extends TestCase
 {
     use FeatureTestTrait;
     use RefreshDatabase;
+
+    /** @var array<int, CourseOffering> */
+    private array $courseOfferings = [];
 
     public function test_a_group_holds_students_from_its_own_school(): void
     {
@@ -427,20 +431,30 @@ class CohortTest extends TestCase
     }
 
     /**
-     * Publish a result for one student in one subject.
+     * Publish a result for one student in one exact offering.
      */
     private function publishedResult(StudentRecord $enrollment, Subject $subject, float $percentage, int $revision = 1): ResultSnapshot
     {
+        $courseOffering = $this->courseOffering($subject, $enrollment->school_id);
+
         return ResultSnapshot::create([
             'school_id' => $enrollment->school_id,
             'student_record_id' => $enrollment->id,
-            'subject_id' => $subject->id,
-            'academic_year_id' => current_academic_year_id(),
-            'academic_period_id' => current_academic_period_id(),
+            'course_offering_id' => $courseOffering->id,
             'revision' => $revision,
             'percentage' => $percentage,
             'payload' => ['percentage' => $percentage],
             'published_at' => now(),
+        ]);
+    }
+
+    private function courseOffering(Subject $subject, int $schoolId): CourseOffering
+    {
+        return $this->courseOfferings[$subject->id] ??= CourseOffering::factory()->create([
+            'school_id' => $schoolId,
+            'subject_id' => $subject->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_period_id' => current_academic_period_id(),
         ]);
     }
 }

@@ -4,10 +4,11 @@ namespace App\Actions\Gradebook;
 
 use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AuditAction;
+use App\Models\CourseOffering;
 use App\Models\ResultSnapshot;
 use App\Models\StudentRecord;
-use App\Models\Subject;
 use App\Models\User;
+use App\Services\Gradebook\CourseOfferingRoster;
 use App\Services\Gradebook\GradebookCalculator;
 use Illuminate\Support\Facades\DB;
 
@@ -22,40 +23,33 @@ class PublishResult
 {
     public function __construct(
         private GradebookCalculator $calculator,
+        private CourseOfferingRoster $roster,
         private RecordAuditEvent $auditor,
     ) {}
 
     /**
-     * Publish the result of one enrollment in one subject.
+     * Publish the result of one enrollment in one course offering.
      */
     public function publish(
-        Subject $subject,
+        CourseOffering $courseOffering,
         StudentRecord $enrollment,
-        ?int $academicYearId = null,
-        ?int $academicPeriodId = null,
         ?User $actor = null,
         ?string $reason = null,
     ): ResultSnapshot {
-        $academicYearId ??= current_academic_year_id();
-        $academicPeriodId ??= current_academic_period_id();
+        $this->roster->ensureIncludes($courseOffering, $enrollment);
+        $result = $this->calculator->calculate($courseOffering, $enrollment);
 
-        $result = $this->calculator->calculate($subject, $enrollment, $academicYearId, $academicPeriodId);
-
-        return DB::transaction(function () use ($subject, $enrollment, $academicYearId, $academicPeriodId, $actor, $reason, $result): ResultSnapshot {
+        return DB::transaction(function () use ($courseOffering, $enrollment, $actor, $reason, $result): ResultSnapshot {
             $previous = ResultSnapshot::query()
                 ->where('student_record_id', $enrollment->id)
-                ->where('subject_id', $subject->id)
-                ->where('academic_year_id', $academicYearId)
-                ->where('academic_period_id', $academicPeriodId)
+                ->whereBelongsTo($courseOffering)
                 ->latestRevision()
                 ->first();
 
             $snapshot = ResultSnapshot::create([
-                'school_id' => $subject->school_id,
+                'school_id' => $courseOffering->school_id,
                 'student_record_id' => $enrollment->id,
-                'subject_id' => $subject->id,
-                'academic_year_id' => $academicYearId,
-                'academic_period_id' => $academicPeriodId,
+                'course_offering_id' => $courseOffering->id,
                 'revision' => $previous === null ? 1 : $previous->revision + 1,
                 'percentage' => $result['percentage'],
                 'payload' => $result,
@@ -68,7 +62,7 @@ class PublishResult
                 $previous === null ? AuditAction::ResultPublished : AuditAction::ResultRevised,
                 $snapshot,
                 [
-                    'subject_id' => $subject->id,
+                    'course_offering_id' => $courseOffering->id,
                     'student_record_id' => $enrollment->id,
                     'revision' => $snapshot->revision,
                     'percentage' => $snapshot->percentage,
@@ -84,13 +78,11 @@ class PublishResult
     /**
      * Get the result families and teachers should read now.
      */
-    public function current(Subject $subject, StudentRecord $enrollment, ?int $academicYearId = null, ?int $academicPeriodId = null): ?ResultSnapshot
+    public function current(CourseOffering $courseOffering, StudentRecord $enrollment): ?ResultSnapshot
     {
         return ResultSnapshot::query()
             ->where('student_record_id', $enrollment->id)
-            ->where('subject_id', $subject->id)
-            ->where('academic_year_id', $academicYearId ?? current_academic_year_id())
-            ->where('academic_period_id', $academicPeriodId ?? current_academic_period_id())
+            ->whereBelongsTo($courseOffering)
             ->latestRevision()
             ->first();
     }

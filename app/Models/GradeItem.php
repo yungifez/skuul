@@ -27,9 +27,7 @@ class GradeItem extends Model
 
     protected $fillable = [
         'school_id',
-        'subject_id',
-        'academic_year_id',
-        'academic_period_id',
+        'course_offering_id',
         'grade_category_id',
         'name',
         'type',
@@ -65,24 +63,24 @@ class GradeItem extends Model
     ];
 
     /**
-     * Limit the query to the items of one subject.
+     * Limit the query to the items of one course offering.
      *
      * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
-    public function scopeForSubject(Builder $query, Subject|int $subject): Builder
+    public function scopeForCourseOffering(Builder $query, CourseOffering|int $courseOffering): Builder
     {
-        return $query->where('subject_id', $subject instanceof Subject ? $subject->id : $subject);
+        return $query->where('course_offering_id', $courseOffering instanceof CourseOffering ? $courseOffering->id : $courseOffering);
     }
 
     /**
-     * Get the subject the item belongs to.
+     * Get the offering the item belongs to.
      *
-     * @return BelongsTo<Subject, $this>
+     * @return BelongsTo<CourseOffering, $this>
      */
-    public function subject(): BelongsTo
+    public function courseOffering(): BelongsTo
     {
-        return $this->belongsTo(Subject::class);
+        return $this->belongsTo(CourseOffering::class);
     }
 
     /**
@@ -93,26 +91,6 @@ class GradeItem extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(GradeCategory::class, 'grade_category_id');
-    }
-
-    /**
-     * Get the academic year the item belongs to.
-     *
-     * @return BelongsTo<AcademicYear, $this>
-     */
-    public function academicYear(): BelongsTo
-    {
-        return $this->belongsTo(AcademicYear::class);
-    }
-
-    /**
-     * Get the period the item belongs to, when it names one.
-     *
-     * @return BelongsTo<AcademicPeriod, $this>
-     */
-    public function academicPeriod(): BelongsTo
-    {
-        return $this->belongsTo(AcademicPeriod::class);
     }
 
     /**

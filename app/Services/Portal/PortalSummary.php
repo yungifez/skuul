@@ -28,7 +28,7 @@ class PortalSummary
     ) {}
 
     /**
-     * Get the newest published result of each subject.
+     * Get the newest published result of each course offering.
      *
      * @return Collection<int, ResultSnapshot>
      */
@@ -40,11 +40,11 @@ class PortalSummary
 
         return ResultSnapshot::query()
             ->where('student_record_id', $enrollment->id)
-            ->when($academicYearId !== null, fn ($query) => $query->where('academic_year_id', $academicYearId))
-            ->when($academicPeriodId !== null, fn ($query) => $query->where('academic_period_id', $academicPeriodId))
-            ->with('subject')
+            ->when($academicYearId !== null, fn ($query) => $query->whereHas('courseOffering', fn ($query) => $query->where('academic_year_id', $academicYearId)))
+            ->when($academicPeriodId !== null, fn ($query) => $query->whereHas('courseOffering', fn ($query) => $query->where('academic_period_id', $academicPeriodId)))
+            ->with('courseOffering.subject')
             ->get()
-            ->groupBy('subject_id')
+            ->groupBy('course_offering_id')
             ->map(fn (Collection $rows): ResultSnapshot => $rows->sortByDesc('revision')->first())
             ->values();
     }

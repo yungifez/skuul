@@ -18,7 +18,7 @@ use RuntimeException;
  * @property array<string, mixed> $payload
  * @property int $revision
  * @property float|null $percentage
- * @property int|null $academic_period_id
+ * @property int $course_offering_id
  */
 class ResultSnapshot extends Model
 {
@@ -33,9 +33,7 @@ class ResultSnapshot extends Model
     protected $fillable = [
         'school_id',
         'student_record_id',
-        'subject_id',
-        'academic_year_id',
-        'academic_period_id',
+        'course_offering_id',
         'revision',
         'percentage',
         'payload',
@@ -93,13 +91,13 @@ class ResultSnapshot extends Model
     }
 
     /**
-     * Get the subject the result covers, when it names one.
+     * Get the offering the result covers.
      *
-     * @return BelongsTo<Subject, $this>
+     * @return BelongsTo<CourseOffering, $this>
      */
-    public function subject(): BelongsTo
+    public function courseOffering(): BelongsTo
     {
-        return $this->belongsTo(Subject::class);
+        return $this->belongsTo(CourseOffering::class);
     }
 
     /**

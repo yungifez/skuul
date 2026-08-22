@@ -10,6 +10,7 @@ use App\Enums\DataCategory;
 use App\Enums\DataSharingStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\AuditEvent;
+use App\Models\CourseOffering;
 use App\Models\DataSharingRequest;
 use App\Models\ResultSnapshot;
 use App\Models\School;
@@ -30,6 +31,8 @@ class DataSharingTest extends TestCase
 {
     use FeatureTestTrait;
     use RefreshDatabase;
+
+    private ?CourseOffering $courseOffering = null;
 
     public function test_a_school_asks_another_for_named_categories(): void
     {
@@ -282,12 +285,17 @@ class DataSharingTest extends TestCase
      */
     private function publishedResult(StudentRecord $enrollment, float $percentage): ResultSnapshot
     {
-        return ResultSnapshot::create([
+        $this->courseOffering ??= CourseOffering::factory()->create([
             'school_id' => $enrollment->school_id,
-            'student_record_id' => $enrollment->id,
             'subject_id' => Subject::factory()->create(['school_id' => $enrollment->school_id])->id,
             'academic_year_id' => current_academic_year_id(),
             'academic_period_id' => current_academic_period_id(),
+        ]);
+
+        return ResultSnapshot::create([
+            'school_id' => $enrollment->school_id,
+            'student_record_id' => $enrollment->id,
+            'course_offering_id' => $this->courseOffering->id,
             'revision' => 1,
             'percentage' => $percentage,
             'payload' => ['percentage' => $percentage],

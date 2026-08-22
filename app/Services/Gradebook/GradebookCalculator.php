@@ -3,15 +3,15 @@
 namespace App\Services\Gradebook;
 
 use App\Enums\GradeAggregation;
+use App\Models\CourseOffering;
 use App\Models\GradeCategory;
 use App\Models\GradeEntry;
 use App\Models\GradeItem;
 use App\Models\StudentRecord;
-use App\Models\Subject;
 use Illuminate\Support\Collection;
 
 /**
- * Work out what a student scored in a subject.
+ * Work out what a student scored in one exact course offering.
  *
  * Items can have different maximums, so every item is first turned into a
  * share of its own maximum. Categories are then put together the way each one
@@ -20,18 +20,14 @@ use Illuminate\Support\Collection;
 class GradebookCalculator
 {
     /**
-     * Get the result of one enrollment in one subject, as a percentage.
+     * Get the result of one enrollment in one offering, as a percentage.
      *
      * @return array{percentage: float|null, points: float, max_points: float, items: array<int, array{item_id: int, name: string, state: string, points: float|null, max_points: float|null}>}
      */
-    public function calculate(Subject $subject, StudentRecord $enrollment, ?int $academicYearId = null, ?int $academicPeriodId = null): array
+    public function calculate(CourseOffering $courseOffering, StudentRecord $enrollment): array
     {
-        $academicYearId ??= current_academic_year_id();
-
         $items = GradeItem::query()
-            ->forSubject($subject)
-            ->when($academicYearId !== null, fn ($query) => $query->where('academic_year_id', $academicYearId))
-            ->when($academicPeriodId !== null, fn ($query) => $query->where('academic_period_id', $academicPeriodId))
+            ->whereBelongsTo($courseOffering)
             ->orderBy('position')
             ->orderBy('id')
             ->get();
@@ -45,8 +41,7 @@ class GradebookCalculator
         $rows = $this->rowsFor($items, $entries);
 
         $categories = GradeCategory::query()
-            ->where('subject_id', $subject->id)
-            ->when($academicYearId !== null, fn ($query) => $query->where('academic_year_id', $academicYearId))
+            ->whereBelongsTo($courseOffering)
             ->orderBy('position')
             ->orderBy('id')
             ->get();

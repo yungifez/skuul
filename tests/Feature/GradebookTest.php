@@ -11,12 +11,15 @@ use App\Enums\GradeEntryState;
 use App\Enums\GradeItemType;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
+use App\Models\AcademicPeriod;
+use App\Models\AcademicYear;
 use App\Models\AuditEvent;
-use App\Models\ClassGroup;
+use App\Models\CourseOffering;
 use App\Models\GradeCategory;
 use App\Models\GradeEntry;
 use App\Models\GradeItem;
-use App\Models\MyClass;
 use App\Models\ResultSnapshot;
 use App\Models\StudentRecord;
 use App\Models\Subject;
@@ -33,6 +36,10 @@ class GradebookTest extends TestCase
 {
     use FeatureTestTrait;
     use RefreshDatabase;
+
+    private ?AcademicCycleSection $cycleSection = null;
+
+    private ?CourseOffering $courseOffering = null;
 
     public function test_a_mark_is_written_once_per_student_and_item(): void
     {
@@ -80,7 +87,7 @@ class GradebookTest extends TestCase
     {
         $this->authorized_user([]);
         $item = $this->item(['max_points' => 20]);
-        app(ChangeAcademicPeriodStatus::class)->close($item->academicYear);
+        app(ChangeAcademicPeriodStatus::class)->close($item->courseOffering->academicYear);
 
         $this->expectException(ClosedPeriodException::class);
 
@@ -90,16 +97,16 @@ class GradebookTest extends TestCase
     public function test_the_result_is_a_share_of_the_maximum(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
+        $courseOffering = $this->courseOffering();
         $enrollment = $this->enrollment();
-        $first = $this->item(['max_points' => 20], $subject);
-        $second = $this->item(['max_points' => 50], $subject);
+        $first = $this->item(['max_points' => 20], $courseOffering);
+        $second = $this->item(['max_points' => 50], $courseOffering);
 
         $action = app(RecordGrade::class);
         $action->record($first, $enrollment, points: 10);
         $action->record($second, $enrollment, points: 25);
 
-        $result = app(GradebookCalculator::class)->calculate($subject, $enrollment);
+        $result = app(GradebookCalculator::class)->calculate($courseOffering, $enrollment);
 
         $this->assertSame(50.0, $result['percentage']);
     }
@@ -107,16 +114,16 @@ class GradebookTest extends TestCase
     public function test_excused_work_leaves_the_total_alone(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
+        $courseOffering = $this->courseOffering();
         $enrollment = $this->enrollment();
-        $marked = $this->item(['max_points' => 20], $subject);
-        $excused = $this->item(['max_points' => 100], $subject);
+        $marked = $this->item(['max_points' => 20], $courseOffering);
+        $excused = $this->item(['max_points' => 100], $courseOffering);
 
         $action = app(RecordGrade::class);
         $action->record($marked, $enrollment, points: 20);
         $action->record($excused, $enrollment, GradeEntryState::Exempt);
 
-        $result = app(GradebookCalculator::class)->calculate($subject, $enrollment);
+        $result = app(GradebookCalculator::class)->calculate($courseOffering, $enrollment);
 
         $this->assertSame(100.0, $result['percentage']);
     }
@@ -124,16 +131,16 @@ class GradebookTest extends TestCase
     public function test_missing_work_counts_as_nothing(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
+        $courseOffering = $this->courseOffering();
         $enrollment = $this->enrollment();
-        $marked = $this->item(['max_points' => 10], $subject);
-        $missed = $this->item(['max_points' => 10], $subject);
+        $marked = $this->item(['max_points' => 10], $courseOffering);
+        $missed = $this->item(['max_points' => 10], $courseOffering);
 
         $action = app(RecordGrade::class);
         $action->record($marked, $enrollment, points: 10);
         $action->record($missed, $enrollment, GradeEntryState::Missing);
 
-        $result = app(GradebookCalculator::class)->calculate($subject, $enrollment);
+        $result = app(GradebookCalculator::class)->calculate($courseOffering, $enrollment);
 
         $this->assertSame(50.0, $result['percentage']);
     }
@@ -141,81 +148,107 @@ class GradebookTest extends TestCase
     public function test_a_comment_item_does_not_change_the_total(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
+        $courseOffering = $this->courseOffering();
         $enrollment = $this->enrollment();
-        $marked = $this->item(['max_points' => 10], $subject);
-        $note = $this->item(['type' => GradeItemType::Text->value, 'max_points' => null], $subject);
+        $marked = $this->item(['max_points' => 10], $courseOffering);
+        $note = $this->item(['type' => GradeItemType::Text->value, 'max_points' => null], $courseOffering);
 
         $action = app(RecordGrade::class);
         $action->record($marked, $enrollment, points: 7);
         $action->record($note, $enrollment, comment: 'Reads with confidence.');
 
-        $this->assertSame(70.0, app(GradebookCalculator::class)->calculate($subject, $enrollment)['percentage']);
+        $this->assertSame(70.0, app(GradebookCalculator::class)->calculate($courseOffering, $enrollment)['percentage']);
     }
 
     public function test_categories_carry_their_own_weight(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
+        $courseOffering = $this->courseOffering();
         $enrollment = $this->enrollment();
 
-        $classwork = $this->category($subject, ['name' => 'Classwork', 'weight' => 1]);
-        $exam = $this->category($subject, ['name' => 'Final exam', 'weight' => 3]);
+        $classwork = $this->category($courseOffering, ['name' => 'Classwork', 'weight' => 1]);
+        $exam = $this->category($courseOffering, ['name' => 'Final exam', 'weight' => 3]);
 
-        $classworkItem = $this->item(['max_points' => 10, 'grade_category_id' => $classwork->id], $subject);
-        $examItem = $this->item(['max_points' => 100, 'grade_category_id' => $exam->id], $subject);
+        $classworkItem = $this->item(['max_points' => 10, 'grade_category_id' => $classwork->id], $courseOffering);
+        $examItem = $this->item(['max_points' => 100, 'grade_category_id' => $exam->id], $courseOffering);
 
         $action = app(RecordGrade::class);
         $action->record($classworkItem, $enrollment, points: 10);
         $action->record($examItem, $enrollment, points: 50);
 
         // (1.0 * 1 + 0.5 * 3) / 4 = 0.625
-        $this->assertSame(62.5, app(GradebookCalculator::class)->calculate($subject, $enrollment)['percentage']);
+        $this->assertSame(62.5, app(GradebookCalculator::class)->calculate($courseOffering, $enrollment)['percentage']);
     }
 
     public function test_a_category_can_count_only_the_best_item(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
+        $courseOffering = $this->courseOffering();
         $enrollment = $this->enrollment();
-        $category = $this->category($subject, ['aggregation' => GradeAggregation::Highest->value]);
+        $category = $this->category($courseOffering, ['aggregation' => GradeAggregation::Highest->value]);
 
         $action = app(RecordGrade::class);
-        $action->record($this->item(['max_points' => 10, 'grade_category_id' => $category->id], $subject), $enrollment, points: 4);
-        $action->record($this->item(['max_points' => 10, 'grade_category_id' => $category->id], $subject), $enrollment, points: 9);
+        $action->record($this->item(['max_points' => 10, 'grade_category_id' => $category->id], $courseOffering), $enrollment, points: 4);
+        $action->record($this->item(['max_points' => 10, 'grade_category_id' => $category->id], $courseOffering), $enrollment, points: 9);
 
-        $this->assertSame(90.0, app(GradebookCalculator::class)->calculate($subject, $enrollment)['percentage']);
+        $this->assertSame(90.0, app(GradebookCalculator::class)->calculate($courseOffering, $enrollment)['percentage']);
     }
 
-    public function test_a_subject_without_marks_has_no_result(): void
+    public function test_an_offering_without_marks_has_no_result(): void
     {
         $this->authorized_user([]);
 
-        $this->assertNull(app(GradebookCalculator::class)->calculate($this->subject(), $this->enrollment())['percentage']);
+        $this->assertNull(app(GradebookCalculator::class)->calculate($this->courseOffering(), $this->enrollment())['percentage']);
     }
 
     public function test_publishing_takes_a_copy_of_the_gradebook(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
+        $courseOffering = $this->courseOffering();
         $enrollment = $this->enrollment();
-        app(RecordGrade::class)->record($this->item(['max_points' => 10], $subject), $enrollment, points: 8);
+        app(RecordGrade::class)->record($this->item(['max_points' => 10], $courseOffering), $enrollment, points: 8);
 
-        $snapshot = app(PublishResult::class)->publish($subject, $enrollment);
+        $snapshot = app(PublishResult::class)->publish($courseOffering, $enrollment);
 
         $this->assertSame(1, $snapshot->revision);
         $this->assertSame(80.0, $snapshot->percentage);
         $this->assertNotEmpty($snapshot->payload['items']);
     }
 
+    public function test_a_student_outside_the_offering_cannot_receive_or_publish_a_result(): void
+    {
+        $this->authorized_user([]);
+        $courseOffering = $this->courseOffering();
+        $item = $this->item(['max_points' => 10], $courseOffering);
+        $outsideCycleSection = AcademicCycleSection::query()->findOrFail(AcademicCycleSection::factory()->create([
+            'school_id' => $courseOffering->school_id,
+            'academic_year_id' => $courseOffering->academic_year_id,
+        ])->getKey());
+        $outsideEnrollment = StudentRecord::query()->findOrFail(StudentRecord::factory()->create([
+            'school_id' => $courseOffering->school_id,
+            'academic_cycle_section_id' => $outsideCycleSection->id,
+        ])->getKey());
+
+        try {
+            app(RecordGrade::class)->record($item, $outsideEnrollment, points: 8);
+            $this->fail('Expected a student outside the course offering to be refused.');
+        } catch (InvalidValueException) {
+            $this->assertSame(0, GradeEntry::count());
+        }
+
+        $this->expectException(InvalidValueException::class);
+
+        app(PublishResult::class)->publish($courseOffering, $outsideEnrollment);
+    }
+
     public function test_a_published_result_does_not_follow_later_marks(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
+        $courseOffering = $this->courseOffering();
         $enrollment = $this->enrollment();
-        $item = $this->item(['max_points' => 10], $subject);
+        $item = $this->item(['max_points' => 10], $courseOffering);
         app(RecordGrade::class)->record($item, $enrollment, points: 8);
-        $snapshot = app(PublishResult::class)->publish($subject, $enrollment);
+        $snapshot = app(PublishResult::class)->publish($courseOffering, $enrollment);
 
         app(RecordGrade::class)->record($item, $enrollment, points: 3);
 
@@ -225,29 +258,29 @@ class GradebookTest extends TestCase
     public function test_a_correction_is_the_next_revision(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
+        $courseOffering = $this->courseOffering();
         $enrollment = $this->enrollment();
-        $item = $this->item(['max_points' => 10], $subject);
+        $item = $this->item(['max_points' => 10], $courseOffering);
         $publish = app(PublishResult::class);
         app(RecordGrade::class)->record($item, $enrollment, points: 8);
-        $publish->publish($subject, $enrollment);
+        $publish->publish($courseOffering, $enrollment);
 
         app(RecordGrade::class)->record($item, $enrollment, points: 9);
-        $corrected = $publish->publish($subject, $enrollment, reason: 'Marking mistake');
+        $corrected = $publish->publish($courseOffering, $enrollment, reason: 'Marking mistake');
 
         $this->assertSame(2, $corrected->revision);
         $this->assertSame(90.0, $corrected->percentage);
         $this->assertSame(2, ResultSnapshot::where('student_record_id', $enrollment->id)->count());
-        $this->assertSame($corrected->id, $publish->current($subject, $enrollment)?->id);
+        $this->assertSame($corrected->id, $publish->current($courseOffering, $enrollment)?->id);
     }
 
     public function test_a_published_result_cannot_be_changed_or_deleted(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
+        $courseOffering = $this->courseOffering();
         $enrollment = $this->enrollment();
-        app(RecordGrade::class)->record($this->item(['max_points' => 10], $subject), $enrollment, points: 8);
-        $snapshot = app(PublishResult::class)->publish($subject, $enrollment);
+        app(RecordGrade::class)->record($this->item(['max_points' => 10], $courseOffering), $enrollment, points: 8);
+        $snapshot = app(PublishResult::class)->publish($courseOffering, $enrollment);
 
         $this->expectException(RuntimeException::class);
 
@@ -257,58 +290,76 @@ class GradebookTest extends TestCase
     public function test_publication_is_written_to_the_audit_log(): void
     {
         $this->authorized_user([]);
-        $subject = $this->subject();
+        $courseOffering = $this->courseOffering();
         $enrollment = $this->enrollment();
-        app(RecordGrade::class)->record($this->item(['max_points' => 10], $subject), $enrollment, points: 8);
+        app(RecordGrade::class)->record($this->item(['max_points' => 10], $courseOffering), $enrollment, points: 8);
 
-        $snapshot = app(PublishResult::class)->publish($subject, $enrollment);
+        $snapshot = app(PublishResult::class)->publish($courseOffering, $enrollment);
 
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::ResultPublished)->forSubject($snapshot)->first());
     }
 
     /**
-     * Create a subject in the working school.
+     * Create an offering whose home section contains the test enrollment.
      */
-    private function subject(): Subject
+    private function courseOffering(): CourseOffering
     {
-        $classGroup = ClassGroup::factory()->create(['school_id' => $this->workingSchool()->id]);
-        $class = MyClass::factory()->create(['class_group_id' => $classGroup->id]);
+        if ($this->courseOffering !== null) {
+            return $this->courseOffering;
+        }
 
-        return Subject::factory()->create([
-            'school_id' => $this->workingSchool()->id,
-            'my_class_id' => $class->id,
+        $school = $this->workingSchool();
+        $academicYear = current_academic_year() ?? AcademicYear::factory()->create(['school_id' => $school->id]);
+        $academicPeriod = current_academic_period() ?? AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
         ]);
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
+        $this->cycleSection = AcademicCycleSection::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_level_id' => $academicLevel->id,
+        ]);
+        $subject = Subject::factory()->create(['school_id' => $school->id]);
+
+        $this->courseOffering = CourseOffering::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_period_id' => $academicPeriod->id,
+            'academic_level_id' => $academicLevel->id,
+            'subject_id' => $subject->id,
+        ]);
+        $this->courseOffering->cycleSections()->attach($this->cycleSection);
+
+        return $this->courseOffering;
     }
 
     /**
-     * Create a grade item in the given subject.
+     * Create a grade item in the given offering.
      *
      * @param  array<string, mixed>  $attributes
      */
-    private function item(array $attributes = [], ?Subject $subject = null): GradeItem
+    private function item(array $attributes = [], ?CourseOffering $courseOffering = null): GradeItem
     {
-        $subject ??= $this->subject();
+        $courseOffering ??= $this->courseOffering();
 
         return GradeItem::create($attributes + [
-            'school_id' => $subject->school_id,
-            'subject_id' => $subject->id,
-            'academic_year_id' => current_academic_year_id(),
-            'academic_period_id' => current_academic_period_id(),
+            'school_id' => $courseOffering->school_id,
+            'course_offering_id' => $courseOffering->id,
             'name' => 'Assessment',
         ]);
     }
 
     /**
-     * Create a grade category in the given subject.
+     * Create a grade category in the given offering.
      *
      * @param  array<string, mixed>  $attributes
      */
-    private function category(Subject $subject, array $attributes = []): GradeCategory
+    private function category(CourseOffering $courseOffering, array $attributes = []): GradeCategory
     {
         return GradeCategory::create($attributes + [
-            'school_id' => $subject->school_id,
-            'subject_id' => $subject->id,
-            'academic_year_id' => current_academic_year_id(),
+            'school_id' => $courseOffering->school_id,
+            'course_offering_id' => $courseOffering->id,
             'name' => 'Group',
         ]);
     }
@@ -318,6 +369,11 @@ class GradebookTest extends TestCase
      */
     private function enrollment(): StudentRecord
     {
-        return StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $courseOffering = $this->courseOffering();
+
+        return StudentRecord::factory()->create([
+            'school_id' => $courseOffering->school_id,
+            'academic_cycle_section_id' => $this->cycleSection?->id,
+        ]);
     }
 }

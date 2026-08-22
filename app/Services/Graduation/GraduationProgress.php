@@ -51,10 +51,10 @@ class GraduationProgress
 
             $lines[] = [
                 'requirement_id' => $requirement->id,
-                'description'    => $requirement->description,
-                'state'          => $state,
-                'credits'        => $requirement->credits,
-                'percentage'     => $percentage,
+                'description' => $requirement->description,
+                'state' => $state,
+                'credits' => $requirement->credits,
+                'percentage' => $percentage,
             ];
         }
 
@@ -63,10 +63,10 @@ class GraduationProgress
             || $earned >= $plan->required_credits;
 
         return [
-            'requirements'     => $lines,
-            'credits_earned'   => $earned,
+            'requirements' => $lines,
+            'credits_earned' => $earned,
             'credits_required' => $plan->uses_credits ? $plan->required_credits : null,
-            'is_complete'      => $everythingRequiredIsDone && $creditsAreEnough,
+            'is_complete' => $everythingRequiredIsDone && $creditsAreEnough,
         ];
     }
 
@@ -112,9 +112,14 @@ class GraduationProgress
 
         $snapshot = ResultSnapshot::query()
             ->where('student_record_id', $enrollment->id)
-            ->where('subject_id', $requirement->subject_id)
-            ->orderByDesc('academic_year_id')
-            ->latestRevision()
+            ->whereHas('courseOffering', fn ($query) => $query->where('subject_id', $requirement->subject_id))
+            ->with('courseOffering.academicYear')
+            ->get()
+            ->sortByDesc(fn (ResultSnapshot $snapshot): string => sprintf(
+                '%s-%05d',
+                $snapshot->courseOffering?->academicYear?->starts_on?->toDateString() ?? '',
+                $snapshot->revision,
+            ))
             ->first();
 
         return $snapshot?->percentage;

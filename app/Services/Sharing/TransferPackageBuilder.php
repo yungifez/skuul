@@ -149,15 +149,15 @@ class TransferPackageBuilder
     {
         return ResultSnapshot::query()
             ->where('student_record_id', $enrollment->id)
-            ->with('subject')
+            ->with('courseOffering.subject')
             ->get()
-            ->groupBy('subject_id')
+            ->groupBy('course_offering_id')
             ->map(fn (Collection $rows): ?ResultSnapshot => $rows->sortByDesc('revision')->first())
             ->filter()
             ->map(fn (ResultSnapshot $snapshot): array => [
-                'subject' => $snapshot->subject?->name,
-                'academic_year_id' => $snapshot->academic_year_id,
-                'academic_period_id' => $snapshot->academic_period_id,
+                'subject' => $snapshot->courseOffering?->subject?->name,
+                'academic_year_id' => $snapshot->courseOffering?->academic_year_id,
+                'academic_period_id' => $snapshot->courseOffering?->academic_period_id,
                 'percentage' => $snapshot->percentage,
                 'revision' => $snapshot->revision,
                 'published_at' => $snapshot->published_at,

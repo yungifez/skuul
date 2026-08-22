@@ -9,6 +9,7 @@ use App\Models\GradeEntry;
 use App\Models\GradeItem;
 use App\Models\StudentRecord;
 use App\Models\User;
+use App\Services\Gradebook\CourseOfferingRoster;
 
 /**
  * Write what a student got for one grade item.
@@ -19,6 +20,8 @@ use App\Models\User;
  */
 class RecordGrade
 {
+    public function __construct(private CourseOfferingRoster $roster) {}
+
     /**
      * Record the mark or the state.
      *
@@ -60,11 +63,15 @@ class RecordGrade
      */
     private function failIfRecordsDoNotFit(GradeItem $item, StudentRecord $enrollment, GradeEntryState $state, ?float $points): void
     {
-        if ($enrollment->school_id !== null && $enrollment->school_id !== $item->school_id) {
-            throw new InvalidValueException('This student is enrolled in another school.');
-        }
+        $item->loadMissing([
+            'courseOffering.academicPeriod',
+            'courseOffering.academicYear',
+        ]);
+        $courseOffering = $item->courseOffering;
 
-        $period = $item->academicPeriod ?? $item->academicYear;
+        $this->roster->ensureIncludes($courseOffering, $enrollment);
+
+        $period = $courseOffering->academicPeriod ?? $courseOffering->academicYear;
 
         if ($period !== null && $period->isClosed()) {
             throw new ClosedPeriodException('You cannot grade in a closed academic period.');

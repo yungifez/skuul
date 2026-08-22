@@ -151,4 +151,28 @@ class CourseOffering extends Model
     {
         return $this->hasMany(Syllabus::class);
     }
+
+    /**
+     * @return HasMany<GradeCategory, $this>
+     */
+    public function gradeCategories(): HasMany
+    {
+        return $this->hasMany(GradeCategory::class);
+    }
+
+    /**
+     * @return HasMany<GradeItem, $this>
+     */
+    public function gradeItems(): HasMany
+    {
+        return $this->hasMany(GradeItem::class);
+    }
+
+    /**
+     * @return HasMany<ResultSnapshot, $this>
+     */
+    public function resultSnapshots(): HasMany
+    {
+        return $this->hasMany(ResultSnapshot::class);
+    }
 }

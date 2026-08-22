@@ -107,11 +107,12 @@ class ClosureReadinessCheck
 
         foreach ($findings as $finding) {
             $existing = $merged[$finding->key] ?? null;
+            $existingCount = $existing instanceof ClosureFinding ? $existing->count : 0;
 
             $merged[$finding->key] = new ClosureFinding(
                 key: $finding->key,
                 summary: $finding->summary,
-                count: ($existing?->count ?? 0) + $finding->count,
+                count: $existingCount + $finding->count,
                 blocking: $finding->blocking,
             );
         }
@@ -146,7 +147,9 @@ class ClosureReadinessCheck
      */
     private function ungradedItems(AcademicPeriod $period): ClosureFinding
     {
-        $itemIds = GradeItem::where('academic_period_id', $period->id)->pluck('id');
+        $itemIds = GradeItem::query()
+            ->whereHas('courseOffering', fn ($query) => $query->where('academic_period_id', $period->id))
+            ->pluck('id');
 
         $count = $itemIds->isEmpty() ? 0 : GradeEntry::whereIn('grade_item_id', $itemIds)
             ->where('state', GradeEntryState::Incomplete)

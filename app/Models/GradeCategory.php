@@ -25,9 +25,7 @@ class GradeCategory extends Model
 
     protected $fillable = [
         'school_id',
-        'subject_id',
-        'academic_year_id',
-        'academic_period_id',
+        'course_offering_id',
         'parent_id',
         'name',
         'aggregation',
@@ -58,13 +56,13 @@ class GradeCategory extends Model
     ];
 
     /**
-     * Get the subject the category belongs to.
+     * Get the offering this category belongs to.
      *
-     * @return BelongsTo<Subject, $this>
+     * @return BelongsTo<CourseOffering, $this>
      */
-    public function subject(): BelongsTo
+    public function courseOffering(): BelongsTo
     {
-        return $this->belongsTo(Subject::class);
+        return $this->belongsTo(CourseOffering::class);
     }
 
     /**

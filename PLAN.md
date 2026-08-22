@@ -724,13 +724,23 @@ Progress:
 - Done: `App\Services\Gradebook\GradebookCalculator` turns each item into a
   share of its own maximum, so items with different maximums combine.
   Categories aggregate by weighted mean, simple mean, sum, or highest result.
+- Done: grade categories, grade items, and published result snapshots identify
+  one exact `course_offering_id`, never a loose subject/year/period tuple.
+  The portal, transfer package, graduation checks, rankings, and closure
+  readiness query that offering, so results from different levels, rosters, or
+  reporting periods cannot merge by accident.
 - Done: `App\Actions\Gradebook\RecordGrade` is the only way to write a mark.
   It refuses a mark above the maximum, a graded entry without a number, a
-  student of another school, and any writing in a closed period.
+  student of another school, a student outside the offering's declared roster,
+  and any writing in a closed period. Publication applies the same roster
+  guard before it writes an official result.
 - Done: publication is separate from grading.
   `App\Actions\Gradebook\PublishResult` copies the calculation into an
   append-only `result_snapshots` row with a revision number. A correction
   publishes the next revision; the earlier one never changes.
+- Done: the breaking schema migration discards old gradebook records that
+  cannot name an exact offering before making that relationship mandatory.
+  There is no raw subject/year/period compatibility path.
 - Open: named scale definitions, school-level assessment templates, report
   cards across subjects, and moving the existing exam screens onto grade items.
 

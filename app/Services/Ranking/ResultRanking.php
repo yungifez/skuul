@@ -5,10 +5,10 @@ namespace App\Services\Ranking;
 use App\Enums\Feature;
 use App\Exceptions\InvalidValueException;
 use App\Models\Cohort;
+use App\Models\CourseOffering;
 use App\Models\MyClass;
 use App\Models\ResultSnapshot;
 use App\Models\StudentRecord;
-use App\Models\Subject;
 use Illuminate\Support\Collection;
 
 /**
@@ -25,11 +25,11 @@ class ResultRanking
      *
      * @return Collection<int, array{student_record_id: int, average: float, subjects: int, position: int}>
      */
-    public function forCohort(Cohort $cohort, ?int $academicYearId = null, ?int $academicPeriodId = null, ?Subject $subject = null): Collection
+    public function forCohort(Cohort $cohort, ?int $academicYearId = null, ?int $academicPeriodId = null, ?CourseOffering $courseOffering = null): Collection
     {
         $enrollmentIds = $cohort->members()->current()->whereNotNull('student_record_id')->pluck('student_record_id');
 
-        return $this->rank($enrollmentIds->all(), $academicYearId, $academicPeriodId, $subject);
+        return $this->rank($enrollmentIds->all(), $academicYearId, $academicPeriodId, $courseOffering);
     }
 
     /**
@@ -37,14 +37,14 @@ class ResultRanking
      *
      * @return Collection<int, array{student_record_id: int, average: float, subjects: int, position: int}>
      */
-    public function forClass(MyClass $class, ?int $academicYearId = null, ?int $academicPeriodId = null, ?Subject $subject = null): Collection
+    public function forClass(MyClass $class, ?int $academicYearId = null, ?int $academicPeriodId = null, ?CourseOffering $courseOffering = null): Collection
     {
         $enrollmentIds = StudentRecord::query()
             ->inSchool()
             ->where('my_class_id', $class->id)
             ->pluck('id');
 
-        return $this->rank($enrollmentIds->all(), $academicYearId, $academicPeriodId, $subject);
+        return $this->rank($enrollmentIds->all(), $academicYearId, $academicPeriodId, $courseOffering);
     }
 
     /**
@@ -55,7 +55,7 @@ class ResultRanking
      *
      * @throws InvalidValueException when the school turned ranking off
      */
-    public function rank(array $enrollmentIds, ?int $academicYearId = null, ?int $academicPeriodId = null, ?Subject $subject = null): Collection
+    public function rank(array $enrollmentIds, ?int $academicYearId = null, ?int $academicPeriodId = null, ?CourseOffering $courseOffering = null): Collection
     {
         if (!feature_enabled(Feature::Ranking)) {
             throw new InvalidValueException('This school does not rank students.');
@@ -65,7 +65,7 @@ class ResultRanking
             return collect();
         }
 
-        $averages = $this->averages($enrollmentIds, $academicYearId, $academicPeriodId, $subject);
+        $averages = $this->averages($enrollmentIds, $academicYearId, $academicPeriodId, $courseOffering);
 
         return $this->withPositions($averages);
     }
@@ -76,13 +76,13 @@ class ResultRanking
      * @param  array<int, int>  $enrollmentIds
      * @return array<int, array{student_record_id: int, average: float, subjects: int}>
      */
-    private function averages(array $enrollmentIds, ?int $academicYearId, ?int $academicPeriodId, ?Subject $subject): array
+    private function averages(array $enrollmentIds, ?int $academicYearId, ?int $academicPeriodId, ?CourseOffering $courseOffering): array
     {
         $snapshots = ResultSnapshot::query()
             ->whereIn('student_record_id', $enrollmentIds)
-            ->when($academicYearId !== null, fn ($query) => $query->where('academic_year_id', $academicYearId))
-            ->when($academicPeriodId !== null, fn ($query) => $query->where('academic_period_id', $academicPeriodId))
-            ->when($subject !== null, fn ($query) => $query->where('subject_id', $subject->id))
+            ->when($academicYearId !== null, fn ($query) => $query->whereHas('courseOffering', fn ($query) => $query->where('academic_year_id', $academicYearId)))
+            ->when($academicPeriodId !== null, fn ($query) => $query->whereHas('courseOffering', fn ($query) => $query->where('academic_period_id', $academicPeriodId)))
+            ->when($courseOffering !== null, fn ($query) => $query->whereBelongsTo($courseOffering))
             ->whereNotNull('percentage')
             ->orderBy('student_record_id')
             ->get();
@@ -90,10 +90,10 @@ class ResultRanking
         return $snapshots
             ->groupBy('student_record_id')
             ->map(function (Collection $rows, int|string $studentRecordId): array {
-                // One subject counts once, at its newest revision.
+                // One offering counts once, at its newest revision.
                 $newest = $rows
-                    ->groupBy(fn (ResultSnapshot $snapshot): string => (string) $snapshot->subject_id)
-                    ->map(fn (Collection $subjectRows): ResultSnapshot => $subjectRows->sortByDesc('revision')->first());
+                    ->groupBy(fn (ResultSnapshot $snapshot): string => (string) $snapshot->course_offering_id)
+                    ->map(fn (Collection $offeringRows): ResultSnapshot => $offeringRows->sortByDesc('revision')->first());
 
                 return [
                     'student_record_id' => (int) $studentRecordId,
