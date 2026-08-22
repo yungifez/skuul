@@ -33,6 +33,9 @@
                                 <td class="px-3 py-3"><april:badge>{{ $courseOffering->status->label() }}</april:badge></td>
                                 <td class="px-3 py-3 text-right">
                                     <p class="mb-2 text-xs text-muted-foreground">{{ $courseOffering->teachingAssignments->isEmpty() ? 'No teachers assigned' : $courseOffering->teachingAssignments->map(fn ($assignment) => $assignment->teacher->name.' · '.$assignment->role->label())->join(', ') }}</p>
+                                    @can('viewGradebook', $courseOffering)
+                                        <april:button-link href="{{ route('course-offerings.gradebook.show', $courseOffering) }}" variant="outline" size="sm">Open gradebook</april:button-link>
+                                    @endcan
                                     @can('update', $courseOffering)
                                         @if ($courseOffering->status === \App\Enums\CourseOfferingStatus::Draft)
                                             <form method="POST" action="{{ route('course-offerings.activate', $courseOffering) }}">

@@ -322,6 +322,17 @@ class PermissionSeeder extends Seeder
             'name' => 'delete exam record',
         ]);
 
+        // Gradebook permissions
+        Permission::firstOrCreate([
+            'name' => 'read gradebook',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'manage gradebook',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'publish result',
+        ]);
+
         // check result permission
         Permission::firstOrCreate([
             'name' => 'check result',
@@ -605,6 +616,9 @@ class PermissionSeeder extends Seeder
             'name' => 'menu-grade-system',
         ]);
         Permission::firstOrCreate([
+            'name' => 'menu-gradebook',
+        ]);
+        Permission::firstOrCreate([
             'name' => 'menu-notice',
         ]);
         Permission::firstOrCreate([
@@ -629,6 +643,7 @@ class PermissionSeeder extends Seeder
             'menu-timetable',
             'menu-academic-period',
             'menu-exam',
+            'menu-gradebook',
             'menu-grade-system',
             'menu-notice',
             'menu-parent',
@@ -704,6 +719,9 @@ class PermissionSeeder extends Seeder
             'read exam record',
             'update exam record',
             'delete exam record',
+            'read gradebook',
+            'manage gradebook',
+            'publish result',
             'create notice',
             'read notice',
             'update notice',
@@ -776,6 +794,7 @@ class PermissionSeeder extends Seeder
             'menu-syllabus',
             'menu-timetable',
             'menu-exam',
+            'menu-gradebook',
             'menu-notice',
             'menu-student',
             'menu-grade-system',
@@ -795,6 +814,8 @@ class PermissionSeeder extends Seeder
             'read exam record',
             'update exam record',
             'delete exam record',
+            'read gradebook',
+            'manage gradebook',
             'read notice',
             'check result',
         ]);

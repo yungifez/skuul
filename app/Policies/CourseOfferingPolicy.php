@@ -62,4 +62,38 @@ class CourseOfferingPolicy
     {
         return false;
     }
+
+    /**
+     * Determine whether the user can read the offering's gradebook.
+     */
+    public function viewGradebook(User $user, CourseOffering $courseOffering): bool
+    {
+        return $this->canWorkInGradebook($user, $courseOffering, 'read gradebook');
+    }
+
+    /**
+     * Determine whether the user can configure or record grades.
+     */
+    public function manageGradebook(User $user, CourseOffering $courseOffering): bool
+    {
+        return $this->canWorkInGradebook($user, $courseOffering, 'manage gradebook');
+    }
+
+    /**
+     * Determine whether the user can make an official result visible.
+     */
+    public function publishResult(User $user, CourseOffering $courseOffering): bool
+    {
+        return $this->canWorkInGradebook($user, $courseOffering, 'publish result');
+    }
+
+    private function canWorkInGradebook(User $user, CourseOffering $courseOffering, string $permission): bool
+    {
+        if (!$user->can($permission) || current_school_id() !== $courseOffering->school_id) {
+            return false;
+        }
+
+        return $user->can('update subject')
+            || $courseOffering->teachingAssignments()->where('user_id', $user->id)->exists();
+    }
 }

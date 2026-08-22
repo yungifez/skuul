@@ -4,6 +4,7 @@ use App\Http\Controllers\AcademicCycleController;
 use App\Http\Controllers\AcademicCycleSectionController;
 use App\Http\Controllers\AcademicLevelController;
 use App\Http\Controllers\CalendarTemplateController;
+use App\Http\Controllers\GradebookController;
 use App\Http\Controllers\HealthController;
 use Illuminate\Support\Facades\Route;
 
@@ -116,6 +117,10 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::resource('course-offerings', CourseOfferingController::class)->only(['index', 'create', 'store']);
             Route::post('course-offerings/{courseOffering}/activate', ['App\Http\Controllers\CourseOfferingController', 'activate'])->name('course-offerings.activate');
             Route::post('course-offerings/{courseOffering}/teachers', ['App\Http\Controllers\CourseOfferingController', 'assignTeacher'])->name('course-offerings.teachers.store');
+            Route::get('course-offerings/{courseOffering}/gradebook', [GradebookController::class, 'show'])->name('course-offerings.gradebook.show');
+            Route::post('course-offerings/{courseOffering}/gradebook/items', [GradebookController::class, 'storeItem'])->name('course-offerings.gradebook.items.store');
+            Route::post('course-offerings/{courseOffering}/gradebook/entries', [GradebookController::class, 'storeEntry'])->name('course-offerings.gradebook.entries.store');
+            Route::post('course-offerings/{courseOffering}/gradebook/results', [GradebookController::class, 'publish'])->name('course-offerings.gradebook.results.publish');
 
             // promotion routes
             Route::get('students/promotions', ['App\Http\Controllers\PromotionController', 'index'])->name('students.promotions');

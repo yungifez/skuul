@@ -143,6 +143,13 @@ class Menu extends Component
             ['header' => 'Assessment'],
             [
                 'type' => 'menu-item',
+                'text' => 'Gradebooks',
+                'icon' => 'clipboard-pen-line',
+                'route' => 'course-offerings.index',
+                'can' => 'menu-gradebook',
+            ],
+            [
+                'type' => 'menu-item',
                 'text' => 'Exams',
                 'icon' => 'book-open',
                 'submenu' => [

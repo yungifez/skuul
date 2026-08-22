@@ -741,8 +741,13 @@ Progress:
 - Done: the breaking schema migration discards old gradebook records that
   cannot name an exact offering before making that relationship mandatory.
   There is no raw subject/year/period compatibility path.
+- Done: each course offering now has one gradebook workspace. Authorized staff
+  add assessments, record working grades inline for the offering roster, and
+  publish official result revisions from the same screen. `read gradebook`,
+  `manage gradebook`, and `publish result` are school-scoped Spatie
+  permissions; teachers additionally need an assignment to that offering.
 - Open: named scale definitions, school-level assessment templates, report
-  cards across subjects, and moving the existing exam screens onto grade items.
+  cards across subjects, and removing the old exam-record/tabulation screens.
 
 ### 9. Fees, invoices, and payments
 
