@@ -116,6 +116,11 @@ enum AuditAction: string
     case NoticeExpired = 'notice.expired';
 
     /**
+     * A new draft was started from a published notice without changing it.
+     */
+    case NoticeRevised = 'notice.revised';
+
+    /**
      * Somebody asked for a report.
      */
     case ReportRequested = 'report.requested';
@@ -349,6 +354,7 @@ enum AuditAction: string
             self::NoticePublished => 'Notice published',
             self::NoticeScheduled => 'Notice scheduled',
             self::NoticeExpired => 'Notice expired',
+            self::NoticeRevised => 'Notice revision started',
             self::ReportRequested => 'Report requested',
             self::ReportDownloaded => 'Report downloaded',
             self::FeatureEnabled => 'Feature turned on',

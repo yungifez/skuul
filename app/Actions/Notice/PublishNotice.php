@@ -28,8 +28,7 @@ class PublishNotice
     public function __construct(
         private NoticeAudience $audience,
         private RecordAuditEvent $auditor,
-    ) {
-    }
+    ) {}
 
     /**
      * Publish the notice now.
@@ -38,15 +37,25 @@ class PublishNotice
      */
     public function publish(Notice $notice, ?User $actor = null): Notice
     {
-        if ($notice->status === NoticeStatus::Published) {
-            return $notice;
-        }
-
-        if (!$notice->status->canMoveTo(NoticeStatus::Published)) {
-            throw new InvalidValueException('This notice cannot be published from its current state.');
-        }
-
         return DB::transaction(function () use ($notice, $actor): Notice {
+            $notice = Notice::query()->lockForUpdate()->findOrFail($notice->id);
+
+            if ($notice->status === NoticeStatus::Published) {
+                return $notice;
+            }
+
+            if (!$notice->status->canMoveTo(NoticeStatus::Published)) {
+                throw new InvalidValueException('This notice cannot be published from its current state.');
+            }
+
+            $previousRevision = $notice->revision_of_id === null
+                ? null
+                : Notice::query()->lockForUpdate()->findOrFail($notice->revision_of_id);
+
+            if ($previousRevision !== null && $previousRevision->status !== NoticeStatus::Published) {
+                throw new InvalidValueException('This notice revision has already been superseded.');
+            }
+
             $people = $this->audience->resolve($notice);
 
             foreach ($people as $person) {
@@ -61,6 +70,12 @@ class PublishNotice
             $notice->published_by = $actor === null ? auth()->id() : $actor->id;
             $notice->active = true;
             $notice->save();
+
+            if ($previousRevision !== null) {
+                $previousRevision->status = NoticeStatus::Superseded;
+                $previousRevision->active = false;
+                $previousRevision->save();
+            }
 
             // Email is slow and optional, so it leaves the request.
             if ($notice->send_email) {

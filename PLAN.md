@@ -889,8 +889,12 @@ Progress:
   (`App\Jobs\SendNoticeEmails`). A failure is written to the recipient record.
 - Done: `skuul:process-notices` publishes notices whose day arrived and
   expires the ones that ran out. It runs every fifteen minutes.
-- Open: revisioning a published notice, attachments through managed storage,
-  guardian-level targeting, and per-user notification settings.
+- Done: revising a published notice creates an auditable draft successor. The
+  original content and recipient evidence remain intact; publishing the
+  successor atomically supersedes the previous version, so families see only
+  the current communication.
+- Open: attachments through managed storage, guardian-level targeting, and
+  per-user notification settings.
 
 ### 11. Reports and exports
 

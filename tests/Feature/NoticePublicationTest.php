@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\Notice\PublishNotice;
+use App\Actions\Notice\ReviseNotice;
 use App\Actions\School\GrantSchoolMembership;
 use App\Enums\AuditAction;
 use App\Enums\NoticeRecipientState;
@@ -69,7 +70,9 @@ class NoticePublicationTest extends TestCase
         $this->authorized_user([]);
         // A person who works only in the other school.
         $stranger = $this->nonMember();
-        app(GrantSchoolMembership::class)->grant($stranger, School::factory()->create(), primary: true);
+        $otherSchool = School::factory()->create();
+        $this->assertInstanceOf(School::class, $otherSchool);
+        app(GrantSchoolMembership::class)->grant($stranger, $otherSchool, primary: true);
         $notice = $this->notice();
 
         app(PublishNotice::class)->publish($notice);
@@ -181,6 +184,48 @@ class NoticePublicationTest extends TestCase
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::NoticePublished)->forSubject($notice)->first());
     }
 
+    public function test_a_published_notice_is_revised_as_an_auditable_draft_without_changing_the_sent_version(): void
+    {
+        $this->authorized_user([]);
+        $actor = auth()->user();
+        $notice = app(PublishNotice::class)->publish($this->notice());
+
+        $this->assertInstanceOf(User::class, $actor);
+
+        $revision = app(ReviseNotice::class)->revise($notice, ['content' => 'Sports day is now on Monday.'], $actor);
+
+        $this->assertSame('Sports day is on Friday.', $notice->fresh()->content);
+        $this->assertSame(NoticeStatus::Published, $notice->fresh()->status);
+        $this->assertSame(NoticeStatus::Draft, $revision->status);
+        $this->assertSame(2, $revision->revision);
+        $this->assertSame($notice->id, $revision->revision_of_id);
+        $this->assertSame('Sports day is now on Monday.', $revision->content);
+        $this->assertSame(0, $revision->recipients()->count());
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::NoticeRevised)->forSubject($revision)->first());
+    }
+
+    public function test_publishing_a_notice_revision_supersedes_its_previous_version(): void
+    {
+        $this->authorized_user([]);
+        $notice = app(PublishNotice::class)->publish($this->notice());
+        $revision = app(ReviseNotice::class)->revise($notice);
+
+        app(PublishNotice::class)->publish($revision);
+
+        $this->assertSame(NoticeStatus::Superseded, $notice->fresh()->status);
+        $this->assertFalse($notice->fresh()->active);
+        $this->assertSame(NoticeStatus::Published, $revision->fresh()->status);
+    }
+
+    public function test_only_a_published_notice_can_be_revised(): void
+    {
+        $this->authorized_user([]);
+
+        $this->expectException(InvalidValueException::class);
+
+        app(ReviseNotice::class)->revise($this->notice());
+    }
+
     public function test_the_notice_work_is_scheduled(): void
     {
         $commands = collect(Schedule::events())->map(fn ($event): string => $event->command ?? '');
@@ -191,16 +236,16 @@ class NoticePublicationTest extends TestCase
     /**
      * Create a notice in the working school.
      *
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     private function notice(array $attributes = []): Notice
     {
         return Notice::create($attributes + [
-            'title'      => 'Sports day',
-            'content'    => 'Sports day is on Friday.',
+            'title' => 'Sports day',
+            'content' => 'Sports day is on Friday.',
             'start_date' => now()->toDateString(),
-            'stop_date'  => now()->addWeek()->toDateString(),
-            'school_id'  => $this->workingSchool()->id,
+            'stop_date' => now()->addWeek()->toDateString(),
+            'school_id' => $this->workingSchool()->id,
         ]);
     }
 

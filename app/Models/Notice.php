@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * One message on the school board.
  *
- * @property NoticeStatus              $status
+ * @property NoticeStatus $status
  * @property array<string, mixed>|null $audience
  */
 class Notice extends Model
@@ -46,7 +46,7 @@ class Notice extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'status'   => NoticeStatus::Draft->value,
+        'status' => NoticeStatus::Draft->value,
         'revision' => 1,
     ];
 
@@ -56,19 +56,18 @@ class Notice extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'status'        => NoticeStatus::class,
-        'audience'      => 'array',
-        'send_email'    => 'boolean',
+        'status' => NoticeStatus::class,
+        'audience' => 'array',
+        'send_email' => 'boolean',
         'scheduled_for' => 'datetime',
-        'published_at'  => 'datetime',
-        'revision'      => 'integer',
+        'published_at' => 'datetime',
+        'revision' => 'integer',
     ];
 
     /**
      * Limit the query to notices the audience can read now.
      *
-     * @param Builder<$this> $query
-     *
+     * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
     public function scopePublished(Builder $query): Builder
@@ -104,6 +103,16 @@ class Notice extends Model
     public function revisionOf(): BelongsTo
     {
         return $this->belongsTo(Notice::class, 'revision_of_id');
+    }
+
+    /**
+     * Get the newer drafts or published corrections of this notice.
+     *
+     * @return HasMany<Notice, $this>
+     */
+    public function revisions(): HasMany
+    {
+        return $this->hasMany(Notice::class, 'revision_of_id');
     }
 
     /**
