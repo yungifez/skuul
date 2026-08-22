@@ -2,6 +2,7 @@
 
 namespace App\Services\Syllabus;
 
+use App\Enums\SyllabusStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\CourseOffering;
 use App\Models\Syllabus;
@@ -39,6 +40,10 @@ class SyllabusService
 
     public function deleteSyllabus(Syllabus $syllabus): void
     {
+        if ($syllabus->status !== SyllabusStatus::Draft) {
+            throw new InvalidValueException('Published syllabus revisions are immutable. Create a revised draft instead.');
+        }
+
         Storage::disk('public')->delete($syllabus->file);
         $syllabus->delete();
     }

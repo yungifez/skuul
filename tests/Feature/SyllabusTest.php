@@ -2,9 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Syllabus\PublishSyllabus;
+use App\Actions\Syllabus\ReviseSyllabus;
+use App\Enums\AuditAction;
+use App\Enums\SyllabusStatus;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
+use App\Models\AuditEvent;
 use App\Models\CourseOffering;
 use App\Models\Subject;
 use App\Models\Syllabus;
@@ -89,13 +94,25 @@ class SyllabusTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_authorized_user_can_delete_syllabus(): void
+    public function test_published_syllabus_is_revised_and_superseded_instead_of_deleted(): void
     {
         $syllabus = Syllabus::factory()->create(['course_offering_id' => $this->courseOffering()->id]);
-        $this->authorized_user(['delete syllabus'])
-            ->delete('/dashboard/syllabi/'.$syllabus->id);
+        $syllabus->update(['status' => SyllabusStatus::Published, 'published_at' => now()]);
+        $this->authorized_user(['update syllabus']);
+        $actor = auth()->user();
 
-        $this->assertModelMissing($syllabus);
+        $revision = app(ReviseSyllabus::class)->revise($syllabus, ['name' => 'Corrected syllabus'], $actor);
+
+        $this->assertSame(SyllabusStatus::Draft, $revision->status);
+        $this->assertSame($syllabus->id, $revision->revision_of_id);
+        $this->assertSame(2, $revision->revision);
+
+        app(PublishSyllabus::class)->publish($revision, $actor);
+
+        $this->assertSame(SyllabusStatus::Superseded, $syllabus->fresh()->status);
+        $this->assertSame(SyllabusStatus::Published, $revision->fresh()->status);
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::SyllabusRevised)->forSubject($revision)->first());
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::SyllabusPublished)->forSubject($revision)->first());
     }
 
     private function courseOffering(): CourseOffering

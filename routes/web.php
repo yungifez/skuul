@@ -180,7 +180,8 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 // fee routes
                 Route::resource('fees', FeeController::class);
 
-                // syllabi route
+                Route::post('syllabi/{syllabus}/revise', [SyllabusController::class, 'revise'])->name('syllabi.revise');
+                Route::post('syllabi/{syllabus}/publish', [SyllabusController::class, 'publish'])->name('syllabi.publish');
                 Route::resource('syllabi', SyllabusController::class);
 
                 // timetable route

@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Syllabus\PublishSyllabus;
+use App\Actions\Syllabus\ReviseSyllabus;
+use App\Http\Requests\PublishSyllabusRequest;
 use App\Http\Requests\StoreSyllabusRequest;
 use App\Http\Requests\UpdateSyllabusRequest;
 use App\Models\Syllabus;
@@ -12,7 +15,7 @@ use Illuminate\View\View;
 
 class SyllabusController extends Controller
 {
-    public function __construct(private SyllabusService $syllabus)
+    public function __construct(private SyllabusService $syllabus, private PublishSyllabus $publishSyllabus, private ReviseSyllabus $reviseSyllabus)
     {
         $this->syllabus = $syllabus;
         $this->authorizeResource(Syllabus::class, 'syllabus');
@@ -39,7 +42,8 @@ class SyllabusController extends Controller
      */
     public function store(StoreSyllabusRequest $request): RedirectResponse
     {
-        $this->syllabus->createSyllabus($request->validated());
+        $syllabus = $this->syllabus->createSyllabus($request->validated());
+        $this->publishSyllabus->publish($syllabus, $request->user());
 
         return redirect()->route('syllabi.index')->with('success', 'Syllabus created.');
     }
@@ -78,5 +82,20 @@ class SyllabusController extends Controller
         $this->syllabus->deleteSyllabus($syllabus);
 
         return redirect()->route('syllabi.index')->with('success', 'Syllabus deleted.');
+    }
+
+    public function revise(Syllabus $syllabus): RedirectResponse
+    {
+        $this->authorize('update', $syllabus);
+        $revision = $this->reviseSyllabus->revise($syllabus, actor: request()->user());
+
+        return redirect()->route('syllabi.show', $revision)->with('success', 'A new syllabus draft was created. Review it, then publish it.');
+    }
+
+    public function publish(PublishSyllabusRequest $request, Syllabus $syllabus): RedirectResponse
+    {
+        $this->publishSyllabus->publish($syllabus, $request->user());
+
+        return redirect()->route('syllabi.show', $syllabus)->with('success', 'Syllabus published.');
     }
 }

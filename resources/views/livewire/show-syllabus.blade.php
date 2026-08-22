@@ -11,6 +11,20 @@
         <p class="my-3">
             {{$syllabus->description}}
         </p>
+        <p class="mb-4 text-sm text-muted-foreground">Revision {{ $syllabus->revision }} · {{ $syllabus->status->value }}</p>
+        @can('update', $syllabus)
+            @if ($syllabus->status === \App\Enums\SyllabusStatus::Published)
+                <form method="POST" action="{{ route('syllabi.revise', $syllabus) }}" class="mb-3">
+                    @csrf
+                    <april:button type="submit" variant="outline">Create revised draft</april:button>
+                </form>
+            @elseif ($syllabus->status === \App\Enums\SyllabusStatus::Draft)
+                <form method="POST" action="{{ route('syllabi.publish', $syllabus) }}" class="mb-3">
+                    @csrf
+                    <april:button type="submit">Publish revision</april:button>
+                </form>
+            @endif
+        @endcan
         <a class="bg-blue-600 py-2 px-4 text-white rounded" href="{{asset('storage/'.$syllabus->file)}}" download>
             <x-lucide-download class="size-4"  />
             Download

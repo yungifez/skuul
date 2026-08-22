@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\SyllabusStatus;
 use App\Models\Syllabus;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -47,7 +48,9 @@ class SyllabusPolicy
      */
     public function delete(User $user, Syllabus $syllabus): bool
     {
-        return $user->can('delete syllabus') && current_school_id() === $syllabus->courseOffering->school_id;
+        return $user->can('delete syllabus')
+            && $syllabus->status === SyllabusStatus::Draft
+            && current_school_id() === $syllabus->courseOffering->school_id;
     }
 
     /**

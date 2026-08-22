@@ -597,8 +597,10 @@ Progress:
   teaching assignment now belongs to one course offering, and the database
   rejects an assignment without one. Timetable conflict checks read the
   dated offering assignments directly.
-- Open: section-level timetable overrides and published syllabus revisions by
-  offering.
+- Done: published syllabi are immutable revisions by offering. Revising creates
+  a draft successor; publishing it supersedes the former published revision and
+  records both actions in the audit log.
+- Open: section-level timetable overrides.
 
 ### 7. Timetable
 

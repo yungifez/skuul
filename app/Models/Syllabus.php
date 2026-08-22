@@ -2,11 +2,13 @@
 
 namespace App\Models;
 
+use App\Enums\SyllabusStatus;
 use App\Traits\InAcademicPeriod;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Syllabus extends Model
 {
@@ -15,7 +17,34 @@ class Syllabus extends Model
 
     protected $fillable = [
         'name', 'description', 'file', 'course_offering_id',
+        'status', 'revision', 'revision_of_id', 'published_at', 'published_by',
     ];
+
+    protected $attributes = [
+        'status' => SyllabusStatus::Draft->value,
+        'revision' => 1,
+    ];
+
+    protected $casts = [
+        'status' => SyllabusStatus::class,
+        'revision' => 'integer',
+        'published_at' => 'datetime',
+    ];
+
+    public function revisionOf(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'revision_of_id');
+    }
+
+    public function revisions(): HasMany
+    {
+        return $this->hasMany(self::class, 'revision_of_id');
+    }
+
+    public function publishedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'published_by');
+    }
 
     /**
      * Get the exact offering this syllabus supports.

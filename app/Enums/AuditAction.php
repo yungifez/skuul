@@ -120,6 +120,10 @@ enum AuditAction: string
      */
     case NoticeRevised = 'notice.revised';
 
+    case SyllabusPublished = 'syllabus.published';
+
+    case SyllabusRevised = 'syllabus.revised';
+
     /**
      * Somebody asked for a report.
      */
@@ -355,6 +359,8 @@ enum AuditAction: string
             self::NoticeScheduled => 'Notice scheduled',
             self::NoticeExpired => 'Notice expired',
             self::NoticeRevised => 'Notice revision started',
+            self::SyllabusPublished => 'Syllabus published',
+            self::SyllabusRevised => 'Syllabus revision started',
             self::ReportRequested => 'Report requested',
             self::ReportDownloaded => 'Report downloaded',
             self::FeatureEnabled => 'Feature turned on',
