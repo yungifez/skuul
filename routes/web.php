@@ -42,6 +42,8 @@ Route::middleware(['guest'])->group(function () {
 
 // user must be authenticated
 Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive', 'App\Http\Middleware\PreventGraduatedStudent')->prefix('dashboard')->namespace('App\Http\Controllers')->group(function () {
+    // Families use portal authorization, not a staff working-school membership.
+    Route::get('portal/enrollments/{studentRecord}/attendance', ['App\Http\Controllers\PortalAttendanceController', 'show'])->name('portal.attendance.show');
     // Organization administration is separate from working-school access.
     Route::get('organizations/{organization}/members', ['App\Http\Controllers\OrganizationMemberController', 'index'])->name('organizations.members.index');
     Route::resource('organizations', OrganizationController::class)->except('destroy');
@@ -114,7 +116,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::post('transcripts', ['App\Http\Controllers\TranscriptController', 'store'])->name('transcripts.store');
         Route::get('attendance/register', ['App\Http\Controllers\AttendanceRegisterController', 'index'])->name('attendance.register');
         Route::post('attendance/register', ['App\Http\Controllers\AttendanceRegisterController', 'store'])->name('attendance.register.store');
-        Route::get('portal/enrollments/{studentRecord}/attendance', ['App\Http\Controllers\PortalAttendanceController', 'show'])->name('portal.attendance.show');
         Route::get('reports/{reportRun}/download', ['App\Http\Controllers\ReportController', 'download'])->name('reports.download');
 
         // import routes. An import reads the school, not the period, so it
