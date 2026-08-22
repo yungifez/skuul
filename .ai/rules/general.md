@@ -1,6 +1,7 @@
 ---
 paths:
   - '**'
+  - phpunit.xml
 ---
 
 # General
@@ -23,10 +24,8 @@ column. Run the migration down and up once before you finish.
 `fake()->freeEmail()` or a gmail.com address in tests and fixtures that reach
 provisioning.
 
-## Two agents cannot share one test database
-`RefreshDatabase` drops and rebuilds the schema, so a second suite running at the
-same time wipes the first one mid-run. phpunit.xml's `<env>` does not override a
-real environment variable, so pass the database on the command line instead:
-`docker compose exec -T -e DB_DATABASE=testing_claude laravel.test php artisan test --compact`.
-Create the database once with
-`docker compose exec -T mysql mysql -uroot -ppassword -e 'create database if not exists testing_claude'`.
+## Tests use the shared testing database
+Use the testing database for all local and CI test runs. Do not direct tests to
+laravel or create alternate testing_* databases. PHPUnit must override both
+`<env>` and `<server>` values because Laravel reads `$_SERVER` first. Use
+`.env.testing` for Artisan commands with `--env=testing`.
