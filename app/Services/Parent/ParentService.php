@@ -4,6 +4,7 @@ namespace App\Services\Parent;
 
 use App\Enums\Role;
 use App\Exceptions\InvalidUserException;
+use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Print\PrintService;
 use App\Services\User\UserService;
@@ -33,8 +34,7 @@ class ParentService
     /**
      * Create a new parent.
      *
-     * @param array|Collection $record
-     *
+     * @param  array|Collection  $record
      * @return User
      */
     public function createParent($record)
@@ -53,8 +53,7 @@ class ParentService
     /**
      * Update a parent.
      *
-     * @param array|object|Collection $records
-     *
+     * @param  array|object|Collection  $records
      * @return User
      */
     public function updateParent(User $parent, $records)
@@ -91,17 +90,20 @@ class ParentService
      *
      *
      *
-     * @throws InvalidUserException
      *
      * @return void
+     *
+     * @throws InvalidUserException
      */
     public function assignStudentToParent(User $parent, int $student, bool $assign = true)
     {
         $student = $this->user->getUserById($student);
-        if (!$this->user->verifyRole($student->id, 'student')) {
+        if ($student === null || !$this->user->verifyRole($student->id, 'student')) {
             throw new InvalidUserException('User is not a student', 1);
+        }
 
-            return;
+        if (!StudentRecord::inSchool()->where('user_id', $student->id)->exists()) {
+            abort(404);
         }
 
         if ($assign == false) {

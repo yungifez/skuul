@@ -21,12 +21,15 @@ class EditFeeInvoiceForm extends Component
 
     protected $rules = [
         'feeCategory' => 'integer|exists:fee_categories,id',
-        'fee'         => 'nullable|integer',
+        'fee' => 'nullable|integer',
     ];
 
-    public function mount()
+    public function mount(): void
     {
-        $this->feeInvoice->loadMissing('feeInvoiceRecords', 'feeInvoiceRecords.fee');
+        $this->feeInvoice->loadMissing([
+            'user.studentRecord.academicCycleSection.academicLevel',
+            'feeInvoiceRecords.fee',
+        ]);
         $this->feeCategories = FeeCategory::inSchool()->get();
         if ($this->feeCategories != null && $this->feeCategories->isNotEmpty()) {
             $this->feeCategory = $this->feeCategories->first();

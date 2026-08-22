@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
@@ -218,6 +219,27 @@ class ParentTest extends TestCase
         $this->assertDatabaseHas('parent_record_user', [
             'parent_record_id' => $parent->parentRecord->id,
             'user_id' => $student->user->id,
+        ]);
+    }
+
+    public function test_a_parent_cannot_be_assigned_a_student_from_another_school(): void
+    {
+        $otherSchool = School::factory()->create();
+        $student = StudentRecord::factory()->create(['school_id' => $otherSchool->id]);
+        $parent = User::factory()->create();
+        $parent->parentRecord()->create(['user_id' => $parent->id]);
+        $parent->assignRole('parent');
+
+        $this->authorized_user(['update parent'])
+            ->post("dashboard/parents/{$parent->id}/assign-student-to-parent", [
+                'student_id' => $student->user_id,
+                'assign' => true,
+            ])
+            ->assertNotFound();
+
+        $this->assertDatabaseMissing('parent_record_user', [
+            'parent_record_id' => $parent->parentRecord->id,
+            'user_id' => $student->user_id,
         ]);
     }
 }

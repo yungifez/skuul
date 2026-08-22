@@ -2,73 +2,116 @@
 
 namespace App\Livewire;
 
+use App\Enums\AcademicStructureStatus;
+use App\Models\AcademicCycleSection;
+use App\Models\ParentRecord;
 use App\Models\User;
-use App\Services\MyClass\MyClassService;
-use App\Services\Section\SectionService;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class AssignStudentsToParent extends Component
 {
     public User $parent;
 
-    public $classes;
+    /** @var array<int, array{id: int, label: string}> */
+    public array $cycleSections = [];
 
-    public $class;
+    public ?int $academicCycleSectionId = null;
 
-    public $sections;
+    /** @var array<int, array{id: int, name: string, admission_number: string|null}> */
+    public array $students = [];
 
-    public $section;
+    public ?int $studentId = null;
 
-    public $students;
+    /** @var array<int, array{id: int, name: string, email: string, admission_number: string|null, cycle_section: string|null}> */
+    public array $children = [];
 
-    public $student;
-
-    public $children;
-
-    public function mount(SectionService $sectionService, MyClassService $myClassService)
+    public function mount(): void
     {
-        $this->classes = $myClassService->getAllClasses();
-        if ($this->classes->isEmpty()) {
+        $this->cycleSections = AcademicCycleSection::inSchool()
+            ->with('academicLevel')
+            ->where('academic_year_id', current_academic_year_id())
+            ->where('status', AcademicStructureStatus::Active)
+            ->orderBy('position')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (AcademicCycleSection $cycleSection): array => [
+                'id' => $cycleSection->id,
+                'label' => ($cycleSection->academicLevel->label ?? $cycleSection->academicLevel->name)
+                    .' · '.($cycleSection->label ?? $cycleSection->name),
+            ])
+            ->all();
+
+        $this->loadChildren();
+
+        if ($this->cycleSections === []) {
             return;
         }
-        $this->class = $this->classes[0]->id;
-        $this->updatedClass();
 
-        $this->children = $this->parent->parentRecord->load('students', 'students.studentRecord', 'students.studentRecord.myClass', 'students.studentRecord.section')->students;
+        $this->academicCycleSectionId = $this->cycleSections[0]['id'];
+        $this->loadStudents();
     }
 
-    public function updatedClass()
+    public function updatedAcademicCycleSectionId(): void
     {
-        // get instance of class
-        $class = app("App\Services\MyClass\MyClassService")->getClassById($this->class);
+        $this->loadStudents();
+    }
 
-        // get sections in class
-        $this->sections = $class->sections;
-
-        // set section if the fetched records aren't empty
-        if ($this->sections->isEmpty()) {
-            $this->students = null;
+    private function loadStudents(): void
+    {
+        if ($this->academicCycleSectionId === null) {
+            $this->students = [];
+            $this->studentId = null;
 
             return;
         }
-        $this->section = $this->sections[0]->id;
 
-        $this->updatedSection();
+        $this->students = User::role('student')
+            ->ofSchool()
+            ->whereHas('studentRecord', fn ($query) => $query->where('academic_cycle_section_id', $this->academicCycleSectionId))
+            ->with('studentRecord:id,user_id,admission_number')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (User $student): array => [
+                'id' => $student->id,
+                'name' => $student->name,
+                'admission_number' => $student->studentRecord?->admission_number,
+            ])
+            ->all();
+
+        $this->studentId = $this->students[0]['id'] ?? null;
     }
 
-    public function updatedSection()
+    private function loadChildren(): void
     {
-        // get instance of section
-        $section = app("App\Services\Section\SectionService")->getSectionById($this->section);
+        $parentRecord = ParentRecord::query()->firstWhere('user_id', $this->parent->id);
 
-        // get students in section
-        $this->students = $section->students();
+        if ($parentRecord === null) {
+            $this->children = [];
 
-        // set student if the fetched records aren't empty
-        $this->students->count() ? $this->student = $this->students[0]->id : $this->student = null;
+            return;
+        }
+
+        $this->children = $parentRecord->students()
+            ->with('studentRecord.academicCycleSection.academicLevel')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (User $student): array => [
+                'id' => $student->id,
+                'name' => $student->name,
+                'email' => $student->email,
+                'admission_number' => $student->studentRecord?->admission_number,
+                'cycle_section' => $student->studentRecord?->academicCycleSection === null
+                    ? null
+                    : ($student->studentRecord->academicCycleSection->academicLevel->label
+                        ?? $student->studentRecord->academicCycleSection->academicLevel->name)
+                        .' · '.($student->studentRecord->academicCycleSection->label
+                            ?? $student->studentRecord->academicCycleSection->name),
+            ])
+            ->all();
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.assign-students-to-parent');
     }

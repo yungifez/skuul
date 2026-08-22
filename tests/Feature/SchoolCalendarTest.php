@@ -3,9 +3,9 @@
 namespace Tests\Feature;
 
 use App\Enums\CalendarEventType;
+use App\Models\AcademicCycleSection;
 use App\Models\CalendarEvent;
 use App\Models\CalendarEventAudience;
-use App\Models\MyClass;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Services\Calendar\SchoolCalendar;
@@ -63,8 +63,8 @@ class SchoolCalendarTest extends TestCase
         $this->assertTrue($calendar->isTeachingDay());
 
         $this->event([
-            'title'        => 'Founders day',
-            'type'         => CalendarEventType::Holiday,
+            'title' => 'Founders day',
+            'type' => CalendarEventType::Holiday,
             'is_published' => true,
         ]);
 
@@ -92,11 +92,11 @@ class SchoolCalendarTest extends TestCase
         $this->authorized_user([]);
         $this->event(['title' => 'Founders day', 'type' => CalendarEventType::Holiday, 'is_published' => true]);
         $this->event([
-            'title'        => 'Storm closure',
-            'type'         => CalendarEventType::Closure,
+            'title' => 'Storm closure',
+            'type' => CalendarEventType::Closure,
             'is_published' => true,
-            'starts_at'    => now()->addDays(3),
-            'ends_at'      => now()->addDays(3),
+            'starts_at' => now()->addDays(3),
+            'ends_at' => now()->addDays(3),
         ]);
         $this->event(['title' => 'Club', 'type' => CalendarEventType::Activity, 'is_published' => true]);
 
@@ -105,21 +105,21 @@ class SchoolCalendarTest extends TestCase
         $this->assertSame(['Founders day', 'Storm closure'], $closures->pluck('title')->all());
     }
 
-    public function test_an_event_can_be_for_one_class_only(): void
+    public function test_an_event_can_be_for_one_cycle_section_only(): void
     {
         $this->authorized_user([]);
         $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
         $forEverybody = $this->event(['title' => 'Sports day', 'is_published' => true]);
-        $forTheClass = $this->event(['title' => 'Class trip', 'is_published' => true]);
+        $forTheCycleSection = $this->event(['title' => 'Class trip', 'is_published' => true]);
         CalendarEventAudience::create([
-            'calendar_event_id' => $forTheClass->id,
-            'my_class_id'       => $enrollment->my_class_id,
+            'calendar_event_id' => $forTheCycleSection->id,
+            'academic_cycle_section_id' => $enrollment->academic_cycle_section_id,
         ]);
-        $otherClass = MyClass::factory()->create();
-        $forAnotherClass = $this->event(['title' => 'Other trip', 'is_published' => true]);
+        $otherCycleSection = AcademicCycleSection::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $forAnotherCycleSection = $this->event(['title' => 'Other trip', 'is_published' => true]);
         CalendarEventAudience::create([
-            'calendar_event_id' => $forAnotherClass->id,
-            'my_class_id'       => $otherClass->id,
+            'calendar_event_id' => $forAnotherCycleSection->id,
+            'academic_cycle_section_id' => $otherCycleSection->id,
         ]);
 
         $events = app(SchoolCalendar::class)->between(now()->subWeek(), now()->addWeek(), $enrollment->user);
@@ -143,15 +143,15 @@ class SchoolCalendarTest extends TestCase
     /**
      * Create an event in the working school.
      *
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     private function event(array $attributes = []): CalendarEvent
     {
         return CalendarEvent::create($attributes + [
             'school_id' => $this->workingSchool()->id,
-            'title'     => 'School event',
+            'title' => 'School event',
             'starts_at' => now()->startOfDay(),
-            'ends_at'   => now()->endOfDay(),
+            'ends_at' => now()->endOfDay(),
         ]);
     }
 }

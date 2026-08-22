@@ -17,8 +17,7 @@ class CalendarEventAudience extends Model
 
     protected $fillable = [
         'calendar_event_id',
-        'my_class_id',
-        'section_id',
+        'academic_cycle_section_id',
         'user_id',
         'role',
     ];
@@ -34,23 +33,17 @@ class CalendarEventAudience extends Model
     }
 
     /**
-     * Get the class the event is for, when it names one.
+     * Get the cycle section the event is for, when it names one.
      *
-     * @return BelongsTo<MyClass, $this>
-     */
-    public function myClass(): BelongsTo
-    {
-        return $this->belongsTo(MyClass::class);
-    }
-
-    /**
-     * Get the section the event is for, when it names one.
+     * A cycle section is the exact home group for one academic cycle. This
+     * preserves the audience's historical meaning when a school changes its
+     * section structure next year.
      *
-     * @return BelongsTo<Section, $this>
+     * @return BelongsTo<AcademicCycleSection, $this>
      */
-    public function section(): BelongsTo
+    public function academicCycleSection(): BelongsTo
     {
-        return $this->belongsTo(Section::class);
+        return $this->belongsTo(AcademicCycleSection::class);
     }
 
     /**

@@ -69,8 +69,7 @@ class SchoolCalendar
     /**
      * Keep only the events a person is part of.
      *
-     * @param Builder<CalendarEvent> $query
-     *
+     * @param  Builder<CalendarEvent>  $query
      * @return Builder<CalendarEvent>
      */
     private function limitToPerson(Builder $query, User $person): Builder
@@ -84,9 +83,8 @@ class SchoolCalendar
                 ->orWhereHas('audiences', function (Builder $audience) use ($person, $enrollment): void {
                     $audience->where('user_id', $person->id);
 
-                    if ($enrollment !== null) {
-                        $audience->orWhere('my_class_id', $enrollment->my_class_id)
-                            ->orWhere('section_id', $enrollment->section_id);
+                    if ($enrollment?->academic_cycle_section_id !== null) {
+                        $audience->orWhere('academic_cycle_section_id', $enrollment->academic_cycle_section_id);
                     }
                 });
         });
