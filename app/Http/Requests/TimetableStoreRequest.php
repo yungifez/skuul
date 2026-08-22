@@ -19,8 +19,8 @@ class TimetableStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => 'required|string|max:255',
-            'description' => 'nullable|string|max:10000',
+            'name'                      => 'required|string|max:255',
+            'description'               => 'nullable|string|max:10000',
             'academic_cycle_section_id' => [
                 'required',
                 'integer',

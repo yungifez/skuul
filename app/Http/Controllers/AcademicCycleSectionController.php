@@ -247,7 +247,7 @@ class AcademicCycleSectionController extends Controller
      * An explicit empty value asks for every cycle, so a person can always see
      * the whole history without clearing the address bar.
      *
-     * @param  Collection<int, AcademicYear>  $academicYears
+     * @param Collection<int, AcademicYear> $academicYears
      */
     private function selectedAcademicYearId(Request $request, Collection $academicYears): ?int
     {
@@ -261,7 +261,7 @@ class AcademicCycleSectionController extends Controller
     }
 
     /**
-     * @param  array<int, int>  $allowed
+     * @param array<int, int> $allowed
      */
     private function selectedId(Request $request, string $key, array $allowed): ?int
     {
@@ -282,7 +282,7 @@ class AcademicCycleSectionController extends Controller
     }
 
     /**
-     * @param  Collection<int, AcademicYear>  $academicYears
+     * @param Collection<int, AcademicYear> $academicYears
      */
     private function cycleFrom(Request $request, string $key, Collection $academicYears): ?AcademicYear
     {

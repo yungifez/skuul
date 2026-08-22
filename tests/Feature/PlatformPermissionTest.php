@@ -90,8 +90,8 @@ class PlatformPermissionTest extends TestCase
         $user = $this->nonMember();
         $user->organizationMemberships()->create([
             'organization_id' => $organization->id,
-            'status' => 'active',
-            'joined_at' => now(),
+            'status'          => 'active',
+            'joined_at'       => now(),
         ]);
 
         $this->assertFalse($user->fresh()->can('update', $organization));

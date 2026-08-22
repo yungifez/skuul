@@ -29,9 +29,9 @@ class Exam extends Model
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'start_date' => 'date:Y-m-d',
-        'stop_date' => 'date:Y-m-d',
-        'active' => 'boolean',
+        'start_date'        => 'date:Y-m-d',
+        'stop_date'         => 'date:Y-m-d',
+        'active'            => 'boolean',
     ];
 
     /**

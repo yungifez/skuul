@@ -135,9 +135,9 @@ class ListAccountInvitations extends Component
 
         return view('livewire.list-account-invitations', [
             'invitations' => $invitations,
-            'rows' => $this->rowsFor($invitations),
-            'counts' => $this->counts(),
-            'tabs' => AccountInvitationStatus::tabs(),
+            'rows'        => $this->rowsFor($invitations),
+            'counts'      => $this->counts(),
+            'tabs'        => AccountInvitationStatus::tabs(),
         ]);
     }
 
@@ -198,7 +198,8 @@ class ListAccountInvitations extends Component
      * The row says what an administrator may do and, when an action is off,
      * why it is off. The view stays free of authorization rules.
      *
-     * @param  LengthAwarePaginator<int, AccountInvitation>  $invitations
+     * @param LengthAwarePaginator<int, AccountInvitation> $invitations
+     *
      * @return list<array{id: int, name: string, email: string, inviter: string, created_at: string, expires_at: string, status: AccountInvitationStatus, schools: list<string>, can_resend: bool, can_revoke: bool, reason: string|null}>
      */
     private function rowsFor(LengthAwarePaginator $invitations): array
@@ -211,17 +212,17 @@ class ListAccountInvitations extends Component
                 $canRevoke = Gate::allows('revoke', $invitation);
 
                 return [
-                    'id' => $invitation->id,
-                    'name' => $invitation->user->name,
-                    'email' => $invitation->user->email,
-                    'inviter' => $this->inviterName($invitation),
+                    'id'         => $invitation->id,
+                    'name'       => $invitation->user->name,
+                    'email'      => $invitation->user->email,
+                    'inviter'    => $this->inviterName($invitation),
                     'created_at' => $invitation->created_at->format('M j, Y g:ia'),
                     'expires_at' => $invitation->expires_at->format('M j, Y g:ia'),
-                    'status' => $invitation->status(),
-                    'schools' => $this->visibility->schoolNamesFor($viewer, $invitation->user),
+                    'status'     => $invitation->status(),
+                    'schools'    => $this->visibility->schoolNamesFor($viewer, $invitation->user),
                     'can_resend' => $canResend,
                     'can_revoke' => $canRevoke,
-                    'reason' => $canResend && $canRevoke ? null : $this->unavailableReason($invitation),
+                    'reason'     => $canResend && $canRevoke ? null : $this->unavailableReason($invitation),
                 ];
             })
             ->all();
@@ -238,9 +239,9 @@ class ListAccountInvitations extends Component
 
         return match ($invitation->status()) {
             AccountInvitationStatus::Accepted => 'This person already set a password. Change access from their profile instead.',
-            AccountInvitationStatus::Revoked => 'This link was stopped. Send a new invitation from the person’s profile.',
-            AccountInvitationStatus::Expired => 'This link passed its expiry time. Send a new invitation from the person’s profile.',
-            AccountInvitationStatus::Pending => 'You cannot manage invitations for this person.',
+            AccountInvitationStatus::Revoked  => 'This link was stopped. Send a new invitation from the person’s profile.',
+            AccountInvitationStatus::Expired  => 'This link passed its expiry time. Send a new invitation from the person’s profile.',
+            AccountInvitationStatus::Pending  => 'You cannot manage invitations for this person.',
         };
     }
 

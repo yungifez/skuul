@@ -35,7 +35,7 @@ class NoticeService
     /**
      * Store the attachment on the private disk and create the draft notice.
      *
-     * @param  array{title: string, content: string, start_date: string, stop_date: string, attachment?: UploadedFile|null, audience?: array<string, mixed>|null}  $data
+     * @param array{title: string, content: string, start_date: string, stop_date: string, attachment?: UploadedFile|null, audience?: array<string, mixed>|null} $data
      */
     public function storeNotice(array $data): Notice
     {
@@ -50,17 +50,17 @@ class NoticeService
 
         try {
             return Notice::create([
-                'title' => $data['title'],
-                'content' => $data['content'],
-                'start_date' => $data['start_date'],
-                'stop_date' => $data['stop_date'],
-                'attachment' => $attachmentPath,
-                'attachment_disk' => $attachmentPath === null ? null : 'local',
-                'attachment_name' => $attachment?->getClientOriginalName(),
+                'title'                => $data['title'],
+                'content'              => $data['content'],
+                'start_date'           => $data['start_date'],
+                'stop_date'            => $data['stop_date'],
+                'attachment'           => $attachmentPath,
+                'attachment_disk'      => $attachmentPath === null ? null : 'local',
+                'attachment_name'      => $attachment?->getClientOriginalName(),
                 'attachment_mime_type' => $attachment?->getMimeType(),
-                'attachment_size' => $attachment?->getSize(),
-                'audience' => $data['audience'] ?? null,
-                'school_id' => $schoolId,
+                'attachment_size'      => $attachment?->getSize(),
+                'audience'             => $data['audience'] ?? null,
+                'school_id'            => $schoolId,
             ]);
         } catch (\Throwable $exception) {
             if ($attachmentPath !== null) {

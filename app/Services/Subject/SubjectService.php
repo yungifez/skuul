@@ -32,7 +32,7 @@ class SubjectService
     /**
      * Create subject.
      *
-     * @param  array{name: string, short_name: string}  $data
+     * @param array{name: string, short_name: string} $data
      */
     public function createSubject(array $data): void
     {
@@ -43,13 +43,12 @@ class SubjectService
         if (!$subject->wasRecentlyCreated) {
             throw new ResourceNotEmptyException('Subject already exists or something went wrong');
         }
-
     }
 
     /**
      * Update subject.
      *
-     * @param  array{name: string, short_name: string}  $data
+     * @param array{name: string, short_name: string} $data
      */
     public function updateSubject(Subject $subject, array $data): void
     {
@@ -57,7 +56,6 @@ class SubjectService
         $subject->short_name = $data['short_name'];
 
         $subject->save();
-
     }
 
     /**

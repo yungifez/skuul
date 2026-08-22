@@ -11,10 +11,12 @@ use Illuminate\Support\Str;
 
 class CreateOrganization
 {
-    public function __construct(private RecordAuditEvent $recordAuditEvent) {}
+    public function __construct(private RecordAuditEvent $recordAuditEvent)
+    {
+    }
 
     /**
-     * @param  array{name: string, code?: string|null, address?: string|null, email?: string|null, phone?: string|null}  $attributes
+     * @param array{name: string, code?: string|null, address?: string|null, email?: string|null, phone?: string|null} $attributes
      */
     public function create(array $attributes, ?User $actor = null): Organization
     {

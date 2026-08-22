@@ -25,10 +25,10 @@ class StoreAttendanceRegisterRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'academic_cycle_section_id' => ['required', 'integer', Rule::exists((new AcademicCycleSection)->getTable(), 'id')->where('school_id', current_school_id())],
-            'attended_on' => ['required', 'date', 'before_or_equal:today'],
-            'statuses' => ['required', 'array'],
-            'statuses.*' => ['required', Rule::in(AttendanceStatus::values())],
+            'academic_cycle_section_id' => ['required', 'integer', Rule::exists((new AcademicCycleSection())->getTable(), 'id')->where('school_id', current_school_id())],
+            'attended_on'               => ['required', 'date', 'before_or_equal:today'],
+            'statuses'                  => ['required', 'array'],
+            'statuses.*'                => ['required', Rule::in(AttendanceStatus::values())],
         ];
     }
 }

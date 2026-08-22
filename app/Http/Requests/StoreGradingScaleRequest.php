@@ -24,12 +24,12 @@ class StoreGradingScaleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:100', Rule::unique('grading_scales', 'name')->where('school_id', current_school_id())],
-            'description' => ['nullable', 'string', 'max:5000'],
-            'is_active' => ['nullable', 'boolean'],
-            'options' => ['required', 'array'],
-            'options.*.id' => ['prohibited'],
-            'options.*.label' => ['nullable', 'string', 'max:100', 'required_with:options.*.points'],
+            'name'             => ['required', 'string', 'max:100', Rule::unique('grading_scales', 'name')->where('school_id', current_school_id())],
+            'description'      => ['nullable', 'string', 'max:5000'],
+            'is_active'        => ['nullable', 'boolean'],
+            'options'          => ['required', 'array'],
+            'options.*.id'     => ['prohibited'],
+            'options.*.label'  => ['nullable', 'string', 'max:100', 'required_with:options.*.points'],
             'options.*.points' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
         ];
     }

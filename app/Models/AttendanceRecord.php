@@ -17,8 +17,8 @@ use Illuminate\Support\Carbon;
  * Whether one student was in school on one day, or in one lesson.
  *
  * @property AttendanceStatus $status
- * @property AttendanceKind $kind
- * @property Carbon $attended_on
+ * @property AttendanceKind   $kind
+ * @property Carbon           $attended_on
  */
 class AttendanceRecord extends Model
 {
@@ -47,7 +47,7 @@ class AttendanceRecord extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'kind' => AttendanceKind::Daily->value,
+        'kind'   => AttendanceKind::Daily->value,
         'status' => AttendanceStatus::NotRecorded->value,
         'source' => 'teacher',
     ];
@@ -58,8 +58,8 @@ class AttendanceRecord extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'kind' => AttendanceKind::class,
-        'status' => AttendanceStatus::class,
+        'kind'        => AttendanceKind::class,
+        'status'      => AttendanceStatus::class,
         'attended_on' => 'date:Y-m-d',
         'recorded_at' => 'datetime',
     ];
@@ -67,7 +67,8 @@ class AttendanceRecord extends Model
     /**
      * Limit the query to one day.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeOnDate(Builder $query, DateTimeInterface|string $date): Builder
@@ -78,7 +79,8 @@ class AttendanceRecord extends Model
     /**
      * Limit the query to one register.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeOfKind(Builder $query, AttendanceKind $kind): Builder

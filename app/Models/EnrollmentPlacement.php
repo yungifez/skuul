@@ -14,10 +14,10 @@ use RuntimeException;
  * the next placement, so the school can always say where a student sat in any
  * academic year and who moved them.
  *
- * @property int $student_record_id
- * @property int $academic_year_id
+ * @property int      $student_record_id
+ * @property int      $academic_year_id
  * @property int|null $academic_period_id
- * @property int $academic_cycle_section_id
+ * @property int      $academic_cycle_section_id
  */
 class EnrollmentPlacement extends Model
 {

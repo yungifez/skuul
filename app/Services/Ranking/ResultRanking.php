@@ -50,10 +50,11 @@ class ResultRanking
     /**
      * Put the given enrollments in order.
      *
-     * @param  array<int, int>  $enrollmentIds
-     * @return Collection<int, array{student_record_id: int, average: float, subjects: int, position: int}>
+     * @param array<int, int> $enrollmentIds
      *
      * @throws InvalidValueException when the school turned ranking off
+     *
+     * @return Collection<int, array{student_record_id: int, average: float, subjects: int, position: int}>
      */
     public function rank(array $enrollmentIds, ?int $academicYearId = null, ?int $academicPeriodId = null, ?CourseOffering $courseOffering = null): Collection
     {
@@ -73,7 +74,8 @@ class ResultRanking
     /**
      * Get one average for each student, from the newest revision of each result.
      *
-     * @param  array<int, int>  $enrollmentIds
+     * @param array<int, int> $enrollmentIds
+     *
      * @return array<int, array{student_record_id: int, average: float, subjects: int}>
      */
     private function averages(array $enrollmentIds, ?int $academicYearId, ?int $academicPeriodId, ?CourseOffering $courseOffering): array
@@ -97,8 +99,8 @@ class ResultRanking
 
                 return [
                     'student_record_id' => (int) $studentRecordId,
-                    'average' => round((float) $newest->avg('percentage'), 2),
-                    'subjects' => (int) $newest->count(),
+                    'average'           => round((float) $newest->avg('percentage'), 2),
+                    'subjects'          => (int) $newest->count(),
                 ];
             })
             ->values()
@@ -108,7 +110,8 @@ class ResultRanking
     /**
      * Give each row its position, letting equal averages share one.
      *
-     * @param  array<int, array{student_record_id: int, average: float, subjects: int}>  $averages
+     * @param array<int, array{student_record_id: int, average: float, subjects: int}> $averages
+     *
      * @return Collection<int, array{student_record_id: int, average: float, subjects: int, position: int}>
      */
     private function withPositions(array $averages): Collection

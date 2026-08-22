@@ -19,9 +19,9 @@ class SchoolOperatingProfile extends Model
     use InSchool;
 
     public const PRESETS = [
-        'home_sections' => ['class_level' => 'Class', 'section' => 'Arm', 'period' => 'Term', 'course' => 'Subject', 'fee' => 'School fees'],
+        'home_sections'    => ['class_level' => 'Class', 'section' => 'Arm', 'period' => 'Term', 'course' => 'Subject', 'fee' => 'School fees'],
         'subject_schedule' => ['class_level' => 'Grade', 'section' => 'Homeroom', 'period' => 'Semester', 'course' => 'Course', 'fee' => 'Tuition'],
-        'hybrid' => ['class_level' => 'Grade', 'section' => 'Section', 'period' => 'Term', 'course' => 'Subject', 'fee' => 'Fees'],
+        'hybrid'           => ['class_level' => 'Grade', 'section' => 'Section', 'period' => 'Term', 'course' => 'Subject', 'fee' => 'Fees'],
     ];
 
     protected $fillable = ['school_id', 'preset', 'labels'];

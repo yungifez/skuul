@@ -22,13 +22,13 @@ class TimetableSubstitutionFactory extends Factory
     public function definition(): array
     {
         return [
-            'timetable_id' => Timetable::factory(),
+            'timetable_id'           => Timetable::factory(),
             'timetable_time_slot_id' => TimetableTimeSlot::factory(),
-            'weekday_id' => fn (): int => Weekday::query()->firstOrCreate(['name' => 'Monday'])->id,
+            'weekday_id'             => fn (): int => Weekday::query()->firstOrCreate(['name' => 'Monday'])->id,
             'replacement_teacher_id' => User::factory(),
-            'substituted_on' => $this->faker->date(),
-            'reason' => $this->faker->sentence(),
-            'approved_by' => User::factory(),
+            'substituted_on'         => $this->faker->date(),
+            'reason'                 => $this->faker->sentence(),
+            'approved_by'            => User::factory(),
         ];
     }
 }

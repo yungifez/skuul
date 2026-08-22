@@ -21,7 +21,8 @@ class InstructionalModelController extends Controller
     public function __construct(
         private SetInstructionalModel $setInstructionalModel,
         private InstructionalModelResolver $resolver,
-    ) {}
+    ) {
+    }
 
     /**
      * Show the one question that sets up teaching for the cycle.
@@ -33,11 +34,11 @@ class InstructionalModelController extends Controller
         $setting = $this->resolver->settingFor($academicYear);
 
         return view('pages.instructional-model.edit', [
-            'academicYear' => $academicYear,
-            'setting' => $setting?->loadMissing('updatedBy'),
-            'model' => $setting === null ? InstructionalModel::default() : $setting->model,
+            'academicYear'  => $academicYear,
+            'setting'       => $setting?->loadMissing('updatedBy'),
+            'model'         => $setting === null ? InstructionalModel::default() : $setting->model,
             'isFutureCycle' => $this->setInstructionalModel->isFutureCycle($academicYear),
-            'canSet' => $academicYear->exists && request()->user()?->can('setInstructionalModel', $academicYear) === true,
+            'canSet'        => $academicYear->exists && request()->user()?->can('setInstructionalModel', $academicYear) === true,
         ]);
     }
 

@@ -16,7 +16,9 @@ use App\Services\Authorization\CampusMoveAuthority;
  */
 class CampusMoveRequestPolicy
 {
-    public function __construct(private CampusMoveAuthority $authority) {}
+    public function __construct(private CampusMoveAuthority $authority)
+    {
+    }
 
     /**
      * Determine whether the user can open the campus move screen.

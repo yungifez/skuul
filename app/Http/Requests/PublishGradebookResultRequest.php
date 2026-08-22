@@ -28,7 +28,7 @@ class PublishGradebookResultRequest extends FormRequest
     {
         return [
             'student_record_id' => ['required', 'integer', Rule::exists('student_records', 'id')],
-            'reason' => ['nullable', 'string', 'max:500'],
+            'reason'            => ['nullable', 'string', 'max:500'],
         ];
     }
 }

@@ -17,7 +17,7 @@ class NationalityAndStateInputFields extends Component
 
     protected $rules = [
         'nationality' => 'nullable|string',
-        'state' => 'nullable|string',
+        'state'       => 'nullable|string',
     ];
 
     public function mount()
@@ -43,7 +43,7 @@ class NationalityAndStateInputFields extends Component
         }
 
         $this->states = collect(World::countries([
-            'fields' => 'states',
+            'fields'  => 'states',
             'filters' => [
                 'name' => $this->nationality,
             ],
@@ -66,7 +66,7 @@ class NationalityAndStateInputFields extends Component
             return;
         }
         $this->states = collect(World::countries([
-            'fields' => 'states',
+            'fields'  => 'states',
             'filters' => [
                 'name' => $this->nationality,
             ],

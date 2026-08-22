@@ -80,8 +80,8 @@ class OrganizationAccessTest extends TestCase
         $this->assertNotNull($membership->ended_at);
         $this->assertDatabaseHas('organization_memberships', [
             'organization_id' => $organization->id,
-            'user_id' => $user->id,
-            'status' => OrganizationMembershipStatus::Ended->value,
+            'user_id'         => $user->id,
+            'status'          => OrganizationMembershipStatus::Ended->value,
         ]);
     }
 
@@ -191,7 +191,7 @@ class OrganizationAccessTest extends TestCase
     /**
      * Give a person organization scope, delegated to the named permissions.
      *
-     * @param  list<OrganizationPermission>|null  $permissions  null gives every permission
+     * @param list<OrganizationPermission>|null $permissions null gives every permission
      */
     private function grantedMember(Organization $organization, ?array $permissions = null): User
     {

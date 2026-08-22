@@ -18,7 +18,9 @@ use Illuminate\Support\Facades\DB;
 
 class ApplyAssessmentTemplate
 {
-    public function __construct(private RecordAuditEvent $audit) {}
+    public function __construct(private RecordAuditEvent $audit)
+    {
+    }
 
     /**
      * Copy an approved school template into a blank course-offering gradebook.
@@ -36,23 +38,23 @@ class ApplyAssessmentTemplate
 
             foreach ($template->items as $item) {
                 GradeItem::create([
-                    'school_id' => $courseOffering->school_id,
+                    'school_id'          => $courseOffering->school_id,
                     'course_offering_id' => $courseOffering->id,
-                    'grade_category_id' => $item->assessment_template_category_id === null ? null : $categoryIds[$item->assessment_template_category_id],
-                    'name' => $item->name,
-                    'type' => $item->type,
-                    'grading_scale_id' => $item->grading_scale_id,
-                    'max_points' => $item->max_points,
-                    'weight' => $item->weight,
-                    'position' => $item->position,
-                    'created_by' => $actor->id,
+                    'grade_category_id'  => $item->assessment_template_category_id === null ? null : $categoryIds[$item->assessment_template_category_id],
+                    'name'               => $item->name,
+                    'type'               => $item->type,
+                    'grading_scale_id'   => $item->grading_scale_id,
+                    'max_points'         => $item->max_points,
+                    'weight'             => $item->weight,
+                    'position'           => $item->position,
+                    'created_by'         => $actor->id,
                 ]);
             }
 
             $template->applications()->create([
                 'course_offering_id' => $courseOffering->id,
-                'applied_by' => $actor->id,
-                'applied_at' => now(),
+                'applied_by'         => $actor->id,
+                'applied_at'         => now(),
             ]);
             $this->audit->record(AuditAction::AssessmentTemplateApplied, $template, ['course_offering_id' => $courseOffering->id], $actor);
         });
@@ -87,7 +89,8 @@ class ApplyAssessmentTemplate
     }
 
     /**
-     * @param  Collection<int, AssessmentTemplateCategory>  $categories
+     * @param Collection<int, AssessmentTemplateCategory> $categories
+     *
      * @return array<int, int>
      */
     private function copyCategories(Collection $categories, CourseOffering $courseOffering): array
@@ -107,13 +110,13 @@ class ApplyAssessmentTemplate
             }
 
             $gradeCategory = GradeCategory::create([
-                'school_id' => $courseOffering->school_id,
+                'school_id'          => $courseOffering->school_id,
                 'course_offering_id' => $courseOffering->id,
-                'parent_id' => $category->parent_id === null ? null : $gradeCategoryIds[$category->parent_id],
-                'name' => $category->name,
-                'aggregation' => $category->aggregation,
-                'weight' => $category->weight,
-                'position' => $category->position,
+                'parent_id'          => $category->parent_id === null ? null : $gradeCategoryIds[$category->parent_id],
+                'name'               => $category->name,
+                'aggregation'        => $category->aggregation,
+                'weight'             => $category->weight,
+                'position'           => $category->position,
             ]);
             $gradeCategoryIds[$category->id] = $gradeCategory->id;
         };

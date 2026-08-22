@@ -324,10 +324,10 @@ class EnrollmentPlacementTest extends TestCase
         $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
 
         return AcademicCycleSection::factory()->create([
-            'school_id' => $school->id,
-            'academic_year_id' => $academicYear->id,
+            'school_id'         => $school->id,
+            'academic_year_id'  => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
-            'status' => AcademicStructureStatus::Active,
+            'status'            => AcademicStructureStatus::Active,
         ]);
     }
 }

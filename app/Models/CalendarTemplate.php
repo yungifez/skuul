@@ -14,11 +14,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * what kind, and how long each runs. A campus generates a cycle from it by
  * naming one start date.
  *
- * @property string $name
+ * @property string      $name
  * @property string|null $description
- * @property bool $is_default
- * @property int $cycle_length_days
- * @property int $organization_id
+ * @property bool        $is_default
+ * @property int         $cycle_length_days
+ * @property int         $organization_id
  */
 class CalendarTemplate extends Model
 {
@@ -42,11 +42,11 @@ class CalendarTemplate extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'is_default' => 'boolean',
-        'cycle_length_days' => 'integer',
-        'auto_open' => 'boolean',
+        'is_default'           => 'boolean',
+        'cycle_length_days'    => 'integer',
+        'auto_open'            => 'boolean',
         'generate_ahead_weeks' => 'integer',
-        'remind_days_before' => 'integer',
+        'remind_days_before'   => 'integer',
     ];
 
     /**

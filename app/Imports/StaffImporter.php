@@ -20,7 +20,9 @@ use Illuminate\Validation\Rule;
  */
 class StaffImporter implements Importer
 {
-    public function __construct(private ProvisionAccount $provisionAccount) {}
+    public function __construct(private ProvisionAccount $provisionAccount)
+    {
+    }
 
     /**
      * Get the name people choose the import with.
@@ -78,21 +80,21 @@ class StaffImporter implements Importer
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email:rfc,dns', 'max:100'],
-            'birthday' => ['nullable', 'date', 'before:today'],
-            'gender' => ['nullable', 'string', 'max:100'],
-            'staff_number' => ['nullable', 'string', 'max:30'],
+            'name'            => ['required', 'string', 'max:100'],
+            'email'           => ['required', 'email:rfc,dns', 'max:100'],
+            'birthday'        => ['nullable', 'date', 'before:today'],
+            'gender'          => ['nullable', 'string', 'max:100'],
+            'staff_number'    => ['nullable', 'string', 'max:30'],
             'employment_type' => ['nullable', Rule::in(EmploymentType::values())],
-            'joined_on' => ['nullable', 'date'],
-            'phone' => ['nullable', 'string', 'max:100'],
+            'joined_on'       => ['nullable', 'date'],
+            'phone'           => ['nullable', 'string', 'max:100'],
         ];
     }
 
     /**
      * Write one checked row.
      *
-     * @param  array<string, mixed>  $row
+     * @param array<string, mixed> $row
      */
     public function apply(array $row, ?Model $existing): Model
     {
@@ -102,15 +104,15 @@ class StaffImporter implements Importer
 
         $profile = StaffProfile::firstOrNew([
             'school_id' => current_school_id(),
-            'user_id' => $person->id,
+            'user_id'   => $person->id,
         ]);
 
         $profile->fill([
-            'staff_number' => $row['staff_number'] ?? $profile->staff_number,
-            'job_title' => $row['job_title'] ?? $profile->job_title,
-            'department' => $row['department'] ?? $profile->department,
+            'staff_number'    => $row['staff_number'] ?? $profile->staff_number,
+            'job_title'       => $row['job_title'] ?? $profile->job_title,
+            'department'      => $row['department'] ?? $profile->department,
             'employment_type' => EmploymentType::tryFrom((string) ($row['employment_type'] ?? '')) ?? $profile->employment_type,
-            'joined_on' => isset($row['joined_on']) ? Carbon::parse($row['joined_on']) : $profile->joined_on,
+            'joined_on'       => isset($row['joined_on']) ? Carbon::parse($row['joined_on']) : $profile->joined_on,
         ]);
 
         $profile->save();
@@ -121,21 +123,21 @@ class StaffImporter implements Importer
     /**
      * Make or find the account this row belongs to.
      *
-     * @param  array<string, mixed>  $row
+     * @param array<string, mixed> $row
      */
     private function accountFor(array $row): User
     {
         return $this->provisionAccount->provision([
-            'name' => $row['name'],
-            'email' => $row['email'],
-            'school_id' => current_school_id(),
-            'birthday' => $row['birthday'] ?? null,
-            'gender' => $row['gender'] ?? null,
-            'address' => $row['address'] ?? 'Not given',
+            'name'        => $row['name'],
+            'email'       => $row['email'],
+            'school_id'   => current_school_id(),
+            'birthday'    => $row['birthday'] ?? null,
+            'gender'      => $row['gender'] ?? null,
+            'address'     => $row['address'] ?? 'Not given',
             'nationality' => $row['nationality'] ?? null,
-            'state' => $row['state'] ?? null,
-            'city' => $row['city'] ?? null,
-            'phone' => $row['phone'] ?? null,
+            'state'       => $row['state'] ?? null,
+            'city'        => $row['city'] ?? null,
+            'phone'       => $row['phone'] ?? null,
         ]);
     }
 }

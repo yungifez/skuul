@@ -201,8 +201,8 @@ class AttendanceTest extends TestCase
 
         $this->post(route('attendance.register.store'), [
             'academic_cycle_section_id' => $first->academic_cycle_section_id,
-            'attended_on' => now()->toDateString(),
-            'statuses' => [$first->id => AttendanceStatus::Present->value, $second->id => AttendanceStatus::Absent->value],
+            'attended_on'               => now()->toDateString(),
+            'statuses'                  => [$first->id => AttendanceStatus::Present->value, $second->id => AttendanceStatus::Absent->value],
         ])->assertSessionHasNoErrors()->assertSessionHas('success');
 
         $this->assertSame(AttendanceStatus::Absent, AttendanceRecord::query()->where('student_record_id', $second->id)->sole()->status);
@@ -256,13 +256,13 @@ class AttendanceTest extends TestCase
         $academicYear = current_academic_year() ?? AcademicYear::factory()->create(['school_id' => $school->id]);
         $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
         $cycleSection = AcademicCycleSection::factory()->create([
-            'school_id' => $school->id,
-            'academic_year_id' => $academicYear->id,
+            'school_id'         => $school->id,
+            'academic_year_id'  => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
         ]);
 
         return StudentRecord::factory()->create([
-            'school_id' => $school->id,
+            'school_id'                 => $school->id,
             'academic_cycle_section_id' => $cycleSection->id,
         ]);
     }

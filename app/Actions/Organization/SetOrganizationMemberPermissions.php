@@ -28,12 +28,13 @@ class SetOrganizationMemberPermissions
     public function __construct(
         private RecordAuditEvent $recordAuditEvent,
         private OrganizationPermissionScope $organizationPermissionScope,
-    ) {}
+    ) {
+    }
 
     /**
      * Store the delegated permissions, or full authority when given null.
      *
-     * @param  list<OrganizationPermission>|null  $permissions  null gives every permission
+     * @param list<OrganizationPermission>|null $permissions null gives every permission
      */
     public function set(
         User $user,
@@ -72,10 +73,10 @@ class SetOrganizationMemberPermissions
                 AuditAction::OrganizationMembershipPermissionsChanged,
                 $membership,
                 [
-                    'organization_id' => $organization->id,
-                    'user_id' => $user->id,
+                    'organization_id'      => $organization->id,
+                    'user_id'              => $user->id,
                     'previous_permissions' => $previous,
-                    'permissions' => $membership->permissions,
+                    'permissions'          => $membership->permissions,
                 ],
                 $actor,
             );
@@ -91,7 +92,8 @@ class SetOrganizationMemberPermissions
     /**
      * Keep the read permission, drop repeats, and store plain strings.
      *
-     * @param  list<OrganizationPermission>  $permissions
+     * @param list<OrganizationPermission> $permissions
+     *
      * @return list<string>
      */
     private function normalize(array $permissions): array

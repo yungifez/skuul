@@ -12,13 +12,13 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * @property int|null $academic_year_id
- * @property int|null $academic_period_id
- * @property AcademicYear|null $academicYear
- * @property AcademicPeriod|null $academicPeriod
- * @property int|null $calendar_template_id
+ * @property int|null              $academic_year_id
+ * @property int|null              $academic_period_id
+ * @property AcademicYear|null     $academicYear
+ * @property AcademicPeriod|null   $academicPeriod
+ * @property int|null              $calendar_template_id
  * @property CalendarTemplate|null $calendarTemplate
- * @property string $name
+ * @property string                $name
  */
 class School extends Model
 {

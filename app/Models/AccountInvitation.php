@@ -14,11 +14,11 @@ use Illuminate\Support\Carbon;
  *
  * The plain token never reaches the database. Only its hash is stored.
  *
- * @property int $id
- * @property int $user_id
- * @property int|null $invited_by
- * @property string $token_hash
- * @property Carbon $expires_at
+ * @property int         $id
+ * @property int         $user_id
+ * @property int|null    $invited_by
+ * @property string      $token_hash
+ * @property Carbon      $expires_at
  * @property Carbon|null $accepted_at
  * @property Carbon|null $revoked_at
  * @property-read User|null $invitedBy
@@ -49,9 +49,9 @@ class AccountInvitation extends Model
     protected function casts(): array
     {
         return [
-            'expires_at' => 'datetime',
+            'expires_at'  => 'datetime',
             'accepted_at' => 'datetime',
-            'revoked_at' => 'datetime',
+            'revoked_at'  => 'datetime',
         ];
     }
 
@@ -78,7 +78,8 @@ class AccountInvitation extends Model
     /**
      * Limit the query to invitations that a person can still accept.
      *
-     * @param  Builder<AccountInvitation>  $query
+     * @param Builder<AccountInvitation> $query
+     *
      * @return Builder<AccountInvitation>
      */
     public function scopePending(Builder $query): Builder
@@ -91,7 +92,8 @@ class AccountInvitation extends Model
     /**
      * Limit the query to invitations the person already used.
      *
-     * @param  Builder<AccountInvitation>  $query
+     * @param Builder<AccountInvitation> $query
+     *
      * @return Builder<AccountInvitation>
      */
     public function scopeAccepted(Builder $query): Builder
@@ -102,7 +104,8 @@ class AccountInvitation extends Model
     /**
      * Limit the query to invitations an administrator stopped.
      *
-     * @param  Builder<AccountInvitation>  $query
+     * @param Builder<AccountInvitation> $query
+     *
      * @return Builder<AccountInvitation>
      */
     public function scopeRevoked(Builder $query): Builder
@@ -113,7 +116,8 @@ class AccountInvitation extends Model
     /**
      * Limit the query to invitations that ran out of time unused.
      *
-     * @param  Builder<AccountInvitation>  $query
+     * @param Builder<AccountInvitation> $query
+     *
      * @return Builder<AccountInvitation>
      */
     public function scopeExpired(Builder $query): Builder
@@ -126,16 +130,17 @@ class AccountInvitation extends Model
     /**
      * Limit the query to one state.
      *
-     * @param  Builder<AccountInvitation>  $query
+     * @param Builder<AccountInvitation> $query
+     *
      * @return Builder<AccountInvitation>
      */
     public function scopeWithStatus(Builder $query, AccountInvitationStatus $status): Builder
     {
         return match ($status) {
-            AccountInvitationStatus::Pending => $query->pending(),
+            AccountInvitationStatus::Pending  => $query->pending(),
             AccountInvitationStatus::Accepted => $query->accepted(),
-            AccountInvitationStatus::Expired => $query->expired(),
-            AccountInvitationStatus::Revoked => $query->revoked(),
+            AccountInvitationStatus::Expired  => $query->expired(),
+            AccountInvitationStatus::Revoked  => $query->revoked(),
         };
     }
 

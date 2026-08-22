@@ -11,7 +11,9 @@ use Illuminate\View\View;
 
 class PortalNoticeController extends Controller
 {
-    public function __construct(private PortalAccess $access, private PortalSummary $summary) {}
+    public function __construct(private PortalAccess $access, private PortalSummary $summary)
+    {
+    }
 
     /** Show the notices delivered to one student account. */
     public function index(Request $request, StudentRecord $studentRecord): View

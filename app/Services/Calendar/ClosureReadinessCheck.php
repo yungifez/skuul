@@ -97,7 +97,8 @@ class ClosureReadinessCheck
     /**
      * Add up findings of the same kind, so a cycle reports one line each.
      *
-     * @param  array<int, ClosureFinding>  $findings
+     * @param array<int, ClosureFinding> $findings
+     *
      * @return array<int, ClosureFinding>
      */
     private function merge(array $findings): array

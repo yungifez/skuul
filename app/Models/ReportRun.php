@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * One request to build a report.
  *
- * @property ReportStatus $status
+ * @property ReportStatus              $status
  * @property array<string, mixed>|null $parameters
  */
 class ReportRun extends Model
@@ -51,9 +51,9 @@ class ReportRun extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'status' => ReportStatus::class,
-        'parameters' => 'array',
-        'started_at' => 'datetime',
+        'status'       => ReportStatus::class,
+        'parameters'   => 'array',
+        'started_at'   => 'datetime',
         'completed_at' => 'datetime',
     ];
 

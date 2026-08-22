@@ -13,7 +13,9 @@ use Illuminate\Support\Collection;
  */
 class StudentBalancesReport implements Report
 {
-    public function __construct(private StudentLedger $ledger) {}
+    public function __construct(private StudentLedger $ledger)
+    {
+    }
 
     /**
      * Get the name people choose the report by.
@@ -44,7 +46,8 @@ class StudentBalancesReport implements Report
     /**
      * Build the rows of the report.
      *
-     * @param  array<string, mixed>  $parameters
+     * @param array<string, mixed> $parameters
+     *
      * @return Collection<int, array<int, mixed>>
      */
     public function rows(array $parameters = []): Collection

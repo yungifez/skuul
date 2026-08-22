@@ -25,18 +25,18 @@ class AssessmentTemplateTest extends TestCase
         $actor = $this->memberOf($this->workingSchool());
         $source = $this->courseOffering();
         $category = GradeCategory::create([
-            'school_id' => $source->school_id,
+            'school_id'          => $source->school_id,
             'course_offering_id' => $source->id,
-            'name' => 'Continuous assessment',
-            'weight' => 2,
+            'name'               => 'Continuous assessment',
+            'weight'             => 2,
         ]);
         GradeItem::create([
-            'school_id' => $source->school_id,
+            'school_id'          => $source->school_id,
             'course_offering_id' => $source->id,
-            'grade_category_id' => $category->id,
-            'name' => 'Classwork',
-            'type' => GradeItemType::Numeric,
-            'max_points' => 20,
+            'grade_category_id'  => $category->id,
+            'name'               => 'Classwork',
+            'type'               => GradeItemType::Numeric,
+            'max_points'         => 20,
         ]);
 
         $template = app(CreateAssessmentTemplateFromGradebook::class)->create($source, 'Term assessment', 'A common structure.', $actor);
@@ -57,18 +57,18 @@ class AssessmentTemplateTest extends TestCase
         $actor = $this->memberOf($this->workingSchool());
         $source = $this->courseOffering();
         GradeItem::create([
-            'school_id' => $source->school_id,
+            'school_id'          => $source->school_id,
             'course_offering_id' => $source->id,
-            'name' => 'Baseline assessment',
-            'max_points' => 20,
+            'name'               => 'Baseline assessment',
+            'max_points'         => 20,
         ]);
         $template = app(CreateAssessmentTemplateFromGradebook::class)->create($source, 'Term assessment', null, $actor);
         $target = $this->courseOffering();
         GradeItem::create([
-            'school_id' => $target->school_id,
+            'school_id'          => $target->school_id,
             'course_offering_id' => $target->id,
-            'name' => 'Existing assessment',
-            'max_points' => 20,
+            'name'               => 'Existing assessment',
+            'max_points'         => 20,
         ]);
 
         $this->expectException(InvalidValueException::class);
@@ -84,11 +84,11 @@ class AssessmentTemplateTest extends TestCase
         $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
 
         return CourseOffering::factory()->create([
-            'school_id' => $school->id,
-            'academic_year_id' => $source->academic_year_id,
+            'school_id'          => $school->id,
+            'academic_year_id'   => $source->academic_year_id,
             'academic_period_id' => $source->academic_period_id,
-            'academic_level_id' => $academicLevel->id,
-            'subject_id' => $subject->id,
+            'academic_level_id'  => $academicLevel->id,
+            'subject_id'         => $subject->id,
         ]);
     }
 }

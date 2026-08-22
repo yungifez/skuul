@@ -14,12 +14,14 @@ use Illuminate\Support\Facades\DB;
 
 class SaveCalendarTemplate
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * Save an organization's calendar shape and its automation policy.
      *
-     * @param  array{name: string, description?: string|null, cycle_length_days: int, is_default?: bool, auto_open?: bool, generate_ahead_weeks?: int, remind_days_before?: int, periods: array<int, array<string, mixed>>}  $attributes
+     * @param array{name: string, description?: string|null, cycle_length_days: int, is_default?: bool, auto_open?: bool, generate_ahead_weeks?: int, remind_days_before?: int, periods: array<int, array<string, mixed>>} $attributes
      */
     public function save(Organization $organization, array $attributes, ?CalendarTemplate $template = null, ?User $actor = null): CalendarTemplate
     {
@@ -65,8 +67,8 @@ class SaveCalendarTemplate
                 $template,
                 [
                     'organization_id' => $organization->id,
-                    'period_count' => count($periods),
-                    'is_default' => $template->is_default,
+                    'period_count'    => count($periods),
+                    'is_default'      => $template->is_default,
                 ],
                 $actor,
             );
@@ -78,7 +80,8 @@ class SaveCalendarTemplate
     /**
      * Remove blank form rows and keep their submitted index for parent links.
      *
-     * @param  array<int, array<string, mixed>>  $rows
+     * @param array<int, array<string, mixed>> $rows
+     *
      * @return array<int, array<string, mixed>>
      */
     private function periods(array $rows): array
@@ -89,7 +92,7 @@ class SaveCalendarTemplate
     /**
      * Write parent rows before their sub-periods.
      *
-     * @param  array<int, array<string, mixed>>  $rows
+     * @param array<int, array<string, mixed>> $rows
      */
     private function writePeriods(CalendarTemplate $template, array $rows): void
     {
@@ -105,13 +108,13 @@ class SaveCalendarTemplate
             }
 
             $written[$rowNumber] = $template->periods()->create([
-                'parent_id' => $parentIndex === null ? null : $written[$parentIndex]->id,
-                'name' => $row['name'],
-                'label' => $row['label'] ?: null,
-                'type' => $row['type'] ?? AcademicPeriodType::Term,
-                'position' => (int) ($row['position'] ?? $rowNumber),
+                'parent_id'         => $parentIndex === null ? null : $written[$parentIndex]->id,
+                'name'              => $row['name'],
+                'label'             => $row['label'] ?: null,
+                'type'              => $row['type'] ?? AcademicPeriodType::Term,
+                'position'          => (int) ($row['position'] ?? $rowNumber),
                 'start_offset_days' => (int) ($row['start_offset_days'] ?? 0),
-                'length_days' => (int) ($row['length_days'] ?? 1),
+                'length_days'       => (int) ($row['length_days'] ?? 1),
             ]);
         }
     }

@@ -20,9 +20,9 @@ class GradingScaleOptionFactory extends Factory
     {
         return [
             'grading_scale_id' => GradingScale::factory(),
-            'label' => fake()->unique()->word(),
-            'points' => fake()->randomFloat(2, 0, 100),
-            'position' => fake()->numberBetween(1, 10),
+            'label'            => fake()->unique()->word(),
+            'points'           => fake()->randomFloat(2, 0, 100),
+            'position'         => fake()->numberBetween(1, 10),
         ];
     }
 }

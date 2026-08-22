@@ -20,7 +20,9 @@ use Illuminate\Support\Facades\DB;
  */
 class SetCampusCalendarTemplate
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * Give the campus its own template.
@@ -67,10 +69,10 @@ class SetCampusCalendarTemplate
                 AuditAction::CampusCalendarOverridden,
                 $school,
                 [
-                    'from' => $before,
-                    'to' => $templateId,
+                    'from'     => $before,
+                    'to'       => $templateId,
                     'inherits' => $templateId === null,
-                    'reason' => $reason,
+                    'reason'   => $reason,
                 ],
                 $actor,
             );

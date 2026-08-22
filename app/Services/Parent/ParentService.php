@@ -34,7 +34,8 @@ class ParentService
     /**
      * Create a new parent.
      *
-     * @param  array|Collection  $record
+     * @param array|Collection $record
+     *
      * @return User
      */
     public function createParent($record)
@@ -53,7 +54,8 @@ class ParentService
     /**
      * Update a parent.
      *
-     * @param  array|object|Collection  $records
+     * @param array|object|Collection $records
+     *
      * @return User
      */
     public function updateParent(User $parent, $records)
@@ -91,9 +93,9 @@ class ParentService
      *
      *
      *
-     * @return void
-     *
      * @throws InvalidUserException
+     *
+     * @return void
      */
     public function assignStudentToParent(User $parent, int $student, bool $assign = true)
     {

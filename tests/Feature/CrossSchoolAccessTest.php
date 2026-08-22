@@ -64,22 +64,22 @@ class CrossSchoolAccessTest extends TestCase
     public static function schoolOwnedResources(): array
     {
         return [
-            'academic year' => ['academicYear', 'dashboard/academic-years/%d', ['academic year']],
-            'academic period' => ['academicPeriod', 'dashboard/academic-periods/%d', ['academic period']],
-            'subject' => ['subject', 'dashboard/subjects/%d', ['subject']],
-            'syllabus' => ['syllabus', 'dashboard/syllabi/%d', ['syllabus']],
-            'exam' => ['exam', 'dashboard/exams/%d', ['exam']],
-            'notice' => ['notice', 'dashboard/notices/%d', ['notice']],
+            'academic year'         => ['academicYear', 'dashboard/academic-years/%d', ['academic year']],
+            'academic period'       => ['academicPeriod', 'dashboard/academic-periods/%d', ['academic period']],
+            'subject'               => ['subject', 'dashboard/subjects/%d', ['subject']],
+            'syllabus'              => ['syllabus', 'dashboard/syllabi/%d', ['syllabus']],
+            'exam'                  => ['exam', 'dashboard/exams/%d', ['exam']],
+            'notice'                => ['notice', 'dashboard/notices/%d', ['notice']],
             'custom timetable item' => ['customTimetableItem', 'dashboard/custom-timetable-items/%d', ['custom timetable item']],
-            'fee category' => ['feeCategory', 'dashboard/fees/fee-categories/%d', ['fee category']],
-            'fee' => ['fee', 'dashboard/fees/%d', ['fee']],
-            'fee invoice' => ['feeInvoice', 'dashboard/fees/fee-invoices/%d', ['fee invoice']],
-            'timetable' => ['timetable', 'dashboard/timetables/%d', ['timetable']],
+            'fee category'          => ['feeCategory', 'dashboard/fees/fee-categories/%d', ['fee category']],
+            'fee'                   => ['fee', 'dashboard/fees/%d', ['fee']],
+            'fee invoice'           => ['feeInvoice', 'dashboard/fees/fee-invoices/%d', ['fee invoice']],
+            'timetable'             => ['timetable', 'dashboard/timetables/%d', ['timetable']],
         ];
     }
 
     /**
-     * @param  array<int, string>  $subjects
+     * @param array<int, string> $subjects
      */
     #[DataProvider('schoolOwnedResources')]
     public function test_a_record_of_another_school_cannot_be_read(string $key, string $uri, array $subjects): void
@@ -90,7 +90,7 @@ class CrossSchoolAccessTest extends TestCase
     }
 
     /**
-     * @param  array<int, string>  $subjects
+     * @param array<int, string> $subjects
      */
     #[DataProvider('schoolOwnedResources')]
     public function test_a_record_of_another_school_cannot_be_edited(string $key, string $uri, array $subjects): void
@@ -101,7 +101,7 @@ class CrossSchoolAccessTest extends TestCase
     }
 
     /**
-     * @param  array<int, string>  $subjects
+     * @param array<int, string> $subjects
      */
     #[DataProvider('schoolOwnedResources')]
     public function test_a_record_of_another_school_cannot_be_updated(string $key, string $uri, array $subjects): void
@@ -112,7 +112,7 @@ class CrossSchoolAccessTest extends TestCase
     }
 
     /**
-     * @param  array<int, string>  $subjects
+     * @param array<int, string> $subjects
      */
     #[DataProvider('schoolOwnedResources')]
     public function test_a_record_of_another_school_cannot_be_deleted(string $key, string $uri, array $subjects): void
@@ -138,13 +138,13 @@ class CrossSchoolAccessTest extends TestCase
     public static function academicStructureResources(): array
     {
         return [
-            'academic level' => ['academicLevel', 'dashboard/academic-levels/%d', ['class']],
+            'academic level'         => ['academicLevel', 'dashboard/academic-levels/%d', ['class']],
             'academic cycle section' => ['cycleSection', 'dashboard/academic-cycle-sections/%d', ['section']],
         ];
     }
 
     /**
-     * @param  array<int, string>  $subjects
+     * @param array<int, string> $subjects
      */
     #[DataProvider('academicStructureResources')]
     public function test_an_academic_structure_record_of_another_school_is_out_of_reach(string $key, string $uri, array $subjects): void
@@ -222,7 +222,7 @@ class CrossSchoolAccessTest extends TestCase
     /**
      * Sign in as a person who holds every permission for the given subjects.
      *
-     * @param  array<int, string>  $subjects
+     * @param array<int, string> $subjects
      */
     private function actAsFullyPermittedUser(array $subjects): object
     {
@@ -247,60 +247,60 @@ class CrossSchoolAccessTest extends TestCase
 
         $academicYear = AcademicYear::factory()->create(['school_id' => $this->otherSchool->id]);
         $academicPeriod = AcademicPeriod::factory()->create([
-            'school_id' => $this->otherSchool->id,
+            'school_id'        => $this->otherSchool->id,
             'academic_year_id' => $academicYear->id,
         ]);
         $academicLevel = AcademicLevel::factory()->create(['school_id' => $this->otherSchool->id]);
         $cycleSection = AcademicCycleSection::factory()->create([
-            'school_id' => $this->otherSchool->id,
-            'academic_year_id' => $academicYear->id,
+            'school_id'         => $this->otherSchool->id,
+            'academic_year_id'  => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
         ]);
         $subject = Subject::factory()->create([
             'school_id' => $this->otherSchool->id,
         ]);
         $courseOffering = CourseOffering::factory()->create([
-            'school_id' => $this->otherSchool->id,
-            'academic_year_id' => $academicYear->id,
+            'school_id'          => $this->otherSchool->id,
+            'academic_year_id'   => $academicYear->id,
             'academic_period_id' => $academicPeriod->id,
-            'academic_level_id' => $academicLevel->id,
-            'subject_id' => $subject->id,
+            'academic_level_id'  => $academicLevel->id,
+            'subject_id'         => $subject->id,
         ]);
         $exam = Exam::factory()->create(['academic_period_id' => $academicPeriod->id]);
         $feeCategory = FeeCategory::factory()->create(['school_id' => $this->otherSchool->id]);
         $timetable = Timetable::factory()->create([
             'academic_cycle_section_id' => $cycleSection->id,
-            'academic_period_id' => $academicPeriod->id,
+            'academic_period_id'        => $academicPeriod->id,
         ]);
 
         $student = $this->studentOfOtherSchool($cycleSection);
 
         $this->records = [
-            'academicYear' => $academicYear,
+            'academicYear'   => $academicYear,
             'academicPeriod' => $academicPeriod,
-            'academicLevel' => $academicLevel,
-            'cycleSection' => $cycleSection,
-            'subject' => $subject,
-            'exam' => $exam,
-            'feeCategory' => $feeCategory,
-            'timetable' => $timetable,
-            'student' => $student,
-            'otherAdmin' => $this->adminOfOtherSchool(),
-            'syllabus' => Syllabus::factory()->create([
+            'academicLevel'  => $academicLevel,
+            'cycleSection'   => $cycleSection,
+            'subject'        => $subject,
+            'exam'           => $exam,
+            'feeCategory'    => $feeCategory,
+            'timetable'      => $timetable,
+            'student'        => $student,
+            'otherAdmin'     => $this->adminOfOtherSchool(),
+            'syllabus'       => Syllabus::factory()->create([
                 'course_offering_id' => $courseOffering->id,
             ]),
-            'examSlot' => ExamSlot::factory()->create(['exam_id' => $exam->id]),
-            'notice' => Notice::factory()->create(['school_id' => $this->otherSchool->id]),
+            'examSlot'            => ExamSlot::factory()->create(['exam_id' => $exam->id]),
+            'notice'              => Notice::factory()->create(['school_id' => $this->otherSchool->id]),
             'customTimetableItem' => CustomTimetableItem::factory()->create(['school_id' => $this->otherSchool->id]),
-            'fee' => Fee::factory()->create(['fee_Category_id' => $feeCategory->id]),
-            'feeInvoice' => FeeInvoice::factory()->create(['user_id' => $student->id]),
-            'timetableTimeSlot' => TimetableTimeSlot::factory()->create(['timetable_id' => $timetable->id]),
-            'promotion' => Promotion::factory()->create([
-                'school_id' => $this->otherSchool->id,
-                'academic_year_id' => $academicYear->id,
-                'source_academic_cycle_section_id' => $cycleSection->id,
+            'fee'                 => Fee::factory()->create(['fee_Category_id' => $feeCategory->id]),
+            'feeInvoice'          => FeeInvoice::factory()->create(['user_id' => $student->id]),
+            'timetableTimeSlot'   => TimetableTimeSlot::factory()->create(['timetable_id' => $timetable->id]),
+            'promotion'           => Promotion::factory()->create([
+                'school_id'                             => $this->otherSchool->id,
+                'academic_year_id'                      => $academicYear->id,
+                'source_academic_cycle_section_id'      => $cycleSection->id,
                 'destination_academic_cycle_section_id' => $cycleSection->id,
-                'students' => [$student->id],
+                'students'                              => [$student->id],
             ]),
         ];
 
@@ -315,8 +315,8 @@ class CrossSchoolAccessTest extends TestCase
         $student = $this->personOfOtherSchool('student');
 
         StudentRecord::factory()->create([
-            'user_id' => $student->id,
-            'school_id' => $this->otherSchool->id,
+            'user_id'                   => $student->id,
+            'school_id'                 => $this->otherSchool->id,
             'academic_cycle_section_id' => $cycleSection->id,
         ]);
 

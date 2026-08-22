@@ -16,12 +16,14 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class RequireActiveSchool
 {
-    public function __construct(private SchoolContext $schoolContext) {}
+    public function __construct(private SchoolContext $schoolContext)
+    {
+    }
 
     /**
      * Handle an incoming request.
      *
-     * @param  Closure(Request): (Response)  $next
+     * @param Closure(Request): (Response) $next
      */
     public function handle(Request $request, Closure $next): Response
     {

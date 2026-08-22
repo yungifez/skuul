@@ -12,7 +12,9 @@ use Illuminate\Support\Facades\DB;
 
 class ChangeAcademicCycleSectionStatus
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * @throws InvalidValueException when the transition is not allowed
@@ -50,7 +52,7 @@ class ChangeAcademicCycleSectionStatus
                 $section,
                 [
                     'from' => $from->value,
-                    'to' => $status->value,
+                    'to'   => $status->value,
                 ],
                 $actor,
             );

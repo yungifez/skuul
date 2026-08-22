@@ -35,19 +35,19 @@ class GradebookScreenTest extends TestCase
             ->assertSee('Record grades and publish results');
 
         $this->post(route('course-offerings.gradebook.items.store', $courseOffering), [
-            'name' => 'Term project',
-            'type' => GradeItemType::Numeric->value,
+            'name'       => 'Term project',
+            'type'       => GradeItemType::Numeric->value,
             'max_points' => 20,
-            'weight' => 1,
+            'weight'     => 1,
         ])->assertSessionHas('success');
 
         $item = GradeItem::query()->whereBelongsTo($courseOffering)->firstOrFail();
 
         $this->post(route('course-offerings.gradebook.entries.store', $courseOffering), [
-            'grade_item_id' => $item->id,
+            'grade_item_id'     => $item->id,
             'student_record_id' => $enrollment->id,
-            'state' => GradeEntryState::Graded->value,
-            'points' => 16,
+            'state'             => GradeEntryState::Graded->value,
+            'points'            => 16,
         ])->assertSessionHas('success');
 
         $this->assertSame(16.0, GradeEntry::query()->firstOrFail()->points);
@@ -64,16 +64,16 @@ class GradebookScreenTest extends TestCase
         $this->authorized_user(['read gradebook', 'manage gradebook', 'update subject']);
         [$source] = $this->offeringAndEnrollment();
         GradeItem::create([
-            'school_id' => $source->school_id,
+            'school_id'          => $source->school_id,
             'course_offering_id' => $source->id,
-            'name' => 'Classwork',
-            'type' => GradeItemType::Numeric,
-            'max_points' => 20,
+            'name'               => 'Classwork',
+            'type'               => GradeItemType::Numeric,
+            'max_points'         => 20,
         ]);
 
         $this->post(route('course-offerings.gradebook.templates.store', $source), [
             'template_name' => 'Common term assessment',
-            'description' => 'Use for all term-based courses.',
+            'description'   => 'Use for all term-based courses.',
         ])->assertSessionHasNoErrors()->assertSessionHas('success');
 
         $template = AssessmentTemplate::query()->sole();
@@ -101,32 +101,32 @@ class GradebookScreenTest extends TestCase
             'school_id' => $school->id,
         ])->getKey());
         $academicPeriod = current_academic_period() ?? AcademicPeriod::query()->findOrFail(AcademicPeriod::factory()->create([
-            'school_id' => $school->id,
+            'school_id'        => $school->id,
             'academic_year_id' => $academicYear->id,
         ])->getKey());
         $academicLevel = AcademicLevel::query()->findOrFail(AcademicLevel::factory()->create([
             'school_id' => $school->id,
         ])->getKey());
         $cycleSection = AcademicCycleSection::query()->findOrFail(AcademicCycleSection::factory()->create([
-            'school_id' => $school->id,
-            'academic_year_id' => $academicYear->id,
+            'school_id'         => $school->id,
+            'academic_year_id'  => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
         ])->getKey());
         $subject = Subject::query()->findOrFail(Subject::factory()->create(['school_id' => $school->id])->getKey());
         $courseOffering = CourseOffering::query()->findOrFail(CourseOffering::factory()->create([
-            'school_id' => $school->id,
-            'academic_year_id' => $academicYear->id,
+            'school_id'          => $school->id,
+            'academic_year_id'   => $academicYear->id,
             'academic_period_id' => $academicPeriod->id,
-            'academic_level_id' => $academicLevel->id,
-            'subject_id' => $subject->id,
+            'academic_level_id'  => $academicLevel->id,
+            'subject_id'         => $subject->id,
         ])->getKey());
         $courseOffering->cycleSections()->attach($cycleSection);
         $student = User::query()->create(User::factory()->raw());
         $enrollment = StudentRecord::query()->create([
-            'school_id' => $school->id,
+            'school_id'                 => $school->id,
             'academic_cycle_section_id' => $cycleSection->id,
-            'user_id' => $student->id,
-            'admission_date' => now(),
+            'user_id'                   => $student->id,
+            'admission_date'            => now(),
         ]);
 
         return [$courseOffering, $enrollment];

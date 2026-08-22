@@ -12,7 +12,9 @@ use Illuminate\Support\Facades\DB;
 
 class PublishSyllabus
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     public function publish(Syllabus $syllabus, ?User $actor = null): Syllabus
     {

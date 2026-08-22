@@ -30,18 +30,18 @@ class PromotionFactory extends Factory
             ?? AcademicYear::factory()->create(['school_id' => $school->id]);
 
         return [
-            'school_id' => $school->id,
-            'academic_year_id' => $academicYear->id,
-            'source_academic_cycle_section_id' => fn (array $attributes) => $this->cycleSection($attributes)->id,
+            'school_id'                             => $school->id,
+            'academic_year_id'                      => $academicYear->id,
+            'source_academic_cycle_section_id'      => fn (array $attributes) => $this->cycleSection($attributes)->id,
             'destination_academic_cycle_section_id' => fn (array $attributes) => $this->cycleSection($attributes)->id,
-            'students' => [4],
+            'students'                              => [4],
         ];
     }
 
     /**
      * Make one active cycle section in the school and year of the promotion.
      *
-     * @param  array<string, mixed>  $attributes
+     * @param array<string, mixed> $attributes
      */
     private function cycleSection(array $attributes): AcademicCycleSection
     {
@@ -50,10 +50,10 @@ class PromotionFactory extends Factory
             ?? AcademicLevel::factory()->create(['school_id' => $schoolId]);
 
         return AcademicCycleSection::factory()->create([
-            'school_id' => $schoolId,
-            'academic_year_id' => $attributes['academic_year_id'],
+            'school_id'         => $schoolId,
+            'academic_year_id'  => $attributes['academic_year_id'],
             'academic_level_id' => $academicLevel->id,
-            'status' => AcademicStructureStatus::Active,
+            'status'            => AcademicStructureStatus::Active,
         ]);
     }
 }

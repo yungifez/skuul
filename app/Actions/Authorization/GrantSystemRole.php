@@ -8,7 +8,9 @@ use App\Services\Authorization\SystemPermissionScope;
 
 class GrantSystemRole
 {
-    public function __construct(private SystemPermissionScope $systemPermissionScope) {}
+    public function __construct(private SystemPermissionScope $systemPermissionScope)
+    {
+    }
 
     /**
      * Assign a globally-scoped Spatie role without changing the active school.

@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * different facts, and neither is a silent zero.
  *
  * @property GradeEntryState $state
- * @property float|null $points
+ * @property float|null      $points
  */
 class GradeEntry extends Model
 {
@@ -46,8 +46,8 @@ class GradeEntry extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'state' => GradeEntryState::class,
-        'points' => 'float',
+        'state'     => GradeEntryState::class,
+        'points'    => 'float',
         'graded_at' => 'datetime',
     ];
 

@@ -43,7 +43,8 @@ class NoticeAudience
     /**
      * Get the people named by current academic structure or by hand.
      *
-     * @param  array<string, mixed>  $audience
+     * @param array<string, mixed> $audience
+     *
      * @return array<int, int>
      */
     private function recipientIds(array $audience, ?int $schoolId): array
@@ -78,7 +79,8 @@ class NoticeAudience
     /**
      * Get learners chosen directly or through their current home group.
      *
-     * @param  array<string, mixed>  $audience
+     * @param array<string, mixed> $audience
+     *
      * @return array<int, int>
      */
     private function studentUserIds(array $audience, ?int $schoolId): array
@@ -111,7 +113,8 @@ class NoticeAudience
     /**
      * Keep section ids in the notice's school even when this is a queued run.
      *
-     * @param  array<int, int>  $sectionIds
+     * @param array<int, int> $sectionIds
+     *
      * @return array<int, int>
      */
     private function sectionIdsInSchool(array $sectionIds, ?int $schoolId): array
@@ -127,7 +130,8 @@ class NoticeAudience
     /**
      * Get the people recorded as guardians of the selected learners.
      *
-     * @param  array<int, int>  $studentUserIds
+     * @param array<int, int> $studentUserIds
+     *
      * @return array<int, int>
      */
     private function guardianIds(array $studentUserIds): array

@@ -17,7 +17,8 @@ class GradingScaleController extends Controller
     public function __construct(
         private SaveGradingScale $saveGradingScale,
         private RecordAuditEvent $audit,
-    ) {}
+    ) {
+    }
 
     /**
      * Display the school’s reusable grading scales and creation form.

@@ -43,12 +43,12 @@ enum NoticeStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Draft => 'Draft',
-            self::Scheduled => 'Scheduled',
-            self::Published => 'Published',
-            self::Expired => 'Expired',
+            self::Draft      => 'Draft',
+            self::Scheduled  => 'Scheduled',
+            self::Published  => 'Published',
+            self::Expired    => 'Expired',
             self::Superseded => 'Superseded',
-            self::Archived => 'Archived',
+            self::Archived   => 'Archived',
         };
     }
 
@@ -68,12 +68,12 @@ enum NoticeStatus: string
     public function allowedNext(): array
     {
         return match ($this) {
-            self::Draft => [self::Scheduled, self::Published, self::Archived],
-            self::Scheduled => [self::Published, self::Draft, self::Archived],
-            self::Published => [self::Expired, self::Superseded, self::Archived],
-            self::Expired => [self::Archived],
+            self::Draft      => [self::Scheduled, self::Published, self::Archived],
+            self::Scheduled  => [self::Published, self::Draft, self::Archived],
+            self::Published  => [self::Expired, self::Superseded, self::Archived],
+            self::Expired    => [self::Archived],
             self::Superseded => [],
-            self::Archived => [],
+            self::Archived   => [],
         };
     }
 

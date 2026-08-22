@@ -38,10 +38,10 @@ enum RosterMode: string
     public function label(): string
     {
         return match ($this) {
-            self::HomeSection => 'One home section',
+            self::HomeSection          => 'One home section',
             self::CombinedHomeSections => 'Combined home sections',
-            self::AcademicLevel => 'Whole academic level',
-            self::IndividualRoster => 'Named learners',
+            self::AcademicLevel        => 'Whole academic level',
+            self::IndividualRoster     => 'Named learners',
         };
     }
 
@@ -51,10 +51,10 @@ enum RosterMode: string
     public function description(): string
     {
         return match ($this) {
-            self::HomeSection => 'The learners of one home section attend.',
+            self::HomeSection          => 'The learners of one home section attend.',
             self::CombinedHomeSections => 'The learners of several home sections attend together.',
-            self::AcademicLevel => 'Every learner of the academic level attends.',
-            self::IndividualRoster => 'Staff choose each learner who attends.',
+            self::AcademicLevel        => 'Every learner of the academic level attends.',
+            self::IndividualRoster     => 'Staff choose each learner who attends.',
         };
     }
 

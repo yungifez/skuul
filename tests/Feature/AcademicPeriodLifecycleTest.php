@@ -66,7 +66,7 @@ class AcademicPeriodLifecycleTest extends TestCase
     {
         $year = AcademicYear::factory()->create();
         $academicPeriod = AcademicPeriod::factory()->create([
-            'school_id' => $year->school_id,
+            'school_id'        => $year->school_id,
             'academic_year_id' => $year->id,
         ]);
 
@@ -79,7 +79,7 @@ class AcademicPeriodLifecycleTest extends TestCase
     {
         $year = AcademicYear::factory()->create();
         $academicPeriod = AcademicPeriod::factory()->create([
-            'school_id' => $year->school_id,
+            'school_id'        => $year->school_id,
             'academic_year_id' => $year->id,
         ]);
 
@@ -94,7 +94,7 @@ class AcademicPeriodLifecycleTest extends TestCase
     {
         $year = AcademicYear::factory()->create();
         $academicPeriod = AcademicPeriod::factory()->create([
-            'school_id' => $year->school_id,
+            'school_id'        => $year->school_id,
             'academic_year_id' => $year->id,
         ]);
         $action = app(ChangeAcademicPeriodStatus::class);
@@ -235,7 +235,7 @@ class AcademicPeriodLifecycleTest extends TestCase
         $year = AcademicYear::factory()->create(['school_id' => current_school_id()]);
 
         return AcademicPeriod::factory()->create([
-            'school_id' => current_school_id(),
+            'school_id'        => current_school_id(),
             'academic_year_id' => $year->id,
         ]);
     }

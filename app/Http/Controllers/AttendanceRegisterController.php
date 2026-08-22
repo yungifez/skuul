@@ -13,7 +13,9 @@ use Illuminate\View\View;
 
 class AttendanceRegisterController extends Controller
 {
-    public function __construct(private RecordAttendance $recordAttendance) {}
+    public function __construct(private RecordAttendance $recordAttendance)
+    {
+    }
 
     public function index(Request $request): View
     {

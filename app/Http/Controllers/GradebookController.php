@@ -33,7 +33,8 @@ class GradebookController extends Controller
         private CreateAssessmentTemplateFromGradebook $createAssessmentTemplate,
         private RecordGrade $recordGrade,
         private PublishResult $publishResult,
-    ) {}
+    ) {
+    }
 
     /**
      * Show the one-screen gradebook for an exact course offering.
@@ -113,9 +114,9 @@ class GradebookController extends Controller
         }
 
         GradeItem::create($attributes + [
-            'school_id' => $courseOffering->school_id,
+            'school_id'          => $courseOffering->school_id,
             'course_offering_id' => $courseOffering->id,
-            'created_by' => $request->user()->id,
+            'created_by'         => $request->user()->id,
         ]);
 
         return back()->with('success', 'Assessment added to the gradebook.');

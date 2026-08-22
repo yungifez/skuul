@@ -208,7 +208,7 @@ class CampusMoveRequestTest extends TestCase
         $sibling = $this->siblingCampus();
         $enrollment = StudentRecord::factory()->create([
             'school_id' => $this->workingSchool()->id,
-            'status' => EnrollmentStatus::Graduated,
+            'status'    => EnrollmentStatus::Graduated,
         ]);
 
         $this->expectException(InvalidValueException::class);
@@ -219,7 +219,7 @@ class CampusMoveRequestTest extends TestCase
     /**
      * Make a person who administers one campus and nothing else.
      *
-     * @param  array<int, string>  $permissions
+     * @param array<int, string> $permissions
      */
     private function campusAdministratorOf(School $school, array $permissions): User
     {
@@ -235,7 +235,7 @@ class CampusMoveRequestTest extends TestCase
     /**
      * Make a person with authority over the working school's organization.
      *
-     * @param  array<int, OrganizationPermission>  $permissions
+     * @param array<int, OrganizationPermission> $permissions
      */
     private function organizationPersonWith(array $permissions): User
     {
@@ -270,10 +270,10 @@ class CampusMoveRequestTest extends TestCase
             ?? AcademicLevel::factory()->create(['school_id' => $school->id]);
 
         return AcademicCycleSection::factory()->create([
-            'school_id' => $school->id,
-            'academic_year_id' => $academicYear->id,
+            'school_id'         => $school->id,
+            'academic_year_id'  => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
-            'status' => AcademicStructureStatus::Active,
+            'status'            => AcademicStructureStatus::Active,
         ]);
     }
 }

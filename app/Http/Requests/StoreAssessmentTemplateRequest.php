@@ -21,7 +21,7 @@ class StoreAssessmentTemplateRequest extends FormRequest
     {
         return [
             'template_name' => ['required', 'string', 'max:150', Rule::unique('assessment_templates', 'name')->where('school_id', current_school_id())],
-            'description' => ['nullable', 'string', 'max:5000'],
+            'description'   => ['nullable', 'string', 'max:5000'],
         ];
     }
 }

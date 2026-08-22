@@ -11,7 +11,9 @@ use Illuminate\Support\Facades\DB;
 
 class AssignSchoolToOrganization
 {
-    public function __construct(private RecordAuditEvent $recordAuditEvent) {}
+    public function __construct(private RecordAuditEvent $recordAuditEvent)
+    {
+    }
 
     /**
      * Assign a campus to an organization without changing school memberships.
@@ -33,7 +35,7 @@ class AssignSchoolToOrganization
                 AuditAction::SchoolOrganizationAssigned,
                 $school,
                 [
-                    'organization_id' => $organization->id,
+                    'organization_id'          => $organization->id,
                     'previous_organization_id' => $previousOrganizationId,
                 ],
                 $actor,

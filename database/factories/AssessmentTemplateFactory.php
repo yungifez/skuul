@@ -22,10 +22,10 @@ class AssessmentTemplateFactory extends Factory
         $school = School::query()->first() ?? School::factory()->create();
 
         return [
-            'school_id' => $school->id,
-            'name' => fake()->unique()->words(3, true),
+            'school_id'   => $school->id,
+            'name'        => fake()->unique()->words(3, true),
             'description' => fake()->optional()->sentence(),
-            'is_active' => true,
+            'is_active'   => true,
         ];
     }
 }

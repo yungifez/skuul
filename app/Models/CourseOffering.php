@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * and individual course rosters remain separate work.
  *
  * @property CourseOfferingStatus $status
- * @property RosterMode $roster_mode
+ * @property RosterMode           $roster_mode
  */
 class CourseOffering extends Model
 {
@@ -44,7 +44,7 @@ class CourseOffering extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'status' => CourseOfferingStatus::Draft->value,
+        'status'      => CourseOfferingStatus::Draft->value,
         'roster_mode' => RosterMode::HomeSection->value,
     ];
 
@@ -52,15 +52,15 @@ class CourseOffering extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'status' => CourseOfferingStatus::class,
-        'roster_mode' => RosterMode::class,
+        'status'                   => CourseOfferingStatus::class,
+        'roster_mode'              => RosterMode::class,
         'planned_periods_per_week' => 'integer',
-        'capacity' => 'integer',
+        'capacity'                 => 'integer',
     ];
 
     /**
-     * @param  array<int, int>  $academicCycleSectionIds
-     * @param  array<int, int>  $studentRecordIds
+     * @param array<int, int> $academicCycleSectionIds
+     * @param array<int, int> $studentRecordIds
      */
     public function activeKeyForRoster(array $academicCycleSectionIds, array $studentRecordIds): string
     {

@@ -9,7 +9,9 @@ use InvalidArgumentException;
 
 class RevokeSystemRole
 {
-    public function __construct(private SystemPermissionScope $systemPermissionScope) {}
+    public function __construct(private SystemPermissionScope $systemPermissionScope)
+    {
+    }
 
     /**
      * Take away a globally-scoped Spatie role without changing the active school.

@@ -13,7 +13,9 @@ use Illuminate\Support\Facades\DB;
 
 class ChangeAcademicLevelStatus
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * Move a reusable level between lifecycle states.

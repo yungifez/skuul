@@ -12,7 +12,9 @@ use Illuminate\Support\Carbon;
 
 class AcademicCycleController extends Controller
 {
-    public function __construct(private GenerateAcademicCycle $generateAcademicCycle) {}
+    public function __construct(private GenerateAcademicCycle $generateAcademicCycle)
+    {
+    }
 
     public function store(GenerateAcademicCycleRequest $request, Organization $organization, CalendarTemplate $calendarTemplate): RedirectResponse
     {

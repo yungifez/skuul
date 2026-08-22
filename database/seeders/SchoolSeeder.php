@@ -24,11 +24,11 @@ class SchoolSeeder extends Seeder
         School::updateOrCreate(
             ['id' => 1],
             [
-                'name' => 'Default School',
+                'name'            => 'Default School',
                 'organization_id' => $organization->id,
-                'address' => 'School of Computing',
-                'code' => Str::Random(10),
-                'initials' => 'DSI',
+                'address'         => 'School of Computing',
+                'code'            => Str::Random(10),
+                'initials'        => 'DSI',
             ]
         );
 

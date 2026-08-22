@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * A section is never reused for another cycle.
  *
  * @property AcademicStructureStatus $status
- * @property string $name
+ * @property string                  $name
  */
 class AcademicCycleSection extends Model
 {
@@ -45,7 +45,7 @@ class AcademicCycleSection extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'status' => AcademicStructureStatus::Draft->value,
+        'status'   => AcademicStructureStatus::Draft->value,
         'position' => 0,
     ];
 
@@ -55,7 +55,7 @@ class AcademicCycleSection extends Model
     protected $casts = [
         'capacity' => 'integer',
         'position' => 'integer',
-        'status' => AcademicStructureStatus::class,
+        'status'   => AcademicStructureStatus::class,
     ];
 
     /**

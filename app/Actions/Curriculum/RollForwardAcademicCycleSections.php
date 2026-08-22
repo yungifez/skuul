@@ -14,7 +14,9 @@ use Illuminate\Support\Facades\DB;
 
 class RollForwardAcademicCycleSections
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * Read what a roll-forward would do, without writing anything.
@@ -24,18 +26,18 @@ class RollForwardAcademicCycleSections
      * `skips` are the source sections whose name already exists in the target
      * cycle, which is what makes a repeated confirmation safe.
      *
-     * @return array{copies: Collection<int, AcademicCycleSection>, skips: Collection<int, AcademicCycleSection>}
-     *
      * @throws InvalidValueException when the source and target cannot share a structure
+     *
+     * @return array{copies: Collection<int, AcademicCycleSection>, skips: Collection<int, AcademicCycleSection>}
      */
     public function preview(AcademicYear $source, AcademicYear $target): array
     {
         $this->failIfCyclesDoNotFit($source, $target);
 
         /** @var Collection<int, AcademicCycleSection> $copies */
-        $copies = new Collection;
+        $copies = new Collection();
         /** @var Collection<int, AcademicCycleSection> $skips */
-        $skips = new Collection;
+        $skips = new Collection();
 
         foreach ($this->sectionsOf($source) as $sourceSection) {
             if ($this->targetAlreadyHas($target, $sourceSection)) {
@@ -57,9 +59,9 @@ class RollForwardAcademicCycleSections
      * work do not come forward. They must be deliberately set for the target
      * cycle.
      *
-     * @return Collection<int, AcademicCycleSection>
-     *
      * @throws InvalidValueException when the source and target cannot share a structure
+     *
+     * @return Collection<int, AcademicCycleSection>
      */
     public function rollForward(AcademicYear $source, AcademicYear $target, ?User $actor = null): Collection
     {
@@ -73,7 +75,7 @@ class RollForwardAcademicCycleSections
             }
 
             /** @var Collection<int, AcademicCycleSection> $created */
-            $created = new Collection;
+            $created = new Collection();
 
             foreach ($this->sectionsOf($source) as $sourceSection) {
                 if ($this->targetAlreadyHas($target, $sourceSection)) {
@@ -81,18 +83,18 @@ class RollForwardAcademicCycleSections
                 }
 
                 $created->push(AcademicCycleSection::create([
-                    'school_id' => $target->school_id,
-                    'academic_year_id' => $target->id,
+                    'school_id'         => $target->school_id,
+                    'academic_year_id'  => $target->id,
                     'academic_level_id' => $sourceSection->academic_level_id,
-                    'name' => $sourceSection->name,
-                    'label' => $sourceSection->label,
-                    'stream' => $sourceSection->stream,
-                    'shift' => $sourceSection->shift,
-                    'language' => $sourceSection->language,
-                    'room' => $sourceSection->room,
-                    'capacity' => $sourceSection->capacity,
-                    'position' => $sourceSection->position,
-                    'status' => AcademicStructureStatus::Draft,
+                    'name'              => $sourceSection->name,
+                    'label'             => $sourceSection->label,
+                    'stream'            => $sourceSection->stream,
+                    'shift'             => $sourceSection->shift,
+                    'language'          => $sourceSection->language,
+                    'room'              => $sourceSection->room,
+                    'capacity'          => $sourceSection->capacity,
+                    'position'          => $sourceSection->position,
+                    'status'            => AcademicStructureStatus::Draft,
                 ]));
             }
 
@@ -101,8 +103,8 @@ class RollForwardAcademicCycleSections
                     AuditAction::AcademicCycleSectionsRolledForward,
                     $target,
                     [
-                        'source_academic_year_id' => $source->id,
-                        'target_academic_year_id' => $target->id,
+                        'source_academic_year_id'    => $source->id,
+                        'target_academic_year_id'    => $target->id,
                         'academic_cycle_section_ids' => $created->modelKeys(),
                     ],
                     $actor,

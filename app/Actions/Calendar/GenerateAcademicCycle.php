@@ -24,12 +24,14 @@ use Illuminate\Support\Facades\DB;
  */
 class GenerateAcademicCycle
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * Generate the cycle and return the academic year that holds it.
      *
-     * @param  array<string, mixed>  $overrides  values to force onto the year
+     * @param array<string, mixed> $overrides values to force onto the year
      *
      * @throws InvalidValueException when the campus has no template to follow
      */
@@ -59,12 +61,12 @@ class GenerateAcademicCycle
 
         return DB::transaction(function () use ($school, $template, $startsOn, $endsOn, $actor, $overrides): AcademicYear {
             $year = AcademicYear::create(array_merge([
-                'school_id' => $school->id,
+                'school_id'  => $school->id,
                 'start_year' => (int) $startsOn->format('Y'),
-                'stop_year' => (int) $endsOn->format('Y'),
-                'starts_on' => $startsOn,
-                'ends_on' => $endsOn,
-                'status' => AcademicPeriodStatus::Draft,
+                'stop_year'  => (int) $endsOn->format('Y'),
+                'starts_on'  => $startsOn,
+                'ends_on'    => $endsOn,
+                'status'     => AcademicPeriodStatus::Draft,
             ], $overrides));
 
             $created = $this->createPeriods($template, $year, $school, $startsOn, null, null);
@@ -73,11 +75,11 @@ class GenerateAcademicCycle
                 AuditAction::AcademicCycleGenerated,
                 $year,
                 [
-                    'template_id' => $template->id,
+                    'template_id'   => $template->id,
                     'template_name' => $template->name,
-                    'starts_on' => $startsOn->toDateString(),
-                    'ends_on' => $endsOn->toDateString(),
-                    'periods' => $created,
+                    'starts_on'     => $startsOn->toDateString(),
+                    'ends_on'       => $endsOn->toDateString(),
+                    'periods'       => $created,
                 ],
                 $actor,
             );
@@ -107,16 +109,16 @@ class GenerateAcademicCycle
 
         foreach ($rows as $templatePeriod) {
             $period = AcademicPeriod::create([
-                'school_id' => $school->id,
+                'school_id'        => $school->id,
                 'academic_year_id' => $year->id,
-                'parent_id' => $parent?->id,
-                'name' => $templatePeriod->name,
-                'label' => $templatePeriod->label,
-                'type' => $templatePeriod->type,
-                'position' => $templatePeriod->position,
-                'starts_on' => $templatePeriod->startsOn($cycleStart),
-                'ends_on' => $templatePeriod->endsOn($cycleStart),
-                'status' => AcademicPeriodStatus::Draft,
+                'parent_id'        => $parent?->id,
+                'name'             => $templatePeriod->name,
+                'label'            => $templatePeriod->label,
+                'type'             => $templatePeriod->type,
+                'position'         => $templatePeriod->position,
+                'starts_on'        => $templatePeriod->startsOn($cycleStart),
+                'ends_on'          => $templatePeriod->endsOn($cycleStart),
+                'status'           => AcademicPeriodStatus::Draft,
             ]);
 
             $written += 1 + $this->createPeriods($template, $year, $school, $cycleStart, $templatePeriod, $period);

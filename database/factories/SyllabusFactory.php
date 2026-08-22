@@ -22,10 +22,10 @@ class SyllabusFactory extends Factory
         $file = UploadedFile::fake()->create("{$this->faker->name}.pdf")->store('pdfs');
 
         return [
-            'name' => $this->faker->sentence,
-            'description' => $this->faker->paragraph,
+            'name'               => $this->faker->sentence,
+            'description'        => $this->faker->paragraph,
             'course_offering_id' => CourseOffering::factory(),
-            'file' => $file,
+            'file'               => $file,
         ];
     }
 }

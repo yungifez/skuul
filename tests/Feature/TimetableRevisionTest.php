@@ -89,8 +89,8 @@ class TimetableRevisionTest extends TestCase
 
         TimetableTimeSlot::create([
             'timetable_id' => $timetable->id,
-            'start_time' => '08:00',
-            'stop_time' => '09:00',
+            'start_time'   => '08:00',
+            'stop_time'    => '09:00',
         ]);
     }
 
@@ -111,9 +111,9 @@ class TimetableRevisionTest extends TestCase
         $slot = TimetableTimeSlot::create(['timetable_id' => $timetable->id, 'start_time' => '08:00', 'stop_time' => '09:00']);
         $subject = $this->subject();
         TimetableRecord::create([
-            'timetable_time_slot_id' => $slot->id,
-            'weekday_id' => Weekday::first()->id,
-            'timetable_time_slot_weekdayable_id' => $subject->id,
+            'timetable_time_slot_id'               => $slot->id,
+            'weekday_id'                           => Weekday::first()->id,
+            'timetable_time_slot_weekdayable_id'   => $subject->id,
             'timetable_time_slot_weekdayable_type' => $subject->getMorphClass(),
         ]);
         app(PublishTimetable::class)->publish($timetable);
@@ -150,8 +150,8 @@ class TimetableRevisionTest extends TestCase
         TimetableTimeSlot::create(['timetable_id' => $template->id, 'start_time' => '08:00', 'stop_time' => '09:00']);
         app(PublishTimetable::class)->publish($template);
         $section = AcademicCycleSection::factory()->create([
-            'school_id' => $template->academicCycleSection->school_id,
-            'academic_year_id' => $template->academicCycleSection->academic_year_id,
+            'school_id'         => $template->academicCycleSection->school_id,
+            'academic_year_id'  => $template->academicCycleSection->academic_year_id,
             'academic_level_id' => $template->academicCycleSection->academic_level_id,
         ]);
 
@@ -184,12 +184,12 @@ class TimetableRevisionTest extends TestCase
         );
 
         $this->assertDatabaseHas('timetable_substitutions', [
-            'id' => $substitution->id,
-            'timetable_id' => $timetable->id,
+            'id'                     => $substitution->id,
+            'timetable_id'           => $timetable->id,
             'timetable_time_slot_id' => $slot->id,
-            'weekday_id' => $weekday->id,
+            'weekday_id'             => $weekday->id,
             'replacement_teacher_id' => $replacementTeacher->id,
-            'substituted_on' => $date->toDateString(),
+            'substituted_on'         => $date->toDateString(),
         ]);
         $this->assertSame(TimetableStatus::Published, $timetable->fresh()->status);
         $this->assertSame(1, $timetable->fresh()->timeSlots()->count());
@@ -211,16 +211,16 @@ class TimetableRevisionTest extends TestCase
         app(PublishTimetable::class)->publish($timetable);
 
         $this->post(route('timetables.substitutions.store', $timetable), [
-            'timetable_entry' => $slot->id.':'.$weekday->id,
+            'timetable_entry'        => $slot->id.':'.$weekday->id,
             'replacement_teacher_id' => $replacementTeacher->id,
-            'substituted_on' => $date->toDateString(),
-            'reason' => 'Teacher is attending training.',
+            'substituted_on'         => $date->toDateString(),
+            'reason'                 => 'Teacher is attending training.',
         ])->assertRedirect();
 
         $this->assertDatabaseHas('timetable_substitutions', [
-            'timetable_id' => $timetable->id,
+            'timetable_id'           => $timetable->id,
             'timetable_time_slot_id' => $slot->id,
-            'weekday_id' => $weekday->id,
+            'weekday_id'             => $weekday->id,
             'replacement_teacher_id' => $replacementTeacher->id,
         ]);
     }
@@ -309,16 +309,16 @@ class TimetableRevisionTest extends TestCase
         $academicYear = AcademicYear::query()->where('school_id', $this->workingSchool()->id)->firstOrFail();
         $academicLevel = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id]);
         $cycleSection = AcademicCycleSection::factory()->create([
-            'school_id' => $this->workingSchool()->id,
-            'academic_year_id' => $academicYear->id,
+            'school_id'         => $this->workingSchool()->id,
+            'academic_year_id'  => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
         ]);
 
         return Timetable::create([
-            'name' => 'Week plan',
-            'description' => 'The normal week',
+            'name'                      => 'Week plan',
+            'description'               => 'The normal week',
             'academic_cycle_section_id' => $cycleSection->id,
-            'academic_period_id' => current_academic_period_id(),
+            'academic_period_id'        => current_academic_period_id(),
         ]);
     }
 
@@ -331,25 +331,25 @@ class TimetableRevisionTest extends TestCase
         $subject = $this->subject();
         $cycleSection = $timetable->academicCycleSection;
         $courseOffering = CourseOffering::factory()->create([
-            'school_id' => $this->workingSchool()->id,
-            'academic_year_id' => $cycleSection->academic_year_id,
+            'school_id'          => $this->workingSchool()->id,
+            'academic_year_id'   => $cycleSection->academic_year_id,
             'academic_period_id' => $timetable->academic_period_id,
-            'academic_level_id' => $cycleSection->academic_level_id,
-            'subject_id' => $subject->id,
+            'academic_level_id'  => $cycleSection->academic_level_id,
+            'subject_id'         => $subject->id,
         ]);
         $courseOffering->cycleSections()->attach($cycleSection);
         app(AssignTeacher::class)->assign($courseOffering, $teacher);
 
         $slot = TimetableTimeSlot::create([
             'timetable_id' => $timetable->id,
-            'start_time' => $start,
-            'stop_time' => $stop,
+            'start_time'   => $start,
+            'stop_time'    => $stop,
         ]);
 
         TimetableRecord::create([
-            'timetable_time_slot_id' => $slot->id,
-            'weekday_id' => Weekday::first()->id,
-            'timetable_time_slot_weekdayable_id' => $subject->id,
+            'timetable_time_slot_id'               => $slot->id,
+            'weekday_id'                           => Weekday::first()->id,
+            'timetable_time_slot_weekdayable_id'   => $subject->id,
             'timetable_time_slot_weekdayable_type' => $subject->getMorphClass(),
         ]);
 

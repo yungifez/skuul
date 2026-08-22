@@ -22,7 +22,9 @@ use App\Services\Gradebook\CourseOfferingRoster;
  */
 class RecordGrade
 {
-    public function __construct(private CourseOfferingRoster $roster) {}
+    public function __construct(private CourseOfferingRoster $roster)
+    {
+    }
 
     /**
      * Record the mark or the state.
@@ -46,16 +48,16 @@ class RecordGrade
 
         return GradeEntry::updateOrCreate(
             [
-                'grade_item_id' => $item->id,
+                'grade_item_id'     => $item->id,
                 'student_record_id' => $enrollment->id,
             ],
             [
-                'state' => $state,
-                'points' => $state->needsPoints() ? $recordedPoints : null,
+                'state'                   => $state,
+                'points'                  => $state->needsPoints() ? $recordedPoints : null,
                 'grading_scale_option_id' => $state->needsPoints() ? $scaleOption?->id : null,
-                'comment' => $comment,
-                'graded_by' => $actor === null ? auth()->id() : $actor->id,
-                'graded_at' => now(),
+                'comment'                 => $comment,
+                'graded_by'               => $actor === null ? auth()->id() : $actor->id,
+                'graded_at'               => now(),
             ],
         );
     }

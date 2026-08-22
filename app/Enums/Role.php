@@ -59,12 +59,12 @@ enum Role: string
     public function label(): string
     {
         return match ($this) {
-            self::PlatformAdmin => 'Platform Administrator',
+            self::PlatformAdmin     => 'Platform Administrator',
             self::OrganizationAdmin => 'Organization Administrator',
-            self::Admin => 'Administrator',
-            self::Teacher => 'Teacher',
-            self::Student => 'Student',
-            self::Parent => 'Parent',
+            self::Admin             => 'Administrator',
+            self::Teacher           => 'Teacher',
+            self::Student           => 'Student',
+            self::Parent            => 'Parent',
         };
     }
 }

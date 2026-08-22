@@ -22,9 +22,9 @@ class StoreSyllabusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:65535'],
-            'file' => ['required', 'file', 'mimes:pdf', 'max:10000'],
+            'name'               => ['required', 'string', 'max:255'],
+            'description'        => ['nullable', 'string', 'max:65535'],
+            'file'               => ['required', 'file', 'mimes:pdf', 'max:10000'],
             'course_offering_id' => ['required', 'integer', Rule::exists('course_offerings', 'id')->where('school_id', current_school_id())],
         ];
     }

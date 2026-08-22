@@ -69,7 +69,8 @@ class SchoolCalendar
     /**
      * Keep only the events a person is part of.
      *
-     * @param  Builder<CalendarEvent>  $query
+     * @param Builder<CalendarEvent> $query
+     *
      * @return Builder<CalendarEvent>
      */
     private function limitToPerson(Builder $query, User $person): Builder

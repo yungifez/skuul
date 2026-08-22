@@ -15,7 +15,9 @@ use Illuminate\Support\Facades\DB;
 
 class CreateSectionTimetableOverride
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     public function create(Timetable $template, AcademicCycleSection $section, ?User $actor = null): Timetable
     {
@@ -31,14 +33,14 @@ class CreateSectionTimetableOverride
 
         return DB::transaction(function () use ($template, $section, $actor): Timetable {
             $override = Timetable::create([
-                'name' => $template->name.' · '.($section->label ?? $section->name),
-                'description' => $template->description,
-                'status' => TimetableStatus::Draft,
-                'academic_period_id' => $template->academic_period_id,
+                'name'                      => $template->name.' · '.($section->label ?? $section->name),
+                'description'               => $template->description,
+                'status'                    => TimetableStatus::Draft,
+                'academic_period_id'        => $template->academic_period_id,
                 'academic_cycle_section_id' => $section->id,
-                'template_timetable_id' => $template->id,
-                'effective_from' => $template->effective_from,
-                'effective_to' => $template->effective_to,
+                'template_timetable_id'     => $template->id,
+                'effective_from'            => $template->effective_from,
+                'effective_to'              => $template->effective_to,
             ]);
 
             foreach ($template->timeSlots()->get() as $slot) {

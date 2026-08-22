@@ -152,7 +152,7 @@ class TimetableConflictChecker
             ->get();
 
         $slots = $timetable->timeSlots()->get()->keyBy('id');
-        $subjectMorphClass = (new Subject)->getMorphClass();
+        $subjectMorphClass = (new Subject())->getMorphClass();
         $subjects = Subject::query()
             ->whereKey(
                 $records
@@ -198,11 +198,11 @@ class TimetableConflictChecker
                 ->filter();
 
             return [
-                'weekday_id' => (int) $record->weekday_id,
-                'start_time' => (string) $slot->start_time,
-                'stop_time' => (string) $slot->stop_time,
-                'room' => filled($timetable->academicCycleSection?->room) ? $timetable->academicCycleSection->room : null,
-                'teacher_ids' => $teachers->pluck('id')->map(fn ($id): int => (int) $id)->all(),
+                'weekday_id'    => (int) $record->weekday_id,
+                'start_time'    => (string) $slot->start_time,
+                'stop_time'     => (string) $slot->stop_time,
+                'room'          => filled($timetable->academicCycleSection?->room) ? $timetable->academicCycleSection->room : null,
+                'teacher_ids'   => $teachers->pluck('id')->map(fn ($id): int => (int) $id)->all(),
                 'teacher_names' => $teachers->pluck('name', 'id')->all(),
             ];
         })->filter()->values();

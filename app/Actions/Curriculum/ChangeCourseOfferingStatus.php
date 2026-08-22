@@ -15,7 +15,9 @@ use Illuminate\Support\Facades\DB;
  */
 class ChangeCourseOfferingStatus
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * @throws InvalidValueException when the transition is not valid
@@ -58,8 +60,8 @@ class ChangeCourseOfferingStatus
                 AuditAction::CourseOfferingStatusChanged,
                 $courseOffering,
                 [
-                    'from' => $previousStatus->value,
-                    'to' => $status->value,
+                    'from'               => $previousStatus->value,
+                    'to'                 => $status->value,
                     'academic_period_id' => $courseOffering->academic_period_id,
                 ],
                 $actor,

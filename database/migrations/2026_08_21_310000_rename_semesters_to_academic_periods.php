@@ -5,27 +5,26 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class() extends Migration {
     /**
      * The tables that point at a period, with the rule each one keeps.
      *
      * @var array<string, array{onDelete: string, onUpdate: string}>
      */
     private array $referencingTables = [
-        'attendance_records' => ['onDelete' => 'set null', 'onUpdate' => 'no action'],
-        'calendar_events' => ['onDelete' => 'set null', 'onUpdate' => 'no action'],
+        'attendance_records'    => ['onDelete' => 'set null', 'onUpdate' => 'no action'],
+        'calendar_events'       => ['onDelete' => 'set null', 'onUpdate' => 'no action'],
         'enrollment_placements' => ['onDelete' => 'set null', 'onUpdate' => 'no action'],
-        'exams' => ['onDelete' => 'cascade',  'onUpdate' => 'cascade'],
-        'grade_categories' => ['onDelete' => 'set null', 'onUpdate' => 'no action'],
-        'grade_items' => ['onDelete' => 'set null', 'onUpdate' => 'no action'],
-        'incidents' => ['onDelete' => 'set null', 'onUpdate' => 'no action'],
-        'report_runs' => ['onDelete' => 'set null', 'onUpdate' => 'no action'],
-        'result_snapshots' => ['onDelete' => 'set null', 'onUpdate' => 'no action'],
-        'schools' => ['onDelete' => 'set null', 'onUpdate' => 'set null'],
-        'syllabi' => ['onDelete' => 'cascade',  'onUpdate' => 'cascade'],
-        'teaching_assignments' => ['onDelete' => 'set null', 'onUpdate' => 'no action'],
-        'timetables' => ['onDelete' => 'cascade',  'onUpdate' => 'cascade'],
+        'exams'                 => ['onDelete' => 'cascade',  'onUpdate' => 'cascade'],
+        'grade_categories'      => ['onDelete' => 'set null', 'onUpdate' => 'no action'],
+        'grade_items'           => ['onDelete' => 'set null', 'onUpdate' => 'no action'],
+        'incidents'             => ['onDelete' => 'set null', 'onUpdate' => 'no action'],
+        'report_runs'           => ['onDelete' => 'set null', 'onUpdate' => 'no action'],
+        'result_snapshots'      => ['onDelete' => 'set null', 'onUpdate' => 'no action'],
+        'schools'               => ['onDelete' => 'set null', 'onUpdate' => 'set null'],
+        'syllabi'               => ['onDelete' => 'cascade',  'onUpdate' => 'cascade'],
+        'teaching_assignments'  => ['onDelete' => 'set null', 'onUpdate' => 'no action'],
+        'timetables'            => ['onDelete' => 'cascade',  'onUpdate' => 'cascade'],
     ];
 
     /**

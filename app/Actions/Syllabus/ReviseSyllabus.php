@@ -12,7 +12,9 @@ use Illuminate\Support\Facades\DB;
 
 class ReviseSyllabus
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /** @param array{name?: string, description?: string|null, file?: string} $changes */
     public function revise(Syllabus $syllabus, array $changes = [], ?User $actor = null): Syllabus
@@ -25,13 +27,13 @@ class ReviseSyllabus
             }
 
             $revision = Syllabus::create([
-                'name' => $changes['name'] ?? $syllabus->name,
-                'description' => $changes['description'] ?? $syllabus->description,
-                'file' => $changes['file'] ?? $syllabus->file,
+                'name'               => $changes['name'] ?? $syllabus->name,
+                'description'        => $changes['description'] ?? $syllabus->description,
+                'file'               => $changes['file'] ?? $syllabus->file,
                 'course_offering_id' => $syllabus->course_offering_id,
-                'status' => SyllabusStatus::Draft,
-                'revision' => $syllabus->revision + 1,
-                'revision_of_id' => $syllabus->id,
+                'status'             => SyllabusStatus::Draft,
+                'revision'           => $syllabus->revision + 1,
+                'revision_of_id'     => $syllabus->id,
             ]);
 
             $this->auditor->record(AuditAction::SyllabusRevised, $revision, ['revision_of_id' => $syllabus->id, 'revision' => $revision->revision], $actor);

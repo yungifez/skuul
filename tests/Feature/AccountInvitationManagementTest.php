@@ -55,7 +55,7 @@ class AccountInvitationManagementTest extends TestCase
         $invitee = $this->invitedMember($school);
 
         AccountInvitation::factory()->create([
-            'user_id' => $invitee->id,
+            'user_id'    => $invitee->id,
             'invited_by' => $administrator->id,
         ]);
 
@@ -84,10 +84,10 @@ class AccountInvitationManagementTest extends TestCase
             ->test(ListAccountInvitations::class);
 
         foreach ([
-            'pending' => $pending,
+            'pending'  => $pending,
             'accepted' => $accepted,
-            'expired' => $expired,
-            'revoked' => $revoked,
+            'expired'  => $expired,
+            'revoked'  => $revoked,
         ] as $status => $shown) {
             $component->call('selectStatus', $status)
                 ->assertSee($shown->email);

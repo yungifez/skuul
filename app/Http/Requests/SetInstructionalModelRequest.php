@@ -25,7 +25,7 @@ class SetInstructionalModelRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'model' => ['required', Rule::enum(InstructionalModel::class)],
+            'model'  => ['required', Rule::enum(InstructionalModel::class)],
             'reason' => ['nullable', 'string', 'max:500'],
         ];
     }

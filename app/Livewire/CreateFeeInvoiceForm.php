@@ -144,7 +144,8 @@ class CreateFeeInvoiceForm extends Component
     /**
      * Get the active students placed in any of the given cycle sections.
      *
-     * @param  array<int, int>  $cycleSectionIds
+     * @param array<int, int> $cycleSectionIds
+     *
      * @return Collection<int, User>
      */
     private function studentsOfSections(array $cycleSectionIds)

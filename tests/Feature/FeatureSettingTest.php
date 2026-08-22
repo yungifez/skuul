@@ -129,14 +129,14 @@ class FeatureSettingTest extends TestCase
 
         $actor->put(route('schools.features.update'), [
             'features' => [
-                'attendance' => '0',
-                'portal' => '1',
-                'discipline' => '1',
-                'wellbeing' => '1',
+                'attendance'       => '0',
+                'portal'           => '1',
+                'discipline'       => '1',
+                'wellbeing'        => '1',
                 'staff_operations' => '1',
-                'events' => '1',
-                'ranking' => '0',
-                'imports' => '1',
+                'events'           => '1',
+                'ranking'          => '0',
+                'imports'          => '1',
             ],
         ])->assertRedirect(route('schools.features.edit'));
 

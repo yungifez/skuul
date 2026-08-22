@@ -16,13 +16,13 @@ use Illuminate\Support\Carbon;
  * Dates are offsets from the first day of the cycle, so the same row makes
  * "Term 1" for every year the organization ever runs.
  *
- * @property string $name
- * @property string|null $label
+ * @property string             $name
+ * @property string|null        $label
  * @property AcademicPeriodType $type
- * @property int $position
- * @property int $start_offset_days
- * @property int $length_days
- * @property int|null $parent_id
+ * @property int                $position
+ * @property int                $start_offset_days
+ * @property int                $length_days
+ * @property int|null           $parent_id
  */
 class CalendarTemplatePeriod extends Model
 {
@@ -45,10 +45,10 @@ class CalendarTemplatePeriod extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'type' => AcademicPeriodType::class,
-        'position' => 'integer',
+        'type'              => AcademicPeriodType::class,
+        'position'          => 'integer',
         'start_offset_days' => 'integer',
-        'length_days' => 'integer',
+        'length_days'       => 'integer',
     ];
 
     /**
@@ -63,7 +63,8 @@ class CalendarTemplatePeriod extends Model
     /**
      * Read the periods in the order the organization teaches them.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeOrdered(Builder $query): Builder

@@ -25,7 +25,9 @@ use Illuminate\Support\Facades\DB;
  */
 class ChangeEnrollmentPlacement
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * Place the enrollment in an exact academic-cycle section.
@@ -62,13 +64,13 @@ class ChangeEnrollmentPlacement
             }
 
             EnrollmentPlacement::create([
-                'student_record_id' => $enrollment->id,
-                'academic_year_id' => $academicYear->id,
-                'academic_period_id' => $academicPeriod?->id,
+                'student_record_id'         => $enrollment->id,
+                'academic_year_id'          => $academicYear->id,
+                'academic_period_id'        => $academicPeriod?->id,
                 'academic_cycle_section_id' => $academicCycleSection->id,
-                'effective_on' => $effectiveOn ?? now(),
-                'changed_by' => $actor?->id,
-                'reason' => $reason,
+                'effective_on'              => $effectiveOn ?? now(),
+                'changed_by'                => $actor?->id,
+                'reason'                    => $reason,
             ]);
 
             // The enrollment keeps a pointer to where the student sits now.
@@ -83,9 +85,9 @@ class ChangeEnrollmentPlacement
                 AuditAction::EnrollmentPlaced,
                 $enrollment,
                 [
-                    'academic_year_id' => $academicYear->id,
+                    'academic_year_id'          => $academicYear->id,
                     'academic_cycle_section_id' => $academicCycleSection->id,
-                    'reason' => $reason,
+                    'reason'                    => $reason,
                 ],
                 $actor,
             );

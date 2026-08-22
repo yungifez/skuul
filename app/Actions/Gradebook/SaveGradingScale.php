@@ -14,18 +14,20 @@ use Illuminate\Support\Facades\DB;
 
 class SaveGradingScale
 {
-    public function __construct(private RecordAuditEvent $audit) {}
+    public function __construct(private RecordAuditEvent $audit)
+    {
+    }
 
     /**
      * Create a reusable school-owned grading scale.
      *
-     * @param  array{name: string, description?: string|null, is_active?: bool, options: array<int, array{id?: int, label?: string|null, points?: float|int|string|null}>}  $attributes
+     * @param array{name: string, description?: string|null, is_active?: bool, options: array<int, array{id?: int, label?: string|null, points?: float|int|string|null}>} $attributes
      */
     public function create(array $attributes, User $actor): GradingScale
     {
         return DB::transaction(function () use ($attributes, $actor): GradingScale {
             $scale = GradingScale::create(Arr::except($attributes, 'options') + [
-                'school_id' => current_school_id(),
+                'school_id'  => current_school_id(),
                 'created_by' => $actor->id,
             ]);
 
@@ -39,7 +41,7 @@ class SaveGradingScale
     /**
      * Update a scale without changing any option already used in a grade.
      *
-     * @param  array{name: string, description?: string|null, is_active?: bool, options: array<int, array{id?: int, label?: string|null, points?: float|int|string|null}>}  $attributes
+     * @param array{name: string, description?: string|null, is_active?: bool, options: array<int, array{id?: int, label?: string|null, points?: float|int|string|null}>} $attributes
      */
     public function update(GradingScale $scale, array $attributes, User $actor): GradingScale
     {
@@ -55,7 +57,7 @@ class SaveGradingScale
     /**
      * Keep unused options editable, but protect options that already describe a recorded grade.
      *
-     * @param  array<int, array{id?: int, label?: string|null, points?: float|int|string|null}>  $options
+     * @param array<int, array{id?: int, label?: string|null, points?: float|int|string|null}> $options
      */
     private function syncOptions(GradingScale $scale, array $options): void
     {
@@ -77,8 +79,8 @@ class SaveGradingScale
 
             if ($optionId === null) {
                 $scale->options()->create([
-                    'label' => $label,
-                    'points' => $points,
+                    'label'    => $label,
+                    'points'   => $points,
                     'position' => $position++,
                 ]);
 

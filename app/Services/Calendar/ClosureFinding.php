@@ -11,17 +11,18 @@ namespace App\Services\Calendar;
 readonly class ClosureFinding
 {
     /**
-     * @param  string  $key  a stable name for the check, for tests and storage
-     * @param  string  $summary  what a person reads
-     * @param  int  $count  how many records are outstanding
-     * @param  bool  $blocking  whether the check stops an unforced close
+     * @param string $key      a stable name for the check, for tests and storage
+     * @param string $summary  what a person reads
+     * @param int    $count    how many records are outstanding
+     * @param bool   $blocking whether the check stops an unforced close
      */
     public function __construct(
         public string $key,
         public string $summary,
         public int $count,
         public bool $blocking,
-    ) {}
+    ) {
+    }
 
     /**
      * Get the finding as an array, for the audit record and the checklist.
@@ -31,9 +32,9 @@ readonly class ClosureFinding
     public function toArray(): array
     {
         return [
-            'key' => $this->key,
-            'summary' => $this->summary,
-            'count' => $this->count,
+            'key'      => $this->key,
+            'summary'  => $this->summary,
+            'count'    => $this->count,
             'blocking' => $this->blocking,
         ];
     }

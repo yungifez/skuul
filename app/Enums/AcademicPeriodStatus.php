@@ -52,12 +52,12 @@ enum AcademicPeriodStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Draft => 'Draft',
+            self::Draft     => 'Draft',
             self::Scheduled => 'Scheduled',
-            self::Open => 'Open',
-            self::Closing => 'Closing',
-            self::Closed => 'Closed',
-            self::Archived => 'Archived',
+            self::Open      => 'Open',
+            self::Closing   => 'Closing',
+            self::Closed    => 'Closed',
+            self::Archived  => 'Archived',
         };
     }
 
@@ -112,11 +112,11 @@ enum AcademicPeriodStatus: string
         return match ($this) {
             // A draft can be dated, or opened straight away when staff are
             // setting up a period that is already running.
-            self::Draft => [self::Scheduled, self::Open, self::Closed],
+            self::Draft     => [self::Scheduled, self::Open, self::Closed],
             self::Scheduled => [self::Open, self::Draft, self::Closed],
-            self::Open => [self::Closing, self::Closed],
-            self::Closing => [self::Closed, self::Open],
-            self::Closed => [self::Open, self::Archived],
+            self::Open      => [self::Closing, self::Closed],
+            self::Closing   => [self::Closed, self::Open],
+            self::Closed    => [self::Open, self::Archived],
 
             // Archived is the end. Restoring one is a deliberate reopen of the
             // close before it, not a state change from here.

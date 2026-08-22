@@ -33,34 +33,34 @@ class UserSeeder extends Seeder
         $join = fn (User $user) => app(GrantSchoolMembership::class)->grant($user, $school, true);
 
         $superAdmin = User::firstOrCreate([
-            'id' => 1,
-            'name' => 'John Doe',
-            'email' => 'super@example.com',
-            'password' => Hash::make('password'),
-            'address' => 'super admin street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
+            'id'                => 1,
+            'name'              => 'John Doe',
+            'email'             => 'super@example.com',
+            'password'          => Hash::make('password'),
+            'address'           => 'super admin street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
         ]);
 
         $join($superAdmin);
         app(GrantSystemRole::class)->grant($superAdmin, Role::PlatformAdmin);
 
         $admin = User::firstOrCreate([
-            'id' => 2,
-            'name' => 'Jane Doe',
-            'email' => 'admin@example.com',
-            'password' => Hash::make('password'),
-            'address' => 'admin street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
+            'id'                => 2,
+            'name'              => 'Jane Doe',
+            'email'             => 'admin@example.com',
+            'password'          => Hash::make('password'),
+            'address'           => 'admin street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
 
         ]);
 
@@ -68,17 +68,17 @@ class UserSeeder extends Seeder
         $admin->assignRole('admin');
 
         $teacher = User::create([
-            'id' => 3,
-            'name' => 'John Doe',
-            'email' => 'teacher@example.com',
-            'password' => Hash::make('password'),
-            'address' => 'teacher street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
+            'id'                => 3,
+            'name'              => 'John Doe',
+            'email'             => 'teacher@example.com',
+            'password'          => Hash::make('password'),
+            'address'           => 'teacher street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
 
         ]);
 
@@ -90,21 +90,21 @@ class UserSeeder extends Seeder
         ]);
 
         $student = User::create([
-            'id' => 4,
-            'name' => 'Jane Doe',
-            'email' => 'student@example.com',
-            'password' => Hash::make('password'),
-            'address' => 'student street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
+            'id'                => 4,
+            'name'              => 'Jane Doe',
+            'email'             => 'student@example.com',
+            'password'          => Hash::make('password'),
+            'address'           => 'student street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
         ]);
         $student->studentRecord()->create([
-            'admission_date' => '22/04/04',
-            'status' => EnrollmentStatus::Active,
+            'admission_date'   => '22/04/04',
+            'status'           => EnrollmentStatus::Active,
             'admission_number' => Str::random(10),
         ]);
 
@@ -112,16 +112,16 @@ class UserSeeder extends Seeder
         $student->assignRole('student');
 
         $parent = User::create([
-            'name' => 'John Doe',
-            'email' => 'parent@example.com',
-            'password' => Hash::make('password'),
-            'address' => 'parent street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
+            'name'              => 'John Doe',
+            'email'             => 'parent@example.com',
+            'password'          => Hash::make('password'),
+            'address'           => 'parent street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
 
         ]);
 
@@ -131,16 +131,16 @@ class UserSeeder extends Seeder
         $parent->parentRecord()->create();
 
         $accountant = User::create([
-            'name' => 'Jane Doe',
-            'email' => 'accountant@example.com',
-            'password' => Hash::make('password'),
-            'address' => 'accountant street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
+            'name'              => 'Jane Doe',
+            'email'             => 'accountant@example.com',
+            'password'          => Hash::make('password'),
+            'address'           => 'accountant street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
 
         ]);
 
@@ -148,16 +148,16 @@ class UserSeeder extends Seeder
         $accountant->assignRole('accountant');
 
         $librarian = User::create([
-            'name' => 'John Doe',
-            'email' => 'libratian@example.com',
-            'password' => Hash::make('password'),
-            'address' => 'librarian street',
-            'birthday' => '22/04/04',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
+            'name'              => 'John Doe',
+            'email'             => 'libratian@example.com',
+            'password'          => Hash::make('password'),
+            'address'           => 'librarian street',
+            'birthday'          => '22/04/04',
+            'nationality'       => 'nigeria',
+            'state'             => 'lagos',
+            'city'              => 'lagos',
             'email_verified_at' => now(),
-            'gender' => 'male',
+            'gender'            => 'male',
 
         ]);
 

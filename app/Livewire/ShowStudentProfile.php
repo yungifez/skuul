@@ -83,8 +83,8 @@ class ShowStudentProfile extends Component
 
         $this->validate([
             'campusCycleSectionId' => ['required', 'integer'],
-            'campusReason' => ['nullable', 'string', 'max:1000'],
-            'campusEffectiveOn' => ['required', 'date'],
+            'campusReason'         => ['nullable', 'string', 'max:1000'],
+            'campusEffectiveOn'    => ['required', 'date'],
         ]);
 
         // Only a section of a sibling campus may be chosen, so read it from
@@ -168,8 +168,8 @@ class ShowStudentProfile extends Component
     public function render()
     {
         return view('livewire.show-student-profile', [
-            'academicYear' => current_academic_year(),
-            'academicPeriod' => current_academic_period(),
+            'academicYear'        => current_academic_year(),
+            'academicPeriod'      => current_academic_period(),
             'canManageEnrollment' => auth()->user()->can('update', [$this->student, 'student']),
         ]);
     }
@@ -255,9 +255,9 @@ class ShowStudentProfile extends Component
             ->orderBy('name')
             ->get()
             ->map(fn (AcademicCycleSection $cycleSection): array => [
-                'id' => $cycleSection->id,
-                'name' => $cycleSection->label ?? $cycleSection->name,
-                'level' => $cycleSection->academicLevel->label ?? $cycleSection->academicLevel->name,
+                'id'     => $cycleSection->id,
+                'name'   => $cycleSection->label ?? $cycleSection->name,
+                'level'  => $cycleSection->academicLevel->label ?? $cycleSection->academicLevel->name,
                 'campus' => $cycleSection->school->name,
             ])
             ->all();
@@ -272,8 +272,8 @@ class ShowStudentProfile extends Component
             ->orderBy('name')
             ->get()
             ->map(fn (AcademicCycleSection $cycleSection): array => [
-                'id' => $cycleSection->id,
-                'name' => $cycleSection->label ?? $cycleSection->name,
+                'id'    => $cycleSection->id,
+                'name'  => $cycleSection->label ?? $cycleSection->name,
                 'level' => $cycleSection->academicLevel->label ?? $cycleSection->academicLevel->name,
             ])
             ->values()

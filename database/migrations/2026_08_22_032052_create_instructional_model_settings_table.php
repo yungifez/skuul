@@ -10,8 +10,7 @@ use Illuminate\Support\Facades\Schema;
  * A row is only written when a campus chooses. A cycle with no row reads as
  * the default model, so every cycle recorded before this table keeps working.
  */
-return new class extends Migration
-{
+return new class() extends Migration {
     /**
      * Run the migrations.
      */

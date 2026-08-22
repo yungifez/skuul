@@ -20,15 +20,15 @@ class CalendarTemplateFactory extends Factory
     public function definition(): array
     {
         return [
-            'organization_id' => Organization::factory(),
-            'name' => 'Three-term calendar',
-            'description' => $this->faker->sentence(),
-            'is_default' => false,
-            'cycle_length_days' => 365,
-            'auto_open' => false,
+            'organization_id'      => Organization::factory(),
+            'name'                 => 'Three-term calendar',
+            'description'          => $this->faker->sentence(),
+            'is_default'           => false,
+            'cycle_length_days'    => 365,
+            'auto_open'            => false,
             'generate_ahead_weeks' => 0,
-            'remind_days_before' => 14,
-            'created_by' => User::factory(),
+            'remind_days_before'   => 14,
+            'created_by'           => User::factory(),
         ];
     }
 }

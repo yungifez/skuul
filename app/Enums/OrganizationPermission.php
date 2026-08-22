@@ -73,12 +73,12 @@ enum OrganizationPermission: string
     public function label(): string
     {
         return match ($this) {
-            self::Read => 'Read organization',
-            self::Manage => 'Manage organization settings',
-            self::ManageMembers => 'Manage organization members',
+            self::Read           => 'Read organization',
+            self::Manage         => 'Manage organization settings',
+            self::ManageMembers  => 'Manage organization members',
             self::ManageCampuses => 'Manage campuses',
-            self::MoveStudents => 'Move students between campuses',
-            self::ReadReports => 'Read organization reports',
+            self::MoveStudents   => 'Move students between campuses',
+            self::ReadReports    => 'Read organization reports',
         };
     }
 
@@ -88,12 +88,12 @@ enum OrganizationPermission: string
     public function description(): string
     {
         return match ($this) {
-            self::Read => 'See the organization and its campus list.',
-            self::Manage => 'Change the organization name, code, and contact details.',
-            self::ManageMembers => 'Give and take away organization scope for other people.',
+            self::Read           => 'See the organization and its campus list.',
+            self::Manage         => 'Change the organization name, code, and contact details.',
+            self::ManageMembers  => 'Give and take away organization scope for other people.',
             self::ManageCampuses => 'Add a campus and move one between organizations.',
-            self::MoveStudents => 'Move a student to another campus without waiting for that campus to agree.',
-            self::ReadReports => 'Read the campus, enrollment, and staff totals.',
+            self::MoveStudents   => 'Move a student to another campus without waiting for that campus to agree.',
+            self::ReadReports    => 'Read the campus, enrollment, and staff totals.',
         };
     }
 }

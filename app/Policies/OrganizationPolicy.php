@@ -14,7 +14,8 @@ class OrganizationPolicy
     public function __construct(
         private SystemPermissionScope $systemPermissionScope,
         private OrganizationPermissionScope $organizationPermissionScope,
-    ) {}
+    ) {
+    }
 
     /**
      * Determine whether the user can view any models.

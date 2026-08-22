@@ -170,9 +170,9 @@ class GradebookTest extends TestCase
         $excellent = GradingScaleOption::factory()->create(['grading_scale_id' => $scale->id, 'label' => 'Excellent', 'points' => 5]);
         $secure = GradingScaleOption::factory()->create(['grading_scale_id' => $scale->id, 'label' => 'Secure', 'points' => 3]);
         $item = $this->item([
-            'type' => GradeItemType::Scale->value,
+            'type'             => GradeItemType::Scale->value,
             'grading_scale_id' => $scale->id,
-            'max_points' => 5,
+            'max_points'       => 5,
         ], $courseOffering);
 
         $entry = app(RecordGrade::class)->record($item, $this->enrollment(), gradingScaleOptionId: $secure->id);
@@ -189,9 +189,9 @@ class GradebookTest extends TestCase
         $courseOffering = $this->courseOffering();
         $scale = GradingScale::factory()->create(['school_id' => $courseOffering->school_id]);
         $item = $this->item([
-            'type' => GradeItemType::Scale->value,
+            'type'             => GradeItemType::Scale->value,
             'grading_scale_id' => $scale->id,
-            'max_points' => 5,
+            'max_points'       => 5,
         ], $courseOffering);
         $outsideOption = GradingScaleOption::factory()->create();
 
@@ -261,11 +261,11 @@ class GradebookTest extends TestCase
         $courseOffering = $this->courseOffering();
         $item = $this->item(['max_points' => 10], $courseOffering);
         $outsideCycleSection = AcademicCycleSection::query()->findOrFail(AcademicCycleSection::factory()->create([
-            'school_id' => $courseOffering->school_id,
+            'school_id'        => $courseOffering->school_id,
             'academic_year_id' => $courseOffering->academic_year_id,
         ])->getKey());
         $outsideEnrollment = StudentRecord::query()->findOrFail(StudentRecord::factory()->create([
-            'school_id' => $courseOffering->school_id,
+            'school_id'                 => $courseOffering->school_id,
             'academic_cycle_section_id' => $outsideCycleSection->id,
         ])->getKey());
 
@@ -351,23 +351,23 @@ class GradebookTest extends TestCase
         $school = $this->workingSchool();
         $academicYear = current_academic_year() ?? AcademicYear::factory()->create(['school_id' => $school->id]);
         $academicPeriod = current_academic_period() ?? AcademicPeriod::factory()->create([
-            'school_id' => $school->id,
+            'school_id'        => $school->id,
             'academic_year_id' => $academicYear->id,
         ]);
         $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
         $this->cycleSection = AcademicCycleSection::factory()->create([
-            'school_id' => $school->id,
-            'academic_year_id' => $academicYear->id,
+            'school_id'         => $school->id,
+            'academic_year_id'  => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
         ]);
         $subject = Subject::factory()->create(['school_id' => $school->id]);
 
         $this->courseOffering = CourseOffering::factory()->create([
-            'school_id' => $school->id,
-            'academic_year_id' => $academicYear->id,
+            'school_id'          => $school->id,
+            'academic_year_id'   => $academicYear->id,
             'academic_period_id' => $academicPeriod->id,
-            'academic_level_id' => $academicLevel->id,
-            'subject_id' => $subject->id,
+            'academic_level_id'  => $academicLevel->id,
+            'subject_id'         => $subject->id,
         ]);
         $this->courseOffering->cycleSections()->attach($this->cycleSection);
 
@@ -377,30 +377,30 @@ class GradebookTest extends TestCase
     /**
      * Create a grade item in the given offering.
      *
-     * @param  array<string, mixed>  $attributes
+     * @param array<string, mixed> $attributes
      */
     private function item(array $attributes = [], ?CourseOffering $courseOffering = null): GradeItem
     {
         $courseOffering ??= $this->courseOffering();
 
         return GradeItem::create($attributes + [
-            'school_id' => $courseOffering->school_id,
+            'school_id'          => $courseOffering->school_id,
             'course_offering_id' => $courseOffering->id,
-            'name' => 'Assessment',
+            'name'               => 'Assessment',
         ]);
     }
 
     /**
      * Create a grade category in the given offering.
      *
-     * @param  array<string, mixed>  $attributes
+     * @param array<string, mixed> $attributes
      */
     private function category(CourseOffering $courseOffering, array $attributes = []): GradeCategory
     {
         return GradeCategory::create($attributes + [
-            'school_id' => $courseOffering->school_id,
+            'school_id'          => $courseOffering->school_id,
             'course_offering_id' => $courseOffering->id,
-            'name' => 'Group',
+            'name'               => 'Group',
         ]);
     }
 
@@ -412,7 +412,7 @@ class GradebookTest extends TestCase
         $courseOffering = $this->courseOffering();
 
         return StudentRecord::factory()->create([
-            'school_id' => $courseOffering->school_id,
+            'school_id'                 => $courseOffering->school_id,
             'academic_cycle_section_id' => $this->cycleSection?->id,
         ]);
     }

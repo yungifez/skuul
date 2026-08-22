@@ -23,18 +23,18 @@ class OrganizationMembershipFactory extends Factory
     {
         return [
             'organization_id' => Organization::factory(),
-            'user_id' => User::factory(),
-            'status' => OrganizationMembershipStatus::Active,
-            'permissions' => null,
-            'joined_at' => now(),
-            'ended_at' => null,
+            'user_id'         => User::factory(),
+            'status'          => OrganizationMembershipStatus::Active,
+            'permissions'     => null,
+            'joined_at'       => now(),
+            'ended_at'        => null,
         ];
     }
 
     /**
      * Give the member only the permissions named.
      *
-     * @param  list<OrganizationPermission>  $permissions
+     * @param list<OrganizationPermission> $permissions
      */
     public function delegated(array $permissions): static
     {
@@ -52,7 +52,7 @@ class OrganizationMembershipFactory extends Factory
     public function ended(): static
     {
         return $this->state(fn (): array => [
-            'status' => OrganizationMembershipStatus::Ended,
+            'status'   => OrganizationMembershipStatus::Ended,
             'ended_at' => now(),
         ]);
     }

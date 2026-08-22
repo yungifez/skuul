@@ -75,21 +75,21 @@ class OrganizationDashboardVerticalSliceTest extends TestCase
 
         $academicYear = AcademicYear::factory()->create([
             'school_id' => $readyCampus->id,
-            'status' => AcademicPeriodStatus::Open,
+            'status'    => AcademicPeriodStatus::Open,
         ]);
         $academicPeriod = AcademicPeriod::factory()->create([
-            'school_id' => $readyCampus->id,
+            'school_id'        => $readyCampus->id,
             'academic_year_id' => $academicYear->id,
-            'status' => AcademicPeriodStatus::Closed,
+            'status'           => AcademicPeriodStatus::Closed,
         ]);
         $readyCampus->forceFill([
-            'academic_year_id' => $academicYear->id,
+            'academic_year_id'   => $academicYear->id,
             'academic_period_id' => $academicPeriod->id,
         ])->save();
 
         $academicPeriodMissingYear = AcademicYear::factory()->create([
             'school_id' => $academicPeriodMissingCampus->id,
-            'status' => AcademicPeriodStatus::Draft,
+            'status'    => AcademicPeriodStatus::Draft,
         ]);
         $academicPeriodMissingCampus->forceFill(['academic_year_id' => $academicPeriodMissingYear->id])->save();
 
@@ -122,11 +122,11 @@ class OrganizationDashboardVerticalSliceTest extends TestCase
             $campus = School::factory()->create(['organization_id' => $organization->id]);
             $academicYear = AcademicYear::factory()->create(['school_id' => $campus->id]);
             $academicPeriod = AcademicPeriod::factory()->create([
-                'school_id' => $campus->id,
+                'school_id'        => $campus->id,
                 'academic_year_id' => $academicYear->id,
             ]);
             $campus->forceFill([
-                'academic_year_id' => $academicYear->id,
+                'academic_year_id'   => $academicYear->id,
                 'academic_period_id' => $academicPeriod->id,
             ])->save();
         }
@@ -158,10 +158,10 @@ class OrganizationDashboardVerticalSliceTest extends TestCase
     private function createEnrollment(School $campus, EnrollmentStatus $status): StudentRecord
     {
         return StudentRecord::query()->create([
-            'user_id' => $this->nonMember()->id,
-            'school_id' => $campus->id,
-            'admission_date' => now(),
-            'status' => $status,
+            'user_id'          => $this->nonMember()->id,
+            'school_id'        => $campus->id,
+            'admission_date'   => now(),
+            'status'           => $status,
             'admission_number' => Str::uuid()->toString(),
         ]);
     }
@@ -169,11 +169,11 @@ class OrganizationDashboardVerticalSliceTest extends TestCase
     private function createCampusAccess(School $campus): SchoolMembership
     {
         return SchoolMembership::query()->create([
-            'user_id' => $this->nonMember()->id,
-            'school_id' => $campus->id,
-            'status' => 'active',
+            'user_id'    => $this->nonMember()->id,
+            'school_id'  => $campus->id,
+            'status'     => 'active',
             'is_primary' => true,
-            'joined_at' => now(),
+            'joined_at'  => now(),
         ]);
     }
 }

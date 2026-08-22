@@ -29,12 +29,12 @@ class UpdateGradingScaleRequest extends FormRequest
         $scale = $this->route('gradingScale');
 
         return [
-            'name' => ['required', 'string', 'max:100', Rule::unique('grading_scales', 'name')->where('school_id', current_school_id())->ignore($scale)],
-            'description' => ['nullable', 'string', 'max:5000'],
-            'is_active' => ['nullable', 'boolean'],
-            'options' => ['required', 'array'],
-            'options.*.id' => ['nullable', 'integer', Rule::exists('grading_scale_options', 'id')],
-            'options.*.label' => ['nullable', 'string', 'max:100', 'required_with:options.*.points'],
+            'name'             => ['required', 'string', 'max:100', Rule::unique('grading_scales', 'name')->where('school_id', current_school_id())->ignore($scale)],
+            'description'      => ['nullable', 'string', 'max:5000'],
+            'is_active'        => ['nullable', 'boolean'],
+            'options'          => ['required', 'array'],
+            'options.*.id'     => ['nullable', 'integer', Rule::exists('grading_scale_options', 'id')],
+            'options.*.label'  => ['nullable', 'string', 'max:100', 'required_with:options.*.points'],
             'options.*.points' => ['nullable', 'numeric', 'min:0', 'max:999999.99'],
         ];
     }

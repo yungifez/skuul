@@ -17,7 +17,9 @@ use App\Services\Identity\AccountInvitationVisibility;
  */
 class AccountInvitationPolicy
 {
-    public function __construct(private AccountInvitationVisibility $visibility) {}
+    public function __construct(private AccountInvitationVisibility $visibility)
+    {
+    }
 
     /**
      * Determine whether the user can open the invitation screen.

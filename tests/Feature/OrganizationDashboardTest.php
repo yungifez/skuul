@@ -135,9 +135,9 @@ class OrganizationDashboardTest extends TestCase
             $user = User::factory()->create();
 
             StudentRecord::factory()->create([
-                'user_id' => $user->id,
+                'user_id'   => $user->id,
                 'school_id' => $school->id,
-                'status' => $status,
+                'status'    => $status,
             ]);
 
             return $user;
@@ -147,7 +147,7 @@ class OrganizationDashboardTest extends TestCase
     /**
      * Give a person organization scope, delegated to the named permissions.
      *
-     * @param  list<OrganizationPermission>|null  $permissions  null gives every permission
+     * @param list<OrganizationPermission>|null $permissions null gives every permission
      */
     private function grantedMember(Organization $organization, ?array $permissions = null): User
     {

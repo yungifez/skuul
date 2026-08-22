@@ -17,7 +17,9 @@ use Illuminate\Support\Facades\DB;
 
 class CreateTimetableSubstitution
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     public function create(Timetable $timetable, TimetableTimeSlot $slot, int $weekdayId, User $replacementTeacher, CarbonInterface $date, string $reason, User $actor): TimetableSubstitution
     {

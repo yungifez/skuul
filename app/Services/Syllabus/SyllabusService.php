@@ -15,7 +15,7 @@ class SyllabusService
     /**
      * Store a syllabus for one exact offering.
      *
-     * @param  array{name: string, description?: string|null, file: UploadedFile, course_offering_id: int}  $data
+     * @param array{name: string, description?: string|null, file: UploadedFile, course_offering_id: int} $data
      */
     public function createSyllabus(array $data): Syllabus
     {
@@ -30,9 +30,9 @@ class SyllabusService
 
         return DB::transaction(function () use ($courseOffering, $data): Syllabus {
             return Syllabus::create([
-                'name' => $data['name'],
-                'description' => $data['description'] ?? null,
-                'file' => $data['file']->store('syllabus', 'public'),
+                'name'               => $data['name'],
+                'description'        => $data['description'] ?? null,
+                'file'               => $data['file']->store('syllabus', 'public'),
                 'course_offering_id' => $courseOffering->id,
             ]);
         });

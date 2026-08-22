@@ -11,10 +11,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * @property int $organization_id
- * @property int $user_id
+ * @property int                          $organization_id
+ * @property int                          $user_id
  * @property OrganizationMembershipStatus $status
- * @property list<string>|null $permissions
+ * @property list<string>|null            $permissions
  */
 class OrganizationMembership extends Model
 {
@@ -34,10 +34,10 @@ class OrganizationMembership extends Model
     protected function casts(): array
     {
         return [
-            'status' => OrganizationMembershipStatus::class,
+            'status'      => OrganizationMembershipStatus::class,
             'permissions' => 'array',
-            'joined_at' => 'datetime',
-            'ended_at' => 'datetime',
+            'joined_at'   => 'datetime',
+            'ended_at'    => 'datetime',
         ];
     }
 
@@ -58,7 +58,8 @@ class OrganizationMembership extends Model
     }
 
     /**
-     * @param  Builder<OrganizationMembership>  $query
+     * @param Builder<OrganizationMembership> $query
+     *
      * @return Builder<OrganizationMembership>
      */
     public function scopeActive(Builder $query): Builder

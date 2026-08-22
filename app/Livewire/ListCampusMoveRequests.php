@@ -56,8 +56,8 @@ class ListCampusMoveRequests extends Component
         $school = current_school();
 
         return view('livewire.list-campus-move-requests', [
-            'incoming' => $this->requestsFor('to_school_id', $school?->id),
-            'outgoing' => $this->requestsFor('from_school_id', $school?->id),
+            'incoming'   => $this->requestsFor('to_school_id', $school?->id),
+            'outgoing'   => $this->requestsFor('from_school_id', $school?->id),
             'campusName' => $school?->name,
         ]);
     }

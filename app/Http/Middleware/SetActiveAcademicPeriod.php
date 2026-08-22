@@ -19,12 +19,13 @@ class SetActiveAcademicPeriod
     public function __construct(
         private SchoolContext $schoolContext,
         private AcademicPeriodContext $periodContext,
-    ) {}
+    ) {
+    }
 
     /**
      * Handle an incoming request.
      *
-     * @param  Closure(Request): (Response)  $next
+     * @param Closure(Request): (Response) $next
      */
     public function handle(Request $request, Closure $next): Response
     {

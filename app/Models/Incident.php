@@ -15,8 +15,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * One recorded case: a behaviour record or a safeguarding concern.
  *
  * @property IncidentCategory $category
- * @property IncidentStatus $status
- * @property bool $is_restricted
+ * @property IncidentStatus   $status
+ * @property bool             $is_restricted
  */
 class Incident extends Model
 {
@@ -45,8 +45,8 @@ class Incident extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'category' => IncidentCategory::Behaviour->value,
-        'status' => IncidentStatus::Reported->value,
+        'category'      => IncidentCategory::Behaviour->value,
+        'status'        => IncidentStatus::Reported->value,
         'is_restricted' => false,
     ];
 
@@ -56,10 +56,10 @@ class Incident extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'category' => IncidentCategory::class,
-        'status' => IncidentStatus::class,
+        'category'      => IncidentCategory::class,
+        'status'        => IncidentStatus::class,
         'is_restricted' => 'boolean',
-        'occurred_at' => 'datetime',
+        'occurred_at'   => 'datetime',
     ];
 
     /**
@@ -77,7 +77,8 @@ class Incident extends Model
     /**
      * Limit the query to the cases a person may read.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeReadableBy(Builder $query, User $user): Builder
@@ -96,7 +97,8 @@ class Incident extends Model
     /**
      * Limit the query to the cases that still need work.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeOpen(Builder $query): Builder

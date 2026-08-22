@@ -12,13 +12,15 @@ use Illuminate\Support\Facades\DB;
  */
 class RevokeAccountInvitation
 {
-    public function __construct(private RecordAuditEvent $recordAuditEvent) {}
+    public function __construct(private RecordAuditEvent $recordAuditEvent)
+    {
+    }
 
     /**
      * Revoke the pending invitations and return how many were revoked.
      *
-     * @param  User  $user  the account whose links are stopped
-     * @param  User|null  $revokedBy  the administrator who stopped them
+     * @param User      $user      the account whose links are stopped
+     * @param User|null $revokedBy the administrator who stopped them
      */
     public function revoke(User $user, ?User $revokedBy = null): int
     {
