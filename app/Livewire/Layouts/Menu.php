@@ -3,7 +3,9 @@
 namespace App\Livewire\Layouts;
 
 use App\Enums\Feature;
+use App\Models\CalendarEvent;
 use App\Models\CampusMoveRequest;
+use App\Models\DataSharingRequest;
 use App\Models\Incident;
 use App\Models\Organization;
 use App\Models\StaffLeaveRequest;
@@ -100,10 +102,17 @@ class Menu extends Component
                 'can'   => 'read student',
             ],
             [
-                'type'    => 'menu-item',
-                'text'    => 'Campus moves',
-                'icon'    => 'building-2',
-                'route'   => 'campus-moves.index',
+                'type' => 'menu-item',
+                'text' => 'Record sharing',
+                'icon' => 'share-2',
+                'route' => 'data-sharing-requests.index',
+                'visible' => $user->can('viewAny', DataSharingRequest::class),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Campus moves',
+                'icon' => 'building-2',
+                'route' => 'campus-moves.index',
                 'visible' => $user->can('viewAny', CampusMoveRequest::class),
             ],
             [
@@ -129,10 +138,17 @@ class Menu extends Component
             ],
             [
                 'type' => 'menu-item',
+                'text' => 'Graduation plans',
+                'icon' => 'graduation-cap',
+                'route' => 'graduation-plans.index',
+                'can' => 'read graduation plan',
+            ],
+            [
+                'type' => 'menu-item',
                 'text' => 'Programmes',
                 'icon' => 'sparkles',
                 'route' => 'programs.index',
-                'can' => 'read cohort',
+                'can' => 'read program',
             ],
             [
                 'type' => 'menu-item',
@@ -186,17 +202,38 @@ class Menu extends Component
                 'can'   => 'read exam',
             ],
             [
-                'type'  => 'menu-item',
-                'text'  => 'Grading scales',
-                'icon'  => 'graduation-cap',
+                'type' => 'menu-item',
+                'text' => 'Rankings',
+                'icon' => 'list-ordered',
+                'route' => 'rankings.index',
+                'visible' => feature_enabled(Feature::Ranking) && $user->can('read ranking'),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Grading scales',
+                'icon' => 'graduation-cap',
                 'route' => 'grading-scales.index',
                 'can'   => 'manage grading scale',
             ],
             ['header' => 'Operations'],
             [
-                'type'  => 'menu-item',
-                'text'  => 'Notices',
-                'icon'  => 'bell',
+                'type' => 'menu-item',
+                'text' => 'Family requests',
+                'icon' => 'message-square',
+                'route' => 'portal-requests.index',
+                'can' => 'read portal request',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Calendar',
+                'icon' => 'calendar-days',
+                'route' => 'calendar-events.index',
+                'visible' => feature_enabled(Feature::Events) && $user->can('viewAny', CalendarEvent::class),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Notices',
+                'icon' => 'bell',
                 'route' => 'notices.index',
                 'can'   => 'read notice',
             ],
@@ -239,7 +276,6 @@ class Menu extends Component
                 'type' => 'menu-item',
                 'text' => 'Finance',
                 'icon' => 'dollar-sign',
->>>>>>> 6cd11324 (Add screens for the five unreachable domains)
                 'route' => 'fee-invoices.index',
                 'can'   => 'read fee invoice',
             ],

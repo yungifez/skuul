@@ -241,6 +241,7 @@ class CrossSchoolAccessTest extends TestCase
             'read health record', 'update health record',
             'read staff profile', 'update staff profile',
             'read cohort', 'update cohort', 'read restricted cohort',
+            'read program', 'update program',
             'read import', 'apply import',
         ]);
 

@@ -9,8 +9,9 @@ use Illuminate\Auth\Access\HandlesAuthorization;
 /**
  * Who may read and run programmes.
  *
- * A programme is a named activity a student takes part in, so it is kept by
- * the same people who keep cohorts and carries the same permissions.
+ * A programme is a named activity a student takes part in. It carries its own
+ * permissions, because the people who run a club are not always the people who
+ * keep the school's cohorts.
  */
 class ProgramPolicy
 {
@@ -21,7 +22,7 @@ class ProgramPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('read cohort');
+        return $user->can('read program');
     }
 
     /**
@@ -29,7 +30,7 @@ class ProgramPolicy
      */
     public function view(User $user, Program $program): bool
     {
-        return $user->can('read cohort') && $program->school_id === current_school_id();
+        return $user->can('read program') && $program->school_id === current_school_id();
     }
 
     /**
@@ -37,7 +38,7 @@ class ProgramPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create cohort');
+        return $user->can('create program');
     }
 
     /**
@@ -45,7 +46,7 @@ class ProgramPolicy
      */
     public function update(User $user, Program $program): bool
     {
-        return $user->can('update cohort') && $program->school_id === current_school_id();
+        return $user->can('update program') && $program->school_id === current_school_id();
     }
 
     /**
@@ -53,6 +54,6 @@ class ProgramPolicy
      */
     public function delete(User $user, Program $program): bool
     {
-        return $user->can('delete cohort') && $program->school_id === current_school_id();
+        return $user->can('delete program') && $program->school_id === current_school_id();
     }
 }

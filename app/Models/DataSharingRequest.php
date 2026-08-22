@@ -17,7 +17,7 @@ use Illuminate\Support\Carbon;
  * scope: the school that holds the records decides, and the school that asked
  * must still be able to see its own request.
  *
- * @property DataSharingStatus  $status
+ * @property DataSharingStatus $status
  * @property array<int, string> $categories
  */
 class DataSharingRequest extends Model
@@ -53,7 +53,7 @@ class DataSharingRequest extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'status'     => DataSharingStatus::class,
+        'status' => DataSharingStatus::class,
         'categories' => 'array',
         'expires_on' => 'date',
         'decided_at' => 'datetime',
@@ -95,8 +95,7 @@ class DataSharingRequest extends Model
     /**
      * Limit the query to the requests one school must answer.
      *
-     * @param Builder<$this> $query
-     *
+     * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
     public function scopeAwaiting(Builder $query, School|int $school): Builder
@@ -123,6 +122,26 @@ class DataSharingRequest extends Model
     public function requestingSchool(): BelongsTo
     {
         return $this->belongsTo(School::class, 'requesting_school_id');
+    }
+
+    /**
+     * Get the person who asked.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function requestedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'requested_by');
+    }
+
+    /**
+     * Get the person who answered.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function decidedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'decided_by');
     }
 
     /**

@@ -127,7 +127,7 @@ class CohortScreenTest extends TestCase
 
     public function test_the_programme_list_starts_empty(): void
     {
-        $this->authorized_user(['read cohort', 'create cohort']);
+        $this->authorized_user(['read program', 'create program']);
 
         $this->get(route('programs.index'))
             ->assertOk()
@@ -137,7 +137,7 @@ class CohortScreenTest extends TestCase
 
     public function test_a_programme_gives_a_learner_a_place(): void
     {
-        $this->authorized_user(['read cohort', 'create cohort', 'update cohort']);
+        $this->authorized_user(['read program', 'create program', 'update program']);
         $program = $this->program();
         $enrollment = $this->enrollment(User::factory()->create(['name' => 'Ada Bell']));
 
@@ -158,7 +158,7 @@ class CohortScreenTest extends TestCase
 
     public function test_a_place_moves_to_another_state(): void
     {
-        $this->authorized_user(['read cohort', 'create cohort', 'update cohort']);
+        $this->authorized_user(['read program', 'create program', 'update program']);
         $program = $this->program();
         $place = app(ChangeProgramParticipation::class)->join($program, $this->enrollment());
 
@@ -175,7 +175,7 @@ class CohortScreenTest extends TestCase
 
     public function test_a_closed_programme_gives_no_new_places(): void
     {
-        $this->authorized_user(['read cohort', 'create cohort', 'update cohort']);
+        $this->authorized_user(['read program', 'create program', 'update program']);
         $program = $this->program();
         $program->update(['is_active' => false]);
 

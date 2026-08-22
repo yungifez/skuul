@@ -461,6 +461,28 @@ class PermissionSeeder extends Seeder
             'name' => 'read graduation plan',
         ]);
 
+        // Permission for rankings
+        Permission::firstOrCreate([
+            'name' => 'read ranking',
+        ]);
+
+        // Permissions for the school calendar
+        Permission::firstOrCreate([
+            'name' => 'create calendar event',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'read calendar event',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'update calendar event',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'delete calendar event',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'publish calendar event',
+        ]);
+
         // Permissions for the student and guardian portal
         Permission::firstOrCreate([
             'name' => 'read portal request',
@@ -736,6 +758,12 @@ class PermissionSeeder extends Seeder
             'create import',
             'read import',
             'apply import',
+            'read ranking',
+            'create calendar event',
+            'read calendar event',
+            'update calendar event',
+            'delete calendar event',
+            'publish calendar event',
             'create cohort',
             'read cohort',
             'update cohort',
@@ -798,6 +826,8 @@ class PermissionSeeder extends Seeder
             'take attendance',
             'menu-attendance',
             'read notice',
+            'read calendar event',
+            'read ranking',
         ]);
 
         // assign permissions to student
@@ -814,6 +844,7 @@ class PermissionSeeder extends Seeder
             'read timetable',
             'read notice',
             'read fee invoice',
+            'read calendar event',
         ]);
 
         // assign permissions to parent
@@ -832,6 +863,7 @@ class PermissionSeeder extends Seeder
             'read timetable',
             'read notice',
             'read fee invoice',
+            'read calendar event',
         ]);
 
         $organizationAdmin = Role::query()

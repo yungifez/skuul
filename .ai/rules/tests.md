@@ -13,3 +13,12 @@ Tests start inside School::first() (see Tests\TestCase::setUp). Roles and permis
 A filtered list still renders every option in its filter menu, so
 `assertDontSee('<name>')` fails on the menu. Assert on the row's show-route URL
 or a value only that record carries. See `.ai/rules/views.md`.
+
+## route() takes one array, not a model and then a query string
+
+`route('x.show', $model, ['filter' => 1])` silently drops the filter: the third
+argument of `route()` is `$absolute`, not more parameters. The request arrives
+with no query string, the screen renders its unfiltered state, and the failure
+looks like a broken filter rather than a broken test.
+
+Write `route('x.show', [$model, 'filter' => 1])`.

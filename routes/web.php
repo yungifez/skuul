@@ -69,6 +69,8 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     // Families use portal authorization, not a staff working-school membership.
     Route::get('portal/enrollments/{studentRecord}/attendance', ['App\Http\Controllers\PortalAttendanceController', 'show'])->name('portal.attendance.show');
     Route::get('portal/enrollments/{studentRecord}/notices', ['App\Http\Controllers\PortalNoticeController', 'index'])->name('portal.notices.index');
+    Route::get('portal/enrollments/{studentRecord}/requests', ['App\Http\Controllers\PortalRequestController', 'index'])->name('portal.requests.index');
+    Route::post('portal/enrollments/{studentRecord}/requests', ['App\Http\Controllers\PortalRequestController', 'store'])->name('portal.requests.store');
     Route::get('notices/{notice}/attachment', NoticeAttachmentController::class)->name('notices.attachments.download');
     Route::get('notice-preferences', [NoticeNotificationPreferenceController::class, 'edit'])->middleware('App\Http\Middleware\RequireActiveSchool')->name('notice-preferences.edit');
     Route::put('notice-preferences', [NoticeNotificationPreferenceController::class, 'update'])->middleware('App\Http\Middleware\RequireActiveSchool')->name('notice-preferences.update');
@@ -183,6 +185,58 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::get('staff-leave', ['App\Http\Controllers\StaffLeaveRequestController', 'index'])->name('staff-leave.index');
             Route::post('staff-leave', ['App\Http\Controllers\StaffLeaveRequestController', 'store'])->name('staff-leave.store');
             Route::put('staff-leave/{staffLeaveRequest}/status', ['App\Http\Controllers\StaffLeaveRequestController', 'changeStatus'])->name('staff-leave.status.update');
+        });
+
+        // data sharing routes. Asking, approving, and handing over are three
+        // decisions, and the receiving school still has to take the package in.
+        // Both schools read the request, so these routes are not scoped to one.
+        Route::get('data-sharing-requests', ['App\Http\Controllers\DataSharingRequestController', 'index'])->name('data-sharing-requests.index');
+        Route::get('data-sharing-requests/create', ['App\Http\Controllers\DataSharingRequestController', 'create'])->name('data-sharing-requests.create');
+        Route::post('data-sharing-requests', ['App\Http\Controllers\DataSharingRequestController', 'store'])->name('data-sharing-requests.store');
+        Route::get('data-sharing-requests/{dataSharingRequest}', ['App\Http\Controllers\DataSharingRequestController', 'show'])->name('data-sharing-requests.show');
+        Route::put('data-sharing-requests/{dataSharingRequest}/status', ['App\Http\Controllers\DataSharingRequestController', 'changeStatus'])->name('data-sharing-requests.status.update');
+        Route::post('data-sharing-requests/{dataSharingRequest}/fulfil', ['App\Http\Controllers\DataSharingRequestController', 'fulfil'])->name('data-sharing-requests.fulfil');
+        Route::post('data-sharing-requests/{dataSharingRequest}/packages/{transferPackage}/receive', ['App\Http\Controllers\DataSharingRequestController', 'receive'])->name('data-sharing-requests.packages.receive');
+
+        // portal request routes. A family asks through the portal; the school
+        // reads and answers here. The portal feature gates the family side of
+        // this, not the school's inbox, so a school that closes the portal can
+        // still finish what it was already asked.
+        Route::get('portal-requests', ['App\Http\Controllers\PortalRequestController', 'inbox'])->name('portal-requests.index');
+        Route::put('portal-requests/{portalRequest}/status', ['App\Http\Controllers\PortalRequestController', 'changeStatus'])->name('portal-requests.status.update');
+
+        // graduation plan routes. A plan says what a learner must finish, and
+        // only a published result counts towards it. Graduation is not one of
+        // the features a school can turn off; the permissions decide who keeps
+        // the plans.
+        Route::get('graduation-plans', ['App\Http\Controllers\GraduationPlanController', 'index'])->name('graduation-plans.index');
+        Route::get('graduation-plans/create', ['App\Http\Controllers\GraduationPlanController', 'create'])->name('graduation-plans.create');
+        Route::post('graduation-plans', ['App\Http\Controllers\GraduationPlanController', 'store'])->name('graduation-plans.store');
+        Route::get('graduation-plans/{graduationPlan}', ['App\Http\Controllers\GraduationPlanController', 'show'])->name('graduation-plans.show');
+        Route::put('graduation-plans/{graduationPlan}', ['App\Http\Controllers\GraduationPlanController', 'update'])->name('graduation-plans.update');
+        Route::post('graduation-plans/{graduationPlan}/requirements', ['App\Http\Controllers\GraduationPlanController', 'storeRequirement'])->name('graduation-plans.requirements.store');
+        Route::delete('graduation-plans/{graduationPlan}/requirements/{graduationRequirement}', ['App\Http\Controllers\GraduationPlanController', 'destroyRequirement'])->name('graduation-plans.requirements.destroy');
+        Route::post('graduation-plans/{graduationPlan}/exemptions', ['App\Http\Controllers\GraduationPlanController', 'storeExemption'])->name('graduation-plans.exemptions.store');
+        Route::delete('graduation-plans/{graduationPlan}/exemptions/{graduationExemption}', ['App\Http\Controllers\GraduationPlanController', 'destroyExemption'])->name('graduation-plans.exemptions.destroy');
+
+        // ranking routes. A position is worked out when it is asked for, so
+        // there is nothing to write and nothing to store. A school that does
+        // not rank children closes the screen entirely.
+        Route::middleware(['feature:ranking'])->group(function () {
+            Route::get('rankings', ['App\Http\Controllers\RankingController', 'index'])->name('rankings.index');
+        });
+
+        // calendar routes. An event names its own days, so it does not need a
+        // period to be set first. A school that turned events off closes the
+        // way in without losing the calendar it holds.
+        Route::middleware(['feature:events'])->group(function () {
+            Route::get('calendar-events', ['App\Http\Controllers\CalendarEventController', 'index'])->name('calendar-events.index');
+            Route::get('calendar-events/create', ['App\Http\Controllers\CalendarEventController', 'create'])->name('calendar-events.create');
+            Route::post('calendar-events', ['App\Http\Controllers\CalendarEventController', 'store'])->name('calendar-events.store');
+            Route::get('calendar-events/{calendarEvent}', ['App\Http\Controllers\CalendarEventController', 'edit'])->name('calendar-events.edit');
+            Route::put('calendar-events/{calendarEvent}', ['App\Http\Controllers\CalendarEventController', 'update'])->name('calendar-events.update');
+            Route::put('calendar-events/{calendarEvent}/publication', ['App\Http\Controllers\CalendarEventController', 'changePublication'])->name('calendar-events.publication.update');
+            Route::delete('calendar-events/{calendarEvent}', ['App\Http\Controllers\CalendarEventController', 'destroy'])->name('calendar-events.destroy');
         });
 
         // cohort and programme routes. A group of people is not a class, so
