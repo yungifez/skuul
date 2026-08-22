@@ -310,6 +310,16 @@ class PermissionSeeder extends Seeder
             'name' => 'publish result',
         ]);
 
+        Permission::firstOrCreate([
+            'name' => 'read attendance',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'take attendance',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'menu-attendance',
+        ]);
+
         // permission for notices
 
         Permission::firstOrCreate([
@@ -683,6 +693,9 @@ class PermissionSeeder extends Seeder
             'read gradebook',
             'manage gradebook',
             'publish result',
+            'read attendance',
+            'take attendance',
+            'menu-attendance',
             'create notice',
             'read notice',
             'update notice',
@@ -770,6 +783,9 @@ class PermissionSeeder extends Seeder
             'delete timetable',
             'read gradebook',
             'manage gradebook',
+            'read attendance',
+            'take attendance',
+            'menu-attendance',
             'read notice',
         ]);
 
