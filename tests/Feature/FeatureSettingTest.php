@@ -143,6 +143,21 @@ class FeatureSettingTest extends TestCase
         $this->assertFalse(app(FeatureManager::class)->enabled(Feature::Attendance));
     }
 
+    public function test_the_feature_screen_groups_the_tools_and_says_what_each_one_does(): void
+    {
+        $actor = $this->authorized_user(['manage school settings']);
+        app(FeatureManager::class)->disable(Feature::Discipline);
+
+        $response = $actor->get(route('schools.features.edit'))->assertOk();
+
+        foreach (array_keys(Feature::grouped()) as $group) {
+            $response->assertSee($group);
+        }
+
+        $response->assertSee(Feature::Wellbeing->description())
+            ->assertSee('6 of 8 tools are on');
+    }
+
     public function test_feature_settings_require_an_explicit_choice_for_every_tool(): void
     {
         $actor = $this->authorized_user(['manage school settings']);

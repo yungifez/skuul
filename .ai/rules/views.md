@@ -35,3 +35,22 @@ navigates. Use `<april:button-link href="...">` for anything that goes to
 another page, and keep `<april:button>` for form submits.
 `x-resource-create-action` carried this bug on every index page until it was
 fixed, so the create button looked right and did nothing.
+
+## Two pagination views: pick the one that matches the page
+
+`components.datatable-pagination-links-view` moves pages with `wire:click`. It
+works only inside a Livewire component. On a page a controller renders, its
+buttons render but do nothing, so page 2 is unreachable.
+
+- Livewire list: `{{ $items->links('components.datatable-pagination-links-view') }}`
+- Controller-rendered Blade page: `{{ $items->links('components.pagination-links-view') }}`
+
+The second one uses `<april:button-link href>` with the paginator URLs. Call
+`->withQueryString()` on the paginator so a filter survives the page change.
+
+## A filter menu lists every option, so do not assert on names
+
+A screen that filters a list still renders every learner in the select. A test
+that asserts `assertDontSee('Ben Hidden')` fails on the menu, not the rows.
+Assert on something only a row carries: the row's show-route URL, or a value
+the record holds.

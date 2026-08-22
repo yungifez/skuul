@@ -290,6 +290,36 @@ class NoticePublicationTest extends TestCase
         ]);
     }
 
+    public function test_the_delivery_screen_says_what_the_choice_does_not_change(): void
+    {
+        $actor = $this->authorized_user([]);
+
+        $actor->get(route('notice-preferences.edit'))
+            ->assertOk()
+            ->assertSee('Optional notice email')
+            ->assertSee('What this does not change')
+            ->assertSee('Account and safety messages, such as a password reset, are always sent. You cannot turn those off here.');
+    }
+
+    public function test_the_delivery_screen_shows_the_choice_that_is_saved(): void
+    {
+        $actor = $this->authorized_user([]);
+
+        $actor->put(route('notice-preferences.update'), ['email_enabled' => '0'])
+            ->assertRedirect();
+
+        $actor->get(route('notice-preferences.edit'))
+            ->assertOk()
+            ->assertSee('Off')
+            ->assertDontSee('checked', false);
+
+        $actor->put(route('notice-preferences.update'), ['email_enabled' => '1'])->assertRedirect();
+
+        $actor->get(route('notice-preferences.edit'))
+            ->assertOk()
+            ->assertSee('checked', false);
+    }
+
     /**
      * Create a member of the working school who holds the given role.
      */

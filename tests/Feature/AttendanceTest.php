@@ -250,6 +250,70 @@ class AttendanceTest extends TestCase
     /**
      * Create an enrollment in the working school.
      */
+    public function test_the_register_screen_asks_for_a_section_before_anything_else(): void
+    {
+        $this->authorized_user(['read attendance']);
+
+        $this->get(route('attendance.register'))
+            ->assertOk()
+            ->assertSee('No register open')
+            ->assertSee('Choose a');
+    }
+
+    public function test_the_register_screen_lists_the_learners_with_bulk_marking(): void
+    {
+        $this->authorized_user(['read attendance', 'take attendance']);
+        $enrollment = $this->enrollment();
+
+        $this->get(route('attendance.register', [
+            'academic_cycle_section_id' => $enrollment->academic_cycle_section_id,
+            'attended_on' => now()->toDateString(),
+        ]))
+            ->assertOk()
+            ->assertSee($enrollment->user->name)
+            ->assertSee($enrollment->admission_number)
+            ->assertSee('Mark everybody present')
+            ->assertSee('Save register')
+            ->assertSee(now()->format('l, j F Y'));
+    }
+
+    public function test_the_register_screen_steps_between_days_without_losing_the_section(): void
+    {
+        $this->authorized_user(['read attendance']);
+        $enrollment = $this->enrollment();
+        $sectionId = $enrollment->academic_cycle_section_id;
+
+        $this->get(route('attendance.register', [
+            'academic_cycle_section_id' => $sectionId,
+            'attended_on' => now()->toDateString(),
+        ]))
+            ->assertOk()
+            ->assertSee(route('attendance.register', [
+                'academic_cycle_section_id' => $sectionId,
+                'attended_on' => now()->subDay()->toDateString(),
+            ]))
+            ->assertSee(route('attendance.register', [
+                'academic_cycle_section_id' => $sectionId,
+                'attended_on' => now()->addDay()->toDateString(),
+            ]));
+    }
+
+    public function test_the_register_screen_says_when_a_section_has_nobody(): void
+    {
+        $this->authorized_user(['read attendance']);
+        $enrollment = $this->enrollment();
+        $emptySection = AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => $enrollment->academicCycleSection->academic_year_id,
+            'academic_level_id' => $enrollment->academicCycleSection->academic_level_id,
+        ]);
+
+        $this->get(route('attendance.register', ['academic_cycle_section_id' => $emptySection->id]))
+            ->assertOk()
+            ->assertSee('Nobody attends this')
+            ->assertDontSee('Save register');
+    }
+
     private function enrollment(): StudentRecord
     {
         $school = $this->workingSchool();

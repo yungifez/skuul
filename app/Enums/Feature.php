@@ -57,15 +57,62 @@ enum Feature: string
     public function label(): string
     {
         return match ($this) {
-            self::Attendance      => 'Attendance',
-            self::Portal          => 'Student and guardian portal',
-            self::Discipline      => 'Discipline and safeguarding',
-            self::Wellbeing       => 'Student support and wellbeing',
+            self::Attendance => 'Attendance',
+            self::Portal => 'Student and guardian portal',
+            self::Discipline => 'Discipline and safeguarding',
+            self::Wellbeing => 'Student support and wellbeing',
             self::StaffOperations => 'Staff operations',
-            self::Events          => 'Calendar and events',
-            self::Ranking         => 'Rankings',
-            self::Imports         => 'Imports and integrations',
+            self::Events => 'Calendar and events',
+            self::Ranking => 'Rankings',
+            self::Imports => 'Imports and integrations',
         };
+    }
+
+    /**
+     * Get one sentence that says what the school turns off.
+     */
+    public function description(): string
+    {
+        return match ($this) {
+            self::Attendance => 'Daily and lesson registers, and the attendance a family reads.',
+            self::Portal => 'The area where learners and guardians sign in to read their own records.',
+            self::Discipline => 'Behaviour records, incidents, and safeguarding cases.',
+            self::Wellbeing => 'Health notes, counselling, and support plans.',
+            self::StaffOperations => 'Staff leave, cover for absent teachers, and appraisals.',
+            self::Events => 'The school calendar and the events on it.',
+            self::Ranking => 'Positions that compare one learner with another.',
+            self::Imports => 'Bulk uploads and links to outside systems.',
+        };
+    }
+
+    /**
+     * Get the heading this feature belongs under on the settings screen.
+     */
+    public function group(): string
+    {
+        return match ($this) {
+            self::Attendance, self::Events => 'Daily operations',
+            self::Discipline, self::Wellbeing => 'Care and conduct',
+            self::Portal => 'Families and learners',
+            self::Ranking => 'Reporting',
+            self::StaffOperations, self::Imports => 'Staff and data',
+        };
+    }
+
+    /**
+     * Get the features of each group, in the order the screen shows them.
+     *
+     * @return array<string, array<int, self>>
+     */
+    public static function grouped(): array
+    {
+        $groups = [];
+
+        foreach (self::cases() as $feature) {
+            $groups[$feature->group()][] = $feature;
+        }
+
+        return $groups;
     }
 
     /**
@@ -78,7 +125,7 @@ enum Feature: string
     {
         return match ($this) {
             self::Ranking => false,
-            default       => true,
+            default => true,
         };
     }
 

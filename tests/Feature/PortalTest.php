@@ -187,11 +187,35 @@ class PortalTest extends TestCase
         $enrollment = $this->enrollment();
         $this->assertNotNull($enrollment->user_id);
         $student = User::query()->findOrFail($enrollment->user_id);
+        AttendanceRecord::create([
+            'school_id' => $enrollment->school_id,
+            'student_record_id' => $enrollment->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_period_id' => current_academic_period_id(),
+            'attended_on' => now()->subDay()->toDateString(),
+            'status' => AttendanceStatus::Present,
+        ]);
 
         $this->actingAs($student)
             ->get(route('portal.attendance.show', $enrollment))
             ->assertOk()
-            ->assertSee('Attendance rate');
+            ->assertSee('Attendance rate')
+            ->assertSee('100%')
+            ->assertSee('1 day recorded');
+    }
+
+    public function test_the_attendance_screen_says_when_no_register_was_taken(): void
+    {
+        $this->unauthorized_user();
+        features()->enable(Feature::Portal);
+        $enrollment = $this->enrollment();
+        $student = User::query()->findOrFail($enrollment->user_id);
+
+        $this->actingAs($student)
+            ->get(route('portal.attendance.show', $enrollment))
+            ->assertOk()
+            ->assertSee('No attendance recorded yet')
+            ->assertDontSee('Attendance rate');
     }
 
     public function test_only_a_published_timetable_reaches_the_family(): void

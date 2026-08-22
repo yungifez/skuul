@@ -21,7 +21,9 @@ class AttendanceRegisterController extends Controller
     {
         abort_unless($request->user()?->can('read attendance'), 403);
         $sectionId = $request->integer('academic_cycle_section_id');
-        $date = $request->date('attended_on', now());
+        // The second argument of date() is the format, not a fallback, so a
+        // request without a day has to choose today for itself.
+        $date = $request->date('attended_on') ?? now();
         $sections = AcademicCycleSection::query()->inSchool()->with('academicLevel:id,name,label')->orderBy('name')->get();
         $section = $sectionId === 0 ? null : $sections->firstWhere('id', $sectionId);
         $students = $section === null ? collect() : $section->currentEnrollments()->attending()->with('user:id,name')->orderBy('admission_number')->get();
