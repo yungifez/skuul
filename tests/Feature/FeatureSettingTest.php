@@ -118,4 +118,39 @@ class FeatureSettingTest extends TestCase
         $this->assertCount(count(Feature::cases()), $answers);
         $this->assertArrayHasKey('attendance', $answers);
     }
+
+    public function test_a_school_administrator_can_manage_optional_school_tools(): void
+    {
+        $actor = $this->authorized_user(['manage school settings']);
+
+        $actor->get(route('schools.features.edit'))
+            ->assertOk()
+            ->assertSee('Choose the tools your school uses');
+
+        $actor->put(route('schools.features.update'), [
+            'features' => [
+                'attendance' => '0',
+                'portal' => '1',
+                'discipline' => '1',
+                'wellbeing' => '1',
+                'staff_operations' => '1',
+                'events' => '1',
+                'ranking' => '0',
+                'imports' => '1',
+            ],
+        ])->assertRedirect(route('schools.features.edit'));
+
+        $this->assertFalse(app(FeatureManager::class)->enabled(Feature::Attendance));
+    }
+
+    public function test_feature_settings_require_an_explicit_choice_for_every_tool(): void
+    {
+        $actor = $this->authorized_user(['manage school settings']);
+
+        $actor->put(route('schools.features.update'), [
+            'features' => ['attendance' => '0'],
+        ])->assertSessionHasErrors(['features.portal']);
+
+        $this->assertTrue(app(FeatureManager::class)->enabled(Feature::Attendance));
+    }
 }

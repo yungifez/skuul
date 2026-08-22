@@ -15,13 +15,17 @@ class UpdateFeatureSettingsRequest extends FormRequest
         return true;
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, ValidationRule|array<mixed>|string>
-     */
+    /** @return array<string, array<int, string>> */
     public function rules(): array
     {
-        return ['features' => ['required', 'array'], 'features.*' => ['boolean'], 'features' => ['array:'.implode(',', Feature::values())]];
+        $rules = [
+            'features' => ['required', 'array:'.implode(',', Feature::values())],
+        ];
+
+        foreach (Feature::values() as $feature) {
+            $rules['features.'.$feature] = ['required', 'boolean'];
+        }
+
+        return $rules;
     }
 }
