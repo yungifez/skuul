@@ -6,6 +6,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | --- | --- |
 | app/Actions/**, app/Listeners/**, app/Services/** | .ai/rules/audit.md |
 | **, phpunit.xml | .ai/rules/general.md |
+| app/Actions/Enrollment/**, app/Services/Authorization/CampusMoveAuthority.php | .ai/rules/enrollment.md |
 | app/Actions/Gradebook/** | .ai/rules/gradebook.md |
 | database/migrations/** | .ai/rules/migrations.md |
 | app/Models/*.php | .ai/rules/models.md |

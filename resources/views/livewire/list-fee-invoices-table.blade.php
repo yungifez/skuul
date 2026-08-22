@@ -33,7 +33,7 @@
                     ['name' => 'ofSchool'],
                     ['name' => 'whereYear', 'arguments' => ['due_date', $year]],
                     ['name' => 'orderBy', 'arguments' => ['due_date', 'desc']],
-                    ['name' => 'with', 'arguments' => ['user','user.studentRecord.myClass','user.studentRecord.section']]
+                    ['name' => 'with', 'arguments' => ['user', 'user.studentRecord.academicCycleSection.academicLevel']]
                 ], $queryAddon)"
                 :columns="[
                     ['property' => 'name',],
@@ -59,13 +59,13 @@
                     ['name' => 'whereRelation', 'arguments' => ['user.parents', 'parent_records.user_id', auth()->user()->id]],
                     ['name' => 'whereYear', 'arguments' => ['due_date', $year]],
                     ['name' => 'orderBy', 'arguments' => ['due_date', 'desc']],
-                    ['name' => 'with', 'arguments' => ['user','user.studentRecord.myClass','user.studentRecord.section']]
+                    ['name' => 'with', 'arguments' => ['user', 'user.studentRecord.academicCycleSection.academicLevel']]
                 ], $queryAddon)"
                 :columns="[
                     ['property' => 'name',],
                     ['name' => 'Student\'s Name', 'property' => 'name', 'relation' => 'user'],
-                    ['name' => 'Class', 'property' => 'name', 'relation' => 'user.studentRecord.myClass'],
-                    ['name' => 'Section', 'property' => 'name', 'relation' => 'user.studentRecord.section'],
+                    ['name' => 'Class', 'property' => 'name', 'relation' => 'user.studentRecord.academicCycleSection.academicLevel'],
+                    ['name' => 'Section', 'property' => 'name', 'relation' => 'user.studentRecord.academicCycleSection'],
                     ['name' => 'paid'],
                     ['property'=>'balance'],
                     ['property' => 'due_date'],
@@ -83,7 +83,7 @@
                     ['name' => 'whereRelation', 'arguments' => ['user', 'id', auth()->user()->id]],
                     ['name' => 'whereYear', 'arguments' => ['due_date', $year]],
                     ['name' => 'orderBy', 'arguments' => ['due_date', 'desc']],
-                    ['name' => 'with', 'arguments' => ['user','user.studentRecord.myClass','user.studentRecord.section']]
+                    ['name' => 'with', 'arguments' => ['user', 'user.studentRecord.academicCycleSection.academicLevel']]
                 ], $queryAddon)"
                 :columns="[
                     ['property' => 'name',],

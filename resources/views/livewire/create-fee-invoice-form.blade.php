@@ -18,26 +18,26 @@
             <h2 class="card-title">Students To Include</h2>
         </div>
         <div class="card-body">
-            <x-loading-spinner wire:target="class"/>
-            <x-loading-spinner wire:target="section"/>
+            <x-loading-spinner wire:target="academicLevel"/>
+            <x-loading-spinner wire:target="cycleSection"/>
             <x-loading-spinner wire:target="addStudent"/>
             <div class="md:grid md:grid-cols-3 gap-4">
                 <div class="flex w-full flex-col gap-2">
-                    <april:label for="classes">Class</april:label>
-                    <april:select id="classes" name="" wire:model.live="class">
-                    @foreach ($classes as $item)
-                        <option value="{{$item->id}}">{{$item->name}}</option>
+                    <april:label for="academic-level">{{ school_term('class_level', 'Level') }}</april:label>
+                    <april:select id="academic-level" name="" wire:model.live="academicLevel">
+                    @foreach ($academicLevels as $item)
+                        <option value="{{$item->id}}">{{$item->label ?? $item->name}}</option>
                     @endforeach
 
                     </april:select>
                 </div>
                 <div class="flex w-full flex-col gap-2">
-                    <april:label for="section">Section</april:label>
-                    <april:select id="section" name="" wire:model.live="section">
-                    <option value="">All Sections</option>
-                    @isset($sections)
-                        @foreach ($sections as $item)
-                            <option value="{{$item->id}}" @selected($section == $item->id)>{{$item->name}}</option>
+                    <april:label for="cycle-section">{{ school_term('section', 'Section') }}</april:label>
+                    <april:select id="cycle-section" name="" wire:model.live="cycleSection">
+                    <option value="">All {{ school_terms('section', 'sections') }}</option>
+                    @isset($cycleSections)
+                        @foreach ($cycleSections as $item)
+                            <option value="{{$item->id}}" @selected($cycleSection == $item->id)>{{$item->label ?? $item->name}}</option>
                         @endforeach
                     @endisset
 
@@ -56,9 +56,9 @@
                     </april:select>
                 </div>
                 @php
-                    $addStudentArgument = "$class";
-                    if ($section != null && $section != 0) {
-                        $addStudentArgument.=",$section";
+                    $addStudentArgument = "$academicLevel";
+                    if ($cycleSection != null && $cycleSection != 0) {
+                        $addStudentArgument.=",$cycleSection";
                     }else{
                         $addStudentArgument.=",null";
                     }

@@ -33,6 +33,11 @@ enum OrganizationPermission: string
     case ManageCampuses = 'manage organization campuses';
 
     /**
+     * Move a student from one campus to another without asking the campuses.
+     */
+    case MoveStudents = 'move students between campuses';
+
+    /**
      * Read the organization overview totals.
      */
     case ReadReports = 'read organization reports';
@@ -72,6 +77,7 @@ enum OrganizationPermission: string
             self::Manage => 'Manage organization settings',
             self::ManageMembers => 'Manage organization members',
             self::ManageCampuses => 'Manage campuses',
+            self::MoveStudents => 'Move students between campuses',
             self::ReadReports => 'Read organization reports',
         };
     }
@@ -86,6 +92,7 @@ enum OrganizationPermission: string
             self::Manage => 'Change the organization name, code, and contact details.',
             self::ManageMembers => 'Give and take away organization scope for other people.',
             self::ManageCampuses => 'Add a campus and move one between organizations.',
+            self::MoveStudents => 'Move a student to another campus without waiting for that campus to agree.',
             self::ReadReports => 'Read the campus, enrollment, and staff totals.',
         };
     }

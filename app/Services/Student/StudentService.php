@@ -13,9 +13,7 @@ use App\Models\Promotion;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
-use App\Services\MyClass\MyClassService;
 use App\Services\Print\PrintService;
-use App\Services\Section\SectionService;
 use App\Services\User\UserService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Response;
@@ -24,23 +22,11 @@ use Illuminate\Support\Facades\DB;
 class StudentService
 {
     /**
-     *Instance of class service.
-     *
-     * @var MyClassService
-     */
-    public $myClassService;
-
-    /**
      * Instance of user service.
      *
      * @var UserService
      */
     public $userService;
-
-    /**
-     * Instance of section service.
-     */
-    public SectionService $sectionService;
 
     /**
      * Instance of the enrollment state action.
@@ -53,14 +39,10 @@ class StudentService
     public ChangeEnrollmentPlacement $changeEnrollmentPlacementAction;
 
     public function __construct(
-        MyClassService $myClassService,
         UserService $userService,
-        SectionService $sectionService,
         ChangeEnrollmentStatus $changeEnrollmentStatusAction,
         ChangeEnrollmentPlacement $changeEnrollmentPlacementAction,
     ) {
-        $this->myClassService = $myClassService;
-        $this->sectionService = $sectionService;
         $this->userService = $userService;
         $this->changeEnrollmentStatusAction = $changeEnrollmentStatusAction;
         $this->changeEnrollmentPlacementAction = $changeEnrollmentPlacementAction;

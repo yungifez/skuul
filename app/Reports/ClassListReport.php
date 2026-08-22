@@ -8,7 +8,7 @@ use App\Models\StudentRecord;
 use Illuminate\Support\Collection;
 
 /**
- * Who sits in each class and section right now.
+ * Who sits in each academic level and cycle section right now.
  */
 class ClassListReport implements Report
 {
@@ -35,30 +35,35 @@ class ClassListReport implements Report
      */
     public function columns(): array
     {
-        return ['Class', 'Section', 'Admission number', 'Student', 'Status'];
+        return ['Level', 'Section', 'Admission number', 'Student', 'Status'];
     }
 
     /**
      * Build the rows of the report.
      *
-     * @param array<string, mixed> $parameters
-     *
+     * @param  array<string, mixed>  $parameters
      * @return Collection<int, array<int, mixed>>
      */
     public function rows(array $parameters = []): Collection
     {
         $enrollments = StudentRecord::query()
             ->inSchool($parameters['school_id'] ?? null)
-            ->when(isset($parameters['my_class_id']), fn ($query) => $query->where('my_class_id', $parameters['my_class_id']))
-            ->when(isset($parameters['section_id']), fn ($query) => $query->where('section_id', $parameters['section_id']))
+            ->when(
+                isset($parameters['academic_level_id']),
+                fn ($query) => $query->whereRelation('academicCycleSection', 'academic_level_id', $parameters['academic_level_id']),
+            )
+            ->when(
+                isset($parameters['academic_cycle_section_id']),
+                fn ($query) => $query->where('academic_cycle_section_id', $parameters['academic_cycle_section_id']),
+            )
             ->where('status', EnrollmentStatus::Active)
-            ->with(['user', 'myClass', 'section'])
+            ->with(['user', 'academicCycleSection.academicLevel'])
             ->get();
 
         /** @var Collection<int, array<int, mixed>> $rows */
         $rows = $enrollments->map(fn (StudentRecord $enrollment): array => [
-            $enrollment->myClass?->name,
-            $enrollment->section?->name,
+            $enrollment->academicCycleSection?->academicLevel?->name,
+            $enrollment->academicCycleSection?->name,
             $enrollment->admission_number,
             $enrollment->user?->name,
             $enrollment->status->label(),

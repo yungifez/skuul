@@ -2,55 +2,56 @@
 
 namespace App\Livewire;
 
-use App\Services\MyClass\MyClassService;
-use App\Services\Section\SectionService;
-use Illuminate\Support\Facades\App;
+use App\Models\AcademicCycleSection;
+use App\Models\User;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class GraduateStudents extends Component
 {
-    public $classes;
+    /** @var array<int, array{id: int, label: string}> */
+    public array $cycleSections = [];
 
-    public $class;
+    public ?int $academicCycleSectionId = null;
 
-    public $sections;
+    /** @var array<int, array{id: int, name: string, admission_number: string|null}> */
+    public array $students = [];
 
-    public $section;
-
-    public $students;
-
-    protected $rules = [
-        'class'   => 'required|exists:my_classes,id',
-        'section' => 'required|exists:sections,id',
-    ];
-
-    public function mount(MyClassService $myClassService)
+    public function mount(): void
     {
-        $this->classes = $myClassService->getAllClasses();  // set default values
-        $this->class = $this->classes[0]->id;
+        $this->cycleSections = AcademicCycleSection::inSchool()
+            ->with('academicLevel')
+            ->where('academic_year_id', current_academic_year_id())
+            ->orderBy('position')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (AcademicCycleSection $cycleSection): array => [
+                'id' => $cycleSection->id,
+                'label' => ($cycleSection->academicLevel->label ?? $cycleSection->academicLevel->name).' · '.($cycleSection->label ?? $cycleSection->name),
+            ])
+            ->all();
     }
 
-    public function updatedClass()
+    public function loadStudents(): void
     {
-        $this->sections = collect($this->classes->where('id', $this->class)->first()['sections']);
-        if ($this->sections->isNotEmpty()) {
-            $this->section = $this->sections->first()['id'];
-        }
+        $this->validate([
+            'academicCycleSectionId' => ['required', 'integer'],
+        ]);
+
+        $this->students = User::activeStudents()
+            ->whereHas('studentRecord', fn ($query) => $query->where('academic_cycle_section_id', $this->academicCycleSectionId))
+            ->with('studentRecord:id,user_id,admission_number,academic_cycle_section_id')
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn (User $student): array => [
+                'id' => $student->id,
+                'name' => $student->name,
+                'admission_number' => $student->studentRecord?->admission_number,
+            ])
+            ->all();
     }
 
-    public function loadInitialSections()
-    {
-        $this->updatedClass();
-    }
-
-    public function loadStudents()
-    {
-        $this->validate();
-
-        $this->students = App::make(SectionService::class)->getSectionById($this->section)->students();
-    }
-
-    public function render()
+    public function render(): View
     {
         return view('livewire.graduate-students');
     }

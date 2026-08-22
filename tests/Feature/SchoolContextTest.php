@@ -22,7 +22,7 @@ class SchoolContextTest extends TestCase
     public function test_switching_school_writes_to_the_session_not_the_user(): void
     {
         $second = School::factory()->create();
-        $user = User::where('email', 'super@admin.com')->firstOrFail();
+        $user = User::where('email', 'super@example.com')->firstOrFail();
 
         $before = $user->schoolMemberships()->pluck('school_id')->all();
 

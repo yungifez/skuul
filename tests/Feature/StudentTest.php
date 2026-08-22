@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AcademicStructureStatus;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
 use App\Models\Promotion;
 use App\Models\StudentRecord;
 use App\Traits\FeatureTestTrait;
@@ -71,8 +74,7 @@ class StudentTest extends TestCase
             'address' => 'test address',
             'birthday' => '2004/04/22',
             'phone' => '08080808080',
-            'my_class_id' => 1,
-            'section_id' => 1,
+            'academic_cycle_section_id' => $this->activeCycleSection()->id,
             'admission_date' => '2004/04/22',
         ])->assertForbidden();
 
@@ -99,8 +101,7 @@ class StudentTest extends TestCase
             'address' => 'test address',
             'birthday' => '2004/04/22',
             'phone' => '08080808080',
-            'my_class_id' => 1,
-            'section_id' => 1,
+            'academic_cycle_section_id' => $this->activeCycleSection()->id,
             'admission_date' => '2004/04/22', ])->assertRedirect();
 
         $this->assertDatabaseHas('users', [
@@ -145,8 +146,7 @@ class StudentTest extends TestCase
             'address' => 'test address',
             'birthday' => '2004/04/22',
             'phone' => '08080808080',
-            'my_class_id' => 1,
-            'section_id' => 1,
+            'academic_cycle_section_id' => $this->activeCycleSection()->id,
             'admission_date' => '2004/04/22', ])
             ->assertForbidden();
 
@@ -252,12 +252,12 @@ class StudentTest extends TestCase
     public function test_unauthorized_user_cannot_promote_students()
     {
         $student = StudentRecord::factory()->create();
+        $destination = $this->activeCycleSection();
+
         $this->unauthorized_user()->post('/dashboard/students/promote', [
             'student_id' => [$student->user->id],
-            'old_class_id' => 1,
-            'old_section_id' => 2,
-            'new_class_id' => 1,
-            'new_section_id' => 1,
+            'source_academic_cycle_section_id' => $student->academic_cycle_section_id,
+            'destination_academic_cycle_section_id' => $destination->id,
         ])->assertForbidden();
     }
 
@@ -266,21 +266,22 @@ class StudentTest extends TestCase
     public function test_authorized_user_can_promote_students()
     {
         $student = StudentRecord::factory()->create();
+        $source = $student->academic_cycle_section_id;
+        $destination = $this->activeCycleSection();
+
         $this->authorized_user(['promote student'])->post('/dashboard/students/promote', [
             'student_id' => [$student->user->id],
-            'old_class_id' => 1,
-            'old_section_id' => 2,
-            'new_class_id' => 1,
-            'new_section_id' => 1,
+            'source_academic_cycle_section_id' => $source,
+            'destination_academic_cycle_section_id' => $destination->id,
         ]);
+
         $promotion = Promotion::where([
-            'old_class_id' => 1,
-            'old_section_id' => 2,
-            'new_class_id' => 1,
-            'new_section_id' => 1,
+            'source_academic_cycle_section_id' => $source,
+            'destination_academic_cycle_section_id' => $destination->id,
         ])->whereJsonContains('students', [$student->user->id])->first();
 
         $this->assertModelExists($promotion);
+        $this->assertSame($destination->id, $student->fresh()->academic_cycle_section_id);
     }
 
     // test unauthorized user cannot delete promotion
@@ -322,5 +323,22 @@ class StudentTest extends TestCase
         $this->unauthorized_user()->post('/dashboard/students/graduate', [
             'student_id' => [$student->user->id],
         ])->assertForbidden();
+    }
+
+    /**
+     * Get an active cycle section in this year that a student can be placed in.
+     */
+    private function activeCycleSection(): AcademicCycleSection
+    {
+        $school = $this->workingSchool();
+        $academicLevel = AcademicLevel::query()->where('school_id', $school->id)->first()
+            ?? AcademicLevel::factory()->create(['school_id' => $school->id]);
+
+        return AcademicCycleSection::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_level_id' => $academicLevel->id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
     }
 }

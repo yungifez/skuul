@@ -135,7 +135,7 @@ class AccountInvitationVisibility
                 && ($schoolIds === null || in_array($membership->school_id, $schoolIds, true)));
 
         return $memberships
-            ->map(fn ($membership): string => $membership->school?->name ?? 'Unknown school')
+            ->map(fn ($membership): string => $membership->school->name)
             ->sort()
             ->values()
             ->all();

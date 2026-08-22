@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 
@@ -89,16 +88,6 @@ class School extends Model
     }
 
     /**
-     * Get all the class groups in the school.
-     *
-     * @return HasMany<ClassGroup, $this>
-     */
-    public function classGroups(): HasMany
-    {
-        return $this->hasMany(ClassGroup::class);
-    }
-
-    /**
      * Get every access record for this school.
      *
      * @return HasMany<SchoolMembership, $this>
@@ -119,16 +108,6 @@ class School extends Model
             ->withPivot(['status', 'is_primary', 'joined_at', 'ended_at'])
             ->wherePivot('status', SchoolMembershipStatus::Active->value)
             ->withTimestamps();
-    }
-
-    /**
-     * Get all of the MyClasses for the School.
-     *
-     * @return HasManyThrough<MyClass, ClassGroup, $this>
-     */
-    public function myClasses(): HasManyThrough
-    {
-        return $this->hasManyThrough(MyClass::class, ClassGroup::class);
     }
 
     /**

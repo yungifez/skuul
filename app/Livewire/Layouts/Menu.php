@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Layouts;
 
+use App\Models\CampusMoveRequest;
 use App\Models\Organization;
 use Livewire\Component;
 
@@ -15,7 +16,9 @@ class Menu extends Component
     public function mount(): void
     {
         $user = auth()->user();
-        $organization = current_school()->organization;
+        // A person can hold organization authority without a working school,
+        // so the sidebar must render before any school is chosen.
+        $organization = current_school()?->organization;
         $this->menu = [
             [
                 'type' => 'menu-item',
@@ -38,14 +41,14 @@ class Menu extends Component
                 'route' => 'schools.index',
                 'can' => 'read school',
             ],
-            [
+            ...($organization === null ? [] : [[
                 'type' => 'menu-item',
                 'icon' => 'calendar-range',
                 'text' => 'Calendar templates',
                 'route' => 'organizations.calendar-templates.index',
                 'parameters' => [$organization],
                 'visible' => $user->can('view', $organization),
-            ],
+            ]]),
             ['header' => 'Setup'],
             [
                 'type' => 'menu-item',
@@ -78,7 +81,7 @@ class Menu extends Component
             [
                 'type' => 'menu-item',
                 'icon' => 'landmark',
-                'text' => school_terms('section', 'Class').' this year',
+                'text' => school_terms('section', 'Cycle section'),
                 'route' => 'academic-cycle-sections.index',
                 'can' => 'read section',
             ],
@@ -89,6 +92,13 @@ class Menu extends Component
                 'icon' => 'user',
                 'route' => 'students.index',
                 'can' => 'read student',
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Campus moves',
+                'icon' => 'building-2',
+                'route' => 'campus-moves.index',
+                'visible' => $user->can('viewAny', CampusMoveRequest::class),
             ],
             [
                 'type' => 'menu-item',
@@ -121,7 +131,7 @@ class Menu extends Component
             ],
             [
                 'type' => 'menu-item',
-                'text' => school_terms('course', 'Course').' being taught',
+                'text' => school_terms('course', 'Course offering'),
                 'icon' => 'book-marked',
                 'route' => 'course-offerings.index',
                 'can' => 'read subject',

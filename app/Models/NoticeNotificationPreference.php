@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\InSchool;
 use Database\Factories\NoticeNotificationPreferenceFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,6 +12,8 @@ class NoticeNotificationPreference extends Model
 {
     /** @use HasFactory<NoticeNotificationPreferenceFactory> */
     use HasFactory;
+
+    use InSchool;
 
     protected $fillable = ['user_id', 'school_id', 'email_enabled'];
 

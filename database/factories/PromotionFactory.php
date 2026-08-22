@@ -18,6 +18,9 @@ class PromotionFactory extends Factory
     /**
      * Define the model's default state.
      *
+     * The two cycle sections are lazy, so a caller that names its own sections
+     * never pays for throwaway rows in the wrong school.
+     *
      * @return array<string, mixed>
      */
     public function definition()
@@ -25,27 +28,32 @@ class PromotionFactory extends Factory
         $school = School::query()->first() ?? School::factory()->create();
         $academicYear = AcademicYear::query()->where('school_id', $school->id)->first()
             ?? AcademicYear::factory()->create(['school_id' => $school->id]);
-        $academicLevel = AcademicLevel::query()->where('school_id', $school->id)->first()
-            ?? AcademicLevel::factory()->create(['school_id' => $school->id]);
-        $source = AcademicCycleSection::factory()->create([
-            'school_id' => $school->id,
-            'academic_year_id' => $academicYear->id,
-            'academic_level_id' => $academicLevel->id,
-            'status' => AcademicStructureStatus::Active,
-        ]);
-        $destination = AcademicCycleSection::factory()->create([
-            'school_id' => $school->id,
-            'academic_year_id' => $academicYear->id,
-            'academic_level_id' => $academicLevel->id,
-            'status' => AcademicStructureStatus::Active,
-        ]);
 
         return [
-            'source_academic_cycle_section_id' => $source->id,
-            'destination_academic_cycle_section_id' => $destination->id,
-            'academic_year_id' => $academicYear->id,
             'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'source_academic_cycle_section_id' => fn (array $attributes) => $this->cycleSection($attributes)->id,
+            'destination_academic_cycle_section_id' => fn (array $attributes) => $this->cycleSection($attributes)->id,
             'students' => [4],
         ];
+    }
+
+    /**
+     * Make one active cycle section in the school and year of the promotion.
+     *
+     * @param  array<string, mixed>  $attributes
+     */
+    private function cycleSection(array $attributes): AcademicCycleSection
+    {
+        $schoolId = $attributes['school_id'];
+        $academicLevel = AcademicLevel::query()->where('school_id', $schoolId)->first()
+            ?? AcademicLevel::factory()->create(['school_id' => $schoolId]);
+
+        return AcademicCycleSection::factory()->create([
+            'school_id' => $schoolId,
+            'academic_year_id' => $attributes['academic_year_id'],
+            'academic_level_id' => $academicLevel->id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
     }
 }

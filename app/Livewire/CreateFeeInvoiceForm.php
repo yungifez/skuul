@@ -2,11 +2,12 @@
 
 namespace App\Livewire;
 
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
 use App\Models\Fee;
 use App\Models\FeeCategory;
-use App\Models\MyClass;
-use App\Models\Section;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
 use Livewire\Component;
 
 class CreateFeeInvoiceForm extends Component
@@ -23,13 +24,13 @@ class CreateFeeInvoiceForm extends Component
 
     public $addedStudents;
 
-    public $classes;
+    public $academicLevels;
 
-    public $class;
+    public $academicLevel;
 
-    public $sections;
+    public $cycleSections;
 
-    public $section;
+    public $cycleSection;
 
     public $students;
 
@@ -40,10 +41,14 @@ class CreateFeeInvoiceForm extends Component
         $this->addedFees = collect();
         $this->addedStudents = collect();
         $this->feeCategories = FeeCategory::inSchool()->get();
-        $this->classes = current_school()->myClasses;
-        if ($this->classes->isNotEmpty()) {
-            $this->class = $this->classes->first()->id;
-            $this->updatedClass();
+        $this->academicLevels = AcademicLevel::inSchool()
+            ->whereHas('cycleSections', fn ($query) => $query->where('academic_year_id', current_academic_year_id()))
+            ->orderBy('position')
+            ->orderBy('name')
+            ->get();
+        if ($this->academicLevels->isNotEmpty()) {
+            $this->academicLevel = $this->academicLevels->first()->id;
+            $this->updatedAcademicLevel();
         }
 
         if ($this->feeCategories->isNotEmpty()) {
@@ -54,28 +59,36 @@ class CreateFeeInvoiceForm extends Component
         $this->setOldValues();
     }
 
-    public function updatedClass()
+    public function updatedAcademicLevel()
     {
-        $this->sections = $this->classes->find($this->class)->sections;
-        if ($this->sections != null && $this->sections->isNotEmpty()) {
-            $this->section = $this->sections->first()->id;
-            $this->updatedSection();
+        $this->cycleSections = AcademicCycleSection::inSchool()
+            ->where('academic_year_id', current_academic_year_id())
+            ->where('academic_level_id', $this->academicLevel)
+            ->orderBy('position')
+            ->orderBy('name')
+            ->get();
+
+        if ($this->cycleSections->isNotEmpty()) {
+            $this->cycleSection = $this->cycleSections->first()->id;
+            $this->updatedCycleSection();
         } else {
-            $this->sections = null;
+            $this->cycleSections = null;
             $this->students = null;
         }
     }
 
-    public function updatedSection()
+    public function updatedCycleSection()
     {
-        if ($this->section != null) {
-            $this->students = $this->sections->find($this->section)?->students();
-            if ($this->students != null && $this->students->isNotEmpty()) {
-                $this->student = $this->students->first()->id;
-            }
-        } else {
+        if ($this->cycleSection == null) {
             $this->students = null;
             $this->student = null;
+
+            return;
+        }
+
+        $this->students = $this->studentsOfSections([$this->cycleSection]);
+        if ($this->students->isNotEmpty()) {
+            $this->student = $this->students->first()->id;
         }
     }
 
@@ -100,20 +113,47 @@ class CreateFeeInvoiceForm extends Component
         $this->addedFees = $this->addedFees->unique('id');
     }
 
-    public function addStudent(MyClass $class, $section = null, $student = null)
+    /**
+     * Add one student, a whole cycle section, or a whole academic level.
+     */
+    public function addStudent(AcademicLevel $academicLevel, $cycleSection = null, $student = null)
     {
-        $section = Section::find($section);
         $student = User::students()->ofSchool()->find($student);
 
         if ($student != null && $student->exists()) {
             $this->addedStudents = $this->addedStudents->push($student->load('studentRecord'));
-        } elseif ($section != null && $section->exists()) {
-            $this->addedStudents = $this->addedStudents->merge($section->students()->load('studentRecord'));
-        } else {
-            $this->addedStudents = $this->addedStudents->merge($class->students()->load('studentRecord'));
+            $this->addedStudents = $this->addedStudents->keyBy('id');
+
+            return;
         }
 
+        $sectionIds = AcademicCycleSection::inSchool()
+            ->where('academic_year_id', current_academic_year_id())
+            ->when(
+                $cycleSection != null,
+                fn ($query) => $query->whereKey($cycleSection),
+                fn ($query) => $query->where('academic_level_id', $academicLevel->id),
+            )
+            ->pluck('id')
+            ->all();
+
+        $this->addedStudents = $this->addedStudents->merge($this->studentsOfSections($sectionIds));
         $this->addedStudents = $this->addedStudents->keyBy('id');
+    }
+
+    /**
+     * Get the active students placed in any of the given cycle sections.
+     *
+     * @param  array<int, int>  $cycleSectionIds
+     * @return Collection<int, User>
+     */
+    private function studentsOfSections(array $cycleSectionIds)
+    {
+        return User::activeStudents()
+            ->whereHas('studentRecord', fn ($query) => $query->whereIn('academic_cycle_section_id', $cycleSectionIds))
+            ->with('studentRecord')
+            ->orderBy('name')
+            ->get();
     }
 
     public function removeStudent($student)

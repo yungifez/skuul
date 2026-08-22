@@ -13,9 +13,7 @@ use Illuminate\Support\Collection;
  */
 class StudentBalancesReport implements Report
 {
-    public function __construct(private StudentLedger $ledger)
-    {
-    }
+    public function __construct(private StudentLedger $ledger) {}
 
     /**
      * Get the name people choose the report by.
@@ -40,14 +38,13 @@ class StudentBalancesReport implements Report
      */
     public function columns(): array
     {
-        return ['Admission number', 'Student', 'Class', 'Status', 'Balance', 'Unapplied credit'];
+        return ['Admission number', 'Student', 'Level', 'Section', 'Status', 'Balance', 'Unapplied credit'];
     }
 
     /**
      * Build the rows of the report.
      *
-     * @param array<string, mixed> $parameters
-     *
+     * @param  array<string, mixed>  $parameters
      * @return Collection<int, array<int, mixed>>
      */
     public function rows(array $parameters = []): Collection
@@ -58,14 +55,15 @@ class StudentBalancesReport implements Report
                 ($parameters['only_attending'] ?? true) === true,
                 fn ($query) => $query->where('status', EnrollmentStatus::Active)
             )
-            ->with(['user', 'myClass'])
+            ->with(['user', 'academicCycleSection.academicLevel'])
             ->get();
 
         /** @var Collection<int, array<int, mixed>> $rows */
         $rows = $enrollments->map(fn (StudentRecord $enrollment): array => [
             $enrollment->admission_number,
             $enrollment->user?->name,
-            $enrollment->myClass?->name,
+            $enrollment->academicCycleSection?->academicLevel?->name,
+            $enrollment->academicCycleSection?->name,
             $enrollment->status->label(),
             $this->ledger->balance($enrollment),
             $this->ledger->unappliedCredit($enrollment),

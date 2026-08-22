@@ -110,7 +110,10 @@ class AcademicCycleSectionTest extends TestCase
         ])->assertRedirect();
 
         /** @var AcademicCycleSection $section */
-        $section = AcademicCycleSection::query()->sole();
+        $section = AcademicCycleSection::query()
+            ->where('academic_year_id', $academicYear->id)
+            ->where('academic_level_id', $academicLevel->id)
+            ->sole();
 
         $actor->put(route('academic-cycle-sections.status.update', $section), [
             'status' => AcademicStructureStatus::Active->value,

@@ -6,9 +6,10 @@ use App\Actions\Identity\RevokeAccountInvitation;
 use App\Actions\Identity\SendAccountInvitation;
 use App\Enums\AccountInvitationStatus;
 use App\Models\AccountInvitation;
+use App\Models\User;
 use App\Services\Identity\AccountInvitationVisibility;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Url;
 use Livewire\Component;
@@ -213,7 +214,7 @@ class ListAccountInvitations extends Component
                     'id' => $invitation->id,
                     'name' => $invitation->user->name,
                     'email' => $invitation->user->email,
-                    'inviter' => $invitation->invitedBy?->name ?? 'System',
+                    'inviter' => $this->inviterName($invitation),
                     'created_at' => $invitation->created_at->format('M j, Y g:ia'),
                     'expires_at' => $invitation->expires_at->format('M j, Y g:ia'),
                     'status' => $invitation->status(),
@@ -241,5 +242,17 @@ class ListAccountInvitations extends Component
             AccountInvitationStatus::Expired => 'This link passed its expiry time. Send a new invitation from the person’s profile.',
             AccountInvitationStatus::Pending => 'You cannot manage invitations for this person.',
         };
+    }
+
+    /**
+     * Get the name of whoever sent the invitation.
+     *
+     * An invitation raised by the system itself names nobody.
+     */
+    private function inviterName(AccountInvitation $invitation): string
+    {
+        $inviter = $invitation->getRelationValue('invitedBy');
+
+        return $inviter instanceof User ? $inviter->name : 'System';
     }
 }

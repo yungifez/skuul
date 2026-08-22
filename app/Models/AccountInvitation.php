@@ -21,6 +21,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon $expires_at
  * @property Carbon|null $accepted_at
  * @property Carbon|null $revoked_at
+ * @property-read User|null $invitedBy
  */
 class AccountInvitation extends Model
 {

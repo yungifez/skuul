@@ -10,6 +10,7 @@ use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
 use RuntimeException;
 use Tests\TestCase;
@@ -174,19 +175,46 @@ class EnrollmentStatusTest extends TestCase
         $this->assertSame(EnrollmentStatus::Graduated, $enrollment->fresh()->status);
     }
 
-    public function test_a_graduated_student_leaves_the_class_and_section_lists(): void
+    public function test_a_graduated_student_leaves_the_cycle_section_and_level_lists(): void
     {
         $enrollment = StudentRecord::factory()->create();
         $student = User::findOrFail($enrollment->user_id);
-        $section = $enrollment->section;
+        $cycleSection = $enrollment->academicCycleSection;
 
-        $this->assertTrue($section->students()->contains($student));
-        $this->assertTrue($section->myClass->students()->contains($student));
+        $this->assertTrue($this->attendingSectionIds($cycleSection->id)->contains($student->id));
+        $this->assertTrue($this->attendingLevelIds($cycleSection->academic_level_id)->contains($student->id));
 
         app(ChangeEnrollmentStatus::class)->graduate($enrollment);
 
-        $this->assertFalse($section->students()->contains($student));
-        $this->assertFalse($section->myClass->students()->contains($student));
+        $this->assertFalse($this->attendingSectionIds($cycleSection->id)->contains($student->id));
+        $this->assertFalse($this->attendingLevelIds($cycleSection->academic_level_id)->contains($student->id));
+    }
+
+    /**
+     * Get the ids of the people who still attend one cycle section.
+     *
+     * @return Collection<int, int>
+     */
+    private function attendingSectionIds(int $cycleSectionId): Collection
+    {
+        return User::activeStudents()
+            ->whereHas('studentRecord', fn ($query) => $query->where('academic_cycle_section_id', $cycleSectionId))
+            ->pluck('id');
+    }
+
+    /**
+     * Get the ids of the people who still attend any section of one level.
+     *
+     * @return Collection<int, int>
+     */
+    private function attendingLevelIds(int $academicLevelId): Collection
+    {
+        return User::activeStudents()
+            ->whereHas(
+                'studentRecord.academicCycleSection',
+                fn ($query) => $query->where('academic_level_id', $academicLevelId),
+            )
+            ->pluck('id');
     }
 
     public function test_a_graduation_cannot_be_reset_in_another_school(): void

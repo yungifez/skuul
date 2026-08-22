@@ -56,6 +56,21 @@ enum AuditAction: string
     case EnrollmentPlaced = 'enrollment.placed';
 
     /**
+     * An enrollment moved to another campus of the same organization.
+     */
+    case EnrollmentCampusChanged = 'enrollment.campus_changed';
+
+    /**
+     * A campus asked to move a student to another campus.
+     */
+    case CampusMoveRequested = 'campus_move.requested';
+
+    /**
+     * A campus move request was approved, rejected, or taken back.
+     */
+    case CampusMoveStatusChanged = 'campus_move.status_changed';
+
+    /**
      * An enrollment moved to another school.
      */
     case EnrollmentTransferred = 'enrollment.transferred';
@@ -348,6 +363,9 @@ enum AuditAction: string
             self::AccountInvitationRevoked => 'Invitation revoked',
             self::EnrollmentStatusChanged => 'Enrollment status changed',
             self::EnrollmentPlaced => 'Student placed in a class',
+            self::EnrollmentCampusChanged => 'Enrollment moved to another campus',
+            self::CampusMoveRequested => 'Campus move requested',
+            self::CampusMoveStatusChanged => 'Campus move request decided',
             self::EnrollmentTransferred => 'Enrollment transferred',
             self::TeachingAssignmentCreated => 'Teacher assigned to a subject',
             self::TeachingAssignmentEnded => 'Teaching assignment ended',

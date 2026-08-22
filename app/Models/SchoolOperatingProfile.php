@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\InSchool;
 use Database\Factories\SchoolOperatingProfileFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,6 +15,8 @@ class SchoolOperatingProfile extends Model
 {
     /** @use HasFactory<SchoolOperatingProfileFactory> */
     use HasFactory;
+
+    use InSchool;
 
     public const PRESETS = [
         'home_sections' => ['class_level' => 'Class', 'section' => 'Arm', 'period' => 'Term', 'course' => 'Subject', 'fee' => 'School fees'],

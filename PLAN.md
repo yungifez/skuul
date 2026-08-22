@@ -351,8 +351,11 @@ Progress:
   the working context falls back to it when nobody chose a period.
 - Done: periods have `draft`, `open`, and `closed` states, and closing freezes
   the records of the period. See feature 20.
-- Open: class offerings for a period, and a campus-specific calendar. Both
-  wait for the campus model.
+- Done: a campus keeps its own calendar when it needs one. An organization
+  owns the default template, `School::effectiveCalendarTemplate()` lets a
+  campus override it, and the override and the return to the organization
+  calendar are both recorded.
+- Open: class offerings for a period.
 
 ### 4. Admissions and people
 
@@ -492,8 +495,37 @@ Progress:
   closed enrollment.
 - Done: `App\Actions\Enrollment\TransferEnrollment` closes the old enrollment,
   opens the new one in the destination school, and keeps the source history
-  through `transferred_from_id`.
-- Open: campus placement changes, which wait for the campus model.
+  through `transferred_from_id`. It now refuses two campuses of one
+  organization and points at the campus move, and it grants the person access
+  to the destination school.
+- Done: a campus is a school inside an organization, so moving between two of
+  them is an internal move.
+  `App\Actions\Enrollment\MoveEnrollmentBetweenCampuses` keeps one enrollment,
+  the admission number, and the whole placement history; it appends the next
+  placement, grants access to the new campus, keeps access to the old one so
+  its staff still read the records made there, and writes
+  `AuditAction::EnrollmentCampusChanged`. It refuses a closed enrollment, the
+  same campus, and two different organizations. Staff run it from the
+  student's own screen, which only offers sections of sibling campuses.
+- Done: who may move a student is tiered. A person holding
+  `OrganizationPermission::MoveStudents` in the organization moves them
+  straight away, because the organization owns both campuses. A campus
+  administrator holds `request campus move` and can only ask:
+  `campus_move_requests` records the student, both campuses, the home section,
+  and the day it takes effect. The receiving campus decides with `approve
+  campus move`, and an organization person may decide as well. Approving
+  performs the move in the same transaction, so no request sits approved but
+  unapplied. The campus that asked may take its request back, a student may
+  have only one open request, and a decided request cannot be decided twice.
+  `App\Services\Authorization\CampusMoveAuthority` is the one place that
+  answers who may do which of these.
+- Done: the receiving campus has a screen. `campus-moves.index` lists the
+  moves arriving at the working campus, with the student, the campus that
+  asked, the home section they would take, the reason, and the day it takes
+  effect. Staff approve or reject with a note, and the campus that asked sees
+  its own open requests on the same screen and can take them back. The screen
+  reads only the working campus's own requests, and the sidebar hides it from
+  anybody who can neither ask nor decide.
 
 ### 6. Curriculum and teaching assignments
 
@@ -590,6 +622,14 @@ Progress:
   `MyClass` and `Section`. Do not keep bridge columns, bridge relations, or
   parallel read paths. All new and changed operational records use the new
   identifiers only.
+- Done: the replacement is complete. `MyClass`, `Section`, and `ClassGroup`
+  are gone, with their controllers, policies, form requests, services,
+  Livewire components, screens, routes, factories, and seeders. Every reader
+  moved to the cycle section and its level: the student and fee-invoice
+  listings, the fee-invoice builder, the promotion and graduation screens,
+  the class-list and student-balance reports, the timetable subject picker,
+  the student importer, and result ranking. The subject catalog counts course
+  offerings instead of teachers.
 - Done: assessment work happens in the course-offering gradebook. The former
   class-bound exam-record, tabulation, and result-checker paths are removed.
 - Done: the retired `subject_user` compatibility pivot, bulk assignment

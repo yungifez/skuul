@@ -9,6 +9,7 @@ use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
+use App\Models\School;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -37,7 +38,7 @@ class AcademicStructureScreenTest extends TestCase
 
     public function test_the_level_index_shows_an_empty_state_and_a_way_in(): void
     {
-        $actor = $this->authorized_user(['read class', 'create class']);
+        $actor = $this->authorized_user(['read class', 'create class'], School::factory()->create());
 
         $actor->get(route('academic-levels.index'))
             ->assertOk()
@@ -208,7 +209,7 @@ class AcademicStructureScreenTest extends TestCase
 
     public function test_the_create_screen_asks_for_a_level_before_anything_else(): void
     {
-        $actor = $this->authorized_user(['create section', 'create class']);
+        $actor = $this->authorized_user(['create section', 'create class'], School::factory()->create());
 
         $actor->get(route('academic-cycle-sections.create'))
             ->assertOk()
@@ -235,7 +236,7 @@ class AcademicStructureScreenTest extends TestCase
         $teacher = $this->teacher();
         $section = AcademicCycleSection::factory()->create([
             'school_id' => $school->id,
-            'name' => 'Green',
+            'name' => 'Kestrel',
             'status' => AcademicStructureStatus::Active,
         ]);
 
@@ -244,7 +245,7 @@ class AcademicStructureScreenTest extends TestCase
             ->assertSee('The cycle and the level are fixed.');
 
         $actor->put(route('academic-cycle-sections.update', $section), [
-            'name' => 'Green',
+            'name' => 'Kestrel',
             'room' => 'Block B, Room 2',
             'capacity' => 40,
             'homeroom_teacher_id' => $teacher->id,
@@ -257,11 +258,35 @@ class AcademicStructureScreenTest extends TestCase
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::AcademicCycleSectionUpdated)->forSubject($section)->first());
     }
 
+    public function test_a_repeated_section_name_reads_as_a_message_not_a_crash(): void
+    {
+        $actor = $this->authorized_user(['create section', 'read section', 'update section']);
+        $school = $this->workingSchool();
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
+        $academicYear = AcademicYear::factory()->create(['school_id' => $school->id]);
+        $taken = ['academic_year_id' => $academicYear->id, 'academic_level_id' => $academicLevel->id, 'name' => 'Osprey'];
+        AcademicCycleSection::factory()->create($taken + ['school_id' => $school->id]);
+
+        $actor->from(route('academic-cycle-sections.create'))
+            ->post(route('academic-cycle-sections.store'), $taken)
+            ->assertRedirect(route('academic-cycle-sections.create'))
+            ->assertSessionHasErrors('name');
+
+        // The same name is still free in another level of the same cycle.
+        $otherLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
+        $actor->post(route('academic-cycle-sections.store'), [
+            'academic_year_id' => $academicYear->id,
+            'academic_level_id' => $otherLevel->id,
+            'name' => 'Osprey',
+        ])->assertSessionHasNoErrors();
+    }
+
     public function test_a_cycle_section_can_be_archived_from_its_own_screen(): void
     {
         $actor = $this->authorized_user(['read section', 'update section']);
         $section = AcademicCycleSection::factory()->create([
             'school_id' => $this->workingSchool()->id,
+            'name' => 'Merlin',
             'status' => AcademicStructureStatus::Active,
         ]);
 

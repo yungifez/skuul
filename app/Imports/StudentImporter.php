@@ -7,8 +7,8 @@ use App\Actions\Identity\ProvisionAccount;
 use App\Contracts\Importer;
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
-use App\Models\MyClass;
-use App\Models\Section;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
 use App\Models\StudentRecord;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
@@ -17,10 +17,10 @@ use Illuminate\Support\Carbon;
 /**
  * Bring students in from a file.
  *
- * The file names the class and the section by name, because the people who
- * keep these files do not know the numbers this application uses. A row that
- * names a student who is already here moves them; it never makes a second
- * enrollment.
+ * The file names the academic level and the cycle section by name, because the
+ * people who keep these files do not know the numbers this application uses. A
+ * row that names a student who is already here moves them; it never makes a
+ * second enrollment.
  */
 class StudentImporter implements Importer
 {
@@ -52,7 +52,7 @@ class StudentImporter implements Importer
      */
     public function requiredColumns(): array
     {
-        return ['name', 'email', 'birthday', 'class', 'section'];
+        return ['name', 'email', 'birthday', 'level', 'section'];
     }
 
     /**
@@ -86,7 +86,7 @@ class StudentImporter implements Importer
             'email' => ['required', 'email:rfc,dns', 'max:100'],
             'birthday' => ['required', 'date', 'before:today'],
             'gender' => ['nullable', 'string', 'max:100'],
-            'class' => ['required', 'string', 'max:255'],
+            'level' => ['required', 'string', 'max:255'],
             'section' => ['required', 'string', 'max:255'],
             'admission_number' => ['nullable', 'string', 'max:255'],
             'admission_date' => ['nullable', 'date'],
@@ -99,24 +99,26 @@ class StudentImporter implements Importer
      *
      * @param  array<string, mixed>  $row
      *
-     * @throws InvalidValueException when the class or section is not in this school
+     * @throws InvalidValueException when the level or section is not in this school and cycle
      */
     public function apply(array $row, ?Model $existing): Model
     {
-        // A class belongs to a school through its class group.
-        $class = MyClass::query()
-            ->whereHas('classGroup', fn ($query) => $query->where('school_id', current_school_id()))
-            ->where('name', $row['class'])
+        $academicLevel = AcademicLevel::inSchool()
+            ->where('name', $row['level'])
             ->first();
 
-        if ($class === null) {
-            throw new InvalidValueException("There is no class called {$row['class']}.");
+        if ($academicLevel === null) {
+            throw new InvalidValueException("There is no level called {$row['level']}.");
         }
 
-        $section = $class->sections()->where('name', $row['section'])->first();
+        $academicCycleSection = AcademicCycleSection::inSchool()
+            ->where('academic_year_id', current_academic_year_id())
+            ->where('academic_level_id', $academicLevel->id)
+            ->where('name', $row['section'])
+            ->first();
 
-        if ($section === null) {
-            throw new InvalidValueException("The class {$row['class']} has no section called {$row['section']}.");
+        if ($academicCycleSection === null) {
+            throw new InvalidValueException("The level {$row['level']} has no section called {$row['section']} in this cycle.");
         }
 
         $student = $this->accountFor($row, $existing);
@@ -128,8 +130,6 @@ class StudentImporter implements Importer
         $enrollment = StudentRecord::firstOrCreate(
             ['user_id' => $student->id, 'school_id' => current_school_id()],
             [
-                'my_class_id' => $class->id,
-                'section_id' => $section->id,
                 'admission_number' => $row['admission_number'] ?? null,
                 'admission_date' => Carbon::parse($row['admission_date'] ?? now()),
             ],
@@ -137,8 +137,7 @@ class StudentImporter implements Importer
 
         $this->changePlacement->place(
             enrollment: $enrollment,
-            class: $class,
-            section: $section,
+            academicCycleSection: $academicCycleSection,
             reason: 'Imported',
         );
 

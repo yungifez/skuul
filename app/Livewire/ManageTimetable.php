@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\Subject;
 use App\Models\Timetable;
 use App\Models\Weekday;
 use App\Services\Timetable\TimetableService;
@@ -38,7 +39,13 @@ class ManageTimetable extends Component
             $this->timeSlot ?? $this->timeSlot = $this->timeSlots->first()->id;
         }
         $this->weekdays = Weekday::all();
-        $this->subjects = $this->timetable->MyClass->subjects;
+        $this->subjects = Subject::query()
+            ->whereHas(
+                'courseOfferings.cycleSections',
+                fn ($query) => $query->whereKey($this->timetable->academic_cycle_section_id),
+            )
+            ->orderBy('name')
+            ->get();
         $this->customItems = $timetableService->getAllCustomTimetableItem();
         $this->types = ['subject', 'customTimetableItem'];
         $this->type = $this->type ?? $this->types[0];

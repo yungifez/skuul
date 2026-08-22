@@ -10,61 +10,13 @@ parameters:
 			message: '#^Cannot access property \$id on object\|string\.$#'
 			identifier: property.nonObject
 			count: 1
-			path: app/Http/Requests/MyClassUpdateRequest.php
-
-		-
-			message: '#^Cannot access property \$id on object\|string\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: app/Http/Requests/SectionUpdateRequest.php
-
-		-
-			message: '#^Cannot access property \$my_class_id on object\|string\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: app/Http/Requests/SectionUpdateRequest.php
-
-		-
-			message: '#^Cannot access property \$id on object\|string\.$#'
-			identifier: property.nonObject
-			count: 1
-			path: app/Http/Requests/UpdateClassGroupRequest.php
-
-		-
-			message: '#^Cannot access property \$id on object\|string\.$#'
-			identifier: property.nonObject
-			count: 1
 			path: app/Http/Requests/UpdateCustomTimetableItemRequest.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Livewire/AssignStudentsToParent.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$students\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Livewire/AssignStudentsToParent.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Livewire/GraduateStudents.php
 
 		-
 			message: '#^Call to an undefined static method Nnjeim\\World\\World\:\:countries\(\)\.$#'
 			identifier: staticMethod.notFound
 			count: 2
 			path: app/Livewire/NationalityAndStateInputFields.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
-			identifier: property.notFound
-			count: 2
-			path: app/Livewire/PromoteStudents.php
 
 		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:school\(\)\.$#'
@@ -127,12 +79,6 @@ parameters:
 			path: app/Policies/FeePolicy.php
 
 		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$classGroup\.$#'
-			identifier: property.notFound
-			count: 3
-			path: app/Policies/SectionPolicy.php
-
-		-
 			message: '#^Right side of && is always true\.$#'
 			identifier: booleanAnd.rightAlwaysTrue
 			count: 3
@@ -145,21 +91,9 @@ parameters:
 			path: app/Services/Fee/FeeInvoiceService.php
 
 		-
-			message: '#^Access to an undefined property App\\Models\\ClassGroup\:\:\$classes\.$#'
-			identifier: property.notFound
-			count: 1
-			path: app/Services/MyClass/MyClassService.php
-
-		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:students\(\)\.$#'
 			identifier: method.notFound
 			count: 2
-			path: app/Services/Parent/ParentService.php
-
-		-
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
-			count: 1
 			path: app/Services/Parent/ParentService.php
 
 		-
@@ -173,18 +107,6 @@ parameters:
 			identifier: deadCode.unreachable
 			count: 1
 			path: app/Services/School/SchoolService.php
-
-		-
-			message: '#^Method App\\Services\\Section\\SectionService\:\:createSection\(\) with return type void returns App\\Models\\Section but should not return anything\.$#'
-			identifier: return.void
-			count: 1
-			path: app/Services/Section/SectionService.php
-
-		-
-			message: '#^Method App\\Services\\Section\\SectionService\:\:updateSection\(\) with return type void returns App\\Models\\Section but should not return anything\.$#'
-			identifier: return.void
-			count: 1
-			path: app/Services/Section/SectionService.php
 
 		-
 			message: '#^Parameter \#1 \$min of function mt_rand expects int, string given\.$#'

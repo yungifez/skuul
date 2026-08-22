@@ -3,6 +3,7 @@
 namespace App\Actions\Enrollment;
 
 use App\Actions\Audit\RecordAuditEvent;
+use App\Actions\School\GrantSchoolMembership;
 use App\Enums\AuditAction;
 use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
@@ -19,6 +20,10 @@ use Illuminate\Support\Facades\DB;
  * A transfer closes the enrollment in the old school and opens a new one in
  * the new school. The old enrollment keeps its history and stays readable; the
  * new enrollment names the one it continues.
+ *
+ * A transfer crosses organizations. Two schools of one organization are two
+ * campuses, and moving between them keeps a single enrollment, which is what
+ * `MoveEnrollmentBetweenCampuses` does.
  */
 class TransferEnrollment
 {
@@ -26,13 +31,14 @@ class TransferEnrollment
         private ChangeEnrollmentStatus $changeStatus,
         private ChangeEnrollmentPlacement $changePlacement,
         private StudentService $studentService,
+        private GrantSchoolMembership $grantSchoolMembership,
         private RecordAuditEvent $auditor,
     ) {}
 
     /**
      * Transfer the enrollment to the destination school.
      *
-     * @throws InvalidValueException when the destination is the same school
+     * @throws InvalidValueException when the destination is the same school or another campus of the same organization
      */
     public function transfer(
         StudentRecord $enrollment,
@@ -43,6 +49,10 @@ class TransferEnrollment
     ): StudentRecord {
         if ($enrollment->school_id === $destination->id) {
             throw new InvalidValueException('The student is already enrolled in that school.');
+        }
+
+        if ($enrollment->school->organization_id === $destination->organization_id) {
+            throw new InvalidValueException('Both schools are campuses of one organization. Move the enrollment between campuses instead.');
         }
 
         if ($enrollment->status->isClosed() && $enrollment->status !== EnrollmentStatus::Transferred) {
@@ -66,8 +76,13 @@ class TransferEnrollment
                 'admission_date' => now()->toDateString(),
             ]);
 
+            // The person needs access to the school they now attend.
+            $this->grantSchoolMembership->grant($transferred->user, $destination);
+
             if ($academicCycleSection !== null) {
-                $this->changePlacement->place(
+                // The action works on its own locked copy, so take the record
+                // it returns; the one created above still has no placement.
+                $transferred = $this->changePlacement->place(
                     enrollment: $transferred,
                     academicCycleSection: $academicCycleSection,
                     actor: $actor,

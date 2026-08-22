@@ -23,7 +23,7 @@ class AttendanceRegisterController extends Controller
         $sections = AcademicCycleSection::query()->inSchool()->with('academicLevel:id,name,label')->orderBy('name')->get();
         $section = $sectionId === 0 ? null : $sections->firstWhere('id', $sectionId);
         $students = $section === null ? collect() : $section->currentEnrollments()->attending()->with('user:id,name')->orderBy('admission_number')->get();
-        $records = $students->isEmpty() ? collect() : AttendanceRecord::query()->onDate($date)->whereIn('student_record_id', $students->modelKeys())->get()->keyBy('student_record_id');
+        $records = $students->isEmpty() ? collect() : AttendanceRecord::query()->onDate($date)->whereIn('student_record_id', $students->pluck('id')->all())->get()->keyBy('student_record_id');
 
         return view('pages.attendance.register', compact('sections', 'section', 'students', 'records', 'date'));
     }

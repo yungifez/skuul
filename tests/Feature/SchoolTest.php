@@ -222,7 +222,7 @@ class SchoolTest extends TestCase
 
     public function test_platform_admin_can_set_the_working_school()
     {
-        $user = User::where('email', 'super@admin.com')->first();
+        $user = User::where('email', 'super@example.com')->first();
         // since factory produces random password, it had to be changed
         $user->password = Hash::make('random-password-lolololololol');
         $user->save();

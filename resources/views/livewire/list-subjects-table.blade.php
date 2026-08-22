@@ -7,12 +7,12 @@
         <livewire:datatable
             unique-id="subject-catalog-table"
             :model="App\Models\Subject::class"
-            :filters="[['name' => 'inSchool'], ['name' => 'with', 'arguments' => ['teachers']], ['name' => 'orderBy', 'arguments' => ['name']]]"
+            :filters="[['name' => 'inSchool'], ['name' => 'with', 'arguments' => ['courseOfferings']], ['name' => 'orderBy', 'arguments' => ['name']]]"
             :empty-state="['heading' => 'No subjects yet', 'description' => 'Add a subject to the school catalog, then create an offering when it will be taught.', 'action' => ['href' => route('subjects.create'), 'ability' => 'create', 'arguments' => [\App\Models\Subject::class], 'label' => 'Add subject']]"
             :columns="[
                 ['property' => 'name'],
                 ['property' => 'short_name', 'name' => 'Short name'],
-                ['name' => 'Teachers assigned', 'method' => 'count', 'relation' => 'teachers'],
+                ['name' => 'Course offerings', 'method' => 'count', 'relation' => 'courseOfferings'],
                 ['type' => 'dropdown', 'name' => 'Actions', 'links' => [
                     ['href' => 'subjects.edit', 'text' => 'Edit', 'icon' => 'settings'],
                 ]],

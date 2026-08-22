@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\Academic\ChangeAcademicPeriodStatus;
 use App\Actions\Enrollment\ChangeEnrollmentPlacement;
 use App\Actions\Enrollment\ChangeEnrollmentStatus;
+use App\Actions\Enrollment\MoveEnrollmentBetweenCampuses;
 use App\Actions\Enrollment\TransferEnrollment;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
@@ -15,6 +16,7 @@ use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
 use App\Models\EnrollmentPlacement;
+use App\Models\Organization;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Traits\FeatureTestTrait;
@@ -188,6 +190,125 @@ class EnrollmentPlacementTest extends TestCase
 
         $this->assertSame(1, $source->fresh()->placements()->count());
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::EnrollmentTransferred)->first());
+    }
+
+    public function test_a_move_between_campuses_keeps_one_enrollment(): void
+    {
+        $source = $this->workingSchool();
+        $sibling = $this->siblingCampusOf($source);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        $actor = $this->memberOf($source);
+        $destinationSection = $this->cycleSection($sibling);
+        $admissionNumber = $enrollment->admission_number;
+
+        $moved = app(MoveEnrollmentBetweenCampuses::class)
+            ->move($enrollment, $destinationSection, $actor, 'Family moved across town');
+
+        $this->assertSame($enrollment->id, $moved->id);
+        $this->assertSame(1, StudentRecord::query()->where('user_id', $enrollment->user_id)->count());
+        $this->assertSame($sibling->id, $moved->school_id);
+        $this->assertSame($destinationSection->id, $moved->academic_cycle_section_id);
+        $this->assertSame(EnrollmentStatus::Active, $moved->status);
+        $this->assertSame($admissionNumber, $moved->admission_number);
+        $this->assertNull($moved->transferred_from_id);
+    }
+
+    public function test_a_move_between_campuses_keeps_the_placement_history(): void
+    {
+        $source = $this->workingSchool();
+        $sibling = $this->siblingCampusOf($source);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        $this->placementFor($enrollment);
+
+        app(MoveEnrollmentBetweenCampuses::class)
+            ->move($enrollment, $this->cycleSection($sibling), reason: 'Campus move');
+
+        $this->assertSame(2, $enrollment->fresh()->placements()->count());
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::EnrollmentCampusChanged)->first());
+    }
+
+    public function test_a_move_between_campuses_gives_access_to_the_new_campus(): void
+    {
+        $source = $this->workingSchool();
+        $sibling = $this->siblingCampusOf($source);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($sibling));
+
+        $this->assertTrue(
+            $enrollment->user->fresh()->schoolMemberships()->where('school_id', $sibling->id)->exists(),
+            'The student must be able to work in the campus they moved to.'
+        );
+    }
+
+    public function test_a_move_to_another_organization_is_refused(): void
+    {
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $stranger = School::factory()->create();
+
+        $this->expectException(InvalidValueException::class);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($stranger));
+    }
+
+    public function test_a_move_to_the_same_campus_is_refused(): void
+    {
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+
+        $this->expectException(InvalidValueException::class);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($this->workingSchool()));
+    }
+
+    public function test_a_closed_enrollment_cannot_move_campus(): void
+    {
+        $source = $this->workingSchool();
+        $sibling = $this->siblingCampusOf($source);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        app(ChangeEnrollmentStatus::class)->graduate($enrollment);
+
+        $this->expectException(InvalidValueException::class);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment->fresh(), $this->cycleSection($sibling));
+    }
+
+    public function test_two_campuses_of_one_organization_cannot_be_transferred_between(): void
+    {
+        $source = $this->workingSchool();
+        $sibling = $this->siblingCampusOf($source);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+
+        $this->expectException(InvalidValueException::class);
+
+        app(TransferEnrollment::class)->transfer($enrollment, $sibling);
+    }
+
+    public function test_a_transfer_gives_access_to_the_destination_school(): void
+    {
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $destination = School::factory()->create();
+
+        $transferred = app(TransferEnrollment::class)->transfer($enrollment, $destination);
+
+        $this->assertTrue(
+            $transferred->user->fresh()->schoolMemberships()->where('school_id', $destination->id)->exists(),
+            'A transferred student must be able to work in the destination school.'
+        );
+    }
+
+    /**
+     * Make a second campus that shares the organization of the given school.
+     */
+    private function siblingCampusOf(School $school): School
+    {
+        $organization = $school->organization ?? Organization::factory()->create();
+
+        if ($school->organization_id !== $organization->id) {
+            $school->organization_id = $organization->id;
+            $school->save();
+        }
+
+        return School::factory()->create(['organization_id' => $organization->id]);
     }
 
     private function placementFor(StudentRecord $enrollment): EnrollmentPlacement

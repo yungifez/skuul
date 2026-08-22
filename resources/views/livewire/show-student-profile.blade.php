@@ -110,6 +110,65 @@
                                 Save placement
                             </april:button>
                         </form>
+
+                        @if ($campusCycleSections !== [])
+                            <form wire:submit="moveCampus" class="space-y-4">
+                                <div>
+                                    <h3 class="font-semibold">Move to another campus</h3>
+                                    <p class="text-sm text-muted-foreground">Campuses of one organization share a student. The enrollment, the admission number, and the placement history move with them. Use a transfer only for another organization.</p>
+                                    @if ($movesCampusFreely)
+                                        <p class="mt-1 text-sm text-muted-foreground">You hold organization authority, so this move happens straight away.</p>
+                                    @else
+                                        <p class="mt-1 text-sm text-muted-foreground">The receiving campus has to agree. Your request waits for their decision.</p>
+                                    @endif
+                                </div>
+
+                                @if ($openCampusMoveRequest)
+                                    <april:alert>
+                                        <slot:title>A move is waiting for a decision</slot:title>
+                                        <slot:description>
+                                            {{ $openCampusMoveRequest->toSchool->name }} was asked to take this student
+                                            @if ($openCampusMoveRequest->academicCycleSection)
+                                                into {{ $openCampusMoveRequest->academicCycleSection->label ?? $openCampusMoveRequest->academicCycleSection->name }}
+                                            @endif
+                                            on {{ $openCampusMoveRequest->effective_on?->format('M j, Y') }}.
+                                        </slot:description>
+                                    </april:alert>
+                                    <april:button type="button" variant="destructive" wire:click="cancelCampusMove" wire:loading.attr="disabled" wire:target="cancelCampusMove">
+                                        <x-lucide-undo-2 class="mr-2 size-4" />
+                                        Take the request back
+                                    </april:button>
+                                @endif
+
+                                @if (!$openCampusMoveRequest)
+                                <div class="flex flex-col gap-2">
+                                    <april:label for="campus-cycle-section">Campus and {{ school_term('section', 'home section') }}</april:label>
+                                    <select id="campus-cycle-section" wire:model.live="campusCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ $studentRecord->status->isClosed() ? 'disabled' : '' }}>
+                                        <option value="">Choose a campus {{ school_term('section', 'home section') }}</option>
+                                        @foreach ($campusCycleSections as $campusCycleSection)
+                                            <option value="{{ $campusCycleSection['id'] }}">{{ $campusCycleSection['campus'] }} · {{ $campusCycleSection['level'] }} · {{ $campusCycleSection['name'] }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('campusCycleSectionId')
+                                        <p class="text-sm text-destructive">{{ $message }}</p>
+                                    @enderror
+                                </div>
+
+                                <div class="grid gap-4 sm:grid-cols-2">
+                                    <april:input-group id="campus-effective-on" type="date" label="Effective on" wire:model.live="campusEffectiveOn" />
+                                    <div class="flex flex-col gap-2">
+                                        <april:label for="campus-reason">Reason</april:label>
+                                        <april:textarea id="campus-reason" wire:model.live="campusReason" rows="2" placeholder="Optional reason" />
+                                    </div>
+                                </div>
+
+                                <april:button type="submit" wire:loading.attr="disabled" wire:target="moveCampus" :disabled="$studentRecord->status->isClosed()">
+                                    <x-lucide-building-2 class="mr-2 size-4" />
+                                    {{ $movesCampusFreely ? 'Move campus' : 'Ask the other campus' }}
+                                </april:button>
+                                @endif
+                            </form>
+                        @endif
                     </div>
                 @endif
             </slot:content>

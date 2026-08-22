@@ -7,7 +7,6 @@ use App\Http\Controllers\AcademicPeriodController;
 use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CalendarTemplateController;
-use App\Http\Controllers\ClassGroupController;
 use App\Http\Controllers\CourseOfferingController;
 use App\Http\Controllers\CustomTimetableItemController;
 use App\Http\Controllers\ExamController;
@@ -19,7 +18,6 @@ use App\Http\Controllers\FeeInvoiceRecordController;
 use App\Http\Controllers\GradebookController;
 use App\Http\Controllers\GradingScaleController;
 use App\Http\Controllers\HealthController;
-use App\Http\Controllers\MyClassController;
 use App\Http\Controllers\NoticeAttachmentController;
 use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\NoticeNotificationPreferenceController;
@@ -27,7 +25,6 @@ use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\OrganizationDashboardController;
 use App\Http\Controllers\ParentController;
 use App\Http\Controllers\SchoolController;
-use App\Http\Controllers\SectionController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\SyllabusController;
@@ -108,17 +105,8 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             return view('dashboard');
         })->name('dashboard')->withoutMiddleware(['App\Http\Middleware\PreventGraduatedStudent']);
 
-        // class routes
-        Route::resource('classes', MyClassController::class);
-
-        // class groups routes
-        Route::resource('class-groups', ClassGroupController::class);
-
-        // sections routes
-        Route::resource('sections', SectionController::class);
-
-        // New curriculum structure. These records are cycle-specific and do
-        // not replace existing student placement or section history yet.
+        // Academic structure. Levels are reusable; cycle sections belong to
+        // one academic cycle and one level.
         Route::resource('academic-levels', AcademicLevelController::class)
             ->parameters(['academic-levels' => 'academicLevel'])
             ->only(['index', 'create', 'store', 'show', 'edit', 'update']);
@@ -175,6 +163,9 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::post('students/promote', ['App\Http\Controllers\PromotionController', 'promote']);
             Route::get('students/promotions/{promotion}', ['App\Http\Controllers\PromotionController', 'show'])->name('students.promotions.show');
             Route::delete('students/promotions/{promotion}/reset', ['App\Http\Controllers\PromotionController', 'resetPromotion'])->name('students.promotions.reset');
+
+            // campus move routes. A campus decides the moves arriving at it.
+            Route::get('students/campus-moves', ['App\Http\Controllers\CampusMoveRequestController', 'index'])->name('campus-moves.index');
 
             // graduation routes
             Route::get('students/graduations', ['App\Http\Controllers\GraduationController', 'index'])->name('students.graduations');

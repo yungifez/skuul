@@ -7,7 +7,6 @@ use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
-use App\Models\ClassGroup;
 use App\Models\CourseOffering;
 use App\Models\CustomTimetableItem;
 use App\Models\Exam;
@@ -15,11 +14,9 @@ use App\Models\ExamSlot;
 use App\Models\Fee;
 use App\Models\FeeCategory;
 use App\Models\FeeInvoice;
-use App\Models\MyClass;
 use App\Models\Notice;
 use App\Models\Promotion;
 use App\Models\School;
-use App\Models\Section;
 use App\Models\StudentRecord;
 use App\Models\Subject;
 use App\Models\Syllabus;
@@ -68,9 +65,6 @@ class CrossSchoolAccessTest extends TestCase
     {
         return [
             'academic year' => ['academicYear', 'dashboard/academic-years/%d', ['academic year']],
-            'class group' => ['classGroup', 'dashboard/class-groups/%d', ['class group']],
-            'class' => ['myClass', 'dashboard/classes/%d', ['class']],
-            'section' => ['section', 'dashboard/sections/%d', ['section']],
             'academic period' => ['academicPeriod', 'dashboard/academic-periods/%d', ['academic period']],
             'subject' => ['subject', 'dashboard/subjects/%d', ['subject']],
             'syllabus' => ['syllabus', 'dashboard/syllabi/%d', ['syllabus']],
@@ -131,6 +125,35 @@ class CrossSchoolAccessTest extends TestCase
             $this->records[$key]->getTable(),
             ['id' => $this->records[$key]->id]
         );
+    }
+
+    /**
+     * The academic structure replaces classes and sections, so it stays covered.
+     *
+     * Neither resource offers a delete route, so only read, edit, and update
+     * are checked here instead of through the shared data provider.
+     *
+     * @return array<string, array{0: string, 1: string, 2: array<int, string>}>
+     */
+    public static function academicStructureResources(): array
+    {
+        return [
+            'academic level' => ['academicLevel', 'dashboard/academic-levels/%d', ['class']],
+            'academic cycle section' => ['cycleSection', 'dashboard/academic-cycle-sections/%d', ['section']],
+        ];
+    }
+
+    /**
+     * @param  array<int, string>  $subjects
+     */
+    #[DataProvider('academicStructureResources')]
+    public function test_an_academic_structure_record_of_another_school_is_out_of_reach(string $key, string $uri, array $subjects): void
+    {
+        $actor = $this->actAsFullyPermittedUser($subjects);
+
+        $actor->get($this->uriFor($uri, $key))->assertForbidden();
+        $actor->get($this->uriFor($uri, $key).'/edit')->assertForbidden();
+        $actor->put($this->uriFor($uri, $key), [])->assertForbidden();
     }
 
     public function test_an_exam_slot_of_another_school_cannot_be_read(): void
@@ -222,9 +245,6 @@ class CrossSchoolAccessTest extends TestCase
         $home = $this->workingSchool();
         $this->otherSchool = School::factory()->create();
 
-        $classGroup = ClassGroup::factory()->create(['school_id' => $this->otherSchool->id]);
-        $myClass = MyClass::factory()->create(['class_group_id' => $classGroup->id]);
-        $section = Section::factory()->create(['my_class_id' => $myClass->id]);
         $academicYear = AcademicYear::factory()->create(['school_id' => $this->otherSchool->id]);
         $academicPeriod = AcademicPeriod::factory()->create([
             'school_id' => $this->otherSchool->id,
@@ -256,11 +276,9 @@ class CrossSchoolAccessTest extends TestCase
         $student = $this->studentOfOtherSchool($cycleSection);
 
         $this->records = [
-            'classGroup' => $classGroup,
-            'myClass' => $myClass,
-            'section' => $section,
             'academicYear' => $academicYear,
             'academicPeriod' => $academicPeriod,
+            'academicLevel' => $academicLevel,
             'cycleSection' => $cycleSection,
             'subject' => $subject,
             'exam' => $exam,

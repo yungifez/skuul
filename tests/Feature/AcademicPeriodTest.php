@@ -60,11 +60,12 @@ class AcademicPeriodTest extends TestCase
 
     // test authorized user can view create academic period
 
-    public function test_authorized_user_can_view_create_academic_period()
+    public function test_the_create_screen_sends_the_user_to_the_inline_form_on_the_index()
     {
+        // A period is created inline on the index, so there is no create page.
         $this->authorized_user(['create academic period'])
             ->get('/dashboard/academic-periods/create')
-            ->assertSuccessful();
+            ->assertRedirect(route('academic-periods.index'));
     }
 
     // test unauthorized user can not store an academic period
@@ -106,7 +107,7 @@ class AcademicPeriodTest extends TestCase
         $this->authorized_user(['update academic period'])
             ->put("/dashboard/academic-periods/$academicPeriod->id", ['name' => 'Test academic period']);
         $this->assertDatabaseHas('academic_periods', [
-            'id'   => $academicPeriod->id,
+            'id' => $academicPeriod->id,
             'name' => 'Test academic period',
         ]);
     }
@@ -148,7 +149,7 @@ class AcademicPeriodTest extends TestCase
     public function test_authorized_user_can_set_academic_period()
     {
         $academicPeriod = AcademicPeriod::factory()->create([
-            'school_id'        => current_school_id(),
+            'school_id' => current_school_id(),
             'academic_year_id' => current_school()->academic_year_id,
         ]);
         $schoolBefore = current_school()->academic_period_id;

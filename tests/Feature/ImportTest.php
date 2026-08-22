@@ -2,15 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AcademicStructureStatus;
 use App\Enums\ImportRowState;
 use App\Enums\ImportStatus;
 use App\Exceptions\InvalidValueException;
-use App\Models\ClassGroup;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
 use App\Models\ImportBatch;
 use App\Models\ImportedRecord;
-use App\Models\MyClass;
 use App\Models\School;
-use App\Models\Section;
 use App\Models\StaffProfile;
 use App\Models\StudentRecord;
 use App\Models\User;
@@ -139,12 +139,12 @@ class ImportTest extends TestCase
     public function test_a_row_that_fails_while_writing_keeps_the_others(): void
     {
         $this->authorized_user(['create import', 'apply import']);
-        [$class, $section] = $this->classAndSection();
+        [$academicLevel, $cycleSection] = $this->levelAndSection();
         $runner = app(ImportRunner::class);
 
         $batch = $runner->stage('students', [
-            $this->studentRow(['email' => 'ada.bell@gmail.com', 'class' => $class->name, 'section' => $section->name]),
-            $this->studentRow(['email' => 'grace.ola@gmail.com', 'class' => 'A class that does not exist']),
+            $this->studentRow(['email' => 'ada.bell@gmail.com', 'level' => $academicLevel->name, 'section' => $cycleSection->name]),
+            $this->studentRow(['email' => 'grace.ola@gmail.com', 'level' => 'A level that does not exist']),
         ]);
 
         $runner->apply($batch);
@@ -153,7 +153,7 @@ class ImportTest extends TestCase
         $this->assertSame(1, $this->enrollmentsOf('ada.bell@gmail.com'));
         $this->assertSame(0, $this->enrollmentsOf('grace.ola@gmail.com'));
         $this->assertStringContainsString(
-            'A class that does not exist',
+            'A level that does not exist',
             $batch->rows()->broken()->firstOrFail()->errors[0]
         );
     }
@@ -161,17 +161,16 @@ class ImportTest extends TestCase
     public function test_a_student_import_places_the_student(): void
     {
         $this->authorized_user(['create import', 'apply import']);
-        [$class, $section] = $this->classAndSection();
+        [$academicLevel, $cycleSection] = $this->levelAndSection();
         $runner = app(ImportRunner::class);
 
         $runner->apply($runner->stage('students', [
-            $this->studentRow(['email' => 'ada.bell@gmail.com', 'class' => $class->name, 'section' => $section->name]),
+            $this->studentRow(['email' => 'ada.bell@gmail.com', 'level' => $academicLevel->name, 'section' => $cycleSection->name]),
         ]));
 
         $enrollment = $this->enrollmentOf('ada.bell@gmail.com');
 
-        $this->assertSame($class->id, $enrollment->my_class_id);
-        $this->assertSame($section->id, $enrollment->section_id);
+        $this->assertSame($cycleSection->id, $enrollment->academic_cycle_section_id);
         $this->assertSame(1, $enrollment->placements()->count());
         $this->assertTrue($enrollment->user->hasRole('student'));
     }
@@ -179,13 +178,13 @@ class ImportTest extends TestCase
     public function test_a_student_import_never_makes_a_second_enrollment(): void
     {
         $this->authorized_user(['create import', 'apply import']);
-        [$class, $section] = $this->classAndSection();
-        [$other, $otherSection] = $this->classAndSection();
+        [$academicLevel, $cycleSection] = $this->levelAndSection();
+        [$otherLevel, $otherSection] = $this->levelAndSection();
         $runner = app(ImportRunner::class);
-        $row = $this->studentRow(['source_id' => 'SIS-1', 'email' => 'ada.bell@gmail.com', 'class' => $class->name, 'section' => $section->name]);
+        $row = $this->studentRow(['source_id' => 'SIS-1', 'email' => 'ada.bell@gmail.com', 'level' => $academicLevel->name, 'section' => $cycleSection->name]);
 
         $runner->apply($runner->stage('students', [$row]));
-        $row['class'] = $other->name;
+        $row['level'] = $otherLevel->name;
         $row['section'] = $otherSection->name;
         $runner->apply($runner->stage('students', [$row]));
 
@@ -193,7 +192,7 @@ class ImportTest extends TestCase
 
         $enrollment = $this->enrollmentOf('ada.bell@gmail.com');
 
-        $this->assertSame($other->id, $enrollment->my_class_id);
+        $this->assertSame($otherSection->id, $enrollment->academic_cycle_section_id);
         $this->assertSame(2, $enrollment->placements()->count());
     }
 
@@ -267,59 +266,62 @@ class ImportTest extends TestCase
     /**
      * Build one row of a staff file.
      *
-     * @param array<string, mixed> $values
-     *
+     * @param  array<string, mixed>  $values
      * @return array<string, mixed>
      */
     private function staffRow(array $values = []): array
     {
         return $values + [
-            'source_id'       => null,
-            'name'            => 'Ada Bell',
-            'email'           => 'ada.bell@gmail.com',
-            'birthday'        => '1990-04-01',
-            'gender'          => 'female',
-            'staff_number'    => null,
-            'job_title'       => 'Teacher',
-            'department'      => 'Science',
+            'source_id' => null,
+            'name' => 'Ada Bell',
+            'email' => 'ada.bell@gmail.com',
+            'birthday' => '1990-04-01',
+            'gender' => 'female',
+            'staff_number' => null,
+            'job_title' => 'Teacher',
+            'department' => 'Science',
             'employment_type' => 'full_time',
-            'joined_on'       => '2024-09-01',
+            'joined_on' => '2024-09-01',
         ];
     }
 
     /**
      * Build one row of a student file.
      *
-     * @param array<string, mixed> $values
-     *
+     * @param  array<string, mixed>  $values
      * @return array<string, mixed>
      */
     private function studentRow(array $values = []): array
     {
         return $values + [
-            'source_id'        => null,
-            'name'             => 'Ada Bell',
-            'email'            => 'ada.bell@gmail.com',
-            'birthday'         => '2012-04-01',
-            'gender'           => 'female',
-            'class'            => 'Class one',
-            'section'          => 'Section one',
+            'source_id' => null,
+            'name' => 'Ada Bell',
+            'email' => 'ada.bell@gmail.com',
+            'birthday' => '2012-04-01',
+            'gender' => 'female',
+            'level' => 'Level one',
+            'section' => 'Section one',
             'admission_number' => null,
-            'admission_date'   => '2024-09-01',
+            'admission_date' => '2024-09-01',
         ];
     }
 
     /**
-     * Make a class with one section in the working school.
+     * Make an academic level with one active cycle section in the working school.
      *
-     * @return array{0: MyClass, 1: Section}
+     * @return array{0: AcademicLevel, 1: AcademicCycleSection}
      */
-    private function classAndSection(): array
+    private function levelAndSection(): array
     {
-        $classGroup = ClassGroup::factory()->create(['school_id' => $this->workingSchool()->id]);
-        $class = MyClass::factory()->create(['class_group_id' => $classGroup->id]);
-        $section = Section::factory()->create(['my_class_id' => $class->id]);
+        $school = $this->workingSchool();
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
+        $academicCycleSection = AcademicCycleSection::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_level_id' => $academicLevel->id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
 
-        return [$class, $section];
+        return [$academicLevel, $academicCycleSection];
     }
 }

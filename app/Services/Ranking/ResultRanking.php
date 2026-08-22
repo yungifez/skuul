@@ -4,9 +4,9 @@ namespace App\Services\Ranking;
 
 use App\Enums\Feature;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
 use App\Models\Cohort;
 use App\Models\CourseOffering;
-use App\Models\MyClass;
 use App\Models\ResultSnapshot;
 use App\Models\StudentRecord;
 use Illuminate\Support\Collection;
@@ -33,15 +33,15 @@ class ResultRanking
     }
 
     /**
-     * Rank everybody in a class.
+     * Rank everybody placed in one cycle section.
      *
      * @return Collection<int, array{student_record_id: int, average: float, subjects: int, position: int}>
      */
-    public function forClass(MyClass $class, ?int $academicYearId = null, ?int $academicPeriodId = null, ?CourseOffering $courseOffering = null): Collection
+    public function forCycleSection(AcademicCycleSection $cycleSection, ?int $academicYearId = null, ?int $academicPeriodId = null, ?CourseOffering $courseOffering = null): Collection
     {
         $enrollmentIds = StudentRecord::query()
             ->inSchool()
-            ->where('my_class_id', $class->id)
+            ->where('academic_cycle_section_id', $cycleSection->id)
             ->pluck('id');
 
         return $this->rank($enrollmentIds->all(), $academicYearId, $academicPeriodId, $courseOffering);

@@ -14,6 +14,15 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class AcademicCycleSectionFactory extends Factory
 {
     /**
+     * Counts the names handed out, so no two sections of one level collide.
+     *
+     * A cycle keeps one section of each name inside a level, and the database
+     * enforces it. Faker's colour list is short enough to repeat, so the count
+     * makes each generated name its own.
+     */
+    private static int $nameSequence = 0;
+
+    /**
      * @return array<string, mixed>
      */
     public function definition(): array
@@ -31,7 +40,7 @@ class AcademicCycleSectionFactory extends Factory
             'school_id' => $school->id,
             'academic_year_id' => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
-            'name' => fake()->unique()->colorName(),
+            'name' => fake()->colorName().' '.++self::$nameSequence,
             'stream' => fake()->randomElement(['Morning', 'Afternoon', null]),
             'capacity' => fake()->numberBetween(15, 60),
             'position' => fake()->numberBetween(1, 10),

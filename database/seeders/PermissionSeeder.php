@@ -195,6 +195,15 @@ class PermissionSeeder extends Seeder
             'name' => 'reset promotion',
         ]);
 
+        // Permissions for moving a student to another campus. A campus
+        // administrator asks; the receiving campus decides.
+        Permission::firstOrCreate([
+            'name' => 'request campus move',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'approve campus move',
+        ]);
+
         // permission for graduation
         Permission::firstOrCreate([
             'name' => 'graduate student',
@@ -661,6 +670,8 @@ class PermissionSeeder extends Seeder
             'promote student',
             'read promotion',
             'reset promotion',
+            'request campus move',
+            'approve campus move',
             'graduate student',
             'view graduations',
             'reset graduation',
