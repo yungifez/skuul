@@ -1,18 +1,24 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-    ['href'=> route('academic-periods.index'), 'text'=> 'AcademicPeriods', 'active'],
+    ['href'=> route('academic-periods.index'), 'text'=> school_terms('period', 'Academic periods'), 'active'],
 ]])
 
-@section('title', __('AcademicPeriods'))
+@section('title', school_terms('period', 'Academic periods'))
 
-@section('page_heading',  __('AcademicPeriods'))
-
-@section('page_actions')
-    <x-resource-create-action :href="route('academic-periods.create')" ability="create" :arguments="[\App\Models\AcademicPeriod::class]">Add academic period</x-resource-create-action>
-@endsection
+@section('page_heading', school_terms('period', 'Academic periods'))
 
 @section('content')
-    @livewire('set-academic-period')
+    <div class="space-y-6">
+        <april:card>
+            <slot:title>Working {{ school_term('period', 'academic period') }}</slot:title>
+            <slot:description>Select the period staff are working in. This does not change historical records.</slot:description>
+            <slot:content>@livewire('set-academic-period')</slot:content>
+        </april:card>
 
-    @livewire('list-academic-periods-table')
+        @can('create', \App\Models\AcademicPeriod::class)
+            @livewire('create-academic-period-form')
+        @endcan
+
+        @livewire('list-academic-periods-table')
+    </div>
 @endsection

@@ -33,9 +33,9 @@ class AcademicPeriodController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create(): View
+    public function create(): RedirectResponse
     {
-        return view('pages.academic-period.create');
+        return to_route('academic-periods.index');
     }
 
     /**
@@ -43,8 +43,7 @@ class AcademicPeriodController extends Controller
      */
     public function store(AcademicPeriodStoreRequest $request): RedirectResponse
     {
-        $data = $request->except(['_token']);
-        $this->academicPeriod->createAcademicPeriod($data);
+        $this->academicPeriod->createAcademicPeriod($request->validated());
 
         return back()->with('success', 'Successfully created academic period');
     }
@@ -70,8 +69,7 @@ class AcademicPeriodController extends Controller
      */
     public function update(AcademicPeriodStoreRequest $request, AcademicPeriod $academicPeriod): RedirectResponse
     {
-        $data = $request->except('_token', '_method');
-        $this->academicPeriod->updateAcademicPeriod($academicPeriod, $data);
+        $this->academicPeriod->updateAcademicPeriod($academicPeriod, $request->validated());
 
         return back()->with('success', 'Successfully updated academic period');
     }
@@ -95,7 +93,7 @@ class AcademicPeriodController extends Controller
 
         $this->changeAcademicPeriodStatus->close($academicPeriod, $request->user(), $request->validated('reason'), $request->boolean('force'));
 
-        return back()->with('success', 'AcademicPeriod closed successfully');
+        return back()->with('success', 'Academic period closed successfully');
     }
 
     /**
@@ -107,7 +105,7 @@ class AcademicPeriodController extends Controller
 
         $this->changeAcademicPeriodStatus->reopen($academicPeriod, $request->user(), $request->validated('reason'));
 
-        return back()->with('success', 'AcademicPeriod reopened successfully');
+        return back()->with('success', 'Academic period reopened successfully');
     }
 
     /**

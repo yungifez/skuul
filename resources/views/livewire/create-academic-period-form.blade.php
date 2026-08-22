@@ -1,33 +1,27 @@
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">Create academicPeriod in session {{current_academic_year()->name}}</h3>
-    </div>
-    <div class="card-body">
-        <form action="{{route('academic-periods.store')}}" method="POST" class="md:w-1/2">
+<april:card>
+    <slot:title>Add a {{ school_term('period', 'period') }}</slot:title>
+    <slot:description>Create the next term, semester, break, exam window, or reporting period in {{ current_academic_year()?->name ?? 'the selected academic cycle' }}.</slot:description>
+    <slot:content>
+        <form action="{{ route('academic-periods.store') }}" method="POST" class="max-w-2xl space-y-4">
             <x-display-validation-errors/>
-            <april:input-group id="name" name="name" label="AcademicPeriod Name" placeholder="Enter academic period name" />
+            <april:input-group id="name" name="name" label="Period name" placeholder="For example, Term 1 or Rainy Session" value="{{ old('name') }}" />
             <div class="grid gap-4 md:grid-cols-2">
                 <april:input-group id="starts-on" name="starts_on" type="date" label="Starts on" />
                 <april:input-group id="ends-on" name="ends_on" type="date" label="Ends on" />
             </div>
             <div class="flex w-full flex-col gap-2">
                 <april:label for="type">Period type</april:label>
-                <april:select id="type" name="type">
-                <option value="academicPeriod">AcademicPeriod</option>
-                <option value="term">Term</option>
-
-                </april:select>
+                <select id="type" name="type" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                    @foreach (\App\Enums\AcademicPeriodType::cases() as $type)
+                        <option value="{{ $type->value }}" {{ old('type', \App\Enums\AcademicPeriodType::Term->value) === $type->value ? 'selected' : '' }}>{{ $type->label() }}</option>
+                    @endforeach
+                </select>
                 @error('type')
                     <p class="text-sm text-destructive">{{ $message }}</p>
                 @enderror
             </div>
             @csrf
-            <div class='col-12 my-2'>
-                <april:button type="submit" class="w-full md:w-1/2">
-                    <x-lucide-key class="mr-2 size-4" />
-                    Create
-                </april:button>
-            </div>
+            <april:button type="submit">Add {{ school_term('period', 'period') }}</april:button>
         </form>
-    </div>
-</div>
+    </slot:content>
+</april:card>

@@ -1,11 +1,10 @@
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title">AcademicPeriod List for {{current_academic_year()->name}}</h4>
-    </div>
-    <div class="card-body">
+<april:card>
+    <slot:title>{{ school_terms('period', 'Academic periods') }} for {{ current_academic_year()?->name ?? 'the selected academic cycle' }}</slot:title>
+    <slot:description>Open periods accept routine work. Closing and closed periods protect the school’s history.</slot:description>
+    <slot:content>
         <livewire:datatable :model="App\Models\AcademicPeriod::class"
         :filters="[
-            ['name' => 'where' , 'arguments' => ['academic_year_id' , current_academic_year()->id]]
+            ['name' => 'where' , 'arguments' => ['academic_year_id' , current_academic_year_id()]]
         ]"
         :columns="[
             ['property' => 'name'],
@@ -17,5 +16,5 @@
             ]],
             ['type' => 'delete', 'name' => 'Delete', 'action' => 'academic-periods.destroy',]
         ]" />
-    </div>
-</div>
+    </slot:content>
+</april:card>
