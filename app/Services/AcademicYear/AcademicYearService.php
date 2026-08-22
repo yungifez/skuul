@@ -30,7 +30,7 @@ class AcademicYearService
     /**
      * Get academic year by Id.
      *
-     * @param int $id
+     * @param  int  $id
      */
     public function getAcademicYearById($id): AcademicYear
     {
@@ -40,7 +40,7 @@ class AcademicYearService
     /**
      * Create academic year.
      *
-     * @param array|Collection $records
+     * @param  array|Collection  $records
      */
     public function createAcademicYear($records): AcademicYear
     {
@@ -53,7 +53,7 @@ class AcademicYearService
     /**
      * Update Academic Year.
      *
-     * @param array|Collection $records
+     * @param  array|Collection  $records
      */
     public function updateAcademicYear(AcademicYear $academicYear, $records): AcademicYear
     {
@@ -80,7 +80,7 @@ class AcademicYearService
      * The choice belongs to the request, not to the school record. A school
      * still keeps a default year for people who have not chosen one.
      *
-     * @param int $academicYearId
+     * @param  int  $academicYearId
      *
      * @throws InvalidValueException when the year belongs to another school
      */
@@ -94,14 +94,14 @@ class AcademicYearService
 
         academic_period_context()->setAcademicYear($academicYear);
 
-        // A year always opens on a semester, so make the first one if it has none.
-        $semester = $academicYear->semesters()->orderBy('id')->first()
-            ?? $academicYear->semesters()->create([
-                'name'      => 'First',
+        // A year always opens on an academic period, so make the first one if it has none.
+        $academicPeriod = $academicYear->academicPeriods()->orderBy('id')->first()
+            ?? $academicYear->academicPeriods()->create([
+                'name' => 'First',
                 'school_id' => $academicYear->school_id,
             ]);
 
-        academic_period_context()->setSemester($semester);
+        academic_period_context()->setAcademicPeriod($academicPeriod);
 
         return true;
     }
@@ -113,7 +113,7 @@ class AcademicYearService
     {
         $school = $this->schoolService->getSchoolById($academicYear->school_id);
         $school->academic_year_id = $academicYear->id;
-        $school->semester_id = $academicYear->semesters()->orderBy('id')->first()?->id;
+        $school->academic_period_id = $academicYear->academicPeriods()->orderBy('id')->first()?->id;
 
         return $school->save();
     }

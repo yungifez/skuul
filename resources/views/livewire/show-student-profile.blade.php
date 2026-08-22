@@ -73,8 +73,8 @@
                             @if ($academicYear)
                                 <p class="rounded-md border bg-muted/30 px-3 py-2 text-sm">
                                     Working academic year: <span class="font-medium">{{ $academicYear->name }}</span>
-                                    @if ($semester)
-                                        <span class="text-muted-foreground">· {{ $semester->name }}</span>
+                                    @if ($academicPeriod)
+                                        <span class="text-muted-foreground">· {{ $academicPeriod->name }}</span>
                                     @endif
                                 </p>
                             @else
@@ -182,7 +182,7 @@
                                 <tbody class="divide-y">
                                     @foreach ($studentRecord->placements->sortByDesc('effective_on') as $placement)
                                         <tr wire:key="enrollment-placement-{{ $placement->id }}">
-                                            <td class="px-2 py-3">{{ $placement->academicYear?->name ?: '—' }}<span class="block text-xs text-muted-foreground">{{ $placement->semester?->name }}</span></td>
+                                            <td class="px-2 py-3">{{ $placement->academicYear?->name ?: '—' }}<span class="block text-xs text-muted-foreground">{{ $placement->academicPeriod?->name }}</span></td>
                                             <td class="px-2 py-3">{{ $placement->myClass?->name ?: '—' }}<span class="block text-xs text-muted-foreground">{{ $placement->section?->name ?: 'No section' }}</span></td>
                                             <td class="whitespace-nowrap px-2 py-3">{{ $placement->effective_on?->format('M j, Y') }}</td>
                                         </tr>

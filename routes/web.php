@@ -1,5 +1,9 @@
 <?php
 
+use App\Http\Controllers\AcademicCycleController;
+use App\Http\Controllers\AcademicCycleSectionController;
+use App\Http\Controllers\AcademicLevelController;
+use App\Http\Controllers\CalendarTemplateController;
 use App\Http\Controllers\HealthController;
 use Illuminate\Support\Facades\Route;
 
@@ -40,6 +44,12 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::get('organizations/{organization}/members', ['App\Http\Controllers\OrganizationMemberController', 'index'])->name('organizations.members.index');
     Route::resource('organizations', OrganizationController::class)->except('destroy');
     Route::get('organizations/{organization}/dashboard', OrganizationDashboardController::class)->name('organizations.dashboard');
+    Route::resource('organizations.calendar-templates', CalendarTemplateController::class)
+        ->parameters(['calendar-templates' => 'calendarTemplate'])
+        ->except(['show', 'destroy']);
+    Route::post('organizations/{organization}/calendar-templates/{calendarTemplate}/cycles', [AcademicCycleController::class, 'store'])->name('organizations.calendar-templates.cycles.store');
+    Route::post('organizations/{organization}/calendar-templates/{calendarTemplate}/campuses/{school}', [CalendarTemplateController::class, 'overrideCampus'])->name('organizations.calendar-templates.campuses.override');
+    Route::delete('organizations/{organization}/calendar-templates/{calendarTemplate}/campuses/{school}', [CalendarTemplateController::class, 'inheritCampus'])->name('organizations.calendar-templates.campuses.inherit');
 
     // manage school settings
     Route::get('schools/settings', ['App\Http\Controllers\SchoolController', 'settings'])->name('schools.settings')->middleware('App\Http\Middleware\RequireActiveSchool');
@@ -64,6 +74,26 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         // sections routes
         Route::resource('sections', SectionController::class);
 
+        // New curriculum structure. These records are cycle-specific and do
+        // not replace existing student placement or section history yet.
+        Route::resource('academic-levels', AcademicLevelController::class)
+            ->parameters(['academic-levels' => 'academicLevel'])
+            ->only(['index', 'create', 'store', 'show', 'edit', 'update']);
+        Route::put('academic-levels/{academicLevel}/status', [AcademicLevelController::class, 'changeStatus'])
+            ->name('academic-levels.status.update');
+
+        // The roll-forward review page is registered before the resource so
+        // "roll-forward" is not read as a cycle section key.
+        Route::get('academic-cycle-sections/roll-forward', [AcademicCycleSectionController::class, 'rollForwardForm'])
+            ->name('academic-cycle-sections.roll-forward.show');
+        Route::post('academic-cycle-sections/roll-forward', [AcademicCycleSectionController::class, 'rollForward'])
+            ->name('academic-cycle-sections.roll-forward');
+        Route::resource('academic-cycle-sections', AcademicCycleSectionController::class)
+            ->parameters(['academic-cycle-sections' => 'academicCycleSection'])
+            ->only(['index', 'create', 'store', 'show', 'edit', 'update']);
+        Route::put('academic-cycle-sections/{academicCycleSection}/status', [AcademicCycleSectionController::class, 'changeStatus'])
+            ->name('academic-cycle-sections.status.update');
+
         // report routes. A report reads whatever period it is given, so it
         // does not need one to be set first.
         Route::post('reports', ['App\Http\Controllers\ReportController', 'store'])->name('reports.store');
@@ -79,6 +109,10 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         });
 
         Route::middleware(['App\Http\Middleware\EnsureAcademicYearIsSet', 'App\Http\Middleware\CreateCurrentAcademicYearRecord'])->group(function () {
+            Route::resource('course-offerings', CourseOfferingController::class)->only(['index', 'create', 'store']);
+            Route::post('course-offerings/{courseOffering}/activate', ['App\Http\Controllers\CourseOfferingController', 'activate'])->name('course-offerings.activate');
+            Route::post('course-offerings/{courseOffering}/teachers', ['App\Http\Controllers\CourseOfferingController', 'assignTeacher'])->name('course-offerings.teachers.store');
+
             // promotion routes
             Route::get('students/promotions', ['App\Http\Controllers\PromotionController', 'index'])->name('students.promotions');
             Route::get('students/promote', ['App\Http\Controllers\PromotionController', 'promoteView'])->name('students.promote');
@@ -92,13 +126,14 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::post('students/graduate', ['App\Http\Controllers\GraduationController', 'graduate']);
             Route::delete('students/graduations/{student}/reset', ['App\Http\Controllers\GraduationController', 'resetGraduation'])->name('students.graduations.reset');
 
-            // semester routes
-            Route::resource('semesters', SemesterController::class);
-            Route::post('semesters/set', ['App\Http\Controllers\SemesterController', 'setSemester'])->name('semesters.set-semester');
-            Route::post('semesters/{semester}/close', ['App\Http\Controllers\SemesterController', 'close'])->name('semesters.close');
-            Route::post('semesters/{semester}/reopen', ['App\Http\Controllers\SemesterController', 'reopen'])->name('semesters.reopen');
+            // academic period routes
+            Route::resource('academic-periods', AcademicPeriodController::class)->parameters(['academic-periods' => 'academicPeriod']);
+            Route::post('academic-periods/set', ['App\Http\Controllers\AcademicPeriodController', 'setAcademicPeriod'])->name('academic-periods.set-academic-period');
+            Route::post('academic-periods/{academicPeriod}/close', ['App\Http\Controllers\AcademicPeriodController', 'close'])->name('academic-periods.close');
+            Route::post('academic-periods/{academicPeriod}/begin-closing', ['App\Http\Controllers\AcademicPeriodController', 'beginClosing'])->name('academic-periods.begin-closing');
+            Route::post('academic-periods/{academicPeriod}/reopen', ['App\Http\Controllers\AcademicPeriodController', 'reopen'])->name('academic-periods.reopen');
 
-            Route::middleware(['App\Http\Middleware\EnsureSemesterIsSet'])->group(function () {
+            Route::middleware(['App\Http\Middleware\EnsureAcademicPeriodIsSet'])->group(function () {
                 // fee categories routes
                 Route::resource('fees/fee-categories', FeeCategoryController::class);
 
@@ -143,7 +178,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 Route::get('exams/tabulation-sheet', ['App\Http\Controllers\ExamController', 'examTabulation'])->name('exams.tabulation');
 
                 // result tabulation sheet
-                Route::get('exams/semester-result-tabulation', ['App\Http\Controllers\ExamController', 'semesterResultTabulation'])->name('exams.semester-result-tabulation');
+                Route::get('exams/academic-period-result-tabulation', ['App\Http\Controllers\ExamController', 'academicPeriodResultTabulation'])->name('exams.academic-period-result-tabulation');
                 Route::get('exams/academic-year-result-tabulation', ['App\Http\Controllers\ExamController', 'academicYearResultTabulation'])->name('exams.academic-year-result-tabulation');
 
                 // result checker
@@ -178,6 +213,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::post('parents/{parent}/assign-student-to-parent', ['App\Http\Controllers\ParentController', 'assignStudent']);
 
         // account access routes
+        Route::get('users/invitations', ['App\Http\Controllers\AccountInvitationController', 'index'])->name('users.invitations.index');
         Route::post('users/{user}/account-status', ['App\Http\Controllers\AccountStatusController', 'update'])->name('users.account-status');
         Route::post('users/{user}/invitation', ['App\Http\Controllers\AccountInvitationController', 'send'])->name('users.invitation.send');
         Route::delete('users/{user}/invitation', ['App\Http\Controllers\AccountInvitationController', 'revoke'])->name('users.invitation.revoke');
@@ -186,7 +222,10 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::resource('academic-years', AcademicYearController::class);
         Route::post('academic-years/set', ['App\Http\Controllers\AcademicYearController', 'setAcademicYear'])->name('academic-years.set-academic-year');
         Route::post('academic-years/{academic_year}/close', ['App\Http\Controllers\AcademicYearController', 'close'])->name('academic-years.close');
+        Route::post('academic-years/{academic_year}/begin-closing', ['App\Http\Controllers\AcademicYearController', 'beginClosing'])->name('academic-years.begin-closing');
         Route::post('academic-years/{academic_year}/reopen', ['App\Http\Controllers\AcademicYearController', 'reopen'])->name('academic-years.reopen');
+        Route::get('academic-years/{academic_year}/instructional-model', ['App\Http\Controllers\InstructionalModelController', 'edit'])->name('academic-years.instructional-model.edit');
+        Route::put('academic-years/{academic_year}/instructional-model', ['App\Http\Controllers\InstructionalModelController', 'update'])->name('academic-years.instructional-model.update');
 
         // assign teachers to subject in class
         Route::get('subjects/assign-teacher', ['App\Http\Controllers\SubjectController', 'assignTeacherView'])->name('subjects.assign-teacher');

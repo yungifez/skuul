@@ -14,7 +14,7 @@ class AcademicYearStudentRecord extends Pivot
      */
     public $incrementing = true;
 
-    protected $fillable = ['my_class_id', 'section_id'];
+    protected $fillable = ['my_class_id', 'section_id', 'academic_cycle_section_id'];
 
     /**
      * Get the studentRecord that owns the AcademicYearStudentRecord.
@@ -38,5 +38,13 @@ class AcademicYearStudentRecord extends Pivot
     public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class, 'section_id', 'id');
+    }
+
+    /**
+     * Get the cycle section that owns the AcademicYearStudentRecord.
+     */
+    public function academicCycleSection(): BelongsTo
+    {
+        return $this->belongsTo(AcademicCycleSection::class);
     }
 }

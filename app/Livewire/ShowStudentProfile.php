@@ -122,7 +122,7 @@ class ShowStudentProfile extends Component
                 class: $class,
                 section: $section,
                 academicYear: current_academic_year(),
-                semester: current_semester(),
+                academicPeriod: current_academic_period(),
                 actor: auth()->user(),
                 reason: filled($this->placementReason) ? $this->placementReason : null,
                 effectiveOn: Carbon::parse($this->placementEffectiveOn),
@@ -142,7 +142,7 @@ class ShowStudentProfile extends Component
     {
         return view('livewire.show-student-profile', [
             'academicYear' => current_academic_year(),
-            'semester' => current_semester(),
+            'academicPeriod' => current_academic_period(),
             'canManageEnrollment' => auth()->user()->can('update', [$this->student, 'student']),
         ]);
     }
@@ -161,7 +161,7 @@ class ShowStudentProfile extends Component
                 'school',
                 'statusChanges.changedBy',
                 'placements.academicYear',
-                'placements.semester',
+                'placements.academicPeriod',
                 'placements.myClass',
                 'placements.section',
                 'placements.changedBy',

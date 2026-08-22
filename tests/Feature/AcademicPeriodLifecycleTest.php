@@ -6,13 +6,13 @@ use App\Actions\Academic\ChangeAcademicPeriodStatus;
 use App\Enums\AcademicPeriodStatus;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicPeriod;
 use App\Models\AcademicPeriodStatusChange;
 use App\Models\AcademicYear;
 use App\Models\Exam;
 use App\Models\ExamRecord;
 use App\Models\ExamSlot;
 use App\Models\School;
-use App\Models\Semester;
 use App\Models\Timetable;
 use App\Models\TimetableTimeSlot;
 use App\Traits\FeatureTestTrait;
@@ -63,24 +63,24 @@ class AcademicPeriodLifecycleTest extends TestCase
         $this->assertSame(1, $year->fresh()->statusChanges()->count());
     }
 
-    public function test_closing_a_year_closes_its_semesters(): void
+    public function test_closing_a_cycle_closes_its_periods(): void
     {
         $year = AcademicYear::factory()->create();
-        $semester = Semester::factory()->create([
-            'school_id'        => $year->school_id,
+        $academicPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $year->school_id,
             'academic_year_id' => $year->id,
         ]);
 
         app(ChangeAcademicPeriodStatus::class)->close($year);
 
-        $this->assertTrue($semester->fresh()->isClosed());
+        $this->assertTrue($academicPeriod->fresh()->isClosed());
     }
 
-    public function test_a_semester_cannot_reopen_while_its_year_is_closed(): void
+    public function test_a_period_cannot_reopen_while_its_cycle_is_closed(): void
     {
         $year = AcademicYear::factory()->create();
-        $semester = Semester::factory()->create([
-            'school_id'        => $year->school_id,
+        $academicPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $year->school_id,
             'academic_year_id' => $year->id,
         ]);
 
@@ -88,23 +88,23 @@ class AcademicPeriodLifecycleTest extends TestCase
 
         $this->expectException(InvalidValueException::class);
 
-        app(ChangeAcademicPeriodStatus::class)->reopen($semester->fresh());
+        app(ChangeAcademicPeriodStatus::class)->reopen($academicPeriod->fresh(), reason: 'Marks were entered late.');
     }
 
-    public function test_a_semester_reopens_after_its_year_reopens(): void
+    public function test_a_period_reopens_after_its_cycle_reopens(): void
     {
         $year = AcademicYear::factory()->create();
-        $semester = Semester::factory()->create([
-            'school_id'        => $year->school_id,
+        $academicPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $year->school_id,
             'academic_year_id' => $year->id,
         ]);
         $action = app(ChangeAcademicPeriodStatus::class);
 
         $action->close($year);
-        $action->reopen($year->fresh());
-        $action->reopen($semester->fresh());
+        $action->reopen($year->fresh(), reason: 'The cycle closed by mistake.');
+        $action->reopen($academicPeriod->fresh(), reason: 'Marks were entered late.');
 
-        $this->assertTrue($semester->fresh()->isOpen());
+        $this->assertTrue($academicPeriod->fresh()->isOpen());
     }
 
     public function test_period_history_cannot_be_changed(): void
@@ -119,9 +119,9 @@ class AcademicPeriodLifecycleTest extends TestCase
 
     public function test_a_record_in_a_closed_period_cannot_be_changed(): void
     {
-        $exam = Exam::factory()->create(['semester_id' => $this->openSemester()->id]);
+        $exam = Exam::factory()->create(['academic_period_id' => $this->openAcademicPeriod()->id]);
 
-        app(ChangeAcademicPeriodStatus::class)->close($exam->semester);
+        app(ChangeAcademicPeriodStatus::class)->close($exam->academicPeriod);
 
         $this->expectException(ClosedPeriodException::class);
 
@@ -130,9 +130,9 @@ class AcademicPeriodLifecycleTest extends TestCase
 
     public function test_a_record_in_a_closed_period_cannot_be_removed(): void
     {
-        $exam = Exam::factory()->create(['semester_id' => $this->openSemester()->id]);
+        $exam = Exam::factory()->create(['academic_period_id' => $this->openAcademicPeriod()->id]);
 
-        app(ChangeAcademicPeriodStatus::class)->close($exam->semester);
+        app(ChangeAcademicPeriodStatus::class)->close($exam->academicPeriod);
 
         $this->expectException(ClosedPeriodException::class);
 
@@ -141,11 +141,11 @@ class AcademicPeriodLifecycleTest extends TestCase
 
     public function test_marks_cannot_be_entered_in_a_closed_period(): void
     {
-        $semester = $this->openSemester();
-        $exam = Exam::factory()->create(['semester_id' => $semester->id]);
+        $academicPeriod = $this->openAcademicPeriod();
+        $exam = Exam::factory()->create(['academic_period_id' => $academicPeriod->id]);
         $slot = ExamSlot::factory()->create(['exam_id' => $exam->id]);
 
-        app(ChangeAcademicPeriodStatus::class)->close($semester);
+        app(ChangeAcademicPeriodStatus::class)->close($academicPeriod);
 
         $this->expectException(ClosedPeriodException::class);
 
@@ -154,11 +154,11 @@ class AcademicPeriodLifecycleTest extends TestCase
 
     public function test_exam_slots_cannot_be_changed_in_a_closed_period(): void
     {
-        $semester = $this->openSemester();
-        $exam = Exam::factory()->create(['semester_id' => $semester->id]);
+        $academicPeriod = $this->openAcademicPeriod();
+        $exam = Exam::factory()->create(['academic_period_id' => $academicPeriod->id]);
         $slot = ExamSlot::factory()->create(['exam_id' => $exam->id]);
 
-        app(ChangeAcademicPeriodStatus::class)->close($semester);
+        app(ChangeAcademicPeriodStatus::class)->close($academicPeriod);
 
         $this->expectException(ClosedPeriodException::class);
 
@@ -167,11 +167,11 @@ class AcademicPeriodLifecycleTest extends TestCase
 
     public function test_timetable_slots_cannot_be_changed_in_a_closed_period(): void
     {
-        $semester = $this->openSemester();
-        $timetable = Timetable::factory()->create(['semester_id' => $semester->id]);
+        $academicPeriod = $this->openAcademicPeriod();
+        $timetable = Timetable::factory()->create(['academic_period_id' => $academicPeriod->id]);
         $slot = TimetableTimeSlot::factory()->create(['timetable_id' => $timetable->id]);
 
-        app(ChangeAcademicPeriodStatus::class)->close($semester);
+        app(ChangeAcademicPeriodStatus::class)->close($academicPeriod);
 
         $this->expectException(ClosedPeriodException::class);
 
@@ -180,7 +180,7 @@ class AcademicPeriodLifecycleTest extends TestCase
 
     public function test_records_of_an_open_period_still_change(): void
     {
-        $exam = Exam::factory()->create(['semester_id' => $this->openSemester()->id]);
+        $exam = Exam::factory()->create(['academic_period_id' => $this->openAcademicPeriod()->id]);
 
         $exam->update(['name' => 'a new name']);
 
@@ -230,26 +230,26 @@ class AcademicPeriodLifecycleTest extends TestCase
         $this->assertTrue($year->fresh()->isOpen());
     }
 
-    public function test_authorized_user_can_close_a_semester(): void
+    public function test_authorized_user_can_close_an_academic_period(): void
     {
-        $semester = $this->openSemester();
+        $academicPeriod = $this->openAcademicPeriod();
 
         $this->authorized_user(['close academic period'])
-            ->post("dashboard/semesters/$semester->id/close")
+            ->post("dashboard/academic-periods/$academicPeriod->id/close")
             ->assertRedirect();
 
-        $this->assertTrue($semester->fresh()->isClosed());
+        $this->assertTrue($academicPeriod->fresh()->isClosed());
     }
 
     /**
-     * Get a semester of the working school that still accepts writes.
+     * Get an academic period of the working school that still accepts writes.
      */
-    private function openSemester(): Semester
+    private function openAcademicPeriod(): AcademicPeriod
     {
         $year = AcademicYear::factory()->create(['school_id' => current_school_id()]);
 
-        return Semester::factory()->create([
-            'school_id'        => current_school_id(),
+        return AcademicPeriod::factory()->create([
+            'school_id' => current_school_id(),
             'academic_year_id' => $year->id,
         ]);
     }

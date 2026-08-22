@@ -16,6 +16,14 @@ jobs:
         with:
           path: skuul
 
+      - name: Check for unresolved merge markers
+        working-directory: skuul
+        run: |
+          if git grep --line-number -E '^(<<<<<<<|=======|>>>>>>>)' -- .; then
+            echo 'Resolve all merge conflict markers before merging.'
+            exit 1
+          fi
+
       # April UI is required from a path repository beside the application.
       # Use a token with read access here if the repository becomes private.
       - name: Check out April UI
@@ -36,7 +44,7 @@ jobs:
         working-directory: skuul
         run: composer install --no-ansi --no-interaction --no-progress --prefer-dist
 
-      - name: Check code style
+      - name: Check code style (dry run)
         working-directory: skuul
         run: vendor/bin/pint --test
 

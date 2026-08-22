@@ -1,15 +1,15 @@
 <div class="card">
     <div class="card-header">
-        <h4 class="card-title">Exam list for semester {{ current_school()?->semester?->name }} </h4>
+        <h4 class="card-title">Exam list for academicPeriod {{ current_school()?->academicPeriod?->name }} </h4>
     </div>
     <div class="card-body">
         <livewire:datatable  uniqueId="list-exams-table" :model="App\Models\Exam::class"
         :filters="[
-            ['name' => 'where' , 'arguments' => ['semester_id' , current_school()?->semester?->id]]
+            ['name' => 'where' , 'arguments' => ['academic_period_id' , current_school()?->academicPeriod?->id]]
         ]"
         :columns="[
             ['property' => 'name'],
-            ['name' => 'Period', 'type' => 'academic-period-status', 'relation' => 'semester', 'route-prefix' => 'semesters'],
+            ['name' => 'Period', 'type' => 'academic-period-status', 'relation' => 'academicPeriod', 'route-prefix' => 'academic-periods'],
             ['property' => 'start_date'],
             ['property' => 'stop_date'],
             ['property' => 'active', 'type' => 'boolean-switch', 'action' => 'exams.set-active-status', 'field' => 'status', 'true-statement' => 'Active', 'false-statement' => 'Inactive',  'can' => 'update exam'],

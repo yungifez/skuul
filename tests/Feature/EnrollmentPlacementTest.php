@@ -6,9 +6,12 @@ use App\Actions\Academic\ChangeAcademicPeriodStatus;
 use App\Actions\Enrollment\ChangeEnrollmentPlacement;
 use App\Actions\Enrollment\ChangeEnrollmentStatus;
 use App\Actions\Enrollment\TransferEnrollment;
+use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
 use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
 use App\Models\ClassGroup;
@@ -43,6 +46,7 @@ class EnrollmentPlacementTest extends TestCase
         $this->assertSame($class->id, $placement->my_class_id);
         $this->assertSame($section->id, $placement->section_id);
         $this->assertSame(current_academic_year_id(), $placement->academic_year_id);
+        $this->assertNull($placement->academic_cycle_section_id);
         $this->assertSame($actor->id, $placement->changed_by);
         $this->assertSame('Admission', $placement->reason);
     }
@@ -75,6 +79,73 @@ class EnrollmentPlacementTest extends TestCase
         $action->place($enrollment, $class, $section);
 
         $this->assertSame(1, $enrollment->fresh()->placements()->count());
+    }
+
+    public function test_a_placement_can_name_its_exact_active_cycle_section(): void
+    {
+        $enrollment = StudentRecord::factory()->create();
+        [$class, $section] = $this->classAndSection($this->workingSchool());
+        $academicYear = AcademicYear::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $cycleSection = $this->cycleSection($academicYear, $class, $section);
+
+        app(ChangeEnrollmentPlacement::class)->place(
+            $enrollment,
+            $class,
+            $section,
+            academicYear: $academicYear,
+            academicCycleSection: $cycleSection,
+        );
+
+        $enrollment = $enrollment->fresh();
+        $placement = $enrollment->currentPlacement;
+        $academicYearRecord = $enrollment->academicYears()->whereKey($academicYear)->firstOrFail();
+
+        $this->assertSame($cycleSection->id, $placement->academic_cycle_section_id);
+        $this->assertSame($cycleSection->id, $enrollment->academic_cycle_section_id);
+        $this->assertSame($cycleSection->id, $academicYearRecord->studentAcademicYearBasedRecords->academic_cycle_section_id);
+
+        app(ChangeEnrollmentPlacement::class)->place($enrollment, $class, $section, academicYear: $academicYear);
+
+        $this->assertSame(1, $enrollment->fresh()->placements()->count());
+        $this->assertSame($cycleSection->id, $enrollment->fresh()->academic_cycle_section_id);
+    }
+
+    public function test_an_inactive_cycle_section_cannot_receive_a_placement(): void
+    {
+        $enrollment = StudentRecord::factory()->create();
+        [$class, $section] = $this->classAndSection($this->workingSchool());
+        $academicYear = AcademicYear::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $cycleSection = $this->cycleSection($academicYear, $class, $section);
+        $cycleSection->update(['status' => AcademicStructureStatus::Draft]);
+
+        $this->expectException(InvalidValueException::class);
+
+        app(ChangeEnrollmentPlacement::class)->place(
+            $enrollment,
+            $class,
+            $section,
+            academicYear: $academicYear,
+            academicCycleSection: $cycleSection,
+        );
+    }
+
+    public function test_a_cycle_section_requires_matching_legacy_class_and_section_bridges(): void
+    {
+        $enrollment = StudentRecord::factory()->create();
+        [$class, $section] = $this->classAndSection($this->workingSchool());
+        $otherSection = Section::factory()->create(['my_class_id' => $class->id]);
+        $academicYear = AcademicYear::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $cycleSection = $this->cycleSection($academicYear, $class, $section);
+
+        $this->expectException(InvalidValueException::class);
+
+        app(ChangeEnrollmentPlacement::class)->place(
+            $enrollment,
+            $class,
+            $otherSection,
+            academicYear: $academicYear,
+            academicCycleSection: $cycleSection,
+        );
     }
 
     public function test_a_section_outside_the_class_is_refused(): void
@@ -157,8 +228,8 @@ class EnrollmentPlacementTest extends TestCase
         $student = $enrollment->user;
 
         $second = StudentRecord::factory()->create([
-            'user_id'    => $student->id,
-            'school_id'  => $other->id,
+            'user_id' => $student->id,
+            'school_id' => $other->id,
             'is_primary' => false,
         ]);
 
@@ -177,8 +248,8 @@ class EnrollmentPlacementTest extends TestCase
         $student = $enrollment->user;
 
         $second = StudentRecord::factory()->create([
-            'user_id'    => $student->id,
-            'school_id'  => $this->workingSchool()->id,
+            'user_id' => $student->id,
+            'school_id' => $this->workingSchool()->id,
             'is_primary' => true,
         ]);
 
@@ -254,5 +325,21 @@ class EnrollmentPlacementTest extends TestCase
         app(ChangeEnrollmentPlacement::class)->place($enrollment, $class, $section);
 
         return $enrollment->fresh()->placements()->firstOrFail();
+    }
+
+    private function cycleSection(AcademicYear $academicYear, MyClass $class, Section $section): AcademicCycleSection
+    {
+        $academicLevel = AcademicLevel::factory()->create([
+            'school_id' => $academicYear->school_id,
+            'legacy_my_class_id' => $class->id,
+        ]);
+
+        return AcademicCycleSection::factory()->create([
+            'school_id' => $academicYear->school_id,
+            'academic_year_id' => $academicYear->id,
+            'academic_level_id' => $academicLevel->id,
+            'legacy_section_id' => $section->id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
     }
 }

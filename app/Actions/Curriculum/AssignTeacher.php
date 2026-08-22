@@ -7,9 +7,10 @@ use App\Enums\AuditAction;
 use App\Enums\Role;
 use App\Enums\TeachingRole;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
+use App\Models\CourseOffering;
 use App\Models\Section;
-use App\Models\Semester;
 use App\Models\Subject;
 use App\Models\TeachingAssignment;
 use App\Models\User;
@@ -26,9 +27,7 @@ use Illuminate\Support\Facades\DB;
  */
 class AssignTeacher
 {
-    public function __construct(private RecordAuditEvent $auditor)
-    {
-    }
+    public function __construct(private RecordAuditEvent $auditor) {}
 
     /**
      * Give the teacher the subject.
@@ -43,10 +42,17 @@ class AssignTeacher
         TeachingRole $role = TeachingRole::Lead,
         ?Section $section = null,
         ?AcademicYear $academicYear = null,
-        ?Semester $semester = null,
+        ?AcademicPeriod $academicPeriod = null,
         ?User $actor = null,
         ?CarbonInterface $startsOn = null,
+        ?CourseOffering $courseOffering = null,
     ): TeachingAssignment {
+        if ($courseOffering !== null) {
+            $this->failIfCourseOfferingDoesNotFit($subject, $academicYear, $academicPeriod, $courseOffering);
+            $academicYear = $courseOffering->academicYear;
+            $academicPeriod = $courseOffering->academicPeriod;
+        }
+
         $academicYear ??= current_academic_year();
 
         if ($academicYear === null) {
@@ -60,6 +66,7 @@ class AssignTeacher
             ->forTeacher($teacher)
             ->where('academic_year_id', $academicYear->id)
             ->where('section_id', $section?->id)
+            ->when($courseOffering !== null, fn ($query) => $query->where('course_offering_id', $courseOffering->id))
             ->runningOn($startsOn)
             ->first();
 
@@ -67,16 +74,17 @@ class AssignTeacher
             return $running;
         }
 
-        return DB::transaction(function () use ($subject, $teacher, $role, $section, $academicYear, $semester, $actor, $startsOn): TeachingAssignment {
+        return DB::transaction(function () use ($subject, $teacher, $role, $section, $academicYear, $academicPeriod, $actor, $startsOn, $courseOffering): TeachingAssignment {
             $assignment = TeachingAssignment::create([
-                'school_id'        => $subject->school_id,
-                'subject_id'       => $subject->id,
-                'user_id'          => $teacher->id,
+                'school_id' => $subject->school_id,
+                'subject_id' => $subject->id,
+                'user_id' => $teacher->id,
                 'academic_year_id' => $academicYear->id,
-                'semester_id'      => $semester === null ? current_semester_id() : $semester->id,
-                'section_id'       => $section?->id,
-                'role'             => $role,
-                'starts_on'        => $startsOn ?? now(),
+                'academic_period_id' => $academicPeriod === null ? current_academic_period_id() : $academicPeriod->id,
+                'course_offering_id' => $courseOffering?->id,
+                'section_id' => $section?->id,
+                'role' => $role,
+                'starts_on' => $startsOn ?? now(),
             ]);
 
             // The old pivot still feeds the screens, so keep it in step.
@@ -86,11 +94,12 @@ class AssignTeacher
                 AuditAction::TeachingAssignmentCreated,
                 $assignment,
                 [
-                    'subject_id'       => $subject->id,
-                    'teacher_id'       => $teacher->id,
-                    'role'             => $role->value,
-                    'section_id'       => $section?->id,
+                    'subject_id' => $subject->id,
+                    'teacher_id' => $teacher->id,
+                    'role' => $role->value,
+                    'section_id' => $section?->id,
                     'academic_year_id' => $academicYear->id,
+                    'course_offering_id' => $courseOffering?->id,
                 ],
                 $actor,
             );
@@ -133,7 +142,7 @@ class AssignTeacher
                 [
                     'subject_id' => $assignment->subject_id,
                     'teacher_id' => $assignment->user_id,
-                    'ends_on'    => $assignment->ends_on->toDateString(),
+                    'ends_on' => $assignment->ends_on->toDateString(),
                 ],
                 $actor,
             );
@@ -168,5 +177,28 @@ class AssignTeacher
         if ($academicYear->isClosed()) {
             throw new InvalidValueException('The academic year is closed. Reopen it before you change teaching.');
         }
+    }
+
+    /**
+     * @throws InvalidValueException
+     */
+    private function failIfCourseOfferingDoesNotFit(
+        Subject $subject,
+        ?AcademicYear $academicYear,
+        ?AcademicPeriod $academicPeriod,
+        CourseOffering $courseOffering,
+    ): void {
+        if ($courseOffering->subject_id !== $subject->id) {
+            throw new InvalidValueException('The course offering teaches another subject.');
+        }
+
+        if ($academicYear !== null && $courseOffering->academic_year_id !== $academicYear->id) {
+            throw new InvalidValueException('The course offering belongs to another academic year.');
+        }
+
+        if ($academicPeriod !== null && $courseOffering->academic_period_id !== $academicPeriod->id) {
+            throw new InvalidValueException('The course offering belongs to another academic period.');
+        }
+
     }
 }

@@ -27,9 +27,9 @@ class ResultChecker extends Component
 
     public $academicYear;
 
-    public $semesters;
+    public $academicPeriods;
 
-    public $semester;
+    public $academicPeriod;
 
     public $exams;
 
@@ -48,7 +48,7 @@ class ResultChecker extends Component
     // rules
     public $rules = [
         'academicYear' => 'integer|exists:academic_years,id',
-        'semester' => 'required|integer|exists:semesters_id',
+        'academicPeriod' => 'required|integer|exists:academic_periods,id',
     ];
 
     public function mount(MyClassService $myClassService)
@@ -65,7 +65,7 @@ class ResultChecker extends Component
             $this->class = $this->classes[0]->id;
             $this->updatedClass();
         } elseif (auth()->user()->hasRole(Role::Student)) {
-            $this->checkResult(current_academic_year(), current_semester(), auth()->user()->loadMissing('allStudentRecords'));
+            $this->checkResult(current_academic_year(), current_academic_period(), auth()->user()->loadMissing('allStudentRecords'));
         } elseif (auth()->user()->hasRole(Role::Parent)) {
             // get parent's children
             $this->students = auth()->user()->parentRecord->Students;
@@ -78,15 +78,15 @@ class ResultChecker extends Component
     public function updatedAcademicYear()
     {
         $academicYear = app("App\Services\AcademicYear\AcademicYearService")->getAcademicYearById($this->academicYear);
-        // get semesters in academic year
-        $this->semesters = $academicYear->semesters;
-        $this->semester = null;
+        // get academic periods in academic year
+        $this->academicPeriods = $academicYear->academicPeriods;
+        $this->academicPeriod = null;
 
-        if ($this->semesters->isEmpty()) {
+        if ($this->academicPeriods->isEmpty()) {
             return;
         }
 
-        $this->semester = ($this->semesters->find(current_semester_id()) ?? $this->semesters[0])->id;
+        $this->academicPeriod = ($this->academicPeriods->find(current_academic_period_id()) ?? $this->academicPeriods[0])->id;
     }
 
     public function updatedClass()
@@ -120,9 +120,9 @@ class ResultChecker extends Component
         $this->students->count() ? $this->student = $this->students[0]->id : $this->student = null;
     }
 
-    public function checkResult(AcademicYear $academicYear, $semester, User $student)
+    public function checkResult(AcademicYear $academicYear, $academicPeriod, User $student)
     {
-        $semester = $this->semesters->find($semester);
+        $academicPeriod = $this->academicPeriods->find($academicPeriod);
 
         // make sure user student isn't another role
         if (!$student->hasRole(Role::Student)) {
@@ -130,12 +130,12 @@ class ResultChecker extends Component
         }
         // set name that would be used in view
         $this->studentName = $student->name;
-        // fetch all exams, subjects and exam records for user in semester
+        // fetch all exams, subjects and exam records for user in academic period
 
-        if ($semester != null && $semester->exists()) {
-            $this->exams = $semester->exams()->where('publish_result', true)->get()->load('examSlots');
-            // fetch all students exam records in semester
-            $this->examRecords = app("App\Services\Exam\ExamRecordService")->getAllUserExamRecordInSemester($semester, $student->id);
+        if ($academicPeriod != null && $academicPeriod->exists()) {
+            $this->exams = $academicPeriod->exams()->where('publish_result', true)->get()->load('examSlots');
+            // fetch all students exam records in academic period
+            $this->examRecords = app("App\Services\Exam\ExamRecordService")->getAllUserExamRecordInAcademicPeriod($academicPeriod, $student->id);
         } else {
             $this->exams = $academicYear->exams()->where('publish_result', true)->get()->load('examSlots');
             $this->examRecords = app("App\Services\Exam\ExamRecordService")->getAllUserExamRecordInAcademicYear($academicYear, $student->id);

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\AcademicPeriodStatus;
+use App\Enums\AcademicPeriodType;
 use App\Traits\HasPeriodLifecycle;
 use App\Traits\InSchool;
 use DateTimeInterface;
@@ -17,12 +18,12 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property AcademicPeriodStatus $status
- * @property string               $name
- * @property int                  $start_year
- * @property int                  $stop_year
- * @property Carbon|null          $starts_on
- * @property Carbon|null          $ends_on
- * @property int                  $school_id
+ * @property string $name
+ * @property int $start_year
+ * @property int $stop_year
+ * @property Carbon|null $starts_on
+ * @property Carbon|null $ends_on
+ * @property int $school_id
  */
 class AcademicYear extends Model
 {
@@ -56,9 +57,9 @@ class AcademicYear extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'status'    => AcademicPeriodStatus::class,
+        'status' => AcademicPeriodStatus::class,
         'starts_on' => 'date:Y-m-d',
-        'ends_on'   => 'date:Y-m-d',
+        'ends_on' => 'date:Y-m-d',
     ];
 
     protected function name(): Attribute
@@ -79,31 +80,63 @@ class AcademicYear extends Model
     }
 
     /**
-     * Get the periods in the academic year, in teaching order.
+     * Get every period in the cycle, sub-periods included, in teaching order.
      *
-     * @return HasMany<Semester, $this>
+     * @return HasMany<AcademicPeriod, $this>
      */
-    public function semesters(): HasMany
+    public function academicPeriods(): HasMany
     {
-        return $this->hasMany(Semester::class)->orderBy('position')->orderBy('id');
+        return $this->hasMany(AcademicPeriod::class)->orderBy('position')->orderBy('id');
+    }
+
+    /**
+     * Get the periods that divide the cycle, without their sub-periods.
+     *
+     * This is the list a person reads as "the terms this year": an exam window
+     * inside Term 2 is part of Term 2, not a fourth term.
+     *
+     * @return HasMany<AcademicPeriod, $this>
+     */
+    public function topLevelPeriods(): HasMany
+    {
+        return $this->academicPeriods()->whereNull('parent_id');
     }
 
     /**
      * Get the period that covers the given day, when one does.
+     *
+     * Sub-periods are skipped. A day inside an exam window is still a day of
+     * the term that holds it, and the term is the reporting boundary.
      */
-    public function periodForDate(DateTimeInterface|string|null $date = null): ?Semester
+    public function periodForDate(DateTimeInterface|string|null $date = null): ?AcademicPeriod
     {
-        return $this->semesters()->get()->first(fn (Semester $semester): bool => $semester->covers($date));
+        return $this->topLevelPeriods()->get()->first(fn (AcademicPeriod $academicPeriod): bool => $academicPeriod->covers($date));
+    }
+
+    /**
+     * Get the sub-period of the given kind that covers the day, when one does.
+     *
+     * Ask this to find out whether today falls in an exam window or a break.
+     *
+     * @param  array<int, AcademicPeriodType>  $types
+     */
+    public function subPeriodForDate(array $types, DateTimeInterface|string|null $date = null): ?AcademicPeriod
+    {
+        return $this->academicPeriods()
+            ->whereNotNull('parent_id')
+            ->ofType($types)
+            ->covering($date)
+            ->first();
     }
 
     /**
      * Get all of the exams for the AcademicYear.
      *
-     * @return HasManyThrough<Exam, Semester, $this>
+     * @return HasManyThrough<Exam, AcademicPeriod, $this>
      */
     public function exams(): HasManyThrough
     {
-        return $this->hasManyThrough(Exam::class, Semester::class, 'academic_year_id', 'semester_id', 'id', 'id');
+        return $this->hasManyThrough(Exam::class, AcademicPeriod::class, 'academic_year_id', 'academic_period_id', 'id', 'id');
     }
 
     /**
@@ -113,6 +146,19 @@ class AcademicYear extends Model
      */
     public function studentRecords(): BelongsToMany
     {
-        return $this->belongsToMany(StudentRecord::class)->as('studentAcademicYearBasedRecords')->using(AcademicYearStudentRecord::class)->withPivot('my_class_id', 'section_id');
+        return $this->belongsToMany(StudentRecord::class)
+            ->as('studentAcademicYearBasedRecords')
+            ->using(AcademicYearStudentRecord::class)
+            ->withPivot('my_class_id', 'section_id', 'academic_cycle_section_id');
+    }
+
+    /**
+     * Get the home sections that belong to this exact cycle.
+     *
+     * @return HasMany<AcademicCycleSection, $this>
+     */
+    public function cycleSections(): HasMany
+    {
+        return $this->hasMany(AcademicCycleSection::class)->orderBy('position')->orderBy('name');
     }
 }

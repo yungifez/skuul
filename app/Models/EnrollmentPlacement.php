@@ -14,11 +14,12 @@ use RuntimeException;
  * the next placement, so the school can always say where a student sat in any
  * academic year and who moved them.
  *
- * @property int      $student_record_id
- * @property int      $academic_year_id
- * @property int|null $semester_id
- * @property int      $my_class_id
+ * @property int $student_record_id
+ * @property int $academic_year_id
+ * @property int|null $academic_period_id
+ * @property int $my_class_id
  * @property int|null $section_id
+ * @property int|null $academic_cycle_section_id
  */
 class EnrollmentPlacement extends Model
 {
@@ -27,9 +28,10 @@ class EnrollmentPlacement extends Model
     protected $fillable = [
         'student_record_id',
         'academic_year_id',
-        'semester_id',
+        'academic_period_id',
         'my_class_id',
         'section_id',
+        'academic_cycle_section_id',
         'effective_on',
         'changed_by',
         'reason',
@@ -79,13 +81,13 @@ class EnrollmentPlacement extends Model
     }
 
     /**
-     * Get the semester the placement applies to, when it names one.
+     * Get the academic period the placement applies to, when it names one.
      *
-     * @return BelongsTo<Semester, $this>
+     * @return BelongsTo<AcademicPeriod, $this>
      */
-    public function semester(): BelongsTo
+    public function academicPeriod(): BelongsTo
     {
-        return $this->belongsTo(Semester::class);
+        return $this->belongsTo(AcademicPeriod::class);
     }
 
     /**
@@ -106,6 +108,16 @@ class EnrollmentPlacement extends Model
     public function section(): BelongsTo
     {
         return $this->belongsTo(Section::class);
+    }
+
+    /**
+     * Get the cycle-specific section the student was placed in.
+     *
+     * @return BelongsTo<AcademicCycleSection, $this>
+     */
+    public function academicCycleSection(): BelongsTo
+    {
+        return $this->belongsTo(AcademicCycleSection::class);
     }
 
     /**

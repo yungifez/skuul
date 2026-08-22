@@ -1,10 +1,12 @@
 <?php
 
 use App\Enums\Feature;
+use App\Enums\InstructionalModel;
+use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\School;
-use App\Models\Semester;
 use App\Services\Academic\AcademicPeriodContext;
+use App\Services\Curriculum\InstructionalModelResolver;
 use App\Services\Feature\FeatureManager;
 use App\Services\School\SchoolContext;
 
@@ -68,23 +70,23 @@ if (!function_exists('current_academic_year_id')) {
     }
 }
 
-if (!function_exists('current_semester')) {
+if (!function_exists('current_academic_period')) {
     /**
-     * Get the semester the current request works in.
+     * Get the academic period the current request works in.
      */
-    function current_semester(): ?Semester
+    function current_academic_period(): ?AcademicPeriod
     {
-        return academic_period_context()->semester();
+        return academic_period_context()->academicPeriod();
     }
 }
 
-if (!function_exists('current_semester_id')) {
+if (!function_exists('current_academic_period_id')) {
     /**
-     * Get the id of the semester the current request works in.
+     * Get the id of the academic period the current request works in.
      */
-    function current_semester_id(): ?int
+    function current_academic_period_id(): ?int
     {
-        return academic_period_context()->semesterId();
+        return academic_period_context()->academicPeriodId();
     }
 }
 
@@ -95,6 +97,19 @@ if (!function_exists('features')) {
     function features(): FeatureManager
     {
         return app(FeatureManager::class);
+    }
+}
+
+if (!function_exists('instructional_model')) {
+    /**
+     * Get the way the campus teaches the given academic cycle.
+     *
+     * With no argument this reads the cycle of the current request. A campus
+     * that never chose reads as the default model.
+     */
+    function instructional_model(AcademicYear|int|null $academicYear = null, School|int|null $school = null): InstructionalModel
+    {
+        return app(InstructionalModelResolver::class)->for($academicYear, $school);
     }
 }
 

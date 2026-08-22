@@ -4,6 +4,7 @@
     </div>
     <div class="card-body">
         <livewire:datatable :model="App\Models\CustomTimetableItem::class"
+        :empty-state="['heading' => 'No timetable items yet', 'description' => 'Add reusable items for timetable planning.', 'action' => ['href' => route('custom-timetable-items.create'), 'ability' => 'create', 'arguments' => [\App\Models\CustomTimetableItem::class], 'label' => 'Add timetable item']]"
         :filters="[
             ['name' => 'inSchool']
         ]"

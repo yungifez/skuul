@@ -3,8 +3,8 @@
 namespace App\Traits;
 
 use App\Exceptions\ClosedPeriodException;
+use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
-use App\Models\Semester;
 
 /**
  * Freeze a record when the academic period it belongs to is closed.
@@ -55,10 +55,10 @@ trait InAcademicPeriod
      *
      * Override this when the period is reached through another record.
      */
-    public function governingAcademicPeriod(): AcademicYear|Semester|null
+    public function governingAcademicPeriod(): AcademicYear|AcademicPeriod|null
     {
-        /** @var AcademicYear|Semester|null $period */
-        $period = $this->getAttribute('semester') ?? $this->getAttribute('academicYear');
+        /** @var AcademicYear|AcademicPeriod|null $period */
+        $period = $this->getAttribute('academicPeriod') ?? $this->getAttribute('academicYear');
 
         return $period;
     }

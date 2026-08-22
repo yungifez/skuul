@@ -4,6 +4,7 @@
     </div>
     <div class="card-body">
         <livewire:datatable unique_id="list-fee-categories-table" :model="App\Models\FeeCategory::class"
+        :empty-state="['heading' => 'No fee categories yet', 'description' => 'Create a category to organize fees.', 'action' => ['href' => route('fee-categories.create'), 'ability' => 'create', 'arguments' => [\App\Models\FeeCategory::class], 'label' => 'Add fee category']]"
         :filters="[
             ['name' => 'inSchool']
         ]"

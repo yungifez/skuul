@@ -8,6 +8,10 @@
 
 @section('page_heading',   __("Exam Slots In $exam->name"))
 
+@section('page_actions')
+    <x-resource-create-action :href="route('exam-slots.create', $exam)" ability="create" :arguments="[\App\Models\ExamSlot::class]">Add exam slot</x-resource-create-action>
+@endsection
+
 @section('content', )
     @livewire('list-exam-slots-table', ['exam'=> $exam])
 @endsection

@@ -26,6 +26,16 @@ Do not start a large rewrite from this document alone. Confirm each business dec
 7. Add a regression test for every security or data-integrity fix.
 8. Upgrade one vertical feature at a time.
 9. Keep the current Blade and Livewire screens until a replacement screen works.
+10. Do not preserve obsolete behavior, schema, screens, APIs, or workflows for
+    backward compatibility. This rewrite is intentionally breaking when a
+    complete replacement produces the correct product.
+11. Do not add adapters, bridge columns, dual writes, fallback reads, or
+    compatibility modes for an obsolete design. Keep data only when a current
+    product, legal, or retention requirement needs it.
+12. Use `../livesound-planner` as the reference for UI architecture. Prefer
+    useful index pages, inline create and edit flows, clear context, and fewer
+    navigation steps. Reuse its interaction patterns; do not copy its domain
+    model or visual identity.
 
 ## Release-readiness gates
 
@@ -523,8 +533,22 @@ Agreed decision:
 
 ### Curriculum and teaching decisions
 
+- Each campus selects an instructional model for an academic cycle. The model sets defaults, visible screens, validation rules, and report labels. It does not create a separate data model.
+- Setup asks one plain-language question: "Do learners normally remain with one class group through the day?" It does not ask staff to select a country or education system.
+- The system provides these instructional model presets:
+  - `FixedHomeSections` is the default. Learners stay in one home section. Subject rosters derive from that section. Teachers usually move between sections.
+  - `Hybrid` keeps home sections as the default. Selected offerings support combined sections or individual rosters.
+  - `SubjectBasedSchedule` uses individual subject rosters. Each learner can attend different offerings during the day.
+- The system allows a campus to enable a limited exception for an offering, such as a combined music class or a remedial group. An exception does not change the campus model.
+- Change the instructional model only for a future academic cycle. A change for an active cycle requires a dedicated, audited migration workflow. Do not expose it as a normal settings edit.
+- Keep the universal home-section and instructional-group model for every preset. Do not fork workflows or records by preset.
 - Subjects are reusable organization-level catalog records with stable codes and names. Campuses and programs can offer the same subject differently.
-- Teaching happens through period-specific subject offerings. An offering identifies the campus, academic period, class offering or section, and subject.
+- Keep a learner's home section separate from an instructional group. A home section is the learner's stable group for registration, homeroom, reports, and general communication. An instructional group is the roster for one subject offering.
+- Use `AcademicLevel` and `AcademicCycleSection` as the internal concepts. The user interface uses each school's local labels, such as Class, Grade, Form, Year, Stream, or Homeroom.
+- Create an academic cycle section for one campus and one academic cycle. Do not reuse an academic cycle section for a later cycle.
+- Teaching happens through period-specific subject offerings. An offering identifies the campus, academic period, academic level, subject, and one or more instructional groups.
+- An offering supports these roster modes: one home section, combined home sections, all learners in an academic level, or an explicit individual roster.
+- Use a home-section roster by default. This supports schools where learners stay together and teachers move between sections. Use an individual roster for electives and schools where learners move between subjects.
 - Teaching assignments include the teacher membership, offering, role (such as lead or supporting teacher), effective dates, and status. Multiple teachers may share an offering.
 - A class-wide assignment applies to its sections by default. A section-specific assignment can override or supplement it.
 - Syllabi are versioned by subject offering and academic period. Published versions remain available when a later version is created.
@@ -544,8 +568,30 @@ Progress:
 - Done: ending an assignment keeps the record and gives it an end date, so
   last year's timetable still says who taught. The old `subject_user` pivot is
   kept in step for the screens that still read it.
-- Open: subject offerings as their own records, section-level overrides of a
-  class-wide assignment, and syllabus versions by offering.
+- Done: `course_offerings` is the dated subject record. It keeps its school,
+  academic cycle, academic period, academic level, roster, and lifecycle
+  state. It does not change enrollment placement.
+- Done: one offering uses one or more exact academic cycle sections, a whole
+  academic level, or named learner enrollments. The campus instructional model
+  validates the roster before the offering is created.
+- Done: a teaching assignment can name a course offering. Lead and supporting
+  teachers stay dated, audited, and readable after the period ends.
+- Done: reusable `academic_levels` support local labels, display order, and
+  parent levels.
+- Done: `academic_cycle_sections` belong to one school, one academic cycle,
+  and one academic level. They keep stream, shift, language, room, capacity,
+  homeroom teacher, and lifecycle state.
+- Done: staff can roll section structure into another cycle. The new sections
+  start as drafts. The action never copies learners, teachers, or old links.
+- Agreed breaking change: `AcademicLevel` and `AcademicCycleSection` replace
+  `MyClass` and `Section`. Do not keep bridge columns, bridge relations, or
+  parallel read paths. All new and changed operational records use the new
+  identifiers only.
+- Open: replace old class and section columns in placements, yearly placement
+  summaries, course-offering rosters, attendance, teaching assignments, and
+  timetables with the new identifiers. Remove the old tables and code after
+  the replacement migration completes.
+- Open: section-level timetable overrides and syllabus versions by offering.
 
 ### 7. Timetable
 

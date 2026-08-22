@@ -1,0 +1,110 @@
+@props([
+    'action',
+    'method' => 'POST',
+    'section' => null,
+    'academicYears' => null,
+    'academicLevels' => null,
+    'teachers',
+    'preselectedAcademicYearId' => null,
+    'preselectedAcademicLevelId' => null,
+    'submitLabel' => 'Save cycle section',
+    'cancelHref',
+])
+
+@php
+    $value = static fn (string $field, $fallback = null) => old($field, $section?->{$field} ?? $fallback);
+    $selected = static fn (string $field, $option, $fallback = null) => (string) old($field, $section?->{$field} ?? $fallback) === (string) $option;
+    $hasDetails = filled($value('label')) || filled($value('stream')) || filled($value('shift'))
+        || filled($value('language')) || filled($value('room')) || filled($value('capacity'))
+        || filled($value('homeroom_teacher_id'));
+@endphp
+
+<form method="POST" action="{{ $action }}" class="space-y-6">
+    @csrf
+    @if ($method !== 'POST')
+        @method($method)
+    @endif
+    <x-display-validation-errors />
+
+    <div class="space-y-4">
+        <h3 class="text-sm font-semibold">1. Where the section belongs</h3>
+
+        @if ($section === null)
+            <div class="grid gap-4 md:grid-cols-2">
+                <div class="flex flex-col gap-2">
+                    <april:label for="academic-year">Academic cycle</april:label>
+                    <select id="academic-year" name="academic_year_id" class="rounded-md border border-input bg-background px-3 py-2" required>
+                        <option value="">Select a cycle</option>
+                        @foreach ($academicYears as $academicYear)
+                            <option value="{{ $academicYear->id }}" {{ $selected('academic_year_id', $academicYear->id, $preselectedAcademicYearId) ? 'selected' : '' }}>{{ $academicYear->name }}</option>
+                        @endforeach
+                    </select>
+                    <p class="text-sm text-muted-foreground">The section serves this cycle only.</p>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <april:label for="academic-level">Academic level</april:label>
+                    <select id="academic-level" name="academic_level_id" class="rounded-md border border-input bg-background px-3 py-2" required>
+                        <option value="">Select a level</option>
+                        @foreach ($academicLevels as $academicLevel)
+                            <option value="{{ $academicLevel->id }}" {{ $selected('academic_level_id', $academicLevel->id, $preselectedAcademicLevelId) ? 'selected' : '' }}>{{ $academicLevel->name }}</option>
+                        @endforeach
+                    </select>
+                    <p class="text-sm text-muted-foreground">Only active levels are offered.</p>
+                </div>
+            </div>
+        @else
+            <div class="grid gap-4 rounded-md border bg-muted/30 p-4 sm:grid-cols-2">
+                <div>
+                    <p class="text-sm text-muted-foreground">Academic cycle</p>
+                    <p class="font-medium">{{ $section->academicYear->name }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-muted-foreground">Academic level</p>
+                    <p class="font-medium">{{ $section->academicLevel->name }}</p>
+                </div>
+                <p class="text-sm text-muted-foreground sm:col-span-2">
+                    The cycle and the level are fixed. A section serves one exact cycle, so a later cycle needs its own section.
+                    Use “Roll sections into another cycle” to copy this setup forward.
+                </p>
+            </div>
+        @endif
+    </div>
+
+    <div class="space-y-4">
+        <h3 class="text-sm font-semibold">2. What the section is called</h3>
+        <div class="grid gap-4 md:grid-cols-2">
+            <april:input-group id="name" name="name" label="Section name" value="{{ $value('name') }}" required maxlength="255" placeholder="Green" />
+        </div>
+        <p class="text-sm text-muted-foreground">Use the short name staff say out loud, such as “Green”, “A”, or “Blue”. The level and the cycle are added around it in every list.</p>
+    </div>
+
+    <details class="rounded-md border p-4" {{ $hasDetails ? 'open' : '' }}>
+        <summary class="cursor-pointer text-sm font-semibold">3. Optional details</summary>
+        <div class="mt-4 space-y-4">
+            <div class="grid gap-4 md:grid-cols-2">
+                <april:input-group id="label" name="label" label="Local label" value="{{ $value('label') }}" maxlength="255" placeholder="Primary 4 Green" />
+                <april:input-group id="stream" name="stream" label="Stream" value="{{ $value('stream') }}" maxlength="100" placeholder="Science" />
+                <april:input-group id="shift" name="shift" label="Shift" value="{{ $value('shift') }}" maxlength="100" placeholder="Morning" />
+                <april:input-group id="language" name="language" label="Language of instruction" value="{{ $value('language') }}" maxlength="100" />
+                <april:input-group id="room" name="room" label="Room" value="{{ $value('room') }}" maxlength="100" />
+                <april:input-group id="capacity" name="capacity" type="number" min="1" max="999" label="Capacity" value="{{ $value('capacity') }}" />
+                <april:input-group id="position" name="position" type="number" min="0" max="9999" label="Display order" value="{{ $value('position', 0) }}" />
+                <div class="flex flex-col gap-2">
+                    <april:label for="homeroom-teacher">Homeroom teacher</april:label>
+                    <select id="homeroom-teacher" name="homeroom_teacher_id" class="rounded-md border border-input bg-background px-3 py-2">
+                        <option value="">Not chosen yet</option>
+                        @foreach ($teachers as $teacher)
+                            <option value="{{ $teacher->id }}" {{ $selected('homeroom_teacher_id', $teacher->id) ? 'selected' : '' }}>{{ $teacher->name }}</option>
+                        @endforeach
+                    </select>
+                    <p class="text-sm text-muted-foreground">A homeroom teacher can be named later. It does not create a teaching assignment.</p>
+                </div>
+            </div>
+        </div>
+    </details>
+
+    <div class="flex flex-wrap items-center gap-3">
+        <april:button type="submit">{{ $submitLabel }}</april:button>
+        <april:button-link href="{{ $cancelHref }}" variant="ghost">Cancel</april:button-link>
+    </div>
+</form>

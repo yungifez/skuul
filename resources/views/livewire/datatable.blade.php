@@ -102,6 +102,8 @@
                                                     <x-account-status-control :user="$model" />
                                                 @elseif($column['type'] == 'academic-period-status')
                                                     <x-academic-period-status-control :period="$model" :route-prefix="$column['route-prefix']" />
+                                                @elseif($column['type'] == 'instructional-model')
+                                                    <x-instructional-model-badge :academic-year="$model" />
                                                 @elseif($column['type'] == 'academic-period-dates')
                                                     <x-academic-period-dates :period="$model" />
                                                 @elseif($column['type'] == 'enrollment-status')
@@ -133,7 +135,26 @@
                     @endforeach
                 @else
                     <tr>
-                        <td class="px-4 py-10 text-center capitalize text-muted-foreground" colspan="100%">No data to Show</td>
+                        <td class="px-4 py-12 text-center" colspan="100%">
+                            <div class="mx-auto flex max-w-md flex-col items-center gap-3 text-muted-foreground">
+                                <x-lucide-inbox class="size-8" aria-hidden="true" />
+                                <div class="space-y-1">
+                                    <p class="font-medium text-foreground">{{ $emptyState['heading'] ?? __('No records yet') }}</p>
+                                    @if (isset($emptyState['description']))
+                                        <p class="text-sm">{{ $emptyState['description'] }}</p>
+                                    @endif
+                                </div>
+                                @if (isset($emptyState['action']))
+                                    <x-resource-create-action
+                                        :href="$emptyState['action']['href']"
+                                        :ability="$emptyState['action']['ability'] ?? null"
+                                        :arguments="$emptyState['action']['arguments'] ?? []"
+                                    >
+                                        {{ $emptyState['action']['label'] }}
+                                    </x-resource-create-action>
+                                @endif
+                            </div>
+                        </td>
                     </tr>
                 @endif
             </tbody>

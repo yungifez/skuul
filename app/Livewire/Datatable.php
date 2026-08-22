@@ -25,25 +25,26 @@ class Datatable extends Component
 
     public $uniqueId;
 
+    public array $emptyState = [];
+
     public $search = null;
 
     public $perPage = 10;
 
     protected $rules = [
         'perPage' => 'nullable|integer',
-        'search'  => 'nullable|string',
+        'search' => 'nullable|string',
     ];
 
     /**
-     * @param string|Builder $model Pass model or query builder
-     *
-     * @return void
+     * @param  string|Builder  $model  Pass model or query builder
      */
-    public function mount(string|Builder $model, array $columns, array $filters = [], $uniqueId = null)
+    public function mount(string|Builder $model, array $columns, array $filters = [], $uniqueId = null, array $emptyState = []): void
     {
         $this->model = $model;
         $this->filters = $filters;
         $this->uniqueId = $uniqueId ?? Str::random(10);
+        $this->emptyState = $emptyState;
 
         $this->encryptValues();
     }
@@ -51,7 +52,7 @@ class Datatable extends Component
     /**
      * Verify if a class is an eloquent model.
      *
-     * @param object $model
+     * @param  object  $model
      *
      * @throws InvalidClassException
      */

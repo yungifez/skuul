@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Layouts;
 
+use App\Models\Organization;
 use Livewire\Component;
 
 class Menu extends Component
@@ -24,13 +25,30 @@ class Menu extends Component
                 'text' => 'User Profile',
                 'route' => 'profile.show',
             ],
-            ['header' => 'Multi Schools Management', 'can' => 'header-schools'],
+            [
+                'type' => 'menu-item',
+                'icon' => 'building-2',
+                'text' => 'Organizations',
+                'visible' => auth()->user()->can('viewAny', Organization::class),
+                'submenu' => [
+                    [
+                        'type' => 'menu-item',
+                        'text' => 'View Organizations',
+                        'route' => 'organizations.index',
+                    ],
+                    [
+                        'type' => 'menu-item',
+                        'text' => 'Create Organization',
+                        'route' => 'organizations.create',
+                        'visible' => auth()->user()->can('create', Organization::class),
+                    ],
+                ],
+            ],
+            ['header' => 'Multi Schools Management'],
             [
                 'type' => 'menu-item',
                 'text' => 'Schools',
                 'icon' => 'school',
-                'can' => 'menu-school',
-
                 'submenu' => [[
                     'type' => 'menu-item',
                     'text' => 'View Schools',
@@ -45,7 +63,7 @@ class Menu extends Component
                     ],
                 ],
             ],
-            ['header' => 'Administration', 'can' => 'header-administrate'],
+            ['header' => 'Administration'],
             [
                 'type' => 'menu-item',
                 'icon' => 'settings',
@@ -57,13 +75,24 @@ class Menu extends Component
                 'type' => 'menu-item',
                 'text' => 'Classes',
                 'icon' => 'presentation',
-                'can' => 'menu-class',
                 'submenu' => [
                     [
                         'type' => 'menu-item',
                         'text' => 'View Classes',
                         'route' => 'classes.index',
                         'can' => 'read class',
+                    ],
+                    [
+                        'type' => 'menu-item',
+                        'text' => 'Academic Levels',
+                        'route' => 'academic-levels.index',
+                        'can' => 'read class',
+                    ],
+                    [
+                        'type' => 'menu-item',
+                        'text' => 'Add Academic Level',
+                        'route' => 'academic-levels.create',
+                        'can' => 'create class',
                     ],
                     [
                         'type' => 'menu-item',
@@ -89,13 +118,30 @@ class Menu extends Component
                 'type' => 'menu-item',
                 'text' => 'Sections',
                 'icon' => 'landmark',
-                'can' => 'menu-section',
                 'submenu' => [
                     [
                         'type' => 'menu-item',
                         'text' => 'View sections',
                         'route' => 'sections.index',
                         'can' => 'read section',
+                    ],
+                    [
+                        'type' => 'menu-item',
+                        'text' => 'Cycle sections',
+                        'route' => 'academic-cycle-sections.index',
+                        'can' => 'read section',
+                    ],
+                    [
+                        'type' => 'menu-item',
+                        'text' => 'Add cycle section',
+                        'route' => 'academic-cycle-sections.create',
+                        'can' => 'create section',
+                    ],
+                    [
+                        'type' => 'menu-item',
+                        'text' => 'Roll sections forward',
+                        'route' => 'academic-cycle-sections.roll-forward.show',
+                        'can' => 'create section',
                     ],
                     [
                         'type' => 'menu-item',
@@ -109,7 +155,6 @@ class Menu extends Component
                 'type' => 'menu-item',
                 'text' => 'Students',
                 'icon' => 'user',
-                'can' => 'menu-student',
                 'submenu' => [
                     [
                         'type' => 'menu-item',
@@ -153,7 +198,6 @@ class Menu extends Component
                 'type' => 'menu-item',
                 'text' => 'Teachers',
                 'icon' => 'user',
-                'can' => 'menu-teacher',
                 'submenu' => [
                     [
                         'type' => 'menu-item',
@@ -173,7 +217,6 @@ class Menu extends Component
                 'type' => 'menu-item',
                 'text' => 'Parents',
                 'icon' => 'user',
-                'can' => 'menu-parent',
                 'submenu' => [
                     [
                         'type' => 'menu-item',
@@ -193,7 +236,6 @@ class Menu extends Component
                 'type' => 'menu-item',
                 'text' => 'Admins',
                 'icon' => 'user',
-                'can' => 'menu-admin',
                 'submenu' => [
                     [
                         'type' => 'menu-item',
@@ -207,13 +249,18 @@ class Menu extends Component
                         'route' => 'admins.create',
                         'can' => 'create admin',
                     ],
+                    [
+                        'type' => 'menu-item',
+                        'text' => 'Account invitations',
+                        'route' => 'users.invitations.index',
+                        'can' => 'manage account access',
+                    ],
                 ],
             ],
             [
                 'type' => 'menu-item',
                 'text' => 'Academic years',
                 'icon' => 'calendar',
-                'can' => 'menu-academic-year',
                 'submenu' => [
                     [
                         'type' => 'menu-item',
@@ -231,21 +278,20 @@ class Menu extends Component
             ],
             [
                 'type' => 'menu-item',
-                'text' => 'Semesters',
+                'text' => 'Academic Periods',
                 'icon' => 'clock',
-                'can' => 'menu-semester',
                 'submenu' => [
                     [
                         'type' => 'menu-item',
-                        'text' => 'View semesters',
-                        'route' => 'semesters.index',
-                        'can' => 'read semester',
+                        'text' => 'View academic periods',
+                        'route' => 'academic-periods.index',
+                        'can' => 'read academic period',
                     ],
                     [
                         'type' => 'menu-item',
-                        'text' => 'Create semester',
-                        'route' => 'semesters.create',
-                        'can' => 'create semester',
+                        'text' => 'Create academic period',
+                        'route' => 'academic-periods.create',
+                        'can' => 'create academic period',
                     ],
                 ],
             ],
@@ -253,7 +299,6 @@ class Menu extends Component
                 'type' => 'menu-item',
                 'text' => 'Fees',
                 'icon' => 'dollar-sign',
-                'can' => 'menu-fee',
                 'submenu' => [
                     [
                         'type' => 'menu-item',
@@ -297,7 +342,6 @@ class Menu extends Component
                 'type' => 'menu-item',
                 'text' => 'Subjects',
                 'icon' => 'lightbulb',
-                'can' => 'menu-subject',
                 'submenu' => [
                     [
                         'type' => 'menu-item',
@@ -319,12 +363,11 @@ class Menu extends Component
                     ],
                 ],
             ],
-            ['header' => 'Academics', 'can' => 'header-academics'],
+            ['header' => 'Academics'],
             [
                 'type' => 'menu-item',
                 'text' => 'Notices',
                 'icon' => 'bell',
-                'can' => 'menu-notice',
                 'submenu' => [
                     [
                         'type' => 'menu-item',
@@ -344,7 +387,6 @@ class Menu extends Component
                 'type' => 'menu-item',
                 'text' => 'Syllabi',
                 'icon' => 'list',
-                'can' => 'menu-syllabus',
                 'submenu' => [
                     [
                         'type' => 'menu-item',
@@ -364,7 +406,6 @@ class Menu extends Component
                 'type' => 'menu-item',
                 'text' => 'Timetables',
                 'icon' => 'list-checks',
-                'can' => 'menu-timetable',
                 'submenu' => [
                     [
                         'type' => 'menu-item',
@@ -396,7 +437,6 @@ class Menu extends Component
                 'type' => 'menu-item',
                 'text' => 'Exams',
                 'icon' => 'book-open',
-                'can' => 'menu-exam',
                 'submenu' => [
                     [
                         'type' => 'menu-item',
@@ -424,8 +464,8 @@ class Menu extends Component
                     ],
                     [
                         'type' => 'menu-item',
-                        'text' => 'Semester Result Sheet',
-                        'route' => 'exams.semester-result-tabulation',
+                        'text' => 'Academic Period Result Sheet',
+                        'route' => 'exams.academic-period-result-tabulation',
                         'can' => 'read exam',
                     ],
                     [
@@ -446,7 +486,6 @@ class Menu extends Component
                 'type' => 'menu-item',
                 'text' => 'Grade Systems',
                 'icon' => 'graduation-cap',
-                'can' => 'menu-grade-system',
                 'submenu' => [
                     [
                         'type' => 'menu-item',
@@ -471,10 +510,42 @@ class Menu extends Component
                 'can' => 'view logs',
             ],
         ];
+
+        $this->menu = $this->withVisibility($this->menu);
     }
 
     public function render()
     {
         return view('livewire.layouts.menu');
+    }
+
+    /**
+     * Mark each item according to its own permission and its visible children.
+     *
+     * @param  list<array<string, mixed>>  $menu
+     * @return list<array<string, mixed>>
+     */
+    private function withVisibility(array $menu): array
+    {
+        return array_map(function (array $menuItem): array {
+            if (isset($menuItem['header'])) {
+                return $menuItem;
+            }
+
+            if (isset($menuItem['submenu'])) {
+                $menuItem['submenu'] = $this->withVisibility($menuItem['submenu']);
+            }
+
+            $hasVisibleSubmenu = !isset($menuItem['submenu'])
+                || collect($menuItem['submenu'])->contains(
+                    fn (array $submenu): bool => $submenu['visible'] ?? true,
+                );
+
+            $menuItem['visible'] = ($menuItem['visible'] ?? true)
+                && (!isset($menuItem['can']) || auth()->user()->can($menuItem['can']))
+                && $hasVisibleSubmenu;
+
+            return $menuItem;
+        }, $menu);
     }
 }

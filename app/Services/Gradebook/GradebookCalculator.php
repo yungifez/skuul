@@ -24,14 +24,14 @@ class GradebookCalculator
      *
      * @return array{percentage: float|null, points: float, max_points: float, items: array<int, array{item_id: int, name: string, state: string, points: float|null, max_points: float|null}>}
      */
-    public function calculate(Subject $subject, StudentRecord $enrollment, ?int $academicYearId = null, ?int $semesterId = null): array
+    public function calculate(Subject $subject, StudentRecord $enrollment, ?int $academicYearId = null, ?int $academicPeriodId = null): array
     {
         $academicYearId ??= current_academic_year_id();
 
         $items = GradeItem::query()
             ->forSubject($subject)
             ->when($academicYearId !== null, fn ($query) => $query->where('academic_year_id', $academicYearId))
-            ->when($semesterId !== null, fn ($query) => $query->where('semester_id', $semesterId))
+            ->when($academicPeriodId !== null, fn ($query) => $query->where('academic_period_id', $academicPeriodId))
             ->orderBy('position')
             ->orderBy('id')
             ->get();
@@ -55,13 +55,13 @@ class GradebookCalculator
 
         return [
             'percentage' => $percentage,
-            'points'     => round(collect($rows)->sum(fn (array $row): float => $row['points'] ?? 0.0), 2),
+            'points' => round(collect($rows)->sum(fn (array $row): float => $row['points'] ?? 0.0), 2),
             'max_points' => round(collect($rows)->sum(fn (array $row): float => $row['counts'] ? ($row['max_points'] ?? 0.0) : 0.0), 2),
-            'items'      => array_values(array_map(fn (array $row): array => [
-                'item_id'    => $row['item_id'],
-                'name'       => $row['name'],
-                'state'      => $row['state'],
-                'points'     => $row['points'],
+            'items' => array_values(array_map(fn (array $row): array => [
+                'item_id' => $row['item_id'],
+                'name' => $row['name'],
+                'state' => $row['state'],
+                'points' => $row['points'],
                 'max_points' => $row['max_points'],
             ], $rows)),
         ];
@@ -70,9 +70,8 @@ class GradebookCalculator
     /**
      * Turn each item into one row that says what it contributes.
      *
-     * @param Collection<int, GradeItem>  $items
-     * @param Collection<int, GradeEntry> $entries
-     *
+     * @param  Collection<int, GradeItem>  $items
+     * @param  Collection<int, GradeEntry>  $entries
      * @return array<int, array{item_id: int, name: string, state: string, points: float|null, max_points: float|null, weight: float, category_id: int|null, counts: bool, share: float|null}>
      */
     private function rowsFor(Collection $items, Collection $entries): array
@@ -95,15 +94,15 @@ class GradebookCalculator
             }
 
             $rows[] = [
-                'item_id'     => $item->id,
-                'name'        => $item->name,
-                'state'       => $state === null ? 'not_entered' : $state->value,
-                'points'      => $points,
-                'max_points'  => $item->max_points,
-                'weight'      => $item->weight,
+                'item_id' => $item->id,
+                'name' => $item->name,
+                'state' => $state === null ? 'not_entered' : $state->value,
+                'points' => $points,
+                'max_points' => $item->max_points,
+                'weight' => $item->weight,
                 'category_id' => $item->grade_category_id,
-                'counts'      => $counts,
-                'share'       => $counts && $item->max_points > 0 ? $points / $item->max_points : null,
+                'counts' => $counts,
+                'share' => $counts && $item->max_points > 0 ? $points / $item->max_points : null,
             ];
         }
 
@@ -113,9 +112,9 @@ class GradebookCalculator
     /**
      * Put the rows together into one percentage.
      *
-     * @param Collection<int, GradeItem>       $items
-     * @param array<int, array<string, mixed>> $rows
-     * @param Collection<int, GradeCategory>   $categories
+     * @param  Collection<int, GradeItem>  $items
+     * @param  array<int, array<string, mixed>>  $rows
+     * @param  Collection<int, GradeCategory>  $categories
      */
     private function aggregate(Collection $items, array $rows, Collection $categories): ?float
     {
@@ -139,7 +138,7 @@ class GradebookCalculator
             $aggregation = $category === null ? GradeAggregation::WeightedMean : $category->aggregation;
 
             $groupResults[] = [
-                'share'  => $this->aggregateGroup($aggregation, $groupRows),
+                'share' => $this->aggregateGroup($aggregation, $groupRows),
                 'weight' => $category === null ? 1.0 : $category->weight,
             ];
         }
@@ -162,7 +161,7 @@ class GradebookCalculator
     /**
      * Put one group of rows together the way its category says.
      *
-     * @param array<int, array<string, mixed>> $rows
+     * @param  array<int, array<string, mixed>>  $rows
      */
     private function aggregateGroup(GradeAggregation $aggregation, array $rows): float
     {
@@ -170,9 +169,9 @@ class GradebookCalculator
         $weights = array_map(fn (array $row): float => (float) $row['weight'], $rows);
 
         return match ($aggregation) {
-            GradeAggregation::SimpleMean   => array_sum($shares) / count($shares),
-            GradeAggregation::Highest      => max($shares),
-            GradeAggregation::Sum          => $this->sumShare($rows),
+            GradeAggregation::SimpleMean => array_sum($shares) / count($shares),
+            GradeAggregation::Highest => max($shares),
+            GradeAggregation::Sum => $this->sumShare($rows),
             GradeAggregation::WeightedMean => array_sum($weights) > 0
                 ? array_sum(array_map(fn (float $share, float $weight): float => $share * $weight, $shares, $weights)) / array_sum($weights)
                 : 0.0,
@@ -182,7 +181,7 @@ class GradebookCalculator
     /**
      * Add the points of a group and divide by the total maximum.
      *
-     * @param array<int, array<string, mixed>> $rows
+     * @param  array<int, array<string, mixed>>  $rows
      */
     private function sumShare(array $rows): float
     {

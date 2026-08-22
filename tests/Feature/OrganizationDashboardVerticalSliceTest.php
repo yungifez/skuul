@@ -6,11 +6,11 @@ use App\Actions\Organization\GrantOrganizationMembership;
 use App\Enums\AcademicPeriodStatus;
 use App\Enums\EnrollmentStatus;
 use App\Livewire\OrganizationDashboard;
+use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\Organization;
 use App\Models\School;
 use App\Models\SchoolMembership;
-use App\Models\Semester;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
@@ -69,7 +69,7 @@ class OrganizationDashboardVerticalSliceTest extends TestCase
     {
         $organization = Organization::factory()->create();
         $readyCampus = School::factory()->create(['organization_id' => $organization->id]);
-        $semesterMissingCampus = School::factory()->create(['organization_id' => $organization->id]);
+        $academicPeriodMissingCampus = School::factory()->create(['organization_id' => $organization->id]);
         School::factory()->create(['organization_id' => $organization->id]);
         $administrator = $this->organizationAdministrator($organization);
 
@@ -77,28 +77,28 @@ class OrganizationDashboardVerticalSliceTest extends TestCase
             'school_id' => $readyCampus->id,
             'status' => AcademicPeriodStatus::Open,
         ]);
-        $semester = Semester::factory()->create([
+        $academicPeriod = AcademicPeriod::factory()->create([
             'school_id' => $readyCampus->id,
             'academic_year_id' => $academicYear->id,
             'status' => AcademicPeriodStatus::Closed,
         ]);
         $readyCampus->forceFill([
             'academic_year_id' => $academicYear->id,
-            'semester_id' => $semester->id,
+            'academic_period_id' => $academicPeriod->id,
         ])->save();
 
-        $semesterMissingYear = AcademicYear::factory()->create([
-            'school_id' => $semesterMissingCampus->id,
+        $academicPeriodMissingYear = AcademicYear::factory()->create([
+            'school_id' => $academicPeriodMissingCampus->id,
             'status' => AcademicPeriodStatus::Draft,
         ]);
-        $semesterMissingCampus->forceFill(['academic_year_id' => $semesterMissingYear->id])->save();
+        $academicPeriodMissingCampus->forceFill(['academic_year_id' => $academicPeriodMissingYear->id])->save();
 
         $this->createEnrollment($readyCampus, EnrollmentStatus::Active);
         $this->createEnrollment($readyCampus, EnrollmentStatus::Active);
         $this->createEnrollment($readyCampus, EnrollmentStatus::Graduated);
-        $this->createEnrollment($semesterMissingCampus, EnrollmentStatus::Active);
+        $this->createEnrollment($academicPeriodMissingCampus, EnrollmentStatus::Active);
         $this->createCampusAccess($readyCampus);
-        $this->createCampusAccess($semesterMissingCampus);
+        $this->createCampusAccess($academicPeriodMissingCampus);
 
         Livewire::actingAs($administrator)
             ->test(OrganizationDashboard::class, ['organization' => $organization])
@@ -121,13 +121,13 @@ class OrganizationDashboardVerticalSliceTest extends TestCase
         foreach (range(1, 10) as $index) {
             $campus = School::factory()->create(['organization_id' => $organization->id]);
             $academicYear = AcademicYear::factory()->create(['school_id' => $campus->id]);
-            $semester = Semester::factory()->create([
+            $academicPeriod = AcademicPeriod::factory()->create([
                 'school_id' => $campus->id,
                 'academic_year_id' => $academicYear->id,
             ]);
             $campus->forceFill([
                 'academic_year_id' => $academicYear->id,
-                'semester_id' => $semester->id,
+                'academic_period_id' => $academicPeriod->id,
             ])->save();
         }
 

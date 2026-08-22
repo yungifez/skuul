@@ -45,13 +45,13 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
 
         <slot:content class="beautify-scrollbar">
             @foreach ($menuGroups as $group)
-            @if ($group['can'] === null || auth()->user()->can($group['can']))
+            @if (collect($group['items'])->contains(fn (array $menuItem): bool => $menuItem['visible'] ?? true))
             <april:sidebar-group>
                 <april:sidebar-group-label>{{$group['label']}}</april:sidebar-group-label>
                 <april:sidebar-group-content>
                     <april:sidebar-menu>
                         @foreach ($group['items'] as $menuItem)
-                        @if (!isset($menuItem['can']) || auth()->user()->can($menuItem['can']))
+                        @if ($menuItem['visible'] ?? true)
                         @if (isset($menuItem['submenu']))
                         @php
                         $submenuIsOpen = in_array(Route::currentRouteName(), array_column($menuItem['submenu'],
@@ -63,10 +63,10 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
                                     x-bind:data-state="open ? 'open' : 'closed'">
                                     <x-icon :name="'lucide-'.($menuItem['icon'] ?? 'circle')" class="shrink-0" />
                                     <span>{{$menuItem['text']}}</span>
-                                    <x-lucide-chevron-down x-show="open" @if (!$submenuIsOpen) x-cloak @endif
-                                        class="ml-auto size-3.5 group-data-[collapsible=icon]:!hidden" />
-                                    <x-lucide-chevron-right x-show="!open" @if ($submenuIsOpen) x-cloak @endif
-                                        class="ml-auto size-3.5 group-data-[collapsible=icon]:!hidden" />
+                                    <span class="ml-auto transition-transform group-data-[collapsible=icon]:!hidden"
+                                        x-bind:class="{ '-rotate-90': !open }">
+                                        <x-lucide-chevron-down class="size-3.5" />
+                                    </span>
                                 </april:sidebar-menu-button>
                             </april:sidebar-menu-item>
                             {{-- Cloak only the submenus that start closed. The open one must
@@ -74,7 +74,7 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
                             <div x-show="open" x-collapse @if (!$submenuIsOpen) x-cloak @endif
                                 class="space-y-1 pl-4 group-data-[collapsible=icon]:!hidden">
                                 @foreach ($menuItem['submenu'] as $submenu)
-                                @if (!isset($submenu['can']) || auth()->user()->can($submenu['can']))
+                                @if ($submenu['visible'] ?? true)
                                 <april:sidebar-menu-item>
                                     <april:sidebar-menu-button-link href="{{route($submenu['route'])}}" wire:navigate
                                         class="pl-3 {{Route::currentRouteName() == $submenu['route'] ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground' : ''}}">

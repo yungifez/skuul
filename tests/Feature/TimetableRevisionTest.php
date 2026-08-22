@@ -84,8 +84,8 @@ class TimetableRevisionTest extends TestCase
 
         TimetableTimeSlot::create([
             'timetable_id' => $timetable->id,
-            'start_time'   => '08:00',
-            'stop_time'    => '09:00',
+            'start_time' => '08:00',
+            'stop_time' => '09:00',
         ]);
     }
 
@@ -106,9 +106,9 @@ class TimetableRevisionTest extends TestCase
         $slot = TimetableTimeSlot::create(['timetable_id' => $timetable->id, 'start_time' => '08:00', 'stop_time' => '09:00']);
         $subject = $this->subject($timetable->my_class_id);
         TimetableRecord::create([
-            'timetable_time_slot_id'               => $slot->id,
-            'weekday_id'                           => Weekday::first()->id,
-            'timetable_time_slot_weekdayable_id'   => $subject->id,
+            'timetable_time_slot_id' => $slot->id,
+            'weekday_id' => Weekday::first()->id,
+            'timetable_time_slot_weekdayable_id' => $subject->id,
             'timetable_time_slot_weekdayable_type' => $subject->getMorphClass(),
         ]);
         app(PublishTimetable::class)->publish($timetable);
@@ -208,10 +208,10 @@ class TimetableRevisionTest extends TestCase
         $class = MyClass::factory()->create(['class_group_id' => $classGroup->id]);
 
         return Timetable::create([
-            'name'        => 'Week plan',
+            'name' => 'Week plan',
             'description' => 'The normal week',
             'my_class_id' => $class->id,
-            'semester_id' => current_semester_id(),
+            'academic_period_id' => current_academic_period_id(),
         ]);
     }
 
@@ -226,14 +226,14 @@ class TimetableRevisionTest extends TestCase
 
         $slot = TimetableTimeSlot::create([
             'timetable_id' => $timetable->id,
-            'start_time'   => $start,
-            'stop_time'    => $stop,
+            'start_time' => $start,
+            'stop_time' => $stop,
         ]);
 
         TimetableRecord::create([
-            'timetable_time_slot_id'               => $slot->id,
-            'weekday_id'                           => Weekday::first()->id,
-            'timetable_time_slot_weekdayable_id'   => $subject->id,
+            'timetable_time_slot_id' => $slot->id,
+            'weekday_id' => Weekday::first()->id,
+            'timetable_time_slot_weekdayable_id' => $subject->id,
             'timetable_time_slot_weekdayable_type' => $subject->getMorphClass(),
         ]);
 
@@ -246,7 +246,7 @@ class TimetableRevisionTest extends TestCase
     private function subject(int $classId): Subject
     {
         return Subject::factory()->create([
-            'school_id'   => $this->workingSchool()->id,
+            'school_id' => $this->workingSchool()->id,
             'my_class_id' => $classId,
         ]);
     }

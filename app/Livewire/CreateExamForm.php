@@ -2,16 +2,16 @@
 
 namespace App\Livewire;
 
-use App\Services\Semester\SemesterService;
+use App\Services\AcademicPeriod\AcademicPeriodService;
 use Livewire\Component;
 
 class CreateExamForm extends Component
 {
-    public $semesters;
+    public $academicPeriods;
 
-    public function mount(SemesterService $semesterService)
+    public function mount(AcademicPeriodService $academicPeriodService)
     {
-        $this->semesters = $semesterService->getAllSemestersInAcademicYear(current_academic_year_id());
+        $this->academicPeriods = $academicPeriodService->getAllAcademicPeriodsInAcademicYear(current_academic_year_id());
     }
 
     public function render()

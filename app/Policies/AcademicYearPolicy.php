@@ -2,13 +2,22 @@
 
 namespace App\Policies;
 
+use App\Enums\OrganizationPermission;
+use App\Enums\PlatformPermission;
 use App\Models\AcademicYear;
 use App\Models\User;
+use App\Services\Authorization\OrganizationPermissionScope;
+use App\Services\Authorization\SystemPermissionScope;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class AcademicYearPolicy
 {
     use HandlesAuthorization;
+
+    public function __construct(
+        private SystemPermissionScope $systemPermissionScope,
+        private OrganizationPermissionScope $organizationPermissionScope,
+    ) {}
 
     /**
      * Determine whether the user can view any models.
@@ -106,5 +115,56 @@ class AcademicYearPolicy
         }
 
         return null;
+    }
+
+    /**
+     * Determine whether the user can read how the campus teaches the cycle.
+     */
+    public function viewInstructionalModel(User $user, AcademicYear $academicYear): ?bool
+    {
+        if ($this->setInstructionalModel($user, $academicYear)) {
+            return true;
+        }
+
+        if ($user->can('read academic year') && current_school_id() === $academicYear->school_id) {
+            return true;
+        }
+
+        return null;
+    }
+
+    /**
+     * Determine whether the user can choose how the campus teaches the cycle.
+     *
+     * A campus administrator holds `manage school settings` in the campus
+     * being worked in. An organization administrator who manages campuses may
+     * set it up before anybody works there.
+     */
+    public function setInstructionalModel(User $user, AcademicYear $academicYear): ?bool
+    {
+        if ($this->administersCampus($user, $academicYear)) {
+            return true;
+        }
+
+        if ($user->can('manage school settings') && current_school_id() === $academicYear->school_id) {
+            return true;
+        }
+
+        return null;
+    }
+
+    /**
+     * Check if the person administers the campus that owns the cycle.
+     */
+    private function administersCampus(User $user, AcademicYear $academicYear): bool
+    {
+        if ($this->systemPermissionScope->allows($user, PlatformPermission::AccessAllSchools)) {
+            return true;
+        }
+
+        $organizationId = $academicYear->school?->organization_id;
+
+        return $organizationId !== null
+            && $this->organizationPermissionScope->allows($user, $organizationId, OrganizationPermission::ManageCampuses);
     }
 }

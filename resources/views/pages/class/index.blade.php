@@ -7,6 +7,10 @@
 
 @section('page_heading', __('Classes'))
 
+@section('page_actions')
+    <x-resource-create-action :href="route('classes.create')" ability="create" :arguments="[\App\Models\MyClass::class]">Add class</x-resource-create-action>
+@endsection
+
 @section('content')
     @livewire('list-classes-table')
 @endsection

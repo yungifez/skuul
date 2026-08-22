@@ -27,3 +27,11 @@ Write it this way instead:
   `<span wire:key="row-{{ $id }}"><april:badge>...</april:badge></span>`
 - For a form control that needs `@checked`, `@selected`, or `@disabled`, use a
   native `<input>` with Tailwind classes rather than the April component.
+
+## april:button is a button element, so href does nothing
+
+`<april:button href="...">` compiles to `<button href="...">`, which never
+navigates. Use `<april:button-link href="...">` for anything that goes to
+another page, and keep `<april:button>` for form submits.
+`x-resource-create-action` carried this bug on every index page until it was
+fixed, so the create button looked right and did nothing.

@@ -17,10 +17,10 @@ class TimetableSeeder extends Seeder
         Timetable::firstOrCreate([
             'id' => 1,
         ], [
-            'name'        => 'Timetable 1',
+            'name' => 'Timetable 1',
             'description' => 'Timetable 1 description',
             'my_class_id' => 1,
-            'semester_id' => 1,
+            'academic_period_id' => 1,
         ]);
         Timetable::factory()->count(10)->create();
     }

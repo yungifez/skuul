@@ -43,11 +43,11 @@ class ExamRecord extends Model
     /**
      * Get the period that governs this mark.
      *
-     * A mark belongs to the semester of the exam it was entered for.
+     * A mark belongs to the academic period of the exam it was entered for.
      */
-    public function governingAcademicPeriod(): AcademicYear|Semester|null
+    public function governingAcademicPeriod(): AcademicYear|AcademicPeriod|null
     {
-        return $this->examSlot?->exam?->semester;
+        return $this->examSlot?->exam?->academicPeriod;
     }
 
     public function scopeinSubject($query, $subject_id)

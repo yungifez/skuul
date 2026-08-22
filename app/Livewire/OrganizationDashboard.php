@@ -52,11 +52,11 @@ class OrganizationDashboard extends Component
                 'organization_id',
                 'name',
                 'academic_year_id',
-                'semester_id',
+                'academic_period_id',
             ])
             ->with([
                 'academicYear:id,school_id,start_year,stop_year,status',
-                'semester:id,school_id,academic_year_id,name,status',
+                'academicPeriod:id,school_id,academic_year_id,name,status',
             ])
             ->withCount([
                 'memberships as campus_access_count' => fn ($query) => $query->active(),
@@ -83,13 +83,13 @@ class OrganizationDashboard extends Component
     }
 
     /**
-     * Check that the selected year and semester form one usable academic setup.
+     * Check that the selected year and academic period form one usable academic setup.
      */
     public function hasRequiredAcademicSetup(School $campus): bool
     {
         return $campus->academicYear !== null
-            && $campus->semester !== null
-            && $campus->semester->academic_year_id === $campus->academicYear->id;
+            && $campus->academicPeriod !== null
+            && $campus->academicPeriod->academic_year_id === $campus->academicYear->id;
     }
 
     /**

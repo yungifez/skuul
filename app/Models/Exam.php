@@ -16,7 +16,7 @@ class Exam extends Model
     protected $fillable = [
         'name',
         'description',
-        'semester_id',
+        'academic_period_id',
         'start_date',
         'stop_date',
         'active',
@@ -30,20 +30,20 @@ class Exam extends Model
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'start_date'        => 'date:Y-m-d',
-        'stop_date'         => 'date:Y-m-d',
-        'active'            => 'boolean',
-        'publish_result'    => 'boolean',
+        'start_date' => 'date:Y-m-d',
+        'stop_date' => 'date:Y-m-d',
+        'active' => 'boolean',
+        'publish_result' => 'boolean',
     ];
 
     /**
-     * Get the semester that owns the exam.
+     * Get the academic period that owns the exam.
      *
-     * @return BelongsTo<Semester, $this>
+     * @return BelongsTo<AcademicPeriod, $this>
      */
-    public function semester(): BelongsTo
+    public function academicPeriod(): BelongsTo
     {
-        return $this->belongsTo(Semester::class);
+        return $this->belongsTo(AcademicPeriod::class);
     }
 
     /**
@@ -72,13 +72,13 @@ class Exam extends Model
     }
 
     /**
-     * Calculate total marks gotten by student in semester across all exams in a subject.
+     * Calculate total marks gotten by student in academic period across all exams in a subject.
      *
      *
      * @return int
      */
-    public function calculateStudentTotalMarkInSubjectForSemester(Semester $semester, User $user, Subject $subject)
+    public function calculateStudentTotalMarkInSubjectForAcademicPeriod(AcademicPeriod $academicPeriod, User $user, Subject $subject)
     {
-        return $this->examRecordService->getAllUserExamRecordInSemesterForSubject($semester, $user->id, $subject->id)->pluck('student_marks')->sum();
+        return $this->examRecordService->getAllUserExamRecordInAcademicPeriodForSubject($academicPeriod, $user->id, $subject->id)->pluck('student_marks')->sum();
     }
 }

@@ -96,13 +96,13 @@ class ExamController extends Controller
     }
 
     /**
-     * Tabulation for semester results.
+     * Tabulation for academic period results.
      */
-    public function semesterResultTabulation(): View
+    public function academicPeriodResultTabulation(): View
     {
         $this->authorize('viewAny', Exam::class);
 
-        return view('pages.exam.semester-result-tabulation');
+        return view('pages.exam.academic-period-result-tabulation');
     }
 
     /**

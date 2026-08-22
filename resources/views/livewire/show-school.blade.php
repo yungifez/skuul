@@ -20,7 +20,7 @@
                 'Current Academic Year', $school?->academicYear?->name 
             ],
             [
-                'Current Semester', $school?->semester?->name
+                'Current AcademicPeriod', $school?->academicPeriod?->name
             ],
             [
                 'School code', $school->code

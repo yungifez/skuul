@@ -30,7 +30,7 @@
                         </span>
                         <div>
                             <p class="text-sm font-medium">Current academic period</p>
-                            <p class="text-sm text-muted-foreground">{{ current_academic_year()?->name ?? 'Not selected' }} · {{ current_semester()?->name ?? 'No semester' }}</p>
+                            <p class="text-sm text-muted-foreground">{{ current_academic_year()?->name ?? 'Not selected' }} · {{ current_academic_period()?->name ?? 'No academic period' }}</p>
                         </div>
                     </div>
                 </div>

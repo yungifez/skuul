@@ -30,7 +30,7 @@ class ExamTabulation extends Component
 
     public $sections;
 
-    public $semester;
+    public $academicPeriod;
 
     public $tabulatedRecords;
 
@@ -44,9 +44,9 @@ class ExamTabulation extends Component
 
     public function mount(ExamService $examService, SectionService $sectionService, MyClassService $myClassService)
     {
-        // get semester and use it to fetch all exams in semester
-        $this->semester = current_semester();
-        $this->exams = $examService->getAllExamsInSemester($this->semester->id);
+        // get academic period and use it to fetch all exams in academic period
+        $this->academicPeriod = current_academic_period();
+        $this->exams = $examService->getAllExamsInAcademicPeriod($this->academicPeriod->id);
 
         // set exam as first exam if exams not empty
         $this->exams->count() ? $this->exam = $this->exams[0]->id : $this->exam = null;
@@ -107,7 +107,7 @@ class ExamTabulation extends Component
             return $this->error = 'There are no subjects in this class';
         }
 
-        $this->title = "Exam Marks For $titleFor in {$exam->name} for semester ".current_semester()->name.' in academic year '.current_academic_year()->name;
+        $this->title = "Exam Marks For $titleFor in {$exam->name} for academic period ".current_academic_period()->name.' in academic year '.current_academic_year()->name;
 
         // get all exam slots
         $examSlots = $exam->load('examSlots')->examSlots;

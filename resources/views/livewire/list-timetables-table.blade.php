@@ -22,7 +22,7 @@
             :filters="[
                 ['name' => 'find' ,'arguments' => [ $class]],
                 ['name' => 'timetables'],
-                ['name' => 'where' , 'arguments' =>[ 'semester_id' , current_semester_id()]]
+                ['name' => 'where' , 'arguments' =>[ 'academic_period_id' , current_academic_period_id()]]
             ]"
             :columns="[
                 ['property' => 'name'],

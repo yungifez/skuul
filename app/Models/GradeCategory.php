@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * classwork against a final exam without changing any code.
  *
  * @property GradeAggregation $aggregation
- * @property float            $weight
+ * @property float $weight
  */
 class GradeCategory extends Model
 {
@@ -27,7 +27,7 @@ class GradeCategory extends Model
         'school_id',
         'subject_id',
         'academic_year_id',
-        'semester_id',
+        'academic_period_id',
         'parent_id',
         'name',
         'aggregation',
@@ -42,8 +42,8 @@ class GradeCategory extends Model
      */
     protected $attributes = [
         'aggregation' => GradeAggregation::WeightedMean->value,
-        'weight'      => 1,
-        'position'    => 1,
+        'weight' => 1,
+        'position' => 1,
     ];
 
     /**
@@ -53,8 +53,8 @@ class GradeCategory extends Model
      */
     protected $casts = [
         'aggregation' => GradeAggregation::class,
-        'weight'      => 'float',
-        'position'    => 'integer',
+        'weight' => 'float',
+        'position' => 'integer',
     ];
 
     /**

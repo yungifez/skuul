@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AccountInvitationStatus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -13,11 +14,11 @@ use Illuminate\Support\Carbon;
  *
  * The plain token never reaches the database. Only its hash is stored.
  *
- * @property int         $id
- * @property int         $user_id
- * @property int|null    $invited_by
- * @property string      $token_hash
- * @property Carbon      $expires_at
+ * @property int $id
+ * @property int $user_id
+ * @property int|null $invited_by
+ * @property string $token_hash
+ * @property Carbon $expires_at
  * @property Carbon|null $accepted_at
  * @property Carbon|null $revoked_at
  */
@@ -47,9 +48,9 @@ class AccountInvitation extends Model
     protected function casts(): array
     {
         return [
-            'expires_at'  => 'datetime',
+            'expires_at' => 'datetime',
             'accepted_at' => 'datetime',
-            'revoked_at'  => 'datetime',
+            'revoked_at' => 'datetime',
         ];
     }
 
@@ -76,8 +77,7 @@ class AccountInvitation extends Model
     /**
      * Limit the query to invitations that a person can still accept.
      *
-     * @param Builder<AccountInvitation> $query
-     *
+     * @param  Builder<AccountInvitation>  $query
      * @return Builder<AccountInvitation>
      */
     public function scopePending(Builder $query): Builder
@@ -85,6 +85,57 @@ class AccountInvitation extends Model
         return $query->whereNull('accepted_at')
             ->whereNull('revoked_at')
             ->where('expires_at', '>', now());
+    }
+
+    /**
+     * Limit the query to invitations the person already used.
+     *
+     * @param  Builder<AccountInvitation>  $query
+     * @return Builder<AccountInvitation>
+     */
+    public function scopeAccepted(Builder $query): Builder
+    {
+        return $query->whereNotNull('accepted_at');
+    }
+
+    /**
+     * Limit the query to invitations an administrator stopped.
+     *
+     * @param  Builder<AccountInvitation>  $query
+     * @return Builder<AccountInvitation>
+     */
+    public function scopeRevoked(Builder $query): Builder
+    {
+        return $query->whereNull('accepted_at')->whereNotNull('revoked_at');
+    }
+
+    /**
+     * Limit the query to invitations that ran out of time unused.
+     *
+     * @param  Builder<AccountInvitation>  $query
+     * @return Builder<AccountInvitation>
+     */
+    public function scopeExpired(Builder $query): Builder
+    {
+        return $query->whereNull('accepted_at')
+            ->whereNull('revoked_at')
+            ->where('expires_at', '<=', now());
+    }
+
+    /**
+     * Limit the query to one state.
+     *
+     * @param  Builder<AccountInvitation>  $query
+     * @return Builder<AccountInvitation>
+     */
+    public function scopeWithStatus(Builder $query, AccountInvitationStatus $status): Builder
+    {
+        return match ($status) {
+            AccountInvitationStatus::Pending => $query->pending(),
+            AccountInvitationStatus::Accepted => $query->accepted(),
+            AccountInvitationStatus::Expired => $query->expired(),
+            AccountInvitationStatus::Revoked => $query->revoked(),
+        };
     }
 
     /**
@@ -113,6 +164,24 @@ class AccountInvitation extends Model
         return $this->accepted_at === null
             && $this->revoked_at === null
             && $this->expires_at->isPast();
+    }
+
+    /**
+     * Get the one state this invitation is in.
+     */
+    public function status(): AccountInvitationStatus
+    {
+        if ($this->accepted_at !== null) {
+            return AccountInvitationStatus::Accepted;
+        }
+
+        if ($this->revoked_at !== null) {
+            return AccountInvitationStatus::Revoked;
+        }
+
+        return $this->expires_at->isPast()
+            ? AccountInvitationStatus::Expired
+            : AccountInvitationStatus::Pending;
     }
 
     /**

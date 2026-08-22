@@ -67,6 +67,15 @@ class OrganizationPolicy
     }
 
     /**
+     * Determine whether the user can configure the organization's calendar
+     * templates and generate campus cycles from them.
+     */
+    public function manageCalendar(User $user, Organization $organization): bool
+    {
+        return $this->organizationPermissionScope->allows($user, $organization, OrganizationPermission::Manage);
+    }
+
+    /**
      * Determine whether the user can read the organization overview totals.
      */
     public function viewReports(User $user, Organization $organization): bool

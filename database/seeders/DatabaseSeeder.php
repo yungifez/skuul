@@ -23,7 +23,7 @@ class DatabaseSeeder extends Seeder
             StudentSeeder::class,
             SubjectSeeder::class,
             AcademicYearSeeder::class,
-            SemesterSeeder::class,
+            AcademicPeriodSeeder::class,
             PromotionSeeder::class,
             SyllabusSeeder::class,
             TimetableSeeder::class,

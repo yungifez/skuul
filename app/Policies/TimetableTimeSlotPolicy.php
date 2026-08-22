@@ -31,11 +31,11 @@ class TimetableTimeSlotPolicy
      */
     public function create(User $user)
     {
-        $semester = current_semester();
+        $academicPeriod = current_academic_period();
 
         if ($user->can('update timetable')
-            && $semester?->isOpen()
-            && $semester->academicYear?->isOpen()
+            && $academicPeriod?->isOpen()
+            && $academicPeriod->academicYear?->isOpen()
         ) {
             return true;
         }
@@ -48,8 +48,8 @@ class TimetableTimeSlotPolicy
     {
         if ($user->can('update timetable')
             && $timetableTimeSlot->timetable->acceptsChanges()
-            && $timetableTimeSlot->timetable->semester->isOpen()
-            && $timetableTimeSlot->timetable->semester->academicYear->isOpen()
+            && $timetableTimeSlot->timetable->academicPeriod->isOpen()
+            && $timetableTimeSlot->timetable->academicPeriod->academicYear->isOpen()
         ) {
             return true;
         }
@@ -62,8 +62,8 @@ class TimetableTimeSlotPolicy
     {
         if ($user->can('update timetable')
             && $timetableTimeSlot->timetable->acceptsChanges()
-            && $timetableTimeSlot->timetable->semester->isOpen()
-            && $timetableTimeSlot->timetable->semester->academicYear->isOpen()
+            && $timetableTimeSlot->timetable->academicPeriod->isOpen()
+            && $timetableTimeSlot->timetable->academicPeriod->academicYear->isOpen()
         ) {
             return true;
         }

@@ -13,7 +13,7 @@ class Syllabus extends Model
     use InAcademicPeriod;
 
     protected $fillable = [
-        'name', 'description', 'file', 'subject_id', 'semester_id',
+        'name', 'description', 'file', 'subject_id', 'academic_period_id',
     ];
 
     /**
@@ -27,12 +27,12 @@ class Syllabus extends Model
     }
 
     /**
-     * Get the semester this syllabus version belongs to.
+     * Get the academic period this syllabus version belongs to.
      *
-     * @return BelongsTo<Semester, $this>
+     * @return BelongsTo<AcademicPeriod, $this>
      */
-    public function semester(): BelongsTo
+    public function academicPeriod(): BelongsTo
     {
-        return $this->belongsTo(Semester::class);
+        return $this->belongsTo(AcademicPeriod::class);
     }
 }

@@ -10,10 +10,10 @@ use Illuminate\Http\Response;
 
 class TimetableService
 {
-    // get all syllabus in semester and class
-    public function getAllTimetablesInSemesterAndClass($semester_id, $class_id)
+    // get all syllabus in academic period and class
+    public function getAllTimetablesInAcademicPeriodAndClass($academic_period_id, $class_id)
     {
-        return Timetable::where('semester_id', $semester_id)->get()->filter(function ($timetable) use ($class_id) {
+        return Timetable::where('academic_period_id', $academic_period_id)->get()->filter(function ($timetable) use ($class_id) {
             return $timetable->my_class_id == $class_id;
         });
     }
@@ -21,23 +21,22 @@ class TimetableService
     /**
      * Create timetable.
      *
-     * @param mixed $data
+     * @param  mixed  $data
      */
     public function createTimetable($data): Timetable
     {
         return Timetable::create([
-            'name'        => $data['name'],
+            'name' => $data['name'],
             'description' => $data['description'] ?? null,
             'my_class_id' => $data['my_class_id'],
-            'semester_id' => $data['semester_id'],
+            'academic_period_id' => $data['academic_period_id'],
         ]);
     }
 
     /**
      * Update timetable.
      *
-     * @param mixed $data
-     *
+     * @param  mixed  $data
      * @return void
      */
     public function updateTimetable(Timetable $timetable, $data)
@@ -82,14 +81,13 @@ class TimetableService
     /**
      * Create custom timetable item.
      *
-     * @param array<mixed> $record
-     *
+     * @param  array<mixed>  $record
      * @return CustomTimetableItem
      */
     public function createCustomTimetableItem($record)
     {
         return CustomTimetableItem::create([
-            'name'      => $record['name'],
+            'name' => $record['name'],
             'school_id' => $record['school_id'],
         ]);
     }
@@ -97,8 +95,7 @@ class TimetableService
     /**
      * Update a given custom timetable item.
      *
-     * @param array<mixed> $record
-     *
+     * @param  array<mixed>  $record
      * @return CustomTimetableItem
      */
     public function updateCustomTimetableItem(CustomTimetableItem $customTimetableItem, $record)

@@ -19,9 +19,9 @@ use Illuminate\Support\Carbon;
  * end date, never by being deleted.
  *
  * @property TeachingRole $role
- * @property Carbon       $starts_on
- * @property Carbon|null  $ends_on
- * @property int|null     $section_id
+ * @property Carbon $starts_on
+ * @property Carbon|null $ends_on
+ * @property int|null $section_id
  */
 class TeachingAssignment extends Model
 {
@@ -33,7 +33,8 @@ class TeachingAssignment extends Model
         'subject_id',
         'user_id',
         'academic_year_id',
-        'semester_id',
+        'academic_period_id',
+        'course_offering_id',
         'section_id',
         'role',
         'starts_on',
@@ -55,16 +56,15 @@ class TeachingAssignment extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'role'      => TeachingRole::class,
+        'role' => TeachingRole::class,
         'starts_on' => 'date:Y-m-d',
-        'ends_on'   => 'date:Y-m-d',
+        'ends_on' => 'date:Y-m-d',
     ];
 
     /**
      * Limit the query to assignments that run on the given day.
      *
-     * @param Builder<$this> $query
-     *
+     * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
     public function scopeRunningOn(Builder $query, DateTimeInterface|string|null $date = null): Builder
@@ -80,8 +80,7 @@ class TeachingAssignment extends Model
     /**
      * Limit the query to the assignments of one teacher.
      *
-     * @param Builder<$this> $query
-     *
+     * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
     public function scopeForTeacher(Builder $query, User|int $teacher): Builder
@@ -133,11 +132,22 @@ class TeachingAssignment extends Model
     /**
      * Get the period the assignment belongs to, when it names one.
      *
-     * @return BelongsTo<Semester, $this>
+     * @return BelongsTo<AcademicPeriod, $this>
      */
-    public function semester(): BelongsTo
+    public function academicPeriod(): BelongsTo
     {
-        return $this->belongsTo(Semester::class);
+        return $this->belongsTo(AcademicPeriod::class);
+    }
+
+    /**
+     * Get the course offering this assignment belongs to, when it was made
+     * through the period-specific offering workflow.
+     *
+     * @return BelongsTo<CourseOffering, $this>
+     */
+    public function courseOffering(): BelongsTo
+    {
+        return $this->belongsTo(CourseOffering::class);
     }
 
     /**

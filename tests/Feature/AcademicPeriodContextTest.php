@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\School;
-use App\Models\Semester;
 use App\Services\Academic\AcademicPeriodContext;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,7 +26,7 @@ class AcademicPeriodContextTest extends TestCase
         academic_period_context()->resolveFor($school->fresh());
 
         $this->assertSame($school->academic_year_id, current_academic_year_id());
-        $this->assertSame($school->semester_id, current_semester_id());
+        $this->assertSame($school->academic_period_id, current_academic_period_id());
     }
 
     public function test_a_remembered_period_wins_over_the_school_default(): void
@@ -56,33 +56,33 @@ class AcademicPeriodContextTest extends TestCase
         $this->assertSame($school->academic_year_id, current_academic_year_id());
     }
 
-    public function test_changing_the_year_drops_a_semester_of_the_old_year(): void
+    public function test_changing_the_cycle_drops_a_period_of_the_old_cycle(): void
     {
         $school = $this->workingSchool();
         $year = AcademicYear::factory()->create(['school_id' => $school->id]);
-        $semester = Semester::factory()->create([
-            'school_id'        => $school->id,
+        $academicPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
             'academic_year_id' => $school->academic_year_id,
         ]);
 
-        academic_period_context()->setSemester($semester, remember: false);
+        academic_period_context()->setAcademicPeriod($academicPeriod, remember: false);
         academic_period_context()->setAcademicYear($year, remember: false);
 
-        $this->assertNull(current_semester_id());
+        $this->assertNull(current_academic_period_id());
     }
 
-    public function test_a_semester_outside_the_working_year_is_refused(): void
+    public function test_a_period_outside_the_working_cycle_is_refused(): void
     {
         $school = $this->workingSchool();
         $otherYear = AcademicYear::factory()->create(['school_id' => $school->id]);
-        $semester = Semester::factory()->create([
-            'school_id'        => $school->id,
+        $academicPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
             'academic_year_id' => $otherYear->id,
         ]);
 
-        $this->authorized_user(['set semester'])
-            ->post('/dashboard/semesters/set', ['semester_id' => $semester->id])
-            ->assertSessionMissing(AcademicPeriodContext::SEMESTER_SESSION_KEY);
+        $this->authorized_user(['set academic period'])
+            ->post('/dashboard/academic-periods/set', ['academic_period_id' => $academicPeriod->id])
+            ->assertSessionMissing(AcademicPeriodContext::ACADEMIC_PERIOD_SESSION_KEY);
     }
 
     public function test_two_people_can_work_in_different_periods(): void

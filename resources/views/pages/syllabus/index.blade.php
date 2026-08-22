@@ -7,6 +7,10 @@
 
 @section('page_heading',  __('Syllabi'))
 
+@section('page_actions')
+    <x-resource-create-action :href="route('syllabi.create')" ability="create" :arguments="[\App\Models\Syllabus::class]">Add syllabus</x-resource-create-action>
+@endsection
+
 @section('content', )
     @livewire('list-syllabi-table')
 @endsection

@@ -14,6 +14,7 @@ use App\Listeners\RecordPermissionChanges;
 use App\Services\Academic\AcademicPeriodContext;
 use App\Services\Authorization\OrganizationPermissionScope;
 use App\Services\Authorization\SystemPermissionScope;
+use App\Services\Curriculum\InstructionalModelResolver;
 use App\Services\Feature\FeatureManager;
 use App\Services\School\SchoolContext;
 use Illuminate\Auth\Events\Registered;
@@ -49,6 +50,9 @@ class AppServiceProvider extends ServiceProvider
 
         // Feature answers are worked out once per request.
         $this->app->scoped(FeatureManager::class);
+
+        // The instructional model of a cycle is read once per request.
+        $this->app->scoped(InstructionalModelResolver::class);
     }
 
     public function boot(): void

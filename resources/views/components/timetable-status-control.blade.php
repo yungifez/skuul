@@ -9,8 +9,8 @@
         TimetableStatus::Published => 'default',
         TimetableStatus::Archived => 'outline',
     };
-    $periodAcceptsChanges = $timetable->semester?->isOpen()
-        && $timetable->semester?->academicYear?->isOpen();
+    $periodAcceptsChanges = $timetable->academicPeriod?->isOpen()
+        && $timetable->academicPeriod?->academicYear?->isOpen();
 @endphp
 
 <div class="flex flex-wrap items-center gap-2">

@@ -6,13 +6,25 @@ use App\Actions\Identity\AcceptAccountInvitation;
 use App\Actions\Identity\RevokeAccountInvitation;
 use App\Actions\Identity\SendAccountInvitation;
 use App\Http\Requests\AcceptAccountInvitationRequest;
+use App\Models\AccountInvitation;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 
 class AccountInvitationController extends Controller
 {
+    /**
+     * Show the invitations this administrator is responsible for.
+     */
+    public function index(): View
+    {
+        Gate::authorize('viewAny', AccountInvitation::class);
+
+        return view('pages.account-invitation.index');
+    }
+
     /**
      * Show the screen where an invited person sets a password.
      */
@@ -24,7 +36,7 @@ class AccountInvitationController extends Controller
 
         return view('auth.accept-invitation', [
             'token' => $token,
-            'user'  => $invitation->user,
+            'user' => $invitation->user,
         ]);
     }
 
@@ -64,7 +76,7 @@ class AccountInvitationController extends Controller
     {
         $this->authorize('manageAccountAccess', $user);
 
-        $revoked = $revokeAccountInvitation->revoke($user);
+        $revoked = $revokeAccountInvitation->revoke($user, auth()->user());
 
         return back()->with('success', $revoked > 0
             ? "Revoked the invitation for {$user->name}."

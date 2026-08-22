@@ -20,6 +20,9 @@
                 @can('manageMembers', $organization)
                     <a href="{{ route('organizations.members.index', $organization) }}"><april:button variant="outline">Members</april:button></a>
                 @endcan
+                @can('manageCalendar', $organization)
+                    <a href="{{ route('organizations.calendar-templates.index', $organization) }}"><april:button variant="outline">Calendar templates</april:button></a>
+                @endcan
                 @can('update', $organization)
                     <a href="{{ route('organizations.edit', $organization) }}"><april:button>Organization settings</april:button></a>
                 @endcan

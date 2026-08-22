@@ -66,7 +66,7 @@ class TimetableConflictChecker
 
         $published = Timetable::query()
             ->published()
-            ->where('semester_id', $timetable->semester_id)
+            ->where('academic_period_id', $timetable->academic_period_id)
             ->whereKeyNot($timetable->getKey())
             ->get();
 
@@ -121,10 +121,10 @@ class TimetableConflictChecker
             $teachers = $subject->teachers()->get(['users.id', 'users.name']);
 
             return [
-                'weekday_id'    => (int) $record->weekday_id,
-                'start_time'    => (string) $slot->start_time,
-                'stop_time'     => (string) $slot->stop_time,
-                'teacher_ids'   => $teachers->pluck('id')->map(fn ($id): int => (int) $id)->all(),
+                'weekday_id' => (int) $record->weekday_id,
+                'start_time' => (string) $slot->start_time,
+                'stop_time' => (string) $slot->stop_time,
+                'teacher_ids' => $teachers->pluck('id')->map(fn ($id): int => (int) $id)->all(),
                 'teacher_names' => $teachers->pluck('name', 'id')->all(),
             ];
         })->filter()->values();

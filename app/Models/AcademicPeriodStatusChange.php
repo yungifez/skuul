@@ -25,6 +25,7 @@ class AcademicPeriodStatusChange extends Model
         'to_status',
         'changed_by',
         'reason',
+        'checklist',
     ];
 
     /**
@@ -34,7 +35,8 @@ class AcademicPeriodStatusChange extends Model
      */
     protected $casts = [
         'from_status' => AcademicPeriodStatus::class,
-        'to_status'   => AcademicPeriodStatus::class,
+        'to_status' => AcademicPeriodStatus::class,
+        'checklist' => 'array',
     ];
 
     /**

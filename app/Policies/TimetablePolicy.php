@@ -48,8 +48,8 @@ class TimetablePolicy
     {
         if ($user->can('update timetable')
             && $timetable->acceptsChanges()
-            && $timetable->semester->isOpen()
-            && $timetable->semester->academicYear->isOpen()
+            && $timetable->academicPeriod->isOpen()
+            && $timetable->academicPeriod->academicYear->isOpen()
             && current_school_id() == $timetable->myClass->classGroup->school->id
         ) {
             return true;
@@ -76,8 +76,8 @@ class TimetablePolicy
     {
         if ($user->can('update timetable')
             && $timetable->status === TimetableStatus::Draft
-            && $timetable->semester->isOpen()
-            && $timetable->semester->academicYear->isOpen()
+            && $timetable->academicPeriod->isOpen()
+            && $timetable->academicPeriod->academicYear->isOpen()
             && current_school_id() == $timetable->myClass->classGroup->school->id
         ) {
             return true;
@@ -93,8 +93,8 @@ class TimetablePolicy
     {
         if ($user->can('update timetable')
             && $timetable->status === TimetableStatus::Published
-            && $timetable->semester->isOpen()
-            && $timetable->semester->academicYear->isOpen()
+            && $timetable->academicPeriod->isOpen()
+            && $timetable->academicPeriod->academicYear->isOpen()
             && current_school_id() == $timetable->myClass->classGroup->school->id
         ) {
             return true;

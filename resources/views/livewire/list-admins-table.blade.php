@@ -1,14 +1,6 @@
 <div class="space-y-6">
     <april:card>
-        <slot:title class="flex flex-wrap items-center justify-between gap-3">
-            <span>School administrators</span>
-            @can('create admin')
-                <april:button href="{{ route('admins.create') }}" wire:navigate>
-                    <x-lucide-user-plus class="mr-2 size-4" />
-                    Add administrator
-                </april:button>
-            @endcan
-        </slot:title>
+        <slot:title>School administrators</slot:title>
         <slot:description>People who can manage this school. Account access, invitations, and school membership are tracked independently.</slot:description>
         <slot:content>
             <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
@@ -37,7 +29,7 @@
         <slot:title>Administrator directory</slot:title>
         <slot:description>Search the people with administrator access in the current school.</slot:description>
         <slot:content>
-            <livewire:datatable :model="App\Models\User::class" uniqueId="admins-list-table" :filters="[['name' => 'role', 'arguments' => ['admin']], ['name' => 'ofSchool'], ['name' => 'orderBy', 'arguments' => ['name']]]" :columns="[
+            <livewire:datatable :model="App\Models\User::class" uniqueId="admins-list-table" :filters="[['name' => 'role', 'arguments' => ['admin']], ['name' => 'ofSchool'], ['name' => 'orderBy', 'arguments' => ['name']]]" :empty-state="['heading' => 'No administrators yet', 'description' => 'Add the first administrator for this school.', 'action' => ['href' => route('admins.create'), 'ability' => 'create', 'arguments' => [\App\Models\User::class, 'admin'], 'label' => 'Add administrator']]" :columns="[
                 ['type' => 'image', 'property' => 'profile_photo_url', 'img-class' => 'size-10 rounded-full object-cover'],
                 ['property' => 'name'],
                 ['property' => 'email'],

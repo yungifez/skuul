@@ -37,7 +37,7 @@
                     <p class="text-sm text-destructive">{{ $message }}</p>
                 @enderror
             </div>
-            <april:input-group id="name" name="name" id="name" label="Name *" placeholder="Name (Eg: Physics second semester syllabus) " wire:ignore />
+            <april:input-group id="name" name="name" id="name" label="Name *" placeholder="Name (Eg: Physics second academic period syllabus) " wire:ignore />
             <div class="flex w-full flex-col gap-2 md:col-span-6">
                 <april:label for="description">Description</april:label>
                 <april:textarea id="description" name="description" placeholder="Insert description (optional)..." rows="5" />

@@ -36,6 +36,16 @@ enum AuditAction: string
     case AccountStatusChanged = 'account.status_changed';
 
     /**
+     * An invitation link was issued and emailed to a person.
+     */
+    case AccountInvitationSent = 'account_invitation.sent';
+
+    /**
+     * Every unused invitation link for an account was stopped.
+     */
+    case AccountInvitationRevoked = 'account_invitation.revoked';
+
+    /**
      * An enrollment moved between states.
      */
     case EnrollmentStatusChanged = 'enrollment.status_changed';
@@ -59,6 +69,16 @@ enum AuditAction: string
      * A teaching assignment was ended.
      */
     case TeachingAssignmentEnded = 'teaching_assignment.ended';
+
+    /**
+     * A subject offering was configured for one academic period.
+     */
+    case CourseOfferingCreated = 'course_offering.created';
+
+    /**
+     * A subject offering moved between draft, active, and archived states.
+     */
+    case CourseOfferingStatusChanged = 'course_offering.status_changed';
 
     /**
      * A timetable revision was published.
@@ -126,9 +146,69 @@ enum AuditAction: string
     case IncidentStatusChanged = 'incident.status_changed';
 
     /**
-     * An academic year or semester was opened, closed, or reopened.
+     * An academic year or academic period was opened, closed, or reopened.
      */
     case AcademicPeriodStatusChanged = 'academic_period.status_changed';
+
+    /**
+     * A cycle was generated from a calendar template.
+     */
+    case AcademicCycleGenerated = 'academic_cycle.generated';
+
+    /**
+     * The dates of a period that was already in use were changed.
+     */
+    case AcademicPeriodDatesChanged = 'academic_period.dates_changed';
+
+    /**
+     * A campus stopped following its organization's calendar, or resumed it.
+     */
+    case CampusCalendarOverridden = 'campus_calendar.overridden';
+
+    /**
+     * A calendar template was created or changed.
+     */
+    case CalendarTemplateSaved = 'calendar_template.saved';
+
+    /**
+     * A campus chose the way it teaches an academic cycle.
+     */
+    case InstructionalModelChanged = 'instructional_model.changed';
+
+    /**
+     * A reusable academic level was added for a campus.
+     */
+    case AcademicLevelCreated = 'academic_level.created';
+
+    /**
+     * A reusable academic level was renamed or re-linked.
+     */
+    case AcademicLevelUpdated = 'academic_level.updated';
+
+    /**
+     * A reusable academic level moved between lifecycle states.
+     */
+    case AcademicLevelStatusChanged = 'academic_level.status_changed';
+
+    /**
+     * A cycle-specific home section was configured.
+     */
+    case AcademicCycleSectionCreated = 'academic_cycle_section.created';
+
+    /**
+     * A cycle-specific home section had its setup changed.
+     */
+    case AcademicCycleSectionUpdated = 'academic_cycle_section.updated';
+
+    /**
+     * A cycle-specific home section moved between lifecycle states.
+     */
+    case AcademicCycleSectionStatusChanged = 'academic_cycle_section.status_changed';
+
+    /**
+     * Section structure was copied into another academic cycle.
+     */
+    case AcademicCycleSectionsRolledForward = 'academic_cycle_section.rolled_forward';
 
     /**
      * A result was published from the gradebook.
@@ -233,11 +313,15 @@ enum AuditAction: string
             self::PermissionAttached => 'Permission given',
             self::PermissionDetached => 'Permission removed',
             self::AccountStatusChanged => 'Account status changed',
+            self::AccountInvitationSent => 'Invitation sent',
+            self::AccountInvitationRevoked => 'Invitation revoked',
             self::EnrollmentStatusChanged => 'Enrollment status changed',
             self::EnrollmentPlaced => 'Student placed in a class',
             self::EnrollmentTransferred => 'Enrollment transferred',
             self::TeachingAssignmentCreated => 'Teacher assigned to a subject',
             self::TeachingAssignmentEnded => 'Teaching assignment ended',
+            self::CourseOfferingCreated => 'Course offering created',
+            self::CourseOfferingStatusChanged => 'Course offering status changed',
             self::TimetablePublished => 'Timetable published',
             self::TimetableArchived => 'Timetable archived',
             self::TimetableRevised => 'Timetable revision started',
@@ -252,6 +336,18 @@ enum AuditAction: string
             self::IncidentReported => 'Case recorded',
             self::IncidentStatusChanged => 'Case status changed',
             self::AcademicPeriodStatusChanged => 'Academic period status changed',
+            self::AcademicCycleGenerated => 'Academic cycle generated',
+            self::AcademicPeriodDatesChanged => 'Academic period dates changed',
+            self::CampusCalendarOverridden => 'Campus calendar changed',
+            self::CalendarTemplateSaved => 'Calendar template saved',
+            self::InstructionalModelChanged => 'Instructional model changed',
+            self::AcademicLevelCreated => 'Academic level created',
+            self::AcademicLevelUpdated => 'Academic level updated',
+            self::AcademicLevelStatusChanged => 'Academic level status changed',
+            self::AcademicCycleSectionCreated => 'Academic cycle section created',
+            self::AcademicCycleSectionUpdated => 'Academic cycle section updated',
+            self::AcademicCycleSectionStatusChanged => 'Academic cycle section status changed',
+            self::AcademicCycleSectionsRolledForward => 'Academic cycle sections rolled forward',
             self::ResultPublished => 'Result published',
             self::ResultRevised => 'Result corrected',
             self::ExamResultPublished => 'Exam results published',

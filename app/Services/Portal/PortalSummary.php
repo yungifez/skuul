@@ -25,15 +25,14 @@ class PortalSummary
         private PortalAccess $access,
         private AttendanceSummary $attendance,
         private StudentLedger $ledger,
-    ) {
-    }
+    ) {}
 
     /**
      * Get the newest published result of each subject.
      *
      * @return Collection<int, ResultSnapshot>
      */
-    public function results(StudentRecord $enrollment, ?int $academicYearId = null, ?int $semesterId = null): Collection
+    public function results(StudentRecord $enrollment, ?int $academicYearId = null, ?int $academicPeriodId = null): Collection
     {
         if (!$this->access->areaIsOpen(PortalArea::Results, $enrollment->school_id)) {
             return collect();
@@ -42,7 +41,7 @@ class PortalSummary
         return ResultSnapshot::query()
             ->where('student_record_id', $enrollment->id)
             ->when($academicYearId !== null, fn ($query) => $query->where('academic_year_id', $academicYearId))
-            ->when($semesterId !== null, fn ($query) => $query->where('semester_id', $semesterId))
+            ->when($academicPeriodId !== null, fn ($query) => $query->where('academic_period_id', $academicPeriodId))
             ->with('subject')
             ->get()
             ->groupBy('subject_id')
@@ -115,7 +114,7 @@ class PortalSummary
                 ->where('user_id', $enrollment->user_id)
                 ->orderByDesc('id')
                 ->get(),
-            'balance'          => $this->ledger->balance($enrollment),
+            'balance' => $this->ledger->balance($enrollment),
             'unapplied_credit' => $this->ledger->unappliedCredit($enrollment),
         ];
     }

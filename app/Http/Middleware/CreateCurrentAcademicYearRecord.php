@@ -16,14 +16,12 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class CreateCurrentAcademicYearRecord
 {
-    public function __construct(private ChangeEnrollmentPlacement $changeEnrollmentPlacement)
-    {
-    }
+    public function __construct(private ChangeEnrollmentPlacement $changeEnrollmentPlacement) {}
 
     /**
      * Handle an incoming request.
      *
-     * @param Closure(Request): (Response) $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -43,7 +41,7 @@ class CreateCurrentAcademicYearRecord
                 class: $enrollment->myClass,
                 section: $enrollment->section,
                 academicYear: $academicYear,
-                semester: current_semester(),
+                academicPeriod: current_academic_period(),
                 actor: $user,
                 reason: 'Academic year backfill',
             );

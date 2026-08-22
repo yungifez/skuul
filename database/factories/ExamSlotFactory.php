@@ -18,13 +18,13 @@ class ExamSlotFactory extends Factory
      */
     public function definition()
     {
-        $exam = Exam::query()->whereRelation('semester', 'id', 1)->inRandomOrder()->first();
+        $exam = Exam::query()->whereRelation('academicPeriod', 'id', 1)->inRandomOrder()->first();
 
         return [
-            'name'        => $this->faker->name,
+            'name' => $this->faker->name,
             'description' => $this->faker->sentence,
             'total_marks' => $this->faker->numberBetween(1, 100),
-            'exam_id'     => $exam->id,
+            'exam_id' => $exam->id,
         ];
     }
 }

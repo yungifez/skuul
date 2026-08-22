@@ -7,7 +7,7 @@
             <x-display-validation-errors/>
             <x-loading-spinner/>
             {{-- form for selecting class and section to display --}}
-            <form wire:submit="checkResult('{{$academicYear}}','{{$semester}}', '{{$student}}')" class="">
+            <form wire:submit="checkResult('{{$academicYear}}','{{$academicPeriod}}', '{{$student}}')" class="">
                 <div class="md:grid grid-cols-3 gap-4 items-end">
                     <div class="flex w-full flex-col gap-2">
                         <april:label for="academic-year">Academic Year of exam</april:label>
@@ -25,17 +25,17 @@
                         @enderror
                     </div>
                     <div class="flex w-full flex-col gap-2">
-                        <april:label for="semester">Semester of exam</april:label>
-                        <april:select id="semester" name="semester" wire:model.live="semester">
+                        <april:label for="academicPeriod">AcademicPeriod of exam</april:label>
+                        <april:select id="academicPeriod" name="academicPeriod" wire:model.live="academicPeriod">
                         <option value="">Entire Academic Year</option>
-                        @isset($semesters)
-                            @foreach ($semesters as $item)
+                        @isset($academicPeriods)
+                            @foreach ($academicPeriods as $item)
                                 <option value="{{$item['id']}}" >{{$item['name']}}</option>
                             @endforeach
                         @endisset
 
                         </april:select>
-                        @error('semester')
+                        @error('academicPeriod')
                             <p class="text-sm text-destructive">{{ $message }}</p>
                         @enderror
                     </div>

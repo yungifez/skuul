@@ -3,13 +3,15 @@
 namespace App\Actions\Enrollment;
 
 use App\Actions\Audit\RecordAuditEvent;
+use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\EnrollmentPlacement;
 use App\Models\MyClass;
 use App\Models\Section;
-use App\Models\Semester;
 use App\Models\StudentRecord;
 use App\Models\User;
 use Carbon\CarbonInterface;
@@ -26,24 +28,27 @@ use Illuminate\Support\Facades\DB;
  */
 class ChangeEnrollmentPlacement
 {
-    public function __construct(private RecordAuditEvent $auditor)
-    {
-    }
+    public function __construct(private RecordAuditEvent $auditor) {}
 
     /**
      * Place the enrollment in the given class and section.
      *
-     * @throws InvalidValueException when the class, section, or year does not fit
+     * The cycle section is optional during the compatibility period. When it
+     * is given, it becomes the exact source of truth for this new placement
+     * and must match the legacy class and section bridges.
+     *
+     * @throws InvalidValueException when the class, section, cycle section, or year does not fit
      */
     public function place(
         StudentRecord $enrollment,
         MyClass $class,
         ?Section $section = null,
         ?AcademicYear $academicYear = null,
-        ?Semester $semester = null,
+        ?AcademicPeriod $academicPeriod = null,
         ?User $actor = null,
         ?string $reason = null,
         ?CarbonInterface $effectiveOn = null,
+        ?AcademicCycleSection $academicCycleSection = null,
     ): StudentRecord {
         $academicYear ??= current_academic_year();
 
@@ -53,39 +58,50 @@ class ChangeEnrollmentPlacement
 
         $enrollmentId = $enrollment->getKey();
 
-        return DB::transaction(function () use ($enrollmentId, $class, $section, $academicYear, $semester, $actor, $reason, $effectiveOn): StudentRecord {
+        $academicCycleSectionId = $academicCycleSection?->getKey();
+
+        return DB::transaction(function () use ($enrollmentId, $class, $section, $academicYear, $academicPeriod, $actor, $reason, $effectiveOn, $academicCycleSectionId): StudentRecord {
             // Serialize placement changes for one enrollment. This prevents
             // two retries from creating duplicate history rows.
             $enrollment = StudentRecord::query()
                 ->lockForUpdate()
                 ->findOrFail($enrollmentId);
+            $academicCycleSection = $academicCycleSectionId === null
+                ? null
+                : AcademicCycleSection::query()
+                    ->with('academicLevel')
+                    ->lockForUpdate()
+                    ->findOrFail($academicCycleSectionId);
 
-            $this->failIfRecordsDoNotFit($enrollment, $class, $section, $academicYear);
+            $this->failIfRecordsDoNotFit($enrollment, $class, $section, $academicYear, $academicCycleSection);
 
             // The same place in the same year is not a move. Record nothing.
-            if ($this->alreadyPlaced($enrollment, $class, $section, $academicYear)) {
+            if ($this->alreadyPlaced($enrollment, $class, $section, $academicYear, $academicCycleSection)) {
                 return $enrollment;
             }
 
             EnrollmentPlacement::create([
                 'student_record_id' => $enrollment->id,
-                'academic_year_id'  => $academicYear->id,
-                'semester_id'       => $semester?->id,
-                'my_class_id'       => $class->id,
-                'section_id'        => $section?->id,
-                'effective_on'      => $effectiveOn ?? now(),
-                'changed_by'        => $actor?->id,
-                'reason'            => $reason,
+                'academic_year_id' => $academicYear->id,
+                'academic_period_id' => $academicPeriod?->id,
+                'my_class_id' => $class->id,
+                'section_id' => $section?->id,
+                'academic_cycle_section_id' => $academicCycleSection?->id,
+                'effective_on' => $effectiveOn ?? now(),
+                'changed_by' => $actor?->id,
+                'reason' => $reason,
             ]);
 
             // The enrollment keeps a pointer to where the student sits now.
             $enrollment->my_class_id = $class->id;
             $enrollment->section_id = $section?->id;
+            $enrollment->academic_cycle_section_id = $academicCycleSection?->id;
             $enrollment->save();
 
             $enrollment->academicYears()->syncWithoutDetaching([$academicYear->id => [
                 'my_class_id' => $class->id,
-                'section_id'  => $section?->id,
+                'section_id' => $section?->id,
+                'academic_cycle_section_id' => $academicCycleSection?->id,
             ]]);
 
             $this->auditor->record(
@@ -93,9 +109,10 @@ class ChangeEnrollmentPlacement
                 $enrollment,
                 [
                     'academic_year_id' => $academicYear->id,
-                    'my_class_id'      => $class->id,
-                    'section_id'       => $section?->id,
-                    'reason'           => $reason,
+                    'my_class_id' => $class->id,
+                    'section_id' => $section?->id,
+                    'academic_cycle_section_id' => $academicCycleSection?->id,
+                    'reason' => $reason,
                 ],
                 $actor,
             );
@@ -109,8 +126,13 @@ class ChangeEnrollmentPlacement
      *
      * @throws InvalidValueException
      */
-    private function failIfRecordsDoNotFit(StudentRecord $enrollment, MyClass $class, ?Section $section, AcademicYear $academicYear): void
-    {
+    private function failIfRecordsDoNotFit(
+        StudentRecord $enrollment,
+        MyClass $class,
+        ?Section $section,
+        AcademicYear $academicYear,
+        ?AcademicCycleSection $academicCycleSection,
+    ): void {
         if ($enrollment->status->isClosed()) {
             throw new InvalidValueException('This enrollment is closed. It cannot take a new class.');
         }
@@ -132,17 +154,48 @@ class ChangeEnrollmentPlacement
         if ($academicYear->isClosed()) {
             throw new InvalidValueException('The academic year is closed. Reopen it before you move a student.');
         }
+
+        if ($academicCycleSection === null) {
+            return;
+        }
+
+        if ($academicCycleSection->school_id !== $schoolId || $academicCycleSection->academic_year_id !== $academicYear->id) {
+            throw new InvalidValueException('The cycle section does not belong to this enrollment and academic cycle.');
+        }
+
+        if ($academicCycleSection->status !== AcademicStructureStatus::Active) {
+            throw new InvalidValueException('Activate the cycle section before placing a student in it.');
+        }
+
+        $academicLevel = $academicCycleSection->academicLevel;
+
+        if ($academicLevel->legacy_my_class_id !== $class->id) {
+            throw new InvalidValueException('The cycle section does not match the legacy class bridge.');
+        }
+
+        if ($academicCycleSection->legacy_section_id === null || $section?->id !== $academicCycleSection->legacy_section_id) {
+            throw new InvalidValueException('The cycle section does not match the legacy section bridge.');
+        }
     }
 
     /**
      * Check if the enrollment already sits here in this year.
      */
-    private function alreadyPlaced(StudentRecord $enrollment, MyClass $class, ?Section $section, AcademicYear $academicYear): bool
-    {
+    private function alreadyPlaced(
+        StudentRecord $enrollment,
+        MyClass $class,
+        ?Section $section,
+        AcademicYear $academicYear,
+        ?AcademicCycleSection $academicCycleSection,
+    ): bool {
         return $enrollment->placements()
             ->where('academic_year_id', $academicYear->id)
             ->where('my_class_id', $class->id)
             ->where('section_id', $section?->id)
+            ->when(
+                $academicCycleSection !== null,
+                fn ($query) => $query->where('academic_cycle_section_id', $academicCycleSection->id),
+            )
             ->exists();
     }
 }

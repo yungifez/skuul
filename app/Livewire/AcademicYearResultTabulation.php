@@ -33,7 +33,7 @@ class AcademicYearResultTabulation extends Component
 
     public function mount(MyClassService $myClassService)
     {
-        // get semester and use it to fetch all exams in semester
+        // get academic period and use it to fetch all exams in academic period
         $this->academicYear = current_academic_year();
         $this->classes = $myClassService->getAllClasses();
 
@@ -91,8 +91,8 @@ class AcademicYearResultTabulation extends Component
         $this->title = "Exam Marks For $titleFor in academic year ".current_academic_year()->name;
 
         $examSlots = collect();
-        $this->academicYear->load('semesters')->semesters->each(function ($semester) use (&$examSlots) {
-            return $examSlots = $examSlots->merge($semester->load('examSlots')->examSlots);
+        $this->academicYear->load('academicPeriods')->academicPeriods->each(function ($academicPeriod) use (&$examSlots) {
+            return $examSlots = $examSlots->merge($academicPeriod->load('examSlots')->examSlots);
         });
 
         $this->tabulatedRecords = $this->tabulateMarks($classGroup, $subjects, $students, $examSlots);

@@ -9,7 +9,7 @@
         ]"
         :columns="[
             ['property' => 'name'],
-            ['name' => 'Period', 'type' => 'academic-period-status', 'relation' => 'exam.semester', 'route-prefix' => 'semesters'],
+            ['name' => 'Period', 'type' => 'academic-period-status', 'relation' => 'exam.academicPeriod', 'route-prefix' => 'academic-periods'],
             ['property' => 'description'],
             ['property' => 'total_marks'],
             ['name' => 'Actions', 'type' => 'dropdown',  'can' => 'update exam slot'  , 'links' => [

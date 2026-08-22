@@ -275,7 +275,7 @@ class GradebookTest extends TestCase
         $class = MyClass::factory()->create(['class_group_id' => $classGroup->id]);
 
         return Subject::factory()->create([
-            'school_id'   => $this->workingSchool()->id,
+            'school_id' => $this->workingSchool()->id,
             'my_class_id' => $class->id,
         ]);
     }
@@ -283,33 +283,33 @@ class GradebookTest extends TestCase
     /**
      * Create a grade item in the given subject.
      *
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     private function item(array $attributes = [], ?Subject $subject = null): GradeItem
     {
         $subject ??= $this->subject();
 
         return GradeItem::create($attributes + [
-            'school_id'        => $subject->school_id,
-            'subject_id'       => $subject->id,
+            'school_id' => $subject->school_id,
+            'subject_id' => $subject->id,
             'academic_year_id' => current_academic_year_id(),
-            'semester_id'      => current_semester_id(),
-            'name'             => 'Assessment',
+            'academic_period_id' => current_academic_period_id(),
+            'name' => 'Assessment',
         ]);
     }
 
     /**
      * Create a grade category in the given subject.
      *
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     private function category(Subject $subject, array $attributes = []): GradeCategory
     {
         return GradeCategory::create($attributes + [
-            'school_id'        => $subject->school_id,
-            'subject_id'       => $subject->id,
+            'school_id' => $subject->school_id,
+            'subject_id' => $subject->id,
             'academic_year_id' => current_academic_year_id(),
-            'name'             => 'Group',
+            'name' => 'Group',
         ]);
     }
 

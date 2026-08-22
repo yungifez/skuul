@@ -14,11 +14,11 @@ class UpdateExamRequest extends FormRequest
     public function rules()
     {
         return [
-            'name'        => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:10000',
-            'semester_id' => 'required|integer|exists:semesters,id',
-            'start_date'  => 'required|date',
-            'stop_date'   => 'required|date|after_or_equal:start_date',
+            'academic_period_id' => 'required|integer|exists:academic_periods,id',
+            'start_date' => 'required|date',
+            'stop_date' => 'required|date|after_or_equal:start_date',
         ];
     }
 }

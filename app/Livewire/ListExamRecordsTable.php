@@ -21,7 +21,7 @@ class ListExamRecordsTable extends Component
 
     protected $queryString = ['sectionSelectedId', 'examSelectedId', 'subjectSelectedId', 'search'];
 
-    public $semester;
+    public $academicPeriod;
 
     public $search;
 
@@ -63,9 +63,9 @@ class ListExamRecordsTable extends Component
 
     public function mount(ExamService $examService, MyClassService $myClassService, SectionService $sectionService, SubjectService $subjectService)
     {
-        // get semester and use it to fetch all exams in semester
-        $this->semester = current_semester();
-        $this->exams = $examService->getActiveExamsInSemester($this->semester->id);
+        // get academic period and use it to fetch all exams in academic period
+        $this->academicPeriod = current_academic_period();
+        $this->exams = $examService->getActiveExamsInAcademicPeriod($this->academicPeriod->id);
         // set exam as first exam if exams not empty
         $this->exams->count() ? $this->exam = $this->exams[0]->id : $this->exam = null;
         $this->classes = $myClassService->getAllClasses();

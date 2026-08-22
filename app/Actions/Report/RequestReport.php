@@ -20,13 +20,12 @@ class RequestReport
     public function __construct(
         private ReportRegistry $registry,
         private RecordAuditEvent $auditor,
-    ) {
-    }
+    ) {}
 
     /**
      * Request the report.
      *
-     * @param array<string, mixed> $parameters
+     * @param  array<string, mixed>  $parameters
      */
     public function request(string $type, array $parameters = [], ?User $actor = null): ReportRun
     {
@@ -34,12 +33,12 @@ class RequestReport
         $report = $this->registry->get($type);
 
         $run = ReportRun::create([
-            'school_id'        => current_school_id(),
-            'type'             => $report->key(),
-            'parameters'       => $parameters === [] ? null : $parameters,
+            'school_id' => current_school_id(),
+            'type' => $report->key(),
+            'parameters' => $parameters === [] ? null : $parameters,
             'academic_year_id' => current_academic_year_id(),
-            'semester_id'      => current_semester_id(),
-            'requested_by'     => $actor === null ? auth()->id() : $actor->id,
+            'academic_period_id' => current_academic_period_id(),
+            'requested_by' => $actor === null ? auth()->id() : $actor->id,
         ]);
 
         BuildReport::dispatch($run->id);

@@ -26,11 +26,11 @@ class ExamSlot extends Model
     }
 
     /**
-     * Get the semester that governs this exam slot.
+     * Get the academic period that governs this exam slot.
      */
-    public function governingAcademicPeriod(): AcademicYear|Semester|null
+    public function governingAcademicPeriod(): AcademicYear|AcademicPeriod|null
     {
-        return $this->exam?->semester;
+        return $this->exam?->academicPeriod;
     }
 
     /**

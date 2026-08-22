@@ -35,6 +35,24 @@ class Organization extends Model
     }
 
     /**
+     * Get the calendar templates this organization defines.
+     *
+     * @return HasMany<CalendarTemplate, $this>
+     */
+    public function calendarTemplates(): HasMany
+    {
+        return $this->hasMany(CalendarTemplate::class);
+    }
+
+    /**
+     * Get the template a campus follows when it has not chosen one.
+     */
+    public function defaultCalendarTemplate(): ?CalendarTemplate
+    {
+        return $this->calendarTemplates()->where('is_default', true)->first();
+    }
+
+    /**
      * Get organization administration records.
      *
      * @return HasMany<OrganizationMembership, $this>

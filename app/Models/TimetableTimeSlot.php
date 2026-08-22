@@ -74,11 +74,11 @@ class TimetableTimeSlot extends Model
     }
 
     /**
-     * Get the semester that governs this timetable slot.
+     * Get the academic period that governs this timetable slot.
      */
-    public function governingAcademicPeriod(): AcademicYear|Semester|null
+    public function governingAcademicPeriod(): AcademicYear|AcademicPeriod|null
     {
-        return $this->timetable?->semester;
+        return $this->timetable?->academicPeriod;
     }
 
     public function weekdays(): BelongsToMany

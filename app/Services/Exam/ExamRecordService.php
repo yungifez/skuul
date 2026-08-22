@@ -4,10 +4,10 @@ namespace App\Services\Exam;
 
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\Exam;
 use App\Models\ExamRecord;
-use App\Models\Semester;
 use App\Services\Subject\SubjectService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Collection;
@@ -29,7 +29,7 @@ class ExamRecordService
     }
 
     /**
-     * Get all exam records for all students in a class section for a semester.
+     * Get all exam records for all students in a class section for an academic period.
      *
      *
      * @return Collection<int, ExamRecord>
@@ -66,18 +66,17 @@ class ExamRecordService
     }
 
     /**
-     * Get all exam records for a user in a subject and an específic semester.
+     * Get all exam records for a user in a subject and an específic academic period.
      *
-     * @param int $user
-     * @param int $subject
-     *
+     * @param  int  $user
+     * @param  int  $subject
      * @return ExamRecord
      */
-    public function getAllUserExamRecordInSemesterForSubject(Semester $semester, $user, $subject)
+    public function getAllUserExamRecordInAcademicPeriodForSubject(AcademicPeriod $academicPeriod, $user, $subject)
     {
         // get all exams
-        $exams = $semester->exams;
-        // create container variable for all exam slots in semester
+        $exams = $academicPeriod->exams;
+        // create container variable for all exam slots in academic period
         $examSlots = [];
         // get all exam slots in exams
         foreach ($exams as $exam) {
@@ -94,8 +93,7 @@ class ExamRecordService
     /**
      * Get all user exam records for user in an academic year.
      *
-     * @param Semester $semester
-     *
+     * @param  AcademicPeriod  $academicPeriod
      * @return ExamRecord
      */
     public function getAllUserExamRecordInAcademicYear(AcademicYear $academicYear, int $user)
@@ -109,15 +107,15 @@ class ExamRecordService
     }
 
     /**
-     * Get all user exam records for user in a semester.
+     * Get all user exam records for user in an academic period.
      *
      *
      * @return ExamRecord
      */
-    public function getAllUserExamRecordInSemester(Semester $semester, int $user)
+    public function getAllUserExamRecordInAcademicPeriod(AcademicPeriod $academicPeriod, int $user)
     {
         // get all exams
-        $exams = $semester->exams->load('examSlots');
+        $exams = $academicPeriod->exams->load('examSlots');
 
         $examSlots = $this->getAllExamSlotsInExams($exams);
 
@@ -133,7 +131,7 @@ class ExamRecordService
      */
     public function getAllExamSlotsInExams($exams)
     {
-        // create container variable for all exam slots in semester
+        // create container variable for all exam slots in academic period
         $examSlots = [];
         // get all exam slots in exams
         foreach ($exams as $exam) {
@@ -149,8 +147,7 @@ class ExamRecordService
     /**
      * Create exam record.
      *
-     * @param array|object $records
-     *
+     * @param  array|object  $records
      * @return void
      */
     public function createExamRecord($records)
@@ -172,9 +169,9 @@ class ExamRecordService
                 // creates exam record or updates if records already exists
 
                 ExamRecord::updateOrCreate(
-                    ['user_id'         => $records['user_id'],
-                        'section_id'   => $records['section_id'],
-                        'subject_id'   => $records['subject_id'],
+                    ['user_id' => $records['user_id'],
+                        'section_id' => $records['section_id'],
+                        'subject_id' => $records['subject_id'],
                         'exam_slot_id' => $record['exam_slot_id'],
                     ],
                     [

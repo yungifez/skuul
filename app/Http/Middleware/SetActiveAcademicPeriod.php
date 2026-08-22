@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
- * Work out which academic year and semester the request works in.
+ * Work out which academic year and academic period the request works in.
  *
  * The school must be resolved first, because a period always belongs to one
  * school. A person keeps their own working period in the session.
@@ -19,13 +19,12 @@ class SetActiveAcademicPeriod
     public function __construct(
         private SchoolContext $schoolContext,
         private AcademicPeriodContext $periodContext,
-    ) {
-    }
+    ) {}
 
     /**
      * Handle an incoming request.
      *
-     * @param Closure(Request): (Response) $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {

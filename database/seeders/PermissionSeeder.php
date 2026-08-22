@@ -206,22 +206,22 @@ class PermissionSeeder extends Seeder
             'name' => 'reset graduation',
         ]);
 
-        // permission for semesters
+        // permission for academic periods
         Permission::firstOrCreate([
-            'name' => 'create semester',
+            'name' => 'create academic period',
         ]);
         Permission::firstOrCreate([
-            'name' => 'read semester',
+            'name' => 'read academic period',
         ]);
         Permission::firstOrCreate([
-            'name' => 'update semester',
+            'name' => 'update academic period',
         ]);
         Permission::firstOrCreate([
-            'name' => 'delete semester',
+            'name' => 'delete academic period',
         ]);
 
         Permission::firstOrCreate([
-            'name' => 'set semester',
+            'name' => 'set academic period',
         ]);
 
         // permission for syllabus
@@ -587,7 +587,7 @@ class PermissionSeeder extends Seeder
             'name' => 'menu-academic-year',
         ]);
         Permission::firstOrCreate([
-            'name' => 'menu-semester',
+            'name' => 'menu-academic-period',
         ]);
         Permission::firstOrCreate([
             'name' => 'menu-subject',
@@ -627,7 +627,7 @@ class PermissionSeeder extends Seeder
             'menu-subject',
             'menu-syllabus',
             'menu-timetable',
-            'menu-semester',
+            'menu-academic-period',
             'menu-exam',
             'menu-grade-system',
             'menu-notice',
@@ -671,11 +671,11 @@ class PermissionSeeder extends Seeder
             'graduate student',
             'view graduations',
             'reset graduation',
-            'create semester',
-            'read semester',
-            'update semester',
-            'delete semester',
-            'set semester',
+            'create academic period',
+            'read academic period',
+            'update academic period',
+            'delete academic period',
+            'set academic period',
             'create syllabus',
             'read syllabus',
             'update syllabus',

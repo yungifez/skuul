@@ -13,11 +13,11 @@
         :filters="[
             ['name' => 'find' , 'arguments' => [ $academicYear->id]],
             ['name' => 'exams' ],
-            ['name' => 'with', 'arguments' => ['semester']]
+            ['name' => 'with', 'arguments' => ['academicPeriod']]
         ]"
         :columns="[
             ['property' => 'name'],
-            ['property' => 'name', 'relation' => 'semester'],
+            ['property' => 'name', 'relation' => 'academicPeriod'],
             ['type' => 'dropdown', 'name' => 'actions','links' => [
                 ['href' => 'exams.edit', 'text' => 'Edit', 'icon' => 'settings',],
                 ['href' => 'exams.show', 'text' => 'View', 'icon' => 'eye',  ],

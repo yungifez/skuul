@@ -2,14 +2,14 @@
 
 namespace App\Services\Academic;
 
+use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\School;
-use App\Models\Semester;
 use Illuminate\Http\Request;
 use RuntimeException;
 
 /**
- * The academic year and semester the current request works in.
+ * The academic year and academic period the current request works in.
  *
  * The working period belongs to the request, not to the school record. The
  * pointers on the school row are only the default a person starts in, so two
@@ -26,13 +26,13 @@ class AcademicPeriodContext
     public const YEAR_SESSION_KEY = 'active_academic_year_id';
 
     /**
-     * The session key that remembers the semester.
+     * The session key that remembers the academic period.
      */
-    public const SEMESTER_SESSION_KEY = 'active_semester_id';
+    public const ACADEMIC_PERIOD_SESSION_KEY = 'active_academic_period_id';
 
     private ?AcademicYear $academicYear = null;
 
-    private ?Semester $semester = null;
+    private ?AcademicPeriod $academicPeriod = null;
 
     private bool $resolved = false;
 
@@ -53,19 +53,19 @@ class AcademicPeriodContext
     }
 
     /**
-     * Get the semester being worked in, or null when none is set.
+     * Get the academic period being worked in, or null when none is set.
      */
-    public function semester(): ?Semester
+    public function academicPeriod(): ?AcademicPeriod
     {
-        return $this->semester;
+        return $this->academicPeriod;
     }
 
     /**
-     * Get the id of the semester being worked in.
+     * Get the id of the academic period being worked in.
      */
-    public function semesterId(): ?int
+    public function academicPeriodId(): ?int
     {
-        return $this->semester?->id;
+        return $this->academicPeriod?->id;
     }
 
     /**
@@ -83,42 +83,42 @@ class AcademicPeriodContext
     }
 
     /**
-     * Get the semester or fail.
+     * Get the academic period or fail.
      */
-    public function semesterOrFail(): Semester
+    public function academicPeriodOrFail(): AcademicPeriod
     {
-        if ($this->semester === null) {
-            throw new RuntimeException('No semester is set for this request. Set a working semester first.');
+        if ($this->academicPeriod === null) {
+            throw new RuntimeException('No academic period is set for this request. Set a working academic period first.');
         }
 
-        return $this->semester;
+        return $this->academicPeriod;
     }
 
     /**
      * Set the academic year for this request and remember it.
      *
-     * Changing the year clears a semester that does not belong to it.
+     * Changing the year clears an academic period that does not belong to it.
      */
     public function setAcademicYear(?AcademicYear $academicYear, bool $remember = true): void
     {
         $this->academicYear = $academicYear;
         $this->resolved = true;
 
-        if ($this->semester !== null && $this->semester->academic_year_id !== $academicYear?->id) {
-            $this->setSemester(null, $remember);
+        if ($this->academicPeriod !== null && $this->academicPeriod->academic_year_id !== $academicYear?->id) {
+            $this->setAcademicPeriod(null, $remember);
         }
 
         $this->remember(self::YEAR_SESSION_KEY, $academicYear?->id, $remember);
     }
 
     /**
-     * Set the semester for this request and remember it.
+     * Set the academic period for this request and remember it.
      */
-    public function setSemester(?Semester $semester, bool $remember = true): void
+    public function setAcademicPeriod(?AcademicPeriod $academicPeriod, bool $remember = true): void
     {
-        $this->semester = $semester;
+        $this->academicPeriod = $academicPeriod;
 
-        $this->remember(self::SEMESTER_SESSION_KEY, $semester?->id, $remember);
+        $this->remember(self::ACADEMIC_PERIOD_SESSION_KEY, $academicPeriod?->id, $remember);
     }
 
     /**
@@ -127,7 +127,7 @@ class AcademicPeriodContext
     public function forget(): void
     {
         $this->academicYear = null;
-        $this->semester = null;
+        $this->academicPeriod = null;
         $this->resolved = false;
     }
 
@@ -152,19 +152,19 @@ class AcademicPeriodContext
 
         $this->academicYear = $year;
 
-        $semester = $year === null
+        $academicPeriod = $year === null
             ? null
-            : $this->allowedSemester($year, $request?->session()?->get(self::SEMESTER_SESSION_KEY));
+            : $this->allowedAcademicPeriod($year, $request?->session()?->get(self::ACADEMIC_PERIOD_SESSION_KEY));
 
-        if ($semester === null && $year !== null && $school->semester_id !== null) {
-            $semester = $this->allowedSemester($year, $school->semester_id);
+        if ($academicPeriod === null && $year !== null && $school->academic_period_id !== null) {
+            $academicPeriod = $this->allowedAcademicPeriod($year, $school->academic_period_id);
         }
 
         // Nothing was chosen. Use the period that covers today, when the
         // calendar names one.
-        $semester ??= $year?->periodForDate();
+        $academicPeriod ??= $year?->periodForDate();
 
-        $this->semester = $semester;
+        $this->academicPeriod = $academicPeriod;
         $this->resolved = true;
     }
 
@@ -181,15 +181,15 @@ class AcademicPeriodContext
     }
 
     /**
-     * Return the semester when it belongs to the academic year, else null.
+     * Return the academic period when it belongs to the academic year, else null.
      */
-    public function allowedSemester(AcademicYear $academicYear, int|string|null $semesterId): ?Semester
+    public function allowedAcademicPeriod(AcademicYear $academicYear, int|string|null $academicPeriodId): ?AcademicPeriod
     {
-        if ($semesterId === null) {
+        if ($academicPeriodId === null) {
             return null;
         }
 
-        return Semester::where('academic_year_id', $academicYear->id)->find((int) $semesterId);
+        return AcademicPeriod::where('academic_year_id', $academicYear->id)->find((int) $academicPeriodId);
     }
 
     /**

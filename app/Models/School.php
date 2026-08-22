@@ -14,9 +14,11 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * @property int|null $academic_year_id
- * @property int|null $semester_id
+ * @property int|null $academic_period_id
  * @property AcademicYear|null $academicYear
- * @property Semester|null $semester
+ * @property AcademicPeriod|null $academicPeriod
+ * @property int|null $calendar_template_id
+ * @property CalendarTemplate|null $calendarTemplate
  * @property string $name
  */
 class School extends Model
@@ -35,6 +37,44 @@ class School extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    /**
+     * Get the calendar template this campus chose for itself.
+     *
+     * Null is the normal case: the campus follows its organization. Read
+     * `effectiveCalendarTemplate()` to get the template it actually uses.
+     *
+     * @return BelongsTo<CalendarTemplate, $this>
+     */
+    public function calendarTemplate(): BelongsTo
+    {
+        return $this->belongsTo(CalendarTemplate::class);
+    }
+
+    /**
+     * Get the template this campus generates cycles from.
+     *
+     * A campus override wins. Otherwise the campus follows its organization's
+     * default, which is what keeps reporting across campuses comparable.
+     */
+    public function effectiveCalendarTemplate(): ?CalendarTemplate
+    {
+        if ($this->calendar_template_id !== null) {
+            return $this->calendarTemplate;
+        }
+
+        return CalendarTemplate::where('organization_id', $this->organization_id)
+            ->where('is_default', true)
+            ->first();
+    }
+
+    /**
+     * Check if this campus follows a calendar of its own.
+     */
+    public function overridesOrganizationCalendar(): bool
+    {
+        return $this->calendar_template_id !== null;
     }
 
     public function getLogoUrlAttribute()
@@ -96,6 +136,26 @@ class School extends Model
     }
 
     /**
+     * Get the reusable levels this campus teaches.
+     *
+     * @return HasMany<AcademicLevel, $this>
+     */
+    public function academicLevels(): HasMany
+    {
+        return $this->hasMany(AcademicLevel::class);
+    }
+
+    /**
+     * Get every cycle-specific home section for this campus.
+     *
+     * @return HasMany<AcademicCycleSection, $this>
+     */
+    public function academicCycleSections(): HasMany
+    {
+        return $this->hasMany(AcademicCycleSection::class);
+    }
+
+    /**
      * Get the academicYear associated with the School.
      *
      * @return HasOne<AcademicYear, $this>
@@ -106,12 +166,12 @@ class School extends Model
     }
 
     /**
-     * Get the semester associated with the School.
+     * Get the academic period associated with the School.
      *
-     * @return HasOne<Semester, $this>
+     * @return HasOne<AcademicPeriod, $this>
      */
-    public function semester(): HasOne
+    public function academicPeriod(): HasOne
     {
-        return $this->hasOne(Semester::class, 'id', 'semester_id');
+        return $this->hasOne(AcademicPeriod::class, 'id', 'academic_period_id');
     }
 }

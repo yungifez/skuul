@@ -20,14 +20,14 @@
                 <april:input-group type="date" id="date" name="stop_date" label="Stop date *" required value="{{old('stop_date')}}" />
             </div>
             <div class="flex w-full flex-col gap-2">
-                <april:label for="select">Select Semester *</april:label>
-                <april:select id="select" name="semester_id" wire:loading.attr="disabled" wire:target="semester">
-                @foreach ($semesters as $item)
-                    <option value="{{$item['id']}}" @selected(current_semester()->id == $item['id'])>{{$item['name']}}</option>
+                <april:label for="select">Select AcademicPeriod *</april:label>
+                <april:select id="select" name="academic_period_id" wire:loading.attr="disabled" wire:target="academicPeriod">
+                @foreach ($academicPeriods as $item)
+                    <option value="{{$item['id']}}" @selected(current_academic_period()->id == $item['id'])>{{$item['name']}}</option>
                 @endforeach
 
                 </april:select>
-                @error('semester_id')
+                @error('academic_period_id')
                     <p class="text-sm text-destructive">{{ $message }}</p>
                 @enderror
             </div>

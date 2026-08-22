@@ -214,49 +214,49 @@ parameters:
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$classGroup\.$#'
 			identifier: property.notFound
 			count: 1
-			path: app/Livewire/SemesterResultTabulation.php
+			path: app/Livewire/AcademicPeriodResultTabulation.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
 			identifier: property.notFound
 			count: 1
-			path: app/Livewire/SemesterResultTabulation.php
+			path: app/Livewire/AcademicPeriodResultTabulation.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$sections\.$#'
 			identifier: property.notFound
 			count: 1
-			path: app/Livewire/SemesterResultTabulation.php
+			path: app/Livewire/AcademicPeriodResultTabulation.php
 
 		-
 			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$subjects\.$#'
 			identifier: property.notFound
 			count: 1
-			path: app/Livewire/SemesterResultTabulation.php
+			path: app/Livewire/AcademicPeriodResultTabulation.php
 
 		-
-			message: '#^Method App\\Livewire\\SemesterResultTabulation\:\:tabulateMarks\(\) should return Illuminate\\Database\\Eloquent\\Collection but returns Illuminate\\Support\\Collection\<int, array\<string, mixed\>\>\.$#'
+			message: '#^Method App\\Livewire\\AcademicPeriodResultTabulation\:\:tabulateMarks\(\) should return Illuminate\\Database\\Eloquent\\Collection but returns Illuminate\\Support\\Collection\<int, array\<string, mixed\>\>\.$#'
 			identifier: return.type
 			count: 1
-			path: app/Livewire/SemesterResultTabulation.php
+			path: app/Livewire/AcademicPeriodResultTabulation.php
 
 		-
 			message: '#^Parameter \#1 \$callback of method Illuminate\\Support\\Collection\<int,App\\Models\\ExamSlot\>\:\:sum\(\) expects \(callable\(App\\Models\\ExamSlot, int\)\: mixed\)\|string\|null, array\{''total_marks''\} given\.$#'
 			identifier: argument.type
 			count: 1
-			path: app/Livewire/SemesterResultTabulation.php
+			path: app/Livewire/AcademicPeriodResultTabulation.php
 
 		-
-			message: '#^Property App\\Livewire\\SemesterResultTabulation\:\:\$subjects \(Illuminate\\Database\\Eloquent\\Collection&iterable\<App\\Traits\\Subjects\>\) does not accept Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Subject\>\.$#'
+			message: '#^Property App\\Livewire\\AcademicPeriodResultTabulation\:\:\$subjects \(Illuminate\\Database\\Eloquent\\Collection&iterable\<App\\Traits\\Subjects\>\) does not accept Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Subject\>\.$#'
 			identifier: assign.propertyType
 			count: 1
-			path: app/Livewire/SemesterResultTabulation.php
+			path: app/Livewire/AcademicPeriodResultTabulation.php
 
 		-
-			message: '#^Property App\\Livewire\\SemesterResultTabulation\:\:\$subjects has unknown class App\\Traits\\Subjects as its type\.$#'
+			message: '#^Property App\\Livewire\\AcademicPeriodResultTabulation\:\:\$subjects has unknown class App\\Traits\\Subjects as its type\.$#'
 			identifier: class.notFound
 			count: 1
-			path: app/Livewire/SemesterResultTabulation.php
+			path: app/Livewire/AcademicPeriodResultTabulation.php
 
 		-
 			message: '#^Access to an undefined property App\\Models\\Exam\:\:\$examRecordService\.$#'
@@ -385,19 +385,19 @@ parameters:
 			path: app/Services/Exam/ExamRecordService.php
 
 		-
-			message: '#^Method App\\Services\\Exam\\ExamRecordService\:\:getAllUserExamRecordInSemester\(\) should return App\\Models\\ExamRecord but returns Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\ExamRecord\>\.$#'
+			message: '#^Method App\\Services\\Exam\\ExamRecordService\:\:getAllUserExamRecordInAcademicPeriod\(\) should return App\\Models\\ExamRecord but returns Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\ExamRecord\>\.$#'
 			identifier: return.type
 			count: 1
 			path: app/Services/Exam/ExamRecordService.php
 
 		-
-			message: '#^Method App\\Services\\Exam\\ExamRecordService\:\:getAllUserExamRecordInSemesterForSubject\(\) should return App\\Models\\ExamRecord but returns Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\ExamRecord\>\.$#'
+			message: '#^Method App\\Services\\Exam\\ExamRecordService\:\:getAllUserExamRecordInAcademicPeriodForSubject\(\) should return App\\Models\\ExamRecord but returns Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\ExamRecord\>\.$#'
 			identifier: return.type
 			count: 1
 			path: app/Services/Exam/ExamRecordService.php
 
 		-
-			message: '#^PHPDoc tag @param references unknown parameter\: \$semester$#'
+			message: '#^PHPDoc tag @param references unknown parameter\: \$academicPeriod$#'
 			identifier: parameter.notFound
 			count: 1
 			path: app/Services/Exam/ExamRecordService.php

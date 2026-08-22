@@ -38,16 +38,16 @@ class RecordGrade
 
         return GradeEntry::updateOrCreate(
             [
-                'grade_item_id'     => $item->id,
+                'grade_item_id' => $item->id,
                 'student_record_id' => $enrollment->id,
             ],
             [
-                'state'       => $state,
-                'points'      => $state->needsPoints() ? $points : null,
+                'state' => $state,
+                'points' => $state->needsPoints() ? $points : null,
                 'scale_value' => $scaleValue,
-                'comment'     => $comment,
-                'graded_by'   => $actor === null ? auth()->id() : $actor->id,
-                'graded_at'   => now(),
+                'comment' => $comment,
+                'graded_by' => $actor === null ? auth()->id() : $actor->id,
+                'graded_at' => now(),
             ],
         );
     }
@@ -64,7 +64,7 @@ class RecordGrade
             throw new InvalidValueException('This student is enrolled in another school.');
         }
 
-        $period = $item->semester ?? $item->academicYear;
+        $period = $item->academicPeriod ?? $item->academicYear;
 
         if ($period !== null && $period->isClosed()) {
             throw new ClosedPeriodException('You cannot grade in a closed academic period.');

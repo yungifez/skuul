@@ -7,7 +7,16 @@
             <x-display-validation-errors/>
         </div>
         @unlessrole(['parent', 'student'])
-            <livewire:datatable :model="App\Models\User::class" uniqueId="students-list-table" :filters="[['name' => 'students'], ['name' => 'ofSchool'], ['name' => 'orderBy' , 'arguments' => ['name']], ['name' => 'activeStudents'], ['name' => 'with' , 'arguments' => ['studentRecord','studentRecord.section', 'studentRecord.myClass']]]" :columns="[
+            <livewire:datatable :model="App\Models\User::class" uniqueId="students-list-table" :filters="[['name' => 'students'], ['name' => 'ofSchool'], ['name' => 'orderBy' , 'arguments' => ['name']], ['name' => 'activeStudents'], ['name' => 'with' , 'arguments' => ['studentRecord','studentRecord.section', 'studentRecord.myClass']]]" :empty-state="[
+                'heading' => 'No students yet',
+                'description' => 'Add the first student record for this school.',
+                'action' => [
+                    'href' => route('students.create'),
+                    'ability' => 'create',
+                    'arguments' => [\App\Models\User::class, 'student'],
+                    'label' => 'Add student',
+                ],
+            ]" :columns="[
                 ['type' => 'image', 'property' => 'profile_photo_url'] ,
                 ['property' => 'name'] ,
                 ['property' => 'email'] ,
