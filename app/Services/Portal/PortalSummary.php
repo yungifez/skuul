@@ -64,7 +64,7 @@ class PortalSummary
     }
 
     /**
-     * Get the published timetable of the student's class and section.
+     * Get the published timetable of the student's current home group.
      */
     public function timetable(StudentRecord $enrollment): ?Timetable
     {
@@ -73,8 +73,7 @@ class PortalSummary
         }
 
         return Timetable::query()
-            ->where('my_class_id', $enrollment->my_class_id)
-            ->where('section_id', $enrollment->section_id)
+            ->where('academic_cycle_section_id', $enrollment->academic_cycle_section_id)
             ->published()
             ->orderByDesc('published_at')
             ->first();

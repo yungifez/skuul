@@ -72,12 +72,4 @@ class MyClass extends Model
     {
         return $this->hasManyThrough(Syllabus::class, Subject::class);
     }
-
-    /**
-     * Get all of the timetables for the MyClass.
-     */
-    public function timetables(): HasMany
-    {
-        return $this->hasMany(Timetable::class);
-    }
 }

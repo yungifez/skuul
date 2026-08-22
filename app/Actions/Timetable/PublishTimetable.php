@@ -56,8 +56,7 @@ class PublishTimetable
             $inUse = Timetable::query()
                 ->published()
                 ->where('academic_period_id', $timetable->academic_period_id)
-                ->where('my_class_id', $timetable->my_class_id)
-                ->where('section_id', $timetable->section_id)
+                ->where('academic_cycle_section_id', $timetable->academic_cycle_section_id)
                 ->whereKeyNot($timetable->getKey())
                 ->get();
 
@@ -75,8 +74,7 @@ class PublishTimetable
                 $timetable,
                 [
                     'revision' => $timetable->revision,
-                    'my_class_id' => $timetable->my_class_id,
-                    'section_id' => $timetable->section_id,
+                    'academic_cycle_section_id' => $timetable->academic_cycle_section_id,
                     'academic_period_id' => $timetable->academic_period_id,
                 ],
                 $actor,

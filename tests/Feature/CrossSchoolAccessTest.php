@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Actions\School\GrantSchoolMembership;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\ClassGroup;
@@ -229,6 +231,12 @@ class CrossSchoolAccessTest extends TestCase
             'school_id' => $this->otherSchool->id,
             'academic_year_id' => $academicYear->id,
         ]);
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $this->otherSchool->id]);
+        $cycleSection = AcademicCycleSection::factory()->create([
+            'school_id' => $this->otherSchool->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_level_id' => $academicLevel->id,
+        ]);
         $subject = Subject::factory()->create([
             'school_id' => $this->otherSchool->id,
             'my_class_id' => $myClass->id,
@@ -236,11 +244,11 @@ class CrossSchoolAccessTest extends TestCase
         $exam = Exam::factory()->create(['academic_period_id' => $academicPeriod->id]);
         $feeCategory = FeeCategory::factory()->create(['school_id' => $this->otherSchool->id]);
         $timetable = Timetable::factory()->create([
-            'my_class_id' => $myClass->id,
+            'academic_cycle_section_id' => $cycleSection->id,
             'academic_period_id' => $academicPeriod->id,
         ]);
 
-        $student = $this->studentOfOtherSchool($myClass, $section);
+        $student = $this->studentOfOtherSchool($cycleSection);
 
         $this->records = [
             'classGroup' => $classGroup,
@@ -248,6 +256,7 @@ class CrossSchoolAccessTest extends TestCase
             'section' => $section,
             'academicYear' => $academicYear,
             'academicPeriod' => $academicPeriod,
+            'cycleSection' => $cycleSection,
             'subject' => $subject,
             'exam' => $exam,
             'feeCategory' => $feeCategory,
@@ -268,10 +277,8 @@ class CrossSchoolAccessTest extends TestCase
             'promotion' => Promotion::factory()->create([
                 'school_id' => $this->otherSchool->id,
                 'academic_year_id' => $academicYear->id,
-                'old_class_id' => $myClass->id,
-                'new_class_id' => $myClass->id,
-                'old_section_id' => $section->id,
-                'new_section_id' => $section->id,
+                'source_academic_cycle_section_id' => $cycleSection->id,
+                'destination_academic_cycle_section_id' => $cycleSection->id,
                 'students' => [$student->id],
             ]),
         ];
@@ -282,14 +289,14 @@ class CrossSchoolAccessTest extends TestCase
     /**
      * Create a student who belongs only to the other school.
      */
-    private function studentOfOtherSchool(MyClass $myClass, Section $section): User
+    private function studentOfOtherSchool(AcademicCycleSection $cycleSection): User
     {
         $student = $this->personOfOtherSchool('student');
 
         StudentRecord::factory()->create([
             'user_id' => $student->id,
-            'my_class_id' => $myClass->id,
-            'section_id' => $section->id,
+            'school_id' => $this->otherSchool->id,
+            'academic_cycle_section_id' => $cycleSection->id,
         ]);
 
         return $student;

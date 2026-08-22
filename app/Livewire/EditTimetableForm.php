@@ -3,24 +3,19 @@
 namespace App\Livewire;
 
 use App\Models\Timetable;
-use App\Services\MyClass\MyClassService;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class EditTimetableForm extends Component
 {
     public Timetable $timetable;
 
-    public $class;
-
-    public $classes;
-
-    public function mount(MyClassService $myClassService)
+    public function mount(): void
     {
-        $this->classes = $myClassService->getAllClasses();
-        $this->class = $this->timetable->myClass->id;
+        $this->timetable->loadMissing('academicCycleSection.academicLevel');
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.edit-timetable-form');
     }

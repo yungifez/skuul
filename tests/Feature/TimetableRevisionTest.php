@@ -10,6 +10,9 @@ use App\Enums\Role;
 use App\Enums\TimetableStatus;
 use App\Exceptions\InvalidValueException;
 use App\Exceptions\TimetableConflictException;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
+use App\Models\AcademicYear;
 use App\Models\AuditEvent;
 use App\Models\ClassGroup;
 use App\Models\MyClass;
@@ -104,7 +107,7 @@ class TimetableRevisionTest extends TestCase
         $this->authorized_user([]);
         $timetable = $this->timetable();
         $slot = TimetableTimeSlot::create(['timetable_id' => $timetable->id, 'start_time' => '08:00', 'stop_time' => '09:00']);
-        $subject = $this->subject($timetable->my_class_id);
+        $subject = $this->subject();
         TimetableRecord::create([
             'timetable_time_slot_id' => $slot->id,
             'weekday_id' => Weekday::first()->id,
@@ -204,13 +207,18 @@ class TimetableRevisionTest extends TestCase
      */
     private function timetable(): Timetable
     {
-        $classGroup = ClassGroup::factory()->create(['school_id' => $this->workingSchool()->id]);
-        $class = MyClass::factory()->create(['class_group_id' => $classGroup->id]);
+        $academicYear = AcademicYear::query()->where('school_id', $this->workingSchool()->id)->firstOrFail();
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $cycleSection = AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_level_id' => $academicLevel->id,
+        ]);
 
         return Timetable::create([
             'name' => 'Week plan',
             'description' => 'The normal week',
-            'my_class_id' => $class->id,
+            'academic_cycle_section_id' => $cycleSection->id,
             'academic_period_id' => current_academic_period_id(),
         ]);
     }
@@ -221,7 +229,7 @@ class TimetableRevisionTest extends TestCase
     private function timetableWithLesson(User $teacher, string $start, string $stop): Timetable
     {
         $timetable = $this->timetable();
-        $subject = $this->subject($timetable->my_class_id);
+        $subject = $this->subject();
         app(AssignTeacher::class)->assign($subject, $teacher);
 
         $slot = TimetableTimeSlot::create([
@@ -241,13 +249,16 @@ class TimetableRevisionTest extends TestCase
     }
 
     /**
-     * Create a subject in the given class.
+     * Create a subject for the working school.
      */
-    private function subject(int $classId): Subject
+    private function subject(): Subject
     {
+        $classGroup = ClassGroup::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $class = MyClass::factory()->create(['class_group_id' => $classGroup->id]);
+
         return Subject::factory()->create([
             'school_id' => $this->workingSchool()->id,
-            'my_class_id' => $classId,
+            'my_class_id' => $class->id,
         ]);
     }
 

@@ -26,7 +26,7 @@ class TimetablePolicy
      */
     public function view(User $user, Timetable $timetable)
     {
-        if ($user->can('read timetable') && current_school_id() == $timetable->myClass->classGroup->school->id) {
+        if ($user->can('read timetable') && current_school_id() === $timetable->academicCycleSection->school_id) {
             return true;
         }
     }
@@ -50,7 +50,7 @@ class TimetablePolicy
             && $timetable->acceptsChanges()
             && $timetable->academicPeriod->isOpen()
             && $timetable->academicPeriod->academicYear->isOpen()
-            && current_school_id() == $timetable->myClass->classGroup->school->id
+            && current_school_id() === $timetable->academicCycleSection->school_id
         ) {
             return true;
         }
@@ -63,7 +63,7 @@ class TimetablePolicy
     {
         if ($user->can('delete timetable')
             && !$timetable->isPublished()
-            && current_school_id() == $timetable->myClass->classGroup->school->id
+            && current_school_id() === $timetable->academicCycleSection->school_id
         ) {
             return true;
         }
@@ -78,7 +78,7 @@ class TimetablePolicy
             && $timetable->status === TimetableStatus::Draft
             && $timetable->academicPeriod->isOpen()
             && $timetable->academicPeriod->academicYear->isOpen()
-            && current_school_id() == $timetable->myClass->classGroup->school->id
+            && current_school_id() === $timetable->academicCycleSection->school_id
         ) {
             return true;
         }
@@ -95,7 +95,7 @@ class TimetablePolicy
             && $timetable->status === TimetableStatus::Published
             && $timetable->academicPeriod->isOpen()
             && $timetable->academicPeriod->academicYear->isOpen()
-            && current_school_id() == $timetable->myClass->classGroup->school->id
+            && current_school_id() === $timetable->academicCycleSection->school_id
         ) {
             return true;
         }

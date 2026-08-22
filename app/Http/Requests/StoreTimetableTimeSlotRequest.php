@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\AcademicCycleSection;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -15,19 +16,20 @@ class StoreTimetableTimeSlotRequest extends FormRequest
 
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             'timetable_id' => [
                 'required',
                 'integer',
-                Rule::exists('timetables', 'id')->whereIn('my_class_id', current_school()->myClasses()->pluck('my_classes.id')),
+                Rule::exists('timetables', 'id')->whereIn(
+                    'academic_cycle_section_id',
+                    AcademicCycleSection::inSchool()->pluck('id')
+                ),
             ],
             'start_time' => 'required|date_format:H:i',
-            'stop_time'  => 'required|date_format:H:i|after:start_time',
+            'stop_time' => 'required|date_format:H:i|after:start_time',
         ];
     }
 }

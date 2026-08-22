@@ -13,11 +13,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
- * One revision of a class or section schedule.
+ * One revision of a home-group schedule.
  *
  * @property TimetableStatus $status
  * @property int $revision
- * @property int|null $section_id
+ * @property int $academic_period_id
+ * @property int $academic_cycle_section_id
  * @property Carbon|null $published_at
  */
 class Timetable extends Model
@@ -33,8 +34,7 @@ class Timetable extends Model
         'status',
         'revision',
         'academic_period_id',
-        'my_class_id',
-        'section_id',
+        'academic_cycle_section_id',
         'effective_from',
         'effective_to',
         'published_at',
@@ -151,23 +151,13 @@ class Timetable extends Model
     }
 
     /**
-     * Get the class the timetable belongs to.
+     * Get the exact home group this timetable serves.
      *
-     * @return BelongsTo<MyClass, $this>
+     * @return BelongsTo<AcademicCycleSection, $this>
      */
-    public function myClass(): BelongsTo
+    public function academicCycleSection(): BelongsTo
     {
-        return $this->belongsTo(MyClass::class);
-    }
-
-    /**
-     * Get the section the timetable belongs to, when it names one.
-     *
-     * @return BelongsTo<Section, $this>
-     */
-    public function section(): BelongsTo
-    {
-        return $this->belongsTo(Section::class);
+        return $this->belongsTo(AcademicCycleSection::class);
     }
 
     /**

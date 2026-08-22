@@ -148,8 +148,7 @@ class PortalTest extends TestCase
         $this->unauthorized_user();
         $enrollment = $this->enrollment();
         $draft = Timetable::factory()->create([
-            'my_class_id' => $enrollment->my_class_id,
-            'section_id' => $enrollment->section_id,
+            'academic_cycle_section_id' => $enrollment->academic_cycle_section_id,
         ]);
 
         $summary = app(PortalSummary::class);

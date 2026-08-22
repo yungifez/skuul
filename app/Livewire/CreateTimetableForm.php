@@ -2,21 +2,34 @@
 
 namespace App\Livewire;
 
-use App\Services\MyClass\MyClassService;
+use App\Enums\AcademicStructureStatus;
+use App\Models\AcademicCycleSection;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class CreateTimetableForm extends Component
 {
-    public $class;
+    /** @var array<int, array{id: int, label: string}> */
+    public array $cycleSections = [];
 
-    public $classes;
-
-    public function mount(MyClassService $myClassService)
+    public function mount(): void
     {
-        $this->classes = $myClassService->getAllClasses();
+        $this->cycleSections = AcademicCycleSection::inSchool()
+            ->with('academicLevel')
+            ->where('academic_year_id', current_academic_year_id())
+            ->where('status', AcademicStructureStatus::Active)
+            ->orderBy('position')
+            ->orderBy('name')
+            ->get()
+            ->map(fn (AcademicCycleSection $cycleSection): array => [
+                'id' => $cycleSection->id,
+                'label' => ($cycleSection->academicLevel->label ?? $cycleSection->academicLevel->name)
+                    .' · '.($cycleSection->label ?? $cycleSection->name),
+            ])
+            ->all();
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.create-timetable-form');
     }

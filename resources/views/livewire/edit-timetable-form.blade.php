@@ -11,17 +11,9 @@
                 <april:label for="description">Description</april:label>
                 <april:textarea id="description" name="description" placeholder="Enter description">{{$timetable->description}}</april:textarea>
             </div>
-            <div class="flex w-full flex-col gap-2">
-                <april:label for="class">Select class</april:label>
-                <april:select id="class" name="my_class_id" wire:model.live="class" wire:loading.attr="disabled" wire:target="class" disabled>
-                @foreach ($classes as $item)
-                    <option value="{{$item['id']}}">{{$item['name']}}</option>
-                @endforeach
-
-                </april:select>
-                @error('my_class_id')
-                    <p class="text-sm text-destructive">{{ $message }}</p>
-                @enderror
+            <div class="rounded-md border border-border bg-muted/40 p-3 text-sm">
+                <p class="font-medium">Home group</p>
+                <p class="text-muted-foreground">{{ $timetable->academicCycleSection->academicLevel->label ?? $timetable->academicCycleSection->academicLevel->name }} · {{ $timetable->academicCycleSection->label ?? $timetable->academicCycleSection->name }}</p>
             </div>
             <div class='col-12 my-2'>
                 <april:button type="submit" class="w-full md:w-1/2">

@@ -50,6 +50,7 @@ class TimetableTimeSlotPolicy
             && $timetableTimeSlot->timetable->acceptsChanges()
             && $timetableTimeSlot->timetable->academicPeriod->isOpen()
             && $timetableTimeSlot->timetable->academicPeriod->academicYear->isOpen()
+            && current_school_id() === $timetableTimeSlot->timetable->academicCycleSection->school_id
         ) {
             return true;
         }
@@ -64,6 +65,7 @@ class TimetableTimeSlotPolicy
             && $timetableTimeSlot->timetable->acceptsChanges()
             && $timetableTimeSlot->timetable->academicPeriod->isOpen()
             && $timetableTimeSlot->timetable->academicPeriod->academicYear->isOpen()
+            && current_school_id() === $timetableTimeSlot->timetable->academicCycleSection->school_id
         ) {
             return true;
         }

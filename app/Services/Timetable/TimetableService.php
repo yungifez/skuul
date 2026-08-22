@@ -10,25 +10,30 @@ use Illuminate\Http\Response;
 
 class TimetableService
 {
-    // get all syllabus in academic period and class
-    public function getAllTimetablesInAcademicPeriodAndClass($academic_period_id, $class_id)
+    /**
+     * Get timetables for one academic period and one exact home group.
+     *
+     * @return Collection<int, Timetable>
+     */
+    public function getAllTimetablesInAcademicPeriodAndCycleSection(int $academicPeriodId, int $academicCycleSectionId): Collection
     {
-        return Timetable::where('academic_period_id', $academic_period_id)->get()->filter(function ($timetable) use ($class_id) {
-            return $timetable->my_class_id == $class_id;
-        });
+        return Timetable::query()
+            ->where('academic_period_id', $academicPeriodId)
+            ->where('academic_cycle_section_id', $academicCycleSectionId)
+            ->get();
     }
 
     /**
      * Create timetable.
      *
-     * @param  mixed  $data
+     * @param  array{name: string, description?: string|null, academic_cycle_section_id: int, academic_period_id: int}  $data
      */
-    public function createTimetable($data): Timetable
+    public function createTimetable(array $data): Timetable
     {
         return Timetable::create([
             'name' => $data['name'],
             'description' => $data['description'] ?? null,
-            'my_class_id' => $data['my_class_id'],
+            'academic_cycle_section_id' => $data['academic_cycle_section_id'],
             'academic_period_id' => $data['academic_period_id'],
         ]);
     }

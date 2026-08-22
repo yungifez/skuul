@@ -15,14 +15,15 @@
                 <april:textarea id="description" name="description" placeholder="Enter description" />
             </div>
             <div class="flex w-full flex-col gap-2">
-                <april:label for="class">Select class *</april:label>
-                <april:select id="class" name="my_class_id" wire:model.live="class" wire:loading.attr="disabled" wire:target="class">
-                @foreach ($classes as $item)
-                    <option value="{{$item['id']}}">{{$item['name']}}</option>
-                @endforeach
-
-                </april:select>
-                @error('my_class_id')
+                <label for="academic-cycle-section" class="text-sm font-medium">Home group *</label>
+                <select id="academic-cycle-section" name="academic_cycle_section_id" required class="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                    @forelse ($cycleSections as $cycleSection)
+                        <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['label'] }}</option>
+                    @empty
+                        <option value="" disabled selected>No active home groups in this academic cycle</option>
+                    @endforelse
+                </select>
+                @error('academic_cycle_section_id')
                     <p class="text-sm text-destructive">{{ $message }}</p>
                 @enderror
             </div>

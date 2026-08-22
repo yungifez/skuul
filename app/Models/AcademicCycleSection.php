@@ -121,4 +121,14 @@ class AcademicCycleSection extends Model
     {
         return $this->hasMany(StudentRecord::class);
     }
+
+    /**
+     * Get timetable revisions for this exact home group.
+     *
+     * @return HasMany<Timetable, $this>
+     */
+    public function timetables(): HasMany
+    {
+        return $this->hasMany(Timetable::class);
+    }
 }
