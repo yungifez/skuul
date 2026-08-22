@@ -1069,7 +1069,9 @@ Progress:
   through the existing attendance feature config. The attendance action reads
   those flags itself, so disabling a register blocks every write path while
   preserving earlier records.
-- Open: guardian attendance screen authorization coverage.
+- Done: guardian and student portal attendance access is covered at the HTTP
+  route boundary; portal authorization remains independent of staff school
+  membership.
 
 ### 14. Student and guardian portal
 

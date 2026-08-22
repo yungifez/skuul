@@ -180,6 +180,20 @@ class PortalTest extends TestCase
         $this->assertSame(100.0, $attendance['rate']);
     }
 
+    public function test_a_student_can_open_their_own_attendance_screen(): void
+    {
+        $this->unauthorized_user();
+        features()->enable(Feature::Portal);
+        $enrollment = $this->enrollment();
+        $this->assertNotNull($enrollment->user_id);
+        $student = User::query()->findOrFail($enrollment->user_id);
+
+        $this->actingAs($student)
+            ->get(route('portal.attendance.show', $enrollment))
+            ->assertOk()
+            ->assertSee('Attendance rate');
+    }
+
     public function test_only_a_published_timetable_reaches_the_family(): void
     {
         $this->unauthorized_user();
