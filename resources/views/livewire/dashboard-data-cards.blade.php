@@ -105,11 +105,15 @@
         @endif
 
         @php
+            $classLevel = school_term('class_level', 'Grade or class level');
+            $section = school_term('section', 'Class');
+            $period = school_term('period', 'Term or reporting period');
+            $course = school_term('course', 'Subject');
             $academicStats = [
-                ['label' => 'Grades and class levels', 'value' => $academicLevels, 'icon' => 'presentation', 'permission' => 'read class', 'href' => route('academic-levels.index'), 'description' => 'The grades or classes your school teaches'],
-                ['label' => 'Classes this year', 'value' => $cycleSections, 'icon' => 'landmark', 'permission' => 'read section', 'href' => route('academic-cycle-sections.index'), 'description' => 'Arms, homerooms or sections prepared for this year'],
-                ['label' => 'Terms and reporting periods', 'value' => $academicPeriods, 'icon' => 'clock', 'permission' => 'read academic period', 'href' => route('academic-periods.index'), 'description' => 'The school terms, semesters or reporting periods in use'],
-                ['label' => 'Subjects being taught', 'value' => $courseOfferings, 'icon' => 'book-marked', 'permission' => 'read subject', 'href' => route('course-offerings.index'), 'description' => 'Subjects set up for the current school year'],
+                ['label' => school_terms('class_level', $classLevel), 'value' => $academicLevels, 'icon' => 'presentation', 'permission' => 'read class', 'href' => route('academic-levels.index'), 'description' => 'The '.school_terms('class_level', $classLevel).' your school teaches'],
+                ['label' => school_terms('section', $section).' this year', 'value' => $cycleSections, 'icon' => 'landmark', 'permission' => 'read section', 'href' => route('academic-cycle-sections.index'), 'description' => school_terms('section', $section).' prepared for this year'],
+                ['label' => school_terms('period', $period), 'value' => $academicPeriods, 'icon' => 'clock', 'permission' => 'read academic period', 'href' => route('academic-periods.index'), 'description' => 'The '.school_terms('period', $period).' in use'],
+                ['label' => school_terms('course', $course).' being taught', 'value' => $courseOfferings, 'icon' => 'book-marked', 'permission' => 'read subject', 'href' => route('course-offerings.index'), 'description' => school_terms('course', $course).' set up for the current school year'],
             ];
 
             $peopleStats = [

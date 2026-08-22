@@ -9,6 +9,7 @@ use App\Services\Academic\AcademicPeriodContext;
 use App\Services\Curriculum\InstructionalModelResolver;
 use App\Services\Feature\FeatureManager;
 use App\Services\School\SchoolContext;
+use Illuminate\Support\Str;
 
 if (!function_exists('school_context')) {
     /**
@@ -135,5 +136,22 @@ if (!function_exists('sidebar_open')) {
     function sidebar_open(): bool
     {
         return request()->cookie('sidebar_state') !== 'false';
+    }
+}
+
+if (!function_exists('school_term')) {
+    /**
+     * Get a school-facing word from the operating profile.
+     */
+    function school_term(string $key, string $fallback): string
+    {
+        return current_school()?->operatingProfile?->labels[$key] ?? $fallback;
+    }
+}
+
+if (!function_exists('school_terms')) {
+    function school_terms(string $key, string $fallback): string
+    {
+        return Str::plural(school_term($key, $fallback));
     }
 }

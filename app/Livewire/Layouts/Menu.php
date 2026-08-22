@@ -16,7 +16,6 @@ class Menu extends Component
     {
         $user = auth()->user();
         $organization = current_school()->organization;
-
         $this->menu = [
             [
                 'type' => 'menu-item',
@@ -65,21 +64,21 @@ class Menu extends Component
             [
                 'type' => 'menu-item',
                 'icon' => 'clock',
-                'text' => 'Academic periods',
+                'text' => school_terms('period', 'Academic period'),
                 'route' => 'academic-periods.index',
                 'can' => 'read academic period',
             ],
             [
                 'type' => 'menu-item',
                 'icon' => 'presentation',
-                'text' => 'Academic levels',
+                'text' => school_terms('class_level', 'Academic level'),
                 'route' => 'academic-levels.index',
                 'can' => 'read class',
             ],
             [
                 'type' => 'menu-item',
                 'icon' => 'landmark',
-                'text' => 'Cycle sections',
+                'text' => school_terms('section', 'Class').' this year',
                 'route' => 'academic-cycle-sections.index',
                 'can' => 'read section',
             ],
@@ -122,7 +121,7 @@ class Menu extends Component
             ],
             [
                 'type' => 'menu-item',
-                'text' => 'Course offerings',
+                'text' => school_terms('course', 'Course').' being taught',
                 'icon' => 'book-marked',
                 'route' => 'course-offerings.index',
                 'can' => 'read subject',
