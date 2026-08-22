@@ -658,8 +658,10 @@ Progress:
   deletes, and its time slots refuse writes.
   `App\Actions\Timetable\ReviseTimetable` copies it into the next draft, and
   publishing that draft archives the revision it replaces.
-- Open: rooms and room clashes, substitutions as dated overrides, and
-  section-level inheritance from a class template.
+- Done: sections can begin with a draft inherited from a published class
+  template, while a dated cover record names the replacement teacher, reason,
+  approving staff member, and date without mutating the normal timetable.
+- Open: rooms and room clashes.
 
 ### 8. Examinations and results
 

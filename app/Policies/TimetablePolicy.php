@@ -104,6 +104,39 @@ class TimetablePolicy
     }
 
     /**
+     * Determine whether the user can create a section-specific draft from a published template.
+     */
+    public function override(User $user, Timetable $timetable): ?bool
+    {
+        return $this->canManagePublishedSchedule($user, $timetable);
+    }
+
+    /**
+     * Determine whether the user can record a date-specific teacher replacement.
+     */
+    public function substitute(User $user, Timetable $timetable): ?bool
+    {
+        return $this->canManagePublishedSchedule($user, $timetable);
+    }
+
+    /**
+     * Check shared authority for work alongside a published timetable.
+     */
+    private function canManagePublishedSchedule(User $user, Timetable $timetable): ?bool
+    {
+        if ($user->can('update timetable')
+            && $timetable->status === TimetableStatus::Published
+            && $timetable->academicPeriod->acceptsNewWork()
+            && $timetable->academicPeriod->academicYear->acceptsNewWork()
+            && current_school_id() === $timetable->academicCycleSection->school_id
+        ) {
+            return true;
+        }
+
+        return null;
+    }
+
+    /**
      * Determine whether the user can restore the model.
      */
     public function restore(User $user, Timetable $timetable)

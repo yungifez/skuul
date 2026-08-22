@@ -95,6 +95,8 @@ enum AuditAction: string
      */
     case TimetableRevised = 'timetable.revised';
 
+    case TimetableSubstitutionCreated = 'timetable.substitution_created';
+
     /**
      * A balanced entry was written into the books.
      */
@@ -354,6 +356,7 @@ enum AuditAction: string
             self::TimetablePublished => 'Timetable published',
             self::TimetableArchived => 'Timetable archived',
             self::TimetableRevised => 'Timetable revision started',
+            self::TimetableSubstitutionCreated => 'Timetable substitution created',
             self::LedgerTransactionPosted => 'Ledger entry posted',
             self::NoticePublished => 'Notice published',
             self::NoticeScheduled => 'Notice scheduled',

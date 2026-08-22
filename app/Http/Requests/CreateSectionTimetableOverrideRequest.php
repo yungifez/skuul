@@ -14,7 +14,7 @@ class CreateSectionTimetableOverrideRequest extends FormRequest
     {
         $timetable = $this->route('timetable');
 
-        return $timetable instanceof Timetable && ($this->user()?->can('update', $timetable) ?? false);
+        return $timetable instanceof Timetable && ($this->user()?->can('override', $timetable) ?? false);
     }
 
     /**

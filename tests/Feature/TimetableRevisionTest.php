@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Actions\Curriculum\AssignTeacher;
 use App\Actions\Timetable\CreateSectionTimetableOverride;
+use App\Actions\Timetable\CreateTimetableSubstitution;
 use App\Actions\Timetable\PublishTimetable;
 use App\Actions\Timetable\ReviseTimetable;
 use App\Enums\AuditAction;
@@ -24,6 +25,7 @@ use App\Models\User;
 use App\Models\Weekday;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Tests\TestCase;
 
 /**
@@ -159,6 +161,68 @@ class TimetableRevisionTest extends TestCase
         $this->assertSame($template->id, $override->template_timetable_id);
         $this->assertSame($section->id, $override->academic_cycle_section_id);
         $this->assertSame(1, $override->timeSlots()->count());
+    }
+
+    public function test_a_published_timetable_can_record_dated_cover_without_changing_the_weekly_schedule(): void
+    {
+        $this->authorized_user([]);
+        $replacementTeacher = $this->teacher();
+        $timetable = $this->timetableWithLesson($replacementTeacher, '08:00', '09:00');
+        $slot = $timetable->timeSlots()->firstOrFail();
+        $weekday = Weekday::firstOrFail();
+        $date = Carbon::parse('next '.$weekday->name);
+        app(PublishTimetable::class)->publish($timetable);
+
+        $substitution = app(CreateTimetableSubstitution::class)->create(
+            $timetable->fresh(),
+            $slot,
+            $weekday->id,
+            $replacementTeacher,
+            $date,
+            'Teacher is attending training.',
+            auth()->user(),
+        );
+
+        $this->assertDatabaseHas('timetable_substitutions', [
+            'id' => $substitution->id,
+            'timetable_id' => $timetable->id,
+            'timetable_time_slot_id' => $slot->id,
+            'weekday_id' => $weekday->id,
+            'replacement_teacher_id' => $replacementTeacher->id,
+            'substituted_on' => $date->toDateString(),
+        ]);
+        $this->assertSame(TimetableStatus::Published, $timetable->fresh()->status);
+        $this->assertSame(1, $timetable->fresh()->timeSlots()->count());
+        $this->assertNotNull(
+            AuditEvent::ofAction(AuditAction::TimetableSubstitutionCreated)
+                ->forSubject($substitution)
+                ->first()
+        );
+    }
+
+    public function test_an_authorized_staff_member_can_record_cover_from_the_timetable_screen(): void
+    {
+        $this->authorized_user(['update timetable']);
+        $replacementTeacher = $this->teacher();
+        $timetable = $this->timetableWithLesson($replacementTeacher, '08:00', '09:00');
+        $slot = $timetable->timeSlots()->firstOrFail();
+        $weekday = Weekday::firstOrFail();
+        $date = Carbon::parse('next '.$weekday->name);
+        app(PublishTimetable::class)->publish($timetable);
+
+        $this->post(route('timetables.substitutions.store', $timetable), [
+            'timetable_entry' => $slot->id.':'.$weekday->id,
+            'replacement_teacher_id' => $replacementTeacher->id,
+            'substituted_on' => $date->toDateString(),
+            'reason' => 'Teacher is attending training.',
+        ])->assertRedirect();
+
+        $this->assertDatabaseHas('timetable_substitutions', [
+            'timetable_id' => $timetable->id,
+            'timetable_time_slot_id' => $slot->id,
+            'weekday_id' => $weekday->id,
+            'replacement_teacher_id' => $replacementTeacher->id,
+        ]);
     }
 
     public function test_an_archived_timetable_cannot_be_published_again(): void

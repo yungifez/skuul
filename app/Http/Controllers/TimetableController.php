@@ -3,13 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Timetable\CreateSectionTimetableOverride;
+use App\Actions\Timetable\CreateTimetableSubstitution;
 use App\Actions\Timetable\PublishTimetable;
 use App\Actions\Timetable\ReviseTimetable;
+use App\Enums\Role;
 use App\Http\Requests\CreateSectionTimetableOverrideRequest;
+use App\Http\Requests\StoreTimetableSubstitutionRequest;
 use App\Http\Requests\TimetableStoreRequest;
 use App\Http\Requests\TimetableUpdateRequest;
 use App\Models\AcademicCycleSection;
 use App\Models\Timetable;
+use App\Models\TimetableRecord;
+use App\Models\TimetableTimeSlot;
+use App\Models\User;
 use App\Services\Timetable\TimetableService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -25,6 +31,7 @@ class TimetableController extends Controller
         private PublishTimetable $publishTimetable,
         private ReviseTimetable $reviseTimetable,
         private CreateSectionTimetableOverride $createSectionTimetableOverride,
+        private CreateTimetableSubstitution $createTimetableSubstitution,
     ) {
         $this->timetableService = $timetableService;
         $this->authorizeResource(Timetable::class, 'timetable');
@@ -65,8 +72,28 @@ class TimetableController extends Controller
     public function show(Timetable $timetable): View
     {
         $overrideSections = AcademicCycleSection::inSchool()->where('academic_year_id', $timetable->academicCycleSection->academic_year_id)->where('academic_level_id', $timetable->academicCycleSection->academic_level_id)->whereKeyNot($timetable->academic_cycle_section_id)->orderBy('position')->get(['id', 'name', 'label']);
+        $substitutionEntries = TimetableRecord::query()
+            ->join('timetable_time_slots', 'timetable_time_slot_weekday.timetable_time_slot_id', '=', 'timetable_time_slots.id')
+            ->join('weekdays', 'timetable_time_slot_weekday.weekday_id', '=', 'weekdays.id')
+            ->where('timetable_time_slots.timetable_id', $timetable->id)
+            ->orderBy('timetable_time_slot_weekday.weekday_id')
+            ->orderBy('timetable_time_slots.start_time')
+            ->get([
+                'timetable_time_slot_weekday.timetable_time_slot_id',
+                'timetable_time_slot_weekday.weekday_id',
+                'timetable_time_slots.start_time',
+                'timetable_time_slots.stop_time',
+                'weekdays.name as weekday_name',
+            ]);
+        $replacementTeachers = User::ofSchool()
+            ->role(Role::Teacher->value)
+            ->get(['users.id', 'users.name']);
+        $substitutions = $timetable->substitutions()
+            ->with(['timeSlot:id,start_time,stop_time', 'weekday:id,name', 'replacementTeacher:id,name', 'approvedBy:id,name'])
+            ->latest('substituted_on')
+            ->get();
 
-        return view('pages.timetable.show', compact('timetable', 'overrideSections'));
+        return view('pages.timetable.show', compact('timetable', 'overrideSections', 'substitutionEntries', 'replacementTeachers', 'substitutions'));
     }
 
     /**
@@ -146,5 +173,20 @@ class TimetableController extends Controller
         $override = $this->createSectionTimetableOverride->create($timetable, $section, $request->user());
 
         return to_route('timetables.manage', $override)->with('success', 'Section timetable draft created from the published template.');
+    }
+
+    public function storeSubstitution(StoreTimetableSubstitutionRequest $request, Timetable $timetable): RedirectResponse
+    {
+        $data = $request->validated();
+        [$timeSlotId, $weekdayId] = array_map('intval', explode(':', $data['timetable_entry'], 2));
+        $slot = TimetableTimeSlot::query()->findOrFail($timeSlotId);
+        $teacher = User::ofSchool()->findOrFail($data['replacement_teacher_id']);
+        $actor = $request->user();
+
+        abort_unless($actor instanceof User, 403);
+
+        $this->createTimetableSubstitution->create($timetable, $slot, $weekdayId, $teacher, now()->parse($data['substituted_on']), $data['reason'], $actor);
+
+        return back()->with('success', 'Substitution recorded without changing the published timetable.');
     }
 }

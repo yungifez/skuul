@@ -210,4 +210,14 @@ class Timetable extends Model
     {
         return $this->hasMany(TimetableTimeSlot::class, 'timetable_id');
     }
+
+    /**
+     * Get the dated teacher replacements that leave this revision unchanged.
+     *
+     * @return HasMany<TimetableSubstitution, $this>
+     */
+    public function substitutions(): HasMany
+    {
+        return $this->hasMany(TimetableSubstitution::class);
+    }
 }

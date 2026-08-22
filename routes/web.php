@@ -3,12 +3,37 @@
 use App\Http\Controllers\AcademicCycleController;
 use App\Http\Controllers\AcademicCycleSectionController;
 use App\Http\Controllers\AcademicLevelController;
+use App\Http\Controllers\AcademicPeriodController;
+use App\Http\Controllers\AcademicYearController;
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\CalendarTemplateController;
+use App\Http\Controllers\ClassGroupController;
+use App\Http\Controllers\CourseOfferingController;
+use App\Http\Controllers\CustomTimetableItemController;
+use App\Http\Controllers\ExamController;
+use App\Http\Controllers\ExamSlotController;
+use App\Http\Controllers\FeeCategoryController;
+use App\Http\Controllers\FeeController;
+use App\Http\Controllers\FeeInvoiceController;
+use App\Http\Controllers\FeeInvoiceRecordController;
 use App\Http\Controllers\GradebookController;
 use App\Http\Controllers\GradingScaleController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\MyClassController;
 use App\Http\Controllers\NoticeAttachmentController;
+use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\NoticeNotificationPreferenceController;
+use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\OrganizationDashboardController;
+use App\Http\Controllers\ParentController;
+use App\Http\Controllers\SchoolController;
+use App\Http\Controllers\SectionController;
+use App\Http\Controllers\StudentController;
+use App\Http\Controllers\SubjectController;
+use App\Http\Controllers\SyllabusController;
+use App\Http\Controllers\TeacherController;
+use App\Http\Controllers\TimetableController;
+use App\Http\Controllers\TimetableTimeSlotController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -186,6 +211,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
 
                 // timetable route
                 Route::post('timetables/{timetable}/section-overrides', [TimetableController::class, 'createSectionOverride'])->name('timetables.section-overrides.store');
+                Route::post('timetables/{timetable}/substitutions', [TimetableController::class, 'storeSubstitution'])->name('timetables.substitutions.store');
                 Route::resource('timetables', TimetableController::class);
                 Route::resource('custom-timetable-items', CustomTimetableItemController::class);
 
