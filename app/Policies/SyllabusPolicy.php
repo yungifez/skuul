@@ -13,51 +13,41 @@ class SyllabusPolicy
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user)
+    public function viewAny(User $user): bool
     {
-        if ($user->can('read syllabus')) {
-            return true;
-        }
+        return $user->can('read syllabus');
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Syllabus $syllabus)
+    public function view(User $user, Syllabus $syllabus): bool
     {
-        if ($user->can('read syllabus') && current_school_id() == $syllabus->subject->school_id) {
-            return true;
-        }
+        return $user->can('read syllabus') && current_school_id() === $syllabus->courseOffering->school_id;
     }
 
     /**
      * Determine whether the user can create models.
      */
-    public function create(User $user)
+    public function create(User $user): bool
     {
-        if ($user->can('create syllabus')) {
-            return true;
-        }
+        return $user->can('create syllabus');
     }
 
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Syllabus $syllabus)
+    public function update(User $user, Syllabus $syllabus): bool
     {
-        if ($user->can('update syllabus') && current_school_id() == $syllabus->subject->school_id) {
-            return true;
-        }
+        return $user->can('update syllabus') && current_school_id() === $syllabus->courseOffering->school_id;
     }
 
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Syllabus $syllabus)
+    public function delete(User $user, Syllabus $syllabus): bool
     {
-        if ($user->can('delete syllabus') && current_school_id() == $syllabus->subject->school_id) {
-            return true;
-        }
+        return $user->can('delete syllabus') && current_school_id() === $syllabus->courseOffering->school_id;
     }
 
     /**

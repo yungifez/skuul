@@ -2,6 +2,9 @@
 
 namespace App\Livewire;
 
+use App\Enums\RosterMode;
+use App\Models\CourseOffering;
+use App\Models\Subject;
 use App\Models\Timetable;
 use App\Models\TimetableTimeSlot;
 use App\Models\Weekday;
@@ -29,11 +32,26 @@ class ShowTimetable extends Component
      */
     public bool $showDescription = true;
 
-    public function mount(TimetableService $timetableService)
+    public function mount(TimetableService $timetableService): void
     {
         $this->timeSlots = $this->timetable->timeSlots->sortBy('start_time')->load('weekdays');
         $this->weekdays = Weekday::all();
-        $this->subjects = $this->timetable->load('myClass')->MyClass->subjects;
+        $cycleSection = $this->timetable->load('academicCycleSection')->academicCycleSection;
+        $this->subjects = CourseOffering::inSchool()
+            ->where('academic_period_id', $this->timetable->academic_period_id)
+            ->where(function ($query) use ($cycleSection): void {
+                $query->whereHas('cycleSections', fn ($sections) => $sections->whereKey($cycleSection->id))
+                    ->orWhere(function ($offerings) use ($cycleSection): void {
+                        $offerings->where('roster_mode', RosterMode::AcademicLevel)
+                            ->where('academic_level_id', $cycleSection->academic_level_id);
+                    });
+            })
+            ->with('subject')
+            ->get()
+            ->pluck('subject')
+            ->filter(fn (?Subject $subject): bool => $subject !== null)
+            ->unique('id')
+            ->values();
         $this->customItems = $timetableService->getAllCustomTimetableItem();
     }
 

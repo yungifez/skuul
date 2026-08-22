@@ -2,44 +2,55 @@
 
 namespace App\Livewire;
 
-use App\Models\MyClass;
+use App\Enums\Role;
+use App\Models\Subject;
 use App\Models\User;
-use App\Services\MyClass\MyClassService;
-use App\Services\Teacher\TeacherService;
+use Illuminate\View\View;
 use Livewire\Component;
 
 class AssignTeacherToSubjects extends Component
 {
-    public $teachers;
+    /** @var array<int, array{id: int, name: string}> */
+    public array $teachers = [];
 
-    public $classes;
+    /** @var array<int, array{id: int, name: string, short_name: string, assigned: bool}> */
+    public array $subjects = [];
 
-    public ?int $class;
+    public ?int $teacherId = null;
 
-    public $subjects;
+    public ?int $teacherStateId = null;
 
-    public $teacher;
-
-    /**
-     * State variable for teacher.
-     */
-    public User $teacherState;
-
-    public function mount(TeacherService $teacherService, MyClassService $myclassService)
+    public function mount(): void
     {
-        $this->classes = $myclassService->getAllClasses();
-        $this->class = $this->classes->first()?->id;
-        $this->teachers = $teacherService->getAllTeachers();
-        $this->teacher = $this->teachers->first()?->id;
+        $this->teachers = User::ofSchool()
+            ->role(Role::Teacher->value)
+            ->orderBy('name')
+            ->get(['users.id', 'users.name'])
+            ->map(fn (User $teacher): array => ['id' => $teacher->id, 'name' => $teacher->name])
+            ->all();
+        $this->teacherId = $this->teachers[0]['id'] ?? null;
     }
 
-    public function fetchSubjects(MyClass $class, User $teacher)
+    public function loadSubjects(): void
     {
-        $this->subjects = $class->subjects;
-        $this->teacherState = $teacher;
+        $this->validate(['teacherId' => ['required', 'integer']]);
+
+        $teacher = User::ofSchool()->role(Role::Teacher->value)->findOrFail($this->teacherId);
+        $this->teacherStateId = $teacher->id;
+        $this->subjects = Subject::inSchool()
+            ->with('teachers:id')
+            ->orderBy('name')
+            ->get(['id', 'name', 'short_name'])
+            ->map(fn (Subject $subject): array => [
+                'id' => $subject->id,
+                'name' => $subject->name,
+                'short_name' => $subject->short_name,
+                'assigned' => $subject->teachers->contains('id', $teacher->id),
+            ])
+            ->all();
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.assign-teacher-to-subjects');
     }

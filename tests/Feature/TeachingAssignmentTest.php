@@ -8,12 +8,11 @@ use App\Enums\AuditAction;
 use App\Enums\Role;
 use App\Enums\TeachingRole;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
-use App\Models\ClassGroup;
-use App\Models\MyClass;
 use App\Models\School;
-use App\Models\Section;
 use App\Models\Subject;
 use App\Models\TeachingAssignment;
 use App\Models\User;
@@ -75,27 +74,33 @@ class TeachingAssignmentTest extends TestCase
         $this->assertSame(1, TeachingAssignment::where('subject_id', $subject->id)->count());
     }
 
-    public function test_an_assignment_can_cover_one_section(): void
+    public function test_an_assignment_can_cover_one_cycle_section(): void
     {
         $this->authorized_user([]);
         $subject = $this->subject();
-        $section = Section::factory()->create(['my_class_id' => $subject->my_class_id]);
+        $cycleSection = $this->cycleSection();
 
-        $assignment = app(AssignTeacher::class)->assign($subject, $this->teacher(), TeachingRole::Lead, $section);
+        $assignment = app(AssignTeacher::class)->assign($subject, $this->teacher(), TeachingRole::Lead, $cycleSection);
 
-        $this->assertSame($section->id, $assignment->section_id);
+        $this->assertSame($cycleSection->id, $assignment->academic_cycle_section_id);
     }
 
-    public function test_a_section_outside_the_class_is_refused(): void
+    public function test_a_cycle_section_in_another_school_is_refused(): void
     {
         $this->authorized_user([]);
         $subject = $this->subject();
-        $otherClass = MyClass::factory()->create(['class_group_id' => ClassGroup::factory()->create(['school_id' => $this->workingSchool()->id])->id]);
-        $section = Section::factory()->create(['my_class_id' => $otherClass->id]);
+        $otherSchool = School::factory()->create();
+        $year = AcademicYear::factory()->create(['school_id' => $otherSchool->id]);
+        $level = AcademicLevel::factory()->create(['school_id' => $otherSchool->id]);
+        $cycleSection = AcademicCycleSection::factory()->create([
+            'school_id' => $otherSchool->id,
+            'academic_year_id' => $year->id,
+            'academic_level_id' => $level->id,
+        ]);
 
         $this->expectException(InvalidValueException::class);
 
-        app(AssignTeacher::class)->assign($subject, $this->teacher(), TeachingRole::Lead, $section);
+        app(AssignTeacher::class)->assign($subject, $this->teacher(), TeachingRole::Lead, $cycleSection);
     }
 
     public function test_a_person_who_is_not_a_teacher_is_refused(): void
@@ -207,12 +212,20 @@ class TeachingAssignmentTest extends TestCase
      */
     private function subject(): Subject
     {
-        $classGroup = ClassGroup::factory()->create(['school_id' => $this->workingSchool()->id]);
-        $class = MyClass::factory()->create(['class_group_id' => $classGroup->id]);
-
         return Subject::factory()->create([
-            'school_id'   => $this->workingSchool()->id,
-            'my_class_id' => $class->id,
+            'school_id' => $this->workingSchool()->id,
+        ]);
+    }
+
+    private function cycleSection(): AcademicCycleSection
+    {
+        $academicYear = current_academic_year() ?? AcademicYear::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id]);
+
+        return AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_level_id' => $academicLevel->id,
         ]);
     }
 

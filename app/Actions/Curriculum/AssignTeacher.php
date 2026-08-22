@@ -7,10 +7,10 @@ use App\Enums\AuditAction;
 use App\Enums\Role;
 use App\Enums\TeachingRole;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\CourseOffering;
-use App\Models\Section;
 use App\Models\Subject;
 use App\Models\TeachingAssignment;
 use App\Models\User;
@@ -34,13 +34,13 @@ class AssignTeacher
      *
      * Asking twice returns the assignment that already runs.
      *
-     * @throws InvalidValueException when the teacher, subject, or section does not fit
+     * @throws InvalidValueException when the teacher, subject, or home group does not fit
      */
     public function assign(
         Subject $subject,
         User $teacher,
         TeachingRole $role = TeachingRole::Lead,
-        ?Section $section = null,
+        ?AcademicCycleSection $academicCycleSection = null,
         ?AcademicYear $academicYear = null,
         ?AcademicPeriod $academicPeriod = null,
         ?User $actor = null,
@@ -59,13 +59,13 @@ class AssignTeacher
             throw new InvalidValueException('Set the academic year before you assign a teacher.');
         }
 
-        $this->failIfRecordsDoNotFit($subject, $teacher, $section, $academicYear);
+        $this->failIfRecordsDoNotFit($subject, $teacher, $academicCycleSection, $academicYear);
 
         $running = TeachingAssignment::query()
             ->where('subject_id', $subject->id)
             ->forTeacher($teacher)
             ->where('academic_year_id', $academicYear->id)
-            ->where('section_id', $section?->id)
+            ->where('academic_cycle_section_id', $academicCycleSection?->id)
             ->when($courseOffering !== null, fn ($query) => $query->where('course_offering_id', $courseOffering->id))
             ->runningOn($startsOn)
             ->first();
@@ -74,7 +74,7 @@ class AssignTeacher
             return $running;
         }
 
-        return DB::transaction(function () use ($subject, $teacher, $role, $section, $academicYear, $academicPeriod, $actor, $startsOn, $courseOffering): TeachingAssignment {
+        return DB::transaction(function () use ($subject, $teacher, $role, $academicCycleSection, $academicYear, $academicPeriod, $actor, $startsOn, $courseOffering): TeachingAssignment {
             $assignment = TeachingAssignment::create([
                 'school_id' => $subject->school_id,
                 'subject_id' => $subject->id,
@@ -82,7 +82,7 @@ class AssignTeacher
                 'academic_year_id' => $academicYear->id,
                 'academic_period_id' => $academicPeriod === null ? current_academic_period_id() : $academicPeriod->id,
                 'course_offering_id' => $courseOffering?->id,
-                'section_id' => $section?->id,
+                'academic_cycle_section_id' => $academicCycleSection?->id,
                 'role' => $role,
                 'starts_on' => $startsOn ?? now(),
             ]);
@@ -97,7 +97,7 @@ class AssignTeacher
                     'subject_id' => $subject->id,
                     'teacher_id' => $teacher->id,
                     'role' => $role->value,
-                    'section_id' => $section?->id,
+                    'academic_cycle_section_id' => $academicCycleSection?->id,
                     'academic_year_id' => $academicYear->id,
                     'course_offering_id' => $courseOffering?->id,
                 ],
@@ -152,11 +152,11 @@ class AssignTeacher
     }
 
     /**
-     * Check that the teacher, the subject, and the section belong together.
+     * Check that the teacher, the subject, and the home group belong together.
      *
      * @throws InvalidValueException
      */
-    private function failIfRecordsDoNotFit(Subject $subject, User $teacher, ?Section $section, AcademicYear $academicYear): void
+    private function failIfRecordsDoNotFit(Subject $subject, User $teacher, ?AcademicCycleSection $academicCycleSection, AcademicYear $academicYear): void
     {
         if ($subject->school_id !== $academicYear->school_id) {
             throw new InvalidValueException('The academic year belongs to another school.');
@@ -170,8 +170,8 @@ class AssignTeacher
             throw new InvalidValueException('Only a teacher can be assigned to a subject.');
         }
 
-        if ($section !== null && $section->my_class_id !== $subject->my_class_id) {
-            throw new InvalidValueException('The section is not in the class of this subject.');
+        if ($academicCycleSection !== null && ($academicCycleSection->school_id !== $subject->school_id || $academicCycleSection->academic_year_id !== $academicYear->id)) {
+            throw new InvalidValueException('The home group does not belong to this school and academic cycle.');
         }
 
         if ($academicYear->isClosed()) {

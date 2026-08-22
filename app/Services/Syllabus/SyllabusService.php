@@ -2,48 +2,42 @@
 
 namespace App\Services\Syllabus;
 
+use App\Exceptions\InvalidValueException;
+use App\Models\CourseOffering;
 use App\Models\Syllabus;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class SyllabusService
 {
-    // get all syllabus in academic period and class
-    public function getAllSyllabiInAcademicPeriodAndClass($academic_period_id, $class_id)
+    /**
+     * Store a syllabus for one exact offering.
+     *
+     * @param  array{name: string, description?: string|null, file: UploadedFile, course_offering_id: int}  $data
+     */
+    public function createSyllabus(array $data): Syllabus
     {
-        return Syllabus::where('academic_period_id', $academic_period_id)->get()->load('subject', 'subject.myClass')->filter(function (Syllabus $syllabus) use ($class_id) {
-            return $syllabus->subject->myClass->id == $class_id;
+        /** @var CourseOffering $courseOffering */
+        $courseOffering = CourseOffering::inSchool()
+            ->with('academicPeriod')
+            ->findOrFail($data['course_offering_id']);
+
+        if ($courseOffering->academicPeriod->isClosed()) {
+            throw new InvalidValueException('Reopen the academic period before adding a syllabus.');
+        }
+
+        return DB::transaction(function () use ($courseOffering, $data): Syllabus {
+            return Syllabus::create([
+                'name' => $data['name'],
+                'description' => $data['description'] ?? null,
+                'file' => $data['file']->store('syllabus', 'public'),
+                'course_offering_id' => $courseOffering->id,
+            ]);
         });
     }
 
-    public function getSyllabusById($id)
-    {
-        return Syllabus::find($id);
-    }
-
-    public function createSyllabus($data)
-    {
-        $data['academic_period_id'] = current_academic_period_id();
-
-        $data['file'] = $data['file']->store(
-            'syllabus/',
-            'public'
-        );
-
-        Syllabus::create([
-            'name' => $data['name'],
-            'description' => $data['description'],
-            'file' => $data['file'],
-            'subject_id' => $data['subject_id'],
-            'academic_period_id' => $data['academic_period_id'],
-        ]);
-    }
-
-    public function updateSyllabus($id, $data)
-    {
-        return Syllabus::find($id)->update($data);
-    }
-
-    public function deleteSyllabus(Syllabus $syllabus)
+    public function deleteSyllabus(Syllabus $syllabus): void
     {
         Storage::disk('public')->delete($syllabus->file);
         $syllabus->delete();

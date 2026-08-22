@@ -21,7 +21,7 @@ use Illuminate\Support\Carbon;
  * @property TeachingRole $role
  * @property Carbon $starts_on
  * @property Carbon|null $ends_on
- * @property int|null $section_id
+ * @property int|null $academic_cycle_section_id
  */
 class TeachingAssignment extends Model
 {
@@ -35,7 +35,7 @@ class TeachingAssignment extends Model
         'academic_year_id',
         'academic_period_id',
         'course_offering_id',
-        'section_id',
+        'academic_cycle_section_id',
         'role',
         'starts_on',
         'ends_on',
@@ -151,13 +151,13 @@ class TeachingAssignment extends Model
     }
 
     /**
-     * Get the section the assignment covers, when it names one.
+     * Get the exact home group the assignment covers, when it names one.
      *
-     * @return BelongsTo<Section, $this>
+     * @return BelongsTo<AcademicCycleSection, $this>
      */
-    public function section(): BelongsTo
+    public function academicCycleSection(): BelongsTo
     {
-        return $this->belongsTo(Section::class);
+        return $this->belongsTo(AcademicCycleSection::class);
     }
 
     /**

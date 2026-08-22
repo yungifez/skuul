@@ -14,6 +14,7 @@
     <env name="APP_KEY" value="base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="/>
     <env name="BCRYPT_ROUNDS" value="4"/>
     <env name="CACHE_DRIVER" value="array"/>
+    <env name="DB_CONNECTION" value="mysql"/>
     <env name="DB_HOST" value="mysql"/>
     <env name="DB_DATABASE" value="testing"/>
     <env name="MAIL_MAILER" value="array"/>

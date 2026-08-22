@@ -499,16 +499,16 @@ Progress:
 
 Current features:
 
-- Create and manage subjects.
-- Assign teachers to subjects.
-- Create and manage syllabi.
-- Link subjects to classes and class groups.
+- Maintain one subject catalog per school.
+- Create period-specific course offerings for the catalog subjects.
+- Assign teachers through dated teaching assignments.
+- Upload syllabi for one exact course offering.
 
 Current assumptions:
 
-- A subject belongs to one school and one class.
-- Teacher assignments are direct user-to-subject relations.
-- Syllabus records are tied to a subject and semester.
+- A catalog subject belongs to one school, not to a class.
+- An offering supplies the academic level, period, roster, and teaching context.
+- A syllabus identifies its offering; its subject and period are derived, never copied.
 
 Questions to decide:
 
@@ -559,15 +559,15 @@ Progress:
 
 - Done: teaching is a dated assignment, not a pivot row. A
   `teaching_assignments` record names the school, subject, teacher, academic
-  year, period, optional section, role (`App\Enums\TeachingRole`), start date,
-  and end date. Several teachers can share one subject.
+  year, period, optional academic cycle section, role
+  (`App\Enums\TeachingRole`), start date, and end date. Several teachers can
+  share one subject.
 - Done: `App\Actions\Curriculum\AssignTeacher` is the only way in. It refuses
-  a person who is not a teacher, a teacher of another school, a section
-  outside the subject's class, and a closed year. Asking twice returns the
-  assignment that already runs.
+  a person who is not a teacher, a teacher or cycle section of another school,
+  a cycle section outside the assignment year, and a closed year. Asking twice
+  returns the assignment that already runs.
 - Done: ending an assignment keeps the record and gives it an end date, so
-  last year's timetable still says who taught. The old `subject_user` pivot is
-  kept in step for the screens that still read it.
+  last year's timetable still says who taught.
 - Done: `course_offerings` is the dated subject record. It keeps its school,
   academic cycle, academic period, academic level, roster, and lifecycle
   state. It does not change enrollment placement.
@@ -583,15 +583,19 @@ Progress:
   homeroom teacher, and lifecycle state.
 - Done: staff can roll section structure into another cycle. The new sections
   start as drafts. The action never copies learners, teachers, or old links.
+- Done: the subject catalog has no class foreign key. `syllabi` now reference
+  `course_offerings`, so their subject, level, and academic period cannot
+  disagree.
 - Agreed breaking change: `AcademicLevel` and `AcademicCycleSection` replace
   `MyClass` and `Section`. Do not keep bridge columns, bridge relations, or
   parallel read paths. All new and changed operational records use the new
   identifiers only.
-- Open: replace old class and section columns in placements, yearly placement
-  summaries, course-offering rosters, attendance, teaching assignments, and
-  timetables with the new identifiers. Remove the old tables and code after
-  the replacement migration completes.
-- Open: section-level timetable overrides and syllabus versions by offering.
+- In progress: rebuild result tabulation and assessment screens on offerings
+  and cycle sections; they are the remaining subject and class-bound paths.
+- Open: replace the remaining `subject_user` compatibility pivot with dated
+  assignment queries. It must not remain a second source of truth.
+- Open: section-level timetable overrides and published syllabus revisions by
+  offering.
 
 ### 7. Timetable
 
@@ -1335,7 +1339,9 @@ Status: in progress.
 - Fix assignment operators in authorization policies. Done.
 - Add cross-school authorization tests for every resource. Done in
   `tests/Feature/CrossSchoolAccessTest.php`.
-- Repair the test database configuration. Done. The suite runs in Sail.
+- Repair the test database configuration. Done. Sail PHPUnit explicitly sets
+  `APP_ENV=testing`, `DB_CONNECTION=mysql`, and `DB_DATABASE=testing`, so the
+  development `.env` database cannot be used by tests.
 - Repair the Larastan configuration. Done. `phpstan-baseline.neon` holds the
   legacy typing backlog, so new errors fail the build.
 - Run the full test suite in Sail. The previous result of 442 tests is stale.

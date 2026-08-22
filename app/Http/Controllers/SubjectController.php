@@ -44,9 +44,7 @@ class SubjectController extends Controller
      */
     public function store(SubjectStoreRequest $request): RedirectResponse
     {
-        $data = $request->except(['_token']);
-
-        $this->subject->createSubject($data);
+        $this->subject->createSubject($request->validated());
 
         return back()->with('success', 'Subject created successfully');
     }
@@ -74,9 +72,7 @@ class SubjectController extends Controller
      */
     public function update(SubjectStoreRequest $request, Subject $subject): RedirectResponse
     {
-        $data = $request->except(['_token', '_method']);
-
-        $this->subject->updateSubject($subject, $data);
+        $this->subject->updateSubject($subject, $request->validated());
 
         return back()->with('success', 'Subject updated successfully');
     }

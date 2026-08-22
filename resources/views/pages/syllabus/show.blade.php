@@ -1,7 +1,7 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
     ['href'=> route('syllabi.index'), 'text'=> 'syllabi'],
-    ['href'=> route('syllabi.show', $syllabus->id), 'text'=> "View $syllabus->title", 'active'],
+    ['href'=> route('syllabi.show', $syllabus->id), 'text'=> "View $syllabus->name", 'active'],
 ]])
 
 @section('title', __("View $syllabus->name"))

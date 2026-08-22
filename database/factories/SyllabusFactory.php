@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\CourseOffering;
 use App\Models\Syllabus;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Http\UploadedFile;
@@ -16,15 +17,14 @@ class SyllabusFactory extends Factory
      *
      * @return array<string, mixed>
      */
-    public function definition()
+    public function definition(): array
     {
         $file = UploadedFile::fake()->create("{$this->faker->name}.pdf")->store('pdfs');
 
         return [
             'name' => $this->faker->sentence,
             'description' => $this->faker->paragraph,
-            'subject_id' => 1,
-            'academic_period_id' => 1,
+            'course_offering_id' => CourseOffering::factory(),
             'file' => $file,
         ];
     }

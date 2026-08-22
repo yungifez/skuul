@@ -1,41 +1,23 @@
 <div class="card">
     <div class="card-header">
-        <h4 class="card-title">Subject List</h4>
+        <h4 class="card-title">Subject catalog</h4>
     </div>
     <div class="card-body">
-        @if ($classes->isNotEmpty())
-            <div class="flex w-full flex-col gap-2">
-                <april:select name="" id="class-select" class="md:w-6/12 my-4" wire:model.live="class">
-                @foreach ($classes as $item)
-                    <option value="{{$item->id}}">{{$item->name}}</option>
-                @endforeach
-
-                </april:select>
-            </div>
-            <div>
-                <x-loading-spinner wire:target="class" />
-            </div>
-            @isset($class)
-                <div  wire:loading.remove.delay>
-                    <livewire:datatable unique_id="list-subject-table" :wire:key="Str::Random(10)" :model="App\Models\Subject::class"
-                    :filters="[
-                        ['name' => 'where' ,'arguments' => ['my_class_id', $class]],
-                        ['name' => 'with', 'arguments' => ['teachers']]
-                    ]"
-                    :columns="[
-                        ['property' => 'name'],
-                        ['property' => 'short_name'],
-                        ['name' => 'Number of teachers assigned', 'method' => 'count', 'relation' => 'teachers'],
-                        ['type' => 'dropdown', 'name' => 'actions','links' => [
-                            ['href' => 'subjects.edit', 'text' => 'Edit', 'icon' => 'settings'],
-                        ]],
-                        ['type' => 'delete', 'name' => 'Delete', 'action' => 'subjects.destroy',]
-                    ]"
-                    />
-                </div>
-            @endisset
-        @else
-            <p>No classes and sections created in this school</p>
-        @endif
+        <p class="mb-5 text-sm text-muted-foreground">Keep each subject once in the school catalog. Course offerings decide the academic level, home group, period, and teachers who teach it.</p>
+        <livewire:datatable
+            unique-id="subject-catalog-table"
+            :model="App\Models\Subject::class"
+            :filters="[['name' => 'inSchool'], ['name' => 'with', 'arguments' => ['teachers']], ['name' => 'orderBy', 'arguments' => ['name']]]"
+            :empty-state="['heading' => 'No subjects yet', 'description' => 'Add a subject to the school catalog, then create an offering when it will be taught.', 'action' => ['href' => route('subjects.create'), 'ability' => 'create', 'arguments' => [\App\Models\Subject::class], 'label' => 'Add subject']]"
+            :columns="[
+                ['property' => 'name'],
+                ['property' => 'short_name', 'name' => 'Short name'],
+                ['name' => 'Teachers assigned', 'method' => 'count', 'relation' => 'teachers'],
+                ['type' => 'dropdown', 'name' => 'Actions', 'links' => [
+                    ['href' => 'subjects.edit', 'text' => 'Edit', 'icon' => 'settings'],
+                ]],
+                ['type' => 'delete', 'name' => 'Delete', 'action' => 'subjects.destroy'],
+            ]"
+        />
     </div>
 </div>

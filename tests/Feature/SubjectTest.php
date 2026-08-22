@@ -48,10 +48,8 @@ class SubjectTest extends TestCase
         $name = $this->faker()->name;
         $this->unauthorized_user()
             ->post('/dashboard/subjects', [
-                'name'        => $name,
-                'short_name'  => 'TS',
-                'my_class_id' => 1,
-                'school_id'   => 1,
+                'name' => $name,
+                'short_name' => 'TS',
             ])
             ->assertForbidden();
 
@@ -66,10 +64,8 @@ class SubjectTest extends TestCase
 
         $this->authorized_user(['create subject'])
             ->post('/dashboard/subjects', [
-                'name'        => $name,
-                'short_name'  => 'TS',
-                'my_class_id' => 1,
-                'school_id'   => 1,
+                'name' => $name,
+                'short_name' => 'TS',
             ])
             ->assertRedirect();
 
@@ -98,15 +94,13 @@ class SubjectTest extends TestCase
         $name = $this->faker->name;
         $this->unauthorized_user()
             ->patch("/dashboard/subjects/$subject->id", [
-                'name'        => $name,
-                'short_name'  => 'TS2',
-                'my_class_id' => 1,
-                'school_id'   => 1,
+                'name' => $name,
+                'short_name' => 'TS2',
             ])
             ->assertForbidden();
 
         $this->assertDatabaseMissing('subjects', [
-            'id'   => $subject->id,
+            'id' => $subject->id,
             'name' => $name,
         ]);
     }
@@ -117,10 +111,8 @@ class SubjectTest extends TestCase
         $name = $this->faker()->name;
         $this->authorized_user(['update subject'])
             ->patch("/dashboard/subjects/$subject->id", [
-                'name'        => $name,
-                'short_name'  => 'TS2',
-                'my_class_id' => 1,
-                'school_id'   => 1,
+                'name' => $name,
+                'short_name' => 'TS2',
             ])->assertRedirect();
 
         $this->assertEquals($name, $subject->fresh()->name);

@@ -143,4 +143,12 @@ class CourseOffering extends Model
     {
         return $this->hasMany(TeachingAssignment::class);
     }
+
+    /**
+     * @return HasMany<Syllabus, $this>
+     */
+    public function syllabi(): HasMany
+    {
+        return $this->hasMany(Syllabus::class);
+    }
 }

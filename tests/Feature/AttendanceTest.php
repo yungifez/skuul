@@ -13,8 +13,6 @@ use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
 use App\Models\AttendanceRecord;
-use App\Models\ClassGroup;
-use App\Models\MyClass;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\Subject;
@@ -128,9 +126,7 @@ class AttendanceTest extends TestCase
     {
         $this->authorized_user([]);
         $other = School::factory()->create();
-        $classGroup = ClassGroup::factory()->create(['school_id' => $other->id]);
-        $class = MyClass::factory()->create(['class_group_id' => $classGroup->id]);
-        $subject = Subject::factory()->create(['school_id' => $other->id, 'my_class_id' => $class->id]);
+        $subject = Subject::factory()->create(['school_id' => $other->id]);
 
         $this->expectException(InvalidValueException::class);
 
@@ -249,12 +245,8 @@ class AttendanceTest extends TestCase
      */
     private function subject(): Subject
     {
-        $classGroup = ClassGroup::factory()->create(['school_id' => $this->workingSchool()->id]);
-        $class = MyClass::factory()->create(['class_group_id' => $classGroup->id]);
-
         return Subject::factory()->create([
             'school_id' => $this->workingSchool()->id,
-            'my_class_id' => $class->id,
         ]);
     }
 }

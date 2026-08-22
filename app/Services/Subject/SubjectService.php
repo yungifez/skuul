@@ -46,16 +46,12 @@ class SubjectService
     /**
      * Create subject.
      *
-     * @param mixed $data
-     *
-     * @return void
+     * @param  array{name: string, short_name: string, teachers?: array<int, int|string>}  $data
      */
-    public function createSubject($data)
+    public function createSubject(array $data): void
     {
-        $subject = Subject::firstOrCreate(['name' => $data['name']], [
-            'short_name'  => $data['short_name'],
-            'school_id'   => current_school_id(),
-            'my_class_id' => $data['my_class_id'],
+        $subject = Subject::firstOrCreate(['school_id' => current_school_id(), 'name' => $data['name']], [
+            'short_name' => $data['short_name'],
         ]);
 
         if (!$subject->wasRecentlyCreated) {
@@ -77,11 +73,9 @@ class SubjectService
     /**
      * Update subject.
      *
-     * @param mixed $data
-     *
-     * @return void
+     * @param  array{name: string, short_name: string, teachers?: array<int, int|string>}  $data
      */
-    public function updateSubject(Subject $subject, $data)
+    public function updateSubject(Subject $subject, array $data): void
     {
         $subject->name = $data['name'];
         $subject->short_name = $data['short_name'];
@@ -109,7 +103,7 @@ class SubjectService
      * teacher who is removed keeps the assignment, which is given an end date,
      * so last year's records still say who taught.
      *
-     * @param array<int, int|string> $teacherIds
+     * @param  array<int, int|string>  $teacherIds
      */
     public function syncTeachers(Subject $subject, array $teacherIds): void
     {
@@ -152,8 +146,7 @@ class SubjectService
     /**
      * Assign a teacher to a list of subjects.
      *
-     * @param array|mixed $records Array or collection of ids
-     *
+     * @param  array|mixed  $records  Array or collection of ids
      * @return void
      */
     public function assignTeacherToSubjects(User $teacher, $records)

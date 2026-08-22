@@ -5,8 +5,8 @@ namespace App\Models;
 use App\Traits\InSchool;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -17,18 +17,8 @@ class Subject extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'name', 'short_name', 'school_id', 'my_class_id',
+        'name', 'short_name', 'school_id',
     ];
-
-    /**
-     * Get the class that owns the Subject.
-     *
-     * @return BelongsTo<MyClass, $this>
-     */
-    public function myClass(): BelongsTo
-    {
-        return $this->belongsTo(MyClass::class);
-    }
 
     /**
      * The teachers that belong to the Subject.
@@ -38,6 +28,16 @@ class Subject extends Model
     public function teachers()
     {
         return $this->belongsToMany(User::class, 'subject_user');
+    }
+
+    /**
+     * Get the dated offerings of this catalog subject.
+     *
+     * @return HasMany<CourseOffering, $this>
+     */
+    public function courseOfferings(): HasMany
+    {
+        return $this->hasMany(CourseOffering::class);
     }
 
     /**

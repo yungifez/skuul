@@ -12,9 +12,7 @@ use Illuminate\View\View;
 
 class SyllabusController extends Controller
 {
-    public $syllabus;
-
-    public function __construct(SyllabusService $syllabus)
+    public function __construct(private SyllabusService $syllabus)
     {
         $this->syllabus = $syllabus;
         $this->authorizeResource(Syllabus::class, 'syllabus');
@@ -39,12 +37,11 @@ class SyllabusController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreSyllabusRequest $request)
+    public function store(StoreSyllabusRequest $request): RedirectResponse
     {
-        $data = $request->except(['_token']);
-        $this->syllabus->createSyllabus($data);
+        $this->syllabus->createSyllabus($request->validated());
 
-        return back()->with('success', 'Successfully created Syllabus');
+        return redirect()->route('syllabi.index')->with('success', 'Syllabus created.');
     }
 
     /**
@@ -52,6 +49,8 @@ class SyllabusController extends Controller
      */
     public function show(Syllabus $syllabus): View
     {
+        $syllabus->load('courseOffering.subject', 'courseOffering.academicPeriod', 'courseOffering.academicLevel');
+
         return view('pages.syllabus.show', compact('syllabus'));
     }
 
@@ -78,6 +77,6 @@ class SyllabusController extends Controller
     {
         $this->syllabus->deleteSyllabus($syllabus);
 
-        return back()->with('success', 'Successfully deleted Syllabus');
+        return redirect()->route('syllabi.index')->with('success', 'Syllabus deleted.');
     }
 }

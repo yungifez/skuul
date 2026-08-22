@@ -8,6 +8,7 @@ use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\ClassGroup;
+use App\Models\CourseOffering;
 use App\Models\CustomTimetableItem;
 use App\Models\Exam;
 use App\Models\ExamSlot;
@@ -239,7 +240,13 @@ class CrossSchoolAccessTest extends TestCase
         ]);
         $subject = Subject::factory()->create([
             'school_id' => $this->otherSchool->id,
-            'my_class_id' => $myClass->id,
+        ]);
+        $courseOffering = CourseOffering::factory()->create([
+            'school_id' => $this->otherSchool->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_period_id' => $academicPeriod->id,
+            'academic_level_id' => $academicLevel->id,
+            'subject_id' => $subject->id,
         ]);
         $exam = Exam::factory()->create(['academic_period_id' => $academicPeriod->id]);
         $feeCategory = FeeCategory::factory()->create(['school_id' => $this->otherSchool->id]);
@@ -264,8 +271,7 @@ class CrossSchoolAccessTest extends TestCase
             'student' => $student,
             'otherAdmin' => $this->adminOfOtherSchool(),
             'syllabus' => Syllabus::factory()->create([
-                'subject_id' => $subject->id,
-                'academic_period_id' => $academicPeriod->id,
+                'course_offering_id' => $courseOffering->id,
             ]),
             'examSlot' => ExamSlot::factory()->create(['exam_id' => $exam->id]),
             'gradeSystem' => GradeSystem::factory()->create(['class_group_id' => $classGroup->id]),
