@@ -13,6 +13,7 @@ use App\Exceptions\InvalidValueException;
 use App\Jobs\SendNoticeEmails;
 use App\Models\AuditEvent;
 use App\Models\Notice;
+use App\Models\NoticeNotificationPreference;
 use App\Models\NoticeRecipient;
 use App\Models\ParentRecord;
 use App\Models\School;
@@ -20,6 +21,7 @@ use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schedule;
 use Tests\TestCase;
@@ -185,6 +187,19 @@ class NoticePublicationTest extends TestCase
 
         app(PublishNotice::class)->publish($this->notice(['send_email' => true]));
         Queue::assertPushed(SendNoticeEmails::class);
+    }
+
+    public function test_an_opted_out_recipient_does_not_receive_optional_notice_email(): void
+    {
+        Mail::fake();
+        $this->authorized_user([]);
+        $recipient = $this->memberOf($this->workingSchool());
+        $notice = app(PublishNotice::class)->publish($this->notice(['send_email' => false, 'audience' => ['user_ids' => [$recipient->id]]]));
+        NoticeNotificationPreference::create(['user_id' => $recipient->id, 'school_id' => $notice->school_id, 'email_enabled' => false]);
+
+        (new SendNoticeEmails($notice->id))->handle();
+
+        Mail::assertNothingSent();
     }
 
     public function test_a_reader_can_mark_a_notice_as_read(): void
