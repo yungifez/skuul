@@ -1,13 +1,13 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href' => route('dashboard'), 'text' => 'Dashboard'],
-    ['href' => route('academic-cycle-sections.index'), 'text' => 'Cycle sections', 'active'],
+    ['href' => route('academic-cycle-sections.index'), 'text' => school_terms('section', 'Section').' this year', 'active'],
 ]])
 
-@section('title', __('Cycle sections'))
-@section('page_heading', __('Cycle sections'))
+@section('title', school_terms('section', 'Section').' this year')
+@section('page_heading', school_terms('section', 'Section').' this year')
 
 @section('page_actions')
-    <x-resource-create-action :href="route('academic-cycle-sections.create')" ability="create" :arguments="[\App\Models\AcademicCycleSection::class]">Add cycle section</x-resource-create-action>
+    <x-resource-create-action :href="route('academic-cycle-sections.create')" ability="create" :arguments="[\App\Models\AcademicCycleSection::class]">Add {{ school_term('section', 'section') }}</x-resource-create-action>
 @endsection
 
 @section('content')
@@ -83,7 +83,7 @@
     </april:card>
 
     <april:card>
-        <slot:title>Home sections</slot:title>
+        <slot:title>{{ school_terms('section', 'Section') }} this year</slot:title>
         <slot:description>Rows are grouped by cycle, then by level. Draft sections are set up but not yet in use.</slot:description>
         <slot:content>
             @if ($totalCount === 0)

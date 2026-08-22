@@ -1,18 +1,18 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href' => route('dashboard'), 'text' => 'Dashboard'],
-    ['href' => route('course-offerings.index'), 'text' => 'Course offerings', 'active'],
+    ['href' => route('course-offerings.index'), 'text' => school_terms('course', 'Course').' being taught', 'active'],
 ]])
 
-@section('title', __('Course offerings'))
-@section('page_heading', __('Course offerings'))
+@section('title', school_terms('course', 'Course').' being taught')
+@section('page_heading', school_terms('course', 'Course').' being taught')
 
 @section('page_actions')
-    <x-resource-create-action :href="route('course-offerings.create')" ability="create" :arguments="[\App\Models\CourseOffering::class]">Add course offering</x-resource-create-action>
+    <x-resource-create-action :href="route('course-offerings.create')" ability="create" :arguments="[\App\Models\CourseOffering::class]">Add {{ school_term('course', 'course') }}</x-resource-create-action>
 @endsection
 
 @section('content')
     <april:card>
-        <slot:title>Teaching for an exact period</slot:title>
+        <slot:title>{{ school_terms('course', 'Course') }} for an exact {{ school_term('period', 'period') }}</slot:title>
         <slot:description>Create a dated offering from an existing subject. Home sections are its default groups; learner placement remains separate.</slot:description>
         <slot:content>
             <div class="overflow-x-auto">
@@ -62,7 +62,7 @@
                                 </td>
                             </tr>
                         @empty
-                            <tr><td colspan="6" class="px-3 py-10 text-center text-muted-foreground">No course offerings exist. Create the subject instance that will run in an academic period.</td></tr>
+                            <tr><td colspan="6" class="px-3 py-10 text-center text-muted-foreground">No {{ school_terms('course', 'course') }} exist yet. Add the {{ school_term('course', 'course') }} that will run in a {{ school_term('period', 'period') }}.</td></tr>
                         @endforelse
                     </tbody>
                 </table>

@@ -1,13 +1,13 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href' => route('dashboard'), 'text' => 'Dashboard'],
-    ['href' => route('academic-levels.index'), 'text' => 'Academic levels', 'active'],
+    ['href' => route('academic-levels.index'), 'text' => school_terms('class_level', 'Academic level'), 'active'],
 ]])
 
-@section('title', __('Academic levels'))
-@section('page_heading', __('Academic levels'))
+@section('title', school_terms('class_level', 'Academic level'))
+@section('page_heading', school_terms('class_level', 'Academic level'))
 
 @section('page_actions')
-    <x-resource-create-action :href="route('academic-levels.create')" ability="create" :arguments="[\App\Models\AcademicLevel::class]">Add academic level</x-resource-create-action>
+    <x-resource-create-action :href="route('academic-levels.create')" ability="create" :arguments="[\App\Models\AcademicLevel::class]">Add {{ school_term('class_level', 'academic level') }}</x-resource-create-action>
 @endsection
 
 @section('content')
@@ -21,7 +21,7 @@
     @endphp
 
     <april:card class="mb-6">
-        <slot:title>Levels are reusable. Sections are not.</slot:title>
+        <slot:title>{{ school_terms('class_level', 'Level') }} are reusable. {{ school_terms('section', 'Section') }} are not.</slot:title>
         <slot:description>
             A level is the step a learner is at, such as Primary 4, Grade 4, or Form 2. It stays the same year after year.
             A cycle section is one named group inside a level for one exact academic cycle, such as Primary 4 · Green · 2026–2027.
@@ -29,13 +29,13 @@
         <slot:content class="flex flex-wrap gap-2">
             <april:button-link href="{{ route('academic-cycle-sections.index', ['academic_year_id' => '']) }}" variant="outline" size="sm">
                 <x-lucide-layers class="mr-1.5 size-3.5" />
-                Go to cycle sections
+                Go to {{ school_terms('section', 'section') }} this year
             </april:button-link>
         </slot:content>
     </april:card>
 
     <april:card>
-        <slot:title>All academic levels</slot:title>
+        <slot:title>All {{ school_terms('class_level', 'academic level') }}</slot:title>
         <slot:description>Set the display order once. Every screen that lists levels reads it.</slot:description>
         <slot:content>
             <div class="mb-4 flex flex-wrap items-center gap-2">
@@ -51,9 +51,9 @@
             @if ($totalCount === 0)
                 <x-empty-state
                     icon="lucide-graduation-cap"
-                    title="No academic levels yet"
-                    description="Add the levels this school teaches, such as Primary 1 to Primary 6. You need at least one level before you can create a section for an academic cycle.">
-                    <x-resource-create-action :href="route('academic-levels.create')" ability="create" :arguments="[\App\Models\AcademicLevel::class]">Add academic level</x-resource-create-action>
+                    title="No {{ school_terms('class_level', 'academic level') }} yet"
+                    description="Add the levels this school teaches, such as Primary 1 to Primary 6. You need at least one before you can create a {{ school_term('section', 'section') }} for an academic cycle.">
+                    <x-resource-create-action :href="route('academic-levels.create')" ability="create" :arguments="[\App\Models\AcademicLevel::class]">Add {{ school_term('class_level', 'academic level') }}</x-resource-create-action>
                 </x-empty-state>
             @elseif ($academicLevels->isEmpty())
                 <x-empty-state
@@ -70,7 +70,7 @@
                                 <th class="px-3 py-2">Level</th>
                                 <th class="px-3 py-2">Local label</th>
                                 <th class="px-3 py-2">Sits under</th>
-                                <th class="px-3 py-2">Cycle sections</th>
+                                <th class="px-3 py-2">{{ school_terms('section', 'Section') }}</th>
                                 <th class="px-3 py-2">Status</th>
                                 <th class="px-3 py-2 text-right">Actions</th>
                             </tr>
