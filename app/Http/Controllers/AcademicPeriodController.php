@@ -126,7 +126,7 @@ class AcademicPeriodController extends Controller
     public function setAcademicPeriod(SetAcademicPeriodRequest $request): RedirectResponse
     {
         $this->authorize('setAcademicPeriod', AcademicPeriod::class);
-        $academicPeriod = AcademicPeriod::findOrFail($request->academic_period_id);
+        $academicPeriod = AcademicPeriod::inSchool()->findOrFail($request->validated('academic_period_id'));
         $this->academicPeriod->setAcademicPeriod($academicPeriod);
 
         return back()->with('success', 'Successfully set current academic period');
