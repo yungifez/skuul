@@ -29,7 +29,7 @@ class AssignTeacherToCourseOfferingRequest extends FormRequest
     {
         return [
             'teacher_id' => ['required', 'integer', Rule::exists('users', 'id')],
-            'role' => ['required', Rule::enum(TeachingRole::class)],
+            'role'       => ['required', Rule::enum(TeachingRole::class)],
         ];
     }
 }

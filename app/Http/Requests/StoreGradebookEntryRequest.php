@@ -28,12 +28,12 @@ class StoreGradebookEntryRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'grade_item_id' => ['required', 'integer', Rule::exists('grade_items', 'id')],
-            'student_record_id' => ['required', 'integer', Rule::exists('student_records', 'id')],
-            'state' => ['required', Rule::enum(GradeEntryState::class)],
-            'points' => ['nullable', 'numeric', 'min:0'],
+            'grade_item_id'           => ['required', 'integer', Rule::exists('grade_items', 'id')],
+            'student_record_id'       => ['required', 'integer', Rule::exists('student_records', 'id')],
+            'state'                   => ['required', Rule::enum(GradeEntryState::class)],
+            'points'                  => ['nullable', 'numeric', 'min:0'],
             'grading_scale_option_id' => ['nullable', 'integer', Rule::exists('grading_scale_options', 'id')],
-            'comment' => ['nullable', 'string', 'max:5000'],
+            'comment'                 => ['nullable', 'string', 'max:5000'],
         ];
     }
 }

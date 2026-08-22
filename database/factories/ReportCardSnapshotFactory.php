@@ -22,14 +22,14 @@ class ReportCardSnapshotFactory extends Factory
     public function definition(): array
     {
         return [
-            'school_id' => School::factory(),
-            'student_record_id' => StudentRecord::factory(),
-            'academic_year_id' => AcademicYear::factory(),
+            'school_id'          => School::factory(),
+            'student_record_id'  => StudentRecord::factory(),
+            'academic_year_id'   => AcademicYear::factory(),
             'academic_period_id' => AcademicPeriod::factory(),
-            'revision' => 1,
+            'revision'           => 1,
             'average_percentage' => 75,
-            'payload' => ['results' => []],
-            'published_at' => now(),
+            'payload'            => ['results' => []],
+            'published_at'       => now(),
         ];
     }
 }

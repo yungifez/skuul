@@ -48,20 +48,20 @@ class AdminTest extends TestCase
     {
         $email = $this->faker()->freeEmail();
         $this->unauthorized_user()->post('dashboard/admins', [
-            'name' => 'Test admin cody',
-            'email' => $email,
-            'password' => 'password',
+            'name'                  => 'Test admin cody',
+            'email'                 => $email,
+            'password'              => 'password',
             'password_confirmation' => 'password',
-            'gender' => 'male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004/04/22',
-            'phone' => '08080808080',
-            'my_class_id' => 1,
-            'section_id' => 1,
-            'admission_date' => '2004/04/22',
+            'gender'                => 'male',
+            'nationality'           => 'nigeria',
+            'state'                 => 'lagos',
+            'city'                  => 'lagos',
+            'address'               => 'test address',
+            'birthday'              => '2004/04/22',
+            'phone'                 => '08080808080',
+            'my_class_id'           => 1,
+            'section_id'            => 1,
+            'admission_date'        => '2004/04/22',
         ])->assertForbidden();
 
         $this->assertDatabaseMissing('users', [
@@ -74,27 +74,27 @@ class AdminTest extends TestCase
         $email = $this->faker()->freeEmail();
 
         $this->authorized_user(['create admin'])->post('dashboard/admins', [
-            'name' => 'Test admin cody',
-            'email' => $email,
-            'password' => 'password',
+            'name'                  => 'Test admin cody',
+            'email'                 => $email,
+            'password'              => 'password',
             'password_confirmation' => 'password',
-            'gender' => 'male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004/04/22',
-            'phone' => '08080808080',
-            'my_class_id' => 1,
-            'section_id' => 1,
-            'admission_date' => '2004/04/22',
+            'gender'                => 'male',
+            'nationality'           => 'nigeria',
+            'state'                 => 'lagos',
+            'city'                  => 'lagos',
+            'address'               => 'test address',
+            'birthday'              => '2004/04/22',
+            'phone'                 => '08080808080',
+            'my_class_id'           => 1,
+            'section_id'            => 1,
+            'admission_date'        => '2004/04/22',
         ])->assertRedirect();
 
         $this->assertDatabaseHas('users', [
-            'email' => $email,
-            'address' => 'test address',
+            'email'    => $email,
+            'address'  => 'test address',
             'birthday' => '2004/04/22',
-            'phone' => '08080808080',
+            'phone'    => '08080808080',
         ]);
     }
 
@@ -120,20 +120,20 @@ class AdminTest extends TestCase
         $admin->assignRole('admin');
 
         $this->unauthorized_user()->put('dashboard/admins/'.$admin->id, [
-            'name' => 'Test admin 2',
-            'email' => $email,
-            'password' => 'password',
+            'name'                  => 'Test admin 2',
+            'email'                 => $email,
+            'password'              => 'password',
             'password_confirmation' => 'password',
-            'gender' => 'male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004/04/22',
-            'phone' => '08080808080',
-            'my_class_id' => 1,
-            'section_id' => 1,
-            'admission_date' => '2004/04/22',
+            'gender'                => 'male',
+            'nationality'           => 'nigeria',
+            'state'                 => 'lagos',
+            'city'                  => 'lagos',
+            'address'               => 'test address',
+            'birthday'              => '2004/04/22',
+            'phone'                 => '08080808080',
+            'my_class_id'           => 1,
+            'section_id'            => 1,
+            'admission_date'        => '2004/04/22',
         ])->assertForbidden();
 
         $this->assertDatabaseMissing('users', [
@@ -148,17 +148,17 @@ class AdminTest extends TestCase
         $email = $this->faker()->freeEmail();
 
         $this->authorized_user(['update admin'])->put('dashboard/admins/'.$admin->id, [
-            'name' => 'Test 2 admin 2 admin',
-            'email' => $email,
-            'password' => 'password',
+            'name'                  => 'Test 2 admin 2 admin',
+            'email'                 => $email,
+            'password'              => 'password',
             'password_confirmation' => 'password',
-            'gender' => 'male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004/04/22',
-            'phone' => '08080808080',
+            'gender'                => 'male',
+            'nationality'           => 'nigeria',
+            'state'                 => 'lagos',
+            'city'                  => 'lagos',
+            'address'               => 'test address',
+            'birthday'              => '2004/04/22',
+            'phone'                 => '08080808080',
         ])->assertRedirect();
 
         $this->assertDatabaseHas('users', [

@@ -22,7 +22,9 @@ class SystemPermissionScope
      */
     private array $permissionsByUser = [];
 
-    public function __construct(private PermissionRegistrar $permissionRegistrar) {}
+    public function __construct(private PermissionRegistrar $permissionRegistrar)
+    {
+    }
 
     /**
      * Check a permission through global Spatie roles without changing the
@@ -49,7 +51,8 @@ class SystemPermissionScope
      *
      * @template T
      *
-     * @param  Closure(): T  $callback
+     * @param Closure(): T $callback
+     *
      * @return T
      */
     public function withinUserScope(User $user, Closure $callback): mixed
@@ -91,7 +94,8 @@ class SystemPermissionScope
      *
      * @template T
      *
-     * @param  Closure(): T  $callback
+     * @param Closure(): T $callback
+     *
      * @return T
      */
     public function within(Closure $callback): mixed

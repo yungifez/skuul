@@ -21,11 +21,11 @@ class AssessmentTemplateItemFactory extends Factory
     {
         return [
             'assessment_template_id' => AssessmentTemplate::factory(),
-            'name' => fake()->words(2, true),
-            'type' => GradeItemType::Numeric,
-            'max_points' => 100,
-            'weight' => 1,
-            'position' => fake()->numberBetween(1, 10),
+            'name'                   => fake()->words(2, true),
+            'type'                   => GradeItemType::Numeric,
+            'max_points'             => 100,
+            'weight'                 => 1,
+            'position'               => fake()->numberBetween(1, 10),
         ];
     }
 }

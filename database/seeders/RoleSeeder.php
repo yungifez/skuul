@@ -16,11 +16,11 @@ class RoleSeeder extends Seeder
     public function run()
     {
         Role::firstOrCreate([
-            'name' => RoleName::PlatformAdmin,
+            'name'      => RoleName::PlatformAdmin,
             'school_id' => null,
         ]);
         Role::firstOrCreate([
-            'name' => RoleName::OrganizationAdmin,
+            'name'      => RoleName::OrganizationAdmin,
             'school_id' => null,
         ]);
         Role::firstOrCreate([

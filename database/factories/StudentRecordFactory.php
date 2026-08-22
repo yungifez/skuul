@@ -38,20 +38,20 @@ class StudentRecordFactory extends Factory
             ->where('academic_year_id', $academicYear->id)
             ->first()
             ?? AcademicCycleSection::query()->findOrFail(AcademicCycleSection::factory()->create([
-                'school_id' => $school->id,
-                'academic_year_id' => $academicYear->id,
+                'school_id'         => $school->id,
+                'academic_year_id'  => $academicYear->id,
                 'academic_level_id' => $academicLevel->id,
-                'status' => AcademicStructureStatus::Active,
+                'status'            => AcademicStructureStatus::Active,
             ])->getKey());
         $student->assignRole('student');
 
         return [
-            'user_id' => $student->id,
-            'school_id' => $school->id,
+            'user_id'                   => $student->id,
+            'school_id'                 => $school->id,
             'academic_cycle_section_id' => $academicCycleSection->id,
-            'admission_date' => $this->faker->date(),
-            'status' => EnrollmentStatus::Active,
-            'admission_number' => Str::random(10),
+            'admission_date'            => $this->faker->date(),
+            'status'                    => EnrollmentStatus::Active,
+            'admission_number'          => Str::random(10),
         ];
     }
 }

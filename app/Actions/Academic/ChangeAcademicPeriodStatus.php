@@ -34,12 +34,13 @@ class ChangeAcademicPeriodStatus
     public function __construct(
         private RecordAuditEvent $auditor,
         private ClosureReadinessCheck $readiness,
-    ) {}
+    ) {
+    }
 
     /**
      * Move the period to the given state.
      *
-     * @param  array<int, array<string, mixed>>|null  $checklist  what the readiness check found
+     * @param array<int, array<string, mixed>>|null $checklist what the readiness check found
      *
      * @throws InvalidValueException when the state cannot follow the current one
      */
@@ -64,21 +65,21 @@ class ChangeAcademicPeriodStatus
 
             AcademicPeriodStatusChange::create([
                 'period_type' => $period->getMorphClass(),
-                'period_id' => $period->id,
+                'period_id'   => $period->id,
                 'from_status' => $current,
-                'to_status' => $status,
-                'changed_by' => $actor?->id,
-                'reason' => $reason,
-                'checklist' => $checklist,
+                'to_status'   => $status,
+                'changed_by'  => $actor?->id,
+                'reason'      => $reason,
+                'checklist'   => $checklist,
             ]);
 
             $this->auditor->record(
                 AuditAction::AcademicPeriodStatusChanged,
                 $period,
                 [
-                    'from' => $current->value,
-                    'to' => $status->value,
-                    'reason' => $reason,
+                    'from'      => $current->value,
+                    'to'        => $status->value,
+                    'reason'    => $reason,
                     'checklist' => $checklist,
                 ],
                 $actor,

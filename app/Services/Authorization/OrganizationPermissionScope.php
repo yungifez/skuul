@@ -26,7 +26,9 @@ class OrganizationPermissionScope
      */
     private array $membershipsByUserAndOrganization = [];
 
-    public function __construct(private SystemPermissionScope $systemPermissionScope) {}
+    public function __construct(private SystemPermissionScope $systemPermissionScope)
+    {
+    }
 
     /**
      * Check one organization permission for one organization.

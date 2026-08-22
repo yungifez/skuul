@@ -43,7 +43,8 @@ class CampusMoveAuthority
     public function __construct(
         private OrganizationPermissionScope $organizationPermissionScope,
         private PermissionRegistrar $permissionRegistrar,
-    ) {}
+    ) {
+    }
 
     /**
      * Check if this person moves a student without asking either campus.
@@ -151,7 +152,8 @@ class CampusMoveAuthority
      *
      * @template T
      *
-     * @param  Closure(): T  $callback
+     * @param Closure(): T $callback
+     *
      * @return T
      */
     private function withinSchool(User $user, School $school, Closure $callback): mixed

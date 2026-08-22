@@ -30,7 +30,7 @@ class AcademicYearService
     /**
      * Get academic year by Id.
      *
-     * @param  int  $id
+     * @param int $id
      */
     public function getAcademicYearById($id): AcademicYear
     {
@@ -40,7 +40,7 @@ class AcademicYearService
     /**
      * Create academic year.
      *
-     * @param  array|Collection  $records
+     * @param array|Collection $records
      */
     public function createAcademicYear($records): AcademicYear
     {
@@ -53,7 +53,7 @@ class AcademicYearService
     /**
      * Update Academic Year.
      *
-     * @param  array|Collection  $records
+     * @param array|Collection $records
      */
     public function updateAcademicYear(AcademicYear $academicYear, $records): AcademicYear
     {
@@ -80,7 +80,7 @@ class AcademicYearService
      * The choice belongs to the request, not to the school record. A school
      * still keeps a default year for people who have not chosen one.
      *
-     * @param  int  $academicYearId
+     * @param int $academicYearId
      *
      * @throws InvalidValueException when the year belongs to another school
      */
@@ -97,7 +97,7 @@ class AcademicYearService
         // A year always opens on an academic period, so make the first one if it has none.
         $academicPeriod = $academicYear->academicPeriods()->orderBy('id')->first()
             ?? $academicYear->academicPeriods()->create([
-                'name' => 'First',
+                'name'      => 'First',
                 'school_id' => $academicYear->school_id,
             ]);
 

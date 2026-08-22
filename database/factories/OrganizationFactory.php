@@ -18,11 +18,11 @@ class OrganizationFactory extends Factory
     public function definition(): array
     {
         return [
-            'name' => $this->faker->company(),
-            'code' => $this->faker->unique()->bothify('ORG-#####'),
+            'name'    => $this->faker->company(),
+            'code'    => $this->faker->unique()->bothify('ORG-#####'),
             'address' => $this->faker->address(),
-            'email' => $this->faker->companyEmail(),
-            'phone' => $this->faker->phoneNumber(),
+            'email'   => $this->faker->companyEmail(),
+            'phone'   => $this->faker->phoneNumber(),
         ];
     }
 }

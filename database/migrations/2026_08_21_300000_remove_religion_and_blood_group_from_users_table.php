@@ -5,8 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class() extends Migration {
     /**
      * Move health data to the restricted health record before removing it from
      * the general person profile.
@@ -33,11 +32,11 @@ return new class extends Migration
             ->each(function ($records): void {
                 DB::table('student_health_records')->insert(
                     $records->map(fn ($record): array => [
-                        'school_id' => $record->school_id,
+                        'school_id'         => $record->school_id,
                         'student_record_id' => $record->student_record_id,
-                        'blood_group' => $record->blood_group,
-                        'created_at' => now(),
-                        'updated_at' => now(),
+                        'blood_group'       => $record->blood_group,
+                        'created_at'        => now(),
+                        'updated_at'        => now(),
                     ])->all(),
                 );
             });

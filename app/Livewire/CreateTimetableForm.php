@@ -22,7 +22,7 @@ class CreateTimetableForm extends Component
             ->orderBy('name')
             ->get()
             ->map(fn (AcademicCycleSection $cycleSection): array => [
-                'id' => $cycleSection->id,
+                'id'    => $cycleSection->id,
                 'label' => ($cycleSection->academicLevel->label ?? $cycleSection->academicLevel->name)
                     .' · '.($cycleSection->label ?? $cycleSection->name),
             ])

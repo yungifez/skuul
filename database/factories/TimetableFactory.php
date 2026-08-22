@@ -21,15 +21,15 @@ class TimetableFactory extends Factory
     {
         $cycleSection = AcademicCycleSection::factory()->create();
         $academicPeriod = AcademicPeriod::factory()->create([
-            'school_id' => $cycleSection->school_id,
+            'school_id'        => $cycleSection->school_id,
             'academic_year_id' => $cycleSection->academic_year_id,
         ]);
 
         return [
-            'name' => $this->faker->name,
-            'description' => $this->faker->text,
+            'name'                      => $this->faker->name,
+            'description'               => $this->faker->text,
             'academic_cycle_section_id' => $cycleSection->id,
-            'academic_period_id' => $academicPeriod->id,
+            'academic_period_id'        => $academicPeriod->id,
         ];
     }
 }

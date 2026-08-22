@@ -22,7 +22,9 @@ use Illuminate\Support\Facades\DB;
  */
 class ChangeAcademicPeriodDates
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * Set the first and last day of the period.
@@ -55,12 +57,12 @@ class ChangeAcademicPeriodDates
 
         $before = [
             'starts_on' => $period->starts_on?->toDateString(),
-            'ends_on' => $period->ends_on?->toDateString(),
+            'ends_on'   => $period->ends_on?->toDateString(),
         ];
 
         $after = [
             'starts_on' => $startsOn?->toDateString(),
-            'ends_on' => $endsOn?->toDateString(),
+            'ends_on'   => $endsOn?->toDateString(),
         ];
 
         if ($before === $after) {

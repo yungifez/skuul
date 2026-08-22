@@ -2,4 +2,6 @@
 
 namespace App\Http\Requests;
 
-class UpdateCalendarTemplateRequest extends StoreCalendarTemplateRequest {}
+class UpdateCalendarTemplateRequest extends StoreCalendarTemplateRequest
+{
+}

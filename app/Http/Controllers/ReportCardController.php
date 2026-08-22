@@ -13,7 +13,9 @@ use Illuminate\View\View;
 
 class ReportCardController extends Controller
 {
-    public function __construct(private PublishReportCard $publishReportCard) {}
+    public function __construct(private PublishReportCard $publishReportCard)
+    {
+    }
 
     public function index(): View
     {
@@ -21,8 +23,8 @@ class ReportCardController extends Controller
 
         return view('pages.report-card.index', [
             'reportCards' => ReportCardSnapshot::query()->inSchool()->with(['studentRecord.user:id,name', 'academicPeriod:id,name,label'])->latest('published_at')->paginate(20),
-            'students' => StudentRecord::query()->inSchool()->with('user:id,name')->orderBy('admission_number')->get(['id', 'user_id', 'admission_number']),
-            'periods' => AcademicPeriod::query()->inSchool()->ordered()->get(['id', 'name', 'label']),
+            'students'    => StudentRecord::query()->inSchool()->with('user:id,name')->orderBy('admission_number')->get(['id', 'user_id', 'admission_number']),
+            'periods'     => AcademicPeriod::query()->inSchool()->ordered()->get(['id', 'name', 'label']),
         ]);
     }
 

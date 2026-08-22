@@ -35,7 +35,7 @@ class CourseOfferingRoster
         return match ($courseOffering->roster_mode) {
             RosterMode::HomeSection, RosterMode::CombinedHomeSections => $courseOffering->cycleSections
                 ->contains('id', $enrollment->academic_cycle_section_id),
-            RosterMode::AcademicLevel => $enrollment->academicCycleSection?->academic_level_id === $courseOffering->academic_level_id,
+            RosterMode::AcademicLevel    => $enrollment->academicCycleSection?->academic_level_id === $courseOffering->academic_level_id,
             RosterMode::IndividualRoster => $courseOffering->studentRecords->contains('id', $enrollment->id),
         };
     }

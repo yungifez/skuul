@@ -105,7 +105,7 @@ class CampusMoveScreenTest extends TestCase
     /**
      * Make a person with authority over the working school's organization.
      *
-     * @param  array<int, OrganizationPermission>  $permissions
+     * @param array<int, OrganizationPermission> $permissions
      */
     private function organizationPersonWith(array $permissions): User
     {
@@ -161,10 +161,10 @@ class CampusMoveScreenTest extends TestCase
         $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
 
         return AcademicCycleSection::factory()->create([
-            'school_id' => $school->id,
-            'academic_year_id' => $academicYear->id,
+            'school_id'         => $school->id,
+            'academic_year_id'  => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
-            'status' => AcademicStructureStatus::Active,
+            'status'            => AcademicStructureStatus::Active,
         ]);
     }
 }

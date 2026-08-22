@@ -32,13 +32,13 @@ class StoreGradebookItemRequest extends FormRequest
         $courseOfferingId = $courseOffering instanceof CourseOffering ? $courseOffering->id : null;
 
         return [
-            'name' => ['required', 'string', 'max:150'],
-            'type' => ['required', Rule::enum(GradeItemType::class)],
+            'name'             => ['required', 'string', 'max:150'],
+            'type'             => ['required', Rule::enum(GradeItemType::class)],
             'grading_scale_id' => [
                 Rule::requiredIf(fn (): bool => $this->input('type') === GradeItemType::Scale->value),
                 'nullable',
                 'integer',
-                Rule::exists((new GradingScale)->getTable(), 'id')->where('school_id', current_school_id())->where('is_active', true),
+                Rule::exists((new GradingScale())->getTable(), 'id')->where('school_id', current_school_id())->where('is_active', true),
             ],
             'grade_category_id' => [
                 'nullable',

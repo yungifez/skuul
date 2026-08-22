@@ -59,10 +59,10 @@ class SyllabusTest extends TestCase
 
         $this->unauthorized_user()
             ->post('/dashboard/syllabi', [
-                'name' => 'Test syllabus',
+                'name'               => 'Test syllabus',
                 'course_offering_id' => $courseOffering->id,
-                'description' => 'Test syllabus description',
-                'file' => UploadedFile::fake()->create('test-syllabus.pdf', 100),
+                'description'        => 'Test syllabus description',
+                'file'               => UploadedFile::fake()->create('test-syllabus.pdf', 100),
             ])->assertForbidden();
     }
 
@@ -73,16 +73,16 @@ class SyllabusTest extends TestCase
 
         $this->authorized_user(['create syllabus'])
             ->post('/dashboard/syllabi', [
-                'name' => 'Test syllabus',
+                'name'               => 'Test syllabus',
                 'course_offering_id' => $courseOffering->id,
-                'description' => 'Test syllabus description',
-                'file' => UploadedFile::fake()->create('test-syllabus.pdf', 100),
+                'description'        => 'Test syllabus description',
+                'file'               => UploadedFile::fake()->create('test-syllabus.pdf', 100),
             ])->assertRedirect(route('syllabi.index'));
 
         $this->assertDatabaseHas('syllabi', [
-            'name' => 'Test syllabus',
+            'name'               => 'Test syllabus',
             'course_offering_id' => $courseOffering->id,
-            'description' => 'Test syllabus description',
+            'description'        => 'Test syllabus description',
         ]);
     }
 
@@ -122,7 +122,7 @@ class SyllabusTest extends TestCase
             AcademicYear::factory()->create(['school_id' => $school->id])->getKey(),
         );
         $academicPeriod = AcademicPeriod::query()->findOrFail(AcademicPeriod::factory()->create([
-            'school_id' => $school->id,
+            'school_id'        => $school->id,
             'academic_year_id' => $academicYear->id,
         ])->getKey());
         $academicLevel = AcademicLevel::query()->findOrFail(
@@ -133,11 +133,11 @@ class SyllabusTest extends TestCase
         );
 
         return CourseOffering::query()->findOrFail(CourseOffering::factory()->create([
-            'school_id' => $school->id,
-            'academic_year_id' => $academicYear->id,
+            'school_id'          => $school->id,
+            'academic_year_id'   => $academicYear->id,
             'academic_period_id' => $academicPeriod->id,
-            'academic_level_id' => $academicLevel->id,
-            'subject_id' => $subject->id,
+            'academic_level_id'  => $academicLevel->id,
+            'subject_id'         => $subject->id,
         ])->getKey());
     }
 }

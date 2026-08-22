@@ -46,11 +46,11 @@ class UpdateAcademicCycleSectionRequest extends FormRequest
                     ->where('academic_level_id', $section->academic_level_id)
                     ->ignore($section->id),
             ],
-            'label' => ['nullable', 'string', 'max:255'],
-            'stream' => ['nullable', 'string', 'max:100'],
-            'shift' => ['nullable', 'string', 'max:100'],
+            'label'    => ['nullable', 'string', 'max:255'],
+            'stream'   => ['nullable', 'string', 'max:100'],
+            'shift'    => ['nullable', 'string', 'max:100'],
             'language' => ['nullable', 'string', 'max:100'],
-            'room' => ['nullable', 'string', 'max:100'],
+            'room'     => ['nullable', 'string', 'max:100'],
             'capacity' => ['nullable', 'integer', 'min:1', 'max:999'],
             'position' => ['nullable', 'integer', 'min:0', 'max:9999'],
         ];

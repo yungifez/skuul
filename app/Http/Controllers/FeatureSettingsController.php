@@ -10,7 +10,9 @@ use Illuminate\View\View;
 
 class FeatureSettingsController extends Controller
 {
-    public function __construct(private FeatureManager $features) {}
+    public function __construct(private FeatureManager $features)
+    {
+    }
 
     public function edit(): View
     {

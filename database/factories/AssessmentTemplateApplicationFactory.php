@@ -21,8 +21,8 @@ class AssessmentTemplateApplicationFactory extends Factory
     {
         return [
             'assessment_template_id' => AssessmentTemplate::factory(),
-            'course_offering_id' => CourseOffering::factory(),
-            'applied_at' => now(),
+            'course_offering_id'     => CourseOffering::factory(),
+            'applied_at'             => now(),
         ];
     }
 }

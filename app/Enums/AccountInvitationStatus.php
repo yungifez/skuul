@@ -36,10 +36,10 @@ enum AccountInvitationStatus: string
     public function label(): string
     {
         return match ($this) {
-            self::Pending => 'Pending',
+            self::Pending  => 'Pending',
             self::Accepted => 'Accepted',
-            self::Expired => 'Expired',
-            self::Revoked => 'Revoked',
+            self::Expired  => 'Expired',
+            self::Revoked  => 'Revoked',
         };
     }
 
@@ -49,10 +49,10 @@ enum AccountInvitationStatus: string
     public function description(): string
     {
         return match ($this) {
-            self::Pending => 'Waiting for the person to set a password.',
+            self::Pending  => 'Waiting for the person to set a password.',
             self::Accepted => 'The person set a password and can sign in.',
-            self::Expired => 'The link passed its expiry time and no longer works.',
-            self::Revoked => 'An administrator stopped the link.',
+            self::Expired  => 'The link passed its expiry time and no longer works.',
+            self::Revoked  => 'An administrator stopped the link.',
         };
     }
 
@@ -62,7 +62,7 @@ enum AccountInvitationStatus: string
     public function badgeVariant(): string
     {
         return match ($this) {
-            self::Pending => 'default',
+            self::Pending  => 'default',
             self::Accepted => 'secondary',
             self::Expired, self::Revoked => 'outline',
         };
@@ -74,10 +74,10 @@ enum AccountInvitationStatus: string
     public function icon(): string
     {
         return match ($this) {
-            self::Pending => 'mail',
+            self::Pending  => 'mail',
             self::Accepted => 'circle-check',
-            self::Expired => 'clock',
-            self::Revoked => 'ban',
+            self::Expired  => 'clock',
+            self::Revoked  => 'ban',
         };
     }
 

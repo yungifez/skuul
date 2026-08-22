@@ -103,10 +103,10 @@ class AcademicCycleSectionTest extends TestCase
 
         $actor->get(route('academic-cycle-sections.create'))->assertOk()->assertSee('Add one home section for one cycle');
         $actor->post(route('academic-cycle-sections.store'), [
-            'academic_year_id' => $academicYear->id,
+            'academic_year_id'  => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
-            'name' => 'Green',
-            'capacity' => 32,
+            'name'              => 'Green',
+            'capacity'          => 32,
         ])->assertRedirect();
 
         /** @var AcademicCycleSection $section */

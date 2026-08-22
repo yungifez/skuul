@@ -31,7 +31,9 @@ class SchoolContext
 
     private bool $resolved = false;
 
-    public function __construct(private SystemPermissionScope $systemPermissionScope) {}
+    public function __construct(private SystemPermissionScope $systemPermissionScope)
+    {
+    }
 
     /**
      * Get the active school, or null when none is set.

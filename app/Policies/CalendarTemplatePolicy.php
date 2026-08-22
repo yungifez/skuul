@@ -9,7 +9,9 @@ use App\Services\Authorization\OrganizationPermissionScope;
 
 class CalendarTemplatePolicy
 {
-    public function __construct(private OrganizationPermissionScope $organizationPermissionScope) {}
+    public function __construct(private OrganizationPermissionScope $organizationPermissionScope)
+    {
+    }
 
     /**
      * Determine whether the user can view any models.

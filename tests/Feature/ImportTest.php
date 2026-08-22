@@ -266,43 +266,45 @@ class ImportTest extends TestCase
     /**
      * Build one row of a staff file.
      *
-     * @param  array<string, mixed>  $values
+     * @param array<string, mixed> $values
+     *
      * @return array<string, mixed>
      */
     private function staffRow(array $values = []): array
     {
         return $values + [
-            'source_id' => null,
-            'name' => 'Ada Bell',
-            'email' => 'ada.bell@gmail.com',
-            'birthday' => '1990-04-01',
-            'gender' => 'female',
-            'staff_number' => null,
-            'job_title' => 'Teacher',
-            'department' => 'Science',
+            'source_id'       => null,
+            'name'            => 'Ada Bell',
+            'email'           => 'ada.bell@gmail.com',
+            'birthday'        => '1990-04-01',
+            'gender'          => 'female',
+            'staff_number'    => null,
+            'job_title'       => 'Teacher',
+            'department'      => 'Science',
             'employment_type' => 'full_time',
-            'joined_on' => '2024-09-01',
+            'joined_on'       => '2024-09-01',
         ];
     }
 
     /**
      * Build one row of a student file.
      *
-     * @param  array<string, mixed>  $values
+     * @param array<string, mixed> $values
+     *
      * @return array<string, mixed>
      */
     private function studentRow(array $values = []): array
     {
         return $values + [
-            'source_id' => null,
-            'name' => 'Ada Bell',
-            'email' => 'ada.bell@gmail.com',
-            'birthday' => '2012-04-01',
-            'gender' => 'female',
-            'level' => 'Level one',
-            'section' => 'Section one',
+            'source_id'        => null,
+            'name'             => 'Ada Bell',
+            'email'            => 'ada.bell@gmail.com',
+            'birthday'         => '2012-04-01',
+            'gender'           => 'female',
+            'level'            => 'Level one',
+            'section'          => 'Section one',
             'admission_number' => null,
-            'admission_date' => '2024-09-01',
+            'admission_date'   => '2024-09-01',
         ];
     }
 
@@ -316,10 +318,10 @@ class ImportTest extends TestCase
         $school = $this->workingSchool();
         $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
         $academicCycleSection = AcademicCycleSection::factory()->create([
-            'school_id' => $school->id,
-            'academic_year_id' => current_academic_year_id(),
+            'school_id'         => $school->id,
+            'academic_year_id'  => current_academic_year_id(),
             'academic_level_id' => $academicLevel->id,
-            'status' => AcademicStructureStatus::Active,
+            'status'            => AcademicStructureStatus::Active,
         ]);
 
         return [$academicLevel, $academicCycleSection];

@@ -36,7 +36,7 @@ class AcademicLevel extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'status' => AcademicStructureStatus::Active->value,
+        'status'   => AcademicStructureStatus::Active->value,
         'position' => 0,
     ];
 
@@ -45,7 +45,7 @@ class AcademicLevel extends Model
      */
     protected $casts = [
         'position' => 'integer',
-        'status' => AcademicStructureStatus::class,
+        'status'   => AcademicStructureStatus::class,
     ];
 
     /**

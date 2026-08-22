@@ -19,7 +19,8 @@ class GrantOrganizationMembership
         private RecordAuditEvent $recordAuditEvent,
         private GrantSystemRole $grantSystemRole,
         private OrganizationPermissionScope $organizationPermissionScope,
-    ) {}
+    ) {
+    }
 
     /**
      * Grant or reactivate organization scope without granting campus access.
@@ -50,7 +51,7 @@ class GrantOrganizationMembership
                 $membership,
                 [
                     'organization_id' => $organization->id,
-                    'user_id' => $user->id,
+                    'user_id'         => $user->id,
                 ],
                 $actor,
             );

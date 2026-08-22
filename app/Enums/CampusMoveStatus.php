@@ -37,8 +37,8 @@ enum CampusMoveStatus: string
     {
         return match ($this) {
             self::Requested => 'Waiting for a decision',
-            self::Approved => 'Approved',
-            self::Rejected => 'Rejected',
+            self::Approved  => 'Approved',
+            self::Rejected  => 'Rejected',
             self::Cancelled => 'Taken back',
         };
     }

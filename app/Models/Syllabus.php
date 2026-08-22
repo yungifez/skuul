@@ -21,13 +21,13 @@ class Syllabus extends Model
     ];
 
     protected $attributes = [
-        'status' => SyllabusStatus::Draft->value,
+        'status'   => SyllabusStatus::Draft->value,
         'revision' => 1,
     ];
 
     protected $casts = [
-        'status' => SyllabusStatus::class,
-        'revision' => 'integer',
+        'status'       => SyllabusStatus::class,
+        'revision'     => 'integer',
         'published_at' => 'datetime',
     ];
 
@@ -59,7 +59,8 @@ class Syllabus extends Model
     /**
      * Limit syllabi to one school through their course offering.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeInSchool(Builder $query, School|int|null $school = null): Builder

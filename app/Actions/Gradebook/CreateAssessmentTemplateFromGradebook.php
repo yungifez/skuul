@@ -14,7 +14,9 @@ use Illuminate\Support\Facades\DB;
 
 class CreateAssessmentTemplateFromGradebook
 {
-    public function __construct(private RecordAuditEvent $audit) {}
+    public function __construct(private RecordAuditEvent $audit)
+    {
+    }
 
     /**
      * Capture a configured gradebook as a reusable structure for the school.
@@ -31,22 +33,22 @@ class CreateAssessmentTemplateFromGradebook
 
         return DB::transaction(function () use ($courseOffering, $name, $description, $actor): AssessmentTemplate {
             $template = AssessmentTemplate::create([
-                'school_id' => $courseOffering->school_id,
-                'name' => $name,
+                'school_id'   => $courseOffering->school_id,
+                'name'        => $name,
                 'description' => $description,
-                'created_by' => $actor->id,
+                'created_by'  => $actor->id,
             ]);
             $categoryIds = $this->copyCategories($courseOffering->gradeCategories, $template);
 
             foreach ($courseOffering->gradeItems->sortBy([['position', 'asc'], ['id', 'asc']]) as $item) {
                 $template->items()->create([
                     'assessment_template_category_id' => $item->grade_category_id === null ? null : $categoryIds[$item->grade_category_id],
-                    'name' => $item->name,
-                    'type' => $item->type,
-                    'grading_scale_id' => $item->grading_scale_id,
-                    'max_points' => $item->max_points,
-                    'weight' => $item->weight,
-                    'position' => $item->position,
+                    'name'                            => $item->name,
+                    'type'                            => $item->type,
+                    'grading_scale_id'                => $item->grading_scale_id,
+                    'max_points'                      => $item->max_points,
+                    'weight'                          => $item->weight,
+                    'position'                        => $item->position,
                 ]);
             }
 
@@ -57,7 +59,8 @@ class CreateAssessmentTemplateFromGradebook
     }
 
     /**
-     * @param  Collection<int, GradeCategory>  $categories
+     * @param Collection<int, GradeCategory> $categories
+     *
      * @return array<int, int>
      */
     private function copyCategories(Collection $categories, AssessmentTemplate $template): array
@@ -77,11 +80,11 @@ class CreateAssessmentTemplateFromGradebook
             }
 
             $templateCategory = $template->categories()->create([
-                'parent_id' => $category->parent_id === null ? null : $templateCategoryIds[$category->parent_id],
-                'name' => $category->name,
+                'parent_id'   => $category->parent_id === null ? null : $templateCategoryIds[$category->parent_id],
+                'name'        => $category->name,
                 'aggregation' => $category->aggregation,
-                'weight' => $category->weight,
-                'position' => $category->position,
+                'weight'      => $category->weight,
+                'position'    => $category->position,
             ]);
             $templateCategoryIds[$category->id] = $templateCategory->id;
         };

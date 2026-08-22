@@ -25,7 +25,7 @@ trait HasPeriodLifecycle
     /**
      * Limit the query to periods that still accept writes.
      *
-     * @param  Builder  $query
+     * @param Builder $query
      */
     public function scopeOpen($query): Builder
     {
@@ -35,7 +35,7 @@ trait HasPeriodLifecycle
     /**
      * Limit the query to finished periods, archived ones included.
      *
-     * @param  Builder  $query
+     * @param Builder $query
      */
     public function scopeClosed($query): Builder
     {
@@ -48,7 +48,7 @@ trait HasPeriodLifecycle
     /**
      * Limit the query to periods kept for history only.
      *
-     * @param  Builder  $query
+     * @param Builder $query
      */
     public function scopeArchived($query): Builder
     {
@@ -58,7 +58,7 @@ trait HasPeriodLifecycle
     /**
      * Limit the query to periods routine operations may still write to.
      *
-     * @param  Builder  $query
+     * @param Builder $query
      */
     public function scopeOperational($query): Builder
     {
@@ -71,7 +71,7 @@ trait HasPeriodLifecycle
     /**
      * Limit the query to periods that are dated but have not started.
      *
-     * @param  Builder  $query
+     * @param Builder $query
      */
     public function scopeScheduled($query): Builder
     {

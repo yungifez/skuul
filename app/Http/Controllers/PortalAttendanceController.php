@@ -10,7 +10,9 @@ use Illuminate\View\View;
 
 class PortalAttendanceController extends Controller
 {
-    public function __construct(private PortalAccess $access, private PortalSummary $summary) {}
+    public function __construct(private PortalAccess $access, private PortalSummary $summary)
+    {
+    }
 
     public function show(Request $request, StudentRecord $studentRecord): View
     {

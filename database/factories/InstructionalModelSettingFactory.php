@@ -21,10 +21,10 @@ class InstructionalModelSettingFactory extends Factory
     public function definition(): array
     {
         return [
-            'school_id' => School::factory(),
+            'school_id'        => School::factory(),
             'academic_year_id' => AcademicYear::factory(),
-            'model' => InstructionalModel::default(),
-            'updated_by' => null,
+            'model'            => InstructionalModel::default(),
+            'updated_by'       => null,
         ];
     }
 

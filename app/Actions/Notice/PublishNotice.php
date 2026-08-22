@@ -28,7 +28,8 @@ class PublishNotice
     public function __construct(
         private NoticeAudience $audience,
         private RecordAuditEvent $auditor,
-    ) {}
+    ) {
+    }
 
     /**
      * Publish the notice now.

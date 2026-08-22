@@ -12,7 +12,9 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class NoticeAttachmentController extends Controller
 {
-    public function __construct(private PortalAccess $portalAccess) {}
+    public function __construct(private PortalAccess $portalAccess)
+    {
+    }
 
     /** Download a private attachment when the person may read its notice. */
     public function __invoke(Request $request, Notice $notice): StreamedResponse

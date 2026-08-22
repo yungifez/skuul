@@ -80,11 +80,11 @@ class BrowserSessionsTest extends TestCase
     private function insertSessionRecord(string $id, int $userId): void
     {
         DB::table('sessions')->insert([
-            'id' => $id,
-            'user_id' => $userId,
-            'ip_address' => '127.0.0.1',
-            'user_agent' => 'phpunit',
-            'payload' => '',
+            'id'            => $id,
+            'user_id'       => $userId,
+            'ip_address'    => '127.0.0.1',
+            'user_agent'    => 'phpunit',
+            'payload'       => '',
             'last_activity' => now()->getTimestamp(),
         ]);
     }

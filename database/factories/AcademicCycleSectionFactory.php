@@ -37,13 +37,13 @@ class AcademicCycleSectionFactory extends Factory
             ?? AcademicLevel::factory()->create(['school_id' => $school->id]);
 
         return [
-            'school_id' => $school->id,
-            'academic_year_id' => $academicYear->id,
+            'school_id'         => $school->id,
+            'academic_year_id'  => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
-            'name' => fake()->colorName().' '.++self::$nameSequence,
-            'stream' => fake()->randomElement(['Morning', 'Afternoon', null]),
-            'capacity' => fake()->numberBetween(15, 60),
-            'position' => fake()->numberBetween(1, 10),
+            'name'              => fake()->colorName().' '.++self::$nameSequence,
+            'stream'            => fake()->randomElement(['Morning', 'Afternoon', null]),
+            'capacity'          => fake()->numberBetween(15, 60),
+            'position'          => fake()->numberBetween(1, 10),
         ];
     }
 }

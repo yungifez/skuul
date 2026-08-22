@@ -13,7 +13,9 @@ use Illuminate\Support\Facades\DB;
 
 class UpdateAcademicCycleSection
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * Change the setup of one cycle section.
@@ -22,7 +24,7 @@ class UpdateAcademicCycleSection
      * for one exact cycle, so moving it to another cycle is a roll-forward,
      * not an edit.
      *
-     * @param  array{name?: string, label?: string|null, stream?: string|null, shift?: string|null, language?: string|null, room?: string|null, capacity?: int|null, position?: int|null}  $details
+     * @param array{name?: string, label?: string|null, stream?: string|null, shift?: string|null, language?: string|null, room?: string|null, capacity?: int|null, position?: int|null} $details
      *
      * @throws InvalidValueException when the section or the records do not allow the change
      */
@@ -44,14 +46,14 @@ class UpdateAcademicCycleSection
             $before = $this->readable($section);
 
             $section->fill([
-                'name' => $details['name'] ?? $section->name,
-                'label' => $details['label'] ?? null,
-                'stream' => $details['stream'] ?? null,
-                'shift' => $details['shift'] ?? null,
-                'language' => $details['language'] ?? null,
-                'room' => $details['room'] ?? null,
-                'capacity' => $details['capacity'] ?? null,
-                'position' => $details['position'] ?? 0,
+                'name'                => $details['name'] ?? $section->name,
+                'label'               => $details['label'] ?? null,
+                'stream'              => $details['stream'] ?? null,
+                'shift'               => $details['shift'] ?? null,
+                'language'            => $details['language'] ?? null,
+                'room'                => $details['room'] ?? null,
+                'capacity'            => $details['capacity'] ?? null,
+                'position'            => $details['position'] ?? 0,
                 'homeroom_teacher_id' => $homeroomTeacher?->id,
             ]);
 
@@ -106,14 +108,14 @@ class UpdateAcademicCycleSection
     private function readable(AcademicCycleSection $section): array
     {
         return [
-            'name' => $section->name,
-            'label' => $section->label,
-            'stream' => $section->stream,
-            'shift' => $section->shift,
-            'language' => $section->language,
-            'room' => $section->room,
-            'capacity' => $section->capacity,
-            'position' => $section->position,
+            'name'                => $section->name,
+            'label'               => $section->label,
+            'stream'              => $section->stream,
+            'shift'               => $section->shift,
+            'language'            => $section->language,
+            'room'                => $section->room,
+            'capacity'            => $section->capacity,
+            'position'            => $section->position,
             'homeroom_teacher_id' => $section->homeroom_teacher_id,
         ];
     }

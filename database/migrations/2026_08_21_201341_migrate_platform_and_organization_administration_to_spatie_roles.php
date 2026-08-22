@@ -4,8 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
-return new class extends Migration
-{
+return new class() extends Migration {
     private const SystemTeamId = 0;
 
     private const GuardName = 'web';
@@ -20,7 +19,7 @@ return new class extends Migration
 
         foreach (array_merge($organizationPermissions, $platformPermissions) as $permission) {
             DB::table('permissions')->insertOrIgnore([
-                'name' => $permission,
+                'name'       => $permission,
                 'guard_name' => self::GuardName,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -33,14 +32,14 @@ return new class extends Migration
         foreach (DB::table('permissions')->pluck('id') as $permissionId) {
             DB::table('role_has_permissions')->insertOrIgnore([
                 'permission_id' => $permissionId,
-                'role_id' => $platformRoleId,
+                'role_id'       => $platformRoleId,
             ]);
         }
 
         foreach (DB::table('permissions')->whereIn('name', $organizationPermissions)->pluck('id') as $permissionId) {
             DB::table('role_has_permissions')->insertOrIgnore([
                 'permission_id' => $permissionId,
-                'role_id' => $organizationRoleId,
+                'role_id'       => $organizationRoleId,
             ]);
         }
 
@@ -80,25 +79,25 @@ return new class extends Migration
         }
 
         return DB::table('roles')->insertGetId([
-            'name' => $name,
+            'name'       => $name,
             'guard_name' => self::GuardName,
-            'school_id' => null,
+            'school_id'  => null,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
     }
 
     /**
-     * @param  Collection<int, int>  $userIds
+     * @param Collection<int, int> $userIds
      */
     private function assignRoleToUsers(int $roleId, Collection $userIds): void
     {
         foreach ($userIds->unique() as $userId) {
             DB::table('model_has_roles')->insertOrIgnore([
-                'school_id' => self::SystemTeamId,
-                'role_id' => $roleId,
+                'school_id'  => self::SystemTeamId,
+                'role_id'    => $roleId,
                 'model_type' => 'App\\Models\\User',
-                'model_id' => $userId,
+                'model_id'   => $userId,
             ]);
         }
     }

@@ -3,8 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-return new class extends Migration
-{
+return new class() extends Migration {
     /**
      * Run the migrations.
      */
@@ -16,11 +15,11 @@ return new class extends Migration
             ->chunkById(200, function ($schools): void {
                 foreach ($schools as $school) {
                     $organizationId = DB::table('organizations')->insertGetId([
-                        'name' => $school->name,
-                        'code' => 'legacy-school-'.$school->id,
-                        'address' => $school->address,
-                        'email' => $school->email,
-                        'phone' => $school->phone,
+                        'name'       => $school->name,
+                        'code'       => 'legacy-school-'.$school->id,
+                        'address'    => $school->address,
+                        'email'      => $school->email,
+                        'phone'      => $school->phone,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);

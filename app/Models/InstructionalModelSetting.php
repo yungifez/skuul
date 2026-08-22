@@ -13,9 +13,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * The way one campus teaches one academic cycle.
  *
  * @property InstructionalModel $model
- * @property int $school_id
- * @property int $academic_year_id
- * @property int|null $updated_by
+ * @property int                $school_id
+ * @property int                $academic_year_id
+ * @property int|null           $updated_by
  */
 class InstructionalModelSetting extends Model
 {

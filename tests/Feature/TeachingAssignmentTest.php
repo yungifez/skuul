@@ -93,8 +93,8 @@ class TeachingAssignmentTest extends TestCase
         $year = AcademicYear::query()->findOrFail(AcademicYear::factory()->create(['school_id' => $otherSchool->id])->getKey());
         $level = AcademicLevel::query()->findOrFail(AcademicLevel::factory()->create(['school_id' => $otherSchool->id])->getKey());
         $cycleSection = AcademicCycleSection::query()->findOrFail(AcademicCycleSection::factory()->create([
-            'school_id' => $otherSchool->id,
-            'academic_year_id' => $year->id,
+            'school_id'         => $otherSchool->id,
+            'academic_year_id'  => $year->id,
             'academic_level_id' => $level->id,
         ])->getKey());
 
@@ -191,7 +191,7 @@ class TeachingAssignmentTest extends TestCase
         $academicPeriod = AcademicPeriod::query()
             ->where('academic_year_id', $academicYear->id)
             ->firstOr(fn (): AcademicPeriod => AcademicPeriod::factory()->create([
-                'school_id' => $this->workingSchool()->id,
+                'school_id'        => $this->workingSchool()->id,
                 'academic_year_id' => $academicYear->id,
             ]));
         $academicLevel = AcademicLevel::query()->findOrFail(AcademicLevel::factory()->create([
@@ -202,19 +202,19 @@ class TeachingAssignmentTest extends TestCase
         ])->getKey());
 
         return CourseOffering::factory()->create([
-            'school_id' => $this->workingSchool()->id,
-            'academic_year_id' => $academicYear->id,
+            'school_id'          => $this->workingSchool()->id,
+            'academic_year_id'   => $academicYear->id,
             'academic_period_id' => $academicPeriod->id,
-            'academic_level_id' => $academicLevel->id,
-            'subject_id' => $subject->id,
+            'academic_level_id'  => $academicLevel->id,
+            'subject_id'         => $subject->id,
         ]);
     }
 
     private function cycleSection(CourseOffering $courseOffering): AcademicCycleSection
     {
         $cycleSection = AcademicCycleSection::query()->findOrFail(AcademicCycleSection::factory()->create([
-            'school_id' => $courseOffering->school_id,
-            'academic_year_id' => $courseOffering->academic_year_id,
+            'school_id'         => $courseOffering->school_id,
+            'academic_year_id'  => $courseOffering->academic_year_id,
             'academic_level_id' => $courseOffering->academic_level_id,
         ])->getKey());
         $courseOffering->cycleSections()->attach($cycleSection);

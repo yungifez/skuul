@@ -19,7 +19,8 @@ class ChangeAccountStatus
     public function __construct(
         private RevokeAccountInvitation $revokeAccountInvitation,
         private SystemPermissionScope $systemPermissionScope,
-    ) {}
+    ) {
+    }
 
     /**
      * Stop access without deleting anything.

@@ -28,7 +28,8 @@ class MoveEnrollmentBetweenCampuses
         private ChangeEnrollmentPlacement $changePlacement,
         private GrantSchoolMembership $grantSchoolMembership,
         private RecordAuditEvent $auditor,
-    ) {}
+    ) {
+    }
 
     /**
      * Move the enrollment to the campus that owns the given cycle section.
@@ -82,11 +83,11 @@ class MoveEnrollmentBetweenCampuses
                 AuditAction::EnrollmentCampusChanged,
                 $enrollment,
                 [
-                    'from_school_id' => $source->id,
-                    'to_school_id' => $destination->id,
-                    'organization_id' => $destination->organization_id,
+                    'from_school_id'            => $source->id,
+                    'to_school_id'              => $destination->id,
+                    'organization_id'           => $destination->organization_id,
                     'academic_cycle_section_id' => $academicCycleSection->id,
-                    'reason' => $reason,
+                    'reason'                    => $reason,
                 ],
                 $actor,
                 $destination,

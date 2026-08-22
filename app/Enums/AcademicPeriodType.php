@@ -57,14 +57,14 @@ enum AcademicPeriodType: string
     public function label(): string
     {
         return match ($this) {
-            self::Term => 'Term',
-            self::Semester => 'Semester',
-            self::Trimester => 'Trimester',
-            self::Quarter => 'Quarter',
-            self::ExamWindow => 'Exam window',
-            self::Holiday => 'Holiday',
+            self::Term            => 'Term',
+            self::Semester        => 'Semester',
+            self::Trimester       => 'Trimester',
+            self::Quarter         => 'Quarter',
+            self::ExamWindow      => 'Exam window',
+            self::Holiday         => 'Holiday',
             self::ReportingPeriod => 'Reporting period',
-            self::Other => 'Period',
+            self::Other           => 'Period',
         };
     }
 
@@ -78,7 +78,7 @@ enum AcademicPeriodType: string
     {
         return match ($this) {
             self::Holiday => false,
-            default => true,
+            default       => true,
         };
     }
 

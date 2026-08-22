@@ -226,7 +226,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 Route::scopeBindings()->group(function () {
                     Route::resource('exams/{exam}/manage/exam-slots', ExamSlotController::class);
                 });
-
             });
         });
 

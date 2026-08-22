@@ -13,7 +13,9 @@ use Illuminate\Support\Facades\DB;
 
 class PublishTranscript
 {
-    public function __construct(private RecordAuditEvent $audit) {}
+    public function __construct(private RecordAuditEvent $audit)
+    {
+    }
 
     /** @throws InvalidValueException */
     public function publish(StudentRecord $studentRecord, User $actor, ?string $reason = null): TranscriptSnapshot

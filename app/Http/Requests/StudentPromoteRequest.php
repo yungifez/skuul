@@ -21,10 +21,10 @@ class StudentPromoteRequest extends FormRequest
     public function rules()
     {
         return [
-            'source_academic_cycle_section_id' => ['required', 'integer', Rule::exists('academic_cycle_sections', 'id')->where('school_id', current_school_id())],
+            'source_academic_cycle_section_id'      => ['required', 'integer', Rule::exists('academic_cycle_sections', 'id')->where('school_id', current_school_id())],
             'destination_academic_cycle_section_id' => ['required', 'integer', 'different:source_academic_cycle_section_id', Rule::exists('academic_cycle_sections', 'id')->where('school_id', current_school_id())],
-            'student_id' => ['required', 'array', 'min:1'],
-            'student_id.*' => ['integer', Rule::exists('users', 'id')],
+            'student_id'                            => ['required', 'array', 'min:1'],
+            'student_id.*'                          => ['integer', Rule::exists('users', 'id')],
         ];
     }
 }

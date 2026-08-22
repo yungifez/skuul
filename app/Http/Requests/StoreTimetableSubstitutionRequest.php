@@ -25,10 +25,10 @@ class StoreTimetableSubstitutionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'timetable_entry' => ['required', 'string', 'regex:/^\\d+:\\d+$/'],
+            'timetable_entry'        => ['required', 'string', 'regex:/^\\d+:\\d+$/'],
             'replacement_teacher_id' => ['required', 'integer', 'exists:users,id'],
-            'substituted_on' => ['required', 'date'],
-            'reason' => ['required', 'string', 'max:1000'],
+            'substituted_on'         => ['required', 'date'],
+            'reason'                 => ['required', 'string', 'max:1000'],
         ];
     }
 }

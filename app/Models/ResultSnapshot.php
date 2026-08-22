@@ -16,9 +16,9 @@ use RuntimeException;
  * a family already saw never changes behind their back.
  *
  * @property array<string, mixed> $payload
- * @property int $revision
- * @property float|null $percentage
- * @property int $course_offering_id
+ * @property int                  $revision
+ * @property float|null           $percentage
+ * @property int                  $course_offering_id
  */
 class ResultSnapshot extends Model
 {
@@ -48,11 +48,11 @@ class ResultSnapshot extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'payload' => 'array',
-        'percentage' => 'float',
-        'revision' => 'integer',
+        'payload'      => 'array',
+        'percentage'   => 'float',
+        'revision'     => 'integer',
         'published_at' => 'datetime',
-        'created_at' => 'datetime',
+        'created_at'   => 'datetime',
     ];
 
     /**
@@ -72,7 +72,8 @@ class ResultSnapshot extends Model
     /**
      * Limit the query to the newest revision of each result.
      *
-     * @param  Builder<$this>  $query
+     * @param Builder<$this> $query
+     *
      * @return Builder<$this>
      */
     public function scopeLatestRevision(Builder $query): Builder

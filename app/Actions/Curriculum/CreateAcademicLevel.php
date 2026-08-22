@@ -12,7 +12,9 @@ use Illuminate\Support\Facades\DB;
 
 class CreateAcademicLevel
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(private RecordAuditEvent $auditor)
+    {
+    }
 
     /**
      * @throws InvalidValueException when the parent belongs to another school
@@ -35,11 +37,11 @@ class CreateAcademicLevel
             $academicLevel = AcademicLevel::create([
                 'school_id' => $schoolId,
                 'parent_id' => $parent?->id,
-                'name' => $name,
-                'label' => $label,
-                'code' => $code,
-                'position' => $position,
-                'status' => AcademicStructureStatus::Active,
+                'name'      => $name,
+                'label'     => $label,
+                'code'      => $code,
+                'position'  => $position,
+                'status'    => AcademicStructureStatus::Active,
             ]);
 
             $this->auditor->record(
@@ -47,7 +49,7 @@ class CreateAcademicLevel
                 $academicLevel,
                 [
                     'parent_id' => $parent?->id,
-                    'code' => $code,
+                    'code'      => $code,
                 ],
                 $actor,
             );

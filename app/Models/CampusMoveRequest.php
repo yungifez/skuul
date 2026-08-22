@@ -18,8 +18,8 @@ use Illuminate\Support\Carbon;
  * asked must still be able to see its own request.
  *
  * @property CampusMoveStatus $status
- * @property Carbon|null $effective_on
- * @property Carbon|null $decided_at
+ * @property Carbon|null      $effective_on
+ * @property Carbon|null      $decided_at
  */
 class CampusMoveRequest extends Model
 {
@@ -55,16 +55,16 @@ class CampusMoveRequest extends Model
     protected function casts(): array
     {
         return [
-            'status' => CampusMoveStatus::class,
+            'status'       => CampusMoveStatus::class,
             'effective_on' => 'date',
-            'decided_at' => 'datetime',
+            'decided_at'   => 'datetime',
         ];
     }
 
     /**
      * Limit the query to requests nobody has decided yet.
      *
-     * @param  Builder<self>  $query
+     * @param Builder<self> $query
      */
     public function scopeOpen(Builder $query): void
     {
@@ -74,7 +74,7 @@ class CampusMoveRequest extends Model
     /**
      * Limit the query to the requests one campus must decide.
      *
-     * @param  Builder<self>  $query
+     * @param Builder<self> $query
      */
     public function scopeAwaiting(Builder $query, School|int $school): void
     {

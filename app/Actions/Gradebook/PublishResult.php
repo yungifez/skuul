@@ -25,7 +25,8 @@ class PublishResult
         private GradebookCalculator $calculator,
         private CourseOfferingRoster $roster,
         private RecordAuditEvent $auditor,
-    ) {}
+    ) {
+    }
 
     /**
      * Publish the result of one enrollment in one course offering.
@@ -47,15 +48,15 @@ class PublishResult
                 ->first();
 
             $snapshot = ResultSnapshot::create([
-                'school_id' => $courseOffering->school_id,
-                'student_record_id' => $enrollment->id,
+                'school_id'          => $courseOffering->school_id,
+                'student_record_id'  => $enrollment->id,
                 'course_offering_id' => $courseOffering->id,
-                'revision' => $previous === null ? 1 : $previous->revision + 1,
-                'percentage' => $result['percentage'],
-                'payload' => $result,
-                'reason' => $reason,
-                'published_at' => now(),
-                'published_by' => $actor === null ? auth()->id() : $actor->id,
+                'revision'           => $previous === null ? 1 : $previous->revision + 1,
+                'percentage'         => $result['percentage'],
+                'payload'            => $result,
+                'reason'             => $reason,
+                'published_at'       => now(),
+                'published_by'       => $actor === null ? auth()->id() : $actor->id,
             ]);
 
             $this->auditor->record(
@@ -63,10 +64,10 @@ class PublishResult
                 $snapshot,
                 [
                     'course_offering_id' => $courseOffering->id,
-                    'student_record_id' => $enrollment->id,
-                    'revision' => $snapshot->revision,
-                    'percentage' => $snapshot->percentage,
-                    'reason' => $reason,
+                    'student_record_id'  => $enrollment->id,
+                    'revision'           => $snapshot->revision,
+                    'percentage'         => $snapshot->percentage,
+                    'reason'             => $reason,
                 ],
                 $actor,
             );

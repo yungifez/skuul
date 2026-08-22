@@ -29,13 +29,13 @@ class CampusMoveRequestFactory extends Factory
         $destination = School::factory()->create(['organization_id' => $source->organization_id]);
 
         return [
-            'student_record_id' => $enrollment->id,
-            'from_school_id' => $source->id,
-            'to_school_id' => $destination->id,
+            'student_record_id'         => $enrollment->id,
+            'from_school_id'            => $source->id,
+            'to_school_id'              => $destination->id,
             'academic_cycle_section_id' => fn (array $attributes) => $this->cycleSectionFor($attributes['to_school_id'])->id,
-            'status' => CampusMoveStatus::Requested,
-            'reason' => fake()->sentence(),
-            'effective_on' => now()->toDateString(),
+            'status'                    => CampusMoveStatus::Requested,
+            'reason'                    => fake()->sentence(),
+            'effective_on'              => now()->toDateString(),
         ];
     }
 
@@ -50,10 +50,10 @@ class CampusMoveRequestFactory extends Factory
             ?? AcademicLevel::factory()->create(['school_id' => $schoolId]);
 
         return AcademicCycleSection::factory()->create([
-            'school_id' => $schoolId,
-            'academic_year_id' => $academicYear->id,
+            'school_id'         => $schoolId,
+            'academic_year_id'  => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
-            'status' => AcademicStructureStatus::Active,
+            'status'            => AcademicStructureStatus::Active,
         ]);
     }
 }

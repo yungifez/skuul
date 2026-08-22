@@ -12,7 +12,9 @@ use Illuminate\View\View;
 
 class TranscriptController extends Controller
 {
-    public function __construct(private PublishTranscript $publishTranscript) {}
+    public function __construct(private PublishTranscript $publishTranscript)
+    {
+    }
 
     public function index(): View
     {
@@ -24,6 +26,7 @@ class TranscriptController extends Controller
     public function store(StoreTranscriptRequest $request): RedirectResponse
     {
         $student = StudentRecord::query()->inSchool()->findOrFail($request->integer('student_record_id'));
+
         try {
             $this->publishTranscript->publish($student, $request->user(), $request->string('reason')->toString() ?: null);
         } catch (InvalidValueException $exception) {

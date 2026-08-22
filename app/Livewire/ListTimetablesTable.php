@@ -36,7 +36,7 @@ class ListTimetablesTable extends Component
                 ->orderBy('name')
                 ->get()
                 ->map(fn (AcademicCycleSection $cycleSection): array => [
-                    'id' => $cycleSection->id,
+                    'id'    => $cycleSection->id,
                     'label' => ($cycleSection->academicLevel->label ?? $cycleSection->academicLevel->name)
                         .' · '.($cycleSection->label ?? $cycleSection->name),
                 ])
@@ -76,10 +76,10 @@ class ListTimetablesTable extends Component
             ->orderByDesc('revision')
             ->get()
             ->map(fn (Timetable $timetable): array => [
-                'id' => $timetable->id,
-                'name' => $timetable->name,
-                'description' => $timetable->description,
-                'status' => $timetable->status->label(),
+                'id'           => $timetable->id,
+                'name'         => $timetable->name,
+                'description'  => $timetable->description,
+                'status'       => $timetable->status->label(),
                 'published_at' => $timetable->published_at?->toFormattedDateString(),
             ])
             ->all();

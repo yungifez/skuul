@@ -3,8 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-return new class extends Migration
-{
+return new class() extends Migration {
     /**
      * Run the migrations.
      */
@@ -20,12 +19,12 @@ return new class extends Migration
             ])
             ->eachById(function (object $legacyClass): void {
                 DB::table('academic_levels')->insertOrIgnore([
-                    'school_id' => $legacyClass->school_id,
+                    'school_id'          => $legacyClass->school_id,
                     'legacy_my_class_id' => $legacyClass->legacy_my_class_id,
-                    'name' => $legacyClass->name,
-                    'status' => 'active',
-                    'created_at' => now(),
-                    'updated_at' => now(),
+                    'name'               => $legacyClass->name,
+                    'status'             => 'active',
+                    'created_at'         => now(),
+                    'updated_at'         => now(),
                 ]);
             }, 100, 'my_classes.id', 'legacy_my_class_id');
     }

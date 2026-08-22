@@ -31,7 +31,7 @@ class OrganizationDashboard extends Component
     public function mount(Organization $organization): void
     {
         $this->organization = $organization;
-        $this->campuses = new Collection;
+        $this->campuses = new Collection();
 
         $this->authorizeOrganization();
     }
@@ -43,8 +43,8 @@ class OrganizationDashboard extends Component
     {
         $this->authorizeOrganization();
 
-        $studentRecords = new StudentRecord;
-        $schools = new School;
+        $studentRecords = new StudentRecord();
+        $schools = new School();
 
         $this->campuses = $this->organization->schools()
             ->select([

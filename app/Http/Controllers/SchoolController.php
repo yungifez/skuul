@@ -107,10 +107,10 @@ class SchoolController extends Controller
         $this->authorize('update', $school);
 
         return view('pages.school.settings', [
-            'school' => $school,
-            'academicYear' => $academicYear,
+            'school'              => $school,
+            'academicYear'        => $academicYear,
             'academicLevelsCount' => AcademicLevel::query()->inSchool($school)->count(),
-            'cycleSectionsCount' => AcademicCycleSection::query()
+            'cycleSectionsCount'  => AcademicCycleSection::query()
                 ->inSchool($school)
                 ->when($academicYear !== null, fn ($query) => $query->where('academic_year_id', $academicYear->id))
                 ->count(),

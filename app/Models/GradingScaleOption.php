@@ -34,7 +34,7 @@ class GradingScaleOption extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'points' => 'float',
+        'points'   => 'float',
         'position' => 'integer',
     ];
 

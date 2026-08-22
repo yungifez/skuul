@@ -33,7 +33,7 @@ class CourseOfferingFactory extends Factory
             ->where('academic_year_id', $academicYear->id)
             ->first()
             ?? AcademicPeriod::factory()->create([
-                'school_id' => $school->id,
+                'school_id'        => $school->id,
                 'academic_year_id' => $academicYear->id,
             ]);
         /** @var AcademicLevel $academicLevel */
@@ -48,14 +48,14 @@ class CourseOfferingFactory extends Factory
             ]);
 
         return [
-            'school_id' => $school->id,
-            'academic_year_id' => $academicYear->id,
-            'academic_period_id' => $academicPeriod->id,
-            'subject_id' => $subject->id,
-            'academic_level_id' => $academicLevel->id,
-            'status' => CourseOfferingStatus::Draft,
+            'school_id'                => $school->id,
+            'academic_year_id'         => $academicYear->id,
+            'academic_period_id'       => $academicPeriod->id,
+            'subject_id'               => $subject->id,
+            'academic_level_id'        => $academicLevel->id,
+            'status'                   => CourseOfferingStatus::Draft,
             'planned_periods_per_week' => fake()->numberBetween(1, 10),
-            'capacity' => fake()->numberBetween(10, 60),
+            'capacity'                 => fake()->numberBetween(10, 60),
         ];
     }
 }

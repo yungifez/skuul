@@ -18,47 +18,49 @@ use Illuminate\Support\Facades\Validator;
  */
 class ProvisionAccount
 {
-    public function __construct(private GrantSchoolMembership $grantSchoolMembership) {}
+    public function __construct(private GrantSchoolMembership $grantSchoolMembership)
+    {
+    }
 
     /**
      * Provision an account and return the user.
      *
-     * @param  array<string, mixed>  $input
+     * @param array<string, mixed> $input
      */
     public function provision(array $input): User
     {
         $data = Validator::make($input, [
-            'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'string', 'email:rfc,dns', 'max:100'],
-            'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:3000'],
-            'school_id' => ['required', 'exists:schools,id'],
-            'birthday' => ['nullable', 'date', 'before:today'],
-            'address' => ['nullable', 'string', 'max:100'],
+            'name'        => ['required', 'string', 'max:100'],
+            'email'       => ['required', 'string', 'email:rfc,dns', 'max:100'],
+            'photo'       => ['nullable', 'mimes:jpg,jpeg,png', 'max:3000'],
+            'school_id'   => ['required', 'exists:schools,id'],
+            'birthday'    => ['nullable', 'date', 'before:today'],
+            'address'     => ['nullable', 'string', 'max:100'],
             'nationality' => ['nullable', 'string', 'max:100'],
-            'state' => ['nullable', 'string', 'max:100'],
-            'city' => ['nullable', 'string', 'max:100'],
-            'gender' => ['nullable', 'string', 'max:100'],
-            'phone' => ['nullable', 'string', 'max:100'],
+            'state'       => ['nullable', 'string', 'max:100'],
+            'city'        => ['nullable', 'string', 'max:100'],
+            'gender'      => ['nullable', 'string', 'max:100'],
+            'phone'       => ['nullable', 'string', 'max:100'],
         ])->validate();
 
         $user = User::where('email', $data['email'])->first();
 
         if ($user === null) {
-            $user = new User;
+            $user = new User();
             $user->password = null;
             $user->account_status = AccountStatus::Invited;
         }
 
         $user->fill([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'birthday' => $data['birthday'] ?? null,
-            'address' => $data['address'] ?? null,
+            'name'        => $data['name'],
+            'email'       => $data['email'],
+            'birthday'    => $data['birthday'] ?? null,
+            'address'     => $data['address'] ?? null,
             'nationality' => $data['nationality'] ?? null,
-            'state' => $data['state'] ?? null,
-            'city' => $data['city'] ?? null,
-            'gender' => $data['gender'] ?? null,
-            'phone' => $data['phone'] ?? null,
+            'state'       => $data['state'] ?? null,
+            'city'        => $data['city'] ?? null,
+            'gender'      => $data['gender'] ?? null,
+            'phone'       => $data['phone'] ?? null,
         ]);
 
         $user->save();

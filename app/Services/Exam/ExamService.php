@@ -32,7 +32,7 @@ class ExamService
     }
 
     /**
-     * @param  array{name: string, description: ?string, academic_period_id: int, start_date: string, stop_date: string}  $attributes
+     * @param array{name: string, description: ?string, academic_period_id: int, start_date: string, stop_date: string} $attributes
      */
     public function createExam(array $attributes): Exam
     {
@@ -40,7 +40,7 @@ class ExamService
     }
 
     /**
-     * @param  array{name: string, description: ?string, academic_period_id: int, start_date: string, stop_date: string}  $attributes
+     * @param array{name: string, description: ?string, academic_period_id: int, start_date: string, stop_date: string} $attributes
      */
     public function updateExam(Exam $exam, array $attributes): void
     {

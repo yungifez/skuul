@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property AcademicCycleSection $sourceAcademicCycleSection
  * @property AcademicCycleSection $destinationAcademicCycleSection
- * @property AcademicYear $academicYear
+ * @property AcademicYear         $academicYear
  */
 class Promotion extends Model
 {

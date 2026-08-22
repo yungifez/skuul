@@ -24,7 +24,7 @@ class ApplyAssessmentTemplateRequest extends FormRequest
             'assessment_template_id' => [
                 'required',
                 'integer',
-                Rule::exists((new AssessmentTemplate)->getTable(), 'id')->where('school_id', current_school_id())->where('is_active', true),
+                Rule::exists((new AssessmentTemplate())->getTable(), 'id')->where('school_id', current_school_id())->where('is_active', true),
             ],
         ];
     }

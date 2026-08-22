@@ -58,7 +58,7 @@ class ReportCardSnapshotTest extends TestCase
             ->assertSee('Publish a report card');
 
         $this->post(route('report-cards.store'), [
-            'student_record_id' => $student->id,
+            'student_record_id'  => $student->id,
             'academic_period_id' => $period->id,
         ])->assertSessionHasNoErrors()->assertSessionHas('success');
 

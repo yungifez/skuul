@@ -24,7 +24,7 @@ class ChangeAcademicPeriodStatusRequest extends FormRequest
     {
         return [
             'reason' => ['nullable', 'string', 'max:500'],
-            'force' => ['nullable', 'boolean'],
+            'force'  => ['nullable', 'boolean'],
         ];
     }
 }

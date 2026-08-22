@@ -30,7 +30,8 @@ class RevokeOrganizationMembership
         private RecordAuditEvent $recordAuditEvent,
         private RevokeSystemRole $revokeSystemRole,
         private OrganizationPermissionScope $organizationPermissionScope,
-    ) {}
+    ) {
+    }
 
     /**
      * End the scope and return the membership, or null when there was none.
@@ -70,8 +71,8 @@ class RevokeOrganizationMembership
                 AuditAction::OrganizationMembershipRevoked,
                 $membership,
                 [
-                    'organization_id' => $organization->id,
-                    'user_id' => $user->id,
+                    'organization_id'              => $organization->id,
+                    'user_id'                      => $user->id,
                     'kept_organization_admin_role' => $administersAnother,
                 ],
                 $actor,

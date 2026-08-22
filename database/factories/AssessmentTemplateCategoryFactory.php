@@ -21,10 +21,10 @@ class AssessmentTemplateCategoryFactory extends Factory
     {
         return [
             'assessment_template_id' => AssessmentTemplate::factory(),
-            'name' => fake()->unique()->words(2, true),
-            'aggregation' => GradeAggregation::WeightedMean,
-            'weight' => 1,
-            'position' => fake()->numberBetween(1, 10),
+            'name'                   => fake()->unique()->words(2, true),
+            'aggregation'            => GradeAggregation::WeightedMean,
+            'weight'                 => 1,
+            'position'               => fake()->numberBetween(1, 10),
         ];
     }
 }

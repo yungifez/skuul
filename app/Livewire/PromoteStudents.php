@@ -28,7 +28,7 @@ class PromoteStudents extends Component
             ->orderBy('name')
             ->get()
             ->map(fn (AcademicCycleSection $cycleSection): array => [
-                'id' => $cycleSection->id,
+                'id'    => $cycleSection->id,
                 'label' => ($cycleSection->academicLevel->label ?? $cycleSection->academicLevel->name).' · '.($cycleSection->label ?? $cycleSection->name),
             ])
             ->all();
@@ -37,7 +37,7 @@ class PromoteStudents extends Component
     public function loadStudents(): void
     {
         $this->validate([
-            'sourceAcademicCycleSectionId' => ['required', 'integer'],
+            'sourceAcademicCycleSectionId'      => ['required', 'integer'],
             'destinationAcademicCycleSectionId' => ['required', 'integer', 'different:sourceAcademicCycleSectionId'],
         ]);
 
@@ -47,8 +47,8 @@ class PromoteStudents extends Component
             ->orderBy('name')
             ->get(['id', 'name'])
             ->map(fn (User $student): array => [
-                'id' => $student->id,
-                'name' => $student->name,
+                'id'               => $student->id,
+                'name'             => $student->name,
                 'admission_number' => $student->studentRecord?->admission_number,
             ])
             ->all();

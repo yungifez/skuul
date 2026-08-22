@@ -20,13 +20,15 @@ use RuntimeException;
  */
 class SendAccountInvitation
 {
-    public function __construct(private RecordAuditEvent $recordAuditEvent) {}
+    public function __construct(private RecordAuditEvent $recordAuditEvent)
+    {
+    }
 
     /**
      * Send an invitation to the given account.
      *
-     * @param  User  $user  the account to invite
-     * @param  User|null  $invitedBy  the administrator who sent the invitation
+     * @param User      $user      the account to invite
+     * @param User|null $invitedBy the administrator who sent the invitation
      */
     public function send(User $user, ?User $invitedBy = null): AccountInvitation
     {

@@ -51,10 +51,10 @@ class GraduationProgress
 
             $lines[] = [
                 'requirement_id' => $requirement->id,
-                'description' => $requirement->description,
-                'state' => $state,
-                'credits' => $requirement->credits,
-                'percentage' => $percentage,
+                'description'    => $requirement->description,
+                'state'          => $state,
+                'credits'        => $requirement->credits,
+                'percentage'     => $percentage,
             ];
         }
 
@@ -63,10 +63,10 @@ class GraduationProgress
             || $earned >= $plan->required_credits;
 
         return [
-            'requirements' => $lines,
-            'credits_earned' => $earned,
+            'requirements'     => $lines,
+            'credits_earned'   => $earned,
             'credits_required' => $plan->uses_credits ? $plan->required_credits : null,
-            'is_complete' => $everythingRequiredIsDone && $creditsAreEnough,
+            'is_complete'      => $everythingRequiredIsDone && $creditsAreEnough,
         ];
     }
 

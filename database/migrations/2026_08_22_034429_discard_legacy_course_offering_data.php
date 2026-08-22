@@ -3,8 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-return new class extends Migration
-{
+return new class() extends Migration {
     /**
      * Discard offerings that use the removed class and section identities.
      */

@@ -3,8 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-return new class extends Migration
-{
+return new class() extends Migration {
     /**
      * Run the migrations.
      */
@@ -14,7 +13,7 @@ return new class extends Migration
 
         foreach ($permissions as $permission) {
             DB::table('permissions')->insertOrIgnore([
-                'name' => $permission,
+                'name'       => $permission,
                 'guard_name' => 'web',
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -27,7 +26,7 @@ return new class extends Migration
             foreach ($permissionIds as $permissionId) {
                 DB::table('role_has_permissions')->insertOrIgnore([
                     'permission_id' => $permissionId,
-                    'role_id' => $roleId,
+                    'role_id'       => $roleId,
                 ]);
             }
         }
@@ -36,7 +35,7 @@ return new class extends Migration
             foreach (['read gradebook', 'manage gradebook', 'menu-gradebook'] as $permission) {
                 DB::table('role_has_permissions')->insertOrIgnore([
                     'permission_id' => $permissionIds[$permission],
-                    'role_id' => $roleId,
+                    'role_id'       => $roleId,
                 ]);
             }
         }

@@ -18,7 +18,8 @@ class CalendarTemplateController extends Controller
     public function __construct(
         private SaveCalendarTemplate $saveCalendarTemplate,
         private SetCampusCalendarTemplate $setCampusCalendarTemplate,
-    ) {}
+    ) {
+    }
 
     public function index(Organization $organization): View
     {
