@@ -5,9 +5,13 @@ namespace Tests\Feature;
 use App\Enums\Feature;
 use App\Enums\NoticeRecipientState;
 use App\Enums\NoticeStatus;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
+use App\Models\AcademicYear;
 use App\Models\Notice;
 use App\Models\NoticeRecipient;
 use App\Models\ParentRecord;
+use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
@@ -95,6 +99,31 @@ class NoticeAttachmentTest extends TestCase
         $this->actingAs($stranger)
             ->get(route('notices.attachments.download', $notice))
             ->assertForbidden();
+    }
+
+    public function test_a_notice_cannot_target_a_home_section_from_another_school(): void
+    {
+        $this->authorized_user(['create notice']);
+        $otherSchool = School::query()->findOrFail(School::factory()->create()->getKey());
+        $otherAcademicYear = AcademicYear::query()->findOrFail(AcademicYear::factory()->create([
+            'school_id' => $otherSchool->id,
+        ])->getKey());
+        $otherAcademicLevel = AcademicLevel::query()->findOrFail(AcademicLevel::factory()->create([
+            'school_id' => $otherSchool->id,
+        ])->getKey());
+        $otherSection = AcademicCycleSection::query()->findOrFail(AcademicCycleSection::factory()->create([
+            'school_id' => $otherSchool->id,
+            'academic_year_id' => $otherAcademicYear->id,
+            'academic_level_id' => $otherAcademicLevel->id,
+        ])->getKey());
+
+        $this->post(route('notices.store'), [
+            'title' => 'Family guide',
+            'content' => 'Please read the guide before the first day.',
+            'start_date' => now()->toDateString(),
+            'stop_date' => now()->addWeek()->toDateString(),
+            'audience' => ['academic_cycle_section_ids' => [$otherSection->id]],
+        ])->assertSessionHasErrors('audience.academic_cycle_section_ids.0');
     }
 
     /** Create a current notice with a private attachment. */

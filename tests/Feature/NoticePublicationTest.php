@@ -14,7 +14,9 @@ use App\Jobs\SendNoticeEmails;
 use App\Models\AuditEvent;
 use App\Models\Notice;
 use App\Models\NoticeRecipient;
+use App\Models\ParentRecord;
 use App\Models\School;
+use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -63,6 +65,30 @@ class NoticePublicationTest extends TestCase
 
         $this->assertTrue($notice->recipients()->where('user_id', $chosen->id)->exists());
         $this->assertFalse($notice->recipients()->where('user_id', $other->id)->exists());
+    }
+
+    public function test_a_notice_can_go_to_a_current_home_section_and_its_guardians(): void
+    {
+        $this->authorized_user([]);
+        $student = StudentRecord::query()->findOrFail(StudentRecord::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+        ])->getKey());
+        $this->assertNotNull($student->user_id);
+        $this->assertNotNull($student->academic_cycle_section_id);
+        $guardian = $this->memberOf($this->workingSchool());
+        $parentRecord = $guardian->parentRecord()->create(['user_id' => $guardian->id]);
+        $parentRecord = ParentRecord::query()->findOrFail($parentRecord->getKey());
+        $parentRecord->students()->attach($student->user_id);
+        $notice = $this->notice(['audience' => [
+            'academic_cycle_section_ids' => [$student->academic_cycle_section_id],
+            'include_guardians' => true,
+        ]]);
+
+        app(PublishNotice::class)->publish($notice);
+
+        $this->assertTrue($notice->recipients()->where('user_id', $student->user_id)->exists());
+        $this->assertTrue($notice->recipients()->where('user_id', $guardian->id)->exists());
+        $this->assertSame(2, $notice->recipients()->count());
     }
 
     public function test_a_notice_never_reaches_another_school(): void

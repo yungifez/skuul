@@ -12,6 +12,21 @@
             </div>
             <april:input-group type="date" id="start_date" name="start_date" label="Start date" required />
             <april:input-group type="date" id="stop_Date" name="stop_date" label="Stop date" />
+            <fieldset class="flex flex-col gap-3 rounded border border-slate-200 p-4 dark:border-slate-700">
+                <legend class="px-1 text-sm font-medium text-slate-900 dark:text-slate-100">Who should receive this?</legend>
+                <p class="text-sm text-slate-600 dark:text-slate-300">Leave home sections empty for the whole school community. Select sections to send to those learners only.</p>
+                <label for="academic_cycle_section_ids" class="text-sm font-medium text-slate-800 dark:text-slate-100">Home sections</label>
+                <select id="academic_cycle_section_ids" name="audience[academic_cycle_section_ids][]" multiple class="min-h-28 rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100">
+                    @foreach($sections as $section)
+                        <option value="{{ $section->id }}">{{ $section->academicLevel?->label ?? $section->academicLevel?->name ?? 'Unassigned level' }} — {{ $section->label ?? $section->name }}</option>
+                    @endforeach
+                </select>
+                <label class="flex items-start gap-2 text-sm text-slate-800 dark:text-slate-100">
+                    <input type="hidden" name="audience[include_guardians]" value="0">
+                    <input type="checkbox" name="audience[include_guardians]" value="1" class="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
+                    <span>Also send this to the selected learners’ guardians.</span>
+                </label>
+            </fieldset>
             @csrf
             <april:input-group id="file" type="file" name="attachment" accept=".gif,.jpg,.jpeg,.png,.doc,.docx,.pdf" label="Upload file" placeholder="Choose a file...(optional)" />
             <div class='col-12 my-2'>

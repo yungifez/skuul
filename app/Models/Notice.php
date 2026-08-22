@@ -62,6 +62,7 @@ class Notice extends Model
     protected $casts = [
         'status' => NoticeStatus::class,
         'audience' => 'array',
+        'active' => 'boolean',
         'send_email' => 'boolean',
         'scheduled_for' => 'datetime',
         'published_at' => 'datetime',

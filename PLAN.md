@@ -897,7 +897,11 @@ Progress:
   content type, and size retained as metadata. Download requires either the
   staff notice policy or an enabled portal and a recipient relationship to the
   student; attachments never use a public storage URL.
-- Open: guardian-level targeting and per-user notification settings.
+- Done: notice audiences target `AcademicCycleSection` and active enrollment
+  records rather than retired class/section keys. Staff can choose home
+  sections and explicitly include the guardians of those learners; request
+  validation prevents a school from targeting another campus's group.
+- Open: per-user notification settings.
 
 ### 11. Reports and exports
 
