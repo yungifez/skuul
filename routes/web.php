@@ -112,6 +112,8 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::get('report-cards/{reportCardSnapshot}', ['App\Http\Controllers\ReportCardController', 'show'])->name('report-cards.show');
         Route::get('transcripts', ['App\Http\Controllers\TranscriptController', 'index'])->name('transcripts.index');
         Route::post('transcripts', ['App\Http\Controllers\TranscriptController', 'store'])->name('transcripts.store');
+        Route::get('attendance/register', ['App\Http\Controllers\AttendanceRegisterController', 'index'])->name('attendance.register');
+        Route::post('attendance/register', ['App\Http\Controllers\AttendanceRegisterController', 'store'])->name('attendance.register.store');
         Route::get('reports/{reportRun}/download', ['App\Http\Controllers\ReportController', 'download'])->name('reports.download');
 
         // import routes. An import reads the school, not the period, so it

@@ -181,6 +181,22 @@ class AttendanceTest extends TestCase
         $this->assertSame(AttendanceStatus::Absent, $records[1]->status);
     }
 
+    public function test_staff_can_save_a_home_section_register_from_the_screen(): void
+    {
+        $this->authorized_user(['read attendance', 'take attendance']);
+        $first = $this->enrollment();
+        $second = $this->enrollment();
+        $second->update(['academic_cycle_section_id' => $first->academic_cycle_section_id]);
+
+        $this->post(route('attendance.register.store'), [
+            'academic_cycle_section_id' => $first->academic_cycle_section_id,
+            'attended_on' => now()->toDateString(),
+            'statuses' => [$first->id => AttendanceStatus::Present->value, $second->id => AttendanceStatus::Absent->value],
+        ])->assertSessionHasNoErrors()->assertSessionHas('success');
+
+        $this->assertSame(AttendanceStatus::Absent, AttendanceRecord::query()->where('student_record_id', $second->id)->sole()->status);
+    }
+
     public function test_the_summary_counts_the_days_that_were_recorded(): void
     {
         $this->authorized_user([]);
