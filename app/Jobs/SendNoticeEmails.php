@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Enums\NoticeRecipientState;
 use App\Models\Notice;
+use App\Models\NoticeNotificationPreference;
 use App\Models\NoticeRecipient;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -26,9 +27,7 @@ class SendNoticeEmails implements ShouldQueue
      */
     public int $tries = 3;
 
-    public function __construct(private int $noticeId)
-    {
-    }
+    public function __construct(private int $noticeId) {}
 
     /**
      * Send the notice.
@@ -45,8 +44,16 @@ class SendNoticeEmails implements ShouldQueue
             ->where('notice_id', $notice->id)
             ->with('user')
             ->get();
+        $preferences = NoticeNotificationPreference::query()
+            ->where('school_id', $notice->school_id)
+            ->whereIn('user_id', $recipients->pluck('user_id'))
+            ->pluck('email_enabled', 'user_id');
 
         foreach ($recipients as $recipient) {
+            if (($preferences[$recipient->user_id] ?? true) === false) {
+                continue;
+            }
+
             $address = $recipient->user?->email;
 
             if ($address === null) {
