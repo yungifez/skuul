@@ -1050,8 +1050,11 @@ Progress:
   academic-period reopen workflow. It requires a stated reason and writes the
   lifecycle audit event before the append-only attendance correction can be
   made; there is no attendance-specific bypass around a closed period.
-- Open: guardian attendance screens and turning each register on or off per
-  school.
+- Done: schools configure `daily_register` and `lesson_register` independently
+  through the existing attendance feature config. The attendance action reads
+  those flags itself, so disabling a register blocks every write path while
+  preserving earlier records.
+- Open: guardian attendance screen authorization coverage.
 
 ### 14. Student and guardian portal
 
