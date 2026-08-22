@@ -1046,8 +1046,12 @@ Progress:
   already taken for the selected day, submits the entire roster through the
   audited attendance action, and is protected by school-scoped `read
   attendance` and `take attendance` permissions.
-- Open: guardian attendance screens, an approval workflow for corrections
-  after a period closes, and turning each register on or off per school.
+- Done: corrections after a period closes use the existing authorized
+  academic-period reopen workflow. It requires a stated reason and writes the
+  lifecycle audit event before the append-only attendance correction can be
+  made; there is no attendance-specific bypass around a closed period.
+- Open: guardian attendance screens and turning each register on or off per
+  school.
 
 ### 14. Student and guardian portal
 
