@@ -4,6 +4,7 @@ namespace App\Actions\Attendance;
 
 use App\Enums\AttendanceKind;
 use App\Enums\AttendanceStatus;
+use App\Enums\Feature;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
 use App\Models\AttendanceChange;
@@ -120,6 +121,12 @@ class RecordAttendance
      */
     private function failIfRecordsDoNotFit(StudentRecord $enrollment, Carbon $day, AttendanceKind $kind, ?Subject $subject): void
     {
+        $registerKey = $kind === AttendanceKind::Daily ? 'daily_register' : 'lesson_register';
+
+        if (!features()->config(Feature::Attendance, $registerKey, true, $enrollment->school_id)) {
+            throw new InvalidValueException("This school has not enabled the {$kind->label()} register.");
+        }
+
         if ($day->isFuture()) {
             throw new InvalidValueException('You cannot take the register for a day that has not happened.');
         }

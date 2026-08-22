@@ -7,6 +7,7 @@ use App\Actions\Attendance\RecordAttendance;
 use App\Actions\Enrollment\ChangeEnrollmentStatus;
 use App\Enums\AttendanceKind;
 use App\Enums\AttendanceStatus;
+use App\Enums\Feature;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicCycleSection;
@@ -140,6 +141,16 @@ class AttendanceTest extends TestCase
         $this->expectException(InvalidValueException::class);
 
         app(RecordAttendance::class)->record($this->enrollment(), AttendanceStatus::Present, now()->addDay());
+    }
+
+    public function test_a_school_can_turn_off_the_daily_register_without_losing_history(): void
+    {
+        $this->authorized_user([]);
+        features()->enable(Feature::Attendance, config: ['daily_register' => false]);
+
+        $this->expectException(InvalidValueException::class);
+
+        app(RecordAttendance::class)->record($this->enrollment(), AttendanceStatus::Present);
     }
 
     public function test_a_closed_enrollment_takes_no_register(): void
