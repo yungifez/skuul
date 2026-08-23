@@ -361,6 +361,13 @@ class Menu extends Component
                 'route' => 'imports.index',
                 'visible' => feature_enabled(Feature::Imports) && $user->can('read import'),
             ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Roles',
+                'icon' => 'shield-check',
+                'route' => 'roles.index',
+                'can' => 'read role',
+            ],
             ['header' => 'System'],
             [
                 'type'  => 'menu-item',

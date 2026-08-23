@@ -505,6 +505,18 @@ class PermissionSeeder extends Seeder
             'name' => 'fulfil data sharing',
         ]);
 
+        /*
+         * Permissions for the roles a campus writes for itself. Holding
+         * "manage role" never widens what a person can hand out: a role can
+         * only carry permissions its author already holds at that campus.
+         */
+        Permission::firstOrCreate([
+            'name' => 'read role',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'manage role',
+        ]);
+
         // Permissions for reports
         Permission::firstOrCreate([
             'name' => 'create report',
@@ -797,6 +809,8 @@ class PermissionSeeder extends Seeder
             'manage account access',
             'create report',
             'read report',
+            'read role',
+            'manage role',
             'create incident',
             'read incident',
             'update incident',

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\AcademicYear;
 use App\Models\FeatureSetting;
 use App\Models\School;
+use App\Models\SchoolDomain;
 use App\Models\SchoolMembership;
 use App\Traits\FeatureTestTrait;
 use App\Traits\InSchool;
@@ -31,13 +32,17 @@ class SchoolScopeTest extends TestCase
      * A membership grants access to a named school. Filling it from the
      * request would hide a mistake, so it stays outside the trait. A feature
      * setting with no school is the platform default, which the trait would
-     * quietly turn into a school setting.
+     * quietly turn into a school setting. A web address is read before anybody
+     * signs in, when there is no working school at all, and an address that
+     * names no campus opens the whole organization: filling it in would turn
+     * that into a campus address by accident.
      *
      * @var array<int, class-string<Model>>
      */
     private const NAMES_ITS_OWN_SCHOOL = [
         SchoolMembership::class,
         FeatureSetting::class,
+        SchoolDomain::class,
     ];
 
     public function test_every_school_owned_model_uses_the_school_scope(): void
@@ -45,7 +50,7 @@ class SchoolScopeTest extends TestCase
         $missing = [];
 
         foreach ($this->modelClasses() as $class) {
-            $model = new $class();
+            $model = new $class;
 
             if (!Schema::hasColumn($model->getTable(), 'school_id')) {
                 continue;
@@ -86,8 +91,8 @@ class SchoolScopeTest extends TestCase
 
         $academicYear = AcademicYear::create([
             'start_year' => 2100,
-            'stop_year'  => 2101,
-            'school_id'  => $other->id,
+            'stop_year' => 2101,
+            'school_id' => $other->id,
         ]);
 
         $this->assertSame($other->id, $academicYear->school_id);

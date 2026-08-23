@@ -316,7 +316,15 @@ Progress:
   account screen names it rather than adding it in. A transfer package to
   another organization carries the debt as a notice with the campus that is
   owed, and raises no invoice at the receiving school.
-- Open: role management screens.
+- Done: a campus writes its own roles. A role is a named set of permissions and
+  nothing else, so a campus can invent Registrar or Finance Officer without the
+  application learning those words. Nobody hands out authority they do not hold
+  themselves: the list a person can choose from is what they can already do at
+  that campus, permissions above a campus are never on it, and giving a role out
+  follows the same rule. A role reaches only somebody who works at that campus.
+  Built-in roles can be given out but never rewritten, a retired role keeps its
+  holders and is never offered again, and every write and every assignment is
+  audited.
 
 ### 3. Academic setup and calendar
 
@@ -1243,8 +1251,11 @@ Progress:
   document, a correction, an appointment, or an acknowledgement changes no
   school record until somebody at the school answers it, and
   `PortalRequestPolicy` never lets a family answer its own request.
-- Open: the screens, document downloads, appointment times taken from the
-  calendar, and per-guardian notification settings.
+- Done: the family screens. A guardian or learner reads attendance, the school
+  calendar, notices, and their own requests, and one page names every campus
+  they have somebody at.
+- Open: document downloads, appointment times taken from the calendar, and
+  per-guardian notification settings.
 
 ### 15. Discipline and safeguarding
 
@@ -1275,8 +1286,9 @@ Progress:
   impossible state change, or an action on a finished case.
 - Done: the `discipline` feature switch hides the workflow without touching
   the cases already recorded.
-- Open: the screens, restricted notes inside a case, and case assignment by
-  campus.
+- Done: the screens. Staff record a case, read the list they are allowed to
+  read, and move a case through its states with a reason.
+- Open: restricted notes inside a case, and case assignment by campus.
 
 ### 16. Student support and wellbeing
 
@@ -1315,8 +1327,9 @@ Progress:
   it.
 - Done: the `wellbeing` feature switch hides the workflow without touching the
   plans already recorded.
-- Open: the screens, referrals to people outside the school, per-category
-  access for support teams, and campus-level assignment.
+- Done: the screens for support plans and health records.
+- Open: referrals to people outside the school, per-category access for support
+  teams, and campus-level assignment.
 
 ### 17. Staff operations
 
@@ -1354,8 +1367,9 @@ Progress:
   teaching assignment; ending one is still the curriculum action's decision.
 - Done: the `staff_operations` feature switch hides the workflow without
   touching the records already kept.
-- Open: the screens, cover and substitution when somebody is away, leave
-  balances by type, appraisals, and payroll integration.
+- Done: the screens for staff profiles and leave requests.
+- Open: cover and substitution when somebody is away, leave balances by type,
+  appraisals, and payroll integration.
 
 ### 18. Calendar and school events
 
@@ -1383,8 +1397,9 @@ Progress:
   day, and which days the school is closed. Only published events count.
 - Done: events never cross a school, because `calendar_events` uses the school
   scope like every other record.
-- Open: the screens, links from a timetable item to an event, per-campus
-  category switches, and appointment booking.
+- Done: the calendar screens, for the school and for a family.
+- Open: links from a timetable item to an event, per-campus category switches,
+  and appointment booking.
 
 ### 19. Imports and integrations
 
@@ -1424,8 +1439,10 @@ Progress:
   permissions, because preparing an import is not the same decision as
   changing the school's records with it. The routes sit behind the `imports`
   feature switch.
-- Open: the screens, more importers (guardians, grades, invoices, payments),
-  transfer packages out, and connectors for identity, payments, messaging, and
+- Done: the import screens: a file is uploaded, checked, and shown row by row
+  before anybody applies it.
+- Open: more importers (guardians, grades, invoices, payments), transfer
+  packages out, and connectors for identity, payments, messaging, and
   government reporting.
 
 ### 20. Feature configuration and record freezing
@@ -1451,7 +1468,10 @@ Progress:
 - Done: the `feature:` middleware hides the routes of a feature that is off,
   and `feature_enabled()` answers the same question in a view or a service.
   Turning a feature off never deletes what the school recorded.
-- Open: campus and program overrides, and the settings screen.
+- Done: the settings screen (`schools/features`) lets a campus turn each
+  feature on or off and set what a feature carries with it, one campus at a
+  time.
+- Open: program-level overrides inside a campus.
 
 Record freezing:
 
@@ -1506,9 +1526,9 @@ Progress:
   averages share a position, a corrected result counts once at its newest
   revision, and nothing is written to the student, the enrollment, or the
   grade. Ranking stays off until a school turns the `ranking` feature on.
-- Open: the screens, cohort-scoped and campus-scoped plan assignment,
-  restricted notes on a participation record, outcome history for graduation,
-  and surveys.
+- Done: the screens for cohorts, programs, and graduation plans.
+- Open: cohort-scoped and campus-scoped plan assignment, restricted notes on a
+  participation record, outcome history for graduation, and surveys.
 
 ### 22. Boarding and dormitories
 

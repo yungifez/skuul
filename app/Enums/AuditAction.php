@@ -21,6 +21,21 @@ enum AuditAction: string
     case RoleDetached = 'role.detached';
 
     /**
+     * A campus wrote a role of its own.
+     */
+    case RoleCreated = 'role.created';
+
+    /**
+     * What a campus role holds was changed.
+     */
+    case RoleUpdated = 'role.updated';
+
+    /**
+     * A campus stopped offering a role. The people holding it keep it.
+     */
+    case RoleArchived = 'role.archived';
+
+    /**
      * A permission was given directly to a user or a role.
      */
     case PermissionAttached = 'permission.attached';
@@ -466,6 +481,9 @@ enum AuditAction: string
         return match ($this) {
             self::RoleAttached                             => 'Role given',
             self::RoleDetached                             => 'Role removed',
+            self::RoleCreated                              => 'Role written',
+            self::RoleUpdated                              => 'Role changed',
+            self::RoleArchived                             => 'Role retired',
             self::PermissionAttached                       => 'Permission given',
             self::PermissionDetached                       => 'Permission removed',
             self::AccountStatusChanged                     => 'Account status changed',
