@@ -14,6 +14,7 @@ use App\Models\CourseOffering;
 use App\Models\StudentRecord;
 use App\Models\Subject;
 use App\Models\User;
+use App\Services\Curriculum\OfferingExceptions;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -25,8 +26,10 @@ use Illuminate\Support\Facades\DB;
  */
 class CreateCourseOffering
 {
-    public function __construct(private RecordAuditEvent $auditor)
-    {
+    public function __construct(
+        private RecordAuditEvent $auditor,
+        private OfferingExceptions $exceptions,
+    ) {
     }
 
     /**
@@ -138,8 +141,11 @@ class CreateCourseOffering
             throw new InvalidValueException('Every named learner must actively attend this academic level in this school.');
         }
 
-        if (!instructional_model($academicYear)->allowsRosterMode($rosterMode)) {
-            throw new InvalidValueException('The campus teaching setup does not allow this roster type for the academic cycle.');
+        if (
+            !instructional_model($academicYear)->allowsRosterMode($rosterMode)
+            && !$this->exceptions->allows($academicYear, $subject, $academicLevel, $rosterMode)
+        ) {
+            throw new InvalidValueException('The campus teaching setup does not allow this roster type for the academic cycle. Record an exception for this subject if it is taught differently on purpose.');
         }
 
         match ($rosterMode) {

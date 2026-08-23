@@ -272,6 +272,16 @@ enum AuditAction: string
     case InstructionalModelMigrated = 'instructional_model.migrated';
 
     /**
+     * One subject was allowed to be taught outside the campus model.
+     */
+    case OfferingExceptionGranted = 'instructional_model.exception_granted';
+
+    /**
+     * That permission was taken back.
+     */
+    case OfferingExceptionRevoked = 'instructional_model.exception_revoked';
+
+    /**
      * A reusable academic level was added for a campus.
      */
     case AcademicLevelCreated = 'academic_level.created';
@@ -478,6 +488,8 @@ enum AuditAction: string
             self::CalendarTemplateSaved                    => 'Calendar template saved',
             self::InstructionalModelChanged                => 'Instructional model changed',
             self::InstructionalModelMigrated               => 'Instructional model moved mid-cycle',
+            self::OfferingExceptionGranted                 => 'Subject allowed outside the campus model',
+            self::OfferingExceptionRevoked                 => 'Subject exception taken back',
             self::AcademicLevelCreated                     => 'Academic level created',
             self::AcademicLevelUpdated                     => 'Academic level updated',
             self::AcademicLevelStatusChanged               => 'Academic level status changed',

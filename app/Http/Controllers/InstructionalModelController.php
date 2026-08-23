@@ -2,14 +2,21 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Curriculum\GrantOfferingException;
 use App\Actions\Curriculum\MigrateInstructionalModel;
 use App\Actions\Curriculum\SetInstructionalModel;
 use App\Enums\InstructionalModel;
+use App\Enums\RosterMode;
+use App\Http\Requests\GrantOfferingExceptionRequest;
 use App\Http\Requests\MigrateInstructionalModelRequest;
 use App\Http\Requests\SetInstructionalModelRequest;
+use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
+use App\Models\InstructionalModelException;
 use App\Models\InstructionalModelMigration;
+use App\Models\Subject;
 use App\Services\Curriculum\InstructionalModelResolver;
+use App\Services\Curriculum\OfferingExceptions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -25,6 +32,8 @@ class InstructionalModelController extends Controller
         private SetInstructionalModel $setInstructionalModel,
         private MigrateInstructionalModel $migrateInstructionalModel,
         private InstructionalModelResolver $resolver,
+        private OfferingExceptions $exceptions,
+        private GrantOfferingException $grantException,
     ) {
     }
 
@@ -54,7 +63,53 @@ class InstructionalModelController extends Controller
                 ->with('migratedBy')
                 ->latest('id')
                 ->get(),
+            'exceptions' => $this->exceptions->forCycle($academicYear),
+            'canExcept' => $user?->can('setInstructionalModel', $academicYear) === true,
+            'subjects' => Subject::inSchool($academicYear->school_id)->orderBy('name')->get(),
+            'academicLevels' => AcademicLevel::inSchool($academicYear->school_id)->orderBy('position')->orderBy('name')->get(),
+            'exceptionModes' => array_values(array_filter(
+                RosterMode::cases(),
+                fn (RosterMode $mode): bool => !$model->allowsRosterMode($mode),
+            )),
         ]);
+    }
+
+    /**
+     * Let one subject be taught outside the campus model.
+     */
+    public function grantException(GrantOfferingExceptionRequest $request, AcademicYear $academicYear): RedirectResponse
+    {
+        $this->authorize('setInstructionalModel', $academicYear);
+
+        $this->grantException->grant(
+            academicYear: $academicYear,
+            subject: Subject::inSchool($academicYear->school_id)->findOrFail($request->validated('subject_id')),
+            rosterMode: RosterMode::from($request->validated('roster_mode')),
+            reason: $request->validated('reason'),
+            academicLevel: $request->validated('academic_level_id') === null
+                ? null
+                : AcademicLevel::inSchool($academicYear->school_id)->findOrFail($request->validated('academic_level_id')),
+        );
+
+        return redirect()
+            ->route('academic-years.instructional-model.edit', $academicYear->id)
+            ->with('success', 'The exception was recorded. The campus model has not moved.');
+    }
+
+    /**
+     * Take an exception back.
+     */
+    public function revokeException(AcademicYear $academicYear, InstructionalModelException $exception): RedirectResponse
+    {
+        $this->authorize('setInstructionalModel', $academicYear);
+
+        abort_unless($exception->academic_year_id === $academicYear->id, 404);
+
+        $this->grantException->revoke($exception);
+
+        return redirect()
+            ->route('academic-years.instructional-model.edit', $academicYear->id)
+            ->with('success', 'The exception was taken back. Classes already running are left alone.');
     }
 
     /**

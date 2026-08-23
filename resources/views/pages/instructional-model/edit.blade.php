@@ -208,6 +208,108 @@
         </div>
     @endif
 
+    <div class="rounded-xl border border-sidebar-border/70 bg-card text-card-foreground shadow-sm">
+        <div class="flex flex-col gap-1.5 border-b p-6">
+            <h3 class="text-lg font-semibold leading-none tracking-tight">Subjects taught differently</h3>
+            <p class="text-sm text-muted-foreground">
+                A campus that keeps learners together all day still runs one combined music class. Record it here.
+                An exception covers one subject for this cycle and does not move the campus answer.
+            </p>
+        </div>
+
+        @if ($exceptions->isEmpty())
+            <div class="flex flex-col items-center gap-3 p-10 text-center">
+                <span class="flex size-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                    <x-lucide-shuffle class="size-6" />
+                </span>
+                <p class="text-sm font-medium">Every subject follows the campus answer.</p>
+            </div>
+        @else
+            <ul class="divide-y">
+                @foreach ($exceptions as $exception)
+                    <li class="flex flex-col gap-2 p-6 sm:flex-row sm:items-start sm:justify-between">
+                        <div class="min-w-0">
+                            <p class="flex flex-wrap items-center gap-2 text-sm">
+                                <span class="font-semibold text-foreground">{{ $exception->subject?->name }}</span>
+                                <span class="text-muted-foreground">{{ $exception->coverage() }}</span>
+                                <april:badge variant="outline">{{ $exception->roster_mode->label() }}</april:badge>
+                                @if (!$exception->isRunning())
+                                    <april:badge variant="secondary">Taken back</april:badge>
+                                @endif
+                            </p>
+                            <p class="mt-2 text-sm text-muted-foreground">{{ $exception->reason }}</p>
+                            <p class="mt-1 text-xs text-muted-foreground">
+                                {{ $exception->grantedBy?->name ?? 'A campus administrator' }} &middot;
+                                {{ $exception->created_at?->format('M j, Y') }}
+                            </p>
+                        </div>
+
+                        @if ($canExcept && $exception->isRunning())
+                            <form action="{{ route('academic-years.instructional-model.exceptions.destroy', [$academicYear, $exception]) }}" method="POST">
+                                @csrf
+                                @method('DELETE')
+                                <april:button type="submit" variant="ghost" size="sm">Take it back</april:button>
+                            </form>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+
+        @if ($canExcept && $exceptionModes !== [])
+            <form action="{{ route('academic-years.instructional-model.exceptions.store', $academicYear) }}" method="POST" class="border-t">
+                @csrf
+
+                <div class="grid gap-4 p-6 sm:grid-cols-2">
+                    <div class="flex flex-col gap-2">
+                        <label for="exception-subject" class="text-sm font-medium leading-none">Subject</label>
+                        <select id="exception-subject" name="subject_id" required
+                            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                            @foreach ($subjects as $subject)
+                                <option value="{{ $subject->id }}">{{ $subject->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label for="exception-mode" class="text-sm font-medium leading-none">How it is taught</label>
+                        <select id="exception-mode" name="roster_mode" required
+                            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                            @foreach ($exceptionModes as $mode)
+                                <option value="{{ $mode->value }}">{{ $mode->label() }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label for="exception-level" class="text-sm font-medium leading-none">Level <span class="font-normal text-muted-foreground">(optional)</span></label>
+                        <select id="exception-level" name="academic_level_id"
+                            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                            <option value="">Every level</option>
+                            @foreach ($academicLevels as $level)
+                                <option value="{{ $level->id }}">{{ $level->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label for="exception-reason" class="text-sm font-medium leading-none">Why</label>
+                        <input id="exception-reason" name="reason" required maxlength="500" value="{{ old('reason') }}"
+                            placeholder="One combined music class for the whole level"
+                            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    </div>
+                </div>
+
+                <div class="flex justify-end border-t p-6">
+                    <april:button type="submit" variant="outline">
+                        <x-lucide-shuffle class="mr-2 size-4" />
+                        Record the exception
+                    </april:button>
+                </div>
+            </form>
+        @endif
+    </div>
+
     <p class="text-center text-xs text-muted-foreground">
         Every answer keeps the same records: class groups stay class groups, and a subject keeps one roster.
         The answer only sets what a new subject starts with and what staff are asked for.

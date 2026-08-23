@@ -425,6 +425,8 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::get('academic-years/{academic_year}/instructional-model', ['App\Http\Controllers\InstructionalModelController', 'edit'])->name('academic-years.instructional-model.edit');
         Route::put('academic-years/{academic_year}/instructional-model', ['App\Http\Controllers\InstructionalModelController', 'update'])->name('academic-years.instructional-model.update');
         Route::post('academic-years/{academic_year}/instructional-model/migration', ['App\Http\Controllers\InstructionalModelController', 'migrate'])->name('academic-years.instructional-model.migrate');
+        Route::post('academic-years/{academic_year}/instructional-model/exceptions', ['App\Http\Controllers\InstructionalModelController', 'grantException'])->name('academic-years.instructional-model.exceptions.store');
+        Route::delete('academic-years/{academic_year}/instructional-model/exceptions/{exception}', ['App\Http\Controllers\InstructionalModelController', 'revokeException'])->name('academic-years.instructional-model.exceptions.destroy');
 
         // subject routes
         Route::resource('subjects', SubjectController::class);

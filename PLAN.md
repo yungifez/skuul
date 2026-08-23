@@ -640,6 +640,12 @@ Progress:
 - Done: published syllabi are immutable revisions by offering. Revising creates
   a draft successor; publishing it supersedes the former published revision and
   records both actions in the audit log.
+- Done: a campus can allow one subject to be taught outside its model, in
+  writing. `instructional_model_exceptions` names the subject, the roster, an
+  optional level, and a reason. `CreateCourseOffering` consults it, so a
+  campus that keeps learners together all day can still run one combined
+  music class. The campus answer does not move, and taking an exception back
+  leaves classes already running alone.
 - Done: a published timetable can start an editable, section-owned override
   draft for another home section in the same academic cycle. The override
   copies the weekly schedule, keeps its template link, and then follows the
