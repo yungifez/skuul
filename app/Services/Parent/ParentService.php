@@ -84,7 +84,7 @@ class ParentService
      */
     public function printProfile(string $name, string $view, array $data)
     {
-        return PrintService::createPdfFromView($view, $data);
+        return PrintService::download($view, $data, $name);
     }
 
     /**

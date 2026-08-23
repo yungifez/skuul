@@ -7,6 +7,7 @@ use App\Enums\AuditAction;
 use App\Jobs\BuildReport;
 use App\Models\ReportRun;
 use App\Models\User;
+use App\Services\Report\ExportFormatRegistry;
 use App\Services\Report\ReportRegistry;
 
 /**
@@ -19,6 +20,7 @@ class RequestReport
 {
     public function __construct(
         private ReportRegistry $registry,
+        private ExportFormatRegistry $formats,
         private RecordAuditEvent $auditor,
     ) {
     }
@@ -28,14 +30,16 @@ class RequestReport
      *
      * @param array<string, mixed> $parameters
      */
-    public function request(string $type, array $parameters = [], ?User $actor = null): ReportRun
+    public function request(string $type, array $parameters = [], ?User $actor = null, string $format = 'csv'): ReportRun
     {
-        // Fail here, not inside the worker, when the name is wrong.
+        // Fail here, not inside the worker, when a name is wrong.
         $report = $this->registry->get($type);
+        $shape = $this->formats->get($format);
 
         $run = ReportRun::create([
             'school_id'          => current_school_id(),
             'type'               => $report->key(),
+            'format'             => $shape->key(),
             'parameters'         => $parameters === [] ? null : $parameters,
             'academic_year_id'   => current_academic_year_id(),
             'academic_period_id' => current_academic_period_id(),
@@ -47,7 +51,7 @@ class RequestReport
         $this->auditor->record(
             AuditAction::ReportRequested,
             $run,
-            ['type' => $run->type, 'parameters' => $parameters],
+            ['type' => $run->type, 'format' => $run->format, 'parameters' => $parameters],
             $actor,
         );
 

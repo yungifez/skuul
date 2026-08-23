@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Services\Report\ExportFormatRegistry;
 use App\Services\Report\ReportRegistry;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -16,7 +17,8 @@ class StoreReportRunRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type'       => ['required', Rule::in(array_keys(app(ReportRegistry::class)->all()))],
+            'type' => ['required', Rule::in(array_keys(app(ReportRegistry::class)->all()))],
+            'format' => ['nullable', Rule::in(array_keys(app(ExportFormatRegistry::class)->all()))],
             'parameters' => ['nullable', 'array'],
         ];
     }

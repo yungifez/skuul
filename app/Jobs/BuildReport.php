@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Enums\ReportStatus;
 use App\Models\ReportRun;
+use App\Services\Report\ExportFormatRegistry;
 use App\Services\Report\ReportRegistry;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -25,14 +26,12 @@ class BuildReport implements ShouldQueue
      */
     public int $tries = 2;
 
-    public function __construct(private int $reportRunId)
-    {
-    }
+    public function __construct(private int $reportRunId) {}
 
     /**
      * Build the report.
      */
-    public function handle(ReportRegistry $registry): void
+    public function handle(ReportRegistry $registry, ExportFormatRegistry $formats): void
     {
         $run = ReportRun::find($this->reportRunId);
 
@@ -46,10 +45,11 @@ class BuildReport implements ShouldQueue
 
         try {
             $report = $registry->get($run->type);
+            $format = $formats->get($run->format);
             $rows = $report->rows(($run->parameters ?? []) + ['school_id' => $run->school_id]);
 
-            $path = "reports/$run->school_id/$run->id-$run->type.csv";
-            Storage::disk('local')->put($path, $this->toCsv($report->columns(), $rows->all()));
+            $path = "reports/$run->school_id/$run->id-$run->type.".$format->extension();
+            Storage::disk('local')->put($path, $format->render($report->title(), $report->columns(), $rows));
 
             $run->file_path = $path;
             $run->row_count = $rows->count();
@@ -64,27 +64,5 @@ class BuildReport implements ShouldQueue
 
             throw $exception;
         }
-    }
-
-    /**
-     * Turn the columns and rows into one CSV file.
-     *
-     * @param array<int, string>                            $columns
-     * @param array<int, array<int, string|int|float|null>> $rows
-     */
-    private function toCsv(array $columns, array $rows): string
-    {
-        $handle = fopen('php://temp', 'r+');
-        fputcsv($handle, $columns);
-
-        foreach ($rows as $row) {
-            fputcsv($handle, $row);
-        }
-
-        rewind($handle);
-        $csv = (string) stream_get_contents($handle);
-        fclose($handle);
-
-        return $csv;
     }
 }

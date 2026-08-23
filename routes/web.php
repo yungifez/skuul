@@ -139,6 +139,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
 
         // report routes. A report reads whatever period it is given, so it
         // does not need one to be set first.
+        Route::get('reports', ['App\Http\Controllers\ReportController', 'index'])->name('reports.index');
         Route::post('reports', ['App\Http\Controllers\ReportController', 'store'])->name('reports.store');
         Route::get('report-cards', ['App\Http\Controllers\ReportCardController', 'index'])->name('report-cards.index');
         Route::post('report-cards', ['App\Http\Controllers\ReportCardController', 'store'])->name('report-cards.store');

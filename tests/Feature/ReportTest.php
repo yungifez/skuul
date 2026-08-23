@@ -12,6 +12,7 @@ use App\Models\AuditEvent;
 use App\Models\ReportRun;
 use App\Models\School;
 use App\Models\StudentRecord;
+use App\Services\Report\ExportFormatRegistry;
 use App\Services\Report\ReportRegistry;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -90,11 +91,11 @@ class ReportTest extends TestCase
         $this->authorized_user(['create report']);
         $run = ReportRun::create([
             'school_id' => $this->workingSchool()->id,
-            'type'      => 'made-up-report',
+            'type' => 'made-up-report',
         ]);
 
         try {
-            app(BuildReport::class, ['reportRunId' => $run->id])->handle(app(ReportRegistry::class));
+            app(BuildReport::class, ['reportRunId' => $run->id])->handle(app(ReportRegistry::class), app(ExportFormatRegistry::class));
         } catch (InvalidValueException) {
             // The job records the failure before it gives up.
         }

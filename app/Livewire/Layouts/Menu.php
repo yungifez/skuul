@@ -233,6 +233,13 @@ class Menu extends Component
             ['header' => 'Operations'],
             [
                 'type' => 'menu-item',
+                'text' => 'Reports',
+                'icon' => 'file-text',
+                'route' => 'reports.index',
+                'can' => 'read report',
+            ],
+            [
+                'type' => 'menu-item',
                 'text' => 'Family requests',
                 'icon' => 'message-square',
                 'route' => 'portal-requests.index',

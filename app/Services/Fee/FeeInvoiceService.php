@@ -14,14 +14,12 @@ use Illuminate\Support\Facades\DB;
 
 class FeeInvoiceService
 {
-    public function __construct(private ChargeStudent $chargeStudent)
-    {
-    }
+    public function __construct(private ChargeStudent $chargeStudent) {}
 
     /**
      * Store a new Fee Invoice.
      *
-     * @param array $records
+     * @param  array  $records
      */
     public function storeFeeInvoice($records)
     {
@@ -48,10 +46,10 @@ class FeeInvoiceService
             foreach ($records['users'] as $user) {
                 $feeInvoice = FeeInvoice::create([
                     'issue_date' => $records['issue_date'],
-                    'due_date'   => $records['due_date'],
-                    'note'       => $records['note'] ?? null,
-                    'name'       => $this->generateInvoiceNumber(),
-                    'user_id'    => $user,
+                    'due_date' => $records['due_date'],
+                    'note' => $records['note'] ?? null,
+                    'name' => $this->generateInvoiceNumber(),
+                    'user_id' => $user,
                 ]);
 
                 $feeInvoice->feeInvoiceRecords()->createMany($records['records']);
@@ -103,8 +101,8 @@ class FeeInvoiceService
     {
         $feeInvoice->update([
             'issue_date' => $records['issue_date'],
-            'due_date'   => $records['due_date'],
-            'note'       => $records['note'] ?? null,
+            'due_date' => $records['due_date'],
+            'note' => $records['note'] ?? null,
         ]);
 
         return $feeInvoice;
@@ -141,7 +139,7 @@ class FeeInvoiceService
      */
     public function printFeeInvoice(string $name, string $view, array $data)
     {
-        return PrintService::createPdfFromView($view, $data)->download($name.'.pdf');
+        return PrintService::download($view, $data, $name);
     }
 
     /**

@@ -2,29 +2,43 @@
 
 namespace App\Services\Print;
 
-use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\Response;
 
+/**
+ * Print a page of the application as a document.
+ *
+ * The page is an ordinary Blade view with print styles. Which renderer turns
+ * it into a PDF is decided by `App\Services\Print\DocumentRendererRegistry`,
+ * so a school can change renderer without any of these documents changing.
+ */
 class PrintService
 {
     /**
-     * create a pdf from a view.
+     * Render a view and get the bytes of the document.
      *
-     *
-     * @return \Barryvdh\DomPDF\PDF
+     * @param  array<string, mixed>  $data
+     * @param  array{paper?: string, orientation?: string, title?: string}  $options
      */
-    public static function createPdfFromView(string $view, array $data)
+    public static function render(string $view, array $data, array $options = []): string
     {
-        $pdf = Pdf::loadView($view, $data);
-        $pdf->getDomPDF()->setHttpContext(
-            stream_context_create([
-                'ssl' => [
-                    'allow_self_signed' => true,
-                    'verify_peer'       => false,
-                    'verify_peer_name'  => false,
-                ],
-            ])
-        );
+        $html = view($view, $data)->render();
 
-        return $pdf;
+        return app(DocumentRendererRegistry::class)->current()->render($html, $options);
+    }
+
+    /**
+     * Render a view and send it to the reader as a download.
+     *
+     * @param  array<string, mixed>  $data
+     * @param  array{paper?: string, orientation?: string, title?: string}  $options
+     */
+    public static function download(string $view, array $data, string $name, array $options = []): Response
+    {
+        $file = str_replace('"', '', $name).'.pdf';
+
+        return response(self::render($view, $data, $options), 200, [
+            'Content-Type' => 'application/pdf',
+            'Content-Disposition' => "attachment; filename=\"$file\"",
+        ]);
     }
 }

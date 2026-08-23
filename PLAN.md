@@ -1056,7 +1056,21 @@ Progress:
   periods. Staff can issue and list them through the transcript workspace;
   subsequent corrections issue the next revision rather than rewriting the
   prior document.
-- Open: the queued browser-based PDF renderer and spreadsheet exports.
+- Done: a shape is a class behind `App\Contracts\ExportFormat`, listed in
+  `App\Services\Report\ExportFormatRegistry`. Every report can be handed over
+  as a comma-separated file, a spreadsheet, or a printed document, and no
+  report knows which shapes exist.
+- Done: spreadsheets are written straight to the Office XML format, so numbers
+  stay numbers an office can total, and the application gained no dependency.
+- Done: printing is done by whichever renderer the installation sets up
+  (`App\Contracts\DocumentRenderer`). A browser service is used once its
+  address is set; the built-in renderer is the fallback, so an installation
+  that sets nothing still hands out invoices and timetables. Report documents
+  are printed by the worker, so a long document never holds up a request.
+- Done: the reports workspace lists what was asked for, in which shape, by
+  whom, and offers the file once it is ready.
+- Open: report cards and transcripts still print through the same renderer but
+  read the signed-in school, so they cannot yet be queued.
 
 ### 12. Platform operations
 
