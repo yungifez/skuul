@@ -310,6 +310,13 @@ class Menu extends Component
             ],
             [
                 'type' => 'menu-item',
+                'text' => 'Facilities',
+                'icon' => 'building-2',
+                'route' => 'facilities.index',
+                'can' => 'read facility',
+            ],
+            [
+                'type' => 'menu-item',
                 'text' => 'Library',
                 'icon' => 'library',
                 'route' => 'library-copies.index',

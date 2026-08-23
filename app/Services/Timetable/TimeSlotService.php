@@ -68,6 +68,7 @@ class TimeSlotService
             (int) $data['weekday_id'],
             (string) $data['type'],
             (int) $recordableId,
+            isset($data['facility_id']) ? (int) $data['facility_id'] : null,
         );
     }
 
@@ -76,8 +77,13 @@ class TimeSlotService
      *
      * A cell holds one thing, so whatever was there is detached first.
      */
-    public function placeRecord(TimetableTimeSlot $timeSlot, int $weekdayId, string $kind, int $recordableId): void
-    {
+    public function placeRecord(
+        TimetableTimeSlot $timeSlot,
+        int $weekdayId,
+        string $kind,
+        int $recordableId,
+        ?int $facilityId = null,
+    ): void {
         $type = self::recordableTypes()[$kind] ?? null;
 
         if ($type === null) {
@@ -88,6 +94,10 @@ class TimeSlotService
         $timeSlot->weekdays()->attach($weekdayId, [
             'timetable_time_slot_weekdayable_id' => $recordableId,
             'timetable_time_slot_weekdayable_type' => $type,
+
+            // A lesson can be moved out of the section's own room for this
+            // one entry. Publication then checks that place like any other.
+            'facility_id' => $facilityId,
         ]);
     }
 

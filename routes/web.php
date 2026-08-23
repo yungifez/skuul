@@ -14,6 +14,7 @@ use App\Http\Controllers\CustomTimetableItemController;
 use App\Http\Controllers\DormitoryController;
 use App\Http\Controllers\ExamController;
 use App\Http\Controllers\ExamSlotController;
+use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\FeeCategoryController;
 use App\Http\Controllers\FeeController;
 use App\Http\Controllers\FeeInvoiceController;
@@ -318,6 +319,11 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
 
                 // fee invoice record routes
                 Route::resource('fees/fee-invoices/fee-invoice-records', FeeInvoiceRecordController::class);
+
+                // shared facility routes
+                Route::resource('facilities', FacilityController::class)->only(['index', 'store', 'update', 'destroy']);
+                Route::post('facilities/bookings', [FacilityController::class, 'book'])->name('facilities.book');
+                Route::delete('facilities/bookings/{facility_booking}', [FacilityController::class, 'cancelBooking'])->name('facilities.bookings.cancel');
 
                 // boarding routes
                 Route::middleware('feature:boarding')->group(function (): void {

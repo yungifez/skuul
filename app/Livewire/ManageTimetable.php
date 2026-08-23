@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Exceptions\InvalidValueException;
 use App\Models\CustomTimetableItem;
+use App\Models\Facility;
 use App\Models\Subject;
 use App\Models\Timetable;
 use App\Models\TimetableTimeSlot;
@@ -38,6 +39,8 @@ class ManageTimetable extends Component
      * Narrows the list of subjects and breaks to choose from.
      */
     public string $search = '';
+
+    public ?int $facilityId = null;
 
     public string $startTime = '';
 
@@ -81,7 +84,21 @@ class ManageTimetable extends Component
             return;
         }
 
-        $this->write(fn () => $timeSlots->placeRecord($cell[0], $cell[1], $kind, $recordableId));
+        $this->write(fn () => $timeSlots->placeRecord($cell[0], $cell[1], $kind, $recordableId, $this->facilityId));
+    }
+
+    /**
+     * Get the shared places a lesson can be moved into.
+     *
+     * @return Collection<int, Facility>
+     */
+    public function facilities()
+    {
+        return Facility::inSchool()
+            ->active()
+            ->holdsLessons()
+            ->orderBy('name')
+            ->get();
     }
 
     /**

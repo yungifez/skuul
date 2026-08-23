@@ -598,6 +598,19 @@ class PermissionSeeder extends Seeder
             'name' => 'decide overnight leave',
         ]);
 
+        // shared facilities
+        Permission::firstOrCreate([
+            'name' => 'read facility',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'manage facility',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'book facility',
+        ]);
+
         // library
         Permission::firstOrCreate([
             'name' => 'read library',
@@ -849,6 +862,9 @@ class PermissionSeeder extends Seeder
             'read library',
             'manage library',
             'lend library item',
+            'read facility',
+            'manage facility',
+            'book facility',
         ]);
 
         // assign permissions to teacher

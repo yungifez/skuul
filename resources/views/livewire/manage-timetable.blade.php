@@ -50,6 +50,19 @@
                             <april:label for="timetable-search">Find a subject or a break</april:label>
                             <april:input id="timetable-search" wire:model.live.debounce.200ms="search" placeholder="Type to narrow the list" />
                         </div>
+                        @php ($places = $this->facilities())
+                        @if ($places->isNotEmpty())
+                            <div class="flex min-w-56 flex-col gap-2">
+                                <label for="timetable-facility" class="text-sm font-medium leading-none">Where</label>
+                                <select id="timetable-facility" wire:model="facilityId"
+                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                                    <option value="">The section's own room</option>
+                                    @foreach ($places as $place)
+                                        <option value="{{ $place->id }}">{{ $place->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        @endif
                         <april:button type="button" variant="outline" wire:click="clearCell">
                             <x-lucide-eraser class="mr-2 size-4" />
                             Leave it empty

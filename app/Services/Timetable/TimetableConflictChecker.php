@@ -3,6 +3,7 @@
 namespace App\Services\Timetable;
 
 use App\Enums\RosterMode;
+use App\Models\Facility;
 use App\Models\Subject;
 use App\Models\TeachingAssignment;
 use App\Models\Timetable;
@@ -100,11 +101,13 @@ class TimetableConflictChecker
     }
 
     /**
-     * Find sections that have claimed the same named room at the same time.
+     * Find sections that have claimed the same place at the same time.
      *
-     * A section room is optional, so schedules without one remain valid.
-     * Schools that use one stable homeroom per section gain room protection
-     * without having to configure a separate facilities catalogue first.
+     * A place is the shared hall or laboratory a lesson was moved into, or,
+     * when it was not moved, the section's own room. A section room is
+     * optional, so schedules without one remain valid: a school that uses one
+     * stable homeroom per section gains room protection without configuring
+     * a facilities catalogue first.
      *
      * @return array<int, string>
      */
@@ -142,8 +145,6 @@ class TimetableConflictChecker
 
     /**
      * Read the lessons of a timetable with the teachers who take them.
-     *
-     * @return Collection
      */
     private function entriesOf(Timetable $timetable): Collection
     {
@@ -163,6 +164,9 @@ class TimetableConflictChecker
             ->get()
             ->keyBy('id');
         $cycleSection = $timetable->academicCycleSection;
+        $facilityNames = Facility::query()
+            ->whereKey($records->pluck('facility_id')->filter()->unique())
+            ->pluck('name', 'id');
         $assignmentsBySubject = $cycleSection === null || $subjects->isEmpty()
             ? collect()
             : TeachingAssignment::query()
@@ -183,7 +187,7 @@ class TimetableConflictChecker
                 ->groupBy('subject_id');
 
         /** @var Collection<int, array{weekday_id: int, start_time: string, stop_time: string, room: string|null, teacher_ids: array<int, int>, teacher_names: array<int|string, string>}> $entries */
-        $entries = $records->map(function (TimetableRecord $record) use ($assignmentsBySubject, $slots, $subjectMorphClass, $subjects, $timetable): ?array {
+        $entries = $records->map(function (TimetableRecord $record) use ($assignmentsBySubject, $facilityNames, $slots, $subjectMorphClass, $subjects, $timetable): ?array {
             $slot = $slots->get($record->timetable_time_slot_id);
             $subject = $record->timetable_time_slot_weekdayable_type === $subjectMorphClass
                 ? $subjects->get($record->timetable_time_slot_weekdayable_id)
@@ -201,7 +205,11 @@ class TimetableConflictChecker
                 'weekday_id'    => (int) $record->weekday_id,
                 'start_time'    => (string) $slot->start_time,
                 'stop_time'     => (string) $slot->stop_time,
-                'room'          => filled($timetable->academicCycleSection?->room) ? $timetable->academicCycleSection->room : null,
+                // A lesson moved into a shared place claims that place. Every
+                // other lesson keeps the section's own room.
+                'room'          => $record->facility_id !== null
+                    ? $facilityNames->get($record->facility_id)
+                    : (filled($timetable->academicCycleSection?->room) ? $timetable->academicCycleSection->room : null),
                 'teacher_ids'   => $teachers->pluck('id')->map(fn ($id): int => (int) $id)->all(),
                 'teacher_names' => $teachers->pluck('name', 'id')->all(),
             ];

@@ -709,8 +709,19 @@ Progress:
   approving staff member, and date without mutating the normal timetable.
 - Done: a section's optional home room is validated on publication, so two
   sections cannot publish overlapping lessons into the same named room.
-- Open: a bookable facilities catalogue for labs, halls, vehicles, and shared
-  equipment, which can override the section's normal room for one entry.
+- Done: a bookable catalogue of the things a campus shares. `facilities`
+  covers halls, laboratories, sports grounds, vehicles, and kit; only the
+  kinds that hold lessons are offered to a timetable.
+- Done: a timetable entry can name a facility, which moves that one lesson out
+  of the section's own room. The publication check reads the facility as the
+  entry's place, so two sections cannot publish lessons into the same hall at
+  the same time.
+- Done: dated `facility_bookings` for anything outside the weekly timetable.
+  A booking is refused when somebody already has it or when a published lesson
+  is scheduled there, and a booking that ends as another starts is allowed, so
+  a hall passes straight from one class to the next.
+- Open: recurring bookings, and asking a family's permission for a vehicle
+  trip.
 
 ### 8. Examinations and results
 
