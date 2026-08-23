@@ -138,6 +138,11 @@ enum AuditAction: string
     case StudentRefunded = 'payment.refunded';
 
     /**
+     * A campus said what an account is allowed to spend or take in.
+     */
+    case BudgetSet = 'budget.set';
+
+    /**
      * A notice was put on the board.
      */
     case NoticePublished = 'notice.published';
@@ -405,6 +410,7 @@ enum AuditAction: string
             self::PaymentReversed                          => 'Payment taken back',
             self::StudentCreditApplied                     => 'Credit used against fees',
             self::StudentRefunded                          => 'Money given back',
+            self::BudgetSet                                => 'Budget set',
             self::NoticePublished                          => 'Notice published',
             self::NoticeScheduled                          => 'Notice scheduled',
             self::NoticeExpired                            => 'Notice expired',

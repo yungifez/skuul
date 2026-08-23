@@ -29,6 +29,8 @@ class LedgerLine extends Model
         'credit',
         'memo',
         'student_record_id',
+        'program_id',
+        'fund',
     ];
 
     /**
@@ -37,8 +39,8 @@ class LedgerLine extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'debit'      => 'float',
-        'credit'     => 'float',
+        'debit' => 'float',
+        'credit' => 'float',
         'created_at' => 'datetime',
     ];
 
@@ -74,6 +76,16 @@ class LedgerLine extends Model
     public function account(): BelongsTo
     {
         return $this->belongsTo(LedgerAccount::class, 'ledger_account_id');
+    }
+
+    /**
+     * Get the programme this line is counted against, when it names one.
+     *
+     * @return BelongsTo<Program, $this>
+     */
+    public function program(): BelongsTo
+    {
+        return $this->belongsTo(Program::class);
     }
 
     /**

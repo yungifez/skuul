@@ -3,6 +3,7 @@
 namespace App\Livewire\Layouts;
 
 use App\Enums\Feature;
+use App\Enums\PortalArea;
 use App\Models\CalendarEvent;
 use App\Models\CampusMoveRequest;
 use App\Models\DataSharingRequest;
@@ -11,7 +12,10 @@ use App\Models\Organization;
 use App\Models\StaffLeaveRequest;
 use App\Models\StaffProfile;
 use App\Models\StudentHealthRecord;
+use App\Models\StudentRecord;
 use App\Models\SupportPlan;
+use App\Models\User;
+use App\Services\Portal\PortalAccess;
 use Livewire\Component;
 
 class Menu extends Component
@@ -27,6 +31,7 @@ class Menu extends Component
         // A person can hold organization authority without a working school,
         // so the sidebar must render before any school is chosen.
         $organization = current_school()?->organization;
+        $portalEnrollment = $this->portalEnrollment($user);
         $this->menu = [
             [
                 'type'  => 'menu-item',
@@ -34,6 +39,16 @@ class Menu extends Component
                 'text'  => 'Dashboard',
                 'route' => 'dashboard',
             ],
+            ...($portalEnrollment === null ? [] : [
+                ['header' => 'My school'],
+                [
+                    'type' => 'menu-item',
+                    'icon' => 'calendar-days',
+                    'text' => 'School calendar',
+                    'route' => 'portal.calendar.index',
+                    'parameters' => [$portalEnrollment],
+                ],
+            ]),
             ['header' => 'Organization'],
             [
                 'type'    => 'menu-item',
@@ -281,6 +296,13 @@ class Menu extends Component
             ],
             [
                 'type' => 'menu-item',
+                'text' => 'Budgets',
+                'icon' => 'wallet',
+                'route' => 'budgets.index',
+                'can' => 'read budget',
+            ],
+            [
+                'type' => 'menu-item',
                 'text' => 'Imports',
                 'icon' => 'upload',
                 'route' => 'imports.index',
@@ -302,6 +324,32 @@ class Menu extends Component
     public function render()
     {
         return view('livewire.layouts.menu');
+    }
+
+    /**
+     * Get the enrollment whose portal this person reads.
+     *
+     * A staff member holds no enrollment and no children, so the family
+     * entries stay hidden for them. A guardian of more than one child reads
+     * the first, and every family screen names the child it is showing.
+     */
+    private function portalEnrollment(User $user): ?StudentRecord
+    {
+        $access = app(PortalAccess::class);
+
+        /** @var StudentRecord|null $enrollment */
+        $enrollment = $access->enrollmentsFor($user)->first();
+
+        if ($enrollment === null) {
+            return null;
+        }
+
+        // A family holds no working school, so both gates read the school the
+        // child attends.
+        $isOpen = $access->areaIsOpen(PortalArea::Calendar, $enrollment->school_id)
+            && features()->enabled(Feature::Events, $enrollment->school_id);
+
+        return $isOpen ? $enrollment : null;
     }
 
     /**

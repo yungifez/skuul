@@ -585,6 +585,15 @@ class PermissionSeeder extends Seeder
             'name' => 'delete fee invoice record',
         ]);
 
+        // budgets
+        Permission::firstOrCreate([
+            'name' => 'read budget',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'manage budget',
+        ]);
+
         // student money that leaves the school again
         Permission::firstOrCreate([
             'name' => 'refund student payment',
@@ -806,6 +815,8 @@ class PermissionSeeder extends Seeder
             'update fee invoice record',
             'delete fee invoice record',
             'refund student payment',
+            'read budget',
+            'manage budget',
         ]);
 
         // assign permissions to teacher

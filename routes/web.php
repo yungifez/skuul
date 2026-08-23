@@ -6,6 +6,7 @@ use App\Http\Controllers\AcademicLevelController;
 use App\Http\Controllers\AcademicPeriodController;
 use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CalendarTemplateController;
 use App\Http\Controllers\CourseOfferingController;
 use App\Http\Controllers\CustomTimetableItemController;
@@ -311,6 +312,9 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
 
                 // fee invoice record routes
                 Route::resource('fees/fee-invoices/fee-invoice-records', FeeInvoiceRecordController::class);
+
+                // budget routes
+                Route::resource('fees/budgets', BudgetController::class)->only(['index', 'store', 'destroy']);
 
                 // student account routes
                 Route::get('fees/accounts/{student_record}', [StudentAccountController::class, 'show'])->name('student-accounts.show');
