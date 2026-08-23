@@ -34,7 +34,8 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
 <div class="contents">
     {{-- Livewire renders this view on its own, so @aware cannot reach the
     sidebar-layout above it. Both sides read the stored state instead. --}}
-    <april:sidebar collapsible="icon" :default-open="sidebar_open()" class="border-r max-h-svh sticky top-0">
+    <april:sidebar x-persist="sidebar" collapsible="icon" :default-open="sidebar_open()"
+        class="border-r max-h-svh sticky top-0">
         <slot:header>
             <a href="{{route('home')}}" class="flex h-10 items-center gap-2" aria-label="Home">
                 <img src="{{asset(current_school()->logoURL ?? config('app.logo'))}}" alt=""
@@ -76,8 +77,10 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
                                 @foreach ($menuItem['submenu'] as $submenu)
                                 @if ($submenu['visible'] ?? true)
                                 <april:sidebar-menu-item>
-                                    <april:sidebar-menu-button-link href="{{route($submenu['route'])}}" wire:navigate
-                                        class="pl-3 {{Route::currentRouteName() == $submenu['route'] ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground' : ''}}">
+                                    <april:sidebar-menu-button-link href="{{route($submenu['route'])}}"
+                                        wire:navigate:scroll
+                                        wire:current.exact="bg-sidebar-accent font-medium text-sidebar-accent-foreground"
+                                        class="pl-3">
                                         <x-icon :name="'lucide-'.($submenu['icon'] ?? 'circle')" class="w-4 shrink-0" />
                                         <span>{{$submenu['text']}}</span>
                                     </april:sidebar-menu-button-link>
@@ -88,8 +91,9 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
                         </div>
                         @else
                         <april:sidebar-menu-item>
-                            <april:sidebar-menu-button-link href="{{route($menuItem['route'], $menuItem['parameters'] ?? [])}}" wire:navigate
-                                class="{{Route::currentRouteName() == $menuItem['route'] ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground' : ''}}">
+                            <april:sidebar-menu-button-link
+                                href="{{route($menuItem['route'], $menuItem['parameters'] ?? [])}}" wire:navigate:scroll
+                                wire:current.exact="bg-sidebar-accent font-medium text-sidebar-accent-foreground">
                                 <x-icon :name="'lucide-'.($menuItem['icon'] ?? 'circle')" class="w-4 shrink-0" />
                                 <span>{{$menuItem['text']}}</span>
                             </april:sidebar-menu-button-link>
@@ -107,7 +111,7 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
         <slot:footer>
             <a href="{{route('profile.show')}}"
                 class="flex h-10 items-center gap-2 rounded-md px-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:justify-center"
-                wire:navigate>
+                wire:navigate:scroll>
                 <img src="{{auth()->user()->profile_photo_url}}" alt=""
                     class="h-8 w-8 rounded-full border object-cover">
                 <span class="min-w-0 truncate group-data-[collapsible=icon]:hidden">{{auth()->user()->name}}</span>

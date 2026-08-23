@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Enums\AcademicStructureStatus;
 use App\Enums\Role;
+use App\Enums\TimetableStatus;
 use App\Models\AcademicCycleSection;
 use App\Models\Timetable;
 use Illuminate\View\View;
@@ -14,7 +15,7 @@ class ListTimetablesTable extends Component
     /** @var array<int, array{id: int, label: string}> */
     public array $cycleSections = [];
 
-    /** @var array<int, array{id: int, name: string, description: string|null, status: string, published_at: string|null}> */
+    /** @var array<int, array{id: int, name: string, description: string|null, status: string, variant: string, revision: int, published_at: string|null, can_manage: bool}> */
     public array $timetables = [];
 
     public ?int $academicCycleSectionId = null;
@@ -80,7 +81,15 @@ class ListTimetablesTable extends Component
                 'name'         => $timetable->name,
                 'description'  => $timetable->description,
                 'status'       => $timetable->status->label(),
+                'variant'      => match ($timetable->status) {
+                    TimetableStatus::Draft => 'secondary',
+                    TimetableStatus::Published => 'default',
+                    TimetableStatus::Archived => 'outline',
+                },
+                'revision'     => $timetable->revision,
                 'published_at' => $timetable->published_at?->toFormattedDateString(),
+                // Only a draft accepts changes, so only a draft is built.
+                'can_manage' => auth()->user()->can('update', $timetable),
             ])
             ->all();
     }

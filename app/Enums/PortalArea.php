@@ -12,6 +12,7 @@ enum PortalArea: string
     case Results = 'results';
     case Attendance = 'attendance';
     case Timetable = 'timetable';
+    case Calendar = 'calendar';
     case Notices = 'notices';
     case Invoices = 'invoices';
     case Documents = 'documents';
@@ -23,13 +24,14 @@ enum PortalArea: string
     public function label(): string
     {
         return match ($this) {
-            self::Results    => 'Results',
+            self::Results => 'Results',
             self::Attendance => 'Attendance',
-            self::Timetable  => 'Timetable',
-            self::Notices    => 'Notices',
-            self::Invoices   => 'Invoices and payments',
-            self::Documents  => 'Documents',
-            self::Requests   => 'Requests',
+            self::Timetable => 'Timetable',
+            self::Calendar => 'School calendar',
+            self::Notices => 'Notices',
+            self::Invoices => 'Invoices and payments',
+            self::Documents => 'Documents',
+            self::Requests => 'Requests',
         };
     }
 

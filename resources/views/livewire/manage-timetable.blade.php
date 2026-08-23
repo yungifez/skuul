@@ -1,133 +1,146 @@
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title">Manage Timetable</h4>
-        <x-timetable-status-control :timetable="$timetable" />
-    </div>
-    <div class="card-body">
-        {{--form for creating timeSlots--}}
-        <x-display-validation-errors/>
-        <x-loading-spinner/>
-        <!--Adds scrolling offset-->
-        <div class=" relative bottom-24"id="create-timetable-record" ></div>
-        <div class="md:grid grid-cols-4 gap-2" >
-            <div class="flex w-full flex-col gap-2">
-                <april:label for="timeslot">Time Slot</april:label>
-                <april:select id="timeslot" name="timeSlot" wire:model.live="timeSlot">
-                @isset($timeSlots)
-                    @foreach ($timeSlots as $item)
-                        <option value="{{$item['id']}}" > {{$item->name}}</option>
+<div class="space-y-6">
+    @error('timetable')
+        <april:alert variant="destructive">
+            <slot:title>That change was refused</slot:title>
+            <slot:description>{{ $message }}</slot:description>
+        </april:alert>
+    @enderror
+
+    @if ($conflicts !== [])
+        <april:alert variant="destructive">
+            <slot:icon><x-lucide-triangle-alert class="size-4" /></slot:icon>
+            <slot:title>{{ count($conflicts) }} {{ Str::plural('clash', count($conflicts)) }} to settle before publishing</slot:title>
+            <slot:description>
+                <ul class="mt-1 list-disc space-y-1 pl-4">
+                    @foreach ($conflicts as $conflict)
+                        <li>{{ $conflict }}</li>
                     @endforeach
-                    @if ($timeSlots->isEmpty())
-                        <option selected>Create Time Slot first</option>
-                    @endif
-                @endisset
+                </ul>
+            </slot:description>
+        </april:alert>
+    @endif
 
-                </april:select>
-                @error('timeSlot')
-                    <p class="text-sm text-destructive">{{ $message }}</p>
-                @enderror
+    <april:card>
+        <slot:title>The week</slot:title>
+        <slot:description>
+            Choose a place on the week, then choose what goes there.
+            {{ $grid['filled_count'] }} of {{ $grid['slot_count'] }} places are taken.
+        </slot:description>
+        <slot:content>
+            <div class="space-y-4">
+                @include('livewire.partials.timetable-grid', [
+                    'grid' => $grid,
+                    'editable' => true,
+                    'selected' => $selected,
+                ])
+
+                <div wire:loading class="text-xs text-muted-foreground">Saving…</div>
             </div>
-            @if(!is_null($timeSlot))
-                <form action="{{route('timetables.records.create',[$timeSlot])}}#create-timetable-record" method="POST" class="md:grid col-span-3 grid-cols-3 gap-2" >
-                    @csrf
-                    <div class="flex w-full flex-col gap-2">
-                        <april:label for="weekday-id">Day of week</april:label>
-                        <april:select id="weekday-id" name="weekday_id" wire:model.live="weekday">
-                        @isset($weekdays)
-                            @foreach ($weekdays as $item)
-                                <option value="{{$item['id']}}"> {{$item->name}}</option>
-                            @endforeach
-                        @endisset
+        </slot:content>
+    </april:card>
 
-                        </april:select>
-                        @error('weekday_id')
-                            <p class="text-sm text-destructive">{{ $message }}</p>
-                        @enderror
+    @if ($this->selectedLabel !== null)
+        <april:card class="border-primary">
+            <slot:title>{{ $this->selectedLabel }}</slot:title>
+            <slot:description>Choose a subject to teach then, or a part of the day that is not a lesson.</slot:description>
+            <slot:content>
+                <div class="space-y-4">
+                    <div class="flex flex-wrap items-end gap-3">
+                        <div class="flex min-w-56 flex-1 flex-col gap-2">
+                            <april:label for="timetable-search">Find a subject or a break</april:label>
+                            <april:input id="timetable-search" wire:model.live.debounce.200ms="search" placeholder="Type to narrow the list" />
+                        </div>
+                        <april:button type="button" variant="outline" wire:click="clearCell">
+                            <x-lucide-eraser class="mr-2 size-4" />
+                            Leave it empty
+                        </april:button>
                     </div>
-                    <div class="flex w-full flex-col gap-2">
-                        <april:label for="type">Record Type</april:label>
-                        <april:select id="type" name="type" wire:model.live="type">
-                        @isset($types)
-                            @foreach ($types as $item)
-                                <option value="{{$item}}"> {{str()->title(str()->snake($item, " "))}}</option>
-                            @endforeach
-                        @endisset
 
-                        </april:select>
-                        @error('type')
-                            <p class="text-sm text-destructive">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div class="flex w-full flex-col gap-2">
-                        <april:label for="id">Subject/Custom Item</april:label>
-                        <april:select id="id" name="id">
-                        <option  value="">Make Blank</option>
-                        @isset($types)
-                            @switch($type)
-                                @case('subject')
-                                    @isset($subjects)
-                                        @foreach ($subjects as $subject)
-                                            <option value="{{$subject['id']}}">{{$subject['name']}}</option>
-                                        @endforeach
-                                    @endisset
-                                    @break
-                                @case('customTimetableItem')
-                                    @foreach ($customItems as $customTimetableItem)
-                                        <option value="{{$customTimetableItem['id']}}">{{$customTimetableItem['name']}}</option>
+                    <div class="grid gap-6 lg:grid-cols-2">
+                        <div>
+                            <p class="text-sm font-medium">Subjects</p>
+                            @if ($this->subjects->isEmpty())
+                                <p class="mt-2 text-sm text-muted-foreground">
+                                    No subject is offered to this home group{{ $search === '' ? '' : ' under that search' }}.
+                                </p>
+                            @else
+                                <div class="mt-2 flex flex-wrap gap-2">
+                                    @foreach ($this->subjects as $subject)
+                                        <april:button type="button" variant="outline" size="sm"
+                                            wire:click="assign('subject', {{ $subject->id }})">
+                                            {{ $subject->name }}
+                                        </april:button>
                                     @endforeach
-                                    @break
-                                @default
-                                    <option value="" disabled selected>Select a type</option>
-                            @endswitch
-                        @endisset
+                                </div>
+                            @endif
+                        </div>
 
-                        </april:select>
-                        @error('id')
-                            <p class="text-sm text-destructive">{{ $message }}</p>
-                        @enderror
+                        <div>
+                            <p class="text-sm font-medium">Not a lesson</p>
+                            @if ($this->customItems->isEmpty())
+                                <p class="mt-2 text-sm text-muted-foreground">
+                                    Break, assembly, and registration are custom items.
+                                    <a class="underline" href="{{ route('custom-timetable-items.index') }}">Add one</a>.
+                                </p>
+                            @else
+                                <div class="mt-2 flex flex-wrap gap-2">
+                                    @foreach ($this->customItems as $item)
+                                        <april:button type="button" variant="secondary" size="sm"
+                                            wire:click="assign('customTimetableItem', {{ $item->id }})">
+                                            {{ $item->name }}
+                                        </april:button>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
                     </div>
-                    <april:button type="submit" class="w-full">
-                        Attach
+                </div>
+            </slot:content>
+        </april:card>
+    @endif
+
+    <april:card>
+        <slot:title>Time slots</slot:title>
+        <slot:description>Every day of the week runs on these times. Removing one takes its lessons with it.</slot:description>
+        <slot:content>
+            <div class="space-y-4">
+                <form wire:submit="addTimeSlot" class="flex flex-wrap items-end gap-3">
+                    <div class="flex flex-col gap-2">
+                        <april:label for="start-time">Starts</april:label>
+                        <input type="time" id="start-time" wire:model="startTime"
+                            class="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                        @error('startTime') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="flex flex-col gap-2">
+                        <april:label for="stop-time">Ends</april:label>
+                        <input type="time" id="stop-time" wire:model="stopTime"
+                            class="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                        @error('stopTime') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                    </div>
+                    <april:button type="submit">
+                        <x-lucide-plus class="mr-2 size-4" />
+                        Add time slot
                     </april:button>
                 </form>
-            @endisset
-        </div>
-        <livewire:show-timetable :timetable="$timetable" :showDescription="false" :disableEmitCellInformationDetail="false"/>
 
-        {{--Create timeslot form--}}
-        <form action="{{route('time-slots.store')."#create-time-slot"}}" id="create-time-slot" method="post" class="my-3 md:grid grid-cols-3 w-full items-end gap-4 ">
-            <h4 class="col-span-3 text-center text-xl">Create time slot</h4>
-            <input type="hidden" name="timetable_id" value="{{$timetable->id}}">
-            <april:input-group id="start_time" name="start_time" type="time" placeholder="select a start time" label="Start time" />
-            <april:input-group id="stop-time" name="stop_time" type="time" placeholder="select a start time" label="Stop time" />
-            @csrf
-
-            <april:button type="submit" class="w-full">
-                <x-lucide-key class="mr-2 size-4" />
-                Create
-            </april:button>
-
-        </form>
-
-        <h4 class="text-center text-xl">Time Slots</h4>
-        <livewire:datatable :model="App\Models\TimetableTimeSlot::Class"
-        :filters="[
-            ['name' => 'where' , 'arguments' => ['timetable_id' , $timetable->id]]
-        ]"
-        :columns="[
-            ['name' => 'name'],
-            ['property' => 'start_time'],
-            ['property' => 'stop_time'],
-            ['type' => 'delete', 'action' => 'time-slots.destroy', 'name' => 'delete']
-        ]"/>
-    </div>
-
-    @push('scripts')
-        <script>
-            Livewire.on('timetableCellClicked', () => {
-                console.log('hi');
-                document.getElementById('create-timetable-record').scrollIntoView();
-            })
-        </script>
-    @endpush
+                @if ($this->timeSlots->isEmpty())
+                    <p class="text-sm text-muted-foreground">The week has no time slots yet.</p>
+                @else
+                    <ul class="divide-y rounded-md border">
+                        @foreach ($this->timeSlots as $slot)
+                            <li class="flex items-center justify-between gap-3 px-4 py-2 text-sm">
+                                <span class="font-medium">{{ $slot->start_time }} to {{ $slot->stop_time }}</span>
+                                <april:button type="button" variant="ghost" size="sm"
+                                    wire:click="removeTimeSlot({{ $slot->id }})"
+                                    wire:confirm="Remove this time slot and everything placed in it?">
+                                    <x-lucide-trash-2 class="size-4" />
+                                    <span class="sr-only">Remove {{ $slot->start_time }} to {{ $slot->stop_time }}</span>
+                                </april:button>
+                            </li>
+                        @endforeach
+                    </ul>
+                @endif
+            </div>
+        </slot:content>
+    </april:card>
 </div>

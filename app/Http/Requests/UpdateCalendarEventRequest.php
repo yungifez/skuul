@@ -4,11 +4,14 @@ namespace App\Http\Requests;
 
 use App\Enums\CalendarEventType;
 use App\Models\AcademicCycleSection;
+use App\Traits\ValidatesSchoolMembership;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class UpdateCalendarEventRequest extends FormRequest
 {
+    use ValidatesSchoolMembership;
+
     /**
      * Determine whether the person may change this event.
      */
@@ -37,6 +40,8 @@ class UpdateCalendarEventRequest extends FormRequest
                 'integer',
                 Rule::exists((new AcademicCycleSection)->getTable(), 'id')->where('school_id', current_school_id()),
             ],
+            'user_ids' => ['nullable', 'array'],
+            'user_ids.*' => ['integer', $this->memberOfWorkingSchool()],
         ];
     }
 

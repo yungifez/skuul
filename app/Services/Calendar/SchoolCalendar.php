@@ -67,6 +67,26 @@ class SchoolCalendar
     }
 
     /**
+     * Get the published events one enrollment reads.
+     *
+     * The enrollment names its own school. A family holds no working school,
+     * so the portal cannot use `inSchool()` here.
+     *
+     * @return Collection<int, CalendarEvent>
+     */
+    public function forEnrollment(StudentRecord $enrollment, DateTimeInterface|string $from, DateTimeInterface|string $to): Collection
+    {
+        $query = CalendarEvent::query()
+            ->where('school_id', $enrollment->school_id)
+            ->published()
+            ->between($from, $to);
+
+        $this->limitToAudience($query, $enrollment->user_id, $enrollment->academic_cycle_section_id);
+
+        return $query->orderBy('starts_at')->get();
+    }
+
+    /**
      * Keep only the events a person is part of.
      *
      * @param Builder<CalendarEvent> $query
@@ -78,15 +98,45 @@ class SchoolCalendar
         /** @var StudentRecord|null $enrollment */
         $enrollment = $person->studentRecord;
 
-        return $query->where(function (Builder $query) use ($person, $enrollment): void {
-            // An event with no audience is for the whole school.
-            $query->whereDoesntHave('audiences')
-                ->orWhereHas('audiences', function (Builder $audience) use ($person, $enrollment): void {
-                    $audience->where('user_id', $person->id);
+        $this->limitToAudience($query, $person->id, $enrollment?->academic_cycle_section_id);
 
-                    if ($enrollment?->academic_cycle_section_id !== null) {
-                        $audience->orWhere('academic_cycle_section_id', $enrollment->academic_cycle_section_id);
-                    }
+        return $query;
+    }
+
+    /**
+     * Keep only the events a reader of this shape is part of.
+     *
+     * An event with no audience is for the whole school. An event that names
+     * an audience reaches the reader only when it names them or their home
+     * group.
+     *
+     * The names are grouped inside their own closure on purpose. An `or`
+     * written straight into a `whereHas` closure sits beside the relation's
+     * own join condition, and `and` binds tighter than `or`, so the name
+     * escapes the join and matches audience rows of every other event.
+     *
+     * @param  Builder<CalendarEvent>  $query
+     */
+    private function limitToAudience(Builder $query, ?int $userId, ?int $sectionId): void
+    {
+        if ($userId === null && $sectionId === null) {
+            $query->whereDoesntHave('audiences');
+
+            return;
+        }
+
+        $query->where(function (Builder $query) use ($userId, $sectionId): void {
+            $query->whereDoesntHave('audiences')
+                ->orWhereHas('audiences', function (Builder $audience) use ($userId, $sectionId): void {
+                    $audience->where(function (Builder $named) use ($userId, $sectionId): void {
+                        if ($userId !== null) {
+                            $named->orWhere('user_id', $userId);
+                        }
+
+                        if ($sectionId !== null) {
+                            $named->orWhere('academic_cycle_section_id', $sectionId);
+                        }
+                    });
                 });
         });
     }

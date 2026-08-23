@@ -30,6 +30,7 @@
             'event' => null,
             'types' => $types,
             'sections' => $sections,
+            'people' => $people,
             'day' => $day,
         ])
 

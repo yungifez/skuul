@@ -5,11 +5,14 @@ namespace App\Http\Requests;
 use App\Enums\CalendarEventType;
 use App\Models\AcademicCycleSection;
 use App\Models\CalendarEvent;
+use App\Traits\ValidatesSchoolMembership;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreCalendarEventRequest extends FormRequest
 {
+    use ValidatesSchoolMembership;
+
     /**
      * Determine whether the person may add a day to the calendar.
      */
@@ -38,6 +41,8 @@ class StoreCalendarEventRequest extends FormRequest
                 'integer',
                 Rule::exists((new AcademicCycleSection)->getTable(), 'id')->where('school_id', current_school_id()),
             ],
+            'user_ids' => ['nullable', 'array'],
+            'user_ids.*' => ['integer', $this->memberOfWorkingSchool()],
         ];
     }
 

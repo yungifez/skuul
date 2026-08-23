@@ -88,6 +88,7 @@
                     'event' => $event,
                     'types' => $types,
                     'sections' => $sections,
+                    'people' => $people,
                     'day' => $event->starts_at,
                 ])
 

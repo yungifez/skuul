@@ -6,6 +6,8 @@ use App\Enums\CalendarEventType;
 use App\Enums\Feature;
 use App\Models\AcademicCycleSection;
 use App\Models\CalendarEvent;
+use App\Models\School;
+use App\Models\User;
 use App\Services\Calendar\SchoolCalendar;
 use App\Services\Feature\FeatureManager;
 use App\Traits\FeatureTestTrait;
@@ -227,6 +229,70 @@ class CalendarEventScreenTest extends TestCase
         app(FeatureManager::class)->disable(Feature::Events);
 
         $this->get(route('calendar-events.index'))->assertNotFound();
+    }
+
+    public function test_a_day_can_name_the_people_it_is_for(): void
+    {
+        $this->authorized_user(['read calendar event', 'create calendar event', 'update calendar event']);
+        $person = $this->memberOf($this->workingSchool());
+
+        $this->post(route('calendar-events.store'), [
+            'title' => 'A meeting about one child',
+            'type' => CalendarEventType::Appointment->value,
+            'is_all_day' => '0',
+            'starts_at' => now()->format('Y-m-d\TH:i'),
+            'ends_at' => now()->addHour()->format('Y-m-d\TH:i'),
+            'user_ids' => [$person->id],
+        ]);
+
+        $event = CalendarEvent::inSchool()->sole();
+
+        $this->assertSame($person->id, $event->audiences()->sole()->user_id);
+        $this->assertFalse($event->isForEverybody());
+    }
+
+    public function test_a_day_cannot_name_somebody_from_another_school(): void
+    {
+        $this->authorized_user(['read calendar event', 'create calendar event']);
+        $stranger = $this->personOfAnotherSchool();
+
+        $this->post(route('calendar-events.store'), [
+            'title' => 'A meeting about one child',
+            'type' => CalendarEventType::Appointment->value,
+            'is_all_day' => '0',
+            'starts_at' => now()->format('Y-m-d\TH:i'),
+            'ends_at' => now()->addHour()->format('Y-m-d\TH:i'),
+            'user_ids' => [$stranger->id],
+        ])->assertSessionHasErrors('user_ids.0');
+
+        $this->assertSame(0, CalendarEvent::inSchool()->count());
+    }
+
+    public function test_the_form_offers_the_people_of_this_school_only(): void
+    {
+        $this->authorized_user(['read calendar event', 'create calendar event']);
+        $colleague = $this->memberOf($this->workingSchool(), User::factory()->create(['name' => 'Ada Colleague']));
+        $this->personOfAnotherSchool('Ben Elsewhere');
+
+        $this->get(route('calendar-events.create'))
+            ->assertOk()
+            ->assertSee('Ada Colleague')
+            ->assertDontSee('Ben Elsewhere')
+            ->assertSee('value="'.$colleague->id.'"', escape: false);
+    }
+
+    /**
+     * Make a person who belongs to another school only.
+     *
+     * The user factory grants a membership in the working school, so the
+     * membership has to go before the other school is named.
+     */
+    private function personOfAnotherSchool(?string $name = null): User
+    {
+        $person = User::factory()->create($name === null ? [] : ['name' => $name]);
+        $person->schoolMemberships()->delete();
+
+        return $this->memberOf(School::factory()->create(), $person->refresh());
     }
 
     /**

@@ -8,6 +8,10 @@
         'academic_cycle_section_ids',
         $event?->audiences->pluck('academic_cycle_section_id')->filter()->all() ?? [],
     ))->map(fn ($id) => (int) $id);
+    $chosenPeople = collect(old(
+        'user_ids',
+        $event?->audiences->pluck('user_id')->filter()->all() ?? [],
+    ))->map(fn ($id) => (int) $id);
     $startsAt = old('starts_at', $event?->starts_at?->format('Y-m-d\TH:i') ?? $day->format('Y-m-d\T08:00'));
     $endsAt = old('ends_at', $event?->ends_at?->format('Y-m-d\TH:i') ?? $day->format('Y-m-d\T15:00'));
 @endphp
@@ -80,25 +84,49 @@
 <april:card>
     <slot:title>Who it is for</slot:title>
     <slot:description>
-        Name no home group and the day is for the whole school. Name one or more and only those
-        families read it in the portal.
+        Name nobody and the day is for the whole school. Name a home group or a person and only
+        they read it in the portal.
     </slot:description>
     <slot:content>
-        @if ($sections->isEmpty())
-            <x-empty-state icon="lucide-users" title="This school has no home groups yet"
-                description="The day will be for the whole school." />
-        @else
-            <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                @foreach ($sections as $section)
-                    <label class="flex items-center gap-2 rounded-md border p-3 text-sm">
-                        <input type="checkbox" name="academic_cycle_section_ids[]" value="{{ $section->id }}"
-                            @checked($chosenSections->contains($section->id))
-                            class="size-4 rounded border-input text-primary focus:ring-2 focus:ring-ring">
-                        {{ $section->name }}
-                    </label>
-                @endforeach
+        <div class="space-y-6">
+            <div>
+                <p class="text-sm font-medium">Home groups</p>
+                @if ($sections->isEmpty())
+                    <p class="mt-2 text-sm text-muted-foreground">This school has no home groups yet.</p>
+                @else
+                    <div class="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                        @foreach ($sections as $section)
+                            <label class="flex items-center gap-2 rounded-md border p-3 text-sm">
+                                <input type="checkbox" name="academic_cycle_section_ids[]" value="{{ $section->id }}"
+                                    @checked($chosenSections->contains($section->id))
+                                    class="size-4 rounded border-input text-primary focus:ring-2 focus:ring-ring">
+                                {{ $section->name }}
+                            </label>
+                        @endforeach
+                    </div>
+                    @error('academic_cycle_section_ids.*') <p class="mt-2 text-sm text-destructive">{{ $message }}</p> @enderror
+                @endif
             </div>
-            @error('academic_cycle_section_ids.*') <p class="mt-2 text-sm text-destructive">{{ $message }}</p> @enderror
-        @endif
+
+            <div>
+                <p class="text-sm font-medium">People</p>
+                <p class="text-sm text-muted-foreground">An appointment names the people it is between.</p>
+                @if ($people->isEmpty())
+                    <p class="mt-2 text-sm text-muted-foreground">Nobody else belongs to this school yet.</p>
+                @else
+                    <div class="mt-2 max-h-64 space-y-2 overflow-y-auto rounded-md border p-3">
+                        @foreach ($people as $person)
+                            <label class="flex items-center gap-2 text-sm">
+                                <input type="checkbox" name="user_ids[]" value="{{ $person->id }}"
+                                    @checked($chosenPeople->contains($person->id))
+                                    class="size-4 rounded border-input text-primary focus:ring-2 focus:ring-ring">
+                                {{ $person->name }}
+                            </label>
+                        @endforeach
+                    </div>
+                    @error('user_ids.*') <p class="mt-2 text-sm text-destructive">{{ $message }}</p> @enderror
+                @endif
+            </div>
+        </div>
     </slot:content>
 </april:card>

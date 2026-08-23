@@ -11,6 +11,7 @@ Before planning or editing, find the row whose globs match the file's path and r
 | app/Http/Controllers/**, app/Http/Requests/** | .ai/rules/http.md |
 | database/migrations/** | .ai/rules/migrations.md |
 | app/Models/*.php | .ai/rules/models.md |
+| app/Models/*.php, app/Services/**, app/Actions/**, app/Http/Controllers/** | .ai/rules/queries.md |
 | routes/*.php | .ai/rules/routes.md |
 | tests/** | .ai/rules/tests.md |
 | resources/views/**/*.blade.php | .ai/rules/views.md |

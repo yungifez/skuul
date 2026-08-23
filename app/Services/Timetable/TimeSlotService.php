@@ -2,34 +2,46 @@
 
 namespace App\Services\Timetable;
 
-use App\Models\Timetable;
+use App\Models\CustomTimetableItem;
+use App\Models\Subject;
 use App\Models\TimetableTimeSlot;
 
 class TimeSlotService
 {
     /**
+     * The kinds of thing a cell of the week can hold.
+     *
+     * The forms and the builder both send these keys, and only this map turns
+     * one into the class the pivot stores.
+     *
+     * @return array<string, string>
+     */
+    public static function recordableTypes(): array
+    {
+        return [
+            'subject' => (new Subject)->getMorphClass(),
+            'customTimetableItem' => (new CustomTimetableItem)->getMorphClass(),
+        ];
+    }
+
+    /**
      * Create timetable time slot.
      *
-     * @param mixed $data
-     *
-     * @return void
+     * @param  array<string, mixed>  $data
      */
-    public function createTimeSlot($data)
+    public function createTimeSlot(array $data): TimetableTimeSlot
     {
-        TimetableTimeSlot::create([
-            'start_time'   => $data['start_time'],
-            'stop_time'    => $data['stop_time'],
+        return TimetableTimeSlot::create([
+            'start_time' => $data['start_time'],
+            'stop_time' => $data['stop_time'],
             'timetable_id' => $data['timetable_id'],
         ]);
     }
 
     /**
      * Delete Timetable.
-     *
-     *
-     * @return void
      */
-    public function deleteTimeSlot(TimetableTimeSlot $timeSlot)
+    public function deleteTimeSlot(TimetableTimeSlot $timeSlot): void
     {
         $timeSlot->delete();
     }
@@ -37,26 +49,53 @@ class TimeSlotService
     /**
      * Create timetable time record.
      *
-     * @param mixed $data
+     * A request with no chosen item empties the cell instead of filling it.
      *
-     * @return void
+     * @param  array<string, mixed>  $data
      */
-    public function createTimetableRecord(TimetableTimeSlot $timeSlot, $data)
+    public function createTimetableRecord(TimetableTimeSlot $timeSlot, array $data): void
     {
-        // remove existing record
-        if ($timeSlot->weekdays->find($data['weekday_id']) || !isset($data['id']) || $data['id'] != null) {
-            $timeSlot->weekdays()->detach($data['weekday_id']);
+        $recordableId = $data['id'] ?? null;
+
+        if ($recordableId === null || $recordableId === '') {
+            $this->clearRecord($timeSlot, (int) $data['weekday_id']);
+
+            return;
         }
 
-        // i'm sorry for this
-        if ($data['type'] == 'subject') {
-            $data['type'] = 'App\Models\Subject';
-        } elseif ($data['type'] == 'customTimetableItem') {
-            $data['type'] = 'App\Models\CustomTimetableItem';
+        $this->placeRecord(
+            $timeSlot,
+            (int) $data['weekday_id'],
+            (string) $data['type'],
+            (int) $recordableId,
+        );
+    }
+
+    /**
+     * Put one subject or custom item in one cell of the week.
+     *
+     * A cell holds one thing, so whatever was there is detached first.
+     */
+    public function placeRecord(TimetableTimeSlot $timeSlot, int $weekdayId, string $kind, int $recordableId): void
+    {
+        $type = self::recordableTypes()[$kind] ?? null;
+
+        if ($type === null) {
+            return;
         }
 
-        if (isset($data['id']) && $data['id'] != null) {
-            $timeSlot->weekdays()->attach($data['weekday_id'], ['timetable_time_slot_weekdayable_id' => $data['id'], 'timetable_time_slot_weekdayable_type' => $data['type']]);
-        }
+        $timeSlot->weekdays()->detach($weekdayId);
+        $timeSlot->weekdays()->attach($weekdayId, [
+            'timetable_time_slot_weekdayable_id' => $recordableId,
+            'timetable_time_slot_weekdayable_type' => $type,
+        ]);
+    }
+
+    /**
+     * Empty one cell of the week.
+     */
+    public function clearRecord(TimetableTimeSlot $timeSlot, int $weekdayId): void
+    {
+        $timeSlot->weekdays()->detach($weekdayId);
     }
 }

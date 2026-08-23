@@ -8,7 +8,9 @@ use App\Http\Requests\UpdateCalendarEventRequest;
 use App\Models\AcademicCycleSection;
 use App\Models\CalendarEvent;
 use App\Models\CalendarEventAudience;
+use App\Models\User;
 use App\Services\Calendar\SchoolCalendar;
+use App\Traits\ReadsCalendarMonths;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -26,6 +28,8 @@ use Illuminate\Support\Facades\DB;
  */
 class CalendarEventController extends Controller
 {
+    use ReadsCalendarMonths;
+
     public function __construct(private SchoolCalendar $calendar) {}
 
     /**
@@ -41,7 +45,7 @@ class CalendarEventController extends Controller
 
         $events = CalendarEvent::query()
             ->inSchool()
-            ->with('audiences.academicCycleSection:id,name')
+            ->with(['audiences.academicCycleSection:id,name', 'audiences.user:id,name'])
             ->between($month->copy()->startOfMonth(), $month->copy()->endOfMonth())
             ->when(!$request->user()->can('update calendar event'), function (Builder $query): void {
                 $query->published();
@@ -77,6 +81,7 @@ class CalendarEventController extends Controller
         return view('pages.calendar-event.create', [
             'types' => CalendarEventType::cases(),
             'sections' => $this->sections(),
+            'people' => $this->people(),
             'day' => $request->date('day') ?? now(),
         ]);
     }
@@ -112,12 +117,13 @@ class CalendarEventController extends Controller
     {
         $this->authorize('view', $calendarEvent);
 
-        $calendarEvent->load(['audiences.academicCycleSection:id,name', 'createdBy:id,name']);
+        $calendarEvent->load(['audiences.academicCycleSection:id,name', 'audiences.user:id,name', 'createdBy:id,name']);
 
         return view('pages.calendar-event.edit', [
             'event' => $calendarEvent,
             'types' => CalendarEventType::cases(),
             'sections' => $this->sections(),
+            'people' => $this->people(),
         ]);
     }
 
@@ -166,39 +172,6 @@ class CalendarEventController extends Controller
     }
 
     /**
-     * Read the month the screen is showing.
-     */
-    private function monthFrom(Request $request): Carbon
-    {
-        $month = $request->string('month')->toString();
-
-        return rescue(
-            fn (): Carbon => Carbon::createFromFormat('Y-m', $month)->startOfMonth(),
-            fn (): Carbon => now()->startOfMonth(),
-            report: false,
-        );
-    }
-
-    /**
-     * Get every day the month grid shows, whole weeks included.
-     *
-     * @return array<int, Carbon>
-     */
-    private function daysOf(Carbon $month): array
-    {
-        $day = $month->copy()->startOfMonth()->startOfWeek();
-        $last = $month->copy()->endOfMonth()->endOfWeek();
-        $days = [];
-
-        while ($day->lte($last)) {
-            $days[] = $day->copy();
-            $day->addDay();
-        }
-
-        return $days;
-    }
-
-    /**
      * Read the values a form sent, with the times an all-day event needs.
      *
      * @return array<string, mixed>
@@ -239,6 +212,34 @@ class CalendarEventController extends Controller
                 'academic_cycle_section_id' => (int) $sectionId,
             ]);
         }
+
+        /** @var array<int, int|string> $userIds */
+        $userIds = $request->input('user_ids', []);
+
+        foreach ($userIds as $userId) {
+            CalendarEventAudience::create([
+                'calendar_event_id' => $event->id,
+                'user_id' => (int) $userId,
+            ]);
+        }
+    }
+
+    /**
+     * Get the people an event can name.
+     *
+     * An appointment names people, and a family reads an event that names
+     * their child, so learners belong on the list beside the staff.
+     *
+     * @return Collection<int, User>
+     */
+    private function people(): Collection
+    {
+        return User::query()
+            ->whereHas('schoolMemberships', function (Builder $query): void {
+                $query->where('school_id', current_school_id());
+            })
+            ->orderBy('name')
+            ->get(['id', 'name']);
     }
 
     /**
