@@ -118,6 +118,26 @@ enum AuditAction: string
     case LedgerTransactionPosted = 'ledger.posted';
 
     /**
+     * Money was taken from a student or a guardian.
+     */
+    case PaymentReceived = 'payment.received';
+
+    /**
+     * A payment was taken back after it was recorded.
+     */
+    case PaymentReversed = 'payment.reversed';
+
+    /**
+     * Money the school held for a student was used against fees owed.
+     */
+    case StudentCreditApplied = 'payment.credit_applied';
+
+    /**
+     * Money was given back to a student or a guardian.
+     */
+    case StudentRefunded = 'payment.refunded';
+
+    /**
      * A notice was put on the board.
      */
     case NoticePublished = 'notice.published';
@@ -381,6 +401,10 @@ enum AuditAction: string
             self::TimetableRevised                         => 'Timetable revision started',
             self::TimetableSubstitutionCreated             => 'Timetable substitution created',
             self::LedgerTransactionPosted                  => 'Ledger entry posted',
+            self::PaymentReceived                          => 'Payment received',
+            self::PaymentReversed                          => 'Payment taken back',
+            self::StudentCreditApplied                     => 'Credit used against fees',
+            self::StudentRefunded                          => 'Money given back',
             self::NoticePublished                          => 'Notice published',
             self::NoticeScheduled                          => 'Notice scheduled',
             self::NoticeExpired                            => 'Notice expired',

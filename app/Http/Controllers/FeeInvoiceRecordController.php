@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\PayFeeInvoiceRequest;
 use App\Http\Requests\StoreFeeInvoiceRecordRequest;
 use App\Http\Requests\UpdateFeeInvoiceRecordRequest;
 use App\Models\FeeInvoiceRecord;
@@ -81,13 +80,5 @@ class FeeInvoiceRecordController extends Controller
         $this->feeInvoiceRecordService->deleteFeeInvoiceRecord($feeInvoiceRecord);
 
         return back()->with('success', 'Fee Removed From Fee Invoice Successfully');
-    }
-
-    public function pay(FeeInvoiceRecord $feeInvoiceRecord, PayFeeInvoiceRequest $request): RedirectResponse
-    {
-        $this->authorize('update', [$feeInvoiceRecord]);
-        $this->feeInvoiceRecordService->addPayment($feeInvoiceRecord, $request->validated());
-
-        return back()->with('success', 'Payment added to Fee Successfully');
     }
 }

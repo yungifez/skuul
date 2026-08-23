@@ -14,6 +14,8 @@ class ShowFeeInvoice extends Component
         $this->feeInvoice->loadMissing([
             'user.studentRecord.academicCycleSection.academicLevel',
             'feeInvoiceRecords.fee',
+            'feeInvoiceRecords.allocations',
+            'payments',
         ]);
     }
 

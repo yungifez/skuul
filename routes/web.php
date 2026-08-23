@@ -25,6 +25,7 @@ use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\OrganizationDashboardController;
 use App\Http\Controllers\ParentController;
 use App\Http\Controllers\SchoolController;
+use App\Http\Controllers\StudentAccountController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\SyllabusController;
@@ -68,6 +69,7 @@ Route::middleware(['guest'])->group(function () {
 Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive', 'App\Http\Middleware\PreventGraduatedStudent')->prefix('dashboard')->namespace('App\Http\Controllers')->group(function () {
     // Families use portal authorization, not a staff working-school membership.
     Route::get('portal/enrollments/{studentRecord}/attendance', ['App\Http\Controllers\PortalAttendanceController', 'show'])->name('portal.attendance.show');
+    Route::get('portal/enrollments/{studentRecord}/calendar', ['App\Http\Controllers\PortalCalendarController', 'index'])->name('portal.calendar.index');
     Route::get('portal/enrollments/{studentRecord}/notices', ['App\Http\Controllers\PortalNoticeController', 'index'])->name('portal.notices.index');
     Route::get('portal/enrollments/{studentRecord}/requests', ['App\Http\Controllers\PortalRequestController', 'index'])->name('portal.requests.index');
     Route::post('portal/enrollments/{studentRecord}/requests', ['App\Http\Controllers\PortalRequestController', 'store'])->name('portal.requests.store');
@@ -308,11 +310,17 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 Route::resource('fees/fee-categories', FeeCategoryController::class);
 
                 // fee invoice record routes
-                Route::post('fees/fee-invoices/fee-invoice-records/{fee_invoice_record}/pay', ['App\Http\Controllers\FeeInvoiceRecordController', 'pay'])->name('fee-invoices-records.pay');
                 Route::resource('fees/fee-invoices/fee-invoice-records', FeeInvoiceRecordController::class);
+
+                // student account routes
+                Route::get('fees/accounts/{student_record}', [StudentAccountController::class, 'show'])->name('student-accounts.show');
+                Route::post('fees/accounts/{student_record}/credit', [StudentAccountController::class, 'applyCredit'])->name('student-accounts.apply-credit');
+                Route::post('fees/accounts/{student_record}/refund', [StudentAccountController::class, 'refund'])->name('student-accounts.refund');
+                Route::post('fees/payments/{student_payment}/reverse', [StudentAccountController::class, 'reverse'])->name('student-payments.reverse');
 
                 // fee incvoice routes
                 Route::get('fees/fee-invoices/{fee_invoice}/pay', ['App\Http\Controllers\FeeInvoiceController', 'payView'])->name('fee-invoices.pay');
+                Route::post('fees/fee-invoices/{fee_invoice}/pay', ['App\Http\Controllers\FeeInvoiceController', 'pay'])->name('fee-invoices.pay.store');
                 Route::get('fees/fee-invoices/{fee_invoice}/print', ['App\Http\Controllers\FeeInvoiceController', 'print'])->name('fee-invoices.print');
                 Route::resource('fees/fee-invoices', FeeInvoiceController::class);
 

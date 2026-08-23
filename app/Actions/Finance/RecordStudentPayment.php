@@ -24,13 +24,14 @@ class RecordStudentPayment
         private PostLedgerTransaction $post,
         private ChartOfAccounts $chart,
         private StudentLedger $ledger,
-    ) {
-    }
+    ) {}
 
     /**
      * Record the payment.
      *
-     * @param string $into the purpose of the account the money went into
+     * @param  string  $into  the purpose of the account the money went into
+     * @param  float|null  $applied  how much of it settles what is owed; worked
+     *                               out from the balance when nobody says
      *
      * @throws InvalidValueException when the amount is not positive
      */
@@ -43,39 +44,49 @@ class RecordStudentPayment
         ?User $actor = null,
         ?CarbonInterface $date = null,
         ?string $reference = null,
+        ?float $applied = null,
     ): LedgerTransaction {
         if ($amount <= 0) {
             throw new InvalidValueException('A payment must be more than nothing.');
         }
 
         $schoolId = $enrollment->school_id;
-        $owed = max($this->ledger->balance($enrollment), 0.0);
-        $applied = round(min($amount, $owed), 2);
+
+        if ($applied === null) {
+            $owed = max($this->ledger->balance($enrollment), 0.0);
+            $applied = min($amount, $owed);
+        }
+
+        $applied = round($applied, 2);
         $overpaid = round($amount - $applied, 2);
+
+        if ($applied < 0 || $overpaid < 0) {
+            throw new InvalidValueException('A payment cannot settle more than it is worth.');
+        }
         $description ??= 'Payment received';
 
         $lines = [[
-            'account'           => $this->chart->account($into, $schoolId),
-            'debit'             => $amount,
+            'account' => $this->chart->account($into, $schoolId),
+            'debit' => $amount,
             'student_record_id' => $enrollment->id,
-            'memo'              => $description,
+            'memo' => $description,
         ]];
 
         if ($applied > 0) {
             $lines[] = [
-                'account'           => $this->chart->account('fees_receivable', $schoolId),
-                'credit'            => $applied,
+                'account' => $this->chart->account('fees_receivable', $schoolId),
+                'credit' => $applied,
                 'student_record_id' => $enrollment->id,
-                'memo'              => $description,
+                'memo' => $description,
             ];
         }
 
         if ($overpaid > 0) {
             $lines[] = [
-                'account'           => $this->chart->account('unapplied_credits', $schoolId),
-                'credit'            => $overpaid,
+                'account' => $this->chart->account('unapplied_credits', $schoolId),
+                'credit' => $overpaid,
                 'student_record_id' => $enrollment->id,
-                'memo'              => 'Money held for a later invoice',
+                'memo' => 'Money held for a later invoice',
             ];
         }
 

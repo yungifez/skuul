@@ -48,6 +48,9 @@ class PermissionSeeder extends Seeder
         Permission::firstOrCreate([
             'name' => 'manage school settings',
         ]);
+        Permission::firstOrCreate([
+            'name' => 'migrate instructional model',
+        ]);
 
         // Permissions for class group
         Permission::firstOrCreate([
@@ -582,8 +585,9 @@ class PermissionSeeder extends Seeder
             'name' => 'delete fee invoice record',
         ]);
 
+        // student money that leaves the school again
         Permission::firstOrCreate([
-            'name' => 'migrate instructional model',
+            'name' => 'refund student payment',
         ]);
 
         // header permissions (for controlling the menu headers)
@@ -662,6 +666,7 @@ class PermissionSeeder extends Seeder
             'menu-parent',
             'menu-fee',
             'manage school settings',
+            'migrate instructional model',
             'create section',
             'read section',
             'update section',
@@ -800,7 +805,7 @@ class PermissionSeeder extends Seeder
             'read fee invoice record',
             'update fee invoice record',
             'delete fee invoice record',
-            'migrate instructional model',
+            'refund student payment',
         ]);
 
         // assign permissions to teacher

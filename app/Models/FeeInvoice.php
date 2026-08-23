@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use App\Casts\Money;
+use Brick\Money\Money as BrickMoney;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -19,11 +21,11 @@ class FeeInvoice extends Model
 
     protected $casts = [
         'issue_date' => 'datetime:Y-m-d',
-        'due_date'   => 'datetime:Y-m-d',
-        'amount'     => Money::class,
-        'fine'       => Money::class,
-        'paid'       => Money::class,
-        'waiver'     => Money::class,
+        'due_date' => 'datetime:Y-m-d',
+        'amount' => Money::class,
+        'fine' => Money::class,
+        'paid' => Money::class,
+        'waiver' => Money::class,
     ];
 
     /**
@@ -51,7 +53,7 @@ class FeeInvoice extends Model
      *
      * The school link lives on the person's membership, not on a column.
      *
-     * @param Builder<FeeInvoice> $query
+     * @param  Builder<FeeInvoice>  $query
      */
     public function scopeOfSchool(Builder $query, School|int|null $school = null): Builder
     {
@@ -88,9 +90,49 @@ class FeeInvoice extends Model
         return $this->getSumOfFieldFromRecords('amount');
     }
 
-    public function getPaidAttribute()
+    /**
+     * Get what has been paid against this invoice.
+     *
+     * The answer comes from the allocations written against the invoice, not
+     * from a stored total, so it always agrees with the payments.
+     */
+    public function getPaidAttribute(): BrickMoney
     {
-        return $this->getSumOfFieldFromRecords('paid');
+        $minor = $this->relationLoaded('allocations')
+            ? $this->allocations->sum(fn (PaymentAllocation $allocation): int => $allocation->amount->getMinorAmount()->toInt())
+            : (int) $this->allocations()->sum('amount');
+
+        return BrickMoney::ofMinor($minor, config('app.currency'));
+    }
+
+    /**
+     * Get the parts of payments written against this invoice.
+     *
+     * @return HasMany<PaymentAllocation, $this>
+     */
+    public function allocations(): HasMany
+    {
+        return $this->hasMany(PaymentAllocation::class);
+    }
+
+    /**
+     * Get the payments that settled part of this invoice.
+     *
+     * @return BelongsToMany<StudentPayment, $this>
+     */
+    public function payments(): BelongsToMany
+    {
+        return $this->belongsToMany(StudentPayment::class, 'payment_allocations', 'fee_invoice_id', 'student_payment_id')
+            ->withPivot('amount')
+            ->distinct();
+    }
+
+    /**
+     * Check whether the invoice has been settled in full.
+     */
+    public function isSettled(): bool
+    {
+        return !$this->balance->isPositive();
     }
 
     public function getWaiverAttribute()
@@ -103,7 +145,10 @@ class FeeInvoice extends Model
         return $this->getSumOfFieldFromRecords('fine');
     }
 
-    public function getBalanceAttribute()
+    /**
+     * Get what is still owed on this invoice.
+     */
+    public function getBalanceAttribute(): BrickMoney
     {
         return $this->amount->plus($this->fine)
             ->minus($this->paid)
