@@ -310,6 +310,20 @@ class Menu extends Component
             ],
             [
                 'type' => 'menu-item',
+                'text' => 'Library',
+                'icon' => 'library',
+                'route' => 'library-copies.index',
+                'visible' => feature_enabled(Feature::Library) && $user->can('read library'),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Lending desk',
+                'icon' => 'book-open-check',
+                'route' => 'library-loans.index',
+                'visible' => feature_enabled(Feature::Library) && $user->can('read library'),
+            ],
+            [
+                'type' => 'menu-item',
                 'text' => 'Budgets',
                 'icon' => 'wallet',
                 'route' => 'budgets.index',

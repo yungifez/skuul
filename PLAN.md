@@ -1480,6 +1480,23 @@ Candidate direction:
   billing system.
 - The whole area sits behind a feature switch, so a day school never sees it.
 
+Progress:
+
+- Done, and settled: a boarding place names a bed, not a room. Capacity is
+  then the beds that exist, which nobody has to keep up to date.
+- Done: `dormitories`, `dormitory_rooms`, and `dormitory_beds`, with the campus
+  word (house, hostel, block) kept beside the record.
+- Done: append-only `boarding_places` in the shape of `enrollment_placements`.
+  Moving a learner writes the next place; a place with no bed means they
+  stopped boarding. The bed is locked while the place is written, so two
+  people admitting boarders cannot fill one bed twice.
+- Done: dated `boarding_supervisions`, so last term's rota still says who was
+  on duty. A learner can never supervise a house.
+- Done: overnight leave with states that only move forward, a clash check, and
+  a roster that answers who is out of the building tonight.
+- Open: boarding charges through the fee categories, and a house view for the
+  family portal.
+
 ### 23. Library
 
 Current state:
@@ -1510,6 +1527,21 @@ Candidate direction:
   library money is the same money as every other charge.
 - Reservations and holds are deferred until lending works.
 - The whole area sits behind a feature switch.
+
+Progress:
+
+- Done: `library_titles` belong to the school group and `library_copies` to one
+  campus, so a book is described once and every campus lends its own copies.
+- Done: lending, returning, and renewing, with the campus deciding loan days,
+  how many items a learner and a member of staff may hold, and how often a
+  loan may be renewed. A campus that has set nothing still lends, on sensible
+  defaults.
+- Done: whether a copy is out is answered by its loans, never stored on the
+  copy, so the shelf and the loan record cannot drift apart.
+- Done: an overdue fine goes through `ChargeStudent`, so library money is the
+  same money as every other charge and one balance answers what a family owes.
+- Open: reservations and holds, a borrower's own list in the portal, and
+  lending to a whole class at once.
 
 ## Cross-feature decisions
 

@@ -57,6 +57,11 @@ enum Feature: string
     case Boarding = 'boarding';
 
     /**
+     * The library catalogue and its loans.
+     */
+    case Library = 'library';
+
+    /**
      * Get the label to show in the interface.
      */
     public function label(): string
@@ -71,6 +76,7 @@ enum Feature: string
             self::Ranking => 'Rankings',
             self::Imports => 'Imports and integrations',
             self::Boarding => 'Boarding',
+            self::Library => 'Library',
         };
     }
 
@@ -89,6 +95,7 @@ enum Feature: string
             self::Ranking => 'Positions that compare one learner with another.',
             self::Imports => 'Bulk uploads and links to outside systems.',
             self::Boarding => 'Boarding houses, who sleeps where, and who is out for the night.',
+            self::Library => 'What the school lends, who has it, and when it is due back.',
         };
     }
 
@@ -103,7 +110,7 @@ enum Feature: string
             self::Portal => 'Families and learners',
             self::Ranking => 'Reporting',
             self::StaffOperations, self::Imports => 'Staff and data',
-            self::Boarding => 'Beyond the classroom',
+            self::Boarding, self::Library => 'Beyond the classroom',
         };
     }
 
@@ -127,13 +134,13 @@ enum Feature: string
      * Check whether the feature is on when nobody has chosen.
      *
      * Rankings start off, because a school should decide to rank children
-     * rather than find that the application already does. Boarding starts off
-     * because most schools are day schools.
+     * rather than find that the application already does. Boarding and the
+     * library start off because not every school has either.
      */
     public function defaultsToOn(): bool
     {
         return match ($this) {
-            self::Ranking, self::Boarding => false,
+            self::Ranking, self::Boarding, self::Library => false,
             default => true,
         };
     }

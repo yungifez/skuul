@@ -21,6 +21,9 @@ use App\Http\Controllers\FeeInvoiceRecordController;
 use App\Http\Controllers\GradebookController;
 use App\Http\Controllers\GradingScaleController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\LibraryCopyController;
+use App\Http\Controllers\LibraryLendingRulesController;
+use App\Http\Controllers\LibraryLoanController;
 use App\Http\Controllers\NoticeAttachmentController;
 use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\NoticeNotificationPreferenceController;
@@ -327,6 +330,18 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                     Route::get('boarding/nights-away', [OvernightLeaveController::class, 'index'])->name('overnight-leaves.index');
                     Route::post('boarding/nights-away', [OvernightLeaveController::class, 'store'])->name('overnight-leaves.store');
                     Route::put('boarding/nights-away/{overnight_leave}', [OvernightLeaveController::class, 'update'])->name('overnight-leaves.update');
+                });
+
+                // library routes
+                Route::middleware('feature:library')->group(function (): void {
+                    Route::get('library', [LibraryCopyController::class, 'index'])->name('library-copies.index');
+                    Route::post('library', [LibraryCopyController::class, 'store'])->name('library-copies.store');
+                    Route::delete('library/copies/{library_copy}', [LibraryCopyController::class, 'destroy'])->name('library-copies.destroy');
+                    Route::get('library/desk', [LibraryLoanController::class, 'index'])->name('library-loans.index');
+                    Route::post('library/desk', [LibraryLoanController::class, 'store'])->name('library-loans.store');
+                    Route::put('library/desk/{library_loan}', [LibraryLoanController::class, 'update'])->name('library-loans.update');
+                    Route::get('library/rules', [LibraryLendingRulesController::class, 'edit'])->name('library-rules.edit');
+                    Route::put('library/rules', [LibraryLendingRulesController::class, 'update'])->name('library-rules.update');
                 });
 
                 // budget routes

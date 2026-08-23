@@ -43,7 +43,7 @@ class RefundStudentRequest extends FormRequest
      */
     public function minorAmount(): int
     {
-        return BrickMoney::of($this->validated('amount'), config('app.currency'))
+        return BrickMoney::of((string) $this->validated('amount'), config('app.currency'))
             ->getMinorAmount()
             ->toInt();
     }

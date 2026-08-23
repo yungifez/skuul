@@ -168,6 +168,21 @@ enum AuditAction: string
     case OvernightLeaveReturned = 'boarding.leave_returned';
 
     /**
+     * A library copy went out to somebody.
+     */
+    case LibraryLoanIssued = 'library.loan_issued';
+
+    /**
+     * A library copy came back.
+     */
+    case LibraryLoanReturned = 'library.loan_returned';
+
+    /**
+     * A borrower was given more time with a library copy.
+     */
+    case LibraryLoanRenewed = 'library.loan_renewed';
+
+    /**
      * A notice was put on the board.
      */
     case NoticePublished = 'notice.published';
@@ -441,6 +456,9 @@ enum AuditAction: string
             self::OvernightLeaveRequested                 => 'Night away requested',
             self::OvernightLeaveDecided                   => 'Night away answered',
             self::OvernightLeaveReturned                  => 'Learner back in the house',
+            self::LibraryLoanIssued                       => 'Library copy lent',
+            self::LibraryLoanReturned                     => 'Library copy returned',
+            self::LibraryLoanRenewed                      => 'Library loan renewed',
             self::NoticePublished                          => 'Notice published',
             self::NoticeScheduled                          => 'Notice scheduled',
             self::NoticeExpired                            => 'Notice expired',

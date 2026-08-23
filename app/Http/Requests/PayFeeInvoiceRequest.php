@@ -48,7 +48,7 @@ class PayFeeInvoiceRequest extends FormRequest
      */
     public function minorAmount(): int
     {
-        return BrickMoney::of($this->validated('amount'), config('app.currency'))
+        return BrickMoney::of((string) $this->validated('amount'), config('app.currency'))
             ->getMinorAmount()
             ->toInt();
     }
@@ -74,7 +74,7 @@ class PayFeeInvoiceRequest extends FormRequest
                 continue;
             }
 
-            $plan[(int) $lineId] = BrickMoney::of($share, config('app.currency'))->getMinorAmount()->toInt();
+            $plan[(int) $lineId] = BrickMoney::of((string) $share, config('app.currency'))->getMinorAmount()->toInt();
         }
 
         return $plan;
