@@ -2,6 +2,7 @@
 
 use App\Exceptions\ApplicationException;
 use App\Http\Middleware\EnsureFeatureIsEnabled;
+use App\Http\Middleware\ResolveDomainContext;
 use App\Http\Middleware\SetActiveAcademicPeriod;
 use App\Http\Middleware\SetActiveSchool;
 use Illuminate\Foundation\Application;
@@ -30,8 +31,10 @@ return Application::configure(basePath: dirname(__DIR__))
             // April UI writes the sidebar state from the browser, so it arrives
             // as plain text and must skip cookie encryption to be readable.
             ->encryptCookies(except: ['sidebar_state'])
-            // Resolve the school and academic period for every signed-in web request.
+            // Read the address first, then resolve the school and academic
+            // period for every signed-in web request.
             ->appendToGroup('web', [
+                ResolveDomainContext::class,
                 SetActiveSchool::class,
                 SetActiveAcademicPeriod::class,
             ])

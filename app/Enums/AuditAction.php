@@ -439,6 +439,21 @@ enum AuditAction: string
     case OrganizationMembershipPermissionsChanged = 'organization_membership.permissions_changed';
 
     /**
+     * A web address was claimed for an organization.
+     */
+    case SchoolDomainAdded = 'school_domain.added';
+
+    /**
+     * An organization proved it owns a web address.
+     */
+    case SchoolDomainVerified = 'school_domain.verified';
+
+    /**
+     * A web address was given up.
+     */
+    case SchoolDomainRemoved = 'school_domain.removed';
+
+    /**
      * Get the label to show in the interface.
      */
     public function label(): string
@@ -528,6 +543,9 @@ enum AuditAction: string
             self::DataSharingStatusChanged                 => 'Records request answered',
             self::TransferPackageBuilt                     => 'Records handed over',
             self::TransferPackageReceived                  => 'Records taken in',
+            self::SchoolDomainAdded                        => 'Web address claimed',
+            self::SchoolDomainVerified                     => 'Web address proved',
+            self::SchoolDomainRemoved                     => 'Web address given up',
             self::OrganizationCreated                      => 'Organization created',
             self::OrganizationUpdated                      => 'Organization updated',
             self::SchoolOrganizationAssigned               => 'School assigned to organization',

@@ -35,6 +35,16 @@ class Organization extends Model
     }
 
     /**
+     * Get the web addresses this organization answers on.
+     *
+     * @return HasMany<SchoolDomain, $this>
+     */
+    public function domains(): HasMany
+    {
+        return $this->hasMany(SchoolDomain::class);
+    }
+
+    /**
      * Get the calendar templates this organization defines.
      *
      * @return HasMany<CalendarTemplate, $this>

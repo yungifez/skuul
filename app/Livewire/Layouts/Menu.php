@@ -32,6 +32,7 @@ class Menu extends Component
         // so the sidebar must render before any school is chosen.
         $organization = current_school()?->organization;
         $portalEnrollment = $this->portalEnrollment($user);
+        $readsOwnRecords = $this->readsOwnRecords($user);
         $this->menu = [
             [
                 'type'  => 'menu-item',
@@ -39,8 +40,18 @@ class Menu extends Component
                 'text'  => 'Dashboard',
                 'route' => 'dashboard',
             ],
-            ...($portalEnrollment === null ? [] : [
+            ...(!$readsOwnRecords && $portalEnrollment === null ? [] : [
                 ['header' => 'My school'],
+            ]),
+            ...(!$readsOwnRecords ? [] : [
+                [
+                    'type' => 'menu-item',
+                    'icon' => 'layout-list',
+                    'text' => 'Everything of mine',
+                    'route' => 'portal.overview',
+                ],
+            ]),
+            ...($portalEnrollment === null ? [] : [
                 [
                     'type' => 'menu-item',
                     'icon' => 'calendar-days',
@@ -366,6 +377,26 @@ class Menu extends Component
     public function render()
     {
         return view('livewire.layouts.menu');
+    }
+
+    /**
+     * Check whether this person has records of their own to read.
+     *
+     * A guardian of children at two campuses, and a learner enrolled at two,
+     * both get one page that names every campus. Staff hold no enrollment, so
+     * they never see it.
+     */
+    private function readsOwnRecords(User $user): bool
+    {
+        $access = app(PortalAccess::class);
+
+        foreach ($access->enrollmentsFor($user) as $enrollment) {
+            if ($access->isOpen($enrollment->school_id)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

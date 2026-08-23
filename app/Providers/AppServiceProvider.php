@@ -16,6 +16,7 @@ use App\Services\Authorization\OrganizationPermissionScope;
 use App\Services\Authorization\SystemPermissionScope;
 use App\Services\Curriculum\InstructionalModelResolver;
 use App\Services\Feature\FeatureManager;
+use App\Services\School\DomainContext;
 use App\Services\School\SchoolContext;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
@@ -36,6 +37,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // The address the request came in on is read once, before the school.
+        $this->app->scoped(DomainContext::class);
+
         // One school context per request, shared by every query and policy.
         $this->app->scoped(SchoolContext::class);
 

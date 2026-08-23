@@ -76,6 +76,7 @@ Route::middleware(['guest'])->group(function () {
 // user must be authenticated
 Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive', 'App\Http\Middleware\PreventGraduatedStudent')->prefix('dashboard')->namespace('App\Http\Controllers')->group(function () {
     // Families use portal authorization, not a staff working-school membership.
+    Route::get('portal/overview', ['App\Http\Controllers\PortalOverviewController', 'index'])->name('portal.overview');
     Route::get('portal/enrollments/{studentRecord}/attendance', ['App\Http\Controllers\PortalAttendanceController', 'show'])->name('portal.attendance.show');
     Route::get('portal/enrollments/{studentRecord}/calendar', ['App\Http\Controllers\PortalCalendarController', 'index'])->name('portal.calendar.index');
     Route::get('portal/enrollments/{studentRecord}/notices', ['App\Http\Controllers\PortalNoticeController', 'index'])->name('portal.notices.index');
@@ -86,6 +87,10 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::put('notice-preferences', [NoticeNotificationPreferenceController::class, 'update'])->middleware('App\Http\Middleware\RequireActiveSchool')->name('notice-preferences.update');
     // Organization administration is separate from working-school access.
     Route::get('organizations/{organization}/members', ['App\Http\Controllers\OrganizationMemberController', 'index'])->name('organizations.members.index');
+    Route::get('organizations/{organization}/domains', ['App\Http\Controllers\OrganizationDomainController', 'index'])->name('organizations.domains.index');
+    Route::post('organizations/{organization}/domains', ['App\Http\Controllers\OrganizationDomainController', 'store'])->name('organizations.domains.store');
+    Route::post('organizations/{organization}/domains/{domain}/verify', ['App\Http\Controllers\OrganizationDomainController', 'verify'])->name('organizations.domains.verify');
+    Route::delete('organizations/{organization}/domains/{domain}', ['App\Http\Controllers\OrganizationDomainController', 'destroy'])->name('organizations.domains.destroy');
     Route::resource('organizations', OrganizationController::class)->except('destroy');
     Route::get('organizations/{organization}/dashboard', OrganizationDashboardController::class)->name('organizations.dashboard');
     Route::resource('organizations.calendar-templates', CalendarTemplateController::class)

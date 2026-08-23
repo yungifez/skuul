@@ -296,10 +296,19 @@ Progress:
 - Done: Organization and school setup screens plus dashboard context show the
   ownership hierarchy. The organization dashboard states that operational data
   remains school-scoped.
-- Open: subdomain and custom-domain context, the organization-wide overview
-  screen for people with several enrollments, billing groups across campuses,
-  delegated organization permissions beyond organization administration, and
-  role management screens.
+- Done: an organization can claim web addresses (`school_domains`). An address
+  that names a campus opens on that campus, so staff and families do not pick
+  one from a list. The address is only a hint: `SetActiveSchool` still checks
+  membership, and a person with no membership there falls through to the
+  campus they would otherwise have opened. An address does nothing at all until
+  the organization proves it owns it with a record only its owner can write, so
+  pointing a name at this application never makes it answer as somebody else's
+  school. Claiming, proving, and giving up an address are audited.
+- Done: a family with children at more than one campus reads them all on one
+  page (`portal.overview`). Every entry names its campus, the page only reads,
+  and a campus that closed the family pages offers no link rather than a link
+  that refuses.
+- Open: billing groups across campuses, and role management screens.
 
 ### 3. Academic setup and calendar
 

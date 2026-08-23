@@ -31,8 +31,10 @@ class SchoolContext
 
     private bool $resolved = false;
 
-    public function __construct(private SystemPermissionScope $systemPermissionScope)
-    {
+    public function __construct(
+        private SystemPermissionScope $systemPermissionScope,
+        private DomainContext $domainContext,
+    ) {
     }
 
     /**
@@ -102,17 +104,23 @@ class SchoolContext
     /**
      * Work out which school this request belongs to and set it.
      *
-     * The remembered school wins when the person may still use it. Otherwise
-     * the person falls back to their primary school, then to any school they
+     * An address that names a campus wins, because asking for that address is
+     * the plainest way a person can say which campus they meant. It is still
+     * only a hint: a person with no membership there falls through to the
+     * remembered school, then to their primary school, then to any school they
      * can still use.
      */
     public function resolveFor(User $user, ?Request $request = null): ?School
     {
-        $remembered = $request?->session()?->get(self::SESSION_KEY);
+        $school = $this->domainSchoolFor($user);
 
-        $school = $remembered === null
-            ? null
-            : $this->schoolIfAllowed($user, (int) $remembered);
+        if ($school === null) {
+            $remembered = $request?->session()?->get(self::SESSION_KEY);
+
+            $school = $remembered === null
+                ? null
+                : $this->schoolIfAllowed($user, (int) $remembered);
+        }
 
         $school ??= $this->defaultSchoolFor($user);
 
@@ -120,6 +128,20 @@ class SchoolContext
         $this->resolved = true;
 
         return $school;
+    }
+
+    /**
+     * Get the campus the address names, when the person may work in it.
+     */
+    private function domainSchoolFor(User $user): ?School
+    {
+        $school = $this->domainContext->school();
+
+        if ($school === null) {
+            return null;
+        }
+
+        return $this->schoolIfAllowed($user, $school->id);
     }
 
     /**

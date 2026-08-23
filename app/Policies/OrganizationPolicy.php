@@ -77,6 +77,14 @@ class OrganizationPolicy
     }
 
     /**
+     * Determine whether the user can manage the organization's web addresses.
+     */
+    public function manageDomains(User $user, Organization $organization): bool
+    {
+        return $this->organizationPermissionScope->allows($user, $organization, OrganizationPermission::Manage);
+    }
+
+    /**
      * Determine whether the user can read the organization overview totals.
      */
     public function viewReports(User $user, Organization $organization): bool
