@@ -885,9 +885,31 @@ Progress:
   invoice now posts the charge.
 - Done: `App\Services\Finance\StudentLedger` answers what a student owes from
   the lines, not from a stored `paid` total.
-- Open: moving the invoice screens onto the ledger balance, payment
-  allocation across several invoices, refunds, budgets, and the finance
-  reports.
+- Done: payments and allocations are separate append-only records.
+  `App\Actions\Finance\ReceivePayment` records what arrived and writes one
+  allocation for each invoice line it settles, so one payment can cover
+  several invoices. What a line has been paid is the sum of its
+  allocations, not a `paid` column, so the screens and the books cannot
+  disagree.
+- Done: money above what is owed stays as credit against the payment.
+  `ApplyStudentCredit` spends it on the next invoice, `ReversePayment`
+  takes a payment back and puts the fee back on the invoice, and
+  `RefundStudent` gives money back, limited to what the school holds.
+- Done: ways to pay are a list the application can grow.
+  `App\Contracts\PaymentChannel` covers what an office records by hand and
+  `App\Contracts\OnlinePaymentGateway` covers a provider that holds the
+  card details, with Stripe as the worked example. A new provider is one
+  class and one line in `PaymentChannelRegistry`.
+- Done: budgets by campus, cycle, term, programme, or fund, with
+  budget-versus-actual on the screen and as a report. Ledger lines carry a
+  programme and a fund, so a plan and what happened are compared on the
+  same footing.
+- Done: the finance reports. Student balances and balances by age, income
+  by fee type, expenses, cash and bank summary, general ledger, trial
+  balance, income statement, balance sheet, and budget variance.
+- Open: nothing in this section. A payment provider beyond Stripe, and
+  bank reconciliation against a statement file, are the next things worth
+  doing here.
 
 ### 10. Notices and communication
 
@@ -1422,6 +1444,72 @@ Progress:
 - Open: the screens, cohort-scoped and campus-scoped plan assignment,
   restricted notes on a participation record, outcome history for graduation,
   and surveys.
+
+### 22. Boarding and dormitories
+
+Current state:
+
+- Nothing exists. A boarding school cannot record where a learner sleeps, who
+  supervises them at night, or who signed them out for a weekend.
+
+Questions to decide:
+
+- Is a boarding place given for an academic cycle, or does it run until the
+  learner leaves?
+- Does a place name a room, or a named bed inside a room?
+- Are boarding charges part of the existing fee model, or separate?
+- Do we record overnight leave, so staff know who is in the building tonight?
+- Which restrictions must a place obey: capacity, academic level, or a group
+  the campus configures?
+
+Candidate direction:
+
+- A dormitory belongs to one campus and holds rooms; a room holds beds with a
+  capacity. Local words differ, so the interface reads the campus label
+  (house, hostel, block) while the internal concept stays `Dormitory`.
+- A boarding place is a dated, append-only assignment of an enrollment to a
+  room or bed, in the shape of `enrollment_placements`. Moving a learner
+  writes the next record; the pointer on the enrollment is never the history.
+- The assigning action enforces capacity and campus, and refuses a room that
+  is full or belongs to another campus.
+- Supervision is a dated staff assignment, in the shape of
+  `teaching_assignments`, so last term's rota still says who was on duty.
+- Overnight leave is a request with states (requested, approved, refused,
+  returned), reusing the portal-request shape and its audit trail.
+- Boarding charges reuse fee categories and the ledger. There is no second
+  billing system.
+- The whole area sits behind a feature switch, so a day school never sees it.
+
+### 23. Library
+
+Current state:
+
+- Nothing exists. A school cannot record what it owns, who has it, or when it
+  is due back.
+
+Questions to decide:
+
+- Is the catalog owned by the organization and the copies by the campus, as
+  subjects are?
+- Do staff borrow on the same rules as learners?
+- Do overdue fines post to the finance ledger, or stay a library matter?
+- Are reservations and renewals part of the first release?
+- What identifies a copy on the shelf: an ISBN, a campus barcode, or both?
+
+Candidate direction:
+
+- A title is an organization-level catalog record (title, authors, ISBN,
+  category). A copy belongs to one campus and carries its own barcode,
+  condition, and state (available, on loan, lost, withdrawn).
+- A loan is an append-only record naming the copy, the borrower, who issued
+  it, the due date, and the return. The copy's state is a pointer to the
+  newest loan, never the source of truth.
+- A campus loan policy sets loan days, how many items a person may hold, and
+  whether renewals are allowed. Learners and staff can hold different limits.
+- An overdue fine is posted through the existing fee and ledger actions, so
+  library money is the same money as every other charge.
+- Reservations and holds are deferred until lending works.
+- The whole area sits behind a feature switch.
 
 ## Cross-feature decisions
 

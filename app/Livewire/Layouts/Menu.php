@@ -296,6 +296,20 @@ class Menu extends Component
             ],
             [
                 'type' => 'menu-item',
+                'text' => 'Boarding',
+                'icon' => 'bed-double',
+                'route' => 'dormitories.index',
+                'visible' => feature_enabled(Feature::Boarding) && $user->can('read boarding'),
+            ],
+            [
+                'type' => 'menu-item',
+                'text' => 'Nights away',
+                'icon' => 'moon',
+                'route' => 'overnight-leaves.index',
+                'visible' => feature_enabled(Feature::Boarding) && $user->can('read boarding'),
+            ],
+            [
+                'type' => 'menu-item',
                 'text' => 'Budgets',
                 'icon' => 'wallet',
                 'route' => 'budgets.index',

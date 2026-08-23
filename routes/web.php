@@ -6,10 +6,12 @@ use App\Http\Controllers\AcademicLevelController;
 use App\Http\Controllers\AcademicPeriodController;
 use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\BoardingPlaceController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CalendarTemplateController;
 use App\Http\Controllers\CourseOfferingController;
 use App\Http\Controllers\CustomTimetableItemController;
+use App\Http\Controllers\DormitoryController;
 use App\Http\Controllers\ExamController;
 use App\Http\Controllers\ExamSlotController;
 use App\Http\Controllers\FeeCategoryController;
@@ -24,6 +26,7 @@ use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\NoticeNotificationPreferenceController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\OrganizationDashboardController;
+use App\Http\Controllers\OvernightLeaveController;
 use App\Http\Controllers\ParentController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\StudentAccountController;
@@ -312,6 +315,19 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
 
                 // fee invoice record routes
                 Route::resource('fees/fee-invoices/fee-invoice-records', FeeInvoiceRecordController::class);
+
+                // boarding routes
+                Route::middleware('feature:boarding')->group(function (): void {
+                    Route::resource('boarding/houses', DormitoryController::class)
+                        ->only(['index', 'create', 'store', 'show'])
+                        ->parameters(['houses' => 'dormitory'])
+                        ->names('dormitories');
+                    Route::post('boarding/places', [BoardingPlaceController::class, 'store'])->name('boarding-places.store');
+                    Route::delete('boarding/places/{student_record}', [BoardingPlaceController::class, 'destroy'])->name('boarding-places.destroy');
+                    Route::get('boarding/nights-away', [OvernightLeaveController::class, 'index'])->name('overnight-leaves.index');
+                    Route::post('boarding/nights-away', [OvernightLeaveController::class, 'store'])->name('overnight-leaves.store');
+                    Route::put('boarding/nights-away/{overnight_leave}', [OvernightLeaveController::class, 'update'])->name('overnight-leaves.update');
+                });
 
                 // budget routes
                 Route::resource('fees/budgets', BudgetController::class)->only(['index', 'store', 'destroy']);

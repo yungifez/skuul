@@ -585,6 +585,19 @@ class PermissionSeeder extends Seeder
             'name' => 'delete fee invoice record',
         ]);
 
+        // boarding
+        Permission::firstOrCreate([
+            'name' => 'read boarding',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'manage boarding',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'decide overnight leave',
+        ]);
+
         // budgets
         Permission::firstOrCreate([
             'name' => 'read budget',
@@ -817,6 +830,9 @@ class PermissionSeeder extends Seeder
             'refund student payment',
             'read budget',
             'manage budget',
+            'read boarding',
+            'manage boarding',
+            'decide overnight leave',
         ]);
 
         // assign permissions to teacher

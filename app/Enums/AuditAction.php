@@ -143,6 +143,31 @@ enum AuditAction: string
     case BudgetSet = 'budget.set';
 
     /**
+     * A learner was given a bed, moved, or stopped boarding.
+     */
+    case BoardingPlaceChanged = 'boarding.place_changed';
+
+    /**
+     * Staff on duty in a boarding house changed.
+     */
+    case BoardingSupervisionChanged = 'boarding.supervision_changed';
+
+    /**
+     * Somebody asked for a night away from the boarding house.
+     */
+    case OvernightLeaveRequested = 'boarding.leave_requested';
+
+    /**
+     * A request for a night away was answered.
+     */
+    case OvernightLeaveDecided = 'boarding.leave_decided';
+
+    /**
+     * A learner came back to the boarding house.
+     */
+    case OvernightLeaveReturned = 'boarding.leave_returned';
+
+    /**
      * A notice was put on the board.
      */
     case NoticePublished = 'notice.published';
@@ -411,6 +436,11 @@ enum AuditAction: string
             self::StudentCreditApplied                     => 'Credit used against fees',
             self::StudentRefunded                          => 'Money given back',
             self::BudgetSet                                => 'Budget set',
+            self::BoardingPlaceChanged                    => 'Boarding place changed',
+            self::BoardingSupervisionChanged              => 'Boarding duty changed',
+            self::OvernightLeaveRequested                 => 'Night away requested',
+            self::OvernightLeaveDecided                   => 'Night away answered',
+            self::OvernightLeaveReturned                  => 'Learner back in the house',
             self::NoticePublished                          => 'Notice published',
             self::NoticeScheduled                          => 'Notice scheduled',
             self::NoticeExpired                            => 'Notice expired',

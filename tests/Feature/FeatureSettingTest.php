@@ -137,6 +137,7 @@ class FeatureSettingTest extends TestCase
                 'events'           => '1',
                 'ranking'          => '0',
                 'imports'          => '1',
+                'boarding'         => '0',
             ],
         ])->assertRedirect(route('schools.features.edit'));
 
@@ -155,7 +156,7 @@ class FeatureSettingTest extends TestCase
         }
 
         $response->assertSee(Feature::Wellbeing->description())
-            ->assertSee('6 of 8 tools are on');
+            ->assertSee('6 of 9 tools are on');
     }
 
     public function test_feature_settings_require_an_explicit_choice_for_every_tool(): void
