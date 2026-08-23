@@ -45,6 +45,16 @@ class Organization extends Model
     }
 
     /**
+     * Get the purses this organization has set up.
+     *
+     * @return HasMany<BillingGroup, $this>
+     */
+    public function billingGroups(): HasMany
+    {
+        return $this->hasMany(BillingGroup::class);
+    }
+
+    /**
      * Get the calendar templates this organization defines.
      *
      * @return HasMany<CalendarTemplate, $this>

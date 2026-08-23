@@ -3,6 +3,7 @@
 namespace App\Actions\Enrollment;
 
 use App\Actions\Audit\RecordAuditEvent;
+use App\Actions\Finance\CarryBalanceToCampus;
 use App\Actions\School\GrantSchoolMembership;
 use App\Enums\AuditAction;
 use App\Exceptions\InvalidValueException;
@@ -27,6 +28,7 @@ class MoveEnrollmentBetweenCampuses
     public function __construct(
         private ChangeEnrollmentPlacement $changePlacement,
         private GrantSchoolMembership $grantSchoolMembership,
+        private CarryBalanceToCampus $carryBalance,
         private RecordAuditEvent $auditor,
     ) {
     }
@@ -79,6 +81,12 @@ class MoveEnrollmentBetweenCampuses
                 effectiveOn: $effectiveOn,
             );
 
+            // Campuses that keep one purse bill the family as one school, so
+            // the debt follows the learner instead of being left at a campus
+            // that will never see them again. Campuses with separate books
+            // carry nothing, and each keeps what it is owed.
+            $carried = $this->carryBalance->carryIfTheyBillTogether($enrollment, $source, $destination, $actor);
+
             $this->auditor->record(
                 AuditAction::EnrollmentCampusChanged,
                 $enrollment,
@@ -87,6 +95,7 @@ class MoveEnrollmentBetweenCampuses
                     'to_school_id'              => $destination->id,
                     'organization_id'           => $destination->organization_id,
                     'academic_cycle_section_id' => $academicCycleSection->id,
+                    'carried_balances'          => $carried === [] ? null : $carried,
                     'reason'                    => $reason,
                 ],
                 $actor,

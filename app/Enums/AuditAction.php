@@ -138,6 +138,11 @@ enum AuditAction: string
     case StudentRefunded = 'payment.refunded';
 
     /**
+     * A learner's balance followed them to another campus of the same purse.
+     */
+    case BalanceCarriedToCampus = 'student.balance_carried_to_campus';
+
+    /**
      * A campus said what an account is allowed to spend or take in.
      */
     case BudgetSet = 'budget.set';
@@ -485,6 +490,7 @@ enum AuditAction: string
             self::PaymentReversed                          => 'Payment taken back',
             self::StudentCreditApplied                     => 'Credit used against fees',
             self::StudentRefunded                          => 'Money given back',
+            self::BalanceCarriedToCampus                   => 'Balance carried to another campus',
             self::BudgetSet                                => 'Budget set',
             self::BoardingPlaceChanged                    => 'Boarding place changed',
             self::BoardingSupervisionChanged              => 'Boarding duty changed',

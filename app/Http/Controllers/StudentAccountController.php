@@ -54,6 +54,8 @@ class StudentAccountController extends Controller
         return view('pages.fee.account.show', [
             'enrollment' => $studentRecord,
             'balance' => $this->ledger->balance($studentRecord),
+            'elsewhere' => $this->ledger->balancesByCampus($studentRecord)
+                ->reject(fn (array $row): bool => $row['school']->id === $studentRecord->school_id),
             'credit' => BrickMoney::ofMinor($this->credit->creditHeld($studentRecord), config('app.currency')),
             'payments' => $payments,
             'invoices' => $invoices,

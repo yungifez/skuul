@@ -7,6 +7,7 @@ use App\Traits\InSchool;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -34,20 +35,29 @@ class LedgerAccount extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'type'      => LedgerAccountType::class,
+        'type' => LedgerAccountType::class,
         'is_active' => 'boolean',
     ];
 
     /**
      * Limit the query to the account that serves one purpose.
      *
-     * @param Builder<$this> $query
-     *
+     * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
     public function scopeForPurpose(Builder $query, string $purpose): Builder
     {
         return $query->where('purpose', $purpose);
+    }
+
+    /**
+     * Get the campus whose books this account belongs to.
+     *
+     * @return BelongsTo<School, $this>
+     */
+    public function school(): BelongsTo
+    {
+        return $this->belongsTo(School::class);
     }
 
     /**

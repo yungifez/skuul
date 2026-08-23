@@ -308,7 +308,15 @@ Progress:
   page (`portal.overview`). Every entry names its campus, the page only reads,
   and a campus that closed the family pages offers no link rather than a link
   that refuses.
-- Open: billing groups across campuses, and role management screens.
+- Done: billing groups say which campuses keep one purse. When a learner moves
+  between two campuses of one group, what they owe and what is held for them
+  follows: each campus's own books stay balanced because the two settle with
+  each other through "due from" and "due to" accounts. Campuses outside a group
+  carry nothing, the campus that is owed keeps its debt, and the student
+  account screen names it rather than adding it in. A transfer package to
+  another organization carries the debt as a notice with the campus that is
+  owed, and raises no invoice at the receiving school.
+- Open: role management screens.
 
 ### 3. Academic setup and calendar
 

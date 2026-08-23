@@ -25,7 +25,7 @@ class School extends Model
     use HasFactory;
 
     protected $fillable = [
-        'organization_id', 'name', 'address', 'code', 'initials', 'phone', 'email', 'logo_path',
+        'organization_id', 'billing_group_id', 'name', 'address', 'code', 'initials', 'phone', 'email', 'logo_path',
     ];
 
     /**
@@ -36,6 +36,35 @@ class School extends Model
     public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
+    }
+
+    /**
+     * Get the campuses this one keeps a purse with.
+     *
+     * Null is the normal case: the campus bills on its own.
+     *
+     * @return BelongsTo<BillingGroup, $this>
+     */
+    public function billingGroup(): BelongsTo
+    {
+        return $this->belongsTo(BillingGroup::class);
+    }
+
+    /**
+     * Check whether a debt should follow a learner to the other campus.
+     *
+     * Two campuses bill together only when they are named in the same group.
+     * Sharing an organization is not enough, and campuses of two organizations
+     * never bill together.
+     */
+    public function billsWith(School $other): bool
+    {
+        if ($this->id === $other->id) {
+            return true;
+        }
+
+        return $this->billing_group_id !== null
+            && $this->billing_group_id === $other->billing_group_id;
     }
 
     /**

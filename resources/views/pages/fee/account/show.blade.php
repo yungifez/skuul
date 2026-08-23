@@ -53,6 +53,24 @@
         </div>
     </div>
 
+    @if ($elsewhere->isNotEmpty())
+        <div class="rounded-xl border border-amber-500/40 bg-amber-500/5 p-5 text-sm">
+            <p class="font-medium">This learner also has money on the books at another campus.</p>
+            <p class="mt-1 text-muted-foreground">
+                Those campuses keep separate books, so the money is theirs to collect. It is not added to the figure
+                above and it cannot be paid here.
+            </p>
+            <ul class="mt-3 flex flex-col gap-1">
+                @foreach ($elsewhere as $row)
+                    <li class="flex items-center justify-between gap-4">
+                        <span>{{ $row['school']->name }}</span>
+                        <span class="font-medium">{{ number_format($row['balance'], 2) }}</span>
+                    </li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+
     <x-display-validation-errors />
 
     <div class="rounded-xl border border-sidebar-border/70 bg-card text-card-foreground shadow-sm">

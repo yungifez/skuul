@@ -2,7 +2,9 @@
 
 namespace App\Services\Finance;
 
+use App\Models\LedgerAccount;
 use App\Models\LedgerLine;
+use App\Models\School;
 use App\Models\StudentRecord;
 use Illuminate\Support\Collection;
 
@@ -14,9 +16,7 @@ use Illuminate\Support\Collection;
  */
 class StudentLedger
 {
-    public function __construct(private ChartOfAccounts $chart)
-    {
-    }
+    public function __construct(private ChartOfAccounts $chart) {}
 
     /**
      * Get what the student still owes.
@@ -34,6 +34,44 @@ class StudentLedger
     public function unappliedCredit(StudentRecord $enrollment): float
     {
         return $this->balanceOn('unapplied_credits', $enrollment);
+    }
+
+    /**
+     * Get what the learner still owes at every campus that wrote about them.
+     *
+     * A learner who moved between campuses that keep separate books can owe
+     * money at a campus they no longer attend. That debt belongs to the campus
+     * that is owed it, so it is shown beside its campus rather than added in.
+     *
+     * @return Collection<int, array{school: School, balance: float}>
+     */
+    public function balancesByCampus(StudentRecord $enrollment): Collection
+    {
+        $accounts = LedgerAccount::query()
+            ->forPurpose('fees_receivable')
+            ->whereIn('id', LedgerLine::query()
+                ->select('ledger_account_id')
+                ->where('student_record_id', $enrollment->id))
+            ->with('school')
+            ->get();
+
+        $balances = collect();
+
+        foreach ($accounts as $account) {
+            $school = $account->school;
+
+            if ($school === null) {
+                continue;
+            }
+
+            $balance = $this->balanceOfAccount($account, $enrollment);
+
+            if ($balance !== 0.0) {
+                $balances->push(['school' => $school, 'balance' => $balance]);
+            }
+        }
+
+        return $balances;
     }
 
     /**
@@ -55,8 +93,14 @@ class StudentLedger
      */
     private function balanceOn(string $purpose, StudentRecord $enrollment): float
     {
-        $account = $this->chart->account($purpose, $enrollment->school_id);
+        return $this->balanceOfAccount($this->chart->account($purpose, $enrollment->school_id), $enrollment);
+    }
 
+    /**
+     * Get what one account says about one student.
+     */
+    private function balanceOfAccount(LedgerAccount $account, StudentRecord $enrollment): float
+    {
         $lines = LedgerLine::query()
             ->where('ledger_account_id', $account->id)
             ->where('student_record_id', $enrollment->id);

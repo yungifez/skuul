@@ -91,6 +91,9 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::post('organizations/{organization}/domains', ['App\Http\Controllers\OrganizationDomainController', 'store'])->name('organizations.domains.store');
     Route::post('organizations/{organization}/domains/{domain}/verify', ['App\Http\Controllers\OrganizationDomainController', 'verify'])->name('organizations.domains.verify');
     Route::delete('organizations/{organization}/domains/{domain}', ['App\Http\Controllers\OrganizationDomainController', 'destroy'])->name('organizations.domains.destroy');
+    Route::get('organizations/{organization}/billing-groups', ['App\Http\Controllers\OrganizationBillingGroupController', 'index'])->name('organizations.billing-groups.index');
+    Route::post('organizations/{organization}/billing-groups', ['App\Http\Controllers\OrganizationBillingGroupController', 'store'])->name('organizations.billing-groups.store');
+    Route::put('organizations/{organization}/campuses/{school}/billing', ['App\Http\Controllers\OrganizationBillingGroupController', 'update'])->name('organizations.billing-groups.update');
     Route::resource('organizations', OrganizationController::class)->except('destroy');
     Route::get('organizations/{organization}/dashboard', OrganizationDashboardController::class)->name('organizations.dashboard');
     Route::resource('organizations.calendar-templates', CalendarTemplateController::class)
