@@ -19,12 +19,6 @@ parameters:
 			path: app/Livewire/NationalityAndStateInputFields.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:school\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Models/Fee.php
-
-		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:isDue\(\)\.$#'
 			identifier: method.notFound
 			count: 2
@@ -71,12 +65,6 @@ parameters:
 			identifier: property.notFound
 			count: 3
 			path: app/Policies/FeeInvoiceRecordPolicy.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$school_id\.$#'
-			identifier: property.notFound
-			count: 3
-			path: app/Policies/FeePolicy.php
 
 		-
 			message: '#^Right side of && is always true\.$#'

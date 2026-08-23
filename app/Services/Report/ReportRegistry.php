@@ -4,8 +4,17 @@ namespace App\Services\Report;
 
 use App\Contracts\Report;
 use App\Exceptions\InvalidValueException;
+use App\Reports\BalanceSheetReport;
+use App\Reports\BudgetVarianceReport;
+use App\Reports\CashAndBankSummaryReport;
 use App\Reports\ClassListReport;
+use App\Reports\ExpenseReport;
+use App\Reports\GeneralLedgerReport;
+use App\Reports\IncomeByFeeTypeReport;
+use App\Reports\IncomeStatementReport;
+use App\Reports\StudentAgingReport;
 use App\Reports\StudentBalancesReport;
+use App\Reports\TrialBalanceReport;
 
 /**
  * The reports this application can build.
@@ -22,6 +31,15 @@ class ReportRegistry
      */
     private const REPORTS = [
         StudentBalancesReport::class,
+        StudentAgingReport::class,
+        IncomeByFeeTypeReport::class,
+        ExpenseReport::class,
+        CashAndBankSummaryReport::class,
+        GeneralLedgerReport::class,
+        TrialBalanceReport::class,
+        IncomeStatementReport::class,
+        BalanceSheetReport::class,
+        BudgetVarianceReport::class,
         ClassListReport::class,
     ];
 
