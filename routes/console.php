@@ -2,9 +2,11 @@
 
 use App\Console\Commands\AdvanceAcademicCalendar;
 use App\Console\Commands\CheckBackup;
+use App\Console\Commands\CreateBackup;
 use App\Console\Commands\GenerateUpcomingAcademicCycles;
 use App\Console\Commands\ProcessNotices;
 use App\Console\Commands\PruneExpiredInvitations;
+use App\Console\Commands\RehearseRestore;
 use App\Console\Commands\SendAcademicCalendarReminders;
 use App\Http\Controllers\HealthController;
 use Illuminate\Foundation\Inspiring;
@@ -58,7 +60,18 @@ Schedule::command(GenerateUpcomingAcademicCycles::class)->weeklyOn(1, '01:00')->
 // each deadline, so a scheduler retry cannot send the same reminder twice.
 Schedule::command(SendAcademicCalendarReminders::class)->dailyAt('07:15')->withoutOverlapping();
 
-// Say early when the backups stopped arriving.
+// Take the nightly backup, locked, and remove the ones the rule no longer
+// keeps. The uploaded files go with it, because a database without the files
+// it names is only half a school.
+Schedule::command(CreateBackup::class, ['--with-files'])->dailyAt('01:30')->withoutOverlapping();
+
+// Prove the backups can be restored. A backup nobody has restored is not a
+// backup. This runs where a rehearsal connection is set up and does nothing
+// but read the backup anywhere else.
+Schedule::command(RehearseRestore::class)->weeklyOn(7, '03:00')->withoutOverlapping();
+
+// Say early when the backups stopped arriving, or when nobody has restored
+// one for too long.
 Schedule::command(CheckBackup::class)->dailyAt('07:00');
 
 // Keep the failed job table and old batches from growing without limit.

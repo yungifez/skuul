@@ -1130,8 +1130,25 @@ Progress:
   monitoring, and CI. CI runs the tests, Pint, and Larastan.
 - Done: `audit_events` covers permissions, account and enrollment status,
   publication, finance, features, and data sharing.
-- Open: encrypted off-site backups and a restore rehearsal in a real
-  environment, and the versioned public API, which stays deferred.
+- Done: `skuul:backup` dumps the database, squeezes it, locks it with
+  `BACKUP_KEY`, and copies it to the backup disk, which is meant to be another
+  account or another region. `--with-files` takes the uploaded files as well.
+  Without a key the command refuses, unless the installation says plainly that
+  it accepts plain files. Each file is sealed a piece at a time and signed as a
+  whole, so a file changed on the way is refused rather than half-restored.
+- Done: an engine is a class behind `App\Contracts\DatabaseDumper`, listed in
+  `App\Services\Backup\DatabaseDumperRegistry`, so another database engine is
+  one class and one line.
+- Done: backups are thinned by a written rule. Everything from the last
+  `BACKUP_KEEP_DAYS` days stays; older than that, the first backup of each month
+  stays for `BACKUP_KEEP_MONTHS` months.
+- Done: `skuul:rehearse-restore` proves the backups. It takes the newest one,
+  unlocks it, loads it into a separate database, counts what came back, and
+  writes down the outcome. `skuul:check-backup` now fails when the newest
+  backup is too old **or** when nobody has rehearsed a restore for too long, so
+  a rehearsal that stopped happening is noticed like a backup that stopped
+  arriving.
+- Open: the versioned public API, which stays deferred.
 
 ### 13. Attendance
 

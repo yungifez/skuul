@@ -51,14 +51,53 @@ class MonitoringTest extends TestCase
         Log::shouldHaveReceived('error')->withArgs(fn (string $message): bool => $message === 'Queue job failed')->once();
     }
 
-    public function test_the_backup_check_passes_with_a_recent_backup(): void
+    public function test_the_backup_check_passes_with_a_recent_backup_and_a_recent_rehearsal(): void
+    {
+        Storage::fake('backups');
+        config(['monitoring.backup.disk' => 'backups', 'monitoring.backup.path' => 'backups', 'monitoring.backup.max_age_hours' => 26]);
+
+        Storage::disk('backups')->put('backups/skuul-2026-08-21.sql.gz', 'dump');
+        Storage::disk('backups')->put('restore-rehearsals/2026-08-21-030000.json', '{"restored":true}');
+
+        $this->artisan('skuul:check-backup')->assertSuccessful();
+    }
+
+    public function test_the_backup_check_fails_when_nobody_has_rehearsed_a_restore(): void
     {
         Storage::fake('backups');
         config(['monitoring.backup.disk' => 'backups', 'monitoring.backup.path' => 'backups', 'monitoring.backup.max_age_hours' => 26]);
 
         Storage::disk('backups')->put('backups/skuul-2026-08-21.sql.gz', 'dump');
 
-        $this->artisan('skuul:check-backup')->assertSuccessful();
+        $this->artisan('skuul:check-backup')->assertFailed();
+    }
+
+    public function test_the_backup_check_fails_when_the_last_rehearsal_is_too_long_ago(): void
+    {
+        Storage::fake('backups');
+        config([
+            'monitoring.backup.disk' => 'backups',
+            'monitoring.backup.path' => 'backups',
+            'monitoring.backup.max_age_hours' => 26,
+            'monitoring.backup.rehearsal.max_age_days' => 100,
+        ]);
+
+        Storage::disk('backups')->put('backups/skuul-2026-08-21.sql.gz', 'dump');
+        Storage::disk('backups')->put('restore-rehearsals/old.json', '{"restored":true}');
+        touch(
+            Storage::disk('backups')->path('restore-rehearsals/old.json'),
+            now()->subDays(200)->getTimestamp(),
+        );
+
+        $this->artisan('skuul:check-backup')->assertFailed();
+    }
+
+    public function test_the_backup_and_the_rehearsal_are_scheduled(): void
+    {
+        $commands = collect(Schedule::events())->map(fn ($event): string => $event->command ?? '');
+
+        $this->assertTrue($commands->contains(fn (string $command): bool => str_contains($command, 'skuul:backup')));
+        $this->assertTrue($commands->contains(fn (string $command): bool => str_contains($command, 'skuul:rehearse-restore')));
     }
 
     public function test_the_backup_check_fails_when_no_backup_exists(): void

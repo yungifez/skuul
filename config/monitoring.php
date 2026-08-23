@@ -38,9 +38,36 @@ return [
     */
 
     'backup' => [
-        'disk'          => env('BACKUP_DISK', 'local'),
-        'path'          => env('BACKUP_PATH', 'backups'),
+        'disk' => env('BACKUP_DISK', 'local'),
+        'path' => env('BACKUP_PATH', 'backups'),
         'max_age_hours' => (int) env('BACKUP_MAX_AGE_HOURS', 26),
+
+        /*
+         * A backup holds every mark, every fee, and every safeguarding note
+         * the school has, and it is kept away from this machine on purpose.
+         * It therefore leaves locked. Without a key `skuul:backup` refuses,
+         * unless the installation says plainly that it accepts plain files.
+         */
+        'key' => env('BACKUP_KEY'),
+        'require_encryption' => (bool) env('BACKUP_REQUIRE_ENCRYPTION', true),
+
+        /*
+         * Everything from the last `keep_days` days stays. Older than that,
+         * the first backup of each month stays for `keep_months` months.
+         */
+        'keep_days' => (int) env('BACKUP_KEEP_DAYS', 30),
+        'keep_months' => (int) env('BACKUP_KEEP_MONTHS', 12),
+
+        /*
+         * `skuul:rehearse-restore` loads the newest backup into this
+         * connection and looks at what came back. It must be a database
+         * nobody else uses: restoring writes over whatever is there.
+         */
+        'rehearsal' => [
+            'connection' => env('BACKUP_REHEARSAL_CONNECTION'),
+            'path' => env('BACKUP_REHEARSAL_PATH', 'restore-rehearsals'),
+            'max_age_days' => (int) env('BACKUP_REHEARSAL_MAX_AGE_DAYS', 100),
+        ],
     ],
 
 ];

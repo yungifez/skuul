@@ -64,49 +64,88 @@ before you use it, and remove an old column in a later release.
 
 Two things must be backed up: the database and the uploaded files.
 
-### Database
-
-Take a full dump at least once a day and keep the binary logs for
-point-in-time recovery:
+### Take a backup
 
 ```bash
-mysqldump --single-transaction --routines --triggers \
-  --host="$DB_HOST" --user="$DB_USERNAME" --password="$DB_PASSWORD" \
-  "$DB_DATABASE" | gzip > "skuul-$(date +%F-%H%M).sql.gz"
+php artisan skuul:backup --with-files
 ```
 
-Copy the file to the backup disk named by `BACKUP_DISK` and `BACKUP_PATH`.
+The command dumps the database, squeezes it, locks it, and copies it to the
+backup disk named by `BACKUP_DISK` and `BACKUP_PATH`. Point that disk at
+another account or another region: a backup kept beside the database is not a
+backup. The scheduler runs this every day at 01:30.
 
-### Files
+`--with-files` copies the disk named by `BACKUP_FILES_DISK` as well, because a
+database without the files it names is only half a school.
 
-Uploaded files live on the storage disk. When the disk is an S3 bucket, turn
-on versioning and cross-region replication. When the disk is local, copy
-`storage/app` with the database dump.
+### Locking
 
-### Rules
+Set `BACKUP_KEY` to a long random value, keep it somewhere other than the
+backup disk, and never lose it: a locked backup cannot be opened without it.
 
-- Encrypt backups at rest and in transfer.
-- Keep daily backups for 30 days and monthly backups for 12 months.
-- Store the backups in a different account or region from the live database.
-- Never keep the only copy on the application server.
+```bash
+php -r 'echo "base64:", base64_encode(random_bytes(32)), "\n";'
+```
+
+The application refuses to write a plain backup while
+`BACKUP_REQUIRE_ENCRYPTION` is true. An installation that has another way of
+locking the files can set it to false.
+
+Each file is sealed a piece at a time and signed as a whole, so a file that was
+changed on the way is refused rather than half-restored.
+
+### How long backups are kept
+
+Everything from the last `BACKUP_KEEP_DAYS` days stays. Older than that, the
+first backup of each month stays for `BACKUP_KEEP_MONTHS` months. `skuul:backup`
+removes the rest; `--keep-old` leaves them alone.
+
+### Point-in-time recovery
+
+Keep the database binary logs as well. A daily dump loses the work of a day;
+the binary logs cover the hours between dumps.
 
 ### Check the backups
 
 `php artisan skuul:check-backup` reads the newest file on the backup disk. It
 fails and writes an error to the log when the newest backup is missing or
-older than `BACKUP_MAX_AGE_HOURS`. The scheduler runs it every day at 07:00.
+older than `BACKUP_MAX_AGE_HOURS`, or when nobody has rehearsed a restore for
+longer than `BACKUP_REHEARSAL_MAX_AGE_DAYS`. The scheduler runs it every day at
+07:00.
 
-### Restore
+### Rehearse the restore
 
-Test a restore every quarter in a separate environment. A backup nobody has
-restored is not a backup.
+A backup nobody has restored is not a backup.
 
-1. Start an empty database and an empty storage bucket.
-2. Load the dump: `gunzip < skuul-YYYY-MM-DD-HHMM.sql.gz | mysql "$DB_DATABASE"`.
-3. Copy the files back to the storage disk.
-4. Point a test application at the restored data with the production `APP_KEY`.
-5. Sign in, open a result page, and open an invoice.
-6. Write down the date of the test and how long it took.
+```bash
+php artisan skuul:rehearse-restore
+```
+
+The command takes the newest backup, unlocks it, loads it into the connection
+named by `BACKUP_REHEARSAL_CONNECTION`, and counts what came back. It writes
+the outcome to `BACKUP_REHEARSAL_PATH` on the backup disk, which is where
+`skuul:check-backup` looks. The scheduler runs it every Sunday at 03:00.
+
+Set up the rehearsal database once:
+
+- `BACKUP_REHEARSAL_CONNECTION=rehearsal`
+- `BACKUP_REHEARSAL_DATABASE=skuul_rehearsal`
+
+Restoring writes over whatever is in that database, so give it one nothing else
+uses. `--check-only` looks inside the backup without restoring it, which is
+what to run where no rehearsal database exists.
+
+### Restore for real
+
+1. Stop the application, or put it in maintenance mode.
+2. Bring the backup down and unlock it:
+   `php artisan skuul:rehearse-restore --file=backups/skuul-YYYY-MM-DD-HHMMSS.sql.gz.enc --into=rehearsal`
+   to prove the file first.
+3. Load the same dump into the live database.
+4. Copy the files archive back to the storage disk.
+5. Point the application at the restored data with the production `APP_KEY`.
+6. Sign in, open a result page, and open an invoice.
+7. Write down the date of the restore and how long it took.
 
 ## 4. Watch the system
 

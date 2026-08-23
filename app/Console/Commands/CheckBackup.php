@@ -3,16 +3,18 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Contracts\Filesystem\Filesystem;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Report whether a recent backup exists.
+ * Report whether a recent backup exists, and whether one was restored lately.
  *
  * A backup job that stopped working looks exactly like one that never ran, so
  * the age of the newest file is checked on a schedule and reported as a
- * failure when it gets too old.
+ * failure when it gets too old. A backup nobody has restored is not a backup
+ * either, so the date of the last rehearsal is checked the same way.
  */
 class CheckBackup extends Command
 {
@@ -64,13 +66,51 @@ class CheckBackup extends Command
 
         $this->info("The newest backup is $ageHours hours old.");
 
+        return $this->checkRehearsal($disk);
+    }
+
+    /**
+     * Say whether a restore was rehearsed recently enough.
+     */
+    private function checkRehearsal(Filesystem $disk): int
+    {
+        $path = trim((string) config('monitoring.backup.rehearsal.path'), '/');
+        $maxAgeDays = (int) config('monitoring.backup.rehearsal.max_age_days');
+        $newest = null;
+
+        foreach ($disk->files($path) as $file) {
+            $rehearsed = Carbon::createFromTimestamp($disk->lastModified($file));
+
+            if ($newest === null || $rehearsed->greaterThan($newest)) {
+                $newest = $rehearsed;
+            }
+        }
+
+        if ($newest === null) {
+            return $this->reportFailure(
+                'No restore has ever been rehearsed. Run skuul:rehearse-restore.',
+                ['path' => $path],
+            );
+        }
+
+        $ageDays = (int) $newest->diffInDays(now());
+
+        if ($ageDays > $maxAgeDays) {
+            return $this->reportFailure(
+                "The last restore was rehearsed $ageDays days ago, which is longer ago than $maxAgeDays days.",
+                ['path' => $path, 'last_rehearsal_at' => $newest->toIso8601String(), 'age_days' => $ageDays],
+            );
+        }
+
+        $this->info("A restore was rehearsed $ageDays days ago.");
+
         return self::SUCCESS;
     }
 
     /**
      * Log the problem and end with a failure.
      *
-     * @param array<string, mixed> $context
+     * @param  array<string, mixed>  $context
      */
     private function reportFailure(string $message, array $context): int
     {
