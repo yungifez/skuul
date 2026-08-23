@@ -202,6 +202,11 @@ enum AuditAction: string
     case InstructionalModelChanged = 'instructional_model.changed';
 
     /**
+     * A campus moved a running cycle to another instructional model.
+     */
+    case InstructionalModelMigrated = 'instructional_model.migrated';
+
+    /**
      * A reusable academic level was added for a campus.
      */
     case AcademicLevelCreated = 'academic_level.created';
@@ -394,6 +399,7 @@ enum AuditAction: string
             self::CampusCalendarOverridden                 => 'Campus calendar changed',
             self::CalendarTemplateSaved                    => 'Calendar template saved',
             self::InstructionalModelChanged                => 'Instructional model changed',
+            self::InstructionalModelMigrated               => 'Instructional model moved mid-cycle',
             self::AcademicLevelCreated                     => 'Academic level created',
             self::AcademicLevelUpdated                     => 'Academic level updated',
             self::AcademicLevelStatusChanged               => 'Academic level status changed',

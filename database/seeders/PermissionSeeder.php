@@ -582,6 +582,10 @@ class PermissionSeeder extends Seeder
             'name' => 'delete fee invoice record',
         ]);
 
+        Permission::firstOrCreate([
+            'name' => 'migrate instructional model',
+        ]);
+
         // header permissions (for controlling the menu headers)
         Permission::firstOrCreate([
             'name' => 'header-administrate',
@@ -796,6 +800,7 @@ class PermissionSeeder extends Seeder
             'read fee invoice record',
             'update fee invoice record',
             'delete fee invoice record',
+            'migrate instructional model',
         ]);
 
         // assign permissions to teacher

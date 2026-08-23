@@ -123,7 +123,8 @@ class AcademicYearPolicy
      */
     public function viewInstructionalModel(User $user, AcademicYear $academicYear): ?bool
     {
-        if ($this->setInstructionalModel($user, $academicYear)) {
+        if ($this->setInstructionalModel($user, $academicYear)
+            || $this->migrateInstructionalModel($user, $academicYear)) {
             return true;
         }
 
@@ -148,6 +149,26 @@ class AcademicYearPolicy
         }
 
         if ($user->can('manage school settings') && current_school_id() === $academicYear->school_id) {
+            return true;
+        }
+
+        return null;
+    }
+
+    /**
+     * Determine whether the user can move a running cycle to another model.
+     *
+     * This is deliberately not the settings permission. Choosing the model of
+     * a cycle that has not started is setup; moving one learners already work
+     * in changes what staff are asked for mid-year, so it is held separately.
+     */
+    public function migrateInstructionalModel(User $user, AcademicYear $academicYear): ?bool
+    {
+        if ($user->can('migrate instructional model') && current_school_id() === $academicYear->school_id) {
+            return true;
+        }
+
+        if ($this->administersCampus($user, $academicYear)) {
             return true;
         }
 

@@ -1,4 +1,4 @@
-@props(['option', 'selected' => false, 'readonly' => false])
+@props(['option', 'selected' => false, 'readonly' => false, 'impact' => null, 'idPrefix' => 'instructional-model'])
 
 @php
     use App\Enums\InstructionalModel;
@@ -19,10 +19,10 @@
 @if ($readonly)
 <div class="group flex items-start gap-4 rounded-lg border border-primary/50 bg-primary/5 p-4">
 @else
-<label for="instructional-model-{{ $option->value }}"
+<label for="{{ $idPrefix }}-{{ $option->value }}"
     class="group flex cursor-pointer items-start gap-4 rounded-lg border border-border p-4 transition-colors hover:bg-muted/40 has-[:checked]:border-primary/50 has-[:checked]:bg-primary/5">
     <input type="radio"
-        id="instructional-model-{{ $option->value }}"
+        id="{{ $idPrefix }}-{{ $option->value }}"
         name="model"
         value="{{ $option->value }}"
         class="mt-1 size-4 shrink-0 accent-primary"
@@ -51,6 +51,22 @@
         <span class="block text-xs text-muted-foreground">
             <span class="font-medium text-foreground">Example:</span> {{ $option->example() }}
         </span>
+
+        @if ($impact !== null)
+            <span class="flex flex-wrap items-center gap-2 rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
+                <x-lucide-book-open class="size-3.5 shrink-0" />
+                <span>
+                    <span class="font-medium text-foreground">{{ $impact['offerings'] }}</span>
+                    {{ Str::plural('subject', $impact['offerings']) }} already set up in this cycle.
+                    @if ($impact['exceptions'] > 0)
+                        <span class="font-medium text-foreground">{{ $impact['exceptions'] }}</span>
+                        would keep a roster this answer does not offer, and stay as {{ $impact['exceptions'] === 1 ? 'an exception' : 'exceptions' }}.
+                    @else
+                        None of them would have to change.
+                    @endif
+                </span>
+            </span>
+        @endif
 
         <span class="flex flex-wrap gap-1.5 pt-0.5">
             @foreach ($capabilities as $capability)

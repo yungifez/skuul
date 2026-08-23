@@ -381,6 +381,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::post('academic-years/{academic_year}/reopen', ['App\Http\Controllers\AcademicYearController', 'reopen'])->name('academic-years.reopen');
         Route::get('academic-years/{academic_year}/instructional-model', ['App\Http\Controllers\InstructionalModelController', 'edit'])->name('academic-years.instructional-model.edit');
         Route::put('academic-years/{academic_year}/instructional-model', ['App\Http\Controllers\InstructionalModelController', 'update'])->name('academic-years.instructional-model.update');
+        Route::post('academic-years/{academic_year}/instructional-model/migration', ['App\Http\Controllers\InstructionalModelController', 'migrate'])->name('academic-years.instructional-model.migrate');
 
         // subject routes
         Route::resource('subjects', SubjectController::class);
