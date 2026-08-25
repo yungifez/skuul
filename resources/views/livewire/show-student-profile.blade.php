@@ -13,19 +13,19 @@
             <slot:content class="space-y-6">
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <div class="rounded-lg border bg-muted/30 p-4">
-                        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Admission number</p>
+                        <p class="text-xs font-medium uppercase text-muted-foreground">Admission number</p>
                         <p class="mt-1 font-semibold">{{ $studentRecord->admission_number ?: 'Not assigned' }}</p>
                     </div>
                     <div class="rounded-lg border bg-muted/30 p-4">
-                        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Admitted</p>
+                        <p class="text-xs font-medium uppercase text-muted-foreground">Admitted</p>
                         <p class="mt-1 font-semibold">{{ $studentRecord->admission_date ?: 'Not recorded' }}</p>
                     </div>
                     <div class="rounded-lg border bg-muted/30 p-4">
-                        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{{ school_term('class_level', 'Class') }}</p>
+                        <p class="text-xs font-medium uppercase text-muted-foreground">{{ school_term('class_level', 'Class') }}</p>
                         <p class="mt-1 font-semibold">{{ $studentRecord->academicCycleSection?->academicLevel?->label ?? $studentRecord->academicCycleSection?->academicLevel?->name ?? 'Not placed' }}</p>
                     </div>
                     <div class="rounded-lg border bg-muted/30 p-4">
-                        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{{ school_term('section', 'Section') }}</p>
+                        <p class="text-xs font-medium uppercase text-muted-foreground">{{ school_term('section', 'Section') }}</p>
                         <p class="mt-1 font-semibold">{{ $studentRecord->academicCycleSection?->label ?? $studentRecord->academicCycleSection?->name ?? 'Not placed' }}</p>
                     </div>
                 </div>

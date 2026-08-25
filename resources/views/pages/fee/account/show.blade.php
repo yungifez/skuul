@@ -29,7 +29,7 @@
 
     <div class="grid gap-4 sm:grid-cols-2">
         <div class="rounded-xl border border-sidebar-border/70 bg-card p-5 text-card-foreground shadow-sm">
-            <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Owed to the school</p>
+            <p class="text-xs font-medium uppercase text-muted-foreground">Owed to the school</p>
             <p class="mt-2 text-3xl font-semibold tracking-tight {{ $owes ? 'text-foreground' : 'text-muted-foreground' }}">
                 {{ number_format($balance, 2) }}
             </p>
@@ -37,7 +37,7 @@
         </div>
 
         <div class="rounded-xl border border-sidebar-border/70 bg-card p-5 text-card-foreground shadow-sm">
-            <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Held for this student</p>
+            <p class="text-xs font-medium uppercase text-muted-foreground">Held for this student</p>
             <p class="mt-2 text-3xl font-semibold tracking-tight">{{ $credit->formatToLocale($locale) }}</p>
             <p class="mt-1 text-xs text-muted-foreground">Money paid that no invoice has used yet.</p>
 

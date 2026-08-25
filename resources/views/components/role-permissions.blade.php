@@ -24,7 +24,7 @@
         <div class="grid gap-6 p-6 sm:grid-cols-2">
             @foreach ($groups as $subject => $permissions)
                 <div class="flex flex-col gap-2">
-                    <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">{{ $subject }}</p>
+                    <p class="text-xs font-medium uppercase text-muted-foreground">{{ $subject }}</p>
                     @foreach ($permissions as $permission)
                         <label class="flex items-start gap-2 text-sm">
                             <input type="checkbox" name="permissions[]" value="{{ $permission }}" class="mt-0.5 size-4"

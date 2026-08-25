@@ -49,7 +49,7 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
                         class="flex min-w-0 flex-col gap-1 group-data-[collapsible=icon]:hidden">
                         @csrf
                         <label for="sidebar-school-switcher"
-                            class="px-1 text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                            class="px-1 text-[0.65rem] font-semibold uppercase text-muted-foreground">
                             Working school
                         </label>
                         <april:native-select id="sidebar-school-switcher" name="school_id"

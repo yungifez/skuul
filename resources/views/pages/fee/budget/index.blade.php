@@ -22,7 +22,7 @@
     @if ($academicYears->count() > 1)
         <form method="GET" action="{{ route('budgets.index') }}" class="flex flex-wrap items-end gap-3">
             <div class="flex flex-col gap-2">
-                <label for="cycle" class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Cycle</label>
+                <label for="cycle" class="text-xs font-medium uppercase text-muted-foreground">Cycle</label>
                 <select id="cycle" name="academic_year_id" onchange="this.form.submit()"
                     class="flex h-10 w-56 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                     @foreach ($academicYears as $cycle)

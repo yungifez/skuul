@@ -6,7 +6,7 @@
     <main class="relative w-full max-w-md {{ $class }} {{ $width }} {{ $height }}">
         <div class="mb-8 flex flex-col items-center gap-3 text-center">
             <img src="{{ asset(config('app.logo')) }}" alt="{{ config('app.name') }} logo" class="h-16 w-16 rounded-2xl border bg-background object-cover shadow-lg">
-            <p class="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">{{ config('app.name') }}</p>
+            <p class="text-sm font-semibold uppercase text-muted-foreground">{{ config('app.name') }}</p>
         </div>
 
         <april:card class="w-full border-border/70 bg-card/95 shadow-xl shadow-black/5 backdrop-blur" header-class="border-0">

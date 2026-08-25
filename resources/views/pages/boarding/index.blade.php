@@ -38,7 +38,7 @@
                     class="group flex flex-col gap-3 rounded-xl border border-sidebar-border/70 bg-card p-6 text-card-foreground shadow-sm transition-colors hover:border-primary/40">
                     <div class="flex items-start justify-between gap-3">
                         <div>
-                            <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">{{ $dormitory->label }}</p>
+                            <p class="text-xs font-medium uppercase text-muted-foreground">{{ $dormitory->label }}</p>
                             <h3 class="mt-1 text-lg font-semibold leading-none tracking-tight">{{ $dormitory->name }}</h3>
                         </div>
                         <x-lucide-arrow-right class="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />

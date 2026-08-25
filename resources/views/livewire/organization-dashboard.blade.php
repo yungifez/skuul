@@ -2,7 +2,7 @@
     @if ($loaded)
         <section class="flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Organization overview</p>
+                <p class="text-xs font-semibold uppercase text-muted-foreground">Organization overview</p>
                 <h2 class="mt-1 text-2xl font-semibold tracking-tight">Campus health at a glance</h2>
                 <p class="mt-2 max-w-3xl text-sm text-muted-foreground">Aggregate operational signals across {{ $organization->name }}. Individual people and school records remain in their campus context.</p>
             </div>
@@ -55,10 +55,10 @@
                             <p class="font-semibold">{{ $campus->name }}</p>
                             <p class="mt-1 text-sm text-muted-foreground">Campus operational summary</p>
                         </div>
-                        <div><p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Students</p><p class="mt-1 font-semibold">{{ number_format($campus->active_students_count) }} active</p></div>
-                        <div><p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Campus access</p><p class="mt-1 font-semibold">{{ number_format($campus->campus_access_count) }} people</p></div>
-                        <div><p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Academic year</p><p class="mt-1 font-semibold">{{ $campus->academicYear?->name ?? 'Not set' }}</p><p class="text-sm text-muted-foreground">{{ $this->academicPeriodStatus($campus->academicYear?->status) }}</p></div>
-                        <div><p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">AcademicPeriod</p><p class="mt-1 font-semibold">{{ $campus->academicPeriod?->name ?? 'Not set' }}</p><p class="text-sm text-muted-foreground">{{ $this->academicPeriodStatus($campus->academicPeriod?->status) }}</p></div>
+                        <div><p class="text-xs font-medium uppercase text-muted-foreground">Students</p><p class="mt-1 font-semibold">{{ number_format($campus->active_students_count) }} active</p></div>
+                        <div><p class="text-xs font-medium uppercase text-muted-foreground">Campus access</p><p class="mt-1 font-semibold">{{ number_format($campus->campus_access_count) }} people</p></div>
+                        <div><p class="text-xs font-medium uppercase text-muted-foreground">Academic year</p><p class="mt-1 font-semibold">{{ $campus->academicYear?->name ?? 'Not set' }}</p><p class="text-sm text-muted-foreground">{{ $this->academicPeriodStatus($campus->academicYear?->status) }}</p></div>
+                        <div><p class="text-xs font-medium uppercase text-muted-foreground">AcademicPeriod</p><p class="mt-1 font-semibold">{{ $campus->academicPeriod?->name ?? 'Not set' }}</p><p class="text-sm text-muted-foreground">{{ $this->academicPeriodStatus($campus->academicPeriod?->status) }}</p></div>
                         <div class="flex items-center justify-between gap-3 lg:flex-col lg:items-end">
                             <april:badge :variant="$hasAcademicSetup ? 'secondary' : 'destructive'">{{ $hasAcademicSetup ? 'Ready' : 'Setup needed' }}</april:badge>
                             <april:button-link href="{{ route('schools.show', $campus) }}" variant="link" size="none" class="gap-1 p-0">Open campus <span aria-hidden="true">→</span></april:button-link>

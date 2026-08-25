@@ -7,7 +7,7 @@
         <div class="mx-auto w-full max-w-3xl">
             <div class="mb-8 text-center">
                 <img src="{{ asset(config('app.logo')) }}" alt="{{ config('app.name') }} logo" class="mx-auto mb-4 h-16 w-16 rounded-2xl border bg-background object-cover shadow-lg">
-                <p class="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">{{ config('app.name') }}</p>
+                <p class="text-sm font-semibold uppercase text-muted-foreground">{{ config('app.name') }}</p>
                 <h1 class="mt-3 text-3xl font-semibold tracking-tight">Install Skuul</h1>
                 <p class="mx-auto mt-2 max-w-xl text-muted-foreground">Create the first System Administrator account, organization, and campus.</p>
             </div>

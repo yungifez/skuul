@@ -19,7 +19,7 @@
 <div class="group flex flex-col justify-between rounded-xl border border-sidebar-border/70 bg-card text-card-foreground shadow-sm transition-all duration-300 hover:border-border">
     <div class="flex flex-col gap-4 p-6">
         <div class="flex items-start justify-between gap-3">
-            <p class="text-xs font-bold tracking-wider text-muted-foreground uppercase">Teaching setup</p>
+            <p class="text-xs font-bold text-muted-foreground uppercase">Teaching setup</p>
 
             @if (!$isFutureCycle)
                 <span class="inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground">

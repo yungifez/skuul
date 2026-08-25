@@ -11,7 +11,7 @@
 @section('content')
 <div class="mx-auto flex w-full max-w-5xl flex-col gap-6">
     <div>
-        <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">{{ $dormitory->label }}</p>
+        <p class="text-xs font-medium uppercase text-muted-foreground">{{ $dormitory->label }}</p>
         <h2 class="mt-1 text-2xl font-bold tracking-tight text-foreground md:text-3xl">{{ $dormitory->name }}</h2>
         <p class="mt-1 text-sm text-muted-foreground">
             {{ $occupancy['taken'] }} of {{ $occupancy['beds'] }} beds are taken, and {{ $occupancy['away'] }} learners are out tonight.
@@ -22,7 +22,7 @@
 
     @if ($onDuty->isNotEmpty())
         <div class="rounded-xl border border-sidebar-border/70 bg-card p-6 text-card-foreground shadow-sm">
-            <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">On duty</p>
+            <p class="text-xs font-medium uppercase text-muted-foreground">On duty</p>
             <div class="mt-3 flex flex-wrap gap-2">
                 @foreach ($onDuty as $duty)
                     <april:badge variant="outline">{{ $duty->user?->name }} &middot; {{ $duty->role->label() }}</april:badge>
@@ -33,7 +33,7 @@
 
     @if ($away->isNotEmpty())
         <div class="rounded-xl border border-sidebar-border/70 bg-card p-6 text-card-foreground shadow-sm">
-            <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Out of the house tonight</p>
+            <p class="text-xs font-medium uppercase text-muted-foreground">Out of the house tonight</p>
             <ul class="mt-3 flex flex-col gap-2">
                 @foreach ($away as $leave)
                     <li class="text-sm">
@@ -59,7 +59,7 @@
                         @foreach ($room->beds as $bed)
                             @php ($place = $occupiedBy->get($bed->id))
                             <div class="rounded-lg border p-3 text-sm {{ $place === null ? 'border-dashed text-muted-foreground' : 'border-input' }}">
-                                <p class="text-xs uppercase tracking-wider text-muted-foreground">{{ $bed->name }}</p>
+                                <p class="text-xs uppercase text-muted-foreground">{{ $bed->name }}</p>
                                 @if ($place === null)
                                     <p class="mt-1">Free</p>
                                 @else

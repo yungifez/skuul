@@ -28,21 +28,21 @@
             <april:separator class="mb-6 mt-0" />
             <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div class="rounded-lg border bg-muted/30 p-4">
-                    <dt class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <dt class="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                         <x-lucide-building-2 class="size-4" />
                         School code
                     </dt>
                     <dd class="mt-2 font-medium">{{ $school->code ?: 'Not set' }}</dd>
                 </div>
                 <div class="rounded-lg border bg-muted/30 p-4">
-                    <dt class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <dt class="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                         <x-lucide-at-sign class="size-4" />
                         Short name
                     </dt>
                     <dd class="mt-2 font-medium">{{ $school->initials ?: 'Not set' }}</dd>
                 </div>
                 <div class="rounded-lg border bg-muted/30 p-4 sm:col-span-2 lg:col-span-1">
-                    <dt class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                    <dt class="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
                         <x-lucide-map-pin class="size-4" />
                         Address
                     </dt>

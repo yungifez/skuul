@@ -8,11 +8,11 @@
             <slot:content>
                 <dl class="grid gap-4 sm:grid-cols-2">
                     <div>
-                        <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Account</dt>
+                        <dt class="text-xs font-medium uppercase text-muted-foreground">Account</dt>
                         <dd class="mt-1"><x-account-status-control :user="$admin" /></dd>
                     </div>
                     <div>
-                        <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Membership</dt>
+                        <dt class="text-xs font-medium uppercase text-muted-foreground">Membership</dt>
                         <dd class="mt-1">
                             @if ($membership)
                                 <april:badge variant="{{ $membership->status->value === 'active' ? 'default' : 'outline' }}">
@@ -24,11 +24,11 @@
                         </dd>
                     </div>
                     <div>
-                        <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Joined</dt>
+                        <dt class="text-xs font-medium uppercase text-muted-foreground">Joined</dt>
                         <dd class="mt-1 text-sm">{{ $membership?->joined_at?->format('M j, Y') ?: 'Not recorded' }}</dd>
                     </div>
                     <div>
-                        <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Primary school</dt>
+                        <dt class="text-xs font-medium uppercase text-muted-foreground">Primary school</dt>
                         <dd class="mt-1 text-sm">{{ $membership?->is_primary ? 'Yes' : 'No' }}</dd>
                     </div>
                 </dl>
@@ -40,7 +40,7 @@
             <slot:description>Roles and invitation state for this account.</slot:description>
             <slot:content class="space-y-5">
                 <div>
-                    <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Roles</p>
+                    <p class="text-xs font-medium uppercase text-muted-foreground">Roles</p>
                     <div class="mt-2 flex flex-wrap gap-2">
                         @forelse ($roles as $role)
                             <april:badge variant="secondary">{{ $role }}</april:badge>
@@ -50,7 +50,7 @@
                     </div>
                 </div>
                 <div>
-                    <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Invitation</p>
+                    <p class="text-xs font-medium uppercase text-muted-foreground">Invitation</p>
                     @if ($pendingInvitation)
                         <p class="mt-1 text-sm">Pending until {{ $pendingInvitation->expires_at->format('M j, Y') }}.</p>
                     @elseif ($admin->isAwaitingInvitationAcceptance())

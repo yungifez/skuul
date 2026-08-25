@@ -37,7 +37,7 @@
                         'Postal / ZIP code' => $user->postal_code,
                     ] as $label => $value)
                         <div class="border-b pb-3">
-                            <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{{ $label }}</dt>
+                            <dt class="text-xs font-medium uppercase text-muted-foreground">{{ $label }}</dt>
                             <dd class="mt-1 text-sm">{{ $value ?: 'Not recorded' }}</dd>
                         </div>
                     @endforeach

@@ -137,7 +137,7 @@
 
                 <div class="flex flex-col gap-4 p-6">
                     <fieldset class="flex flex-col gap-3">
-                        <legend class="flex items-center gap-1 text-xs font-bold tracking-wider text-muted-foreground uppercase">
+                        <legend class="flex items-center gap-1 text-xs font-bold text-muted-foreground uppercase">
                             Move to
                             <x-help-tooltip label="Move destination help">Choose the teaching setup the cycle should use from now on. Each option shows how many existing subjects may be affected.</x-help-tooltip>
                         </legend>

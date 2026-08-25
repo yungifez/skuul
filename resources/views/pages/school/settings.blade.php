@@ -9,7 +9,7 @@
 @section('content')
     <div class="mx-auto max-w-6xl space-y-8">
         <section class="rounded-xl border bg-muted/40 p-6 md:p-8">
-            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">{{ $school->name }}</p>
+            <p class="text-xs font-semibold uppercase text-muted-foreground">{{ $school->name }}</p>
             <h2 class="mt-2 text-2xl font-semibold tracking-tight">Make sure the essentials are ready before the {{ strtolower(school_term('academic_year', 'school year')) }} starts.</h2>
             <p class="mt-2 max-w-3xl text-sm text-muted-foreground">Work through the cards below in order. You can return at any time; completed areas stay available for review.</p>
         </section>
@@ -72,7 +72,7 @@
 
         <section class="space-y-4">
             <div>
-                <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Run the school</p>
+                <p class="text-xs font-semibold uppercase text-muted-foreground">Run the school</p>
                 <h2 class="text-xl font-semibold tracking-tight">The day-to-day areas your team manages</h2>
                 <p class="text-sm text-muted-foreground">These areas hold the working rules and records your staff use after the school year is prepared.</p>
             </div>

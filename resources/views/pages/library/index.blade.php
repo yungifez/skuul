@@ -25,15 +25,15 @@
 
     <div class="grid gap-4 sm:grid-cols-3">
         <div class="rounded-xl border border-sidebar-border/70 bg-card p-5 text-card-foreground shadow-sm">
-            <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">On the shelf</p>
+            <p class="text-xs font-medium uppercase text-muted-foreground">On the shelf</p>
             <p class="mt-2 text-2xl font-semibold tracking-tight">{{ $onShelf }}</p>
         </div>
         <div class="rounded-xl border border-sidebar-border/70 bg-card p-5 text-card-foreground shadow-sm">
-            <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Out on loan</p>
+            <p class="text-xs font-medium uppercase text-muted-foreground">Out on loan</p>
             <p class="mt-2 text-2xl font-semibold tracking-tight">{{ $out }}</p>
         </div>
         <div class="rounded-xl border border-sidebar-border/70 bg-card p-5 text-card-foreground shadow-sm">
-            <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Overdue</p>
+            <p class="text-xs font-medium uppercase text-muted-foreground">Overdue</p>
             <p class="mt-2 text-2xl font-semibold tracking-tight {{ $overdue > 0 ? 'text-destructive' : '' }}">{{ $overdue }}</p>
         </div>
     </div>
@@ -42,7 +42,7 @@
 
     <form method="GET" action="{{ route('library-copies.index') }}" class="flex flex-wrap items-end gap-3">
         <div class="flex flex-1 flex-col gap-2">
-            <label for="library-search" class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Search</label>
+            <label for="library-search" class="text-xs font-medium uppercase text-muted-foreground">Search</label>
             <input id="library-search" name="search" value="{{ $search }}" placeholder="Title, author, ISBN, or barcode"
                 class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
         </div>

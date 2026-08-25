@@ -17,7 +17,7 @@
         </div>
         <div class="min-w-0">
             <div class="flex items-center gap-1">
-                <p class="text-xs font-bold tracking-wider text-muted-foreground uppercase">Teaching now set to</p>
+                <p class="text-xs font-bold text-muted-foreground uppercase">Teaching now set to</p>
                 <x-help-tooltip label="Current teaching setup help">This answer sets the starting point for subjects in this {{ strtolower(school_term('academic_year', 'school year')) }}. Individual subjects can still use an exception when they are taught differently.</x-help-tooltip>
             </div>
             <p class="mt-1 text-lg font-semibold text-foreground">{{ $model->label() }}</p>

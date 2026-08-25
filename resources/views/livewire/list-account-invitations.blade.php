@@ -74,19 +74,19 @@
 
                     <dl class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                         <div>
-                            <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Invited by</dt>
+                    <dt class="text-xs font-medium uppercase text-muted-foreground">Invited by</dt>
                             <dd class="mt-1 text-sm">{{ $row['inviter'] }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Created</dt>
+                    <dt class="text-xs font-medium uppercase text-muted-foreground">Created</dt>
                             <dd class="mt-1 text-sm">{{ $row['created_at'] }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Expires</dt>
+                    <dt class="text-xs font-medium uppercase text-muted-foreground">Expires</dt>
                             <dd class="mt-1 text-sm">{{ $row['expires_at'] }}</dd>
                         </div>
                         <div>
-                            <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">School memberships</dt>
+                    <dt class="text-xs font-medium uppercase text-muted-foreground">School memberships</dt>
                             <dd class="mt-1 flex flex-wrap gap-1.5">
                                 @forelse ($row['schools'] as $school)
                                     <span wire:key="invitation-{{ $row['id'] }}-school-{{ $loop->index }}">

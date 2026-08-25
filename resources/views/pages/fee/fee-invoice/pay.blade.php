@@ -29,15 +29,15 @@
 
     <div class="grid gap-4 sm:grid-cols-3">
         <div class="rounded-xl border border-sidebar-border/70 bg-card p-5 text-card-foreground shadow-sm">
-            <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Charged</p>
+            <p class="text-xs font-medium uppercase text-muted-foreground">Charged</p>
             <p class="mt-2 text-2xl font-semibold tracking-tight">{{ $feeInvoice->amount->plus($feeInvoice->fine)->minus($feeInvoice->waiver)->formatToLocale($locale) }}</p>
         </div>
         <div class="rounded-xl border border-sidebar-border/70 bg-card p-5 text-card-foreground shadow-sm">
-            <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Paid</p>
+            <p class="text-xs font-medium uppercase text-muted-foreground">Paid</p>
             <p class="mt-2 text-2xl font-semibold tracking-tight">{{ $feeInvoice->paid->formatToLocale($locale) }}</p>
         </div>
         <div class="rounded-xl border border-sidebar-border/70 bg-card p-5 text-card-foreground shadow-sm">
-            <p class="text-xs font-medium uppercase tracking-wider text-muted-foreground">Still owed</p>
+            <p class="text-xs font-medium uppercase text-muted-foreground">Still owed</p>
             <p class="mt-2 text-2xl font-semibold tracking-tight {{ $outstanding->isPositive() ? 'text-foreground' : 'text-muted-foreground' }}">
                 {{ $outstanding->formatToLocale($locale) }}
             </p>

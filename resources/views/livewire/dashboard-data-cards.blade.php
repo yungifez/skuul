@@ -3,7 +3,7 @@
         <april:card>
             <slot:title class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
                 <span>
-                    <span class="block text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Today at {{ current_school()->name }}</span>
+                    <span class="block text-xs font-semibold uppercase text-muted-foreground">Today at {{ current_school()->name }}</span>
                     <span class="mt-2 block text-2xl font-semibold tracking-tight md:text-3xl">Your school, ready for the day</span>
                 </span>
                 <april:badge variant="secondary" class="w-fit gap-2">
@@ -78,7 +78,7 @@
         @if ($organization)
             <section class="space-y-4">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Organization context</p>
+                    <p class="text-xs font-semibold uppercase text-muted-foreground">Organization context</p>
                     <h3 class="mt-1 text-xl font-semibold tracking-tight">{{ $organization->name }}</h3>
                 </div>
 
@@ -157,7 +157,7 @@
         <section class="space-y-4" aria-labelledby="today-overview">
             <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Daily pulse</p>
+                    <p class="text-xs font-semibold uppercase text-muted-foreground">Daily pulse</p>
                     <h3 id="today-overview" class="mt-1 text-xl font-semibold tracking-tight">What needs attention today</h3>
                 </div>
                 <div class="flex flex-wrap gap-2">
@@ -186,15 +186,15 @@
                     <slot:content>
                         <div class="grid gap-3 sm:grid-cols-3">
                             <div class="rounded-lg border bg-muted/30 p-3">
-                                <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Today’s rate</p>
+                                <p class="text-xs font-medium uppercase text-muted-foreground">Today’s rate</p>
                                 <p class="mt-1 text-2xl font-semibold tracking-tight">{{ $todayAttendance['rate'] === null ? '—' : $todayAttendance['rate'].'%' }}</p>
                             </div>
                             <div class="rounded-lg border bg-muted/30 p-3">
-                                <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Registered</p>
+                                <p class="text-xs font-medium uppercase text-muted-foreground">Registered</p>
                                 <p class="mt-1 text-2xl font-semibold tracking-tight">{{ number_format($todayAttendance['registered']) }} <span class="text-sm font-normal text-muted-foreground">/ {{ number_format($students) }}</span></p>
                             </div>
                             <div class="rounded-lg border bg-muted/30 p-3">
-                                <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Needs follow-up</p>
+                                <p class="text-xs font-medium uppercase text-muted-foreground">Needs follow-up</p>
                                 <p class="mt-1 text-2xl font-semibold tracking-tight">{{ number_format($todayAttendance['absent'] + $todayAttendance['late']) }}</p>
                                 <p class="text-xs text-muted-foreground">{{ $todayAttendance['absent'] }} absent · {{ $todayAttendance['late'] }} late</p>
                             </div>
@@ -259,7 +259,7 @@
         <section class="space-y-4" aria-labelledby="upcoming-overview">
             <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
                 <div>
-                    <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Coming up</p>
+                    <p class="text-xs font-semibold uppercase text-muted-foreground">Coming up</p>
                     <h3 id="upcoming-overview" class="mt-1 text-xl font-semibold tracking-tight">The next few days</h3>
                 </div>
                 @can('viewAny', \App\Models\CalendarEvent::class)
