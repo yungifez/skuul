@@ -49,10 +49,6 @@
         scrollbar-gutter: stable;
     }
 
-    [data-slot="data-table"] > .relative > table {
-        min-width: max-content;
-    }
-
     [data-slot="data-table"] th {
         white-space: nowrap;
     }
