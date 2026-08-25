@@ -67,12 +67,6 @@ parameters:
 			path: app/Policies/FeeInvoiceRecordPolicy.php
 
 		-
-			message: '#^Right side of && is always true\.$#'
-			identifier: booleanAnd.rightAlwaysTrue
-			count: 3
-			path: app/Policies/UserPolicy.php
-
-		-
 			message: '#^Method App\\Services\\Fee\\FeeInvoiceService\:\:updateFeeInvoice\(\) with return type void returns App\\Models\\FeeInvoice but should not return anything\.$#'
 			identifier: return.void
 			count: 1

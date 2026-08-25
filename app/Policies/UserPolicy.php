@@ -28,7 +28,7 @@ class UserPolicy
             return false;
         }
 
-        if ($user->can("read $role") && $model->belongsToCurrentSchool()) {
+        if ($user->can("read $role")) {
             return true;
         }
         // user can view his own profile
@@ -56,7 +56,7 @@ class UserPolicy
             return false;
         }
 
-        if ($user->can("update $role") && $model->belongsToCurrentSchool()) {
+        if ($user->can("update $role")) {
             return true;
         }
     }
@@ -70,7 +70,7 @@ class UserPolicy
             return false;
         }
 
-        if ($user->can("delete $role") && $model->belongsToCurrentSchool()) {
+        if ($user->can("delete $role")) {
             return true;
         }
     }

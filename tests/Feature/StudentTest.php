@@ -45,6 +45,16 @@ class StudentTest extends TestCase
             ->assertDontSee('Save placement');
     }
 
+    public function test_student_detail_does_not_render_a_blocking_n_plus_one_alert(): void
+    {
+        $student = StudentRecord::factory()->create();
+
+        $this->authorized_user(['read student', 'update student'])
+            ->get("dashboard/students/{$student->user->id}")
+            ->assertOk()
+            ->assertDontSee('Found the following N+1 queries');
+    }
+
     // test create student cannot be accessed by unauthorised users
 
     public function test_create_student_cannot_be_accessed_by_unauthorised_users()
