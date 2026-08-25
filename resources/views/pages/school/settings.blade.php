@@ -70,46 +70,46 @@
             @endcan
         </section>
 
-        <section class="space-y-4">
-            <div>
-                <p class="text-xs font-semibold uppercase text-muted-foreground">Run the school</p>
+        <section class="space-y-5">
+            <div class="max-w-2xl space-y-1">
+                <p class="text-sm font-medium text-muted-foreground">Run the school</p>
                 <h2 class="text-xl font-semibold tracking-tight">The day-to-day areas your team manages</h2>
-                <p class="text-sm text-muted-foreground">These areas hold the working rules and records your staff use after the school year is prepared.</p>
+                <p class="text-sm leading-6 text-muted-foreground">These areas hold the working rules and records your staff use after the school year is prepared.</p>
             </div>
 
             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                <april:card>
-                    <slot:title class="flex items-center justify-between gap-3"><span>Student records and admissions</span><span class="flex items-center gap-1"><x-help-tooltip label="Student records and admissions help">Admission numbers, learner details, required documents and placement into this {{ strtolower(school_term('academic_year', 'year')) }}’s {{ strtolower(school_terms('section', 'classes')) }}.</x-help-tooltip><x-lucide-user-round-plus class="size-5 text-muted-foreground" /></span></slot:title>
+                <april:card class="h-full">
+                    <slot:title class="flex items-center justify-between gap-3 text-base leading-snug tracking-normal"><span>Student records and admissions</span><span class="flex items-center gap-1"><x-help-tooltip label="Student records and admissions help">Admission numbers, learner details, required documents and placement into this {{ strtolower(school_term('academic_year', 'year')) }}’s {{ strtolower(school_terms('section', 'classes')) }}.</x-help-tooltip><x-lucide-user-round-plus class="size-4 shrink-0 text-muted-foreground" /></span></slot:title>
                     <slot:footer><april:button-link href="{{ route('students.index') }}" variant="link" size="none" class="gap-1 p-0">Manage students <span aria-hidden="true">→</span></april:button-link></slot:footer>
                 </april:card>
 
-                <april:card>
-                    <slot:title class="flex items-center justify-between gap-3"><span>Parents and guardians</span><span class="flex items-center gap-1"><x-help-tooltip label="Parents and guardians help">Family contacts, parent access and the information staff can share with them.</x-help-tooltip><x-lucide-heart-handshake class="size-5 text-muted-foreground" /></span></slot:title>
+                <april:card class="h-full">
+                    <slot:title class="flex items-center justify-between gap-3 text-base leading-snug tracking-normal"><span>Parents and guardians</span><span class="flex items-center gap-1"><x-help-tooltip label="Parents and guardians help">Family contacts, parent access and the information staff can share with them.</x-help-tooltip><x-lucide-heart-handshake class="size-4 shrink-0 text-muted-foreground" /></span></slot:title>
                     <slot:footer><april:button-link href="{{ route('parents.index') }}" variant="link" size="none" class="gap-1 p-0">Manage families <span aria-hidden="true">→</span></april:button-link></slot:footer>
                 </april:card>
 
-                <april:card>
-                    <slot:title class="flex items-center justify-between gap-3"><span>Fees and payments</span><span class="flex items-center gap-1"><x-help-tooltip label="Fees and payments help">Fee categories, invoices, payment records and the financial rules for this school.</x-help-tooltip><x-lucide-wallet-cards class="size-5 text-muted-foreground" /></span></slot:title>
+                <april:card class="h-full">
+                    <slot:title class="flex items-center justify-between gap-3 text-base leading-snug tracking-normal"><span>Fees and payments</span><span class="flex items-center gap-1"><x-help-tooltip label="Fees and payments help">Fee categories, invoices, payment records and the financial rules for this school.</x-help-tooltip><x-lucide-wallet-cards class="size-4 shrink-0 text-muted-foreground" /></span></slot:title>
                     <slot:footer><april:button-link href="{{ route('fee-invoices.index') }}" variant="link" size="none" class="gap-1 p-0">Manage fees and payments <span aria-hidden="true">→</span></april:button-link></slot:footer>
                 </april:card>
 
-                <april:card>
-                    <slot:title class="flex items-center justify-between gap-3"><span>School communication</span><span class="flex items-center gap-1"><x-help-tooltip label="School communication help">Notices and announcements for learners, families and staff.</x-help-tooltip><x-lucide-megaphone class="size-5 text-muted-foreground" /></span></slot:title>
+                <april:card class="h-full">
+                    <slot:title class="flex items-center justify-between gap-3 text-base leading-snug tracking-normal"><span>School communication</span><span class="flex items-center gap-1"><x-help-tooltip label="School communication help">Notices and announcements for learners, families and staff.</x-help-tooltip><x-lucide-megaphone class="size-4 shrink-0 text-muted-foreground" /></span></slot:title>
                     <slot:footer><april:button-link href="{{ route('notices.index') }}" variant="link" size="none" class="gap-1 p-0">Manage notices <span aria-hidden="true">→</span></april:button-link></slot:footer>
                 </april:card>
 
-                <april:card>
-                    <slot:title class="flex items-center justify-between gap-3"><span>Staff access</span><span class="flex items-center gap-1"><x-help-tooltip label="Staff access help">Administrator accounts, invitations and who can carry out each task in the school.</x-help-tooltip><x-lucide-shield-check class="size-5 text-muted-foreground" /></span></slot:title>
+                <april:card class="h-full">
+                    <slot:title class="flex items-center justify-between gap-3 text-base leading-snug tracking-normal"><span>Staff access</span><span class="flex items-center gap-1"><x-help-tooltip label="Staff access help">Administrator accounts, invitations and who can carry out each task in the school.</x-help-tooltip><x-lucide-shield-check class="size-4 shrink-0 text-muted-foreground" /></span></slot:title>
                     <slot:footer><april:button-link href="{{ route('admins.index') }}" variant="link" size="none" class="gap-1 p-0">Manage staff access <span aria-hidden="true">→</span></april:button-link></slot:footer>
                 </april:card>
 
-                <april:card>
-                    <slot:title class="flex items-center justify-between gap-3"><span>Timetable and school day</span><span class="flex items-center gap-1"><x-help-tooltip label="Timetable and school day help">Lesson times, rooms and the timetable learners and teachers follow each day.</x-help-tooltip><x-lucide-clock-3 class="size-5 text-muted-foreground" /></span></slot:title>
+                <april:card class="h-full">
+                    <slot:title class="flex items-center justify-between gap-3 text-base leading-snug tracking-normal"><span>Timetable and school day</span><span class="flex items-center gap-1"><x-help-tooltip label="Timetable and school day help">Lesson times, rooms and the timetable learners and teachers follow each day.</x-help-tooltip><x-lucide-clock-3 class="size-4 shrink-0 text-muted-foreground" /></span></slot:title>
                     <slot:footer><april:button-link href="{{ route('timetables.index') }}" variant="link" size="none" class="gap-1 p-0">Manage timetable <span aria-hidden="true">→</span></april:button-link></slot:footer>
                 </april:card>
 
-                <april:card>
-                    <slot:title class="flex items-center justify-between gap-3"><span>Tools your school uses</span><span class="flex items-center gap-1"><x-help-tooltip label="School tools help">Choose which optional school tools are available to staff and families.</x-help-tooltip><x-lucide-sliders-horizontal class="size-5 text-muted-foreground" /></span></slot:title>
+                <april:card class="h-full">
+                    <slot:title class="flex items-center justify-between gap-3 text-base leading-snug tracking-normal"><span>Tools your school uses</span><span class="flex items-center gap-1"><x-help-tooltip label="School tools help">Choose which optional school tools are available to staff and families.</x-help-tooltip><x-lucide-sliders-horizontal class="size-4 shrink-0 text-muted-foreground" /></span></slot:title>
                     <slot:footer><april:button-link href="{{ route('schools.features.edit') }}" variant="link" size="none" class="gap-1 p-0">Choose school tools <span aria-hidden="true">→</span></april:button-link></slot:footer>
                 </april:card>
             </div>
