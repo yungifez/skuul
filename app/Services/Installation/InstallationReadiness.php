@@ -82,7 +82,7 @@ class InstallationReadiness
     public function existingInstallationCandidate(): ?array
     {
         try {
-            foreach (['users', 'schools', 'model_has_roles', 'roles', 'role_has_permissions', 'permissions', 'school_memberships'] as $table) {
+            foreach (['installations', 'users', 'schools', 'model_has_roles', 'roles', 'role_has_permissions', 'permissions', 'school_memberships'] as $table) {
                 if (!Schema::hasTable($table)) {
                     return null;
                 }
