@@ -67,6 +67,7 @@ class InstallationTest extends TestCase
             ->assertSee('Email is optional')
             ->assertDontSee('id="campus_address_line_2"', false)
             ->assertSee('id="campus_city"', false)
+            ->assertSee('list="campus_city-options"', false)
             ->assertSee('id="campus_postal_code"', false)
             ->assertSee('id="campus_country"', false);
     }

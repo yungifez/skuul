@@ -26,10 +26,10 @@ window.locationFields = function locationFields(configuration) {
         loading: false,
         requestId: 0,
 
-        async loadCountry() {
+        async loadCountry(preserveSelection = true) {
             const requestId = ++this.requestId;
-            const selectedState = this.state;
-            const selectedCity = this.city;
+            const selectedState = preserveSelection ? this.state : "";
+            const selectedCity = preserveSelection ? this.city : "";
 
             this.states = [];
             this.cities = [];
@@ -60,7 +60,7 @@ window.locationFields = function locationFields(configuration) {
                 this.states = statesResponse.ok ? await statesResponse.json() : [];
                 this.cities = citiesResponse.ok ? await citiesResponse.json() : [];
                 this.state = this.states.includes(selectedState) ? selectedState : "";
-                this.city = this.cities.includes(selectedCity) ? selectedCity : "";
+                this.city = selectedCity;
             } finally {
                 if (requestId === this.requestId) {
                     this.loading = false;

@@ -47,20 +47,22 @@
 
     <div class="flex w-full flex-col gap-2">
         <april:label for="{{ $cityField }}">City *</april:label>
-        <select
+        <input
             id="{{ $cityField }}"
             name="{{ $cityField }}"
+            type="text"
             x-model="city"
-            x-bind:disabled="loading || !country || cities.length === 0"
+            list="{{ $cityField }}-options"
+            placeholder="Enter city"
             required
             autocomplete="address-level2"
-            class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm disabled:cursor-not-allowed disabled:opacity-60"
-        >
-            <option value="" x-text="loading ? 'Loading cities…' : (cities.length ? 'Select a city' : 'Select a country first')"></option>
+            class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+        />
+        <datalist id="{{ $cityField }}-options">
             <template x-for="cityName in cities" :key="cityName">
-                <option x-bind:value="cityName" x-text="cityName"></option>
+                <option x-bind:value="cityName"></option>
             </template>
-        </select>
+        </datalist>
         @if ($errors->has($cityField))
             <p class="text-sm text-destructive">{{ $errors->first($cityField) }}</p>
         @endif
@@ -72,7 +74,7 @@
             id="{{ $countryField }}"
             name="{{ $countryField }}"
             x-model="country"
-            x-on:change="loadCountry()"
+            x-on:change="loadCountry(false)"
             required
             autocomplete="country-name"
             class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
