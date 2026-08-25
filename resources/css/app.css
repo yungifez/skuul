@@ -49,6 +49,10 @@
         scrollbar-gutter: stable;
     }
 
+    [data-slot="data-table"] > .relative > table {
+        min-width: max-content;
+    }
+
     [data-slot="data-table"] th {
         white-space: nowrap;
     }
@@ -131,12 +135,5 @@
             content: "→";
             font-size: 1rem;
         }
-    }
-}
-
-@layer utilities {
-    [data-slot="data-table"] > .relative > table {
-        width: max-content;
-        min-width: max-content;
     }
 }
