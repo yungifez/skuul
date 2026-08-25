@@ -37,11 +37,36 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
     <april:sidebar x-persist="sidebar" collapsible="icon" :default-open="sidebar_open()"
         class="border-r max-h-svh sticky top-0">
         <slot:header>
-            <a href="{{route('home')}}" wire:navigate class="flex h-10 items-center gap-2" aria-label="Home">
-                <img src="{{asset(current_school()->logoURL ?? config('app.logo'))}}" alt=""
-                    class="h-8 w-8 rounded-md border object-cover">
-                <span class="truncate text-sm font-semibold">{{config('app.name')}}</span>
-            </a>
+            <div class="flex min-w-0 flex-col gap-2">
+                <a href="{{route('home')}}" wire:navigate class="flex h-10 items-center gap-2" aria-label="Home">
+                    <img src="{{asset(current_school()?->logoURL ?? config('app.logo'))}}" alt=""
+                        class="h-8 w-8 rounded-md border object-cover">
+                    <span class="truncate text-sm font-semibold">{{config('app.name')}}</span>
+                </a>
+
+                @if ($schools->count() > 1)
+                    <form method="POST" action="{{ route('schools.setSchool') }}"
+                        class="flex min-w-0 flex-col gap-1 group-data-[collapsible=icon]:hidden">
+                        @csrf
+                        <label for="sidebar-school-switcher"
+                            class="px-1 text-[0.65rem] font-semibold uppercase tracking-wide text-muted-foreground">
+                            Working school
+                        </label>
+                        <april:native-select id="sidebar-school-switcher" name="school_id"
+                            aria-label="Working school" onchange="this.form.submit()">
+                            @foreach ($schools as $school)
+                                <option value="{{ $school->id }}" @selected(current_school_id() === $school->id)>
+                                    {{ $school->name }}
+                                </option>
+                            @endforeach
+                        </april:native-select>
+                    </form>
+                @elseif (current_school() !== null)
+                    <span class="truncate px-1 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
+                        {{ current_school()->name }}
+                    </span>
+                @endif
+            </div>
         </slot:header>
 
         <slot:content class="beautify-scrollbar" wire:navigate:scroll>

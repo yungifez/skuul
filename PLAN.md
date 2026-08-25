@@ -1279,7 +1279,10 @@ Progress:
 - Done: a calendar appointment can hand its date, time, and title into a new
   family request, so the school still approves the request before any record
   changes.
-- Open: per-guardian notification settings.
+- Done: guardians can manage optional notice email delivery for every
+  notice-enabled campus linked to their family from one portal screen. Each
+  campus has its own saved choice, and the portal rejects settings for a
+  campus outside the guardian's family.
 
 ### 15. Discipline and safeguarding
 

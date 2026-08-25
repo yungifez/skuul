@@ -248,4 +248,18 @@ class SchoolTest extends TestCase
             ->post('/dashboard/schools/set-school', ['school_id' => $otherSchool->id])
             ->assertForbidden();
     }
+
+    public function test_sidebar_shows_the_school_switcher_for_people_with_multiple_schools(): void
+    {
+        $school = $this->workingSchool();
+        $otherSchool = School::factory()->create(['name' => 'Second Campus']);
+        $user = $this->authorized_user(['read school'], $school);
+        $this->memberOf($otherSchool, $user);
+        $this->actingAsMemberOf($school, $user);
+
+        $this->get('/dashboard/schools')
+            ->assertSuccessful()
+            ->assertSee('sidebar-school-switcher', false)
+            ->assertSee('Second Campus');
+    }
 }

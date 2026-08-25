@@ -9,6 +9,7 @@ use App\Models\CampusMoveRequest;
 use App\Models\DataSharingRequest;
 use App\Models\Incident;
 use App\Models\Organization;
+use App\Models\School;
 use App\Models\StaffLeaveRequest;
 use App\Models\StaffProfile;
 use App\Models\StudentHealthRecord;
@@ -16,18 +17,27 @@ use App\Models\StudentRecord;
 use App\Models\SupportPlan;
 use App\Models\User;
 use App\Services\Portal\PortalAccess;
+use App\Services\School\SchoolService;
+use Illuminate\Database\Eloquent\Collection;
 use Livewire\Component;
 
 class Menu extends Component
 {
     /**
+     * @var Collection<int, School>
+     */
+    public Collection $schools;
+
+    /**
      * @var list<array<string, mixed>>
      */
     public array $menu = [];
 
-    public function mount(): void
+    public function mount(SchoolService $schoolService): void
     {
         $user = auth()->user();
+        $this->schools = $schoolService->getSchoolsForUser($user);
+
         // A person can hold organization authority without a working school,
         // so the sidebar must render before any school is chosen.
         $organization = current_school()?->organization;
@@ -49,6 +59,12 @@ class Menu extends Component
                     'icon' => 'layout-list',
                     'text' => 'Everything of mine',
                     'route' => 'portal.overview',
+                ],
+                [
+                    'type' => 'menu-item',
+                    'icon' => 'bell',
+                    'text' => 'Notification settings',
+                    'route' => 'portal.notification-preferences.edit',
                 ],
             ]),
             ...($portalEnrollment === null ? [] : [
