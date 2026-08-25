@@ -62,7 +62,9 @@
         position: sticky;
         right: 0;
         z-index: 2;
-        min-width: 5rem;
+        width: 1%;
+        min-width: 0;
+        white-space: nowrap;
         box-shadow: -0.75rem 0 1rem -1rem rgb(0 0 0 / 0.55);
     }
 
@@ -76,7 +78,7 @@
     }
 
     [data-slot="data-table"] td:last-child > div {
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
     }
 
     @media (max-width: 768px) {
