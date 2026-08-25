@@ -143,7 +143,7 @@
                                         <input id="admin_name" name="admin_name" value="{{ old('admin_name') }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="name">
                                         @error('admin_name') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
                                     </div>
-                                    <div>
+                                    <div class="sm:col-span-2">
                                         <label for="admin_email" class="mb-2 block text-sm font-medium">Email</label>
                                         <input id="admin_email" type="email" name="admin_email" value="{{ old('admin_email') }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="email">
                                         @error('admin_email') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
@@ -153,7 +153,7 @@
                                         <input id="admin_password" type="password" name="admin_password" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="new-password">
                                         @error('admin_password') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
                                     </div>
-                                    <div class="sm:col-span-2">
+                                    <div>
                                         <label for="admin_password_confirmation" class="mb-2 block text-sm font-medium">Confirm password</label>
                                         <input id="admin_password_confirmation" type="password" name="admin_password_confirmation" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="new-password">
                                     </div>
@@ -186,8 +186,34 @@
                                         <input id="campus_email" type="email" name="campus_email" value="{{ old('campus_email') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                                     </div>
                                     <div class="sm:col-span-2">
-                                        <label for="campus_address" class="mb-2 block text-sm font-medium">Campus address <span class="font-normal text-muted-foreground">(optional)</span></label>
-                                        <textarea id="campus_address" name="campus_address" rows="3" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">{{ old('campus_address') }}</textarea>
+                                        <label for="campus_address" class="mb-2 block text-sm font-medium">Campus address line 1 <span class="font-normal text-muted-foreground">(optional)</span></label>
+                                        <input id="campus_address" type="text" name="campus_address" value="{{ old('campus_address') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="address-line1">
+                                        @error('campus_address') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div class="sm:col-span-2">
+                                        <label for="campus_address_line_2" class="mb-2 block text-sm font-medium">Address line 2 <span class="font-normal text-muted-foreground">(optional)</span></label>
+                                        <input id="campus_address_line_2" type="text" name="campus_address_line_2" value="{{ old('campus_address_line_2') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="address-line2">
+                                        @error('campus_address_line_2') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div>
+                                        <label for="campus_city" class="mb-2 block text-sm font-medium">City <span class="font-normal text-muted-foreground">(optional)</span></label>
+                                        <input id="campus_city" type="text" name="campus_city" value="{{ old('campus_city') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="address-level2">
+                                        @error('campus_city') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div>
+                                        <label for="campus_state" class="mb-2 block text-sm font-medium">State / Province <span class="font-normal text-muted-foreground">(optional)</span></label>
+                                        <input id="campus_state" type="text" name="campus_state" value="{{ old('campus_state') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="address-level1">
+                                        @error('campus_state') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div>
+                                        <label for="campus_postal_code" class="mb-2 block text-sm font-medium">Postal / ZIP code <span class="font-normal text-muted-foreground">(optional)</span></label>
+                                        <input id="campus_postal_code" type="text" name="campus_postal_code" value="{{ old('campus_postal_code') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="postal-code">
+                                        @error('campus_postal_code') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
+                                    </div>
+                                    <div>
+                                        <label for="campus_country" class="mb-2 block text-sm font-medium">Country <span class="font-normal text-muted-foreground">(optional)</span></label>
+                                        <input id="campus_country" type="text" name="campus_country" value="{{ old('campus_country') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="country-name">
+                                        @error('campus_country') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
                                     </div>
                                 </div>
                             </section>

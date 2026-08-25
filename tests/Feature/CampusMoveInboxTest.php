@@ -41,7 +41,8 @@ class CampusMoveInboxTest extends TestCase
             ->assertSee($source->name)
             ->assertSee('Family moved')
             ->call('approve', $request->id)
-            ->assertHasNoErrors();
+            ->assertHasNoErrors()
+            ->assertDispatched('status-message', type: 'success');
 
         $moved = $enrollment->fresh();
 
@@ -166,7 +167,7 @@ class CampusMoveInboxTest extends TestCase
     /**
      * Sign in as somebody who works in the given campus, and work there.
      *
-     * @param array<int, string> $permissions
+     * @param  array<int, string>  $permissions
      */
     private function actAsCampusUser(School $school, array $permissions): object
     {
@@ -192,9 +193,9 @@ class CampusMoveInboxTest extends TestCase
     {
         $academicYear = AcademicYear::query()->where('school_id', $school->id)->first()
             ?? AcademicYear::factory()->create([
-                'school_id'  => $school->id,
+                'school_id' => $school->id,
                 'start_year' => now()->year,
-                'stop_year'  => now()->year + 1,
+                'stop_year' => now()->year + 1,
             ]);
         $academicLevel = AcademicLevel::query()->where('school_id', $school->id)->first()
             ?? AcademicLevel::factory()->create(['school_id' => $school->id]);
@@ -206,10 +207,10 @@ class CampusMoveInboxTest extends TestCase
         }
 
         return AcademicCycleSection::factory()->create([
-            'school_id'         => $school->id,
-            'academic_year_id'  => $academicYear->id,
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
-            'status'            => AcademicStructureStatus::Active,
+            'status' => AcademicStructureStatus::Active,
         ]);
     }
 }

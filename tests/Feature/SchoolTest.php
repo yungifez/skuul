@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\Organization\GrantOrganizationMembership;
+use App\Http\Middleware\SetActiveAcademicPeriod;
 use App\Models\Organization;
 use App\Models\School;
 use App\Models\User;
@@ -35,7 +36,10 @@ class SchoolTest extends TestCase
     {
         $this->authorized_user(['create school'])
             ->get('/dashboard/schools/create')
-            ->assertSuccessful();
+            ->assertSuccessful()
+            ->assertSee('Address line 1 *')
+            ->assertSee('Address line 2')
+            ->assertSee('Postal / ZIP code');
     }
 
     public function test_create_schools_cannot_be_rendered_to_unauthorized_user()
@@ -55,20 +59,30 @@ class SchoolTest extends TestCase
 
         $this->post('/dashboard/schools', [
             'organization_id' => $organization->id,
-            'name'            => 'Test school',
-            'address'         => 'Test address',
-            'phone'           => '+123 456789',
-            'email'           => 'test@email.com',
-            'initials'        => 'TS',
+            'name' => 'Test school',
+            'address' => 'Test address',
+            'address_line_2' => 'Suite 4',
+            'country' => 'Canada',
+            'state' => 'British Columbia',
+            'city' => 'Vancouver',
+            'postal_code' => 'V6B 1A1',
+            'phone' => '+123 456789',
+            'email' => 'test@email.com',
+            'initials' => 'TS',
         ]);
 
         $this->assertDatabaseHas('schools', [
             'organization_id' => $organization->id,
-            'name'            => 'Test school',
-            'address'         => 'Test address',
-            'phone'           => '+123 456789',
-            'email'           => 'test@email.com',
-            'initials'        => 'TS',
+            'name' => 'Test school',
+            'address' => 'Test address',
+            'address_line_2' => 'Suite 4',
+            'country' => 'Canada',
+            'state' => 'British Columbia',
+            'city' => 'Vancouver',
+            'postal_code' => 'V6B 1A1',
+            'phone' => '+123 456789',
+            'email' => 'test@email.com',
+            'initials' => 'TS',
         ]);
     }
 
@@ -100,17 +114,33 @@ class SchoolTest extends TestCase
     {
         $this->authorized_user(['update school'])
             ->get('/dashboard/schools/1/edit')
-            ->assertSuccessful();
+            ->assertSuccessful()
+            ->assertSee('Address line 1 *')
+            ->assertSee('Address line 2')
+            ->assertSee('Postal / ZIP code');
     }
 
     public function test_school_setup_can_be_rendered_for_the_current_school()
     {
-        $this->authorized_user(['manage school settings'])
+        $school = $this->workingSchool();
+        $school->update([
+            'academic_year_id' => null,
+            'academic_period_id' => null,
+        ]);
+
+        $this->withoutMiddleware(SetActiveAcademicPeriod::class);
+        academic_period_context()->forget();
+
+        $this->authorized_user(['manage school settings'], $school)
             ->get('/dashboard/schools/settings')
             ->assertSuccessful()
             ->assertSee('Set up your school')
             ->assertSee('How teaching works')
-            ->assertSee('Grades and classes');
+            ->assertSee('Grades and classes')
+            ->assertSee('What needs attention')
+            ->assertSee('No current school year is selected.')
+            ->assertSee('aria-label="School calendar help"', false)
+            ->assertSee('aria-label="Grades and classes help"', false);
     }
 
     public function test_a_school_can_save_its_familiar_operating_language(): void
@@ -137,15 +167,31 @@ class SchoolTest extends TestCase
     {
         $school = $this->workingSchool();
         $this->authorized_user(['update school'], $school)
-            ->patch("/dashboard/schools/$school->id", ['name' => 'Test school 2', 'address' => 'something street', 'initials' => 'TS2', 'phone' => '123456789', 'email' => 'school@test.com']);
+            ->patch("/dashboard/schools/$school->id", [
+                'name' => 'Test school 2',
+                'address' => 'something street',
+                'address_line_2' => 'Floor 2',
+                'country' => 'Canada',
+                'state' => 'Ontario',
+                'city' => 'Toronto',
+                'postal_code' => 'M5V 2T6',
+                'initials' => 'TS2',
+                'phone' => '123456789',
+                'email' => 'school@test.com',
+            ]);
 
         $this->assertDatabaseHas('schools', [
-            'id'       => $school->id,
-            'name'     => 'Test school 2',
-            'address'  => 'something street',
+            'id' => $school->id,
+            'name' => 'Test school 2',
+            'address' => 'something street',
+            'address_line_2' => 'Floor 2',
+            'country' => 'Canada',
+            'state' => 'Ontario',
+            'city' => 'Toronto',
+            'postal_code' => 'M5V 2T6',
             'initials' => 'TS2',
-            'phone'    => '123456789',
-            'email'    => 'school@test.com',
+            'phone' => '123456789',
+            'email' => 'school@test.com',
         ]);
     }
 
@@ -155,16 +201,16 @@ class SchoolTest extends TestCase
 
         $this->authorized_user(['update school'])
             ->patch("/dashboard/schools/$school->id", [
-                'name'     => 'Changed school',
-                'address'  => 'changed address',
+                'name' => 'Changed school',
+                'address' => 'changed address',
                 'initials' => 'CS',
-                'phone'    => '123456789',
-                'email'    => 'changed@example.com',
+                'phone' => '123456789',
+                'email' => 'changed@example.com',
             ])
             ->assertForbidden();
 
         $this->assertDatabaseHas('schools', [
-            'id'   => $school->id,
+            'id' => $school->id,
             'name' => 'Other school',
         ]);
     }

@@ -1,11 +1,4 @@
 <div class="space-y-6">
-    @if (session('success'))
-        <april:alert>
-            <slot:title>Done</slot:title>
-            <slot:description>{{ session('success') }}</slot:description>
-        </april:alert>
-    @endif
-
     <april:card>
         <slot:title>Students other campuses want to send here</slot:title>
         <slot:description>Approving moves the student to {{ $campusName }} straight away. Their enrollment, admission number, and placement history come with them.</slot:description>

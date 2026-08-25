@@ -59,8 +59,7 @@ class SchoolService
     /**
      * Get a school by id.
      *
-     * @param int $id
-     *
+     * @param  int  $id
      * @return School
      */
     public function getSchoolById($id)
@@ -71,8 +70,7 @@ class SchoolService
     /**
      * Create school.
      *
-     * @param array $record
-     *
+     * @param  array  $record
      * @return School
      */
     public function createSchool($record)
@@ -98,6 +96,11 @@ class SchoolService
     {
         $school->name = $record['name'];
         $school->address = $record['address'];
+        $school->address_line_2 = $record['address_line_2'] ?? null;
+        $school->country = $record['country'] ?? null;
+        $school->state = $record['state'] ?? null;
+        $school->city = $record['city'] ?? null;
+        $school->postal_code = $record['postal_code'] ?? null;
         $school->initials = $record['initials'];
         $school->phone = $record['phone'];
         $school->email = $record['email'];

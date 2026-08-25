@@ -35,6 +35,25 @@ class ResourceIndexActionTest extends TestCase
             ->assertDontSee('data-resource-create-action="'.route('students.create').'"', false);
     }
 
+    public function test_resource_table_delete_actions_include_a_confirmation_message(): void
+    {
+        $this->authorized_user(['read student', 'delete student'])
+            ->get(route('students.index'))
+            ->assertOk()
+            ->assertSee('data-confirm="Delete this student?"', false);
+    }
+
+    public function test_the_shared_status_display_renders_a_session_message(): void
+    {
+        $this->authorized_user(['read student']);
+
+        $this->withSession(['success' => 'The student was saved.'])
+            ->get(route('students.index'))
+            ->assertOk()
+            ->assertSee('The student was saved.', false)
+            ->assertSee('id="status-display"', false);
+    }
+
     public function test_the_student_table_searches_rows_on_the_server(): void
     {
         $matchingStudent = StudentRecord::factory()->create();

@@ -1,32 +1,57 @@
 <div>
-    <div class="fixed flex flex-col items-end top-0 right-0 w-screen lg:w-4/12" id="status-display">
-        @if (session('danger'))
-            <april:alert variant="destructive" dismissOnTimeout="true">
-                <slot:icon><x-lucide-ban class="size-4" /></slot:icon>
-                <slot:title>Danger</slot:title>
-                <slot:description>{{ session('danger') }}</slot:description>
-            </april:alert>
-        @endif
-        @if (session('success'))
-            <april:alert dismissOnTimeout="true">
-                <slot:icon><x-lucide-check class="size-4" /></slot:icon>
-                <slot:title>Success</slot:title>
-                <slot:description>{{ session('success') }}</slot:description>
-            </april:alert>
-        @endif
-        @if (session('info'))
-            <april:alert dismissOnTimeout="true">
-                <slot:title>Info</slot:title>
-                <slot:description>{{ session('info') }}</slot:description>
-            </april:alert>
-        @endif
-        @if (session('status'))
-            <april:alert dismissOnTimeout="true">
-                <slot:icon><x-lucide-check class="size-4" /></slot:icon>
-                <slot:title>Success</slot:title>
-                <slot:description>{{ session('status') }}</slot:description>
-            </april:alert>
-        @endif
+    <div
+        id="status-display"
+        class="pointer-events-none fixed right-0 top-0 z-50 flex w-full max-w-md flex-col gap-3 p-4"
+        x-data="{
+            notifications: @js($notifications),
+            nextId: {{ count($notifications) }},
+            add(notification) {
+                if (!notification?.message) {
+                    return;
+                }
+
+                const item = {
+                    id: ++this.nextId,
+                    type: notification.type ?? 'success',
+                    title: notification.type === 'danger' ? 'Action failed' : (notification.type === 'info' ? 'Info' : 'Success'),
+                    message: notification.message,
+                };
+
+                this.notifications.push(item);
+                this.schedule(item.id);
+            },
+            schedule(id) {
+                setTimeout(() => this.remove(id), 5000);
+            },
+            remove(id) {
+                this.notifications = this.notifications.filter((notification) => notification.id !== id);
+            },
+        }"
+        x-init="notifications.forEach((notification) => schedule(notification.id))"
+        x-on:status-message.window="add($event.detail)"
+    >
+        <template x-for="notification in notifications" :key="notification.id">
+            <div
+                x-cloak
+                x-show="true"
+                x-transition
+                role="alert"
+                class="pointer-events-auto relative flex w-full gap-x-3 rounded-lg border p-4"
+                :class="notification.type === 'danger' ? 'border-destructive/50 text-destructive fill-destructive' : 'bg-background text-foreground fill-foreground'"
+            >
+                <div class="flex items-start pt-0.5">
+                    <span class="flex size-4 items-center justify-center rounded-full border text-xs font-bold" x-text="notification.type === 'danger' ? '!' : '✓'"></span>
+                </div>
+                <div class="w-full">
+                    <h5 class="mb-1 font-medium leading-none tracking-tight" x-text="notification.title"></h5>
+                    <div class="text-sm" x-text="notification.message"></div>
+                </div>
+                <button type="button" class="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100" aria-label="Dismiss notification" x-on:click="remove(notification.id)">
+                    <x-lucide-x class="size-4" />
+                </button>
+            </div>
+        </template>
+
         <div x-data="{ showAlert: false }" x-show="showAlert" x-cloak>
             <april:alert variant="destructive">
                 <slot:icon>

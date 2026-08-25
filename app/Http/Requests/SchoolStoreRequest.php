@@ -15,12 +15,17 @@ class SchoolStoreRequest extends FormRequest
     {
         return [
             'organization_id' => ['required', 'exists:organizations,id'],
-            'name'            => 'required|max:255',
-            'address'         => 'required|min:8|max:1000',
-            'phone'           => 'nullable|max:255|regex:/^([0-9\s\-\+\(\)]*)$/|min:5',
-            'email'           => 'nullable|email|max:511',
-            'initials'        => 'nullable|max:10|string',
-            'logo'            => ['nullable', 'image', 'max:3000'],
+            'name' => 'required|max:255',
+            'address' => 'required|string|min:8|max:255',
+            'address_line_2' => 'nullable|string|max:255',
+            'country' => 'nullable|string|max:100',
+            'state' => 'nullable|string|max:100',
+            'city' => 'nullable|string|max:100',
+            'postal_code' => 'nullable|string|max:30',
+            'phone' => 'nullable|max:255|regex:/^([0-9\s\-\+\(\)]*)$/|min:5',
+            'email' => 'nullable|email|max:511',
+            'initials' => 'nullable|max:10|string',
+            'logo' => ['nullable', 'image', 'max:3000'],
         ];
     }
 }

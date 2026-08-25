@@ -55,7 +55,11 @@ class InstallationTest extends TestCase
             ->assertOk()
             ->assertSee('Install Skuul')
             ->assertSee('System Administrator')
-            ->assertSee('Email is optional');
+            ->assertSee('Email is optional')
+            ->assertSee('id="campus_address_line_2"', false)
+            ->assertSee('id="campus_city"', false)
+            ->assertSee('id="campus_postal_code"', false)
+            ->assertSee('id="campus_country"', false);
     }
 
     public function test_installer_creates_the_first_system_administrator_and_campus(): void
@@ -73,6 +77,12 @@ class InstallationTest extends TestCase
         $this->assertNotNull($admin->email_verified_at);
         $this->assertTrue(app(SystemPermissionScope::class)->allows($admin, PlatformPermission::ManagePlatform));
         $this->assertSame($organization->id, $school->organization_id);
+        $this->assertSame('123 Example Street', $school->address);
+        $this->assertSame('Suite 4', $school->address_line_2);
+        $this->assertSame('Canada', $school->country);
+        $this->assertSame('British Columbia', $school->state);
+        $this->assertSame('Vancouver', $school->city);
+        $this->assertSame('V6B 1A1', $school->postal_code);
         $this->assertDatabaseHas('installations', [
             'installed_by' => $admin->id,
             'organization_id' => $organization->id,
@@ -169,6 +179,11 @@ class InstallationTest extends TestCase
             'campus_name' => 'Example Campus',
             'campus_initials' => 'EC',
             'campus_address' => '123 Example Street',
+            'campus_address_line_2' => 'Suite 4',
+            'campus_country' => 'Canada',
+            'campus_state' => 'British Columbia',
+            'campus_city' => 'Vancouver',
+            'campus_postal_code' => 'V6B 1A1',
             'load_demo_data' => true,
         ];
     }

@@ -9,6 +9,7 @@ use App\Enums\OrganizationMembershipStatus;
 use App\Enums\OrganizationPermission;
 use App\Enums\SchoolMembershipStatus;
 use App\Exceptions\ApplicationException;
+use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Models\Organization;
 use App\Models\OrganizationMembership;
 use App\Models\User;
@@ -26,6 +27,8 @@ use Livewire\Component;
  */
 class OrganizationMembers extends Component
 {
+    use DispatchesStatusNotifications;
+
     public Organization $organization;
 
     /**
@@ -93,7 +96,7 @@ class OrganizationMembers extends Component
         $grantOrganizationMembership->grant($user, $this->organization, auth()->user());
 
         $this->email = '';
-        session()->flash('success', "{$user->name} can now administer {$this->organization->name}.");
+        $this->notify("{$user->name} can now administer {$this->organization->name}.");
     }
 
     /**
@@ -131,7 +134,7 @@ class OrganizationMembers extends Component
         }
 
         $this->stopEditing();
-        session()->flash('success', "{$user->name} no longer administers {$this->organization->name}. Their campus access is unchanged.");
+        $this->notify("{$user->name} no longer administers {$this->organization->name}. Their campus access is unchanged.");
     }
 
     /**
@@ -197,7 +200,7 @@ class OrganizationMembers extends Component
         }
 
         $this->stopEditing();
-        session()->flash('success', "Permissions updated for {$user->name}.");
+        $this->notify("Permissions updated for {$user->name}.");
     }
 
     /**

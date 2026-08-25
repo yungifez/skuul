@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Actions\Enrollment\RequestCampusMove;
+use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Models\CampusMoveRequest;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
@@ -13,6 +14,8 @@ use Livewire\Component;
  */
 class ListCampusMoveRequests extends Component
 {
+    use DispatchesStatusNotifications;
+
     /**
      * The note the decider types before approving or rejecting.
      *
@@ -48,7 +51,7 @@ class ListCampusMoveRequests extends Component
         $requestCampusMove->cancel($request, auth()->user(), $this->noteFor($requestId));
 
         unset($this->notes[$requestId]);
-        session()->flash('success', 'The campus move request was taken back.');
+        $this->notify('The campus move request was taken back.');
     }
 
     public function render(): View
@@ -56,8 +59,8 @@ class ListCampusMoveRequests extends Component
         $school = current_school();
 
         return view('livewire.list-campus-move-requests', [
-            'incoming'   => $this->requestsFor('to_school_id', $school?->id),
-            'outgoing'   => $this->requestsFor('from_school_id', $school?->id),
+            'incoming' => $this->requestsFor('to_school_id', $school?->id),
+            'outgoing' => $this->requestsFor('from_school_id', $school?->id),
             'campusName' => $school?->name,
         ]);
     }
@@ -74,8 +77,7 @@ class ListCampusMoveRequests extends Component
         $requestCampusMove->{$decision}($request, auth()->user(), $this->noteFor($requestId));
 
         unset($this->notes[$requestId]);
-        session()->flash(
-            'success',
+        $this->notify(
             $decision === 'approve'
                 ? 'The student moved to this campus. Their enrollment and history came with them.'
                 : 'The campus move was rejected. The student stays where they are.',

@@ -18,9 +18,17 @@
                 </april:select>
             </div>
             <april:input-group name="name" id="name" type="text" placeholder="Enter name of school" label="School Name *" />
-            <div class="flex w-full flex-col gap-2">
-                <april:label for="address">School Address *</april:label>
-                <april:textarea id="address" name="address" placeholder="Enter school branch address" />
+            <div class="grid gap-4 sm:grid-cols-2">
+                <div class="sm:col-span-2">
+                    <april:input-group id="address" name="address" type="text" placeholder="Enter street address" label="Address line 1 *" autocomplete="address-line1" required />
+                </div>
+                <div class="sm:col-span-2">
+                    <april:input-group id="address_line_2" name="address_line_2" type="text" placeholder="Apartment, suite, unit, building, floor, etc." label="Address line 2" autocomplete="address-line2" />
+                </div>
+                <april:input-group id="city" name="city" type="text" placeholder="Enter city" label="City" autocomplete="address-level2" />
+                <april:input-group id="state" name="state" type="text" placeholder="Enter state or province" label="State / Province" autocomplete="address-level1" />
+                <april:input-group id="postal_code" name="postal_code" type="text" placeholder="Enter postal or ZIP code" label="Postal / ZIP code" autocomplete="postal-code" />
+                <april:input-group id="country" name="country" type="text" placeholder="Enter country" label="Country" autocomplete="country-name" />
             </div>
             <april:input-group name="initials" id="initials" type="text" placeholder="Enter school initials" label="School initials" />
             <april:input-group name="phone" id="phone" placeholder="Enter school phone number" label="School Phone Number" type="tel" />

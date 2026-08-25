@@ -20,6 +20,26 @@ document.addEventListener("livewire:navigated", () => {
     setTheme(window.localStorage.getItem(themeStorageKey) ?? "system");
 });
 
+document.addEventListener("submit", (event) => {
+    const form = event.target;
+
+    if (!(form instanceof HTMLFormElement)) {
+        return;
+    }
+
+    const deleteMethod = form.querySelector('input[name="_method"][value="DELETE" i]');
+
+    if (!deleteMethod) {
+        return;
+    }
+
+    const message = form.dataset.confirm ?? "Delete this item? This action cannot be undone.";
+
+    if (!window.confirm(message)) {
+        event.preventDefault();
+    }
+});
+
 systemThemeQuery.addEventListener("change", () => {
     if (window.localStorage.getItem(themeStorageKey) === "system") {
         setTheme("system");

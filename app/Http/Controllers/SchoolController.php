@@ -106,18 +106,61 @@ class SchoolController extends Controller
 
         $this->authorize('update', $school);
 
+        $academicLevelsCount = AcademicLevel::query()->inSchool($school)->count();
+        $cycleSectionsCount = $academicYear === null
+            ? 0
+            : AcademicCycleSection::query()
+                ->inSchool($school)
+                ->where('academic_year_id', $academicYear->id)
+                ->count();
+        $courseOfferingsCount = $academicYear === null
+            ? 0
+            : CourseOffering::query()
+                ->inSchool($school)
+                ->where('academic_year_id', $academicYear->id)
+                ->count();
+
+        $needsAttention = [];
+
+        if ($academicYear === null) {
+            $needsAttention[] = [
+                'title' => 'School calendar',
+                'reason' => 'No current school year is selected. Create or choose one before setting up this year.',
+            ];
+        }
+
+        if ($academicLevelsCount === 0) {
+            $needsAttention[] = [
+                'title' => 'Grades and classes',
+                'reason' => 'No grade or class levels have been added yet.',
+            ];
+        }
+
+        if ($cycleSectionsCount === 0) {
+            $needsAttention[] = [
+                'title' => 'Classes this year',
+                'reason' => $academicYear === null
+                    ? 'Choose a current school year first, then create its arms, homerooms or sections.'
+                    : 'No classes have been created for the current school year.',
+            ];
+        }
+
+        if ($courseOfferingsCount === 0) {
+            $needsAttention[] = [
+                'title' => 'Subjects being taught',
+                'reason' => $academicYear === null
+                    ? 'Choose a current school year first, then set up the subjects being taught.'
+                    : 'No subjects have been set up for the current school year.',
+            ];
+        }
+
         return view('pages.school.settings', [
-            'school'              => $school,
-            'academicYear'        => $academicYear,
-            'academicLevelsCount' => AcademicLevel::query()->inSchool($school)->count(),
-            'cycleSectionsCount'  => AcademicCycleSection::query()
-                ->inSchool($school)
-                ->when($academicYear !== null, fn ($query) => $query->where('academic_year_id', $academicYear->id))
-                ->count(),
-            'courseOfferingsCount' => CourseOffering::query()
-                ->inSchool($school)
-                ->when($academicYear !== null, fn ($query) => $query->where('academic_year_id', $academicYear->id))
-                ->count(),
+            'school' => $school,
+            'academicYear' => $academicYear,
+            'academicLevelsCount' => $academicLevelsCount,
+            'cycleSectionsCount' => $cycleSectionsCount,
+            'courseOfferingsCount' => $courseOfferingsCount,
+            'needsAttention' => $needsAttention,
         ]);
     }
 

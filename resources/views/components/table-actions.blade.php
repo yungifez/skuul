@@ -10,7 +10,7 @@
     @if (count($items) === 1)
         @php($item = $items[0])
         @if (($item['type'] ?? 'link') === 'delete')
-            <form method="POST" x-bind:action="row.{{ $item['url'] }}" onsubmit="return confirm(@js($item['confirm'] ?? 'Delete this item?'))">
+            <form method="POST" x-bind:action="row.{{ $item['url'] }}" data-confirm="{{ $item['confirm'] ?? 'Delete this item?' }}">
                 @csrf
                 @method('DELETE')
                 <april:button type="submit" variant="outline" size="sm">
@@ -35,7 +35,7 @@
             <slot:content align="end" class="w-52">
                 @foreach ($items as $item)
                     @if (($item['type'] ?? 'link') === 'delete')
-                        <form method="POST" x-bind:action="row.{{ $item['url'] }}" class="hidden" x-bind:id="'table-action-'+row.id+'-{{ $loop->index }}'">
+                        <form method="POST" x-bind:action="row.{{ $item['url'] }}" data-confirm="{{ $item['confirm'] ?? 'Delete this item?' }}" class="hidden" x-bind:id="'table-action-'+row.id+'-{{ $loop->index }}'">
                             @csrf
                             @method('DELETE')
                         </form>

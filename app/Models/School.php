@@ -12,20 +12,26 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * @property int|null              $academic_year_id
- * @property int|null              $academic_period_id
- * @property AcademicYear|null     $academicYear
- * @property AcademicPeriod|null   $academicPeriod
- * @property int|null              $calendar_template_id
+ * @property int|null $academic_year_id
+ * @property int|null $academic_period_id
+ * @property AcademicYear|null $academicYear
+ * @property AcademicPeriod|null $academicPeriod
+ * @property int|null $calendar_template_id
  * @property CalendarTemplate|null $calendarTemplate
- * @property string                $name
+ * @property string $name
+ * @property string|null $address_line_2
+ * @property string|null $country
+ * @property string|null $state
+ * @property string|null $city
+ * @property string|null $postal_code
  */
 class School extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'organization_id', 'billing_group_id', 'name', 'address', 'code', 'initials', 'phone', 'email', 'logo_path',
+        'organization_id', 'billing_group_id', 'name', 'address', 'address_line_2', 'country', 'state', 'city',
+        'postal_code', 'code', 'initials', 'phone', 'email', 'logo_path',
     ];
 
     /**
