@@ -86,6 +86,8 @@ class GradebookScreenTest extends TestCase
 
         $this->get(route('course-offerings.gradebook.show', $courseOffering))
             ->assertOk()
+            ->assertSee('Gradebook workflow')
+            ->assertSee('Assessment setup')
             ->assertSee('Record grades and publish results');
 
         $this->post(route('course-offerings.gradebook.items.store', $courseOffering), [

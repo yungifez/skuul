@@ -22,12 +22,45 @@
             </slot:description>
         </april:card>
 
+        <april:card class="border-primary/30 bg-primary/[0.03]">
+            <slot:title>Gradebook workflow</slot:title>
+            <slot:description>Set up the assessments once, enter working marks, then submit results for approval.</slot:description>
+            <slot:content>
+                <div class="grid gap-4 md:grid-cols-3">
+                    <div class="flex gap-3">
+                        <span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">1</span>
+                        <div><p class="font-medium">Set up assessments</p><p class="text-sm text-muted-foreground">Choose categories, weights, and assessment types.</p></div>
+                    </div>
+                    <div class="flex gap-3">
+                        <span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">2</span>
+                        <div><p class="font-medium">Enter grades</p><p class="text-sm text-muted-foreground">Save working marks in the learner grid below.</p></div>
+                    </div>
+                    <div class="flex gap-3">
+                        <span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">3</span>
+                        <div><p class="font-medium">Submit results</p><p class="text-sm text-muted-foreground">Send completed results for approval and publication.</p></div>
+                    </div>
+                </div>
+            </slot:content>
+        </april:card>
+
         @if ($errors->has('gradebook'))
             <div class="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">{{ $errors->first('gradebook') }}</div>
         @endif
         <x-display-validation-errors />
 
         @can('manageGradebook', $courseOffering)
+            <details id="assessment-setup" class="rounded-xl border bg-card p-5" @if ($gradeItems->isEmpty()) open @endif>
+                <summary class="flex cursor-pointer list-none items-start justify-between gap-4">
+                    <span>
+                        <span class="block text-lg font-semibold">Assessment setup</span>
+                        <span class="mt-1 block text-sm text-muted-foreground">Add or adjust the work that appears in the grade entry grid.</span>
+                    </span>
+                    <span class="flex shrink-0 flex-wrap justify-end gap-2 text-xs">
+                        <span class="rounded-full border px-2.5 py-1">{{ $gradeCategories->count() }} categor{{ $gradeCategories->count() === 1 ? 'y' : 'ies' }}</span>
+                        <span class="rounded-full border px-2.5 py-1">{{ $gradeItems->count() }} assessment{{ $gradeItems->count() === 1 ? '' : 's' }}</span>
+                    </span>
+                </summary>
+                <div class="mt-5 space-y-6">
             @if ($gradeItems->isEmpty() && $courseOffering->gradeCategories->isEmpty() && $assessmentTemplates->isNotEmpty())
                 <april:card>
                     <slot:title>Start from a school template</slot:title>
@@ -217,14 +250,19 @@
                     </slot:content>
                 </april:card>
             @endif
+                </div>
+            </details>
         @endcan
 
         <april:card>
             <slot:title>Record grades and publish results</slot:title>
-            <slot:description>Saving a grade changes working marks only. Publish creates the official, append-only result that families and reports can read.</slot:description>
+            <slot:description>Enter working marks for each learner. Submit a result when it is ready for approval and publication.</slot:description>
             <slot:content>
                 @if ($gradeItems->isEmpty())
-                    <div class="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">Add the first assessment to begin recording grades.</div>
+                    <div class="rounded-lg border border-dashed p-8 text-center">
+                        <p class="font-medium">No assessments have been added yet.</p>
+                        <p class="mt-1 text-sm text-muted-foreground">Open Assessment setup above to add the first assessment before entering grades.</p>
+                    </div>
                 @elseif ($students->isEmpty())
                     <div class="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">No learners match this offering's roster. Update the course offering before entering grades.</div>
                 @else
