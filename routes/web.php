@@ -28,6 +28,7 @@ use App\Http\Controllers\LibraryCopyController;
 use App\Http\Controllers\LibraryLendingRulesController;
 use App\Http\Controllers\LibraryLoanController;
 use App\Http\Controllers\LibraryReservationController;
+use App\Http\Controllers\LocationController;
 use App\Http\Controllers\NoticeAttachmentController;
 use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\NoticeNotificationPreferenceController;
@@ -86,7 +87,8 @@ Route::post('/install/key', [InstallationController::class, 'generateKey'])
 Route::post('/install/database/test', [InstallationController::class, 'testDatabase'])->name('install.database.test');
 Route::post('/install/database/setup', [InstallationController::class, 'setupDatabase'])->name('install.database.setup');
 Route::post('/install/world/setup', [InstallationController::class, 'setupWorldData'])->name('install.world.setup');
-Route::get('/install/states', [InstallationController::class, 'states'])->name('install.states');
+Route::get('/locations/states', [LocationController::class, 'states'])->name('locations.states');
+Route::get('/locations/cities', [LocationController::class, 'cities'])->name('locations.cities');
 Route::post('/install', [InstallationController::class, 'store'])->name('install.store');
 
 Route::get('/', function () {

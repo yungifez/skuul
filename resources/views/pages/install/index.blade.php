@@ -137,7 +137,7 @@
                         <section aria-labelledby="world-data-heading" class="space-y-4 border-t border-border/70 pt-8">
                             <div>
                                 <h2 id="world-data-heading" class="text-lg font-semibold">Country and state data</h2>
-                                <p class="mt-1 text-sm text-muted-foreground">Skuul uses countries and states for address selectors. Cities stay as free text, so this does not install a large city catalog.</p>
+                                <p class="mt-1 text-sm text-muted-foreground">Skuul installs countries and states. Cities are loaded when a country is selected, so the installer does not need to import the full city catalog.</p>
                             </div>
 
                             <form method="POST" action="{{ route('install.world.setup') }}">
@@ -159,31 +159,7 @@
                                     <p class="mt-1 text-sm text-muted-foreground">This account is active immediately. Email verification is not required for the first account.</p>
                                 </div>
 
-                                <div class="grid gap-4 sm:grid-cols-2" x-data="{
-                                    country: @js(old('campus_country')),
-                                    state: @js(old('campus_state')),
-                                    states: [],
-                                    loading: false,
-                                    async loadStates() {
-                                        const previousState = this.state;
-                                        this.loading = true;
-                                        this.states = [];
-                                        this.state = '';
-
-                                        if (this.country) {
-                                            const response = await fetch(@js(route('install.states')) + '?country=' + encodeURIComponent(this.country), {
-                                                headers: { Accept: 'application/json' },
-                                            });
-
-                                            if (response.ok) {
-                                                this.states = await response.json();
-                                            }
-                                        }
-
-                                        this.state = this.states.includes(previousState) ? previousState : '';
-                                        this.loading = false;
-                                    },
-                                }" x-init="loadStates()">
+                                <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="sm:col-span-2">
                                         <label for="admin_name" class="mb-2 block text-sm font-medium">Name</label>
                                         <input id="admin_name" name="admin_name" value="{{ old('admin_name') }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="name">
@@ -232,44 +208,7 @@
                                         <input id="campus_email" type="email" name="campus_email" value="{{ old('campus_email') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                                     </div>
                                     <div class="sm:col-span-2">
-                                        <label for="campus_address" class="mb-2 block text-sm font-medium">Campus address line 1 <span class="font-normal text-muted-foreground">(optional)</span></label>
-                                        <input id="campus_address" type="text" name="campus_address" value="{{ old('campus_address') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="address-line1">
-                                        @error('campus_address') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
-                                    </div>
-                                    <div class="sm:col-span-2">
-                                        <label for="campus_address_line_2" class="mb-2 block text-sm font-medium">Address line 2 <span class="font-normal text-muted-foreground">(optional)</span></label>
-                                        <input id="campus_address_line_2" type="text" name="campus_address_line_2" value="{{ old('campus_address_line_2') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="address-line2">
-                                        @error('campus_address_line_2') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
-                                    </div>
-                                    <div>
-                                        <label for="campus_city" class="mb-2 block text-sm font-medium">City <span class="font-normal text-muted-foreground">(optional)</span></label>
-                                        <input id="campus_city" type="text" name="campus_city" value="{{ old('campus_city') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="address-level2">
-                                        @error('campus_city') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
-                                    </div>
-                                    <div>
-                                        <label for="campus_state" class="mb-2 block text-sm font-medium">State / Province <span class="font-normal text-muted-foreground">(optional)</span></label>
-                                        <select id="campus_state" name="campus_state" x-model="state" x-on:change="state = $event.target.value" x-bind:disabled="loading || !country || states.length === 0" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="address-level1">
-                                            <option value="" x-text="loading ? 'Loading states…' : 'Select a state / province'"></option>
-                                            <template x-for="stateName in states" :key="stateName">
-                                                <option x-bind:value="stateName" x-text="stateName"></option>
-                                            </template>
-                                        </select>
-                                        @error('campus_state') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
-                                    </div>
-                                    <div>
-                                        <label for="campus_postal_code" class="mb-2 block text-sm font-medium">Postal / ZIP code <span class="font-normal text-muted-foreground">(optional)</span></label>
-                                        <input id="campus_postal_code" type="text" name="campus_postal_code" value="{{ old('campus_postal_code') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="postal-code">
-                                        @error('campus_postal_code') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
-                                    </div>
-                                    <div>
-                                        <label for="campus_country" class="mb-2 block text-sm font-medium">Country <span class="font-normal text-muted-foreground">(optional)</span></label>
-                                        <select id="campus_country" name="campus_country" x-model="country" x-on:change="loadStates()" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="country-name">
-                                            <option value="">Select a country</option>
-                                            @foreach ($countries as $country)
-                                                <option value="{{ $country['name'] }}">{{ $country['name'] }}</option>
-                                            @endforeach
-                                        </select>
-                                        @error('campus_country') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
+                                        <x-school-address-fields prefix="campus" :countries="$countries" />
                                     </div>
                                 </div>
                             </section>

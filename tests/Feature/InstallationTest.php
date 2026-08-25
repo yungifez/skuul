@@ -20,6 +20,7 @@ use Database\Seeders\WorldSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Mockery\MockInterface;
@@ -54,6 +55,8 @@ class InstallationTest extends TestCase
 
     public function test_empty_application_redirects_to_the_installer(): void
     {
+        $this->seedWorldReferenceData();
+
         $this->get('/login')
             ->assertRedirect(route('install.index'));
 
@@ -62,7 +65,7 @@ class InstallationTest extends TestCase
             ->assertSee('Install Skuul')
             ->assertSee('System Administrator')
             ->assertSee('Email is optional')
-            ->assertSee('id="campus_address_line_2"', false)
+            ->assertDontSee('id="campus_address_line_2"', false)
             ->assertSee('id="campus_city"', false)
             ->assertSee('id="campus_postal_code"', false)
             ->assertSee('id="campus_country"', false);
@@ -80,6 +83,36 @@ class InstallationTest extends TestCase
             ->assertSessionHasErrors('installer');
 
         $this->assertDatabaseCount('installations', 0);
+    }
+
+    public function test_location_options_load_states_and_cities_for_a_country(): void
+    {
+        $countryId = DB::table('countries')->insertGetId([
+            'iso2' => 'CA',
+            'name' => 'Canada',
+            'status' => 1,
+            'phone_code' => '1',
+            'iso3' => 'CAN',
+            'region' => 'Americas',
+            'subregion' => 'Northern America',
+        ]);
+
+        DB::table('states')->insert([
+            'country_id' => $countryId,
+            'name' => 'British Columbia',
+            'country_code' => 'CAN',
+        ]);
+        Cache::forget('location-cities-v1-ca');
+
+        $this->get(route('locations.states', ['country' => 'Canada']))
+            ->assertOk()
+            ->assertJson(['British Columbia']);
+
+        $cities = $this->get(route('locations.cities', ['country' => 'Canada']))
+            ->assertOk()
+            ->json();
+
+        $this->assertContains('Vancouver', $cities);
     }
 
     public function test_world_data_setup_logs_the_failure_reason(): void
@@ -163,7 +196,7 @@ class InstallationTest extends TestCase
         $this->assertTrue(app(SystemPermissionScope::class)->allows($admin, PlatformPermission::ManagePlatform));
         $this->assertSame($organization->id, $school->organization_id);
         $this->assertSame('123 Example Street', $school->address);
-        $this->assertSame('Suite 4', $school->address_line_2);
+        $this->assertNull($school->address_line_2);
         $this->assertSame('Canada', $school->country);
         $this->assertSame('British Columbia', $school->state);
         $this->assertSame('Vancouver', $school->city);
@@ -268,7 +301,6 @@ class InstallationTest extends TestCase
             'campus_name' => 'Example Campus',
             'campus_initials' => 'EC',
             'campus_address' => '123 Example Street',
-            'campus_address_line_2' => 'Suite 4',
             'campus_country' => 'Canada',
             'campus_state' => 'British Columbia',
             'campus_city' => 'Vancouver',
@@ -293,7 +325,6 @@ class InstallationTest extends TestCase
             'country_id' => $countryId,
             'name' => 'British Columbia',
             'country_code' => 'CAN',
-            'state_code' => 'BC',
         ]);
     }
 }

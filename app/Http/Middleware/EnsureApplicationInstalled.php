@@ -22,7 +22,7 @@ class EnsureApplicationInstalled
      */
     public function handle(Request $request, Closure $next): Response|RedirectResponse
     {
-        if ($request->routeIs('install.*', 'health')) {
+        if ($request->routeIs('install.*', 'locations.*', 'health')) {
             return $next($request);
         }
 

@@ -16,6 +16,60 @@ function setTheme(theme) {
 window.setTheme = setTheme;
 setTheme(window.localStorage.getItem(themeStorageKey) ?? "system");
 
+window.locationFields = function locationFields(configuration) {
+    return {
+        country: configuration.country ?? "",
+        state: configuration.state ?? "",
+        city: configuration.city ?? "",
+        states: [],
+        cities: [],
+        loading: false,
+        requestId: 0,
+
+        async loadCountry() {
+            const requestId = ++this.requestId;
+            const selectedState = this.state;
+            const selectedCity = this.city;
+
+            this.states = [];
+            this.cities = [];
+            this.state = "";
+            this.city = "";
+
+            if (!this.country) {
+                return;
+            }
+
+            this.loading = true;
+
+            try {
+                const country = encodeURIComponent(this.country);
+                const [statesResponse, citiesResponse] = await Promise.all([
+                    fetch(configuration.statesUrl + "?country=" + country, {
+                        headers: { Accept: "application/json" },
+                    }),
+                    fetch(configuration.citiesUrl + "?country=" + country, {
+                        headers: { Accept: "application/json" },
+                    }),
+                ]);
+
+                if (requestId !== this.requestId) {
+                    return;
+                }
+
+                this.states = statesResponse.ok ? await statesResponse.json() : [];
+                this.cities = citiesResponse.ok ? await citiesResponse.json() : [];
+                this.state = this.states.includes(selectedState) ? selectedState : "";
+                this.city = this.cities.includes(selectedCity) ? selectedCity : "";
+            } finally {
+                if (requestId === this.requestId) {
+                    this.loading = false;
+                }
+            }
+        },
+    };
+};
+
 document.addEventListener("livewire:navigated", () => {
     setTheme(window.localStorage.getItem(themeStorageKey) ?? "system");
 });

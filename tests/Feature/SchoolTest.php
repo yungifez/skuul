@@ -37,8 +37,8 @@ class SchoolTest extends TestCase
         $this->authorized_user(['create school'])
             ->get('/dashboard/schools/create')
             ->assertSuccessful()
-            ->assertSee('Address line 1 *')
-            ->assertSee('Address line 2')
+            ->assertSee('Address *')
+            ->assertDontSee('Address line 2')
             ->assertSee('Postal / ZIP code');
     }
 
@@ -61,7 +61,6 @@ class SchoolTest extends TestCase
             'organization_id' => $organization->id,
             'name' => 'Test school',
             'address' => 'Test address',
-            'address_line_2' => 'Suite 4',
             'country' => 'Canada',
             'state' => 'British Columbia',
             'city' => 'Vancouver',
@@ -75,7 +74,6 @@ class SchoolTest extends TestCase
             'organization_id' => $organization->id,
             'name' => 'Test school',
             'address' => 'Test address',
-            'address_line_2' => 'Suite 4',
             'country' => 'Canada',
             'state' => 'British Columbia',
             'city' => 'Vancouver',
@@ -115,8 +113,8 @@ class SchoolTest extends TestCase
         $this->authorized_user(['update school'])
             ->get('/dashboard/schools/1/edit')
             ->assertSuccessful()
-            ->assertSee('Address line 1 *')
-            ->assertSee('Address line 2')
+            ->assertSee('Address *')
+            ->assertDontSee('Address line 2')
             ->assertSee('Postal / ZIP code');
     }
 
@@ -189,7 +187,6 @@ class SchoolTest extends TestCase
             ->patch("/dashboard/schools/$school->id", [
                 'name' => 'Test school 2',
                 'address' => 'something street',
-                'address_line_2' => 'Floor 2',
                 'country' => 'Canada',
                 'state' => 'Ontario',
                 'city' => 'Toronto',
@@ -203,7 +200,6 @@ class SchoolTest extends TestCase
             'id' => $school->id,
             'name' => 'Test school 2',
             'address' => 'something street',
-            'address_line_2' => 'Floor 2',
             'country' => 'Canada',
             'state' => 'Ontario',
             'city' => 'Toronto',

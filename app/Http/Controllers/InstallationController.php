@@ -11,13 +11,9 @@ use App\Http\Requests\InstallApplicationRequest;
 use App\Http\Requests\InstallDatabaseRequest;
 use App\Models\Installation;
 use App\Services\Installation\InstallationReadiness;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
-use Nnjeim\World\Models\Country;
-use Nnjeim\World\Models\State;
 
 class InstallationController extends Controller
 {
@@ -63,35 +59,6 @@ class InstallationController extends Controller
         }
 
         return back()->with('success', 'Countries and states are ready. Reloading the installer.');
-    }
-
-    /**
-     * Return states for the selected country without loading the full catalog.
-     */
-    public function states(Request $request): JsonResponse
-    {
-        abort_if(Installation::isInstalled(), 404);
-
-        $countryName = $request->string('country')->trim()->toString();
-
-        if (blank($countryName)) {
-            return response()->json([]);
-        }
-
-        $countryId = Country::query()->where('name', $countryName)->value('id');
-
-        if ($countryId === null) {
-            return response()->json([]);
-        }
-
-        return response()->json(
-            State::query()
-                ->where('country_id', $countryId)
-                ->orderBy('name')
-                ->pluck('name')
-                ->values()
-                ->all(),
-        );
     }
 
     /**
