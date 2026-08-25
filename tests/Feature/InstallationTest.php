@@ -16,6 +16,7 @@ use App\Models\School;
 use App\Models\User;
 use App\Services\Authorization\SystemPermissionScope;
 use Database\Seeders\RunInProductionSeeder;
+use Database\Seeders\WorldSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Support\Facades\Artisan;
@@ -117,6 +118,31 @@ class InstallationTest extends TestCase
         $this->expectExceptionMessage('INSERT command denied');
 
         app(SeedWorldData::class)->seed();
+    }
+
+    public function test_world_data_seed_temporarily_raises_a_low_memory_limit(): void
+    {
+        $previousMemoryLimit = ini_get('memory_limit');
+        $this->assertIsString($previousMemoryLimit);
+        $this->assertNotFalse(ini_set('memory_limit', '128M'));
+
+        Artisan::shouldReceive('call')
+            ->once()
+            ->withArgs(function (string $command, array $arguments): bool {
+                return $command === 'db:seed'
+                    && $arguments['--class'] === WorldSeeder::class
+                    && $arguments['--force'] === true
+                    && ini_get('memory_limit') === '512M';
+            })
+            ->andReturn(0);
+
+        try {
+            app(SeedWorldData::class)->seed();
+        } finally {
+            ini_set('memory_limit', $previousMemoryLimit);
+        }
+
+        $this->assertSame($previousMemoryLimit, ini_get('memory_limit'));
     }
 
     public function test_installer_creates_the_first_system_administrator_and_campus(): void
