@@ -25,17 +25,17 @@
             </slot:trigger>
             <slot:content class="w-40">
                 <april:dropdown-menu-item aria-label="Select light theme" size="sm" type="button"
-                    class="w-full justify-left focus-visible:outline-hidden" x-on:click="setTheme('light')">
+                    class="w-full justify-start focus-visible:outline-hidden" x-on:click="setTheme('light')">
                     <x-lucide-sun class="mr-2 h-4 w-4" />
                     <p class="text-sm">Light</p>
                 </april:dropdown-menu-item>
                 <april:dropdown-menu-item aria-label="Select dark theme" size="sm" type="button"
-                    class="w-full justify-left focus-visible:outline-hidden" x-on:click="setTheme('dark')">
+                    class="w-full justify-start focus-visible:outline-hidden" x-on:click="setTheme('dark')">
                     <x-lucide-moon class="mr-2 h-4 w-4" />
                     <p class="text-sm">Dark</p>
                 </april:dropdown-menu-item>
                 <april:dropdown-menu-item aria-label="Set theme based on system preference" size="sm" type="button"
-                    class="w-full justify-left focus-visible:outline-hidden" x-on:click="setTheme('system')">
+                    class="w-full justify-start focus-visible:outline-hidden" x-on:click="setTheme('system')">
                     <x-lucide-monitor class="mr-2 h-4 w-4" />
                     <p class="text-sm">System</p>
                 </april:dropdown-menu-item>
