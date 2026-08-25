@@ -13,7 +13,7 @@
         <h2 class="text-2xl font-bold tracking-tight text-foreground md:text-3xl">What the campus shares</h2>
         <p class="mt-1 text-sm text-muted-foreground">
             Halls, laboratories, vehicles, and kit that more than one class wants. A lesson can be moved into one of
-            these for a single entry, and the timetable refuses to publish two classes into the same place at once.
+            these for a single entry, and the timetable refuses to publish two {{ strtolower(school_terms('class_level', 'classes')) }} into the same place at once.
         </p>
     </div>
 

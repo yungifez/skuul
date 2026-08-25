@@ -22,7 +22,7 @@ class ListGraduationsTable extends DataTableComponent
     /** @return array<int, Column> */
     protected function columns(): array
     {
-        return [Column::make('Name', 'name')->searchable()->sortable(), Column::make('Email', 'email'), Column::make('Admission number', 'admission_number'), Column::make('From class', 'from_class'), Column::make('From section', 'from_section')];
+        return [Column::make('Name', 'name')->searchable()->sortable(), Column::make('Email', 'email'), Column::make('Admission number', 'admission_number'), Column::make('From '.strtolower(school_term('class_level', 'class')), 'from_class'), Column::make('From '.strtolower(school_term('section', 'section')), 'from_section')];
     }
 
     /** @return array<int, array<string, mixed>> */

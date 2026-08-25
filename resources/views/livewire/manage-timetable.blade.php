@@ -74,7 +74,7 @@
                             <p class="text-sm font-medium">Subjects</p>
                             @if ($this->subjects->isEmpty())
                                 <p class="mt-2 text-sm text-muted-foreground">
-                                    No subject is offered to this home group{{ $search === '' ? '' : ' under that search' }}.
+                                    No subject is offered to this {{ strtolower(school_term('section', 'section')) }}{{ $search === '' ? '' : ' under that search' }}.
                                 </p>
                             @else
                                 <div class="mt-2 flex flex-wrap gap-2">

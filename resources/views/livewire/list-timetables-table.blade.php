@@ -2,30 +2,30 @@
     <april:card>
         <slot:title>Timetables</slot:title>
         <slot:description>
-            A timetable belongs to one home group and one {{ school_term('period', 'period') }}.
+            A timetable belongs to one {{ strtolower(school_term('section', 'section')) }} and one {{ school_term('period', 'period') }}.
             The published one is what the school teaches; a change goes out as the next revision.
         </slot:description>
         <slot:content>
             <div class="space-y-6">
                 @unless ($isStudent)
                     <div class="flex max-w-xl flex-col gap-2">
-                        <april:label for="academic-cycle-section">Home group</april:label>
+                        <april:label for="academic-cycle-section">{{ school_term('section', 'Section') }}</april:label>
                         <april:native-select id="academic-cycle-section" wire:model.live="academicCycleSectionId">
                             @forelse ($cycleSections as $cycleSection)
                                 <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['label'] }}</option>
                             @empty
-                                <option value="">No active home groups in this academic cycle</option>
+                                <option value="">No active {{ strtolower(school_terms('section', 'sections')) }} in this {{ strtolower(school_term('academic_year', 'school year')) }}</option>
                             @endforelse
                         </april:native-select>
                     </div>
                 @endunless
 
                 @if ($academicCycleSectionId === null)
-                    <x-empty-state icon="lucide-users" title="No home group selected"
-                        description="Set up an active home group for the current academic cycle before creating a timetable." />
+                    <x-empty-state icon="lucide-users" title="No {{ strtolower(school_term('section', 'section')) }} selected"
+                        description="Set up an active {{ strtolower(school_term('section', 'section')) }} for the current {{ strtolower(school_term('academic_year', 'school year')) }} before creating a timetable." />
                 @elseif ($timetables === [])
                     <x-empty-state icon="lucide-calendar-clock" title="No timetable yet"
-                        description="Create a draft for this home group, place its lessons, then publish it when it is ready." />
+                        description="Create a draft for this {{ strtolower(school_term('section', 'section')) }}, place its lessons, then publish it when it is ready." />
                 @else
                     <april:data-table>
                         <slot:header>

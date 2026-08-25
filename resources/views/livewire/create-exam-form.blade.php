@@ -1,7 +1,7 @@
 <div class="space-y-6">
     <div>
-        <p class="text-sm text-muted-foreground">Create an exam for {{ $academicYear?->name ?? 'the selected school year' }}.</p>
-        <p class="mt-1 text-sm text-muted-foreground">The exam will appear on that school year’s calendar and stay attached to its reporting period.</p>
+        <p class="text-sm text-muted-foreground">Create an exam for {{ $academicYear?->name ?? 'the selected '.strtolower(school_term('academic_year', 'school year')) }}.</p>
+        <p class="mt-1 text-sm text-muted-foreground">The exam will appear on that {{ strtolower(school_term('academic_year', 'school year')) }}’s calendar and stay attached to its {{ strtolower(school_term('period', 'reporting period')) }}.</p>
     </div>
     <div class="rounded-xl border bg-card p-6">
         <form action="{{ route('exams.store') }}" method="POST" class="grid gap-5 md:max-w-2xl">

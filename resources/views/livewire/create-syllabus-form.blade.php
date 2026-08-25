@@ -12,7 +12,7 @@
             <div class="flex w-full flex-col gap-2">
                 <april:label for="course_offering_id">Course offering *</april:label>
                 <april:select id="course_offering_id" name="course_offering_id">
-                    <option value="">Select the subject, level, and period</option>
+                    <option value="">Select the subject, {{ strtolower(school_term('class_level', 'class')) }}, and {{ strtolower(school_term('period', 'period')) }}</option>
                     @foreach ($courseOfferings as $courseOffering)
                         <option value="{{ $courseOffering->id }}">
                             {{ $courseOffering->subject->name }} — {{ $courseOffering->academicLevel->label ?? $courseOffering->academicLevel->name }} — {{ $courseOffering->academicPeriod->label ?? $courseOffering->academicPeriod->name }}

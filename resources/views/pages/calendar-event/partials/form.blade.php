@@ -84,15 +84,15 @@
 <april:card>
     <slot:title>Who it is for</slot:title>
     <slot:description>
-        Name nobody and the day is for the whole school. Name a home group or a person and only
+        Name nobody and the day is for the whole school. Name a {{ strtolower(school_term('section', 'section')) }} or a person and only
         they read it in the portal.
     </slot:description>
     <slot:content>
         <div class="space-y-6">
             <div>
-                <p class="text-sm font-medium">Home groups</p>
+                <p class="text-sm font-medium">{{ school_terms('section', 'Sections') }}</p>
                 @if ($sections->isEmpty())
-                    <p class="mt-2 text-sm text-muted-foreground">This school has no home groups yet.</p>
+                    <p class="mt-2 text-sm text-muted-foreground">This school has no {{ strtolower(school_terms('section', 'sections')) }} yet.</p>
                 @else
                     <div class="mt-2 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                         @foreach ($sections as $section)

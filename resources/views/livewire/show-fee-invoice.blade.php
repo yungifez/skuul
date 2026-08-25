@@ -17,7 +17,7 @@
                 <h3 class="text-lg">To</h3>
                 <p class="font-bold">{{$feeInvoice->user->name}}</p>
                 <p>{{$feeInvoice->name}}</p>
-                <p>Current home group: {{ $feeInvoice->user->studentRecord?->academicCycleSection?->academicLevel?->label ?? $feeInvoice->user->studentRecord?->academicCycleSection?->academicLevel?->name ?? 'Not currently placed' }}@if ($feeInvoice->user->studentRecord?->academicCycleSection) · {{ $feeInvoice->user->studentRecord->academicCycleSection->label ?? $feeInvoice->user->studentRecord->academicCycleSection->name }}@endif</p>
+                <p>Current {{ strtolower(school_term('section', 'section')) }}: {{ $feeInvoice->user->studentRecord?->academicCycleSection?->academicLevel?->label ?? $feeInvoice->user->studentRecord?->academicCycleSection?->academicLevel?->name ?? 'Not currently placed' }}@if ($feeInvoice->user->studentRecord?->academicCycleSection) · {{ $feeInvoice->user->studentRecord->academicCycleSection->label ?? $feeInvoice->user->studentRecord->academicCycleSection->name }}@endif</p>
                 <p>Student admission number: {{ $feeInvoice->user->studentRecord?->admission_number ?? 'Not recorded' }}</p>
             </div>
         </div>

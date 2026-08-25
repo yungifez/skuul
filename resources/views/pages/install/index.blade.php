@@ -223,6 +223,23 @@
                                 </div>
                             </section>
 
+                            <section aria-labelledby="school-language-heading" class="space-y-4 border-t border-border/70 pt-8">
+                                <div>
+                                    <h2 id="school-language-heading" class="text-lg font-semibold">{{ __('School language') }}</h2>
+                                    <p class="mt-1 text-sm text-muted-foreground">{{ __('Choose the familiar words your school uses for the academic year, classes, sections, terms, subjects and fees. You can customize them later.') }}</p>
+                                </div>
+
+                                <div>
+                                    <label for="school_language_preset" class="mb-2 block text-sm font-medium">{{ __('Terminology pattern') }}</label>
+                                    <select id="school_language_preset" name="school_language_preset" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                        <option value="home_sections" @selected(old('school_language_preset', 'home_sections') === 'home_sections')>{{ __('Classes and sections') }}</option>
+                                        <option value="subject_schedule" @selected(old('school_language_preset') === 'subject_schedule')>{{ __('Grades, homerooms and semesters') }}</option>
+                                        <option value="hybrid" @selected(old('school_language_preset') === 'hybrid')>{{ __('Grades, sections and terms') }}</option>
+                                    </select>
+                                    @error('school_language_preset') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
+                                </div>
+                            </section>
+
                             <section class="space-y-4 border-t border-border/70 pt-8">
                                 <label class="flex items-start gap-3 text-sm">
                                     <input type="checkbox" name="load_demo_data" value="1" @checked(old('load_demo_data')) class="mt-1 rounded border-input">

@@ -145,7 +145,7 @@ if (!function_exists('school_term')) {
      */
     function school_term(string $key, string $fallback): string
     {
-        return current_school()?->operatingProfile?->labels[$key] ?? $fallback;
+        return __(current_school()?->operatingProfile?->labels[$key] ?? $fallback);
     }
 }
 

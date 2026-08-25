@@ -25,13 +25,13 @@
 
         <april:card>
             <slot:title>Which register?</slot:title>
-            <slot:description>Choose a {{ school_term('section', 'home section') }} and a day. The register opens on today.</slot:description>
+            <slot:description>Choose a {{ strtolower(school_term('section', 'section')) }} and a day. The register opens on today.</slot:description>
             <slot:content>
                 <form method="GET" class="grid gap-4 md:grid-cols-[2fr_1fr_auto] md:items-end">
                     <div class="flex flex-col gap-2">
-                        <april:label for="register-section">{{ school_term('section', 'Home section') }}</april:label>
+                        <april:label for="register-section">{{ school_term('section', 'Section') }}</april:label>
                         <april:native-select id="register-section" name="academic_cycle_section_id">
-                            <option value="">Choose a {{ school_term('section', 'home section') }}</option>
+                            <option value="">Choose a {{ strtolower(school_term('section', 'section')) }}</option>
                             @foreach ($sections as $item)
                                 <option value="{{ $item->id }}" @selected($section?->id === $item->id)>
                                     {{ $item->academicLevel?->label ?? $item->academicLevel?->name }} · {{ $item->label ?? $item->name }}
@@ -73,14 +73,14 @@
             <april:card>
                 <slot:content>
                     <x-empty-state icon="lucide-clipboard-list" title="No register open"
-                        description="Choose a {{ school_term('section', 'home section') }} above to mark who attended." />
+                        description="Choose a {{ strtolower(school_term('section', 'section')) }} above to mark who attended." />
                 </slot:content>
             </april:card>
         @elseif ($students->isEmpty())
             <april:card>
                 <slot:title>{{ $section->academicLevel?->label ?? $section->academicLevel?->name }} · {{ $section->label ?? $section->name }}</slot:title>
                 <slot:content>
-                    <x-empty-state icon="lucide-users" title="Nobody attends this {{ school_term('section', 'home section') }} yet"
+                    <x-empty-state icon="lucide-users" title="Nobody attends this {{ strtolower(school_term('section', 'section')) }} yet"
                         description="Place a learner here first, then the register will list them.">
                         <april:button-link href="{{ route('students.index') }}">Go to students</april:button-link>
                     </x-empty-state>

@@ -15,12 +15,12 @@
                 <april:textarea id="description" name="description" placeholder="Enter description" />
             </div>
             <div class="flex w-full flex-col gap-2">
-                <label for="academic-cycle-section" class="text-sm font-medium">Home group *</label>
+                        <label for="academic-cycle-section" class="text-sm font-medium">{{ school_term('section', 'Section') }} *</label>
                 <select id="academic-cycle-section" name="academic_cycle_section_id" required class="h-10 rounded-md border border-input bg-background px-3 text-sm">
                     @forelse ($cycleSections as $cycleSection)
                         <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['label'] }}</option>
                     @empty
-                        <option value="" disabled selected>No active home groups in this academic cycle</option>
+                        <option value="" disabled selected>No active {{ strtolower(school_terms('section', 'sections')) }} in this {{ strtolower(school_term('academic_year', 'school year')) }}</option>
                     @endforelse
                 </select>
                 @error('academic_cycle_section_id')

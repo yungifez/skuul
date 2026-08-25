@@ -13,8 +13,8 @@
 
 @section('content')
     <april:card>
-        <slot:title>Academic calendar templates</slot:title>
-        <slot:description>Define the common shape once, then generate dated cycles for each campus. A campus may override the default only deliberately.</slot:description>
+        <slot:title>{{ school_term('academic_year', 'School year') }} calendar templates</slot:title>
+        <slot:description>Define the common shape once, then generate dated {{ strtolower(school_term('academic_year', 'school year')) }}s for each campus. A campus may override the default only deliberately.</slot:description>
         <slot:content>
             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 @forelse ($organization->calendarTemplates as $template)

@@ -4,15 +4,15 @@
     </div>
     <div class="card-body">
         <x-display-validation-errors/>
-        <p class="mb-5 text-sm text-muted-foreground">Choose a learner from their current home group. This does not change the learner's academic placement.</p>
+        <p class="mb-5 text-sm text-muted-foreground">Choose a learner from their current {{ strtolower(school_term('section', 'section')) }}. This does not change the learner's academic placement.</p>
         <form action="{{ route('parents.assign-student', $parent->id) }}" method="POST" class="grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-end">
             <div class="flex w-full flex-col gap-2">
-                <label for="academic-cycle-section" class="text-sm font-medium">Home group</label>
+                <label for="academic-cycle-section" class="text-sm font-medium">{{ school_term('section', 'Section') }}</label>
                 <select id="academic-cycle-section" wire:model.live="academicCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
                     @forelse ($cycleSections as $cycleSection)
                         <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['label'] }}</option>
                     @empty
-                        <option value="">No active home groups in this academic cycle</option>
+                        <option value="">No active {{ strtolower(school_terms('section', 'sections')) }} in this {{ strtolower(school_term('academic_year', 'school year')) }}</option>
                     @endforelse
                 </select>
             </div>
@@ -22,7 +22,7 @@
                     @forelse ($students as $student)
                         <option value="{{ $student['id'] }}">{{ $student['name'] }}@if ($student['admission_number']) · {{ $student['admission_number'] }}@endif</option>
                     @empty
-                        <option value="">No learners in this home group</option>
+                        <option value="">No learners in this {{ strtolower(school_term('section', 'section')) }}</option>
                     @endforelse
                 </select>
             </div>
@@ -42,7 +42,7 @@
                             <tr class=" text-white">
                                 <th class="p-4 border">S/N</th>
                                 <th class="p-4 border">Name</th>
-                                <th class="p-4 border">Current home group</th>
+                                <th class="p-4 border">Current {{ school_term('section', 'section') }}</th>
                                 <th class="p-4 border">Email</th>
                                 <th class="p-4 border">
                                 </th>

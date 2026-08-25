@@ -37,7 +37,7 @@ class ListPromotionsTable extends DataTableComponent
     /** @return array<int, Column> */
     protected function columns(): array
     {
-        return [Column::make('From level', 'from_level'), Column::make('From section', 'from_section'), Column::make('To level', 'to_level'), Column::make('To section', 'to_section'), Column::make('Learners', 'learners_count')->sortable()];
+        return [Column::make('From '.strtolower(school_term('class_level', 'class')), 'from_level'), Column::make('From '.strtolower(school_term('section', 'section')), 'from_section'), Column::make('To '.strtolower(school_term('class_level', 'class')), 'to_level'), Column::make('To '.strtolower(school_term('section', 'section')), 'to_section'), Column::make('Learners', 'learners_count')->sortable()];
     }
 
     /** @return array<int, array<string, mixed>> */

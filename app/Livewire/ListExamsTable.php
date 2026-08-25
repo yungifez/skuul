@@ -22,7 +22,7 @@ class ListExamsTable extends DataTableComponent
     /** @return array<int, Column> */
     protected function columns(): array
     {
-        return [Column::make('Name', 'name')->searchable()->sortable(), Column::make('Period', 'period_label'), Column::make('Starts', 'start_date_label'), Column::make('Ends', 'stop_date_label'), Column::make('Status', 'active_label')];
+        return [Column::make('Name', 'name')->searchable()->sortable(), Column::make(school_term('period', 'Period'), 'period_label'), Column::make('Starts', 'start_date_label'), Column::make('Ends', 'stop_date_label'), Column::make('Status', 'active_label')];
     }
 
     /** @return array<int, array<string, mixed>> */

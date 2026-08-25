@@ -14,11 +14,11 @@
             <april:input-group type="date" id="stop_Date" name="stop_date" label="Stop date" />
             <fieldset class="flex flex-col gap-3 rounded border border-slate-200 p-4 dark:border-slate-700">
                 <legend class="px-1 text-sm font-medium text-slate-900 dark:text-slate-100">Who should receive this?</legend>
-                <p class="text-sm text-slate-600 dark:text-slate-300">Leave home sections empty for the whole school community. Select sections to send to those learners only.</p>
-                <label for="academic_cycle_section_ids" class="text-sm font-medium text-slate-800 dark:text-slate-100">Home sections</label>
+                <p class="text-sm text-slate-600 dark:text-slate-300">Leave {{ strtolower(school_terms('section', 'sections')) }} empty for the whole school community. Select {{ strtolower(school_terms('section', 'sections')) }} to send to those learners only.</p>
+                <label for="academic_cycle_section_ids" class="text-sm font-medium text-slate-800 dark:text-slate-100">{{ school_terms('section', 'Sections') }}</label>
                 <select id="academic_cycle_section_ids" name="audience[academic_cycle_section_ids][]" multiple class="min-h-28 rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100">
                     @foreach($sections as $section)
-                        <option value="{{ $section->id }}">{{ $section->academicLevel?->label ?? $section->academicLevel?->name ?? 'Unassigned level' }} — {{ $section->label ?? $section->name }}</option>
+                        <option value="{{ $section->id }}">{{ $section->academicLevel?->label ?? $section->academicLevel?->name ?? 'Unassigned '.strtolower(school_term('class_level', 'class')) }} — {{ $section->label ?? $section->name }}</option>
                     @endforeach
                 </select>
                 <label class="flex items-start gap-2 text-sm text-slate-800 dark:text-slate-100">

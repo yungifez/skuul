@@ -11,7 +11,7 @@
 
     $capabilities = [
         ['text' => 'Rosters start as '.strtolower($option->defaultRosterMode()->label()), 'on' => true],
-        ['text' => 'Combined class groups', 'on' => $option->allowsCombinedSections()],
+        ['text' => 'Combined '.strtolower(school_terms('section', 'sections')), 'on' => $option->allowsCombinedSections()],
         ['text' => 'Named learners', 'on' => $option->allowsIndividualRosters()],
     ];
 @endphp
@@ -86,7 +86,7 @@
             @if ($impact !== null)
                 <p class="mt-2 border-t border-border pt-2">
                     <span class="font-medium">Impact:</span>
-                    {{ $impact['offerings'] }} {{ Str::plural('subject', $impact['offerings']) }} already set up in this cycle.
+                    {{ $impact['offerings'] }} {{ Str::plural('subject', $impact['offerings']) }} already set up in this {{ strtolower(school_term('academic_year', 'school year')) }}.
                     @if ($impact['exceptions'] > 0)
                         {{ $impact['exceptions'] }} would keep a roster this answer does not offer and remain as {{ Str::plural('an exception', $impact['exceptions']) }}.
                     @else

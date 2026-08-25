@@ -21,10 +21,10 @@
     @endphp
 
     <april:card class="mb-6">
-        <slot:title>{{ $selectedCycle?->name ?? 'Every academic cycle' }}</slot:title>
+        <slot:title>{{ $selectedCycle?->name ?? 'Every '.strtolower(school_term('academic_year', 'school year')) }}</slot:title>
         <slot:description>
-            A cycle section is one named home group inside a level for one exact cycle, such as Primary 4 · Green · 2026–2027.
-            It is never reused: a later cycle gets its own section.
+            A {{ strtolower(school_term('section', 'section')) }} is one named group inside a {{ strtolower(school_term('class_level', 'class')) }} for one exact {{ strtolower(school_term('academic_year', 'school year')) }}, such as Primary 4 · Green · 2026–2027.
+            It is never reused: a later year gets its own {{ strtolower(school_term('section', 'section')) }}.
         </slot:description>
         <slot:content class="space-y-4">
             @if ($isCurrentCycle)
@@ -36,18 +36,18 @@
 
             <form method="GET" action="{{ route('academic-cycle-sections.index') }}" class="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
                 <div class="flex flex-col gap-1.5">
-                    <april:label for="filter-cycle">Academic cycle</april:label>
+                    <april:label for="filter-cycle">{{ school_term('academic_year', 'School year') }}</april:label>
                     <select id="filter-cycle" name="academic_year_id" class="rounded-md border border-input bg-background px-3 py-2 text-sm" onchange="this.form.submit()">
-                        <option value="">Every cycle</option>
+                        <option value="">Every {{ strtolower(school_term('academic_year', 'school year')) }}</option>
                         @foreach ($academicYears as $academicYear)
                             <option value="{{ $academicYear->id }}" {{ $selectedAcademicYearId === $academicYear->id ? 'selected' : '' }}>{{ $academicYear->name }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="flex flex-col gap-1.5">
-                    <april:label for="filter-level">Academic level</april:label>
+                    <april:label for="filter-level">{{ school_term('class_level', 'Class') }}</april:label>
                     <select id="filter-level" name="academic_level_id" class="rounded-md border border-input bg-background px-3 py-2 text-sm" onchange="this.form.submit()">
-                        <option value="">Every level</option>
+                        <option value="">Every {{ strtolower(school_terms('class_level', 'class')) }}</option>
                         @foreach ($academicLevels as $academicLevel)
                             <option value="{{ $academicLevel->id }}" {{ $selectedAcademicLevelId === $academicLevel->id ? 'selected' : '' }}>{{ $academicLevel->name }}</option>
                         @endforeach
@@ -74,9 +74,9 @@
                 <div class="flex flex-wrap items-center gap-2 border-t pt-4">
                     <april:button-link href="{{ route('academic-cycle-sections.roll-forward.show') }}" variant="outline" size="sm">
                         <x-lucide-copy class="mr-1.5 size-3.5" />
-                        Roll sections into another cycle
+                        Roll {{ strtolower(school_terms('section', 'sections')) }} into another year
                     </april:button-link>
-                    <april:button-link href="{{ route('academic-levels.index') }}" variant="ghost" size="sm">Manage academic levels</april:button-link>
+                    <april:button-link href="{{ route('academic-levels.index') }}" variant="ghost" size="sm">Manage {{ strtolower(school_terms('class_level', 'classes')) }}</april:button-link>
                 </div>
             @endcan
         </slot:content>
@@ -84,23 +84,23 @@
 
     <april:card>
         <slot:title>{{ school_terms('section', 'Section') }} this year</slot:title>
-        <slot:description>Rows are grouped by cycle, then by level. Draft sections are set up but not yet in use.</slot:description>
+        <slot:description>Rows are grouped by {{ strtolower(school_term('academic_year', 'school year')) }}, then by {{ strtolower(school_term('class_level', 'class')) }}. Draft {{ strtolower(school_terms('section', 'sections')) }} are set up but not yet in use.</slot:description>
         <slot:content>
             @if ($totalCount === 0)
-                <x-empty-state
+                    <x-empty-state
                     icon="lucide-layers"
-                    title="No cycle section exists yet"
+                    title="No {{ strtolower(school_term('section', 'section')) }} exists yet"
                     description="Create the first named group for a cycle, such as Primary 4 · Green · 2026–2027. It starts as a draft, so nothing goes live until you activate it.">
-                    <x-resource-create-action :href="route('academic-cycle-sections.create')" ability="create" :arguments="[\App\Models\AcademicCycleSection::class]">Add cycle section</x-resource-create-action>
+                    <x-resource-create-action :href="route('academic-cycle-sections.create')" ability="create" :arguments="[\App\Models\AcademicCycleSection::class]">Add {{ strtolower(school_term('section', 'section')) }}</x-resource-create-action>
                 </x-empty-state>
             @elseif ($academicCycleSections->isEmpty())
                 <x-empty-state
                     icon="lucide-filter"
                     title="No section matches this filter"
-                    description="{{ $selectedCycle ? $selectedCycle->name.' has no section that matches.' : 'Nothing matches the chosen filter.' }} This school has {{ $totalCount }} cycle sections in total.">
-                    <april:button-link href="{{ route('academic-cycle-sections.index', ['academic_year_id' => '']) }}" variant="outline" size="sm">Show every cycle</april:button-link>
+                    description="{{ $selectedCycle ? $selectedCycle->name.' has no '.strtolower(school_term('section', 'section')).' that matches.' : 'Nothing matches the chosen filter.' }} This school has {{ $totalCount }} {{ strtolower(school_terms('section', 'sections')) }} in total.">
+                    <april:button-link href="{{ route('academic-cycle-sections.index', ['academic_year_id' => '']) }}" variant="outline" size="sm">Show every {{ strtolower(school_term('academic_year', 'school year')) }}</april:button-link>
                     @can('create', \App\Models\AcademicCycleSection::class)
-                        <april:button-link href="{{ route('academic-cycle-sections.roll-forward.show') }}" variant="outline" size="sm">Roll sections forward</april:button-link>
+                        <april:button-link href="{{ route('academic-cycle-sections.roll-forward.show') }}" variant="outline" size="sm">Roll {{ strtolower(school_terms('section', 'sections')) }} forward</april:button-link>
                     @endcan
                 </x-empty-state>
             @else
@@ -108,7 +108,7 @@
                     <table class="w-full min-w-[980px] text-sm">
                         <thead class="border-b text-left text-muted-foreground">
                             <tr>
-                                <th class="px-3 py-2">Section</th>
+                                <th class="px-3 py-2">{{ school_term('section', 'Section') }}</th>
                                 <th class="px-3 py-2">Stream / shift</th>
                                 <th class="px-3 py-2">Room</th>
                                 <th class="px-3 py-2">Capacity</th>

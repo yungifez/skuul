@@ -1,11 +1,11 @@
 <div class="space-y-6">
     <april:card>
-        <slot:title>Move learners to a new {{ school_term('section', 'home section') }}</slot:title>
-        <slot:description>Choose the current and destination sections, review the learners, then confirm the move. Each move remains in placement history.</slot:description>
+        <slot:title>Move learners to a new {{ strtolower(school_term('section', 'section')) }}</slot:title>
+        <slot:description>Choose the current and destination {{ strtolower(school_terms('section', 'sections')) }}, review the learners, then confirm the move. Each move remains in placement history.</slot:description>
         <slot:content>
             <form wire:submit="loadStudents" class="grid gap-4 md:grid-cols-3">
                 <div class="flex flex-col gap-2">
-                    <april:label for="promotion-source">Current {{ school_term('section', 'home section') }}</april:label>
+                    <april:label for="promotion-source">Current {{ strtolower(school_term('section', 'section')) }}</april:label>
                     <select id="promotion-source" wire:model.live="sourceAcademicCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
                         <option value="">Choose current section</option>
                         @foreach ($cycleSections as $cycleSection)
@@ -15,7 +15,7 @@
                     @error('sourceAcademicCycleSectionId') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                 </div>
                 <div class="flex flex-col gap-2">
-                    <april:label for="promotion-destination">Destination {{ school_term('section', 'home section') }}</april:label>
+                    <april:label for="promotion-destination">Destination {{ strtolower(school_term('section', 'section')) }}</april:label>
                     <select id="promotion-destination" wire:model.live="destinationAcademicCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
                         <option value="">Choose destination section</option>
                         @foreach ($cycleSections as $cycleSection)

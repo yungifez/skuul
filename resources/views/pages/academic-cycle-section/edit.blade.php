@@ -1,6 +1,6 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href' => route('dashboard'), 'text' => 'Dashboard'],
-    ['href' => route('academic-cycle-sections.index'), 'text' => 'Cycle sections'],
+    ['href' => route('academic-cycle-sections.index'), 'text' => school_terms('section', 'Sections')],
     ['href' => route('academic-cycle-sections.show', $academicCycleSection), 'text' => $academicCycleSection->name],
     ['href' => route('academic-cycle-sections.edit', $academicCycleSection), 'text' => 'Edit', 'active'],
 ]])
@@ -12,7 +12,7 @@
     <april:card class="mx-auto max-w-3xl">
         <slot:title>Edit {{ $academicCycleSection->academicLevel->name }} · {{ $academicCycleSection->name }} · {{ $academicCycleSection->academicYear->name }}</slot:title>
         <slot:description>
-            A change here updates this one section in this one cycle. No learner, result, attendance, or timetable record moves.
+            A change here updates this one {{ strtolower(school_term('section', 'section')) }} in this one {{ strtolower(school_term('academic_year', 'school year')) }}. No learner, result, attendance, or timetable record moves.
         </slot:description>
         <slot:content>
             <x-academic-cycle-section-form

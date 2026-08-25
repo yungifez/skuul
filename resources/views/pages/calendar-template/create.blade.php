@@ -12,7 +12,7 @@
 @section('content')
     <april:card>
         <slot:title>Calendar shape</slot:title>
-        <slot:description>Use terms, semesters, trimesters, or your local labels. Dates are offsets from the first day of each future cycle.</slot:description>
+        <slot:description>Use terms, semesters, trimesters, or your local labels. Dates are offsets from the first day of each future school year.</slot:description>
         <slot:content><x-calendar-template-form :organization="$organization" /></slot:content>
     </april:card>
 @endsection

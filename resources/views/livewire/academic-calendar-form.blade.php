@@ -1,23 +1,23 @@
 <april:card>
-    <slot:title>{{ $academicYear ? 'Edit draft school calendar' : 'Set up a school calendar' }}</slot:title>
+    <slot:title>{{ $academicYear ? 'Edit draft '.strtolower(school_term('academic_year', 'school year')) : 'Set up a '.strtolower(school_term('academic_year', 'school year')) }}</slot:title>
     <slot:description>
         {{ $academicYear ? 'Adjust the draft before it becomes the calendar staff work from.' : 'Start with dates, choose a reporting structure, then review the generated periods.' }}
     </slot:description>
     <slot:content>
         @if (!$this->canEdit())
             <div class="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
-                This calendar is {{ strtolower($academicYear->statusLabel()) }}. Change individual periods from the calendar overview so its history stays clear.
+                This {{ strtolower(school_term('academic_year', 'school year')) }} is {{ strtolower($academicYear->statusLabel()) }}. Change individual periods from the calendar overview so its history stays clear.
             </div>
         @else
             <form wire:submit="save" class="space-y-8">
                 <div class="grid gap-4 md:grid-cols-2">
                     <div class="flex flex-col gap-2">
-                        <label for="calendar-starts-on" class="text-sm font-medium">Calendar starts on</label>
+                        <label for="calendar-starts-on" class="text-sm font-medium">{{ school_term('academic_year', 'School year') }} starts on</label>
                         <input id="calendar-starts-on" type="date" wire:model="startsOn" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
                         @error('startsOn')<p class="text-sm text-destructive">{{ $message }}</p>@enderror
                     </div>
                     <div class="flex flex-col gap-2">
-                        <label for="calendar-ends-on" class="text-sm font-medium">Calendar ends on</label>
+                        <label for="calendar-ends-on" class="text-sm font-medium">{{ school_term('academic_year', 'School year') }} ends on</label>
                         <input id="calendar-ends-on" type="date" wire:model="endsOn" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
                         @error('endsOn')<p class="text-sm text-destructive">{{ $message }}</p>@enderror
                     </div>
@@ -81,7 +81,7 @@
                 <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
                     <april:button-link href="{{ route('academic-years.index') }}" variant="outline">Cancel</april:button-link>
                     <button type="submit" class="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50" wire:loading.attr="disabled">
-                        <span wire:loading.remove wire:target="save">{{ $academicYear ? 'Save draft calendar' : 'Create draft calendar' }}</span>
+                        <span wire:loading.remove wire:target="save">{{ $academicYear ? 'Save draft '.strtolower(school_term('academic_year', 'school year')) : 'Create draft '.strtolower(school_term('academic_year', 'school year')) }}</span>
                         <span wire:loading wire:target="save">Saving…</span>
                     </button>
                 </div>

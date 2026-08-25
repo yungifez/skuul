@@ -11,6 +11,7 @@ use App\Enums\AuditAction;
 use App\Enums\Role;
 use App\Models\Installation;
 use App\Models\School;
+use App\Models\SchoolOperatingProfile;
 use App\Models\User;
 use App\Services\Installation\InstallationReadiness;
 use Database\Seeders\DemoDataSeeder;
@@ -37,6 +38,7 @@ class InstallApplication
      *     admin_email: string,
      *     admin_password: string,
      *     locale?: string|null,
+     *     school_language_preset?: string|null,
      *     organization_name: string,
      *     campus_name: string,
      *     campus_address: string,
@@ -100,6 +102,15 @@ class InstallApplication
                 'initials' => $data['campus_initials'] ?? null,
                 'email' => $data['campus_email'] ?? null,
                 'code' => Str::upper(Str::random(10)),
+            ]);
+
+            $schoolLanguagePreset = $data['school_language_preset'] ?? 'home_sections';
+            $schoolLanguagePreset = array_key_exists($schoolLanguagePreset, SchoolOperatingProfile::PRESETS)
+                ? $schoolLanguagePreset
+                : 'home_sections';
+            $school->operatingProfile()->create([
+                'preset' => $schoolLanguagePreset,
+                'labels' => SchoolOperatingProfile::labelsFor($schoolLanguagePreset),
             ]);
 
             $this->grantSchoolMembership->grant($admin, $school, primary: true);

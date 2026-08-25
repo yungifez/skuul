@@ -29,8 +29,8 @@
                 <slot:title>Words your school uses</slot:title>
                 <slot:description>Use short names that staff will recognize immediately.</slot:description>
                 <slot:content class="grid gap-4 sm:grid-cols-2">
-                    @foreach (['class_level' => 'Grade or class level', 'section' => 'Class group', 'period' => 'Term or semester', 'course' => 'Subject or course', 'fee' => 'What families pay'] as $key => $label)
-                        <div class="space-y-2"><april:label for="label-{{ $key }}">{{ $label }}</april:label><input id="label-{{ $key }}" name="labels[{{ $key }}]" value="{{ old('labels.'.$key, $profile->labels[$key]) }}" class="flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm"></div>
+                    @foreach (['academic_year' => 'The school year', 'class_level' => 'Grade or class', 'section' => 'Class group', 'period' => 'Term or semester', 'course' => 'Subject or course', 'fee' => 'What families pay'] as $key => $label)
+                        <div class="space-y-2"><april:label for="label-{{ $key }}">{{ __($label) }}</april:label><input id="label-{{ $key }}" name="labels[{{ $key }}]" value="{{ old('labels.'.$key, data_get($profile->labels, $key, \App\Models\SchoolOperatingProfile::labelsFor($profile->preset)[$key])) }}" class="flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm"></div>
                     @endforeach
                 </slot:content>
                 <slot:footer><april:button type="submit">Save school language</april:button></slot:footer>

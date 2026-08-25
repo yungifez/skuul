@@ -10,7 +10,7 @@
     <div class="mx-auto max-w-6xl space-y-8">
         <section class="rounded-xl border bg-muted/40 p-6 md:p-8">
             <p class="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">{{ $school->name }}</p>
-            <h2 class="mt-2 text-2xl font-semibold tracking-tight">Make sure the essentials are ready before the school year starts.</h2>
+            <h2 class="mt-2 text-2xl font-semibold tracking-tight">Make sure the essentials are ready before the {{ strtolower(school_term('academic_year', 'school year')) }} starts.</h2>
             <p class="mt-2 max-w-3xl text-sm text-muted-foreground">Work through the cards below in order. You can return at any time; completed areas stay available for review.</p>
         </section>
 
@@ -24,14 +24,14 @@
             </april:card>
 
             <april:card>
-                <slot:title class="flex items-center justify-between gap-3"><span>School calendar</span><span class="flex items-center gap-1"><x-help-tooltip label="School calendar help">Choose the school year and the terms your school uses.</x-help-tooltip><x-lucide-calendar-range class="size-5 text-muted-foreground" /></span></slot:title>
+                    <slot:title class="flex items-center justify-between gap-3"><span>School calendar</span><span class="flex items-center gap-1"><x-help-tooltip label="School calendar help">Choose the {{ strtolower(school_term('academic_year', 'school year')) }} and the terms your school uses.</x-help-tooltip><x-lucide-calendar-range class="size-5 text-muted-foreground" /></span></slot:title>
                 <slot:content><april:badge variant="{{ $academicYear ? 'secondary' : 'outline' }}">{{ $academicYear ? 'Ready' : 'Needs attention' }}</april:badge></slot:content>
                 <slot:footer><april:button-link href="{{ route('academic-years.index') }}" variant="link" size="none" class="gap-1 p-0">Manage school year <span aria-hidden="true">→</span></april:button-link></slot:footer>
             </april:card>
 
             <april:card>
                 <slot:title class="flex items-center justify-between gap-3"><span>How teaching works</span><span class="flex items-center gap-1"><x-help-tooltip label="Teaching approach help">Choose whether learners stay together all day or move between subject classes.</x-help-tooltip><x-lucide-users class="size-5 text-muted-foreground" /></span></slot:title>
-                <slot:content><april:badge variant="{{ $academicYear ? 'secondary' : 'outline' }}">{{ $academicYear ? 'Choose for this year' : 'Set the school year first' }}</april:badge></slot:content>
+                <slot:content><april:badge variant="{{ $academicYear ? 'secondary' : 'outline' }}">{{ $academicYear ? 'Choose for this year' : 'Set the '.strtolower(school_term('academic_year', 'school year')).' first' }}</april:badge></slot:content>
                 <slot:footer>
                     @if ($academicYear)
                         <april:button-link href="{{ route('academic-years.instructional-model.edit', $academicYear) }}" variant="link" size="none" class="gap-1 p-0">Set teaching approach <span aria-hidden="true">→</span></april:button-link>
@@ -45,15 +45,15 @@
             </april:card>
 
             <april:card>
-                <slot:title class="flex items-center justify-between gap-3"><span>Grades and classes</span><span class="flex items-center gap-1"><x-help-tooltip label="Grades and classes help">Add the grades or classes your school teaches.</x-help-tooltip><x-lucide-presentation class="size-5 text-muted-foreground" /></span></slot:title>
+                    <slot:title class="flex items-center justify-between gap-3"><span>{{ school_terms('class_level', 'Classes') }}</span><span class="flex items-center gap-1"><x-help-tooltip label="Classes help">Add the grades or {{ strtolower(school_terms('class_level', 'classes')) }} your school teaches.</x-help-tooltip><x-lucide-presentation class="size-5 text-muted-foreground" /></span></slot:title>
                 <slot:content><april:badge variant="{{ $academicLevelsCount ? 'secondary' : 'outline' }}">{{ $academicLevelsCount ? 'Ready' : 'Needs attention' }}</april:badge></slot:content>
-                <slot:footer><april:button-link href="{{ route('academic-levels.index') }}" variant="link" size="none" class="gap-1 p-0">Manage grades and classes <span aria-hidden="true">→</span></april:button-link></slot:footer>
+                <slot:footer><april:button-link href="{{ route('academic-levels.index') }}" variant="link" size="none" class="gap-1 p-0">Manage {{ strtolower(school_terms('class_level', 'classes')) }} <span aria-hidden="true">→</span></april:button-link></slot:footer>
             </april:card>
 
             <april:card>
-                <slot:title class="flex items-center justify-between gap-3"><span>Classes this year</span><span class="flex items-center gap-1"><x-help-tooltip label="Classes this year help">Create the arms, homerooms or sections that run this year.</x-help-tooltip><x-lucide-landmark class="size-5 text-muted-foreground" /></span></slot:title>
+                <slot:title class="flex items-center justify-between gap-3"><span>{{ school_terms('section', 'Classes') }} this {{ strtolower(school_term('academic_year', 'year')) }}</span><span class="flex items-center gap-1"><x-help-tooltip label="Classes this year help">Create the arms, homerooms or {{ strtolower(school_terms('section', 'sections')) }} that run this {{ strtolower(school_term('academic_year', 'year')) }}.</x-help-tooltip><x-lucide-landmark class="size-5 text-muted-foreground" /></span></slot:title>
                 <slot:content><april:badge variant="{{ $cycleSectionsCount ? 'secondary' : 'outline' }}">{{ $cycleSectionsCount ? 'Ready' : 'Needs attention' }}</april:badge></slot:content>
-                <slot:footer><april:button-link href="{{ route('academic-cycle-sections.index') }}" variant="link" size="none" class="gap-1 p-0">Manage this year’s classes <span aria-hidden="true">→</span></april:button-link></slot:footer>
+                <slot:footer><april:button-link href="{{ route('academic-cycle-sections.index') }}" variant="link" size="none" class="gap-1 p-0">Manage this {{ strtolower(school_term('academic_year', 'year')) }}’s {{ strtolower(school_terms('section', 'classes')) }} <span aria-hidden="true">→</span></april:button-link></slot:footer>
             </april:card>
 
             <april:card>
@@ -79,7 +79,7 @@
 
             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
                 <april:card>
-                    <slot:title class="flex items-center justify-between gap-3"><span>Student records and admissions</span><span class="flex items-center gap-1"><x-help-tooltip label="Student records and admissions help">Admission numbers, learner details, required documents and placement into this year’s classes.</x-help-tooltip><x-lucide-user-round-plus class="size-5 text-muted-foreground" /></span></slot:title>
+                    <slot:title class="flex items-center justify-between gap-3"><span>Student records and admissions</span><span class="flex items-center gap-1"><x-help-tooltip label="Student records and admissions help">Admission numbers, learner details, required documents and placement into this {{ strtolower(school_term('academic_year', 'year')) }}’s {{ strtolower(school_terms('section', 'classes')) }}.</x-help-tooltip><x-lucide-user-round-plus class="size-5 text-muted-foreground" /></span></slot:title>
                     <slot:footer><april:button-link href="{{ route('students.index') }}" variant="link" size="none" class="gap-1 p-0">Manage students <span aria-hidden="true">→</span></april:button-link></slot:footer>
                 </april:card>
 

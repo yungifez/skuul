@@ -9,7 +9,7 @@
             <div class="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
                 <div class="rounded-lg border p-4"><p class="text-muted-foreground">Calendar starts</p><p class="mt-1 font-semibold">{{ $academicYear->starts_on?->format('M j, Y') ?? 'Not scheduled' }}</p></div>
                 <div class="rounded-lg border p-4"><p class="text-muted-foreground">Calendar ends</p><p class="mt-1 font-semibold">{{ $academicYear->ends_on?->format('M j, Y') ?? 'Not scheduled' }}</p></div>
-                <div class="rounded-lg border p-4"><p class="text-muted-foreground">Reporting periods</p><p class="mt-1 font-semibold">{{ $topLevelPeriods->count() }}</p></div>
+                <div class="rounded-lg border p-4"><p class="text-muted-foreground">{{ school_terms('period', 'Reporting periods') }}</p><p class="mt-1 font-semibold">{{ $topLevelPeriods->count() }}</p></div>
                 <div class="rounded-lg border p-4"><p class="text-muted-foreground">Teaching setup</p><a href="{{ route('academic-years.instructional-model.edit', $academicYear) }}" class="mt-1 inline-flex font-semibold text-primary hover:underline">Manage setup</a></div>
             </div>
 
@@ -29,7 +29,7 @@
 
     @if (current_academic_year_id() === $academicYear->id && auth()->user()->can('set academic period'))
         <april:card>
-            <slot:title>Working {{ school_term('period', 'academic period') }}</slot:title>
+            <slot:title>Working {{ strtolower(school_term('period', 'academic period')) }}</slot:title>
             <slot:description>Choose the reporting period staff are working in. This does not change the calendar or historical records.</slot:description>
             <slot:content>@livewire('set-academic-period')</slot:content>
         </april:card>
@@ -67,12 +67,12 @@
         @if ($canRollForwardSetup)
             <div class="mt-5 flex flex-col justify-between gap-4 rounded-lg border bg-background p-4 sm:flex-row sm:items-center">
                 <div>
-                    <p class="font-medium">Starting this year from {{ $previousAcademicYear->name }}?</p>
-                    <p class="mt-1 text-sm text-muted-foreground">Review the teaching approach and reporting periods that can be created from the previous year.</p>
+                    <p class="font-medium">Starting this {{ strtolower(school_term('academic_year', 'school year')) }} from {{ $previousAcademicYear->name }}?</p>
+                    <p class="mt-1 text-sm text-muted-foreground">Review the teaching approach and reporting periods that can be created from the previous {{ strtolower(school_term('academic_year', 'school year')) }}.</p>
                 </div>
                 <april:button type="button" variant="outline" wire:click="openSetupRolloverDialog" wire:loading.attr="disabled" class="shrink-0">
                     <x-lucide-copy-plus class="mr-2 size-4" />
-                    Copy setup from previous year
+                    Copy setup from previous {{ strtolower(school_term('academic_year', 'school year')) }}
                 </april:button>
             </div>
         @endif
@@ -160,7 +160,7 @@
 
                 <div class="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
                     <p class="font-semibold">These records are never copied:</p>
-                    <p class="mt-1 text-muted-foreground">Learners, placements, teacher assignments, classes, subjects, exams, timetables, attendance and results. Set those up for this year when you are ready.</p>
+                    <p class="mt-1 text-muted-foreground">Learners, placements, teacher assignments, {{ strtolower(school_terms('class_level', 'classes')) }}, subjects, exams, timetables, attendance and results. Set those up for this year when you are ready.</p>
                 </div>
             @endif
 

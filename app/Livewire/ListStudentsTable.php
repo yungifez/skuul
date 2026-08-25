@@ -48,8 +48,8 @@ class ListStudentsTable extends DataTableComponent
                     $studentRecord->where('admission_number', 'like', "%{$term}%");
                 });
             }),
-            Column::make('Level', 'student_record.academic_cycle_section.academic_level.name'),
-            Column::make('Section', 'student_record.academic_cycle_section.name'),
+            Column::make(school_term('class_level', 'Class'), 'student_record.academic_cycle_section.academic_level.name'),
+            Column::make(school_term('section', 'Section'), 'student_record.academic_cycle_section.name'),
             Column::make('Enrollment', 'student_record.status'),
             Column::make('Account', 'account_status'),
         ];

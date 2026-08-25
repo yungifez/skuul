@@ -68,7 +68,7 @@
             <div class="rounded-xl border border-sidebar-border/70 bg-card text-card-foreground shadow-sm">
                 <div class="flex flex-col gap-1.5 border-b p-6">
                     <h3 class="text-lg font-semibold leading-none tracking-tight">Lend a class set</h3>
-                    <p class="text-sm text-muted-foreground">Give one title to every attending learner in a home section. The whole set succeeds or nothing changes.</p>
+                    <p class="text-sm text-muted-foreground">Give one title to every attending learner in a {{ strtolower(school_term('section', 'section')) }}. The whole set succeeds or nothing changes.</p>
                 </div>
 
                 <div class="grid gap-4 p-6 sm:grid-cols-2">

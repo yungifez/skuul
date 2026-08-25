@@ -120,7 +120,7 @@ class ShowAcademicYear extends DataTableComponent
     /** @return array<int, Column> */
     protected function columns(): array
     {
-        return [Column::make('Name', 'name')->searchable()->sortable(), Column::make('Academic period', 'academic_period_name')];
+        return [Column::make('Name', 'name')->searchable()->sortable(), Column::make(school_term('period', 'Period'), 'academic_period_name')];
     }
 
     /** @return array<int, array<string, mixed>> */

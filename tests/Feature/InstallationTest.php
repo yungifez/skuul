@@ -13,6 +13,7 @@ use App\Models\Installation;
 use App\Models\Notice;
 use App\Models\Organization;
 use App\Models\School;
+use App\Models\SchoolOperatingProfile;
 use App\Models\User;
 use App\Services\Authorization\SystemPermissionScope;
 use Database\Seeders\RunInProductionSeeder;
@@ -71,7 +72,9 @@ class InstallationTest extends TestCase
             ->assertSee('id="campus_postal_code"', false)
             ->assertSee('id="campus_country"', false)
             ->assertSee('name="locale"', false)
-            ->assertSee('English');
+            ->assertSee('English')
+            ->assertSee('name="school_language_preset"', false)
+            ->assertSee('Classes and sections');
     }
 
     public function test_installer_blocks_until_country_and_state_data_is_loaded(): void
@@ -203,6 +206,10 @@ class InstallationTest extends TestCase
         $this->assertSame('British Columbia', $school->state);
         $this->assertSame('Vancouver', $school->city);
         $this->assertSame('V6B 1A1', $school->postal_code);
+        $this->assertDatabaseHas('school_operating_profiles', [
+            'school_id' => $school->id,
+            'preset' => 'home_sections',
+        ]);
         $this->assertDatabaseHas('installations', [
             'installed_by' => $admin->id,
             'organization_id' => $organization->id,
@@ -233,6 +240,24 @@ class InstallationTest extends TestCase
         $this->get(route('login'))->assertOk();
 
         $this->assertSame('fr', app()->getLocale());
+    }
+
+    public function test_installer_saves_the_selected_school_terminology_pattern(): void
+    {
+        $this->seedWorldReferenceData();
+
+        $data = $this->installationData();
+        $data['school_language_preset'] = 'subject_schedule';
+
+        $this->post(route('install.store'), $data)
+            ->assertRedirect(route('login'));
+
+        $profile = SchoolOperatingProfile::query()->firstOrFail();
+
+        $this->assertSame('subject_schedule', $profile->preset);
+        $this->assertSame('Academic year', $profile->labels['academic_year']);
+        $this->assertSame('Grade', $profile->labels['class_level']);
+        $this->assertSame('Homeroom', $profile->labels['section']);
     }
 
     public function test_installer_rejects_an_unsupported_system_language(): void

@@ -23,7 +23,7 @@
             <x-loading-spinner wire:target="addStudent"/>
             <div class="md:grid md:grid-cols-3 gap-4">
                 <div class="flex w-full flex-col gap-2">
-                    <april:label for="academic-level">{{ school_term('class_level', 'Level') }}</april:label>
+                    <april:label for="academic-level">{{ school_term('class_level', 'Class') }}</april:label>
                     <april:select id="academic-level" name="" wire:model.live="academicLevel">
                     @foreach ($academicLevels as $item)
                         <option value="{{$item->id}}">{{$item->label ?? $item->name}}</option>

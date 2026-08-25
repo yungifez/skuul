@@ -1,13 +1,13 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href' => route('dashboard'), 'text' => 'Dashboard'],
-    ['href' => route('academic-levels.index'), 'text' => school_terms('class_level', 'Academic level'), 'active'],
+    ['href' => route('academic-levels.index'), 'text' => school_terms('class_level', 'Class'), 'active'],
 ]])
 
-@section('title', school_terms('class_level', 'Academic level'))
-@section('page_heading', school_terms('class_level', 'Academic level'))
+@section('title', school_terms('class_level', 'Class'))
+@section('page_heading', school_terms('class_level', 'Class'))
 
 @section('page_actions')
-    <x-resource-create-action :href="route('academic-levels.create')" ability="create" :arguments="[\App\Models\AcademicLevel::class]">Add {{ school_term('class_level', 'academic level') }}</x-resource-create-action>
+    <x-resource-create-action :href="route('academic-levels.create')" ability="create" :arguments="[\App\Models\AcademicLevel::class]">Add {{ school_term('class_level', 'class') }}</x-resource-create-action>
 @endsection
 
 @section('content')
@@ -21,10 +21,10 @@
     @endphp
 
     <april:card class="mb-6">
-        <slot:title>{{ school_terms('class_level', 'Level') }} are reusable. {{ school_terms('section', 'Section') }} are not.</slot:title>
+        <slot:title>{{ school_terms('class_level', 'Classes') }} are reusable. {{ school_terms('section', 'Sections') }} are not.</slot:title>
         <slot:description>
-            A level is the step a learner is at, such as Primary 4, Grade 4, or Form 2. It stays the same year after year.
-            A cycle section is one named group inside a level for one exact academic cycle, such as Primary 4 · Green · 2026–2027.
+            A {{ strtolower(school_term('class_level', 'class')) }} is the step a learner is at, such as Primary 4, Grade 4, or Form 2. It stays the same year after year.
+            A {{ strtolower(school_term('section', 'section')) }} is one named group inside a {{ strtolower(school_term('class_level', 'class')) }} for one exact {{ strtolower(school_term('academic_year', 'school year')) }}, such as Primary 4 · Green · 2026–2027.
         </slot:description>
         <slot:content class="flex flex-wrap gap-2">
             <april:button-link href="{{ route('academic-cycle-sections.index', ['academic_year_id' => '']) }}" variant="outline" size="sm">
@@ -35,8 +35,8 @@
     </april:card>
 
     <april:card>
-        <slot:title>All {{ school_terms('class_level', 'academic level') }}</slot:title>
-        <slot:description>Set the display order once. Every screen that lists levels reads it.</slot:description>
+        <slot:title>All {{ school_terms('class_level', 'classes') }}</slot:title>
+        <slot:description>Set the display order once. Every screen that lists {{ school_terms('class_level', 'classes') }} reads it.</slot:description>
         <slot:content>
             <div class="mb-4 flex flex-wrap items-center gap-2">
                 <span class="text-sm text-muted-foreground">Status</span>
@@ -51,23 +51,23 @@
             @if ($totalCount === 0)
                 <x-empty-state
                     icon="lucide-graduation-cap"
-                    title="No {{ school_terms('class_level', 'academic level') }} yet"
-                    description="Add the levels this school teaches, such as Primary 1 to Primary 6. You need at least one before you can create a {{ school_term('section', 'section') }} for an academic cycle.">
-                    <x-resource-create-action :href="route('academic-levels.create')" ability="create" :arguments="[\App\Models\AcademicLevel::class]">Add {{ school_term('class_level', 'academic level') }}</x-resource-create-action>
+                    title="No {{ school_terms('class_level', 'class') }} yet"
+                    description="Add the {{ school_terms('class_level', 'classes') }} this school teaches, such as Primary 1 to Primary 6. You need at least one before you can create a {{ school_term('section', 'section') }} for a {{ strtolower(school_term('academic_year', 'school year')) }}.">
+                    <x-resource-create-action :href="route('academic-levels.create')" ability="create" :arguments="[\App\Models\AcademicLevel::class]">Add {{ school_term('class_level', 'class') }}</x-resource-create-action>
                 </x-empty-state>
             @elseif ($academicLevels->isEmpty())
                 <x-empty-state
                     icon="lucide-filter"
-                    title="No level matches this status"
-                    description="This school has {{ $totalCount }} academic levels. Clear the filter to see them.">
-                    <april:button-link href="{{ route('academic-levels.index') }}" variant="outline" size="sm">Show all levels</april:button-link>
+                    title="No {{ strtolower(school_term('class_level', 'class')) }} matches this status"
+                    description="This school has {{ $totalCount }} {{ strtolower(school_terms('class_level', 'classes')) }}. Clear the filter to see them.">
+                    <april:button-link href="{{ route('academic-levels.index') }}" variant="outline" size="sm">Show all {{ strtolower(school_terms('class_level', 'classes')) }}</april:button-link>
                 </x-empty-state>
             @else
                 <div class="overflow-x-auto">
                     <table class="w-full min-w-[720px] text-sm">
                         <thead class="border-b text-left text-muted-foreground">
                             <tr>
-                                <th class="px-3 py-2">Level</th>
+                                <th class="px-3 py-2">{{ school_term('class_level', 'Class') }}</th>
                                 <th class="px-3 py-2">Local label</th>
                                 <th class="px-3 py-2">Sits under</th>
                                 <th class="px-3 py-2">{{ school_terms('section', 'Section') }}</th>

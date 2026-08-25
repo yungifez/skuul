@@ -21,11 +21,11 @@
                         <p class="mt-1 font-semibold">{{ $studentRecord->admission_date ?: 'Not recorded' }}</p>
                     </div>
                     <div class="rounded-lg border bg-muted/30 p-4">
-                        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{{ school_term('level', 'Academic level') }}</p>
+                        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{{ school_term('class_level', 'Class') }}</p>
                         <p class="mt-1 font-semibold">{{ $studentRecord->academicCycleSection?->academicLevel?->label ?? $studentRecord->academicCycleSection?->academicLevel?->name ?? 'Not placed' }}</p>
                     </div>
                     <div class="rounded-lg border bg-muted/30 p-4">
-                        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{{ school_term('section', 'Home section') }}</p>
+                        <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{{ school_term('section', 'Section') }}</p>
                         <p class="mt-1 font-semibold">{{ $studentRecord->academicCycleSection?->label ?? $studentRecord->academicCycleSection?->name ?? 'Not placed' }}</p>
                     </div>
                 </div>
@@ -67,7 +67,7 @@
                         <form wire:submit="changePlacement" class="space-y-4">
                             <div>
                                 <h3 class="font-semibold">Change placement</h3>
-                                <p class="text-sm text-muted-foreground">A new placement keeps the previous academic level and home section in history.</p>
+                                <p class="text-sm text-muted-foreground">A new placement keeps the previous {{ strtolower(school_term('class_level', 'class')) }} and {{ strtolower(school_term('section', 'section')) }} in history.</p>
                             </div>
 
                             @if ($academicYear)
@@ -85,9 +85,9 @@
                             @endif
 
                             <div class="flex flex-col gap-2">
-                                <april:label for="placement-cycle-section">{{ school_term('section', 'Home section') }}</april:label>
+                                <april:label for="placement-cycle-section">{{ school_term('section', 'Section') }}</april:label>
                                 <select id="placement-cycle-section" wire:model.live="placementCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ !$academicYear || $studentRecord->status->isClosed() ? 'disabled' : '' }}>
-                                    <option value="">Choose a {{ school_term('section', 'home section') }}</option>
+                                    <option value="">Choose a {{ strtolower(school_term('section', 'section')) }}</option>
                                     @foreach ($cycleSections as $cycleSection)
                                         <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['level'] }} · {{ $cycleSection['name'] }}</option>
                                     @endforeach
@@ -142,9 +142,9 @@
 
                                 @if (!$openCampusMoveRequest)
                                 <div class="flex flex-col gap-2">
-                                    <april:label for="campus-cycle-section">Campus and {{ school_term('section', 'home section') }}</april:label>
+                                    <april:label for="campus-cycle-section">Campus and {{ strtolower(school_term('section', 'section')) }}</april:label>
                                     <select id="campus-cycle-section" wire:model.live="campusCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ $studentRecord->status->isClosed() ? 'disabled' : '' }}>
-                                        <option value="">Choose a campus {{ school_term('section', 'home section') }}</option>
+                                        <option value="">Choose a campus {{ strtolower(school_term('section', 'section')) }}</option>
                                         @foreach ($campusCycleSections as $campusCycleSection)
                                             <option value="{{ $campusCycleSection['id'] }}">{{ $campusCycleSection['campus'] }} · {{ $campusCycleSection['level'] }} · {{ $campusCycleSection['name'] }}</option>
                                         @endforeach
@@ -212,7 +212,7 @@
 
             <april:card>
                 <slot:title>Placement history</slot:title>
-                <slot:description>Every academic level and home-section assignment for this enrollment.</slot:description>
+                                <slot:description>Every {{ strtolower(school_term('class_level', 'class')) }} and {{ strtolower(school_term('section', 'section')) }} assignment for this enrollment.</slot:description>
                 <slot:content>
                     @if ($studentRecord->placements->isNotEmpty())
                         <div class="overflow-x-auto">

@@ -25,8 +25,8 @@ class ListSyllabiTable extends DataTableComponent
         return [
             Column::make('Name', 'name')->searchable()->sortable(),
             Column::make('Subject', 'subject_name'),
-            Column::make('Academic level', 'academic_level_label'),
-            Column::make('Academic period', 'academic_period_label'),
+            Column::make(school_term('class_level', 'Class'), 'academic_level_label'),
+            Column::make(school_term('period', 'Period'), 'academic_period_label'),
         ];
     }
 

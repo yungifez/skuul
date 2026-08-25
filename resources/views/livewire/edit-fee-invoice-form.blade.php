@@ -29,7 +29,7 @@
             <table class="w-full">
                 <th class="border p-4">Student Name</th>
                 <th class="border p-4">Student Admission Number</th>
-                <th class="border p-4">Current home group</th>
+                        <th class="border p-4">Current {{ school_term('section', 'section') }}</th>
                 <tbody>
                     <tr>
                         <td class="border p-4 text-center">{{$feeInvoice->user->name}}</td>

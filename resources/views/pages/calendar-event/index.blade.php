@@ -140,7 +140,7 @@
 
         <april:card>
             <slot:title>What is on this month</slot:title>
-            <slot:description>An event with no home group named is for the whole school.</slot:description>
+            <slot:description>An event with no {{ strtolower(school_term('section', 'section')) }} named is for the whole school.</slot:description>
             <slot:content>
                 @if ($events->isEmpty())
                     @if ($selectedType !== null || $draftsOnly)

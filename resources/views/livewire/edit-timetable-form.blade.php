@@ -12,7 +12,7 @@
                 <april:textarea id="description" name="description" placeholder="Enter description">{{$timetable->description}}</april:textarea>
             </div>
             <div class="rounded-md border border-border bg-muted/40 p-3 text-sm">
-                <p class="font-medium">Home group</p>
+                <p class="font-medium">{{ school_term('section', 'Section') }}</p>
                 <p class="text-muted-foreground">{{ $timetable->academicCycleSection->academicLevel->label ?? $timetable->academicCycleSection->academicLevel->name }} · {{ $timetable->academicCycleSection->label ?? $timetable->academicCycleSection->name }}</p>
             </div>
             <div class='col-12 my-2'>

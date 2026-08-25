@@ -1,11 +1,11 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href' => route('dashboard'), 'text' => 'Dashboard'],
-    ['href' => route('academic-cycle-sections.index'), 'text' => 'Cycle sections'],
+    ['href' => route('academic-cycle-sections.index'), 'text' => school_terms('section', 'Sections')],
     ['href' => route('academic-cycle-sections.roll-forward.show'), 'text' => 'Roll forward', 'active'],
 ]])
 
-@section('title', __('Roll sections into another cycle'))
-@section('page_heading', __('Roll sections into another cycle'))
+@section('title', __('Roll '.strtolower(school_terms('section', 'sections')).' into another year'))
+@section('page_heading', __('Roll '.strtolower(school_terms('section', 'sections')).' into another year'))
 
 @section('content')
     @php
@@ -49,8 +49,8 @@
                 <div>
                     <p class="mb-1 font-medium">It copies the structure only</p>
                     <ul class="list-inside list-disc space-y-0.5 text-muted-foreground">
-                        <li>Section name and local label</li>
-                        <li>Academic level</li>
+                        <li>{{ school_term('section', 'Section') }} name and local label</li>
+                        <li>{{ school_term('class_level', 'Class') }}</li>
                         <li>Stream, shift, and language</li>
                         <li>Room, capacity, and display order</li>
                     </ul>
@@ -83,7 +83,7 @@
                 @if ($targetIsClosed)
                     <april:alert variant="destructive">
                         <slot:title>{{ $target->name }} is closed</slot:title>
-                        <slot:description>Reopen the academic cycle before you copy a structure into it.</slot:description>
+                        <slot:description>Reopen the {{ strtolower(school_term('academic_year', 'school year')) }} before you copy a structure into it.</slot:description>
                     </april:alert>
                 @endif
 
@@ -94,16 +94,16 @@
                     </div>
                     <div class="rounded-md border p-4">
                         <p class="text-2xl font-semibold">{{ $skips->count() }}</p>
-                        <p class="text-sm text-muted-foreground">would be skipped because {{ $target->name }} already has that name in the level</p>
+                        <p class="text-sm text-muted-foreground">would be skipped because {{ $target->name }} already has that name in the {{ strtolower(school_term('class_level', 'class')) }}</p>
                     </div>
                 </div>
 
                 @if ($copies->isEmpty() && $skips->isEmpty())
                     <x-empty-state
                         icon="lucide-copy"
-                        title="{{ $source->name }} has no cycle section to copy"
+                        title="{{ $source->name }} has no {{ strtolower(school_term('section', 'section')) }} to copy"
                         description="Create the structure in the source cycle first, or choose another cycle to copy from.">
-                        <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_year_id' => $source->id]) }}" variant="outline" size="sm">Add a section to {{ $source->name }}</april:button-link>
+                        <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_year_id' => $source->id]) }}" variant="outline" size="sm">Add a {{ strtolower(school_term('section', 'section')) }} to {{ $source->name }}</april:button-link>
                     </x-empty-state>
                 @else
                     @if ($copies->isNotEmpty())

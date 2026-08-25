@@ -13,19 +13,19 @@
     <div class="space-y-6">
         <april:card>
             <slot:title>Template definition</slot:title>
-            <slot:description>Changes shape future generated cycles. Existing cycles keep their own dated records.</slot:description>
+            <slot:description>Changes shape future generated school years. Existing school years keep their own dated records.</slot:description>
             <slot:content><x-calendar-template-form :organization="$organization" :calendar-template="$calendarTemplate" /></slot:content>
         </april:card>
 
         <april:card>
-            <slot:title>Generate a campus cycle</slot:title>
-            <slot:description>The generated cycle starts as draft. Staff must review and schedule it before it opens.</slot:description>
+            <slot:title>Generate a campus school year</slot:title>
+            <slot:description>The generated school year starts as draft. Staff must review and schedule it before it opens.</slot:description>
             <slot:content>
                 <form method="POST" action="{{ route('organizations.calendar-templates.cycles.store', [$organization, $calendarTemplate]) }}" class="grid gap-4 md:grid-cols-3 md:items-end">
                     @csrf
                     <div class="flex flex-col gap-2"><april:label for="school-id">Campus</april:label><select name="school_id" id="school-id" class="rounded-md border border-input bg-background px-3 py-2" required>@foreach ($organization->schools as $school)<option value="{{ $school->id }}">{{ $school->name }}</option>@endforeach</select></div>
-                    <april:input-group name="starts_on" id="starts-on" type="date" label="Cycle starts on *" required />
-                    <april:button type="submit">Generate draft cycle</april:button>
+                    <april:input-group name="starts_on" id="starts-on" type="date" label="School year starts on *" required />
+                    <april:button type="submit">Generate draft school year</april:button>
                 </form>
             </slot:content>
         </april:card>

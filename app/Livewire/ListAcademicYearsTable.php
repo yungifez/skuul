@@ -20,11 +20,11 @@ class ListAcademicYearsTable extends DataTableComponent
     protected function columns(): array
     {
         return [
-            Column::make('Calendar', 'name'),
+            Column::make(school_term('academic_year', 'School year'), 'name'),
             Column::make('Dates', 'date_label'),
             Column::make('Structure', 'structure_label'),
             Column::make('Status', 'status_label'),
-            Column::make('Working', 'working_label'),
+            Column::make('Working '.strtolower(school_term('academic_year', 'school year')), 'working_label'),
         ];
     }
 
@@ -51,7 +51,7 @@ class ListAcademicYearsTable extends DataTableComponent
                 : ($types->count() === 1 ? $periods->count().' '.$types->first()->label().($periods->count() === 1 ? '' : 's') : $periods->count().' reporting periods');
             $row['status'] = $status->value;
             $row['status_label'] = $status->label();
-            $row['working_label'] = current_academic_year_id() === $academicYear->id ? 'Working calendar' : '—';
+            $row['working_label'] = current_academic_year_id() === $academicYear->id ? 'Working '.strtolower(school_term('academic_year', 'school year')) : '—';
             $row['can_close'] = auth()->user()->can('close', $academicYear);
             $row['can_reopen'] = auth()->user()->can('reopen', $academicYear);
             $row['view_url'] = route('academic-years.show', $academicYear);

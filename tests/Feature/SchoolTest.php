@@ -6,6 +6,7 @@ use App\Actions\Organization\GrantOrganizationMembership;
 use App\Http\Middleware\SetActiveAcademicPeriod;
 use App\Models\Organization;
 use App\Models\School;
+use App\Models\SchoolOperatingProfile;
 use App\Models\User;
 use App\Services\School\SchoolContext;
 use App\Traits\FeatureTestTrait;
@@ -173,12 +174,31 @@ class SchoolTest extends TestCase
         $school = $this->workingSchool();
         $this->authorized_user(['manage school settings'], $school)
             ->put('/dashboard/schools/operating-profile', [
-                'preset' => 'home_sections',
-                'labels' => ['class_level' => 'Class', 'section' => 'Arm', 'period' => 'Term', 'course' => 'Subject', 'fee' => 'School fees'],
+                'preset' => 'subject_schedule',
+                'labels' => ['academic_year' => 'Academic year', 'class_level' => 'Form', 'section' => 'Stream', 'period' => 'Semester', 'course' => 'Course', 'fee' => 'Tuition'],
             ])
             ->assertRedirect('/dashboard/schools/settings');
 
-        $this->assertDatabaseHas('school_operating_profiles', ['school_id' => $school->id, 'preset' => 'home_sections']);
+        $this->assertDatabaseHas('school_operating_profiles', ['school_id' => $school->id, 'preset' => 'subject_schedule']);
+
+    }
+
+    public function test_school_terminology_is_rendered_on_the_school_setup_screen(): void
+    {
+        $school = $this->workingSchool();
+        SchoolOperatingProfile::query()->updateOrCreate(
+            ['school_id' => $school->id],
+            [
+                'preset' => 'subject_schedule',
+                'labels' => ['academic_year' => 'Academic year', 'class_level' => 'Form', 'section' => 'Stream', 'period' => 'Semester', 'course' => 'Course', 'fee' => 'Tuition'],
+            ],
+        );
+
+        $this->authorized_user(['manage school settings'], $school)
+            ->get('/dashboard/schools/settings')
+            ->assertSuccessful()
+            ->assertSee('Forms')
+            ->assertSee('Streams this academic year');
     }
 
     public function test_unauthorized_user_cannot_update_school()

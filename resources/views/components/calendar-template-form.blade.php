@@ -31,7 +31,7 @@
 
     <div class="grid gap-4 md:grid-cols-2">
         <april:input-group name="name" id="name" label="Template name *" value="{{ old('name', $calendarTemplate?->name) }}" required />
-        <april:input-group name="cycle_length_days" id="cycle-length-days" type="number" min="1" max="3660" label="Cycle length in days *" value="{{ old('cycle_length_days', $calendarTemplate?->cycle_length_days ?? 365) }}" required />
+        <april:input-group name="cycle_length_days" id="cycle-length-days" type="number" min="1" max="3660" label="School year length in days *" value="{{ old('cycle_length_days', $calendarTemplate?->cycle_length_days ?? 365) }}" required />
         <div class="flex flex-col gap-2 md:col-span-2">
             <april:label for="description">Description</april:label>
             <april:textarea name="description" id="description" rows="3">{{ old('description', $calendarTemplate?->description) }}</april:textarea>
@@ -48,17 +48,17 @@
         <label class="flex items-start gap-3 text-sm">
             <input type="hidden" name="auto_open" value="0">
             <input type="checkbox" name="auto_open" value="1" class="mt-0.5 size-4 rounded border-input" {{ old('auto_open', $calendarTemplate?->auto_open) ? 'checked' : '' }}>
-            <span><span class="font-medium">Open on start date</span><span class="mt-1 block text-muted-foreground">Scheduled cycles and periods open automatically. Closing remains manual.</span></span>
+            <span><span class="font-medium">Open on start date</span><span class="mt-1 block text-muted-foreground">Scheduled school years and periods open automatically. Closing remains manual.</span></span>
         </label>
         <div class="grid gap-3 sm:grid-cols-2 md:grid-cols-1">
-            <april:input-group name="generate_ahead_weeks" id="generate-ahead-weeks" type="number" min="0" max="104" label="Generate next cycle (weeks ahead)" value="{{ old('generate_ahead_weeks', $calendarTemplate?->generate_ahead_weeks ?? 0) }}" />
+            <april:input-group name="generate_ahead_weeks" id="generate-ahead-weeks" type="number" min="0" max="104" label="Generate next school year (weeks ahead)" value="{{ old('generate_ahead_weeks', $calendarTemplate?->generate_ahead_weeks ?? 0) }}" />
             <april:input-group name="remind_days_before" id="remind-days-before" type="number" min="0" max="90" label="Reminder lead time (days)" value="{{ old('remind_days_before', $calendarTemplate?->remind_days_before ?? 14) }}" />
         </div>
     </fieldset>
 
     <section class="space-y-3">
         <div>
-            <h2 class="font-semibold">Cycle periods</h2>
+            <h2 class="font-semibold">School year periods</h2>
             <p class="text-sm text-muted-foreground">Rows run in order. To make a sub-period, set its parent to an earlier row. Leave unused rows blank.</p>
         </div>
         <div class="overflow-x-auto rounded-lg border">

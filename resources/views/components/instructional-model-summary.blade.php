@@ -24,7 +24,7 @@
             @if (!$isFutureCycle)
                 <span class="inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground">
                     <x-lucide-lock class="size-3" />
-                    Fixed for this cycle
+                    Fixed for this {{ strtolower(school_term('academic_year', 'school year')) }}
                 </span>
             @elseif ($setting === null)
                 <span class="inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground">
@@ -51,7 +51,7 @@
 
         <p class="text-sm text-muted-foreground">
             <span class="font-medium text-foreground">{{ InstructionalModel::SETUP_QUESTION }}</span>
-            Answer it once, and every subject in this cycle starts the same way.
+            Answer it once, and every subject in this {{ strtolower(school_term('academic_year', 'school year')) }} starts the same way.
         </p>
     </div>
 

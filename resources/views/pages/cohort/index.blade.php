@@ -67,7 +67,7 @@
                         </x-empty-state>
                     @else
                         <x-empty-state icon="lucide-users-round" title="No groups yet"
-                            description="Make a group to follow a set of learners across classes and years.">
+                            description="Make a group to follow a set of learners across {{ strtolower(school_terms('class_level', 'classes')) }} and {{ strtolower(school_terms('academic_year', 'school years')) }}.">
                             @can('create', App\Models\Cohort::class)
                                 <april:button-link href="{{ route('cohorts.create') }}">Make the first group</april:button-link>
                             @endcan

@@ -73,8 +73,8 @@ class ListFeeInvoicesTable extends DataTableComponent
         ];
 
         if (!auth()->user()->hasRole('student')) {
-            $columns[] = Column::make('Class', 'class_name');
-            $columns[] = Column::make('Section', 'section_name');
+            $columns[] = Column::make(school_term('class_level', 'Class'), 'class_name');
+            $columns[] = Column::make(school_term('section', 'Section'), 'section_name');
         }
 
         return array_merge($columns, [

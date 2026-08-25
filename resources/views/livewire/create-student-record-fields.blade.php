@@ -1,9 +1,9 @@
 <div class="md:grid grid-cols-12 gap-2">
     <h4 class="text-bold text-xl md:text-3xl font-bold col-span-12 text-center my-2">Enrollment information</h4>
     <div class="flex w-full flex-col gap-2">
-        <april:label for="academic-cycle-section-id">Choose a {{ school_term('section', 'home section') }} *</april:label>
+        <april:label for="academic-cycle-section-id">Choose a {{ strtolower(school_term('section', 'section')) }} *</april:label>
         <select id="academic-cycle-section-id" name="academic_cycle_section_id" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
-            <option value="">Choose a {{ school_term('section', 'home section') }}</option>
+            <option value="">Choose a {{ strtolower(school_term('section', 'section')) }}</option>
             @foreach ($cycleSections as $cycleSection)
                 <option value="{{ $cycleSection['id'] }}" {{ old('academic_cycle_section_id') == $cycleSection['id'] ? 'selected' : '' }}>{{ $cycleSection['level'] }} · {{ $cycleSection['name'] }}</option>
             @endforeach

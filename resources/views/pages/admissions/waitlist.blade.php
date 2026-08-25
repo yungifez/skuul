@@ -9,7 +9,7 @@
 @section('content')
     <div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
         <div>
-            <h2 class="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Places for full sections</h2>
+            <h2 class="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Places for full {{ strtolower(school_terms('section', 'sections')) }}</h2>
             <p class="mt-1 text-sm text-muted-foreground">Capacity is enforced when a learner is placed. A waitlist keeps priority and decision history until a place is accepted.</p>
         </div>
 
@@ -18,12 +18,12 @@
         @can('create', \App\Models\AdmissionWaitlistEntry::class)
             <april:card>
                 <slot:title>Add a candidate</slot:title>
-                <slot:description>Only sections that have reached their configured capacity appear here.</slot:description>
+                <slot:description>Only {{ strtolower(school_terms('section', 'sections')) }} that have reached their configured capacity appear here.</slot:description>
                 <slot:content>
                     <form action="{{ route('admissions.waitlist.store') }}" method="POST" class="grid gap-4 md:grid-cols-4 md:items-end">
                         @csrf
                         <div class="flex flex-col gap-2 md:col-span-2">
-                            <label for="waitlist-section" class="text-sm font-medium">Section</label>
+                            <label for="waitlist-section" class="text-sm font-medium">{{ school_term('section', 'Section') }}</label>
                             <select id="waitlist-section" name="academic_cycle_section_id" required class="h-10 rounded-md border border-input bg-background px-3 text-sm">
                                 @foreach ($sections as $section)
                                     <option value="{{ $section->id }}">{{ $section->academicLevel->label ?? $section->academicLevel->name }} · {{ $section->label ?? $section->name }} · {{ $section->academicYear->name }} ({{ $section->capacity }})</option>

@@ -51,6 +51,12 @@ class SchoolSetupChecklist
         $gradingScales = GradingScale::query()->inSchool($school)->count();
         $teachers = User::query()->ofSchool($school)->role(Role::Teacher)->count();
         $students = User::query()->ofSchool($school)->students()->activeStudents()->count();
+        $academicYearLabel = school_term('academic_year', 'School year');
+        $academicYearLabelLower = strtolower($academicYearLabel);
+        $classLabel = school_term('class_level', 'Class');
+        $classLabelLower = strtolower($classLabel);
+        $classesLabel = school_terms('class_level', 'class');
+        $sectionsLabel = school_terms('section', 'section');
 
         $items = [
             $this->item(
@@ -66,22 +72,22 @@ class SchoolSetupChecklist
             ),
             $this->item(
                 key: 'academic_year',
-                title: 'Current school year',
-                description: 'Choose the academic year that this request and the setup work belong to.',
-                reason: $academicYear === null ? 'No current school year is selected.' : '',
+                title: 'Current '.$academicYearLabelLower,
+                description: 'Choose the '.$academicYearLabelLower.' that this request and the setup work belong to.',
+                reason: $academicYear === null ? 'No current '.$academicYearLabelLower.' is selected.' : '',
                 complete: $academicYear !== null,
                 required: true,
                 group: 'Prepare the year',
                 url: route('academic-years.index'),
-                action: 'Manage school years',
+                action: 'Manage '.$academicYearLabelLower.'s',
             ),
             $this->item(
                 key: 'academic_periods',
-                title: 'Terms or reporting periods',
-                description: 'Divide the school year into the terms, semesters or reporting periods your school uses.',
+                title: ucfirst(school_terms('period', 'term')).' or reporting periods',
+                description: 'Divide the '.$academicYearLabelLower.' into the terms, semesters or reporting periods your school uses.',
                 reason: $academicYear === null
-                    ? 'Choose a current school year first, then add its terms or reporting periods.'
-                    : ($academicPeriods === 0 ? 'No terms or reporting periods have been added for the current school year.' : ''),
+                    ? 'Choose a current '.$academicYearLabelLower.' first, then add its terms or reporting periods.'
+                    : ($academicPeriods === 0 ? 'No terms or reporting periods have been added for the current '.$academicYearLabelLower.'.' : ''),
                 complete: $academicYear !== null && $academicPeriods > 0,
                 required: true,
                 group: 'Prepare the year',
@@ -103,32 +109,32 @@ class SchoolSetupChecklist
             ),
             $this->item(
                 key: 'academic_levels',
-                title: 'Grade or class levels',
-                description: 'Create the reusable grades or class levels your school teaches.',
-                reason: $academicLevels === 0 ? 'No grade or class levels have been added yet.' : '',
+                title: ucfirst($classesLabel),
+                description: 'Create the reusable grades or '.$classesLabel.' your school teaches.',
+                reason: $academicLevels === 0 ? 'No '.$classesLabel.' have been added yet.' : '',
                 complete: $academicLevels > 0,
                 required: true,
                 group: 'Build the teaching structure',
                 url: route('academic-levels.index'),
-                action: 'Manage levels',
+                action: 'Manage '.$classesLabel,
             ),
             $this->item(
                 key: 'cycle_sections',
-                title: 'Classes for this year',
-                description: 'Create the arms, homerooms or sections that run in the current school year.',
+                title: ucfirst($sectionsLabel).' for this year',
+                description: 'Create the arms, homerooms or '.$sectionsLabel.' that run in the current '.$academicYearLabelLower.'.',
                 reason: $academicYear === null
-                    ? 'Choose a current school year first, then create its classes.'
-                    : ($cycleSections === 0 ? 'No classes have been created for the current school year.' : ''),
+                    ? 'Choose a current '.$academicYearLabelLower.' first, then create its '.$sectionsLabel.'.'
+                    : ($cycleSections === 0 ? 'No '.$sectionsLabel.' have been created for the current '.$academicYearLabelLower.'.' : ''),
                 complete: $academicYear !== null && $cycleSections > 0,
                 required: true,
                 group: 'Build the teaching structure',
                 url: route('academic-cycle-sections.index'),
-                action: 'Manage classes',
+                action: 'Manage '.$classesLabel,
             ),
             $this->item(
                 key: 'course_offerings',
                 title: 'Subjects being taught',
-                description: 'Choose the subjects each grade or class will study and assign their teaching structure.',
+                description: 'Choose the subjects each grade or '.$classLabelLower.' will study and assign their teaching structure.',
                 reason: $academicYear === null
                     ? 'Choose a current school year first, then set up the subjects being taught.'
                     : ($courseOfferings === 0 ? 'No subjects have been set up for the current school year.' : ''),

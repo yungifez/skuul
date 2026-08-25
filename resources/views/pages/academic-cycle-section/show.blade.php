@@ -1,6 +1,6 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href' => route('dashboard'), 'text' => 'Dashboard'],
-    ['href' => route('academic-cycle-sections.index'), 'text' => 'Cycle sections'],
+    ['href' => route('academic-cycle-sections.index'), 'text' => school_terms('section', 'Sections')],
     ['href' => route('academic-cycle-sections.show', $academicCycleSection), 'text' => $academicCycleSection->name, 'active'],
 ]])
 
@@ -16,7 +16,7 @@
         @if ($academicCycleSection->isEditable())
             <april:button-link href="{{ route('academic-cycle-sections.edit', $academicCycleSection) }}" variant="outline">
                 <x-lucide-pencil class="mr-1.5 size-4" />
-                Edit section
+                Edit {{ strtolower(school_term('section', 'section')) }}
             </april:button-link>
         @endif
     @endcan
@@ -30,17 +30,17 @@
             <slot:content class="space-y-4">
                 <dl class="grid gap-4 sm:grid-cols-2">
                     <div>
-                        <dt class="text-sm text-muted-foreground">Academic cycle</dt>
+                        <dt class="text-sm text-muted-foreground">{{ school_term('academic_year', 'School year') }}</dt>
                         <dd class="font-medium">{{ $academicCycleSection->academicYear->name }}</dd>
                     </div>
                     <div>
-                        <dt class="text-sm text-muted-foreground">Academic level</dt>
+                        <dt class="text-sm text-muted-foreground">{{ school_term('class_level', 'Class') }}</dt>
                         <dd class="font-medium">
                             <a href="{{ route('academic-levels.show', $academicCycleSection->academicLevel) }}" class="hover:underline">{{ $academicCycleSection->academicLevel->name }}</a>
                         </dd>
                     </div>
                     <div>
-                        <dt class="text-sm text-muted-foreground">Section name</dt>
+                        <dt class="text-sm text-muted-foreground">{{ school_term('section', 'Section') }} name</dt>
                         <dd class="font-medium">{{ $academicCycleSection->name }}</dd>
                     </div>
                     <div>
@@ -88,7 +88,7 @@
                         archive-note="Archiving takes the section out of new work for this cycle. Records already made against it stay readable." />
 
                     @if (!$academicCycleSection->isEditable())
-                        <p class="text-sm text-muted-foreground">The setup can no longer change. The section is archived, or its academic cycle is closed.</p>
+                        <p class="text-sm text-muted-foreground">The setup can no longer change. The {{ strtolower(school_term('section', 'section')) }} is archived, or its {{ strtolower(school_term('academic_year', 'school year')) }} is closed.</p>
                     @endif
                 </slot:content>
             </april:card>
@@ -98,13 +98,13 @@
                 <slot:description>This section serves {{ $academicCycleSection->academicYear->name }}.</slot:description>
                 <slot:content class="space-y-3">
                     <p class="text-sm text-muted-foreground">
-                        For the next cycle, create the section again or roll the whole structure forward. The copy carries the setup only:
+                        For the next {{ strtolower(school_term('academic_year', 'school year')) }}, create the {{ strtolower(school_term('section', 'section')) }} again or roll the whole structure forward. The copy carries the setup only:
                         no learners, no teachers, no attendance, no results, or timetable entries.
                     </p>
                     @can('create', \App\Models\AcademicCycleSection::class)
                         <april:button-link href="{{ route('academic-cycle-sections.roll-forward.show', ['source_academic_year_id' => $academicCycleSection->academic_year_id]) }}" variant="outline" size="sm">
                             <x-lucide-copy class="mr-1.5 size-3.5" />
-                            Roll sections into another cycle
+                            Roll {{ strtolower(school_terms('section', 'sections')) }} into another year
                         </april:button-link>
                     @endcan
                 </slot:content>
@@ -113,14 +113,14 @@
     </div>
 
     <april:card class="mt-6">
-        <slot:title>Other sections of {{ $academicCycleSection->academicLevel->name }} in {{ $academicCycleSection->academicYear->name }}</slot:title>
-        <slot:description>The parallel groups a learner in this level could be placed in.</slot:description>
+        <slot:title>Other {{ strtolower(school_terms('section', 'sections')) }} of {{ $academicCycleSection->academicLevel->name }} in {{ $academicCycleSection->academicYear->name }}</slot:title>
+        <slot:description>The parallel groups a learner in this {{ strtolower(school_term('class_level', 'class')) }} could be placed in.</slot:description>
         <slot:content>
             @if ($siblings->isEmpty())
                 <x-empty-state
                     icon="lucide-layers"
-                    title="This is the only section for the level in this cycle"
-                    description="Add another when the level runs more than one group.">
+                    title="This is the only {{ strtolower(school_term('section', 'section')) }} for the {{ strtolower(school_term('class_level', 'class')) }} in this year"
+                    description="Add another when the {{ strtolower(school_term('class_level', 'class')) }} runs more than one group.">
                     @can('create', \App\Models\AcademicCycleSection::class)
                         <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_year_id' => $academicCycleSection->academic_year_id, 'academic_level_id' => $academicCycleSection->academic_level_id]) }}" variant="outline" size="sm">
                             <x-lucide-plus class="mr-1.5 size-3.5" />

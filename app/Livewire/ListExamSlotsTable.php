@@ -25,7 +25,7 @@ class ListExamSlotsTable extends DataTableComponent
     /** @return array<int, Column> */
     protected function columns(): array
     {
-        return [Column::make('Name', 'name')->searchable()->sortable(), Column::make('Period', 'period_label'), Column::make('Description', 'description'), Column::make('Total marks', 'total_marks')->sortable()];
+        return [Column::make('Name', 'name')->searchable()->sortable(), Column::make(school_term('period', 'Period'), 'period_label'), Column::make('Description', 'description'), Column::make('Total marks', 'total_marks')->sortable()];
     }
 
     /** @return array<int, array<string, mixed>> */

@@ -18,7 +18,7 @@
         <div class="min-w-0">
             <div class="flex items-center gap-1">
                 <p class="text-xs font-bold tracking-wider text-muted-foreground uppercase">Teaching now set to</p>
-                <x-help-tooltip label="Current teaching setup help">This answer sets the starting point for subjects in this cycle. Individual subjects can still use an exception when they are taught differently.</x-help-tooltip>
+                <x-help-tooltip label="Current teaching setup help">This answer sets the starting point for subjects in this {{ strtolower(school_term('academic_year', 'school year')) }}. Individual subjects can still use an exception when they are taught differently.</x-help-tooltip>
             </div>
             <p class="mt-1 text-lg font-semibold text-foreground">{{ $model->label() }}</p>
         </div>
@@ -43,7 +43,7 @@
         @if (!$isFutureCycle)
             <span class="inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs text-muted-foreground">
                 <x-lucide-lock class="size-3" />
-                Fixed for this cycle
+                Fixed for this {{ strtolower(school_term('academic_year', 'school year')) }}
             </span>
         @endif
     </div>

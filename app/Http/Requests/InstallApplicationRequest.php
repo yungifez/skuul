@@ -29,6 +29,7 @@ class InstallApplicationRequest extends FormRequest
             'admin_email' => ['required', 'string', 'email:rfc', 'max:100'],
             'admin_password' => ['required', 'confirmed', Password::defaults()],
             'locale' => ['nullable', 'string', Rule::in(array_keys(config('app.supported_locales', [])))],
+            'school_language_preset' => ['nullable', 'string', 'in:home_sections,subject_schedule,hybrid'],
             'organization_name' => ['required', 'string', 'max:255'],
             'campus_name' => ['required', 'string', 'max:255'],
             'campus_address' => ['required', 'string', 'max:255'],

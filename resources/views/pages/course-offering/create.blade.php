@@ -18,7 +18,7 @@
 
                 <div class="grid gap-4 md:grid-cols-2">
                     <div class="flex flex-col gap-2">
-                        <april:label for="academic-year">Academic cycle</april:label>
+                        <april:label for="academic-year">{{ school_term('academic_year', 'School year') }}</april:label>
                         <select id="academic-year" name="academic_year_id" class="rounded-md border border-input bg-background px-3 py-2" required>
                             <option value="">Select a cycle</option>
                             @foreach ($academicYears as $academicYear)
@@ -33,7 +33,7 @@
                                 <option value="{{ $rosterMode->value }}" {{ old('roster_mode', \App\Enums\RosterMode::HomeSection->value) === $rosterMode->value ? 'selected' : '' }}>{{ $rosterMode->label() }}</option>
                             @endforeach
                         </select>
-                        <p class="text-sm text-muted-foreground">Use one home section by default. The cycle’s teaching setup may allow more options.</p>
+                        <p class="text-sm text-muted-foreground">Use one {{ strtolower(school_term('section', 'section')) }} by default. The {{ strtolower(school_term('academic_year', 'school year')) }}’s teaching setup may allow more options.</p>
                     </div>
                     <div class="flex flex-col gap-2">
                         <april:label for="academic-period">Academic period</april:label>
@@ -56,7 +56,7 @@
                         </select>
                     </div>
                     <div class="flex flex-col gap-2">
-                        <april:label for="academic-level">Academic level</april:label>
+                        <april:label for="academic-level">{{ school_term('class_level', 'Class') }}</april:label>
                         <select id="academic-level" name="academic_level_id" class="rounded-md border border-input bg-background px-3 py-2" required>
                             <option value="">Select a level</option>
                             @foreach ($academicLevels as $academicLevel)
@@ -69,7 +69,7 @@
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <april:label for="cycle-sections">Home sections</april:label>
+                    <april:label for="cycle-sections">{{ school_terms('section', 'Sections') }}</april:label>
                     <select id="cycle-sections" name="academic_cycle_section_ids[]" multiple class="min-h-40 rounded-md border border-input bg-background px-3 py-2">
                         @foreach ($academicCycleSections as $academicCycleSection)
                             <option value="{{ $academicCycleSection->id }}" {{ in_array($academicCycleSection->id, old('academic_cycle_section_ids', [])) ? 'selected' : '' }}>
@@ -77,7 +77,7 @@
                             </option>
                         @endforeach
                     </select>
-                    <p class="text-sm text-muted-foreground">Select one section, several sections, or none for a whole-level roster. Every selected section must belong to the chosen level and cycle.</p>
+                    <p class="text-sm text-muted-foreground">Select one {{ strtolower(school_term('section', 'section')) }}, several {{ strtolower(school_terms('section', 'sections')) }}, or none for a whole-{{ strtolower(school_term('class_level', 'class')) }} roster. Every selected {{ strtolower(school_term('section', 'section')) }} must belong to the chosen {{ strtolower(school_term('class_level', 'class')) }} and {{ strtolower(school_term('academic_year', 'school year')) }}.</p>
                 </div>
 
                 <div class="flex flex-col gap-2">
@@ -87,7 +87,7 @@
                             <option value="{{ $studentRecord->id }}" {{ in_array($studentRecord->id, old('student_record_ids', [])) ? 'selected' : '' }}>{{ $studentRecord->user?->name ?? $studentRecord->admission_number }} · {{ $studentRecord->academicCycleSection?->academicLevel?->name }}</option>
                         @endforeach
                     </select>
-                    <p class="text-sm text-muted-foreground">Use this only for a named-learner roster. Learners must actively attend the selected academic level.</p>
+                    <p class="text-sm text-muted-foreground">Use this only for a named-learner roster. Learners must actively attend the selected {{ strtolower(school_term('class_level', 'class')) }}.</p>
                 </div>
 
                 <april:button type="submit">Create draft offering</april:button>

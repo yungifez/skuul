@@ -117,14 +117,14 @@ class Menu extends Component
             [
                 'type' => 'menu-item',
                 'icon' => 'presentation',
-                'text' => school_terms('class_level', 'Academic level'),
+                'text' => school_terms('class_level', 'Class'),
                 'route' => 'academic-levels.index',
                 'can' => 'read class',
             ],
             [
                 'type' => 'menu-item',
                 'icon' => 'landmark',
-                'text' => school_terms('section', 'Cycle section'),
+                'text' => school_terms('section', 'Section'),
                 'route' => 'academic-cycle-sections.index',
                 'can' => 'read section',
             ],

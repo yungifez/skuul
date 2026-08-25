@@ -14,13 +14,14 @@ class UpdateSchoolOperatingProfileRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'preset'             => ['required', 'in:home_sections,subject_schedule,hybrid'],
-            'labels'             => ['required', 'array'],
+            'preset' => ['required', 'in:home_sections,subject_schedule,hybrid'],
+            'labels' => ['required', 'array'],
+            'labels.academic_year' => ['required', 'string', 'max:40'],
             'labels.class_level' => ['required', 'string', 'max:40'],
-            'labels.section'     => ['required', 'string', 'max:40'],
-            'labels.period'      => ['required', 'string', 'max:40'],
-            'labels.course'      => ['required', 'string', 'max:40'],
-            'labels.fee'         => ['required', 'string', 'max:40'],
+            'labels.section' => ['required', 'string', 'max:40'],
+            'labels.period' => ['required', 'string', 'max:40'],
+            'labels.course' => ['required', 'string', 'max:40'],
+            'labels.fee' => ['required', 'string', 'max:40'],
         ];
     }
 }

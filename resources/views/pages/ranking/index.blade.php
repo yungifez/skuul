@@ -29,7 +29,7 @@
             <slot:content>
                 <form method="GET" action="{{ route('rankings.index') }}" class="grid gap-4 lg:grid-cols-5 lg:items-end">
                     <div class="flex flex-col gap-2">
-                        <april:label for="academic_cycle_section_id">{{ school_term('section', 'Home group') }}</april:label>
+                        <april:label for="academic_cycle_section_id">{{ school_term('section', 'Section') }}</april:label>
                         <april:native-select id="academic_cycle_section_id" name="academic_cycle_section_id">
                             <option value="">Choose one</option>
                             @foreach ($sections as $option)
@@ -90,7 +90,7 @@
             <slot:content>
                 @if (!$chosen)
                     <x-empty-state icon="lucide-list-ordered" title="Choose a group first"
-                        description="Pick a home group or a group above, then work out the order." />
+                        description="Pick a {{ strtolower(school_term('section', 'section')) }} or a group above, then work out the order." />
                 @elseif ($rows->isEmpty())
                     <x-empty-state icon="lucide-search-x" title="Nothing to put in order"
                         description="Nobody in this group has a published result for what you chose." />

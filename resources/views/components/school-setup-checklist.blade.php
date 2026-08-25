@@ -31,7 +31,7 @@
     @if ($checklist['required_remaining'] > 0)
         <div class="mt-5 flex items-start gap-3 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
             <x-lucide-triangle-alert class="mt-0.5 size-4 shrink-0 text-amber-700 dark:text-amber-300" />
-            <p><span class="font-semibold">{{ $checklist['required_remaining'] }} required {{ $checklist['required_remaining'] === 1 ? 'step remains' : 'steps remain' }}.</span> Complete these before your team starts working in this school year.</p>
+            <p><span class="font-semibold">{{ $checklist['required_remaining'] }} required {{ $checklist['required_remaining'] === 1 ? 'step remains' : 'steps remain' }}.</span> Complete these before your team starts working in this {{ strtolower(school_term('academic_year', 'school year')) }}.</p>
         </div>
     @else
         <div class="mt-5 flex items-start gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm">

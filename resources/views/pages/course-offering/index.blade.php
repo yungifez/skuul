@@ -13,12 +13,12 @@
 @section('content')
     <april:card>
         <slot:title>{{ school_terms('course', 'Course') }} for an exact {{ school_term('period', 'period') }}</slot:title>
-        <slot:description>Create a dated offering from an existing subject. Home sections are its default groups; learner placement remains separate.</slot:description>
+        <slot:description>Create a dated offering from an existing subject. {{ school_terms('section', 'Sections') }} are its default groups; learner placement remains separate.</slot:description>
         <slot:content>
             <div class="overflow-x-auto">
                 <table class="w-full min-w-[760px] text-sm">
                     <thead class="border-b text-left text-muted-foreground">
-                        <tr><th class="px-3 py-2">Subject</th><th class="px-3 py-2">Academic level</th><th class="px-3 py-2">Period</th><th class="px-3 py-2">Roster</th><th class="px-3 py-2">Status</th><th class="px-3 py-2"></th></tr>
+                        <tr><th class="px-3 py-2">Subject</th><th class="px-3 py-2">{{ school_term('class_level', 'Class') }}</th><th class="px-3 py-2">{{ school_term('period', 'Period') }}</th><th class="px-3 py-2">Roster</th><th class="px-3 py-2">Status</th><th class="px-3 py-2"></th></tr>
                     </thead>
                     <tbody class="divide-y">
                         @forelse ($courseOfferings as $courseOffering)
