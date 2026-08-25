@@ -29,7 +29,7 @@
                         'Gender' => $user->gender,
                         'Birthday' => $user->birthday,
                         'Nationality' => $user->nationality,
-                        'Country' => $user->country ?: $user->nationality,
+                        'Country' => $user->country,
                         'State / Province' => $user->state,
                         'City' => $user->city,
                         'Address line 1' => $user->address,

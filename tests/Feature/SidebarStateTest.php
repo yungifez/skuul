@@ -85,11 +85,10 @@ class SidebarStateTest extends TestCase
             ->get('dashboard/admins')
             ->assertOk()
             ->assertSee('Academic cycles')
-            ->assertSee('Academic periods')
             ->assertSee('Academic levels')
             ->assertSee('Cycle sections')
             ->assertSee('Course offerings')
-            ->assertSee(route('academic-periods.index'), false)
+            ->assertSee(route('academic-years.index'), false)
             ->assertDontSee('View Classes')
             ->assertDontSee('Class groups')
             ->assertDontSee('Create academic period');

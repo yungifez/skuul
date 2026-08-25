@@ -6,12 +6,17 @@ use App\Actions\Installation\CompleteExistingInstallation;
 use App\Actions\Installation\ConfigureDatabase;
 use App\Actions\Installation\GenerateApplicationKey;
 use App\Actions\Installation\InstallApplication;
+use App\Actions\Installation\SeedWorldData;
 use App\Http\Requests\InstallApplicationRequest;
 use App\Http\Requests\InstallDatabaseRequest;
 use App\Models\Installation;
 use App\Services\Installation\InstallationReadiness;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
+use Nnjeim\World\Models\Country;
+use Nnjeim\World\Models\State;
 
 class InstallationController extends Controller
 {
@@ -32,7 +37,55 @@ class InstallationController extends Controller
             'emailConfigured' => $readiness->emailConfigured(),
             'appKeyAvailable' => filled(config('app.key')),
             'databaseSettings' => $configureDatabase->currentSettings(),
+            'countries' => $readiness->countries(),
         ]);
+    }
+
+    /**
+     * Install the country and state reference data used by location fields.
+     */
+    public function setupWorldData(SeedWorldData $seedWorldData): RedirectResponse
+    {
+        abort_if(Installation::isInstalled(), 404);
+
+        try {
+            $seedWorldData->seed();
+        } catch (\Throwable) {
+            return back()->withErrors([
+                'world_data' => 'The country and state data could not be installed. Check the deployment logs and try again.',
+            ]);
+        }
+
+        return back()->with('success', 'Countries and states are ready. Reloading the installer.');
+    }
+
+    /**
+     * Return states for the selected country without loading the full catalog.
+     */
+    public function states(Request $request): JsonResponse
+    {
+        abort_if(Installation::isInstalled(), 404);
+
+        $countryName = $request->string('country')->trim()->toString();
+
+        if (blank($countryName)) {
+            return response()->json([]);
+        }
+
+        $countryId = Country::query()->where('name', $countryName)->value('id');
+
+        if ($countryId === null) {
+            return response()->json([]);
+        }
+
+        return response()->json(
+            State::query()
+                ->where('country_id', $countryId)
+                ->orderBy('name')
+                ->pluck('name')
+                ->values()
+                ->all(),
+        );
     }
 
     /**

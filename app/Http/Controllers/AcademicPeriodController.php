@@ -3,85 +3,31 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Academic\ChangeAcademicPeriodStatus;
-use App\Http\Requests\AcademicPeriodStoreRequest;
 use App\Http\Requests\ChangeAcademicPeriodStatusRequest;
 use App\Http\Requests\SetAcademicPeriodRequest;
 use App\Models\AcademicPeriod;
 use App\Services\AcademicPeriod\AcademicPeriodService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Response;
-use Illuminate\View\View;
 
 class AcademicPeriodController extends Controller
 {
-    public $academicPeriod;
-
-    public function __construct(AcademicPeriodService $academicPeriod, private ChangeAcademicPeriodStatus $changeAcademicPeriodStatus)
-    {
-        $this->academicPeriod = $academicPeriod;
-        $this->authorizeResource(AcademicPeriod::class, 'academicPeriod');
-    }
+    public function __construct(
+        private AcademicPeriodService $academicPeriod,
+        private ChangeAcademicPeriodStatus $changeAcademicPeriodStatus,
+    ) {}
 
     /**
      * Display a listing of the resource.
      */
-    public function index(): View
+    public function index(): RedirectResponse
     {
-        return view('pages.academic-period.index');
-    }
+        $this->authorize('viewAny', AcademicPeriod::class);
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create(): RedirectResponse
-    {
-        return to_route('academic-periods.index');
-    }
+        $academicYear = current_academic_year();
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(AcademicPeriodStoreRequest $request): RedirectResponse
-    {
-        $this->academicPeriod->createAcademicPeriod($request->validated());
-
-        return back()->with('success', 'Successfully created academic period');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(AcademicPeriod $academicPeriod): Response
-    {
-        abort(404);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(AcademicPeriod $academicPeriod): View
-    {
-        return view('pages.academic-period.edit', compact('academicPeriod'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(AcademicPeriodStoreRequest $request, AcademicPeriod $academicPeriod): RedirectResponse
-    {
-        $this->academicPeriod->updateAcademicPeriod($academicPeriod, $request->validated());
-
-        return back()->with('success', 'Successfully updated academic period');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(AcademicPeriod $academicPeriod): RedirectResponse
-    {
-        $this->academicPeriod->deleteAcademicPeriod($academicPeriod);
-
-        return back()->with('success', 'Successfully deleted academic period');
+        return $academicYear === null
+            ? to_route('academic-years.index')
+            : to_route('academic-years.show', $academicYear);
     }
 
     /**

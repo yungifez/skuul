@@ -85,6 +85,8 @@ Route::post('/install/key', [InstallationController::class, 'generateKey'])
     ->name('install.key');
 Route::post('/install/database/test', [InstallationController::class, 'testDatabase'])->name('install.database.test');
 Route::post('/install/database/setup', [InstallationController::class, 'setupDatabase'])->name('install.database.setup');
+Route::post('/install/world/setup', [InstallationController::class, 'setupWorldData'])->name('install.world.setup');
+Route::get('/install/states', [InstallationController::class, 'states'])->name('install.states');
 Route::post('/install', [InstallationController::class, 'store'])->name('install.store');
 
 Route::get('/', function () {
@@ -375,7 +377,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::delete('students/graduations/{student}/reset', ['App\Http\Controllers\GraduationController', 'resetGraduation'])->name('students.graduations.reset');
 
             // academic period routes
-            Route::resource('academic-periods', AcademicPeriodController::class)->parameters(['academic-periods' => 'academicPeriod']);
+            Route::get('academic-periods', [AcademicPeriodController::class, 'index'])->name('academic-periods.index');
             Route::post('academic-periods/set', ['App\Http\Controllers\AcademicPeriodController', 'setAcademicPeriod'])->name('academic-periods.set-academic-period');
             Route::post('academic-periods/{academicPeriod}/close', ['App\Http\Controllers\AcademicPeriodController', 'close'])->name('academic-periods.close');
             Route::post('academic-periods/{academicPeriod}/begin-closing', ['App\Http\Controllers\AcademicPeriodController', 'beginClosing'])->name('academic-periods.begin-closing');

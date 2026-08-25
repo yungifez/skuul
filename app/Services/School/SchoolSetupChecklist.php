@@ -85,8 +85,8 @@ class SchoolSetupChecklist
                 complete: $academicYear !== null && $academicPeriods > 0,
                 required: true,
                 group: 'Prepare the year',
-                url: route('academic-periods.index'),
-                action: 'Manage periods',
+                url: $academicYear === null ? route('academic-years.index') : route('academic-years.show', $academicYear),
+                action: $academicYear === null ? 'Choose school year' : 'Set up calendar',
             ),
             $this->item(
                 key: 'instructional_model',

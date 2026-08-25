@@ -29,7 +29,7 @@
     <april:input-group id="address" name="address" placeholder="{{ $role }}'s address" label="Address" value="{{ $user->address }}" />
 
     <div class="md:col-span-2">
-        <livewire:nationality-and-state-input-fields :nationality="$user->nationality" :state="$user->state" />
+        <livewire:nationality-and-state-input-fields :country="$user->country" :state="$user->state" />
     </div>
 
     <april:input-group id="city" name="city" label="City" placeholder="{{ $role }}'s city" value="{{ $user->city }}" />

@@ -7,14 +7,9 @@ use Nnjeim\World\World;
 
 class NationalityAndStateInputFields extends Component
 {
-    public $nationalities;
-
     public $country;
 
-    /**
-     * Legacy input name retained for the create and edit user forms.
-     */
-    public $nationality;
+    public $countries;
 
     public $states;
 
@@ -22,18 +17,15 @@ class NationalityAndStateInputFields extends Component
 
     protected $rules = [
         'country' => 'nullable|string',
-        'nationality' => 'nullable|string',
-        'state'       => 'nullable|string',
+        'state' => 'nullable|string',
     ];
 
     public function mount()
     {
         // @phpstan-ignore-next-line
-        $this->nationalities = World::countries()->data->pluck('name');
+        $this->countries = World::countries()->data->pluck('name');
 
-        $this->country = $this->country ?? $this->nationality;
-
-        if ($this->country !== null && !in_array($this->country, $this->nationalities->all())) {
+        if ($this->country !== null && !in_array($this->country, $this->countries->all())) {
             $this->country = null;
         }
     }
@@ -50,24 +42,15 @@ class NationalityAndStateInputFields extends Component
         }
 
         $this->states = collect(World::countries([
-            'fields'  => 'states',
+            'fields' => 'states',
             'filters' => [
                 'name' => $this->country,
             ],
         ])->data->pluck('states')->first());
-        if ($this->states->isEmpty()) {
-            $this->states = collect([['name' => $this->country]]);
-        }
-        $this->state = $this->states[0]['name'];
+        $this->state = $this->states->first()['name'] ?? null;
 
         $this->dispatch('country-updated', ['country' => $this->country]);
         $this->dispatch('state-updated', ['state' => $this->state]);
-    }
-
-    public function updatedNationality(): void
-    {
-        $this->country = $this->nationality;
-        $this->updatedCountry();
     }
 
     public function loadInitialStates(): void
@@ -82,16 +65,13 @@ class NationalityAndStateInputFields extends Component
             return;
         }
         $this->states = collect(World::countries([
-            'fields'  => 'states',
+            'fields' => 'states',
             'filters' => [
                 'name' => $this->country,
             ],
         ])->data->pluck('states')->first());
-        if ($this->states->isEmpty()) {
-            $this->states = collect([['name' => $this->country]]);
-        }
         if ($this->state === null || !$this->states->pluck('name')->contains($this->state)) {
-            $this->state = $this->states[0]['name'];
+            $this->state = $this->states->first()['name'] ?? null;
         }
 
         $this->dispatch('country-updated', ['country' => $this->country]);

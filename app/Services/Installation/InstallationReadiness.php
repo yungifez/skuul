@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Services\Authorization\SystemPermissionScope;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Nnjeim\World\Models\Country;
 use Throwable;
 
 class InstallationReadiness
@@ -39,6 +40,7 @@ class InstallationReadiness
             ),
             'storage' => $this->checkStorage(),
             'schema' => $schema,
+            'world_data' => $this->checkWorldData(),
             'database_empty' => $this->check(
                 'Empty database',
                 $databaseEmpty,
@@ -53,6 +55,26 @@ class InstallationReadiness
                 'Create an active platform administrator with an active campus membership.',
             ),
         ];
+    }
+
+    /**
+     * @return list<array{name: string}>
+     */
+    public function countries(): array
+    {
+        try {
+            if (!$this->checkWorldData()['passed']) {
+                return [];
+            }
+
+            return Country::query()
+                ->orderBy('name')
+                ->get(['name'])
+                ->map(fn (Country $country): array => ['name' => (string) $country->name])
+                ->all();
+        } catch (Throwable) {
+            return [];
+        }
     }
 
     /**
@@ -181,6 +203,48 @@ class InstallationReadiness
                 '',
                 'The application could not inspect the database schema.',
                 'Test the database settings, then use Set up database.',
+            );
+        }
+    }
+
+    /**
+     * @return array{label: string, passed: bool, detail: string, action: string|null}
+     */
+    private function checkWorldData(): array
+    {
+        try {
+            $connection = DB::connection(config('world.connection'));
+            $schema = $connection->getSchemaBuilder();
+            $countriesTable = (string) config('world.migrations.countries.table_name', 'countries');
+            $statesTable = (string) config('world.migrations.states.table_name', 'states');
+
+            if (!$schema->hasTable($countriesTable) || !$schema->hasTable($statesTable)) {
+                return $this->check(
+                    'Countries and states',
+                    false,
+                    'Country and state reference data is available.',
+                    'The country and state tables are not available yet.',
+                    'Run database setup first, then install countries and states.',
+                );
+            }
+
+            $loaded = $connection->table($countriesTable)->count() > 0
+                && $connection->table($statesTable)->count() > 0;
+
+            return $this->check(
+                'Countries and states',
+                $loaded,
+                'Country and state reference data is available.',
+                'The country and state reference data has not been loaded.',
+                'Use Install countries and states below.',
+            );
+        } catch (Throwable) {
+            return $this->check(
+                'Countries and states',
+                false,
+                'Country and state reference data is available.',
+                'The application could not inspect the country and state data.',
+                'Set up the database, then install countries and states.',
             );
         }
     }

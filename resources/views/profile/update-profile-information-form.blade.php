@@ -87,7 +87,7 @@
             </div>
 
             <div class="sm:col-span-2">
-                @livewire('nationality-and-state-input-fields', ['country' => ucfirst($this->user->country ?? $this->user->nationality),
+                @livewire('nationality-and-state-input-fields', ['country' => ucfirst($this->user->country),
                 'state' => ucfirst($this->user->state)])
             </div>
 

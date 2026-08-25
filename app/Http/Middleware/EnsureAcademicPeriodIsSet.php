@@ -12,8 +12,7 @@ class EnsureAcademicPeriodIsSet
     /**
      * Handle an incoming request.
      *
-     * @param Closure(Request): (Response|RedirectResponse) $next
-     *
+     * @param  Closure(Request): (Response|RedirectResponse)  $next
      * @return Response|RedirectResponse
      */
     public function handle(Request $request, Closure $next)
@@ -21,7 +20,11 @@ class EnsureAcademicPeriodIsSet
         if (current_academic_period_id() == null) {
             session()->flash('danger', 'Please set the academic period before proceeding.');
 
-            return redirect()->route('academic-periods.index');
+            $academicYear = current_academic_year();
+
+            return $academicYear === null
+                ? redirect()->route('academic-years.index')
+                : redirect()->route('academic-years.show', $academicYear);
         }
 
         return $next($request);

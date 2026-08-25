@@ -18,6 +18,7 @@ use Database\Seeders\RunInProductionSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Support\Facades\Artisan;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class InstallationTest extends TestCase
@@ -62,8 +63,24 @@ class InstallationTest extends TestCase
             ->assertSee('id="campus_country"', false);
     }
 
+    public function test_installer_blocks_until_country_and_state_data_is_loaded(): void
+    {
+        $this->get(route('install.index'))
+            ->assertOk()
+            ->assertSee('Countries and states')
+            ->assertSee('Install countries and states');
+
+        $this->post(route('install.store'), $this->installationData())
+            ->assertRedirect()
+            ->assertSessionHasErrors('installer');
+
+        $this->assertDatabaseCount('installations', 0);
+    }
+
     public function test_installer_creates_the_first_system_administrator_and_campus(): void
     {
+        $this->seedWorldReferenceData();
+
         $response = $this->post(route('install.store'), $this->installationData());
 
         $response->assertRedirect(route('login'));
@@ -100,6 +117,8 @@ class InstallationTest extends TestCase
 
     public function test_installer_can_complete_without_email_configuration_or_demo_data(): void
     {
+        $this->seedWorldReferenceData();
+
         $data = $this->installationData();
         unset($data['load_demo_data']);
 
@@ -115,6 +134,8 @@ class InstallationTest extends TestCase
 
     public function test_completed_installation_cannot_run_again(): void
     {
+        $this->seedWorldReferenceData();
+
         $this->post(route('install.store'), $this->installationData())
             ->assertRedirect(route('login'));
 
@@ -186,5 +207,25 @@ class InstallationTest extends TestCase
             'campus_postal_code' => 'V6B 1A1',
             'load_demo_data' => true,
         ];
+    }
+
+    private function seedWorldReferenceData(): void
+    {
+        $countryId = DB::table('countries')->insertGetId([
+            'iso2' => 'CA',
+            'name' => 'Canada',
+            'status' => 1,
+            'phone_code' => '1',
+            'iso3' => 'CAN',
+            'region' => 'Americas',
+            'subregion' => 'Northern America',
+        ]);
+
+        DB::table('states')->insert([
+            'country_id' => $countryId,
+            'name' => 'British Columbia',
+            'country_code' => 'CAN',
+            'state_code' => 'BC',
+        ]);
     }
 }

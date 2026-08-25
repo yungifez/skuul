@@ -17,15 +17,14 @@ class AcademicYearPolicy
     public function __construct(
         private SystemPermissionScope $systemPermissionScope,
         private OrganizationPermissionScope $organizationPermissionScope,
-    ) {
-    }
+    ) {}
 
     /**
      * Determine whether the user can view any models.
      */
     public function viewAny(User $user)
     {
-        if ($user->can('read academic year')) {
+        if ($user->can('read academic year') || $user->can('read academic period')) {
             return true;
         }
     }
@@ -35,7 +34,7 @@ class AcademicYearPolicy
      */
     public function view(User $user, AcademicYear $academicYear)
     {
-        if ($user->can('read academic year') && current_school_id() === $academicYear->school_id) {
+        if (($user->can('read academic year') || $user->can('read academic period')) && current_school_id() === $academicYear->school_id) {
             return true;
         }
     }

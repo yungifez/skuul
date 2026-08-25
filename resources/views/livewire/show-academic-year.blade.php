@@ -27,6 +27,14 @@
         </slot:content>
     </april:card>
 
+    @if (current_academic_year_id() === $academicYear->id && auth()->user()->can('set academic period'))
+        <april:card>
+            <slot:title>Working {{ school_term('period', 'academic period') }}</slot:title>
+            <slot:description>Choose the reporting period staff are working in. This does not change the calendar or historical records.</slot:description>
+            <slot:content>@livewire('set-academic-period')</slot:content>
+        </april:card>
+    @endif
+
     <section class="rounded-xl border bg-muted/30 p-5 md:p-6" aria-labelledby="academic-year-flow-heading">
         <div class="flex items-start gap-3">
             <span class="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
@@ -81,6 +89,7 @@
                         <div class="flex items-start justify-between gap-3"><h3 class="font-semibold">{{ $period->displayName }}</h3><span class="rounded-md bg-muted px-2 py-1 text-xs font-medium">{{ $period->typeLabel }}</span></div>
                         <p class="mt-3 text-sm text-muted-foreground">{{ $period->starts_on?->format('M j, Y') ?? 'No start date' }} – {{ $period->ends_on?->format('M j, Y') ?? 'No end date' }}</p>
                         <p class="mt-1 text-xs text-muted-foreground">{{ $period->lengthInDays() ? $period->lengthInDays().' calendar days' : 'Dates not set' }}</p>
+                        <div class="mt-4"><x-academic-period-status-control :period="$period" route-prefix="academic-periods" /></div>
                     </article>
                 @empty
                     <p class="text-sm text-muted-foreground">No reporting periods have been configured.</p>

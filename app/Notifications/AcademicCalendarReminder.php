@@ -17,8 +17,7 @@ class AcademicCalendarReminder extends Notification implements ShouldQueue
         private string $periodName,
         private string $kind,
         private Carbon $date,
-    ) {
-    }
+    ) {}
 
     /**
      * Get the notification's delivery channels.
@@ -35,11 +34,11 @@ class AcademicCalendarReminder extends Notification implements ShouldQueue
      */
     public function toMail(object $notifiable): MailMessage
     {
-        return (new MailMessage())
+        return (new MailMessage)
             ->subject("{$this->schoolName}: {$this->periodName} calendar reminder")
             ->greeting('Hello '.$notifiable->name.',')
             ->line($this->message())
-            ->action('Review academic calendar', route('academic-periods.index'))
+            ->action('Review academic calendar', route('academic-years.index'))
             ->line('Closing stays a deliberate staff confirmation. Finance continues independently of the academic calendar.');
     }
 
@@ -53,8 +52,8 @@ class AcademicCalendarReminder extends Notification implements ShouldQueue
         return [
             'school_name' => $this->schoolName,
             'period_name' => $this->periodName,
-            'kind'        => $this->kind,
-            'date'        => $this->date->toDateString(),
+            'kind' => $this->kind,
+            'date' => $this->date->toDateString(),
         ];
     }
 
@@ -62,8 +61,8 @@ class AcademicCalendarReminder extends Notification implements ShouldQueue
     {
         return match ($this->kind) {
             'starts' => "{$this->periodName} at {$this->schoolName} starts on {$this->date->toFormattedDateString()}. Review the scheduled work before it opens.",
-            'ends'   => "{$this->periodName} at {$this->schoolName} ends on {$this->date->toFormattedDateString()}. Start the closure-readiness check now.",
-            default  => "{$this->periodName} at {$this->schoolName} ended on {$this->date->toFormattedDateString()} and is still open. Review its closure-readiness check.",
+            'ends' => "{$this->periodName} at {$this->schoolName} ends on {$this->date->toFormattedDateString()}. Start the closure-readiness check now.",
+            default => "{$this->periodName} at {$this->schoolName} ended on {$this->date->toFormattedDateString()} and is still open. Review its closure-readiness check.",
         };
     }
 }

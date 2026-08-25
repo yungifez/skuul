@@ -1,14 +1,14 @@
 <div class="grid gap-4 sm:grid-cols-2">
     <div class="flex w-full flex-col gap-2">
         <april:label for="country">Country</april:label>
-        <april:select id="country" name="nationality" wire:model.live="country">
+        <april:select id="country" name="country" wire:model.live="country">
             <option value="">Not specified</option>
-        @foreach ($nationalities as $item)
+        @foreach ($countries as $item)
             <option value="{{$item}}">{{$item}}</option>
         @endforeach
 
         </april:select>
-        @error('nationality')
+        @error('country')
             <p class="text-sm text-destructive">{{ $message }}</p>
         @enderror
     </div>
