@@ -1,6 +1,7 @@
 <?php
 
 use App\Exceptions\ApplicationException;
+use App\Http\Middleware\EnsureApplicationInstalled;
 use App\Http\Middleware\EnsureFeatureIsEnabled;
 use App\Http\Middleware\ResolveDomainContext;
 use App\Http\Middleware\SetActiveAcademicPeriod;
@@ -37,6 +38,7 @@ return Application::configure(basePath: dirname(__DIR__))
                 ResolveDomainContext::class,
                 SetActiveSchool::class,
                 SetActiveAcademicPeriod::class,
+                EnsureApplicationInstalled::class,
             ])
             ->alias([
                 'feature'            => EnsureFeatureIsEnabled::class,

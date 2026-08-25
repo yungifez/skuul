@@ -529,6 +529,11 @@ enum AuditAction: string
     case OrganizationMembershipPermissionsChanged = 'organization_membership.permissions_changed';
 
     /**
+     * The one-time application installer completed.
+     */
+    case InstallationCompleted = 'installation.completed';
+
+    /**
      * A web address was claimed for an organization.
      */
     case SchoolDomainAdded = 'school_domain.added';
@@ -660,6 +665,7 @@ enum AuditAction: string
             self::OrganizationMembershipGranted            => 'Organization administrator granted',
             self::OrganizationMembershipRevoked            => 'Organization administrator revoked',
             self::OrganizationMembershipPermissionsChanged => 'Organization permissions changed',
+            self::InstallationCompleted => 'Application installed',
         };
     }
 }

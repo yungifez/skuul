@@ -21,6 +21,7 @@ use App\Services\School\SchoolContext;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Encryption\Encrypter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
@@ -37,6 +38,15 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
+        // Let the first-run screen render before APP_KEY exists. This key is
+        // deliberately ephemeral; the installer replaces it before any
+        // application session or user data is created.
+        if (!filled(config('app.key'))) {
+            $this->app->singleton('encrypter', function (): Encrypter {
+                return new Encrypter(random_bytes(32), (string) config('app.cipher'));
+            });
+        }
+
         // The address the request came in on is read once, before the school.
         $this->app->scoped(DomainContext::class);
 

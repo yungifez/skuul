@@ -23,6 +23,7 @@ use App\Http\Controllers\FeeInvoiceRecordController;
 use App\Http\Controllers\GradebookController;
 use App\Http\Controllers\GradingScaleController;
 use App\Http\Controllers\HealthController;
+use App\Http\Controllers\InstallationController;
 use App\Http\Controllers\LibraryCopyController;
 use App\Http\Controllers\LibraryLendingRulesController;
 use App\Http\Controllers\LibraryLoanController;
@@ -42,7 +43,15 @@ use App\Http\Controllers\SyllabusController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\TimetableController;
 use App\Http\Controllers\TimetableTimeSlotController;
+use App\Http\Middleware\ResolveDomainContext;
+use App\Http\Middleware\SetActiveAcademicPeriod;
+use App\Http\Middleware\SetActiveSchool;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Foundation\Http\Middleware\PreventRequestForgery;
+use Illuminate\Session\Middleware\StartSession;
 use Illuminate\Support\Facades\Route;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
 
 /*
 |--------------------------------------------------------------------------
@@ -60,6 +69,23 @@ use Illuminate\Support\Facades\Route;
 
 // The load balancer and the operations dashboard read this.
 Route::get('/health', HealthController::class)->name('health');
+
+Route::get('/install', [InstallationController::class, 'index'])->name('install.index');
+Route::post('/install/key', [InstallationController::class, 'generateKey'])
+    ->withoutMiddleware([
+        EncryptCookies::class,
+        AddQueuedCookiesToResponse::class,
+        StartSession::class,
+        ShareErrorsFromSession::class,
+        PreventRequestForgery::class,
+        ResolveDomainContext::class,
+        SetActiveSchool::class,
+        SetActiveAcademicPeriod::class,
+    ])
+    ->name('install.key');
+Route::post('/install/database/test', [InstallationController::class, 'testDatabase'])->name('install.database.test');
+Route::post('/install/database/setup', [InstallationController::class, 'setupDatabase'])->name('install.database.setup');
+Route::post('/install', [InstallationController::class, 'store'])->name('install.store');
 
 Route::get('/', function () {
     return redirect()->route('dashboard');

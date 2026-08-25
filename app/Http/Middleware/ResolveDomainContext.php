@@ -26,6 +26,10 @@ class ResolveDomainContext
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if ($request->routeIs('install.*')) {
+            return $next($request);
+        }
+
         $this->domainContext->resolveFor($request);
 
         return $next($request);
