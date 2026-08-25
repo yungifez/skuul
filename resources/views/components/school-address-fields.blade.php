@@ -47,22 +47,59 @@
 
     <div class="flex w-full flex-col gap-2">
         <april:label for="{{ $cityField }}">City *</april:label>
-        <input
-            id="{{ $cityField }}"
+        <april:combobox
             name="{{ $cityField }}"
-            type="text"
+            value="{{ old($cityField, $city) }}"
+            placeholder="Start typing or choose a city"
             x-model="city"
-            list="{{ $cityField }}-options"
-            placeholder="Enter city"
+            x-on:input="selectedValue = $event.target.value; city = $event.target.value"
+            x-on:change="selectedValue = $event.detail.value; city = $event.detail.value"
             required
             autocomplete="address-level2"
-            class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
-        />
-        <datalist id="{{ $cityField }}-options">
-            <template x-for="cityName in cities" :key="cityName">
-                <option x-bind:value="cityName"></option>
+            class="w-full"
+        >
+            <slot:trigger>
+                <button
+                    id="{{ $cityField }}"
+                    type="button"
+                    class="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-left text-sm ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                    <span class="truncate" x-text="city || 'Start typing or choose a city'"></span>
+                    <span aria-hidden="true" class="ml-2 text-muted-foreground">⌄</span>
+                </button>
+            </slot:trigger>
+            <slot:empty>No matching city. You can keep the city you typed.</slot:empty>
+            <template x-if="city && !cities.includes(city)">
+                <div
+                    data-slot="combobox-option"
+                    role="option"
+                    x-bind="option"
+                    x-bind:data-value="city"
+                    tabindex="-1"
+                    class="flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
+                >
+                    <span class="mr-2 flex size-4 items-center justify-center" aria-hidden="true">
+                        <span x-show="isSelectedValue(city)">✓</span>
+                    </span>
+                    <span x-text="city"></span>
+                </div>
             </template>
-        </datalist>
+            <template x-for="cityName in cities" :key="cityName">
+                <div
+                    data-slot="combobox-option"
+                    role="option"
+                    x-bind="option"
+                    x-bind:data-value="cityName"
+                    tabindex="-1"
+                    class="flex cursor-default items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[active=true]:bg-accent data-[active=true]:text-accent-foreground"
+                >
+                    <span class="mr-2 flex size-4 items-center justify-center" aria-hidden="true">
+                        <span x-show="isSelectedValue(cityName)">✓</span>
+                    </span>
+                    <span x-text="cityName"></span>
+                </div>
+            </template>
+        </april:combobox>
         @if ($errors->has($cityField))
             <p class="text-sm text-destructive">{{ $errors->first($cityField) }}</p>
         @endif

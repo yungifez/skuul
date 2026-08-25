@@ -11,6 +11,14 @@
     display: none !important;
 }
 
+/* April's combobox transition can leave the panel hidden after opening when
+   the component is nested inside an Alpine location field. */
+[data-slot="combobox"][data-state="open"] > [data-slot="combobox-content"] {
+    display: block !important;
+    opacity: 1 !important;
+    transform: none !important;
+}
+
 @layer components {
     .beautify-scrollbar::-webkit-scrollbar {
         width: 5px;

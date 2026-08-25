@@ -46,7 +46,7 @@ class SchoolTest extends TestCase
             ->assertSuccessful()
             ->assertSee('Address *')
             ->assertDontSee('Address line 2')
-            ->assertSee('list="city-options"', false)
+            ->assertSee('data-slot="combobox"', false)
             ->assertSee('Postal / ZIP code');
     }
 
@@ -126,7 +126,7 @@ class SchoolTest extends TestCase
             ->assertSee('School logo')
             ->assertSee('Address *')
             ->assertDontSee('Address line 2')
-            ->assertSee('list="city-options"', false)
+            ->assertSee('data-slot="combobox"', false)
             ->assertSee('Postal / ZIP code');
     }
 
