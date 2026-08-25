@@ -27,7 +27,7 @@
 
                     <div class="flex flex-col gap-2 lg:col-span-2">
                         <april:label for="subject">What you need</april:label>
-                        <april:input id="subject" name="subject" value="{{ old('subject') }}" required
+                        <april:input id="subject" name="subject" value="{{ old('subject', $appointmentSubject) }}" required
                             placeholder="A copy of last term's report" />
                         @error('subject') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                     </div>
@@ -36,7 +36,7 @@
                         <april:label for="type">Kind of request</april:label>
                         <april:native-select id="type" name="type" required>
                             @foreach ($types as $type)
-                                <option value="{{ $type->value }}" @selected(old('type') === $type->value)>{{ $type->label() }}</option>
+                                <option value="{{ $type->value }}" @selected(old('type', $appointmentType?->value) === $type->value)>{{ $type->label() }}</option>
                             @endforeach
                         </april:native-select>
                         @error('type') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
@@ -46,7 +46,7 @@
                         <april:label for="message">Anything else the school should know</april:label>
                         <textarea id="message" name="message" rows="3"
                             class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                            placeholder="Optional">{{ old('message') }}</textarea>
+                            placeholder="Optional">{{ old('message', $appointmentMessage) }}</textarea>
                         @error('message') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                     </div>
 

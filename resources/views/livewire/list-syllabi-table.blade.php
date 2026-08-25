@@ -1,29 +1,6 @@
-<div class="card">
-    <div class="card-header">
-        <div class="card-title">Syllabi</div>
-    </div>
-    <div class="card-body">
-        <p class="mb-5 text-sm text-muted-foreground">Each syllabus belongs to one course offering, so its subject, academic level, and period remain unambiguous.</p>
-        <div wire:loading.remove.delay>
-            <livewire:datatable unique-id="list-syllabi-table" :model="App\Models\Syllabus::class"
-            :filters="[
-                ['name' => 'inSchool'],
-                ['name' => 'with', 'arguments' => ['courseOffering.subject', 'courseOffering.academicLevel', 'courseOffering.academicPeriod']],
-                ['name' => 'latest'],
-            ]"
-            :columns="[
-                ['property' => 'name'],
-                ['property' => 'name', 'name' => 'Subject', 'relation' => 'courseOffering.subject'],
-                ['property' => 'label', 'name' => 'Academic level', 'relation' => 'courseOffering.academicLevel'],
-                ['property' => 'label', 'name' => 'Academic period', 'relation' => 'courseOffering.academicPeriod'],
-                ['type' => 'dropdown', 'name' => 'actions','links' => [
-                    ['href' => 'syllabi.show', 'text' => 'View', 'icon' => 'eye', 'can' => 'read syllabus'],
-                ]],
-                ['type' => 'delete', 'name' => 'Delete', 'action' => 'syllabi.destroy', 'can' => 'delete syllabus']
-            ]"
-            :empty-state="['heading' => 'No syllabi yet', 'description' => 'Upload a syllabus to share course material for a specific offering.', 'action' => ['href' => route('syllabi.create'), 'ability' => 'create', 'arguments' => [\App\Models\Syllabus::class], 'label' => 'Add syllabus']]"
-            />
-        </div>
-        <x-loading-spinner/>
-    </div>
-</div>
+<april:card><slot:title>Syllabi</slot:title><slot:description>Syllabi attached to course offerings.</slot:description><slot:content><div wire:key="{{ $id }}-{{ $this->tableRevision }}"><april:data-table id="{{ $id }}" :data="$data" :columns="$columns" :pagination="$pagination" :per-page-options="$perPageOptions" row-key="{{ $rowKey }}" :searchable="$searchable" @query-change="$wire.updateTable($event.detail)"><slot:empty><div class="space-y-1"><p class="font-medium text-foreground">No syllabi yet</p><p>Upload a syllabus for a specific offering.</p></div></slot:empty><slot:actions>
+    <x-table-actions :items="array_filter([
+        $canReadSyllabi ? ['label' => 'View syllabus', 'icon' => 'eye', 'url' => 'view_url'] : null,
+        $canDeleteSyllabi ? ['label' => 'Delete syllabus', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete this syllabus?'] : null,
+    ])" />
+</slot:actions></april:data-table></div></slot:content></april:card>

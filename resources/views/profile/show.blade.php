@@ -8,6 +8,7 @@
 @section('page_heading',  __('Profile'))
 
 @section('content')
+    <div class="mx-auto flex w-full max-w-5xl flex-col gap-6">
         @if (Laravel\Fortify\Features::canUpdateProfileInformation())
             @livewire('profile.update-profile-information-form')
         @endif
@@ -23,4 +24,5 @@
         @endif
 
         @livewire('profile.logout-other-browser-sessions-form')
+    </div>
 @endsection

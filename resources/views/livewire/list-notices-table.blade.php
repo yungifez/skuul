@@ -1,37 +1,32 @@
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title">Notices</h4>
-    </div>
-    <div class="card-body">
-        @can (['update notice', 'delete notice'])
-            <livewire:datatable :model="App\Models\Notice::class"
-            uniqueId="List-notice-table"
-            :filters="[
-                ['name' => 'inSchool']
-            ]"
-            :columns="[
-               [ 'property' => 'title'],
-               [ 'property' => 'start_date_for_humans', 'name' => 'Start Date', 'columnName' => 'start_date'],
-               [ 'property' => 'stop_date_for_humans', 'name' => 'Stop Date',  'columnName' => 'stop_date'],
-               ['name' => 'actions' , 'type' => 'dropdown' , 'links' => [
-                    ['href' => 'notices.show', 'text' => 'View', 'icon' => 'eye'],
-               ]],
-               ['type' => 'delete' , 'name' => 'delete', 'action' => 'notices.destroy']
-            ]"
-            />
-        @else
-            <livewire:datatable :model="App\Models\Notice::class"
-            :filters="[
-                ['name' => 'inSchool'],
-                ['name' => 'active']
-            ]"
-            :columns="[
-            [ 'property' => 'title'],
-            ['name' => 'action' , 'type' => 'dropdown' , 'links' => [
-                ['href' => 'notices.show', 'text' => 'View', 'icon' => 'eye'],
-            ]],
-            ]"
-            />
-        @endcan
-    </div>
-</div>
+<april:card>
+    <slot:title>Notices</slot:title>
+    <slot:description>Keep your school community informed with current notices.</slot:description>
+    <slot:content>
+        <div wire:key="{{ $id }}-{{ $this->tableRevision }}">
+            <april:data-table
+                id="{{ $id }}"
+                :data="$data"
+                :columns="$columns"
+                :pagination="$pagination"
+                :per-page-options="$perPageOptions"
+                row-key="{{ $rowKey }}"
+                :searchable="$searchable"
+                @query-change="$wire.updateTable($event.detail)"
+            >
+                <slot:empty>
+                    <div class="space-y-1">
+                        <p class="font-medium text-foreground">No notices yet</p>
+                        <p>Published school notices will appear here.</p>
+                    </div>
+                </slot:empty>
+
+                <slot:actions>
+    <x-table-actions :items="array_filter([
+        ['label' => 'View notice', 'icon' => 'eye', 'url' => 'view_url'],
+        $canDeleteNotices ? ['label' => 'Delete notice', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete this notice?'] : null,
+    ])" />
+</slot:actions>
+            </april:data-table>
+        </div>
+    </slot:content>
+</april:card>

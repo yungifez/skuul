@@ -42,4 +42,96 @@
     .card-title {
         @apply text-lg font-semibold leading-none tracking-tight;
     }
+
+    [data-slot="data-table"] > .relative {
+        @apply max-w-full overflow-x-auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-gutter: stable;
+    }
+
+    [data-slot="data-table"] > .relative > table {
+        min-width: max-content;
+    }
+
+    [data-slot="data-table"] th {
+        white-space: nowrap;
+    }
+
+    [data-slot="data-table"] th:last-child,
+    [data-slot="data-table"] td:last-child {
+        position: sticky;
+        right: 0;
+        z-index: 2;
+        min-width: 5rem;
+        box-shadow: -0.75rem 0 1rem -1rem rgb(0 0 0 / 0.55);
+    }
+
+    [data-slot="data-table"] th:last-child {
+        z-index: 3;
+        background-color: color-mix(in oklab, var(--color-muted) 50%, transparent);
+    }
+
+    [data-slot="data-table"] td:last-child {
+        background-color: var(--color-background);
+    }
+
+    [data-slot="data-table"] td:last-child > div {
+        flex-wrap: wrap;
+    }
+
+    @media (max-width: 768px) {
+        [data-slot="data-table-pagination"] {
+            align-items: stretch;
+        }
+
+        [data-slot="data-table-pagination"] > p {
+            width: 100%;
+        }
+
+        [data-slot="data-table-pagination"] > div {
+            display: grid;
+            width: 100%;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        [data-slot="data-table-pagination"] > div > label {
+            grid-column: 1 / -1;
+            width: 100%;
+            justify-content: space-between;
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+
+        [data-slot="data-table-pagination"] > div > button:first-of-type {
+            justify-self: start;
+            width: 2.25rem;
+            padding-inline: 0;
+            font-size: 0;
+        }
+
+        [data-slot="data-table-pagination"] > div > button:first-of-type::before {
+            content: "←";
+            font-size: 1rem;
+        }
+
+        [data-slot="data-table-pagination"] > div > span {
+            justify-self: center;
+            min-width: max-content;
+            white-space: nowrap;
+        }
+
+        [data-slot="data-table-pagination"] > div > button:last-child {
+            justify-self: end;
+            width: 2.25rem;
+            padding-inline: 0;
+            font-size: 0;
+        }
+
+        [data-slot="data-table-pagination"] > div > button:last-child::before {
+            content: "→";
+            font-size: 1rem;
+        }
+    }
 }

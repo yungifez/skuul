@@ -3,12 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Library\IssueLoan;
+use App\Actions\Library\IssueTitleToSection;
 use App\Actions\Library\RenewLoan;
 use App\Actions\Library\ReturnLoan;
 use App\Http\Requests\StoreLibraryLoanRequest;
+use App\Http\Requests\StoreLibrarySectionLoanRequest;
+use App\Models\AcademicCycleSection;
 use App\Models\LibraryCopy;
 use App\Models\LibraryLendingRules;
 use App\Models\LibraryLoan;
+use App\Models\LibraryTitle;
 use App\Models\User;
 use App\Traits\ListsSchoolPeople;
 use Illuminate\Http\RedirectResponse;
@@ -41,6 +45,16 @@ class LibraryLoanController extends Controller
                 ->get(),
             'rules' => LibraryLendingRules::forSchool(),
             'borrowers' => $this->borrowers(),
+            'sections' => AcademicCycleSection::inSchool()
+                ->with(['academicLevel', 'academicYear'])
+                ->orderBy('academic_year_id')
+                ->orderBy('academic_level_id')
+                ->orderBy('position')
+                ->get(),
+            'titles' => LibraryTitle::forSchool()
+                ->whereHas('copies', fn ($query) => $query->where('school_id', current_school_id()))
+                ->orderBy('title')
+                ->get(),
             'canLend' => auth()->user()?->can('lend library item') === true,
         ]);
     }
@@ -58,6 +72,27 @@ class LibraryLoanController extends Controller
         $issue->issue($copy, $borrower);
 
         return back()->with('success', 'The copy is out.');
+    }
+
+    /**
+     * Lend one title to every attending learner in a section.
+     */
+    public function storeForSection(
+        StoreLibrarySectionLoanRequest $request,
+        IssueTitleToSection $issue,
+    ): RedirectResponse {
+        $this->authorize('create', LibraryLoan::class);
+
+        $section = AcademicCycleSection::inSchool()->findOrFail(
+            $request->integer('academic_cycle_section_id'),
+        );
+        $title = LibraryTitle::forSchool()
+            ->whereHas('copies', fn ($query) => $query->where('school_id', current_school_id()))
+            ->findOrFail($request->integer('library_title_id'));
+
+        $loans = $issue->issue($section, $title, $request->user());
+
+        return back()->with('success', "{$loans->count()} copies are out to the section.");
     }
 
     /**

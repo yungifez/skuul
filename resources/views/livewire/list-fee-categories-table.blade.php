@@ -1,19 +1,6 @@
-<div class="card">
-    <div class="card-header">
-        <div class="card-title">Fee Categories</div>
-    </div>
-    <div class="card-body">
-        <livewire:datatable unique_id="list-fee-categories-table" :model="App\Models\FeeCategory::class"
-        :empty-state="['heading' => 'No fee categories yet', 'description' => 'Create a category to organize fees.', 'action' => ['href' => route('fee-categories.create'), 'ability' => 'create', 'arguments' => [\App\Models\FeeCategory::class], 'label' => 'Add fee category']]"
-        :filters="[
-            ['name' => 'inSchool']
-        ]"
-        :columns="[
-            ['property' => 'name'],
-            ['name' => 'Actions', 'type' => 'dropdown' , 'links' => [
-                ['href' => 'fee-categories.edit', 'text' => 'edit', 'icon' => 'settings'],
-            ]],
-            ['type' => 'delete', 'name' => 'Delete', 'action' => 'fee-categories.destroy',]
-        ]"/>
-    </div>
-</div>
+<april:card><slot:title>Fee categories</slot:title><slot:description>Group fees into clear categories for billing.</slot:description><slot:content><div wire:key="{{ $id }}-{{ $this->tableRevision }}"><april:data-table id="{{ $id }}" :data="$data" :columns="$columns" :pagination="$pagination" :per-page-options="$perPageOptions" row-key="{{ $rowKey }}" :searchable="$searchable" @query-change="$wire.updateTable($event.detail)"><slot:empty><div class="space-y-1"><p class="font-medium text-foreground">No fee categories yet</p><p>Create a category to organize fees.</p></div></slot:empty><slot:actions>
+    <x-table-actions :items="array_filter([
+        $canEditCategories ? ['label' => 'Edit category', 'icon' => 'settings', 'url' => 'edit_url'] : null,
+        $canDeleteCategories ? ['label' => 'Delete category', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete this fee category?'] : null,
+    ])" />
+</slot:actions></april:data-table></div></slot:content></april:card>

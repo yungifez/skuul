@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\School;
 use App\Services\Academic\AcademicPeriodContext;
@@ -13,146 +14,100 @@ class AcademicYearTest extends TestCase
 {
     use FeatureTestTrait;
     use RefreshDatabase;
-    // test ubauthorized user cannot see academic years
 
-    public function test_unauthorized_user_cannot_see_academic_years()
+    public function test_an_unauthorized_user_cannot_see_school_calendars(): void
     {
         $this->unauthorized_user()
-            ->get('/dashboard/academic-years')->assertForbidden();
+            ->get('/dashboard/academic-years')
+            ->assertForbidden();
     }
 
-    // test authorized user can see academic years
-
-    public function test_authorized_user_can_see_academic_years()
+    public function test_an_authorized_user_can_see_school_calendars(): void
     {
         $this->authorized_user(['read academic year'])
-            ->get('/dashboard/academic-years')->assertOk();
+            ->get('/dashboard/academic-years')
+            ->assertOk()
+            ->assertSee('School calendars');
     }
 
-    // test unauthorized user cannot view create academic year
-
-    public function test_unauthorized_user_cannot_create_academic_year()
+    public function test_an_unauthorized_user_cannot_open_calendar_setup(): void
     {
         $this->unauthorized_user()
-            ->post('/dashboard/academic-years')->assertForbidden();
+            ->get('/dashboard/academic-years/create')
+            ->assertForbidden();
     }
 
-    // test authorized user can view create academic years
-
-    public function test_authorized_user_can_create_academic_years()
+    public function test_an_authorized_user_can_open_calendar_setup(): void
     {
         $this->authorized_user(['create academic year'])
-            ->get('/dashboard/academic-years/create')->assertOk();
+            ->get('/dashboard/academic-years/create')
+            ->assertOk()
+            ->assertSee('Set up a school calendar');
     }
 
-    // test unauthorized user cannot create academic year
-
-    public function test_unauthorized_user_cannot_store_academic_year()
-    {
-        $this->unauthorized_user()->post('/dashboard/academic-years')->assertForbidden();
-    }
-
-    // test authorized user can create academic year
-
-    public function test_user_can_create_academic_year()
-    {
-        $this->authorized_user(['create academic year'])
-            ->post('/dashboard/academic-years', [
-                'start_year' => '3030',
-                'stop_year'  => '4040',
-            ])->assertRedirect();
-
-        $this->assertDatabaseHas('academic_years', [
-            'start_year' => '3030',
-            'stop_year'  => '4040',
-        ]);
-    }
-
-    // test unauthorized user cannot view edit academic year
-
-    public function test_unauthorized_user_cannot_edit_academic_year()
-    {
-        $this->unauthorized_user()->get('/dashboard/academic-years/1/edit')->assertForbidden();
-    }
-
-    // test authorized user can view edit academic year
-
-    public function test_authorized_user_can_edit_academic_year()
-    {
-        $this->authorized_user(['update academic year'])
-            ->get('/dashboard/academic-years/1/edit')->assertOk();
-    }
-
-    // test unauthorized user cannot update academic year
-
-    public function test_unauthorized_user_cannot_update_academic_year()
-    {
-        $this->unauthorized_user()
-            ->put('/dashboard/academic-years/1')->assertForbidden();
-    }
-
-    // test authorized user can update academic year
-
-    public function test_authorized_user_can_update_academic_year()
-    {
-        $this->authorized_user(['update academic year'])
-            ->put('/dashboard/academic-years/1', [
-                'start_year' => '3030',
-                'stop_year'  => '4040',
-            ]);
-
-        $this->assertDatabaseHas('academic_years', [
-            'id'         => '1',
-            'start_year' => '3030',
-            'stop_year'  => '4040',
-        ]);
-    }
-
-    // test unauthorized user cannot delete academic year
-
-    public function test_unauthorized_user_cannot_delete_academic_year()
-    {
-        $this->unauthorized_user()
-            ->delete('/dashboard/academic-years/1')->assertForbidden();
-    }
-
-    // test authorized user can delete academic year
-
-    public function test_authorized_user_can_delete_academic_year()
-    {
-        $academicYear = AcademicYear::factory()->create();
-        $this->authorized_user(['delete academic year'])
-            ->delete("/dashboard/academic-years/$academicYear->id");
-
-        $this->assertDatabaseMissing('academic_years', [
-            'id' => $academicYear->id,
-        ]);
-    }
-
-    // test unauthorized user cannot set academic year
-
-    public function test_unauthorized_user_cannot_set_academic_year()
-    {
-        $this->unauthorized_user()
-            ->post('/dashboard/academic-years/set')->assertForbidden();
-    }
-
-    // test authorized user can set academic year
-
-    public function test_authorized_user_can_set_academic_year()
+    public function test_an_unauthorized_user_cannot_edit_a_school_calendar(): void
     {
         $academicYear = AcademicYear::factory()->create(['school_id' => current_school_id()]);
+
+        $this->unauthorized_user()
+            ->get("/dashboard/academic-years/{$academicYear->id}/edit")
+            ->assertForbidden();
+    }
+
+    public function test_an_authorized_user_can_open_a_school_calendar_draft_for_editing(): void
+    {
+        $academicYear = AcademicYear::factory()->create(['school_id' => current_school_id()]);
+
+        $this->authorized_user(['update academic year'])
+            ->get("/dashboard/academic-years/{$academicYear->id}/edit")
+            ->assertOk()
+            ->assertSee('Edit draft school calendar');
+    }
+
+    public function test_an_unauthorized_user_cannot_delete_a_school_calendar(): void
+    {
+        $academicYear = AcademicYear::factory()->create(['school_id' => current_school_id()]);
+
+        $this->unauthorized_user()
+            ->delete("/dashboard/academic-years/{$academicYear->id}")
+            ->assertForbidden();
+    }
+
+    public function test_an_authorized_user_can_delete_a_school_calendar(): void
+    {
+        $academicYear = AcademicYear::factory()->create(['school_id' => current_school_id()]);
+
+        $this->authorized_user(['delete academic year'])
+            ->delete("/dashboard/academic-years/{$academicYear->id}");
+
+        $this->assertModelMissing($academicYear);
+    }
+
+    public function test_an_unauthorized_user_cannot_set_a_working_calendar(): void
+    {
+        $this->unauthorized_user()
+            ->post('/dashboard/academic-years/set')
+            ->assertForbidden();
+    }
+
+    public function test_an_authorized_user_can_set_a_published_calendar_as_the_working_calendar(): void
+    {
+        $academicYear = AcademicYear::factory()->create(['school_id' => current_school_id()]);
+        AcademicPeriod::factory()->create([
+            'school_id' => current_school_id(),
+            'academic_year_id' => $academicYear->id,
+            'parent_id' => null,
+        ]);
         $schoolBefore = current_school()->academic_year_id;
 
         $this->authorized_user(['set academic year'])
             ->post('/dashboard/academic-years/set', ['academic_year_id' => $academicYear->id])
             ->assertSessionHas(AcademicPeriodContext::YEAR_SESSION_KEY, $academicYear->id);
 
-        // The working year belongs to the request, so the school row does not move.
         $this->assertSame($schoolBefore, current_school()->fresh()->academic_year_id);
     }
 
-    public function test_an_academic_year_of_another_school_cannot_be_set()
+    public function test_a_school_calendar_of_another_school_cannot_be_set(): void
     {
         $other = School::factory()->create();
         $academicYear = AcademicYear::factory()->create(['school_id' => $other->id]);

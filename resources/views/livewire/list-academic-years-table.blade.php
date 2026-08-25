@@ -1,25 +1,36 @@
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title">Academic year list</h4>
-    </div>
-    <div class="card-body">
-        <livewire:datatable :model="App\Models\AcademicYear::class"
-        :filters="[
-            ['name' => 'inSchool']
-        ]"
-        :columns="[
-            ['name' => 'Start Year', 'property' => 'start_year'],
-            ['name' => 'Stop Year', 'property' => 'stop_year'],
-            ['name' => 'name'],
-            ['name' => 'Dates', 'type' => 'academic-period-dates'],
-            ['name' => 'Status', 'type' => 'academic-period-status', 'route-prefix' => 'academic-years'],
-            ['name' => 'Teaching', 'type' => 'instructional-model'],
-            ['type' => 'dropdown', 'name' => 'actions','links' => [
-                ['href' => 'academic-years.edit', 'text' => 'Edit', 'icon' => 'settings',],
-                ['href' => 'academic-years.show', 'text' => 'View', 'icon' => 'eye',  ],
-                ['href' => 'academic-years.instructional-model.edit', 'text' => 'Teaching setup', 'icon' => 'users',],
-            ]],
-            ['type' => 'delete', 'name' => 'Delete', 'action' => 'academic-years.destroy',]
-        ]"/>
-    </div>
-</div>
+<april:card>
+    <slot:title>School calendars</slot:title>
+    <slot:description>Each calendar carries its dates, reporting periods, and lifecycle state.</slot:description>
+    <slot:content>
+        <div wire:key="{{ $id }}-{{ $this->tableRevision }}">
+            <april:data-table
+                id="{{ $id }}"
+                :data="$data"
+                :columns="$columns"
+                :pagination="$pagination"
+                :per-page-options="$perPageOptions"
+                row-key="{{ $rowKey }}"
+                :searchable="$searchable"
+                @query-change="$wire.updateTable($event.detail)"
+            >
+                <slot:empty>
+                    <div class="space-y-1">
+                        <p class="font-medium text-foreground">No school calendars yet</p>
+                        <p>Set up a calendar to define the reporting periods staff will use.</p>
+                    </div>
+                </slot:empty>
+
+                <slot:cell-status-label>
+                    <span class="rounded-md border px-2 py-1 text-xs font-medium capitalize" x-text="row.status_label"></span>
+                </slot:cell-status-label>
+
+                <slot:actions>
+    <x-table-actions :items="array_filter([
+        ['label' => 'View academic year', 'icon' => 'eye', 'url' => 'view_url'],
+        $canDeleteYears ? ['label' => 'Delete calendar', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete this calendar?'] : null,
+    ])" />
+</slot:actions>
+            </april:data-table>
+        </div>
+    </slot:content>
+</april:card>

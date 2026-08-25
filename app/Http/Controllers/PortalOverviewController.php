@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\Feature;
 use App\Enums\PortalArea;
 use App\Models\StudentRecord;
 use App\Services\Portal\PortalAccess;
@@ -64,7 +65,11 @@ class PortalOverviewController extends Controller
         foreach ($enrollments as $enrollment) {
             $open = [];
 
-            foreach ([PortalArea::Attendance, PortalArea::Notices, PortalArea::Calendar, PortalArea::Requests] as $area) {
+            foreach ([PortalArea::Attendance, PortalArea::Notices, PortalArea::Calendar, PortalArea::Documents, PortalArea::Boarding, PortalArea::Library, PortalArea::Requests] as $area) {
+                if ($area === PortalArea::Boarding && !features()->enabled(Feature::Boarding, $enrollment->school_id)) {
+                    continue;
+                }
+
                 if ($this->access->areaIsOpen($area, $enrollment->school_id)) {
                     $open[] = $area;
                 }

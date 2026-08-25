@@ -142,6 +142,16 @@ class Incident extends Model
     }
 
     /**
+     * Get the notes written against the case.
+     *
+     * @return HasMany<IncidentNote, $this>
+     */
+    public function notes(): HasMany
+    {
+        return $this->hasMany(IncidentNote::class)->orderBy('id');
+    }
+
+    /**
      * Get the person who wrote the case down.
      *
      * @return BelongsTo<User, $this>

@@ -12,8 +12,10 @@ use App\Reports\ExpenseReport;
 use App\Reports\GeneralLedgerReport;
 use App\Reports\IncomeByFeeTypeReport;
 use App\Reports\IncomeStatementReport;
+use App\Reports\ReportCardReport;
 use App\Reports\StudentAgingReport;
 use App\Reports\StudentBalancesReport;
+use App\Reports\TranscriptReport;
 use App\Reports\TrialBalanceReport;
 
 /**
@@ -41,6 +43,8 @@ class ReportRegistry
         BalanceSheetReport::class,
         BudgetVarianceReport::class,
         ClassListReport::class,
+        ReportCardReport::class,
+        TranscriptReport::class,
     ];
 
     /**

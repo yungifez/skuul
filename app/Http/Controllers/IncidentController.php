@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Discipline\AddIncidentNote;
 use App\Actions\Discipline\ReportIncident;
 use App\Enums\IncidentCategory;
 use App\Enums\IncidentParticipantRole;
 use App\Enums\IncidentStatus;
 use App\Exceptions\InvalidValueException;
 use App\Http\Requests\StoreIncidentActionRequest;
+use App\Http\Requests\StoreIncidentNoteRequest;
 use App\Http\Requests\StoreIncidentRequest;
 use App\Http\Requests\UpdateIncidentStatusRequest;
 use App\Models\Incident;
 use App\Models\IncidentAction;
+use App\Models\IncidentNote;
 use App\Models\User;
 use App\Traits\ListsSchoolPeople;
 use Illuminate\Contracts\View\View;
@@ -29,7 +32,10 @@ class IncidentController extends Controller
 {
     use ListsSchoolPeople;
 
-    public function __construct(private ReportIncident $reportIncident) {}
+    public function __construct(
+        private ReportIncident $reportIncident,
+        private AddIncidentNote $addIncidentNote,
+    ) {}
 
     /**
      * Show the cases this person may read.
@@ -116,7 +122,7 @@ class IncidentController extends Controller
     /**
      * Show one case with everything recorded against it.
      */
-    public function show(Incident $incident): View
+    public function show(Request $request, Incident $incident): View
     {
         $this->authorize('view', $incident);
 
@@ -127,13 +133,38 @@ class IncidentController extends Controller
             'statusChanges.changedBy:id,name',
             'reportedBy:id,name',
             'assignedTo:id,name',
+            'notes.writtenBy:id,name',
         ]);
+
+        $notes = $incident->notes
+            ->filter(fn (IncidentNote $note): bool => $request->user()->can('view', $note))
+            ->values();
 
         return view('pages.incident.show', [
             'incident' => $incident,
             'nextStatuses' => $incident->status->allowedNext(),
             'staff' => $this->schoolStaff(),
+            'notes' => $notes,
         ]);
+    }
+
+    /**
+     * Add one append-only note to an open case.
+     */
+    public function storeNote(StoreIncidentNoteRequest $request, Incident $incident): RedirectResponse
+    {
+        try {
+            $this->addIncidentNote->add(
+                incident: $incident,
+                body: $request->string('body')->toString(),
+                restricted: $request->boolean('is_restricted'),
+                actor: $request->user(),
+            );
+        } catch (InvalidValueException $exception) {
+            return back()->withErrors(['note' => $exception->getMessage()])->withInput();
+        }
+
+        return back()->with('success', 'The note was added to the case.');
     }
 
     /**

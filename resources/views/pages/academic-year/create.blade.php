@@ -1,14 +1,14 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-    ['href'=> route('academic-years.index'), 'text'=> ' Academic years' ,],
-    ['href'=> route('academic-years.create'), 'text'=> 'Create' , 'active'],
+    ['href'=> route('academic-years.index'), 'text'=> 'School calendars' ,],
+    ['href'=> route('academic-years.create'), 'text'=> 'Set up' , 'active'],
 
 ]])
 
-@section('title',  __('Create academic year'))
+@section('title',  __('Set up school calendar'))
 
-@section('page_heading',   __('Create academic year'))
+@section('page_heading',   __('Set up school calendar'))
 
 @section('content' )
-@livewire('create-academic-year-form')
+@livewire('academic-calendar-form')
 @endsection

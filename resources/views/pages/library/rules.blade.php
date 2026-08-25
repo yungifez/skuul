@@ -39,6 +39,13 @@
                 </div>
 
                 <div class="flex flex-col gap-2">
+                    <label for="rules-hold-days" class="text-sm font-medium leading-none">Days to collect a hold</label>
+                    <input id="rules-hold-days" name="hold_days" type="number" min="1" max="30" required value="{{ old('hold_days', $rules->hold_days) }}"
+                        class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                    <p class="text-xs text-muted-foreground">After this many days, the copy goes to the next person.</p>
+                </div>
+
+                <div class="flex flex-col gap-2">
                     <label for="rules-learner" class="text-sm font-medium leading-none">Items a learner may hold</label>
                     <input id="rules-learner" name="learner_limit" type="number" min="1" max="100" required value="{{ old('learner_limit', $rules->learner_limit) }}"
                         class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">

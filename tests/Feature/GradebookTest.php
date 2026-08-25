@@ -3,12 +3,15 @@
 namespace Tests\Feature;
 
 use App\Actions\Academic\ChangeAcademicPeriodStatus;
+use App\Actions\Gradebook\ApproveResult;
 use App\Actions\Gradebook\PublishResult;
 use App\Actions\Gradebook\RecordGrade;
+use App\Actions\Gradebook\RejectResult;
 use App\Enums\AuditAction;
 use App\Enums\GradeAggregation;
 use App\Enums\GradeEntryState;
 use App\Enums\GradeItemType;
+use App\Enums\ResultApprovalStatus;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicCycleSection;
@@ -241,9 +244,10 @@ class GradebookTest extends TestCase
         $this->assertNull(app(GradebookCalculator::class)->calculate($this->courseOffering(), $this->enrollment())['percentage']);
     }
 
-    public function test_publishing_takes_a_copy_of_the_gradebook(): void
+    public function test_publishing_submits_a_copy_for_approval(): void
     {
         $this->authorized_user([]);
+        $actor = auth()->user();
         $courseOffering = $this->courseOffering();
         $enrollment = $this->enrollment();
         app(RecordGrade::class)->record($this->item(['max_points' => 10], $courseOffering), $enrollment, points: 8);
@@ -252,7 +256,13 @@ class GradebookTest extends TestCase
 
         $this->assertSame(1, $snapshot->revision);
         $this->assertSame(80.0, $snapshot->percentage);
+        $this->assertSame(ResultApprovalStatus::Pending, $snapshot->approval_status);
         $this->assertNotEmpty($snapshot->payload['items']);
+        $this->assertNull(app(PublishResult::class)->current($courseOffering, $enrollment));
+
+        app(ApproveResult::class)->approve($snapshot, $actor);
+
+        $this->assertSame($snapshot->id, app(PublishResult::class)->current($courseOffering, $enrollment)?->id);
     }
 
     public function test_a_student_outside_the_offering_cannot_receive_or_publish_a_result(): void
@@ -303,10 +313,12 @@ class GradebookTest extends TestCase
         $item = $this->item(['max_points' => 10], $courseOffering);
         $publish = app(PublishResult::class);
         app(RecordGrade::class)->record($item, $enrollment, points: 8);
-        $publish->publish($courseOffering, $enrollment);
+        $first = $publish->publish($courseOffering, $enrollment);
+        app(ApproveResult::class)->approve($first, auth()->user());
 
         app(RecordGrade::class)->record($item, $enrollment, points: 9);
         $corrected = $publish->publish($courseOffering, $enrollment, reason: 'Marking mistake');
+        app(ApproveResult::class)->approve($corrected, auth()->user(), 'Correction reviewed.');
 
         $this->assertSame(2, $corrected->revision);
         $this->assertSame(90.0, $corrected->percentage);
@@ -336,7 +348,23 @@ class GradebookTest extends TestCase
 
         $snapshot = app(PublishResult::class)->publish($courseOffering, $enrollment);
 
-        $this->assertNotNull(AuditEvent::ofAction(AuditAction::ResultPublished)->forSubject($snapshot)->first());
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::ResultSubmittedForApproval)->forSubject($snapshot)->first());
+    }
+
+    public function test_a_submitted_result_can_be_rejected_with_a_reason(): void
+    {
+        $this->authorized_user([]);
+        $actor = auth()->user();
+        $courseOffering = $this->courseOffering();
+        $enrollment = $this->enrollment();
+        app(RecordGrade::class)->record($this->item(['max_points' => 10], $courseOffering), $enrollment, points: 8);
+        $snapshot = app(PublishResult::class)->publish($courseOffering, $enrollment);
+
+        $rejected = app(RejectResult::class)->reject($snapshot, $actor, 'Please review the missing assessment.');
+
+        $this->assertSame(ResultApprovalStatus::Rejected, $rejected->approval_status);
+        $this->assertNull(app(PublishResult::class)->current($courseOffering, $enrollment));
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::ResultRejected)->forSubject($snapshot)->first());
     }
 
     /**

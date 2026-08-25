@@ -95,6 +95,21 @@ class SidebarStateTest extends TestCase
             ->assertDontSee('Create academic period');
     }
 
+    public function test_the_sidebar_preserves_its_scroll_container_during_navigation(): void
+    {
+        $html = $this->authorized_user(['read admin'])
+            ->get('dashboard/admins')
+            ->assertOk()
+            ->getContent();
+
+        $this->assertMatchesRegularExpression(
+            '/<div(?=[^>]*data-sidebar="content")(?=[^>]*wire:navigate:scroll)[^>]*>/',
+            $html,
+        );
+        $this->assertStringNotContainsString('wire:navigate:scroll', $this->navigationLinks($html));
+        $this->assertStringContainsString('wire:navigate', $this->navigationLinks($html));
+    }
+
     public function test_the_sidebar_shows_the_gradebook_workspace(): void
     {
         $this->authorized_user([
@@ -163,5 +178,15 @@ class SidebarStateTest extends TestCase
     private function withoutLivewireSnapshots(string $html): string
     {
         return preg_replace('/wire:snapshot="[^"]*"/', '', $html) ?? $html;
+    }
+
+    /**
+     * Extract the sidebar links that use Livewire navigation.
+     */
+    private function navigationLinks(string $html): string
+    {
+        preg_match_all('/<a[^>]*wire:navigate[^>]*>/', $html, $matches);
+
+        return implode('', $matches[0]);
     }
 }

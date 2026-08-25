@@ -100,6 +100,24 @@ Everything from the last `BACKUP_KEEP_DAYS` days stays. Older than that, the
 first backup of each month stays for `BACKUP_KEEP_MONTHS` months. `skuul:backup`
 removes the rest; `--keep-old` leaves them alone.
 
+The application does not delete personal records on a schedule. The pilot
+retention policy must be approved before any record-deletion job is enabled.
+The proposed default is:
+
+| Record category | Proposed retention | Rule |
+| --- | --- | --- |
+| Academic history and official reports | 7 years after the learner leaves | Keep revisions and source references |
+| Finance and ledger records | 7 years after the financial period closes | Keep posted entries and reversals |
+| Audit, access, and permission history | 7 years | Keep append-only events |
+| Discipline and safeguarding cases | 7 years after closure | A legal hold overrides deletion |
+| Unsubmitted operational drafts | 2 years after last activity | Do not delete while under review |
+| Encrypted database and file backups | 30 daily days and 12 monthly points | Controlled by `skuul:backup` |
+
+The data owner must replace these defaults with the required jurisdictional
+policy, record the approved version in `RELEASE_RETENTION_POLICY_VERSION`, and
+set `RELEASE_RETENTION_POLICY_APPROVED=true`. Until then, the release gate
+fails and no destructive retention task is allowed.
+
 ### Point-in-time recovery
 
 Keep the database binary logs as well. A daily dump loses the work of a day;
@@ -190,3 +208,31 @@ requires; it is the record of who changed access and results.
 - `php artisan test` for the unit and feature tests.
 
 A pull request must pass all four before it is merged.
+
+## 6. Release-readiness gate
+
+Run the configuration gate before a production deployment:
+
+```bash
+php artisan skuul:release-readiness
+```
+
+It checks that the retention policy has an approval, recovery targets are
+recorded, and the pilot report set is registered. The pilot set is:
+
+- class list;
+- student balances;
+- report cards; and
+- transcripts.
+
+The current recovery targets are an RPO of 24 hours and an RTO of 4 hours.
+Change them only with an owner-approved operations decision. Before a release,
+run the backup and restore checks as well:
+
+```bash
+php artisan skuul:release-readiness --check-backups
+```
+
+That command requires a recent encrypted backup and a recent restore rehearsal.
+The rehearsal database must be isolated, disposable, and never the production
+database. Record the observed restore time and row checks with the release.

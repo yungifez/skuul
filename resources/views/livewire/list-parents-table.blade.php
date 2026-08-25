@@ -1,20 +1,44 @@
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Parents list</h2>
-    </div>
-    <div class="card-body">
-        <livewire:datatable :model="App\Models\User::class" uniqueId="parents-list-table" :filters="[['name' => 'role', 'arguments' => ['parent']], ['name' => 'ofSchool'], ['name' => 'orderBy' , 'arguments' => ['name']]]" :empty-state="['heading' => 'No parents yet', 'description' => 'Add the first parent for this school.', 'action' => ['href' => route('parents.create'), 'ability' => 'create', 'arguments' => [\App\Models\User::class, 'parent'], 'label' => 'Add parent']]" :columns="[
-            ['property' => 'name'] ,
-            ['property' => 'email'] ,
-            ['property' => 'gender'] ,
-            ['name' => 'Account', 'type' => 'account-status'],
-            ['type' => 'dropdown', 'name' => 'actions','links' => [
-                ['href' => 'parents.edit', 'text' => 'Manage Profile', 'icon' => 'pencil',],
-                ['href' => 'parents.show', 'text' => 'View', 'icon' => 'eye',  ],
-                ['href' => 'parents.assign-student', 'text' => 'Assign students', 'icon' => 'users'],
-            ]],
-            ['type' => 'delete', 'name' => 'Delete', 'action' => 'parents.destroy',]
-         ]
-        "/>
-    </div>
-</div>
+<april:card>
+    <slot:title>Parents</slot:title>
+    <slot:description>Search and manage the parents who belong to this school.</slot:description>
+    <slot:content>
+        <div class="space-y-6">
+            <x-display-validation-errors />
+
+            <div wire:loading class="text-sm text-muted-foreground">Updating parents...</div>
+
+            <div wire:key="{{ $id }}-{{ $this->tableRevision }}">
+                <april:data-table
+                    id="{{ $id }}"
+                    :data="$data"
+                    :columns="$columns"
+                    :pagination="$pagination"
+                    :per-page-options="$perPageOptions"
+                    row-key="{{ $rowKey }}"
+                    :searchable="$searchable"
+                    @query-change="$wire.updateTable($event.detail)"
+                >
+                    <slot:empty>
+                        <div class="space-y-1">
+                            <p class="font-medium text-foreground">No parents yet</p>
+                            <p>Add the first parent for this school.</p>
+                        </div>
+                    </slot:empty>
+
+                    <slot:cell-account-status>
+                        <span class="capitalize" x-text="row.account_status ?? ''"></span>
+                    </slot:cell-account-status>
+
+                    <slot:actions>
+    <x-table-actions :items="array_filter([
+        ['label' => 'View parent', 'icon' => 'eye', 'url' => 'view_url'],
+        $canManageParents ? ['label' => 'Manage parent', 'icon' => 'pencil', 'url' => 'manage_url'] : null,
+        $canAssignStudents ? ['label' => 'Assign students', 'icon' => 'users', 'url' => 'assign_url'] : null,
+        $canDeleteParents ? ['label' => 'Delete parent', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete this parent?'] : null,
+    ])" />
+</slot:actions>
+                </april:data-table>
+            </div>
+        </div>
+    </slot:content>
+</april:card>

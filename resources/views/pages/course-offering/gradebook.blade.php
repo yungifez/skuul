@@ -162,6 +162,7 @@
                                                 @endcan
                                         @endforeach
                                         @php($publishedResult = $publishedResults->get($student->id))
+                                        @php($submittedResult = $submittedResults->get($student->id))
                                         <td class="px-3 py-3">
                                             @if ($publishedResult !== null)
                                                 <span class="block font-medium">{{ $publishedResult->percentage === null ? 'No percentage' : number_format($publishedResult->percentage, 2).'%' }}</span>
@@ -169,13 +170,35 @@
                                             @else
                                                 <span class="text-muted-foreground">Not published</span>
                                             @endif
+                                            @if ($submittedResult !== null && $submittedResult->approval_status !== \App\Enums\ResultApprovalStatus::Approved)
+                                                <span class="mt-2 block text-xs font-medium {{ $submittedResult->approval_status === \App\Enums\ResultApprovalStatus::Rejected ? 'text-destructive' : 'text-amber-600 dark:text-amber-400' }}">
+                                                    Revision {{ $submittedResult->revision }} · {{ $submittedResult->approval_status->label() }}
+                                                </span>
+                                            @endif
                                             @can('publishResult', $courseOffering)
                                                 <form method="POST" action="{{ route('course-offerings.gradebook.results.publish', $courseOffering) }}" class="mt-2">
                                                     @csrf
                                                     <input type="hidden" name="student_record_id" value="{{ $student->id }}">
-                                                    <april:button size="sm" variant="outline" type="submit">{{ $publishedResult === null ? 'Publish' : 'Publish revision' }}</april:button>
+                                                    <april:button size="sm" variant="outline" type="submit">{{ $publishedResult === null ? 'Submit for approval' : 'Submit revision' }}</april:button>
                                                 </form>
                                             @endcan
+                                            @if ($submittedResult?->approval_status === \App\Enums\ResultApprovalStatus::Pending)
+                                                @can('approveResult', $courseOffering)
+                                                    <div class="mt-2 flex flex-wrap gap-2">
+                                                        <form method="POST" action="{{ route('course-offerings.gradebook.results.approve', $courseOffering) }}">
+                                                            @csrf
+                                                            <input type="hidden" name="result_snapshot_id" value="{{ $submittedResult->id }}">
+                                                            <april:button size="sm" type="submit">Approve</april:button>
+                                                        </form>
+                                                        <form method="POST" action="{{ route('course-offerings.gradebook.results.reject', $courseOffering) }}" class="flex gap-2">
+                                                            @csrf
+                                                            <input type="hidden" name="result_snapshot_id" value="{{ $submittedResult->id }}">
+                                                            <input name="reason" required maxlength="500" placeholder="Reason to reject" class="h-8 w-40 rounded-md border border-input bg-background px-2 text-xs">
+                                                            <april:button size="sm" variant="outline" type="submit">Reject</april:button>
+                                                        </form>
+                                                    </div>
+                                                @endcan
+                                            @endif
                                         </td>
                                     </tr>
                                 @endforeach

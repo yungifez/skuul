@@ -11,7 +11,7 @@
         {{--full screen toggle--}}
         <april:button variant="ghost" size="icon" class="hidden sm:inline-flex" type="button"
             @click="fullScreen = !fullScreen; fullScreen == true ? document.documentElement.requestFullscreen() : document.exitFullscreen()">
-            <x-lucide-maximize class="size-4"  />
+            <x-lucide-maximize class="size-4" />
             <p class="sr-only">Full screen mode</p>
         </april:button>
         {{--Dark mode toggle--}}
@@ -51,7 +51,7 @@
                     </april:avatar>
                     <span
                         class="hidden max-w-40 truncate text-left text-sm font-medium lg:block">{{auth()->user()->name}}</span>
-                    <x-lucide-chevron-down class="size-3.5 text-muted-foreground"  />
+                    <x-lucide-chevron-down class="size-3.5 text-muted-foreground" />
                 </april:button>
             </slot:trigger>
             <slot:content class="right-4 top-14 w-72 md:right-6">

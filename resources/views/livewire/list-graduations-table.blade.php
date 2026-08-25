@@ -1,21 +1,7 @@
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title">Graduands in this academic year</h4>
-    </div>
-    <div class="card-body">
-        <livewire:datatable :model="App\Models\User::class" uniqueId="students-list-table"
-        :filters="[['name' => 'students'], ['name' => 'ofSchool'], ['name' => 'orderBy' , 'arguments' => ['name']], ['name' => 'has', 'arguments' => ['graduatedStudentRecord']], ['name' => 'with', 'arguments' => ['graduatedStudentRecord', 'graduatedStudentRecord.myClass', 'graduatedStudentRecord.section']]]" :columns="[
-            ['property' => 'name'] ,
-            ['property' => 'email'] ,
-            ['property' => 'admission_number' ,'relation' => 'graduatedStudentRecord'] ,
-            ['property' => 'name', 'name' => 'From Class' ,'relation' => 'graduatedStudentRecord.myClass'] ,
-            ['property' => 'name', 'name' => 'From section' ,'relation' => 'graduatedStudentRecord.section'] ,
-            ['type' => 'dropdown', 'name' => 'actions','links' => [
-                ['href' => 'students.edit', 'text' => 'Manage Profile', 'icon' => 'pencil',],
-                ['href' => 'students.show', 'text' => 'View', 'icon' => 'eye',  ],
-            ]],
-            ['type' => 'delete', 'name' => 'Reset', 'action' => 'students.graduations.reset',]
-         ]
-        "/>
-    </div>
-</div>
+<april:card><slot:title>Graduands in this academic year</slot:title><slot:description>Students with a completed graduation record.</slot:description><slot:content><div wire:key="{{ $id }}-{{ $this->tableRevision }}"><april:data-table id="{{ $id }}" :data="$data" :columns="$columns" :pagination="$pagination" :per-page-options="$perPageOptions" row-key="{{ $rowKey }}" :searchable="$searchable" @query-change="$wire.updateTable($event.detail)"><slot:empty><div class="space-y-1"><p class="font-medium text-foreground">No graduands yet</p><p>Graduated students will appear here.</p></div></slot:empty><slot:actions>
+    <x-table-actions :items="array_filter([
+        $canViewStudents ? ['label' => 'View student', 'icon' => 'eye', 'url' => 'view_url'] : null,
+        $canManageStudents ? ['label' => 'Manage student', 'icon' => 'pencil', 'url' => 'edit_url'] : null,
+        $canResetGraduations ? ['label' => 'Reset graduation', 'icon' => 'rotate-ccw', 'url' => 'reset_url', 'type' => 'delete', 'confirm' => 'Reset this graduation?'] : null,
+    ])" />
+</slot:actions></april:data-table></div></slot:content></april:card>

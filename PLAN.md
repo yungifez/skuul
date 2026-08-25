@@ -380,7 +380,10 @@ Progress:
   owns the default template, `School::effectiveCalendarTemplate()` lets a
   campus override it, and the override and the return to the organization
   calendar are both recorded.
-- Open: class offerings for a period.
+- Done: class offerings are period-specific `CourseOffering` records. They
+  validate the academic year, period, level, roster mode, sections, and
+  learners together, and connect the same offering to teachers, timetables,
+  gradebooks, and reports.
 
 ### 4. Admissions and people
 
@@ -451,8 +454,14 @@ Progress:
   same path.
 - Done: bulk import exists for students and staff, checked before it writes
   and safe to run twice (§19).
-- Open by decision: multi-campus applications, waitlists, capacity rules, and
-  multi-stage admission decisions stay deferred, as this section says.
+- Done: section capacity is enforced inside the placement action, so a full
+  section cannot accept a second active learner by accident.
+- Done: `admission_waitlist_entries` keeps a priority, original position, offer
+  and decision history. The highest-priority pending candidate receives the
+  next offer, and accepting it creates the enrollment and placement together.
+- Deferred by decision: multi-campus applications and multi-stage admission
+  decisions remain intentionally out of scope; the core admissions work is
+  complete for the current one-campus workflow.
 
 ### 5. Student lifecycle
 
@@ -832,8 +841,11 @@ Progress:
   guard before it writes an official result.
 - Done: publication is separate from grading.
   `App\Actions\Gradebook\PublishResult` copies the calculation into an
-  append-only `result_snapshots` row with a revision number. A correction
-  publishes the next revision; the earlier one never changes.
+  append-only `result_snapshots` row with a revision number and a pending
+  approval state. `ApproveResult` or `RejectResult` records the decision;
+  only approved revisions reach families, reports, ranking, graduation, and
+  transfer packages. A correction publishes the next revision; the earlier
+  one never changes.
 - Done: the breaking schema migration discards old gradebook records that
   cannot name an exact offering before making that relationship mandatory.
   There is no raw subject/year/period compatibility path.
@@ -857,6 +869,9 @@ Progress:
   source IDs and revisions, actor, timestamp, and reason. A correction makes
   a new report-card revision, and the report-card workspace lets staff issue,
   list, and inspect the frozen subject rows.
+- Done: result approval is permission-separated. Staff who can submit a
+  result do not automatically approve it; `approve result` is a school-scoped
+  permission, and submission, approval, and rejection are audited.
 
 ### 9. Fees, invoices, and payments
 
@@ -1094,8 +1109,13 @@ Progress:
   are printed by the worker, so a long document never holds up a request.
 - Done: the reports workspace lists what was asked for, in which shape, by
   whom, and offers the file once it is ready.
-- Open: report cards and transcripts still print through the same renderer but
-  read the signed-in school, so they cannot yet be queued.
+- Done: `App\Reports\ReportCardReport` and `App\Reports\TranscriptReport`
+  expose official report-card and transcript rows through the report registry,
+  so the shared report pipeline can render their retained snapshots.
+- Done: report-card and transcript exports use the same queued `BuildReport`
+  worker as the other reports. The report run stores its school and request
+  context before dispatch, and the finished file is downloaded only after the
+  worker marks it ready.
 
 ### 12. Platform operations
 
@@ -1254,8 +1274,12 @@ Progress:
 - Done: the family screens. A guardian or learner reads attendance, the school
   calendar, notices, and their own requests, and one page names every campus
   they have somebody at.
-- Open: document downloads, appointment times taken from the calendar, and
-  per-guardian notification settings.
+- Done: the portal lists and downloads retained report cards and transcripts as
+  official HTML documents, without exposing working gradebook data.
+- Done: a calendar appointment can hand its date, time, and title into a new
+  family request, so the school still approves the request before any record
+  changes.
+- Open: per-guardian notification settings.
 
 ### 15. Discipline and safeguarding
 
@@ -1288,7 +1312,10 @@ Progress:
   the cases already recorded.
 - Done: the screens. Staff record a case, read the list they are allowed to
   read, and move a case through its states with a reason.
-- Open: restricted notes inside a case, and case assignment by campus.
+- Done: restricted incident notes are append-only, audit logged, and visible
+  only to authorized case readers, safeguarding readers, the handler, or the
+  reporter.
+- Open: case assignment by campus.
 
 ### 16. Student support and wellbeing
 
@@ -1398,6 +1425,8 @@ Progress:
 - Done: events never cross a school, because `calendar_events` uses the school
   scope like every other record.
 - Done: the calendar screens, for the school and for a family.
+- Done: calendar appointment events offer a request handoff to the family
+  portal while keeping approval in the existing request workflow.
 - Open: links from a timetable item to an event, per-campus category switches,
   and appointment booking.
 
@@ -1579,8 +1608,9 @@ Progress:
   on duty. A learner can never supervise a house.
 - Done: overnight leave with states that only move forward, a clash check, and
   a roster that answers who is out of the building tonight.
-- Open: boarding charges through the fee categories, and a house view for the
-  family portal.
+- Done: the family portal shows the learner's current boarding house, room, and
+  bed when the boarding area is enabled.
+- Open: boarding charges through the fee categories.
 
 ### 23. Library
 
@@ -1625,8 +1655,9 @@ Progress:
   copy, so the shelf and the loan record cannot drift apart.
 - Done: an overdue fine goes through `ChargeStudent`, so library money is the
   same money as every other charge and one balance answers what a family owes.
-- Open: reservations and holds, a borrower's own list in the portal, and
-  lending to a whole class at once.
+- Done: reservations and holds use a queue with expiry processing; borrowers
+  can see their own loans and reservations in the family portal; and staff can
+  issue a title to a whole section while enforcing copy and borrower limits.
 
 ## Cross-feature decisions
 
@@ -1642,12 +1673,24 @@ Resolved:
 8. Official report snapshots, CSV exports, and queued browser-based PDFs.
 9. Container deployment, Redis queues, scheduled jobs, backups, and audit logs.
 
-Open before implementation:
+Release decisions still requiring owner sign-off:
 
-1. Who can approve published results when an organization enables approval.
-2. Data retention, archival, and deletion rules by record category.
-3. The first production deployment target and operational recovery objectives.
-4. The first report set required by the pilot schools.
+1. The school-scoped `approve result` permission is the implemented authority
+   for published-result approval.
+2. Data retention, archival, and deletion rules remain proposed until the data
+   owner approves the policy version.
+3. Recovery targets are recorded as a 24-hour RPO and four-hour RTO; the first
+   production deployment target remains open.
+4. The pilot report set is class list, student balances, report cards, and
+   transcripts.
+
+Progress on the release gate:
+
+- Done: `skuul:release-readiness` checks retention approval, recovery targets,
+  and the pilot report registry.
+- Done: `OPERATIONS.md` records the proposed retention categories, a 24-hour
+  RPO, a four-hour RTO, and the restore-rehearsal procedure. The data owner
+  must approve the retention version before production.
 
 ## Delivery plan
 

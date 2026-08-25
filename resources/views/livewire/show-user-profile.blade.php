@@ -29,9 +29,12 @@
                         'Gender' => $user->gender,
                         'Birthday' => $user->birthday,
                         'Nationality' => $user->nationality,
-                        'State' => $user->state,
+                        'Country' => $user->country ?: $user->nationality,
+                        'State / Province' => $user->state,
                         'City' => $user->city,
-                        'Address' => $user->address,
+                        'Address line 1' => $user->address,
+                        'Address line 2' => $user->address_line_2,
+                        'Postal / ZIP code' => $user->postal_code,
                     ] as $label => $value)
                         <div class="border-b pb-3">
                             <dt class="text-xs font-medium uppercase tracking-wide text-muted-foreground">{{ $label }}</dt>

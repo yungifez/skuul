@@ -107,6 +107,12 @@ class PermissionSeeder extends Seeder
         Permission::firstOrCreate([
             'name' => 'delete student',
         ]);
+        Permission::firstOrCreate([
+            'name' => 'read admission waitlist',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'manage admission waitlist',
+        ]);
 
         // Permission for admins
         Permission::firstOrCreate([
@@ -320,6 +326,9 @@ class PermissionSeeder extends Seeder
         ]);
         Permission::firstOrCreate([
             'name' => 'publish result',
+        ]);
+        Permission::firstOrCreate([
+            'name' => 'approve result',
         ]);
 
         Permission::firstOrCreate([
@@ -743,6 +752,8 @@ class PermissionSeeder extends Seeder
             'read student',
             'update student',
             'delete student',
+            'read admission waitlist',
+            'manage admission waitlist',
             'create academic year',
             'read academic year',
             'update academic year',
@@ -795,6 +806,7 @@ class PermissionSeeder extends Seeder
             'read gradebook',
             'manage gradebook',
             'publish result',
+            'approve result',
             'read attendance',
             'take attendance',
             'menu-attendance',

@@ -46,6 +46,9 @@ class PortalRequestController extends Controller
                 ->latest('id')
                 ->get(),
             'types' => PortalRequestType::cases(),
+            'appointmentType' => PortalRequestType::tryFrom($request->string('type')->toString()),
+            'appointmentSubject' => $request->string('subject')->toString(),
+            'appointmentMessage' => $request->string('message')->toString(),
         ]);
     }
 

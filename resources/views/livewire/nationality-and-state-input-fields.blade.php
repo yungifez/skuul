@@ -1,7 +1,7 @@
-<div class="md:flex gap-2">
+<div class="grid gap-4 sm:grid-cols-2">
     <div class="flex w-full flex-col gap-2">
-        <april:label for="nationality">Nationality</april:label>
-        <april:select id="nationality" name="nationality" wire:model.live="nationality">
+        <april:label for="country">Country</april:label>
+        <april:select id="country" name="nationality" wire:model.live="country">
             <option value="">Not specified</option>
         @foreach ($nationalities as $item)
             <option value="{{$item}}">{{$item}}</option>
@@ -13,7 +13,7 @@
         @enderror
     </div>
     <div class="flex w-full flex-col gap-2">
-        <april:label for="state">State</april:label>
+        <april:label for="state">State / Province</april:label>
         <april:select id="state" name="state" wire:init="loadInitialStates" wire:model.live="state">
         @if (isset($states))
             @foreach ($states as $item)

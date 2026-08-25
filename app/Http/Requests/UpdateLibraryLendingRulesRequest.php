@@ -19,6 +19,7 @@ class UpdateLibraryLendingRulesRequest extends FormRequest
             'learner_limit' => 'required|integer|min:1|max:100',
             'staff_limit' => 'required|integer|min:1|max:200',
             'renewals_allowed' => 'required|integer|min:0|max:10',
+            'hold_days' => 'required|integer|min:1|max:30',
             'fine_per_day' => 'required|numeric|min:0|max:100000',
         ];
     }

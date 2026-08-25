@@ -5,6 +5,7 @@ namespace App\Actions\Enrollment;
 use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
+use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicPeriod;
@@ -61,6 +62,20 @@ class ChangeEnrollmentPlacement
             // The same place in the same year is not a move. Record nothing.
             if ($this->alreadyPlaced($enrollment, $academicCycleSection)) {
                 return $enrollment;
+            }
+
+            if ($academicCycleSection->capacity !== null) {
+                $occupied = StudentRecord::query()
+                    ->where('school_id', $academicCycleSection->school_id)
+                    ->where('academic_cycle_section_id', $academicCycleSection->id)
+                    ->where('status', EnrollmentStatus::Active)
+                    ->count();
+
+                if ($occupied >= $academicCycleSection->capacity) {
+                    throw new InvalidValueException(
+                        "The cycle section is full at {$academicCycleSection->capacity} learners. Add the candidate to its admission waitlist instead."
+                    );
+                }
             }
 
             EnrollmentPlacement::create([

@@ -4,10 +4,12 @@ namespace App\Actions\Library;
 
 use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AuditAction;
+use App\Enums\LibraryReservationStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\LibraryCopy;
 use App\Models\LibraryLendingRules;
 use App\Models\LibraryLoan;
+use App\Models\LibraryReservation;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -20,7 +22,10 @@ use Illuminate\Support\Facades\DB;
  */
 class IssueLoan
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(
+        private CloseReservation $closeReservation,
+        private RecordAuditEvent $auditor,
+    ) {}
 
     /**
      * Issue the copy.
@@ -37,7 +42,10 @@ class IssueLoan
             $copy = LibraryCopy::query()->lockForUpdate()->with('title')->findOrFail($copy->getKey());
             $policy = LibraryLendingRules::forSchool($copy->school_id);
 
+            $held = $this->heldCopyReservation($copy);
+
             $this->refuseWhatCannotBeLent($copy, $borrower, $policy);
+            $this->refuseACopyHeldForSomebodyElse($held, $borrower);
 
             $issuedOn ??= now();
 
@@ -49,6 +57,12 @@ class IssueLoan
                 'due_on' => $issuedOn->copy()->addDays($policy->loan_days),
                 'issued_by' => $actor === null ? auth()->id() : $actor->id,
             ]);
+
+            // The person the copy was waiting for has come for it, so their
+            // place in the queue is done with.
+            if ($held !== null) {
+                $this->closeReservation->collected($held, $actor);
+            }
 
             $this->auditor->record(
                 AuditAction::LibraryLoanIssued,
@@ -65,6 +79,31 @@ class IssueLoan
 
             return $loan;
         });
+    }
+
+    /**
+     * Get the reservation this copy is being kept behind the desk for.
+     */
+    private function heldCopyReservation(LibraryCopy $copy): ?LibraryReservation
+    {
+        return LibraryReservation::query()
+            ->where('library_copy_id', $copy->id)
+            ->where('status', LibraryReservationStatus::Ready->value)
+            ->first();
+    }
+
+    /**
+     * Refuse a copy that is waiting behind the desk for another person.
+     *
+     * @throws InvalidValueException
+     */
+    private function refuseACopyHeldForSomebodyElse(?LibraryReservation $held, User $borrower): void
+    {
+        if ($held !== null && $held->user_id !== $borrower->id) {
+            throw new InvalidValueException(
+                'This copy is being kept for somebody else who reserved it. Lend another copy.'
+            );
+        }
     }
 
     /**

@@ -149,6 +149,7 @@ class TransferPackageBuilder
     private function results(StudentRecord $enrollment): array
     {
         return ResultSnapshot::query()
+            ->approved()
             ->where('student_record_id', $enrollment->id)
             ->with('courseOffering.subject')
             ->get()

@@ -2,13 +2,19 @@
 
 namespace App\Services\Portal;
 
+use App\Enums\Feature;
 use App\Enums\NoticeStatus;
 use App\Enums\PortalArea;
+use App\Models\BoardingPlace;
 use App\Models\FeeInvoice;
+use App\Models\LibraryLoan;
+use App\Models\LibraryReservation;
 use App\Models\NoticeRecipient;
+use App\Models\ReportCardSnapshot;
 use App\Models\ResultSnapshot;
 use App\Models\StudentRecord;
 use App\Models\Timetable;
+use App\Models\TranscriptSnapshot;
 use App\Services\Attendance\AttendanceSummary;
 use App\Services\Finance\StudentLedger;
 use Illuminate\Support\Collection;
@@ -42,6 +48,7 @@ class PortalSummary
 
         return ResultSnapshot::query()
             ->where('student_record_id', $enrollment->id)
+            ->approved()
             ->when($academicYearId !== null, fn ($query) => $query->whereHas('courseOffering', fn ($query) => $query->where('academic_year_id', $academicYearId)))
             ->when($academicPeriodId !== null, fn ($query) => $query->whereHas('courseOffering', fn ($query) => $query->where('academic_period_id', $academicPeriodId)))
             ->with('courseOffering.subject')
@@ -118,6 +125,95 @@ class PortalSummary
                 ->get(),
             'balance'          => $this->ledger->balance($enrollment),
             'unapplied_credit' => $this->ledger->unappliedCredit($enrollment),
+        ];
+    }
+
+    /**
+     * Get the learner's current loans and library queue entries.
+     *
+     * @return array{loans: Collection<int, LibraryLoan>, reservations: Collection<int, LibraryReservation>}|null
+     */
+    public function library(StudentRecord $enrollment): ?array
+    {
+        if (!$this->access->areaIsOpen(PortalArea::Library, $enrollment->school_id)) {
+            return null;
+        }
+
+        return [
+            'loans' => LibraryLoan::query()
+                ->where('school_id', $enrollment->school_id)
+                ->where('user_id', $enrollment->user_id)
+                ->open()
+                ->with('copy.title')
+                ->orderBy('due_on')
+                ->get(),
+            'reservations' => LibraryReservation::query()
+                ->where('school_id', $enrollment->school_id)
+                ->where('user_id', $enrollment->user_id)
+                ->stillGoing()
+                ->with(['title', 'copy'])
+                ->orderBy('id')
+                ->get(),
+        ];
+    }
+
+    /**
+     * Get the newest official documents published for the learner.
+     *
+     * @return array{reportCards: Collection<int, ReportCardSnapshot>, transcript: TranscriptSnapshot|null}|null
+     */
+    public function documents(StudentRecord $enrollment): ?array
+    {
+        if (!$this->access->areaIsOpen(PortalArea::Documents, $enrollment->school_id)) {
+            return null;
+        }
+
+        $reportCards = ReportCardSnapshot::query()
+            ->where('school_id', $enrollment->school_id)
+            ->where('student_record_id', $enrollment->id)
+            ->with('academicPeriod:id,name,label')
+            ->orderBy('academic_period_id')
+            ->orderByDesc('revision')
+            ->get()
+            ->unique('academic_period_id')
+            ->values();
+
+        return [
+            'reportCards' => $reportCards,
+            'transcript' => TranscriptSnapshot::query()
+                ->where('school_id', $enrollment->school_id)
+                ->where('student_record_id', $enrollment->id)
+                ->latest('revision')
+                ->first(),
+        ];
+    }
+
+    /**
+     * Get the current house, room, and bed for a boarder.
+     *
+     * @return array{place: string|null}|null
+     */
+    public function boarding(StudentRecord $enrollment): ?array
+    {
+        if (!$this->access->areaIsOpen(PortalArea::Boarding, $enrollment->school_id)
+            || !features()->enabled(Feature::Boarding, $enrollment->school_id)) {
+            return null;
+        }
+
+        $place = BoardingPlace::query()
+            ->where('school_id', $enrollment->school_id)
+            ->where('student_record_id', $enrollment->id)
+            ->latest('id')
+            ->with('bed.room.dormitory')
+            ->first();
+        $bed = $place?->bed;
+        $room = $bed?->room;
+        $house = $room?->dormitory;
+
+        return [
+            'place' => $place?->isBoarding()
+                ? trim(implode(' · ', array_filter([$house?->name, $room?->name, $bed?->name])), ' ·')
+                : null,
         ];
     }
 }

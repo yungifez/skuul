@@ -34,6 +34,8 @@ class ReportTest extends TestCase
 
         $this->assertArrayHasKey('student-balances', $reports);
         $this->assertArrayHasKey('class-list', $reports);
+        $this->assertArrayHasKey('report-cards', $reports);
+        $this->assertArrayHasKey('transcripts', $reports);
     }
 
     public function test_an_unknown_report_is_refused(): void
@@ -53,6 +55,19 @@ class ReportTest extends TestCase
         $this->assertSame(ReportStatus::Queued, $run->status);
         $this->assertSame($this->workingSchool()->id, $run->school_id);
         Queue::assertPushed(BuildReport::class);
+    }
+
+    public function test_official_report_cards_and_transcripts_are_queued(): void
+    {
+        Queue::fake();
+        $this->authorized_user(['create report']);
+
+        $reportCard = app(RequestReport::class)->request('report-cards');
+        $transcript = app(RequestReport::class)->request('transcripts');
+
+        $this->assertSame(ReportStatus::Queued, $reportCard->status);
+        $this->assertSame(ReportStatus::Queued, $transcript->status);
+        Queue::assertPushed(BuildReport::class, 2);
     }
 
     public function test_building_a_report_writes_a_file(): void

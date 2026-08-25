@@ -111,6 +111,7 @@ class GraduationProgress
         }
 
         $snapshot = ResultSnapshot::query()
+            ->approved()
             ->where('student_record_id', $enrollment->id)
             ->whereHas('courseOffering', fn ($query) => $query->where('subject_id', $requirement->subject_id))
             ->with('courseOffering.academicYear')

@@ -27,6 +27,7 @@ class LibraryLendingRules extends Model
         'learner_limit',
         'staff_limit',
         'renewals_allowed',
+        'hold_days',
         'fine_per_day',
         'updated_by',
     ];
@@ -39,6 +40,7 @@ class LibraryLendingRules extends Model
         'learner_limit' => 3,
         'staff_limit' => 10,
         'renewals_allowed' => 1,
+        'hold_days' => 3,
         'fine_per_day' => 0,
     ];
 
@@ -50,6 +52,7 @@ class LibraryLendingRules extends Model
         'learner_limit' => 'integer',
         'staff_limit' => 'integer',
         'renewals_allowed' => 'integer',
+        'hold_days' => 'integer',
         'fine_per_day' => 'integer',
     ];
 

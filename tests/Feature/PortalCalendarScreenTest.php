@@ -90,6 +90,25 @@ class PortalCalendarScreenTest extends TestCase
             ->assertDontSee('A meeting about another child');
     }
 
+    public function test_an_appointment_offers_its_published_time_as_a_portal_request(): void
+    {
+        $enrollment = $this->enrollment();
+        $appointment = $this->event([
+            'title' => 'Guardian meeting',
+            'type' => CalendarEventType::Appointment,
+            'is_all_day' => false,
+            'starts_at' => now()->addDay()->setTime(14, 0),
+            'ends_at' => now()->addDay()->setTime(14, 30),
+        ]);
+        $this->eventFor($appointment, ['user_id' => $enrollment->user_id]);
+
+        $this->actingAs($this->guardianOf($enrollment))
+            ->get(route('portal.calendar.index', $enrollment))
+            ->assertOk()
+            ->assertSee('Request this time');
+
+    }
+
     public function test_a_child_reads_their_own_calendar(): void
     {
         $enrollment = $this->enrollment();

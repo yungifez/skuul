@@ -3,17 +3,22 @@
 namespace Tests\Feature;
 
 use App\Actions\Library\IssueLoan;
+use App\Actions\Library\IssueTitleToSection;
 use App\Actions\Library\RenewLoan;
+use App\Actions\Library\ReserveTitle;
 use App\Actions\Library\ReturnLoan;
 use App\Enums\AuditAction;
 use App\Enums\Feature;
 use App\Enums\LibraryCopyStatus;
+use App\Enums\LibraryReservationStatus;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
 use App\Models\AuditEvent;
 use App\Models\LedgerTransaction;
 use App\Models\LibraryCopy;
 use App\Models\LibraryLendingRules;
 use App\Models\LibraryLoan;
+use App\Models\LibraryReservation;
 use App\Models\LibraryTitle;
 use App\Models\School;
 use App\Models\StudentRecord;
@@ -45,6 +50,7 @@ class LibraryTest extends TestCase
         $this->assertFalse($rules->exists);
         $this->assertSame(14, $rules->loan_days);
         $this->assertSame(3, $rules->learner_limit);
+        $this->assertSame(3, $rules->hold_days);
         $this->assertFalse($rules->chargesFines());
     }
 
@@ -138,6 +144,117 @@ class LibraryTest extends TestCase
         $this->assertFalse($copy->fresh()->isOut());
         $this->assertTrue($copy->fresh()->canBeLent());
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::LibraryLoanReturned)->first());
+    }
+
+    public function test_a_reservation_holds_a_returned_copy_for_the_next_person(): void
+    {
+        $this->authorized_user([]);
+        $copy = $this->copy();
+        $firstBorrower = $this->memberOf($this->workingSchool());
+        $secondBorrower = $this->memberOf($this->workingSchool());
+        $loan = app(IssueLoan::class)->issue($copy, $firstBorrower);
+
+        $reservation = app(ReserveTitle::class)->reserve($copy->title, $secondBorrower);
+
+        $this->assertSame(LibraryReservationStatus::Waiting, $reservation->status);
+
+        app(ReturnLoan::class)->receive($loan);
+
+        $reservation = $reservation->fresh();
+        $this->assertSame(LibraryReservationStatus::Ready, $reservation->status);
+        $this->assertSame($copy->id, $reservation->library_copy_id);
+
+        $collected = app(IssueLoan::class)->issue($copy->fresh(), $secondBorrower);
+
+        $this->assertSame($secondBorrower->id, $collected->user_id);
+        $this->assertSame(LibraryReservationStatus::Collected, $reservation->fresh()->status);
+    }
+
+    public function test_a_reserved_copy_cannot_be_given_to_somebody_else(): void
+    {
+        $this->authorized_user([]);
+        $copy = $this->copy();
+        $firstBorrower = $this->memberOf($this->workingSchool());
+        $secondBorrower = $this->memberOf($this->workingSchool());
+        $otherBorrower = $this->memberOf($this->workingSchool());
+        $loan = app(IssueLoan::class)->issue($copy, $firstBorrower);
+        app(ReserveTitle::class)->reserve($copy->title, $secondBorrower);
+        app(ReturnLoan::class)->receive($loan);
+
+        $this->expectException(InvalidValueException::class);
+
+        app(IssueLoan::class)->issue($copy->fresh(), $otherBorrower);
+    }
+
+    public function test_the_lending_desk_can_add_somebody_to_the_library_queue(): void
+    {
+        $actor = $this->authorized_user(['read library', 'lend library item']);
+        app(FeatureManager::class)->enable(Feature::Library);
+        $copy = $this->copy();
+        $borrower = $this->memberOf($this->workingSchool());
+
+        $actor->post(route('library-reservations.store'), [
+            'library_title_id' => $copy->library_title_id,
+            'user_id' => $borrower->id,
+        ])->assertRedirect();
+
+        $this->assertSame(1, LibraryReservation::query()->count());
+    }
+
+    public function test_a_librarian_can_lend_a_title_to_every_attending_learner_in_a_section(): void
+    {
+        $this->authorized_user([]);
+        $school = $this->workingSchool();
+        $section = AcademicCycleSection::factory()->create(['school_id' => $school->id]);
+        $first = StudentRecord::factory()->create([
+            'school_id' => $school->id,
+            'academic_cycle_section_id' => $section->id,
+        ]);
+        $second = StudentRecord::factory()->create([
+            'school_id' => $school->id,
+            'academic_cycle_section_id' => $section->id,
+        ]);
+        $this->memberOf($school, $first->user);
+        $this->memberOf($school, $second->user);
+        $title = LibraryTitle::factory()->create();
+        LibraryCopy::factory()->create(['school_id' => $school->id, 'library_title_id' => $title->id]);
+        LibraryCopy::factory()->create(['school_id' => $school->id, 'library_title_id' => $title->id]);
+
+        $loans = app(IssueTitleToSection::class)->issue($section, $title);
+
+        $this->assertCount(2, $loans);
+        $this->assertSame(
+            [$first->user_id, $second->user_id],
+            $loans->pluck('user_id')->all(),
+        );
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::LibrarySectionLoansIssued)->first());
+    }
+
+    public function test_a_class_set_does_not_partially_lend_when_copies_are_missing(): void
+    {
+        $this->authorized_user([]);
+        $school = $this->workingSchool();
+        $section = AcademicCycleSection::factory()->create(['school_id' => $school->id]);
+        $first = StudentRecord::factory()->create([
+            'school_id' => $school->id,
+            'academic_cycle_section_id' => $section->id,
+        ]);
+        $second = StudentRecord::factory()->create([
+            'school_id' => $school->id,
+            'academic_cycle_section_id' => $section->id,
+        ]);
+        $this->memberOf($school, $first->user);
+        $this->memberOf($school, $second->user);
+        $title = LibraryTitle::factory()->create();
+        LibraryCopy::factory()->create(['school_id' => $school->id, 'library_title_id' => $title->id]);
+
+        $this->expectException(InvalidValueException::class);
+
+        try {
+            app(IssueTitleToSection::class)->issue($section, $title);
+        } finally {
+            $this->assertSame(0, LibraryLoan::count());
+        }
     }
 
     public function test_a_copy_cannot_come_back_twice(): void
@@ -312,12 +429,14 @@ class LibraryTest extends TestCase
             'learner_limit' => 2,
             'staff_limit' => 20,
             'renewals_allowed' => 0,
+            'hold_days' => 5,
             'fine_per_day' => 25.50,
         ])->assertRedirect();
 
         $rules = LibraryLendingRules::forSchool();
         $this->assertSame(7, $rules->loan_days);
         $this->assertSame(2_550, $rules->fine_per_day);
+        $this->assertSame(5, $rules->hold_days);
     }
 
     /**

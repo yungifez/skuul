@@ -21,7 +21,7 @@ class PublishTranscript
     public function publish(StudentRecord $studentRecord, User $actor, ?string $reason = null): TranscriptSnapshot
     {
         return DB::transaction(function () use ($studentRecord, $actor, $reason): TranscriptSnapshot {
-            $results = ResultSnapshot::query()->where('student_record_id', $studentRecord->id)->with('courseOffering.subject:id,name,short_name', 'courseOffering.academicYear:id,start_year,stop_year', 'courseOffering.academicPeriod:id,name,label')->orderBy('course_offering_id')->orderByDesc('revision')->get()->unique('course_offering_id')->values();
+            $results = ResultSnapshot::query()->where('student_record_id', $studentRecord->id)->approved()->with('courseOffering.subject:id,name,short_name', 'courseOffering.academicYear:id,start_year,stop_year', 'courseOffering.academicPeriod:id,name,label')->orderBy('course_offering_id')->orderByDesc('revision')->get()->unique('course_offering_id')->values();
             if ($results->isEmpty()) {
                 throw new InvalidValueException('Publish at least one subject result before issuing a transcript.');
             }

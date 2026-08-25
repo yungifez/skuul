@@ -1,21 +1,24 @@
 @props(['submit'])
 
-<div {{ $attributes->merge(['class' => 'md:grid grid-rows-1 grid-cols-12 gap-2']) }}>
-    <div class="col-span-4">
-        <h2 class="text-xl font-bold my-2">{{$title}}</h2>
-        <p class="text-sm">{{$description}}</p>
+<div {{ $attributes->merge(['class' => 'grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:items-start']) }}>
+    <div class="flex flex-col gap-2 lg:pt-2">
+        <h2 class="text-lg font-semibold tracking-tight">{{$title}}</h2>
+        <p class="text-sm leading-6 text-muted-foreground">{{$description}}</p>
     </div>
-    <div class="col-span-8 card shadow-sm">
-        <form wire:submit="{{ $submit }}">
-            <div class="card-body">
-            {{ $form }}
-            </div>
+
+    <form wire:submit="{{ $submit }}">
+        <april:card>
+            <slot:content>
+                <div class="flex flex-col gap-6 pt-6">
+                    {{ $form }}
+                </div>
+            </slot:content>
 
             @if (isset($actions))
-                <div class="border-t bg-slate-100 dark:bg-gray-800 px-3 flex justify-end ">
+                <slot:footer class="justify-end gap-3">
                     {{ $actions }}
-                </div>
+                </slot:footer>
             @endif
-        </form>
-    </div>
+        </april:card>
+    </form>
 </div>

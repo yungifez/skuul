@@ -87,6 +87,15 @@ class CourseOfferingPolicy
         return $this->canWorkInGradebook($user, $courseOffering, 'publish result');
     }
 
+    /**
+     * Determine whether the user may approve a submitted result.
+     */
+    public function approveResult(User $user, CourseOffering $courseOffering): bool
+    {
+        return $user->can('approve result')
+            && current_school_id() === $courseOffering->school_id;
+    }
+
     private function canWorkInGradebook(User $user, CourseOffering $courseOffering, string $permission): bool
     {
         if (!$user->can($permission) || current_school_id() !== $courseOffering->school_id) {

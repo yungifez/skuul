@@ -8,26 +8,19 @@
     </x-slot>
 
     <x-slot name="form">
-    <x-action-message on="saved">
-        {{ __('Updated password') }}
-    </x-action-message>
-        <div class="w-md-75">
-            <div class="form-group">
-                <april:input-group id="current_password" type="password" wire:model="state.current_password" autocomplete="current-password" name="current_password" label="Current Password" />
-            </div>
+        <x-action-message on="saved">
+            {{ __('Updated password') }}
+        </x-action-message>
 
-            <div class="form-group">
-                <april:input-group label="New Password" name="password" id="password" type="password" wire:model="state.password" autocomplete="new-password" />
-            </div>
-
-            <div class="form-group">
-                <april:input-group name="password_confirmation" label="Confirm Password" id="password_confirmation" type="password" wire:model="state.password_confirmation" autocomplete="new-password" />
-            </div>
+        <div class="grid gap-4">
+            <april:input-group id="current_password" type="password" wire:model="state.current_password" autocomplete="current-password" name="current_password" label="Current password" />
+            <april:input-group label="New password" name="password" id="password" type="password" wire:model="state.password" autocomplete="new-password" />
+            <april:input-group name="password_confirmation" label="Confirm new password" id="password_confirmation" type="password" wire:model="state.password_confirmation" autocomplete="new-password" />
         </div>
     </x-slot>
 
     <x-slot name="actions">
-        <april:button class="w-6/12 lg:w-3/12">
+        <april:button>
             {{ __('Save') }}
         </april:button>
     </x-slot>

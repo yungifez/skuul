@@ -1,20 +1,7 @@
-<div class="card" >
-    <div class="card-header">
-        <h4 class="card-title">All Schools</h4>
-    </div>
-    <div class="card-body">
-        <livewire:datatable :model="App\Models\School::class" uniqueId="schoolTablepage" :empty-state="['heading' => 'No schools yet', 'description' => 'Add the first campus to begin school operations.', 'action' => ['href' => route('schools.create'), 'ability' => 'create', 'arguments' => [\App\Models\School::class], 'label' => 'Add school']]" :columns="
-        [
-            ['property' => 'name'] ,
-            ['property' => 'initials' ],
-            ['property' => 'address'],
-            ['property' => 'code'],
-            ['type' => 'dropdown', 'name' => 'actions','links' => [
-                ['href' => 'schools.edit', 'text' => 'Settings', 'icon' => 'settings'],
-                ['href' => 'schools.show', 'text' => 'View', 'icon' => 'eye'],
-            ]],
-            ['type' => 'delete', 'name' => 'Delete', 'action' => 'schools.destroy']
-         ]
-        "/>
-    </div>
-</div>
+<april:card><slot:title>All schools</slot:title><slot:description>Schools available in the platform.</slot:description><slot:content><div wire:key="{{ $id }}-{{ $this->tableRevision }}"><april:data-table id="{{ $id }}" :data="$data" :columns="$columns" :pagination="$pagination" :per-page-options="$perPageOptions" row-key="{{ $rowKey }}" :searchable="$searchable" @query-change="$wire.updateTable($event.detail)"><slot:empty><div class="space-y-1"><p class="font-medium text-foreground">No schools yet</p><p>Add the first campus to begin school operations.</p></div></slot:empty><slot:actions>
+    <x-table-actions :items="array_filter([
+        ['label' => 'View school', 'icon' => 'eye', 'url' => 'view_url'],
+        $canEditSchools ? ['label' => 'Edit school', 'icon' => 'settings', 'url' => 'edit_url'] : null,
+        $canDeleteSchools ? ['label' => 'Delete school', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete this school?'] : null,
+    ])" />
+</slot:actions></april:data-table></div></slot:content></april:card>

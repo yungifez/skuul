@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\ListParentsTable;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class ParentTest extends TestCase
@@ -23,7 +25,32 @@ class ParentTest extends TestCase
 
     public function test_view_all_parents_can_be_accessed_by_authorised_users()
     {
-        $this->authorized_user(['read parent'])->get('dashboard/parents')->assertOk();
+        $this->authorized_user(['read parent'])
+            ->get('dashboard/parents')
+            ->assertOk()
+            ->assertSee('data-slot="data-table"', false)
+            ->assertSee('Search rows...')
+            ->assertSee('No parents yet');
+    }
+
+    public function test_the_parent_table_searches_rows_on_the_server(): void
+    {
+        $matchingParent = User::factory()->create(['name' => 'Ada Lovelace']);
+        $matchingParent->assignRole('parent');
+
+        $otherParent = User::factory()->create(['name' => 'Grace Hopper']);
+        $otherParent->assignRole('parent');
+
+        $this->authorized_user(['read parent']);
+
+        Livewire::test(ListParentsTable::class)
+            ->call('updateTable', [
+                'search' => 'Ada',
+                'perPage' => 10,
+                'page' => 1,
+            ])
+            ->assertSee('Ada Lovelace')
+            ->assertDontSee('Grace Hopper');
     }
 
     public function test_create_parent_cannot_be_accessed_by_unauthorised_users()

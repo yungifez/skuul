@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Academic\ChangeAcademicPeriodStatus;
-use App\Http\Requests\AcademicYearStoreRequest;
 use App\Http\Requests\ChangeAcademicPeriodStatusRequest;
 use App\Models\AcademicYear;
 use App\Services\AcademicYear\AcademicYearService;
@@ -13,11 +12,10 @@ use Illuminate\View\View;
 
 class AcademicYearController extends Controller
 {
-    public $academicYear;
-
-    public function __construct(AcademicYearService $academicYear, private ChangeAcademicPeriodStatus $changeAcademicPeriodStatus)
-    {
-        $this->academicYear = $academicYear;
+    public function __construct(
+        private AcademicYearService $academicYear,
+        private ChangeAcademicPeriodStatus $changeAcademicPeriodStatus,
+    ) {
         $this->authorizeResource(AcademicYear::class, 'academic_year');
     }
 
@@ -38,17 +36,6 @@ class AcademicYearController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     */
-    public function store(AcademicYearStoreRequest $request): RedirectResponse
-    {
-        $data = $request->except('_token');
-        $this->academicYear->createAcademicYear($data);
-
-        return back()->with('success', 'Academic year created successfully');
-    }
-
-    /**
      * Display the specified resource.
      */
     public function show(AcademicYear $academicYear): View
@@ -65,24 +52,13 @@ class AcademicYearController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     */
-    public function update(AcademicYearStoreRequest $request, AcademicYear $academicYear)
-    {
-        $data = $request->except('_token', '_method');
-        $this->academicYear->updateAcademicYear($academicYear, $data);
-
-        return back()->with('success', 'Academic year updated successfully');
-    }
-
-    /**
      * Remove the specified resource from storage.
      */
     public function destroy(AcademicYear $academicYear): RedirectResponse
     {
         $this->academicYear->deleteAcademicYear($academicYear);
 
-        return back()->with('success', 'Academic year deleted successfully');
+        return back()->with('success', 'School calendar deleted successfully');
     }
 
     /**
@@ -131,6 +107,6 @@ class AcademicYearController extends Controller
 
         $this->academicYear->setAcademicYear($academicYear);
 
-        return back()->with('success', 'Academic year set for '.current_school()->name.' successfully');
+        return back()->with('success', 'Working calendar set for '.current_school()->name.' successfully');
     }
 }

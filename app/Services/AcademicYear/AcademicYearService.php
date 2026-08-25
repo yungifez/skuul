@@ -2,6 +2,7 @@
 
 namespace App\Services\AcademicYear;
 
+use App\Enums\AcademicPeriodStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicYear;
 use App\Services\School\SchoolService;
@@ -94,12 +95,15 @@ class AcademicYearService
 
         academic_period_context()->setAcademicYear($academicYear);
 
-        // A year always opens on an academic period, so make the first one if it has none.
-        $academicPeriod = $academicYear->academicPeriods()->orderBy('id')->first()
-            ?? $academicYear->academicPeriods()->create([
-                'name'      => 'First',
-                'school_id' => $academicYear->school_id,
-            ]);
+        if ($academicYear->status === AcademicPeriodStatus::Draft) {
+            throw new InvalidValueException('Publish the school calendar before making it the working calendar.');
+        }
+
+        $academicPeriod = $academicYear->topLevelPeriods()->first();
+
+        if ($academicPeriod === null) {
+            throw new InvalidValueException('This school calendar has no reporting periods.');
+        }
 
         academic_period_context()->setAcademicPeriod($academicPeriod);
 

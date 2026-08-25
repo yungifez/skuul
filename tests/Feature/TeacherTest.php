@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\ListTeachersTable;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class TeacherTest extends TestCase
@@ -21,7 +23,32 @@ class TeacherTest extends TestCase
 
     public function test_view_all_teachers_can_be_accessed_by_authorised_users()
     {
-        $this->authorized_user(['read teacher'])->get('dashboard/teachers')->assertOk();
+        $this->authorized_user(['read teacher'])
+            ->get('dashboard/teachers')
+            ->assertOk()
+            ->assertSee('data-slot="data-table"', false)
+            ->assertSee('Search rows...')
+            ->assertSee('No teachers yet');
+    }
+
+    public function test_the_teacher_table_searches_rows_on_the_server(): void
+    {
+        $matchingTeacher = User::factory()->create(['name' => 'Ada Lovelace']);
+        $matchingTeacher->assignRole('teacher');
+
+        $otherTeacher = User::factory()->create(['name' => 'Grace Hopper']);
+        $otherTeacher->assignRole('teacher');
+
+        $this->authorized_user(['read teacher']);
+
+        Livewire::test(ListTeachersTable::class)
+            ->call('updateTable', [
+                'search' => 'Ada',
+                'perPage' => 10,
+                'page' => 1,
+            ])
+            ->assertSee('Ada Lovelace')
+            ->assertDontSee('Grace Hopper');
     }
 
     public function test_create_teacher_cannot_be_accessed_by_unauthorised_users()

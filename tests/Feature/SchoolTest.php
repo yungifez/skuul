@@ -83,7 +83,10 @@ class SchoolTest extends TestCase
     {
         $this->authorized_user(['read school'])
             ->get('/dashboard/schools/1')
-            ->assertSuccessful();
+            ->assertSuccessful()
+            ->assertSee('Core details and the academic workspace this school is currently using.')
+            ->assertSee('Academic workspace')
+            ->assertSee('Contact details');
     }
 
     public function test_show_school_can_be_rendered_to_authorized_user_in_same_school()

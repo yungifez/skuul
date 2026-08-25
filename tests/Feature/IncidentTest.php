@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Discipline\AddIncidentNote;
 use App\Actions\Discipline\ReportIncident;
 use App\Enums\AuditAction;
 use App\Enums\IncidentCategory;
@@ -10,6 +11,7 @@ use App\Enums\IncidentStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\AuditEvent;
 use App\Models\Incident;
+use App\Models\IncidentNote;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Traits\FeatureTestTrait;
@@ -131,6 +133,54 @@ class IncidentTest extends TestCase
         $this->expectException(InvalidValueException::class);
 
         $reporter->addAction($incident->fresh(), 'meeting', 'Meet the guardians');
+    }
+
+    public function test_case_notes_are_restricted_and_append_only(): void
+    {
+        $this->authorized_user(['create incident', 'read incident', 'update incident']);
+        $incident = app(ReportIncident::class)->report('Late every morning');
+        $note = app(AddIncidentNote::class)->add($incident, 'The family was contacted.');
+
+        $this->assertTrue($note->is_restricted);
+        $this->assertSame($this->workingSchool()->id, $note->school_id);
+        $this->assertSame(1, $incident->notes()->count());
+
+        $this->expectException(RuntimeException::class);
+        $note->update(['body' => 'Changed history']);
+    }
+
+    public function test_a_finished_case_takes_no_new_note(): void
+    {
+        $this->authorized_user(['create incident']);
+        $incident = app(ReportIncident::class)->report('Late every morning');
+        app(ReportIncident::class)->changeStatus($incident, IncidentStatus::Closed);
+
+        $this->expectException(InvalidValueException::class);
+
+        app(AddIncidentNote::class)->add($incident->fresh(), 'A late follow-up note.');
+    }
+
+    public function test_a_case_note_is_written_from_the_screen_and_a_private_note_stays_private(): void
+    {
+        $this->authorized_user(['create incident', 'read incident', 'update incident']);
+        $reporter = auth()->user();
+        $incident = app(ReportIncident::class)->report('Late every morning');
+
+        $this->from(route('incidents.show', $incident))
+            ->post(route('incidents.notes.store', $incident), [
+                'body' => 'The guardian called back.',
+                'is_restricted' => '1',
+            ])->assertRedirect(route('incidents.show', $incident));
+
+        $note = IncidentNote::query()->sole();
+        $this->assertSame('The guardian called back.', $note->body);
+        $this->assertSame($reporter->id, $note->written_by);
+
+        $this->authorized_user(['read incident']);
+        $this->assertFalse(Gate::forUser(auth()->user())->allows('view', $note));
+
+        $this->authorized_user(['read incident', 'read safeguarding case']);
+        $this->assertTrue(Gate::forUser(auth()->user())->allows('view', $note));
     }
 
     public function test_an_ordinary_case_needs_only_the_incident_permission(): void

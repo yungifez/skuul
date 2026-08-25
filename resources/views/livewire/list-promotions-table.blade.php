@@ -1,18 +1,6 @@
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title">Promotion list</h4>
-    </div>
-    <div class="card-body">
-        <livewire:datatable :model="App\Models\Promotion::Class" :filters="[['name' => 'where' , 'arguments' => ['academic_year_id', $academicYear->id]], ['name' => 'with' , 'arguments' => ['sourceAcademicCycleSection.academicLevel', 'destinationAcademicCycleSection.academicLevel']]]" :columns="[
-                ['property' => 'name', 'name' => 'From level' ,'relation' => 'sourceAcademicCycleSection.academicLevel'] ,
-                ['property' => 'name', 'name' => 'From section' ,'relation' => 'sourceAcademicCycleSection'] ,
-                ['property' => 'name', 'name' => 'To level' ,'relation' => 'destinationAcademicCycleSection.academicLevel'] ,
-                ['property' => 'name', 'name' => 'To section' ,'relation' => 'destinationAcademicCycleSection'] ,
-                ['method' => 'count', 'name' => 'Learners' ,'relation' => 'students'] ,
-                ['type' => 'dropdown', 'name' => 'actions','links' => [
-                    ['href' => 'students.promotions.show', 'text' => 'View Promoted Students', 'icon' => 'eye',],
-                ]],
-                ['type' => 'delete', 'name' => 'Delete', 'action' => 'students.promotions.reset',]
-            ]"/>
-    </div>
-</div>
+<april:card><slot:title>Promotion list</slot:title><slot:description>Promotions recorded for {{ $academicYear?->name ?? 'the selected academic year' }}.</slot:description><slot:content><div wire:key="{{ $id }}-{{ $this->tableRevision }}"><april:data-table id="{{ $id }}" :data="$data" :columns="$columns" :pagination="$pagination" :per-page-options="$perPageOptions" row-key="{{ $rowKey }}" :searchable="$searchable" @query-change="$wire.updateTable($event.detail)"><slot:empty><div class="space-y-1"><p class="font-medium text-foreground">No promotions yet</p><p>Promotions will appear here after they are recorded.</p></div></slot:empty><slot:actions>
+    <x-table-actions :items="array_filter([
+        $canViewPromotions ? ['label' => 'View promotion', 'icon' => 'eye', 'url' => 'view_url'] : null,
+        $canResetPromotions ? ['label' => 'Reset promotion', 'icon' => 'rotate-ccw', 'url' => 'reset_url', 'type' => 'delete', 'confirm' => 'Reset this promotion?'] : null,
+    ])" />
+</slot:actions></april:data-table></div></slot:content></april:card>

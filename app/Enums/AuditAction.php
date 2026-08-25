@@ -91,6 +91,26 @@ enum AuditAction: string
     case EnrollmentTransferred = 'enrollment.transferred';
 
     /**
+     * A person joined the queue for a full academic section.
+     */
+    case AdmissionWaitlistJoined = 'admission_waitlist.joined';
+
+    /**
+     * The next person in an admission queue was offered a place.
+     */
+    case AdmissionWaitlistOffered = 'admission_waitlist.offered';
+
+    /**
+     * A waitlisted person accepted a place and was enrolled.
+     */
+    case AdmissionWaitlistPlaced = 'admission_waitlist.placed';
+
+    /**
+     * A waitlist entry was declined.
+     */
+    case AdmissionWaitlistDeclined = 'admission_waitlist.declined';
+
+    /**
      * A teacher was given a subject to teach.
      */
     case TeachingAssignmentCreated = 'teaching_assignment.created';
@@ -213,6 +233,26 @@ enum AuditAction: string
     case LibraryLoanRenewed = 'library.loan_renewed';
 
     /**
+     * Somebody joined the queue for a title.
+     */
+    case LibraryReservationMade = 'library.reservation_made';
+
+    /**
+     * A copy was put behind the desk for the person at the front of the queue.
+     */
+    case LibraryReservationReady = 'library.reservation_ready';
+
+    /**
+     * A reservation ended: collected, cancelled, or not collected in time.
+     */
+    case LibraryReservationClosed = 'library.reservation_closed';
+
+    /**
+     * A title was lent to every learner in a home section.
+     */
+    case LibrarySectionLoansIssued = 'library.section_loans_issued';
+
+    /**
      * A notice was put on the board.
      */
     case NoticePublished = 'notice.published';
@@ -267,6 +307,11 @@ enum AuditAction: string
     case IncidentStatusChanged = 'incident.status_changed';
 
     /**
+     * A note was added to a case.
+     */
+    case IncidentNoteAdded = 'incident.note_added';
+
+    /**
      * An academic year or academic period was opened, closed, or reopened.
      */
     case AcademicPeriodStatusChanged = 'academic_period.status_changed';
@@ -275,6 +320,16 @@ enum AuditAction: string
      * A cycle was generated from a calendar template.
      */
     case AcademicCycleGenerated = 'academic_cycle.generated';
+
+    /**
+     * A school calendar was created or its draft dates were changed.
+     */
+    case AcademicCalendarSaved = 'academic_calendar.saved';
+
+    /**
+     * A draft school calendar was approved for use.
+     */
+    case AcademicCalendarPublished = 'academic_calendar.published';
 
     /**
      * The dates of a period that was already in use were changed.
@@ -350,6 +405,21 @@ enum AuditAction: string
      * A result was published from the gradebook.
      */
     case ResultPublished = 'result.published';
+
+    /**
+     * A gradebook result was submitted for approval.
+     */
+    case ResultSubmittedForApproval = 'result.submitted_for_approval';
+
+    /**
+     * A submitted result was approved for official use.
+     */
+    case ResultApproved = 'result.approved';
+
+    /**
+     * A submitted result was rejected.
+     */
+    case ResultRejected = 'result.rejected';
 
     /**
      * A published result was corrected with a new revision.
@@ -495,6 +565,10 @@ enum AuditAction: string
             self::CampusMoveRequested                      => 'Campus move requested',
             self::CampusMoveStatusChanged                  => 'Campus move request decided',
             self::EnrollmentTransferred                    => 'Enrollment transferred',
+            self::AdmissionWaitlistJoined                  => 'Admission waitlist joined',
+            self::AdmissionWaitlistOffered                 => 'Admission place offered',
+            self::AdmissionWaitlistPlaced                  => 'Waitlisted learner placed',
+            self::AdmissionWaitlistDeclined                => 'Admission waitlist declined',
             self::TeachingAssignmentCreated                => 'Teacher assigned to a subject',
             self::TeachingAssignmentEnded                  => 'Teaching assignment ended',
             self::CourseOfferingCreated                    => 'Course offering created',
@@ -520,6 +594,10 @@ enum AuditAction: string
             self::LibraryLoanIssued                       => 'Library copy lent',
             self::LibraryLoanReturned                     => 'Library copy returned',
             self::LibraryLoanRenewed                      => 'Library loan renewed',
+            self::LibraryReservationMade                  => 'Library copy reserved',
+            self::LibraryReservationReady                 => 'Library copy ready to collect',
+            self::LibraryReservationClosed                => 'Library reservation ended',
+            self::LibrarySectionLoansIssued               => 'Library section loans issued',
             self::NoticePublished                          => 'Notice published',
             self::NoticeScheduled                          => 'Notice scheduled',
             self::NoticeExpired                            => 'Notice expired',
@@ -532,8 +610,11 @@ enum AuditAction: string
             self::FeatureDisabled                          => 'Feature turned off',
             self::IncidentReported                         => 'Case recorded',
             self::IncidentStatusChanged                    => 'Case status changed',
+            self::IncidentNoteAdded                        => 'Case note added',
             self::AcademicPeriodStatusChanged              => 'Academic period status changed',
             self::AcademicCycleGenerated                   => 'Academic cycle generated',
+            self::AcademicCalendarSaved                    => 'Academic calendar saved',
+            self::AcademicCalendarPublished                => 'Academic calendar published',
             self::AcademicPeriodDatesChanged               => 'Academic period dates changed',
             self::CampusCalendarOverridden                 => 'Campus calendar changed',
             self::CalendarTemplateSaved                    => 'Calendar template saved',
@@ -549,6 +630,9 @@ enum AuditAction: string
             self::AcademicCycleSectionStatusChanged        => 'Academic cycle section status changed',
             self::AcademicCycleSectionsRolledForward       => 'Academic cycle sections rolled forward',
             self::ResultPublished                          => 'Result published',
+            self::ResultSubmittedForApproval               => 'Result submitted for approval',
+            self::ResultApproved                           => 'Result approved',
+            self::ResultRejected                           => 'Result rejected',
             self::ResultRevised                            => 'Result corrected',
             self::ReportCardPublished                      => 'Report card published',
             self::ReportCardRevised                        => 'Report card revised',

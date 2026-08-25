@@ -213,6 +213,56 @@
         </april:card>
 
         <april:card>
+            <slot:title>Case notes</slot:title>
+            <slot:description>Notes stay in the case history. Private notes are visible only to the people handling this case.</slot:description>
+            <slot:content>
+                <div class="space-y-6">
+                    @if ($notes->isEmpty())
+                        <x-empty-state icon="lucide-notebook-pen" title="No notes yet"
+                            description="Add a note when there is useful context to keep with this case." />
+                    @else
+                        <ol class="space-y-3">
+                            @foreach ($notes as $note)
+                                <li class="rounded-lg border p-4">
+                                    <div class="flex flex-wrap items-center justify-between gap-2">
+                                        <p class="font-medium">{{ $note->writtenBy?->name ?? 'Unknown person' }}</p>
+                                        <p class="text-sm text-muted-foreground">{{ $note->created_at->format('j M Y H:i') }}</p>
+                                    </div>
+                                    <p class="mt-2 whitespace-pre-line text-sm">{{ $note->body }}</p>
+                                    @if ($note->is_restricted)
+                                        <p class="mt-2 flex items-center gap-1 text-xs text-muted-foreground"><x-lucide-lock class="size-3" /> Private case note</p>
+                                    @endif
+                                </li>
+                            @endforeach
+                        </ol>
+                    @endif
+
+                    @can('update', $incident)
+                        @if ($incident->status->isOpen())
+                            <form method="POST" action="{{ route('incidents.notes.store', $incident) }}" class="space-y-4 border-t pt-6">
+                                @csrf
+                                <div class="flex flex-col gap-2">
+                                    <april:label for="note-body">Add a note</april:label>
+                                    <april:textarea id="note-body" name="body" rows="4" required>{{ old('body') }}</april:textarea>
+                                    @error('body') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                </div>
+                                <label class="flex items-start gap-2 text-sm">
+                                    <input type="hidden" name="is_restricted" value="0">
+                                    <input type="checkbox" name="is_restricted" value="1" class="mt-0.5 size-4 rounded border-input" @checked(old('is_restricted', true))>
+                                    <span><span class="font-medium">Keep this note private</span><span class="block text-muted-foreground">Only the case handler, reporter, and safeguarding readers can see it.</span></span>
+                                </label>
+                                @error('note') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                <april:button type="submit"><x-lucide-plus class="mr-2 size-4" />Add note</april:button>
+                            </form>
+                        @else
+                            <p class="border-t pt-6 text-sm text-muted-foreground">This case is finished, so it takes no more notes.</p>
+                        @endif
+                    @endcan
+                </div>
+            </slot:content>
+        </april:card>
+
+        <april:card>
             <slot:title>How the case moved</slot:title>
             <slot:description>Every move is written down and stays. A correction is the next move, not an edit.</slot:description>
             <slot:content>

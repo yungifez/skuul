@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\ListAcademicPeriodsTable;
 use App\Models\AcademicPeriod;
 use App\Services\Academic\AcademicPeriodContext;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class AcademicPeriodTest extends TestCase
@@ -27,7 +29,27 @@ class AcademicPeriodTest extends TestCase
     {
         $this->authorized_user(['read academic period'])
             ->get('/dashboard/academic-periods')
-            ->assertSuccessful();
+            ->assertSuccessful()
+            ->assertSee('data-slot="data-table"', false)
+            ->assertSee('Search rows...')
+            ->assertSee('No academic periods yet');
+    }
+
+    public function test_the_academic_period_table_searches_rows_on_the_server(): void
+    {
+        AcademicPeriod::factory()->create(['name' => 'Autumn term']);
+        AcademicPeriod::factory()->create(['name' => 'Spring term']);
+
+        $this->authorized_user(['read academic period']);
+
+        Livewire::test(ListAcademicPeriodsTable::class)
+            ->call('updateTable', [
+                'search' => 'Autumn',
+                'perPage' => 10,
+                'page' => 1,
+            ])
+            ->assertSee('Autumn term')
+            ->assertDontSee('Spring term');
     }
 
     // test unauthorized user can not view an academic period

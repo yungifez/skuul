@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\GradeEntryState;
 use App\Enums\GradeItemType;
+use App\Enums\ResultApprovalStatus;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
@@ -27,7 +28,7 @@ class GradebookScreenTest extends TestCase
 
     public function test_staff_can_manage_and_publish_from_the_offering_gradebook_screen(): void
     {
-        $this->authorized_user(['read gradebook', 'manage gradebook', 'publish result', 'update subject']);
+        $this->authorized_user(['read gradebook', 'manage gradebook', 'publish result', 'approve result', 'update subject']);
         [$courseOffering, $enrollment] = $this->offeringAndEnrollment();
 
         $this->get(route('course-offerings.gradebook.show', $courseOffering))
@@ -56,7 +57,15 @@ class GradebookScreenTest extends TestCase
             'student_record_id' => $enrollment->id,
         ])->assertSessionHas('success');
 
-        $this->assertSame(80.0, ResultSnapshot::query()->firstOrFail()->percentage);
+        $snapshot = ResultSnapshot::query()->firstOrFail();
+        $this->assertSame(80.0, $snapshot->percentage);
+        $this->assertSame(ResultApprovalStatus::Pending, $snapshot->approval_status);
+
+        $this->post(route('course-offerings.gradebook.results.approve', $courseOffering), [
+            'result_snapshot_id' => $snapshot->id,
+        ])->assertSessionHas('success');
+
+        $this->assertSame(ResultApprovalStatus::Approved, $snapshot->fresh()->approval_status);
     }
 
     public function test_staff_can_save_and_apply_a_school_assessment_template_from_the_gradebook_screen(): void

@@ -6,6 +6,7 @@ use App\Http\Controllers\AcademicLevelController;
 use App\Http\Controllers\AcademicPeriodController;
 use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\AdmissionWaitlistController;
 use App\Http\Controllers\BoardingPlaceController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CalendarTemplateController;
@@ -25,6 +26,7 @@ use App\Http\Controllers\HealthController;
 use App\Http\Controllers\LibraryCopyController;
 use App\Http\Controllers\LibraryLendingRulesController;
 use App\Http\Controllers\LibraryLoanController;
+use App\Http\Controllers\LibraryReservationController;
 use App\Http\Controllers\NoticeAttachmentController;
 use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\NoticeNotificationPreferenceController;
@@ -79,7 +81,12 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::get('portal/overview', ['App\Http\Controllers\PortalOverviewController', 'index'])->name('portal.overview');
     Route::get('portal/enrollments/{studentRecord}/attendance', ['App\Http\Controllers\PortalAttendanceController', 'show'])->name('portal.attendance.show');
     Route::get('portal/enrollments/{studentRecord}/calendar', ['App\Http\Controllers\PortalCalendarController', 'index'])->name('portal.calendar.index');
+    Route::get('portal/enrollments/{studentRecord}/documents', ['App\Http\Controllers\PortalDocumentsController', 'index'])->name('portal.documents.index');
+    Route::get('portal/enrollments/{studentRecord}/documents/report-cards/{reportCardSnapshot}', ['App\Http\Controllers\PortalDocumentsController', 'downloadReportCard'])->name('portal.documents.report-cards.download');
+    Route::get('portal/enrollments/{studentRecord}/documents/transcripts/{transcriptSnapshot}', ['App\Http\Controllers\PortalDocumentsController', 'downloadTranscript'])->name('portal.documents.transcripts.download');
+    Route::get('portal/enrollments/{studentRecord}/boarding', ['App\Http\Controllers\PortalBoardingController', 'index'])->name('portal.boarding.index');
     Route::get('portal/enrollments/{studentRecord}/notices', ['App\Http\Controllers\PortalNoticeController', 'index'])->name('portal.notices.index');
+    Route::get('portal/enrollments/{studentRecord}/library', ['App\Http\Controllers\PortalLibraryController', 'index'])->name('portal.library.index');
     Route::get('portal/enrollments/{studentRecord}/requests', ['App\Http\Controllers\PortalRequestController', 'index'])->name('portal.requests.index');
     Route::post('portal/enrollments/{studentRecord}/requests', ['App\Http\Controllers\PortalRequestController', 'store'])->name('portal.requests.store');
     Route::get('notices/{notice}/attachment', NoticeAttachmentController::class)->name('notices.attachments.download');
@@ -160,6 +167,12 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::put('academic-cycle-sections/{academicCycleSection}/status', [AcademicCycleSectionController::class, 'changeStatus'])
             ->name('academic-cycle-sections.status.update');
 
+        Route::get('admissions/waitlist', [AdmissionWaitlistController::class, 'index'])->name('admissions.waitlist.index');
+        Route::post('admissions/waitlist', [AdmissionWaitlistController::class, 'store'])->name('admissions.waitlist.store');
+        Route::post('admissions/waitlist/{admissionWaitlistEntry}/offer', [AdmissionWaitlistController::class, 'offer'])->name('admissions.waitlist.offer');
+        Route::post('admissions/waitlist/{admissionWaitlistEntry}/accept', [AdmissionWaitlistController::class, 'accept'])->name('admissions.waitlist.accept');
+        Route::post('admissions/waitlist/{admissionWaitlistEntry}/decline', [AdmissionWaitlistController::class, 'decline'])->name('admissions.waitlist.decline');
+
         // report routes. A report reads whatever period it is given, so it
         // does not need one to be set first.
         Route::get('reports', ['App\Http\Controllers\ReportController', 'index'])->name('reports.index');
@@ -181,6 +194,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::get('incidents/create', ['App\Http\Controllers\IncidentController', 'create'])->name('incidents.create');
             Route::post('incidents', ['App\Http\Controllers\IncidentController', 'store'])->name('incidents.store');
             Route::get('incidents/{incident}', ['App\Http\Controllers\IncidentController', 'show'])->name('incidents.show');
+            Route::post('incidents/{incident}/notes', ['App\Http\Controllers\IncidentController', 'storeNote'])->name('incidents.notes.store');
             Route::put('incidents/{incident}/status', ['App\Http\Controllers\IncidentController', 'changeStatus'])->name('incidents.status.update');
             Route::post('incidents/{incident}/actions', ['App\Http\Controllers\IncidentController', 'storeAction'])->name('incidents.actions.store');
             Route::post('incidents/{incident}/actions/{incidentAction}/complete', ['App\Http\Controllers\IncidentController', 'completeAction'])->name('incidents.actions.complete');
@@ -313,6 +327,8 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::post('course-offerings/{courseOffering}/gradebook/items', [GradebookController::class, 'storeItem'])->name('course-offerings.gradebook.items.store');
             Route::post('course-offerings/{courseOffering}/gradebook/entries', [GradebookController::class, 'storeEntry'])->name('course-offerings.gradebook.entries.store');
             Route::post('course-offerings/{courseOffering}/gradebook/results', [GradebookController::class, 'publish'])->name('course-offerings.gradebook.results.publish');
+            Route::post('course-offerings/{courseOffering}/gradebook/results/approve', [GradebookController::class, 'approve'])->name('course-offerings.gradebook.results.approve');
+            Route::post('course-offerings/{courseOffering}/gradebook/results/reject', [GradebookController::class, 'reject'])->name('course-offerings.gradebook.results.reject');
 
             // promotion routes
             Route::get('students/promotions', ['App\Http\Controllers\PromotionController', 'index'])->name('students.promotions');
@@ -369,7 +385,11 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                     Route::delete('library/copies/{library_copy}', [LibraryCopyController::class, 'destroy'])->name('library-copies.destroy');
                     Route::get('library/desk', [LibraryLoanController::class, 'index'])->name('library-loans.index');
                     Route::post('library/desk', [LibraryLoanController::class, 'store'])->name('library-loans.store');
+                    Route::post('library/desk/section', [LibraryLoanController::class, 'storeForSection'])->name('library-loans.section.store');
                     Route::put('library/desk/{library_loan}', [LibraryLoanController::class, 'update'])->name('library-loans.update');
+                    Route::get('library/queue', [LibraryReservationController::class, 'index'])->name('library-reservations.index');
+                    Route::post('library/queue', [LibraryReservationController::class, 'store'])->name('library-reservations.store');
+                    Route::delete('library/queue/{library_reservation}', [LibraryReservationController::class, 'destroy'])->name('library-reservations.destroy');
                     Route::get('library/rules', [LibraryLendingRulesController::class, 'edit'])->name('library-rules.edit');
                     Route::put('library/rules', [LibraryLendingRulesController::class, 'update'])->name('library-rules.update');
                 });
@@ -447,7 +467,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::delete('users/{user}/invitation', ['App\Http\Controllers\AccountInvitationController', 'revoke'])->name('users.invitation.revoke');
 
         // academic year routes
-        Route::resource('academic-years', AcademicYearController::class);
+        Route::resource('academic-years', AcademicYearController::class)->except(['store', 'update']);
         Route::post('academic-years/set', ['App\Http\Controllers\AcademicYearController', 'setAcademicYear'])->name('academic-years.set-academic-year');
         Route::post('academic-years/{academic_year}/close', ['App\Http\Controllers\AcademicYearController', 'close'])->name('academic-years.close');
         Route::post('academic-years/{academic_year}/begin-closing', ['App\Http\Controllers\AcademicYearController', 'beginClosing'])->name('academic-years.begin-closing');

@@ -104,6 +104,9 @@
                                     <span class="inline-flex whitespace-nowrap items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold">
                                         {{ $event->type->label() }}
                                     </span>
+                                    @if ($event->type === \App\Enums\CalendarEventType::Appointment)
+                                        <april:button-link href="{{ route('portal.requests.index', [$studentRecord, 'type' => 'appointment', 'subject' => 'Appointment: '.$event->title, 'message' => 'I would like to request the published time on '.$event->starts_at->format('j M Y H:i').' at '.($event->location ?: 'the school').'.']) }}" variant="outline" size="sm" class="mt-2">Request this time</april:button-link>
+                                    @endif
                                     @unless ($event->isTeachingDay())
                                         <span class="mt-1 block text-xs text-muted-foreground">The school is shut</span>
                                     @endunless

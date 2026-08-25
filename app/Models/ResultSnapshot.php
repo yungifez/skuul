@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ResultApprovalStatus;
 use App\Traits\InSchool;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -16,9 +17,10 @@ use RuntimeException;
  * a family already saw never changes behind their back.
  *
  * @property array<string, mixed> $payload
- * @property int                  $revision
- * @property float|null           $percentage
- * @property int                  $course_offering_id
+ * @property int $revision
+ * @property float|null $percentage
+ * @property int $course_offering_id
+ * @property ResultApprovalStatus $approval_status
  */
 class ResultSnapshot extends Model
 {
@@ -40,6 +42,10 @@ class ResultSnapshot extends Model
         'reason',
         'published_at',
         'published_by',
+        'approval_status',
+        'approved_at',
+        'approved_by',
+        'approval_reason',
     ];
 
     /**
@@ -52,7 +58,9 @@ class ResultSnapshot extends Model
         'percentage'   => 'float',
         'revision'     => 'integer',
         'published_at' => 'datetime',
-        'created_at'   => 'datetime',
+        'approval_status' => ResultApprovalStatus::class,
+        'approved_at' => 'datetime',
+        'created_at' => 'datetime',
     ];
 
     /**
@@ -60,8 +68,12 @@ class ResultSnapshot extends Model
      */
     protected static function booted(): void
     {
-        static::updating(function (): void {
-            throw new RuntimeException('A published result cannot be changed. Publish the next revision instead.');
+        static::updating(function (self $snapshot): void {
+            $approvalFields = ['approval_status', 'approved_at', 'approved_by', 'approval_reason'];
+
+            if (array_diff(array_keys($snapshot->getDirty()), $approvalFields) !== []) {
+                throw new RuntimeException('A published result cannot be changed. Publish the next revision instead.');
+            }
         });
 
         static::deleting(function (): void {
@@ -79,6 +91,17 @@ class ResultSnapshot extends Model
     public function scopeLatestRevision(Builder $query): Builder
     {
         return $query->orderByDesc('revision')->orderByDesc('id');
+    }
+
+    /**
+     * Limit reads to results approved for official use.
+     *
+     * @param  Builder<$this>  $query
+     * @return Builder<$this>
+     */
+    public function scopeApproved(Builder $query): Builder
+    {
+        return $query->where('approval_status', ResultApprovalStatus::Approved->value);
     }
 
     /**
@@ -109,5 +132,31 @@ class ResultSnapshot extends Model
     public function publishedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'published_by');
+    }
+
+    /**
+     * Approve the snapshot without changing its calculated payload.
+     */
+    public function approve(User $actor, ?string $reason = null): void
+    {
+        $this->forceFill([
+            'approval_status' => ResultApprovalStatus::Approved,
+            'approved_at' => now(),
+            'approved_by' => $actor->id,
+            'approval_reason' => $reason,
+        ])->save();
+    }
+
+    /**
+     * Reject the snapshot without changing its calculated payload.
+     */
+    public function reject(User $actor, string $reason): void
+    {
+        $this->forceFill([
+            'approval_status' => ResultApprovalStatus::Rejected,
+            'approved_at' => null,
+            'approved_by' => $actor->id,
+            'approval_reason' => $reason,
+        ])->save();
     }
 }

@@ -3,10 +3,12 @@
 namespace Tests\Feature;
 
 use App\Actions\School\GrantSchoolMembership;
+use App\Enums\AdmissionWaitlistStatus;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
+use App\Models\AdmissionWaitlistEntry;
 use App\Models\Cohort;
 use App\Models\CourseOffering;
 use App\Models\CustomTimetableItem;
@@ -265,6 +267,14 @@ class CrossSchoolAccessTest extends TestCase
         );
     }
 
+    public function test_the_admission_waitlist_screen_excludes_another_school(): void
+    {
+        $this->authorized_user(['read admission waitlist'])
+            ->get(route('admissions.waitlist.index'))
+            ->assertOk()
+            ->assertDontSee($this->records['waitlistEntry']->candidate->email);
+    }
+
     /**
      * Build the address of a record that belongs to the other school.
      */
@@ -329,6 +339,15 @@ class CrossSchoolAccessTest extends TestCase
 
         $student = $this->studentOfOtherSchool($cycleSection);
 
+        $waitlistEntry = AdmissionWaitlistEntry::create([
+            'school_id' => $this->otherSchool->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_cycle_section_id' => $cycleSection->id,
+            'user_id' => $this->adminOfOtherSchool()->id,
+            'status' => AdmissionWaitlistStatus::Pending,
+            'position' => 1,
+        ]);
+
         $this->records = [
             'academicYear'   => $academicYear,
             'academicPeriod' => $academicPeriod,
@@ -346,7 +365,7 @@ class CrossSchoolAccessTest extends TestCase
             'examSlot'            => ExamSlot::factory()->create(['exam_id' => $exam->id]),
             'notice'              => Notice::factory()->create(['school_id' => $this->otherSchool->id]),
             'customTimetableItem' => CustomTimetableItem::factory()->create(['school_id' => $this->otherSchool->id]),
-            'fee'                 => Fee::factory()->create(['fee_Category_id' => $feeCategory->id]),
+            'fee'                 => Fee::factory()->create(['fee_category_id' => $feeCategory->id]),
             'feeInvoice'          => FeeInvoice::factory()->create(['user_id' => $student->id]),
             'timetableTimeSlot'   => TimetableTimeSlot::factory()->create(['timetable_id' => $timetable->id]),
             'promotion'           => Promotion::factory()->create([
@@ -356,6 +375,7 @@ class CrossSchoolAccessTest extends TestCase
                 'destination_academic_cycle_section_id' => $cycleSection->id,
                 'students'                              => [$student->id],
             ]),
+            'waitlistEntry' => $waitlistEntry,
         ];
 
         school_context()->set($home, remember: false);

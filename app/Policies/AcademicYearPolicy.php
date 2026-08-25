@@ -35,7 +35,9 @@ class AcademicYearPolicy
      */
     public function view(User $user, AcademicYear $academicYear)
     {
-        //
+        if ($user->can('read academic year') && current_school_id() === $academicYear->school_id) {
+            return true;
+        }
     }
 
     /**

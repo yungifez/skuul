@@ -4,6 +4,7 @@ use App\Console\Commands\AdvanceAcademicCalendar;
 use App\Console\Commands\CheckBackup;
 use App\Console\Commands\CreateBackup;
 use App\Console\Commands\GenerateUpcomingAcademicCycles;
+use App\Console\Commands\ProcessLibraryHolds;
 use App\Console\Commands\ProcessNotices;
 use App\Console\Commands\PruneExpiredInvitations;
 use App\Console\Commands\RehearseRestore;
@@ -45,6 +46,10 @@ Schedule::call(function (): void {
 
 // Close invitation links nobody used.
 Schedule::command(PruneExpiredInvitations::class)->hourly()->withoutOverlapping();
+
+// End library holds nobody came for, so the copy reaches the next person in
+// the queue instead of waiting behind the desk.
+Schedule::command(ProcessLibraryHolds::class)->dailyAt('06:00')->withoutOverlapping();
 
 // Put scheduled notices on the board and take finished ones down.
 Schedule::command(ProcessNotices::class)->everyFifteenMinutes()->withoutOverlapping();

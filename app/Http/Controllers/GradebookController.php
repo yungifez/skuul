@@ -3,15 +3,19 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Gradebook\ApplyAssessmentTemplate;
+use App\Actions\Gradebook\ApproveResult;
 use App\Actions\Gradebook\CreateAssessmentTemplateFromGradebook;
 use App\Actions\Gradebook\PublishResult;
 use App\Actions\Gradebook\RecordGrade;
+use App\Actions\Gradebook\RejectResult;
 use App\Enums\GradeEntryState;
 use App\Enums\GradeItemType;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
 use App\Http\Requests\ApplyAssessmentTemplateRequest;
+use App\Http\Requests\ApproveGradebookResultRequest;
 use App\Http\Requests\PublishGradebookResultRequest;
+use App\Http\Requests\RejectGradebookResultRequest;
 use App\Http\Requests\StoreAssessmentTemplateRequest;
 use App\Http\Requests\StoreGradebookEntryRequest;
 use App\Http\Requests\StoreGradebookItemRequest;
@@ -33,6 +37,8 @@ class GradebookController extends Controller
         private CreateAssessmentTemplateFromGradebook $createAssessmentTemplate,
         private RecordGrade $recordGrade,
         private PublishResult $publishResult,
+        private ApproveResult $approveResult,
+        private RejectResult $rejectResult,
     ) {
     }
 
@@ -66,6 +72,14 @@ class GradebookController extends Controller
         $publishedResults = ResultSnapshot::query()
             ->whereBelongsTo($courseOffering)
             ->whereIn('student_record_id', $studentIds)
+            ->approved()
+            ->latestRevision()
+            ->get()
+            ->unique('student_record_id')
+            ->keyBy('student_record_id');
+        $submittedResults = ResultSnapshot::query()
+            ->whereBelongsTo($courseOffering)
+            ->whereIn('student_record_id', $studentIds)
             ->latestRevision()
             ->get()
             ->unique('student_record_id')
@@ -84,7 +98,7 @@ class GradebookController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('pages.course-offering.gradebook', compact('assessmentTemplates', 'courseOffering', 'gradeItems', 'gradingScales', 'publishedResults', 'students'));
+        return view('pages.course-offering.gradebook', compact('assessmentTemplates', 'courseOffering', 'gradeItems', 'gradingScales', 'publishedResults', 'students', 'submittedResults'));
     }
 
     /**
@@ -190,6 +204,38 @@ class GradebookController extends Controller
             return back()->withErrors(['gradebook' => $exception->getMessage()]);
         }
 
-        return back()->with('success', 'Official result published.');
+        return back()->with('success', 'Result submitted for approval.');
+    }
+
+    /**
+     * Approve one submitted result from the gradebook workspace.
+     */
+    public function approve(ApproveGradebookResultRequest $request, CourseOffering $courseOffering): RedirectResponse
+    {
+        $result = $courseOffering->resultSnapshots()->findOrFail($request->integer('result_snapshot_id'));
+
+        try {
+            $this->approveResult->approve($result, $request->user(), $request->validated('reason'));
+        } catch (InvalidValueException $exception) {
+            return back()->withErrors(['gradebook' => $exception->getMessage()]);
+        }
+
+        return back()->with('success', 'Result approved and made official.');
+    }
+
+    /**
+     * Reject one submitted result from the gradebook workspace.
+     */
+    public function reject(RejectGradebookResultRequest $request, CourseOffering $courseOffering): RedirectResponse
+    {
+        $result = $courseOffering->resultSnapshots()->findOrFail($request->integer('result_snapshot_id'));
+
+        try {
+            $this->rejectResult->reject($result, $request->user(), $request->string('reason')->toString());
+        } catch (InvalidValueException $exception) {
+            return back()->withErrors(['gradebook' => $exception->getMessage()]);
+        }
+
+        return back()->with('success', 'Result rejected. The teacher can submit a new revision.');
     }
 }

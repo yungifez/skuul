@@ -81,6 +81,7 @@ class ResultRanking
     private function averages(array $enrollmentIds, ?int $academicYearId, ?int $academicPeriodId, ?CourseOffering $courseOffering): array
     {
         $snapshots = ResultSnapshot::query()
+            ->approved()
             ->whereIn('student_record_id', $enrollmentIds)
             ->when($academicYearId !== null, fn ($query) => $query->whereHas('courseOffering', fn ($query) => $query->where('academic_year_id', $academicYearId)))
             ->when($academicPeriodId !== null, fn ($query) => $query->whereHas('courseOffering', fn ($query) => $query->where('academic_period_id', $academicPeriodId)))

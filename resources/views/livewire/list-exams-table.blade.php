@@ -1,24 +1,8 @@
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title">Exam list for academicPeriod {{ current_school()?->academicPeriod?->name }} </h4>
-    </div>
-    <div class="card-body">
-        <livewire:datatable  uniqueId="list-exams-table" :model="App\Models\Exam::class"
-        :filters="[
-            ['name' => 'where' , 'arguments' => ['academic_period_id' , current_school()?->academicPeriod?->id]]
-        ]"
-        :columns="[
-            ['property' => 'name'],
-            ['name' => 'Period', 'type' => 'academic-period-status', 'relation' => 'academicPeriod', 'route-prefix' => 'academic-periods'],
-            ['property' => 'start_date'],
-            ['property' => 'stop_date'],
-            ['property' => 'active', 'type' => 'boolean-switch', 'action' => 'exams.set-active-status', 'field' => 'status', 'true-statement' => 'Active', 'false-statement' => 'Inactive',  'can' => 'update exam'],
-            ['name' => 'Actions', 'type' => 'dropdown' , 'links' => [
-                ['href' => 'exams.edit', 'text' => 'edit', 'icon' => 'settings', 'can' => 'update exam'],
-                ['href' => 'exam-slots.index', 'text' => 'Manage/View exam slots', 'icon' => 'settings',  'can' => 'read exam slot'],
-                ['href' => 'exam-slots.create', 'text' => 'Create exam slots', 'Create exam slot', 'icon' => 'key',  'can' => 'create exam slot'],
-            ]],
-            ['type' => 'delete', 'name' => 'Delete', 'action' => 'exams.destroy', 'can' => 'delete exam']
-        ]"/>
-    </div>
-</div>
+<april:card><slot:title>Exam list for {{ current_school()?->academicPeriod?->name ?? 'the current period' }}</slot:title><slot:description>Manage assessments and their slots.</slot:description><slot:content><div wire:key="{{ $id }}-{{ $this->tableRevision }}"><april:data-table id="{{ $id }}" :data="$data" :columns="$columns" :pagination="$pagination" :per-page-options="$perPageOptions" row-key="{{ $rowKey }}" :searchable="$searchable" @query-change="$wire.updateTable($event.detail)"><slot:empty><div class="space-y-1"><p class="font-medium text-foreground">No exams yet</p><p>Create an exam for the current academic period.</p></div></slot:empty><slot:actions>
+    <x-table-actions :items="array_filter([
+        $canUpdateExam ? ['label' => 'Edit exam', 'icon' => 'settings', 'url' => 'edit_url'] : null,
+        $canReadSlots ? ['label' => 'View slots', 'icon' => 'list', 'url' => 'slots_url'] : null,
+        $canCreateSlots ? ['label' => 'Create slot', 'icon' => 'plus', 'url' => 'create_slot_url'] : null,
+        $canDeleteExam ? ['label' => 'Delete exam', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete this exam?'] : null,
+    ])" />
+</slot:actions></april:data-table></div></slot:content></april:card>

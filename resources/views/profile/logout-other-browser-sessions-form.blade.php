@@ -12,39 +12,36 @@
             {{ __('Logged Out Of All Browsers.') }}
         </x-action-message>
 
-        <div>
+        <p class="text-sm leading-6 text-muted-foreground">
             {{ __('If necessary, you may log out of all of your other browser sessions across all of your devices. Some of your recent sessions are listed below; however, this list may not be exhaustive. If you feel your account has been compromised, you should also update your password.') }}
-        </div>
+        </p>
 
         @if (count($this->sessions) > 0)
-            <div class="mt-3">
-                <!-- Other Browser Sessions -->
+            <div class="divide-y rounded-lg border">
                 @foreach ($this->sessions as $session)
-                    <div class="flex gap-3">
-                        <div>
+                    <div class="flex items-start gap-3 p-4">
+                        <div class="shrink-0 pt-0.5 text-muted-foreground">
                             @if ($session->agent->isDesktop())
-                                <x-lucide-monitor class="size-8 text-muted" />
+                                <x-lucide-monitor class="size-5" />
                             @else
-                                <x-lucide-smartphone class="size-8 text-muted" />
+                                <x-lucide-smartphone class="size-5" />
                             @endif
                         </div>
 
-                        <div class="">
-                            <div>
+                        <div class="flex min-w-0 flex-col gap-1">
+                            <p class="font-medium">
                                 {{ $session->agent->platform() }} - {{ $session->agent->browser() }}
-                            </div>
+                            </p>
 
-                            <div>
-                                <div class="small font-light">
-                                    {{ $session->ip_address }},
+                            <p class="text-sm text-muted-foreground">
+                                {{ $session->ip_address }},
 
-                                    @if ($session->is_current_device)
-                                        <span class="text-green-500 font-bold">{{ __('This device') }}</span>
-                                    @else
-                                        {{ __('Last active') }} {{ $session->last_active }}
-                                    @endif
-                                </div>
-                            </div>
+                                @if ($session->is_current_device)
+                                    <span class="font-medium text-foreground">{{ __('This device') }}</span>
+                                @else
+                                    {{ __('Last active') }} {{ $session->last_active }}
+                                @endif
+                            </p>
                         </div>
                     </div>
                 @endforeach
@@ -58,13 +55,13 @@
                     <slot:description>{{ __('Please enter your password to confirm you would like to log out of your other browser sessions across all of your devices.') }}</slot:description>
                 </april:dialog-header>
 
-                <div class="my-3" x-data="{}" x-on:confirming-logout-other-browser-sessions.window="setTimeout(() => $refs.password.focus(), 250)">
+                <div class="grid gap-4" x-data="{}" x-on:confirming-logout-other-browser-sessions.window="setTimeout(() => $refs.password.focus(), 250)">
                     <april:input-group id="password-for-logout" name="password" type="password" placeholder="{{ __('Password') }}" label="Confirm Password to continue" x-ref="password" class="w-full" wire:model="password" wire:keydown.enter="logoutOtherBrowserSessions" />
                 </div>
 
                 <april:dialog-footer>
-                    <april:button variant="destructive" class="text-sm px-2 md:px-4" wire:click="logoutOtherBrowserSessions" wire:loading.attr="disabled">
-                        {{ __('Log out Other Browser Sessions') }}
+                    <april:button variant="destructive" size="sm" wire:click="logoutOtherBrowserSessions" wire:loading.attr="disabled">
+                        {{ __('Log out other browser sessions') }}
                     </april:button>
                 </april:dialog-footer>
             </slot:content>

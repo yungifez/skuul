@@ -19,6 +19,13 @@ enum PortalArea: string
     case Requests = 'requests';
 
     /**
+     * What the learner has out of the library, and what they are waiting for.
+     */
+    case Library = 'library';
+
+    case Boarding = 'boarding';
+
+    /**
      * Get the label to show in the interface.
      */
     public function label(): string
@@ -31,6 +38,8 @@ enum PortalArea: string
             self::Notices => 'Notices',
             self::Invoices => 'Invoices and payments',
             self::Documents => 'Documents',
+            self::Library => 'Library',
+            self::Boarding => 'Boarding',
             self::Requests => 'Requests',
         };
     }

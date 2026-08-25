@@ -51,6 +51,9 @@
                                         \App\Enums\PortalArea::Attendance => route('portal.attendance.show', $enrollment),
                                         \App\Enums\PortalArea::Notices => route('portal.notices.index', $enrollment),
                                         \App\Enums\PortalArea::Calendar => route('portal.calendar.index', $enrollment),
+                                        \App\Enums\PortalArea::Documents => route('portal.documents.index', $enrollment),
+                                        \App\Enums\PortalArea::Boarding => route('portal.boarding.index', $enrollment),
+                                        \App\Enums\PortalArea::Library => route('portal.library.index', $enrollment),
                                         \App\Enums\PortalArea::Requests => route('portal.requests.index', $enrollment),
                                         default => null,
                                     })

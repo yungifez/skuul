@@ -41,6 +41,7 @@ class LibraryLendingRulesController extends Controller
             'learner_limit' => (int) $request->validated('learner_limit'),
             'staff_limit' => (int) $request->validated('staff_limit'),
             'renewals_allowed' => (int) $request->validated('renewals_allowed'),
+            'hold_days' => (int) $request->validated('hold_days'),
             'fine_per_day' => BrickMoney::of((string) $request->validated('fine_per_day'), config('app.currency'))
                 ->getMinorAmount()
                 ->toInt(),

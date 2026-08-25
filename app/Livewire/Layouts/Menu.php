@@ -349,6 +349,13 @@ class Menu extends Component
             ],
             [
                 'type' => 'menu-item',
+                'text' => 'Library queue',
+                'icon' => 'clock',
+                'route' => 'library-reservations.index',
+                'visible' => feature_enabled(Feature::Library) && $user->can('read library'),
+            ],
+            [
+                'type' => 'menu-item',
                 'text' => 'Budgets',
                 'icon' => 'wallet',
                 'route' => 'budgets.index',

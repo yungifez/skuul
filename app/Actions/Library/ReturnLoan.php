@@ -23,6 +23,7 @@ class ReturnLoan
 {
     public function __construct(
         private ChargeStudent $charge,
+        private HoldCopyForNextInQueue $hold,
         private RecordAuditEvent $auditor,
     ) {}
 
@@ -50,6 +51,15 @@ class ReturnLoan
 
             if ($fine > 0) {
                 $this->chargeTheFine($loan, $fine, $actor);
+            }
+
+            // Somebody may have been waiting for exactly this book, so it
+            // goes behind the desk for them rather than back on the shelf.
+            $loan->loadMissing('copy.title');
+            $title = $loan->copy?->title;
+
+            if ($title !== null) {
+                $this->hold->holdWhateverIsFree($title, $actor, $loan->school_id);
             }
 
             $this->auditor->record(

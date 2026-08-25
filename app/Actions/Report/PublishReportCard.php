@@ -67,6 +67,7 @@ class PublishReportCard
     private function latestResults(StudentRecord $studentRecord, AcademicPeriod $academicPeriod): Collection
     {
         return ResultSnapshot::query()->where('student_record_id', $studentRecord->id)
+            ->approved()
             ->whereHas('courseOffering', fn ($query) => $query->where('academic_period_id', $academicPeriod->id))
             ->with('courseOffering.subject:id,name,short_name')
             ->orderBy('course_offering_id')->orderByDesc('revision')->get()->unique('course_offering_id')->values();

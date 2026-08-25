@@ -61,6 +61,43 @@
                 </div>
             </div>
         </form>
+
+        <form action="{{ route('library-loans.section.store') }}" method="POST">
+            @csrf
+
+            <div class="rounded-xl border border-sidebar-border/70 bg-card text-card-foreground shadow-sm">
+                <div class="flex flex-col gap-1.5 border-b p-6">
+                    <h3 class="text-lg font-semibold leading-none tracking-tight">Lend a class set</h3>
+                    <p class="text-sm text-muted-foreground">Give one title to every attending learner in a home section. The whole set succeeds or nothing changes.</p>
+                </div>
+
+                <div class="grid gap-4 p-6 sm:grid-cols-2">
+                    <div class="flex flex-col gap-2">
+                        <label for="section-loan-section" class="text-sm font-medium leading-none">Section</label>
+                        <select id="section-loan-section" name="academic_cycle_section_id" required
+                            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                            @foreach ($sections as $section)
+                                <option value="{{ $section->id }}">{{ $section->academicYear->name }} · {{ $section->academicLevel->name }} · {{ $section->label ?? $section->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label for="section-loan-title" class="text-sm font-medium leading-none">Title</label>
+                        <select id="section-loan-title" name="library_title_id" required
+                            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                            @foreach ($titles as $title)
+                                <option value="{{ $title->id }}">{{ $title->title }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end border-t p-6">
+                    <april:button type="submit">Lend the class set</april:button>
+                </div>
+            </div>
+        </form>
     @endif
 
     <div class="rounded-xl border border-sidebar-border/70 bg-card text-card-foreground shadow-sm">

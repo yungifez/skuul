@@ -9,6 +9,11 @@ class NationalityAndStateInputFields extends Component
 {
     public $nationalities;
 
+    public $country;
+
+    /**
+     * Legacy input name retained for the create and edit user forms.
+     */
     public $nationality;
 
     public $states;
@@ -16,6 +21,7 @@ class NationalityAndStateInputFields extends Component
     public $state;
 
     protected $rules = [
+        'country' => 'nullable|string',
         'nationality' => 'nullable|string',
         'state'       => 'nullable|string',
     ];
@@ -25,18 +31,19 @@ class NationalityAndStateInputFields extends Component
         // @phpstan-ignore-next-line
         $this->nationalities = World::countries()->data->pluck('name');
 
-        // set nationality to null if not found
-        if ($this->nationality != null && !in_array($this->nationality, $this->nationalities->all())) {
-            $this->nationality = null;
+        $this->country = $this->country ?? $this->nationality;
+
+        if ($this->country !== null && !in_array($this->country, $this->nationalities->all())) {
+            $this->country = null;
         }
     }
 
-    public function updatedNationality()
+    public function updatedCountry(): void
     {
-        if (blank($this->nationality)) {
+        if (blank($this->country)) {
             $this->states = collect();
             $this->state = null;
-            $this->dispatch('nationality-updated', ['nationality' => null]);
+            $this->dispatch('country-updated', ['country' => null]);
             $this->dispatch('state-updated', ['state' => null]);
 
             return;
@@ -45,40 +52,49 @@ class NationalityAndStateInputFields extends Component
         $this->states = collect(World::countries([
             'fields'  => 'states',
             'filters' => [
-                'name' => $this->nationality,
+                'name' => $this->country,
             ],
         ])->data->pluck('states')->first());
         if ($this->states->isEmpty()) {
-            $this->states = collect([['name' => $this->nationality]]);
+            $this->states = collect([['name' => $this->country]]);
         }
         $this->state = $this->states[0]['name'];
 
-        $this->dispatch('nationality-updated', ['nationality' => $this->nationality]);
+        $this->dispatch('country-updated', ['country' => $this->country]);
         $this->dispatch('state-updated', ['state' => $this->state]);
     }
 
-    public function loadInitialStates()
+    public function updatedNationality(): void
     {
-        if (blank($this->nationality)) {
+        $this->country = $this->nationality;
+        $this->updatedCountry();
+    }
+
+    public function loadInitialStates(): void
+    {
+        if (blank($this->country)) {
             $this->states = collect();
             $this->state = null;
+
+            $this->dispatch('country-updated', ['country' => null]);
+            $this->dispatch('state-updated', ['state' => null]);
 
             return;
         }
         $this->states = collect(World::countries([
             'fields'  => 'states',
             'filters' => [
-                'name' => $this->nationality,
+                'name' => $this->country,
             ],
         ])->data->pluck('states')->first());
         if ($this->states->isEmpty()) {
-            $this->states = collect([['name' => $this->nationality]]);
+            $this->states = collect([['name' => $this->country]]);
         }
         if ($this->state === null || !$this->states->pluck('name')->contains($this->state)) {
             $this->state = $this->states[0]['name'];
         }
 
-        $this->dispatch('nationality-updated', ['nationality' => $this->nationality]);
+        $this->dispatch('country-updated', ['country' => $this->country]);
         $this->dispatch('state-updated', ['state' => $this->state]);
     }
 

@@ -1,23 +1,6 @@
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title">Subject catalog</h4>
-    </div>
-    <div class="card-body">
-        <p class="mb-5 text-sm text-muted-foreground">Keep each subject once in the school catalog. Course offerings decide the academic level, home group, period, and teachers who teach it.</p>
-        <livewire:datatable
-            unique-id="subject-catalog-table"
-            :model="App\Models\Subject::class"
-            :filters="[['name' => 'inSchool'], ['name' => 'with', 'arguments' => ['courseOfferings']], ['name' => 'orderBy', 'arguments' => ['name']]]"
-            :empty-state="['heading' => 'No subjects yet', 'description' => 'Add a subject to the school catalog, then create an offering when it will be taught.', 'action' => ['href' => route('subjects.create'), 'ability' => 'create', 'arguments' => [\App\Models\Subject::class], 'label' => 'Add subject']]"
-            :columns="[
-                ['property' => 'name'],
-                ['property' => 'short_name', 'name' => 'Short name'],
-                ['name' => 'Course offerings', 'method' => 'count', 'relation' => 'courseOfferings'],
-                ['type' => 'dropdown', 'name' => 'Actions', 'links' => [
-                    ['href' => 'subjects.edit', 'text' => 'Edit', 'icon' => 'settings'],
-                ]],
-                ['type' => 'delete', 'name' => 'Delete', 'action' => 'subjects.destroy'],
-            ]"
-        />
-    </div>
-</div>
+<april:card><slot:title>Subject catalog</slot:title><slot:description>Subjects available for course offerings.</slot:description><slot:content><div wire:key="{{ $id }}-{{ $this->tableRevision }}"><april:data-table id="{{ $id }}" :data="$data" :columns="$columns" :pagination="$pagination" :per-page-options="$perPageOptions" row-key="{{ $rowKey }}" :searchable="$searchable" @query-change="$wire.updateTable($event.detail)"><slot:empty><div class="space-y-1"><p class="font-medium text-foreground">No subjects yet</p><p>Add a subject to the school catalog.</p></div></slot:empty><slot:actions>
+    <x-table-actions :items="array_filter([
+        $canEditSubjects ? ['label' => 'Edit subject', 'icon' => 'settings', 'url' => 'edit_url'] : null,
+        $canDeleteSubjects ? ['label' => 'Delete subject', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete this subject?'] : null,
+    ])" />
+</slot:actions></april:data-table></div></slot:content></april:card>

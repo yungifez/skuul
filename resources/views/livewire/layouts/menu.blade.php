@@ -37,14 +37,14 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
     <april:sidebar x-persist="sidebar" collapsible="icon" :default-open="sidebar_open()"
         class="border-r max-h-svh sticky top-0">
         <slot:header>
-            <a href="{{route('home')}}" class="flex h-10 items-center gap-2" aria-label="Home">
+            <a href="{{route('home')}}" wire:navigate class="flex h-10 items-center gap-2" aria-label="Home">
                 <img src="{{asset(current_school()->logoURL ?? config('app.logo'))}}" alt=""
                     class="h-8 w-8 rounded-md border object-cover">
                 <span class="truncate text-sm font-semibold">{{config('app.name')}}</span>
             </a>
         </slot:header>
 
-        <slot:content class="beautify-scrollbar">
+        <slot:content class="beautify-scrollbar" wire:navigate:scroll>
             @foreach ($menuGroups as $group)
             @if (collect($group['items'])->contains(fn (array $menuItem): bool => $menuItem['visible'] ?? true))
             <april:sidebar-group>
@@ -78,7 +78,7 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
                                 @if ($submenu['visible'] ?? true)
                                 <april:sidebar-menu-item>
                                     <april:sidebar-menu-button-link href="{{route($submenu['route'])}}"
-                                        wire:navigate:scroll
+                                        wire:navigate
                                         wire:current.exact="bg-sidebar-accent font-medium text-sidebar-accent-foreground"
                                         class="pl-3">
                                         <x-icon :name="'lucide-'.($submenu['icon'] ?? 'circle')" class="w-4 shrink-0" />
@@ -92,7 +92,7 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
                         @else
                         <april:sidebar-menu-item>
                             <april:sidebar-menu-button-link
-                                href="{{route($menuItem['route'], $menuItem['parameters'] ?? [])}}" wire:navigate:scroll
+                                href="{{route($menuItem['route'], $menuItem['parameters'] ?? [])}}" wire:navigate
                                 wire:current.exact="bg-sidebar-accent font-medium text-sidebar-accent-foreground">
                                 <x-icon :name="'lucide-'.($menuItem['icon'] ?? 'circle')" class="w-4 shrink-0" />
                                 <span>{{$menuItem['text']}}</span>
@@ -111,7 +111,7 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
         <slot:footer>
             <a href="{{route('profile.show')}}"
                 class="flex h-10 items-center gap-2 rounded-md px-2 text-sm hover:bg-sidebar-accent hover:text-sidebar-accent-foreground group-data-[collapsible=icon]:justify-center"
-                wire:navigate:scroll>
+                wire:navigate>
                 <img src="{{auth()->user()->profile_photo_url}}" alt=""
                     class="h-8 w-8 rounded-full border object-cover">
                 <span class="min-w-0 truncate group-data-[collapsible=icon]:hidden">{{auth()->user()->name}}</span>
