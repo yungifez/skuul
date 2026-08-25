@@ -27,6 +27,50 @@
         </slot:content>
     </april:card>
 
+    <section class="rounded-xl border bg-muted/30 p-5 md:p-6" aria-labelledby="academic-year-flow-heading">
+        <div class="flex items-start gap-3">
+            <span class="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+                <x-lucide-route class="size-5" />
+            </span>
+            <div>
+                <div class="flex items-center gap-2">
+                    <h2 id="academic-year-flow-heading" class="text-lg font-semibold">How a school year moves</h2>
+                    <x-help-tooltip label="School year lifecycle help">Build the year while it is a draft, schedule it when the dates are agreed, open it for daily work, then close it when the year is complete. Closing protects the year’s history.</x-help-tooltip>
+                </div>
+                <p class="mt-1 text-sm text-muted-foreground">The status tells you what can still be changed and whether staff can record new work.</p>
+            </div>
+        </div>
+
+        <div class="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+            @foreach ($lifecycleSteps as $step)
+                @php($isCurrentStep = $academicYear->status === $step['status'])
+                <div class="rounded-lg border p-4 {{ $isCurrentStep ? 'border-primary bg-primary/5' : 'bg-background' }}">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-sm font-semibold">{{ $step['title'] }}</span>
+                        @if ($isCurrentStep)
+                            <april:badge variant="default">Now</april:badge>
+                        @endif
+                    </div>
+                    <p class="mt-2 text-xs leading-5 text-muted-foreground">{{ $step['description'] }}</p>
+                </div>
+            @endforeach
+        </div>
+
+        @if ($canRollForwardSetup)
+            <div class="mt-5 flex flex-col justify-between gap-4 rounded-lg border bg-background p-4 sm:flex-row sm:items-center">
+                <div>
+                    <p class="font-medium">Starting this year from {{ $previousAcademicYear->name }}?</p>
+                    <p class="mt-1 text-sm text-muted-foreground">Review the teaching approach and reporting periods that can be created from the previous year.</p>
+                </div>
+                <april:button type="button" variant="outline" wire:click="openSetupRolloverDialog" wire:loading.attr="disabled" class="shrink-0">
+                    <x-lucide-copy-plus class="mr-2 size-4" />
+                    Copy setup from previous year
+                </april:button>
+            </div>
+        @endif
+        @error('rollover')<p class="mt-3 text-sm text-destructive">{{ $message }}</p>@enderror
+    </section>
+
     <april:card>
         <slot:title>Reporting timeline</slot:title>
         <slot:description>Reporting boundaries drive gradebooks, results, timetables, and reports.</slot:description>
@@ -46,7 +90,15 @@
     </april:card>
 
     <april:card>
-        <slot:title>Exams in this calendar</slot:title>
+        <slot:title class="flex flex-wrap items-center justify-between gap-3">
+            <span>Exams in this calendar</span>
+            @if ($canCreateExams)
+                <april:button-link href="{{ route('exams.create', ['academic_year_id' => $academicYear->id]) }}" variant="outline" size="sm">
+                    <x-lucide-plus class="mr-2 size-4" />
+                    Add exam
+                </april:button-link>
+            @endif
+        </slot:title>
         <slot:description>Exams appear here once they are assigned to one of the reporting periods.</slot:description>
         <slot:content>
             <div wire:key="{{ $id }}-{{ $this->tableRevision }}">
@@ -65,4 +117,55 @@
             </div>
         </slot:content>
     </april:card>
+
+    <april:dialog dismissable x-effect="show = $wire.showSetupRolloverDialog">
+        <slot:content class="sm:max-w-2xl">
+            <april:dialog-header>
+                <slot:title>Review setup from {{ $previousAcademicYear?->name }}</slot:title>
+                <slot:description>Nothing is created until you confirm. Existing setup in {{ $academicYear->name }} is left unchanged.</slot:description>
+            </april:dialog-header>
+
+            @if ($setupRolloverPreview !== null)
+                <div class="space-y-3">
+                    @foreach ($setupRolloverPreview['items'] as $item)
+                        <div wire:key="rollover-item-{{ $item['key'] }}" class="rounded-lg border p-4">
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <h3 class="font-medium">{{ $item['title'] }}</h3>
+                                    <p class="mt-1 text-sm text-muted-foreground">{{ $item['description'] }}</p>
+                                </div>
+                                @if ($item['will_create'])
+                                    <april:badge variant="secondary">{{ $item['count'] }} {{ $item['count'] === 1 ? 'item' : 'items' }}</april:badge>
+                                @else
+                                    <april:badge variant="outline">No changes</april:badge>
+                                @endif
+                            </div>
+                            <ul class="mt-3 space-y-1 text-sm">
+                                @foreach ($item['details'] as $detail)
+                                    <li class="flex gap-2 text-muted-foreground"><span aria-hidden="true">•</span><span>{{ $detail }}</span></li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endforeach
+                </div>
+
+                <div class="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
+                    <p class="font-semibold">These records are never copied:</p>
+                    <p class="mt-1 text-muted-foreground">Learners, placements, teacher assignments, classes, subjects, exams, timetables, attendance and results. Set those up for this year when you are ready.</p>
+                </div>
+            @endif
+
+            <april:dialog-footer>
+                <april:button type="button" variant="outline" wire:click="$set('showSetupRolloverDialog', false)">
+                    Cancel
+                </april:button>
+                @if (($setupRolloverPreview['create_count'] ?? 0) > 0)
+                    <april:button type="button" wire:click="rollForwardSetup" wire:loading.attr="disabled">
+                        <span wire:loading.remove wire:target="rollForwardSetup">Create listed setup</span>
+                        <span wire:loading wire:target="rollForwardSetup">Creating setup…</span>
+                    </april:button>
+                @endif
+            </april:dialog-footer>
+        </slot:content>
+    </april:dialog>
 </div>

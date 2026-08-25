@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\AcademicPeriod;
 use App\Models\Exam;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -35,14 +36,19 @@ class ExamPolicy
      */
     public function create(User $user)
     {
-        $academicPeriod = current_academic_period();
-
-        if ($user->can('create exam')
-            && $academicPeriod?->isOpen()
-            && $academicPeriod->academicYear?->isOpen()
-        ) {
+        if ($user->can('create exam')) {
             return true;
         }
+    }
+
+    /**
+     * Determine whether the user can create an exam in a chosen period.
+     */
+    public function createForAcademicPeriod(User $user, AcademicPeriod $academicPeriod): bool
+    {
+        return $user->can('create exam')
+            && $academicPeriod->school_id === current_school_id()
+            && $academicPeriod->academicYear?->isOpen() === true;
     }
 
     /**

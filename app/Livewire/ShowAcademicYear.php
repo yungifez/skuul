@@ -3,8 +3,10 @@
 namespace App\Livewire;
 
 use App\Actions\Academic\PublishAcademicCalendar;
+use App\Actions\Academic\RollForwardAcademicYearSetup;
 use App\Enums\AcademicPeriodStatus;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Livewire\Concerns\InteractsWithAprilTable;
 use App\Models\AcademicYear;
 use App\Models\Exam;
@@ -17,9 +19,17 @@ use Yungifez\AprilUI\Livewire\DataTableComponent;
 
 class ShowAcademicYear extends DataTableComponent
 {
+    use DispatchesStatusNotifications;
     use InteractsWithAprilTable;
 
     public AcademicYear $academicYear;
+
+    public ?AcademicYear $previousAcademicYear = null;
+
+    /** @var array{items: list<array{key: string, title: string, description: string, details: list<string>, count: int, will_create: bool}>, create_count: int}|null */
+    public ?array $setupRolloverPreview = null;
+
+    public bool $showSetupRolloverDialog = false;
 
     public function mount(?AcademicYear $academicYear = null): void
     {
@@ -28,6 +38,67 @@ class ShowAcademicYear extends DataTableComponent
             throw new LogicException('An academic year is required.');
         }
         $this->academicYear = $academicYear->loadMissing('academicPeriods');
+        $this->previousAcademicYear = AcademicYear::inSchool()
+            ->where('start_year', '<', $academicYear->start_year)
+            ->orderByDesc('start_year')
+            ->orderByDesc('id')
+            ->first();
+    }
+
+    public function openSetupRolloverDialog(RollForwardAcademicYearSetup $rollForwardAcademicYearSetup): void
+    {
+        $this->authorize('update', $this->academicYear);
+
+        if ($this->previousAcademicYear === null) {
+            return;
+        }
+
+        try {
+            $this->setupRolloverPreview = $rollForwardAcademicYearSetup->preview($this->previousAcademicYear, $this->academicYear);
+            $this->showSetupRolloverDialog = true;
+        } catch (InvalidValueException $exception) {
+            $this->addError('rollover', $exception->getMessage());
+        }
+    }
+
+    public function rollForwardSetup(RollForwardAcademicYearSetup $rollForwardAcademicYearSetup): void
+    {
+        $this->authorize('update', $this->academicYear);
+
+        if ($this->previousAcademicYear === null) {
+            return;
+        }
+
+        try {
+            $created = $rollForwardAcademicYearSetup->rollForward(
+                $this->previousAcademicYear,
+                $this->academicYear,
+                auth()->user(),
+            );
+        } catch (InvalidValueException $exception) {
+            $this->addError('rollover', $exception->getMessage());
+
+            return;
+        }
+
+        $this->academicYear->refresh()->load('academicPeriods');
+        $this->setupRolloverPreview = null;
+        $this->showSetupRolloverDialog = false;
+        $createdItems = [];
+
+        if ($created['academic_periods'] > 0) {
+            $createdItems[] = $created['academic_periods'].' reporting periods';
+        }
+
+        if ($created['instructional_model']) {
+            $createdItems[] = 'the teaching approach';
+        }
+
+        $message = $createdItems === []
+            ? "Everything from {$this->previousAcademicYear->name} is already set up."
+            : 'Created '.implode(' and ', $createdItems)." from {$this->previousAcademicYear->name}.";
+
+        $this->notify($message);
     }
 
     public function publishCalendar(PublishAcademicCalendar $publishAcademicCalendar): void
@@ -75,8 +146,39 @@ class ShowAcademicYear extends DataTableComponent
         return view('livewire.show-academic-year', array_merge($this->aprilTablePayload(), [
             'canEditExams' => auth()->user()->can('update exam'),
             'canDeleteExams' => auth()->user()->can('delete exam'),
+            'canCreateExams' => auth()->user()->can('create exam') && $this->academicYear->isOpen(),
             'canEditCalendar' => auth()->user()->can('update', $this->academicYear),
             'isDraft' => $this->academicYear->status === AcademicPeriodStatus::Draft,
+            'canRollForwardSetup' => $this->previousAcademicYear !== null
+                && auth()->user()->can('update', $this->academicYear)
+                && !$this->academicYear->status->isFrozen(),
+            'lifecycleSteps' => [
+                [
+                    'status' => AcademicPeriodStatus::Draft,
+                    'title' => 'Draft',
+                    'description' => 'Build dates, periods and setup. Daily records are not ready yet.',
+                ],
+                [
+                    'status' => AcademicPeriodStatus::Scheduled,
+                    'title' => 'Scheduled',
+                    'description' => 'The calendar is agreed and starts on a future date.',
+                ],
+                [
+                    'status' => AcademicPeriodStatus::Open,
+                    'title' => 'Open',
+                    'description' => 'Staff can record the new work that belongs to this year.',
+                ],
+                [
+                    'status' => AcademicPeriodStatus::Closing,
+                    'title' => 'Closing',
+                    'description' => 'Finish existing work and resolve the closing checks.',
+                ],
+                [
+                    'status' => AcademicPeriodStatus::Closed,
+                    'title' => 'Closed',
+                    'description' => 'The year is protected as history. Reopen only with a reason.',
+                ],
+            ],
             'topLevelPeriods' => $topLevelPeriods,
         ]));
     }

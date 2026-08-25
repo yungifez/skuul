@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreExamRequest;
 use App\Http\Requests\UpdateExamRequest;
 use App\Http\Requests\UpdateExamStatusRequest;
+use App\Models\AcademicPeriod;
 use App\Models\Exam;
 use App\Services\Exam\ExamService;
 use Illuminate\Http\RedirectResponse;
@@ -42,7 +43,10 @@ class ExamController extends Controller
      */
     public function store(StoreExamRequest $request): RedirectResponse
     {
-        $data = $request->except('_token');
+        $data = $request->validated();
+        $academicPeriod = AcademicPeriod::inSchool()->with('academicYear')->findOrFail($data['academic_period_id']);
+
+        $this->authorize('createForAcademicPeriod', [Exam::class, $academicPeriod]);
         $exam = $this->examService->createExam($data);
 
         return redirect()->route('exam-slots.create', $exam)->with('success', 'Exam created successfully, Now, create exam slots for the exam');

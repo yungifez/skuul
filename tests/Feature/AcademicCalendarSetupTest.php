@@ -5,10 +5,15 @@ namespace Tests\Feature;
 use App\Actions\Academic\SaveAcademicCalendar;
 use App\Enums\AcademicPeriodStatus;
 use App\Enums\AcademicPeriodType;
+use App\Enums\AuditAction;
+use App\Enums\InstructionalModel;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\AcademicCalendarForm;
 use App\Livewire\ShowAcademicYear;
+use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
+use App\Models\AuditEvent;
+use App\Models\InstructionalModelSetting;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -81,6 +86,104 @@ class AcademicCalendarSetupTest extends TestCase
         $this->assertSame(AcademicPeriodStatus::Scheduled, $calendar->status);
         $this->assertCount(3, $calendar->topLevelPeriods()->where('status', AcademicPeriodStatus::Scheduled)->get());
         $this->assertSame($actor?->id, $calendar->statusChanges()->firstOrFail()->changed_by);
+    }
+
+    public function test_setup_rollover_shows_a_preview_before_creating_new_year_setup(): void
+    {
+        $school = $this->workingSchool();
+        $source = AcademicYear::factory()->create([
+            'school_id' => $school->id,
+            'start_year' => 2025,
+            'stop_year' => 2026,
+        ]);
+        $target = AcademicYear::factory()->create([
+            'school_id' => $school->id,
+            'start_year' => 2026,
+            'stop_year' => 2027,
+        ]);
+        AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $source->id,
+            'name' => 'Term 1',
+            'position' => 1,
+            'starts_on' => '2025-09-01',
+            'ends_on' => '2025-12-19',
+            'status' => AcademicPeriodStatus::Open,
+        ]);
+        AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $source->id,
+            'name' => 'Term 2',
+            'position' => 2,
+            'starts_on' => '2026-01-05',
+            'ends_on' => '2026-06-30',
+            'status' => AcademicPeriodStatus::Open,
+        ]);
+        InstructionalModelSetting::create([
+            'school_id' => $school->id,
+            'academic_year_id' => $source->id,
+            'model' => InstructionalModel::Hybrid,
+        ]);
+
+        $this->authorized_user(['update academic year'], $school);
+
+        Livewire::test(ShowAcademicYear::class, ['academicYear' => $target])
+            ->call('openSetupRolloverDialog')
+            ->assertSet('showSetupRolloverDialog', true)
+            ->assertSet('setupRolloverPreview.create_count', 3)
+            ->assertSee('One class group, with exceptions')
+            ->assertSee('Term 1')
+            ->assertSee('Nothing is created until you confirm');
+
+        $this->assertDatabaseMissing('instructional_model_settings', [
+            'academic_year_id' => $target->id,
+        ]);
+        $this->assertSame(0, AcademicPeriod::query()->where('academic_year_id', $target->id)->count());
+
+        Livewire::test(ShowAcademicYear::class, ['academicYear' => $target])
+            ->call('rollForwardSetup');
+
+        $this->assertDatabaseHas('instructional_model_settings', [
+            'academic_year_id' => $target->id,
+            'model' => InstructionalModel::Hybrid->value,
+        ]);
+        $this->assertSame(2, AcademicPeriod::query()->where('academic_year_id', $target->id)->count());
+        $this->assertDatabaseHas('academic_periods', [
+            'academic_year_id' => $target->id,
+            'name' => 'Term 1',
+            'starts_on' => '2026-09-01',
+            'ends_on' => '2026-12-19',
+        ]);
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::AcademicYearSetupRolledForward)->first());
+    }
+
+    public function test_academic_year_screen_explains_lifecycle_and_links_exam_creation_to_that_year(): void
+    {
+        $school = $this->workingSchool();
+        $academicYear = AcademicYear::factory()->create([
+            'school_id' => $school->id,
+            'start_year' => 2026,
+            'stop_year' => 2027,
+            'status' => AcademicPeriodStatus::Open,
+        ]);
+        $period = AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'status' => AcademicPeriodStatus::Open,
+        ]);
+
+        $this->authorized_user(['read academic year', 'create exam'], $school)
+            ->get(route('academic-years.show', $academicYear))
+            ->assertOk()
+            ->assertSee('How a school year moves')
+            ->assertSee('Finish existing work and resolve the closing checks.')
+            ->assertSee('Add exam')
+            ->assertSee('academic_year_id='.$academicYear->id, false);
+
+        $this->get(route('exams.create', ['academic_year_id' => $academicYear->id]))
+            ->assertOk()
+            ->assertSee('Create an exam for '.$academicYear->name)
+            ->assertSee('value="'.$period->id.'" selected', false);
     }
 
     public function test_a_draft_calendar_cannot_be_made_the_working_calendar(): void
