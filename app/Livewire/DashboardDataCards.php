@@ -14,6 +14,7 @@ use App\Models\CourseOffering;
 use App\Models\Organization;
 use App\Models\School;
 use App\Models\User;
+use App\Services\School\SchoolSetupChecklist;
 use Illuminate\View\View;
 use Livewire\Component;
 
@@ -45,6 +46,8 @@ class DashboardDataCards extends Component
 
     public $isOrganizationAdministrator;
 
+    public ?array $setupChecklist = null;
+
     /** @var array{registered: int, present: int, absent: int, late: int, rate: float|null} */
     public array $todayAttendance = [
         'registered' => 0,
@@ -63,12 +66,16 @@ class DashboardDataCards extends Component
     /** @var array<int, array{title: string, type: string, date: string, time: string}> */
     public array $upcomingEvents = [];
 
-    public function mount(): void
+    public function mount(SchoolSetupChecklist $schoolSetupChecklist): void
     {
         $user = auth()->user();
+        $school = current_school();
         $currentAcademicYear = current_academic_year();
 
-        $this->organization = current_school()->organization;
+        $this->setupChecklist = $user->can('manage school settings')
+            ? $schoolSetupChecklist->for($school)
+            : null;
+        $this->organization = $school->organization;
         $this->organizationSchools = $this->organization?->schools()->count() ?? 0;
         $this->calendarTemplates = $this->organization?->calendarTemplates()->count() ?? 0;
         $this->organizations = $user->can(PlatformPermission::AccessAllOrganizations) ? Organization::count() : 0;

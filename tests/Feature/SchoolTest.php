@@ -135,12 +135,31 @@ class SchoolTest extends TestCase
             ->get('/dashboard/schools/settings')
             ->assertSuccessful()
             ->assertSee('Set up your school')
+            ->assertSee('School setup checklist')
             ->assertSee('How teaching works')
             ->assertSee('Grades and classes')
-            ->assertSee('What needs attention')
+            ->assertSee('required steps remain')
             ->assertSee('No current school year is selected.')
             ->assertSee('aria-label="School calendar help"', false)
             ->assertSee('aria-label="Grades and classes help"', false);
+    }
+
+    public function test_school_administrator_sees_setup_guidance_on_the_dashboard(): void
+    {
+        $school = $this->workingSchool();
+        $school->update([
+            'academic_year_id' => null,
+            'academic_period_id' => null,
+        ]);
+
+        $this->withoutMiddleware(SetActiveAcademicPeriod::class);
+        academic_period_context()->forget();
+
+        $this->platform_admin($school)
+            ->get('/dashboard')
+            ->assertSuccessful()
+            ->assertSee('Start here')
+            ->assertSee('View school setup checklist');
     }
 
     public function test_a_school_can_save_its_familiar_operating_language(): void

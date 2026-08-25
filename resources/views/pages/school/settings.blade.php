@@ -14,27 +14,7 @@
             <p class="mt-2 max-w-3xl text-sm text-muted-foreground">Work through the cards below in order. You can return at any time; completed areas stay available for review.</p>
         </section>
 
-        @if (count($needsAttention) > 0)
-            <section class="rounded-xl border border-amber-500/30 bg-amber-500/10 p-6" aria-labelledby="needs-attention-heading">
-                <div class="flex items-start gap-3">
-                    <x-lucide-triangle-alert class="mt-0.5 size-5 shrink-0 text-amber-700 dark:text-amber-300" />
-                    <div class="space-y-3">
-                        <div>
-                            <h2 id="needs-attention-heading" class="text-lg font-semibold">What needs attention</h2>
-                            <p class="mt-1 text-sm text-muted-foreground">These areas are not ready yet. The reason is shown beside each one.</p>
-                        </div>
-                        <ul class="space-y-2 text-sm">
-                            @foreach ($needsAttention as $item)
-                                <li class="flex flex-col gap-1 sm:flex-row sm:gap-2">
-                                    <span class="font-semibold">{{ $item['title'] }}:</span>
-                                    <span>{{ $item['reason'] }}</span>
-                                </li>
-                            @endforeach
-                        </ul>
-                    </div>
-                </div>
-            </section>
-        @endif
+        <x-school-setup-checklist :checklist="$setupChecklist" />
 
         <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
             <april:card>
