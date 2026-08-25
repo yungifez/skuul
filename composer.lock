@@ -9376,12 +9376,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/yungifez/april-ui.git",
-                "reference": "93a14b1b261cb374d6ef34e6332a2b9b2f0fbc14"
+                "reference": "a6ebd44b42d7e76960c143c963df9c00d7e24433"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/yungifez/april-ui/zipball/93a14b1b261cb374d6ef34e6332a2b9b2f0fbc14",
-                "reference": "93a14b1b261cb374d6ef34e6332a2b9b2f0fbc14",
+                "url": "https://api.github.com/repos/yungifez/april-ui/zipball/a6ebd44b42d7e76960c143c963df9c00d7e24433",
+                "reference": "a6ebd44b42d7e76960c143c963df9c00d7e24433",
                 "shasum": ""
             },
             "require": {
@@ -9450,7 +9450,7 @@
                 "issues": "https://github.com/yungifez/april-ui/issues",
                 "source": "https://github.com/yungifez/april-ui/tree/main"
             },
-            "time": "2026-08-25T21:39:34+00:00"
+            "time": "2026-08-25T21:45:31+00:00"
         }
     ],
     "packages-dev": [
