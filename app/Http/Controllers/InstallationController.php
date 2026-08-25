@@ -14,6 +14,7 @@ use App\Services\Installation\InstallationReadiness;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 use Nnjeim\World\Models\Country;
 use Nnjeim\World\Models\State;
@@ -50,7 +51,12 @@ class InstallationController extends Controller
 
         try {
             $seedWorldData->seed();
-        } catch (\Throwable) {
+        } catch (\Throwable $exception) {
+            Log::error('Installer world data setup failed.', [
+                'exception' => $exception,
+                'reason' => $exception->getMessage(),
+            ]);
+
             return back()->withErrors([
                 'world_data' => 'The country and state data could not be installed. Check the deployment logs and try again.',
             ]);

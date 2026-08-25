@@ -4,6 +4,7 @@ namespace App\Actions\Installation;
 
 use Database\Seeders\WorldSeeder;
 use Illuminate\Support\Facades\Artisan;
+use RuntimeException;
 
 class SeedWorldData
 {
@@ -12,11 +13,17 @@ class SeedWorldData
      */
     public function seed(): void
     {
-        if (Artisan::call('db:seed', [
+        $exitCode = Artisan::call('db:seed', [
             '--class' => WorldSeeder::class,
             '--force' => true,
-        ]) !== 0) {
-            throw new \RuntimeException('The country and state reference data could not be installed.');
+        ]);
+
+        if ($exitCode !== 0) {
+            $output = trim(Artisan::output());
+
+            throw new RuntimeException($output === ''
+                ? 'The country and state reference data could not be installed.'
+                : "The country and state reference data could not be installed. Artisan output: {$output}");
         }
     }
 }

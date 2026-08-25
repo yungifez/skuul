@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\Authorization\GrantSystemRole;
+use App\Actions\Installation\SeedWorldData;
 use App\Actions\School\GrantSchoolMembership;
 use App\Enums\AccountStatus;
 use App\Enums\AuditAction;
@@ -19,6 +20,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\RefreshDatabaseState;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Mockery\MockInterface;
+use RuntimeException;
 use Tests\TestCase;
 
 class InstallationTest extends TestCase
@@ -75,6 +79,44 @@ class InstallationTest extends TestCase
             ->assertSessionHasErrors('installer');
 
         $this->assertDatabaseCount('installations', 0);
+    }
+
+    public function test_world_data_setup_logs_the_failure_reason(): void
+    {
+        Log::spy();
+
+        $this->mock(SeedWorldData::class, function (MockInterface $mock): void {
+            $mock->shouldReceive('seed')
+                ->once()
+                ->andThrow(new RuntimeException('The database user cannot create the states table.'));
+        });
+
+        $this->post(route('install.world.setup'))
+            ->assertRedirect()
+            ->assertSessionHasErrors('world_data');
+
+        Log::shouldHaveReceived('error')
+            ->withArgs(function (string $message, array $context): bool {
+                return $message === 'Installer world data setup failed.'
+                    && $context['reason'] === 'The database user cannot create the states table.'
+                    && $context['exception'] instanceof RuntimeException;
+            })
+            ->once();
+    }
+
+    public function test_world_data_seed_preserves_artisan_failure_output(): void
+    {
+        Artisan::shouldReceive('call')
+            ->once()
+            ->andReturn(1);
+        Artisan::shouldReceive('output')
+            ->once()
+            ->andReturn('SQLSTATE[HY000]: General error: 1142 INSERT command denied.');
+
+        $this->expectException(RuntimeException::class);
+        $this->expectExceptionMessage('INSERT command denied');
+
+        app(SeedWorldData::class)->seed();
     }
 
     public function test_installer_creates_the_first_system_administrator_and_campus(): void
