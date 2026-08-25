@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 
 class InstallApplicationRequest extends FormRequest
@@ -27,6 +28,7 @@ class InstallApplicationRequest extends FormRequest
             'admin_name' => ['required', 'string', 'max:100'],
             'admin_email' => ['required', 'string', 'email:rfc', 'max:100'],
             'admin_password' => ['required', 'confirmed', Password::defaults()],
+            'locale' => ['nullable', 'string', Rule::in(array_keys(config('app.supported_locales', [])))],
             'organization_name' => ['required', 'string', 'max:255'],
             'campus_name' => ['required', 'string', 'max:255'],
             'campus_address' => ['required', 'string', 'max:255'],

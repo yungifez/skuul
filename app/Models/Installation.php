@@ -16,6 +16,7 @@ class Installation extends Model
         'installed_by',
         'organization_id',
         'school_id',
+        'locale',
         'demo_data_loaded',
         'email_configured',
         'installed_at',

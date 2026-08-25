@@ -36,6 +36,7 @@ class InstallApplication
      *     admin_name: string,
      *     admin_email: string,
      *     admin_password: string,
+     *     locale?: string|null,
      *     organization_name: string,
      *     campus_name: string,
      *     campus_address: string,
@@ -54,7 +55,13 @@ class InstallApplication
             throw new \InvalidArgumentException('Complete the installer checks before continuing.');
         }
 
-        return DB::transaction(function () use ($data): Installation {
+        $locale = $data['locale'] ?? config('app.locale');
+        $locale = is_string($locale) && array_key_exists($locale, config('app.supported_locales', []))
+            ? $locale
+            : (string) config('app.fallback_locale');
+        app()->setLocale($locale);
+
+        return DB::transaction(function () use ($data, $locale): Installation {
             if (Installation::withoutGlobalScopes()->lockForUpdate()->exists()) {
                 throw new \InvalidArgumentException('The application is already installed.');
             }
@@ -109,6 +116,7 @@ class InstallApplication
                 'installed_by' => $admin->id,
                 'organization_id' => $organization->id,
                 'school_id' => $school->id,
+                'locale' => $locale,
                 'demo_data_loaded' => $demoDataLoaded,
                 'email_configured' => $this->readiness->emailConfigured(),
                 'installed_at' => now(),

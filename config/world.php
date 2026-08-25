@@ -13,23 +13,7 @@ return [
     | Supported locales.
     |--------------------------------------------------------------------------
     */
-    'accepted_locales' => [
-        'ar',
-        'bn',
-        'br',
-        'de',
-        'en',
-        'es',
-        'fr',
-        'ja',
-        'kr',
-        'nl',
-        'pl',
-        'pt',
-        'ro',
-        'ru',
-        'zh',
-    ],
+    'accepted_locales' => array_keys(config('app.supported_locales', ['en' => 'English'])),
     /*
     |--------------------------------------------------------------------------
     | Enabled modules.

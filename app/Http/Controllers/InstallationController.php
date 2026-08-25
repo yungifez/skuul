@@ -35,6 +35,7 @@ class InstallationController extends Controller
             'appKeyAvailable' => filled(config('app.key')),
             'databaseSettings' => $configureDatabase->currentSettings(),
             'countries' => $readiness->countries(),
+            'locales' => config('app.supported_locales', []),
         ]);
     }
 

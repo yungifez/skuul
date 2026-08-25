@@ -52,6 +52,7 @@ class CompleteExistingInstallation
                 'installed_by' => $admin->id,
                 'organization_id' => $candidate['organization_id'],
                 'school_id' => $school->id,
+                'locale' => config('app.locale'),
                 'demo_data_loaded' => false,
                 'email_configured' => $this->readiness->emailConfigured(),
                 'installed_at' => now(),

@@ -69,7 +69,9 @@ class InstallationTest extends TestCase
             ->assertSee('id="campus_city"', false)
             ->assertSee('list="campus_city-options"', false)
             ->assertSee('id="campus_postal_code"', false)
-            ->assertSee('id="campus_country"', false);
+            ->assertSee('id="campus_country"', false)
+            ->assertSee('name="locale"', false)
+            ->assertSee('English');
     }
 
     public function test_installer_blocks_until_country_and_state_data_is_loaded(): void
@@ -214,6 +216,37 @@ class InstallationTest extends TestCase
             'school_id' => $school->id,
         ]);
         $this->assertSame(1, Notice::query()->count());
+    }
+
+    public function test_installer_saves_the_selected_system_language_for_every_request(): void
+    {
+        $this->seedWorldReferenceData();
+
+        $data = $this->installationData();
+        $data['locale'] = 'fr';
+
+        $this->post(route('install.store'), $data)
+            ->assertRedirect(route('login'));
+
+        $this->assertDatabaseHas('installations', ['locale' => 'fr']);
+
+        $this->get(route('login'))->assertOk();
+
+        $this->assertSame('fr', app()->getLocale());
+    }
+
+    public function test_installer_rejects_an_unsupported_system_language(): void
+    {
+        $this->seedWorldReferenceData();
+
+        $data = $this->installationData();
+        $data['locale'] = 'xx';
+
+        $this->post(route('install.store'), $data)
+            ->assertRedirect()
+            ->assertSessionHasErrors('locale');
+
+        $this->assertDatabaseCount('installations', 0);
     }
 
     public function test_installer_can_complete_without_email_configuration_or_demo_data(): void

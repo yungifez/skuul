@@ -170,6 +170,16 @@
                                         <input id="admin_email" type="email" name="admin_email" value="{{ old('admin_email') }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="email">
                                         @error('admin_email') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
                                     </div>
+                                    <div class="sm:col-span-2">
+                                        <label for="locale" class="mb-2 block text-sm font-medium">System language <span class="font-normal text-muted-foreground">(optional)</span></label>
+                                        <select id="locale" name="locale" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                            @foreach ($locales as $localeCode => $localeName)
+                                                <option value="{{ $localeCode }}" @selected(old('locale', config('app.locale')) === $localeCode)>{{ $localeName }}</option>
+                                            @endforeach
+                                        </select>
+                                        <p class="mt-1 text-sm text-muted-foreground">This sets the default language for the Skuul interface after installation. You can leave English selected.</p>
+                                        @error('locale') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
+                                    </div>
                                     <div>
                                         <label for="admin_password" class="mb-2 block text-sm font-medium">Password</label>
                                         <input id="admin_password" type="password" name="admin_password" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="new-password">

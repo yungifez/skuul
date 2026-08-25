@@ -6,6 +6,7 @@ use App\Http\Middleware\EnsureFeatureIsEnabled;
 use App\Http\Middleware\ResolveDomainContext;
 use App\Http\Middleware\SetActiveAcademicPeriod;
 use App\Http\Middleware\SetActiveSchool;
+use App\Http\Middleware\SetApplicationLocale;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -38,12 +39,13 @@ return Application::configure(basePath: dirname(__DIR__))
                 ResolveDomainContext::class,
                 SetActiveSchool::class,
                 SetActiveAcademicPeriod::class,
+                SetApplicationLocale::class,
                 EnsureApplicationInstalled::class,
             ])
             ->alias([
-                'feature'            => EnsureFeatureIsEnabled::class,
-                'role'               => RoleMiddleware::class,
-                'permission'         => PermissionMiddleware::class,
+                'feature' => EnsureFeatureIsEnabled::class,
+                'role' => RoleMiddleware::class,
+                'permission' => PermissionMiddleware::class,
                 'role_or_permission' => RoleOrPermissionMiddleware::class,
             ]);
     })
