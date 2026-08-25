@@ -19,7 +19,6 @@ use Illuminate\Support\Facades\Storage;
  * @property int|null $calendar_template_id
  * @property CalendarTemplate|null $calendarTemplate
  * @property string $name
- * @property string|null $address_line_2
  * @property string|null $country
  * @property string|null $state
  * @property string|null $city
@@ -30,7 +29,7 @@ class School extends Model
     use HasFactory;
 
     protected $fillable = [
-        'organization_id', 'billing_group_id', 'name', 'address', 'address_line_2', 'country', 'state', 'city',
+        'organization_id', 'billing_group_id', 'name', 'address', 'country', 'state', 'city',
         'postal_code', 'code', 'initials', 'phone', 'email', 'logo_path',
     ];
 

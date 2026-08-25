@@ -196,7 +196,6 @@ class InstallationTest extends TestCase
         $this->assertTrue(app(SystemPermissionScope::class)->allows($admin, PlatformPermission::ManagePlatform));
         $this->assertSame($organization->id, $school->organization_id);
         $this->assertSame('123 Example Street', $school->address);
-        $this->assertNull($school->address_line_2);
         $this->assertSame('Canada', $school->country);
         $this->assertSame('British Columbia', $school->state);
         $this->assertSame('Vancouver', $school->city);

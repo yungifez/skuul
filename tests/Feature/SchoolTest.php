@@ -11,6 +11,7 @@ use App\Services\School\SchoolContext;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 use Tests\TestCase;
 
 class SchoolTest extends TestCase
@@ -23,6 +24,11 @@ class SchoolTest extends TestCase
         $this->authorized_user(['read school'])
             ->get('/dashboard/schools')
             ->assertSuccessful();
+    }
+
+    public function test_school_schema_does_not_keep_address_line_2(): void
+    {
+        $this->assertFalse(Schema::hasColumn('schools', 'address_line_2'));
     }
 
     public function test_view_schools_cannot_be_rendered_to_unauthorized_user()
