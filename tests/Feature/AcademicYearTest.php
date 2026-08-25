@@ -30,14 +30,16 @@ class AcademicYearTest extends TestCase
             ->assertSee('School calendars');
     }
 
-    public function test_working_calendar_form_submits_the_selected_year_without_javascript(): void
+    public function test_working_calendar_form_uses_the_april_ui_select(): void
     {
         $academicYear = AcademicYear::factory()->create(['school_id' => current_school_id()]);
 
         $this->authorized_user(['read academic year', 'set academic year'])
             ->get('/dashboard/academic-years')
             ->assertOk()
-            ->assertSee('<select id="academic-year" name="academic_year_id"', false)
+            ->assertSee('data-slot="select"', false)
+            ->assertSee('x-data="select(', false)
+            ->assertSee('name="academic_year_id"', false)
             ->assertSee('value="'.$academicYear->id.'"', false);
     }
 

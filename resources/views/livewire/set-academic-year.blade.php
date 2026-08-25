@@ -13,12 +13,12 @@
                     <x-display-validation-errors/>
                     <div class="flex w-full flex-col gap-2">
                         <april:label for="name">{{ school_term('academic_year', 'School year') }}</april:label>
-                        <select id="academic-year" name="academic_year_id" class="h-10 rounded-md border border-input bg-background px-3 text-sm" required>
+                        <april:select id="name" name="academic_year_id">
                         @foreach ($academicYears as $academicYear)
                             <option value="{{ $academicYear->id }}" @selected($academicYear->id == current_academic_year_id() )> {{ $academicYear->name}}</option>
                         @endforeach
 
-                        </select>
+                        </april:select>
                         @error('academic_year_id')
                             <p class="text-sm text-destructive">{{ $message }}</p>
                         @enderror

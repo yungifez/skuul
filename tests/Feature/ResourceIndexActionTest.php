@@ -51,7 +51,11 @@ class ResourceIndexActionTest extends TestCase
             ->get(route('students.index'))
             ->assertOk()
             ->assertSee('The student was saved.', false)
-            ->assertSee('id="status-display"', false);
+            ->assertSee('id="status-display"', false)
+            ->assertSee('top-24 z-[60]', false)
+            ->assertSee('shadow-lg backdrop-blur', false)
+            ->assertSee('bg-background/95', false)
+            ->assertSee('bg-destructive/10', false);
     }
 
     public function test_the_student_table_searches_rows_on_the_server(): void
