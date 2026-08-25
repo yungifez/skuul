@@ -50,6 +50,7 @@
     }
 
     [data-slot="data-table"] > .relative > table {
+        width: max-content;
         min-width: max-content;
     }
 
