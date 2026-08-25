@@ -52,10 +52,10 @@ class ResourceIndexActionTest extends TestCase
             ->assertOk()
             ->assertSee('The student was saved.', false)
             ->assertSee('id="status-display"', false)
-            ->assertSee('top-24 z-[60]', false)
-            ->assertSee('shadow-lg backdrop-blur', false)
-            ->assertSee('bg-background/95', false)
-            ->assertSee('bg-destructive/10', false);
+            ->assertSee('top-4 z-[60]', false)
+            ->assertSee('border-slate-700 bg-slate-950', false)
+            ->assertSee('text-white shadow-lg', false)
+            ->assertSee('border-red-400/70', false);
     }
 
     public function test_the_student_table_searches_rows_on_the_server(): void

@@ -1,7 +1,7 @@
 <div>
     <div
         id="status-display"
-        class="pointer-events-none fixed right-0 top-24 z-[60] flex w-full max-w-md flex-col gap-3 p-4"
+        class="pointer-events-none fixed right-0 top-4 z-[60] flex w-full max-w-md flex-col gap-3 p-4"
         x-data="{
             notifications: @js($notifications),
             nextId: {{ count($notifications) }},
@@ -36,8 +36,8 @@
                 x-show="true"
                 x-transition
                 role="alert"
-                class="pointer-events-auto relative flex w-full gap-x-3 rounded-lg border p-4 shadow-lg backdrop-blur"
-                :class="notification.type === 'danger' ? 'border-destructive/50 bg-destructive/10 text-destructive fill-destructive dark:bg-destructive/20' : 'border-border bg-background/95 text-foreground fill-foreground'"
+                class="pointer-events-auto relative flex w-full gap-x-3 rounded-lg border border-slate-700 bg-slate-950 p-4 text-white shadow-lg"
+                :class="notification.type === 'danger' ? 'border-red-400/70' : 'border-slate-700'"
             >
                 <div class="flex items-start pt-0.5">
                     <span class="flex size-4 items-center justify-center rounded-full border text-xs font-bold" x-text="notification.type === 'danger' ? '!' : '✓'"></span>
