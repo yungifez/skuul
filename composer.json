@@ -7,15 +7,6 @@
         "school-management"
     ],
     "license": "MIT",
-    "repositories": [
-        {
-            "type": "path",
-            "url": "../april-ui",
-            "options": {
-                "symlink": true
-            }
-        }
-    ],
     "require": {
         "php": "^8.3",
         "barryvdh/laravel-dompdf": "^3.1",

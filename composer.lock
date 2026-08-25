@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "9798a92e0269bde9e6660f946cf25d40",
+    "content-hash": "0561c11a92446e8c9a1924f006294078",
     "packages": [
         {
             "name": "bacon/bacon-qr-code",
@@ -3229,16 +3229,16 @@
         },
         {
             "name": "mallardduck/blade-lucide-icons",
-            "version": "2.0.6",
+            "version": "2.0.7",
             "source": {
                 "type": "git",
                 "url": "https://github.com/mallardduck/blade-lucide-icons.git",
-                "reference": "403fd75af89fc93084ba2769c20c4cb0af6bdd66"
+                "reference": "e2785699a994a40c53b45b6985e8146dcce89b62"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/mallardduck/blade-lucide-icons/zipball/403fd75af89fc93084ba2769c20c4cb0af6bdd66",
-                "reference": "403fd75af89fc93084ba2769c20c4cb0af6bdd66",
+                "url": "https://api.github.com/repos/mallardduck/blade-lucide-icons/zipball/e2785699a994a40c53b45b6985e8146dcce89b62",
+                "reference": "e2785699a994a40c53b45b6985e8146dcce89b62",
                 "shasum": ""
             },
             "require": {
@@ -3283,9 +3283,9 @@
             ],
             "support": {
                 "issues": "https://github.com/mallardduck/blade-lucide-icons/issues",
-                "source": "https://github.com/mallardduck/blade-lucide-icons/tree/2.0.6"
+                "source": "https://github.com/mallardduck/blade-lucide-icons/tree/2.0.7"
             },
-            "time": "2026-08-20T00:59:16+00:00"
+            "time": "2026-08-25T01:01:25+00:00"
         },
         {
             "name": "masterminds/html5",
@@ -9373,10 +9373,16 @@
         {
             "name": "yungifez/april-ui",
             "version": "dev-main",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/yungifez/april-ui.git",
+                "reference": "ea743d71aa73fe31a03047c608e9c77336d27326"
+            },
             "dist": {
-                "type": "path",
-                "url": "../april-ui",
-                "reference": "64c6f0d203f1a61d75b0a0f55bf02d4708fbf6cf"
+                "type": "zip",
+                "url": "https://api.github.com/repos/yungifez/april-ui/zipball/ea743d71aa73fe31a03047c608e9c77336d27326",
+                "reference": "ea743d71aa73fe31a03047c608e9c77336d27326",
+                "shasum": ""
             },
             "require": {
                 "illuminate/contracts": "^12.0|^13.0",
@@ -9387,7 +9393,6 @@
             "require-dev": {
                 "larastan/larastan": "^3.0",
                 "laravel/pint": "^1.0",
-                "livewire/livewire": "^3.4",
                 "mallardduck/blade-lucide-icons": "^2.0",
                 "nunomaduro/collision": "^8.0",
                 "orchestra/testbench": "^10.0",
@@ -9401,64 +9406,28 @@
             "suggest": {
                 "livewire/livewire": "Required when using the optional Livewire data-table adapter."
             },
+            "default-branch": true,
             "type": "library",
             "extra": {
                 "laravel": {
-                    "providers": [
-                        "Yungifez\\AprilUI\\AprilUIServiceProvider"
-                    ],
                     "aliases": {
                         "AprilUI": "Yungifez\\AprilUI\\Facades\\AprilUI"
-                    }
+                    },
+                    "providers": [
+                        "Yungifez\\AprilUI\\AprilUIServiceProvider"
+                    ]
                 }
             },
             "autoload": {
+                "files": [
+                    "src/helpers.php"
+                ],
                 "psr-4": {
                     "Yungifez\\AprilUI\\": "src/",
                     "Yungifez\\AprilUI\\Database\\Factories\\": "database/factories/"
-                },
-                "files": [
-                    "src/helpers.php"
-                ]
-            },
-            "autoload-dev": {
-                "psr-4": {
-                    "Yungifez\\AprilUI\\Tests\\": "tests/",
-                    "Workbench\\App\\": "workbench/app/"
                 }
             },
-            "scripts": {
-                "post-autoload-dump": [
-                    "@composer run prepare"
-                ],
-                "clear": [
-                    "@php vendor/bin/testbench package:purge-april-ui --ansi"
-                ],
-                "prepare": [
-                    "@php vendor/bin/testbench package:discover --ansi"
-                ],
-                "build": [
-                    "@composer run prepare",
-                    "@php vendor/bin/testbench workbench:build --ansi"
-                ],
-                "start": [
-                    "Composer\\Config::disableProcessTimeout",
-                    "@composer run build",
-                    "@php vendor/bin/testbench serve"
-                ],
-                "analyse": [
-                    "vendor/bin/phpstan analyse"
-                ],
-                "test": [
-                    "vendor/bin/pest"
-                ],
-                "test-coverage": [
-                    "vendor/bin/pest --coverage"
-                ],
-                "format": [
-                    "vendor/bin/pint"
-                ]
-            },
+            "notification-url": "https://packagist.org/downloads/",
             "license": [
                 "MIT"
             ],
@@ -9476,10 +9445,11 @@
                 "laravel",
                 "yungifez"
             ],
-            "transport-options": {
-                "symlink": true,
-                "relative": true
-            }
+            "support": {
+                "issues": "https://github.com/yungifez/april-ui/issues",
+                "source": "https://github.com/yungifez/april-ui/tree/main"
+            },
+            "time": "2026-08-24T22:01:09+00:00"
         }
     ],
     "packages-dev": [
