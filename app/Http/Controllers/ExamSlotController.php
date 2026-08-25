@@ -34,6 +34,8 @@ class ExamSlotController extends Controller
      */
     public function create(Exam $exam): View
     {
+        $this->authorize('createForExam', [ExamSlot::class, $exam]);
+
         return view('pages.exam.exam-slot.create', compact('exam'));
     }
 
@@ -42,6 +44,8 @@ class ExamSlotController extends Controller
      */
     public function store(StoreExamSlotRequest $request, Exam $exam): RedirectResponse
     {
+        $this->authorize('createForExam', [ExamSlot::class, $exam]);
+
         $data = $request->except('_token');
         $this->examSlot->createExamSlot($exam, $data);
 

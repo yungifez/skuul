@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\Exam;
 use App\Models\ExamSlot;
 use App\Models\User;
 use Illuminate\Auth\Access\HandlesAuthorization;
@@ -35,14 +36,18 @@ class ExamSlotPolicy
      */
     public function create(User $user)
     {
-        $academicPeriod = current_academic_period();
+        return $user->can('create exam slot');
+    }
 
-        if ($user->can('create exam slot')
-            && $academicPeriod?->isOpen()
-            && $academicPeriod->academicYear?->isOpen()
-        ) {
-            return true;
-        }
+    /**
+     * Determine whether the user can create a slot in this exam.
+     */
+    public function createForExam(User $user, Exam $exam): bool
+    {
+        return $user->can('create exam slot')
+            && $exam->academicPeriod->status->acceptsExamPlanning()
+            && $exam->academicPeriod->academicYear?->status->acceptsExamPlanning() === true
+            && $exam->academicPeriod->school_id === current_school_id();
     }
 
     /**
@@ -51,8 +56,8 @@ class ExamSlotPolicy
     public function update(User $user, ExamSlot $examSlot)
     {
         if ($user->can('update exam slot')
-            && $examSlot->exam->academicPeriod->isOpen()
-            && $examSlot->exam->academicPeriod->academicYear->isOpen()
+            && $examSlot->exam->academicPeriod->status->acceptsExamPlanning()
+            && $examSlot->exam->academicPeriod->academicYear->status->acceptsExamPlanning()
             && $examSlot->exam->academicPeriod->school_id == current_school_id()
         ) {
             return true;
@@ -65,8 +70,8 @@ class ExamSlotPolicy
     public function delete(User $user, ExamSlot $examSlot)
     {
         if ($user->can('delete exam slot')
-            && $examSlot->exam->academicPeriod->isOpen()
-            && $examSlot->exam->academicPeriod->academicYear->isOpen()
+            && $examSlot->exam->academicPeriod->status->acceptsExamPlanning()
+            && $examSlot->exam->academicPeriod->academicYear->status->acceptsExamPlanning()
             && $examSlot->exam->academicPeriod->school_id == current_school_id()
         ) {
             return true;

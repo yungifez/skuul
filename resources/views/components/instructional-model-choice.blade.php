@@ -16,77 +16,84 @@
     ];
 @endphp
 
-@if ($readonly)
-<div class="group flex items-start gap-4 rounded-lg border border-primary/50 bg-primary/5 p-4">
-@else
-<label for="{{ $idPrefix }}-{{ $option->value }}"
-    class="group flex cursor-pointer items-start gap-4 rounded-lg border border-border p-4 transition-colors hover:bg-muted/40 has-[:checked]:border-primary/50 has-[:checked]:bg-primary/5">
-    <input type="radio"
-        id="{{ $idPrefix }}-{{ $option->value }}"
-        name="model"
-        value="{{ $option->value }}"
-        class="mt-1 size-4 shrink-0 accent-primary"
-        @checked($selected)>
-@endif
+<div @class([
+    'group relative flex items-start gap-4 rounded-lg p-4',
+    'border border-primary/50 bg-primary/5' => $readonly,
+    'border border-border transition-colors hover:bg-muted/40 has-[:checked]:border-primary/50 has-[:checked]:bg-primary/5' => !$readonly,
+])>
+    @if ($readonly)
+        <div class="flex min-w-0 flex-1 items-start gap-4">
+    @else
+        <label for="{{ $idPrefix }}-{{ $option->value }}" class="flex min-w-0 flex-1 cursor-pointer items-start gap-4 pr-8">
+            <input type="radio"
+                id="{{ $idPrefix }}-{{ $option->value }}"
+                name="model"
+                value="{{ $option->value }}"
+                class="mt-1 size-4 shrink-0 accent-primary"
+                @checked($selected)>
+    @endif
 
-    <span class="flex min-w-0 flex-1 flex-col gap-2">
-        <span class="flex flex-wrap items-center gap-2">
-            <span @class([
-                'flex size-7 shrink-0 items-center justify-center rounded-full transition-colors',
-                'bg-primary/10 text-primary' => $readonly,
-                'bg-muted text-muted-foreground group-has-[:checked]:bg-primary/10 group-has-[:checked]:text-primary' => !$readonly,
-            ])>
-                <x-icon :name="$icon" class="size-4" />
+        <span @class([
+            'flex size-7 shrink-0 items-center justify-center rounded-full transition-colors',
+            'bg-primary/10 text-primary' => $readonly,
+            'bg-muted text-muted-foreground group-has-[:checked]:bg-primary/10 group-has-[:checked]:text-primary' => !$readonly,
+        ])>
+            <x-icon :name="$icon" class="size-4" />
+        </span>
+
+        <span class="flex min-w-0 flex-1 flex-col gap-2">
+            <span class="flex flex-wrap items-center gap-2">
+                <span class="text-sm font-semibold text-foreground">{{ $option->setupAnswer() }}</span>
+                @if ($readonly)
+                    <span class="inline-flex items-center rounded-full border border-primary/30 px-2 py-0.5 text-[10px] font-medium tracking-wide text-foreground uppercase">The answer in use</span>
+                @elseif ($option === InstructionalModel::default())
+                    <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">Default</span>
+                @endif
             </span>
-            <span class="text-sm font-semibold text-foreground">{{ $option->setupAnswer() }}</span>
-            @if ($readonly)
-                <span class="inline-flex items-center rounded-full border border-primary/30 px-2 py-0.5 text-[10px] font-medium tracking-wide text-foreground uppercase">The answer in use</span>
-            @elseif ($option === InstructionalModel::default())
-                <span class="inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium tracking-wide text-muted-foreground uppercase">Default</span>
+
+            @if ($impact !== null)
+                <span class="flex items-center gap-2 text-xs text-muted-foreground">
+                    <x-lucide-book-open class="size-3.5 shrink-0" />
+                    {{ $impact['offerings'] }} {{ Str::plural('subject', $impact['offerings']) }} already set up
+                    @if ($impact['exceptions'] > 0)
+                        · {{ $impact['exceptions'] }} {{ Str::plural('exception', $impact['exceptions']) }}
+                    @endif
+                </span>
             @endif
         </span>
+    @if ($readonly)
+        </div>
+    @else
+        </label>
+    @endif
 
-        <span class="block text-sm text-muted-foreground">{{ $option->description() }}</span>
-
-        <span class="block text-xs text-muted-foreground">
-            <span class="font-medium text-foreground">Example:</span> {{ $option->example() }}
-        </span>
-
-        @if ($impact !== null)
-            <span class="flex flex-wrap items-center gap-2 rounded-md bg-muted/50 px-3 py-2 text-xs text-muted-foreground">
-                <x-lucide-book-open class="size-3.5 shrink-0" />
-                <span>
-                    <span class="font-medium text-foreground">{{ $impact['offerings'] }}</span>
-                    {{ Str::plural('subject', $impact['offerings']) }} already set up in this cycle.
+    <div class="absolute top-3 right-3">
+        <x-help-tooltip :label="$option->setupAnswer().' details'">
+            <p>{{ $option->description() }}</p>
+            <p class="mt-2"><span class="font-medium">Example:</span> {{ $option->example() }}</p>
+            <ul class="mt-2 flex flex-col gap-1">
+                @foreach ($capabilities as $capability)
+                    <li class="flex items-start gap-1.5">
+                        @if ($capability['on'])
+                            <x-lucide-check class="mt-0.5 size-3.5 shrink-0" />
+                        @else
+                            <x-lucide-minus class="mt-0.5 size-3.5 shrink-0" />
+                        @endif
+                        {{ $capability['text'] }}
+                    </li>
+                @endforeach
+            </ul>
+            @if ($impact !== null)
+                <p class="mt-2 border-t border-border pt-2">
+                    <span class="font-medium">Impact:</span>
+                    {{ $impact['offerings'] }} {{ Str::plural('subject', $impact['offerings']) }} already set up in this cycle.
                     @if ($impact['exceptions'] > 0)
-                        <span class="font-medium text-foreground">{{ $impact['exceptions'] }}</span>
-                        would keep a roster this answer does not offer, and stay as {{ $impact['exceptions'] === 1 ? 'an exception' : 'exceptions' }}.
+                        {{ $impact['exceptions'] }} would keep a roster this answer does not offer and remain as {{ Str::plural('an exception', $impact['exceptions']) }}.
                     @else
                         None of them would have to change.
                     @endif
-                </span>
-            </span>
-        @endif
-
-        <span class="flex flex-wrap gap-1.5 pt-0.5">
-            @foreach ($capabilities as $capability)
-                <span @class([
-                    'inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-xs',
-                    'border-primary/30 text-foreground' => $capability['on'],
-                    'text-muted-foreground' => !$capability['on'],
-                ])>
-                    @if ($capability['on'])
-                        <x-lucide-check class="size-3" />
-                    @else
-                        <x-lucide-minus class="size-3" />
-                    @endif
-                    {{ $capability['text'] }}
-                </span>
-            @endforeach
-        </span>
-    </span>
-@if ($readonly)
+                </p>
+            @endif
+        </x-help-tooltip>
+    </div>
 </div>
-@else
-</label>
-@endif

@@ -146,7 +146,7 @@ class ShowAcademicYear extends DataTableComponent
         return view('livewire.show-academic-year', array_merge($this->aprilTablePayload(), [
             'canEditExams' => auth()->user()->can('update exam'),
             'canDeleteExams' => auth()->user()->can('delete exam'),
-            'canCreateExams' => auth()->user()->can('create exam') && $this->academicYear->isOpen(),
+            'canCreateExams' => auth()->user()->can('create exam') && $this->academicYear->status->acceptsExamPlanning(),
             'canEditCalendar' => auth()->user()->can('update', $this->academicYear),
             'isDraft' => $this->academicYear->status === AcademicPeriodStatus::Draft,
             'canRollForwardSetup' => $this->previousAcademicYear !== null

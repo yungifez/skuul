@@ -356,7 +356,10 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::get('course-offerings/{courseOffering}/gradebook', [GradebookController::class, 'show'])->name('course-offerings.gradebook.show');
             Route::post('course-offerings/{courseOffering}/gradebook/templates', [GradebookController::class, 'storeAssessmentTemplate'])->name('course-offerings.gradebook.templates.store');
             Route::post('course-offerings/{courseOffering}/gradebook/templates/apply', [GradebookController::class, 'applyAssessmentTemplate'])->name('course-offerings.gradebook.templates.apply');
+            Route::post('course-offerings/{courseOffering}/gradebook/categories', [GradebookController::class, 'storeCategory'])->name('course-offerings.gradebook.categories.store');
             Route::post('course-offerings/{courseOffering}/gradebook/items', [GradebookController::class, 'storeItem'])->name('course-offerings.gradebook.items.store');
+            Route::put('course-offerings/{courseOffering}/gradebook/items/{gradeItem}', [GradebookController::class, 'updateItem'])->name('course-offerings.gradebook.items.update');
+            Route::delete('course-offerings/{courseOffering}/gradebook/items/{gradeItem}', [GradebookController::class, 'destroyItem'])->name('course-offerings.gradebook.items.destroy');
             Route::post('course-offerings/{courseOffering}/gradebook/entries', [GradebookController::class, 'storeEntry'])->name('course-offerings.gradebook.entries.store');
             Route::post('course-offerings/{courseOffering}/gradebook/results', [GradebookController::class, 'publish'])->name('course-offerings.gradebook.results.publish');
             Route::post('course-offerings/{courseOffering}/gradebook/results/approve', [GradebookController::class, 'approve'])->name('course-offerings.gradebook.results.approve');

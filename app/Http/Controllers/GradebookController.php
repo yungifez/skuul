@@ -17,10 +17,13 @@ use App\Http\Requests\ApproveGradebookResultRequest;
 use App\Http\Requests\PublishGradebookResultRequest;
 use App\Http\Requests\RejectGradebookResultRequest;
 use App\Http\Requests\StoreAssessmentTemplateRequest;
+use App\Http\Requests\StoreGradebookCategoryRequest;
 use App\Http\Requests\StoreGradebookEntryRequest;
 use App\Http\Requests\StoreGradebookItemRequest;
+use App\Http\Requests\UpdateGradebookItemRequest;
 use App\Models\AssessmentTemplate;
 use App\Models\CourseOffering;
+use App\Models\GradeCategory;
 use App\Models\GradeItem;
 use App\Models\GradingScale;
 use App\Models\ResultSnapshot;
@@ -39,8 +42,7 @@ class GradebookController extends Controller
         private PublishResult $publishResult,
         private ApproveResult $approveResult,
         private RejectResult $rejectResult,
-    ) {
-    }
+    ) {}
 
     /**
      * Show the one-screen gradebook for an exact course offering.
@@ -54,7 +56,7 @@ class GradebookController extends Controller
             'academicPeriod:id,name,label',
             'academicYear:id,start_year,stop_year',
             'subject:id,name,short_name',
-            'gradeCategories:id,course_offering_id,name,position',
+            'gradeCategories:id,course_offering_id,name,aggregation,weight,position',
         ]);
         $students = $this->roster->students($courseOffering);
         $studentIds = $students->pluck('id')->all();
@@ -63,6 +65,8 @@ class GradebookController extends Controller
                 'category:id,name',
                 'gradingScale:id,name',
                 'gradingScale.options:id,grading_scale_id,label,points,position',
+                'examSlot:id,exam_id,name,total_marks',
+                'examSlot.exam:id,name',
                 'entries' => fn ($query) => $query->whereIn('student_record_id', $studentIds),
                 'entries.gradingScaleOption:id,label,points',
             ])
@@ -97,8 +101,13 @@ class GradebookController extends Controller
             ->withCount(['categories', 'items'])
             ->orderBy('name')
             ->get();
+        $examSlots = $courseOffering->academicPeriod->examSlots()
+            ->with('exam:id,name')
+            ->orderBy('name')
+            ->get();
+        $gradeCategories = $courseOffering->gradeCategories;
 
-        return view('pages.course-offering.gradebook', compact('assessmentTemplates', 'courseOffering', 'gradeItems', 'gradingScales', 'publishedResults', 'students', 'submittedResults'));
+        return view('pages.course-offering.gradebook', compact('assessmentTemplates', 'courseOffering', 'examSlots', 'gradeCategories', 'gradeItems', 'gradingScales', 'publishedResults', 'students', 'submittedResults'));
     }
 
     /**
@@ -109,6 +118,14 @@ class GradebookController extends Controller
         $this->authorize('manageGradebook', $courseOffering);
 
         $attributes = $request->validated();
+
+        if ($attributes['exam_slot_id'] ?? null) {
+            $examSlot = $courseOffering->academicPeriod->examSlots()->findOrFail($attributes['exam_slot_id']);
+
+            if ($attributes['type'] === GradeItemType::Numeric->value && blank($attributes['max_points'] ?? null)) {
+                $attributes['max_points'] = $examSlot->total_marks;
+            }
+        }
 
         if ($attributes['type'] === GradeItemType::Scale->value) {
             $scale = GradingScale::query()
@@ -128,12 +145,64 @@ class GradebookController extends Controller
         }
 
         GradeItem::create($attributes + [
-            'school_id'          => $courseOffering->school_id,
+            'school_id' => $courseOffering->school_id,
             'course_offering_id' => $courseOffering->id,
-            'created_by'         => $request->user()->id,
+            'created_by' => $request->user()->id,
         ]);
 
         return back()->with('success', 'Assessment added to the gradebook.');
+    }
+
+    /**
+     * Add a category that groups assessments in this offering.
+     */
+    public function storeCategory(StoreGradebookCategoryRequest $request, CourseOffering $courseOffering): RedirectResponse
+    {
+        GradeCategory::create($request->validated() + [
+            'school_id' => $courseOffering->school_id,
+            'course_offering_id' => $courseOffering->id,
+            'position' => (int) $courseOffering->gradeCategories()->max('position') + 1,
+        ]);
+
+        return back()->with('success', 'Assessment category added.');
+    }
+
+    /**
+     * Update the structure of one assessment without changing its marks.
+     */
+    public function updateItem(UpdateGradebookItemRequest $request, CourseOffering $courseOffering, GradeItem $gradeItem): RedirectResponse
+    {
+        $item = $courseOffering->gradeItems()->findOrFail($gradeItem->id);
+        $attributes = $request->validated();
+
+        if ($attributes['exam_slot_id'] ?? null) {
+            $examSlot = $courseOffering->academicPeriod->examSlots()->findOrFail($attributes['exam_slot_id']);
+
+            if ($item->type === GradeItemType::Numeric && blank($attributes['max_points'])) {
+                $attributes['max_points'] = $examSlot->total_marks;
+            }
+        }
+
+        $item->update($attributes);
+
+        return back()->with('success', 'Assessment updated.');
+    }
+
+    /**
+     * Remove an assessment that has not received learner marks.
+     */
+    public function destroyItem(CourseOffering $courseOffering, GradeItem $gradeItem): RedirectResponse
+    {
+        $this->authorize('manageGradebook', $courseOffering);
+        $item = $courseOffering->gradeItems()->findOrFail($gradeItem->id);
+
+        if ($item->entries()->exists()) {
+            return back()->withErrors(['gradebook' => 'An assessment with learner marks cannot be deleted.']);
+        }
+
+        $item->delete();
+
+        return back()->with('success', 'Assessment deleted.');
     }
 
     /** Save this offering's configured structure as a reusable school template. */

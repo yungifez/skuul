@@ -2,6 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AcademicPeriodStatus;
+use App\Models\AcademicPeriod;
+use App\Models\AcademicYear;
 use App\Models\Exam;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -12,6 +15,34 @@ class ExamTest extends TestCase
 {
     use FeatureTestTrait;
     use RefreshDatabase;
+
+    public function test_an_exam_can_be_planned_before_the_school_year_opens(): void
+    {
+        $school = $this->workingSchool();
+        $academicYear = AcademicYear::factory()->create([
+            'school_id' => $school->id,
+            'status' => AcademicPeriodStatus::Scheduled,
+        ]);
+        $academicPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'status' => AcademicPeriodStatus::Scheduled,
+        ]);
+
+        $this->authorized_user(['create exam'], $school)
+            ->post(route('exams.store'), [
+                'name' => 'Opening assessment',
+                'academic_period_id' => $academicPeriod->id,
+                'start_date' => '2026-09-01',
+                'stop_date' => '2026-09-02',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('exams', [
+            'name' => 'Opening assessment',
+            'academic_period_id' => $academicPeriod->id,
+        ]);
+    }
 
     // test unauthorized user cannot view all exams
 
@@ -64,19 +95,19 @@ class ExamTest extends TestCase
     {
         $this->authorized_user(['create exam'])
             ->post('/dashboard/exams', [
-                'name'               => 'test exam',
+                'name' => 'test exam',
                 'academic_period_id' => '1',
-                'description'        => 'test description',
-                'start_date'         => '2020-01-01',
-                'stop_date'          => '2020-01-01',
+                'description' => 'test description',
+                'start_date' => '2020-01-01',
+                'stop_date' => '2020-01-01',
             ]);
 
         $this->assertDatabaseHas('exams', [
-            'name'               => 'test exam',
+            'name' => 'test exam',
             'academic_period_id' => '1',
-            'description'        => 'test description',
-            'start_date'         => '2020-01-01',
-            'stop_date'          => '2020-01-01',
+            'description' => 'test description',
+            'start_date' => '2020-01-01',
+            'stop_date' => '2020-01-01',
         ]);
     }
 
@@ -105,11 +136,11 @@ class ExamTest extends TestCase
         $exam = Exam::factory()->create();
         $this->unauthorized_user()
             ->put("/dashboard/exams/$exam->id", [
-                'name'               => 'test',
+                'name' => 'test',
                 'academic_period_id' => '1',
-                'description'        => 'test',
-                'start_date'         => '2018-01-01',
-                'stop_date'          => '2018-01-01',
+                'description' => 'test',
+                'start_date' => '2018-01-01',
+                'stop_date' => '2018-01-01',
             ])
             ->assertForbidden();
     }
@@ -121,20 +152,20 @@ class ExamTest extends TestCase
         $exam = Exam::factory()->create();
         $this->authorized_user(['update exam'])
             ->put("/dashboard/exams/$exam->id", [
-                'name'               => 'test',
+                'name' => 'test',
                 'academic_period_id' => '1',
-                'description'        => 'test',
-                'start_date'         => '2018-01-01',
-                'stop_date'          => '2018-01-02',
+                'description' => 'test',
+                'start_date' => '2018-01-01',
+                'stop_date' => '2018-01-02',
             ]);
 
         $this->assertDatabaseHas('exams', [
-            'id'                 => $exam->id,
-            'name'               => 'test',
+            'id' => $exam->id,
+            'name' => 'test',
             'academic_period_id' => '1',
-            'description'        => 'test',
-            'start_date'         => '2018-01-01',
-            'stop_date'          => '2018-01-02',
+            'description' => 'test',
+            'start_date' => '2018-01-01',
+            'stop_date' => '2018-01-02',
         ]);
     }
 

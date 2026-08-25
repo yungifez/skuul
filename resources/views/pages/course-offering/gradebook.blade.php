@@ -25,6 +25,7 @@
         @if ($errors->has('gradebook'))
             <div class="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">{{ $errors->first('gradebook') }}</div>
         @endif
+        <x-display-validation-errors />
 
         @can('manageGradebook', $courseOffering)
             @if ($gradeItems->isEmpty() && $courseOffering->gradeCategories->isEmpty() && $assessmentTemplates->isNotEmpty())
@@ -42,8 +43,46 @@
             @endif
 
             <april:card>
+                <slot:title>Assessment categories</slot:title>
+                <slot:description>Group assessments such as classwork, projects, and exams, then choose how each group contributes to the result.</slot:description>
+                <slot:content>
+                    @if ($gradeCategories->isNotEmpty())
+                        <div class="mb-4 flex flex-wrap gap-2">
+                            @foreach ($gradeCategories as $gradeCategory)
+                                <span class="inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs">
+                                    <span class="font-medium">{{ $gradeCategory->name }}</span>
+                                    <span class="text-muted-foreground">{{ $gradeCategory->aggregation->label() }} · {{ $gradeCategory->weight }}×</span>
+                                </span>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <form method="POST" action="{{ route('course-offerings.gradebook.categories.store', $courseOffering) }}" class="grid gap-3 sm:grid-cols-[1.4fr_1fr_0.7fr_auto] sm:items-end">
+                        @csrf
+                        <div>
+                            <label for="category-name" class="mb-1 block text-sm font-medium">Category name</label>
+                            <input id="category-name" name="name" value="{{ old('name') }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Classwork">
+                        </div>
+                        <div>
+                            <label for="category-aggregation" class="mb-1 block text-sm font-medium">Calculation</label>
+                            <select id="category-aggregation" name="aggregation" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                @foreach (\App\Enums\GradeAggregation::cases() as $aggregation)
+                                    <option value="{{ $aggregation->value }}" @selected(old('aggregation', \App\Enums\GradeAggregation::WeightedMean->value) === $aggregation->value)>{{ $aggregation->label() }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label for="category-weight" class="mb-1 block text-sm font-medium">Weight</label>
+                            <input id="category-weight" name="weight" type="number" min="0.001" step="0.001" value="{{ old('weight', 1) }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                        </div>
+                        <april:button type="submit">Add category</april:button>
+                    </form>
+                </slot:content>
+            </april:card>
+
+            <april:card>
                 <slot:title>Add an assessment</slot:title>
-                <slot:description>Add assignments, tests, projects, observations, or exam papers without leaving this gradebook.</slot:description>
+                <slot:description>Add assignments, tests, projects, observations, or link an assessment to a scheduled exam paper.</slot:description>
                 <slot:content>
                     <form method="POST" action="{{ route('course-offerings.gradebook.items.store', $courseOffering) }}" class="grid gap-3 md:grid-cols-6">
                         @csrf
@@ -61,7 +100,7 @@
                         </div>
                         <div>
                             <label for="assessment-points" class="mb-1 block text-sm font-medium">Maximum points</label>
-                            <input id="assessment-points" name="max_points" type="number" min="0.01" step="0.01" value="{{ old('max_points') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="100">
+                            <input id="assessment-points" name="max_points" type="number" min="0.01" step="0.01" value="{{ old('max_points') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="From exam paper">
                         </div>
                         <div>
                             <label for="assessment-scale" class="mb-1 block text-sm font-medium">Grading scale</label>
@@ -76,10 +115,93 @@
                             <label for="assessment-weight" class="mb-1 block text-sm font-medium">Weight</label>
                             <input id="assessment-weight" name="weight" type="number" min="0.001" step="0.001" value="{{ old('weight', 1) }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                         </div>
+                        <div>
+                            <label for="assessment-category" class="mb-1 block text-sm font-medium">Category</label>
+                            <select id="assessment-category" name="grade_category_id" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                <option value="">No category</option>
+                                @foreach ($gradeCategories as $gradeCategory)
+                                    <option value="{{ $gradeCategory->id }}" @selected((string) old('grade_category_id') === (string) $gradeCategory->id)>{{ $gradeCategory->name }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
+                            <label for="assessment-exam-slot" class="mb-1 block text-sm font-medium">Scheduled exam paper <span class="font-normal text-muted-foreground">(optional)</span></label>
+                            <select id="assessment-exam-slot" name="exam_slot_id" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                <option value="">Not linked to an exam</option>
+                                @foreach ($examSlots as $examSlot)
+                                    <option value="{{ $examSlot->id }}" @selected((string) old('exam_slot_id') === (string) $examSlot->id)>{{ $examSlot->exam->name }} · {{ $examSlot->name }} · {{ $examSlot->total_marks }} marks</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label for="assessment-due-on" class="mb-1 block text-sm font-medium">Due date <span class="font-normal text-muted-foreground">(optional)</span></label>
+                            <input id="assessment-due-on" name="due_on" type="date" value="{{ old('due_on') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                        </div>
                         <div class="flex items-end"><april:button type="submit" class="w-full">Add assessment</april:button></div>
                     </form>
                 </slot:content>
             </april:card>
+
+            @if ($gradeItems->isNotEmpty())
+                <april:card>
+                    <slot:title>Assessment structure</slot:title>
+                    <slot:description>Adjust names, grouping, weights, dates, and exam links. Learner marks stay unchanged.</slot:description>
+                    <slot:content>
+                        <div class="flex flex-col gap-3">
+                            @foreach ($gradeItems as $gradeItem)
+                                <div class="rounded-lg border p-4">
+                                    <form method="POST" action="{{ route('course-offerings.gradebook.items.update', [$courseOffering, $gradeItem]) }}" class="grid gap-3 md:grid-cols-6 md:items-end">
+                                        @csrf
+                                        @method('PUT')
+                                        <div class="md:col-span-2">
+                                            <label for="item-name-{{ $gradeItem->id }}" class="mb-1 block text-xs font-medium">Assessment</label>
+                                            <input id="item-name-{{ $gradeItem->id }}" name="name" value="{{ $gradeItem->name }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                        </div>
+                                        <div>
+                                            <label for="item-category-{{ $gradeItem->id }}" class="mb-1 block text-xs font-medium">Category</label>
+                                            <select id="item-category-{{ $gradeItem->id }}" name="grade_category_id" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                                <option value="">No category</option>
+                                                @foreach ($gradeCategories as $gradeCategory)
+                                                    <option value="{{ $gradeCategory->id }}" @selected($gradeItem->grade_category_id === $gradeCategory->id)>{{ $gradeCategory->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="item-points-{{ $gradeItem->id }}" class="mb-1 block text-xs font-medium">Maximum points</label>
+                                            <input id="item-points-{{ $gradeItem->id }}" name="max_points" type="number" min="0.01" step="0.01" value="{{ $gradeItem->max_points }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                        </div>
+                                        <div>
+                                            <label for="item-weight-{{ $gradeItem->id }}" class="mb-1 block text-xs font-medium">Weight</label>
+                                            <input id="item-weight-{{ $gradeItem->id }}" name="weight" type="number" min="0.001" step="0.001" value="{{ $gradeItem->weight }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                        </div>
+                                        <div>
+                                            <label for="item-exam-slot-{{ $gradeItem->id }}" class="mb-1 block text-xs font-medium">Exam paper</label>
+                                            <select id="item-exam-slot-{{ $gradeItem->id }}" name="exam_slot_id" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                                <option value="">None</option>
+                                                @foreach ($examSlots as $examSlot)
+                                                    <option value="{{ $examSlot->id }}" @selected($gradeItem->exam_slot_id === $examSlot->id)>{{ $examSlot->exam->name }} · {{ $examSlot->name }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label for="item-due-on-{{ $gradeItem->id }}" class="mb-1 block text-xs font-medium">Due date</label>
+                                            <input id="item-due-on-{{ $gradeItem->id }}" name="due_on" type="date" value="{{ $gradeItem->due_on?->format('Y-m-d') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                        </div>
+                                        <div class="flex gap-2 md:col-span-6">
+                                            <april:button type="submit" size="sm">Save changes</april:button>
+                                    </form>
+                                    <form method="POST" action="{{ route('course-offerings.gradebook.items.destroy', [$courseOffering, $gradeItem]) }}" data-confirm="Delete this assessment? Learner marks must be removed first.">
+                                        @csrf
+                                        @method('DELETE')
+                                        <april:button type="submit" variant="ghost" size="sm" class="text-destructive">Delete</april:button>
+                                    </form>
+                                        </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </slot:content>
+                </april:card>
+            @endif
 
             @if ($gradeItems->isNotEmpty() || $courseOffering->gradeCategories->isNotEmpty())
                 <april:card>
@@ -115,6 +237,12 @@
                                         <th class="min-w-56 px-3 py-2">
                                             <span class="block font-medium text-foreground">{{ $gradeItem->name }}</span>
                                             <span class="text-xs">{{ $gradeItem->category?->name ? $gradeItem->category->name.' · ' : '' }}{{ $gradeItem->gradingScale?->name ?? ($gradeItem->max_points ? $gradeItem->max_points.' points' : $gradeItem->type->label()) }}</span>
+                                            @if ($gradeItem->examSlot !== null)
+                                                <span class="block text-xs text-primary">{{ $gradeItem->examSlot->exam->name }} · {{ $gradeItem->examSlot->name }}</span>
+                                            @endif
+                                            @if ($gradeItem->due_on !== null)
+                                                <span class="block text-xs text-muted-foreground">Due {{ $gradeItem->due_on->format('M j, Y') }}</span>
+                                            @endif
                                         </th>
                                     @endforeach
                                     <th class="px-3 py-2">Official result</th>

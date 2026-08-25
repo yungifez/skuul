@@ -6,6 +6,7 @@ use App\Traits\InAcademicPeriod;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ExamSlot extends Model
 {
@@ -22,6 +23,16 @@ class ExamSlot extends Model
     public function exam(): BelongsTo
     {
         return $this->belongsTo(Exam::class);
+    }
+
+    /**
+     * Get the gradebook assessments that record this paper.
+     *
+     * @return HasMany<GradeItem, $this>
+     */
+    public function gradeItems(): HasMany
+    {
+        return $this->hasMany(GradeItem::class);
     }
 
     /**

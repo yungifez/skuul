@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use Livewire\Component;
 
@@ -17,7 +18,10 @@ class CreateExamForm extends Component
     {
         $academicYearId = request()->integer('academic_year_id') ?: current_academic_year_id();
         $this->academicYear = AcademicYear::inSchool()->find($academicYearId);
-        $this->academicPeriods = $this->academicYear?->academicPeriods()->get() ?? collect();
+        $this->academicPeriods = $this->academicYear?->academicPeriods()
+            ->get()
+            ->filter(fn (AcademicPeriod $period): bool => $period->status->acceptsExamPlanning())
+            ->values() ?? collect();
 
         $requestedPeriodId = request()->integer('academic_period_id');
         $currentPeriodId = current_academic_period_id();

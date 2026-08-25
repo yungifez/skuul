@@ -73,7 +73,10 @@ class ExamController extends Controller
      */
     public function update(UpdateExamRequest $request, Exam $exam): RedirectResponse
     {
-        $data = $request->except(['_method', '_token']);
+        $data = $request->validated();
+        $academicPeriod = AcademicPeriod::inSchool()->with('academicYear')->findOrFail($data['academic_period_id']);
+
+        $this->authorize('updateForAcademicPeriod', [Exam::class, $academicPeriod]);
         $this->examService->updateExam($exam, $data);
 
         return back()->with('success', 'Exam updated successfully');

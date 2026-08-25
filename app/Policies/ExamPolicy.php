@@ -48,7 +48,19 @@ class ExamPolicy
     {
         return $user->can('create exam')
             && $academicPeriod->school_id === current_school_id()
-            && $academicPeriod->academicYear?->isOpen() === true;
+            && $academicPeriod->status->acceptsExamPlanning()
+            && $academicPeriod->academicYear?->status->acceptsExamPlanning() === true;
+    }
+
+    /**
+     * Determine whether an existing exam may be assigned to a period.
+     */
+    public function updateForAcademicPeriod(User $user, AcademicPeriod $academicPeriod): bool
+    {
+        return $user->can('update exam')
+            && $academicPeriod->school_id === current_school_id()
+            && $academicPeriod->status->acceptsExamPlanning()
+            && $academicPeriod->academicYear?->status->acceptsExamPlanning() === true;
     }
 
     /**
@@ -57,8 +69,8 @@ class ExamPolicy
     public function update(User $user, Exam $exam)
     {
         if ($user->can('update exam')
-            && $exam->academicPeriod->isOpen()
-            && $exam->academicPeriod->academicYear->isOpen()
+            && $exam->academicPeriod->status->acceptsExamPlanning()
+            && $exam->academicPeriod->academicYear->status->acceptsExamPlanning()
             && $exam->academicPeriod->school_id == current_school_id()
         ) {
             return true;

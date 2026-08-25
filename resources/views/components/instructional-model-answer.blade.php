@@ -16,9 +16,11 @@
             <x-icon :name="$icon" class="size-5" />
         </div>
         <div class="min-w-0">
-            <p class="text-xs font-bold tracking-wider text-muted-foreground uppercase">Teaching now set to</p>
+            <div class="flex items-center gap-1">
+                <p class="text-xs font-bold tracking-wider text-muted-foreground uppercase">Teaching now set to</p>
+                <x-help-tooltip label="Current teaching setup help">This answer sets the starting point for subjects in this cycle. Individual subjects can still use an exception when they are taught differently.</x-help-tooltip>
+            </div>
             <p class="mt-1 text-lg font-semibold text-foreground">{{ $model->label() }}</p>
-            <p class="mt-1 text-sm text-muted-foreground">{{ $model->description() }}</p>
         </div>
     </div>
 
@@ -28,7 +30,6 @@
                 <x-lucide-circle-dashed class="size-3" />
                 Not answered yet
             </span>
-            <span class="text-xs text-muted-foreground">The cycle uses the default until somebody answers.</span>
         @else
             <span class="inline-flex items-center gap-1 rounded-full border border-primary/30 px-2.5 py-0.5 text-xs text-foreground">
                 <x-lucide-check class="size-3" />
