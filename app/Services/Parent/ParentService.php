@@ -34,8 +34,7 @@ class ParentService
     /**
      * Create a new parent.
      *
-     * @param array|Collection $record
-     *
+     * @param  array|Collection  $record
      * @return User
      */
     public function createParent($record)
@@ -54,8 +53,7 @@ class ParentService
     /**
      * Update a parent.
      *
-     * @param array|object|Collection $records
-     *
+     * @param  array|object|Collection  $records
      * @return User
      */
     public function updateParent(User $parent, $records)
@@ -84,7 +82,7 @@ class ParentService
      */
     public function printProfile(string $name, string $view, array $data)
     {
-        return PrintService::download($view, $data, $name);
+        return PrintService::page($view, $data);
     }
 
     /**
@@ -93,9 +91,10 @@ class ParentService
      *
      *
      *
-     * @throws InvalidUserException
      *
      * @return void
+     *
+     * @throws InvalidUserException
      */
     public function assignStudentToParent(User $parent, int $student, bool $assign = true)
     {

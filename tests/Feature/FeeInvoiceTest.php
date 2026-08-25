@@ -77,7 +77,7 @@ class FeeInvoiceTest extends TestCase
                 'fee_id' => $fee->id,
                 'amount' => $amount,
                 'waiver' => $waiver,
-                'fine'   => $fine,
+                'fine' => $fine,
             ]);
         }
         $date = now();
@@ -88,20 +88,20 @@ class FeeInvoiceTest extends TestCase
         $this->unauthorized_user()
             ->post('dashboard/fees/fee-invoices', [
                 'issue_date' => $date,
-                'due_date'   => $date->addDay(),
-                'note'       => $this->faker()->sentence(),
-                'users'      => $students->pluck('id'),
-                'records'    => $records,
+                'due_date' => $date->addDay(),
+                'note' => $this->faker()->sentence(),
+                'users' => $students->pluck('id'),
+                'records' => $records,
             ])
             ->assertForbidden();
 
         $this->assertDatabaseMissing('fee_invoices', [
-            'user_id'    => $students->first()->id,
+            'user_id' => $students->first()->id,
             'issue_date' => $date->format('Y-m-d'),
         ]);
 
         $this->assertDatabaseMissing('fee_invoices', [
-            'user_id'    => $students[2]->id,
+            'user_id' => $students[2]->id,
             'issue_date' => $date->format('Y-m-d'),
         ]);
     }
@@ -119,7 +119,7 @@ class FeeInvoiceTest extends TestCase
                 'fee_id' => $fee->id,
                 'amount' => $amount,
                 'waiver' => $waiver,
-                'fine'   => $fine,
+                'fine' => $fine,
             ]);
         }
         $date = now();
@@ -130,20 +130,20 @@ class FeeInvoiceTest extends TestCase
         $this->authorized_user(['create fee invoice'])
             ->post('dashboard/fees/fee-invoices', [
                 'issue_date' => $date,
-                'due_date'   => Carbon::instance($date)->addDay(),
-                'note'       => $this->faker()->sentence(),
-                'users'      => $students->pluck('id')->all(),
-                'records'    => $records,
+                'due_date' => Carbon::instance($date)->addDay(),
+                'note' => $this->faker()->sentence(),
+                'users' => $students->pluck('id')->all(),
+                'records' => $records,
             ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('fee_invoices', [
-            'user_id'    => $students->first()->id,
+            'user_id' => $students->first()->id,
             'issue_date' => $date->format('Y-m-d'),
         ]);
 
         $this->assertDatabaseHas('fee_invoices', [
-            'user_id'    => $students[2]->id,
+            'user_id' => $students[2]->id,
             'issue_date' => $date->format('Y-m-d'),
         ]);
     }
@@ -181,7 +181,10 @@ class FeeInvoiceTest extends TestCase
 
         $this->authorized_user(['read fee invoice'])
             ->get("dashboard/fees/fee-invoices/$feeInvoice->id/print")
-            ->assertSuccessful();
+            ->assertSuccessful()
+            ->assertHeader('content-type', 'text/html; charset=UTF-8')
+            ->assertSee('data-print-button', false)
+            ->assertSee('window.print', false);
     }
 
     public function test_unauthorized_user_cannot_view_edit_page()
@@ -211,14 +214,14 @@ class FeeInvoiceTest extends TestCase
         $this->unauthorized_user()
             ->put("dashboard/fees/fee-invoices/$feeInvoice->id/", [
                 'issue_date' => $issueDate,
-                'due_date'   => $dueDate,
+                'due_date' => $dueDate,
             ])
             ->assertForbidden();
 
         $this->assertDatabaseMissing('fee_invoices', [
-            'id'         => $feeInvoice->id,
+            'id' => $feeInvoice->id,
             'issue_date' => $issueDate,
-            'due_date'   => $dueDate,
+            'due_date' => $dueDate,
         ]);
     }
 
@@ -231,15 +234,15 @@ class FeeInvoiceTest extends TestCase
         $this->authorized_user(['update fee invoice'])
             ->put("dashboard/fees/fee-invoices/$feeInvoice->id/", [
                 'issue_date' => $issueDate,
-                'due_date'   => $dueDate,
+                'due_date' => $dueDate,
 
             ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('fee_invoices', [
-            'id'         => $feeInvoice->id,
+            'id' => $feeInvoice->id,
             'issue_date' => $issueDate,
-            'due_date'   => $dueDate,
+            'due_date' => $dueDate,
         ]);
     }
 

@@ -3,8 +3,8 @@
     slot. The read-only grid, the builder, and the printed sheet all draw
     this, so a change to the week reaches every screen at once.
 
-    It stays a real table on purpose. The printed sheet renders through
-    dompdf, which lays out tables but not CSS grid.
+    It stays a real table on purpose. The browser print view can paginate it
+    cleanly while preserving the same layout as the screen.
 
     $grid       the array App\Services\Timetable\TimetableGrid returns
     $editable   whether clicking a cell selects it for the builder

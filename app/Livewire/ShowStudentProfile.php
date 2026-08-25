@@ -24,6 +24,8 @@ class ShowStudentProfile extends Component
 
     public User $student;
 
+    public bool $showManagement = true;
+
     public ?StudentRecord $studentRecord = null;
 
     public array $statusOptions = [];
@@ -55,13 +57,18 @@ class ShowStudentProfile extends Component
 
     public bool $movesCampusFreely = false;
 
-    public function mount(): void
+    public function mount(bool $showManagement = true): void
     {
+        $this->showManagement = $showManagement;
         $this->statusEffectiveOn = now()->toDateString();
         $this->placementEffectiveOn = now()->toDateString();
         $this->campusEffectiveOn = now()->toDateString();
-        $this->loadCycleSections();
-        $this->loadCampusCycleSections();
+
+        if ($this->showManagement) {
+            $this->loadCycleSections();
+            $this->loadCampusCycleSections();
+        }
+
         $this->refreshEnrollment();
     }
 
@@ -173,7 +180,7 @@ class ShowStudentProfile extends Component
         return view('livewire.show-student-profile', [
             'academicYear' => current_academic_year(),
             'academicPeriod' => current_academic_period(),
-            'canManageEnrollment' => auth()->user()->can('update', [$this->student, 'student']),
+            'canManageEnrollment' => $this->showManagement && auth()->user()->can('update', [$this->student, 'student']),
         ]);
     }
 

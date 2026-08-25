@@ -139,7 +139,7 @@ class FeeInvoiceService
      */
     public function printFeeInvoice(string $name, string $view, array $data)
     {
-        return PrintService::download($view, $data, $name);
+        return PrintService::page($view, $data);
     }
 
     /**

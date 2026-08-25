@@ -9,7 +9,12 @@
 @section('page_heading', __("$student->name's profile") )
 
 @section('content')
-    <a href="{{route('students.print-profile',$student->id)}}" class="bg-blue-600 py-2 px-4 text-white rounded">Print Profile</a>
+    <div class="mb-4 flex flex-wrap items-center gap-3">
+        <april:button-link href="{{ route('students.print-profile', $student) }}" variant="outline">
+            <x-lucide-printer class="mr-2 size-4" />
+            Open print view
+        </april:button-link>
+    </div>
     
     @livewire('show-student-profile', ['student' => $student])
 

@@ -10,6 +10,11 @@
 @section('page_heading',   __($feeInvoice->name))
 
 @section('content', )
-    <a href="{{route('fee-invoices.print',$feeInvoice->id)}}" class="bg-blue-600 py-2 px-4 text-white rounded">Print Invoice</a>
+    <div class="mb-4 flex flex-wrap items-center gap-3">
+        <april:button-link href="{{ route('fee-invoices.print', $feeInvoice) }}" variant="outline">
+            <x-lucide-printer class="mr-2 size-4" />
+            Open print view
+        </april:button-link>
+    </div>
     @livewire('show-fee-invoice', ['feeInvoice' => $feeInvoice])
 @endsection

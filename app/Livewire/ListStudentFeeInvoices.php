@@ -11,6 +11,14 @@ class ListStudentFeeInvoices extends Component
 
     public $feeInvoices;
 
+    public function mount(): void
+    {
+        $this->student->load([
+            'feeInvoices.feeInvoiceRecords',
+            'feeInvoices.allocations',
+        ]);
+    }
+
     public function render()
     {
         return view('livewire.list-student-fee-invoices');

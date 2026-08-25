@@ -13,7 +13,7 @@
         <x-timetable-status-control :timetable="$timetable" />
         <april:button variant="outline" type="button" onclick="window.location='{{ route('timetables.print', $timetable->id) }}'">
             <x-lucide-printer class="mr-2 size-4" />
-            Print timetable
+            Open print view
         </april:button>
     </div>
     @can('override', $timetable)

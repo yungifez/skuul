@@ -14,6 +14,19 @@ use Illuminate\Http\Response;
 class PrintService
 {
     /**
+     * Render a document as a browser print view.
+     *
+     * The browser owns pagination, fonts, previews, and PDF saving. This keeps
+     * the printed page aligned with the HTML and CSS that the user can see.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    public static function page(string $view, array $data): Response
+    {
+        return response()->view($view, $data);
+    }
+
+    /**
      * Render a view and get the bytes of the document.
      *
      * @param  array<string, mixed>  $data

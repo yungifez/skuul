@@ -3,7 +3,7 @@
 @section('title', 'Print Student Profile')
 
 @section('content')
-    @livewire('show-student-profile', ['student' => $student])
+    @livewire('show-student-profile', ['student' => $student, 'showManagement' => false])
 @endsection
 
 @section('style')
