@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\School\GrantSchoolMembership;
 use App\Http\Requests\SchoolSetRequest;
 use App\Http\Requests\SchoolStoreRequest;
 use App\Http\Requests\SchoolUpdateRequest;
 use App\Models\Organization;
 use App\Models\School;
+use App\Models\SchoolOperatingProfile;
 use App\Services\School\SchoolService;
 use App\Services\School\SchoolSetupChecklist;
 use Illuminate\Http\RedirectResponse;
@@ -22,8 +24,11 @@ class SchoolController extends Controller
     /**
      * SchoolController constructor.
      */
-    public function __construct(SchoolService $schoolService, private SchoolSetupChecklist $schoolSetupChecklist)
-    {
+    public function __construct(
+        SchoolService $schoolService,
+        private SchoolSetupChecklist $schoolSetupChecklist,
+        private GrantSchoolMembership $grantSchoolMembership,
+    ) {
         $this->schoolService = $schoolService;
         $this->authorizeResource(School::class, 'school');
     }
@@ -53,9 +58,16 @@ class SchoolController extends Controller
         $organization = Organization::findOrFail($attributes['organization_id']);
 
         $this->authorize('createForOrganization', [School::class, $organization]);
-        $this->schoolService->createSchool($attributes);
+        $school = $this->schoolService->createSchool($attributes);
+        $school->operatingProfile()->firstOrCreate([], [
+            'preset' => 'home_sections',
+            'labels' => SchoolOperatingProfile::labelsFor('home_sections'),
+        ]);
+        $this->grantSchoolMembership->grant($request->user(), $school, primary: false);
+        school_context()->set($school, remember: false);
 
-        return back()->with('success', __('School created successfully'));
+        return to_route('schools.setup', [$school, 'details'])
+            ->with('success', __('School created successfully. Let’s set up the essentials.'));
     }
 
     /**
@@ -71,7 +83,10 @@ class SchoolController extends Controller
      */
     public function edit(School $school): View
     {
-        return view('pages.school.edit', compact('school'));
+        return view('pages.school.edit', [
+            'school' => $school,
+            'setup' => request()->boolean('setup'),
+        ]);
     }
 
     /**
@@ -80,6 +95,11 @@ class SchoolController extends Controller
     public function update(SchoolUpdateRequest $request, School $school): RedirectResponse
     {
         $this->schoolService->updateSchool($school, $request->validated());
+
+        if ($request->boolean('setup')) {
+            return to_route('schools.setup', [$school, 'language'])
+                ->with('success', __('School details updated.'));
+        }
 
         return back()->with('success', __('School updated successfully'));
     }

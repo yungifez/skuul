@@ -76,6 +76,9 @@ class StudentTest extends TestCase
             ->assertOk()
             ->assertSee('Full name *')
             ->assertSee('Optional profile details')
+            ->assertSee('data-slot="combobox"', false)
+            ->assertSee('name="country"', false)
+            ->assertSee('name="state"', false)
             ->assertDontSee('Blood group')
             ->assertDontSee('Religion');
     }
@@ -119,8 +122,9 @@ class StudentTest extends TestCase
             'password_confirmation' => 'password',
             'gender' => 'male',
             'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
+            'country' => 'Nigeria',
+            'state' => 'Lagos',
+            'city' => 'Lagos',
             'address' => 'test address',
             'birthday' => '2004/04/22',
             'phone' => '08080808080',
@@ -130,6 +134,8 @@ class StudentTest extends TestCase
         $this->assertDatabaseHas('users', [
             'email' => $email,
             'address' => 'test address',
+            'country' => 'Nigeria',
+            'state' => 'Lagos',
             'birthday' => '2004/04/22',
             'phone' => '08080808080',
         ]);

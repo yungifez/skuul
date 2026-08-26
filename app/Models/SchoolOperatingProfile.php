@@ -19,9 +19,9 @@ class SchoolOperatingProfile extends Model
     use InSchool;
 
     public const PRESETS = [
-        'home_sections' => ['academic_year' => 'Academic year', 'class_level' => 'Class', 'section' => 'Section', 'period' => 'Term', 'course' => 'Subject', 'fee' => 'School fees'],
-        'subject_schedule' => ['academic_year' => 'Academic year', 'class_level' => 'Grade', 'section' => 'Homeroom', 'period' => 'Semester', 'course' => 'Course', 'fee' => 'Tuition'],
-        'hybrid' => ['academic_year' => 'Academic year', 'class_level' => 'Grade', 'section' => 'Section', 'period' => 'Term', 'course' => 'Subject', 'fee' => 'Fees'],
+        'home_sections' => ['academic_year' => 'Academic year', 'class_level' => 'Class', 'section' => 'Section', 'period' => 'Term', 'course' => 'Subject', 'fee' => 'School fees', 'homeroom_teacher' => 'Class teacher'],
+        'subject_schedule' => ['academic_year' => 'Academic year', 'class_level' => 'Grade', 'section' => 'Homeroom', 'period' => 'Semester', 'course' => 'Course', 'fee' => 'Tuition', 'homeroom_teacher' => 'Class teacher'],
+        'hybrid' => ['academic_year' => 'Academic year', 'class_level' => 'Grade', 'section' => 'Section', 'period' => 'Term', 'course' => 'Subject', 'fee' => 'Fees', 'homeroom_teacher' => 'Class teacher'],
     ];
 
     protected $fillable = ['school_id', 'preset', 'labels'];

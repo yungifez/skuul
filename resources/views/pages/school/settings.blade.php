@@ -10,13 +10,20 @@
     <div class="mx-auto max-w-6xl space-y-8">
         <section class="rounded-xl border bg-muted/40 p-6 md:p-8">
             <p class="text-xs font-semibold uppercase text-muted-foreground">{{ $school->name }}</p>
-            <h2 class="mt-2 text-2xl font-semibold tracking-tight">Make sure the essentials are ready before the {{ strtolower(school_term('academic_year', 'school year')) }} starts.</h2>
-            <p class="mt-2 max-w-3xl text-sm text-muted-foreground">Work through the cards below in order. You can return at any time; completed areas stay available for review.</p>
+            <div class="mt-2 flex items-center gap-1">
+                <h2 class="text-2xl font-semibold tracking-tight">Get your school ready</h2>
+                <x-help-tooltip label="School setup help">Complete the required setup in order, then return to any completed area when you need to review it.</x-help-tooltip>
+            </div>
+            <div class="mt-5">
+                <april:button-link href="{{ route('schools.setup', [$school, 'details']) }}">Continue guided setup</april:button-link>
+            </div>
         </section>
 
         <x-school-setup-checklist :checklist="$setupChecklist" />
 
-        <section class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <details class="rounded-xl border bg-card">
+            <summary class="cursor-pointer px-6 py-4 text-sm font-semibold">Open individual setup areas</summary>
+            <section class="grid gap-4 border-t p-6 md:grid-cols-2 xl:grid-cols-3">
             <april:card>
                 <slot:title class="flex items-center justify-between gap-3"><span>School details</span><span class="flex items-center gap-1"><x-help-tooltip label="School details help">School name, address, contacts and logo.</x-help-tooltip><x-lucide-building-2 class="size-5 text-muted-foreground" /></span></slot:title>
                 <slot:content><april:badge variant="secondary">Ready</april:badge></slot:content>
@@ -51,7 +58,7 @@
             </april:card>
 
             <april:card>
-                <slot:title class="flex items-center justify-between gap-3"><span>{{ school_terms('section', 'Classes') }} this {{ strtolower(school_term('academic_year', 'year')) }}</span><span class="flex items-center gap-1"><x-help-tooltip label="Classes this year help">Create the arms, homerooms or {{ strtolower(school_terms('section', 'sections')) }} that run this {{ strtolower(school_term('academic_year', 'year')) }}.</x-help-tooltip><x-lucide-landmark class="size-5 text-muted-foreground" /></span></slot:title>
+                <slot:title class="flex items-center justify-between gap-3"><span>{{ school_terms('section', 'Classes') }} this {{ strtolower(school_term('academic_year', 'year')) }}</span><span class="flex items-center gap-1"><x-help-tooltip label="Classes this year help">Create the {{ strtolower(school_terms('section', 'sections')) }} that run this {{ strtolower(school_term('academic_year', 'year')) }}.</x-help-tooltip><x-lucide-landmark class="size-5 text-muted-foreground" /></span></slot:title>
                 <slot:content><april:badge variant="{{ $cycleSectionsCount ? 'secondary' : 'outline' }}">{{ $cycleSectionsCount ? 'Ready' : 'Needs attention' }}</april:badge></slot:content>
                 <slot:footer><april:button-link href="{{ route('academic-cycle-sections.index') }}" variant="link" size="none" class="gap-1 p-0">Manage this {{ strtolower(school_term('academic_year', 'year')) }}’s {{ strtolower(school_terms('section', 'classes')) }} <span aria-hidden="true">→</span></april:button-link></slot:footer>
             </april:card>
@@ -68,13 +75,16 @@
                     <slot:footer><april:button-link href="{{ route('grading-scales.index') }}" variant="link" size="none" class="gap-1 p-0">Manage grading scales <span aria-hidden="true">→</span></april:button-link></slot:footer>
                 </april:card>
             @endcan
-        </section>
+            </section>
+        </details>
 
         <section class="space-y-5">
-            <div class="max-w-2xl space-y-1">
-                <p class="text-sm font-medium text-muted-foreground">Run the school</p>
+            <div class="flex max-w-2xl items-center gap-1">
+                <span class="text-sm font-medium text-muted-foreground">Run the school</span>
+                <x-help-tooltip label="Day-to-day tools help">These areas contain the records and working tools your team uses after the school year is prepared.</x-help-tooltip>
+            </div>
+            <div class="max-w-2xl">
                 <h2 class="text-xl font-semibold tracking-tight">The day-to-day areas your team manages</h2>
-                <p class="text-sm leading-6 text-muted-foreground">These areas hold the working rules and records your staff use after the school year is prepared.</p>
             </div>
 
             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

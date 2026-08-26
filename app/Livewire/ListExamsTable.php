@@ -35,8 +35,6 @@ class ListExamsTable extends DataTableComponent
             $row['stop_date_label'] = $exam->stop_date->format('M j, Y');
             $row['active_label'] = $exam->active ? 'Active' : 'Inactive';
             $row['edit_url'] = route('exams.edit', $exam);
-            $row['slots_url'] = route('exam-slots.index', $exam);
-            $row['create_slot_url'] = route('exam-slots.create', $exam);
             $row['delete_url'] = route('exams.destroy', $exam);
 
             return $row;
@@ -45,6 +43,6 @@ class ListExamsTable extends DataTableComponent
 
     public function render(): View
     {
-        return view('livewire.list-exams-table', array_merge($this->aprilTablePayload(), ['canUpdateExam' => auth()->user()->can('update exam'), 'canReadSlots' => auth()->user()->can('read exam slot'), 'canCreateSlots' => auth()->user()->can('create exam slot'), 'canDeleteExam' => auth()->user()->can('delete exam')]));
+        return view('livewire.list-exams-table', array_merge($this->aprilTablePayload(), ['canUpdateExam' => auth()->user()->can('update exam'), 'canDeleteExam' => auth()->user()->can('delete exam')]));
     }
 }

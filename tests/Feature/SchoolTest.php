@@ -178,11 +178,12 @@ class SchoolTest extends TestCase
         $this->authorized_user(['manage school settings'], $school)
             ->put('/dashboard/schools/operating-profile', [
                 'preset' => 'subject_schedule',
-                'labels' => ['academic_year' => 'Academic year', 'class_level' => 'Form', 'section' => 'Stream', 'period' => 'Semester', 'course' => 'Course', 'fee' => 'Tuition'],
+                'labels' => ['academic_year' => 'Academic year', 'class_level' => 'Form', 'section' => 'Stream', 'period' => 'Semester', 'course' => 'Course', 'fee' => 'Tuition', 'homeroom_teacher' => 'Form teacher'],
             ])
             ->assertRedirect('/dashboard/schools/settings');
 
         $this->assertDatabaseHas('school_operating_profiles', ['school_id' => $school->id, 'preset' => 'subject_schedule']);
+        $this->assertSame('Form teacher', SchoolOperatingProfile::query()->where('school_id', $school->id)->firstOrFail()->labels['homeroom_teacher']);
 
     }
 
@@ -193,7 +194,7 @@ class SchoolTest extends TestCase
             ['school_id' => $school->id],
             [
                 'preset' => 'subject_schedule',
-                'labels' => ['academic_year' => 'Academic year', 'class_level' => 'Form', 'section' => 'Stream', 'period' => 'Semester', 'course' => 'Course', 'fee' => 'Tuition'],
+                'labels' => ['academic_year' => 'Academic year', 'class_level' => 'Form', 'section' => 'Stream', 'period' => 'Semester', 'course' => 'Course', 'fee' => 'Tuition', 'homeroom_teacher' => 'Form teacher'],
             ],
         );
 

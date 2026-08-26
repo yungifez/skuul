@@ -183,6 +183,7 @@ class AcademicCalendarSetupTest extends TestCase
         $this->get(route('exams.create', ['academic_year_id' => $academicYear->id]))
             ->assertOk()
             ->assertSee('Create an exam for '.$academicYear->name)
+            ->assertSee('Exam setup help')
             ->assertSee('value="'.$period->id.'" selected', false);
     }
 

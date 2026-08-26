@@ -11,12 +11,11 @@
 @section('content')
 <div class="mx-auto flex w-full max-w-5xl flex-col gap-6">
     <div>
-        <h2 class="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Who is waiting for what</h2>
-        <p class="mt-1 text-sm text-muted-foreground">
-            A reservation is for a title, not for one copy: whichever comes back first will do. The copy is then kept
-            behind the desk for the person who has waited longest, and it waits for them for a few days before it
-            passes to the next person.
-        </p>
+        <div class="flex items-center gap-1">
+            <h2 class="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Who is waiting for what</h2>
+            <x-help-tooltip label="Library queue help">A reservation is for a title, not one copy. The first returned copy is held for the person who has waited longest, then passes to the next person after a few days.</x-help-tooltip>
+        </div>
+        <p class="mt-1 text-sm text-muted-foreground">Reserve a title and join the queue for the next available copy.</p>
     </div>
 
     <x-display-validation-errors />

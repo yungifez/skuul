@@ -4,11 +4,9 @@ namespace App\Http\Requests;
 
 use App\Enums\GradeItemType;
 use App\Models\CourseOffering;
-use App\Models\ExamSlot;
 use App\Models\GradingScale;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Validator;
 
 class StoreGradebookItemRequest extends FormRequest
 {
@@ -42,14 +40,13 @@ class StoreGradebookItemRequest extends FormRequest
                 'integer',
                 Rule::exists((new GradingScale)->getTable(), 'id')->where('school_id', current_school_id())->where('is_active', true),
             ],
-            'exam_slot_id' => ['nullable', 'integer', Rule::exists((new ExamSlot)->getTable(), 'id')],
             'grade_category_id' => [
                 'nullable',
                 'integer',
                 Rule::exists('grade_categories', 'id')->where('course_offering_id', $courseOfferingId),
             ],
             'max_points' => [
-                Rule::requiredIf(fn (): bool => $this->input('type') === GradeItemType::Numeric->value && !$this->filled('exam_slot_id')),
+                Rule::requiredIf(fn (): bool => $this->input('type') === GradeItemType::Numeric->value),
                 'nullable',
                 'numeric',
                 'gt:0',
@@ -58,24 +55,5 @@ class StoreGradebookItemRequest extends FormRequest
             'weight' => ['required', 'numeric', 'gt:0', 'max:999999.999'],
             'due_on' => ['nullable', 'date'],
         ];
-    }
-
-    /**
-     * Ensure a linked paper belongs to this course offering's reporting period.
-     */
-    public function after(): array
-    {
-        return [function (Validator $validator): void {
-            $courseOffering = $this->route('courseOffering');
-            $examSlotId = $this->integer('exam_slot_id');
-
-            if (!$courseOffering instanceof CourseOffering || $examSlotId === 0) {
-                return;
-            }
-
-            if (!ExamSlot::query()->whereKey($examSlotId)->whereRelation('exam', 'academic_period_id', $courseOffering->academic_period_id)->exists()) {
-                $validator->errors()->add('exam_slot_id', 'Choose an exam paper from this reporting period.');
-            }
-        }];
     }
 }

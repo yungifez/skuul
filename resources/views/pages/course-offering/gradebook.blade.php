@@ -17,7 +17,7 @@
             <slot:title>{{ $courseOffering->subject->name }} <span class="font-normal text-muted-foreground">· {{ $courseOffering->academicLevel->label ?? $courseOffering->academicLevel->name }}</span></slot:title>
             <slot:description>
                 {{ $courseOffering->academicYear->name }} · {{ $courseOffering->academicPeriod->display_name }}
-                · {{ $courseOffering->roster_mode->label() }}
+                · {{ school_roster_label($courseOffering->roster_mode) }}
                 · {{ $students->count() }} learner{{ $students->count() === 1 ? '' : 's' }}
             </slot:description>
         </april:card>
@@ -115,7 +115,7 @@
 
             <april:card>
                 <slot:title>Add an assessment</slot:title>
-                <slot:description>Add assignments, tests, projects, observations, or link an assessment to a scheduled exam paper.</slot:description>
+                <slot:description>Add assignments, tests, projects, observations, or any other work you grade by hand.</slot:description>
                 <slot:content>
                     <form method="POST" action="{{ route('course-offerings.gradebook.items.store', $courseOffering) }}" class="grid gap-3 md:grid-cols-6">
                         @csrf
@@ -133,7 +133,7 @@
                         </div>
                         <div>
                             <label for="assessment-points" class="mb-1 block text-sm font-medium">Maximum points</label>
-                            <input id="assessment-points" name="max_points" type="number" min="0.01" step="0.01" value="{{ old('max_points') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="From exam paper">
+                            <input id="assessment-points" name="max_points" type="number" min="0.01" step="0.01" value="{{ old('max_points') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Maximum points">
                         </div>
                         <div>
                             <label for="assessment-scale" class="mb-1 block text-sm font-medium">Grading scale</label>
@@ -157,15 +157,6 @@
                                 @endforeach
                             </select>
                         </div>
-                        <div class="md:col-span-2">
-                            <label for="assessment-exam-slot" class="mb-1 block text-sm font-medium">Scheduled exam paper <span class="font-normal text-muted-foreground">(optional)</span></label>
-                            <select id="assessment-exam-slot" name="exam_slot_id" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                                <option value="">Not linked to an exam</option>
-                                @foreach ($examSlots as $examSlot)
-                                    <option value="{{ $examSlot->id }}" @selected((string) old('exam_slot_id') === (string) $examSlot->id)>{{ $examSlot->exam->name }} · {{ $examSlot->name }} · {{ $examSlot->total_marks }} marks</option>
-                                @endforeach
-                            </select>
-                        </div>
                         <div>
                             <label for="assessment-due-on" class="mb-1 block text-sm font-medium">Due date <span class="font-normal text-muted-foreground">(optional)</span></label>
                             <input id="assessment-due-on" name="due_on" type="date" value="{{ old('due_on') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
@@ -178,7 +169,7 @@
             @if ($gradeItems->isNotEmpty())
                 <april:card>
                     <slot:title>Assessment structure</slot:title>
-                    <slot:description>Adjust names, grouping, weights, dates, and exam links. Learner marks stay unchanged.</slot:description>
+                    <slot:description>Adjust names, grouping, weights, and dates. Learner marks stay unchanged.</slot:description>
                     <slot:content>
                         <div class="flex flex-col gap-3">
                             @foreach ($gradeItems as $gradeItem)
@@ -206,15 +197,6 @@
                                         <div>
                                             <label for="item-weight-{{ $gradeItem->id }}" class="mb-1 block text-xs font-medium">Weight</label>
                                             <input id="item-weight-{{ $gradeItem->id }}" name="weight" type="number" min="0.001" step="0.001" value="{{ $gradeItem->weight }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                                        </div>
-                                        <div>
-                                            <label for="item-exam-slot-{{ $gradeItem->id }}" class="mb-1 block text-xs font-medium">Exam paper</label>
-                                            <select id="item-exam-slot-{{ $gradeItem->id }}" name="exam_slot_id" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                                                <option value="">None</option>
-                                                @foreach ($examSlots as $examSlot)
-                                                    <option value="{{ $examSlot->id }}" @selected($gradeItem->exam_slot_id === $examSlot->id)>{{ $examSlot->exam->name }} · {{ $examSlot->name }}</option>
-                                                @endforeach
-                                            </select>
                                         </div>
                                         <div>
                                             <label for="item-due-on-{{ $gradeItem->id }}" class="mb-1 block text-xs font-medium">Due date</label>
@@ -264,7 +246,7 @@
                         <p class="mt-1 text-sm text-muted-foreground">Open Assessment setup above to add the first assessment before entering grades.</p>
                     </div>
                 @elseif ($students->isEmpty())
-                    <div class="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">No learners match this offering's roster. Update the course offering before entering grades.</div>
+                    <div class="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">No learners match this offering. Update who attends before entering grades.</div>
                 @else
                     <div class="overflow-x-auto">
                         <table class="w-full min-w-[920px] text-sm">
@@ -275,9 +257,6 @@
                                         <th class="min-w-56 px-3 py-2">
                                             <span class="block font-medium text-foreground">{{ $gradeItem->name }}</span>
                                             <span class="text-xs">{{ $gradeItem->category?->name ? $gradeItem->category->name.' · ' : '' }}{{ $gradeItem->gradingScale?->name ?? ($gradeItem->max_points ? $gradeItem->max_points.' points' : $gradeItem->type->label()) }}</span>
-                                            @if ($gradeItem->examSlot !== null)
-                                                <span class="block text-xs text-primary">{{ $gradeItem->examSlot->exam->name }} · {{ $gradeItem->examSlot->name }}</span>
-                                            @endif
                                             @if ($gradeItem->due_on !== null)
                                                 <span class="block text-xs text-muted-foreground">Due {{ $gradeItem->due_on->format('M j, Y') }}</span>
                                             @endif

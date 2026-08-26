@@ -22,6 +22,7 @@ class UpdateSchoolOperatingProfileRequest extends FormRequest
             'labels.period' => ['required', 'string', 'max:40'],
             'labels.course' => ['required', 'string', 'max:40'],
             'labels.fee' => ['required', 'string', 'max:40'],
+            'labels.homeroom_teacher' => ['required', 'string', 'max:40'],
         ];
     }
 }

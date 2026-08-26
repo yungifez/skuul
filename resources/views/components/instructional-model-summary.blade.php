@@ -45,7 +45,7 @@
             </div>
             <div class="min-w-0">
                 <h3 class="text-xl font-bold text-foreground">{{ $model->label() }}</h3>
-                <p class="mt-1 text-sm text-muted-foreground">{{ $model->description() }}</p>
+                <p class="mt-1 text-sm text-muted-foreground">{{ school_instructional_model_description($model) }}</p>
             </div>
         </div>
 

@@ -35,26 +35,26 @@ enum RosterMode: string
     /**
      * Get the label to show in the interface.
      */
-    public function label(): string
+    public function label(string $sectionLabel = 'section', string $sectionsLabel = 'sections'): string
     {
         return match ($this) {
-            self::HomeSection          => 'One home section',
-            self::CombinedHomeSections => 'Combined home sections',
-            self::AcademicLevel        => 'Whole academic level',
-            self::IndividualRoster     => 'Named learners',
+            self::HomeSection => 'One '.$sectionLabel,
+            self::CombinedHomeSections => 'Combined '.$sectionsLabel,
+            self::AcademicLevel => 'Whole academic level',
+            self::IndividualRoster => 'Named learners',
         };
     }
 
     /**
      * Get the sentence that explains this roster to a member of staff.
      */
-    public function description(): string
+    public function description(string $sectionLabel = 'section', string $sectionsLabel = 'sections'): string
     {
         return match ($this) {
-            self::HomeSection          => 'The learners of one home section attend.',
-            self::CombinedHomeSections => 'The learners of several home sections attend together.',
-            self::AcademicLevel        => 'Every learner of the academic level attends.',
-            self::IndividualRoster     => 'Staff choose each learner who attends.',
+            self::HomeSection => 'The learners of one '.$sectionLabel.' attend.',
+            self::CombinedHomeSections => 'The learners of several '.$sectionsLabel.' attend together.',
+            self::AcademicLevel => 'Every learner of the academic level attends.',
+            self::IndividualRoster => 'Staff choose each learner who attends.',
         };
     }
 

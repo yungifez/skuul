@@ -57,13 +57,13 @@
                             @else
                                 <p class="mt-1 text-sm text-muted-foreground">The required setup is complete. Review the checklist when you are ready for the recommended next steps.</p>
                             @endif
-                            <p class="mt-2 text-xs text-muted-foreground">{{ $setupChecklist['completed'] }} of {{ $setupChecklist['total'] }} setup steps complete</p>
+                            <p class="mt-2 text-xs text-muted-foreground">{{ $setupChecklist['completed'] }} of {{ $setupChecklist['total'] }} setup areas complete</p>
                         </div>
                     </div>
                     <div class="flex shrink-0 flex-wrap gap-2">
                         @if ($setupChecklist['next'] !== null)
-                            <a href="{{ $setupChecklist['next']['url'] }}" class="inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring">
-                                {{ $setupChecklist['next']['action'] }}
+                            <a href="{{ route('schools.setup', current_school()) }}" class="inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring">
+                                Continue school setup
                                 <span aria-hidden="true" class="ml-2">→</span>
                             </a>
                         @endif

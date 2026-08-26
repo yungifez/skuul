@@ -3,7 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Enums\RosterMode;
+use App\Models\AcademicPeriod;
 use App\Models\CourseOffering;
+use Closure;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -25,17 +27,30 @@ class StoreCourseOfferingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'academic_year_id'             => ['required', 'integer', Rule::exists('academic_years', 'id')->where('school_id', current_school_id())],
-            'academic_period_id'           => ['required', 'integer', Rule::exists('academic_periods', 'id')->where('school_id', current_school_id())],
-            'subject_id'                   => ['required', 'integer', Rule::exists('subjects', 'id')->where('school_id', current_school_id())],
-            'academic_level_id'            => ['required', 'integer', Rule::exists('academic_levels', 'id')->where('school_id', current_school_id())],
-            'roster_mode'                  => ['required', Rule::enum(RosterMode::class)],
-            'academic_cycle_section_ids'   => ['nullable', 'array'],
+            'academic_year_id' => ['required', 'integer', Rule::exists('academic_years', 'id')->where('school_id', current_school_id())],
+            'academic_period_id' => [
+                'required',
+                function (string $attribute, mixed $value, Closure $fail): void {
+                    if ($value === 'all') {
+                        return;
+                    }
+
+                    $periodId = filter_var($value, FILTER_VALIDATE_INT);
+
+                    if ($periodId === false || !AcademicPeriod::inSchool()->whereKey($periodId)->exists()) {
+                        $fail('The selected academic period is invalid.');
+                    }
+                },
+            ],
+            'subject_id' => ['required', 'integer', Rule::exists('subjects', 'id')->where('school_id', current_school_id())],
+            'academic_level_id' => ['required', 'integer', Rule::exists('academic_levels', 'id')->where('school_id', current_school_id())],
+            'roster_mode' => ['required', Rule::enum(RosterMode::class)],
+            'academic_cycle_section_ids' => ['nullable', 'array'],
             'academic_cycle_section_ids.*' => ['integer', 'distinct', Rule::exists('academic_cycle_sections', 'id')->where('school_id', current_school_id())],
-            'student_record_ids'           => ['nullable', 'array'],
-            'student_record_ids.*'         => ['integer', 'distinct', Rule::exists('student_records', 'id')],
-            'planned_periods_per_week'     => ['nullable', 'integer', 'min:1', 'max:80'],
-            'capacity'                     => ['nullable', 'integer', 'min:1', 'max:5000'],
+            'student_record_ids' => ['nullable', 'array'],
+            'student_record_ids.*' => ['integer', 'distinct', Rule::exists('student_records', 'id')],
+            'planned_periods_per_week' => ['nullable', 'integer', 'min:1', 'max:80'],
+            'capacity' => ['nullable', 'integer', 'min:1', 'max:5000'],
         ];
     }
 }

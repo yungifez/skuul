@@ -27,6 +27,11 @@ class SchoolOperatingProfileController extends Controller
         $this->authorize('update', $school);
         $school->operatingProfile()->updateOrCreate([], $request->validated());
 
+        if ($request->boolean('setup')) {
+            return to_route('schools.setup', [current_school(), 'classes'])
+                ->with('success', 'School language updated.');
+        }
+
         return to_route('schools.settings')->with('success', 'School language updated.');
     }
 }

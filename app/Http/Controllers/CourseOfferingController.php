@@ -55,7 +55,7 @@ class CourseOfferingController extends Controller
 
     public function create(): View
     {
-        $academicYears = AcademicYear::inSchool()->with('academicPeriods')->orderByDesc('start_year')->get();
+        $academicYears = AcademicYear::inSchool()->with('topLevelPeriods')->orderByDesc('start_year')->get();
         $academicLevels = AcademicLevel::inSchool()->orderBy('position')->orderBy('name')->get();
         $academicCycleSections = AcademicCycleSection::inSchool()
             ->with(['academicLevel:id,name', 'academicYear:id,start_year,stop_year'])
@@ -79,24 +79,53 @@ class CourseOfferingController extends Controller
     {
         $data = $request->validated();
         $academicYear = AcademicYear::inSchool()->findOrFail($data['academic_year_id']);
-        $academicPeriod = AcademicPeriod::inSchool()->findOrFail($data['academic_period_id']);
         $subject = Subject::inSchool()->findOrFail($data['subject_id']);
         $academicLevel = AcademicLevel::inSchool()->findOrFail($data['academic_level_id']);
 
-        $this->createCourseOffering->create(
-            $subject,
-            $academicYear,
-            $academicPeriod,
-            $academicLevel,
-            $data['academic_cycle_section_ids'] ?? [],
-            RosterMode::from($data['roster_mode']),
-            $data['student_record_ids'] ?? [],
-            $data['planned_periods_per_week'] ?? null,
-            $data['capacity'] ?? null,
-            $request->user(),
-        );
+        $rosterMode = RosterMode::from($data['roster_mode']);
+        $academicCycleSectionIds = $data['academic_cycle_section_ids'] ?? [];
+        $studentRecordIds = $data['student_record_ids'] ?? [];
+        $plannedPeriodsPerWeek = $data['planned_periods_per_week'] ?? null;
+        $capacity = $data['capacity'] ?? null;
 
-        return redirect()->route('course-offerings.index')->with('success', 'Course offering created as a draft. Activate it when the academic period opens.');
+        if ($data['academic_period_id'] === 'all') {
+            $courseOfferings = $this->createCourseOffering->createForAcademicYear(
+                $subject,
+                $academicYear,
+                $academicLevel,
+                $academicCycleSectionIds,
+                $rosterMode,
+                $studentRecordIds,
+                $plannedPeriodsPerWeek,
+                $capacity,
+                $request->user(),
+            );
+        } else {
+            $courseOffering = $this->createCourseOffering->create(
+                $subject,
+                $academicYear,
+                AcademicPeriod::inSchool()->findOrFail((int) $data['academic_period_id']),
+                $academicLevel,
+                $academicCycleSectionIds,
+                $rosterMode,
+                $studentRecordIds,
+                $plannedPeriodsPerWeek,
+                $capacity,
+                $request->user(),
+            );
+            $courseOfferings = collect([$courseOffering]);
+        }
+
+        $message = $courseOfferings->count() === 1
+            ? 'Course offering created as a draft. Activate it when the academic period opens.'
+            : $courseOfferings->count().' course offerings created as drafts for the academic year.';
+
+        if ($request->boolean('setup')) {
+            return to_route('academic-years.setup', [$academicYear, 'review'])
+                ->with('success', $message);
+        }
+
+        return redirect()->route('course-offerings.index')->with('success', $message);
     }
 
     public function activate(ChangeCourseOfferingStatusRequest $request, CourseOffering $courseOffering): RedirectResponse

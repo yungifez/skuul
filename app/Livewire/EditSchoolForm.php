@@ -10,10 +10,13 @@ class EditSchoolForm extends Component
 {
     public School $school;
 
+    public bool $setup = false;
+
     public $countries;
 
-    public function mount(): void
+    public function mount(bool $setup = false): void
     {
+        $this->setup = $setup;
         $this->countries = Country::query()->orderBy('name')->get(['name']);
     }
 

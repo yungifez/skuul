@@ -5578,16 +5578,16 @@
         },
         {
             "name": "spatie/laravel-package-tools",
-            "version": "1.93.1",
+            "version": "1.93.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/spatie/laravel-package-tools.git",
-                "reference": "d5552849801f2642aea710557463234b59ef65eb"
+                "reference": "e927d5b5b05e9fecae098e559e51918aa608ad02"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/spatie/laravel-package-tools/zipball/d5552849801f2642aea710557463234b59ef65eb",
-                "reference": "d5552849801f2642aea710557463234b59ef65eb",
+                "url": "https://api.github.com/repos/spatie/laravel-package-tools/zipball/e927d5b5b05e9fecae098e559e51918aa608ad02",
+                "reference": "e927d5b5b05e9fecae098e559e51918aa608ad02",
                 "shasum": ""
             },
             "require": {
@@ -5627,7 +5627,7 @@
             ],
             "support": {
                 "issues": "https://github.com/spatie/laravel-package-tools/issues",
-                "source": "https://github.com/spatie/laravel-package-tools/tree/1.93.1"
+                "source": "https://github.com/spatie/laravel-package-tools/tree/1.93.2"
             },
             "funding": [
                 {
@@ -5635,7 +5635,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2026-05-19T14:06:37+00:00"
+            "time": "2026-08-26T09:13:25+00:00"
         },
         {
             "name": "spatie/laravel-permission",
@@ -9376,12 +9376,12 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/yungifez/april-ui.git",
-                "reference": "4189f63dce3b7998650f6f4092ff473bb1ea30d9"
+                "reference": "225ddb69e3e6bb95dec02e485825aeee1f32c610"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/yungifez/april-ui/zipball/4189f63dce3b7998650f6f4092ff473bb1ea30d9",
-                "reference": "4189f63dce3b7998650f6f4092ff473bb1ea30d9",
+                "url": "https://api.github.com/repos/yungifez/april-ui/zipball/225ddb69e3e6bb95dec02e485825aeee1f32c610",
+                "reference": "225ddb69e3e6bb95dec02e485825aeee1f32c610",
                 "shasum": ""
             },
             "require": {
@@ -9450,7 +9450,7 @@
                 "issues": "https://github.com/yungifez/april-ui/issues",
                 "source": "https://github.com/yungifez/april-ui/tree/main"
             },
-            "time": "2026-08-25T23:51:48+00:00"
+            "time": "2026-08-26T00:35:34+00:00"
         }
     ],
     "packages-dev": [

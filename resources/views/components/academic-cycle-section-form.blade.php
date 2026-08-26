@@ -14,9 +14,7 @@
 @php
     $value = static fn (string $field, $fallback = null) => old($field, $section?->{$field} ?? $fallback);
     $selected = static fn (string $field, $option, $fallback = null) => (string) old($field, $section?->{$field} ?? $fallback) === (string) $option;
-    $hasDetails = filled($value('label')) || filled($value('stream')) || filled($value('shift'))
-        || filled($value('language')) || filled($value('room')) || filled($value('capacity'))
-        || filled($value('homeroom_teacher_id'));
+    $hasDetails = session()->hasOldInput() || $errors->any();
 @endphp
 
 <form method="POST" action="{{ $action }}" class="space-y-6">
@@ -74,6 +72,16 @@
         <h3 class="text-sm font-semibold">2. What the {{ school_term('section', 'section') }} is called</h3>
         <div class="grid gap-4 md:grid-cols-2">
             <april:input-group id="name" name="name" label="{{ school_term('section', 'Section') }} name" value="{{ $value('name') }}" required maxlength="255" placeholder="Green" />
+            <div class="flex flex-col gap-2">
+                <april:label for="homeroom-teacher">{{ school_term('homeroom_teacher', 'Class teacher') }}</april:label>
+                <select id="homeroom-teacher" name="homeroom_teacher_id" class="rounded-md border border-input bg-background px-3 py-2">
+                    <option value="">Not chosen yet</option>
+                    @foreach ($teachers as $teacher)
+                        <option value="{{ $teacher->id }}" {{ $selected('homeroom_teacher_id', $teacher->id) ? 'selected' : '' }}>{{ $teacher->name }}</option>
+                    @endforeach
+                </select>
+                <p class="text-sm text-muted-foreground">A {{ strtolower(school_term('homeroom_teacher', 'class teacher')) }} can be named later.</p>
+            </div>
         </div>
         <p class="text-sm text-muted-foreground">Use the short name staff say out loud, such as “Green”, “A”, or “Blue”. The {{ school_term('class_level', 'class') }} and the {{ school_term('academic_year', 'school year') }} are added around it in every list.</p>
     </div>
@@ -89,16 +97,6 @@
                 <april:input-group id="room" name="room" label="Room" value="{{ $value('room') }}" maxlength="100" />
                 <april:input-group id="capacity" name="capacity" type="number" min="1" max="999" label="Capacity" value="{{ $value('capacity') }}" />
                 <april:input-group id="position" name="position" type="number" min="0" max="9999" label="Display order" value="{{ $value('position', 0) }}" />
-                <div class="flex flex-col gap-2">
-                    <april:label for="homeroom-teacher">Homeroom teacher</april:label>
-                    <select id="homeroom-teacher" name="homeroom_teacher_id" class="rounded-md border border-input bg-background px-3 py-2">
-                        <option value="">Not chosen yet</option>
-                        @foreach ($teachers as $teacher)
-                            <option value="{{ $teacher->id }}" {{ $selected('homeroom_teacher_id', $teacher->id) ? 'selected' : '' }}>{{ $teacher->name }}</option>
-                        @endforeach
-                    </select>
-                    <p class="text-sm text-muted-foreground">A homeroom teacher can be named later. It does not create a teaching assignment.</p>
-                </div>
             </div>
         </div>
     </details>

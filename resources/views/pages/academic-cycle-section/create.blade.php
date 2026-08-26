@@ -10,9 +10,7 @@
 @section('content')
     <april:card class="mx-auto max-w-3xl">
         <slot:title>Add one {{ strtolower(school_term('section', 'section')) }} for one {{ strtolower(school_term('academic_year', 'school year')) }}</slot:title>
-        <slot:description>
-            For example, Primary 4 · Green · 2026–2027. Fill in the first two steps and save. Everything else can wait.
-        </slot:description>
+        <slot:description>Create the group used for this school year.</slot:description>
         <slot:content>
             @if ($academicLevels->isEmpty())
                 <x-empty-state
@@ -30,7 +28,7 @@
                 </x-empty-state>
             @else
                 <x-academic-cycle-section-form
-                    :action="route('academic-cycle-sections.store')"
+                    :action="route('academic-cycle-sections.store', request()->boolean('setup') ? ['setup' => 1] : [])"
                     :academic-years="$academicYears"
                     :academic-levels="$academicLevels"
                     :teachers="$teachers"

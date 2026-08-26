@@ -19,8 +19,11 @@
         @method('PUT')
 
         <april:card>
-            <slot:title>What this screen changes</slot:title>
-            <slot:description>Turn a tool off to hide it from daily work. Nothing is deleted. The records stay safe, and reports that are allowed to read them still can.</slot:description>
+            <slot:title class="flex items-center gap-1">
+                <span>What this screen changes</span>
+                <x-help-tooltip label="School tools help">Turn a tool off to hide it from daily work. Nothing is deleted, and permitted reports can still read the records.</x-help-tooltip>
+            </slot:title>
+            <slot:description>Choose the tools available to this school.</slot:description>
             <slot:content>
                 <p class="text-sm text-muted-foreground">
                     {{ $enabledCount }} of {{ $totalCount }} tools are on. Sign-in, permissions, the audit trail, and enrollment history are always on, so they are not listed here.

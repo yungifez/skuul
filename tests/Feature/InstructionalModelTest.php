@@ -39,8 +39,8 @@ class InstructionalModelTest extends TestCase
     {
         return [
             'one class group all day' => ['fixed_home_sections'],
-            'hybrid'                  => ['hybrid'],
-            'subject timetable'       => ['subject_based_schedule'],
+            'hybrid' => ['hybrid'],
+            'subject timetable' => ['subject_based_schedule'],
         ];
     }
 
@@ -52,9 +52,9 @@ class InstructionalModelTest extends TestCase
     public static function startedCycleStates(): array
     {
         return [
-            'open'     => [AcademicPeriodStatus::Open],
-            'closing'  => [AcademicPeriodStatus::Closing],
-            'closed'   => [AcademicPeriodStatus::Closed],
+            'open' => [AcademicPeriodStatus::Open],
+            'closing' => [AcademicPeriodStatus::Closing],
+            'closed' => [AcademicPeriodStatus::Closed],
             'archived' => [AcademicPeriodStatus::Archived],
         ];
     }
@@ -66,14 +66,14 @@ class InstructionalModelTest extends TestCase
         $academicYear = $this->futureCycle();
 
         $actor->put("dashboard/academic-years/$academicYear->id/instructional-model", [
-            'model'  => $preset,
+            'model' => $preset,
             'reason' => 'the campus agreed this at the planning meeting',
         ])->assertRedirect();
 
         $this->assertDatabaseHas('instructional_model_settings', [
-            'school_id'        => $academicYear->school_id,
+            'school_id' => $academicYear->school_id,
             'academic_year_id' => $academicYear->id,
-            'model'            => $preset,
+            'model' => $preset,
         ]);
 
         $this->assertSame(
@@ -138,7 +138,7 @@ class InstructionalModelTest extends TestCase
         $actor = $this->authorized_user(['manage school settings']);
         $academicYear = $this->futureCycle();
         $academicYear->forceFill([
-            'status'    => $status,
+            'status' => $status,
             'starts_on' => now()->subMonth()->toDateString(),
         ])->save();
 
@@ -175,7 +175,7 @@ class InstructionalModelTest extends TestCase
         $academicYear = $this->futureCycle();
 
         $actor->put("dashboard/academic-years/$academicYear->id/instructional-model", [
-            'model'  => 'hybrid',
+            'model' => 'hybrid',
             'reason' => 'the campus combines music classes',
         ])->assertRedirect();
 
@@ -230,7 +230,7 @@ class InstructionalModelTest extends TestCase
 
         foreach (InstructionalModel::cases() as $model) {
             $page->assertSee($model->setupAnswer(), false);
-            $page->assertSee($model->description(), false);
+            $page->assertSee(school_instructional_model_description($model), false);
             $page->assertSee($model->example(), false);
         }
 
@@ -245,9 +245,9 @@ class InstructionalModelTest extends TestCase
 
         $actor->get("dashboard/academic-years/$academicYear->id/instructional-model")
             ->assertOk()
-            ->assertSee('Rosters start as one home section', false)
-            ->assertSee('Rosters start as named learners', false)
-            ->assertSee('Combined class groups', false)
+            ->assertSee('Subjects start with one section', false)
+            ->assertSee('Subjects start with named learners', false)
+            ->assertSee('Combined sections', false)
             ->assertSee('Named learners', false);
     }
 
@@ -274,14 +274,14 @@ class InstructionalModelTest extends TestCase
         $actor = $this->authorized_user(['manage school settings']);
         $academicYear = $this->futureCycle();
         $academicYear->forceFill([
-            'status'    => AcademicPeriodStatus::Open,
+            'status' => AcademicPeriodStatus::Open,
             'starts_on' => now()->subMonth()->toDateString(),
         ])->save();
 
         $actor->get("dashboard/academic-years/$academicYear->id/instructional-model")
             ->assertOk()
             ->assertSee('This cycle has already started', false)
-            ->assertSee('Fixed for this cycle', false)
+            ->assertSee('Fixed for this '.strtolower(school_term('academic_year', 'school year')), false)
             ->assertDontSee('Save teaching setup', false);
     }
 
@@ -357,12 +357,12 @@ class InstructionalModelTest extends TestCase
         $year = (int) now()->addYear()->format('Y');
 
         return AcademicYear::factory()->create([
-            'school_id'  => $school->id,
+            'school_id' => $school->id,
             'start_year' => $year,
-            'stop_year'  => $year + 1,
-            'status'     => AcademicPeriodStatus::Scheduled,
-            'starts_on'  => now()->addMonths(6)->toDateString(),
-            'ends_on'    => now()->addMonths(16)->toDateString(),
+            'stop_year' => $year + 1,
+            'status' => AcademicPeriodStatus::Scheduled,
+            'starts_on' => now()->addMonths(6)->toDateString(),
+            'ends_on' => now()->addMonths(16)->toDateString(),
         ]);
     }
 }

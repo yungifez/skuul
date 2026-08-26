@@ -97,6 +97,11 @@ class AcademicCycleSectionController extends Controller
             $request->user(),
         );
 
+        if ($request->boolean('setup')) {
+            return to_route('academic-years.setup', [$academicYear, 'subjects'])
+                ->with('success', 'Class created for the year. Now choose the subjects being taught.');
+        }
+
         return redirect()
             ->route('academic-cycle-sections.show', $section)
             ->with('success', 'Cycle section created as a draft. Activate it when the setup is right.');

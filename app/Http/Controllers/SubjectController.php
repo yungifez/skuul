@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\SubjectStoreRequest;
+use App\Models\AcademicYear;
 use App\Models\Subject;
 use App\Services\Subject\SubjectService;
 use Illuminate\Http\RedirectResponse;
@@ -41,6 +42,13 @@ class SubjectController extends Controller
     public function store(SubjectStoreRequest $request): RedirectResponse
     {
         $this->subject->createSubject($request->validated());
+
+        if ($request->boolean('setup')) {
+            $academicYear = AcademicYear::inSchool()->findOrFail($request->integer('academic_year_id'));
+
+            return to_route('academic-years.setup', [$academicYear, 'subjects'])
+                ->with('success', 'Subject created. Choose where it is taught.');
+        }
 
         return back()->with('success', 'Subject created successfully');
     }

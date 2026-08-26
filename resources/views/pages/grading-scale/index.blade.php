@@ -10,8 +10,11 @@
 @section('content')
     <div class="mx-auto max-w-5xl space-y-6">
         <april:card>
-            <slot:title>Create a grading scale</slot:title>
-            <slot:description>Use familiar grade names such as A–F, Excellent–Needs support, or local terms. Give every option points only when the scale should contribute to a numeric result.</slot:description>
+            <slot:title class="flex items-center gap-1">
+                <span>Create a grading scale</span>
+                <x-help-tooltip label="Grading scale help">Use familiar grade names such as A–F, Excellent–Needs support, or local terms. Give every option points only when the scale contributes to a numeric result.</x-help-tooltip>
+            </slot:title>
+            <slot:description>Add the choices teachers use when grading.</slot:description>
             <slot:content>
                 <form method="POST" action="{{ route('grading-scales.store') }}" class="space-y-5">
                     @csrf
@@ -21,7 +24,7 @@
                     </div>
                     <div class="space-y-2"><april:label for="scale-description">Description</april:label><textarea id="scale-description" name="description" rows="2" class="w-full rounded-md border bg-background px-3 py-2 text-sm" placeholder="When staff should use this scale">{{ old('description') }}</textarea></div>
                     <div class="space-y-3">
-                        <div><p class="text-sm font-medium">Grade options</p><p class="text-xs text-muted-foreground">Points are optional. Use the same choice for every option: all scored, or all descriptive.</p></div>
+                        <div class="flex items-center gap-1"><p class="text-sm font-medium">Grade options</p><x-help-tooltip label="Grade options help">Points are optional. Use the same choice for every option: all scored, or all descriptive.</x-help-tooltip></div>
                         @foreach (old('options', [['label' => '', 'points' => ''], ['label' => '', 'points' => ''], ['label' => '', 'points' => ''], ['label' => '', 'points' => ''], ['label' => '', 'points' => '']]) as $index => $option)
                             <div class="grid gap-3 sm:grid-cols-[1fr_12rem_auto]">
                                 <input name="options[{{ $index }}][label]" value="{{ $option['label'] ?? '' }}" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Excellent">

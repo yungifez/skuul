@@ -12,8 +12,6 @@ use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\AssessmentTemplate;
 use App\Models\CourseOffering;
-use App\Models\Exam;
-use App\Models\ExamSlot;
 use App\Models\GradeCategory;
 use App\Models\GradeEntry;
 use App\Models\GradeItem;
@@ -30,19 +28,10 @@ class GradebookScreenTest extends TestCase
     use FeatureTestTrait;
     use RefreshDatabase;
 
-    public function test_staff_can_configure_categories_and_link_an_exam_paper(): void
+    public function test_staff_can_configure_freehand_assessments(): void
     {
         $this->authorized_user(['read gradebook', 'manage gradebook', 'update subject']);
         [$courseOffering] = $this->offeringAndEnrollment();
-        $exam = Exam::factory()->create([
-            'academic_period_id' => $courseOffering->academic_period_id,
-            'name' => 'Autumn assessment',
-        ]);
-        $examSlot = ExamSlot::create([
-            'exam_id' => $exam->id,
-            'name' => 'Mathematics paper',
-            'total_marks' => 60,
-        ]);
 
         $this->post(route('course-offerings.gradebook.categories.store', $courseOffering), [
             'name' => 'Exams',
@@ -55,20 +44,19 @@ class GradebookScreenTest extends TestCase
         $this->post(route('course-offerings.gradebook.items.store', $courseOffering), [
             'name' => 'Mathematics paper',
             'type' => GradeItemType::Numeric->value,
-            'exam_slot_id' => $examSlot->id,
+            'max_points' => 60,
             'grade_category_id' => $category->id,
             'weight' => 1,
         ])->assertSessionHas('success');
 
         $item = GradeItem::query()->whereBelongsTo($courseOffering)->sole();
-        $this->assertSame($examSlot->id, $item->exam_slot_id);
+        $this->assertNull($item->exam_slot_id);
         $this->assertSame(60.0, $item->max_points);
         $this->assertSame($category->id, $item->grade_category_id);
 
         $this->put(route('course-offerings.gradebook.items.update', [$courseOffering, $item]), [
             'name' => 'Mathematics paper revised',
             'grade_category_id' => null,
-            'exam_slot_id' => $examSlot->id,
             'max_points' => 60,
             'weight' => 3,
             'due_on' => '2026-09-02',

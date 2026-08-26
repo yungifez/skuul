@@ -2,13 +2,12 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\GradeItemType;
 use App\Models\CourseOffering;
-use App\Models\ExamSlot;
 use App\Models\GradeItem;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use Illuminate\Validation\Validator;
 
 class UpdateGradebookItemRequest extends FormRequest
 {
@@ -34,6 +33,7 @@ class UpdateGradebookItemRequest extends FormRequest
     public function rules(): array
     {
         $courseOffering = $this->route('courseOffering');
+        $gradeItem = $this->route('gradeItem');
         $courseOfferingId = $courseOffering instanceof CourseOffering ? $courseOffering->id : null;
 
         return [
@@ -43,29 +43,15 @@ class UpdateGradebookItemRequest extends FormRequest
                 'integer',
                 Rule::exists('grade_categories', 'id')->where('course_offering_id', $courseOfferingId),
             ],
-            'exam_slot_id' => ['nullable', 'integer', Rule::exists((new ExamSlot)->getTable(), 'id')],
-            'max_points' => ['nullable', 'numeric', 'gt:0', 'max:999999.99'],
+            'max_points' => [
+                Rule::requiredIf(fn (): bool => $gradeItem instanceof GradeItem && $gradeItem->type === GradeItemType::Numeric),
+                'nullable',
+                'numeric',
+                'gt:0',
+                'max:999999.99',
+            ],
             'weight' => ['required', 'numeric', 'gt:0', 'max:999999.999'],
             'due_on' => ['nullable', 'date'],
         ];
-    }
-
-    /**
-     * Ensure a linked paper belongs to this course offering's reporting period.
-     */
-    public function after(): array
-    {
-        return [function (Validator $validator): void {
-            $courseOffering = $this->route('courseOffering');
-            $examSlotId = $this->integer('exam_slot_id');
-
-            if (!$courseOffering instanceof CourseOffering || $examSlotId === 0) {
-                return;
-            }
-
-            if (!ExamSlot::query()->whereKey($examSlotId)->whereRelation('exam', 'academic_period_id', $courseOffering->academic_period_id)->exists()) {
-                $validator->errors()->add('exam_slot_id', 'Choose an exam paper from this reporting period.');
-            }
-        }];
     }
 }

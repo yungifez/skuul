@@ -9,5 +9,5 @@
 @section('page_heading',  __('Create subject'))
 
 @section('content' )
-    @livewire('create-subject-form')
+    @livewire('create-subject-form', ['setup' => request()->boolean('setup'), 'academicYearId' => request('academic_year_id')])
 @endsection

@@ -26,6 +26,9 @@
         <form action="{{ route('academic-years.instructional-model.update', $academicYear) }}" method="POST">
             @csrf
             @method('PUT')
+            @if (request()->boolean('setup'))
+                <input type="hidden" name="setup" value="1">
+            @endif
 
             <div class="rounded-xl border border-sidebar-border/70 bg-card text-card-foreground shadow-sm">
                 <div class="flex flex-col gap-1.5 border-b p-6">
@@ -240,7 +243,7 @@
                             <p class="flex flex-wrap items-center gap-2 text-sm">
                                 <span class="font-semibold text-foreground">{{ $exception->subject?->name }}</span>
                                 <span class="text-muted-foreground">{{ $exception->coverage() }}</span>
-                                <april:badge variant="outline">{{ $exception->roster_mode->label() }}</april:badge>
+                                <april:badge variant="outline">{{ school_roster_label($exception->roster_mode) }}</april:badge>
                                 @if (!$exception->isRunning())
                                     <april:badge variant="secondary">Taken back</april:badge>
                                 @endif
@@ -284,7 +287,7 @@
                         <select id="exception-mode" name="roster_mode" required
                             class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                             @foreach ($exceptionModes as $mode)
-                                <option value="{{ $mode->value }}">{{ $mode->label() }}</option>
+                                <option value="{{ $mode->value }}">{{ school_roster_label($mode) }}</option>
                             @endforeach
                         </select>
                     </div>

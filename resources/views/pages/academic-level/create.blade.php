@@ -15,7 +15,7 @@
         </slot:description>
         <slot:content>
             <x-academic-level-form
-                :action="route('academic-levels.store')"
+                :action="route('academic-levels.store', request()->boolean('setup') ? array_filter(['setup' => 1, 'academic_year_id' => request('academic_year_id')]) : [])"
                 :academic-levels="$academicLevels"
                 submit-label="Create class"
                 :cancel-href="route('academic-levels.index')" />

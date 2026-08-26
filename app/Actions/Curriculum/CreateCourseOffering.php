@@ -3,6 +3,7 @@
 namespace App\Actions\Curriculum;
 
 use App\Actions\Audit\RecordAuditEvent;
+use App\Enums\AcademicPeriodType;
 use App\Enums\AuditAction;
 use App\Enums\RosterMode;
 use App\Exceptions\InvalidValueException;
@@ -29,12 +30,11 @@ class CreateCourseOffering
     public function __construct(
         private RecordAuditEvent $auditor,
         private OfferingExceptions $exceptions,
-    ) {
-    }
+    ) {}
 
     /**
-     * @param array<int, int> $academicCycleSectionIds
-     * @param array<int, int> $studentRecordIds
+     * @param  array<int, int>  $academicCycleSectionIds
+     * @param  array<int, int>  $studentRecordIds
      *
      * @throws InvalidValueException when the records do not share one school, cycle, and academic level
      */
@@ -70,14 +70,14 @@ class CreateCourseOffering
 
         return DB::transaction(function () use ($subject, $academicYear, $academicPeriod, $academicLevel, $rosterMode, $cycleSections, $studentRecords, $plannedPeriodsPerWeek, $capacity, $actor): CourseOffering {
             $courseOffering = CourseOffering::create([
-                'school_id'                => $subject->school_id,
-                'academic_year_id'         => $academicYear->id,
-                'academic_period_id'       => $academicPeriod->id,
-                'subject_id'               => $subject->id,
-                'academic_level_id'        => $academicLevel->id,
-                'roster_mode'              => $rosterMode,
+                'school_id' => $subject->school_id,
+                'academic_year_id' => $academicYear->id,
+                'academic_period_id' => $academicPeriod->id,
+                'subject_id' => $subject->id,
+                'academic_level_id' => $academicLevel->id,
+                'roster_mode' => $rosterMode,
                 'planned_periods_per_week' => $plannedPeriodsPerWeek,
-                'capacity'                 => $capacity,
+                'capacity' => $capacity,
             ]);
 
             $courseOffering->cycleSections()->sync($cycleSections->modelKeys());
@@ -87,13 +87,13 @@ class CreateCourseOffering
                 AuditAction::CourseOfferingCreated,
                 $courseOffering,
                 [
-                    'subject_id'                 => $subject->id,
-                    'academic_year_id'           => $academicYear->id,
-                    'academic_period_id'         => $academicPeriod->id,
-                    'academic_level_id'          => $academicLevel->id,
-                    'roster_mode'                => $rosterMode->value,
+                    'subject_id' => $subject->id,
+                    'academic_year_id' => $academicYear->id,
+                    'academic_period_id' => $academicPeriod->id,
+                    'academic_level_id' => $academicLevel->id,
+                    'roster_mode' => $rosterMode->value,
                     'academic_cycle_section_ids' => $cycleSections->modelKeys(),
-                    'student_record_ids'         => $studentRecords->modelKeys(),
+                    'student_record_ids' => $studentRecords->modelKeys(),
                 ],
                 $actor,
             );
@@ -103,10 +103,56 @@ class CreateCourseOffering
     }
 
     /**
-     * @param Collection<int, AcademicCycleSection> $cycleSections
-     * @param array<int, int>                       $academicCycleSectionIds
-     * @param Collection<int, StudentRecord>        $studentRecords
-     * @param array<int, int>                       $studentRecordIds
+     * Create the same subject offering for every top-level teaching period in a year.
+     *
+     * @param  array<int, int>  $academicCycleSectionIds
+     * @param  array<int, int>  $studentRecordIds
+     * @return Collection<int, CourseOffering>
+     *
+     * @throws InvalidValueException when the year has no teaching periods or one period cannot accept the offering
+     */
+    public function createForAcademicYear(
+        Subject $subject,
+        AcademicYear $academicYear,
+        AcademicLevel $academicLevel,
+        array $academicCycleSectionIds = [],
+        RosterMode $rosterMode = RosterMode::HomeSection,
+        array $studentRecordIds = [],
+        ?int $plannedPeriodsPerWeek = null,
+        ?int $capacity = null,
+        ?User $actor = null,
+    ): Collection {
+        $periods = $academicYear->topLevelPeriods()
+            ->ordered()
+            ->get()
+            ->filter(fn (AcademicPeriod $period): bool => $period->type->isPrimaryDivision() || $period->type === AcademicPeriodType::Other)
+            ->values();
+
+        if ($periods->isEmpty()) {
+            throw new InvalidValueException('Add at least one term or semester to the academic year before creating this subject.');
+        }
+
+        return DB::transaction(function () use ($subject, $academicYear, $academicLevel, $periods, $academicCycleSectionIds, $rosterMode, $studentRecordIds, $plannedPeriodsPerWeek, $capacity, $actor): Collection {
+            return $periods->map(fn (AcademicPeriod $period): CourseOffering => $this->create(
+                $subject,
+                $academicYear,
+                $period,
+                $academicLevel,
+                $academicCycleSectionIds,
+                $rosterMode,
+                $studentRecordIds,
+                $plannedPeriodsPerWeek,
+                $capacity,
+                $actor,
+            ))->values();
+        });
+    }
+
+    /**
+     * @param  Collection<int, AcademicCycleSection>  $cycleSections
+     * @param  array<int, int>  $academicCycleSectionIds
+     * @param  Collection<int, StudentRecord>  $studentRecords
+     * @param  array<int, int>  $studentRecordIds
      *
      * @throws InvalidValueException
      */
@@ -133,8 +179,11 @@ class CreateCourseOffering
             throw new InvalidValueException('The academic level belongs to another school.');
         }
 
+        $sectionLabel = strtolower(school_term('section', 'section'));
+        $sectionsLabel = strtolower(school_terms('section', 'sections'));
+
         if ($cycleSections->count() !== count($academicCycleSectionIds)) {
-            throw new InvalidValueException('Every selected home section must belong to this level and academic cycle.');
+            throw new InvalidValueException("Every selected {$sectionLabel} must belong to this level and academic cycle.");
         }
 
         if ($studentRecords->count() !== count($studentRecordIds)) {
@@ -145,14 +194,14 @@ class CreateCourseOffering
             !instructional_model($academicYear)->allowsRosterMode($rosterMode)
             && !$this->exceptions->allows($academicYear, $subject, $academicLevel, $rosterMode)
         ) {
-            throw new InvalidValueException('The campus teaching setup does not allow this roster type for the academic cycle. Record an exception for this subject if it is taught differently on purpose.');
+            throw new InvalidValueException('The teaching setup does not allow this way of choosing learners for the academic cycle. Record an exception for this subject if it is taught differently on purpose.');
         }
 
         match ($rosterMode) {
-            RosterMode::HomeSection          => $this->requireRosterCount($academicCycleSectionIds, 1, 'Select exactly one home section.'),
-            RosterMode::CombinedHomeSections => $this->requireAtLeastRosterCount($academicCycleSectionIds, 2, 'Select at least two home sections.'),
-            RosterMode::AcademicLevel        => $this->requireEmptyRoster($academicCycleSectionIds, $studentRecordIds, 'A whole-level offering does not select sections or individual learners.'),
-            RosterMode::IndividualRoster     => $this->requireIndividualRoster($academicCycleSectionIds, $studentRecordIds),
+            RosterMode::HomeSection => $this->requireRosterCount($academicCycleSectionIds, 1, "Select exactly one {$sectionLabel}."),
+            RosterMode::CombinedHomeSections => $this->requireAtLeastRosterCount($academicCycleSectionIds, 2, "Select at least two {$sectionsLabel}."),
+            RosterMode::AcademicLevel => $this->requireEmptyRoster($academicCycleSectionIds, $studentRecordIds, 'A whole-level offering does not select sections or individual learners.'),
+            RosterMode::IndividualRoster => $this->requireIndividualRoster($academicCycleSectionIds, $studentRecordIds, $sectionsLabel),
         };
 
         if ($academicYear->isClosed() || $academicPeriod->isClosed()) {
@@ -161,7 +210,7 @@ class CreateCourseOffering
     }
 
     /**
-     * @param array<int, int> $sectionIds
+     * @param  array<int, int>  $sectionIds
      *
      * @throws InvalidValueException
      */
@@ -173,7 +222,7 @@ class CreateCourseOffering
     }
 
     /**
-     * @param array<int, int> $sectionIds
+     * @param  array<int, int>  $sectionIds
      *
      * @throws InvalidValueException
      */
@@ -185,8 +234,8 @@ class CreateCourseOffering
     }
 
     /**
-     * @param array<int, int> $sectionIds
-     * @param array<int, int> $studentRecordIds
+     * @param  array<int, int>  $sectionIds
+     * @param  array<int, int>  $studentRecordIds
      *
      * @throws InvalidValueException
      */
@@ -198,15 +247,15 @@ class CreateCourseOffering
     }
 
     /**
-     * @param array<int, int> $sectionIds
-     * @param array<int, int> $studentRecordIds
+     * @param  array<int, int>  $sectionIds
+     * @param  array<int, int>  $studentRecordIds
      *
      * @throws InvalidValueException
      */
-    private function requireIndividualRoster(array $sectionIds, array $studentRecordIds): void
+    private function requireIndividualRoster(array $sectionIds, array $studentRecordIds, string $sectionsLabel): void
     {
         if ($sectionIds !== [] || $studentRecordIds === []) {
-            throw new InvalidValueException('Select one or more named learners and no home sections.');
+            throw new InvalidValueException("Select one or more named learners and no {$sectionsLabel}.");
         }
     }
 }

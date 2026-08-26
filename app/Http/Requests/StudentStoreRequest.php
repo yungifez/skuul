@@ -15,21 +15,22 @@ class StudentStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'name'             => ['required', 'string', 'max:100'],
-            'email'            => ['required', 'email:rfc,dns', 'max:100'],
-            'birthday'         => ['required', 'date', 'before:today'],
-            'gender'           => ['nullable', 'string', 'max:100'],
-            'nationality'      => ['nullable', 'string', 'max:100'],
-            'state'            => ['nullable', 'string', 'max:100'],
-            'city'             => ['nullable', 'string', 'max:100'],
-            'phone'            => ['nullable', 'string', 'max:100'],
-            'address'          => ['nullable', 'string', 'max:100'],
-            'profile_photo'    => ['nullable', 'image', 'max:3000'],
+            'name' => ['required', 'string', 'max:100'],
+            'email' => ['required', 'email:rfc,dns', 'max:100'],
+            'birthday' => ['required', 'date', 'before:today'],
+            'gender' => ['nullable', 'string', 'max:100'],
+            'nationality' => ['nullable', 'string', 'max:100'],
+            'country' => ['nullable', 'string', 'max:100'],
+            'state' => ['nullable', 'string', 'max:100'],
+            'city' => ['nullable', 'string', 'max:100'],
+            'phone' => ['nullable', 'string', 'max:100'],
+            'address' => ['nullable', 'string', 'max:100'],
+            'profile_photo' => ['nullable', 'image', 'max:3000'],
             'admission_number' => [
                 'nullable',
                 Rule::unique('student_records', 'admission_number')->where(fn ($query) => $query->where('school_id', current_school_id())),
             ],
-            'admission_date'            => 'required|date',
+            'admission_date' => 'required|date',
             'academic_cycle_section_id' => [
                 'required',
                 'integer',
@@ -46,7 +47,7 @@ class StudentStoreRequest extends FormRequest
     public function messages()
     {
         return [
-            'academic_cycle_section_id.required' => 'Select a home section',
+            'academic_cycle_section_id.required' => 'Select a '.strtolower(school_term('section', 'section')),
         ];
     }
 
@@ -58,7 +59,7 @@ class StudentStoreRequest extends FormRequest
     public function attributes()
     {
         return [
-            'academic_cycle_section_id' => 'home section',
+            'academic_cycle_section_id' => strtolower(school_term('section', 'section')),
         ];
     }
 }

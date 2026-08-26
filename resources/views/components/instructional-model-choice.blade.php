@@ -10,7 +10,7 @@
     };
 
     $capabilities = [
-        ['text' => 'Rosters start as '.strtolower($option->defaultRosterMode()->label()), 'on' => true],
+        ['text' => 'Subjects start with '.strtolower(school_roster_label($option->defaultRosterMode())), 'on' => true],
         ['text' => 'Combined '.strtolower(school_terms('section', 'sections')), 'on' => $option->allowsCombinedSections()],
         ['text' => 'Named learners', 'on' => $option->allowsIndividualRosters()],
     ];
@@ -69,7 +69,7 @@
 
     <div class="absolute top-3 right-3">
         <x-help-tooltip :label="$option->setupAnswer().' details'">
-            <p>{{ $option->description() }}</p>
+            <p>{{ school_instructional_model_description($option) }}</p>
             <p class="mt-2"><span class="font-medium">Example:</span> {{ $option->example() }}</p>
             <ul class="mt-2 flex flex-col gap-1">
                 @foreach ($capabilities as $capability)

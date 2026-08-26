@@ -16,6 +16,44 @@ class ExamTest extends TestCase
     use FeatureTestTrait;
     use RefreshDatabase;
 
+    public function test_an_exam_can_be_planned_for_a_draft_calendar_without_setting_it_as_working(): void
+    {
+        $school = $this->workingSchool();
+        $school->forceFill([
+            'academic_year_id' => null,
+            'academic_period_id' => null,
+        ])->save();
+        academic_period_context()->forget();
+
+        $academicYear = AcademicYear::factory()->create([
+            'school_id' => $school->id,
+            'status' => AcademicPeriodStatus::Draft,
+        ]);
+        $academicPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'status' => AcademicPeriodStatus::Draft,
+        ]);
+
+        $this->authorized_user(['create exam'], $school)
+            ->get(route('exams.create', ['academic_year_id' => $academicYear->id]))
+            ->assertOk()
+            ->assertSee($academicYear->name)
+            ->assertSee($academicPeriod->displayName);
+
+        $response = $this->post(route('exams.store'), [
+            'name' => 'Draft calendar assessment',
+            'academic_period_id' => $academicPeriod->id,
+            'start_date' => '2026-09-01',
+            'stop_date' => '2026-09-02',
+        ]);
+
+        $exam = Exam::query()->where('name', 'Draft calendar assessment')->firstOrFail();
+
+        $response->assertRedirect(route('academic-years.show', $academicYear));
+        $this->assertModelExists($exam);
+    }
+
     public function test_an_exam_can_be_planned_before_the_school_year_opens(): void
     {
         $school = $this->workingSchool();

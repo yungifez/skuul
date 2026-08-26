@@ -52,8 +52,8 @@ enum InstructionalModel: string
     public function label(): string
     {
         return match ($this) {
-            self::FixedHomeSections    => 'One class group all day',
-            self::Hybrid               => 'One class group, with exceptions',
+            self::FixedHomeSections => 'One class group all day',
+            self::Hybrid => 'One class group, with exceptions',
             self::SubjectBasedSchedule => 'A timetable of separate subjects',
         };
     }
@@ -64,8 +64,8 @@ enum InstructionalModel: string
     public function setupAnswer(): string
     {
         return match ($this) {
-            self::FixedHomeSections    => 'Yes. Learners stay together all day.',
-            self::Hybrid               => 'Mostly. A few subjects mix or split the groups.',
+            self::FixedHomeSections => 'Yes. Learners stay together all day.',
+            self::Hybrid => 'Mostly. A few subjects mix or split the groups.',
             self::SubjectBasedSchedule => 'No. Learners follow their own subject timetable.',
         };
     }
@@ -73,11 +73,11 @@ enum InstructionalModel: string
     /**
      * Get the sentence that explains this model to a school manager.
      */
-    public function description(): string
+    public function description(string $sectionLabel = 'section', string $sectionsLabel = 'sections'): string
     {
         return match ($this) {
-            self::FixedHomeSections    => 'Learners stay in one home section. Every subject roster comes from that section, and teachers move between sections.',
-            self::Hybrid               => 'Home sections stay the default. A chosen subject may join sections together or name its own learners.',
+            self::FixedHomeSections => 'Learners stay in one '.$sectionLabel.'. Every subject list comes from that '.$sectionLabel.', and teachers move between '.$sectionsLabel.'.',
+            self::Hybrid => ucfirst($sectionsLabel).' stay the default. A chosen subject may join '.$sectionsLabel.' together or name its own learners.',
             self::SubjectBasedSchedule => 'Each subject names the learners who attend. Learners can be in different rooms through the day.',
         };
     }
@@ -88,8 +88,8 @@ enum InstructionalModel: string
     public function example(): string
     {
         return match ($this) {
-            self::FixedHomeSections    => 'A primary school where one group of learners shares every lesson.',
-            self::Hybrid               => 'A secondary school where two sections take music together and a small group takes extra reading.',
+            self::FixedHomeSections => 'A primary school where one group of learners shares every lesson.',
+            self::Hybrid => 'A secondary school where two sections take music together and a small group takes extra reading.',
             self::SubjectBasedSchedule => 'A senior school where each learner chooses subjects and follows a personal timetable.',
         };
     }
@@ -133,7 +133,7 @@ enum InstructionalModel: string
         return match ($mode) {
             RosterMode::HomeSection, RosterMode::AcademicLevel => true,
             RosterMode::CombinedHomeSections => $this->allowsCombinedSections(),
-            RosterMode::IndividualRoster     => $this->allowsIndividualRosters(),
+            RosterMode::IndividualRoster => $this->allowsIndividualRosters(),
         };
     }
 

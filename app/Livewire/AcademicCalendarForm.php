@@ -16,6 +16,8 @@ class AcademicCalendarForm extends Component
 {
     public ?AcademicYear $academicYear = null;
 
+    public bool $setupWizard = false;
+
     public string $startsOn = '';
 
     public string $endsOn = '';
@@ -25,9 +27,10 @@ class AcademicCalendarForm extends Component
     /** @var array<int, array{name: string, type: string, starts_on: string, ends_on: string}> */
     public array $periods = [];
 
-    public function mount(?AcademicYear $academicYear = null): void
+    public function mount(?AcademicYear $academicYear = null, bool $setupWizard = false): void
     {
         $this->academicYear = $academicYear;
+        $this->setupWizard = $setupWizard;
 
         if ($academicYear !== null) {
             $this->startsOn = $academicYear->starts_on?->toDateString() ?? '';
@@ -136,6 +139,12 @@ class AcademicCalendarForm extends Component
             );
         } catch (InvalidValueException $exception) {
             $this->addError('startsOn', $exception->getMessage());
+
+            return;
+        }
+
+        if ($this->setupWizard) {
+            $this->redirectRoute('academic-years.setup', [$calendar, 'teaching']);
 
             return;
         }

@@ -8,5 +8,5 @@
 @section('page_heading', __('Edit school details'))
 
 @section('content')
-    @livewire('edit-school-form', ['school' => $school])
+    @livewire('edit-school-form', ['school' => $school, 'setup' => $setup])
 @endsection

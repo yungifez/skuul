@@ -10,6 +10,7 @@ use App\Http\Requests\ChangeAcademicLevelStatusRequest;
 use App\Http\Requests\StoreAcademicLevelRequest;
 use App\Http\Requests\UpdateAcademicLevelRequest;
 use App\Models\AcademicLevel;
+use App\Models\AcademicYear;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
@@ -64,6 +65,20 @@ class AcademicLevelController extends Controller
             $data['position'] ?? 0,
             $request->user(),
         );
+
+        if ($request->boolean('setup')) {
+            $academicYearId = $request->integer('academic_year_id');
+
+            if ($academicYearId > 0) {
+                $academicYear = AcademicYear::inSchool()->findOrFail($academicYearId);
+
+                return to_route('academic-years.setup', [$academicYear, 'structure'])
+                    ->with('success', 'Class created. Continue by building this year’s classes.');
+            }
+
+            return to_route('schools.setup', [current_school(), 'academic-year'])
+                ->with('success', 'Class created. Continue by setting up an academic year.');
+        }
 
         return redirect()
             ->route('academic-levels.show', $academicLevel)

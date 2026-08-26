@@ -101,12 +101,14 @@ class AcademicCycleSectionTest extends TestCase
         $academicLevel = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id]);
         $academicYear = AcademicYear::factory()->create(['school_id' => $this->workingSchool()->id]);
 
-        $actor->get(route('academic-cycle-sections.create'))->assertOk()->assertSee('Add one home section for one cycle');
+        $actor->get(route('academic-cycle-sections.create'))
+            ->assertOk()
+            ->assertSee('Add one '.strtolower(school_term('section', 'section')).' for one '.strtolower(school_term('academic_year', 'school year')));
         $actor->post(route('academic-cycle-sections.store'), [
-            'academic_year_id'  => $academicYear->id,
+            'academic_year_id' => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
-            'name'              => 'Green',
-            'capacity'          => 32,
+            'name' => 'Green',
+            'capacity' => 32,
         ])->assertRedirect();
 
         /** @var AcademicCycleSection $section */

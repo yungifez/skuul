@@ -143,12 +143,14 @@ class InstallationController extends Controller
         }
 
         try {
-            $installApplication->install($request->validated());
+            $installation = $installApplication->install($request->validated());
         } catch (\InvalidArgumentException $exception) {
             return back()
                 ->withErrors(['installer' => $exception->getMessage()])
                 ->withInput($request->except(['admin_password', 'admin_password_confirmation']));
         }
+
+        session()->put('url.intended', route('schools.setup', [$installation->school_id, 'details']));
 
         return redirect()
             ->route('login')

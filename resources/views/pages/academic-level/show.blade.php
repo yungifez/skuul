@@ -122,7 +122,7 @@
                                     <a href="{{ route('academic-cycle-sections.show', $section) }}" class="flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-accent">
                                         <span class="font-medium">{{ $section->label ?? $section->name }}</span>
                                         <x-academic-structure-status :status="$section->status" />
-                                        <span class="text-muted-foreground">{{ $section->homeroomTeacher?->name ?? 'No homeroom teacher' }}</span>
+                                        <span class="text-muted-foreground">{{ $section->homeroomTeacher?->name ?? 'No '.strtolower(school_term('homeroom_teacher', 'class teacher')) }}</span>
                                     </a>
                                 @endforeach
                             </div>

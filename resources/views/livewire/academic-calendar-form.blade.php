@@ -1,8 +1,9 @@
 <april:card>
-    <slot:title>{{ $academicYear ? 'Edit draft '.strtolower(school_term('academic_year', 'school year')) : 'Set up a '.strtolower(school_term('academic_year', 'school year')) }}</slot:title>
-    <slot:description>
-        {{ $academicYear ? 'Adjust the draft before it becomes the calendar staff work from.' : 'Start with dates, choose a reporting structure, then review the generated periods.' }}
-    </slot:description>
+    <slot:title class="flex items-center gap-1">
+        <span>{{ $academicYear ? 'Edit draft '.strtolower(school_term('academic_year', 'school year')) : 'Set up a '.strtolower(school_term('academic_year', 'school year')) }}</span>
+        <x-help-tooltip label="Calendar setup help">Set the dates, choose a reporting structure, and review the generated periods before saving.</x-help-tooltip>
+    </slot:title>
+    <slot:description>{{ $academicYear ? 'Adjust the draft calendar.' : 'Set the dates and reporting periods.' }}</slot:description>
     <slot:content>
         @if (!$this->canEdit())
             <div class="rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
@@ -39,7 +40,10 @@
                     <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                         <div>
                             <h2 class="font-semibold">Reporting periods</h2>
-                            <p class="text-sm text-muted-foreground">These are the terms, semesters, or quarters that gradebooks and reports use. Breaks and events belong in the calendar after this is created.</p>
+                            <div class="flex items-center gap-1 text-sm text-muted-foreground">
+                                <span>Terms, semesters, or quarters used for reports.</span>
+                                <x-help-tooltip label="Reporting periods help">These periods define the boundaries used by gradebooks and reports. Add breaks and events in the calendar after this is created.</x-help-tooltip>
+                            </div>
                         </div>
                         <div class="flex flex-wrap gap-2">
                             <button type="button" wire:click="generatePeriods" class="inline-flex h-9 items-center rounded-md border border-input bg-background px-3 text-sm font-medium hover:bg-accent">Regenerate</button>

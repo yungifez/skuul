@@ -34,8 +34,7 @@ class InstructionalModelController extends Controller
         private InstructionalModelResolver $resolver,
         private OfferingExceptions $exceptions,
         private GrantOfferingException $grantException,
-    ) {
-    }
+    ) {}
 
     /**
      * Show the one question that sets up teaching for the cycle.
@@ -50,11 +49,11 @@ class InstructionalModelController extends Controller
         $user = request()->user();
 
         return view('pages.instructional-model.edit', [
-            'academicYear'  => $academicYear,
-            'setting'       => $setting?->loadMissing('updatedBy'),
-            'model'         => $model,
+            'academicYear' => $academicYear,
+            'setting' => $setting?->loadMissing('updatedBy'),
+            'model' => $model,
             'isFutureCycle' => $this->setInstructionalModel->isFutureCycle($academicYear),
-            'canSet'        => $academicYear->exists && $user?->can('setInstructionalModel', $academicYear) === true,
+            'canSet' => $academicYear->exists && $user?->can('setInstructionalModel', $academicYear) === true,
             'canMigrate' => $user?->can('migrateInstructionalModel', $academicYear) === true
                 && $this->migrateInstructionalModel->canBeMigrated($academicYear),
             'impacts' => $this->impactsFor($academicYear, $model),
@@ -163,6 +162,11 @@ class InstructionalModelController extends Controller
         $model = InstructionalModel::from($request->validated('model'));
 
         $this->setInstructionalModel->set($academicYear, $model, $request->user(), $request->validated('reason'));
+
+        if (request()->boolean('setup')) {
+            return to_route('academic-years.setup', [$academicYear, 'structure'])
+                ->with('success', 'Teaching approach saved. Now build this year’s classes.');
+        }
 
         return back()->with('success', "{$academicYear->name} now teaches with: {$model->label()}");
     }

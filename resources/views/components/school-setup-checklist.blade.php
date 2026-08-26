@@ -40,7 +40,9 @@
         </div>
     @endif
 
-    <div class="mt-6 space-y-7">
+    <details class="mt-6 rounded-lg border">
+        <summary class="cursor-pointer px-4 py-3 text-sm font-medium">View all setup areas</summary>
+        <div class="space-y-7 border-t p-4">
         @foreach ($groups as $group => $items)
             <div>
                 <h3 class="text-sm font-semibold">{{ $group }}</h3>
@@ -78,5 +80,6 @@
                 </div>
             </div>
         @endforeach
-    </div>
+        </div>
+    </details>
 </section>

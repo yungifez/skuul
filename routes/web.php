@@ -5,6 +5,7 @@ use App\Http\Controllers\AcademicCycleSectionController;
 use App\Http\Controllers\AcademicLevelController;
 use App\Http\Controllers\AcademicPeriodController;
 use App\Http\Controllers\AcademicYearController;
+use App\Http\Controllers\AcademicYearSetupController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdmissionWaitlistController;
 use App\Http\Controllers\BoardingPlaceController;
@@ -37,6 +38,7 @@ use App\Http\Controllers\OrganizationDashboardController;
 use App\Http\Controllers\OvernightLeaveController;
 use App\Http\Controllers\ParentController;
 use App\Http\Controllers\SchoolController;
+use App\Http\Controllers\SchoolSetupController;
 use App\Http\Controllers\StudentAccountController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\SubjectController;
@@ -165,6 +167,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::put('schools/features', ['App\Http\Controllers\FeatureSettingsController', 'update'])->name('schools.features.update')->middleware('App\Http\Middleware\RequireActiveSchool');
 
     // School routes
+    Route::get('schools/{school}/setup/{step?}', [SchoolSetupController::class, 'show'])->name('schools.setup');
     Route::resource('schools', SchoolController::class);
     Route::post('schools/set-school', ['App\Http\Controllers\SchoolController', 'setSchool'])->name('schools.setSchool');
 
@@ -349,6 +352,14 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::post('imports/{importBatch}/cancel', ['App\Http\Controllers\ImportController', 'cancel'])->name('imports.cancel');
         });
 
+        // Exam planning names its own calendar, so it can be prepared for a
+        // draft year before that year becomes the working calendar.
+        Route::post('exams/{exam}/set--active-status', ['App\Http\Controllers\ExamController', 'setExamActiveStatus'])->name('exams.set-active-status');
+        Route::resource('exams', ExamController::class);
+        Route::scopeBindings()->group(function () {
+            Route::resource('exams/{exam}/manage/exam-slots', ExamSlotController::class);
+        });
+
         Route::middleware(['App\Http\Middleware\EnsureAcademicYearIsSet', 'App\Http\Middleware\CreateCurrentAcademicYearRecord'])->group(function () {
             Route::resource('course-offerings', CourseOfferingController::class)->only(['index', 'create', 'store']);
             Route::post('course-offerings/{courseOffering}/activate', ['App\Http\Controllers\CourseOfferingController', 'activate'])->name('course-offerings.activate');
@@ -467,16 +478,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 Route::resource('timetables/manage/time-slots', TimetableTimeSlotController::class);
                 Route::post('timetables/manage/time-slots/{time_slot}/record/create', ['App\Http\Controllers\TimetableTimeSlotController', 'addTimetableRecord'])->name('timetables.records.create')->scopeBindings();
 
-                // set exam status
-                Route::post('exams/{exam}/set--active-status', ['App\Http\Controllers\ExamController', 'setExamActiveStatus'])->name('exams.set-active-status');
-
-                // exam routes
-                Route::resource('exams', ExamController::class);
-
-                // exam slot routes
-                Route::scopeBindings()->group(function () {
-                    Route::resource('exams/{exam}/manage/exam-slots', ExamSlotController::class);
-                });
             });
         });
 
@@ -502,6 +503,8 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::delete('users/{user}/invitation', ['App\Http\Controllers\AccountInvitationController', 'revoke'])->name('users.invitation.revoke');
 
         // academic year routes
+        Route::get('academic-years/{academic_year}/setup/{step?}', [AcademicYearSetupController::class, 'show'])->name('academic-years.setup');
+        Route::post('academic-years/{academic_year}/setup/publish', [AcademicYearSetupController::class, 'publish'])->name('academic-years.setup.publish');
         Route::resource('academic-years', AcademicYearController::class)->except(['store', 'update']);
         Route::post('academic-years/set', ['App\Http\Controllers\AcademicYearController', 'setAcademicYear'])->name('academic-years.set-academic-year');
         Route::post('academic-years/{academic_year}/close', ['App\Http\Controllers\AcademicYearController', 'close'])->name('academic-years.close');

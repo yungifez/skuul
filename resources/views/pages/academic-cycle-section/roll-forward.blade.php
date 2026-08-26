@@ -59,7 +59,7 @@
                     <p class="mb-1 font-medium">It never copies</p>
                     <ul class="list-inside list-disc space-y-0.5 text-muted-foreground">
                         <li>Learners and their placements</li>
-                        <li>Homeroom and teaching assignments</li>
+                        <li>{{ school_term('homeroom_teacher', 'Class teacher') }} and teaching assignments</li>
                         <li>Attendance records</li>
                         <li>Grades, results, and reports</li>
                         <li>Timetable entries</li>

@@ -9,10 +9,16 @@
 
 @section('content')
     <div class="mx-auto max-w-3xl space-y-6">
-        <p class="text-muted-foreground">Choose a starting pattern, then make the names match what staff, learners and families already understand. This changes the wording in the interface, not your historical records.</p>
+        <div class="flex items-center gap-1 text-muted-foreground">
+            <span>Choose the words your school uses.</span>
+            <x-help-tooltip label="School language help">Choose a starting pattern, then adjust the labels to match what staff, learners, and families understand. This changes interface wording, not historical records.</x-help-tooltip>
+        </div>
         <form method="POST" action="{{ route('schools.operating-profile.update') }}" class="space-y-6">
             @csrf
             @method('PUT')
+            @if (request()->boolean('setup'))
+                <input type="hidden" name="setup" value="1">
+            @endif
             <april:card>
                 <slot:title>How learners move through the day</slot:title>
                 <slot:description>Pick the closest starting pattern. You can still change each name below.</slot:description>
@@ -29,7 +35,7 @@
                 <slot:title>Words your school uses</slot:title>
                 <slot:description>Use short names that staff will recognize immediately.</slot:description>
                 <slot:content class="grid gap-4 sm:grid-cols-2">
-                    @foreach (['academic_year' => 'The school year', 'class_level' => 'Grade or class', 'section' => 'Class group', 'period' => 'Term or semester', 'course' => 'Subject or course', 'fee' => 'What families pay'] as $key => $label)
+                    @foreach (['academic_year' => 'The school year', 'class_level' => 'Grade or class', 'section' => 'Class group', 'period' => 'Term or semester', 'course' => 'Subject or course', 'fee' => 'What families pay', 'homeroom_teacher' => 'The class teacher'] as $key => $label)
                         <div class="space-y-2"><april:label for="label-{{ $key }}">{{ __($label) }}</april:label><input id="label-{{ $key }}" name="labels[{{ $key }}]" value="{{ old('labels.'.$key, data_get($profile->labels, $key, \App\Models\SchoolOperatingProfile::labelsFor($profile->preset)[$key])) }}" class="flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm"></div>
                     @endforeach
                 </slot:content>

@@ -2,6 +2,7 @@
 
 use App\Enums\Feature;
 use App\Enums\InstructionalModel;
+use App\Enums\RosterMode;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\School;
@@ -150,8 +151,50 @@ if (!function_exists('school_term')) {
 }
 
 if (!function_exists('school_terms')) {
+    /**
+     * Get the plural form of a school-facing word from the operating profile.
+     */
     function school_terms(string $key, string $fallback): string
     {
         return Str::plural(school_term($key, $fallback));
+    }
+}
+
+if (!function_exists('school_roster_label')) {
+    /**
+     * Get a learner-list label that uses the school's chosen section word.
+     */
+    function school_roster_label(RosterMode $mode): string
+    {
+        return $mode->label(
+            strtolower(school_term('section', 'section')),
+            strtolower(school_terms('section', 'sections')),
+        );
+    }
+}
+
+if (!function_exists('school_roster_description')) {
+    /**
+     * Get a learner-list description that uses the school's chosen section word.
+     */
+    function school_roster_description(RosterMode $mode): string
+    {
+        return $mode->description(
+            strtolower(school_term('section', 'section')),
+            strtolower(school_terms('section', 'sections')),
+        );
+    }
+}
+
+if (!function_exists('school_instructional_model_description')) {
+    /**
+     * Get a teaching setup description that uses the school's chosen section word.
+     */
+    function school_instructional_model_description(InstructionalModel $model): string
+    {
+        return $model->description(
+            strtolower(school_term('section', 'section')),
+            strtolower(school_terms('section', 'sections')),
+        );
     }
 }

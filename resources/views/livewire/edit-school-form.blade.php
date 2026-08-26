@@ -19,6 +19,9 @@
     <form action="{{ route('schools.update', $school->id) }}" method="POST" enctype="multipart/form-data" class="grid gap-6 lg:grid-cols-[minmax(0,1.25fr)_minmax(18rem,0.75fr)]">
         @csrf
         @method('PUT')
+        @if ($setup)
+            <input type="hidden" name="setup" value="1">
+        @endif
 
         <div class="space-y-6">
             <april:card>

@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * One thing a student is marked on.
  *
- * A quiz, a project, an exam paper, a piece of classwork: the gradebook does
+ * A quiz, a project, an exam, a piece of classwork: the gradebook does
  * not care which, so a teacher is free to grade the way the subject needs.
  *
  * @property GradeItemType $type
@@ -32,7 +32,6 @@ class GradeItem extends Model
         'name',
         'type',
         'grading_scale_id',
-        'exam_slot_id',
         'max_points',
         'weight',
         'due_on',
@@ -103,16 +102,6 @@ class GradeItem extends Model
     public function gradingScale(): BelongsTo
     {
         return $this->belongsTo(GradingScale::class);
-    }
-
-    /**
-     * Get the exam paper this assessment records, when it is linked.
-     *
-     * @return BelongsTo<ExamSlot, $this>
-     */
-    public function examSlot(): BelongsTo
-    {
-        return $this->belongsTo(ExamSlot::class);
     }
 
     /**

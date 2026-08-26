@@ -47,23 +47,23 @@ class RecordAttendance
         return DB::transaction(function () use ($enrollment, $status, $day, $kind, $subject, $actor, $reason, $source): AttendanceRecord {
             $record = AttendanceRecord::firstOrNew([
                 'student_record_id' => $enrollment->id,
-                'attended_on'       => $day->toDateString(),
-                'kind'              => $kind->value,
-                'subject_id'        => $subject?->id,
+                'attended_on' => $day->toDateString(),
+                'kind' => $kind->value,
+                'subject_id' => $subject?->id,
             ]);
 
             $previous = $record->exists ? $record->status : null;
 
             $record->fill([
-                'school_id'                 => $enrollment->school_id ?? current_school_id(),
-                'academic_year_id'          => current_academic_year_id(),
-                'academic_period_id'        => current_academic_period_id(),
+                'school_id' => $enrollment->school_id ?? current_school_id(),
+                'academic_year_id' => current_academic_year_id(),
+                'academic_period_id' => current_academic_period_id(),
                 'academic_cycle_section_id' => $enrollment->academic_cycle_section_id,
-                'status'                    => $status,
-                'reason'                    => $reason,
-                'source'                    => $source,
-                'recorded_by'               => $actor === null ? auth()->id() : $actor->id,
-                'recorded_at'               => now(),
+                'status' => $status,
+                'reason' => $reason,
+                'source' => $source,
+                'recorded_by' => $actor === null ? auth()->id() : $actor->id,
+                'recorded_at' => now(),
             ]);
 
             $record->save();
@@ -72,10 +72,10 @@ class RecordAttendance
             if ($previous !== null && $previous !== $status) {
                 AttendanceChange::create([
                     'attendance_record_id' => $record->id,
-                    'from_status'          => $previous,
-                    'to_status'            => $status,
-                    'reason'               => $reason,
-                    'changed_by'           => $actor === null ? auth()->id() : $actor->id,
+                    'from_status' => $previous,
+                    'to_status' => $status,
+                    'reason' => $reason,
+                    'changed_by' => $actor === null ? auth()->id() : $actor->id,
                 ]);
             }
 
@@ -86,8 +86,7 @@ class RecordAttendance
     /**
      * Take the register for a whole list at once.
      *
-     * @param array<int, array{enrollment: StudentRecord, status: AttendanceStatus, reason?: string|null}> $entries
-     *
+     * @param  array<int, array{enrollment: StudentRecord, status: AttendanceStatus, reason?: string|null}>  $entries
      * @return array<int, AttendanceRecord>
      */
     public function recordMany(
@@ -137,7 +136,7 @@ class RecordAttendance
         }
 
         if ($enrollment->academic_cycle_section_id === null) {
-            throw new InvalidValueException('Place the student in a home section before taking attendance.');
+            throw new InvalidValueException('Place the student in a '.strtolower(school_term('section', 'section')).' before taking attendance.');
         }
 
         if ($kind === AttendanceKind::Period && $subject === null) {

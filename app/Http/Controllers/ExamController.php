@@ -49,7 +49,9 @@ class ExamController extends Controller
         $this->authorize('createForAcademicPeriod', [Exam::class, $academicPeriod]);
         $exam = $this->examService->createExam($data);
 
-        return redirect()->route('exam-slots.create', $exam)->with('success', 'Exam created successfully, Now, create exam slots for the exam');
+        return redirect()
+            ->route('academic-years.show', $academicPeriod->academic_year_id)
+            ->with('success', 'Exam created successfully');
     }
 
     /**

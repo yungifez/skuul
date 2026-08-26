@@ -68,7 +68,7 @@
                         <dd class="font-medium">{{ $academicCycleSection->capacity ?? 'Not set' }}</dd>
                     </div>
                     <div>
-                        <dt class="text-sm text-muted-foreground">Homeroom teacher</dt>
+                        <dt class="text-sm text-muted-foreground">{{ school_term('homeroom_teacher', 'Class teacher') }}</dt>
                         <dd class="font-medium">{{ $academicCycleSection->homeroomTeacher?->name ?? 'Not chosen' }}</dd>
                     </div>
                 </dl>

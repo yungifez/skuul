@@ -197,6 +197,8 @@ class InstallationTest extends TestCase
         $organization = Organization::query()->firstOrFail();
         $school = School::query()->firstOrFail();
 
+        $response->assertSessionHas('url.intended', route('schools.setup', [$school, 'details']));
+
         $this->assertSame(AccountStatus::Active, $admin->account_status);
         $this->assertNotNull($admin->email_verified_at);
         $this->assertTrue(app(SystemPermissionScope::class)->allows($admin, PlatformPermission::ManagePlatform));
@@ -258,6 +260,7 @@ class InstallationTest extends TestCase
         $this->assertSame('Academic year', $profile->labels['academic_year']);
         $this->assertSame('Grade', $profile->labels['class_level']);
         $this->assertSame('Homeroom', $profile->labels['section']);
+        $this->assertSame('Class teacher', $profile->labels['homeroom_teacher']);
     }
 
     public function test_installer_rejects_an_unsupported_system_language(): void

@@ -35,8 +35,8 @@ class NationalityAndStateInputFields extends Component
         if (blank($this->country)) {
             $this->states = collect();
             $this->state = null;
-            $this->dispatch('country-updated', ['country' => null]);
-            $this->dispatch('state-updated', ['state' => null]);
+            $this->dispatch('country-updated', country: null);
+            $this->dispatch('state-updated', state: null);
 
             return;
         }
@@ -49,8 +49,8 @@ class NationalityAndStateInputFields extends Component
         ])->data->pluck('states')->first());
         $this->state = $this->states->first()['name'] ?? null;
 
-        $this->dispatch('country-updated', ['country' => $this->country]);
-        $this->dispatch('state-updated', ['state' => $this->state]);
+        $this->dispatch('country-updated', country: $this->country);
+        $this->dispatch('state-updated', state: $this->state);
     }
 
     public function loadInitialStates(): void
@@ -59,8 +59,8 @@ class NationalityAndStateInputFields extends Component
             $this->states = collect();
             $this->state = null;
 
-            $this->dispatch('country-updated', ['country' => null]);
-            $this->dispatch('state-updated', ['state' => null]);
+            $this->dispatch('country-updated', country: null);
+            $this->dispatch('state-updated', state: null);
 
             return;
         }
@@ -74,13 +74,13 @@ class NationalityAndStateInputFields extends Component
             $this->state = $this->states->first()['name'] ?? null;
         }
 
-        $this->dispatch('country-updated', ['country' => $this->country]);
-        $this->dispatch('state-updated', ['state' => $this->state]);
+        $this->dispatch('country-updated', country: $this->country);
+        $this->dispatch('state-updated', state: $this->state);
     }
 
     public function updatedState()
     {
-        $this->dispatch('state-updated', ['state' => $this->state]);
+        $this->dispatch('state-updated', state: $this->state);
     }
 
     public function render()

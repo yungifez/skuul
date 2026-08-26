@@ -22,7 +22,7 @@
         'border-primary/30 text-foreground' => $setting !== null,
         'text-muted-foreground' => $setting === null,
     ])
-    title="{{ $model->description() }}">
+    title="{{ school_instructional_model_description($model) }}">
     <x-icon :name="$icon" class="size-3.5" />
     {{ $model->label() }}
     @if ($setting === null)

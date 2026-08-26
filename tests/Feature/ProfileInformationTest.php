@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\NationalityAndStateInputFields;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -36,6 +37,9 @@ class ProfileInformationTest extends TestCase
             ->assertSee('Postal / ZIP code')
             ->assertSee('State / Province')
             ->assertSee('Country')
+            ->assertSee('data-slot="combobox"', false)
+            ->assertSee('name="country"', false)
+            ->assertSee('name="state"', false)
             ->assertSee('Two Factor Authentication')
             ->assertSee('Browser Sessions')
             ->assertDontSee('card-body', false)
@@ -68,5 +72,13 @@ class ProfileInformationTest extends TestCase
         $this->assertEquals('Nigeria', $user->fresh()->country);
         $this->assertEquals('Suite 4', $user->fresh()->address_line_2);
         $this->assertEquals('10001', $user->fresh()->postal_code);
+    }
+
+    public function test_the_address_picker_dispatches_named_location_events(): void
+    {
+        Livewire::test(NationalityAndStateInputFields::class)
+            ->set('country', '')
+            ->assertDispatched('country-updated', country: null)
+            ->assertDispatched('state-updated', state: null);
     }
 }

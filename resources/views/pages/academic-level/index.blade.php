@@ -21,11 +21,11 @@
     @endphp
 
     <april:card class="mb-6">
-        <slot:title>{{ school_terms('class_level', 'Classes') }} are reusable. {{ school_terms('section', 'Sections') }} are not.</slot:title>
-        <slot:description>
-            A {{ strtolower(school_term('class_level', 'class')) }} is the step a learner is at, such as Primary 4, Grade 4, or Form 2. It stays the same year after year.
-            A {{ strtolower(school_term('section', 'section')) }} is one named group inside a {{ strtolower(school_term('class_level', 'class')) }} for one exact {{ strtolower(school_term('academic_year', 'school year')) }}, such as Primary 4 · Green · 2026–2027.
-        </slot:description>
+        <slot:title class="flex items-center gap-1">
+            <span>{{ school_terms('class_level', 'Classes') }} are reusable. {{ school_terms('section', 'Sections') }} are not.</span>
+            <x-help-tooltip label="Classes and sections help">A class is the learner’s level, such as Primary 4, Grade 4, or Form 2. A section is one named group inside that class for one exact school year, such as Primary 4 · Green · 2026–2027.</x-help-tooltip>
+        </slot:title>
+        <slot:description>Manage reusable classes before creating year-specific groups.</slot:description>
         <slot:content class="flex flex-wrap gap-2">
             <april:button-link href="{{ route('academic-cycle-sections.index', ['academic_year_id' => '']) }}" variant="outline" size="sm">
                 <x-lucide-layers class="mr-1.5 size-3.5" />

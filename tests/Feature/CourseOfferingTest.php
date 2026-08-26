@@ -19,8 +19,10 @@ use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
+use App\Models\CourseOffering;
 use App\Models\InstructionalModelSetting;
 use App\Models\School;
+use App\Models\SchoolOperatingProfile;
 use App\Models\StudentRecord;
 use App\Models\Subject;
 use App\Models\TeachingAssignment;
@@ -60,8 +62,8 @@ class CourseOfferingTest extends TestCase
         [$subject, $academicYear, $academicPeriod, $academicLevel] = $this->courseContext();
         $otherLevel = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id]);
         $otherSection = AcademicCycleSection::factory()->create([
-            'school_id'         => $this->workingSchool()->id,
-            'academic_year_id'  => $academicYear->id,
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => $academicYear->id,
             'academic_level_id' => $otherLevel->id,
         ]);
 
@@ -108,18 +110,18 @@ class CourseOfferingTest extends TestCase
         $this->authorized_user([]);
         [$subject, $academicYear, $academicPeriod, $academicLevel, $cycleSection] = $this->courseContext();
         InstructionalModelSetting::create([
-            'school_id'        => $this->workingSchool()->id,
+            'school_id' => $this->workingSchool()->id,
             'academic_year_id' => $academicYear->id,
-            'model'            => InstructionalModel::SubjectBasedSchedule,
+            'model' => InstructionalModel::SubjectBasedSchedule,
         ]);
         /** @var User $student */
         $student = User::factory()->create();
         $studentRecord = StudentRecord::create([
-            'user_id'                   => $student->id,
-            'school_id'                 => $this->workingSchool()->id,
+            'user_id' => $student->id,
+            'school_id' => $this->workingSchool()->id,
             'academic_cycle_section_id' => $cycleSection->id,
-            'admission_number'          => fake()->unique()->bothify('####????'),
-            'admission_date'            => now()->toDateString(),
+            'admission_number' => fake()->unique()->bothify('####????'),
+            'admission_date' => now()->toDateString(),
         ]);
 
         $courseOffering = app(CreateCourseOffering::class)->create(
@@ -166,23 +168,48 @@ class CourseOfferingTest extends TestCase
     {
         $this->authorized_user(['create subject', 'read subject']);
         [$subject, $academicYear, $academicPeriod, $academicLevel, $cycleSection] = $this->courseContext();
+        $secondPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => $academicYear->id,
+            'position' => 2,
+        ]);
+        SchoolOperatingProfile::query()->updateOrCreate(
+            ['school_id' => $this->workingSchool()->id],
+            ['preset' => 'home_sections', 'labels' => array_merge(SchoolOperatingProfile::labelsFor('home_sections'), ['section' => 'Stream'])],
+        );
 
-        $this->get(route('course-offerings.create'))->assertOk()->assertSee('Learner roster');
+        $this->get(route('course-offerings.create'))
+            ->assertOk()
+            ->assertSee('Who attends')
+            ->assertSee('One stream')
+            ->assertSee('Combined streams')
+            ->assertSee('All '.strtolower(school_terms('period', 'periods')).' in the '.strtolower(school_term('academic_year', 'school year')))
+            ->assertDontSee('home section');
 
         $this->post(route('course-offerings.store'), [
-            'academic_year_id'           => $academicYear->id,
-            'academic_period_id'         => $academicPeriod->id,
-            'subject_id'                 => $subject->id,
-            'academic_level_id'          => $academicLevel->id,
-            'roster_mode'                => RosterMode::HomeSection->value,
+            'academic_year_id' => $academicYear->id,
+            'academic_period_id' => 'all',
+            'subject_id' => $subject->id,
+            'academic_level_id' => $academicLevel->id,
+            'roster_mode' => RosterMode::HomeSection->value,
             'academic_cycle_section_ids' => [$cycleSection->id],
-            'planned_periods_per_week'   => 5,
+            'planned_periods_per_week' => 5,
         ])->assertRedirect(route('course-offerings.index'));
 
+        $this->assertSame(2, CourseOffering::query()
+            ->where('school_id', $this->workingSchool()->id)
+            ->where('academic_year_id', $academicYear->id)
+            ->where('subject_id', $subject->id)
+            ->count());
         $this->assertDatabaseHas('course_offerings', [
-            'school_id'          => $this->workingSchool()->id,
+            'school_id' => $this->workingSchool()->id,
             'academic_period_id' => $academicPeriod->id,
-            'subject_id'         => $subject->id,
+            'subject_id' => $subject->id,
+        ]);
+        $this->assertDatabaseHas('course_offerings', [
+            'school_id' => $this->workingSchool()->id,
+            'academic_period_id' => $secondPeriod->id,
+            'subject_id' => $subject->id,
         ]);
 
         $this->get(route('course-offerings.index'))->assertOk()->assertSee($subject->name);
@@ -223,15 +250,15 @@ class CourseOfferingTest extends TestCase
         $academicYear = AcademicYear::factory()->create(['school_id' => $school->id]);
         /** @var AcademicPeriod $academicPeriod */
         $academicPeriod = AcademicPeriod::factory()->create([
-            'school_id'        => $school->id,
+            'school_id' => $school->id,
             'academic_year_id' => $academicYear->id,
-            'status'           => $periodStatus,
+            'status' => $periodStatus,
         ]);
         $cycleSection = AcademicCycleSection::factory()->create([
-            'school_id'         => $school->id,
-            'academic_year_id'  => $academicYear->id,
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
-            'status'            => AcademicStructureStatus::Active,
+            'status' => AcademicStructureStatus::Active,
         ]);
 
         return [$subject, $academicYear, $academicPeriod, $academicLevel, $cycleSection];

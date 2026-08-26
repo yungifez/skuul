@@ -21,11 +21,11 @@
     @endphp
 
     <april:card class="mb-6">
-        <slot:title>{{ $selectedCycle?->name ?? 'Every '.strtolower(school_term('academic_year', 'school year')) }}</slot:title>
-        <slot:description>
-            A {{ strtolower(school_term('section', 'section')) }} is one named group inside a {{ strtolower(school_term('class_level', 'class')) }} for one exact {{ strtolower(school_term('academic_year', 'school year')) }}, such as Primary 4 · Green · 2026–2027.
-            It is never reused: a later year gets its own {{ strtolower(school_term('section', 'section')) }}.
-        </slot:description>
+        <slot:title class="flex items-center gap-1">
+            <span>{{ $selectedCycle?->name ?? 'Every '.strtolower(school_term('academic_year', 'school year')) }}</span>
+            <x-help-tooltip label="Year groups help">A section is one named group inside a class for one exact school year. It is not reused; a later year gets its own section.</x-help-tooltip>
+        </slot:title>
+        <slot:description>Filter the groups running in each school year.</slot:description>
         <slot:content class="space-y-4">
             @if ($isCurrentCycle)
                 <p class="text-sm text-muted-foreground">
@@ -84,7 +84,7 @@
 
     <april:card>
         <slot:title>{{ school_terms('section', 'Section') }} this year</slot:title>
-        <slot:description>Rows are grouped by {{ strtolower(school_term('academic_year', 'school year')) }}, then by {{ strtolower(school_term('class_level', 'class')) }}. Draft {{ strtolower(school_terms('section', 'sections')) }} are set up but not yet in use.</slot:description>
+        <slot:description>Groups are shown by school year and class.</slot:description>
         <slot:content>
             @if ($totalCount === 0)
                     <x-empty-state
@@ -112,7 +112,7 @@
                                 <th class="px-3 py-2">Stream / shift</th>
                                 <th class="px-3 py-2">Room</th>
                                 <th class="px-3 py-2">Capacity</th>
-                                <th class="px-3 py-2">Homeroom teacher</th>
+                                <th class="px-3 py-2">{{ school_term('homeroom_teacher', 'Class teacher') }}</th>
                                 <th class="px-3 py-2">Status</th>
                                 <th class="px-3 py-2 text-right">Actions</th>
                             </tr>
