@@ -86,6 +86,11 @@
     }
 
     @media (max-width: 768px) {
+        [data-slot="data-table"] th,
+        [data-slot="data-table"] td {
+            white-space: nowrap;
+        }
+
         [data-slot="data-table-pagination"] {
             align-items: stretch;
         }
