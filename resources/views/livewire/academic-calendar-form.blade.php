@@ -46,7 +46,7 @@
                             </div>
                         </div>
                         <div class="flex flex-wrap gap-2">
-                            <button type="button" wire:click="generatePeriods" class="inline-flex h-9 items-center rounded-md border border-input bg-background px-3 text-sm font-medium hover:bg-accent">Regenerate</button>
+                            <button type="button" wire:click="generatePeriods" class="inline-flex h-9 items-center rounded-md border border-input bg-background px-3 text-sm font-medium hover:bg-accent">Generate periods</button>
                             <button type="button" wire:click="addPeriod" class="inline-flex h-9 items-center rounded-md border border-input bg-background px-3 text-sm font-medium hover:bg-accent">Add period</button>
                         </div>
                     </div>
