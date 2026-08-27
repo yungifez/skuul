@@ -41,13 +41,75 @@
         @elseif ($currentStep === \App\Enums\AcademicYearSetupStep::Structure)
             <april:card>
                 <slot:title>Build this year’s classes</slot:title>
-                <slot:description>Create the classes and groups used this year.</slot:description>
+                <slot:description>Create this year’s sections inside the levels your school uses.</slot:description>
                 <slot:footer><x-help-tooltip label="Class setup help">Add reusable classes or grades first. Then create this year’s sections or forms and assign class teachers.</x-help-tooltip></slot:footer>
-                <slot:content class="flex flex-wrap gap-3">
-                    <april:button-link href="{{ route('academic-levels.create', ['setup' => 1, 'academic_year_id' => $academicYear->id]) }}">Add a class or grade</april:button-link>
-                    <april:button-link href="{{ route('academic-levels.index') }}" variant="ghost">Manage classes or grades</april:button-link>
-                    <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_year_id' => $academicYear->id, 'setup' => 1]) }}" variant="outline">Add this year’s first class</april:button-link>
-                    <april:button-link href="{{ route('academic-cycle-sections.index', ['academic_year_id' => $academicYear->id]) }}" variant="ghost">Manage sections</april:button-link>
+                <slot:content class="space-y-6">
+                    <div class="flex flex-wrap gap-3">
+                        <april:button-link href="{{ route('academic-levels.create', ['setup' => 1, 'academic_year_id' => $academicYear->id]) }}">Add a level or group</april:button-link>
+                        <april:button-link href="{{ route('academic-levels.index') }}" variant="ghost">Manage levels and groups</april:button-link>
+                        <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_year_id' => $academicYear->id, 'setup' => 1]) }}" variant="outline">Add this year’s first section</april:button-link>
+                        <april:button-link href="{{ route('academic-cycle-sections.index', ['academic_year_id' => $academicYear->id]) }}" variant="ghost">Manage this year’s sections</april:button-link>
+                    </div>
+
+                    <div class="space-y-3 border-t pt-5">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <h3 class="font-semibold">Classes and sections already added</h3>
+                                <p class="text-sm text-muted-foreground">Review the levels and year-specific sections as you build {{ $academicYear->name }}.</p>
+                            </div>
+                            <x-help-tooltip label="Classes and sections help">A level is reusable, such as Primary 4 or Kindergarten. A section is the named group that runs in this school year, such as Green or KG 1 Blue.</x-help-tooltip>
+                        </div>
+
+                        @php
+                            $sectionsByLevel = $academicYear->cycleSections->groupBy('academic_level_id');
+                        @endphp
+
+                        @if ($academicLevels->isEmpty())
+                            <div class="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                                No levels are available yet. Add a level or group before adding this year’s sections.
+                            </div>
+                        @else
+                            <div class="grid gap-3 lg:grid-cols-2">
+                                @foreach ($academicLevels as $academicLevel)
+                                    @php
+                                        $sections = $sectionsByLevel->get($academicLevel->id, collect());
+                                    @endphp
+                                    <div class="rounded-md border p-4">
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div>
+                                                <p class="font-semibold">{{ $academicLevel->name }}</p>
+                                                <p class="text-sm text-muted-foreground">{{ $sections->count() }} {{ $sections->count() === 1 ? strtolower(school_term('section', 'section')) : strtolower(school_terms('section', 'sections')) }}</p>
+                                            </div>
+                                            @can('view', $academicLevel)
+                                                <april:button-link href="{{ route('academic-levels.show', $academicLevel) }}" variant="ghost" size="sm">View level</april:button-link>
+                                            @endcan
+                                        </div>
+                                        @if ($sections->isEmpty())
+                                            <div class="mt-3 flex items-center justify-between gap-3 border-t pt-3 text-sm">
+                                                <span class="text-muted-foreground">No section added yet</span>
+                                                @can('create', \App\Models\AcademicCycleSection::class)
+                                                    <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_year_id' => $academicYear->id, 'academic_level_id' => $academicLevel->id, 'setup' => 1]) }}" variant="outline" size="sm">Add section</april:button-link>
+                                                @endcan
+                                            </div>
+                                        @else
+                                            <ul class="mt-3 space-y-2 border-t pt-3 text-sm">
+                                                @foreach ($sections as $section)
+                                                    <li class="flex items-center justify-between gap-3">
+                                                        @can('view', $section)
+                                                            <a href="{{ route('academic-cycle-sections.show', $section) }}" class="font-medium hover:underline">{{ $section->name }}</a>
+                                                        @else
+                                                            <span class="font-medium">{{ $section->name }}</span>
+                                                        @endcan
+                                                        <x-academic-structure-status :status="$section->status" />
+                                                    </li>
+                                                @endforeach
+                                            </ul>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
                 </slot:content>
             </april:card>
         @elseif ($currentStep === \App\Enums\AcademicYearSetupStep::Subjects)

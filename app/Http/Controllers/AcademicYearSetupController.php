@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Academic\PublishAcademicCalendar;
 use App\Enums\AcademicYearSetupStep;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
 use App\Services\AcademicYear\AcademicYearService;
 use App\Services\AcademicYear\AcademicYearSetupProgress;
@@ -40,10 +41,22 @@ class AcademicYearSetupController extends Controller
             $requested = $current;
         }
 
+        $academicYear = $academicYear->load('topLevelPeriods');
+        $academicLevels = collect();
+
+        if ($requested === AcademicYearSetupStep::Structure) {
+            $academicYear->load('cycleSections.academicLevel');
+            $academicLevels = AcademicLevel::inSchool($academicYear->school_id)
+                ->orderBy('position')
+                ->orderBy('name')
+                ->get(['id', 'name', 'status']);
+        }
+
         return view('pages.academic-year.setup', [
-            'academicYear' => $academicYear->load('topLevelPeriods'),
+            'academicYear' => $academicYear,
             'currentStep' => $requested,
             'progress' => $progress,
+            'academicLevels' => $academicLevels,
         ]);
     }
 

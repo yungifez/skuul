@@ -231,7 +231,7 @@ class AcademicCycleSectionController extends Controller
             ->where('status', AcademicStructureStatus::Active)
             ->orderBy('position')
             ->orderBy('name')
-            ->get(['id', 'name', 'label']);
+            ->get(['id', 'name']);
 
         $teachers = User::ofSchool()->role(Role::Teacher->value)->orderBy('name')->get(['users.id', 'users.name']);
 
