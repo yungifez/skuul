@@ -267,7 +267,7 @@ class ShowStudentProfile extends Component
             ->map(fn (AcademicCycleSection $cycleSection): array => [
                 'id' => $cycleSection->id,
                 'name' => $cycleSection->label ?? $cycleSection->name,
-                'level' => $cycleSection->academicLevel->label ?? $cycleSection->academicLevel->name,
+                'level' => $cycleSection->academicLevel->name,
                 'campus' => $cycleSection->school->name,
             ])
             ->all();
@@ -284,7 +284,7 @@ class ShowStudentProfile extends Component
             ->map(fn (AcademicCycleSection $cycleSection): array => [
                 'id' => $cycleSection->id,
                 'name' => $cycleSection->label ?? $cycleSection->name,
-                'level' => $cycleSection->academicLevel->label ?? $cycleSection->academicLevel->name,
+                'level' => $cycleSection->academicLevel->name,
             ])
             ->values()
             ->all();

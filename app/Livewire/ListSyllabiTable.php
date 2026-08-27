@@ -36,7 +36,7 @@ class ListSyllabiTable extends DataTableComponent
         return $rows->map(function (Syllabus $syllabus): array {
             $row = $syllabus->toArray();
             $row['subject_name'] = $syllabus->courseOffering->subject->name;
-            $row['academic_level_label'] = $syllabus->courseOffering->academicLevel->label;
+            $row['academic_level_label'] = $syllabus->courseOffering->academicLevel->name;
             $row['academic_period_label'] = $syllabus->courseOffering->academicPeriod->label;
             $row['view_url'] = route('syllabi.show', $syllabus);
             $row['delete_url'] = route('syllabi.destroy', $syllabus);

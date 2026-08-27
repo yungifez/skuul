@@ -52,7 +52,7 @@ class GradebookController extends Controller
         $this->authorize('viewGradebook', $courseOffering);
 
         $courseOffering->load([
-            'academicLevel:id,name,label',
+            'academicLevel:id,name',
             'academicPeriod:id,name,label',
             'academicYear:id,start_year,stop_year',
             'subject:id,name,short_name',

@@ -22,7 +22,7 @@
                     </div>
                     <div class="rounded-lg border bg-muted/30 p-4">
                         <p class="text-xs font-medium uppercase text-muted-foreground">{{ school_term('class_level', 'Class') }}</p>
-                        <p class="mt-1 font-semibold">{{ $studentRecord->academicCycleSection?->academicLevel?->label ?? $studentRecord->academicCycleSection?->academicLevel?->name ?? 'Not placed' }}</p>
+                        <p class="mt-1 font-semibold">{{ $studentRecord->academicCycleSection?->academicLevel?->name ?? 'Not placed' }}</p>
                     </div>
                     <div class="rounded-lg border bg-muted/30 p-4">
                         <p class="text-xs font-medium uppercase text-muted-foreground">{{ school_term('section', 'Section') }}</p>
@@ -228,7 +228,7 @@
                                     @foreach ($studentRecord->placements->sortByDesc('effective_on') as $placement)
                                         <tr wire:key="enrollment-placement-{{ $placement->id }}">
                                             <td class="px-2 py-3">{{ $placement->academicYear?->name ?: '—' }}<span class="block text-xs text-muted-foreground">{{ $placement->academicPeriod?->name }}</span></td>
-                                            <td class="px-2 py-3">{{ $placement->academicCycleSection?->academicLevel?->label ?? $placement->academicCycleSection?->academicLevel?->name ?? '—' }}<span class="block text-xs text-muted-foreground">{{ $placement->academicCycleSection?->label ?? $placement->academicCycleSection?->name ?? '—' }}</span></td>
+                                            <td class="px-2 py-3">{{ $placement->academicCycleSection?->academicLevel?->name ?? '—' }}<span class="block text-xs text-muted-foreground">{{ $placement->academicCycleSection?->label ?? $placement->academicCycleSection?->name ?? '—' }}</span></td>
                                             <td class="whitespace-nowrap px-2 py-3">{{ $placement->effective_on?->format('M j, Y') }}</td>
                                         </tr>
                                     @endforeach

@@ -26,16 +26,12 @@
     <div class="grid gap-6 lg:grid-cols-3">
         <april:card class="lg:col-span-2">
             <slot:title>What this {{ strtolower(school_term('class_level', 'class')) }} is</slot:title>
-            <slot:description>A reusable step a learner is at. It is not a group for one year.</slot:description>
+            <slot:description>A reusable level a learner can be placed into. Use a parent level to organize groups such as Kindergarten → KG 1.</slot:description>
             <slot:content class="space-y-4">
                 <dl class="grid gap-4 sm:grid-cols-2">
                     <div>
                         <dt class="text-sm text-muted-foreground">{{ school_term('class_level', 'Class') }} name</dt>
                         <dd class="font-medium">{{ $academicLevel->name }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm text-muted-foreground">Local label</dt>
-                        <dd class="font-medium">{{ $academicLevel->label ?? 'Not set' }}</dd>
                     </div>
                     <div>
                         <dt class="text-sm text-muted-foreground">Short code</dt>
@@ -46,7 +42,7 @@
                         <dd class="font-medium">{{ $academicLevel->position }}</dd>
                     </div>
                     <div>
-                        <dt class="text-sm text-muted-foreground">Sits under</dt>
+                        <dt class="text-sm text-muted-foreground">Level group</dt>
                         <dd class="font-medium">
                             @if ($academicLevel->parent)
                                 <a href="{{ route('academic-levels.show', $academicLevel->parent) }}" class="hover:underline">{{ $academicLevel->parent->name }}</a>

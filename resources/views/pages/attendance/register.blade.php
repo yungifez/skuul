@@ -34,7 +34,7 @@
                             <option value="">Choose a {{ strtolower(school_term('section', 'section')) }}</option>
                             @foreach ($sections as $item)
                                 <option value="{{ $item->id }}" @selected($section?->id === $item->id)>
-                                    {{ $item->academicLevel?->label ?? $item->academicLevel?->name }} · {{ $item->label ?? $item->name }}
+                                    {{ $item->academicLevel?->name }} · {{ $item->label ?? $item->name }}
                                 </option>
                             @endforeach
                         </april:native-select>
@@ -78,7 +78,7 @@
             </april:card>
         @elseif ($students->isEmpty())
             <april:card>
-                <slot:title>{{ $section->academicLevel?->label ?? $section->academicLevel?->name }} · {{ $section->label ?? $section->name }}</slot:title>
+                <slot:title>{{ $section->academicLevel?->name }} · {{ $section->label ?? $section->name }}</slot:title>
                 <slot:content>
                     <x-empty-state icon="lucide-users" title="Nobody attends this {{ strtolower(school_term('section', 'section')) }} yet"
                         description="Place a learner here first, then the register will list them.">
@@ -98,7 +98,7 @@
                 <input type="hidden" name="attended_on" value="{{ $date->toDateString() }}">
 
                 <april:card>
-                    <slot:title>{{ $section->academicLevel?->label ?? $section->academicLevel?->name }} · {{ $section->label ?? $section->name }}</slot:title>
+                    <slot:title>{{ $section->academicLevel?->name }} · {{ $section->label ?? $section->name }}</slot:title>
                     <slot:description>{{ $students->count() }} {{ Str::plural('learner', $students->count()) }} on {{ $date->format('j F Y') }}.</slot:description>
                     <slot:content>
                         <div class="flex flex-wrap items-center gap-2 pb-4">

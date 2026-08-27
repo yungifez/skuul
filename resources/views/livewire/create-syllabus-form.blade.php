@@ -15,7 +15,7 @@
                     <option value="">Select the subject, {{ strtolower(school_term('class_level', 'class')) }}, and {{ strtolower(school_term('period', 'period')) }}</option>
                     @foreach ($courseOfferings as $courseOffering)
                         <option value="{{ $courseOffering->id }}">
-                            {{ $courseOffering->subject->name }} — {{ $courseOffering->academicLevel->label ?? $courseOffering->academicLevel->name }} — {{ $courseOffering->academicPeriod->label ?? $courseOffering->academicPeriod->name }}
+                            {{ $courseOffering->subject->name }} — {{ $courseOffering->academicLevel->name }} — {{ $courseOffering->academicPeriod->label ?? $courseOffering->academicPeriod->name }}
                         </option>
                     @endforeach
                 </april:select>

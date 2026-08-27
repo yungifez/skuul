@@ -26,8 +26,7 @@ class TransferPackageBuilder
     public function __construct(
         private AttendanceSummary $attendance,
         private StudentLedger $ledger,
-    ) {
-    }
+    ) {}
 
     /**
      * Build the payload for one approved request.
@@ -38,10 +37,10 @@ class TransferPackageBuilder
     {
         $enrollment = $request->studentRecord;
         $payload = [
-            'source_school_id'  => $enrollment->school_id,
+            'source_school_id' => $enrollment->school_id,
             'student_record_id' => $enrollment->id,
-            'built_at'          => now()->toIso8601String(),
-            'purpose'           => $request->purpose,
+            'built_at' => now()->toIso8601String(),
+            'purpose' => $request->purpose,
         ];
 
         foreach ($request->categories() as $category) {
@@ -59,16 +58,16 @@ class TransferPackageBuilder
     private function partFor(DataCategory $category, StudentRecord $enrollment): array
     {
         return match ($category) {
-            DataCategory::Identity        => $this->identity($enrollment),
-            DataCategory::Guardians       => $this->guardians($enrollment),
-            DataCategory::Enrollment      => $this->enrollment($enrollment),
+            DataCategory::Identity => $this->identity($enrollment),
+            DataCategory::Guardians => $this->guardians($enrollment),
+            DataCategory::Enrollment => $this->enrollment($enrollment),
             DataCategory::AcademicResults => $this->results($enrollment),
-            DataCategory::Attendance      => $this->attendance->forStudent($enrollment),
-            DataCategory::Health          => $this->health($enrollment),
-            DataCategory::Discipline      => $this->discipline($enrollment),
-            DataCategory::Safeguarding    => $this->safeguarding($enrollment),
-            DataCategory::Wellbeing       => $this->wellbeing($enrollment),
-            DataCategory::Finance         => $this->finance($enrollment),
+            DataCategory::Attendance => $this->attendance->forStudent($enrollment),
+            DataCategory::Health => $this->health($enrollment),
+            DataCategory::Discipline => $this->discipline($enrollment),
+            DataCategory::Safeguarding => $this->safeguarding($enrollment),
+            DataCategory::Wellbeing => $this->wellbeing($enrollment),
+            DataCategory::Finance => $this->finance($enrollment),
         };
     }
 
@@ -80,10 +79,10 @@ class TransferPackageBuilder
         $person = $enrollment->user;
 
         return [
-            'name'        => $person?->name,
-            'email'       => $person?->email,
-            'birthday'    => $person?->birthday,
-            'gender'      => $person?->gender,
+            'name' => $person?->name,
+            'email' => $person?->email,
+            'birthday' => $person?->birthday,
+            'gender' => $person?->gender,
             'nationality' => $person?->nationality,
         ];
     }
@@ -104,7 +103,7 @@ class TransferPackageBuilder
             ->with('user')
             ->get()
             ->map(fn (ParentRecord $parentRecord): array => [
-                'name'  => $parentRecord->user?->name,
+                'name' => $parentRecord->user?->name,
                 'email' => $parentRecord->user?->email,
                 'phone' => $parentRecord->user?->phone,
             ])
@@ -125,19 +124,19 @@ class TransferPackageBuilder
 
         return [
             'admission_number' => $enrollment->admission_number,
-            'admission_date'   => $enrollment->admission_date,
-            'status'           => $enrollment->status->value,
-            'academic_level'   => $currentCycleSection === null ? null : ($currentCycleSection->academicLevel->label ?? $currentCycleSection->academicLevel->name),
-            'cycle_section'    => $currentCycleSection === null ? null : ($currentCycleSection->label ?? $currentCycleSection->name),
-            'placements'       => $enrollment->placements->map(function ($placement): array {
+            'admission_date' => $enrollment->admission_date,
+            'status' => $enrollment->status->value,
+            'academic_level' => $currentCycleSection === null ? null : $currentCycleSection->academicLevel->name,
+            'cycle_section' => $currentCycleSection === null ? null : ($currentCycleSection->label ?? $currentCycleSection->name),
+            'placements' => $enrollment->placements->map(function ($placement): array {
                 $cycleSection = $placement->academicCycleSection;
 
                 return [
                     'academic_cycle_section_id' => $placement->academic_cycle_section_id,
-                    'academic_level'            => $cycleSection === null ? null : ($cycleSection->academicLevel->label ?? $cycleSection->academicLevel->name),
-                    'cycle_section'             => $cycleSection === null ? null : ($cycleSection->label ?? $cycleSection->name),
-                    'effective_on'              => $placement->effective_on,
-                    'reason'                    => $placement->reason,
+                    'academic_level' => $cycleSection === null ? null : $cycleSection->academicLevel->name,
+                    'cycle_section' => $cycleSection === null ? null : ($cycleSection->label ?? $cycleSection->name),
+                    'effective_on' => $placement->effective_on,
+                    'reason' => $placement->reason,
                 ];
             })->all(),
         ];
@@ -157,12 +156,12 @@ class TransferPackageBuilder
             ->map(fn (Collection $rows): ?ResultSnapshot => $rows->sortByDesc('revision')->first())
             ->filter()
             ->map(fn (ResultSnapshot $snapshot): array => [
-                'subject'            => $snapshot->courseOffering?->subject?->name,
-                'academic_year_id'   => $snapshot->courseOffering?->academic_year_id,
+                'subject' => $snapshot->courseOffering?->subject?->name,
+                'academic_year_id' => $snapshot->courseOffering?->academic_year_id,
                 'academic_period_id' => $snapshot->courseOffering?->academic_period_id,
-                'percentage'         => $snapshot->percentage,
-                'revision'           => $snapshot->revision,
-                'published_at'       => $snapshot->published_at,
+                'percentage' => $snapshot->percentage,
+                'revision' => $snapshot->revision,
+                'published_at' => $snapshot->published_at,
             ])
             ->values()
             ->all();
@@ -180,12 +179,12 @@ class TransferPackageBuilder
         }
 
         return [
-            'blood_group'             => $record->blood_group,
-            'conditions'              => $record->conditions,
-            'allergies'               => $record->allergies,
-            'medications'             => $record->medications,
-            'dietary_needs'           => $record->dietary_needs,
-            'emergency_contact_name'  => $record->emergency_contact_name,
+            'blood_group' => $record->blood_group,
+            'conditions' => $record->conditions,
+            'allergies' => $record->allergies,
+            'medications' => $record->medications,
+            'dietary_needs' => $record->dietary_needs,
+            'emergency_contact_name' => $record->emergency_contact_name,
             'emergency_contact_phone' => $record->emergency_contact_phone,
         ];
     }
@@ -218,10 +217,10 @@ class TransferPackageBuilder
             ->whereHas('participants', fn ($query) => $query->where('student_record_id', $enrollment->id))
             ->get()
             ->map(fn ($incident): array => [
-                'reference'   => $incident->reference,
-                'category'    => $incident->category->value,
-                'status'      => $incident->status->value,
-                'summary'     => $incident->summary,
+                'reference' => $incident->reference,
+                'category' => $incident->category->value,
+                'status' => $incident->status->value,
+                'summary' => $incident->summary,
                 'occurred_at' => $incident->occurred_at,
             ])
             ->all();
@@ -236,11 +235,11 @@ class TransferPackageBuilder
             ->where('student_record_id', $enrollment->id)
             ->get()
             ->map(fn ($plan): array => [
-                'title'     => $plan->title,
-                'category'  => $plan->category->value,
-                'status'    => $plan->status->value,
+                'title' => $plan->title,
+                'category' => $plan->category->value,
+                'status' => $plan->status->value,
                 'starts_on' => $plan->starts_on,
-                'ends_on'   => $plan->ends_on,
+                'ends_on' => $plan->ends_on,
             ])
             ->all();
     }
@@ -251,7 +250,7 @@ class TransferPackageBuilder
     private function finance(StudentRecord $enrollment): array
     {
         return [
-            'balance'          => $this->ledger->balance($enrollment),
+            'balance' => $this->ledger->balance($enrollment),
             'unapplied_credit' => $this->ledger->unappliedCredit($enrollment),
 
             /*

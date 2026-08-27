@@ -35,8 +35,7 @@ class UpdateAcademicLevelRequest extends FormRequest
                 'required', 'string', 'max:255',
                 Rule::unique('academic_levels', 'name')->where('school_id', current_school_id())->ignore($academicLevel->id),
             ],
-            'label' => ['nullable', 'string', 'max:255'],
-            'code'  => [
+            'code' => [
                 'nullable', 'string', 'max:100',
                 Rule::unique('academic_levels', 'code')->where('school_id', current_school_id())->ignore($academicLevel->id),
             ],

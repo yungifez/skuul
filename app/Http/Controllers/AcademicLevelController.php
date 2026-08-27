@@ -32,7 +32,7 @@ class AcademicLevelController extends Controller
         $status = $this->readStatus($request);
 
         $academicLevels = AcademicLevel::inSchool()
-            ->with(['parent:id,name,label'])
+            ->with(['parent:id,name'])
             ->withCount([
                 'cycleSections',
                 'cycleSections as active_cycle_sections_count' => fn (Builder $query) => $query->where('status', AcademicStructureStatus::Active),
@@ -59,7 +59,6 @@ class AcademicLevelController extends Controller
 
         $academicLevel = $this->createAcademicLevel->create(
             $data['name'],
-            $data['label'] ?? null,
             $data['code'] ?? null,
             $this->parentFrom($data['parent_id'] ?? null),
             $data['position'] ?? 0,
@@ -88,8 +87,8 @@ class AcademicLevelController extends Controller
     public function show(AcademicLevel $academicLevel): View
     {
         $academicLevel->load([
-            'parent:id,name,label',
-            'children:id,parent_id,name,label,position,status',
+            'parent:id,name',
+            'children:id,parent_id,name,position,status',
         ]);
 
         $cycleSections = $academicLevel->cycleSections()
@@ -150,7 +149,7 @@ class AcademicLevelController extends Controller
             ->when($except !== null, fn (Builder $query) => $query->whereKeyNot($except->id))
             ->orderBy('position')
             ->orderBy('name')
-            ->get(['id', 'name', 'label']);
+            ->get(['id', 'name']);
 
         return compact('academicLevels');
     }

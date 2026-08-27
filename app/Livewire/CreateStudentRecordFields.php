@@ -20,9 +20,9 @@ class CreateStudentRecordFields extends Component
             ->orderBy('name')
             ->get()
             ->map(fn (AcademicCycleSection $cycleSection): array => [
-                'id'    => $cycleSection->id,
-                'level' => $cycleSection->academicLevel->label ?? $cycleSection->academicLevel->name,
-                'name'  => $cycleSection->label ?? $cycleSection->name,
+                'id' => $cycleSection->id,
+                'level' => $cycleSection->academicLevel->name,
+                'name' => $cycleSection->label ?? $cycleSection->name,
             ])
             ->all();
     }

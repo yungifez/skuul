@@ -18,7 +18,7 @@
                 <label for="academic_cycle_section_ids" class="text-sm font-medium text-slate-800 dark:text-slate-100">{{ school_terms('section', 'Sections') }}</label>
                 <select id="academic_cycle_section_ids" name="audience[academic_cycle_section_ids][]" multiple class="min-h-28 rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100">
                     @foreach($sections as $section)
-                        <option value="{{ $section->id }}">{{ $section->academicLevel?->label ?? $section->academicLevel?->name ?? 'Unassigned '.strtolower(school_term('class_level', 'class')) }} — {{ $section->label ?? $section->name }}</option>
+                        <option value="{{ $section->id }}">{{ $section->academicLevel?->name ?? 'Unassigned '.strtolower(school_term('class_level', 'class')) }} — {{ $section->label ?? $section->name }}</option>
                     @endforeach
                 </select>
                 <label class="flex items-start gap-2 text-sm text-slate-800 dark:text-slate-100">

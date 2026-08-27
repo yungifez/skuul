@@ -34,7 +34,7 @@
                     <tr>
                         <td class="border p-4 text-center">{{$feeInvoice->user->name}}</td>
                         <td class="border p-4 text-center">{{ $feeInvoice->user->studentRecord?->admission_number ?? 'Not recorded' }}</td>
-                        <td class="border p-4 text-center">{{ $feeInvoice->user->studentRecord?->academicCycleSection?->academicLevel?->label ?? $feeInvoice->user->studentRecord?->academicCycleSection?->academicLevel?->name ?? 'Not currently placed' }}@if ($feeInvoice->user->studentRecord?->academicCycleSection) · {{ $feeInvoice->user->studentRecord->academicCycleSection->label ?? $feeInvoice->user->studentRecord->academicCycleSection->name }}@endif</td>
+                        <td class="border p-4 text-center">{{ $feeInvoice->user->studentRecord?->academicCycleSection?->academicLevel?->name ?? 'Not currently placed' }}@if ($feeInvoice->user->studentRecord?->academicCycleSection) · {{ $feeInvoice->user->studentRecord->academicCycleSection->label ?? $feeInvoice->user->studentRecord->academicCycleSection->name }}@endif</td>
                     </tr>
                 </tbody>
             </table>

@@ -15,7 +15,7 @@
                                     <p class="text-sm text-muted-foreground">
                                         From {{ $request->fromSchool?->name }}
                                         @if ($request->academicCycleSection)
-                                            · into {{ $request->academicCycleSection->academicLevel?->label ?? $request->academicCycleSection->academicLevel?->name }}
+                                            · into {{ $request->academicCycleSection->academicLevel?->name }}
                                             {{ $request->academicCycleSection->label ?? $request->academicCycleSection->name }}
                                         @endif
                                     </p>

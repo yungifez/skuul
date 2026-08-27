@@ -13,9 +13,7 @@ use Illuminate\View\View;
 
 class AttendanceRegisterController extends Controller
 {
-    public function __construct(private RecordAttendance $recordAttendance)
-    {
-    }
+    public function __construct(private RecordAttendance $recordAttendance) {}
 
     public function index(Request $request): View
     {
@@ -24,7 +22,7 @@ class AttendanceRegisterController extends Controller
         // The second argument of date() is the format, not a fallback, so a
         // request without a day has to choose today for itself.
         $date = $request->date('attended_on') ?? now();
-        $sections = AcademicCycleSection::query()->inSchool()->with('academicLevel:id,name,label')->orderBy('name')->get();
+        $sections = AcademicCycleSection::query()->inSchool()->with('academicLevel:id,name')->orderBy('name')->get();
         $section = $sectionId === 0 ? null : $sections->firstWhere('id', $sectionId);
         $students = $section === null ? collect() : $section->currentEnrollments()->attending()->with('user:id,name')->orderBy('admission_number')->get();
         $records = $students->isEmpty() ? collect() : AttendanceRecord::query()->onDate($date)->whereIn('student_record_id', $students->pluck('id')->all())->get()->keyBy('student_record_id');

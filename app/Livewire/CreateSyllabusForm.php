@@ -15,7 +15,7 @@ class CreateSyllabusForm extends Component
     public function mount(): void
     {
         $this->courseOfferings = CourseOffering::inSchool()
-            ->with(['subject:id,name,short_name', 'academicPeriod:id,name,label', 'academicLevel:id,name,label'])
+            ->with(['subject:id,name,short_name', 'academicPeriod:id,name,label', 'academicLevel:id,name'])
             ->orderByDesc('academic_year_id')
             ->orderBy('academic_level_id')
             ->get();

@@ -37,8 +37,8 @@ class ListTimetablesTable extends Component
                 ->orderBy('name')
                 ->get()
                 ->map(fn (AcademicCycleSection $cycleSection): array => [
-                    'id'    => $cycleSection->id,
-                    'label' => ($cycleSection->academicLevel->label ?? $cycleSection->academicLevel->name)
+                    'id' => $cycleSection->id,
+                    'label' => $cycleSection->academicLevel->name
                         .' · '.($cycleSection->label ?? $cycleSection->name),
                 ])
                 ->all();
@@ -77,16 +77,16 @@ class ListTimetablesTable extends Component
             ->orderByDesc('revision')
             ->get()
             ->map(fn (Timetable $timetable): array => [
-                'id'           => $timetable->id,
-                'name'         => $timetable->name,
-                'description'  => $timetable->description,
-                'status'       => $timetable->status->label(),
-                'variant'      => match ($timetable->status) {
+                'id' => $timetable->id,
+                'name' => $timetable->name,
+                'description' => $timetable->description,
+                'status' => $timetable->status->label(),
+                'variant' => match ($timetable->status) {
                     TimetableStatus::Draft => 'secondary',
                     TimetableStatus::Published => 'default',
                     TimetableStatus::Archived => 'outline',
                 },
-                'revision'     => $timetable->revision,
+                'revision' => $timetable->revision,
                 'published_at' => $timetable->published_at?->toFormattedDateString(),
                 // Only a draft accepts changes, so only a draft is built.
                 'can_manage' => auth()->user()->can('update', $timetable),

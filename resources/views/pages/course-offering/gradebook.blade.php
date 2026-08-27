@@ -14,7 +14,7 @@
 @section('content')
     <div class="space-y-6">
         <april:card>
-            <slot:title>{{ $courseOffering->subject->name }} <span class="font-normal text-muted-foreground">· {{ $courseOffering->academicLevel->label ?? $courseOffering->academicLevel->name }}</span></slot:title>
+            <slot:title>{{ $courseOffering->subject->name }} <span class="font-normal text-muted-foreground">· {{ $courseOffering->academicLevel->name }}</span></slot:title>
             <slot:description>
                 {{ $courseOffering->academicYear->name }} · {{ $courseOffering->academicPeriod->display_name }}
                 · {{ school_roster_label($courseOffering->roster_mode) }}

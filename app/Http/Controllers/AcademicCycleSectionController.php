@@ -37,7 +37,7 @@ class AcademicCycleSectionController extends Controller
     public function index(Request $request): View
     {
         $academicYears = $this->academicYears();
-        $academicLevels = AcademicLevel::inSchool()->orderBy('position')->orderBy('name')->get(['id', 'name', 'label']);
+        $academicLevels = AcademicLevel::inSchool()->orderBy('position')->orderBy('name')->get(['id', 'name']);
 
         $selectedAcademicYearId = $this->selectedAcademicYearId($request, $academicYears);
         $selectedAcademicLevelId = $this->selectedId($request, 'academic_level_id', $academicLevels->modelKeys());
@@ -45,7 +45,7 @@ class AcademicCycleSectionController extends Controller
 
         $academicCycleSections = $this->filtered($selectedAcademicYearId, $selectedAcademicLevelId, $selectedStatus)
             ->with([
-                'academicLevel:id,name,label',
+                'academicLevel:id,name',
                 'academicYear:id,start_year,stop_year,status',
                 'homeroomTeacher:id,name',
             ])
@@ -111,7 +111,7 @@ class AcademicCycleSectionController extends Controller
     {
         $academicCycleSection->load([
             'academicYear:id,start_year,stop_year,status',
-            'academicLevel:id,name,label,code',
+            'academicLevel:id,name,code',
             'homeroomTeacher:id,name',
         ]);
 
@@ -128,7 +128,7 @@ class AcademicCycleSectionController extends Controller
 
     public function edit(AcademicCycleSection $academicCycleSection): View|RedirectResponse
     {
-        $academicCycleSection->load(['academicYear:id,start_year,stop_year,status', 'academicLevel:id,name,label']);
+        $academicCycleSection->load(['academicYear:id,start_year,stop_year,status', 'academicLevel:id,name']);
 
         if (!$academicCycleSection->isEditable()) {
             return redirect()

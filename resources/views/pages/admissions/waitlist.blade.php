@@ -26,7 +26,7 @@
                             <label for="waitlist-section" class="text-sm font-medium">{{ school_term('section', 'Section') }}</label>
                             <select id="waitlist-section" name="academic_cycle_section_id" required class="h-10 rounded-md border border-input bg-background px-3 text-sm">
                                 @foreach ($sections as $section)
-                                    <option value="{{ $section->id }}">{{ $section->academicLevel->label ?? $section->academicLevel->name }} · {{ $section->label ?? $section->name }} · {{ $section->academicYear->name }} ({{ $section->capacity }})</option>
+                                    <option value="{{ $section->id }}">{{ $section->academicLevel->name }} · {{ $section->label ?? $section->name }} · {{ $section->academicYear->name }} ({{ $section->capacity }})</option>
                                 @endforeach
                             </select>
                         </div>

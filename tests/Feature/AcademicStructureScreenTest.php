@@ -28,7 +28,7 @@ class AcademicStructureScreenTest extends TestCase
     public function test_the_level_index_separates_reusable_levels_from_yearly_sections(): void
     {
         $actor = $this->authorized_user(['read class', 'create class', 'update class']);
-        AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id, 'name' => 'Kestrel Stage', 'label' => 'Class']);
+        AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id, 'name' => 'Kestrel Stage']);
 
         $actor->get(route('academic-levels.index'))
             ->assertOk()
@@ -70,16 +70,14 @@ class AcademicStructureScreenTest extends TestCase
         $academicLevel = AcademicLevel::factory()->create([
             'school_id' => $this->workingSchool()->id,
             'name' => 'Primary 4',
-            'label' => 'Class',
             'parent_id' => $parent->id,
         ]);
 
         $actor->get(route('academic-levels.show', $academicLevel))
             ->assertOk()
             ->assertSee('What this level is')
-            ->assertSee('Local label')
             ->assertSee('Primary')
-            ->assertSee('Sits under')
+            ->assertSee('Level group')
             ->assertSee('No cycle section uses this level yet');
     }
 
@@ -88,11 +86,15 @@ class AcademicStructureScreenTest extends TestCase
         $actor = $this->authorized_user(['read class', 'update class']);
         $academicLevel = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id, 'name' => 'Primary 4']);
 
-        $actor->get(route('academic-levels.edit', $academicLevel))->assertOk()->assertSee('Edit the reusable level');
+        $actor->get(route('academic-levels.edit', $academicLevel))
+            ->assertOk()
+            ->assertSee('Edit the reusable level')
+            ->assertSee('Level name')
+            ->assertSee('Level group (optional)')
+            ->assertDontSee('Local label (optional)');
 
         $actor->put(route('academic-levels.update', $academicLevel), [
             'name' => 'Grade 4',
-            'label' => 'Grade',
             'position' => 4,
         ])->assertRedirect(route('academic-levels.show', $academicLevel));
 

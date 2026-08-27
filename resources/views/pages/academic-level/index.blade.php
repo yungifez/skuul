@@ -25,7 +25,7 @@
             <span>{{ school_terms('class_level', 'Classes') }} are reusable. {{ school_terms('section', 'Sections') }} are not.</span>
             <x-help-tooltip label="Classes and sections help">A class is the learner’s level, such as Primary 4, Grade 4, or Form 2. A section is one named group inside that class for one exact school year, such as Primary 4 · Green · 2026–2027.</x-help-tooltip>
         </slot:title>
-        <slot:description>Manage reusable classes before creating year-specific groups.</slot:description>
+        <slot:description>Manage reusable levels before creating year-specific groups. Set the school-wide Class, Grade, Form, or Year wording in school setup.</slot:description>
         <slot:content class="flex flex-wrap gap-2">
             <april:button-link href="{{ route('academic-cycle-sections.index', ['academic_year_id' => '']) }}" variant="outline" size="sm">
                 <x-lucide-layers class="mr-1.5 size-3.5" />
@@ -68,8 +68,7 @@
                         <thead class="border-b text-left text-muted-foreground">
                             <tr>
                                 <th class="px-3 py-2">{{ school_term('class_level', 'Class') }}</th>
-                                <th class="px-3 py-2">Local label</th>
-                                <th class="px-3 py-2">Sits under</th>
+                                <th class="px-3 py-2">Level group</th>
                                 <th class="px-3 py-2">{{ school_terms('section', 'Section') }}</th>
                                 <th class="px-3 py-2">Status</th>
                                 <th class="px-3 py-2 text-right">Actions</th>
@@ -84,7 +83,6 @@
                                             <span class="ml-1 text-xs text-muted-foreground">{{ $academicLevel->code }}</span>
                                         @endif
                                     </td>
-                                    <td class="px-3 py-3">{{ $academicLevel->label ?? '—' }}</td>
                                     <td class="px-3 py-3">{{ $academicLevel->parent?->name ?? '—' }}</td>
                                     <td class="px-3 py-3">
                                         @if ($academicLevel->cycle_sections_count === 0)

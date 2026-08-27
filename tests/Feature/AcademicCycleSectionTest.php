@@ -31,7 +31,6 @@ class AcademicCycleSectionTest extends TestCase
 
         $academicLevel = app(CreateAcademicLevel::class)->create(
             'Primary 4',
-            'Class',
             'P4',
         );
 

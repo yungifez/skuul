@@ -15,7 +15,7 @@ class CreateNoticeForm extends Component
             'sections' => AcademicCycleSection::query()
                 ->inSchool()
                 ->where('status', AcademicStructureStatus::Active)
-                ->with('academicLevel:id,name,label')
+                ->with('academicLevel:id,name')
                 ->orderBy('name')
                 ->get(),
         ]);

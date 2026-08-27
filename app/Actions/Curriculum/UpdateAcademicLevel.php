@@ -12,9 +12,7 @@ use Illuminate\Support\Facades\DB;
 
 class UpdateAcademicLevel
 {
-    public function __construct(private RecordAuditEvent $auditor)
-    {
-    }
+    public function __construct(private RecordAuditEvent $auditor) {}
 
     /**
      * Change the reusable setup of a level.
@@ -22,7 +20,7 @@ class UpdateAcademicLevel
      * The change never touches the sections, placements, or results that
      * already name the level. Only the level's own description moves.
      *
-     * @param array{name?: string, label?: string|null, code?: string|null, position?: int} $details
+     * @param  array{name?: string, code?: string|null, position?: int}  $details
      *
      * @throws InvalidValueException when the parent does not fit
      */
@@ -43,26 +41,23 @@ class UpdateAcademicLevel
             }
 
             $before = [
-                'name'      => $academicLevel->name,
-                'label'     => $academicLevel->label,
-                'code'      => $academicLevel->code,
-                'position'  => $academicLevel->position,
+                'name' => $academicLevel->name,
+                'code' => $academicLevel->code,
+                'position' => $academicLevel->position,
                 'parent_id' => $academicLevel->parent_id,
             ];
 
             $academicLevel->fill([
-                'name'      => $details['name'] ?? $academicLevel->name,
-                'label'     => $details['label'] ?? null,
-                'code'      => $details['code'] ?? null,
-                'position'  => $details['position'] ?? 0,
+                'name' => $details['name'] ?? $academicLevel->name,
+                'code' => $details['code'] ?? null,
+                'position' => $details['position'] ?? 0,
                 'parent_id' => $parent?->id,
             ]);
 
             $after = [
-                'name'      => $academicLevel->name,
-                'label'     => $academicLevel->label,
-                'code'      => $academicLevel->code,
-                'position'  => $academicLevel->position,
+                'name' => $academicLevel->name,
+                'code' => $academicLevel->code,
+                'position' => $academicLevel->position,
                 'parent_id' => $academicLevel->parent_id,
             ];
 

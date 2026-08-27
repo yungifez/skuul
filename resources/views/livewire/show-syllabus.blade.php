@@ -5,7 +5,7 @@
     <div class="card-body">
         <dl class="mb-5 grid gap-3 text-sm sm:grid-cols-3">
             <div><dt class="text-muted-foreground">Subject</dt><dd class="font-medium">{{ $syllabus->courseOffering->subject->name }}</dd></div>
-            <div><dt class="text-muted-foreground">{{ school_term('class_level', 'Class') }}</dt><dd class="font-medium">{{ $syllabus->courseOffering->academicLevel->label ?? $syllabus->courseOffering->academicLevel->name }}</dd></div>
+            <div><dt class="text-muted-foreground">{{ school_term('class_level', 'Class') }}</dt><dd class="font-medium">{{ $syllabus->courseOffering->academicLevel->name }}</dd></div>
             <div><dt class="text-muted-foreground">Academic period</dt><dd class="font-medium">{{ $syllabus->courseOffering->academicPeriod->label ?? $syllabus->courseOffering->academicPeriod->name }}</dd></div>
         </dl>
         <p class="my-3">

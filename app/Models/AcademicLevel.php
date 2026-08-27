@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * A reusable school level, such as Primary 4, Grade 4, or Form 2.
+ * A reusable school level or level group, such as Kindergarten or KG 1.
  *
  * @property AcademicStructureStatus $status
  */
@@ -26,7 +26,6 @@ class AcademicLevel extends Model
         'school_id',
         'parent_id',
         'name',
-        'label',
         'code',
         'position',
         'status',
@@ -36,7 +35,7 @@ class AcademicLevel extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'status'   => AcademicStructureStatus::Active->value,
+        'status' => AcademicStructureStatus::Active->value,
         'position' => 0,
     ];
 
@@ -45,7 +44,7 @@ class AcademicLevel extends Model
      */
     protected $casts = [
         'position' => 'integer',
-        'status'   => AcademicStructureStatus::class,
+        'status' => AcademicStructureStatus::class,
     ];
 
     /**
