@@ -19,7 +19,7 @@
     @endif
     <x-display-validation-errors />
 
-    <april:input-group id="name" name="name" value="{{ $value('name') }}" required maxlength="255" placeholder="KG 1">
+    <april:input-group id="name" name="name" value="{{ $value('name') }}" required maxlength="255" placeholder="Kindergarten or Primary 4">
         <slot:label>
             <span class="inline-flex items-center gap-1">
                 Level name
