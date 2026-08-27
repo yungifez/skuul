@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Actions\Organization\GrantOrganizationMembership;
 use App\Http\Middleware\SetActiveAcademicPeriod;
+use App\Models\AcademicYear;
 use App\Models\Organization;
 use App\Models\School;
 use App\Models\SchoolOperatingProfile;
@@ -182,6 +183,22 @@ class SchoolTest extends TestCase
         $this->assertNotFalse($schoolOverviewPosition);
         $this->assertLessThan($schoolSelectorPosition, $setupPosition);
         $this->assertLessThan($schoolOverviewPosition, $setupPosition);
+    }
+
+    public function test_dashboard_links_to_create_the_first_academic_year_when_none_exists(): void
+    {
+        $school = School::factory()->create();
+
+        $this->withoutMiddleware(SetActiveAcademicPeriod::class);
+        academic_period_context()->forget();
+
+        $this->platform_admin($school)
+            ->get('/dashboard')
+            ->assertSuccessful()
+            ->assertSee('Create first school year')
+            ->assertSee(route('academic-years.create', ['setup' => 1]), false);
+
+        $this->assertFalse(AcademicYear::query()->where('school_id', $school->id)->exists());
     }
 
     public function test_a_school_can_save_its_familiar_operating_language(): void

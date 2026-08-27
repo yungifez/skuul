@@ -34,6 +34,7 @@ class SchoolSetupChecklist
     public function for(School $school): array
     {
         $academicYear = current_academic_year();
+        $hasAcademicYear = AcademicYear::query()->inSchool($school)->exists();
         $academicLevels = AcademicLevel::query()->inSchool($school)->count();
         $academicPeriods = $academicYear?->topLevelPeriods()->count() ?? 0;
         $cycleSections = $academicYear === null
@@ -78,8 +79,8 @@ class SchoolSetupChecklist
                 complete: $academicYear !== null,
                 required: true,
                 group: 'Prepare the year',
-                url: route('academic-years.index'),
-                action: 'Manage '.$academicYearLabelLower.'s',
+                url: $hasAcademicYear ? route('academic-years.index') : route('academic-years.create', ['setup' => 1]),
+                action: $hasAcademicYear ? 'Manage '.$academicYearLabelLower.'s' : 'Create first '.$academicYearLabelLower,
             ),
             $this->item(
                 key: 'academic_periods',
