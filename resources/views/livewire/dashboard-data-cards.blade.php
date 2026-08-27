@@ -1,36 +1,56 @@
 <div class="space-y-8">
     @if ($setupChecklist !== null)
-        <section class="rounded-xl border border-primary/20 bg-primary/5 p-5" aria-labelledby="start-here-heading">
-            <div class="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
-                <div class="flex items-start gap-3">
-                    <span class="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                        <x-lucide-list-checks class="size-5" />
-                    </span>
+        <section class="rounded-xl border border-primary/20 bg-primary/5 p-5" aria-labelledby="school-setup-heading">
+            <div class="flex flex-col gap-5">
+                <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                     <div>
                         <div class="flex items-center gap-2">
-                            <h2 id="start-here-heading" class="font-semibold">Start here</h2>
-                            <x-help-tooltip label="Start here help">This checklist guides school administrators through the setup needed before the academic workspace is ready for daily use.</x-help-tooltip>
+                            <p class="text-xs font-semibold uppercase text-primary">School setup</p>
+                            <x-help-tooltip label="School setup help">Complete the required setup before your team starts daily work. The next priority below always points to the first unfinished requirement.</x-help-tooltip>
                         </div>
-                        @if ($setupChecklist['next'] !== null)
-                            <p class="mt-1 text-sm text-muted-foreground">
-                                <span class="font-medium text-foreground">Next: {{ $setupChecklist['next']['title'] }}.</span>
-                                {{ $setupChecklist['next']['reason'] }}
-                            </p>
+                        @if ($setupChecklist['required_remaining'] > 0)
+                            <h2 id="school-setup-heading" class="mt-1 text-xl font-semibold tracking-tight">Finish setting up your school</h2>
+                            <p class="mt-1 max-w-2xl text-sm text-muted-foreground">Complete the required setup before your team starts daily work. Recommended records can follow when the essentials are ready.</p>
                         @else
-                            <p class="mt-1 text-sm text-muted-foreground">The required setup is complete. Review the checklist when you are ready for the recommended next steps.</p>
+                            <h2 id="school-setup-heading" class="mt-1 text-xl font-semibold tracking-tight">Your school setup is ready</h2>
+                            <p class="mt-1 max-w-2xl text-sm text-muted-foreground">The required setup is complete. Add the recommended records below when your team is ready.</p>
                         @endif
-                        <p class="mt-2 text-xs text-muted-foreground">{{ $setupChecklist['completed'] }} of {{ $setupChecklist['total'] }} setup areas complete</p>
+                    </div>
+                    <div class="shrink-0 rounded-lg border bg-background/70 px-3 py-2 sm:text-right">
+                        <p class="text-lg font-semibold leading-none">{{ $setupChecklist['required_remaining'] }}</p>
+                        <p class="mt-1 text-xs text-muted-foreground">required {{ $setupChecklist['required_remaining'] === 1 ? 'step' : 'steps' }} remaining</p>
                     </div>
                 </div>
-                <div class="flex shrink-0 flex-wrap gap-2">
-                    @if ($setupChecklist['next'] !== null)
-                        <a href="{{ route('schools.setup', current_school()) }}" class="inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring">
-                            Continue school setup
+
+                @if ($setupChecklist['next'] !== null)
+                    <div class="flex flex-col justify-between gap-4 rounded-lg border bg-background/70 p-4 sm:flex-row sm:items-center">
+                        <div class="flex items-start gap-3">
+                            <span class="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                                <x-lucide-arrow-right class="size-4" />
+                            </span>
+                            <div>
+                                <p class="text-xs font-semibold uppercase text-muted-foreground">{{ $setupChecklist['next']['required'] ? 'Next priority' : 'Recommended next' }}</p>
+                                <p class="mt-1 font-medium">{{ $setupChecklist['next']['title'] }}</p>
+                                <p class="mt-1 text-sm text-muted-foreground">{{ filled($setupChecklist['next']['reason']) ? $setupChecklist['next']['reason'] : $setupChecklist['next']['description'] }}</p>
+                            </div>
+                        </div>
+                        <a href="{{ $setupChecklist['next']['url'] }}" class="inline-flex shrink-0 items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring">
+                            {{ $setupChecklist['next']['action'] }}
                             <span aria-hidden="true" class="ml-2">→</span>
                         </a>
-                    @endif
-                    <a href="{{ route('schools.settings') }}" class="inline-flex items-center justify-center rounded-md border bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring">
-                        View school setup checklist
+                    </div>
+                @else
+                    <div class="flex items-start gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm">
+                        <x-lucide-circle-check class="mt-0.5 size-4 shrink-0 text-emerald-700 dark:text-emerald-300" />
+                        <p><span class="font-semibold">All setup areas are complete.</span> Your school is ready for daily work.</p>
+                    </div>
+                @endif
+
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <p class="text-xs text-muted-foreground">{{ $setupChecklist['completed'] }} of {{ $setupChecklist['total'] }} setup areas complete</p>
+                    <a href="{{ route('schools.settings') }}" class="inline-flex items-center text-sm font-medium text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring">
+                        View all setup steps
+                        <span aria-hidden="true" class="ml-1">→</span>
                     </a>
                 </div>
             </div>

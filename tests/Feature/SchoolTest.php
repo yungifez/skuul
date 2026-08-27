@@ -168,19 +168,20 @@ class SchoolTest extends TestCase
         $response = $this->platform_admin($school)
             ->get('/dashboard')
             ->assertSuccessful()
-            ->assertSee('Start here')
-            ->assertSee('View school setup checklist');
+            ->assertSee('Finish setting up your school')
+            ->assertSee('Next priority')
+            ->assertSee('View all setup steps');
 
         $content = $response->getContent();
-        $startHerePosition = strpos($content, 'Start here');
+        $setupPosition = strpos($content, 'Finish setting up your school');
         $schoolSelectorPosition = strpos($content, 'Choose the school context for your next action.');
         $schoolOverviewPosition = strpos($content, 'Your school, ready for the day');
 
-        $this->assertNotFalse($startHerePosition);
+        $this->assertNotFalse($setupPosition);
         $this->assertNotFalse($schoolSelectorPosition);
         $this->assertNotFalse($schoolOverviewPosition);
-        $this->assertLessThan($schoolSelectorPosition, $startHerePosition);
-        $this->assertLessThan($schoolOverviewPosition, $startHerePosition);
+        $this->assertLessThan($schoolSelectorPosition, $setupPosition);
+        $this->assertLessThan($schoolOverviewPosition, $setupPosition);
     }
 
     public function test_a_school_can_save_its_familiar_operating_language(): void
