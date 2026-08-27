@@ -1,4 +1,42 @@
 <div class="space-y-8">
+    @if ($setupChecklist !== null)
+        <section class="rounded-xl border border-primary/20 bg-primary/5 p-5" aria-labelledby="start-here-heading">
+            <div class="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
+                <div class="flex items-start gap-3">
+                    <span class="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
+                        <x-lucide-list-checks class="size-5" />
+                    </span>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h2 id="start-here-heading" class="font-semibold">Start here</h2>
+                            <x-help-tooltip label="Start here help">This checklist guides school administrators through the setup needed before the academic workspace is ready for daily use.</x-help-tooltip>
+                        </div>
+                        @if ($setupChecklist['next'] !== null)
+                            <p class="mt-1 text-sm text-muted-foreground">
+                                <span class="font-medium text-foreground">Next: {{ $setupChecklist['next']['title'] }}.</span>
+                                {{ $setupChecklist['next']['reason'] }}
+                            </p>
+                        @else
+                            <p class="mt-1 text-sm text-muted-foreground">The required setup is complete. Review the checklist when you are ready for the recommended next steps.</p>
+                        @endif
+                        <p class="mt-2 text-xs text-muted-foreground">{{ $setupChecklist['completed'] }} of {{ $setupChecklist['total'] }} setup areas complete</p>
+                    </div>
+                </div>
+                <div class="flex shrink-0 flex-wrap gap-2">
+                    @if ($setupChecklist['next'] !== null)
+                        <a href="{{ route('schools.setup', current_school()) }}" class="inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring">
+                            Continue school setup
+                            <span aria-hidden="true" class="ml-2">→</span>
+                        </a>
+                    @endif
+                    <a href="{{ route('schools.settings') }}" class="inline-flex items-center justify-center rounded-md border bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring">
+                        View school setup checklist
+                    </a>
+                </div>
+            </div>
+        </section>
+    @endif
+
     @if (auth()->user()->can(\App\Enums\PlatformPermission::AccessAllSchools) || $isOrganizationAdministrator || auth()->user()->hasRole(\App\Enums\Role::Admin))
         <april:card>
             <slot:title class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
@@ -36,44 +74,6 @@
                 </div>
             </slot:content>
         </april:card>
-
-        @if ($setupChecklist !== null)
-            <section class="rounded-xl border border-primary/20 bg-primary/5 p-5" aria-labelledby="start-here-heading">
-                <div class="flex flex-col justify-between gap-5 sm:flex-row sm:items-center">
-                    <div class="flex items-start gap-3">
-                        <span class="flex size-10 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
-                            <x-lucide-list-checks class="size-5" />
-                        </span>
-                        <div>
-                            <div class="flex items-center gap-2">
-                                <h2 id="start-here-heading" class="font-semibold">Start here</h2>
-                                <x-help-tooltip label="Start here help">This checklist guides school administrators through the setup needed before the academic workspace is ready for daily use.</x-help-tooltip>
-                            </div>
-                            @if ($setupChecklist['next'] !== null)
-                                <p class="mt-1 text-sm text-muted-foreground">
-                                    <span class="font-medium text-foreground">Next: {{ $setupChecklist['next']['title'] }}.</span>
-                                    {{ $setupChecklist['next']['reason'] }}
-                                </p>
-                            @else
-                                <p class="mt-1 text-sm text-muted-foreground">The required setup is complete. Review the checklist when you are ready for the recommended next steps.</p>
-                            @endif
-                            <p class="mt-2 text-xs text-muted-foreground">{{ $setupChecklist['completed'] }} of {{ $setupChecklist['total'] }} setup areas complete</p>
-                        </div>
-                    </div>
-                    <div class="flex shrink-0 flex-wrap gap-2">
-                        @if ($setupChecklist['next'] !== null)
-                            <a href="{{ route('schools.setup', current_school()) }}" class="inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring">
-                                Continue school setup
-                                <span aria-hidden="true" class="ml-2">→</span>
-                            </a>
-                        @endif
-                        <a href="{{ route('schools.settings') }}" class="inline-flex items-center justify-center rounded-md border bg-background px-3 py-2 text-sm font-medium transition-colors hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring">
-                            View school setup checklist
-                        </a>
-                    </div>
-                </div>
-            </section>
-        @endif
 
         @if ($organization)
             <section class="space-y-4">

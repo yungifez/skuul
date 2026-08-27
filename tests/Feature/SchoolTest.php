@@ -165,11 +165,22 @@ class SchoolTest extends TestCase
         $this->withoutMiddleware(SetActiveAcademicPeriod::class);
         academic_period_context()->forget();
 
-        $this->platform_admin($school)
+        $response = $this->platform_admin($school)
             ->get('/dashboard')
             ->assertSuccessful()
             ->assertSee('Start here')
             ->assertSee('View school setup checklist');
+
+        $content = $response->getContent();
+        $startHerePosition = strpos($content, 'Start here');
+        $schoolSelectorPosition = strpos($content, 'Choose the school context for your next action.');
+        $schoolOverviewPosition = strpos($content, 'Your school, ready for the day');
+
+        $this->assertNotFalse($startHerePosition);
+        $this->assertNotFalse($schoolSelectorPosition);
+        $this->assertNotFalse($schoolOverviewPosition);
+        $this->assertLessThan($schoolSelectorPosition, $startHerePosition);
+        $this->assertLessThan($schoolOverviewPosition, $startHerePosition);
     }
 
     public function test_a_school_can_save_its_familiar_operating_language(): void
