@@ -11,7 +11,7 @@
     <april:card class="mx-auto max-w-3xl">
         <slot:title>Add a {{ strtolower(school_term('class_level', 'class')) }} this school teaches</slot:title>
         <slot:description>
-            A {{ strtolower(school_term('class_level', 'class')) }} is reusable. Create it once, then create a {{ strtolower(school_term('section', 'section')) }} inside it for each {{ strtolower(school_term('academic_year', 'school year')) }}.
+            A level is reusable. Create an umbrella group such as “Kindergarten” first, then add specific levels such as “KG 1” and “KG 2” under it. Create a {{ strtolower(school_term('section', 'section')) }} inside each level for every {{ strtolower(school_term('academic_year', 'school year')) }}.
         </slot:description>
         <slot:content>
             <x-academic-level-form

@@ -47,7 +47,7 @@
                             @if ($academicLevel->parent)
                                 <a href="{{ route('academic-levels.show', $academicLevel->parent) }}" class="hover:underline">{{ $academicLevel->parent->name }}</a>
                             @else
-                                Nothing. This is a top-level {{ strtolower(school_term('class_level', 'class')) }}.
+                                No parent group. This is a top-level group or standalone {{ strtolower(school_term('class_level', 'level')) }}.
                             @endif
                         </dd>
                     </div>
