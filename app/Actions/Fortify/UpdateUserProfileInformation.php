@@ -13,8 +13,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     /**
      * Validate and update the given user's profile information.
      *
-     * @param mixed $user
-     *
+     * @param  mixed  $user
      * @return User
      */
     public function update($user, array $input)
@@ -23,7 +22,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'name' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email:rfc,dns', 'max:100', Rule::unique('users')->ignore($user->id)],
             'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:3000'],
-            'birthday' => ['nullable', 'date', 'before:today'],
+            'birthday' => ['nullable', 'date_format:Y-m-d', 'before:today'],
             'address' => ['nullable', 'string', 'max:255'],
             'address_line_2' => ['nullable', 'string', 'max:255'],
             'country' => ['nullable', 'string', 'max:100'],
@@ -31,7 +30,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'state' => ['nullable', 'string', 'max:100'],
             'city' => ['nullable', 'string', 'max:100'],
             'postal_code' => ['nullable', 'string', 'max:30'],
-            'gender' => ['nullable', 'string', 'max:100'],
+            'gender' => ['nullable', 'string', Rule::in(['Male', 'Female', 'Non-binary', 'Prefer not to say'])],
             'phone' => ['nullable', 'string', 'max:100'],
         ])->validate();
 
@@ -71,15 +70,14 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     /**
      * Update the given verified user's profile information.
      *
-     * @param mixed $user
-     *
+     * @param  mixed  $user
      * @return User
      */
     protected function updateVerifiedUser($user, array $input)
     {
         $user->forceFill([
-            'name'              => $input['name'],
-            'email'             => $input['email'],
+            'name' => $input['name'],
+            'email' => $input['email'],
             'email_verified_at' => null,
             'birthday' => $input['birthday'],
             'address' => $input['address'] ?? null,

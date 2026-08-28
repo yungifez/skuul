@@ -2,49 +2,37 @@
 
 namespace App\Http\Requests;
 
-use Illuminate\Foundation\Http\FormRequest;
+use App\Enums\AcademicStructureStatus;
 use Illuminate\Validation\Rule;
 
-class StudentStoreRequest extends FormRequest
+class StudentStoreRequest extends StoreUserRequest
 {
     /**
      * Get the validation rules that apply to the request.
-     *
-     * @return array
      */
-    public function rules()
+    public function rules(): array
     {
-        return [
-            'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email:rfc,dns', 'max:100'],
-            'birthday' => ['required', 'date', 'before:today'],
-            'gender' => ['nullable', 'string', 'max:100'],
-            'nationality' => ['nullable', 'string', 'max:100'],
-            'country' => ['nullable', 'string', 'max:100'],
-            'state' => ['nullable', 'string', 'max:100'],
-            'city' => ['nullable', 'string', 'max:100'],
-            'phone' => ['nullable', 'string', 'max:100'],
-            'address' => ['nullable', 'string', 'max:100'],
-            'profile_photo' => ['nullable', 'image', 'max:3000'],
+        return array_merge(parent::rules(), [
             'admission_number' => [
                 'nullable',
                 Rule::unique('student_records', 'admission_number')->where(fn ($query) => $query->where('school_id', current_school_id())),
             ],
-            'admission_date' => 'required|date',
+            'admission_date' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
             'academic_cycle_section_id' => [
                 'required',
                 'integer',
-                Rule::exists('academic_cycle_sections', 'id')->where('school_id', current_school_id()),
+                Rule::exists('academic_cycle_sections', 'id')
+                    ->where('school_id', current_school_id())
+                    ->where('academic_year_id', current_academic_year_id())
+                    ->where('status', AcademicStructureStatus::Active->value),
             ],
-        ];
+        ]);
     }
 
     /**
      * Get the error messages for the defined validation rules.
-     *
-     * @return array
      */
-    public function messages()
+    public function messages(): array
     {
         return [
             'academic_cycle_section_id.required' => 'Select a '.strtolower(school_term('section', 'section')),
@@ -53,10 +41,8 @@ class StudentStoreRequest extends FormRequest
 
     /**
      * Get custom attributes for validator errors.
-     *
-     * @return array
      */
-    public function attributes()
+    public function attributes(): array
     {
         return [
             'academic_cycle_section_id' => strtolower(school_term('section', 'section')),

@@ -24,10 +24,10 @@
 
                 <dl class="grid gap-x-6 gap-y-4 sm:grid-cols-2">
                     @foreach ([
-                        'Email' => $user->email,
-                        'Phone' => $user->phone,
+                        'Email address' => $user->email,
+                        'Phone number' => $user->phone,
                         'Gender' => $user->gender,
-                        'Birthday' => $user->birthday,
+                        'Date of birth' => $user->birthday?->format('M j, Y'),
                         'Nationality' => $user->nationality,
                         'Country' => $user->country,
                         'State / Province' => $user->state,

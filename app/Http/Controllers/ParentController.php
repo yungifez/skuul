@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AssignStudentRequest;
+use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
 use App\Services\Parent\ParentService;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -45,10 +46,10 @@ class ParentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreUserRequest $request): RedirectResponse
     {
         $this->authorize('create', [User::class, 'parent']);
-        $this->parentService->createParent($request->except('_token'));
+        $this->parentService->createParent($request->validated());
 
         return back()->with('success', 'Parent Created Successfully');
     }

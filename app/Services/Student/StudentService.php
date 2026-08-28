@@ -4,6 +4,7 @@ namespace App\Services\Student;
 
 use App\Actions\Enrollment\ChangeEnrollmentPlacement;
 use App\Actions\Enrollment\ChangeEnrollmentStatus;
+use App\Enums\AcademicStructureStatus;
 use App\Enums\EnrollmentStatus;
 use App\Enums\Role;
 use App\Exceptions\EmptyRecordsException;
@@ -124,6 +125,7 @@ class StudentService
         $academicCycleSection = AcademicCycleSection::inSchool()
             ->whereKey($record['academic_cycle_section_id'])
             ->where('academic_year_id', current_academic_year_id())
+            ->where('status', AcademicStructureStatus::Active)
             ->firstOrFail();
 
         $enrollment = StudentRecord::firstOrCreate([

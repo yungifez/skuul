@@ -15,6 +15,8 @@ class NationalityAndStateInputFields extends Component
 
     public $state;
 
+    public $nationality;
+
     protected $rules = [
         'country' => 'nullable|string',
         'state' => 'nullable|string',
@@ -47,7 +49,7 @@ class NationalityAndStateInputFields extends Component
                 'name' => $this->country,
             ],
         ])->data->pluck('states')->first());
-        $this->state = $this->states->first()['name'] ?? null;
+        $this->state = null;
 
         $this->dispatch('country-updated', country: $this->country);
         $this->dispatch('state-updated', state: $this->state);
@@ -70,8 +72,8 @@ class NationalityAndStateInputFields extends Component
                 'name' => $this->country,
             ],
         ])->data->pluck('states')->first());
-        if ($this->state === null || !$this->states->pluck('name')->contains($this->state)) {
-            $this->state = $this->states->first()['name'] ?? null;
+        if ($this->state !== null && !$this->states->pluck('name')->contains($this->state)) {
+            $this->state = null;
         }
 
         $this->dispatch('country-updated', country: $this->country);

@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enums\AcademicStructureStatus;
 use App\Models\AcademicCycleSection;
 use Illuminate\View\View;
 use Livewire\Component;
@@ -16,6 +17,7 @@ class CreateStudentRecordFields extends Component
         $this->cycleSections = AcademicCycleSection::inSchool()
             ->with('academicLevel')
             ->where('academic_year_id', current_academic_year_id())
+            ->where('status', AcademicStructureStatus::Active)
             ->orderBy('position')
             ->orderBy('name')
             ->get()

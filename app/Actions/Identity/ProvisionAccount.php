@@ -7,6 +7,7 @@ use App\Enums\AccountStatus;
 use App\Models\School;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\Rule;
 
 /**
  * Create the person profile and a pending account for a new member of a school.
@@ -32,13 +33,15 @@ class ProvisionAccount
             'email' => ['required', 'string', 'email:rfc,dns', 'max:100'],
             'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:3000'],
             'school_id' => ['required', 'exists:schools,id'],
-            'birthday' => ['nullable', 'date', 'before:today'],
-            'address' => ['nullable', 'string', 'max:100'],
+            'birthday' => ['nullable', 'date_format:Y-m-d', 'before:today'],
+            'address' => ['nullable', 'string', 'max:255'],
+            'address_line_2' => ['nullable', 'string', 'max:255'],
             'country' => ['nullable', 'string', 'max:100'],
             'nationality' => ['nullable', 'string', 'max:100'],
             'state' => ['nullable', 'string', 'max:100'],
             'city' => ['nullable', 'string', 'max:100'],
-            'gender' => ['nullable', 'string', 'max:100'],
+            'postal_code' => ['nullable', 'string', 'max:30'],
+            'gender' => ['nullable', 'string', Rule::in(['Male', 'Female', 'Non-binary', 'Prefer not to say'])],
             'phone' => ['nullable', 'string', 'max:100'],
         ])->validate();
 
@@ -55,10 +58,12 @@ class ProvisionAccount
             'email' => $data['email'],
             'birthday' => $data['birthday'] ?? null,
             'address' => $data['address'] ?? null,
+            'address_line_2' => $data['address_line_2'] ?? null,
             'country' => $data['country'] ?? null,
             'nationality' => $data['nationality'] ?? null,
             'state' => $data['state'] ?? null,
             'city' => $data['city'] ?? null,
+            'postal_code' => $data['postal_code'] ?? null,
             'gender' => $data['gender'] ?? null,
             'phone' => $data['phone'] ?? null,
         ]);

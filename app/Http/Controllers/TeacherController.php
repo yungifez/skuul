@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
 use App\Services\Teacher\TeacherService;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -41,10 +42,10 @@ class TeacherController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request): RedirectResponse
+    public function store(StoreUserRequest $request): RedirectResponse
     {
         $this->authorize('create', [User::class, 'teacher']);
-        $this->teacherService->createTeacher($request->except('_token'));
+        $this->teacherService->createTeacher($request->validated());
 
         return back()->with('success', 'Teacher Created Successfully');
     }
