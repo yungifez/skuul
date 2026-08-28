@@ -38,15 +38,22 @@ class SchoolSetupController extends Controller
         $academicYear = null;
         $previousAcademicYear = null;
 
-        if ($requested === SchoolSetupStep::Classes) {
-            $academicYear = current_academic_year();
-            $previousAcademicYear = $academicYear === null
-                ? null
-                : AcademicYear::inSchool($school->id)
-                    ->where('start_year', '<', $academicYear->start_year)
+        if (in_array($requested, [SchoolSetupStep::Classes, SchoolSetupStep::AcademicYear], true)) {
+            $academicYear = current_academic_year()
+                ?? AcademicYear::inSchool($school->id)
                     ->orderByDesc('start_year')
                     ->orderByDesc('id')
                     ->first();
+
+            if ($requested === SchoolSetupStep::Classes) {
+                $previousAcademicYear = $academicYear === null
+                    ? null
+                    : AcademicYear::inSchool($school->id)
+                        ->where('start_year', '<', $academicYear->start_year)
+                        ->orderByDesc('start_year')
+                        ->orderByDesc('id')
+                        ->first();
+            }
         }
 
         return view('pages.school.setup', [
