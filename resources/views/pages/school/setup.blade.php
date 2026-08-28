@@ -105,20 +105,10 @@
             </april:card>
         @elseif ($currentStep === \App\Enums\SchoolSetupStep::AcademicYear)
             <april:card>
-                @if ($academicYear)
-                    <slot:title>Continue academic year setup</slot:title>
-                    <slot:description>{{ $academicYear->name }} already exists. Continue setting it up instead of creating a duplicate year.</slot:description>
-                    <slot:footer><x-help-tooltip label="Academic year setup help">The school setup remembers the year you already created. Continue through its dates, teaching approach, classes, subjects, and publishing steps.</x-help-tooltip></slot:footer>
-                    <slot:content class="flex flex-wrap gap-3">
-                        <april:button-link href="{{ route('academic-years.setup', $academicYear) }}">Continue {{ $academicYear->name }} setup</april:button-link>
-                        <april:button-link href="{{ route('academic-years.show', $academicYear) }}" variant="outline">View academic year</april:button-link>
-                    </slot:content>
-                @else
-                    <slot:title>Create the first academic year</slot:title>
-                    <slot:description>Set the dates and reporting periods.</slot:description>
-                    <slot:footer><x-help-tooltip label="Academic year setup help">After the calendar is saved, continue through teaching approach, classes, subjects, and publishing.</x-help-tooltip></slot:footer>
-                    <slot:content><april:button-link href="{{ route('academic-years.create', ['setup' => 1]) }}">Set up an academic year</april:button-link></slot:content>
-                @endif
+                <slot:title>Create the first academic year</slot:title>
+                <slot:description>Set the dates and reporting periods.</slot:description>
+                <slot:footer><x-help-tooltip label="Academic year setup help">After the calendar is saved, continue through teaching approach, classes, subjects, and publishing.</x-help-tooltip></slot:footer>
+                <slot:content><april:button-link href="{{ route('academic-years.create', ['setup' => 1]) }}">Set up an academic year</april:button-link></slot:content>
             </april:card>
         @else
             <april:card>

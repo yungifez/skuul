@@ -56,6 +56,10 @@ class SchoolSetupController extends Controller
             }
         }
 
+        if ($requested === SchoolSetupStep::AcademicYear && $academicYear !== null) {
+            return to_route('academic-years.setup', [$academicYear]);
+        }
+
         return view('pages.school.setup', [
             'school' => $school,
             'currentStep' => $requested,
