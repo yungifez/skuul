@@ -140,20 +140,22 @@
                                 </div>
                                 <div class="flex w-full shrink-0 items-center justify-end gap-1 border-t pt-2 sm:w-auto sm:justify-start sm:border-t-0 sm:pt-0">
                                     <x-academic-structure-status :status="$section->status" />
-                                    @can('update', $section)
-                                        @if ($section->isEditable())
-                                            @if ($sectionIndex > 0)
-                                                <button type="button" wire:click="moveSection({{ $section->id }}, 'up')" wire:loading.attr="disabled" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground disabled:opacity-50" aria-label="Move {{ $section->name }} up" title="Move up">
-                                                    <x-lucide-chevron-up class="size-4" />
-                                                </button>
+                                    @if ($showLevelActions)
+                                        @can('update', $section)
+                                            @if ($section->isEditable())
+                                                @if ($sectionIndex > 0)
+                                                    <button type="button" wire:click="moveSection({{ $section->id }}, 'up')" wire:loading.attr="disabled" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground disabled:opacity-50" aria-label="Move {{ $section->name }} up" title="Move up">
+                                                        <x-lucide-chevron-up class="size-4" />
+                                                    </button>
+                                                @endif
+                                                @if ($sectionIndex < $sections->count() - 1)
+                                                    <button type="button" wire:click="moveSection({{ $section->id }}, 'down')" wire:loading.attr="disabled" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground disabled:opacity-50" aria-label="Move {{ $section->name }} down" title="Move down">
+                                                        <x-lucide-chevron-down class="size-4" />
+                                                    </button>
+                                                @endif
                                             @endif
-                                            @if ($sectionIndex < $sections->count() - 1)
-                                                <button type="button" wire:click="moveSection({{ $section->id }}, 'down')" wire:loading.attr="disabled" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground disabled:opacity-50" aria-label="Move {{ $section->name }} down" title="Move down">
-                                                    <x-lucide-chevron-down class="size-4" />
-                                                </button>
-                                            @endif
-                                        @endif
-                                    @endcan
+                                        @endcan
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
