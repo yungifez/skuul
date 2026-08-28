@@ -361,7 +361,9 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         });
 
         Route::middleware(['App\Http\Middleware\EnsureAcademicYearIsSet', 'App\Http\Middleware\CreateCurrentAcademicYearRecord'])->group(function () {
-            Route::resource('course-offerings', CourseOfferingController::class)->only(['index', 'create', 'store']);
+            Route::resource('course-offerings', CourseOfferingController::class)
+                ->only(['index', 'create', 'store', 'edit', 'update'])
+                ->parameters(['course-offerings' => 'courseOffering']);
             Route::post('course-offerings/{courseOffering}/activate', ['App\Http\Controllers\CourseOfferingController', 'activate'])->name('course-offerings.activate');
             Route::post('course-offerings/{courseOffering}/teachers', ['App\Http\Controllers\CourseOfferingController', 'assignTeacher'])->name('course-offerings.teachers.store');
             Route::get('course-offerings/{courseOffering}/gradebook', [GradebookController::class, 'show'])->name('course-offerings.gradebook.show');

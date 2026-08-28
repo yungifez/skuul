@@ -33,6 +33,16 @@
                         </select>
                     </div>
                     <div class="flex flex-col gap-2">
+                        <april:label for="academic-level">{{ school_term('class_level', 'Class') }}</april:label>
+                        <select id="academic-level" name="academic_level_id" class="rounded-md border border-input bg-background px-3 py-2" required>
+                            <option value="">Select a level</option>
+                            @foreach ($academicLevels as $academicLevel)
+                                <option value="{{ $academicLevel->id }}" {{ (string) old('academic_level_id') === (string) $academicLevel->id ? 'selected' : '' }}>{{ $academicLevel->name }}</option>
+                            @endforeach
+                        </select>
+                        <p class="text-sm text-muted-foreground">Choose the grade first, then select the participating sections below.</p>
+                    </div>
+                    <div class="flex flex-col gap-2 md:col-span-2">
                         <div class="flex items-center gap-1"><april:label for="roster-mode">Who attends</april:label><x-help-tooltip label="Roster help">Use one section by default. The school year’s teaching setup may allow more options.</x-help-tooltip></div>
                         <select id="roster-mode" name="roster_mode" x-model="rosterMode" class="rounded-md border border-input bg-background px-3 py-2" required>
                             @foreach ($rosterModes as $rosterMode)
@@ -92,15 +102,6 @@
                             </div>
                         @endif
                     </div>
-                    <div class="flex flex-col gap-2">
-                        <april:label for="academic-level">{{ school_term('class_level', 'Class') }}</april:label>
-                        <select id="academic-level" name="academic_level_id" class="rounded-md border border-input bg-background px-3 py-2" required>
-                            <option value="">Select a level</option>
-                            @foreach ($academicLevels as $academicLevel)
-                                <option value="{{ $academicLevel->id }}" {{ (string) old('academic_level_id') === (string) $academicLevel->id ? 'selected' : '' }}>{{ $academicLevel->name }}</option>
-                            @endforeach
-                        </select>
-                    </div>
                     <april:input-group id="planned-periods-per-week" name="planned_periods_per_week" type="number" min="1" max="80" label="Planned periods each week" value="{{ old('planned_periods_per_week') }}" />
                     <april:input-group id="capacity" name="capacity" type="number" min="1" max="5000" label="Capacity (optional)" value="{{ old('capacity') }}" />
                 </div>
@@ -112,6 +113,7 @@
                             <option value="{{ $studentRecord->id }}" @selected(in_array($studentRecord->id, old('student_record_ids', [])))>{{ $studentRecord->user?->name ?? $studentRecord->admission_number }} · {{ $studentRecord->academicCycleSection?->academicLevel?->name }}</option>
                         @endforeach
                     </april:select>
+                    <p class="text-sm text-muted-foreground">No learners yet? Save the draft and return here after learners are added.</p>
                 </div>
 
                 <div class="space-y-1">

@@ -126,6 +126,11 @@ enum AuditAction: string
     case CourseOfferingCreated = 'course_offering.created';
 
     /**
+     * The learners or sections in a subject offering were changed.
+     */
+    case CourseOfferingRosterUpdated = 'course_offering.roster_updated';
+
+    /**
      * A subject offering moved between draft, active, and archived states.
      */
     case CourseOfferingStatusChanged = 'course_offering.status_changed';
@@ -582,6 +587,7 @@ enum AuditAction: string
             self::TeachingAssignmentCreated => 'Teacher assigned to a subject',
             self::TeachingAssignmentEnded => 'Teaching assignment ended',
             self::CourseOfferingCreated => 'Course offering created',
+            self::CourseOfferingRosterUpdated => 'Course offering roster changed',
             self::CourseOfferingStatusChanged => 'Course offering status changed',
             self::TimetablePublished => 'Timetable published',
             self::TimetableArchived => 'Timetable archived',

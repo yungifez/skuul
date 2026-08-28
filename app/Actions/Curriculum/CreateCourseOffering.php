@@ -254,8 +254,8 @@ class CreateCourseOffering
      */
     private function requireIndividualRoster(array $sectionIds, array $studentRecordIds, string $sectionsLabel): void
     {
-        if ($sectionIds !== [] || $studentRecordIds === []) {
-            throw new InvalidValueException("Select one or more named learners and no {$sectionsLabel}.");
+        if ($sectionIds !== []) {
+            throw new InvalidValueException("A named-learner roster does not select {$sectionsLabel}.");
         }
     }
 }

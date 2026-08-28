@@ -5,6 +5,7 @@ namespace App\Actions\Curriculum;
 use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AuditAction;
 use App\Enums\CourseOfferingStatus;
+use App\Enums\RosterMode;
 use App\Exceptions\InvalidValueException;
 use App\Models\CourseOffering;
 use App\Models\User;
@@ -15,9 +16,7 @@ use Illuminate\Support\Facades\DB;
  */
 class ChangeCourseOfferingStatus
 {
-    public function __construct(private RecordAuditEvent $auditor)
-    {
-    }
+    public function __construct(private RecordAuditEvent $auditor) {}
 
     /**
      * @throws InvalidValueException when the transition is not valid
@@ -41,6 +40,8 @@ class ChangeCourseOfferingStatus
                     throw new InvalidValueException('Open the academic period before activating its course offering.');
                 }
 
+                $this->ensureRosterIsReady($courseOffering);
+
                 $activeKey = $courseOffering->activeKeyForRoster(
                     $courseOffering->cycleSections->modelKeys(),
                     $courseOffering->studentRecords->modelKeys(),
@@ -60,8 +61,8 @@ class ChangeCourseOfferingStatus
                 AuditAction::CourseOfferingStatusChanged,
                 $courseOffering,
                 [
-                    'from'               => $previousStatus->value,
-                    'to'                 => $status->value,
+                    'from' => $previousStatus->value,
+                    'to' => $status->value,
                     'academic_period_id' => $courseOffering->academic_period_id,
                 ],
                 $actor,
@@ -69,5 +70,18 @@ class ChangeCourseOfferingStatus
 
             return $courseOffering;
         });
+    }
+
+    private function ensureRosterIsReady(CourseOffering $courseOffering): void
+    {
+        $sectionCount = $courseOffering->cycleSections->count();
+        $learnerCount = $courseOffering->studentRecords->count();
+
+        match ($courseOffering->roster_mode) {
+            RosterMode::HomeSection => $sectionCount === 1 ?: throw new InvalidValueException('Select exactly one section before activating this course offering.'),
+            RosterMode::CombinedHomeSections => $sectionCount >= 2 ?: throw new InvalidValueException('Select at least two sections before activating this course offering.'),
+            RosterMode::AcademicLevel => ($sectionCount === 0 && $learnerCount === 0) ?: throw new InvalidValueException('A whole-level offering cannot have sections or named learners.'),
+            RosterMode::IndividualRoster => $learnerCount > 0 ?: throw new InvalidValueException('Add at least one named learner before activating this course offering.'),
+        };
     }
 }

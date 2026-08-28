@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Curriculum\AssignTeacher;
 use App\Actions\Curriculum\ChangeCourseOfferingStatus;
 use App\Actions\Curriculum\CreateCourseOffering;
+use App\Actions\Curriculum\UpdateCourseOfferingRoster;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\CourseOfferingStatus;
 use App\Enums\Role;
@@ -13,6 +14,7 @@ use App\Enums\TeachingRole;
 use App\Http\Requests\AssignTeacherToCourseOfferingRequest;
 use App\Http\Requests\ChangeCourseOfferingStatusRequest;
 use App\Http\Requests\StoreCourseOfferingRequest;
+use App\Http\Requests\UpdateCourseOfferingRosterRequest;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
@@ -31,6 +33,7 @@ class CourseOfferingController extends Controller
         private CreateCourseOffering $createCourseOffering,
         private ChangeCourseOfferingStatus $changeCourseOfferingStatus,
         private AssignTeacher $assignTeacher,
+        private UpdateCourseOfferingRoster $updateCourseOfferingRoster,
     ) {
         $this->authorizeResource(CourseOffering::class, 'courseOffering');
     }
@@ -93,6 +96,35 @@ class CourseOfferingController extends Controller
         return view('pages.course-offering.create', compact('academicCycleSections', 'academicLevels', 'academicYears', 'rosterModes', 'studentRecords', 'subjects'));
     }
 
+    public function edit(CourseOffering $courseOffering): View
+    {
+        $courseOffering->load(['academicLevel', 'academicPeriod', 'academicYear', 'cycleSections', 'studentRecords']);
+        $academicCycleSections = AcademicCycleSection::inSchool()
+            ->with(['academicLevel:id,name', 'academicYear:id,start_year,stop_year'])
+            ->where('academic_year_id', $courseOffering->academic_year_id)
+            ->where('academic_level_id', $courseOffering->academic_level_id)
+            ->where('status', '!=', AcademicStructureStatus::Archived)
+            ->orderBy('position')
+            ->orderBy('name')
+            ->get();
+        $studentRecords = StudentRecord::inSchool()
+            ->attending()
+            ->with(['academicCycleSection.academicLevel:id,name', 'user:id,name'])
+            ->whereHas('academicCycleSection', function (Builder $query) use ($courseOffering): void {
+                $query->where('academic_year_id', $courseOffering->academic_year_id)
+                    ->where('academic_level_id', $courseOffering->academic_level_id);
+            })
+            ->orderBy('admission_number')
+            ->get();
+        $rosterModes = instructional_model($courseOffering->academicYear)->rosterModes();
+
+        if (!in_array($courseOffering->roster_mode, $rosterModes, true)) {
+            $rosterModes[] = $courseOffering->roster_mode;
+        }
+
+        return view('pages.course-offering.edit', compact('academicCycleSections', 'courseOffering', 'rosterModes', 'studentRecords'));
+    }
+
     public function store(StoreCourseOfferingRequest $request): RedirectResponse
     {
         $data = $request->validated();
@@ -148,6 +180,34 @@ class CourseOfferingController extends Controller
         }
 
         return redirect()->route('course-offerings.index')->with('success', $message);
+    }
+
+    public function update(UpdateCourseOfferingRosterRequest $request, CourseOffering $courseOffering): RedirectResponse
+    {
+        $data = $request->validated();
+        $rosterMode = RosterMode::from($data['roster_mode']);
+        $academicCycleSectionIds = $rosterMode->usesHomeSections()
+            ? ($data['academic_cycle_section_ids'] ?? [])
+            : [];
+        $studentRecordIds = $rosterMode === RosterMode::IndividualRoster
+            ? ($data['student_record_ids'] ?? [])
+            : [];
+
+        $this->updateCourseOfferingRoster->update(
+            $courseOffering,
+            $rosterMode,
+            $academicCycleSectionIds,
+            $studentRecordIds,
+            $data['academic_level_id'] ?? null,
+            $request->user(),
+        );
+
+        if ($request->boolean('setup')) {
+            return to_route('academic-years.setup', [$courseOffering->academicYear, 'review'])
+                ->with('success', 'Roster updated.');
+        }
+
+        return to_route('course-offerings.index')->with('success', 'Roster updated.');
     }
 
     public function activate(ChangeCourseOfferingStatusRequest $request, CourseOffering $courseOffering): RedirectResponse

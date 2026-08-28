@@ -37,6 +37,9 @@
                                         <april:button-link href="{{ route('course-offerings.gradebook.show', $courseOffering) }}" variant="outline" size="sm">Open gradebook</april:button-link>
                                     @endcan
                                     @can('update', $courseOffering)
+                                        @if ($courseOffering->status !== \App\Enums\CourseOfferingStatus::Archived)
+                                            <april:button-link href="{{ route('course-offerings.edit', $courseOffering) }}" variant="outline" size="sm">Edit roster</april:button-link>
+                                        @endif
                                         @if ($courseOffering->status === \App\Enums\CourseOfferingStatus::Draft)
                                             <form method="POST" action="{{ route('course-offerings.activate', $courseOffering) }}">
                                                 @csrf
