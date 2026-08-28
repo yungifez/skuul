@@ -61,45 +61,13 @@
                         @endif
                     </div>
 
-                    @if ($academicYear)
-                        <div class="space-y-3 border-t pt-5">
-                            <div>
-                                <h3 class="font-semibold">{{ $academicYear->name }} classes and sections</h3>
-                                <p class="text-sm text-muted-foreground">Expand a class to review its sections, add another section, or change the display order.</p>
-                            </div>
-                            @livewire('academic-year-structure-tree', ['academicYear' => $academicYear, 'schoolSetup' => true])
+                    <div class="space-y-3 border-t pt-5">
+                        <div>
+                            <h3 class="font-semibold">{{ $academicYear?->name ? $academicYear->name.' classes and sections' : 'Reusable classes and grades' }}</h3>
+                            <p class="text-sm text-muted-foreground">{{ $academicYear ? 'Expand a class to review its sections, add another section, or change the display order.' : 'These are the levels your school can use in any school year. Create a school year before adding sections.' }}</p>
                         </div>
-                    @else
-                        <div class="space-y-3 border-t pt-5">
-                            <div>
-                                <h3 class="font-semibold">Reusable classes and grades</h3>
-                                <p class="text-sm text-muted-foreground">These are the levels your school can use in any school year.</p>
-                            </div>
-                            @if ($academicLevels->isEmpty())
-                                <div class="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-                                    No classes or grades have been added yet. Add the reusable levels your school teaches above.
-                                </div>
-                            @else
-                                <div class="space-y-2">
-                                    @foreach ($academicLevels as $academicLevel)
-                                        <div class="flex min-w-0 flex-col gap-2 rounded-md border bg-background p-3 sm:flex-row sm:items-center sm:justify-between">
-                                            <div class="min-w-0">
-                                                @can('view', $academicLevel)
-                                                    <a href="{{ route('academic-levels.show', $academicLevel) }}" class="font-medium hover:underline">{{ $academicLevel->name }}</a>
-                                                @else
-                                                    <span class="font-medium">{{ $academicLevel->name }}</span>
-                                                @endcan
-                                                <p class="text-sm text-muted-foreground">{{ $academicLevel->parent?->name ? 'Inside '.$academicLevel->parent->name : 'Top-level class or group' }}{{ $academicLevel->code ? ' · '.$academicLevel->code : '' }}</p>
-                                            </div>
-                                            @can('update', $academicLevel)
-                                                <april:button-link href="{{ route('academic-levels.edit', $academicLevel) }}" variant="outline" size="sm">Edit</april:button-link>
-                                            @endcan
-                                        </div>
-                                    @endforeach
-                                </div>
-                            @endif
-                        </div>
-                    @endif
+                        @livewire('academic-year-structure-tree', ['academicYear' => $academicYear, 'schoolSetup' => true])
+                    </div>
                 </slot:content>
             </april:card>
         @elseif ($currentStep === \App\Enums\SchoolSetupStep::AcademicYear)

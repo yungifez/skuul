@@ -3,7 +3,11 @@
         $children = $childrenByParent->get($academicLevel->id, collect());
         $sections = $sectionsByLevel->get($academicLevel->id, collect())->values();
         $hasChildren = $children->isNotEmpty() || $sections->isNotEmpty();
-        $setupParameters = ['setup' => 1, 'academic_year_id' => $academicYear->id];
+        $setupParameters = $setupLinks ? ['setup' => 1] : [];
+
+        if ($academicYear !== null) {
+            $setupParameters['academic_year_id'] = $academicYear->id;
+        }
 
         if ($schoolSetup) {
             $setupParameters['school_setup'] = 1;
@@ -11,7 +15,9 @@
 
         $levelSummary = $children->isNotEmpty()
             ? 'Umbrella group · '.$children->count().' '.($children->count() === 1 ? 'level' : 'levels')
-            : $sections->count().' '.($sections->count() === 1 ? strtolower(school_term('section', 'section')) : strtolower(school_terms('section', 'sections')));
+            : ($academicYear === null
+                ? 'Reusable class or grade'
+                : $sections->count().' '.($sections->count() === 1 ? strtolower(school_term('section', 'section')) : strtolower(school_terms('section', 'sections'))));
 
         if ($children->isNotEmpty() && $sections->isNotEmpty()) {
             $levelSummary .= ' · '.$sections->count().' '.($sections->count() === 1 ? strtolower(school_term('section', 'section')) : strtolower(school_terms('section', 'sections')));
@@ -24,7 +30,13 @@
                 <span class="flex min-w-0 items-start gap-2">
                     <x-lucide-chevron-right class="mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
                     <span class="min-w-0">
-                        <span class="block font-semibold">{{ $academicLevel->name }}</span>
+                        <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                            <span class="font-semibold">{{ $academicLevel->name }}</span>
+                            @if ($academicLevel->code)
+                                <span class="text-xs text-muted-foreground">{{ $academicLevel->code }}</span>
+                            @endif
+                            <x-academic-structure-status :status="$academicLevel->status" />
+                        </span>
                         <span class="block text-sm text-muted-foreground">{{ $levelSummary }}</span>
                     </span>
                 </span>
@@ -45,7 +57,7 @@
                     @can('create', \App\Models\AcademicLevel::class)
                         <april:button-link href="{{ route('academic-levels.create', ['parent_id' => $academicLevel->id] + $setupParameters) }}" variant="outline" size="sm">Add class</april:button-link>
                     @endcan
-                    @if ($children->isEmpty())
+                    @if ($children->isEmpty() && $academicYear !== null)
                         @can('create', \App\Models\AcademicCycleSection::class)
                             <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_level_id' => $academicLevel->id] + $setupParameters) }}" variant="outline" size="sm">Add section</april:button-link>
                         @endcan
@@ -65,6 +77,7 @@
                                 'sectionsByLevel' => $sectionsByLevel,
                                 'academicYear' => $academicYear,
                                 'schoolSetup' => $schoolSetup,
+                                'setupLinks' => $setupLinks,
                             ])
                         @endif
 
@@ -118,7 +131,7 @@
                     </div>
                 @else
                     <div class="ml-2 mt-3 w-full min-w-0 border-l pl-3 text-sm sm:ml-4 sm:pl-4">
-                        <span class="text-muted-foreground">No section added for this year yet</span>
+                        <span class="text-muted-foreground">{{ $academicYear === null ? 'Create a school year before adding sections' : 'No section added for this year yet' }}</span>
                     </div>
                 @endif
         </details>
