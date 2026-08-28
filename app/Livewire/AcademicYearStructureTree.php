@@ -24,12 +24,15 @@ class AcademicYearStructureTree extends Component
 
     public bool $setupLinks = true;
 
+    public bool $showLevelActions = true;
+
     public ?string $status = null;
 
     public function mount(
         ?AcademicYear $academicYear = null,
         bool $schoolSetup = false,
         bool $setupLinks = true,
+        bool $showLevelActions = true,
         bool $allowWithoutAcademicYear = false,
         ?string $status = null,
     ): void {
@@ -44,6 +47,7 @@ class AcademicYearStructureTree extends Component
         $this->academicYear = $academicYear;
         $this->schoolSetup = $schoolSetup;
         $this->setupLinks = $setupLinks;
+        $this->showLevelActions = $showLevelActions;
         $this->status = $status;
     }
 
@@ -138,6 +142,7 @@ class AcademicYearStructureTree extends Component
             'courseOfferingsByLevel' => $courseOfferingsByLevel,
             'schoolSetup' => $this->schoolSetup,
             'setupLinks' => $this->setupLinks,
+            'showLevelActions' => $this->showLevelActions,
         ]);
     }
 

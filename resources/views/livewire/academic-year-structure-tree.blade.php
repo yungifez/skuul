@@ -19,6 +19,7 @@
             'academicYear' => $academicYear,
             'schoolSetup' => $schoolSetup,
             'setupLinks' => $setupLinks,
+            'showLevelActions' => $showLevelActions,
         ])
     @endif
 </div>

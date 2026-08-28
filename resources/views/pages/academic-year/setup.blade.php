@@ -117,7 +117,7 @@
                                 <h3 class="font-semibold">Subjects already added to this year</h3>
                                 <p class="text-sm text-muted-foreground">Each offering belongs to one level and reporting period. Expand a level to review its subjects, roster, and status.</p>
                             </div>
-                            @livewire('academic-year-structure-tree', ['academicYear' => $academicYear, 'setupLinks' => false])
+                            @livewire('academic-year-structure-tree', ['academicYear' => $academicYear, 'setupLinks' => false, 'showLevelActions' => false])
                         </div>
                     @endif
                 </slot:content>
@@ -148,7 +148,7 @@
                 <slot:title>Classes, sections, and subjects</slot:title>
                 <slot:description>Review the structure for {{ $academicYear->name }}. Expand each level to see its sections and offerings.</slot:description>
                 <slot:content>
-                    @livewire('academic-year-structure-tree', ['academicYear' => $academicYear, 'setupLinks' => false])
+                    @livewire('academic-year-structure-tree', ['academicYear' => $academicYear, 'setupLinks' => false, 'showLevelActions' => false])
                 </slot:content>
             </april:card>
         @endif

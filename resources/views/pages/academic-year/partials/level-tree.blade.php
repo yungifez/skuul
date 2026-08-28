@@ -53,7 +53,8 @@
                     </span>
                 </span>
 
-                <div x-on:click.stop class="ml-auto flex w-full shrink-0 flex-wrap items-center justify-end gap-1 sm:w-auto sm:justify-start">
+                @if ($showLevelActions)
+                    <div x-on:click.stop class="ml-auto flex w-full shrink-0 flex-wrap items-center justify-end gap-1 sm:w-auto sm:justify-start">
                     @can('update', $academicLevel)
                         @if ($levelIndex > 0)
                             <button type="button" wire:click="moveLevel({{ $academicLevel->id }}, 'up')" wire:loading.attr="disabled" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50" aria-label="Move {{ $academicLevel->name }} up" title="Move up">
@@ -90,7 +91,8 @@
                             <x-lucide-trash-2 class="size-4" />
                         </button>
                     @endcan
-                </div>
+                    </div>
+                @endif
             </summary>
 
                 @if ($hasChildren)
@@ -104,6 +106,7 @@
                                 'academicYear' => $academicYear,
                                 'schoolSetup' => $schoolSetup,
                                 'setupLinks' => $setupLinks,
+                                'showLevelActions' => $showLevelActions,
                             ])
                         @endif
 
