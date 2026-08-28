@@ -11,6 +11,7 @@ use App\Enums\CourseOfferingStatus;
 use App\Enums\Role;
 use App\Enums\RosterMode;
 use App\Enums\TeachingRole;
+use App\Exceptions\InvalidValueException;
 use App\Http\Requests\AssignTeacherToCourseOfferingRequest;
 use App\Http\Requests\ChangeCourseOfferingStatusRequest;
 use App\Http\Requests\StoreCourseOfferingRequest;
@@ -130,9 +131,9 @@ class CourseOfferingController extends Controller
         $data = $request->validated();
         $academicYear = AcademicYear::inSchool()->findOrFail($data['academic_year_id']);
         $subject = Subject::inSchool()->findOrFail($data['subject_id']);
-        $academicLevel = AcademicLevel::inSchool()->findOrFail($data['academic_level_id']);
-
         $rosterMode = RosterMode::from($data['roster_mode']);
+        $academicLevelId = $this->resolveAcademicLevelId($data, $rosterMode, $academicYear);
+        $academicLevel = AcademicLevel::inSchool()->findOrFail($academicLevelId);
         $academicCycleSectionIds = in_array($rosterMode, [RosterMode::HomeSection, RosterMode::CombinedHomeSections], true)
             ? ($data['academic_cycle_section_ids'] ?? [])
             : [];
@@ -230,5 +231,49 @@ class CourseOfferingController extends Controller
         );
 
         return back()->with('success', 'Teacher assigned to the course offering.');
+    }
+
+    /**
+     * Resolve the offering level when the form is showing sections from every level.
+     *
+     * @param  array<string, mixed>  $data
+     */
+    private function resolveAcademicLevelId(array $data, RosterMode $rosterMode, AcademicYear $academicYear): int
+    {
+        if ($data['academic_level_id'] !== 'all') {
+            return (int) $data['academic_level_id'];
+        }
+
+        $levelIds = match (true) {
+            $rosterMode->usesHomeSections() => AcademicCycleSection::inSchool()
+                ->where('academic_year_id', $academicYear->id)
+                ->whereKey($data['academic_cycle_section_ids'] ?? [])
+                ->pluck('academic_level_id'),
+            $rosterMode === RosterMode::IndividualRoster => StudentRecord::inSchool()
+                ->whereKey($data['student_record_ids'] ?? [])
+                ->whereHas('academicCycleSection', function (Builder $query) use ($academicYear): void {
+                    $query->where('academic_year_id', $academicYear->id);
+                })
+                ->with('academicCycleSection:id,academic_level_id')
+                ->get()
+                ->pluck('academicCycleSection.academic_level_id'),
+            default => collect(),
+        };
+
+        $levelIds = $levelIds->filter()->unique()->values();
+
+        if ($levelIds->isEmpty()) {
+            throw new InvalidValueException(
+                $rosterMode === RosterMode::AcademicLevel
+                    ? 'Choose a specific class level for a whole-level subject.'
+                    : 'Select sections or learners from one class level when using All levels.',
+            );
+        }
+
+        if ($levelIds->count() > 1) {
+            throw new InvalidValueException('All selected sections or learners must belong to the same class level.');
+        }
+
+        return (int) $levelIds->first();
     }
 }

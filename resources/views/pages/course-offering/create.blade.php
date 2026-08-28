@@ -15,7 +15,7 @@
         </slot:title>
         <slot:description>Choose the subject, class, period, and learners for this year.</slot:description>
         <slot:content>
-            <form method="POST" action="{{ route('course-offerings.store') }}" class="space-y-6" x-data="{ rosterMode: @js(old('roster_mode', \App\Enums\RosterMode::HomeSection->value)) }">
+            <form method="POST" action="{{ route('course-offerings.store') }}" class="space-y-6" x-data="{ rosterMode: @js(old('roster_mode', \App\Enums\RosterMode::HomeSection->value)), academicLevelId: @js((string) old('academic_level_id', '')) }">
                 @csrf
                 @if (request()->boolean('setup'))
                     <input type="hidden" name="setup" value="1">
@@ -34,13 +34,14 @@
                     </div>
                     <div class="flex flex-col gap-2">
                         <april:label for="academic-level">{{ school_term('class_level', 'Class') }}</april:label>
-                        <select id="academic-level" name="academic_level_id" class="rounded-md border border-input bg-background px-3 py-2" required>
-                            <option value="">Select a level</option>
+                        <select id="academic-level" name="academic_level_id" x-model="academicLevelId" class="rounded-md border border-input bg-background px-3 py-2" required>
+                            <option value="" @selected(blank(old('academic_level_id')))>{{ 'Select a '.strtolower(school_term('class_level', 'level')) }}</option>
+                            <option value="all" @selected((string) old('academic_level_id') === 'all')>All levels</option>
                             @foreach ($academicLevels as $academicLevel)
                                 <option value="{{ $academicLevel->id }}" {{ (string) old('academic_level_id') === (string) $academicLevel->id ? 'selected' : '' }}>{{ $academicLevel->name }}</option>
                             @endforeach
                         </select>
-                        <p class="text-sm text-muted-foreground">Choose the grade first, then select the participating sections below.</p>
+                        <p class="text-sm text-muted-foreground">Choose a level to narrow the section list, or choose All levels to see every section. If you use All levels, select sections from one level.</p>
                     </div>
                     <div class="flex flex-col gap-2 md:col-span-2">
                         <div class="flex items-center gap-1"><april:label for="roster-mode">Who attends</april:label><x-help-tooltip label="Roster help">Use one section by default. The school year’s teaching setup may allow more options.</x-help-tooltip></div>
@@ -56,14 +57,36 @@
                     </div>
                     <div x-cloak x-show="rosterMode === 'home_section' || rosterMode === 'combined_home_sections'" class="w-full md:col-span-2">
                         <div class="flex flex-col gap-2">
-                            <div class="flex items-center gap-1"><april:label for="cycle-sections">Participating sections</april:label><x-help-tooltip label="Participating sections help">For one section, choose exactly one. For combined sections, choose two or more sections from the selected school year and class.</x-help-tooltip></div>
-                            <april:select id="cycle-sections" name="academic_cycle_section_ids[]" multiple placeholder="Select sections">
-                                @foreach ($academicCycleSections as $academicCycleSection)
-                                    <option value="{{ $academicCycleSection->id }}" @selected(in_array($academicCycleSection->id, old('academic_cycle_section_ids', [])))>
-                                        {{ $academicCycleSection->academicYear->name }} · {{ $academicCycleSection->academicLevel->name }} · {{ $academicCycleSection->label ?? $academicCycleSection->name }}
-                                    </option>
-                                @endforeach
-                            </april:select>
+                            <div class="flex items-center gap-1"><april:label for="cycle-sections-all">Participating sections</april:label><x-help-tooltip label="Participating sections help">For one section, choose exactly one. For combined sections, choose two or more sections from the selected school year and class.</x-help-tooltip></div>
+                            <p x-show="academicLevelId === ''" x-cloak class="rounded-md border border-dashed p-3 text-sm text-muted-foreground">Choose a class level above to see its sections, or choose All levels to see every section.</p>
+                            <template x-if="academicLevelId === 'all'">
+                                <div>
+                                    <april:select id="cycle-sections-all" name="academic_cycle_section_ids[]" multiple placeholder="Select sections">
+                                        @foreach ($academicCycleSections as $academicCycleSection)
+                                            <option value="{{ $academicCycleSection->id }}" @selected(in_array($academicCycleSection->id, old('academic_cycle_section_ids', [])))>
+                                                {{ $academicCycleSection->academicYear->name }} · {{ $academicCycleSection->academicLevel->name }} · {{ $academicCycleSection->label ?? $academicCycleSection->name }}
+                                            </option>
+                                        @endforeach
+                                    </april:select>
+                                </div>
+                            </template>
+                            @foreach ($academicLevels as $academicLevel)
+                                <template x-if="academicLevelId === '{{ $academicLevel->id }}'">
+                                    <div>
+                                        @if ($academicCycleSections->where('academic_level_id', $academicLevel->id)->isEmpty())
+                                            <p class="rounded-md border border-dashed p-3 text-sm text-muted-foreground">No sections have been created for {{ $academicLevel->name }} in this school year.</p>
+                                        @else
+                                            <april:select id="cycle-sections-{{ $academicLevel->id }}" name="academic_cycle_section_ids[]" multiple placeholder="Select sections">
+                                                @foreach ($academicCycleSections->where('academic_level_id', $academicLevel->id) as $academicCycleSection)
+                                                    <option value="{{ $academicCycleSection->id }}" @selected(in_array($academicCycleSection->id, old('academic_cycle_section_ids', [])))>
+                                                        {{ $academicCycleSection->label ?? $academicCycleSection->name }}
+                                                    </option>
+                                                @endforeach
+                                            </april:select>
+                                        @endif
+                                    </div>
+                                </template>
+                            @endforeach
                             <p x-show="rosterMode === 'home_section'" class="text-sm text-muted-foreground">Choose one section.</p>
                             <p x-show="rosterMode === 'combined_home_sections'" class="text-sm text-muted-foreground">Choose at least two sections to teach together.</p>
                         </div>
