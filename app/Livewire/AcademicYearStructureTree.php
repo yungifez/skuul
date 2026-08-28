@@ -10,6 +10,7 @@ use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
+use App\Models\CourseOffering;
 use Illuminate\View\View;
 use Livewire\Component;
 
@@ -105,10 +106,36 @@ class AcademicYearStructureTree extends Component
             ->orderBy('position')
             ->orderBy('name')
             ->get(['id', 'school_id', 'parent_id', 'name', 'code', 'status', 'is_group']);
+        $courseOfferingsByLevel = collect();
+
+        if ($academicYear !== null) {
+            $courseOfferingsByLevel = CourseOffering::inSchool($schoolId)
+                ->where('academic_year_id', $academicYear->id)
+                ->with([
+                    'subject:id,name,short_name',
+                    'academicPeriod:id,name,label',
+                    'cycleSections:id,name,label',
+                ])
+                ->orderBy('academic_level_id')
+                ->orderBy('academic_period_id')
+                ->orderBy('subject_id')
+                ->get([
+                    'id',
+                    'academic_year_id',
+                    'academic_period_id',
+                    'subject_id',
+                    'academic_level_id',
+                    'roster_mode',
+                    'planned_periods_per_week',
+                    'status',
+                ])
+                ->groupBy('academic_level_id');
+        }
 
         return view('livewire.academic-year-structure-tree', [
             'academicYear' => $academicYear,
             'academicLevels' => $academicLevels,
+            'courseOfferingsByLevel' => $courseOfferingsByLevel,
             'schoolSetup' => $this->schoolSetup,
             'setupLinks' => $this->setupLinks,
         ]);

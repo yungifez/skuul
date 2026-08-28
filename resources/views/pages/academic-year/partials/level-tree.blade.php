@@ -2,7 +2,8 @@
     @php
         $children = $childrenByParent->get($academicLevel->id, collect());
         $sections = $sectionsByLevel->get($academicLevel->id, collect())->values();
-        $hasChildren = $children->isNotEmpty() || $sections->isNotEmpty();
+        $offerings = $courseOfferingsByLevel->get($academicLevel->id, collect())->values();
+        $hasChildren = $children->isNotEmpty() || $sections->isNotEmpty() || $offerings->isNotEmpty();
         $setupParameters = $setupLinks ? ['setup' => 1] : [];
 
         if ($academicYear !== null) {
@@ -25,6 +26,10 @@
 
         if ($children->isNotEmpty() && $sections->isNotEmpty()) {
             $levelSummary .= ' · '.$sections->count().' '.($sections->count() === 1 ? strtolower(school_term('section', 'section')) : strtolower(school_terms('section', 'sections')));
+        }
+
+        if ($offerings->isNotEmpty()) {
+            $levelSummary .= ' · '.$offerings->count().' '.($offerings->count() === 1 ? 'offering' : 'offerings');
         }
     @endphp
 
@@ -95,6 +100,7 @@
                                 'levels' => $children,
                                 'childrenByParent' => $childrenByParent,
                                 'sectionsByLevel' => $sectionsByLevel,
+                                'courseOfferingsByLevel' => $courseOfferingsByLevel,
                                 'academicYear' => $academicYear,
                                 'schoolSetup' => $schoolSetup,
                                 'setupLinks' => $setupLinks,
@@ -144,6 +150,44 @@
                                                 </button>
                                             @endif
                                         @endif
+                                    @endcan
+                                </div>
+                            </div>
+                        @endforeach
+
+                        @foreach ($offerings as $offering)
+                            @php
+                                $offeringSections = $offering->roster_mode->usesHomeSections()
+                                    ? $offering->cycleSections->map(fn ($section) => $section->label ?? $section->name)->join(', ')
+                                    : school_roster_label($offering->roster_mode);
+                                $offeringDetails = collect([
+                                    $offering->academicPeriod?->displayName,
+                                    school_roster_label($offering->roster_mode),
+                                    $offeringSections !== school_roster_label($offering->roster_mode) ? $offeringSections : null,
+                                    $offering->planned_periods_per_week !== null ? $offering->planned_periods_per_week.' periods/week' : null,
+                                ])->filter()->join(' · ');
+                            @endphp
+                            <div wire:key="course-offering-{{ $offering->id }}" class="flex min-w-0 flex-col gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm sm:flex-row sm:items-start sm:justify-between">
+                                <div class="flex min-w-0 items-start gap-2">
+                                    <x-lucide-book-marked class="mt-0.5 size-4 shrink-0 text-primary" />
+                                    <div class="min-w-0">
+                                        <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                            @can('update', $offering)
+                                                <a href="{{ route('course-offerings.edit', [$offering, 'setup' => 1]) }}" class="font-medium hover:underline">{{ $offering->subject->name }}</a>
+                                            @else
+                                                <span class="font-medium">{{ $offering->subject->name }}</span>
+                                            @endcan
+                                            @if ($offering->subject->short_name)
+                                                <span class="text-xs text-muted-foreground">{{ $offering->subject->short_name }}</span>
+                                            @endif
+                                        </div>
+                                        <p class="text-xs text-muted-foreground">{{ $offeringDetails }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex w-full shrink-0 items-center justify-end gap-2 border-t pt-2 sm:w-auto sm:justify-start sm:border-t-0 sm:pt-0">
+                                    <april:badge variant="{{ $offering->status->value === 'active' ? 'default' : 'secondary' }}">{{ $offering->status->label() }}</april:badge>
+                                    @can('update', $offering)
+                                        <april:button-link href="{{ route('course-offerings.edit', [$offering, 'setup' => 1]) }}" variant="ghost" size="sm">Edit</april:button-link>
                                     @endcan
                                 </div>
                             </div>

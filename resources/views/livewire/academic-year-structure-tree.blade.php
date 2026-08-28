@@ -15,6 +15,7 @@
             'levels' => $academicLevels->whereNull('parent_id')->values(),
             'childrenByParent' => $academicLevels->groupBy('parent_id'),
             'sectionsByLevel' => $sectionsByLevel,
+            'courseOfferingsByLevel' => $courseOfferingsByLevel,
             'academicYear' => $academicYear,
             'schoolSetup' => $schoolSetup,
             'setupLinks' => $setupLinks,
