@@ -82,7 +82,7 @@ class DashboardDataCards extends Component
         $this->isOrganizationAdministrator = $this->organization !== null
             && $user->administersOrganization($this->organization);
         $this->schools = School::count();
-        $this->academicLevels = AcademicLevel::query()->inSchool()->count();
+        $this->academicLevels = AcademicLevel::query()->inSchool()->where('is_group', false)->count();
         $this->cycleSections = AcademicCycleSection::query()
             ->inSchool()
             ->when($currentAcademicYear !== null, fn ($query) => $query->where('academic_year_id', $currentAcademicYear->id))

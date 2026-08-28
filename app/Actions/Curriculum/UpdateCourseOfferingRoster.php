@@ -41,12 +41,16 @@ class UpdateCourseOfferingRoster
 
         return DB::transaction(function () use ($courseOffering, $rosterMode, $academicCycleSectionIds, $studentRecordIds, $academicLevelId, $actor): CourseOffering {
             $courseOffering = CourseOffering::query()
-                ->with(['academicPeriod', 'academicYear', 'subject', 'cycleSections', 'studentRecords'])
+                ->with(['academicLevel', 'academicPeriod', 'academicYear', 'subject', 'cycleSections', 'studentRecords'])
                 ->lockForUpdate()
                 ->findOrFail($courseOffering->id);
 
             if ($courseOffering->status === CourseOfferingStatus::Archived) {
                 throw new InvalidValueException('An archived course offering cannot be changed.');
+            }
+
+            if ($courseOffering->academicLevel->is_group) {
+                throw new InvalidValueException('A level group organizes teachable levels and cannot receive a subject.');
             }
 
             if ($courseOffering->academicYear->isClosed() || $courseOffering->academicPeriod->isClosed()) {
