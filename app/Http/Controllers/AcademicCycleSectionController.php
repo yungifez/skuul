@@ -98,8 +98,8 @@ class AcademicCycleSectionController extends Controller
         );
 
         if ($request->boolean('setup')) {
-            return to_route('academic-years.setup', [$academicYear, 'subjects'])
-                ->with('success', 'Class created for the year. Now choose the subjects being taught.');
+            return to_route('academic-years.setup', [$academicYear, 'structure'])
+                ->with('success', 'Section created for the year. Review it in the setup tree.');
         }
 
         return redirect()
