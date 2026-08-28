@@ -78,11 +78,6 @@
                 <slot:description>Choose what learners study, then connect each subject to the classes and periods where it is taught.</slot:description>
                 <slot:footer><x-help-tooltip label="Subject setup help">A subject is the reusable school subject, such as Mathematics, English, or Science. Adding it to this year connects it to a class and a reporting period. It is saved for review before it is activated.</x-help-tooltip></slot:footer>
                 <slot:content class="space-y-5">
-                    <div class="rounded-md border border-primary/30 bg-primary/5 p-4 text-sm">
-                        <p class="font-semibold">What is a subject?</p>
-                        <p class="mt-1 text-muted-foreground">A subject is what learners study, such as Mathematics, English, or Science. Create the subject once, then add it to each class that teaches it this year.</p>
-                    </div>
-
                     @if ($subjects->isEmpty())
                         <div class="flex flex-col gap-3 rounded-md border border-dashed p-4 sm:flex-row sm:items-center sm:justify-between">
                             <div>
@@ -95,7 +90,7 @@
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <h3 class="font-semibold">Subjects in the school catalog</h3>
-                                <p class="text-sm text-muted-foreground">{{ $subjects->count() }} {{ $subjects->count() === 1 ? 'subject is' : 'subjects are' }} available to add to {{ $academicYear->name }}.</p>
+                                <p class="text-sm text-muted-foreground">{{ $subjects->count() }} {{ $subjects->count() === 1 ? 'subject is' : 'subjects are' }} available for {{ $academicYear->name }}.</p>
                             </div>
                             <div class="flex flex-wrap gap-3">
                                 <april:button-link href="{{ route('course-offerings.create', ['academic_year_id' => $academicYear->id, 'setup' => 1]) }}">Add a subject to this year</april:button-link>
@@ -106,53 +101,47 @@
                                 <april:button-link href="{{ route('subjects.create', ['setup' => 1, 'academic_year_id' => $academicYear->id]) }}" variant="outline">Create another subject</april:button-link>
                             </div>
                         </div>
-                        <div class="flex flex-wrap gap-2">
-                            @foreach ($subjects as $subject)
-                                <april:badge variant="secondary">{{ $subject->name }}</april:badge>
-                            @endforeach
-                        </div>
-
-                        <div class="space-y-3 border-t pt-5">
-                            <div>
-                                <h3 class="font-semibold">Subjects already added to this year</h3>
-                                <p class="text-sm text-muted-foreground">Each entry below is one offering of a subject for a class and reporting period.</p>
+                        <div class="overflow-hidden rounded-md border">
+                            <div class="border-b bg-muted/30 px-4 py-3">
+                                <h3 class="font-semibold">Subjects for this year</h3>
+                                <p class="text-sm text-muted-foreground">Each subject appears once. Add a teaching setup below it for each class and reporting period.</p>
                             </div>
-
-                            @if ($courseOfferings->isEmpty())
-                                <div class="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
-                                    No subjects have been added to this year yet. Add one above to see it here.
-                                </div>
-                            @else
-                                <div class="space-y-3">
-                                    @foreach ($courseOfferings->groupBy('subject_id') as $subjectOfferings)
-                                        @php
-                                            $subject = $subjectOfferings->first()->subject;
-                                        @endphp
-                                        <article class="overflow-hidden rounded-md border">
-                                            <div class="flex flex-wrap items-center justify-between gap-2 bg-muted/30 px-4 py-3">
-                                                <div>
-                                                    <h4 class="font-semibold">{{ $subject->name }}</h4>
-                                                    @if ($subject->short_name)
-                                                        <p class="text-xs text-muted-foreground">{{ $subject->short_name }}</p>
-                                                    @endif
-                                                </div>
-                                                <span class="text-xs text-muted-foreground">{{ $subjectOfferings->count() }} {{ $subjectOfferings->count() === 1 ? 'offering' : 'offerings' }}</span>
+                            <div class="divide-y">
+                                @foreach ($subjects as $subject)
+                                    @php
+                                        $subjectOfferings = $courseOfferings->where('subject_id', $subject->id)->values();
+                                    @endphp
+                                    <article>
+                                        <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
+                                            <div class="min-w-0">
+                                                <h4 class="font-semibold">{{ $subject->name }}</h4>
+                                                @if ($subject->short_name)
+                                                    <p class="text-xs text-muted-foreground">{{ $subject->short_name }}</p>
+                                                @endif
                                             </div>
-                                            <div class="divide-y">
+                                            @if ($subjectOfferings->isEmpty())
+                                                <span class="text-xs text-muted-foreground">Not added to this year</span>
+                                            @else
+                                                <span class="text-xs text-muted-foreground">{{ $subjectOfferings->count() }} {{ $subjectOfferings->count() === 1 ? 'setup' : 'setups' }}</span>
+                                            @endif
+                                        </div>
+                                        @if ($subjectOfferings->isEmpty())
+                                            <p class="px-4 pb-3 text-sm text-muted-foreground">No class or reporting period has been set for this subject yet.</p>
+                                        @else
+                                            <div class="mx-4 mb-3 divide-y rounded-md border bg-muted/10">
                                                 @foreach ($subjectOfferings as $courseOffering)
                                                     @php
                                                         $offeringSections = $courseOffering->roster_mode->usesHomeSections()
                                                             ? $courseOffering->cycleSections->map(fn ($section) => $section->label ?? $section->name)->join(', ')
                                                             : school_roster_label($courseOffering->roster_mode);
                                                         $offeringDetails = collect([
-                                                            $courseOffering->academicLevel->name,
                                                             $courseOffering->academicPeriod->displayName,
                                                             school_roster_label($courseOffering->roster_mode),
                                                             $offeringSections !== school_roster_label($courseOffering->roster_mode) ? $offeringSections : null,
                                                             $courseOffering->planned_periods_per_week !== null ? $courseOffering->planned_periods_per_week.' periods/week' : null,
                                                         ])->filter()->join(' · ');
                                                     @endphp
-                                                    <div class="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                                                    <div class="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
                                                         <div class="min-w-0">
                                                             <p class="font-medium">{{ $courseOffering->academicLevel->name }}</p>
                                                             <p class="text-xs text-muted-foreground">{{ $offeringDetails }}</p>
@@ -166,10 +155,10 @@
                                                     </div>
                                                 @endforeach
                                             </div>
-                                        </article>
-                                    @endforeach
-                                </div>
-                            @endif
+                                        @endif
+                                    </article>
+                                @endforeach
+                            </div>
                         </div>
                     @endif
                 </slot:content>
