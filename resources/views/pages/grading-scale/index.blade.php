@@ -30,7 +30,12 @@
                                     <option value="{{ $scaleType->value }}">{{ $scaleType->label() }}</option>
                                 @endforeach
                             </select>
-                            <p class="text-xs text-muted-foreground">Percentage values map directly to the result. GPA values are converted using the maximum below.</p>
+                            <div class="space-y-1 text-xs text-muted-foreground">
+                                <p x-show="scaleType === 'percentage'" x-cloak>Enter a percentage for each option. For example, 85 means 85%.</p>
+                                <p x-show="scaleType === 'gpa'" x-cloak>Enter a GPA for each option. If the maximum is 4.0, a value of 3.0 becomes 75% in reports.</p>
+                                <p x-show="scaleType === 'points'" x-cloak>Enter the exact points recorded when staff select an option. The assessment maximum is used to calculate the percentage.</p>
+                                <p x-show="scaleType === 'descriptive'" x-cloak>Use words only, such as Excellent or Developing. Leave the numeric values blank.</p>
+                            </div>
                         </div>
                         <div x-show="scaleType === 'gpa'" x-cloak class="space-y-2">
                             <april:label for="maximum-value">Maximum GPA</april:label>
@@ -98,7 +103,12 @@
                                         <option value="{{ $scaleType->value }}">{{ $scaleType->label() }}</option>
                                     @endforeach
                                 </select>
-                                <p class="text-xs text-muted-foreground">Percentage uses 0–100. GPA is converted to a percentage using its maximum. Descriptive scales do not contribute numeric points.</p>
+                                <div class="space-y-1 text-xs text-muted-foreground">
+                                    <p x-show="scaleType === 'percentage'" x-cloak>Enter a percentage for each option. For example, 85 means 85%.</p>
+                                    <p x-show="scaleType === 'gpa'" x-cloak>Enter a GPA for each option. If the maximum is 4.0, a value of 3.0 becomes 75% in reports.</p>
+                                    <p x-show="scaleType === 'points'" x-cloak>Enter the exact points recorded when staff select an option. The assessment maximum is used to calculate the percentage.</p>
+                                    <p x-show="scaleType === 'descriptive'" x-cloak>Use words only, such as Excellent or Developing. Leave the numeric values blank.</p>
+                                </div>
                             </div>
                             <div x-show="scaleType === 'gpa'" x-cloak class="space-y-2">
                                 <april:label for="maximum-value-{{ $gradingScale->id }}">Maximum GPA</april:label>
