@@ -43,7 +43,9 @@
                             <p class="text-sm text-muted-foreground">Combined sections is not available for this year’s teaching approach. Use one section or the whole level.</p>
                         @endif
 
-                        <div x-cloak x-show="rosterMode === 'home_section' || rosterMode === 'combined_home_sections'" class="mt-2 flex flex-col gap-2">
+                    </div>
+                    <div x-cloak x-show="rosterMode === 'home_section' || rosterMode === 'combined_home_sections'" class="w-full md:col-span-2">
+                        <div class="flex flex-col gap-2">
                             <div class="flex items-center gap-1"><april:label for="cycle-sections">Participating sections</april:label><x-help-tooltip label="Participating sections help">For one section, choose exactly one. For combined sections, choose two or more sections from the selected school year and class.</x-help-tooltip></div>
                             <april:select id="cycle-sections" name="academic_cycle_section_ids[]" multiple placeholder="Select sections">
                                 @foreach ($academicCycleSections as $academicCycleSection)
@@ -55,11 +57,10 @@
                             <p x-show="rosterMode === 'home_section'" class="text-sm text-muted-foreground">Choose one section.</p>
                             <p x-show="rosterMode === 'combined_home_sections'" class="text-sm text-muted-foreground">Choose at least two sections to teach together.</p>
                         </div>
-
-                        <div x-cloak x-show="rosterMode === 'academic_level'" class="mt-2 rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
-                            <p class="font-medium">Whole academic level</p>
-                            <p class="mt-1 text-muted-foreground">Every learner in the selected class level is included. You do not need to choose sections or named learners.</p>
-                        </div>
+                    </div>
+                    <div x-cloak x-show="rosterMode === 'academic_level'" class="w-full md:col-span-2 rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
+                        <p class="font-medium">Whole academic level</p>
+                        <p class="mt-1 text-muted-foreground">Every learner in the selected class level is included. You do not need to choose sections or named learners.</p>
                     </div>
                     <div class="flex flex-col gap-2">
                         <div class="flex items-center gap-1"><april:label for="academic-period">{{ school_term('period', 'Academic period') }}</april:label><x-help-tooltip label="Offering period help">Choose one period, or create this subject for every period in the selected school year.</x-help-tooltip></div>
