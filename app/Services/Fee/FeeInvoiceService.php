@@ -3,53 +3,75 @@
 namespace App\Services\Fee;
 
 use App\Actions\Finance\ChargeStudent;
+use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\Fee;
 use App\Models\FeeInvoice;
 use App\Models\School;
-use App\Models\User;
+use App\Models\StudentRecord;
+use App\Services\Finance\FinancialPeriodResolver;
 use App\Services\Print\PrintService;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
 
 class FeeInvoiceService
 {
-    public function __construct(private ChargeStudent $chargeStudent) {}
+    public function __construct(
+        private ChargeStudent $chargeStudent,
+        private FinancialPeriodResolver $periods,
+    ) {}
 
     /**
      * Store a new Fee Invoice.
      *
-     * @param  array  $records
+     * @param  array<string, mixed>  $records
      */
-    public function storeFeeInvoice($records)
+    public function storeFeeInvoice(array $records): void
     {
-        $invalidFees = Fee::whereIn('id', collect($records['records'])->pluck('fee_id'))->whereRelation('feeCategory', 'school_id', '!=', current_school_id())->get();
+        $feeIds = collect($records['records'])->pluck('fee_id')->map(fn (mixed $id): int => (int) $id)->unique();
+        $fees = Fee::query()
+            ->whereIn('id', $feeIds)
+            ->whereRelation('feeCategory', 'school_id', current_school_id())
+            ->get();
 
-        if ($invalidFees->isNotEmpty()) {
-            throw new InvalidValueException('Some Fees Are Not From This School', 1);
-        }
-        $invalidUsers = User::whereIn('id', collect($records['users']))->get()->contains(function ($user) {
-            if (current_school_id() != current_school_id()) {
-                return true;
-            }
-
-            if (!$user->studentRecord()->exists()) {
-                return true;
-            }
-        });
-
-        if ($invalidUsers == true) {
-            throw new InvalidValueException('Some Users Are Invalid', 1);
+        if ($fees->count() !== $feeIds->count()) {
+            throw new InvalidValueException('Some fees are not from this school.');
         }
 
-        DB::transaction(function () use ($records) {
-            foreach ($records['users'] as $user) {
+        $enrollmentIds = collect($records['student_records'] ?? [])
+            ->map(fn (mixed $id): int => (int) $id)
+            ->unique()
+            ->values();
+
+        if ($enrollmentIds->isEmpty()) {
+            throw new InvalidValueException('Add at least one enrolled student.');
+        }
+
+        $enrollments = StudentRecord::query()
+            ->inSchool()
+            ->whereIn('id', $enrollmentIds)
+            ->where('status', EnrollmentStatus::Active)
+            ->with('user')
+            ->get()
+            ->keyBy('id');
+
+        if ($enrollments->count() !== $enrollmentIds->count()) {
+            throw new InvalidValueException('Some selected students are not active in this school.');
+        }
+
+        $period = $this->periods->openFor(current_school_id(), $records['issue_date']);
+
+        DB::transaction(function () use ($records, $enrollments, $period): void {
+            foreach ($enrollments as $enrollment) {
                 $feeInvoice = FeeInvoice::create([
                     'issue_date' => $records['issue_date'],
                     'due_date' => $records['due_date'],
                     'note' => $records['note'] ?? null,
-                    'name' => $this->generateInvoiceNumber(),
-                    'user_id' => $user,
+                    'name' => $this->generateInvoiceNumber($enrollment->school_id),
+                    'user_id' => $enrollment->user_id,
+                    'school_id' => $enrollment->school_id,
+                    'student_record_id' => $enrollment->id,
+                    'financial_period_id' => $period->id,
                 ]);
 
                 $feeInvoice->feeInvoiceRecords()->createMany($records['records']);
@@ -67,7 +89,7 @@ class FeeInvoiceService
      */
     private function chargeTheStudent(FeeInvoice $feeInvoice): void
     {
-        $enrollment = $feeInvoice->user?->studentRecord;
+        $enrollment = $feeInvoice->studentRecord;
 
         if ($enrollment === null) {
             return;
@@ -83,24 +105,29 @@ class FeeInvoiceService
             return;
         }
 
-        $this->chargeStudent->charge(
+        $transaction = $this->chargeStudent->charge(
             enrollment: $enrollment,
             amount: $amount,
             description: "Invoice $feeInvoice->name",
             source: $feeInvoice,
+            period: $feeInvoice->financialPeriod,
         );
+
+        $feeInvoice->update(['ledger_transaction_id' => $transaction->id]);
     }
 
     /**
      * Update a fee invoice.
-     *
-     *
-     * @return void
+     * The issue date and lines are part of the posted record. Correct them with
+     * a reversal and a replacement invoice instead of changing history.
      */
-    public function updateFeeInvoice(FeeInvoice $feeInvoice, $records)
+    public function updateFeeInvoice(FeeInvoice $feeInvoice, array $records): FeeInvoice
     {
+        if ($records['issue_date'] !== $feeInvoice->issue_date->format('Y-m-d')) {
+            throw new InvalidValueException('The issue date cannot change after an invoice is posted.');
+        }
+
         $feeInvoice->update([
-            'issue_date' => $records['issue_date'],
             'due_date' => $records['due_date'],
             'note' => $records['note'] ?? null,
         ]);
@@ -110,30 +137,24 @@ class FeeInvoiceService
 
     /**
      * Generate a new fee invoice name.
-     *
-     *
-     * @return string
      */
-    public function generateInvoiceNumber(?int $schoolId = null)
+    public function generateInvoiceNumber(?int $schoolId = null): string
     {
-        $schoolInitials = (School::find($schoolId) ?? current_school())->initials;
-        $schoolInitials != null && $schoolInitials .= '-';
+        $schoolInitials = (School::find($schoolId) ?? current_school())?->initials;
+        $schoolInitials = $schoolInitials === null ? '' : $schoolInitials.'-';
 
         do {
             $invoiceNumber = "Fee-Invoice-$schoolInitials".\mt_rand(100_000_000, 999_999_999);
-            if (FeeInvoice::where('name', $invoiceNumber)->count() <= 0) {
-                $uniqueAdmissionNumberFound = true;
-            } else {
-                $uniqueAdmissionNumberFound = false;
-            }
-        } while ($uniqueAdmissionNumberFound == false);
+        } while (FeeInvoice::withTrashed()
+            ->where('school_id', $schoolId ?? current_school_id())
+            ->where('name', $invoiceNumber)
+            ->exists());
 
         return $invoiceNumber;
     }
 
     /**
      * Print Fee Invoice.
-     *
      *
      * @return Response
      */
@@ -144,12 +165,17 @@ class FeeInvoiceService
 
     /**
      * Delete a fee invoice.
-     *
-     *
-     * @return void
+     * Posted invoices stay in the books. A correction must be a reversal or a
+     * replacement, never a delete that hides the source entry.
      */
-    public function deleteFeeInvoice(FeeInvoice $feeInvoice)
+    public function deleteFeeInvoice(FeeInvoice $feeInvoice): void
     {
+        $feeInvoice->loadMissing(['ledgerTransaction', 'allocations']);
+
+        if ($feeInvoice->ledgerTransaction !== null || $feeInvoice->allocations->isNotEmpty()) {
+            throw new InvalidValueException('Posted invoices cannot be deleted. Reverse or correct the invoice instead.');
+        }
+
         $feeInvoice->delete();
     }
 }

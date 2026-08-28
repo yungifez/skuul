@@ -6,6 +6,7 @@ use App\Actions\Audit\RecordAuditEvent;
 use App\Actions\Report\RequestReport;
 use App\Enums\AuditAction;
 use App\Http\Requests\StoreReportRunRequest;
+use App\Models\FinancialPeriod;
 use App\Models\ReportRun;
 use App\Services\Report\ExportFormatRegistry;
 use App\Services\Report\ReportRegistry;
@@ -43,6 +44,7 @@ class ReportController extends Controller
             'reports' => $reports->all(),
             'formats' => $this->formats->all(),
             'canRequest' => auth()->user()->can('create', ReportRun::class),
+            'financialPeriods' => FinancialPeriod::query()->inSchool()->orderByDesc('starts_on')->get(),
         ]);
     }
 

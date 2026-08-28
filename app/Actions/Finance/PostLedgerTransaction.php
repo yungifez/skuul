@@ -5,10 +5,12 @@ namespace App\Actions\Finance;
 use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AuditAction;
 use App\Exceptions\InvalidValueException;
+use App\Models\FinancialPeriod;
 use App\Models\LedgerAccount;
 use App\Models\LedgerLine;
 use App\Models\LedgerTransaction;
 use App\Models\User;
+use App\Services\Finance\FinancialPeriodResolver;
 use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +24,10 @@ use Illuminate\Support\Facades\DB;
  */
 class PostLedgerTransaction
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(
+        private RecordAuditEvent $auditor,
+        private FinancialPeriodResolver $periods,
+    ) {}
 
     /**
      * Post the entry.
@@ -39,12 +44,23 @@ class PostLedgerTransaction
         ?User $actor = null,
         ?string $reference = null,
         ?LedgerTransaction $reversalOf = null,
+        ?FinancialPeriod $period = null,
     ): LedgerTransaction {
         $prepared = $this->prepare($lines);
+        $period ??= $this->periods->openFor($prepared['school_id'], $date ?? now());
 
-        return DB::transaction(function () use ($description, $prepared, $date, $source, $actor, $reference, $reversalOf): LedgerTransaction {
+        if ($period->school_id !== $prepared['school_id']) {
+            throw new InvalidValueException('A ledger entry and its financial period must belong to the same school.');
+        }
+
+        if (!$period->isOpen()) {
+            throw new InvalidValueException("Financial period {$period->name} is closed.");
+        }
+
+        return DB::transaction(function () use ($description, $prepared, $date, $source, $actor, $reference, $reversalOf, $period): LedgerTransaction {
             $transaction = LedgerTransaction::create([
                 'school_id' => $prepared['school_id'],
+                'financial_period_id' => $period->id,
                 'reference' => $reference,
                 'description' => $description,
                 'transaction_date' => $date ?? now(),

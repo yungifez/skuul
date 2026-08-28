@@ -17,7 +17,17 @@ class FeeInvoice extends Model
     use HasFactory;
     use SoftDeletes;
 
-    protected $fillable = ['name', 'note', 'issue_date', 'due_date', 'user_id'];
+    protected $fillable = [
+        'name',
+        'note',
+        'issue_date',
+        'due_date',
+        'user_id',
+        'school_id',
+        'student_record_id',
+        'financial_period_id',
+        'ledger_transaction_id',
+    ];
 
     protected $casts = [
         'issue_date' => 'datetime:Y-m-d',
@@ -39,6 +49,46 @@ class FeeInvoice extends Model
     }
 
     /**
+     * Get the school whose books contain this invoice.
+     *
+     * @return BelongsTo<School, $this>
+     */
+    public function school(): BelongsTo
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    /**
+     * Get the enrollment this invoice is for.
+     *
+     * @return BelongsTo<StudentRecord, $this>
+     */
+    public function studentRecord(): BelongsTo
+    {
+        return $this->belongsTo(StudentRecord::class);
+    }
+
+    /**
+     * Get the financial period in which this invoice was posted.
+     *
+     * @return BelongsTo<FinancialPeriod, $this>
+     */
+    public function financialPeriod(): BelongsTo
+    {
+        return $this->belongsTo(FinancialPeriod::class);
+    }
+
+    /**
+     * Get the ledger entry created for this invoice.
+     *
+     * @return BelongsTo<LedgerTransaction, $this>
+     */
+    public function ledgerTransaction(): BelongsTo
+    {
+        return $this->belongsTo(LedgerTransaction::class);
+    }
+
+    /**
      * Get all of the feeInvoiceRecords for the FeeInvoice.
      *
      * @return HasMany<FeeInvoiceRecord, $this>
@@ -49,9 +99,7 @@ class FeeInvoice extends Model
     }
 
     /**
-     * Limit the query to invoices for people in one school.
-     *
-     * The school link lives on the person's membership, not on a column.
+     * Limit the query to invoices in one school's books.
      *
      * @param  Builder<FeeInvoice>  $query
      */
@@ -59,20 +107,20 @@ class FeeInvoice extends Model
     {
         $schoolId = $school instanceof School ? $school->id : ($school ?? current_school_id());
 
-        return $query->whereHas('user', fn (Builder $user) => $user->ofSchool($schoolId));
+        return $query->where('school_id', $schoolId);
     }
 
-    public function scopeisDue(Builder $query): void
+    public function scopeIsDue(Builder $query): Builder
     {
-        $query->whereHas('FeeInvoiceRecords', function ($query) {
-            return $query->isDue();
+        return $query->whereHas('feeInvoiceRecords', function (Builder $query): void {
+            $query->isDue();
         });
     }
 
-    public function scopeisPaid(Builder $query): void
+    public function scopeIsPaid(Builder $query): Builder
     {
-        $query->whereDoesntHave('FeeInvoiceRecords', function ($query) {
-            return $query->isDue();
+        return $query->whereDoesntHave('feeInvoiceRecords', function (Builder $query): void {
+            $query->isDue();
         });
     }
 

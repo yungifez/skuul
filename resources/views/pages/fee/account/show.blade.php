@@ -180,6 +180,8 @@
                                 <april:button type="submit" variant="outline" size="sm">Take this payment back</april:button>
                             </form>
                         @endif
+
+                        <april:button-link href="{{ route('student-payments.receipt', $payment) }}" variant="outline" size="sm">Receipt</april:button-link>
                     </li>
                 @endforeach
             </ul>

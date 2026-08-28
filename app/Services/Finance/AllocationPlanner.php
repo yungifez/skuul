@@ -3,6 +3,7 @@
 namespace App\Services\Finance;
 
 use App\Exceptions\InvalidValueException;
+use App\Models\FeeInvoice;
 use App\Models\FeeInvoiceRecord;
 use App\Models\StudentRecord;
 use Illuminate\Database\Eloquent\Builder;
@@ -24,21 +25,25 @@ class AllocationPlanner
      */
     public function openLinesFor(StudentRecord $enrollment, ?int $onlyInvoice = null): Collection
     {
+        $invoiceTable = (new FeeInvoice)->getTable();
+        $recordTable = (new FeeInvoiceRecord)->getTable();
+
         return FeeInvoiceRecord::query()
             ->isDue()
             ->whereHas('feeInvoice', function (Builder $invoice) use ($enrollment, $onlyInvoice): void {
-                $invoice->where('user_id', $enrollment->user_id);
+                $invoice->where('school_id', $enrollment->school_id)
+                    ->where('student_record_id', $enrollment->id);
 
                 if ($onlyInvoice !== null) {
                     $invoice->whereKey($onlyInvoice);
                 }
             })
             ->with(['feeInvoice', 'fee'])
-            ->join('fee_invoices', 'fee_invoices.id', '=', 'fee_invoice_records.fee_invoice_id')
-            ->orderBy('fee_invoices.due_date')
-            ->orderBy('fee_invoices.id')
-            ->orderBy('fee_invoice_records.id')
-            ->select('fee_invoice_records.*')
+            ->join($invoiceTable, "$invoiceTable.id", '=', "$recordTable.fee_invoice_id")
+            ->orderBy("$invoiceTable.due_date")
+            ->orderBy("$invoiceTable.id")
+            ->orderBy("$recordTable.id")
+            ->select("$recordTable.*")
             ->get();
     }
 
@@ -108,7 +113,9 @@ class AllocationPlanner
 
         $lines = FeeInvoiceRecord::query()
             ->whereKey(array_keys($plan))
-            ->whereHas('feeInvoice', fn (Builder $invoice) => $invoice->where('user_id', $enrollment->user_id))
+            ->whereHas('feeInvoice', fn (Builder $invoice) => $invoice
+                ->where('school_id', $enrollment->school_id)
+                ->where('student_record_id', $enrollment->id))
             ->get()
             ->keyBy('id');
 

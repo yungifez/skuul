@@ -89,7 +89,7 @@
                                     <td class="border p-4 text-center">{{$addedStudent['name']}}</td>
                                     <td class="border p-4 text-center">{{$addedStudent['email']}}</td>
                                     <td class="border p-4 text-center whitespace-nowrap">
-                                        <input type="hidden" name="users[]" value="{{$addedStudent['id']}}">
+                                        <input type="hidden" name="student_records[]" value="{{$addedStudent->studentRecord?->id}}">
                                         <april:button type="button" variant="destructive" wire:click="removeStudent({{$addedStudent['id']}})" wire:loading.disable>
                                             Remove
                                         </april:button>

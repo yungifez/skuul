@@ -34,20 +34,13 @@ class FeeInvoiceRecord extends Model
     ];
 
     /**
-     * The sum of allocations against a line, in minor units.
-     *
-     * Written once so the scopes and the accessor cannot drift apart.
-     */
-    private const PAID_SUBQUERY = '(select coalesce(sum(payment_allocations.amount), 0) from payment_allocations where payment_allocations.fee_invoice_record_id = fee_invoice_records.id)';
-
-    /**
      * Limit the query to lines that still owe money.
      *
      * @param  Builder<$this>  $query
      */
     public function scopeIsDue(Builder $query): void
     {
-        $query->whereRaw('(amount + fine - waiver) > '.self::PAID_SUBQUERY);
+        $query->whereRaw('('.$this->getTable().'.amount + '.$this->getTable().'.fine - '.$this->getTable().'.waiver) > '.$this->paidSubquery());
     }
 
     /**
@@ -57,7 +50,15 @@ class FeeInvoiceRecord extends Model
      */
     public function scopeIsPaid(Builder $query): void
     {
-        $query->whereRaw('(amount + fine - waiver) <= '.self::PAID_SUBQUERY);
+        $query->whereRaw('('.$this->getTable().'.amount + '.$this->getTable().'.fine - '.$this->getTable().'.waiver) <= '.$this->paidSubquery());
+    }
+
+    private function paidSubquery(): string
+    {
+        $recordTable = $this->getTable();
+        $allocationTable = (new PaymentAllocation)->getTable();
+
+        return "(select coalesce(sum($allocationTable.amount), 0) from $allocationTable where $allocationTable.fee_invoice_record_id = $recordTable.id)";
     }
 
     /**

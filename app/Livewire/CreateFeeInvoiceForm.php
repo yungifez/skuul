@@ -178,9 +178,13 @@ class CreateFeeInvoiceForm extends Component
             $this->addedFees = $this->addedFees->keyBy('id');
         }
 
-        $oldStudents = collect(old('users'));
+        $oldStudents = collect(old('student_records'));
         if ($oldStudents->isNotEmpty()) {
-            $students = User::students()->ofSchool()->whereIn('id', $oldStudents)->get();
+            $students = User::students()
+                ->ofSchool()
+                ->whereHas('studentRecord', fn ($query) => $query->whereIn('student_records.id', $oldStudents))
+                ->with('studentRecord')
+                ->get();
 
             $this->addedStudents = $this->addedStudents->merge($students);
         }

@@ -12,7 +12,8 @@ class ShowFeeInvoice extends Component
     public function mount(): void
     {
         $this->feeInvoice->loadMissing([
-            'user.studentRecord.academicCycleSection.academicLevel',
+            'user',
+            'studentRecord.academicCycleSection.academicLevel',
             'feeInvoiceRecords.fee',
             'feeInvoiceRecords.allocations',
             'payments',

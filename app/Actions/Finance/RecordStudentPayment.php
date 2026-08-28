@@ -3,6 +3,7 @@
 namespace App\Actions\Finance;
 
 use App\Exceptions\InvalidValueException;
+use App\Models\FinancialPeriod;
 use App\Models\LedgerTransaction;
 use App\Models\StudentRecord;
 use App\Models\User;
@@ -45,6 +46,7 @@ class RecordStudentPayment
         ?CarbonInterface $date = null,
         ?string $reference = null,
         ?float $applied = null,
+        ?FinancialPeriod $period = null,
     ): LedgerTransaction {
         if ($amount <= 0) {
             throw new InvalidValueException('A payment must be more than nothing.');
@@ -97,6 +99,7 @@ class RecordStudentPayment
             source: $source,
             actor: $actor,
             reference: $reference,
+            period: $period,
         );
     }
 }

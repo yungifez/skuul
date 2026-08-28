@@ -87,6 +87,7 @@ class ReceivePayment
             $payment = StudentPayment::create([
                 'school_id' => $enrollment->school_id,
                 'student_record_id' => $enrollment->id,
+                'financial_period_id' => $transaction->financial_period_id,
                 'amount' => BrickMoney::ofMinor($amount, config('app.currency')),
                 'method' => $method,
                 'reference' => $reference,

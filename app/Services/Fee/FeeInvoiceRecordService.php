@@ -24,6 +24,10 @@ class FeeInvoiceRecordService
             throw new InvalidValueException("The fee you selected doesn't exist");
         }
 
+        if ($feeInvoice->first()->ledgerTransaction !== null) {
+            throw new InvalidValueException('A posted invoice cannot have lines added to it. Create a correcting invoice instead.');
+        }
+
         $feeInvoiceRecord = FeeInvoiceRecord::create([
             'fee_invoice_id' => $records['fee_invoice_id'],
             'fee_id' => $records['fee_id'],
@@ -40,6 +44,10 @@ class FeeInvoiceRecordService
      */
     public function updateFeeInvoiceRecord(FeeInvoiceRecord $feeInvoiceRecord, $records): FeeInvoiceRecord
     {
+        if ($feeInvoiceRecord->feeInvoice?->ledgerTransaction !== null) {
+            throw new InvalidValueException('A posted invoice cannot have its lines changed. Create a correcting invoice instead.');
+        }
+
         // The form asks for whole units, and the column keeps minor units,
         // which is what the Money cast does on the way in.
         $amount = Money::of($records['amount'], config('app.currency'));
@@ -64,6 +72,10 @@ class FeeInvoiceRecordService
      */
     public function deleteFeeInvoiceRecord(FeeInvoiceRecord $feeInvoiceRecord): void
     {
+        if ($feeInvoiceRecord->feeInvoice?->ledgerTransaction !== null) {
+            throw new InvalidValueException('A posted invoice cannot have its lines removed. Create a correcting invoice instead.');
+        }
+
         $feeInvoiceRecord->delete();
     }
 

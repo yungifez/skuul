@@ -22,9 +22,25 @@ class FeeInvoicePolicy
      */
     public function view(User $user, FeeInvoice $feeInvoice)
     {
-        if ($user->can('read fee invoice') && $feeInvoice->user->belongsToCurrentSchool()) {
+        if (!$user->can('read fee invoice') || $feeInvoice->school_id !== current_school_id()) {
+            return false;
+        }
+
+        if ($user->hasRole('student')) {
+            return $feeInvoice->student_record_id === $user->studentRecord?->id;
+        }
+
+        if ($user->hasRole('parent')) {
+            return $feeInvoice->studentRecord?->user?->parents()
+                ->where('parent_records.user_id', $user->id)
+                ->exists() === true;
+        }
+
+        if ($feeInvoice->school_id === current_school_id()) {
             return true;
         }
+
+        return false;
     }
 
     /**
@@ -42,7 +58,7 @@ class FeeInvoicePolicy
      */
     public function update(User $user, FeeInvoice $feeInvoice)
     {
-        if ($user->can('update fee invoice') && $feeInvoice->user->belongsToCurrentSchool()) {
+        if ($user->can('update fee invoice') && $feeInvoice->school_id === current_school_id()) {
             return true;
         }
     }
@@ -52,7 +68,7 @@ class FeeInvoicePolicy
      */
     public function delete(User $user, FeeInvoice $feeInvoice)
     {
-        if ($user->can('delete fee invoice') && $feeInvoice->user->belongsToCurrentSchool()) {
+        if ($user->can('delete fee invoice') && $feeInvoice->school_id === current_school_id()) {
             return true;
         }
     }

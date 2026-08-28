@@ -40,6 +40,7 @@ class StudentPayment extends Model
     protected $fillable = [
         'school_id',
         'student_record_id',
+        'financial_period_id',
         'amount',
         'method',
         'reference',
@@ -104,6 +105,16 @@ class StudentPayment extends Model
     public function studentRecord(): BelongsTo
     {
         return $this->belongsTo(StudentRecord::class);
+    }
+
+    /**
+     * Get the financial period in which this payment was received.
+     *
+     * @return BelongsTo<FinancialPeriod, $this>
+     */
+    public function financialPeriod(): BelongsTo
+    {
+        return $this->belongsTo(FinancialPeriod::class);
     }
 
     /**

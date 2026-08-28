@@ -22,7 +22,7 @@ class FeeInvoiceRecordPolicy
      */
     public function view(User $user, FeeInvoiceRecord $feeInvoiceRecord)
     {
-        if ($user->can('read fee invoice') && $feeInvoiceRecord->feeInvoice->user->belongsToCurrentSchool()) {
+        if ($user->can('read fee invoice') && $feeInvoiceRecord->feeInvoice->school_id === current_school_id()) {
             return true;
         }
     }
@@ -42,7 +42,7 @@ class FeeInvoiceRecordPolicy
      */
     public function update(User $user, FeeInvoiceRecord $feeInvoiceRecord)
     {
-        if ($user->can('update fee invoice record') && $feeInvoiceRecord->feeInvoice->user->belongsToCurrentSchool()) {
+        if ($user->can('update fee invoice record') && $feeInvoiceRecord->feeInvoice->school_id === current_school_id()) {
             return true;
         }
     }
@@ -52,7 +52,7 @@ class FeeInvoiceRecordPolicy
      */
     public function delete(User $user, FeeInvoiceRecord $feeInvoiceRecord)
     {
-        if ($user->can('delete fee invoice record') && $feeInvoiceRecord->feeInvoice->user->belongsToCurrentSchool()) {
+        if ($user->can('delete fee invoice record') && $feeInvoiceRecord->feeInvoice->school_id === current_school_id()) {
             return true;
         }
     }

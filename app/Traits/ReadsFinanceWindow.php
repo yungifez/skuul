@@ -4,6 +4,7 @@ namespace App\Traits;
 
 use App\Enums\LedgerAccountType;
 use App\Models\AcademicYear;
+use App\Models\FinancialPeriod;
 use App\Models\LedgerAccount;
 use App\Models\LedgerLine;
 use Illuminate\Database\Eloquent\Builder;
@@ -33,6 +34,16 @@ trait ReadsFinanceWindow
 
         if ($from !== null || $to !== null) {
             return [is_string($from) ? $from : null, is_string($to) ? $to : null];
+        }
+
+        if (isset($parameters['financial_period_id'])) {
+            $period = FinancialPeriod::query()
+                ->where('school_id', $this->schoolId($parameters))
+                ->find($parameters['financial_period_id']);
+
+            if ($period !== null) {
+                return [$period->starts_on->toDateString(), $period->ends_on->toDateString()];
+            }
         }
 
         $cycle = isset($parameters['academic_year_id'])

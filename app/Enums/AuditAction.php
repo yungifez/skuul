@@ -187,6 +187,18 @@ enum AuditAction: string
      */
     case BudgetSet = 'budget.set';
 
+    /** A school recorded money spent on an operating expense. */
+    case ExpenseRecorded = 'expense.recorded';
+
+    /** A school's financial period was closed. */
+    case FinancialPeriodClosed = 'financial_period.closed';
+
+    /** A closed financial period was reopened. */
+    case FinancialPeriodReopened = 'financial_period.reopened';
+
+    /** Cash was moved from the school cash box into its bank account. */
+    case CashDepositRecorded = 'cash_deposit.recorded';
+
     /**
      * A learner was given a bed, moved, or stopped boarding.
      */
@@ -600,6 +612,10 @@ enum AuditAction: string
             self::StudentRefunded => 'Money given back',
             self::BalanceCarriedToCampus => 'Balance carried to another campus',
             self::BudgetSet => 'Budget set',
+            self::ExpenseRecorded => 'Expense recorded',
+            self::FinancialPeriodClosed => 'Financial period closed',
+            self::FinancialPeriodReopened => 'Financial period reopened',
+            self::CashDepositRecorded => 'Cash deposited to bank',
             self::BoardingPlaceChanged => 'Boarding place changed',
             self::BoardingSupervisionChanged => 'Boarding duty changed',
             self::OvernightLeaveRequested => 'Night away requested',

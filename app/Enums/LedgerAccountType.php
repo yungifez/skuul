@@ -41,11 +41,11 @@ enum LedgerAccountType: string
     public function label(): string
     {
         return match ($this) {
-            self::Asset     => 'Asset',
+            self::Asset => 'Asset',
             self::Liability => 'Liability',
-            self::Equity    => 'Equity',
-            self::Income    => 'Income',
-            self::Expense   => 'Expense',
+            self::Equity => 'Equity',
+            self::Income => 'Income',
+            self::Expense => 'Expense',
         };
     }
 
@@ -58,6 +58,11 @@ enum LedgerAccountType: string
             self::Asset, self::Expense => 'debit',
             self::Liability, self::Equity, self::Income => 'credit',
         };
+    }
+
+    public function isExpense(): bool
+    {
+        return $this === self::Expense;
     }
 
     /**

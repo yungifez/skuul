@@ -89,7 +89,8 @@ class StudentAgingReport implements Report
             $total = 0.0;
 
             $invoices = FeeInvoice::query()
-                ->where('user_id', $enrollment->user_id)
+                ->ofSchool($enrollment->school_id)
+                ->where('student_record_id', $enrollment->id)
                 ->with(['feeInvoiceRecords.allocations', 'allocations'])
                 ->get();
 

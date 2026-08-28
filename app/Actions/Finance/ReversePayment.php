@@ -8,6 +8,7 @@ use App\Exceptions\InvalidValueException;
 use App\Models\PaymentAllocation;
 use App\Models\StudentPayment;
 use App\Models\User;
+use App\Services\Finance\FinancialPeriodResolver;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -22,6 +23,7 @@ class ReversePayment
     public function __construct(
         private ReverseLedgerTransaction $reverseEntry,
         private RecordAuditEvent $auditor,
+        private FinancialPeriodResolver $periods,
     ) {}
 
     /**
@@ -44,18 +46,21 @@ class ReversePayment
         }
 
         return DB::transaction(function () use ($payment, $reason, $actor): StudentPayment {
-            if ($payment->ledgerTransaction !== null) {
-                $this->reverseEntry->reverse($payment->ledgerTransaction, $reason, $actor);
-            }
+            $transaction = $payment->ledgerTransaction === null
+                ? null
+                : $this->reverseEntry->reverse($payment->ledgerTransaction, $reason, $actor);
+            $period = $transaction?->financialPeriod ?? $this->periods->currentOpen($payment->school_id);
 
             $reversal = StudentPayment::create([
                 'school_id' => $payment->school_id,
                 'student_record_id' => $payment->student_record_id,
+                'financial_period_id' => $period?->id,
                 'amount' => $payment->amount->multipliedBy(-1),
                 'method' => $payment->method,
                 'reference' => $payment->reference,
                 'received_on' => now(),
                 'note' => "Payment taken back: $reason",
+                'ledger_transaction_id' => $transaction?->id,
                 'reversal_of_id' => $payment->id,
                 'recorded_by' => $actor === null ? auth()->id() : $actor->id,
             ]);

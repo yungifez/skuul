@@ -659,6 +659,30 @@ class PermissionSeeder extends Seeder
             'name' => 'refund student payment',
         ]);
 
+        Permission::firstOrCreate([
+            'name' => 'read expense',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'create expense',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'read financial period',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'manage financial period',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'read cash deposit',
+        ]);
+
+        Permission::firstOrCreate([
+            'name' => 'create cash deposit',
+        ]);
+
         // header permissions (for controlling the menu headers)
         Permission::firstOrCreate([
             'name' => 'header-administrate',
@@ -880,6 +904,12 @@ class PermissionSeeder extends Seeder
             'update fee invoice record',
             'delete fee invoice record',
             'refund student payment',
+            'read expense',
+            'create expense',
+            'read financial period',
+            'manage financial period',
+            'read cash deposit',
+            'create cash deposit',
             'read budget',
             'manage budget',
             'read boarding',

@@ -4,6 +4,8 @@ namespace App\Livewire;
 
 use App\Livewire\Concerns\InteractsWithAprilTable;
 use App\Models\FeeInvoice;
+use App\Models\FinancialPeriod;
+use App\Services\Finance\FinancialPeriodResolver;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
@@ -14,19 +16,19 @@ class ListFeeInvoicesTable extends DataTableComponent
 {
     use InteractsWithAprilTable;
 
-    protected $queryString = ['status'];
+    protected $queryString = ['status', 'financialPeriodId'];
 
     /** @var array<int, string> */
     public array $statuses = ['all', 'due', 'paid'];
 
     public string $status = 'due';
 
-    public int $year;
+    public ?int $financialPeriodId = null;
 
     public function mount(): void
     {
         parent::mount();
-        $this->year = (int) date('Y');
+        $this->financialPeriodId ??= app(FinancialPeriodResolver::class)->currentOpen(current_school_id())?->id;
         $this->status = in_array($this->status, $this->statuses, true) ? $this->status : 'due';
     }
 
@@ -39,7 +41,7 @@ class ListFeeInvoicesTable extends DataTableComponent
         $this->resetPage();
     }
 
-    public function updatedYear(): void
+    public function updatedFinancialPeriodId(): void
     {
         $this->resetPage();
     }
@@ -47,14 +49,16 @@ class ListFeeInvoicesTable extends DataTableComponent
     protected function builder(): Builder
     {
         $user = auth()->user();
-        $query = FeeInvoice::query()->whereYear('due_date', $this->year)->orderByDesc('due_date')->with(['user.studentRecord.academicCycleSection.academicLevel']);
+        $query = FeeInvoice::query()
+            ->ofSchool()
+            ->when($this->financialPeriodId !== null, fn (Builder $query) => $query->where('financial_period_id', $this->financialPeriodId))
+            ->orderByDesc('due_date')
+            ->with(['user', 'studentRecord.academicCycleSection.academicLevel']);
 
         if ($user->hasRole('parent')) {
-            $query->ofSchool()->whereRelation('user.parents', 'parent_records.user_id', $user->id);
+            $query->whereRelation('studentRecord.user.parents', 'parent_records.user_id', $user->id);
         } elseif ($user->hasRole('student')) {
-            $query->whereRelation('user', 'id', $user->id);
-        } else {
-            $query->ofSchool();
+            $query->where('student_record_id', $user->studentRecord?->id);
         }
 
         return match ($this->status) {
@@ -89,9 +93,9 @@ class ListFeeInvoicesTable extends DataTableComponent
     {
         return $rows->map(function (FeeInvoice $invoice): array {
             $row = $invoice->toArray();
-            $row['student_name'] = $invoice->user->name;
-            $row['class_name'] = $invoice->user->studentRecord->academicCycleSection->academicLevel->name ?? '—';
-            $row['section_name'] = $invoice->user->studentRecord->academicCycleSection->name ?? '—';
+            $row['student_name'] = $invoice->user?->name ?? 'Unknown student';
+            $row['class_name'] = $invoice->studentRecord?->academicCycleSection?->academicLevel?->name ?? '—';
+            $row['section_name'] = $invoice->studentRecord?->academicCycleSection?->name ?? '—';
             $row['paid_label'] = $invoice->paid->formatToLocale(app()->getLocale());
             $row['balance_label'] = $invoice->balance->formatToLocale(app()->getLocale());
             $row['due_date_label'] = $invoice->due_date->format('M j, Y');
@@ -107,8 +111,9 @@ class ListFeeInvoicesTable extends DataTableComponent
     public function render(): View
     {
         return view('livewire.list-fee-invoices-table', array_merge($this->aprilTablePayload(), [
-            'canManageInvoices' => !auth()->user()->hasAnyRole(['student', 'parent']),
-            'canPayInvoices' => !auth()->user()->hasAnyRole(['student', 'parent']),
+            'financialPeriods' => FinancialPeriod::query()->inSchool()->orderByDesc('starts_on')->get(),
+            'canManageInvoices' => auth()->user()->can('update fee invoice'),
+            'canPayInvoices' => auth()->user()->can('update fee invoice'),
             'canDeleteInvoices' => auth()->user()->can('delete fee invoice'),
         ]));
     }

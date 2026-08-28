@@ -7,8 +7,12 @@ use App\Exceptions\InvalidValueException;
 use App\Http\Requests\PayFeeInvoiceRequest;
 use App\Http\Requests\StoreFeeInvoiceRequest;
 use App\Http\Requests\UpdateFeeInvoiceRequest;
+use App\Models\Expense;
 use App\Models\FeeInvoice;
+use App\Models\FinancialPeriod;
+use App\Models\StudentPayment;
 use App\Services\Fee\FeeInvoiceService;
+use App\Services\Finance\FinancialPeriodResolver;
 use App\Services\Finance\PaymentChannelRegistry;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
@@ -27,9 +31,33 @@ class FeeInvoiceController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(): View
+    public function index(FinancialPeriodResolver $periods): View
     {
-        return view('pages.fee.fee-invoice.index');
+        $financialPeriods = FinancialPeriod::query()->inSchool()->orderByDesc('starts_on')->get();
+        $period = request()->integer('financial_period_id') > 0
+            ? $financialPeriods->firstWhere('id', request()->integer('financial_period_id'))
+            : $periods->currentOpen(current_school_id());
+
+        $invoices = $period === null
+            ? collect()
+            : FeeInvoice::query()->ofSchool()->where('financial_period_id', $period->id)
+                ->with(['feeInvoiceRecords.allocations', 'allocations'])->get();
+
+        $outstanding = $invoices->sum(fn (FeeInvoice $invoice): int => max($invoice->balance->getMinorAmount()->toInt(), 0));
+        $overdue = $invoices->filter(fn (FeeInvoice $invoice): bool => $invoice->balance->isPositive() && $invoice->due_date->isPast())->count();
+        $received = $period === null ? 0 : (int) StudentPayment::query()->inSchool()->where('financial_period_id', $period->id)->sum('amount');
+        $spent = $period === null ? 0 : (float) Expense::query()->inSchool()->where('financial_period_id', $period->id)->sum('amount');
+
+        return view('pages.fee.fee-invoice.index', [
+            'financialPeriods' => $financialPeriods,
+            'period' => $period,
+            'summary' => [
+                'outstanding' => $outstanding / 100,
+                'overdue' => $overdue,
+                'received' => $received / 100,
+                'spent' => $spent,
+            ],
+        ]);
     }
 
     /**
@@ -47,7 +75,7 @@ class FeeInvoiceController extends Controller
     {
         $this->feeInvoiceService->storeFeeInvoice($request->validated());
 
-        return back()->with('success', 'Fee Invoice Created Successfully');
+        return redirect()->route('fee-invoices.index')->with('success', 'Invoice created successfully.');
     }
 
     /**
@@ -103,7 +131,7 @@ class FeeInvoiceController extends Controller
     {
         $this->authorize('update', $feeInvoice);
 
-        $feeInvoice->loadMissing(['user.studentRecord', 'feeInvoiceRecords.fee', 'feeInvoiceRecords.allocations']);
+        $feeInvoice->loadMissing(['user', 'studentRecord', 'feeInvoiceRecords.fee', 'feeInvoiceRecords.allocations']);
 
         return view('pages.fee.fee-invoice.pay', [
             'feeInvoice' => $feeInvoice,
@@ -122,7 +150,7 @@ class FeeInvoiceController extends Controller
     {
         $this->authorize('update', $feeInvoice);
 
-        $enrollment = $feeInvoice->user?->studentRecord;
+        $enrollment = $feeInvoice->studentRecord;
 
         if ($enrollment === null) {
             throw new InvalidValueException('This invoice does not belong to an enrolled student.');

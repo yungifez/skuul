@@ -46,7 +46,12 @@ class BuildReport implements ShouldQueue
         try {
             $report = $registry->get($run->type);
             $format = $formats->get($run->format);
-            $rows = $report->rows(($run->parameters ?? []) + ['school_id' => $run->school_id]);
+            $rows = $report->rows(array_merge($run->parameters ?? [], [
+                'school_id' => $run->school_id,
+                'academic_year_id' => $run->academic_year_id,
+                'academic_period_id' => $run->academic_period_id,
+                'financial_period_id' => $run->financial_period_id,
+            ]));
 
             $path = "reports/$run->school_id/$run->id-$run->type.".$format->extension();
             Storage::disk('local')->put($path, $format->render($report->title(), $report->columns(), $rows));

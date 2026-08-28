@@ -7,6 +7,7 @@ use App\Actions\Finance\RefundStudent;
 use App\Actions\Finance\ReversePayment;
 use App\Http\Requests\RefundStudentRequest;
 use App\Http\Requests\ReversePaymentRequest;
+use App\Models\FeeInvoice;
 use App\Models\StudentPayment;
 use App\Models\StudentRecord;
 use App\Services\Finance\PaymentChannelRegistry;
@@ -44,12 +45,12 @@ class StudentAccountController extends Controller
             ->orderByDesc('id')
             ->get();
 
-        $invoices = $studentRecord->user === null
-            ? collect()
-            : $studentRecord->user->feeInvoices()
-                ->with(['feeInvoiceRecords.fee', 'feeInvoiceRecords.allocations'])
-                ->orderByDesc('due_date')
-                ->get();
+        $invoices = FeeInvoice::query()
+            ->ofSchool($studentRecord->school_id)
+            ->where('student_record_id', $studentRecord->id)
+            ->with(['feeInvoiceRecords.fee', 'feeInvoiceRecords.allocations'])
+            ->orderByDesc('due_date')
+            ->get();
 
         return view('pages.fee.account.show', [
             'enrollment' => $studentRecord,

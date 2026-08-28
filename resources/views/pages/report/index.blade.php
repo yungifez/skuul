@@ -53,6 +53,18 @@
                             for filing and handing over.
                         </p>
                     </div>
+
+                    <div class="flex flex-col gap-2">
+                        <label for="financial-period" class="text-sm font-medium leading-none">Financial period</label>
+                        <select id="financial-period" name="parameters[financial_period_id]"
+                            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                            <option value="">Current open period</option>
+                            @foreach ($financialPeriods as $financialPeriod)
+                                <option value="{{ $financialPeriod->id }}" @selected(old('parameters.financial_period_id') == $financialPeriod->id)>{{ $financialPeriod->name }}{{ $financialPeriod->isClosed() ? ' · Closed' : '' }}</option>
+                            @endforeach
+                        </select>
+                        <p class="text-xs text-muted-foreground">Finance reports use these dates. Academic reports keep their academic cycle.</p>
+                    </div>
                 </div>
 
                 <div>

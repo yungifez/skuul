@@ -5,6 +5,7 @@ namespace App\Actions\Report;
 use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AuditAction;
 use App\Jobs\BuildReport;
+use App\Models\FinancialPeriod;
 use App\Models\ReportRun;
 use App\Models\User;
 use App\Services\Report\ExportFormatRegistry;
@@ -22,28 +23,31 @@ class RequestReport
         private ReportRegistry $registry,
         private ExportFormatRegistry $formats,
         private RecordAuditEvent $auditor,
-    ) {
-    }
+    ) {}
 
     /**
      * Request the report.
      *
-     * @param array<string, mixed> $parameters
+     * @param  array<string, mixed>  $parameters
      */
     public function request(string $type, array $parameters = [], ?User $actor = null, string $format = 'csv'): ReportRun
     {
         // Fail here, not inside the worker, when a name is wrong.
         $report = $this->registry->get($type);
         $shape = $this->formats->get($format);
+        $period = isset($parameters['financial_period_id'])
+            ? FinancialPeriod::query()->inSchool()->find($parameters['financial_period_id'])
+            : FinancialPeriod::query()->inSchool()->open()->orderByDesc('starts_on')->first();
 
         $run = ReportRun::create([
-            'school_id'          => current_school_id(),
-            'type'               => $report->key(),
-            'format'             => $shape->key(),
-            'parameters'         => $parameters === [] ? null : $parameters,
-            'academic_year_id'   => current_academic_year_id(),
+            'school_id' => current_school_id(),
+            'type' => $report->key(),
+            'format' => $shape->key(),
+            'parameters' => $parameters === [] ? null : $parameters,
+            'academic_year_id' => current_academic_year_id(),
             'academic_period_id' => current_academic_period_id(),
-            'requested_by'       => $actor === null ? auth()->id() : $actor->id,
+            'financial_period_id' => $period?->id,
+            'requested_by' => $actor === null ? auth()->id() : $actor->id,
         ]);
 
         BuildReport::dispatch($run->id);

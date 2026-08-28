@@ -151,6 +151,16 @@ class School extends Model
     }
 
     /**
+     * Get the financial periods for this school's books.
+     *
+     * @return HasMany<FinancialPeriod, $this>
+     */
+    public function financialPeriods(): HasMany
+    {
+        return $this->hasMany(FinancialPeriod::class)->orderByDesc('starts_on');
+    }
+
+    /**
      * Get the people who can work in this school.
      *
      * @return BelongsToMany<User, $this>

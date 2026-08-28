@@ -28,6 +28,7 @@ class LedgerTransaction extends Model
 
     protected $fillable = [
         'school_id',
+        'financial_period_id',
         'reference',
         'description',
         'transaction_date',
@@ -45,8 +46,8 @@ class LedgerTransaction extends Model
      */
     protected $casts = [
         'transaction_date' => 'date:Y-m-d',
-        'posted_at'        => 'datetime',
-        'created_at'       => 'datetime',
+        'posted_at' => 'datetime',
+        'created_at' => 'datetime',
     ];
 
     /**
@@ -71,6 +72,16 @@ class LedgerTransaction extends Model
     public function lines(): HasMany
     {
         return $this->hasMany(LedgerLine::class);
+    }
+
+    /**
+     * Get the financial period in which this entry was posted.
+     *
+     * @return BelongsTo<FinancialPeriod, $this>
+     */
+    public function financialPeriod(): BelongsTo
+    {
+        return $this->belongsTo(FinancialPeriod::class);
     }
 
     /**

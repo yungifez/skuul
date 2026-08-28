@@ -3,6 +3,7 @@
 namespace App\Actions\Finance;
 
 use App\Exceptions\InvalidValueException;
+use App\Models\FinancialPeriod;
 use App\Models\LedgerTransaction;
 use App\Models\StudentRecord;
 use App\Models\User;
@@ -21,8 +22,7 @@ class ChargeStudent
     public function __construct(
         private PostLedgerTransaction $post,
         private ChartOfAccounts $chart,
-    ) {
-    }
+    ) {}
 
     /**
      * Charge the student.
@@ -37,6 +37,7 @@ class ChargeStudent
         ?User $actor = null,
         ?CarbonInterface $date = null,
         string $incomePurpose = 'tuition_income',
+        ?FinancialPeriod $period = null,
     ): LedgerTransaction {
         if ($amount <= 0) {
             throw new InvalidValueException('A charge must be more than nothing.');
@@ -48,21 +49,22 @@ class ChargeStudent
             description: $description,
             lines: [
                 [
-                    'account'           => $this->chart->account('fees_receivable', $schoolId),
-                    'debit'             => $amount,
+                    'account' => $this->chart->account('fees_receivable', $schoolId),
+                    'debit' => $amount,
                     'student_record_id' => $enrollment->id,
-                    'memo'              => $description,
+                    'memo' => $description,
                 ],
                 [
-                    'account'           => $this->chart->account($incomePurpose, $schoolId),
-                    'credit'            => $amount,
+                    'account' => $this->chart->account($incomePurpose, $schoolId),
+                    'credit' => $amount,
                     'student_record_id' => $enrollment->id,
-                    'memo'              => $description,
+                    'memo' => $description,
                 ],
             ],
             date: $date,
             source: $source,
             actor: $actor,
+            period: $period,
         );
     }
 }

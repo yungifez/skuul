@@ -53,8 +53,8 @@
             <p class="max-w-sm text-sm text-muted-foreground">
                 Money taken now would be held as credit for the student instead. Record it on the student's account.
             </p>
-            @if ($feeInvoice->user?->studentRecord !== null)
-                <april:button-link href="{{ route('student-accounts.show', $feeInvoice->user->studentRecord->id) }}" variant="outline">
+            @if ($feeInvoice->studentRecord !== null)
+                <april:button-link href="{{ route('student-accounts.show', $feeInvoice->studentRecord->id) }}" variant="outline">
                     Open the student account
                 </april:button-link>
             @endif

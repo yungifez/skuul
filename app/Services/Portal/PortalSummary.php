@@ -32,8 +32,7 @@ class PortalSummary
         private PortalAccess $access,
         private AttendanceSummary $attendance,
         private StudentLedger $ledger,
-    ) {
-    }
+    ) {}
 
     /**
      * Get the newest published result of each course offering.
@@ -120,10 +119,11 @@ class PortalSummary
 
         return [
             'invoices' => FeeInvoice::query()
-                ->where('user_id', $enrollment->user_id)
+                ->ofSchool($enrollment->school_id)
+                ->where('student_record_id', $enrollment->id)
                 ->orderByDesc('id')
                 ->get(),
-            'balance'          => $this->ledger->balance($enrollment),
+            'balance' => $this->ledger->balance($enrollment),
             'unapplied_credit' => $this->ledger->unappliedCredit($enrollment),
         ];
     }

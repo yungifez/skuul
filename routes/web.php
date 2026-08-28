@@ -11,16 +11,19 @@ use App\Http\Controllers\AdmissionWaitlistController;
 use App\Http\Controllers\BoardingPlaceController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CalendarTemplateController;
+use App\Http\Controllers\CashDepositController;
 use App\Http\Controllers\CourseOfferingController;
 use App\Http\Controllers\CustomTimetableItemController;
 use App\Http\Controllers\DormitoryController;
 use App\Http\Controllers\ExamController;
 use App\Http\Controllers\ExamSlotController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\FeeCategoryController;
 use App\Http\Controllers\FeeController;
 use App\Http\Controllers\FeeInvoiceController;
 use App\Http\Controllers\FeeInvoiceRecordController;
+use App\Http\Controllers\FinancialPeriodController;
 use App\Http\Controllers\GradebookController;
 use App\Http\Controllers\GradingScaleController;
 use App\Http\Controllers\HealthController;
@@ -41,6 +44,7 @@ use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SchoolSetupController;
 use App\Http\Controllers\StudentAccountController;
 use App\Http\Controllers\StudentController;
+use App\Http\Controllers\StudentPaymentController;
 use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\SyllabusController;
 use App\Http\Controllers\TeacherController;
@@ -405,13 +409,29 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::post('academic-periods/{academicPeriod}/begin-closing', ['App\Http\Controllers\AcademicPeriodController', 'beginClosing'])->name('academic-periods.begin-closing');
             Route::post('academic-periods/{academicPeriod}/reopen', ['App\Http\Controllers\AcademicPeriodController', 'reopen'])->name('academic-periods.reopen');
 
+            // Finance records use financial periods, not the staff member's
+            // current teaching term. A school can read and post finance while
+            // the academic period is being prepared or changed.
+            Route::resource('fees/fee-categories', FeeCategoryController::class);
+            Route::resource('fees/fee-invoices/fee-invoice-records', FeeInvoiceRecordController::class);
+            Route::post('fees/financial-periods', [FinancialPeriodController::class, 'store'])->name('financial-periods.store');
+            Route::post('fees/financial-periods/{financialPeriod}/close', [FinancialPeriodController::class, 'close'])->name('financial-periods.close');
+            Route::post('fees/financial-periods/{financialPeriod}/reopen', [FinancialPeriodController::class, 'reopen'])->name('financial-periods.reopen');
+            Route::resource('fees/expenses', ExpenseController::class)->only(['index', 'create', 'store']);
+            Route::resource('fees/cash-deposits', CashDepositController::class)->only(['index', 'create', 'store']);
+            Route::get('fees/accounts/{student_record}', [StudentAccountController::class, 'show'])->name('student-accounts.show');
+            Route::post('fees/accounts/{student_record}/credit', [StudentAccountController::class, 'applyCredit'])->name('student-accounts.apply-credit');
+            Route::post('fees/accounts/{student_record}/refund', [StudentAccountController::class, 'refund'])->name('student-accounts.refund');
+            Route::post('fees/payments/{student_payment}/reverse', [StudentAccountController::class, 'reverse'])->name('student-payments.reverse');
+            Route::get('fees/payments/{student_payment}/receipt', [StudentPaymentController::class, 'print'])->name('student-payments.receipt');
+            Route::get('fees/fee-invoices/{fee_invoice}/pay', [FeeInvoiceController::class, 'payView'])->name('fee-invoices.pay');
+            Route::post('fees/fee-invoices/{fee_invoice}/pay', [FeeInvoiceController::class, 'pay'])->name('fee-invoices.pay.store');
+            Route::get('fees/fee-invoices/{fee_invoice}/print', [FeeInvoiceController::class, 'print'])->name('fee-invoices.print');
+            Route::resource('fees/fee-invoices', FeeInvoiceController::class);
+            Route::resource('fees', FeeController::class);
+            Route::resource('fees/budgets', BudgetController::class)->only(['index', 'store', 'destroy']);
+
             Route::middleware(['App\Http\Middleware\EnsureAcademicPeriodIsSet'])->group(function () {
-                // fee categories routes
-                Route::resource('fees/fee-categories', FeeCategoryController::class);
-
-                // fee invoice record routes
-                Route::resource('fees/fee-invoices/fee-invoice-records', FeeInvoiceRecordController::class);
-
                 // shared facility routes
                 Route::resource('facilities', FacilityController::class)->only(['index', 'store', 'update', 'destroy']);
                 Route::post('facilities/bookings', [FacilityController::class, 'book'])->name('facilities.book');
@@ -445,24 +465,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                     Route::get('library/rules', [LibraryLendingRulesController::class, 'edit'])->name('library-rules.edit');
                     Route::put('library/rules', [LibraryLendingRulesController::class, 'update'])->name('library-rules.update');
                 });
-
-                // budget routes
-                Route::resource('fees/budgets', BudgetController::class)->only(['index', 'store', 'destroy']);
-
-                // student account routes
-                Route::get('fees/accounts/{student_record}', [StudentAccountController::class, 'show'])->name('student-accounts.show');
-                Route::post('fees/accounts/{student_record}/credit', [StudentAccountController::class, 'applyCredit'])->name('student-accounts.apply-credit');
-                Route::post('fees/accounts/{student_record}/refund', [StudentAccountController::class, 'refund'])->name('student-accounts.refund');
-                Route::post('fees/payments/{student_payment}/reverse', [StudentAccountController::class, 'reverse'])->name('student-payments.reverse');
-
-                // fee incvoice routes
-                Route::get('fees/fee-invoices/{fee_invoice}/pay', ['App\Http\Controllers\FeeInvoiceController', 'payView'])->name('fee-invoices.pay');
-                Route::post('fees/fee-invoices/{fee_invoice}/pay', ['App\Http\Controllers\FeeInvoiceController', 'pay'])->name('fee-invoices.pay.store');
-                Route::get('fees/fee-invoices/{fee_invoice}/print', ['App\Http\Controllers\FeeInvoiceController', 'print'])->name('fee-invoices.print');
-                Route::resource('fees/fee-invoices', FeeInvoiceController::class);
-
-                // fee routes
-                Route::resource('fees', FeeController::class);
 
                 Route::post('syllabi/{syllabus}/revise', [SyllabusController::class, 'revise'])->name('syllabi.revise');
                 Route::post('syllabi/{syllabus}/publish', [SyllabusController::class, 'publish'])->name('syllabi.publish');
