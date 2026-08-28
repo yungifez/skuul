@@ -50,7 +50,7 @@ class AcademicYearStructureTree extends Component
         $academicLevels = AcademicLevel::inSchool($academicYear->school_id)
             ->orderBy('position')
             ->orderBy('name')
-            ->get(['id', 'parent_id', 'name', 'status']);
+            ->get(['id', 'school_id', 'parent_id', 'name', 'status']);
 
         return view('livewire.academic-year-structure-tree', compact('academicYear', 'academicLevels'));
     }
