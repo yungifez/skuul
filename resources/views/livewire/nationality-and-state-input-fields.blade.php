@@ -1,5 +1,11 @@
 <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-    <april:input-group id="nationality" name="nationality" label="Nationality" placeholder="Person's nationality" value="{{ old('nationality', $nationality) }}" />
+    <div class="flex w-full flex-col gap-2">
+        <april:label for="nationality">Nationality</april:label>
+        <input id="nationality" name="nationality" type="text" value="{{ old('nationality', $nationality) }}" placeholder="Person's nationality" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+        @error('nationality')
+            <p class="text-sm text-destructive">{{ $message }}</p>
+        @enderror
+    </div>
 
     <div class="flex w-full flex-col gap-2">
         <april:label for="country">Country</april:label>
