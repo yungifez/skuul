@@ -60,7 +60,7 @@ class CourseOfferingController extends Controller
     public function create(): View
     {
         $academicYears = AcademicYear::inSchool()->with('topLevelPeriods')->orderByDesc('start_year')->get();
-        $academicLevels = AcademicLevel::inSchool()->orderBy('position')->orderBy('name')->get();
+        $academicLevels = AcademicLevel::inSchool()->where('is_group', false)->orderBy('position')->orderBy('name')->get();
         $selectedAcademicYearId = request()->integer('academic_year_id');
         $academicCycleSectionsQuery = AcademicCycleSection::inSchool()
             ->with(['academicLevel:id,name', 'academicYear:id,start_year,stop_year'])

@@ -83,7 +83,7 @@ class AcademicYearStructureTree extends Component
         $academicLevels = $academicLevelsQuery
             ->orderBy('position')
             ->orderBy('name')
-            ->get(['id', 'school_id', 'parent_id', 'name', 'code', 'status']);
+            ->get(['id', 'school_id', 'parent_id', 'name', 'code', 'status', 'is_group']);
 
         return view('livewire.academic-year-structure-tree', [
             'academicYear' => $academicYear,

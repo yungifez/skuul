@@ -11,6 +11,7 @@
 @php
     $value = static fn (string $field, $fallback = null) => old($field, $academicLevel?->{$field} ?? $fallback);
     $selected = static fn (string $field, $option) => (string) old($field, $field === 'parent_id' ? ($academicLevel?->parent_id ?? $preselectedParentId) : $academicLevel?->{$field}) === (string) $option;
+    $isGroup = filter_var(old('is_group', $academicLevel?->is_group ?? false), FILTER_VALIDATE_BOOLEAN);
 @endphp
 
 <form method="POST" action="{{ $action }}" class="space-y-6">
@@ -28,6 +29,18 @@
             </span>
         </slot:label>
     </april:input-group>
+
+    <input type="hidden" name="is_group" value="0">
+    <label class="flex cursor-pointer items-start gap-3 rounded-md border border-input p-4 transition-colors hover:bg-accent/40 has-[:checked]:border-primary/50 has-[:checked]:bg-primary/5">
+        <input type="checkbox" name="is_group" value="1" class="mt-0.5 size-4 shrink-0 rounded border-input" @checked($isGroup)>
+        <span class="space-y-1 text-sm">
+            <span class="flex items-center gap-1 font-medium">
+                This is a level group
+                <x-help-tooltip label="Level group help">Use this for an organizing label such as “Kindergarten”. It can contain teachable levels such as “KG 1” and “KG 2”, but it is not itself a class for learners.</x-help-tooltip>
+            </span>
+            <span class="block text-muted-foreground">Groups help organize the structure. They do not receive sections or subjects.</span>
+        </span>
+    </label>
 
     <div class="grid gap-4 md:grid-cols-2">
         <april:input-group id="code" name="code" label="Short code (optional)" value="{{ $value('code') }}" maxlength="100" placeholder="P4" />

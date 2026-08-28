@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * A reusable school level or level group, such as Kindergarten or KG 1.
  *
  * @property AcademicStructureStatus $status
+ * @property bool $is_group
  */
 class AcademicLevel extends Model
 {
@@ -25,6 +26,7 @@ class AcademicLevel extends Model
     protected $fillable = [
         'school_id',
         'parent_id',
+        'is_group',
         'name',
         'code',
         'position',
@@ -37,12 +39,14 @@ class AcademicLevel extends Model
     protected $attributes = [
         'status' => AcademicStructureStatus::Active->value,
         'position' => 0,
+        'is_group' => false,
     ];
 
     /**
      * @var array<string, string>
      */
     protected $casts = [
+        'is_group' => 'boolean',
         'position' => 'integer',
         'status' => AcademicStructureStatus::class,
     ];

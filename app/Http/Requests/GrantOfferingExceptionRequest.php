@@ -26,7 +26,7 @@ class GrantOfferingExceptionRequest extends FormRequest
             ],
             'academic_level_id' => [
                 'nullable', 'integer',
-                ValidationRule::exists('academic_levels', 'id')->where($ofThisSchool),
+                ValidationRule::exists('academic_levels', 'id')->where($ofThisSchool)->where('is_group', false),
             ],
             'roster_mode' => ['required', ValidationRule::in(RosterMode::values())],
             'reason' => 'required|string|min:10|max:500',

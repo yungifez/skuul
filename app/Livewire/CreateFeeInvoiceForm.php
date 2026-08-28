@@ -42,6 +42,7 @@ class CreateFeeInvoiceForm extends Component
         $this->addedStudents = collect();
         $this->feeCategories = FeeCategory::inSchool()->get();
         $this->academicLevels = AcademicLevel::inSchool()
+            ->where('is_group', false)
             ->whereHas('cycleSections', fn ($query) => $query->where('academic_year_id', current_academic_year_id()))
             ->orderBy('position')
             ->orderBy('name')
@@ -144,8 +145,7 @@ class CreateFeeInvoiceForm extends Component
     /**
      * Get the active students placed in any of the given cycle sections.
      *
-     * @param array<int, int> $cycleSectionIds
-     *
+     * @param  array<int, int>  $cycleSectionIds
      * @return Collection<int, User>
      */
     private function studentsOfSections(array $cycleSectionIds)

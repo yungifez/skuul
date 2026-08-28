@@ -51,7 +51,7 @@ class AcademicYearSetupController extends Controller
             $academicLevels = AcademicLevel::inSchool($academicYear->school_id)
                 ->orderBy('position')
                 ->orderBy('name')
-                ->get(['id', 'parent_id', 'name', 'status']);
+                ->get(['id', 'parent_id', 'name', 'status', 'is_group']);
         }
 
         if ($requested === AcademicYearSetupStep::Subjects) {

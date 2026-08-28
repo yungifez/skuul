@@ -76,6 +76,10 @@ class CreateAcademicCycleSection
             throw new InvalidValueException('The academic level belongs to another school.');
         }
 
+        if ($academicLevel->is_group) {
+            throw new InvalidValueException('A level group organizes teachable levels. Add this section under one of its child levels.');
+        }
+
         if ($academicYear->isClosed()) {
             throw new InvalidValueException('The academic cycle is closed. Reopen it before configuring sections.');
         }

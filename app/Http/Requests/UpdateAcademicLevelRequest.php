@@ -39,10 +39,11 @@ class UpdateAcademicLevelRequest extends FormRequest
                 'nullable', 'string', 'max:100',
                 Rule::unique('academic_levels', 'code')->where('school_id', current_school_id())->ignore($academicLevel->id),
             ],
+            'is_group' => ['sometimes', 'boolean'],
             'parent_id' => [
                 'nullable', 'integer',
                 Rule::notIn([$academicLevel->id]),
-                Rule::exists('academic_levels', 'id')->where('school_id', current_school_id()),
+                Rule::exists('academic_levels', 'id')->where('school_id', current_school_id())->where('is_group', true),
             ],
             'position' => ['nullable', 'integer', 'min:0', 'max:9999'],
         ];

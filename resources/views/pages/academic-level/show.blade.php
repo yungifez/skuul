@@ -26,7 +26,7 @@
     <div class="grid gap-6 lg:grid-cols-3">
         <april:card class="lg:col-span-2">
             <slot:title>What this {{ strtolower(school_term('class_level', 'class')) }} is</slot:title>
-            <slot:description>A reusable level a learner can be placed into. Use a parent level to organize groups such as Kindergarten → KG 1.</slot:description>
+            <slot:description>{{ $academicLevel->is_group ? 'An organizing group for teachable levels. Learners, sections, and subjects belong under its child levels.' : 'A reusable level a learner can be placed into. Use a parent level to organize groups such as Kindergarten → KG 1.' }}</slot:description>
             <slot:content class="space-y-4">
                 <dl class="grid gap-4 sm:grid-cols-2">
                     <div>
@@ -44,7 +44,9 @@
                     <div>
                         <dt class="text-sm text-muted-foreground">Level group</dt>
                         <dd class="font-medium">
-                            @if ($academicLevel->parent)
+                            @if ($academicLevel->is_group)
+                                Yes — organizing only
+                            @elseif ($academicLevel->parent)
                                 <a href="{{ route('academic-levels.show', $academicLevel->parent) }}" class="hover:underline">{{ $academicLevel->parent->name }}</a>
                             @else
                                 No parent group. This is a top-level group or standalone {{ strtolower(school_term('class_level', 'level')) }}.
@@ -81,7 +83,7 @@
                 </dl>
 
                 @can('create', \App\Models\AcademicCycleSection::class)
-                    @if ($academicLevel->status === \App\Enums\AcademicStructureStatus::Active)
+                    @if (!$academicLevel->is_group && $academicLevel->status === \App\Enums\AcademicStructureStatus::Active)
                         <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_level_id' => $academicLevel->id]) }}" class="w-full">
                             <x-lucide-plus class="mr-1.5 size-4" />
                             Add {{ strtolower(school_term('section', 'section')) }}
@@ -100,12 +102,14 @@
                 <x-empty-state
                     icon="lucide-layers"
                     title="No {{ strtolower(school_term('section', 'section')) }} uses this {{ strtolower(school_term('class_level', 'class')) }} yet"
-                    description="Create the first named group, such as “Green”, for the {{ strtolower(school_term('academic_year', 'school year')) }} that will run it.">
+                    description="{{ $academicLevel->is_group ? 'This is an organizing group. Add a child level before creating a section.' : 'Create the first named group, such as “Green”, for the '.strtolower(school_term('academic_year', 'school year')).' that will run it.' }}">
                     @can('create', \App\Models\AcademicCycleSection::class)
+                        @if (!$academicLevel->is_group)
                         <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_level_id' => $academicLevel->id]) }}">
                             <x-lucide-plus class="mr-1.5 size-4" />
                             Add {{ strtolower(school_term('section', 'section')) }}
                         </april:button-link>
+                        @endif
                     @endcan
                 </x-empty-state>
             @else

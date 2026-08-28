@@ -35,7 +35,7 @@ class SchoolSetupChecklist
     {
         $academicYear = current_academic_year();
         $hasAcademicYear = AcademicYear::query()->inSchool($school)->exists();
-        $academicLevels = AcademicLevel::query()->inSchool($school)->count();
+        $academicLevels = AcademicLevel::query()->inSchool($school)->where('is_group', false)->count();
         $academicPeriods = $academicYear?->topLevelPeriods()->count() ?? 0;
         $cycleSections = $academicYear === null
             ? 0

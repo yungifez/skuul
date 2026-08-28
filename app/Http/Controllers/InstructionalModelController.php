@@ -65,7 +65,7 @@ class InstructionalModelController extends Controller
             'exceptions' => $this->exceptions->forCycle($academicYear),
             'canExcept' => $user?->can('setInstructionalModel', $academicYear) === true,
             'subjects' => Subject::inSchool($academicYear->school_id)->orderBy('name')->get(),
-            'academicLevels' => AcademicLevel::inSchool($academicYear->school_id)->orderBy('position')->orderBy('name')->get(),
+            'academicLevels' => AcademicLevel::inSchool($academicYear->school_id)->where('is_group', false)->orderBy('position')->orderBy('name')->get(),
             'exceptionModes' => array_values(array_filter(
                 RosterMode::cases(),
                 fn (RosterMode $mode): bool => !$model->allowsRosterMode($mode),

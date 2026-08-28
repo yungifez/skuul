@@ -26,7 +26,7 @@ class StoreAcademicCycleSectionRequest extends FormRequest
     {
         return [
             'academic_year_id' => ['required', 'integer', Rule::exists('academic_years', 'id')->where('school_id', current_school_id())],
-            'academic_level_id' => ['required', 'integer', Rule::exists('academic_levels', 'id')->where('school_id', current_school_id())],
+            'academic_level_id' => ['required', 'integer', Rule::exists('academic_levels', 'id')->where('school_id', current_school_id())->where('is_group', false)],
             'homeroom_teacher_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
             // A cycle keeps one section of each name inside a level, which the
             // `academic_cycle_sections_identity_unique` index enforces. Catch

@@ -53,6 +53,7 @@ class AcademicLevelController extends Controller
         $preselectedParent = $request->filled('parent_id')
             ? AcademicLevel::inSchool()
                 ->where('status', AcademicStructureStatus::Active)
+                ->where('is_group', true)
                 ->find($request->integer('parent_id'))
             : null;
 
@@ -69,6 +70,7 @@ class AcademicLevelController extends Controller
             $this->parentFrom($data['parent_id'] ?? null),
             $data['position'] ?? 0,
             $request->user(),
+            $request->boolean('is_group'),
         );
 
         if ($request->boolean('setup')) {
@@ -157,6 +159,13 @@ class AcademicLevelController extends Controller
     {
         $academicLevels = AcademicLevel::inSchool()
             ->where('status', AcademicStructureStatus::Active)
+            ->where(function (Builder $query) use ($except): void {
+                $query->where('is_group', true);
+
+                if ($except?->parent_id !== null) {
+                    $query->orWhereKey($except->parent_id);
+                }
+            })
             ->when($except !== null, fn (Builder $query) => $query->whereKeyNot($except->id))
             ->orderBy('position')
             ->orderBy('name')

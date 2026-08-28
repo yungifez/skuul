@@ -13,11 +13,15 @@
             $setupParameters['school_setup'] = 1;
         }
 
-        $levelSummary = $children->isNotEmpty()
-            ? 'Umbrella group · '.$children->count().' '.($children->count() === 1 ? 'level' : 'levels')
-            : ($academicYear === null
+        if ($academicLevel->is_group) {
+            $levelSummary = 'Organizing group · '.$children->count().' '.($children->count() === 1 ? 'level' : 'levels');
+        } elseif ($children->isNotEmpty()) {
+            $levelSummary = 'Umbrella group · '.$children->count().' '.($children->count() === 1 ? 'level' : 'levels');
+        } else {
+            $levelSummary = $academicYear === null
                 ? 'Reusable class or grade'
-                : $sections->count().' '.($sections->count() === 1 ? strtolower(school_term('section', 'section')) : strtolower(school_terms('section', 'sections'))));
+                : $sections->count().' '.($sections->count() === 1 ? strtolower(school_term('section', 'section')) : strtolower(school_terms('section', 'sections')));
+        }
 
         if ($children->isNotEmpty() && $sections->isNotEmpty()) {
             $levelSummary .= ' · '.$sections->count().' '.($sections->count() === 1 ? strtolower(school_term('section', 'section')) : strtolower(school_terms('section', 'sections')));
@@ -32,6 +36,9 @@
                     <span class="min-w-0">
                         <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
                             <span class="font-semibold">{{ $academicLevel->name }}</span>
+                            @if ($academicLevel->is_group)
+                                <span class="text-xs text-muted-foreground">Group · not teachable</span>
+                            @endif
                             @if ($academicLevel->code)
                                 <span class="text-xs text-muted-foreground">{{ $academicLevel->code }}</span>
                             @endif
@@ -57,7 +64,7 @@
                     @can('create', \App\Models\AcademicLevel::class)
                         <april:button-link href="{{ route('academic-levels.create', ['parent_id' => $academicLevel->id] + $setupParameters) }}" variant="outline" size="sm">Add class</april:button-link>
                     @endcan
-                    @if ($children->isEmpty() && $academicYear !== null)
+                    @if (!$academicLevel->is_group && $children->isEmpty() && $academicYear !== null)
                         @can('create', \App\Models\AcademicCycleSection::class)
                             <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_level_id' => $academicLevel->id] + $setupParameters) }}" variant="outline" size="sm">Add section</april:button-link>
                         @endcan

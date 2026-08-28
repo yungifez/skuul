@@ -27,7 +27,8 @@ class StoreAcademicLevelRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:255', Rule::unique('academic_levels', 'name')->where('school_id', current_school_id())],
             'code' => ['nullable', 'string', 'max:100', Rule::unique('academic_levels', 'code')->where('school_id', current_school_id())],
-            'parent_id' => ['nullable', 'integer', Rule::exists('academic_levels', 'id')->where('school_id', current_school_id())],
+            'is_group' => ['sometimes', 'boolean'],
+            'parent_id' => ['nullable', 'integer', Rule::exists('academic_levels', 'id')->where('school_id', current_school_id())->where('is_group', true)],
             'position' => ['nullable', 'integer', 'min:0', 'max:9999'],
         ];
     }

@@ -20,7 +20,7 @@ class UpdateAcademicLevel
      * The change never touches the sections, placements, or results that
      * already name the level. Only the level's own description moves.
      *
-     * @param  array{name?: string, code?: string|null, position?: int}  $details
+     * @param  array{name?: string, code?: string|null, position?: int, is_group?: bool}  $details
      *
      * @throws InvalidValueException when the parent does not fit
      */
@@ -30,9 +30,11 @@ class UpdateAcademicLevel
         ?AcademicLevel $parent = null,
         ?User $actor = null,
     ): AcademicLevel {
-        $this->failIfRecordsDoNotFit($academicLevel, $parent);
+        $isGroup = filter_var($details['is_group'] ?? $academicLevel->is_group, FILTER_VALIDATE_BOOLEAN);
 
-        return DB::transaction(function () use ($academicLevel, $details, $parent, $actor): AcademicLevel {
+        $this->failIfRecordsDoNotFit($academicLevel, $parent, $isGroup);
+
+        return DB::transaction(function () use ($academicLevel, $details, $parent, $actor, $isGroup): AcademicLevel {
             /** @var AcademicLevel $academicLevel */
             $academicLevel = AcademicLevel::query()->lockForUpdate()->findOrFail($academicLevel->id);
 
@@ -45,6 +47,7 @@ class UpdateAcademicLevel
                 'code' => $academicLevel->code,
                 'position' => $academicLevel->position,
                 'parent_id' => $academicLevel->parent_id,
+                'is_group' => $academicLevel->is_group,
             ];
 
             $academicLevel->fill([
@@ -52,6 +55,7 @@ class UpdateAcademicLevel
                 'code' => $details['code'] ?? null,
                 'position' => $details['position'] ?? 0,
                 'parent_id' => $parent?->id,
+                'is_group' => $isGroup,
             ]);
 
             $after = [
@@ -59,6 +63,7 @@ class UpdateAcademicLevel
                 'code' => $academicLevel->code,
                 'position' => $academicLevel->position,
                 'parent_id' => $academicLevel->parent_id,
+                'is_group' => $academicLevel->is_group,
             ];
 
             if ($before === $after) {
@@ -84,7 +89,16 @@ class UpdateAcademicLevel
     private function failIfRecordsDoNotFit(
         AcademicLevel $academicLevel,
         ?AcademicLevel $parent,
+        bool $isGroup,
     ): void {
+        if ($isGroup && $parent !== null) {
+            throw new InvalidValueException('A level group must be a top-level group without a parent.');
+        }
+
+        if (!$isGroup && $academicLevel->children()->exists()) {
+            throw new InvalidValueException('Move the child levels first before marking this group as a teachable level.');
+        }
+
         if ($parent !== null) {
             if ($parent->school_id !== $academicLevel->school_id) {
                 throw new InvalidValueException('The parent academic level belongs to another school.');

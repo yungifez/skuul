@@ -43,7 +43,7 @@ class StoreCourseOfferingRequest extends FormRequest
                 },
             ],
             'subject_id' => ['required', 'integer', Rule::exists('subjects', 'id')->where('school_id', current_school_id())],
-            'academic_level_id' => ['required', 'integer', Rule::exists('academic_levels', 'id')->where('school_id', current_school_id())],
+            'academic_level_id' => ['required', 'integer', Rule::exists('academic_levels', 'id')->where('school_id', current_school_id())->where('is_group', false)],
             'roster_mode' => ['required', Rule::enum(RosterMode::class)],
             'academic_cycle_section_ids' => ['nullable', 'array'],
             'academic_cycle_section_ids.*' => ['integer', 'distinct', Rule::exists('academic_cycle_sections', 'id')->where('school_id', current_school_id())],
