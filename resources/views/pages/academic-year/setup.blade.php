@@ -57,7 +57,7 @@
                         <div class="flex items-start justify-between gap-3">
                             <div>
                                 <h3 class="font-semibold">Classes and sections already added</h3>
-                                <p class="text-sm text-muted-foreground">Review the levels and year-specific sections as you build {{ $academicYear->name }}.</p>
+                                <p class="text-sm text-muted-foreground">Expand a level to see its sections. Use the arrows to change display order.</p>
                             </div>
                             <x-help-tooltip label="Classes and sections help">A level is reusable, such as Primary 4 or Kindergarten. A section is the named group that runs in this school year, such as Green or KG 1 Blue.</x-help-tooltip>
                         </div>
@@ -72,7 +72,7 @@
                             </div>
                         @else
                             @include('pages.academic-year.partials.level-tree', [
-                                'levels' => $academicLevels->whereNull('parent_id'),
+                                'levels' => $academicLevels->whereNull('parent_id')->values(),
                                 'childrenByParent' => $academicLevels->groupBy('parent_id'),
                                 'sectionsByLevel' => $sectionsByLevel,
                                 'academicYear' => $academicYear,

@@ -1,26 +1,127 @@
-@foreach ($levels as $academicLevel)
+@foreach ($levels->values() as $levelIndex => $academicLevel)
     @php
         $children = $childrenByParent->get($academicLevel->id, collect());
-        $sections = $sectionsByLevel->get($academicLevel->id, collect());
+        $sections = $sectionsByLevel->get($academicLevel->id, collect())->values();
         $hasChildren = $children->isNotEmpty() || $sections->isNotEmpty();
+        $levelSummary = $children->isNotEmpty()
+            ? 'Umbrella group · '.$children->count().' '.($children->count() === 1 ? 'level' : 'levels')
+            : $sections->count().' '.($sections->count() === 1 ? strtolower(school_term('section', 'section')) : strtolower(school_terms('section', 'sections')));
+
+        if ($children->isNotEmpty() && $sections->isNotEmpty()) {
+            $levelSummary .= ' · '.$sections->count().' '.($sections->count() === 1 ? strtolower(school_term('section', 'section')) : strtolower(school_terms('section', 'sections')));
+        }
     @endphp
 
     <div class="space-y-2">
-        <div class="flex items-start justify-between gap-3 rounded-md border bg-background p-3">
-            <div class="flex min-w-0 items-start gap-2">
-                <x-lucide-folder-tree class="mt-0.5 size-4 shrink-0 text-muted-foreground" />
-                <div class="min-w-0">
-                    <p class="font-semibold">{{ $academicLevel->name }}</p>
-                    <p class="text-sm text-muted-foreground">
+        <div class="flex items-start gap-2 rounded-md border bg-background p-3">
+            <details open class="group min-w-0 flex-1">
+                <summary class="flex cursor-pointer list-none items-start gap-2 marker:hidden [&::-webkit-details-marker]:hidden">
+                    <x-lucide-chevron-right class="mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
+                    <span class="min-w-0">
+                        <span class="block font-semibold">{{ $academicLevel->name }}</span>
+                        <span class="block text-sm text-muted-foreground">{{ $levelSummary }}</span>
+                    </span>
+                </summary>
+
+                @if ($hasChildren)
+                    <div class="ml-4 mt-3 space-y-2 border-l pl-4">
                         @if ($children->isNotEmpty())
-                            Umbrella group · {{ $children->count() }} {{ $children->count() === 1 ? 'level' : 'levels' }}
-                        @else
-                            {{ $sections->count() }} {{ $sections->count() === 1 ? strtolower(school_term('section', 'section')) : strtolower(school_terms('section', 'sections')) }}
+                            @include('pages.academic-year.partials.level-tree', [
+                                'levels' => $children,
+                                'childrenByParent' => $childrenByParent,
+                                'sectionsByLevel' => $sectionsByLevel,
+                                'academicYear' => $academicYear,
+                            ])
                         @endif
-                    </p>
-                </div>
-            </div>
-            <div class="flex shrink-0 items-center gap-1">
+
+                        @foreach ($sections as $sectionIndex => $section)
+                            @php
+                                $sectionDetails = collect([
+                                    $section->stream ? 'Stream: '.$section->stream : null,
+                                    $section->shift ? 'Shift: '.$section->shift : null,
+                                    $section->room ? 'Room: '.$section->room : null,
+                                    $section->capacity !== null ? 'Capacity: '.$section->capacity : null,
+                                    $section->language ? 'Language: '.$section->language : null,
+                                    $section->homeroomTeacher?->name ? 'Teacher: '.$section->homeroomTeacher->name : null,
+                                ])->filter()->join(' · ');
+                            @endphp
+                            <div class="flex items-start justify-between gap-3 rounded-md bg-muted/30 px-3 py-2 text-sm">
+                                <div class="flex min-w-0 items-start gap-2">
+                                    <span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-muted-foreground"></span>
+                                    <div class="min-w-0">
+                                        <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
+                                            @can('view', $section)
+                                                <a href="{{ route('academic-cycle-sections.show', $section) }}" class="font-medium hover:underline">{{ $section->name }}</a>
+                                            @else
+                                                <span class="font-medium">{{ $section->name }}</span>
+                                            @endcan
+                                            @if ($section->label && $section->label !== $section->name)
+                                                <span class="text-xs text-muted-foreground">{{ $section->label }}</span>
+                                            @endif
+                                        </div>
+                                        <p class="text-xs text-muted-foreground">{{ $sectionDetails ?: 'No additional details yet' }}</p>
+                                    </div>
+                                </div>
+                                <div class="flex shrink-0 items-center gap-1">
+                                    <x-academic-structure-status :status="$section->status" />
+                                    @can('update', $section)
+                                        @if ($section->isEditable())
+                                            @if ($sectionIndex > 0)
+                                                <form method="POST" action="{{ route('academic-cycle-sections.position.update', $section) }}">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <input type="hidden" name="direction" value="up">
+                                                    <button type="submit" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground" aria-label="Move {{ $section->name }} up" title="Move up">
+                                                        <x-lucide-chevron-up class="size-4" />
+                                                    </button>
+                                                </form>
+                                            @endif
+                                            @if ($sectionIndex < $sections->count() - 1)
+                                                <form method="POST" action="{{ route('academic-cycle-sections.position.update', $section) }}">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <input type="hidden" name="direction" value="down">
+                                                    <button type="submit" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground" aria-label="Move {{ $section->name }} down" title="Move down">
+                                                        <x-lucide-chevron-down class="size-4" />
+                                                    </button>
+                                                </form>
+                                            @endif
+                                        @endif
+                                    @endcan
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div class="ml-4 mt-3 border-l pl-4 text-sm">
+                        <span class="text-muted-foreground">No section added for this year yet</span>
+                    </div>
+                @endif
+            </details>
+
+            <div class="flex shrink-0 flex-wrap items-center justify-end gap-1">
+                @can('update', $academicLevel)
+                    @if ($levelIndex > 0)
+                        <form method="POST" action="{{ route('academic-levels.position.update', $academicLevel) }}">
+                            @csrf
+                            @method('PUT')
+                            <input type="hidden" name="direction" value="up">
+                            <button type="submit" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Move {{ $academicLevel->name }} up" title="Move up">
+                                <x-lucide-chevron-up class="size-4" />
+                            </button>
+                        </form>
+                    @endif
+                    @if ($levelIndex < $levels->count() - 1)
+                        <form method="POST" action="{{ route('academic-levels.position.update', $academicLevel) }}">
+                            @csrf
+                            @method('PUT')
+                            <input type="hidden" name="direction" value="down">
+                            <button type="submit" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Move {{ $academicLevel->name }} down" title="Move down">
+                                <x-lucide-chevron-down class="size-4" />
+                            </button>
+                        </form>
+                    @endif
+                @endcan
                 @can('create', \App\Models\AcademicLevel::class)
                     <april:button-link href="{{ route('academic-levels.create', ['parent_id' => $academicLevel->id, 'setup' => 1, 'academic_year_id' => $academicYear->id]) }}" variant="outline" size="sm">Add class</april:button-link>
                 @endcan
@@ -34,39 +135,5 @@
                 @endcan
             </div>
         </div>
-
-        @if ($hasChildren)
-            <div class="ml-4 space-y-2 border-l pl-4">
-                @foreach ($children as $child)
-                    @include('pages.academic-year.partials.level-tree', [
-                        'levels' => collect([$child]),
-                        'childrenByParent' => $childrenByParent,
-                        'sectionsByLevel' => $sectionsByLevel,
-                        'academicYear' => $academicYear,
-                    ])
-                @endforeach
-
-                @foreach ($sections as $section)
-                    <div class="flex items-center justify-between gap-3 rounded-md bg-muted/30 px-3 py-2 text-sm">
-                        <div class="flex min-w-0 items-center gap-2">
-                            <span class="size-1.5 shrink-0 rounded-full bg-muted-foreground"></span>
-                            @can('view', $section)
-                                <a href="{{ route('academic-cycle-sections.show', $section) }}" class="font-medium hover:underline">{{ $section->name }}</a>
-                            @else
-                                <span class="font-medium">{{ $section->name }}</span>
-                            @endcan
-                            @if ($section->stream || $section->shift)
-                                <span class="truncate text-muted-foreground">{{ collect([$section->stream, $section->shift])->filter()->join(' · ') }}</span>
-                            @endif
-                        </div>
-                        <x-academic-structure-status :status="$section->status" />
-                    </div>
-                @endforeach
-            </div>
-        @else
-            <div class="ml-4 border-l pl-4 text-sm">
-                <span class="text-muted-foreground">No section added for this year yet</span>
-            </div>
-        @endif
     </div>
 @endforeach

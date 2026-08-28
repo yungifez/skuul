@@ -45,7 +45,7 @@ class AcademicYearSetupController extends Controller
         $academicLevels = collect();
 
         if ($requested === AcademicYearSetupStep::Structure) {
-            $academicYear->load('cycleSections.academicLevel');
+            $academicYear->load(['cycleSections.academicLevel', 'cycleSections.homeroomTeacher']);
             $academicLevels = AcademicLevel::inSchool($academicYear->school_id)
                 ->orderBy('position')
                 ->orderBy('name')
