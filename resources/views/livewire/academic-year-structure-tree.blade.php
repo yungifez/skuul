@@ -1,4 +1,4 @@
-<div wire:loading.class="opacity-70" wire:target="moveLevel,moveSection" class="transition-opacity">
+<div wire:loading.class="opacity-70" wire:target="moveLevel,moveSection" class="w-full min-w-0 transition-opacity">
     @php
         $sectionsByLevel = $academicYear->cycleSections->groupBy('academic_level_id');
     @endphp

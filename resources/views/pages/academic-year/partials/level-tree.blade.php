@@ -12,9 +12,9 @@
         }
     @endphp
 
-    <div wire:key="academic-level-{{ $academicLevel->id }}" class="space-y-2">
-        <div class="flex items-start gap-2 rounded-md border bg-background p-3">
-            <details open class="group min-w-0 flex-1">
+    <div wire:key="academic-level-{{ $academicLevel->id }}" class="w-full min-w-0 space-y-2">
+        <div class="flex min-w-0 flex-col gap-3 rounded-md border bg-background p-3 sm:flex-row sm:items-start">
+            <details open class="group w-full min-w-0 sm:w-auto sm:flex-1">
                 <summary class="flex cursor-pointer list-none items-start gap-2 marker:hidden [&::-webkit-details-marker]:hidden">
                     <x-lucide-chevron-right class="mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
                     <span class="min-w-0">
@@ -24,7 +24,7 @@
                 </summary>
 
                 @if ($hasChildren)
-                    <div class="ml-4 mt-3 space-y-2 border-l pl-4">
+                    <div class="ml-2 mt-3 w-full min-w-0 space-y-2 border-l pl-3 sm:ml-4 sm:pl-4">
                         @if ($children->isNotEmpty())
                             @include('pages.academic-year.partials.level-tree', [
                                 'levels' => $children,
@@ -45,7 +45,7 @@
                                     $section->homeroomTeacher?->name ? 'Teacher: '.$section->homeroomTeacher->name : null,
                                 ])->filter()->join(' · ');
                             @endphp
-                            <div wire:key="academic-cycle-section-{{ $section->id }}" class="flex items-start justify-between gap-3 rounded-md bg-muted/30 px-3 py-2 text-sm">
+                            <div wire:key="academic-cycle-section-{{ $section->id }}" class="flex min-w-0 flex-col gap-2 rounded-md bg-muted/30 px-3 py-2 text-sm sm:flex-row sm:items-start sm:justify-between">
                                 <div class="flex min-w-0 items-start gap-2">
                                     <span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-muted-foreground"></span>
                                     <div class="min-w-0">
@@ -62,7 +62,7 @@
                                         <p class="text-xs text-muted-foreground">{{ $sectionDetails ?: 'No additional details yet' }}</p>
                                     </div>
                                 </div>
-                                <div class="flex shrink-0 items-center gap-1">
+                                <div class="flex w-full shrink-0 items-center justify-end gap-1 border-t pt-2 sm:w-auto sm:justify-start sm:border-t-0 sm:pt-0">
                                     <x-academic-structure-status :status="$section->status" />
                                     @can('update', $section)
                                         @if ($section->isEditable())
@@ -83,13 +83,13 @@
                         @endforeach
                     </div>
                 @else
-                    <div class="ml-4 mt-3 border-l pl-4 text-sm">
+                    <div class="ml-2 mt-3 w-full min-w-0 border-l pl-3 text-sm sm:ml-4 sm:pl-4">
                         <span class="text-muted-foreground">No section added for this year yet</span>
                     </div>
                 @endif
             </details>
 
-            <div class="flex shrink-0 flex-wrap items-center justify-end gap-1">
+            <div class="flex w-full shrink-0 flex-wrap items-center justify-end gap-1 border-t pt-2 sm:w-auto sm:justify-start sm:border-t-0 sm:pt-0">
                 @can('update', $academicLevel)
                     @if ($levelIndex > 0)
                         <button type="button" wire:click="moveLevel({{ $academicLevel->id }}, 'up')" wire:loading.attr="disabled" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50" aria-label="Move {{ $academicLevel->name }} up" title="Move up">

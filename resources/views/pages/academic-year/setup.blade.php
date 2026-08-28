@@ -20,7 +20,7 @@
 @section('page_heading', 'Set up '.$academicYear->name)
 
 @section('content')
-    <div class="mx-auto flex w-full max-w-5xl flex-col gap-6">
+    <div class="mx-auto flex w-full {{ $currentStep === \App\Enums\AcademicYearSetupStep::Structure ? 'max-w-7xl' : 'max-w-5xl' }} flex-col gap-6">
         <div class="flex items-center gap-1 text-sm text-muted-foreground">
             <span>Setup saves automatically.</span>
             <x-help-tooltip label="Academic year setup help">You can leave this page and continue later. Completed steps stay available for review.</x-help-tooltip>
@@ -43,7 +43,7 @@
                 <slot:title>Build this year’s classes</slot:title>
                 <slot:description>Create this year’s sections inside the levels your school uses.</slot:description>
                 <slot:footer><x-help-tooltip label="Class setup help">Add reusable classes or grades first. Then create this year’s sections or forms and assign class teachers.</x-help-tooltip></slot:footer>
-                <slot:content class="space-y-6">
+                <slot:content class="min-w-0 space-y-6">
                     <div class="flex flex-wrap gap-3">
                         <april:button-link href="{{ route('academic-levels.create', ['setup' => 1, 'academic_year_id' => $academicYear->id]) }}">Add a level or group</april:button-link>
                         <april:button-link href="{{ route('academic-levels.index') }}" variant="ghost">Manage levels and groups</april:button-link>
