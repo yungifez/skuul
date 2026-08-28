@@ -13,15 +13,42 @@
     @endphp
 
     <div wire:key="academic-level-{{ $academicLevel->id }}" class="w-full min-w-0 space-y-2">
-        <div class="flex min-w-0 flex-col gap-3 rounded-md border bg-background p-3 sm:flex-row sm:items-start">
-            <details open class="group w-full min-w-0 sm:w-auto sm:flex-1">
-                <summary class="flex cursor-pointer list-none items-start gap-2 marker:hidden [&::-webkit-details-marker]:hidden">
+        <details open class="group w-full min-w-0 rounded-md border bg-background p-3">
+            <summary class="flex cursor-pointer list-none flex-col gap-3 marker:hidden [&::-webkit-details-marker]:hidden sm:flex-row sm:items-start">
+                <span class="flex min-w-0 items-start gap-2">
                     <x-lucide-chevron-right class="mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
                     <span class="min-w-0">
                         <span class="block font-semibold">{{ $academicLevel->name }}</span>
                         <span class="block text-sm text-muted-foreground">{{ $levelSummary }}</span>
                     </span>
-                </summary>
+                </span>
+
+                <div x-on:click.stop class="flex w-full shrink-0 flex-wrap items-center justify-end gap-1 sm:w-auto sm:justify-start">
+                    @can('update', $academicLevel)
+                        @if ($levelIndex > 0)
+                            <button type="button" wire:click="moveLevel({{ $academicLevel->id }}, 'up')" wire:loading.attr="disabled" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50" aria-label="Move {{ $academicLevel->name }} up" title="Move up">
+                                <x-lucide-chevron-up class="size-4" />
+                            </button>
+                        @endif
+                        @if ($levelIndex < $levels->count() - 1)
+                            <button type="button" wire:click="moveLevel({{ $academicLevel->id }}, 'down')" wire:loading.attr="disabled" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50" aria-label="Move {{ $academicLevel->name }} down" title="Move down">
+                                <x-lucide-chevron-down class="size-4" />
+                            </button>
+                        @endif
+                    @endcan
+                    @can('create', \App\Models\AcademicLevel::class)
+                        <april:button-link href="{{ route('academic-levels.create', ['parent_id' => $academicLevel->id, 'setup' => 1, 'academic_year_id' => $academicYear->id]) }}" variant="outline" size="sm">Add class</april:button-link>
+                    @endcan
+                    @if ($children->isEmpty())
+                        @can('create', \App\Models\AcademicCycleSection::class)
+                            <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_year_id' => $academicYear->id, 'academic_level_id' => $academicLevel->id, 'setup' => 1]) }}" variant="outline" size="sm">Add section</april:button-link>
+                        @endcan
+                    @endif
+                    @can('view', $academicLevel)
+                        <april:button-link href="{{ route('academic-levels.show', $academicLevel) }}" variant="ghost" size="sm">View level</april:button-link>
+                    @endcan
+                </div>
+            </summary>
 
                 @if ($hasChildren)
                     <div class="ml-2 mt-3 w-full min-w-0 space-y-2 border-l pl-3 sm:ml-4 sm:pl-4">
@@ -87,33 +114,6 @@
                         <span class="text-muted-foreground">No section added for this year yet</span>
                     </div>
                 @endif
-            </details>
-
-            <div class="flex w-full shrink-0 flex-wrap items-center justify-end gap-1 border-t pt-2 sm:w-auto sm:justify-start sm:border-t-0 sm:pt-0">
-                @can('update', $academicLevel)
-                    @if ($levelIndex > 0)
-                        <button type="button" wire:click="moveLevel({{ $academicLevel->id }}, 'up')" wire:loading.attr="disabled" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50" aria-label="Move {{ $academicLevel->name }} up" title="Move up">
-                            <x-lucide-chevron-up class="size-4" />
-                        </button>
-                    @endif
-                    @if ($levelIndex < $levels->count() - 1)
-                        <button type="button" wire:click="moveLevel({{ $academicLevel->id }}, 'down')" wire:loading.attr="disabled" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50" aria-label="Move {{ $academicLevel->name }} down" title="Move down">
-                            <x-lucide-chevron-down class="size-4" />
-                        </button>
-                    @endif
-                @endcan
-                @can('create', \App\Models\AcademicLevel::class)
-                    <april:button-link href="{{ route('academic-levels.create', ['parent_id' => $academicLevel->id, 'setup' => 1, 'academic_year_id' => $academicYear->id]) }}" variant="outline" size="sm">Add class</april:button-link>
-                @endcan
-                @if ($children->isEmpty())
-                    @can('create', \App\Models\AcademicCycleSection::class)
-                        <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_year_id' => $academicYear->id, 'academic_level_id' => $academicLevel->id, 'setup' => 1]) }}" variant="outline" size="sm">Add section</april:button-link>
-                    @endcan
-                @endif
-                @can('view', $academicLevel)
-                    <april:button-link href="{{ route('academic-levels.show', $academicLevel) }}" variant="ghost" size="sm">View level</april:button-link>
-                @endcan
-            </div>
-        </div>
+        </details>
     </div>
 @endforeach
