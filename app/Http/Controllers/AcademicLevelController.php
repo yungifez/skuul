@@ -72,6 +72,11 @@ class AcademicLevelController extends Controller
         );
 
         if ($request->boolean('setup')) {
+            if ($request->boolean('school_setup')) {
+                return to_route('schools.setup', [current_school(), 'classes'])
+                    ->with('success', 'Class created. Review it and create this year’s sections.');
+            }
+
             $academicYearId = $request->integer('academic_year_id');
 
             if ($academicYearId > 0) {

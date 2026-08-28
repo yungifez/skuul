@@ -12,6 +12,7 @@
         $targetIsClosed = $target?->isClosed() ?? false;
         $copies = $preview['copies'] ?? null;
         $skips = $preview['skips'] ?? null;
+        $setupMode = request()->boolean('setup');
     @endphp
 
     <div class="grid gap-6 lg:grid-cols-3">
@@ -20,6 +21,9 @@
             <slot:description>The structure is read from one cycle and created again in the other. Nothing is written until you confirm.</slot:description>
             <slot:content>
                 <form method="GET" action="{{ route('academic-cycle-sections.roll-forward.show') }}" class="grid gap-4 md:grid-cols-[1fr_1fr_auto] md:items-end">
+                    @if ($setupMode)
+                        <input type="hidden" name="setup" value="1">
+                    @endif
                     <div class="flex flex-col gap-1.5">
                         <april:label for="source-cycle">Copy the structure of</april:label>
                         <select id="source-cycle" name="source_academic_year_id" class="rounded-md border border-input bg-background px-3 py-2 text-sm" required>
@@ -99,11 +103,11 @@
                 </div>
 
                 @if ($copies->isEmpty() && $skips->isEmpty())
-                    <x-empty-state
+                        <x-empty-state
                         icon="lucide-copy"
                         title="{{ $source->name }} has no {{ strtolower(school_term('section', 'section')) }} to copy"
                         description="Create the structure in the source cycle first, or choose another cycle to copy from.">
-                        <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_year_id' => $source->id]) }}" variant="outline" size="sm">Add a {{ strtolower(school_term('section', 'section')) }} to {{ $source->name }}</april:button-link>
+                        <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_year_id' => $source->id] + ($setupMode ? ['setup' => 1, 'school_setup' => 1] : [])) }}" variant="outline" size="sm">Add a {{ strtolower(school_term('section', 'section')) }} to {{ $source->name }}</april:button-link>
                     </x-empty-state>
                 @else
                     @if ($copies->isNotEmpty())
@@ -153,11 +157,14 @@
                             @csrf
                             <input type="hidden" name="source_academic_year_id" value="{{ $source->id }}">
                             <input type="hidden" name="target_academic_year_id" value="{{ $target->id }}">
+                            @if ($setupMode)
+                                <input type="hidden" name="setup" value="1">
+                            @endif
                             <april:button type="submit">
                                 <x-lucide-copy class="mr-1.5 size-4" />
                                 Create {{ $copies->count() }} {{ \Illuminate\Support\Str::plural('draft section', $copies->count()) }} in {{ $target->name }}
                             </april:button>
-                            <april:button-link href="{{ route('academic-cycle-sections.index', ['academic_year_id' => $target->id]) }}" variant="ghost">Cancel</april:button-link>
+                            <april:button-link href="{{ $setupMode ? route('schools.setup', [current_school(), 'classes']) : route('academic-cycle-sections.index', ['academic_year_id' => $target->id]) }}" variant="ghost">Cancel</april:button-link>
                         </form>
                     @elseif ($copies->isEmpty())
                         <p class="border-t pt-4 text-sm text-muted-foreground">

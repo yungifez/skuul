@@ -3,6 +3,12 @@
         $children = $childrenByParent->get($academicLevel->id, collect());
         $sections = $sectionsByLevel->get($academicLevel->id, collect())->values();
         $hasChildren = $children->isNotEmpty() || $sections->isNotEmpty();
+        $setupParameters = ['setup' => 1, 'academic_year_id' => $academicYear->id];
+
+        if ($schoolSetup) {
+            $setupParameters['school_setup'] = 1;
+        }
+
         $levelSummary = $children->isNotEmpty()
             ? 'Umbrella group · '.$children->count().' '.($children->count() === 1 ? 'level' : 'levels')
             : $sections->count().' '.($sections->count() === 1 ? strtolower(school_term('section', 'section')) : strtolower(school_terms('section', 'sections')));
@@ -37,11 +43,11 @@
                         @endif
                     @endcan
                     @can('create', \App\Models\AcademicLevel::class)
-                        <april:button-link href="{{ route('academic-levels.create', ['parent_id' => $academicLevel->id, 'setup' => 1, 'academic_year_id' => $academicYear->id]) }}" variant="outline" size="sm">Add class</april:button-link>
+                        <april:button-link href="{{ route('academic-levels.create', ['parent_id' => $academicLevel->id] + $setupParameters) }}" variant="outline" size="sm">Add class</april:button-link>
                     @endcan
                     @if ($children->isEmpty())
                         @can('create', \App\Models\AcademicCycleSection::class)
-                            <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_year_id' => $academicYear->id, 'academic_level_id' => $academicLevel->id, 'setup' => 1]) }}" variant="outline" size="sm">Add section</april:button-link>
+                            <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_level_id' => $academicLevel->id] + $setupParameters) }}" variant="outline" size="sm">Add section</april:button-link>
                         @endcan
                     @endif
                     @can('view', $academicLevel)
@@ -58,6 +64,7 @@
                                 'childrenByParent' => $childrenByParent,
                                 'sectionsByLevel' => $sectionsByLevel,
                                 'academicYear' => $academicYear,
+                                'schoolSetup' => $schoolSetup,
                             ])
                         @endif
 

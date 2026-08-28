@@ -98,6 +98,11 @@ class AcademicCycleSectionController extends Controller
         );
 
         if ($request->boolean('setup')) {
+            if ($request->boolean('school_setup')) {
+                return to_route('schools.setup', [current_school(), 'classes'])
+                    ->with('success', 'Section created for the year. Review it in the class setup.');
+            }
+
             return to_route('academic-years.setup', [$academicYear, 'structure'])
                 ->with('success', 'Section created for the year. Review it in the setup tree.');
         }
@@ -198,9 +203,19 @@ class AcademicCycleSectionController extends Controller
         $sections = $this->rollForwardAcademicCycleSections->rollForward($source, $target, $request->user());
 
         if ($sections->isEmpty()) {
+            if ($request->boolean('setup')) {
+                return to_route('schools.setup', [current_school(), 'classes'])
+                    ->with('success', "{$target->name} already has every section of {$source->name}. Nothing was copied.");
+            }
+
             return redirect()
                 ->route('academic-cycle-sections.index', ['academic_year_id' => $target->id])
                 ->with('success', "{$target->name} already has every section of {$source->name}. Nothing was copied.");
+        }
+
+        if ($request->boolean('setup')) {
+            return to_route('schools.setup', [current_school(), 'classes'])
+                ->with('success', "{$sections->count()} draft sections were created in {$target->name}.");
         }
 
         return redirect()

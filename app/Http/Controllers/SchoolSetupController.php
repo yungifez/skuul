@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Enums\SchoolSetupStep;
+use App\Models\AcademicLevel;
+use App\Models\AcademicYear;
 use App\Models\School;
 use App\Services\School\SchoolSetupProgress;
 use Illuminate\Http\RedirectResponse;
@@ -34,10 +36,33 @@ class SchoolSetupController extends Controller
             $requested = $current;
         }
 
+        $academicYear = null;
+        $previousAcademicYear = null;
+        $academicLevels = collect();
+
+        if ($requested === SchoolSetupStep::Classes) {
+            $academicYear = current_academic_year();
+            $previousAcademicYear = $academicYear === null
+                ? null
+                : AcademicYear::inSchool($school->id)
+                    ->where('start_year', '<', $academicYear->start_year)
+                    ->orderByDesc('start_year')
+                    ->orderByDesc('id')
+                    ->first();
+            $academicLevels = AcademicLevel::inSchool($school->id)
+                ->with('parent:id,name')
+                ->orderBy('position')
+                ->orderBy('name')
+                ->get(['id', 'parent_id', 'name', 'code', 'status']);
+        }
+
         return view('pages.school.setup', [
             'school' => $school,
             'currentStep' => $requested,
             'progress' => $progress,
+            'academicYear' => $academicYear,
+            'previousAcademicYear' => $previousAcademicYear,
+            'academicLevels' => $academicLevels,
         ]);
     }
 }

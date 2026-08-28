@@ -14,10 +14,16 @@ class AcademicYearStructureTree extends Component
 {
     public AcademicYear $academicYear;
 
-    public function mount(AcademicYear $academicYear): void
+    public bool $schoolSetup = false;
+
+    public function mount(AcademicYear $academicYear, bool $schoolSetup = false): void
     {
-        $this->authorize('update', $academicYear);
+        if (!$schoolSetup) {
+            $this->authorize('update', $academicYear);
+        }
+
         $this->academicYear = $academicYear;
+        $this->schoolSetup = $schoolSetup;
     }
 
     public function moveLevel(int $academicLevelId, string $direction, MoveAcademicLevel $moveAcademicLevel): void
@@ -52,6 +58,10 @@ class AcademicYearStructureTree extends Component
             ->orderBy('name')
             ->get(['id', 'school_id', 'parent_id', 'name', 'status']);
 
-        return view('livewire.academic-year-structure-tree', compact('academicYear', 'academicLevels'));
+        return view('livewire.academic-year-structure-tree', [
+            'academicYear' => $academicYear,
+            'academicLevels' => $academicLevels,
+            'schoolSetup' => $this->schoolSetup,
+        ]);
     }
 }
