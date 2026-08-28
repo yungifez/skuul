@@ -18,12 +18,13 @@
                 <x-lucide-git-branch class="mt-0.5 size-5 shrink-0 text-blue-700 dark:text-blue-300" />
                 <div class="space-y-2">
                     <p class="font-semibold">How to structure levels</p>
+                    <p>Use your school’s own names. The names below are only an example:</p>
                     <ol class="list-decimal space-y-1 pl-4">
-                        <li>Create the umbrella group <strong>Kindergarten</strong>. Leave <strong>Level group</strong> blank.</li>
-                        <li>Create the learner level <strong>KG 1</strong>. Choose <strong>Kindergarten</strong> as its level group. Repeat for <strong>KG 2</strong>.</li>
-                        <li>In this year’s setup, add a section such as <strong>Blue</strong> under <strong>KG 1</strong>.</li>
+                        <li>Example group: create <strong>Kindergarten</strong> and leave <strong>Level group</strong> blank.</li>
+                        <li>Example levels: create <strong>KG 1</strong> and <strong>KG 2</strong>, choosing <strong>Kindergarten</strong> as their level group.</li>
+                        <li>Example section: in this year’s setup, add <strong>Blue</strong> under <strong>KG 1</strong>.</li>
                     </ol>
-                    <p>If your school does not use groups, create a level such as <strong>Primary 4</strong> and leave <strong>Level group</strong> blank.</p>
+                    <p>Without groups, create a standalone level such as <strong>Primary 4</strong> and leave <strong>Level group</strong> blank. This is also an example.</p>
                 </div>
             </div>
             @if ($preselectedParent)
