@@ -115,9 +115,59 @@
                         <div class="space-y-3 border-t pt-5">
                             <div>
                                 <h3 class="font-semibold">Subjects already added to this year</h3>
-                                <p class="text-sm text-muted-foreground">Each offering belongs to one level and reporting period. Expand a level to review its subjects, roster, and status.</p>
+                                <p class="text-sm text-muted-foreground">Each entry below is one offering of a subject for a class and reporting period.</p>
                             </div>
-                            @livewire('academic-year-structure-tree', ['academicYear' => $academicYear, 'setupLinks' => false, 'showLevelActions' => false])
+
+                            @if ($courseOfferings->isEmpty())
+                                <div class="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
+                                    No subjects have been added to this year yet. Add one above to see it here.
+                                </div>
+                            @else
+                                <div class="space-y-3">
+                                    @foreach ($courseOfferings->groupBy('subject_id') as $subjectOfferings)
+                                        @php($subject = $subjectOfferings->first()->subject)
+                                        <article class="overflow-hidden rounded-md border">
+                                            <div class="flex flex-wrap items-center justify-between gap-2 bg-muted/30 px-4 py-3">
+                                                <div>
+                                                    <h4 class="font-semibold">{{ $subject->name }}</h4>
+                                                    @if ($subject->short_name)
+                                                        <p class="text-xs text-muted-foreground">{{ $subject->short_name }}</p>
+                                                    @endif
+                                                </div>
+                                                <span class="text-xs text-muted-foreground">{{ $subjectOfferings->count() }} {{ $subjectOfferings->count() === 1 ? 'offering' : 'offerings' }}</span>
+                                            </div>
+                                            <div class="divide-y">
+                                                @foreach ($subjectOfferings as $courseOffering)
+                                                    @php
+                                                        $offeringSections = $courseOffering->roster_mode->usesHomeSections()
+                                                            ? $courseOffering->cycleSections->map(fn ($section) => $section->label ?? $section->name)->join(', ')
+                                                            : school_roster_label($courseOffering->roster_mode);
+                                                        $offeringDetails = collect([
+                                                            $courseOffering->academicLevel->name,
+                                                            $courseOffering->academicPeriod->displayName,
+                                                            school_roster_label($courseOffering->roster_mode),
+                                                            $offeringSections !== school_roster_label($courseOffering->roster_mode) ? $offeringSections : null,
+                                                            $courseOffering->planned_periods_per_week !== null ? $courseOffering->planned_periods_per_week.' periods/week' : null,
+                                                        ])->filter()->join(' · ');
+                                                    @endphp
+                                                    <div class="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                                                        <div class="min-w-0">
+                                                            <p class="font-medium">{{ $courseOffering->academicLevel->name }}</p>
+                                                            <p class="text-xs text-muted-foreground">{{ $offeringDetails }}</p>
+                                                        </div>
+                                                        <div class="flex shrink-0 items-center justify-end gap-2">
+                                                            <april:badge variant="{{ $courseOffering->status->value === 'active' ? 'default' : 'secondary' }}">{{ $courseOffering->status->label() }}</april:badge>
+                                                            @can('update', $courseOffering)
+                                                                <april:button-link href="{{ route('course-offerings.edit', [$courseOffering, 'setup' => 1]) }}" variant="ghost" size="sm">Edit</april:button-link>
+                                                            @endcan
+                                                        </div>
+                                                    </div>
+                                                @endforeach
+                                            </div>
+                                        </article>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
                     @endif
                 </slot:content>

@@ -278,7 +278,7 @@ class CourseOfferingController extends Controller
             : $courseOfferings->count().' subject entries added to the school year for review.';
 
         if ($request->boolean('setup')) {
-            return to_route('academic-years.setup', [$academicYear, 'review'])
+            return to_route('academic-years.setup', [$academicYear, 'subjects'])
                 ->with('success', $message);
         }
 
@@ -306,7 +306,7 @@ class CourseOfferingController extends Controller
         );
 
         if ($request->boolean('setup')) {
-            return to_route('academic-years.setup', [$courseOffering->academicYear, 'review'])
+            return to_route('academic-years.setup', [$courseOffering->academicYear, 'subjects'])
                 ->with('success', 'Roster updated.');
         }
 

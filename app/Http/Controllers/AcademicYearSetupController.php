@@ -7,6 +7,7 @@ use App\Enums\AcademicYearSetupStep;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
+use App\Models\CourseOffering;
 use App\Models\Subject;
 use App\Services\AcademicYear\AcademicYearService;
 use App\Services\AcademicYear\AcademicYearSetupProgress;
@@ -45,6 +46,7 @@ class AcademicYearSetupController extends Controller
         $academicYear = $academicYear->load('topLevelPeriods');
         $academicLevels = collect();
         $subjects = collect();
+        $courseOfferings = collect();
         $previousAcademicYear = null;
 
         if ($requested === AcademicYearSetupStep::Structure) {
@@ -59,6 +61,18 @@ class AcademicYearSetupController extends Controller
             $subjects = Subject::inSchool($academicYear->school_id)
                 ->orderBy('name')
                 ->get(['id', 'name', 'short_name']);
+            $courseOfferings = CourseOffering::inSchool($academicYear->school_id)
+                ->where('academic_year_id', $academicYear->id)
+                ->with([
+                    'subject:id,name,short_name',
+                    'academicLevel:id,name',
+                    'academicPeriod:id,name,label',
+                    'cycleSections:id,name,label',
+                ])
+                ->orderBy('subject_id')
+                ->orderBy('academic_level_id')
+                ->orderBy('academic_period_id')
+                ->get();
             $previousAcademicYear = AcademicYear::inSchool($academicYear->school_id)
                 ->where('start_year', '<', $academicYear->start_year)
                 ->orderByDesc('start_year')
@@ -73,6 +87,7 @@ class AcademicYearSetupController extends Controller
             'academicLevels' => $academicLevels,
             'previousAcademicYear' => $previousAcademicYear,
             'subjects' => $subjects,
+            'courseOfferings' => $courseOfferings,
         ]);
     }
 
