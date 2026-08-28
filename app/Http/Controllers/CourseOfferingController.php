@@ -6,6 +6,7 @@ use App\Actions\Curriculum\AssignTeacher;
 use App\Actions\Curriculum\ChangeCourseOfferingStatus;
 use App\Actions\Curriculum\CreateCourseOffering;
 use App\Actions\Curriculum\CreateCourseOfferingsForLevels;
+use App\Actions\Curriculum\CreateCourseOfferingsForSections;
 use App\Actions\Curriculum\RollForwardCourseOfferings;
 use App\Actions\Curriculum\UpdateCourseOfferingRoster;
 use App\Enums\AcademicStructureStatus;
@@ -38,6 +39,7 @@ class CourseOfferingController extends Controller
     public function __construct(
         private CreateCourseOffering $createCourseOffering,
         private CreateCourseOfferingsForLevels $createCourseOfferingsForLevels,
+        private CreateCourseOfferingsForSections $createCourseOfferingsForSections,
         private ChangeCourseOfferingStatus $changeCourseOfferingStatus,
         private AssignTeacher $assignTeacher,
         private RollForwardCourseOfferings $rollForwardCourseOfferings,
@@ -245,7 +247,18 @@ class CourseOfferingController extends Controller
         $plannedPeriodsPerWeek = $data['planned_periods_per_week'] ?? null;
         $capacity = $data['capacity'] ?? null;
 
-        if ($data['academic_period_id'] === 'all') {
+        if ($rosterMode === RosterMode::HomeSection && count($academicCycleSectionIds) > 1) {
+            $courseOfferings = $this->createCourseOfferingsForSections->create(
+                $subject,
+                $academicYear,
+                $data['academic_period_id'],
+                $academicLevel,
+                $academicCycleSectionIds,
+                $plannedPeriodsPerWeek,
+                $capacity,
+                $request->user(),
+            );
+        } elseif ($data['academic_period_id'] === 'all') {
             $courseOfferings = $this->createCourseOffering->createForAcademicYear(
                 $subject,
                 $academicYear,

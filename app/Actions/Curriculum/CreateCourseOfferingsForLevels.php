@@ -14,7 +14,10 @@ use Illuminate\Support\Facades\DB;
 
 class CreateCourseOfferingsForLevels
 {
-    public function __construct(private CreateCourseOffering $createCourseOffering) {}
+    public function __construct(
+        private CreateCourseOffering $createCourseOffering,
+        private CreateCourseOfferingsForSections $createCourseOfferingsForSections,
+    ) {}
 
     /**
      * Create one offering per selected level, using each level's own settings.
@@ -43,6 +46,21 @@ class CreateCourseOfferingsForLevels
                 $capacity = $configuration['capacity'] ?? null;
 
                 if ($academicPeriodId === 'all') {
+                    if ($rosterMode === RosterMode::HomeSection && count($sectionIds) > 1) {
+                        $created = $created->merge($this->createCourseOfferingsForSections->create(
+                            $subject,
+                            $academicYear,
+                            $academicPeriodId,
+                            $academicLevel,
+                            $sectionIds,
+                            $plannedPeriodsPerWeek,
+                            $capacity,
+                            $actor,
+                        ));
+
+                        continue;
+                    }
+
                     $created = $created->merge($this->createCourseOffering->createForAcademicYear(
                         $subject,
                         $academicYear,
@@ -50,6 +68,21 @@ class CreateCourseOfferingsForLevels
                         $sectionIds,
                         $rosterMode,
                         [],
+                        $plannedPeriodsPerWeek,
+                        $capacity,
+                        $actor,
+                    ));
+
+                    continue;
+                }
+
+                if ($rosterMode === RosterMode::HomeSection && count($sectionIds) > 1) {
+                    $created = $created->merge($this->createCourseOfferingsForSections->create(
+                        $subject,
+                        $academicYear,
+                        $academicPeriodId,
+                        $academicLevel,
+                        $sectionIds,
                         $plannedPeriodsPerWeek,
                         $capacity,
                         $actor,

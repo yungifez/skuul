@@ -56,7 +56,7 @@
                     </div>
                     <div x-cloak x-show="rosterMode === 'home_section' || rosterMode === 'combined_home_sections'" class="w-full md:col-span-2">
                         <div class="flex flex-col gap-2">
-                            <div class="flex items-center gap-1"><april:label>Participating sections</april:label><x-help-tooltip label="Participating sections help">For one section, choose exactly one. For combined sections, choose two or more sections from the selected school year and class.</x-help-tooltip></div>
+                            <div class="flex items-center gap-1"><april:label>Participating sections</april:label><x-help-tooltip label="Participating sections help">For one section, choose one or more sections and Skuul will create one independent offering per section. For combined sections, choose two or more sections from the selected school year and class.</x-help-tooltip></div>
                             <p x-show="academicLevelId === ''" x-cloak class="rounded-md border border-dashed p-3 text-sm text-muted-foreground">Choose a class level above to see its sections.</p>
                             @foreach ($academicLevels as $academicLevel)
                                 <template x-if="academicLevelId === '{{ $academicLevel->id }}'">
@@ -75,7 +75,7 @@
                                     </div>
                                 </template>
                             @endforeach
-                            <p x-show="rosterMode === 'home_section'" class="text-sm text-muted-foreground">Choose one section.</p>
+                            <p x-show="rosterMode === 'home_section'" class="text-sm text-muted-foreground">Choose one or more sections. Each section gets its own offering.</p>
                             <p x-show="rosterMode === 'combined_home_sections'" class="text-sm text-muted-foreground">Choose at least two sections to teach together.</p>
                         </div>
                     </div>
