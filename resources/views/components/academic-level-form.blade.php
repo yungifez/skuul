@@ -36,9 +36,9 @@
         <span class="space-y-1 text-sm">
             <span class="flex items-center gap-1 font-medium">
                 This is a level group
-                <x-help-tooltip label="Level group help">Use this for an organizing label such as “Kindergarten”. It can contain teachable levels such as “KG 1” and “KG 2”, but it is not itself a class for learners.</x-help-tooltip>
+                <x-help-tooltip label="Level group help">Use this for an umbrella such as “Kindergarten”. It can contain classes such as “KG 1” and “KG 2”, and a subject can be taught to all of them as one group.</x-help-tooltip>
             </span>
-            <span class="block text-muted-foreground">Groups help organize the structure. They do not receive sections or subjects.</span>
+            <span class="block text-muted-foreground">Groups do not have their own sections, but they can receive subjects taught across their child classes.</span>
         </span>
     </label>
 

@@ -86,6 +86,56 @@ class AcademicLevel extends Model
     }
 
     /**
+     * Get this level and every level nested below it.
+     *
+     * A whole-group offering uses these IDs to include learners from all child
+     * classes without changing their individual academic-cycle placement.
+     *
+     * @return list<int>
+     */
+    public function teachingScopeIds(): array
+    {
+        $levels = self::inSchool($this->school_id)->get(['id', 'parent_id']);
+        $childrenByParent = $levels->groupBy('parent_id');
+        $ids = [$this->id];
+        $pending = [$this->id];
+
+        while ($pending !== []) {
+            $parentId = array_shift($pending);
+
+            foreach ($childrenByParent->get($parentId, collect()) as $child) {
+                if (in_array($child->id, $ids, true)) {
+                    continue;
+                }
+
+                $ids[] = $child->id;
+                $pending[] = $child->id;
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
+     * Get this level and every parent level above it.
+     *
+     * @return list<int>
+     */
+    public function hierarchyIds(): array
+    {
+        $levels = self::inSchool($this->school_id)->get(['id', 'parent_id'])->keyBy('id');
+        $ids = [];
+        $currentId = $this->id;
+
+        while ($currentId !== null && !in_array($currentId, $ids, true)) {
+            $ids[] = $currentId;
+            $currentId = $levels->get($currentId)?->parent_id;
+        }
+
+        return $ids;
+    }
+
+    /**
      * @return HasMany<AcademicCycleSection, $this>
      */
     public function cycleSections(): HasMany

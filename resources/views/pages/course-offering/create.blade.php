@@ -8,6 +8,13 @@
 @section('page_heading', request()->boolean('setup') ? __('Add subject to this year') : __('Create course offering'))
 
 @section('content')
+    @php
+        $selectedAcademicLevel = $academicLevels->firstWhere('id', (int) old('academic_level_id'));
+        $selectedAcademicLevelIsGroup = $selectedAcademicLevel?->is_group ?? false;
+        $initialRosterMode = $selectedAcademicLevelIsGroup
+            ? \App\Enums\RosterMode::AcademicLevel->value
+            : old('roster_mode', \App\Enums\RosterMode::HomeSection->value);
+    @endphp
     <april:card>
         <slot:title class="flex items-center gap-1">
             <span>Add a subject to this year</span>
@@ -15,7 +22,7 @@
         </slot:title>
         <slot:description>Choose the subject, class, period, and learners for this year.</slot:description>
         <slot:content>
-            <form method="POST" action="{{ route('course-offerings.store') }}" class="space-y-6" x-data="{ rosterMode: @js(old('roster_mode', \App\Enums\RosterMode::HomeSection->value)), academicLevelId: @js((string) old('academic_level_id', '')) }">
+            <form method="POST" action="{{ route('course-offerings.store') }}" class="space-y-6" x-data="{ rosterMode: @js($initialRosterMode), academicLevelId: @js((string) old('academic_level_id', '')), academicLevelIsGroup: @js($selectedAcademicLevelIsGroup) }">
                 @csrf
                 @if (request()->boolean('setup'))
                     <input type="hidden" name="setup" value="1">
@@ -33,28 +40,44 @@
                         </select>
                     </div>
                     <div class="flex flex-col gap-2">
-                        <april:label for="academic-level">{{ school_term('class_level', 'Class') }}</april:label>
-                        <select id="academic-level" name="academic_level_id" x-model="academicLevelId" class="rounded-md border border-input bg-background px-3 py-2" required>
+                        <april:label for="academic-level">{{ school_term('class_level', 'Class') }} or group</april:label>
+                        <select id="academic-level" name="academic_level_id" x-model="academicLevelId" x-on:change="academicLevelIsGroup = $event.target.selectedOptions[0]?.dataset.isGroup === '1'; if (academicLevelIsGroup) rosterMode = 'academic_level'" class="rounded-md border border-input bg-background px-3 py-2" required>
                             <option value="" @selected(blank(old('academic_level_id')))>{{ 'Select a '.strtolower(school_term('class_level', 'level')) }}</option>
-                            @foreach ($academicLevels as $academicLevel)
-                                <option value="{{ $academicLevel->id }}" {{ (string) old('academic_level_id') === (string) $academicLevel->id ? 'selected' : '' }}>{{ $academicLevel->name }}</option>
-                            @endforeach
+                            <optgroup label="{{ school_terms('class_level', 'Classes') }}">
+                                @foreach ($academicLevels->where('is_group', false) as $academicLevel)
+                                    <option value="{{ $academicLevel->id }}" data-is-group="0" {{ (string) old('academic_level_id') === (string) $academicLevel->id ? 'selected' : '' }}>{{ $academicLevel->name }}</option>
+                                @endforeach
+                            </optgroup>
+                            @if ($academicLevels->where('is_group', true)->isNotEmpty())
+                                <optgroup label="Groups · whole-group teaching">
+                                    @foreach ($academicLevels->where('is_group', true) as $academicLevel)
+                                        <option value="{{ $academicLevel->id }}" data-is-group="1" {{ (string) old('academic_level_id') === (string) $academicLevel->id ? 'selected' : '' }}>{{ $academicLevel->name }}</option>
+                                    @endforeach
+                                </optgroup>
+                            @endif
                         </select>
-                        <p class="text-sm text-muted-foreground">Choose the class level first. Only sections from that level are available.</p>
+                        <p class="text-sm text-muted-foreground">Choose a class for section-based teaching, or a group to teach all of its child classes together.</p>
                     </div>
                     <div class="flex flex-col gap-2 md:col-span-2">
-                        <div class="flex items-center gap-1"><april:label for="roster-mode">Who attends</april:label><x-help-tooltip label="Roster help">Use one section by default. The school year’s teaching setup may allow more options.</x-help-tooltip></div>
-                        <select id="roster-mode" name="roster_mode" x-model="rosterMode" class="rounded-md border border-input bg-background px-3 py-2" required>
-                            @foreach ($rosterModes as $rosterMode)
-                                <option value="{{ $rosterMode->value }}">{{ school_roster_label($rosterMode) }}</option>
-                            @endforeach
-                        </select>
+                        <div x-show="!academicLevelIsGroup" x-cloak>
+                            <div class="flex items-center gap-1"><april:label for="roster-mode">Who attends</april:label><x-help-tooltip label="Roster help">Use one section by default. The school year’s teaching setup may allow more options.</x-help-tooltip></div>
+                            <select id="roster-mode" name="roster_mode" x-model="rosterMode" x-bind:disabled="academicLevelIsGroup" class="w-full rounded-md border border-input bg-background px-3 py-2" required>
+                                @foreach ($rosterModes as $rosterMode)
+                                    <option value="{{ $rosterMode->value }}">{{ school_roster_label($rosterMode) }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div x-show="academicLevelIsGroup" x-cloak class="rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
+                            <input type="hidden" name="roster_mode" value="{{ \App\Enums\RosterMode::AcademicLevel->value }}" x-bind:disabled="!academicLevelIsGroup">
+                            <p class="font-medium">Whole group</p>
+                            <p class="mt-1 text-muted-foreground">Every learner in this group’s child classes will attend. Sections are not selected separately.</p>
+                        </div>
                         @if (!in_array(\App\Enums\RosterMode::CombinedHomeSections, $rosterModes, true))
-                            <p class="text-sm text-muted-foreground">Combined sections is not available for this year’s teaching approach. Use one section or the whole level.</p>
+                            <p class="text-sm text-muted-foreground">Combined sections is not available for this year’s teaching approach. Use one section or a whole class or group.</p>
                         @endif
 
                     </div>
-                    <div x-cloak x-show="rosterMode === 'home_section' || rosterMode === 'combined_home_sections'" class="w-full md:col-span-2">
+                    <div x-cloak x-show="!academicLevelIsGroup && (rosterMode === 'home_section' || rosterMode === 'combined_home_sections')" class="w-full md:col-span-2">
                         <div class="flex flex-col gap-2">
                             <div class="flex items-center gap-1"><april:label>Participating sections</april:label><x-help-tooltip label="Participating sections help">For one section, choose one or more sections and Skuul will create one independent offering per section. For combined sections, choose two or more sections from the selected school year and class.</x-help-tooltip></div>
                             <p x-show="academicLevelId === ''" x-cloak class="rounded-md border border-dashed p-3 text-sm text-muted-foreground">Choose a class level above to see its sections.</p>
@@ -79,7 +102,7 @@
                             <p x-show="rosterMode === 'combined_home_sections'" class="text-sm text-muted-foreground">Choose at least two sections to teach together.</p>
                         </div>
                     </div>
-                    <div x-cloak x-show="rosterMode === 'academic_level'" class="w-full md:col-span-2 rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
+                    <div x-cloak x-show="rosterMode === 'academic_level' && !academicLevelIsGroup" class="w-full md:col-span-2 rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
                         <p class="font-medium">Whole academic level</p>
                         <p class="mt-1 text-muted-foreground">Every learner in the selected class level is included. You do not need to choose sections or named learners.</p>
                     </div>

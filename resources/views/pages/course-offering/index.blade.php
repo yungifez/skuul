@@ -34,7 +34,7 @@
                                 <td class="px-3 py-3">{{ $courseOffering->academicYear->name }} · {{ $courseOffering->academicPeriod->display_name }}</td>
                                 <td class="px-3 py-3">
                                     <span class="block">{{ school_roster_label($courseOffering->roster_mode) }}</span>
-                                    <span class="text-muted-foreground">{{ $courseOffering->roster_mode->usesHomeSections() ? $courseOffering->cycleSections->map(fn ($section) => $section->label ?? $section->name)->join(', ') : ($courseOffering->roster_mode === \App\Enums\RosterMode::AcademicLevel ? 'All learners in this level' : $courseOffering->studentRecords->map(fn ($record) => $record->user?->name ?? $record->admission_number)->join(', ')) }}</span>
+                                    <span class="text-muted-foreground">{{ $courseOffering->roster_mode->usesHomeSections() ? $courseOffering->cycleSections->map(fn ($section) => $section->label ?? $section->name)->join(', ') : ($courseOffering->roster_mode === \App\Enums\RosterMode::AcademicLevel ? ($courseOffering->academicLevel->is_group ? 'All learners in its child classes' : 'All learners in this level') : $courseOffering->studentRecords->map(fn ($record) => $record->user?->name ?? $record->admission_number)->join(', ')) }}</span>
                                 </td>
                                 <td class="px-3 py-3"><april:badge>{{ $courseOffering->status->label() }}</april:badge></td>
                                 <td class="px-3 py-3 text-right">

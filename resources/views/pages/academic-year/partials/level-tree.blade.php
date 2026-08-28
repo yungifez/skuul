@@ -15,7 +15,7 @@
         }
 
         if ($academicLevel->is_group) {
-            $levelSummary = 'Organizing group · '.$children->count().' '.($children->count() === 1 ? 'level' : 'levels');
+            $levelSummary = 'Level group · can be taught as one group · '.$children->count().' '.($children->count() === 1 ? 'level' : 'levels');
         } elseif ($children->isNotEmpty()) {
             $levelSummary = 'Umbrella group · '.$children->count().' '.($children->count() === 1 ? 'level' : 'levels');
         } else {
@@ -42,7 +42,7 @@
                         <span class="flex flex-wrap items-center gap-x-2 gap-y-1">
                             <span class="font-semibold">{{ $academicLevel->name }}</span>
                             @if ($academicLevel->is_group)
-                                <span class="text-xs text-muted-foreground">Group · not teachable</span>
+                                <span class="text-xs text-muted-foreground">Group · whole-group teaching available</span>
                             @endif
                             @if ($academicLevel->code)
                                 <span class="text-xs text-muted-foreground">{{ $academicLevel->code }}</span>

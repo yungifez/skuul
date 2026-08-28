@@ -153,7 +153,7 @@ class TimetableConflictChecker
             ->get();
 
         $slots = $timetable->timeSlots()->get()->keyBy('id');
-        $subjectMorphClass = (new Subject())->getMorphClass();
+        $subjectMorphClass = (new Subject)->getMorphClass();
         $subjects = Subject::query()
             ->whereKey(
                 $records
@@ -164,6 +164,8 @@ class TimetableConflictChecker
             ->get()
             ->keyBy('id');
         $cycleSection = $timetable->academicCycleSection;
+        $cycleSection?->loadMissing('academicLevel');
+        $levelScopeIds = $cycleSection?->academicLevel?->hierarchyIds() ?? [];
         $facilityNames = Facility::query()
             ->whereKey($records->pluck('facility_id')->filter()->unique())
             ->pluck('name', 'id');
@@ -173,12 +175,12 @@ class TimetableConflictChecker
                 ->whereIn('subject_id', $subjects->keys())
                 ->where('academic_period_id', $timetable->academic_period_id)
                 ->runningOn()
-                ->whereHas('courseOffering', function ($query) use ($cycleSection): void {
-                    $query->where(function ($offerings) use ($cycleSection): void {
+                ->whereHas('courseOffering', function ($query) use ($cycleSection, $levelScopeIds): void {
+                    $query->where(function ($offerings) use ($cycleSection, $levelScopeIds): void {
                         $offerings->whereHas('cycleSections', fn ($sections) => $sections->whereKey($cycleSection->id))
-                            ->orWhere(function ($offerings) use ($cycleSection): void {
+                            ->orWhere(function ($offerings) use ($levelScopeIds): void {
                                 $offerings->where('roster_mode', RosterMode::AcademicLevel)
-                                    ->where('academic_level_id', $cycleSection->academic_level_id);
+                                    ->whereIn('academic_level_id', $levelScopeIds);
                             });
                     });
                 })
@@ -202,15 +204,15 @@ class TimetableConflictChecker
                 ->filter();
 
             return [
-                'weekday_id'    => (int) $record->weekday_id,
-                'start_time'    => (string) $slot->start_time,
-                'stop_time'     => (string) $slot->stop_time,
+                'weekday_id' => (int) $record->weekday_id,
+                'start_time' => (string) $slot->start_time,
+                'stop_time' => (string) $slot->stop_time,
                 // A lesson moved into a shared place claims that place. Every
                 // other lesson keeps the section's own room.
-                'room'          => $record->facility_id !== null
+                'room' => $record->facility_id !== null
                     ? $facilityNames->get($record->facility_id)
                     : (filled($timetable->academicCycleSection?->room) ? $timetable->academicCycleSection->room : null),
-                'teacher_ids'   => $teachers->pluck('id')->map(fn ($id): int => (int) $id)->all(),
+                'teacher_ids' => $teachers->pluck('id')->map(fn ($id): int => (int) $id)->all(),
                 'teacher_names' => $teachers->pluck('name', 'id')->all(),
             ];
         })->filter()->values();

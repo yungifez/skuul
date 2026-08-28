@@ -185,16 +185,19 @@ class TimetableGrid
             return $this->asTeacherLists([]);
         }
 
+        $cycleSection->loadMissing('academicLevel');
+        $levelScopeIds = $cycleSection->academicLevel->hierarchyIds();
+
         $assignments = TeachingAssignment::query()
             ->whereIn('subject_id', $subjectIds)
             ->where('academic_period_id', $timetable->academic_period_id)
             ->runningOn()
-            ->whereHas('courseOffering', function ($query) use ($cycleSection): void {
-                $query->where(function ($offerings) use ($cycleSection): void {
+            ->whereHas('courseOffering', function ($query) use ($cycleSection, $levelScopeIds): void {
+                $query->where(function ($offerings) use ($cycleSection, $levelScopeIds): void {
                     $offerings->whereHas('cycleSections', fn ($sections) => $sections->whereKey($cycleSection->id))
-                        ->orWhere(function ($offerings) use ($cycleSection): void {
+                        ->orWhere(function ($offerings) use ($levelScopeIds): void {
                             $offerings->where('roster_mode', RosterMode::AcademicLevel)
-                                ->where('academic_level_id', $cycleSection->academic_level_id);
+                                ->whereIn('academic_level_id', $levelScopeIds);
                         });
                 });
             })

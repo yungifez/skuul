@@ -179,8 +179,8 @@ class CreateCourseOffering
             throw new InvalidValueException('The academic level belongs to another school.');
         }
 
-        if ($academicLevel->is_group) {
-            throw new InvalidValueException('A level group organizes teachable levels. Choose one of its child levels for this subject.');
+        if ($academicLevel->is_group && $rosterMode !== RosterMode::AcademicLevel) {
+            throw new InvalidValueException('A level group can only use a whole-level roster. Choose the whole-level option for this subject.');
         }
 
         $sectionLabel = strtolower(school_term('section', 'section'));

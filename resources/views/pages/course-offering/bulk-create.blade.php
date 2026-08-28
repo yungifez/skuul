@@ -17,7 +17,7 @@
     <div class="mx-auto flex w-full max-w-5xl flex-col gap-6">
         <april:card>
             <slot:title>Set up one subject for several levels</slot:title>
-            <slot:description>This creates separate offerings for each selected level. Each level can keep its own sections, weekly periods, capacity, and learner grouping.</slot:description>
+            <slot:description>This creates separate offerings for each selected class or group. A group can be taught as one scope across all of its child classes.</slot:description>
             <slot:content>
                 <form method="POST" action="{{ route('course-offerings.bulk-store') }}" class="space-y-8" x-data="{ selectedLevels: @js($selectedLevelIds) }">
                     @csrf
@@ -57,23 +57,46 @@
 
                     <div class="space-y-4 border-t pt-6">
                         <div>
-                            <h2 class="font-semibold">1. Choose the levels</h2>
-                            <p class="text-sm text-muted-foreground">Select every level that teaches this subject. You will set each level's details below.</p>
+                            <h2 class="font-semibold">1. Choose classes or groups</h2>
+                            <p class="text-sm text-muted-foreground">Select every class or group that teaches this subject. You will set each one’s details below.</p>
                         </div>
-                        <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                            @foreach ($academicLevels as $academicLevel)
-                                <label class="flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors hover:bg-accent/40 has-[:checked]:border-primary/50 has-[:checked]:bg-primary/5">
-                                    <input type="checkbox" name="level_ids[]" value="{{ $academicLevel->id }}" x-model="selectedLevels" class="mt-0.5 size-4 shrink-0 rounded border-input" @checked(in_array((string) $academicLevel->id, $selectedLevelIds, true))>
-                                    <span class="text-sm font-medium">{{ $academicLevel->name }}</span>
-                                </label>
-                            @endforeach
+                        <div class="space-y-4">
+                            @if ($academicLevels->where('is_group', false)->isNotEmpty())
+                                <div class="space-y-2">
+                                    <h3 class="text-sm font-medium">{{ school_terms('class_level', 'Classes') }}</h3>
+                                    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                        @foreach ($academicLevels->where('is_group', false) as $academicLevel)
+                                            <label class="flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors hover:bg-accent/40 has-[:checked]:border-primary/50 has-[:checked]:bg-primary/5">
+                                                <input type="checkbox" name="level_ids[]" value="{{ $academicLevel->id }}" x-model="selectedLevels" class="mt-0.5 size-4 shrink-0 rounded border-input" @checked(in_array((string) $academicLevel->id, $selectedLevelIds, true))>
+                                                <span class="text-sm font-medium">{{ $academicLevel->name }}</span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
+                            @if ($academicLevels->where('is_group', true)->isNotEmpty())
+                                <div class="space-y-2">
+                                    <h3 class="text-sm font-medium">Groups <span class="font-normal text-muted-foreground">(whole-group teaching)</span></h3>
+                                    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                                        @foreach ($academicLevels->where('is_group', true) as $academicLevel)
+                                            <label class="flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors hover:bg-accent/40 has-[:checked]:border-primary/50 has-[:checked]:bg-primary/5">
+                                                <input type="checkbox" name="level_ids[]" value="{{ $academicLevel->id }}" x-model="selectedLevels" class="mt-0.5 size-4 shrink-0 rounded border-input" @checked(in_array((string) $academicLevel->id, $selectedLevelIds, true))>
+                                                <span class="text-sm">
+                                                    <span class="block font-medium">{{ $academicLevel->name }}</span>
+                                                    <span class="block text-xs text-muted-foreground">Includes its child classes</span>
+                                                </span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endif
                         </div>
                     </div>
 
                     <div class="space-y-4 border-t pt-6">
                         <div>
-                            <h2 class="font-semibold">2. Configure each level</h2>
-                            <p class="text-sm text-muted-foreground">These settings are copied only to the selected level's offering.</p>
+                            <h2 class="font-semibold">2. Configure each selection</h2>
+                            <p class="text-sm text-muted-foreground">These settings are copied only to the selected class or group’s offering.</p>
                         </div>
 
                         @foreach ($academicLevels as $academicLevel)
@@ -88,11 +111,17 @@
                                     <div class="grid gap-4 md:grid-cols-2">
                                         <div class="flex flex-col gap-2">
                                             <april:label for="roster-mode-{{ $academicLevel->id }}">Who attends</april:label>
-                                            <select id="roster-mode-{{ $academicLevel->id }}" name="configurations[{{ $academicLevel->id }}][roster_mode]" class="rounded-md border border-input bg-background px-3 py-2" required>
-                                                @foreach ($rosterModes as $rosterMode)
-                                                    <option value="{{ $rosterMode->value }}" @selected(old("configurations.{$academicLevel->id}.roster_mode", \App\Enums\RosterMode::HomeSection->value) === $rosterMode->value)>{{ school_roster_label($rosterMode) }}</option>
-                                                @endforeach
-                                            </select>
+                                            @if ($academicLevel->is_group)
+                                                <input type="hidden" name="configurations[{{ $academicLevel->id }}][roster_mode]" value="{{ \App\Enums\RosterMode::AcademicLevel->value }}">
+                                                <div id="roster-mode-{{ $academicLevel->id }}" class="rounded-md border border-primary/30 bg-primary/5 px-3 py-2 text-sm">Whole group</div>
+                                                <p class="text-sm text-muted-foreground">Every learner in its child classes attends.</p>
+                                            @else
+                                                <select id="roster-mode-{{ $academicLevel->id }}" name="configurations[{{ $academicLevel->id }}][roster_mode]" class="rounded-md border border-input bg-background px-3 py-2" required>
+                                                    @foreach ($rosterModes as $rosterMode)
+                                                        <option value="{{ $rosterMode->value }}" @selected(old("configurations.{$academicLevel->id}.roster_mode", \App\Enums\RosterMode::HomeSection->value) === $rosterMode->value)>{{ school_roster_label($rosterMode) }}</option>
+                                                    @endforeach
+                                                </select>
+                                            @endif
                                         </div>
                                         <div class="grid grid-cols-2 gap-4">
                                             <april:input-group id="planned-periods-{{ $academicLevel->id }}" name="configurations[{{ $academicLevel->id }}][planned_periods_per_week]" type="number" min="1" max="80" label="Periods each week" value="{{ old("configurations.{$academicLevel->id}.planned_periods_per_week") }}" />
@@ -102,7 +131,9 @@
 
                                     <div class="flex flex-col gap-2">
                                         <april:label for="sections-{{ $academicLevel->id }}">Participating sections</april:label>
-                                        @if ($academicCycleSections->where('academic_level_id', $academicLevel->id)->isEmpty())
+                                        @if ($academicLevel->is_group)
+                                            <p class="rounded-md border border-primary/30 bg-primary/5 p-3 text-sm text-muted-foreground">Whole-group teaching includes sections from all child classes.</p>
+                                        @elseif ($academicCycleSections->where('academic_level_id', $academicLevel->id)->isEmpty())
                                             <p class="rounded-md border border-dashed p-3 text-sm text-muted-foreground">No sections have been created for {{ $academicLevel->name }} in this school year. You can use a whole-level roster or add sections first.</p>
                                         @else
                                             <april:select id="sections-{{ $academicLevel->id }}" name="configurations[{{ $academicLevel->id }}][academic_cycle_section_ids][]" multiple placeholder="Select sections">

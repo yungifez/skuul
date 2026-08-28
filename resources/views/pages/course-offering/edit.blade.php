@@ -40,8 +40,8 @@
                 </div>
 
                 <div x-cloak x-show="rosterMode === 'academic_level'" class="rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
-                    <p class="font-medium">Whole academic level</p>
-                    <p class="mt-1 text-muted-foreground">Every learner in {{ $courseOffering->academicLevel->name }} is included. You do not need to choose sections or named learners.</p>
+                    <p class="font-medium">{{ $courseOffering->academicLevel->is_group ? 'Whole group' : 'Whole academic level' }}</p>
+                    <p class="mt-1 text-muted-foreground">{{ $courseOffering->academicLevel->is_group ? 'Every learner in the child classes under '.$courseOffering->academicLevel->name.' is included.' : 'Every learner in '.$courseOffering->academicLevel->name.' is included.' }} You do not need to choose sections or named learners.</p>
                 </div>
 
                 <div x-cloak x-show="rosterMode === 'individual_roster'" class="flex flex-col gap-2">

@@ -70,7 +70,7 @@ class CourseOfferingController extends Controller
     public function create(): View
     {
         $academicYears = AcademicYear::inSchool()->with('topLevelPeriods')->orderByDesc('start_year')->get();
-        $academicLevels = AcademicLevel::inSchool()->where('is_group', false)->orderBy('position')->orderBy('name')->get();
+        $academicLevels = AcademicLevel::inSchool()->orderBy('position')->orderBy('name')->get();
         $selectedAcademicYearId = request()->integer('academic_year_id');
         $academicCycleSectionsQuery = AcademicCycleSection::inSchool()
             ->with(['academicLevel:id,name', 'academicYear:id,start_year,stop_year'])
@@ -118,7 +118,6 @@ class CourseOfferingController extends Controller
         abort_unless($selectedAcademicYear instanceof AcademicYear, 404);
 
         $academicLevels = AcademicLevel::inSchool()
-            ->where('is_group', false)
             ->orderBy('position')
             ->orderBy('name')
             ->get();
@@ -205,10 +204,11 @@ class CourseOfferingController extends Controller
     public function edit(CourseOffering $courseOffering): View
     {
         $courseOffering->load(['academicLevel', 'academicPeriod', 'academicYear', 'cycleSections', 'studentRecords']);
+        $teachingScopeIds = $courseOffering->academicLevel->teachingScopeIds();
         $academicCycleSections = AcademicCycleSection::inSchool()
             ->with(['academicLevel:id,name', 'academicYear:id,start_year,stop_year'])
             ->where('academic_year_id', $courseOffering->academic_year_id)
-            ->where('academic_level_id', $courseOffering->academic_level_id)
+            ->whereIn('academic_level_id', $teachingScopeIds)
             ->where('status', '!=', AcademicStructureStatus::Archived)
             ->orderBy('position')
             ->orderBy('name')
@@ -216,9 +216,9 @@ class CourseOfferingController extends Controller
         $studentRecords = StudentRecord::inSchool()
             ->attending()
             ->with(['academicCycleSection.academicLevel:id,name', 'user:id,name'])
-            ->whereHas('academicCycleSection', function (Builder $query) use ($courseOffering): void {
+            ->whereHas('academicCycleSection', function (Builder $query) use ($courseOffering, $teachingScopeIds): void {
                 $query->where('academic_year_id', $courseOffering->academic_year_id)
-                    ->where('academic_level_id', $courseOffering->academic_level_id);
+                    ->whereIn('academic_level_id', $teachingScopeIds);
             })
             ->orderBy('admission_number')
             ->get();
@@ -226,6 +226,10 @@ class CourseOfferingController extends Controller
 
         if (!in_array($courseOffering->roster_mode, $rosterModes, true)) {
             $rosterModes[] = $courseOffering->roster_mode;
+        }
+
+        if ($courseOffering->academicLevel->is_group) {
+            $rosterModes = [RosterMode::AcademicLevel];
         }
 
         return view('pages.course-offering.edit', compact('academicCycleSections', 'courseOffering', 'rosterModes', 'studentRecords'));

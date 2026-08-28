@@ -49,8 +49,8 @@ class UpdateCourseOfferingRoster
                 throw new InvalidValueException('An archived course offering cannot be changed.');
             }
 
-            if ($courseOffering->academicLevel->is_group) {
-                throw new InvalidValueException('A level group organizes teachable levels and cannot receive a subject.');
+            if ($courseOffering->academicLevel->is_group && $rosterMode !== RosterMode::AcademicLevel) {
+                throw new InvalidValueException('A level group can only use a whole-level roster.');
             }
 
             if ($courseOffering->academicYear->isClosed() || $courseOffering->academicPeriod->isClosed()) {

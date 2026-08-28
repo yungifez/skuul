@@ -29,13 +29,17 @@ class CourseOfferingRoster
      */
     public function includes(CourseOffering $courseOffering, StudentRecord $enrollment): bool
     {
-        $courseOffering->loadMissing(['cycleSections', 'studentRecords']);
+        $courseOffering->loadMissing(['academicLevel', 'cycleSections', 'studentRecords']);
         $enrollment->loadMissing('academicCycleSection');
 
         return match ($courseOffering->roster_mode) {
             RosterMode::HomeSection, RosterMode::CombinedHomeSections => $courseOffering->cycleSections
                 ->contains('id', $enrollment->academic_cycle_section_id),
-            RosterMode::AcademicLevel    => $enrollment->academicCycleSection?->academic_level_id === $courseOffering->academic_level_id,
+            RosterMode::AcademicLevel => in_array(
+                $enrollment->academicCycleSection?->academic_level_id,
+                $courseOffering->academicLevel->teachingScopeIds(),
+                true,
+            ),
             RosterMode::IndividualRoster => $courseOffering->studentRecords->contains('id', $enrollment->id),
         };
     }
@@ -47,7 +51,7 @@ class CourseOfferingRoster
      */
     public function students(CourseOffering $courseOffering): Collection
     {
-        $courseOffering->loadMissing(['cycleSections', 'studentRecords']);
+        $courseOffering->loadMissing(['academicLevel', 'cycleSections', 'studentRecords']);
 
         $students = match ($courseOffering->roster_mode) {
             RosterMode::HomeSection, RosterMode::CombinedHomeSections => StudentRecord::query()
@@ -57,7 +61,7 @@ class CourseOfferingRoster
             RosterMode::AcademicLevel => StudentRecord::query()
                 ->inSchool($courseOffering->school_id)
                 ->attending()
-                ->whereHas('academicCycleSection', fn ($query) => $query->where('academic_level_id', $courseOffering->academic_level_id)),
+                ->whereHas('academicCycleSection', fn ($query) => $query->whereIn('academic_level_id', $courseOffering->academicLevel->teachingScopeIds())),
             RosterMode::IndividualRoster => $courseOffering->studentRecords()->attending(),
         };
 
