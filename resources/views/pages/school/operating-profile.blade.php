@@ -39,7 +39,14 @@
                         <div class="space-y-2"><april:label for="label-{{ $key }}">{{ __($label) }}</april:label><input id="label-{{ $key }}" name="labels[{{ $key }}]" value="{{ old('labels.'.$key, data_get($profile->labels, $key, \App\Models\SchoolOperatingProfile::labelsFor($profile->preset)[$key])) }}" class="flex h-10 w-full rounded-md border bg-background px-3 py-2 text-sm"></div>
                     @endforeach
                 </slot:content>
-                <slot:footer><april:button type="submit">Save school language</april:button></slot:footer>
+                <slot:footer>
+                    <div class="flex flex-wrap gap-3">
+                        <april:button type="submit">{{ request()->boolean('setup') ? 'Save and continue to classes' : 'Save school language' }}</april:button>
+                        @if (!request()->boolean('setup'))
+                            <april:button type="submit" name="continue" value="1" variant="outline">Save and continue to classes</april:button>
+                        @endif
+                    </div>
+                </slot:footer>
             </april:card>
         </form>
     </div>
