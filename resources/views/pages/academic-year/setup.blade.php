@@ -69,45 +69,12 @@
                                 No levels are available yet. Add a level or group before adding this year’s sections.
                             </div>
                         @else
-                            <div class="grid gap-3 lg:grid-cols-2">
-                                @foreach ($academicLevels as $academicLevel)
-                                    @php
-                                        $sections = $sectionsByLevel->get($academicLevel->id, collect());
-                                    @endphp
-                                    <div class="rounded-md border p-4">
-                                        <div class="flex items-start justify-between gap-3">
-                                            <div>
-                                                <p class="font-semibold">{{ $academicLevel->name }}</p>
-                                                <p class="text-sm text-muted-foreground">{{ $sections->count() }} {{ $sections->count() === 1 ? strtolower(school_term('section', 'section')) : strtolower(school_terms('section', 'sections')) }}</p>
-                                            </div>
-                                            @can('view', $academicLevel)
-                                                <april:button-link href="{{ route('academic-levels.show', $academicLevel) }}" variant="ghost" size="sm">View level</april:button-link>
-                                            @endcan
-                                        </div>
-                                        @if ($sections->isEmpty())
-                                            <div class="mt-3 flex items-center justify-between gap-3 border-t pt-3 text-sm">
-                                                <span class="text-muted-foreground">No section added yet</span>
-                                                @can('create', \App\Models\AcademicCycleSection::class)
-                                                    <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_year_id' => $academicYear->id, 'academic_level_id' => $academicLevel->id, 'setup' => 1]) }}" variant="outline" size="sm">Add section</april:button-link>
-                                                @endcan
-                                            </div>
-                                        @else
-                                            <ul class="mt-3 space-y-2 border-t pt-3 text-sm">
-                                                @foreach ($sections as $section)
-                                                    <li class="flex items-center justify-between gap-3">
-                                                        @can('view', $section)
-                                                            <a href="{{ route('academic-cycle-sections.show', $section) }}" class="font-medium hover:underline">{{ $section->name }}</a>
-                                                        @else
-                                                            <span class="font-medium">{{ $section->name }}</span>
-                                                        @endcan
-                                                        <x-academic-structure-status :status="$section->status" />
-                                                    </li>
-                                                @endforeach
-                                            </ul>
-                                        @endif
-                                    </div>
-                                @endforeach
-                            </div>
+                            @include('pages.academic-year.partials.level-tree', [
+                                'levels' => $academicLevels->whereNull('parent_id'),
+                                'childrenByParent' => $academicLevels->groupBy('parent_id'),
+                                'sectionsByLevel' => $sectionsByLevel,
+                                'academicYear' => $academicYear,
+                            ])
                         @endif
                     </div>
                 </slot:content>

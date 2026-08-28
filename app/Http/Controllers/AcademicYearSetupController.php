@@ -49,7 +49,7 @@ class AcademicYearSetupController extends Controller
             $academicLevels = AcademicLevel::inSchool($academicYear->school_id)
                 ->orderBy('position')
                 ->orderBy('name')
-                ->get(['id', 'name', 'status']);
+                ->get(['id', 'parent_id', 'name', 'status']);
         }
 
         return view('pages.academic-year.setup', [
