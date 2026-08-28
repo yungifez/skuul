@@ -7,7 +7,7 @@
                 </span>
                 Working {{ strtolower(school_term('academic_year', 'school year')) }}
             </slot:title>
-            <slot:description>Choose the {{ strtolower(school_term('academic_year', 'school year')) }} this workspace is currently working in.</slot:description>
+            <slot:description>Choose the {{ strtolower(school_term('academic_year', 'school year')) }} this workspace is currently working in. Your working term is selected in the bar above.</slot:description>
             <slot:content>
                 <form action="{{route('academic-years.set-academic-year')}}" method="POST" class="space-y-5">
                     <x-display-validation-errors/>

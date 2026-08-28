@@ -15,7 +15,7 @@
                         </span>
                     @endif
                     <span class="inline-flex items-center gap-1.5">
-                        <span class="text-muted-foreground">Current {{ $periodLabel }}</span>
+                        <span class="text-muted-foreground">{{ ucfirst($periodLabel) }} for today</span>
                         <april:badge variant="{{ $calendarError || $currentPeriod === null ? 'outline' : 'secondary' }}">{{ $calendarError ? 'Unavailable' : ($currentPeriod?->displayName ?? 'No term today') }}</april:badge>
                     </span>
                     <span class="inline-flex items-center gap-1.5">
@@ -53,7 +53,7 @@
                         </div>
                     @endif
                     <p class="text-sm text-muted-foreground">
-                        Current {{ $periodLabel }}: <span class="font-medium text-foreground">{{ $calendarError ? 'Unavailable' : ($currentPeriod?->displayName ?? 'No term covers today') }}</span>.
+                        {{ ucfirst($periodLabel) }} for today: <span class="font-medium text-foreground">{{ $calendarError ? 'Unavailable' : ($currentPeriod?->displayName ?? 'No term covers today') }}</span>.
                         Working {{ $periodLabel }}: <span class="font-medium text-foreground">{{ $workingPeriod?->displayName ?? 'Not selected' }}</span>.
                         This choice is saved for you in this school and {{ strtolower(school_term('academic_year', 'school year')) }}.
                     </p>
