@@ -16,7 +16,7 @@ enum AcademicYearSetupStep: string
             self::Calendar => 'Dates and periods',
             self::Teaching => 'Teaching approach',
             self::Structure => 'Classes and teachers',
-            self::Subjects => 'Subjects being taught',
+            self::Subjects => 'Subjects for this year',
             self::Review => 'Review and publish',
         };
     }
@@ -27,7 +27,7 @@ enum AcademicYearSetupStep: string
             self::Calendar => 'Set the dates and terms or semesters.',
             self::Teaching => 'Choose how learners are grouped for teaching.',
             self::Structure => 'Create this year’s classes and assign class teachers.',
-            self::Subjects => 'Choose the subjects for each class and period.',
+            self::Subjects => 'Add the subjects each class will study and when they run.',
             self::Review => 'Check the setup and make the year available.',
         };
     }

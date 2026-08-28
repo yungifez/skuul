@@ -117,8 +117,8 @@ class CourseOfferingController extends Controller
         }
 
         $message = $courseOfferings->count() === 1
-            ? 'Course offering created as a draft. Activate it when the academic period opens.'
-            : $courseOfferings->count().' course offerings created as drafts for the academic year.';
+            ? 'Subject added to the school year for review. Activate it when the academic period opens.'
+            : $courseOfferings->count().' subject entries added to the school year for review.';
 
         if ($request->boolean('setup')) {
             return to_route('academic-years.setup', [$academicYear, 'review'])

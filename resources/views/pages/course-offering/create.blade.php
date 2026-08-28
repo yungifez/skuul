@@ -1,19 +1,19 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href' => route('dashboard'), 'text' => 'Dashboard'],
     ['href' => route('course-offerings.index'), 'text' => 'Course offerings'],
-    ['href' => route('course-offerings.create'), 'text' => 'Create', 'active'],
+    ['href' => route('course-offerings.create'), 'text' => request()->boolean('setup') ? 'Add subject to this year' : 'Create', 'active'],
 ]])
 
-@section('title', __('Create course offering'))
-@section('page_heading', __('Create course offering'))
+@section('title', request()->boolean('setup') ? __('Add subject to this year') : __('Create course offering'))
+@section('page_heading', request()->boolean('setup') ? __('Add subject to this year') : __('Create course offering'))
 
 @section('content')
     <april:card>
         <slot:title class="flex items-center gap-1">
-            <span>Create a draft offering</span>
-            <x-help-tooltip label="Course offering help">Choose the subject, class, period, and learners. The teaching setup controls which roster choices are available.</x-help-tooltip>
+            <span>Add a subject to this year</span>
+            <x-help-tooltip label="Subject setup help">A subject is what learners study, such as Mathematics, English, or Science. This step connects it to a class and reporting period for the selected school year. It is saved for review before it is activated.</x-help-tooltip>
         </slot:title>
-        <slot:description>Choose what is taught, when, and to whom.</slot:description>
+        <slot:description>Choose the subject, class, period, and learners for this year.</slot:description>
         <slot:content>
             <form method="POST" action="{{ route('course-offerings.store') }}" class="space-y-6">
                 @csrf
@@ -53,13 +53,22 @@
                         </select>
                     </div>
                     <div class="flex flex-col gap-2">
-                        <april:label for="subject">{{ school_term('course', 'Subject') }}</april:label>
+                        <div class="flex items-center gap-1">
+                            <april:label for="subject">{{ school_term('course', 'Subject') }}</april:label>
+                            <x-help-tooltip label="What is a subject?">A subject is the reusable name in the school catalog, such as Mathematics, English, or Science.</x-help-tooltip>
+                        </div>
                         <select id="subject" name="subject_id" class="rounded-md border border-input bg-background px-3 py-2" required>
                             <option value="">Select a {{ strtolower(school_term('course', 'subject')) }}</option>
                             @foreach ($subjects as $subject)
                                 <option value="{{ $subject->id }}" {{ (string) old('subject_id') === (string) $subject->id ? 'selected' : '' }}>{{ $subject->name }}</option>
                             @endforeach
                         </select>
+                        @if ($subjects->isEmpty())
+                            <div class="rounded-md border border-amber-500/30 bg-amber-500/10 p-3 text-sm">
+                                <p>No subjects have been created yet.</p>
+                                <april:button-link href="{{ route('subjects.create', array_filter(['setup' => request()->boolean('setup') ? 1 : null, 'academic_year_id' => request('academic_year_id')])) }}" variant="link" size="none" class="mt-1 gap-1 p-0">Create a subject first <span aria-hidden="true">→</span></april:button-link>
+                            </div>
+                        @endif
                     </div>
                     <div class="flex flex-col gap-2">
                         <april:label for="academic-level">{{ school_term('class_level', 'Class') }}</april:label>
@@ -94,7 +103,10 @@
                     </april:select>
                 </div>
 
-                <april:button type="submit">Create draft offering</april:button>
+                <div class="space-y-1">
+                    <april:button type="submit">Save subject for this year</april:button>
+                    <p class="text-sm text-muted-foreground">This saves the setup for review. It can be activated when the period is ready.</p>
+                </div>
             </form>
         </slot:content>
     </april:card>

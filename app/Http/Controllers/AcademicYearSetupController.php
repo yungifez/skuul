@@ -7,6 +7,7 @@ use App\Enums\AcademicYearSetupStep;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
+use App\Models\Subject;
 use App\Services\AcademicYear\AcademicYearService;
 use App\Services\AcademicYear\AcademicYearSetupProgress;
 use Illuminate\Http\RedirectResponse;
@@ -43,6 +44,7 @@ class AcademicYearSetupController extends Controller
 
         $academicYear = $academicYear->load('topLevelPeriods');
         $academicLevels = collect();
+        $subjects = collect();
 
         if ($requested === AcademicYearSetupStep::Structure) {
             $academicYear->load(['cycleSections.academicLevel', 'cycleSections.homeroomTeacher']);
@@ -52,11 +54,18 @@ class AcademicYearSetupController extends Controller
                 ->get(['id', 'parent_id', 'name', 'status']);
         }
 
+        if ($requested === AcademicYearSetupStep::Subjects) {
+            $subjects = Subject::inSchool($academicYear->school_id)
+                ->orderBy('name')
+                ->get(['id', 'name', 'short_name']);
+        }
+
         return view('pages.academic-year.setup', [
             'academicYear' => $academicYear,
             'currentStep' => $requested,
             'progress' => $progress,
             'academicLevels' => $academicLevels,
+            'subjects' => $subjects,
         ]);
     }
 

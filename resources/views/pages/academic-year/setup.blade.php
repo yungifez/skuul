@@ -74,12 +74,40 @@
             </april:card>
         @elseif ($currentStep === \App\Enums\AcademicYearSetupStep::Subjects)
             <april:card>
-                <slot:title>Choose the subjects being taught</slot:title>
-                <slot:description>Add subjects and choose when they run.</slot:description>
-                <slot:footer><x-help-tooltip label="Subject setup help">Add a subject for a class, then choose every term or semester when it runs. Exam slots are not needed for this setup.</x-help-tooltip></slot:footer>
-                <slot:content class="flex flex-wrap gap-3">
-                    <april:button-link href="{{ route('course-offerings.create', ['academic_year_id' => $academicYear->id, 'setup' => 1]) }}">Add subjects for this year</april:button-link>
-                    <april:button-link href="{{ route('subjects.create', ['setup' => 1, 'academic_year_id' => $academicYear->id]) }}" variant="outline">Create a new subject</april:button-link>
+                <slot:title>Add subjects to this year</slot:title>
+                <slot:description>Choose what learners study, then connect each subject to the classes and periods where it is taught.</slot:description>
+                <slot:footer><x-help-tooltip label="Subject setup help">A subject is the reusable school subject, such as Mathematics, English, or Science. Adding it to this year connects it to a class and a reporting period. It is saved for review before it is activated.</x-help-tooltip></slot:footer>
+                <slot:content class="space-y-5">
+                    <div class="rounded-md border border-primary/30 bg-primary/5 p-4 text-sm">
+                        <p class="font-semibold">What is a subject?</p>
+                        <p class="mt-1 text-muted-foreground">A subject is what learners study, such as Mathematics, English, or Science. Create the subject once, then add it to each class that teaches it this year.</p>
+                    </div>
+
+                    @if ($subjects->isEmpty())
+                        <div class="flex flex-col gap-3 rounded-md border border-dashed p-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h3 class="font-semibold">Create your first subject</h3>
+                                <p class="text-sm text-muted-foreground">There are no subjects in this school’s catalog yet.</p>
+                            </div>
+                            <april:button-link href="{{ route('subjects.create', ['setup' => 1, 'academic_year_id' => $academicYear->id]) }}" class="shrink-0">Create a subject</april:button-link>
+                        </div>
+                    @else
+                        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <h3 class="font-semibold">Subjects in the school catalog</h3>
+                                <p class="text-sm text-muted-foreground">{{ $subjects->count() }} {{ $subjects->count() === 1 ? 'subject is' : 'subjects are' }} available to add to {{ $academicYear->name }}.</p>
+                            </div>
+                            <div class="flex flex-wrap gap-3">
+                                <april:button-link href="{{ route('course-offerings.create', ['academic_year_id' => $academicYear->id, 'setup' => 1]) }}">Add a subject to this year</april:button-link>
+                                <april:button-link href="{{ route('subjects.create', ['setup' => 1, 'academic_year_id' => $academicYear->id]) }}" variant="outline">Create another subject</april:button-link>
+                            </div>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach ($subjects as $subject)
+                                <april:badge variant="secondary">{{ $subject->name }}</april:badge>
+                            @endforeach
+                        </div>
+                    @endif
                 </slot:content>
             </april:card>
         @else
