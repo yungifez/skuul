@@ -81,18 +81,31 @@ document.addEventListener("submit", (event) => {
         return;
     }
 
-    const deleteMethod = form.querySelector('input[name="_method"][value="DELETE" i]');
+    if (form.dataset.submitting === "true") {
+        event.preventDefault();
 
-    if (!deleteMethod) {
         return;
     }
 
-    const message = form.dataset.confirm ?? "Delete this item? This action cannot be undone.";
+    const deleteMethod = form.querySelector('input[name="_method"][value="DELETE" i]');
 
-    if (!window.confirm(message)) {
-        event.preventDefault();
+    if (deleteMethod) {
+        const message = form.dataset.confirm ?? "Delete this item? This action cannot be undone.";
+
+        if (!window.confirm(message)) {
+            event.preventDefault();
+
+            return;
+        }
     }
-});
+
+    form.dataset.submitting = "true";
+
+    form.querySelectorAll('button:not([type]), button[type="submit"], input[type="submit"]').forEach((submitButton) => {
+        submitButton.disabled = true;
+        submitButton.setAttribute("aria-busy", "true");
+    });
+}, true);
 
 systemThemeQuery.addEventListener("change", () => {
     if (window.localStorage.getItem(themeStorageKey) === "system") {
