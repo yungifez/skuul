@@ -101,64 +101,12 @@
                                 <april:button-link href="{{ route('subjects.create', ['setup' => 1, 'academic_year_id' => $academicYear->id]) }}" variant="outline">Create another subject</april:button-link>
                             </div>
                         </div>
-                        <div class="overflow-hidden rounded-md border">
-                            <div class="border-b bg-muted/30 px-4 py-3">
-                                <h3 class="font-semibold">Subjects for this year</h3>
-                                <p class="text-sm text-muted-foreground">Each subject appears once. Add a teaching setup below it for each class and reporting period.</p>
+                        <div class="space-y-3 border-t pt-5">
+                            <div>
+                                <h3 class="font-semibold">Subjects by class</h3>
+                                <p class="text-sm text-muted-foreground">Expand a class to see its sections. Each subject lists the periods in which it is offered.</p>
                             </div>
-                            <div class="divide-y">
-                                @foreach ($subjects as $subject)
-                                    @php
-                                        $subjectOfferings = $courseOfferings->where('subject_id', $subject->id)->values();
-                                    @endphp
-                                    <article>
-                                        <div class="flex flex-wrap items-center justify-between gap-2 px-4 py-3">
-                                            <div class="min-w-0">
-                                                <h4 class="font-semibold">{{ $subject->name }}</h4>
-                                                @if ($subject->short_name)
-                                                    <p class="text-xs text-muted-foreground">{{ $subject->short_name }}</p>
-                                                @endif
-                                            </div>
-                                            @if ($subjectOfferings->isEmpty())
-                                                <span class="text-xs text-muted-foreground">Not added to this year</span>
-                                            @else
-                                                <span class="text-xs text-muted-foreground">{{ $subjectOfferings->count() }} {{ $subjectOfferings->count() === 1 ? 'setup' : 'setups' }}</span>
-                                            @endif
-                                        </div>
-                                        @if ($subjectOfferings->isEmpty())
-                                            <p class="px-4 pb-3 text-sm text-muted-foreground">No class or reporting period has been set for this subject yet.</p>
-                                        @else
-                                            <div class="mx-4 mb-3 divide-y rounded-md border bg-muted/10">
-                                                @foreach ($subjectOfferings as $courseOffering)
-                                                    @php
-                                                        $offeringSections = $courseOffering->roster_mode->usesHomeSections()
-                                                            ? $courseOffering->cycleSections->map(fn ($section) => $section->label ?? $section->name)->join(', ')
-                                                            : school_roster_label($courseOffering->roster_mode);
-                                                        $offeringDetails = collect([
-                                                            $courseOffering->academicPeriod->displayName,
-                                                            school_roster_label($courseOffering->roster_mode),
-                                                            $offeringSections !== school_roster_label($courseOffering->roster_mode) ? $offeringSections : null,
-                                                            $courseOffering->planned_periods_per_week !== null ? $courseOffering->planned_periods_per_week.' periods/week' : null,
-                                                        ])->filter()->join(' · ');
-                                                    @endphp
-                                                    <div class="flex flex-col gap-3 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-                                                        <div class="min-w-0">
-                                                            <p class="font-medium">{{ $courseOffering->academicLevel->name }}</p>
-                                                            <p class="text-xs text-muted-foreground">{{ $offeringDetails }}</p>
-                                                        </div>
-                                                        <div class="flex shrink-0 items-center justify-end gap-2">
-                                                            <april:badge variant="{{ $courseOffering->status->value === 'active' ? 'default' : 'secondary' }}">{{ $courseOffering->status->label() }}</april:badge>
-                                                            @can('update', $courseOffering)
-                                                                <april:button-link href="{{ route('course-offerings.edit', [$courseOffering, 'setup' => 1]) }}" variant="ghost" size="sm">Edit</april:button-link>
-                                                            @endcan
-                                                        </div>
-                                                    </div>
-                                                @endforeach
-                                            </div>
-                                        @endif
-                                    </article>
-                                @endforeach
-                            </div>
+                            @livewire('academic-year-structure-tree', ['academicYear' => $academicYear, 'setupLinks' => false, 'showLevelActions' => false])
                         </div>
                     @endif
                 </slot:content>
