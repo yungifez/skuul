@@ -1,4 +1,4 @@
-<div class="grid w-full gap-4 md:grid-cols-2">
+<div class="grid w-full gap-6 md:grid-cols-2">
     <div class="md:col-span-2">
         <x-display-validation-errors />
         <p class="text-sm text-muted-foreground">Update the person’s identity and contact details. Account access is managed separately.</p>

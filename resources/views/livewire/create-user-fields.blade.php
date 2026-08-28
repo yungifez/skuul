@@ -1,4 +1,4 @@
-<div class="grid w-full gap-4 md:grid-cols-2">
+<div class="grid w-full gap-6 md:grid-cols-2">
     <div class="md:col-span-2">
         <x-display-validation-errors />
         <p class="text-sm text-muted-foreground">Only information needed to create this person and their school account is requested.</p>
