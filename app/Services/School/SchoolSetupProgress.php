@@ -16,9 +16,9 @@ class SchoolSetupProgress
     {
         $steps = SchoolSetupStep::cases();
         $completion = [
-            SchoolSetupStep::Details->value => filled($school->name) && filled($school->address),
-            SchoolSetupStep::Language->value => $school->operatingProfile()->exists(),
-            SchoolSetupStep::Classes->value => AcademicLevel::inSchool($school->id)->exists(),
+            SchoolSetupStep::Details->value => $this->detailsComplete($school),
+            SchoolSetupStep::Language->value => $this->languageComplete($school),
+            SchoolSetupStep::Classes->value => AcademicLevel::inSchool($school->id)->where('is_group', false)->exists(),
             SchoolSetupStep::AcademicYear->value => AcademicYear::inSchool($school->id)->exists(),
             SchoolSetupStep::Finish->value => false,
         ];
@@ -36,5 +36,27 @@ class SchoolSetupProgress
             ], $steps),
             'current' => $current,
         ];
+    }
+
+    /**
+     * Confirm that the school details were saved as a complete setup step.
+     */
+    public function detailsComplete(School $school): bool
+    {
+        return $school->setup_details_completed_at !== null
+            && filled($school->name)
+            && filled($school->address)
+            && filled($school->country)
+            && filled($school->state)
+            && filled($school->city)
+            && filled($school->postal_code);
+    }
+
+    /**
+     * Confirm that the school language form was explicitly saved.
+     */
+    public function languageComplete(School $school): bool
+    {
+        return $school->operatingProfile()->whereNotNull('setup_completed_at')->exists();
     }
 }

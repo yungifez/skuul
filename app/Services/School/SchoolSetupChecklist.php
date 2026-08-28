@@ -16,6 +16,7 @@ class SchoolSetupChecklist
 {
     public function __construct(
         private InstructionalModelResolver $instructionalModels,
+        private SchoolSetupProgress $schoolSetupProgress,
     ) {}
 
     /**
@@ -58,14 +59,15 @@ class SchoolSetupChecklist
         $classLabelLower = strtolower($classLabel);
         $classesLabel = school_terms('class_level', 'class');
         $sectionsLabel = school_terms('section', 'section');
+        $schoolDetailsComplete = $this->schoolSetupProgress->detailsComplete($school);
 
         $items = [
             $this->item(
                 key: 'school_details',
                 title: 'School details',
                 description: 'Keep the school name and address ready for staff, families and printed records.',
-                reason: filled($school->name) && filled($school->address) ? '' : 'Add the school address before using printed records and communications.',
-                complete: filled($school->name) && filled($school->address),
+                reason: $schoolDetailsComplete ? '' : 'Complete the school name and address before using printed records and communications.',
+                complete: $schoolDetailsComplete,
                 required: true,
                 group: 'School basics',
                 url: route('schools.edit', $school),

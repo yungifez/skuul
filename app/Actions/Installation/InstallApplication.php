@@ -102,6 +102,7 @@ class InstallApplication
                 'initials' => $data['campus_initials'] ?? null,
                 'email' => $data['campus_email'] ?? null,
                 'code' => Str::upper(Str::random(10)),
+                'setup_details_completed_at' => now(),
             ]);
 
             $schoolLanguagePreset = $data['school_language_preset'] ?? 'home_sections';
@@ -111,6 +112,7 @@ class InstallApplication
             $school->operatingProfile()->create([
                 'preset' => $schoolLanguagePreset,
                 'labels' => SchoolOperatingProfile::labelsFor($schoolLanguagePreset),
+                'setup_completed_at' => now(),
             ]);
 
             $this->grantSchoolMembership->grant($admin, $school, primary: true);

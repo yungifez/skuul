@@ -25,7 +25,8 @@ class SchoolOperatingProfileController extends Controller
     {
         $school = current_school();
         $this->authorize('update', $school);
-        $school->operatingProfile()->updateOrCreate([], $request->validated());
+        $profile = $school->operatingProfile()->updateOrCreate([], $request->validated());
+        $profile->forceFill(['setup_completed_at' => now()])->save();
 
         if ($request->boolean('setup') || $request->boolean('continue')) {
             return to_route('schools.setup', [current_school(), 'classes'])

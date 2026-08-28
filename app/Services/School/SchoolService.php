@@ -82,7 +82,7 @@ class SchoolService
             unset($record['logo']);
         }
 
-        $school = School::create($record);
+        $school = School::create($record + ['setup_details_completed_at' => now()]);
 
         return $school;
     }
@@ -103,6 +103,7 @@ class SchoolService
         $school->initials = $record['initials'];
         $school->phone = $record['phone'];
         $school->email = $record['email'];
+        $school->setup_details_completed_at = now();
 
         if (isset($record['logo'])) {
             $school->logo_path = Storage::disk('public')->put('schools', $record['logo']);

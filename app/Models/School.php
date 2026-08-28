@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Storage;
 
 /**
@@ -23,6 +24,7 @@ use Illuminate\Support\Facades\Storage;
  * @property string|null $state
  * @property string|null $city
  * @property string|null $postal_code
+ * @property Carbon|null $setup_details_completed_at
  */
 class School extends Model
 {
@@ -30,7 +32,14 @@ class School extends Model
 
     protected $fillable = [
         'organization_id', 'billing_group_id', 'name', 'address', 'country', 'state', 'city',
-        'postal_code', 'code', 'initials', 'phone', 'email', 'logo_path',
+        'postal_code', 'code', 'initials', 'phone', 'email', 'logo_path', 'setup_details_completed_at',
+    ];
+
+    /**
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'setup_details_completed_at' => 'datetime',
     ];
 
     /**
