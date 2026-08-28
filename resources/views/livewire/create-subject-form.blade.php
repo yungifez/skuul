@@ -6,7 +6,7 @@
         </div>
     </div>
     <div class="card-body">
-        <form action="{{route('subjects.store')}}" method="POST" class="md:w-1/2">
+        <form action="{{route('subjects.store')}}" method="POST" class="space-y-5 md:w-1/2">
             @if ($setup)
                 <input type="hidden" name="setup" value="1">
                 <input type="hidden" name="academic_year_id" value="{{ $academicYearId }}">
@@ -15,9 +15,9 @@
             <april:input-group id="name" name="name" label="Subject name" placeholder="e.g. Mathematics" />
             <april:input-group id="short-name" name="short_name" label="Short name" placeholder="e.g. Maths" />
             @csrf
-            <april:button type="submit" class="w-full md:w-1/2">
+            <april:button type="submit" class="w-full sm:w-auto">
                 <x-lucide-key class="mr-2 size-4" />
-                Create
+                Create subject
             </april:button>
         </form>
     </div>
