@@ -21,6 +21,10 @@
         <april:input-group id="admission-number" name="admission_number" label="Admission number" placeholder="Student's admission number" value="{{ old('admission_number') }}" />
     </div>
     <div class="md:col-span-4">
-        <april:input-group type="date" id="admission-date" name="admission_date" placeholder="Choose student's admission date..." label="Date of admission *" value="{{ old('admission_date') }}" autocomplete="off" wire:ignore />
+        <april:label for="admission-date">Date of admission *</april:label>
+        <input type="date" id="admission-date" name="admission_date" value="{{ old('admission_date') }}" max="{{ now()->toDateString() }}" autocomplete="off" wire:ignore class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+        @error('admission_date')
+            <p class="text-sm text-destructive">{{ $message }}</p>
+        @enderror
     </div>
 </div>

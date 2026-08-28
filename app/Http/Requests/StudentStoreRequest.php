@@ -7,6 +7,28 @@ use Illuminate\Validation\Rule;
 
 class StudentStoreRequest extends StoreUserRequest
 {
+    protected function prepareForValidation(): void
+    {
+        $admissionDate = $this->input('admission_date');
+
+        if (!is_string($admissionDate) || preg_match('/^\d{4}-\d{2}-\d{2}$/', $admissionDate)) {
+            return;
+        }
+
+        foreach (['m/d/Y', 'n/j/Y', 'd/m/Y', 'j/n/Y', 'm/d/y', 'n/j/y', 'd/m/y', 'j/n/y'] as $format) {
+            $date = \DateTimeImmutable::createFromFormat('!'.$format, $admissionDate);
+            $errors = \DateTimeImmutable::getLastErrors();
+
+            if ($date !== false
+                && ($errors === false || ($errors['warning_count'] === 0 && $errors['error_count'] === 0))
+                && $date->format($format) === $admissionDate) {
+                $this->merge(['admission_date' => $date->format('Y-m-d')]);
+
+                return;
+            }
+        }
+    }
+
     /**
      * Get the validation rules that apply to the request.
      */
@@ -36,6 +58,7 @@ class StudentStoreRequest extends StoreUserRequest
     {
         return [
             'academic_cycle_section_id.required' => 'Select a '.strtolower(school_term('section', 'section')),
+            'admission_date.date_format' => 'Choose a valid admission date.',
         ];
     }
 
