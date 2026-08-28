@@ -48,9 +48,15 @@ class AcademicLevelController extends Controller
         return view('pages.academic-level.index', compact('academicLevels', 'status', 'totalCount'));
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
-        return view('pages.academic-level.create', $this->formOptions());
+        $preselectedParent = $request->filled('parent_id')
+            ? AcademicLevel::inSchool()
+                ->where('status', AcademicStructureStatus::Active)
+                ->find($request->integer('parent_id'))
+            : null;
+
+        return view('pages.academic-level.create', $this->formOptions() + compact('preselectedParent'));
     }
 
     public function store(StoreAcademicLevelRequest $request): RedirectResponse

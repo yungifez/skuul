@@ -3,13 +3,14 @@
     'method' => 'POST',
     'academicLevel' => null,
     'academicLevels',
+    'preselectedParentId' => null,
     'submitLabel' => 'Save class',
     'cancelHref',
 ])
 
 @php
     $value = static fn (string $field, $fallback = null) => old($field, $academicLevel?->{$field} ?? $fallback);
-    $selected = static fn (string $field, $option) => (string) old($field, $academicLevel?->{$field}) === (string) $option;
+    $selected = static fn (string $field, $option) => (string) old($field, $field === 'parent_id' ? ($academicLevel?->parent_id ?? $preselectedParentId) : $academicLevel?->{$field}) === (string) $option;
 @endphp
 
 <form method="POST" action="{{ $action }}" class="space-y-6">

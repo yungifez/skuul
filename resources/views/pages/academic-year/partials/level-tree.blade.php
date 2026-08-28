@@ -20,9 +20,14 @@
                     </p>
                 </div>
             </div>
-            @can('view', $academicLevel)
-                <april:button-link href="{{ route('academic-levels.show', $academicLevel) }}" variant="ghost" size="sm">View level</april:button-link>
-            @endcan
+            <div class="flex shrink-0 items-center gap-1">
+                @can('create', \App\Models\AcademicLevel::class)
+                    <april:button-link href="{{ route('academic-levels.create', ['parent_id' => $academicLevel->id, 'setup' => 1, 'academic_year_id' => $academicYear->id]) }}" variant="outline" size="sm">Add class</april:button-link>
+                @endcan
+                @can('view', $academicLevel)
+                    <april:button-link href="{{ route('academic-levels.show', $academicLevel) }}" variant="ghost" size="sm">View level</april:button-link>
+                @endcan
+            </div>
         </div>
 
         @if ($hasChildren)
