@@ -17,18 +17,18 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 /**
- * @property AcademicPeriodStatus            $status
- * @property AcademicPeriodType              $type
- * @property int                             $position
+ * @property AcademicPeriodStatus $status
+ * @property AcademicPeriodType $type
+ * @property int $position
  * @property \Illuminate\Support\Carbon|null $starts_on
  * @property \Illuminate\Support\Carbon|null $ends_on
- * @property string                          $name
- * @property string|null                     $label
- * @property int|null                        $academic_year_id
- * @property int|null                        $parent_id
- * @property int                             $school_id
- * @property AcademicYear|null               $academicYear
- * @property self|null                       $parent
+ * @property string $name
+ * @property string|null $label
+ * @property int|null $academic_year_id
+ * @property int|null $parent_id
+ * @property int $school_id
+ * @property AcademicYear|null $academicYear
+ * @property self|null $parent
  * @property-read string                    $displayName
  */
 class AcademicPeriod extends Model
@@ -59,7 +59,7 @@ class AcademicPeriod extends Model
      */
     protected $attributes = [
         'status' => AcademicPeriodStatus::Open->value,
-        'type'   => AcademicPeriodType::Semester->value,
+        'type' => AcademicPeriodType::Semester->value,
     ];
 
     /**
@@ -90,18 +90,17 @@ class AcademicPeriod extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'status'    => AcademicPeriodStatus::class,
-        'type'      => AcademicPeriodType::class,
-        'position'  => 'integer',
+        'status' => AcademicPeriodStatus::class,
+        'type' => AcademicPeriodType::class,
+        'position' => 'integer',
         'starts_on' => 'date:Y-m-d',
-        'ends_on'   => 'date:Y-m-d',
+        'ends_on' => 'date:Y-m-d',
     ];
 
     /**
      * Limit the query to periods that divide the cycle itself.
      *
-     * @param Builder<$this> $query
-     *
+     * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
     public function scopeTopLevel(Builder $query): Builder
@@ -112,9 +111,8 @@ class AcademicPeriod extends Model
     /**
      * Limit the query to periods of the given kinds.
      *
-     * @param Builder<$this>                 $query
-     * @param array<int, AcademicPeriodType> $types
-     *
+     * @param  Builder<$this>  $query
+     * @param  array<int, AcademicPeriodType>  $types
      * @return Builder<$this>
      */
     public function scopeOfType(Builder $query, array $types): Builder
@@ -125,8 +123,7 @@ class AcademicPeriod extends Model
     /**
      * Limit the query to periods that cover the given day.
      *
-     * @param Builder<$this> $query
-     *
+     * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
     public function scopeCovering(Builder $query, DateTimeInterface|string|null $date = null): Builder
@@ -142,8 +139,7 @@ class AcademicPeriod extends Model
     /**
      * Read the periods in the order the school teaches them.
      *
-     * @param Builder<$this> $query
-     *
+     * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
     public function scopeOrdered(Builder $query): Builder
@@ -240,6 +236,16 @@ class AcademicPeriod extends Model
     public function academicYear(): BelongsTo
     {
         return $this->belongsTo(AcademicYear::class);
+    }
+
+    /**
+     * Get the staff choices that use this period as their working period.
+     *
+     * @return HasMany<UserAcademicPeriodPreference, $this>
+     */
+    public function academicPeriodPreferences(): HasMany
+    {
+        return $this->hasMany(UserAcademicPeriodPreference::class);
     }
 
     /**

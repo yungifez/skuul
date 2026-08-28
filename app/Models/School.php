@@ -141,6 +141,16 @@ class School extends Model
     }
 
     /**
+     * Get the staff working-period choices saved for this school.
+     *
+     * @return HasMany<UserAcademicPeriodPreference, $this>
+     */
+    public function academicPeriodPreferences(): HasMany
+    {
+        return $this->hasMany(UserAcademicPeriodPreference::class);
+    }
+
+    /**
      * Get the people who can work in this school.
      *
      * @return BelongsToMany<User, $this>

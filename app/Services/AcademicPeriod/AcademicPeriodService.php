@@ -6,6 +6,8 @@ use App\Enums\AcademicPeriodType;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
+use App\Models\User;
+use App\Models\UserAcademicPeriodPreference;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 
@@ -46,8 +48,7 @@ class AcademicPeriodService
     /**
      * Create a new academic period.
      *
-     * @param mixed $data
-     *
+     * @param  mixed  $data
      * @return AcademicPeriod
      */
     public function createAcademicPeriod($data)
@@ -60,11 +61,11 @@ class AcademicPeriodService
         $this->failIfDatesDoNotFit($academicYear, $startsOn, $endsOn);
 
         $attributes = [
-            'name'             => $data['name'],
-            'type'             => $data['type'] ?? AcademicPeriodType::Semester->value,
-            'starts_on'        => $startsOn,
-            'ends_on'          => $endsOn,
-            'school_id'        => current_school_id(),
+            'name' => $data['name'],
+            'type' => $data['type'] ?? AcademicPeriodType::Semester->value,
+            'starts_on' => $startsOn,
+            'ends_on' => $endsOn,
+            'school_id' => current_school_id(),
             'academic_year_id' => $academicYear->id,
         ];
 
@@ -82,10 +83,8 @@ class AcademicPeriodService
      *
      *
      * @throws InvalidValueException
-     *
-     * @return void
      */
-    public function setAcademicPeriod(AcademicPeriod $academicPeriod)
+    public function setAcademicPeriod(AcademicPeriod $academicPeriod, User $user): void
     {
         $academicYear = academic_period_context()->academicYear();
 
@@ -93,14 +92,26 @@ class AcademicPeriodService
             throw new InvalidValueException('AcademicPeriod not in current academic year');
         }
 
+        if ($academicPeriod->school_id !== current_school_id()) {
+            throw new InvalidValueException('AcademicPeriod not in current school');
+        }
+
+        UserAcademicPeriodPreference::updateOrCreate(
+            [
+                'user_id' => $user->id,
+                'school_id' => current_school_id(),
+                'academic_year_id' => $academicYear->id,
+            ],
+            ['academic_period_id' => $academicPeriod->id],
+        );
+
         academic_period_context()->setAcademicPeriod($academicPeriod);
     }
 
     /**
      * AcademicPeriod service.
      *
-     * @param mixed $data
-     *
+     * @param  mixed  $data
      * @return void
      */
     public function updateAcademicPeriod(AcademicPeriod $academicPeriod, $data)

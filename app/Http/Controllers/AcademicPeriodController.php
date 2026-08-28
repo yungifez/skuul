@@ -73,8 +73,8 @@ class AcademicPeriodController extends Controller
     {
         $this->authorize('setAcademicPeriod', AcademicPeriod::class);
         $academicPeriod = AcademicPeriod::inSchool()->findOrFail($request->validated('academic_period_id'));
-        $this->academicPeriod->setAcademicPeriod($academicPeriod);
+        $this->academicPeriod->setAcademicPeriod($academicPeriod, $request->user());
 
-        return back()->with('success', 'Successfully set current academic period');
+        return back()->with('success', 'Working term saved for you.');
     }
 }

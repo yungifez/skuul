@@ -5,15 +5,17 @@ namespace App\Services\Academic;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\School;
+use App\Models\User;
+use App\Models\UserAcademicPeriodPreference;
 use Illuminate\Http\Request;
 use RuntimeException;
 
 /**
  * The academic year and academic period the current request works in.
  *
- * The working period belongs to the request, not to the school record. The
- * pointers on the school row are only the default a person starts in, so two
- * people can work in different periods of the same school at the same time.
+ * The working period belongs to the staff member, not to the school record,
+ * so two people can work in different periods of the same school at the same
+ * time. The school calendar still determines which period is current today.
  *
  * Every academic record still carries its own period. This context only says
  * which period the screen is showing.
@@ -142,27 +144,30 @@ class AcademicPeriodContext
     /**
      * Work out which period this request belongs to and set it.
      *
-     * The remembered period wins when it still belongs to the school being
-     * worked in. Otherwise the person starts in the school default.
+     * A saved staff choice wins. When there is no saved choice, a remembered
+     * session choice is retained for compatibility. New staff automatically
+     * start in the calendar period that covers today, then fall back to the
+     * school default when the calendar has no current period.
      */
-    public function resolveFor(School $school, ?Request $request = null): void
+    public function resolveFor(School $school, User $user, ?Request $request = null): void
     {
         $year = $this->allowedAcademicYear($school, $request?->session()?->get(self::YEAR_SESSION_KEY))
             ?? $school->academicYear;
 
         $this->academicYear = $year;
 
-        $academicPeriod = $year === null
+        $academicPeriod = $year === null ? null : $this->savedPeriodFor($user, $school, $year);
+
+        $academicPeriod ??= $year === null
             ? null
             : $this->allowedAcademicPeriod($year, $request?->session()?->get(self::ACADEMIC_PERIOD_SESSION_KEY));
+
+        // A staff member with no explicit choice follows the calendar.
+        $academicPeriod ??= $year?->periodForDate();
 
         if ($academicPeriod === null && $year !== null && $school->academic_period_id !== null) {
             $academicPeriod = $this->allowedAcademicPeriod($year, $school->academic_period_id);
         }
-
-        // Nothing was chosen. Use the period that covers today, when the
-        // calendar names one.
-        $academicPeriod ??= $year?->periodForDate();
 
         $this->academicPeriod = $academicPeriod;
         $this->resolved = true;
@@ -190,6 +195,24 @@ class AcademicPeriodContext
         }
 
         return AcademicPeriod::where('academic_year_id', $academicYear->id)->find((int) $academicPeriodId);
+    }
+
+    /**
+     * Get the staff member's saved working period for this school and year.
+     */
+    private function savedPeriodFor(User $user, School $school, AcademicYear $academicYear): ?AcademicPeriod
+    {
+        return UserAcademicPeriodPreference::query()
+            ->inSchool($school)
+            ->whereBelongsTo($user)
+            ->whereBelongsTo($school)
+            ->whereBelongsTo($academicYear)
+            ->whereHas('academicPeriod', fn ($query) => $query
+                ->where('school_id', $school->id)
+                ->where('academic_year_id', $academicYear->id))
+            ->with('academicPeriod')
+            ->first()
+            ?->academicPeriod;
     }
 
     /**

@@ -26,6 +26,9 @@
             <livewire:layouts.menu />
             <april:sidebar-inset>
                 <livewire:layouts.header />
+                @if (current_school() !== null && current_academic_year() !== null)
+                    <livewire:set-academic-period :compact="true" />
+                @endif
                 <div class="border-b bg-background/95 px-4 py-5 backdrop-blur md:px-8">
                     <div class="mx-auto flex max-w-screen-2xl flex-col gap-3">
                         <div class="flex flex-wrap items-center justify-between gap-3">
