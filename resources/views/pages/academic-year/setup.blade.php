@@ -47,7 +47,9 @@
                     <div class="flex flex-wrap gap-3">
                         <april:button-link href="{{ route('academic-levels.create', ['setup' => 1, 'academic_year_id' => $academicYear->id]) }}">Add a level or group</april:button-link>
                         <april:button-link href="{{ route('academic-levels.index') }}" variant="ghost">Manage levels and groups</april:button-link>
-                        <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_year_id' => $academicYear->id, 'setup' => 1]) }}" variant="outline">Add this year’s first section</april:button-link>
+                        @if ($academicYear->cycleSections->isEmpty())
+                            <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_year_id' => $academicYear->id, 'setup' => 1]) }}" variant="outline">Add this year’s first section</april:button-link>
+                        @endif
                         <april:button-link href="{{ route('academic-cycle-sections.index', ['academic_year_id' => $academicYear->id]) }}" variant="ghost">Manage this year’s sections</april:button-link>
                     </div>
 
