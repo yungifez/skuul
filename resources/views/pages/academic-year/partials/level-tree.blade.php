@@ -24,6 +24,11 @@
                 @can('create', \App\Models\AcademicLevel::class)
                     <april:button-link href="{{ route('academic-levels.create', ['parent_id' => $academicLevel->id, 'setup' => 1, 'academic_year_id' => $academicYear->id]) }}" variant="outline" size="sm">Add class</april:button-link>
                 @endcan
+                @if ($children->isEmpty())
+                    @can('create', \App\Models\AcademicCycleSection::class)
+                        <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_year_id' => $academicYear->id, 'academic_level_id' => $academicLevel->id, 'setup' => 1]) }}" variant="outline" size="sm">Add section</april:button-link>
+                    @endcan
+                @endif
                 @can('view', $academicLevel)
                     <april:button-link href="{{ route('academic-levels.show', $academicLevel) }}" variant="ghost" size="sm">View level</april:button-link>
                 @endcan
@@ -59,11 +64,8 @@
                 @endforeach
             </div>
         @else
-            <div class="ml-4 flex items-center justify-between gap-3 border-l pl-4 text-sm">
-                <span class="text-muted-foreground">No section added for this year</span>
-                @can('create', \App\Models\AcademicCycleSection::class)
-                    <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_year_id' => $academicYear->id, 'academic_level_id' => $academicLevel->id, 'setup' => 1]) }}" variant="outline" size="sm">Add section</april:button-link>
-                @endcan
+            <div class="ml-4 border-l pl-4 text-sm">
+                <span class="text-muted-foreground">No section added for this year yet</span>
             </div>
         @endif
     </div>
