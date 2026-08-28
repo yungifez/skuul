@@ -155,8 +155,8 @@ class AcademicPeriodContext
     public function resolveFor(School $school, User $user, ?Request $request = null): void
     {
         $year = $this->allowedAcademicYear($school, $request?->session()?->get(self::YEAR_SESSION_KEY))
-            ?? $school->academicYear
-            ?? $this->savedAcademicYearFor($user, $school);
+            ?? $this->savedAcademicYearFor($user, $school)
+            ?? $school->academicYear;
 
         $this->academicYear = $year;
 

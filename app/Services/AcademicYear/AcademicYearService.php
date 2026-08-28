@@ -5,6 +5,8 @@ namespace App\Services\AcademicYear;
 use App\Enums\AcademicPeriodStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicYear;
+use App\Models\User;
+use App\Models\UserAcademicPeriodPreference;
 use App\Services\School\SchoolService;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -31,7 +33,7 @@ class AcademicYearService
     /**
      * Get academic year by Id.
      *
-     * @param int $id
+     * @param  int  $id
      */
     public function getAcademicYearById($id): AcademicYear
     {
@@ -41,7 +43,7 @@ class AcademicYearService
     /**
      * Create academic year.
      *
-     * @param array|Collection $records
+     * @param  array|Collection  $records
      */
     public function createAcademicYear($records): AcademicYear
     {
@@ -54,7 +56,7 @@ class AcademicYearService
     /**
      * Update Academic Year.
      *
-     * @param array|Collection $records
+     * @param  array|Collection  $records
      */
     public function updateAcademicYear(AcademicYear $academicYear, $records): AcademicYear
     {
@@ -78,22 +80,20 @@ class AcademicYearService
     /**
      * Set the academic year this person works in.
      *
-     * The choice belongs to the request, not to the school record. A school
-     * still keeps a default year for people who have not chosen one.
+     * The choice belongs to the staff member, not to the school record. The
+     * session still caches it for the current request, while the working
+     * period preference persists it across sessions.
      *
-     * @param int $academicYearId
      *
      * @throws InvalidValueException when the year belongs to another school
      */
-    public function setAcademicYear($academicYearId): bool
+    public function setAcademicYear(int $academicYearId, User $user): bool
     {
         $academicYear = academic_period_context()->allowedAcademicYear(school_context()->schoolOrFail(), $academicYearId);
 
         if ($academicYear === null) {
             throw new InvalidValueException('That academic year does not belong to this school');
         }
-
-        academic_period_context()->setAcademicYear($academicYear);
 
         if ($academicYear->status === AcademicPeriodStatus::Draft) {
             throw new InvalidValueException('Publish the school calendar before making it the working calendar.');
@@ -105,7 +105,17 @@ class AcademicYearService
             throw new InvalidValueException('This school calendar has no reporting periods.');
         }
 
-        academic_period_context()->setAcademicPeriod($academicPeriod);
+        $preference = UserAcademicPeriodPreference::firstOrCreate(
+            [
+                'user_id' => $user->id,
+                'school_id' => current_school_id(),
+                'academic_year_id' => $academicYear->id,
+            ],
+            ['academic_period_id' => $academicPeriod->id],
+        );
+
+        academic_period_context()->setAcademicYear($academicYear);
+        academic_period_context()->setAcademicPeriod($preference->academicPeriod);
 
         return true;
     }

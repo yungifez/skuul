@@ -28,7 +28,9 @@ use App\Models\GradeItem;
 use App\Models\GradingScale;
 use App\Models\ResultSnapshot;
 use App\Models\StudentRecord;
+use App\Models\User;
 use App\Services\Gradebook\CourseOfferingRoster;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -43,6 +45,42 @@ class GradebookController extends Controller
         private ApproveResult $approveResult,
         private RejectResult $rejectResult,
     ) {}
+
+    /**
+     * Show gradebooks for the current working term.
+     */
+    public function index(): View
+    {
+        $this->authorize('viewAnyGradebooks', CourseOffering::class);
+
+        $academicYear = current_academic_year();
+        $academicPeriod = current_academic_period();
+        abort_unless($academicYear !== null && $academicPeriod !== null, 404);
+
+        $user = request()->user();
+        abort_unless($user instanceof User, 403);
+        $courseOfferings = CourseOffering::query()
+            ->inSchool()
+            ->where('academic_year_id', $academicYear->id)
+            ->where('academic_period_id', $academicPeriod->id)
+            ->when(
+                !$user->can('update subject'),
+                fn (Builder $query): Builder => $query->whereHas(
+                    'teachingAssignments',
+                    fn (Builder $assignments): Builder => $assignments->where('user_id', $user->id),
+                ),
+            )
+            ->with([
+                'academicLevel:id,name',
+                'cycleSections:id,name,label',
+                'subject:id,name,short_name',
+            ])
+            ->orderBy('academic_level_id')
+            ->orderBy('subject_id')
+            ->paginate(25);
+
+        return view('pages.course-offering.gradebooks', compact('academicPeriod', 'academicYear', 'courseOfferings'));
+    }
 
     /**
      * Show the one-screen gradebook for an exact course offering.

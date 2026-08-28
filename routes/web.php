@@ -365,6 +365,9 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         });
 
         Route::middleware(['App\Http\Middleware\EnsureAcademicYearIsSet', 'App\Http\Middleware\CreateCurrentAcademicYearRecord'])->group(function () {
+            Route::get('gradebooks', [GradebookController::class, 'index'])
+                ->middleware('App\Http\Middleware\EnsureAcademicPeriodIsSet')
+                ->name('gradebooks.index');
             Route::get('course-offerings/bulk-create', [CourseOfferingController::class, 'bulkCreate'])->name('course-offerings.bulk-create');
             Route::post('course-offerings/bulk-create', [CourseOfferingController::class, 'bulkStore'])->name('course-offerings.bulk-store');
             Route::get('course-offerings/roll-forward', [CourseOfferingController::class, 'rollForwardForm'])->name('course-offerings.roll-forward.show');

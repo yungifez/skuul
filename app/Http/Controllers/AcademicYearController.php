@@ -105,7 +105,7 @@ class AcademicYearController extends Controller
         $this->authorize('setAcademicYear', AcademicYear::class);
         $academicYear = $request->academic_year_id;
 
-        $this->academicYear->setAcademicYear($academicYear);
+        $this->academicYear->setAcademicYear((int) $academicYear, $request->user());
 
         return back()->with('success', 'Working calendar set for '.current_school()->name.' successfully');
     }

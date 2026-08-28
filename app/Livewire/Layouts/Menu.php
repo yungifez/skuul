@@ -226,8 +226,8 @@ class Menu extends Component
                 'type' => 'menu-item',
                 'text' => 'Gradebooks',
                 'icon' => 'clipboard-pen-line',
-                'route' => 'course-offerings.index',
-                'can' => 'menu-gradebook',
+                'route' => 'gradebooks.index',
+                'visible' => $user->can('menu-gradebook') && $user->can('read gradebook'),
             ],
             [
                 'type' => 'menu-item',

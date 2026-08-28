@@ -26,7 +26,7 @@ class AcademicPeriodController extends Controller
         $academicYear = current_academic_year();
 
         return $academicYear === null
-            ? to_route('academic-years.index')
+            ? to_route('academic-years.index')->with('info', 'Choose a working school year before opening reporting periods.')
             : to_route('academic-years.show', $academicYear);
     }
 

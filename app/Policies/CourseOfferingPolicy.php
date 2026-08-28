@@ -16,6 +16,14 @@ class CourseOfferingPolicy
     }
 
     /**
+     * Determine whether the user can open the gradebook workspace.
+     */
+    public function viewAnyGradebooks(User $user): bool
+    {
+        return $user->can('read gradebook');
+    }
+
+    /**
      * Determine whether the user can view the model.
      */
     public function view(User $user, CourseOffering $courseOffering): bool

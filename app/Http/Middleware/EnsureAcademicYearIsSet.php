@@ -19,6 +19,8 @@ class EnsureAcademicYearIsSet
     public function handle(Request $request, Closure $next)
     {
         if (current_academic_year() === null && !$this->hasExplicitAcademicYear($request)) {
+            session()->flash('info', 'Choose a working school year before opening this page.');
+
             return redirect()->route('academic-years.index');
         }
 
