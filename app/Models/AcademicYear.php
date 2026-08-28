@@ -8,6 +8,7 @@ use App\Traits\HasPeriodLifecycle;
 use App\Traits\InSchool;
 use DateTimeInterface;
 use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -122,14 +123,29 @@ class AcademicYear extends Model
     }
 
     /**
-     * Get the period that covers the given day, when one does.
+     * Get the period that uniquely covers the given day, when one does.
      *
      * Sub-periods are skipped. A day inside an exam window is still a day of
      * the term that holds it, and the term is the reporting boundary.
      */
     public function periodForDate(DateTimeInterface|string|null $date = null): ?AcademicPeriod
     {
-        return $this->topLevelPeriods()->get()->first(fn (AcademicPeriod $academicPeriod): bool => $academicPeriod->covers($date));
+        $periods = $this->periodsForDate($date);
+
+        return $periods->count() === 1 ? $periods->first() : null;
+    }
+
+    /**
+     * Get the top-level periods that cover a day.
+     *
+     * More than one result is invalid for the calendar. Callers must not
+     * choose one by position because that would hide an overlap.
+     *
+     * @return Collection<int, AcademicPeriod>
+     */
+    public function periodsForDate(DateTimeInterface|string|null $date = null): Collection
+    {
+        return $this->topLevelPeriods()->covering($date)->get();
     }
 
     /**

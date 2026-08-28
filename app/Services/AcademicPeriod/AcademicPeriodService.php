@@ -78,7 +78,7 @@ class AcademicPeriodService
     }
 
     /**
-     * Set current academic period.
+     * Save a staff member's working academic period.
      *
      *
      *
@@ -90,6 +90,16 @@ class AcademicPeriodService
 
         if ($academicYear === null || $academicPeriod->academic_year_id !== $academicYear->id) {
             throw new InvalidValueException('AcademicPeriod not in current academic year');
+        }
+
+        $resolutionError = academic_period_context()->resolutionError();
+
+        if ($resolutionError !== null) {
+            throw new InvalidValueException($resolutionError);
+        }
+
+        if ($academicPeriod->parent_id !== null) {
+            throw new InvalidValueException('Choose a top-level reporting period as your working period.');
         }
 
         if ($academicPeriod->school_id !== current_school_id()) {

@@ -21,6 +21,8 @@ class SetAcademicPeriod extends Component
 
     public ?AcademicPeriod $workingPeriod = null;
 
+    public ?string $calendarError = null;
+
     public function mount(bool $compact = false): void
     {
         $this->compact = $compact;
@@ -33,8 +35,10 @@ class SetAcademicPeriod extends Component
         }
 
         $this->academicPeriods = $this->academicYear->topLevelPeriods()->get();
-        $this->currentPeriod = $this->academicYear->periodForDate();
+        $coveringPeriods = $this->academicYear->periodsForDate();
+        $this->currentPeriod = $coveringPeriods->count() === 1 ? $coveringPeriods->first() : null;
         $this->workingPeriod = current_academic_period();
+        $this->calendarError = academic_period_context()->resolutionError();
     }
 
     public function canChange(): bool

@@ -27,14 +27,11 @@ class AcademicPeriodContext
      */
     public const YEAR_SESSION_KEY = 'active_academic_year_id';
 
-    /**
-     * The session key that remembers the academic period.
-     */
-    public const ACADEMIC_PERIOD_SESSION_KEY = 'active_academic_period_id';
-
     private ?AcademicYear $academicYear = null;
 
     private ?AcademicPeriod $academicPeriod = null;
+
+    private ?string $resolutionError = null;
 
     private bool $resolved = false;
 
@@ -68,6 +65,14 @@ class AcademicPeriodContext
     public function academicPeriodId(): ?int
     {
         return $this->academicPeriod?->id;
+    }
+
+    /**
+     * Get a calendar-resolution problem that needs staff attention.
+     */
+    public function resolutionError(): ?string
+    {
+        return $this->resolutionError;
     }
 
     /**
@@ -107,20 +112,18 @@ class AcademicPeriodContext
         $this->resolved = true;
 
         if ($this->academicPeriod !== null && $this->academicPeriod->academic_year_id !== $academicYear?->id) {
-            $this->setAcademicPeriod(null, $remember);
+            $this->setAcademicPeriod(null);
         }
 
         $this->remember(self::YEAR_SESSION_KEY, $academicYear?->id, $remember);
     }
 
     /**
-     * Set the academic period for this request and remember it.
+     * Set the academic period for this request.
      */
-    public function setAcademicPeriod(?AcademicPeriod $academicPeriod, bool $remember = true): void
+    public function setAcademicPeriod(?AcademicPeriod $academicPeriod): void
     {
         $this->academicPeriod = $academicPeriod;
-
-        $this->remember(self::ACADEMIC_PERIOD_SESSION_KEY, $academicPeriod?->id, $remember);
     }
 
     /**
@@ -130,6 +133,7 @@ class AcademicPeriodContext
     {
         $this->academicYear = null;
         $this->academicPeriod = null;
+        $this->resolutionError = null;
         $this->resolved = false;
     }
 
@@ -144,10 +148,9 @@ class AcademicPeriodContext
     /**
      * Work out which period this request belongs to and set it.
      *
-     * A saved staff choice wins. When there is no saved choice, a remembered
-     * session choice is retained for compatibility. New staff automatically
-     * start in the calendar period that covers today, then fall back to the
-     * school default when the calendar has no current period.
+     * A saved staff choice wins. When there is no saved choice, staff
+     * automatically start in the calendar period that covers today, then fall
+     * back to the school default when the calendar has no current period.
      */
     public function resolveFor(School $school, User $user, ?Request $request = null): void
     {
@@ -156,16 +159,21 @@ class AcademicPeriodContext
 
         $this->academicYear = $year;
 
-        $academicPeriod = $year === null ? null : $this->savedPeriodFor($user, $school, $year);
+        $this->resolutionError = null;
+        $coveringPeriods = $year?->periodsForDate() ?? collect();
 
-        $academicPeriod ??= $year === null
-            ? null
-            : $this->allowedAcademicPeriod($year, $request?->session()?->get(self::ACADEMIC_PERIOD_SESSION_KEY));
+        if ($coveringPeriods->count() > 1) {
+            $periodNames = $coveringPeriods->pluck('displayName')->implode(', ');
+            $this->resolutionError = "The calendar has overlapping reporting periods: {$periodNames}. Fix their dates before continuing.";
+            $academicPeriod = null;
+        } else {
+            $academicPeriod = $year === null ? null : $this->savedPeriodFor($user, $school, $year);
 
-        // A staff member with no explicit choice follows the calendar.
-        $academicPeriod ??= $year?->periodForDate();
+            // A staff member with no explicit choice follows the calendar.
+            $academicPeriod ??= $year?->periodForDate();
+        }
 
-        if ($academicPeriod === null && $year !== null && $school->academic_period_id !== null) {
+        if ($this->resolutionError === null && $academicPeriod === null && $year !== null && $school->academic_period_id !== null) {
             $academicPeriod = $this->allowedAcademicPeriod($year, $school->academic_period_id);
         }
 
