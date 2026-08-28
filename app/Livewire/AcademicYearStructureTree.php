@@ -2,8 +2,11 @@
 
 namespace App\Livewire;
 
+use App\Actions\Curriculum\DeleteAcademicLevel;
 use App\Actions\Curriculum\MoveAcademicCycleSection;
 use App\Actions\Curriculum\MoveAcademicLevel;
+use App\Exceptions\InvalidValueException;
+use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
@@ -12,6 +15,8 @@ use Livewire\Component;
 
 class AcademicYearStructureTree extends Component
 {
+    use DispatchesStatusNotifications;
+
     public ?AcademicYear $academicYear = null;
 
     public bool $schoolSetup = false;
@@ -64,6 +69,22 @@ class AcademicYearStructureTree extends Component
         abort_unless(in_array($direction, ['up', 'down'], true), 422);
 
         $moveAcademicCycleSection->move($section, $direction, auth()->user());
+    }
+
+    public function deleteLevel(int $academicLevelId, DeleteAcademicLevel $deleteAcademicLevel): void
+    {
+        $academicLevel = AcademicLevel::inSchool($this->workingSchoolId())->findOrFail($academicLevelId);
+        $this->authorize('delete', $academicLevel);
+
+        try {
+            $deleteAcademicLevel->delete($academicLevel);
+        } catch (InvalidValueException $exception) {
+            $this->addError('delete', $exception->getMessage());
+
+            return;
+        }
+
+        $this->notify("{$academicLevel->name} was deleted.");
     }
 
     public function render(): View

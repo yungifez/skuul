@@ -72,6 +72,19 @@
                     @can('view', $academicLevel)
                         <april:button-link href="{{ route('academic-levels.show', $academicLevel) }}" variant="ghost" size="sm">View level</april:button-link>
                     @endcan
+                    @can('delete', $academicLevel)
+                        <button
+                            type="button"
+                            wire:click="deleteLevel({{ $academicLevel->id }})"
+                            wire:confirm="Delete {{ $academicLevel->name }}? This only works when it has no child levels, sections, subjects, or teaching setup."
+                            wire:loading.attr="disabled"
+                            class="inline-flex size-8 items-center justify-center rounded-md text-destructive hover:bg-destructive/10 disabled:opacity-50"
+                            aria-label="Delete {{ $academicLevel->name }}"
+                            title="Delete {{ $academicLevel->name }}"
+                        >
+                            <x-lucide-trash-2 class="size-4" />
+                        </button>
+                    @endcan
                 </div>
             </summary>
 
