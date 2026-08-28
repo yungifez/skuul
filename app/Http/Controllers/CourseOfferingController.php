@@ -5,15 +5,20 @@ namespace App\Http\Controllers;
 use App\Actions\Curriculum\AssignTeacher;
 use App\Actions\Curriculum\ChangeCourseOfferingStatus;
 use App\Actions\Curriculum\CreateCourseOffering;
+use App\Actions\Curriculum\CreateCourseOfferingsForLevels;
+use App\Actions\Curriculum\RollForwardCourseOfferings;
 use App\Actions\Curriculum\UpdateCourseOfferingRoster;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\CourseOfferingStatus;
 use App\Enums\Role;
 use App\Enums\RosterMode;
 use App\Enums\TeachingRole;
+use App\Exceptions\InvalidValueException;
 use App\Http\Requests\AssignTeacherToCourseOfferingRequest;
 use App\Http\Requests\ChangeCourseOfferingStatusRequest;
+use App\Http\Requests\RollForwardCourseOfferingsRequest;
 use App\Http\Requests\StoreCourseOfferingRequest;
+use App\Http\Requests\StoreCourseOfferingsForLevelsRequest;
 use App\Http\Requests\UpdateCourseOfferingRosterRequest;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
@@ -25,14 +30,17 @@ use App\Models\Subject;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class CourseOfferingController extends Controller
 {
     public function __construct(
         private CreateCourseOffering $createCourseOffering,
+        private CreateCourseOfferingsForLevels $createCourseOfferingsForLevels,
         private ChangeCourseOfferingStatus $changeCourseOfferingStatus,
         private AssignTeacher $assignTeacher,
+        private RollForwardCourseOfferings $rollForwardCourseOfferings,
         private UpdateCourseOfferingRoster $updateCourseOfferingRoster,
     ) {
         $this->authorizeResource(CourseOffering::class, 'courseOffering');
@@ -94,6 +102,102 @@ class CourseOfferingController extends Controller
             : RosterMode::cases();
 
         return view('pages.course-offering.create', compact('academicCycleSections', 'academicLevels', 'academicYears', 'rosterModes', 'studentRecords', 'subjects'));
+    }
+
+    public function bulkCreate(): View
+    {
+        $this->authorize('create', CourseOffering::class);
+
+        $academicYears = AcademicYear::inSchool()->with('topLevelPeriods')->orderByDesc('start_year')->get();
+        $selectedAcademicYear = $academicYears->firstWhere('id', request()->integer('academic_year_id'))
+            ?? $academicYears->firstWhere('id', current_academic_year_id())
+            ?? $academicYears->first();
+
+        abort_unless($selectedAcademicYear instanceof AcademicYear, 404);
+
+        $academicLevels = AcademicLevel::inSchool()
+            ->where('is_group', false)
+            ->orderBy('position')
+            ->orderBy('name')
+            ->get();
+        $academicCycleSections = AcademicCycleSection::inSchool()
+            ->with('academicLevel:id,name')
+            ->where('academic_year_id', $selectedAcademicYear->id)
+            ->where('status', '!=', AcademicStructureStatus::Archived)
+            ->orderBy('academic_level_id')
+            ->orderBy('position')
+            ->orderBy('name')
+            ->get();
+        $subjects = Subject::inSchool()->orderBy('name')->get();
+        $rosterModes = instructional_model($selectedAcademicYear)->rosterModes();
+
+        return view('pages.course-offering.bulk-create', compact('academicCycleSections', 'academicLevels', 'academicYears', 'rosterModes', 'selectedAcademicYear', 'subjects'));
+    }
+
+    public function bulkStore(StoreCourseOfferingsForLevelsRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+        $academicYear = AcademicYear::inSchool()->findOrFail($data['academic_year_id']);
+        $subject = Subject::inSchool()->findOrFail($data['subject_id']);
+        $created = $this->createCourseOfferingsForLevels->create(
+            $subject,
+            $academicYear,
+            $data['academic_period_id'],
+            $data['configurations'],
+            $request->user(),
+        );
+        $message = $created->count().' level-specific subject '.($created->count() === 1 ? 'offering was' : 'offerings were').' created as drafts.';
+
+        if ($request->boolean('setup')) {
+            return to_route('academic-years.setup', [$academicYear, 'subjects'])->with('success', $message);
+        }
+
+        return to_route('course-offerings.index')->with('success', $message);
+    }
+
+    public function rollForwardForm(Request $request): View
+    {
+        $this->authorize('create', CourseOffering::class);
+
+        $academicYears = AcademicYear::inSchool()->orderByDesc('start_year')->orderByDesc('id')->get();
+        $target = AcademicYear::inSchool()->find($request->integer('target_academic_year_id') ?: current_academic_year_id());
+        $source = AcademicYear::inSchool()->find($request->integer('source_academic_year_id'));
+
+        if ($source === null && $target !== null) {
+            $source = AcademicYear::inSchool()
+                ->where('start_year', '<', $target->start_year)
+                ->orderByDesc('start_year')
+                ->orderByDesc('id')
+                ->first();
+        }
+
+        $preview = null;
+        $problem = null;
+
+        if ($source !== null && $target !== null) {
+            try {
+                $preview = $this->rollForwardCourseOfferings->preview($source, $target);
+            } catch (InvalidValueException $exception) {
+                $problem = $exception->getMessage();
+            }
+        }
+
+        return view('pages.course-offering.roll-forward', compact('academicYears', 'preview', 'problem', 'source', 'target'));
+    }
+
+    public function rollForward(RollForwardCourseOfferingsRequest $request): RedirectResponse
+    {
+        $data = $request->validated();
+        $source = AcademicYear::inSchool()->findOrFail($data['source_academic_year_id']);
+        $target = AcademicYear::inSchool()->findOrFail($data['target_academic_year_id']);
+        $created = $this->rollForwardCourseOfferings->rollForward($source, $target, $request->user());
+        $message = $created->count().' level-specific subject '.($created->count() === 1 ? 'offering was' : 'offerings were').' rolled into '.$target->name.' as drafts.';
+
+        if ($request->boolean('setup')) {
+            return to_route('academic-years.setup', [$target, 'subjects'])->with('success', $message);
+        }
+
+        return to_route('course-offerings.index')->with('success', $message);
     }
 
     public function edit(CourseOffering $courseOffering): View

@@ -99,6 +99,10 @@
                             </div>
                             <div class="flex flex-wrap gap-3">
                                 <april:button-link href="{{ route('course-offerings.create', ['academic_year_id' => $academicYear->id, 'setup' => 1]) }}">Add a subject to this year</april:button-link>
+                                <april:button-link href="{{ route('course-offerings.bulk-create', ['academic_year_id' => $academicYear->id, 'setup' => 1]) }}" variant="outline">Set up across levels</april:button-link>
+                                @if ($previousAcademicYear !== null)
+                                    <april:button-link href="{{ route('course-offerings.roll-forward.show', ['source_academic_year_id' => $previousAcademicYear->id, 'target_academic_year_id' => $academicYear->id, 'setup' => 1]) }}" variant="outline">Roll over last year's subjects</april:button-link>
+                                @endif
                                 <april:button-link href="{{ route('subjects.create', ['setup' => 1, 'academic_year_id' => $academicYear->id]) }}" variant="outline">Create another subject</april:button-link>
                             </div>
                         </div>

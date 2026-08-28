@@ -7,7 +7,13 @@
 @section('page_heading', school_terms('course', 'Course').' being taught')
 
 @section('page_actions')
-    <x-resource-create-action :href="route('course-offerings.create')" ability="create" :arguments="[\App\Models\CourseOffering::class]">Add {{ school_term('course', 'course') }}</x-resource-create-action>
+    @can('create', \App\Models\CourseOffering::class)
+        <div class="flex flex-wrap gap-2">
+            <april:button-link href="{{ route('course-offerings.bulk-create') }}" variant="outline">Set up across levels</april:button-link>
+            <april:button-link href="{{ route('course-offerings.roll-forward.show') }}" variant="outline">Roll over subjects</april:button-link>
+            <x-resource-create-action :href="route('course-offerings.create')" ability="create" :arguments="[\App\Models\CourseOffering::class]">Add {{ school_term('course', 'course') }}</x-resource-create-action>
+        </div>
+    @endcan
 @endsection
 
 @section('content')

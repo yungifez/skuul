@@ -45,6 +45,7 @@ class AcademicYearSetupController extends Controller
         $academicYear = $academicYear->load('topLevelPeriods');
         $academicLevels = collect();
         $subjects = collect();
+        $previousAcademicYear = null;
 
         if ($requested === AcademicYearSetupStep::Structure) {
             $academicYear->load(['cycleSections.academicLevel', 'cycleSections.homeroomTeacher']);
@@ -58,6 +59,11 @@ class AcademicYearSetupController extends Controller
             $subjects = Subject::inSchool($academicYear->school_id)
                 ->orderBy('name')
                 ->get(['id', 'name', 'short_name']);
+            $previousAcademicYear = AcademicYear::inSchool($academicYear->school_id)
+                ->where('start_year', '<', $academicYear->start_year)
+                ->orderByDesc('start_year')
+                ->orderByDesc('id')
+                ->first();
         }
 
         return view('pages.academic-year.setup', [
@@ -65,6 +71,7 @@ class AcademicYearSetupController extends Controller
             'currentStep' => $requested,
             'progress' => $progress,
             'academicLevels' => $academicLevels,
+            'previousAcademicYear' => $previousAcademicYear,
             'subjects' => $subjects,
         ]);
     }
