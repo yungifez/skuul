@@ -125,7 +125,9 @@
                             @else
                                 <div class="space-y-3">
                                     @foreach ($courseOfferings->groupBy('subject_id') as $subjectOfferings)
-                                        @php($subject = $subjectOfferings->first()->subject)
+                                        @php
+                                            $subject = $subjectOfferings->first()->subject;
+                                        @endphp
                                         <article class="overflow-hidden rounded-md border">
                                             <div class="flex flex-wrap items-center justify-between gap-2 bg-muted/30 px-4 py-3">
                                                 <div>
