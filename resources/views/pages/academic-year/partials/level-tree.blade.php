@@ -3,6 +3,10 @@
         $children = $childrenByParent->get($academicLevel->id, collect());
         $sections = $sectionsByLevel->get($academicLevel->id, collect())->values();
         $offerings = $courseOfferingsByLevel->get($academicLevel->id, collect())->values();
+        $singleSectionOfferingsBySection = $offerings
+            ->filter(fn ($offering): bool => $offering->roster_mode === \App\Enums\RosterMode::HomeSection && $offering->cycleSections->count() === 1)
+            ->groupBy(fn ($offering): int => (int) $offering->cycleSections->first()->id);
+        $levelOfferings = $offerings->reject(fn ($offering): bool => $offering->roster_mode === \App\Enums\RosterMode::HomeSection && $offering->cycleSections->count() === 1)->values();
         $hasChildren = $children->isNotEmpty() || $sections->isNotEmpty() || $offerings->isNotEmpty();
         $setupParameters = $setupLinks ? ['setup' => 1] : [];
 
@@ -112,6 +116,7 @@
 
                         @foreach ($sections as $sectionIndex => $section)
                             @php
+                                $sectionOfferings = $singleSectionOfferingsBySection->get($section->id, collect());
                                 $sectionDetails = collect([
                                     $section->stream ? 'Stream: '.$section->stream : null,
                                     $section->shift ? 'Shift: '.$section->shift : null,
@@ -158,65 +163,18 @@
                                     @endif
                                 </div>
                             </div>
+                            @if ($sectionOfferings->isNotEmpty())
+                                <div class="ml-5 border-l pl-3 sm:ml-7 sm:pl-4">
+                                    @include('pages.academic-year.partials.offering-tree', [
+                                        'offerings' => $sectionOfferings,
+                                    ])
+                                </div>
+                            @endif
                         @endforeach
 
-                        @foreach ($offerings->groupBy('subject_id') as $subjectOfferings)
-                            @php
-                                $subject = $subjectOfferings->first()->subject;
-                                $offeringsByPeriod = $subjectOfferings->groupBy('academic_period_id');
-                                $statuses = $subjectOfferings
-                                    ->map(fn ($offering) => $offering->status)
-                                    ->unique(fn ($status) => $status->value)
-                                    ->values();
-                                $periodCount = $offeringsByPeriod->count();
-                                $periodLabel = $periodCount === 1 ? '1 period' : $periodCount.' periods';
-                            @endphp
-                            <div wire:key="course-offering-subject-{{ $subject->id }}-{{ $academicLevel->id }}" class="flex min-w-0 flex-col gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm sm:flex-row sm:items-start sm:justify-between">
-                                <div class="flex min-w-0 items-start gap-2">
-                                    <x-lucide-book-marked class="mt-0.5 size-4 shrink-0 text-primary" />
-                                    <div class="min-w-0">
-                                        <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                                            <span class="font-medium">{{ $subject->name }}</span>
-                                            @if ($subject->short_name)
-                                                <span class="text-xs text-muted-foreground">{{ $subject->short_name }}</span>
-                                            @endif
-                                        </div>
-                                        <p class="text-xs text-muted-foreground">Offered in {{ $periodLabel }}:</p>
-                                        <div class="mt-1 flex flex-wrap gap-1.5">
-                                            @foreach ($offeringsByPeriod as $periodOfferings)
-                                                @php
-                                                    $period = $periodOfferings->first()->academicPeriod;
-                                                @endphp
-                                                <div class="inline-flex flex-wrap items-center gap-1 rounded-md border bg-background px-2 py-1 text-xs">
-                                                    <span class="font-medium">{{ $period?->displayName }}</span>
-                                                    <span class="text-muted-foreground">·</span>
-                                                    @foreach ($periodOfferings as $periodOffering)
-                                                        @php
-                                                            $offeringSections = $periodOffering->roster_mode->usesHomeSections()
-                                                                ? $periodOffering->cycleSections->map(fn ($section) => $section->label ?? $section->name)->join(', ')
-                                                                : school_roster_label($periodOffering->roster_mode);
-                                                        @endphp
-                                                        @can('update', $periodOffering)
-                                                            <a href="{{ route('course-offerings.edit', [$periodOffering, 'setup' => 1]) }}" class="font-medium text-primary hover:underline" title="Edit {{ $period?->displayName }} for {{ $offeringSections }}">{{ $offeringSections }}</a>
-                                                        @else
-                                                            <span>{{ $offeringSections }}</span>
-                                                        @endcan
-                                                        @unless ($loop->last)
-                                                            <span class="text-muted-foreground">,</span>
-                                                        @endunless
-                                                    @endforeach
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="flex w-full shrink-0 items-center justify-end gap-2 border-t pt-2 sm:w-auto sm:justify-start sm:border-t-0 sm:pt-0">
-                                    @foreach ($statuses as $status)
-                                        <april:badge variant="{{ $status->value === 'active' ? 'default' : 'secondary' }}">{{ $status->label() }}</april:badge>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endforeach
+                        @include('pages.academic-year.partials.offering-tree', [
+                            'offerings' => $levelOfferings,
+                        ])
                     </div>
                 @else
                     <div class="ml-2 mt-3 w-full min-w-0 border-l pl-3 text-sm sm:ml-4 sm:pl-4">
