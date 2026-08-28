@@ -20,7 +20,7 @@
     @endif
     <x-display-validation-errors />
 
-    <april:input-group id="name" name="name" value="{{ $value('name') }}" required maxlength="255" placeholder="Kindergarten or Primary 4">
+    <april:input-group id="name" name="name" value="{{ $value('name') }}" required maxlength="255" placeholder="Kindergarten, KG 1, or Primary 4">
         <slot:label>
             <span class="inline-flex items-center gap-1">
                 Level name
@@ -40,7 +40,7 @@
                     <option value="{{ $option->id }}" {{ $selected('parent_id', $option->id) ? 'selected' : '' }}>{{ $option->name }}</option>
                 @endforeach
             </select>
-            <p class="text-sm text-muted-foreground">Create an umbrella group such as “Kindergarten” first. Then create “KG 1” and “KG 2” under it. Learners are placed in the specific child level.</p>
+            <p class="text-sm text-muted-foreground">Choose a group when this level belongs under an umbrella such as “Kindergarten”.</p>
         </div>
     </div>
 
