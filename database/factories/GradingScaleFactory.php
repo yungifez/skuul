@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\GradingScaleType;
 use App\Models\GradingScale;
 use App\Models\School;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -22,10 +23,11 @@ class GradingScaleFactory extends Factory
         $school = School::query()->first() ?? School::factory()->create();
 
         return [
-            'school_id'   => $school->id,
-            'name'        => fake()->unique()->words(2, true),
+            'school_id' => $school->id,
+            'name' => fake()->unique()->words(2, true),
             'description' => fake()->optional()->sentence(),
-            'is_active'   => true,
+            'scale_type' => GradingScaleType::Points->value,
+            'is_active' => true,
         ];
     }
 }

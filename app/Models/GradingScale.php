@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\GradingScaleType;
 use App\Traits\InSchool;
 use Database\Factories\GradingScaleFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -20,6 +21,8 @@ class GradingScale extends Model
         'school_id',
         'name',
         'description',
+        'scale_type',
+        'maximum_value',
         'is_active',
         'created_by',
     ];
@@ -31,6 +34,7 @@ class GradingScale extends Model
      */
     protected $attributes = [
         'is_active' => true,
+        'scale_type' => GradingScaleType::Percentage->value,
     ];
 
     /**
@@ -40,7 +44,19 @@ class GradingScale extends Model
      */
     protected $casts = [
         'is_active' => 'boolean',
+        'scale_type' => GradingScaleType::class,
+        'maximum_value' => 'float',
     ];
+
+    public function numericMaximum(?float $customMaximum = null): ?float
+    {
+        return match ($this->scale_type) {
+            GradingScaleType::Percentage => 100.0,
+            GradingScaleType::Gpa => $this->maximum_value,
+            GradingScaleType::Points => $customMaximum,
+            GradingScaleType::Descriptive => null,
+        };
+    }
 
     /**
      * Get the selectable levels on this scale.

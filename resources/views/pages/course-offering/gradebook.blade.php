@@ -140,9 +140,10 @@
                             <select id="assessment-scale" name="grading_scale_id" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
                                 <option value="">Use only for a scale</option>
                                 @foreach ($gradingScales as $gradingScale)
-                                    <option value="{{ $gradingScale->id }}" @selected((string) old('grading_scale_id') === (string) $gradingScale->id)>{{ $gradingScale->name }}</option>
+                                    <option value="{{ $gradingScale->id }}" @selected((string) old('grading_scale_id') === (string) $gradingScale->id)>{{ $gradingScale->name }} · {{ $gradingScale->scale_type->label() }}</option>
                                 @endforeach
                             </select>
+                            <p class="mt-1 text-xs text-muted-foreground">Percentage and GPA scales use their own maximum. Custom-point scales use this assessment’s maximum points.</p>
                         </div>
                         <div>
                             <label for="assessment-weight" class="mb-1 block text-sm font-medium">Weight</label>
