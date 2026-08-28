@@ -21,6 +21,7 @@ use App\Models\CourseOffering;
 use App\Models\StudentRecord;
 use App\Models\Subject;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -57,22 +58,39 @@ class CourseOfferingController extends Controller
     {
         $academicYears = AcademicYear::inSchool()->with('topLevelPeriods')->orderByDesc('start_year')->get();
         $academicLevels = AcademicLevel::inSchool()->orderBy('position')->orderBy('name')->get();
-        $academicCycleSections = AcademicCycleSection::inSchool()
+        $selectedAcademicYearId = request()->integer('academic_year_id');
+        $academicCycleSectionsQuery = AcademicCycleSection::inSchool()
             ->with(['academicLevel:id,name', 'academicYear:id,start_year,stop_year'])
             ->where('status', '!=', AcademicStructureStatus::Archived)
             ->orderByDesc('academic_year_id')
             ->orderBy('academic_level_id')
             ->orderBy('position')
-            ->orderBy('name')
-            ->get();
+            ->orderBy('name');
+
+        if ($selectedAcademicYearId > 0) {
+            $academicCycleSectionsQuery->where('academic_year_id', $selectedAcademicYearId);
+        }
+
+        $academicCycleSections = $academicCycleSectionsQuery->get();
         $subjects = Subject::inSchool()->orderBy('name')->get();
-        $studentRecords = StudentRecord::inSchool()
+        $studentRecordsQuery = StudentRecord::inSchool()
             ->attending()
             ->with(['academicCycleSection.academicLevel:id,name', 'user:id,name'])
-            ->orderBy('admission_number')
-            ->get();
+            ->orderBy('admission_number');
 
-        return view('pages.course-offering.create', compact('academicCycleSections', 'academicLevels', 'academicYears', 'studentRecords', 'subjects'));
+        if ($selectedAcademicYearId > 0) {
+            $studentRecordsQuery->whereHas('academicCycleSection', function (Builder $query) use ($selectedAcademicYearId): void {
+                $query->where('academic_year_id', $selectedAcademicYearId);
+            });
+        }
+
+        $studentRecords = $studentRecordsQuery->get();
+        $selectedAcademicYear = $academicYears->firstWhere('id', $selectedAcademicYearId ?: current_academic_year_id());
+        $rosterModes = $selectedAcademicYear instanceof AcademicYear
+            ? instructional_model($selectedAcademicYear)->rosterModes()
+            : RosterMode::cases();
+
+        return view('pages.course-offering.create', compact('academicCycleSections', 'academicLevels', 'academicYears', 'rosterModes', 'studentRecords', 'subjects'));
     }
 
     public function store(StoreCourseOfferingRequest $request): RedirectResponse
@@ -83,8 +101,12 @@ class CourseOfferingController extends Controller
         $academicLevel = AcademicLevel::inSchool()->findOrFail($data['academic_level_id']);
 
         $rosterMode = RosterMode::from($data['roster_mode']);
-        $academicCycleSectionIds = $data['academic_cycle_section_ids'] ?? [];
-        $studentRecordIds = $data['student_record_ids'] ?? [];
+        $academicCycleSectionIds = in_array($rosterMode, [RosterMode::HomeSection, RosterMode::CombinedHomeSections], true)
+            ? ($data['academic_cycle_section_ids'] ?? [])
+            : [];
+        $studentRecordIds = $rosterMode === RosterMode::IndividualRoster
+            ? ($data['student_record_ids'] ?? [])
+            : [];
         $plannedPeriodsPerWeek = $data['planned_periods_per_week'] ?? null;
         $capacity = $data['capacity'] ?? null;
 

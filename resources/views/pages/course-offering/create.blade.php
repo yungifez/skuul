@@ -15,7 +15,7 @@
         </slot:title>
         <slot:description>Choose the subject, class, period, and learners for this year.</slot:description>
         <slot:content>
-            <form method="POST" action="{{ route('course-offerings.store') }}" class="space-y-6">
+            <form method="POST" action="{{ route('course-offerings.store') }}" class="space-y-6" x-data="{ rosterMode: @js(old('roster_mode', \App\Enums\RosterMode::HomeSection->value)) }">
                 @csrf
                 @if (request()->boolean('setup'))
                     <input type="hidden" name="setup" value="1">
@@ -34,11 +34,14 @@
                     </div>
                     <div class="flex flex-col gap-2">
                         <div class="flex items-center gap-1"><april:label for="roster-mode">Who attends</april:label><x-help-tooltip label="Roster help">Use one section by default. The school year’s teaching setup may allow more options.</x-help-tooltip></div>
-                        <select id="roster-mode" name="roster_mode" class="rounded-md border border-input bg-background px-3 py-2" required>
-                            @foreach (\App\Enums\RosterMode::cases() as $rosterMode)
-                                <option value="{{ $rosterMode->value }}" {{ old('roster_mode', \App\Enums\RosterMode::HomeSection->value) === $rosterMode->value ? 'selected' : '' }}>{{ school_roster_label($rosterMode) }}</option>
+                        <select id="roster-mode" name="roster_mode" x-model="rosterMode" class="rounded-md border border-input bg-background px-3 py-2" required>
+                            @foreach ($rosterModes as $rosterMode)
+                                <option value="{{ $rosterMode->value }}">{{ school_roster_label($rosterMode) }} — {{ school_roster_description($rosterMode) }}</option>
                             @endforeach
                         </select>
+                        @if (!in_array(\App\Enums\RosterMode::CombinedHomeSections, $rosterModes, true))
+                            <p class="text-sm text-muted-foreground">Combined sections is not available for this year’s teaching approach. Use one section or the whole level.</p>
+                        @endif
                     </div>
                     <div class="flex flex-col gap-2">
                         <div class="flex items-center gap-1"><april:label for="academic-period">{{ school_term('period', 'Academic period') }}</april:label><x-help-tooltip label="Offering period help">Choose one period, or create this subject for every period in the selected school year.</x-help-tooltip></div>
@@ -83,8 +86,8 @@
                     <april:input-group id="capacity" name="capacity" type="number" min="1" max="5000" label="Capacity (optional)" value="{{ old('capacity') }}" />
                 </div>
 
-                <div class="flex flex-col gap-2">
-                    <div class="flex items-center gap-1"><april:label for="cycle-sections">{{ school_terms('section', 'Sections') }}</april:label><x-help-tooltip label="Offering sections help">Select one or more sections, or leave this empty for every learner in the selected class.</x-help-tooltip></div>
+                <div x-cloak x-show="rosterMode === 'home_section' || rosterMode === 'combined_home_sections'" class="flex flex-col gap-2">
+                    <div class="flex items-center gap-1"><april:label for="cycle-sections">Sections included</april:label><x-help-tooltip label="Offering sections help">For one section, choose exactly one. For combined sections, choose two or more sections from the selected school year and class.</x-help-tooltip></div>
                     <april:select id="cycle-sections" name="academic_cycle_section_ids[]" multiple placeholder="Select sections">
                         @foreach ($academicCycleSections as $academicCycleSection)
                             <option value="{{ $academicCycleSection->id }}" @selected(in_array($academicCycleSection->id, old('academic_cycle_section_ids', [])))>
@@ -92,9 +95,16 @@
                             </option>
                         @endforeach
                     </april:select>
+                    <p x-show="rosterMode === 'home_section'" class="text-sm text-muted-foreground">Choose one section.</p>
+                    <p x-show="rosterMode === 'combined_home_sections'" class="text-sm text-muted-foreground">Choose at least two sections to teach together.</p>
                 </div>
 
-                <div class="flex flex-col gap-2">
+                <div x-cloak x-show="rosterMode === 'academic_level'" class="rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
+                    <p class="font-medium">Whole academic level</p>
+                    <p class="mt-1 text-muted-foreground">Every learner in the selected class level is included. You do not need to choose sections or named learners.</p>
+                </div>
+
+                <div x-cloak x-show="rosterMode === 'individual_roster'" class="flex flex-col gap-2">
                     <div class="flex items-center gap-1"><april:label for="student-records">Named learners</april:label><x-help-tooltip label="Named learners help">Use this when you need to choose learners one by one. Each learner must attend the selected class.</x-help-tooltip></div>
                     <april:select id="student-records" name="student_record_ids[]" multiple placeholder="Select learners">
                         @foreach ($studentRecords as $studentRecord)
