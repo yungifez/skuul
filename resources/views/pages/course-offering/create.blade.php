@@ -76,22 +76,22 @@
 
                 <div class="flex flex-col gap-2">
                     <div class="flex items-center gap-1"><april:label for="cycle-sections">{{ school_terms('section', 'Sections') }}</april:label><x-help-tooltip label="Offering sections help">Select one or more sections, or leave this empty for every learner in the selected class.</x-help-tooltip></div>
-                    <select id="cycle-sections" name="academic_cycle_section_ids[]" multiple class="min-h-40 rounded-md border border-input bg-background px-3 py-2">
+                    <april:select id="cycle-sections" name="academic_cycle_section_ids[]" multiple placeholder="Select sections">
                         @foreach ($academicCycleSections as $academicCycleSection)
-                            <option value="{{ $academicCycleSection->id }}" {{ in_array($academicCycleSection->id, old('academic_cycle_section_ids', [])) ? 'selected' : '' }}>
+                            <option value="{{ $academicCycleSection->id }}" @selected(in_array($academicCycleSection->id, old('academic_cycle_section_ids', [])))>
                                 {{ $academicCycleSection->academicYear->name }} · {{ $academicCycleSection->academicLevel->name }} · {{ $academicCycleSection->label ?? $academicCycleSection->name }}
                             </option>
                         @endforeach
-                    </select>
+                    </april:select>
                 </div>
 
                 <div class="flex flex-col gap-2">
                     <div class="flex items-center gap-1"><april:label for="student-records">Named learners</april:label><x-help-tooltip label="Named learners help">Use this when you need to choose learners one by one. Each learner must attend the selected class.</x-help-tooltip></div>
-                    <select id="student-records" name="student_record_ids[]" multiple class="min-h-40 rounded-md border border-input bg-background px-3 py-2">
+                    <april:select id="student-records" name="student_record_ids[]" multiple placeholder="Select learners">
                         @foreach ($studentRecords as $studentRecord)
-                            <option value="{{ $studentRecord->id }}" {{ in_array($studentRecord->id, old('student_record_ids', [])) ? 'selected' : '' }}>{{ $studentRecord->user?->name ?? $studentRecord->admission_number }} · {{ $studentRecord->academicCycleSection?->academicLevel?->name }}</option>
+                            <option value="{{ $studentRecord->id }}" @selected(in_array($studentRecord->id, old('student_record_ids', [])))>{{ $studentRecord->user?->name ?? $studentRecord->admission_number }} · {{ $studentRecord->academicCycleSection?->academicLevel?->name }}</option>
                         @endforeach
-                    </select>
+                    </april:select>
                 </div>
 
                 <april:button type="submit">Create draft offering</april:button>
