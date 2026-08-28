@@ -25,8 +25,8 @@ class StoreAcademicCycleSectionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'academic_year_id'    => ['required', 'integer', Rule::exists('academic_years', 'id')->where('school_id', current_school_id())],
-            'academic_level_id'   => ['required', 'integer', Rule::exists('academic_levels', 'id')->where('school_id', current_school_id())],
+            'academic_year_id' => ['required', 'integer', Rule::exists('academic_years', 'id')->where('school_id', current_school_id())],
+            'academic_level_id' => ['required', 'integer', Rule::exists('academic_levels', 'id')->where('school_id', current_school_id())],
             'homeroom_teacher_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
             // A cycle keeps one section of each name inside a level, which the
             // `academic_cycle_sections_identity_unique` index enforces. Catch
@@ -38,11 +38,11 @@ class StoreAcademicCycleSectionRequest extends FormRequest
                     ->where('academic_year_id', $this->integer('academic_year_id'))
                     ->where('academic_level_id', $this->integer('academic_level_id')),
             ],
-            'label'    => ['nullable', 'string', 'max:255'],
-            'stream'   => ['nullable', 'string', 'max:100'],
-            'shift'    => ['nullable', 'string', 'max:100'],
+            'label' => ['nullable', 'string', 'max:255'],
+            'stream' => ['nullable', 'string', 'max:100'],
+            'shift' => ['nullable', 'string', 'max:100'],
             'language' => ['nullable', 'string', 'max:100'],
-            'room'     => ['nullable', 'string', 'max:100'],
+            'room' => ['nullable', 'string', 'max:100'],
             'capacity' => ['nullable', 'integer', 'min:1', 'max:999'],
             'position' => ['nullable', 'integer', 'min:0', 'max:9999'],
         ];
@@ -54,7 +54,7 @@ class StoreAcademicCycleSectionRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.unique' => 'That academic level already has a section with this name in this cycle. Choose another name.',
+            'name.unique' => 'This class already has a section with this name in this school year. Choose another name.',
         ];
     }
 }
