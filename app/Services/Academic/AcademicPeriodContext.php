@@ -155,7 +155,8 @@ class AcademicPeriodContext
     public function resolveFor(School $school, User $user, ?Request $request = null): void
     {
         $year = $this->allowedAcademicYear($school, $request?->session()?->get(self::YEAR_SESSION_KEY))
-            ?? $school->academicYear;
+            ?? $school->academicYear
+            ?? $this->savedAcademicYearFor($user, $school);
 
         $this->academicYear = $year;
 
@@ -203,6 +204,21 @@ class AcademicPeriodContext
         }
 
         return AcademicPeriod::where('academic_year_id', $academicYear->id)->find((int) $academicPeriodId);
+    }
+
+    /**
+     * Get the staff member's most recently used academic year for this school.
+     */
+    private function savedAcademicYearFor(User $user, School $school): ?AcademicYear
+    {
+        return UserAcademicPeriodPreference::query()
+            ->inSchool($school)
+            ->whereBelongsTo($user)
+            ->whereBelongsTo($school)
+            ->with('academicYear')
+            ->latest('updated_at')
+            ->first()
+            ?->academicYear;
     }
 
     /**
