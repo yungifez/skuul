@@ -22,7 +22,8 @@
             <april:input-group name="initials" id="initials" type="text" placeholder="Enter school initials" label="School initials" />
             <april:input-group name="phone" id="phone" placeholder="Enter school phone number" label="School Phone Number" type="tel" />
             <april:input-group name="email" id="email" placeholder="Enter school Email" label="School Email address" type="email" />
-            <april:input-group name="logo" id="logo" type="file" label="Logo" />
+            <april:input-group name="logo" id="logo" type="file" label="Logo" accept="image/*" />
+            <p class="text-xs text-muted-foreground">PNG, JPG, or another image up to 5 MB.</p>
             @csrf
             <div class="w-full flex ">
                 <april:button type="submit" class="w-full md:w-6/12">

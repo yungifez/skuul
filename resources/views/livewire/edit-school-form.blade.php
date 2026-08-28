@@ -74,7 +74,7 @@
                         </div>
                     </div>
                     <april:input-group name="logo" id="logo" type="file" label="Replace logo" accept="image/*" />
-                    <p class="text-xs text-muted-foreground">PNG, JPG, or other image up to 3 MB.</p>
+                    <p class="text-xs text-muted-foreground">PNG, JPG, or another image up to 5 MB.</p>
                 </slot:content>
             </april:card>
 
