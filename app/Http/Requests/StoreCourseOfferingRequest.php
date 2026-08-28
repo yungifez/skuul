@@ -3,7 +3,6 @@
 namespace App\Http\Requests;
 
 use App\Enums\RosterMode;
-use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\CourseOffering;
 use Closure;
@@ -44,20 +43,7 @@ class StoreCourseOfferingRequest extends FormRequest
                 },
             ],
             'subject_id' => ['required', 'integer', Rule::exists('subjects', 'id')->where('school_id', current_school_id())],
-            'academic_level_id' => [
-                'required',
-                function (string $attribute, mixed $value, Closure $fail): void {
-                    if ($value === 'all') {
-                        return;
-                    }
-
-                    $levelId = filter_var($value, FILTER_VALIDATE_INT);
-
-                    if ($levelId === false || !AcademicLevel::inSchool()->whereKey($levelId)->where('is_group', false)->exists()) {
-                        $fail('The selected class level is invalid.');
-                    }
-                },
-            ],
+            'academic_level_id' => ['required', 'integer', Rule::exists('academic_levels', 'id')->where('school_id', current_school_id())->where('is_group', false)],
             'roster_mode' => ['required', Rule::enum(RosterMode::class)],
             'academic_cycle_section_ids' => ['nullable', 'array'],
             'academic_cycle_section_ids.*' => ['integer', 'distinct', Rule::exists('academic_cycle_sections', 'id')->where('school_id', current_school_id())],

@@ -36,12 +36,11 @@
                         <april:label for="academic-level">{{ school_term('class_level', 'Class') }}</april:label>
                         <select id="academic-level" name="academic_level_id" x-model="academicLevelId" class="rounded-md border border-input bg-background px-3 py-2" required>
                             <option value="" @selected(blank(old('academic_level_id')))>{{ 'Select a '.strtolower(school_term('class_level', 'level')) }}</option>
-                            <option value="all" @selected((string) old('academic_level_id') === 'all')>All levels</option>
                             @foreach ($academicLevels as $academicLevel)
                                 <option value="{{ $academicLevel->id }}" {{ (string) old('academic_level_id') === (string) $academicLevel->id ? 'selected' : '' }}>{{ $academicLevel->name }}</option>
                             @endforeach
                         </select>
-                        <p class="text-sm text-muted-foreground">Choose a level to narrow the section list, or choose All levels to see every section. If you use All levels, select sections from one level.</p>
+                        <p class="text-sm text-muted-foreground">Choose the class level first. Only sections from that level are available.</p>
                     </div>
                     <div class="flex flex-col gap-2 md:col-span-2">
                         <div class="flex items-center gap-1"><april:label for="roster-mode">Who attends</april:label><x-help-tooltip label="Roster help">Use one section by default. The school year’s teaching setup may allow more options.</x-help-tooltip></div>
@@ -57,19 +56,8 @@
                     </div>
                     <div x-cloak x-show="rosterMode === 'home_section' || rosterMode === 'combined_home_sections'" class="w-full md:col-span-2">
                         <div class="flex flex-col gap-2">
-                            <div class="flex items-center gap-1"><april:label for="cycle-sections-all">Participating sections</april:label><x-help-tooltip label="Participating sections help">For one section, choose exactly one. For combined sections, choose two or more sections from the selected school year and class.</x-help-tooltip></div>
-                            <p x-show="academicLevelId === ''" x-cloak class="rounded-md border border-dashed p-3 text-sm text-muted-foreground">Choose a class level above to see its sections, or choose All levels to see every section.</p>
-                            <template x-if="academicLevelId === 'all'">
-                                <div>
-                                    <april:select id="cycle-sections-all" name="academic_cycle_section_ids[]" multiple placeholder="Select sections">
-                                        @foreach ($academicCycleSections as $academicCycleSection)
-                                            <option value="{{ $academicCycleSection->id }}" @selected(in_array($academicCycleSection->id, old('academic_cycle_section_ids', [])))>
-                                                {{ $academicCycleSection->academicYear->name }} · {{ $academicCycleSection->academicLevel->name }} · {{ $academicCycleSection->label ?? $academicCycleSection->name }}
-                                            </option>
-                                        @endforeach
-                                    </april:select>
-                                </div>
-                            </template>
+                            <div class="flex items-center gap-1"><april:label>Participating sections</april:label><x-help-tooltip label="Participating sections help">For one section, choose exactly one. For combined sections, choose two or more sections from the selected school year and class.</x-help-tooltip></div>
+                            <p x-show="academicLevelId === ''" x-cloak class="rounded-md border border-dashed p-3 text-sm text-muted-foreground">Choose a class level above to see its sections.</p>
                             @foreach ($academicLevels as $academicLevel)
                                 <template x-if="academicLevelId === '{{ $academicLevel->id }}'">
                                     <div>
