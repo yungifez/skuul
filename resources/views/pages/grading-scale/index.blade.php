@@ -23,14 +23,28 @@
                         <div class="flex items-end pb-1"><label class="flex items-center gap-2 text-sm"><input name="is_active" type="checkbox" value="1" {{ old('is_active', true) ? 'checked' : '' }}> Available for new assessments</label></div>
                     </div>
                     <div class="space-y-2"><april:label for="scale-description">Description</april:label><textarea id="scale-description" name="description" rows="2" class="w-full rounded-md border bg-background px-3 py-2 text-sm" placeholder="When staff should use this scale">{{ old('description') }}</textarea></div>
+                    @php
+                        $createOptions = old('options', array_fill(0, 5, ['label' => '', 'points' => '']));
+                    @endphp
                     <div class="space-y-3">
                         <div class="flex items-center gap-1"><p class="text-sm font-medium">Grade options</p><x-help-tooltip label="Grade options help">Points are optional. Use the same choice for every option: all scored, or all descriptive.</x-help-tooltip></div>
-                        @foreach (old('options', [['label' => '', 'points' => ''], ['label' => '', 'points' => ''], ['label' => '', 'points' => ''], ['label' => '', 'points' => ''], ['label' => '', 'points' => '']]) as $index => $option)
-                            <div class="grid gap-3 sm:grid-cols-[1fr_12rem_auto]">
-                                <input name="options[{{ $index }}][label]" value="{{ $option['label'] ?? '' }}" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Excellent">
-                                <input name="options[{{ $index }}][points]" value="{{ $option['points'] ?? '' }}" type="number" min="0" step="0.01" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Points, if scored">
-                            </div>
-                        @endforeach
+                        <div x-data="{ extraOptions: 0 }" class="space-y-3">
+                            @foreach ($createOptions as $index => $option)
+                                <div class="grid gap-3 sm:grid-cols-[1fr_12rem_auto]">
+                                    <input name="options[{{ $index }}][label]" value="{{ $option['label'] ?? '' }}" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Excellent">
+                                    <input name="options[{{ $index }}][points]" value="{{ $option['points'] ?? '' }}" type="number" min="0" step="0.01" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Points, if scored">
+                                </div>
+                            @endforeach
+                            <template x-for="index in extraOptions" :key="index">
+                                <div class="grid gap-3 sm:grid-cols-[1fr_12rem_auto]">
+                                    <input x-bind:name="'options[' + ({{ count($createOptions) }} + index - 1) + '][label]'" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="New grade option">
+                                    <input x-bind:name="'options[' + ({{ count($createOptions) }} + index - 1) + '][points]'" type="number" min="0" step="0.01" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Points, if scored">
+                                </div>
+                            </template>
+                            <button type="button" x-on:click="extraOptions++" class="inline-flex items-center rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">
+                                Add another option
+                            </button>
+                        </div>
                     </div>
                     <div class="flex justify-end"><april:button type="submit">Create grading scale</april:button></div>
                 </form>
@@ -57,21 +71,32 @@
                             <div class="flex items-end pb-1"><label class="flex items-center gap-2 text-sm"><input name="is_active" type="checkbox" value="1" {{ $gradingScale->is_active ? 'checked' : '' }}> Available for new assessments</label></div>
                         </div>
                         <div class="space-y-2"><april:label for="scale-description-{{ $gradingScale->id }}">Description</april:label><textarea id="scale-description-{{ $gradingScale->id }}" name="description" rows="2" class="w-full rounded-md border bg-background px-3 py-2 text-sm">{{ $gradingScale->description }}</textarea></div>
-                        <div class="space-y-3">
+                        <div x-data="{ extraOptions: 0 }" class="space-y-3">
                             <div><p class="text-sm font-medium">Grade options</p><p class="text-xs text-muted-foreground">Options used in learner records cannot be changed or removed.</p></div>
-                            @foreach ($gradingScale->options as $index => $option)
-                                <div class="grid gap-3 sm:grid-cols-[1fr_12rem_auto]">
-                                    <input type="hidden" name="options[{{ $index }}][id]" value="{{ $option->id }}">
-                                    <input name="options[{{ $index }}][label]" value="{{ $option->label }}" required class="h-10 rounded-md border bg-background px-3 py-2 text-sm">
-                                    <input name="options[{{ $index }}][points]" value="{{ $option->points }}" type="number" min="0" step="0.01" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Points, if scored">
-                                </div>
-                            @endforeach
-                            @for ($index = $gradingScale->options->count(); $index < $gradingScale->options->count() + 5; $index++)
-                                <div class="grid gap-3 sm:grid-cols-[1fr_12rem]">
-                                    <input name="options[{{ $index }}][label]" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="New grade option">
-                                    <input name="options[{{ $index }}][points]" type="number" min="0" step="0.01" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Points, if scored">
-                                </div>
-                            @endfor
+                            <div class="space-y-3">
+                                @foreach ($gradingScale->options as $index => $option)
+                                    <div class="grid gap-3 sm:grid-cols-[1fr_12rem_auto]">
+                                        <input type="hidden" name="options[{{ $index }}][id]" value="{{ $option->id }}">
+                                        <input name="options[{{ $index }}][label]" value="{{ $option->label }}" required class="h-10 rounded-md border bg-background px-3 py-2 text-sm">
+                                        <input name="options[{{ $index }}][points]" value="{{ $option->points }}" type="number" min="0" step="0.01" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Points, if scored">
+                                    </div>
+                                @endforeach
+                                @for ($index = $gradingScale->options->count(); $index < $gradingScale->options->count() + 5; $index++)
+                                    <div class="grid gap-3 sm:grid-cols-[1fr_12rem]">
+                                        <input name="options[{{ $index }}][label]" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="New grade option">
+                                        <input name="options[{{ $index }}][points]" type="number" min="0" step="0.01" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Points, if scored">
+                                    </div>
+                                @endfor
+                                <template x-for="index in extraOptions" :key="index">
+                                    <div class="grid gap-3 sm:grid-cols-[1fr_12rem]">
+                                        <input x-bind:name="'options[' + ({{ $gradingScale->options->count() + 5 }} + index - 1) + '][label]'" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="New grade option">
+                                        <input x-bind:name="'options[' + ({{ $gradingScale->options->count() + 5 }} + index - 1) + '][points]'" type="number" min="0" step="0.01" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Points, if scored">
+                                    </div>
+                                </template>
+                                <button type="button" x-on:click="extraOptions++" class="inline-flex items-center rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">
+                                    Add another option
+                                </button>
+                            </div>
                         </div>
                         <div class="flex flex-wrap items-center justify-between gap-3"><april:button type="submit">Save changes</april:button></div>
                     </form>
