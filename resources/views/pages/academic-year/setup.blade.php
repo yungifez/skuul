@@ -62,21 +62,12 @@
                             <x-help-tooltip label="Classes and sections help">A level is reusable, such as Primary 4 or Kindergarten. A section is the named group that runs in this school year, such as Green or KG 1 Blue.</x-help-tooltip>
                         </div>
 
-                        @php
-                            $sectionsByLevel = $academicYear->cycleSections->groupBy('academic_level_id');
-                        @endphp
-
                         @if ($academicLevels->isEmpty())
                             <div class="rounded-md border border-dashed p-4 text-sm text-muted-foreground">
                                 No levels are available yet. Add a level or group before adding this year’s sections.
                             </div>
                         @else
-                            @include('pages.academic-year.partials.level-tree', [
-                                'levels' => $academicLevels->whereNull('parent_id')->values(),
-                                'childrenByParent' => $academicLevels->groupBy('parent_id'),
-                                'sectionsByLevel' => $sectionsByLevel,
-                                'academicYear' => $academicYear,
-                            ])
+                            @livewire('academic-year-structure-tree', ['academicYear' => $academicYear])
                         @endif
                     </div>
                 </slot:content>

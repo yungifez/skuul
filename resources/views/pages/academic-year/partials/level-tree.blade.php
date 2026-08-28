@@ -12,7 +12,7 @@
         }
     @endphp
 
-    <div class="space-y-2">
+    <div wire:key="academic-level-{{ $academicLevel->id }}" class="space-y-2">
         <div class="flex items-start gap-2 rounded-md border bg-background p-3">
             <details open class="group min-w-0 flex-1">
                 <summary class="flex cursor-pointer list-none items-start gap-2 marker:hidden [&::-webkit-details-marker]:hidden">
@@ -45,7 +45,7 @@
                                     $section->homeroomTeacher?->name ? 'Teacher: '.$section->homeroomTeacher->name : null,
                                 ])->filter()->join(' · ');
                             @endphp
-                            <div class="flex items-start justify-between gap-3 rounded-md bg-muted/30 px-3 py-2 text-sm">
+                            <div wire:key="academic-cycle-section-{{ $section->id }}" class="flex items-start justify-between gap-3 rounded-md bg-muted/30 px-3 py-2 text-sm">
                                 <div class="flex min-w-0 items-start gap-2">
                                     <span class="mt-1.5 size-1.5 shrink-0 rounded-full bg-muted-foreground"></span>
                                     <div class="min-w-0">
@@ -67,24 +67,14 @@
                                     @can('update', $section)
                                         @if ($section->isEditable())
                                             @if ($sectionIndex > 0)
-                                                <form method="POST" action="{{ route('academic-cycle-sections.position.update', $section) }}">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    <input type="hidden" name="direction" value="up">
-                                                    <button type="submit" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground" aria-label="Move {{ $section->name }} up" title="Move up">
-                                                        <x-lucide-chevron-up class="size-4" />
-                                                    </button>
-                                                </form>
+                                                <button type="button" wire:click="moveSection({{ $section->id }}, 'up')" wire:loading.attr="disabled" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground disabled:opacity-50" aria-label="Move {{ $section->name }} up" title="Move up">
+                                                    <x-lucide-chevron-up class="size-4" />
+                                                </button>
                                             @endif
                                             @if ($sectionIndex < $sections->count() - 1)
-                                                <form method="POST" action="{{ route('academic-cycle-sections.position.update', $section) }}">
-                                                    @csrf
-                                                    @method('PUT')
-                                                    <input type="hidden" name="direction" value="down">
-                                                    <button type="submit" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground" aria-label="Move {{ $section->name }} down" title="Move down">
-                                                        <x-lucide-chevron-down class="size-4" />
-                                                    </button>
-                                                </form>
+                                                <button type="button" wire:click="moveSection({{ $section->id }}, 'down')" wire:loading.attr="disabled" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-background hover:text-foreground disabled:opacity-50" aria-label="Move {{ $section->name }} down" title="Move down">
+                                                    <x-lucide-chevron-down class="size-4" />
+                                                </button>
                                             @endif
                                         @endif
                                     @endcan
@@ -102,24 +92,14 @@
             <div class="flex shrink-0 flex-wrap items-center justify-end gap-1">
                 @can('update', $academicLevel)
                     @if ($levelIndex > 0)
-                        <form method="POST" action="{{ route('academic-levels.position.update', $academicLevel) }}">
-                            @csrf
-                            @method('PUT')
-                            <input type="hidden" name="direction" value="up">
-                            <button type="submit" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Move {{ $academicLevel->name }} up" title="Move up">
-                                <x-lucide-chevron-up class="size-4" />
-                            </button>
-                        </form>
+                        <button type="button" wire:click="moveLevel({{ $academicLevel->id }}, 'up')" wire:loading.attr="disabled" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50" aria-label="Move {{ $academicLevel->name }} up" title="Move up">
+                            <x-lucide-chevron-up class="size-4" />
+                        </button>
                     @endif
                     @if ($levelIndex < $levels->count() - 1)
-                        <form method="POST" action="{{ route('academic-levels.position.update', $academicLevel) }}">
-                            @csrf
-                            @method('PUT')
-                            <input type="hidden" name="direction" value="down">
-                            <button type="submit" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground" aria-label="Move {{ $academicLevel->name }} down" title="Move down">
-                                <x-lucide-chevron-down class="size-4" />
-                            </button>
-                        </form>
+                        <button type="button" wire:click="moveLevel({{ $academicLevel->id }}, 'down')" wire:loading.attr="disabled" class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground disabled:opacity-50" aria-label="Move {{ $academicLevel->name }} down" title="Move down">
+                            <x-lucide-chevron-down class="size-4" />
+                        </button>
                     @endif
                 @endcan
                 @can('create', \App\Models\AcademicLevel::class)

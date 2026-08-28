@@ -4,14 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Actions\Curriculum\ChangeAcademicCycleSectionStatus;
 use App\Actions\Curriculum\CreateAcademicCycleSection;
-use App\Actions\Curriculum\MoveAcademicCycleSection;
 use App\Actions\Curriculum\RollForwardAcademicCycleSections;
 use App\Actions\Curriculum\UpdateAcademicCycleSection;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Http\Requests\ChangeAcademicCycleSectionStatusRequest;
-use App\Http\Requests\MoveAcademicCycleSectionRequest;
 use App\Http\Requests\RollForwardAcademicCycleSectionsRequest;
 use App\Http\Requests\StoreAcademicCycleSectionRequest;
 use App\Http\Requests\UpdateAcademicCycleSectionRequest;
@@ -32,7 +30,6 @@ class AcademicCycleSectionController extends Controller
         private UpdateAcademicCycleSection $updateAcademicCycleSection,
         private ChangeAcademicCycleSectionStatus $changeAcademicCycleSectionStatus,
         private RollForwardAcademicCycleSections $rollForwardAcademicCycleSections,
-        private MoveAcademicCycleSection $moveAcademicCycleSection,
     ) {
         $this->authorizeResource(AcademicCycleSection::class, 'academicCycleSection');
     }
@@ -165,13 +162,6 @@ class AcademicCycleSectionController extends Controller
         $this->changeAcademicCycleSectionStatus->change($academicCycleSection, $status, $request->user());
 
         return back()->with('success', "Cycle section is now {$status->label()}.");
-    }
-
-    public function movePosition(MoveAcademicCycleSectionRequest $request, AcademicCycleSection $academicCycleSection): RedirectResponse
-    {
-        $moved = $this->moveAcademicCycleSection->move($academicCycleSection, $request->validated('direction'), $request->user());
-
-        return back()->with('success', $moved ? 'Section display order updated.' : 'This section is already at the edge of its class.');
     }
 
     /**

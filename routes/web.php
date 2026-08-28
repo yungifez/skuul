@@ -187,8 +187,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::resource('academic-levels', AcademicLevelController::class)
             ->parameters(['academic-levels' => 'academicLevel'])
             ->only(['index', 'create', 'store', 'show', 'edit', 'update']);
-        Route::put('academic-levels/{academicLevel}/position', [AcademicLevelController::class, 'movePosition'])
-            ->name('academic-levels.position.update');
         Route::put('academic-levels/{academicLevel}/status', [AcademicLevelController::class, 'changeStatus'])
             ->name('academic-levels.status.update');
 
@@ -201,8 +199,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::resource('academic-cycle-sections', AcademicCycleSectionController::class)
             ->parameters(['academic-cycle-sections' => 'academicCycleSection'])
             ->only(['index', 'create', 'store', 'show', 'edit', 'update']);
-        Route::put('academic-cycle-sections/{academicCycleSection}/position', [AcademicCycleSectionController::class, 'movePosition'])
-            ->name('academic-cycle-sections.position.update');
         Route::put('academic-cycle-sections/{academicCycleSection}/status', [AcademicCycleSectionController::class, 'changeStatus'])
             ->name('academic-cycle-sections.status.update');
 

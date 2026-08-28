@@ -4,11 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Actions\Curriculum\ChangeAcademicLevelStatus;
 use App\Actions\Curriculum\CreateAcademicLevel;
-use App\Actions\Curriculum\MoveAcademicLevel;
 use App\Actions\Curriculum\UpdateAcademicLevel;
 use App\Enums\AcademicStructureStatus;
 use App\Http\Requests\ChangeAcademicLevelStatusRequest;
-use App\Http\Requests\MoveAcademicLevelRequest;
 use App\Http\Requests\StoreAcademicLevelRequest;
 use App\Http\Requests\UpdateAcademicLevelRequest;
 use App\Models\AcademicLevel;
@@ -25,7 +23,6 @@ class AcademicLevelController extends Controller
         private CreateAcademicLevel $createAcademicLevel,
         private UpdateAcademicLevel $updateAcademicLevel,
         private ChangeAcademicLevelStatus $changeAcademicLevelStatus,
-        private MoveAcademicLevel $moveAcademicLevel,
     ) {
         $this->authorizeResource(AcademicLevel::class, 'academicLevel');
     }
@@ -144,13 +141,6 @@ class AcademicLevelController extends Controller
         $this->changeAcademicLevelStatus->change($academicLevel, $status, $request->user());
 
         return back()->with('success', "Academic level is now {$status->label()}.");
-    }
-
-    public function movePosition(MoveAcademicLevelRequest $request, AcademicLevel $academicLevel): RedirectResponse
-    {
-        $moved = $this->moveAcademicLevel->move($academicLevel, $request->validated('direction'), $request->user());
-
-        return back()->with('success', $moved ? 'Level display order updated.' : 'This level is already at the edge of its group.');
     }
 
     /**
