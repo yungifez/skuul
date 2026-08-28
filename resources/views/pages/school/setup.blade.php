@@ -1,13 +1,17 @@
-@php
-    $stepItems = collect($progress['steps'])->map(function (array $step) use ($school, $currentStep): array {
-        $state = $step['value'] === $currentStep->value ? 'current' : ($step['complete'] ? 'complete' : 'upcoming');
+    @php
+        $stepItems = collect($progress['steps'])->map(function (array $step) use ($school, $currentStep): array {
+            $state = $step['value'] === $currentStep->value ? 'current' : ($step['complete'] ? 'complete' : 'upcoming');
 
         return $step + [
             'state' => $state,
             'href' => $state === 'complete' ? route('schools.setup', [$school, $step['value']]) : null,
         ];
-    })->all();
-@endphp
+        })->all();
+        $classesStepComplete = (bool) data_get(
+            collect($progress['steps'])->firstWhere('value', \App\Enums\SchoolSetupStep::Classes->value),
+            'complete',
+        );
+    @endphp
 
 @extends('layouts.app', ['breadcrumbs' => [
     ['href' => route('dashboard'), 'text' => 'Dashboard'],
@@ -55,11 +59,40 @@
                             @if ($previousAcademicYear)
                                 <april:button-link href="{{ route('academic-cycle-sections.roll-forward.show', ['source_academic_year_id' => $previousAcademicYear->id, 'target_academic_year_id' => $academicYear->id, 'setup' => 1]) }}" variant="outline">Roll over last year’s sections</april:button-link>
                             @endif
-                            <april:button-link href="{{ route('academic-years.setup', [$academicYear, 'structure']) }}" variant="ghost">Open full year setup</april:button-link>
+                            <april:button-link href="{{ route('academic-years.setup', $academicYear) }}" variant="ghost">Continue year setup</april:button-link>
                         @else
                             <april:button-link href="{{ route('academic-years.create', ['setup' => 1]) }}" variant="outline">Create the first school year</april:button-link>
                         @endif
                     </div>
+
+                    @if (!$classesStepComplete)
+                        <div class="flex flex-col gap-3 rounded-md border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">First step</p>
+                                <h3 class="font-semibold">Add your school’s reusable classes</h3>
+                                <p class="text-sm text-muted-foreground">Start with the class levels your school teaches. You can add sections after you create a school year.</p>
+                            </div>
+                            <april:button-link href="{{ route('academic-levels.create', ['setup' => 1, 'school_setup' => 1]) }}" class="shrink-0">Add your first class</april:button-link>
+                        </div>
+                    @elseif (!$academicYear)
+                        <div class="flex flex-col gap-3 rounded-md border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Next step</p>
+                                <h3 class="font-semibold">Create the first school year</h3>
+                                <p class="text-sm text-muted-foreground">Your reusable classes are ready. Set the dates and reporting periods, then add this year’s sections.</p>
+                            </div>
+                            <april:button-link href="{{ route('academic-years.create', ['setup' => 1]) }}" class="shrink-0">Continue to school year</april:button-link>
+                        </div>
+                    @else
+                        <div class="flex flex-col gap-3 rounded-md border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+                            <div>
+                                <p class="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Next step</p>
+                                <h3 class="font-semibold">Continue setting up {{ $academicYear->name }}</h3>
+                                <p class="text-sm text-muted-foreground">Review the remaining year setup steps, including sections, subjects, and publishing.</p>
+                            </div>
+                            <april:button-link href="{{ route('academic-years.setup', $academicYear) }}" class="shrink-0">Continue year setup</april:button-link>
+                        </div>
+                    @endif
 
                     <div class="space-y-3 border-t pt-5">
                         <div>
