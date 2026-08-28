@@ -51,8 +51,12 @@
             </slot:content>
         </april:card>
 
-        @if ($errors->has('grading_scale'))
-            <div class="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">{{ $errors->first('grading_scale') }}</div>
+        @if ($errors->has('grading_scale') || $errors->has('options'))
+            <div class="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                @foreach (array_merge($errors->get('grading_scale'), $errors->get('options')) as $error)
+                    <p>{{ $error }}</p>
+                @endforeach
+            </div>
         @endif
 
         <section class="space-y-3">
