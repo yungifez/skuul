@@ -101,12 +101,12 @@
                     </button>
                 </div>
 
-                <div wire:loading class="text-xs text-muted-foreground">Saving…</div>
+                <div wire:loading wire:target="addTimeSlot,assign,clearCell,removeTimeSlot" class="text-xs text-muted-foreground">Saving…</div>
             </div>
         </slot:content>
     </april:card>
 
-    <april:dialog dismissable x-effect="show = $wire.showTimeSlotDialog">
+    <april:dialog dismissable x-effect="show = $wire.showTimeSlotDialog" x-init="$watch('show', value => { if (!value && $wire.showTimeSlotDialog) $wire.closeTimeSlotDialog() })">
         <slot:content class="sm:max-w-2xl">
             <april:dialog-header>
                 <slot:title>Add a time slot</slot:title>

@@ -57,7 +57,7 @@
             </slot:content>
         </april:card>
 
-        <april:dialog dismissable x-effect="show = $wire.showEventDialog">
+        <april:dialog dismissable x-effect="show = $wire.showEventDialog" x-init="$watch('show', value => { if (!value && $wire.showEventDialog) $wire.closeEventDialog() })">
             <slot:content class="sm:max-w-2xl">
                 <april:dialog-header>
                     <slot:title>Add calendar event</slot:title>
