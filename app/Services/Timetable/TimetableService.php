@@ -28,7 +28,7 @@ class TimetableService
     /**
      * Create timetable.
      *
-     * @param  array{name: string, description?: string|null, academic_cycle_section_id?: int|null, academic_period_id: int, recurrence?: string, occurs_on?: string|null}  $data
+     * @param  array{name: string, description?: string|null, academic_cycle_section_id?: int|null, academic_period_id: int}  $data
      */
     public function createTimetable(array $data): Timetable
     {
@@ -37,16 +37,14 @@ class TimetableService
             'description' => $data['description'] ?? null,
             'academic_cycle_section_id' => $data['academic_cycle_section_id'] ?? null,
             'academic_period_id' => $data['academic_period_id'],
-            'recurrence' => $data['recurrence'] ?? 'weekly',
-            'occurs_on' => $data['occurs_on'] ?? null,
         ]);
     }
 
     /**
-     * Create a timetable and its recurring weekly calendar entries together.
+     * Create a timetable and its calendar entries together.
      *
-     * @param  array{name: string, description?: string|null, academic_cycle_section_id?: int|null, academic_period_id: int, recurrence?: string, occurs_on?: string|null}  $data
-     * @param  array<int, array{weekday_id: int, start_time: string, stop_time: string, type: string, subject_id?: int|null, title?: string|null, audience_role?: string|null}>  $events
+     * @param  array{name: string, description?: string|null, academic_cycle_section_id?: int|null, academic_period_id: int}  $data
+     * @param  array<int, array{weekday_id: int, start_time: string, stop_time: string, recurrence: string, occurs_on?: string|null, type: string, subject_id?: int|null, title?: string|null, audience_role?: string|null}>  $events
      */
     public function createTimetableWithEvents(array $data, array $events): Timetable
     {
@@ -59,6 +57,8 @@ class TimetableService
                     'timetable_id' => $timetable->id,
                     'start_time' => $event['start_time'],
                     'stop_time' => $event['stop_time'],
+                    'recurrence' => $event['recurrence'],
+                    'occurs_on' => $event['occurs_on'] ?? null,
                 ]);
 
                 $recordableId = $event['subject_id'] ?? null;

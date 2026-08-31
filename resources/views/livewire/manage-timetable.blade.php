@@ -6,6 +6,13 @@
         </april:alert>
     @enderror
 
+    @if ($this->outOfPeriodSlots->isNotEmpty())
+        <april:alert variant="destructive">
+            <slot:title>{{ $this->outOfPeriodSlots->count() }} one-date {{ Str::plural('slot', $this->outOfPeriodSlots->count()) }} need attention</slot:title>
+            <slot:description>These dates are outside {{ $timetable->academicPeriod?->displayName ?? 'the academic period' }} after its dates changed. Correct the period or create a revision with dates inside it before publishing.</slot:description>
+        </april:alert>
+    @endif
+
     @if ($conflicts !== [])
         <april:alert variant="destructive">
             <slot:icon><x-lucide-triangle-alert class="size-4" /></slot:icon>
@@ -21,9 +28,9 @@
     @endif
 
     <april:card>
-        <slot:title>The week</slot:title>
+        <slot:title>Calendar</slot:title>
         <slot:description>
-            Choose a place on the week, then choose what goes there.
+            Choose a place on the week, then choose what goes there. One-date slots appear on their date's weekday.
             {{ $grid['filled_count'] }} of {{ $grid['slot_count'] }} places are taken.
         </slot:description>
         <slot:content>
@@ -114,7 +121,7 @@
 
     <april:card>
         <slot:title>Time slots</slot:title>
-        <slot:description>Every day of the week runs on these times. Removing one takes its lessons with it.</slot:description>
+        <slot:description>Each time slot can repeat every week or happen once. Removing one takes its lessons with it.</slot:description>
         <slot:content>
             <div class="space-y-4">
                 <form wire:submit="addTimeSlot" class="flex flex-wrap items-end gap-3">
@@ -130,6 +137,23 @@
                             class="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
                         @error('stopTime') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                     </div>
+                    <div class="flex flex-col gap-2">
+                        <april:label for="slot-recurrence">When</april:label>
+                        <select id="slot-recurrence" wire:model.live="slotRecurrence"
+                            class="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                            <option value="weekly">Every week</option>
+                            <option value="one_time">One date</option>
+                        </select>
+                        @error('slotRecurrence') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                    </div>
+                    @if ($slotRecurrence === 'one_time')
+                        <div class="flex flex-col gap-2">
+                            <april:label for="slot-occurs-on">Date</april:label>
+                            <input type="date" id="slot-occurs-on" wire:model="slotOccursOn"
+                                class="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                            @error('slotOccursOn') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        </div>
+                    @endif
                     <april:button type="submit">
                         <x-lucide-plus class="mr-2 size-4" />
                         Add time slot
@@ -142,7 +166,7 @@
                     <ul class="divide-y rounded-md border">
                         @foreach ($this->timeSlots as $slot)
                             <li class="flex items-center justify-between gap-3 px-4 py-2 text-sm">
-                                <span class="font-medium">{{ $slot->start_time }} to {{ $slot->stop_time }}</span>
+                                <span><span class="font-medium">{{ $slot->start_time }} to {{ $slot->stop_time }}</span><span class="ml-2 text-muted-foreground">{{ $slot->recurrence === 'weekly' ? 'Every week' : 'One date · '.$slot->occurs_on?->format('j M Y') }}</span></span>
                                 <april:button type="button" variant="ghost" size="sm"
                                     wire:click="removeTimeSlot({{ $slot->id }})"
                                     wire:confirm="Remove this time slot and everything placed in it?">

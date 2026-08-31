@@ -9,6 +9,7 @@ use App\Models\TeachingAssignment;
 use App\Models\Timetable;
 use App\Models\TimetableRecord;
 use App\Models\Weekday;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -26,7 +27,7 @@ class TimetableGrid
      *
      * @return array{
      *     weekdays: array<int, array{id: int, name: string, short: string, used: bool, is_weekend: bool}>,
-     *     rows: array<int, array{id: int, start: string, stop: string, cells: array<int, array{kind: string|null, name: string|null, teachers: array<int, string>, audience_role: string|null}>}>,
+     *     rows: array<int, array{id: int, start: string, stop: string, recurrence: string, occurs_on: string|null, cells: array<int, array{active: bool, kind: string|null, name: string|null, teachers: array<int, string>, audience_role: string|null, recurrence: string, occurs_on: string|null}>}>,
      *     slot_count: int,
      *     filled_count: int,
      *     empty_count: int
@@ -46,12 +47,19 @@ class TimetableGrid
 
         foreach ($slots as $slot) {
             $cells = [];
+            $oneTimeWeekdayId = $slot->recurrence === 'one_time' && $slot->occurs_on !== null
+                ? $weekdays->firstWhere('name', Carbon::parse($slot->occurs_on)->englishDayOfWeek)?->id
+                : null;
 
             foreach ($weekdays as $weekday) {
+                $active = $slot->recurrence !== 'one_time' || $weekday->id === $oneTimeWeekdayId;
                 $record = $records->get($slot->id.':'.$weekday->id);
                 $cell = $this->cellOf($record, $names, $teachers);
+                $cell['active'] = $active;
+                $cell['recurrence'] = (string) $slot->recurrence;
+                $cell['occurs_on'] = $slot->occurs_on?->toDateString();
 
-                if ($cell['kind'] !== null) {
+                if ($active && $cell['kind'] !== null) {
                     $filled++;
                     $used[$weekday->id] = true;
                 }
@@ -63,6 +71,8 @@ class TimetableGrid
                 'id' => $slot->id,
                 'start' => (string) $slot->start_time,
                 'stop' => (string) $slot->stop_time,
+                'recurrence' => (string) $slot->recurrence,
+                'occurs_on' => $slot->occurs_on?->toDateString(),
                 'cells' => $cells,
             ];
         }
@@ -93,7 +103,7 @@ class TimetableGrid
      *
      * @param  Collection<string, string>  $names
      * @param  Collection<int, array<int, string>>  $teachers
-     * @return array{kind: string|null, name: string|null, teachers: array<int, string>, audience_role: string|null}
+     * @return array{active?: bool, kind: string|null, name: string|null, teachers: array<int, string>, audience_role: string|null, recurrence?: string, occurs_on?: string|null}
      */
     private function cellOf(?TimetableRecord $record, Collection $names, Collection $teachers): array
     {

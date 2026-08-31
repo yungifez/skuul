@@ -20,6 +20,16 @@ class TimetableTimeSlot extends Model
         'start_time',
         'stop_time',
         'timetable_id',
+        'recurrence',
+        'occurs_on',
+    ];
+
+    protected $attributes = [
+        'recurrence' => 'weekly',
+    ];
+
+    protected $casts = [
+        'occurs_on' => 'date:Y-m-d',
     ];
 
     protected $getDateFormat = 'H:i';
@@ -79,6 +89,19 @@ class TimetableTimeSlot extends Model
     public function governingAcademicPeriod(): AcademicYear|AcademicPeriod|null
     {
         return $this->timetable?->academicPeriod;
+    }
+
+    /**
+     * Check if a one-date slot no longer falls inside its academic period.
+     */
+    public function occursOutsideAcademicPeriod(): bool
+    {
+        if ($this->recurrence !== 'one_time') {
+            return false;
+        }
+
+        return $this->occurs_on === null
+            || !$this->governingAcademicPeriod()?->covers($this->occurs_on);
     }
 
     public function weekdays(): BelongsToMany

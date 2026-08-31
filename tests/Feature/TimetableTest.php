@@ -9,7 +9,6 @@ use App\Models\Timetable;
 use App\Models\TimetableTimeSlot;
 use App\Models\Weekday;
 use App\Traits\FeatureTestTrait;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -93,23 +92,30 @@ class TimetableTest extends TestCase
     public function test_schoolwide_creation_is_rejected_even_if_the_client_state_is_tampered_with(): void
     {
         $this->authorized_user(['create timetable']);
-        $this->expectException(AuthorizationException::class);
 
-        Livewire::test(CreateTimetableForm::class)
+        $component = Livewire::test(CreateTimetableForm::class)
             ->set('canCreateSchoolwide', true)
-            ->set('scope', 'schoolwide')
-            ->call('save');
+            ->set('scope', 'schoolwide');
+
+        $component->assertSet('scope', 'section')->assertHasErrors('scope');
+        $this->assertDatabaseMissing('timetables', ['name' => 'Tampered schoolwide timetable']);
     }
 
-    public function test_a_timetable_can_be_created_for_one_date_without_weekly_recurrence(): void
+    public function test_a_timetable_can_contain_a_one_date_event(): void
     {
         $this->authorized_user(['create timetable']);
-        $period = AcademicPeriod::inSchool()->where('academic_year_id', current_academic_year_id())->firstOrFail();
+        $period = AcademicPeriod::factory()->create([
+            'academic_year_id' => current_academic_year_id(),
+            'school_id' => current_school_id(),
+            'starts_on' => '2030-09-01',
+            'ends_on' => '2030-12-20',
+        ]);
 
         Livewire::test(CreateTimetableForm::class)
             ->set('name', 'Sports day schedule')
-            ->set('recurrence', 'one_time')
-            ->set('occursOn', $period->starts_on?->toDateString())
+            ->set('academicPeriodId', $period->id)
+            ->set('newEvent.recurrence', 'one_time')
+            ->set('newEvent.occurs_on', $period->starts_on?->toDateString())
             ->set('newEvent.type', 'freehand')
             ->set('newEvent.title', 'Sports day')
             ->call('addEvent')
@@ -118,9 +124,44 @@ class TimetableTest extends TestCase
 
         $this->assertDatabaseHas('timetables', [
             'name' => 'Sports day schedule',
+        ]);
+        $this->assertDatabaseHas('timetable_time_slots', [
             'recurrence' => 'one_time',
             'occurs_on' => $period->starts_on?->toDateString(),
         ]);
+    }
+
+    public function test_a_timetable_can_mix_weekly_and_one_date_events(): void
+    {
+        $this->authorized_user(['create timetable']);
+        $period = AcademicPeriod::factory()->create([
+            'academic_year_id' => current_academic_year_id(),
+            'school_id' => current_school_id(),
+            'starts_on' => '2030-09-01',
+            'ends_on' => '2030-12-20',
+        ]);
+        $weekday = Weekday::query()->firstOrFail();
+
+        Livewire::test(CreateTimetableForm::class)
+            ->set('name', 'Mixed calendar')
+            ->set('academicPeriodId', $period->id)
+            ->set('newEvent.weekday_id', $weekday->id)
+            ->set('newEvent.type', 'freehand')
+            ->set('newEvent.title', 'Weekly assembly')
+            ->call('addEvent')
+            ->set('newEvent.recurrence', 'one_time')
+            ->set('newEvent.occurs_on', $period->starts_on?->toDateString())
+            ->set('newEvent.type', 'freehand')
+            ->set('newEvent.title', 'Sports day')
+            ->call('addEvent')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $timetable = Timetable::query()->where('name', 'Mixed calendar')->firstOrFail();
+
+        $this->assertSame(2, $timetable->timeSlots()->count());
+        $this->assertSame(1, $timetable->timeSlots()->where('recurrence', 'weekly')->count());
+        $this->assertSame(1, $timetable->timeSlots()->where('recurrence', 'one_time')->count());
     }
 
     // test unauthorized user can't view edit timetable

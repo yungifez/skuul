@@ -18,11 +18,5 @@
 @endsection
 
 @section('content')
-    @if ($timetable->recurrence === 'one_time')
-        <april:alert class="mb-4">
-            <slot:title>One-date schedule</slot:title>
-            <slot:description>This calendar applies only on {{ $timetable->occurs_on?->format('l, j F Y') }}. New entries added below are part of that date.</slot:description>
-        </april:alert>
-    @endif
     @livewire('manage-timetable', ['timetable' => $timetable])
 @endsection

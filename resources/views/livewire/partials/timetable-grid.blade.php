@@ -51,7 +51,8 @@
                             @php
                                 $cell = $row['cells'][$weekday['id']];
                                 $key = $row['id'].':'.$weekday['id'];
-                                $isSelected = $editable && $selected === $key;
+                                $isActive = $cell['active'] ?? true;
+                                $isSelected = $editable && $isActive && $selected === $key;
                                 $tone = match ($cell['kind']) {
                                     'subject' => 'bg-primary/10 border-primary/30',
                                     'break' => 'bg-muted border-dashed',
@@ -60,7 +61,7 @@
                             @endphp
 
                             <td class="p-0 align-top">
-                                @if ($editable)
+                                @if ($editable && $isActive)
                                     <button type="button"
                                         wire:click="selectCell({{ $row['id'] }}, {{ $weekday['id'] }})"
                                         wire:loading.attr="disabled"
@@ -70,7 +71,7 @@
                                         @include('livewire.partials.timetable-cell', ['cell' => $cell])
                                     </button>
                                 @else
-                                    <div class="min-h-16 rounded-md border px-2 py-2 {{ $tone }}">
+                                    <div class="min-h-16 rounded-md border px-2 py-2 {{ $tone }} {{ !$isActive ? 'bg-muted/20 opacity-50' : '' }}">
                                         @include('livewire.partials.timetable-cell', ['cell' => $cell])
                                     </div>
                                 @endif

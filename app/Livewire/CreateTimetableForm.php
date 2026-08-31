@@ -24,24 +24,22 @@ class CreateTimetableForm extends Component
 
     public ?int $academicPeriodId = null;
 
-    public string $recurrence = 'weekly';
-
-    public ?string $occursOn = null;
-
     public string $scope = 'section';
 
     public bool $canCreateSchoolwide = false;
 
     public ?int $academicCycleSectionId = null;
 
-    /** @var array<int, array{weekday_id: int, start_time: string, stop_time: string, type: string, subject_id: int|null, title: string, audience_role: string}> */
+    /** @var array<int, array{weekday_id: int, start_time: string, stop_time: string, recurrence: string, occurs_on: string|null, type: string, subject_id: int|null, title: string, audience_role: string}> */
     public array $events = [];
 
-    /** @var array{weekday_id: int|null, start_time: string, stop_time: string, type: string, subject_id: int|null, title: string, audience_role: string} */
+    /** @var array{weekday_id: int|null, start_time: string, stop_time: string, recurrence: string, occurs_on: string|null, type: string, subject_id: int|null, title: string, audience_role: string} */
     public array $newEvent = [
         'weekday_id' => null,
         'start_time' => '08:00',
         'stop_time' => '09:00',
+        'recurrence' => 'weekly',
+        'occurs_on' => null,
         'type' => 'subject',
         'subject_id' => null,
         'title' => '',
@@ -78,7 +76,7 @@ class CreateTimetableForm extends Component
                 'ends_on' => $period->ends_on?->toDateString(),
             ])->all();
         $this->academicPeriodId = current_academic_period_id() ?? $this->periods[0]['id'] ?? null;
-        $this->occursOn = $this->selectedPeriod()['starts_on'] ?? now()->toDateString();
+        $this->newEvent['occurs_on'] = $this->selectedPeriod()['starts_on'] ?? now()->toDateString();
         $this->cycleSections = AcademicCycleSection::inSchool()
             ->with('academicLevel')->where('academic_year_id', current_academic_year_id())
             ->where('status', AcademicStructureStatus::Active)->orderBy('position')->orderBy('name')->get()
@@ -96,7 +94,7 @@ class CreateTimetableForm extends Component
 
     public function updatedScope(string $scope): void
     {
-        if ($scope === 'schoolwide' && !$this->canCreateSchoolwide) {
+        if ($scope === 'schoolwide' && !auth()->user()->can('create schoolwide timetable')) {
             $this->scope = 'section';
             $this->addError('scope', 'You do not have permission to create a schoolwide timetable.');
 
@@ -108,41 +106,51 @@ class CreateTimetableForm extends Component
         }
     }
 
-    public function updatedRecurrence(string $recurrence): void
+    public function updatedNewEventRecurrence(string $recurrence): void
     {
-        if ($recurrence === 'one_time' && $this->occursOn === null) {
-            $this->occursOn = $this->selectedPeriod()['starts_on'] ?? now()->toDateString();
+        if ($recurrence === 'one_time' && $this->newEvent['occurs_on'] === null) {
+            $this->newEvent['occurs_on'] = $this->selectedPeriod()['starts_on'] ?? now()->toDateString();
         }
     }
 
     public function updatedAcademicPeriodId(): void
     {
-        if ($this->recurrence === 'one_time') {
-            $this->occursOn = $this->selectedPeriod()['starts_on'] ?? now()->toDateString();
+        if ($this->newEvent['recurrence'] === 'one_time') {
+            $this->newEvent['occurs_on'] = $this->selectedPeriod()['starts_on'] ?? now()->toDateString();
         }
     }
 
     public function addEvent(): void
     {
-        if ($this->recurrence === 'one_time') {
-            $this->validateOccursOn();
+        $this->resetErrorBag();
 
-            if ($this->getErrorBag()->has('occursOn')) {
+        $validator = Validator::make($this->newEvent, [
+            'weekday_id' => ['required_if:recurrence,weekly', 'nullable', 'integer', Rule::exists('weekdays', 'id')],
+            'start_time' => ['required', 'date_format:H:i'],
+            'stop_time' => ['required', 'date_format:H:i', 'after:start_time'],
+            'recurrence' => ['required', Rule::in(['weekly', 'one_time'])],
+            'occurs_on' => ['required_if:recurrence,one_time', 'nullable', 'date'],
+            'type' => ['required', 'in:subject,role,freehand'],
+            'subject_id' => ['required_if:type,subject', 'nullable', 'integer', Rule::exists('subjects', 'id')->where('school_id', current_school_id())],
+            'title' => ['required_if:type,role,freehand', 'nullable', 'string', 'max:255'],
+            'audience_role' => ['required_if:type,role', 'nullable', Rule::in(array_column($this->roles, 'id'))],
+        ]);
+        $validator->validate();
+
+        if ($this->getErrorBag()->has('newEvent.occurs_on')) {
+            return;
+        }
+
+        if ($this->newEvent['recurrence'] === 'one_time') {
+            $this->validateEventDate($this->newEvent['occurs_on'], 'newEvent.occurs_on');
+
+            if ($this->getErrorBag()->has('newEvent.occurs_on')) {
                 return;
             }
 
             $this->newEvent['weekday_id'] = $this->weekdayIdForDate();
         }
 
-        Validator::make($this->newEvent, [
-            'weekday_id' => ['required', 'integer', Rule::exists('weekdays', 'id')],
-            'start_time' => ['required', 'date_format:H:i'],
-            'stop_time' => ['required', 'date_format:H:i', 'after:start_time'],
-            'type' => ['required', 'in:subject,role,freehand'],
-            'subject_id' => ['required_if:type,subject', 'nullable', 'integer', Rule::exists('subjects', 'id')->where('school_id', current_school_id())],
-            'title' => ['required_if:type,role,freehand', 'nullable', 'string', 'max:255'],
-            'audience_role' => ['required_if:type,role', 'nullable', Rule::in(array_column($this->roles, 'id'))],
-        ])->validate();
         $this->events[] = [
             ...$this->newEvent,
             'weekday_id' => (int) $this->newEvent['weekday_id'],
@@ -152,6 +160,9 @@ class CreateTimetableForm extends Component
         $this->newEvent['title'] = '';
         $this->newEvent['subject_id'] = null;
         $this->newEvent['audience_role'] = '';
+        $this->newEvent['occurs_on'] = $this->newEvent['recurrence'] === 'one_time'
+            ? ($this->selectedPeriod()['starts_on'] ?? now()->toDateString())
+            : null;
     }
 
     public function removeEvent(int $index): void
@@ -167,48 +178,50 @@ class CreateTimetableForm extends Component
             $this->authorize('createSchoolwide', Timetable::class);
         }
 
-        if ($this->recurrence === 'one_time') {
-            $this->validateOccursOn();
-
-            if ($this->getErrorBag()->has('occursOn')) {
-                return;
-            }
-        }
-
         $this->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:10000'],
             'academicPeriodId' => ['required', 'integer', Rule::exists('academic_periods', 'id')->where('school_id', current_school_id())->where('academic_year_id', current_academic_year_id())],
-            'recurrence' => ['required', Rule::in(['weekly', 'one_time'])],
-            'occursOn' => ['required_if:recurrence,one_time', 'nullable', 'date'],
             'scope' => ['required', 'in:section,schoolwide'],
             'academicCycleSectionId' => ['required_if:scope,section', 'nullable', 'integer', Rule::exists('academic_cycle_sections', 'id')->where('school_id', current_school_id())->where('academic_year_id', current_academic_year_id())],
         ]);
-        foreach ($this->events as $event) {
+        foreach ($this->events as $index => $event) {
             Validator::make($event, [
-                'weekday_id' => ['required', 'integer', Rule::exists('weekdays', 'id')],
+                'weekday_id' => ['required_if:recurrence,weekly', 'nullable', 'integer', Rule::exists('weekdays', 'id')],
                 'start_time' => ['required', 'date_format:H:i'],
                 'stop_time' => ['required', 'date_format:H:i', 'after:start_time'],
+                'recurrence' => ['required', Rule::in(['weekly', 'one_time'])],
+                'occurs_on' => ['required_if:recurrence,one_time', 'nullable', 'date'],
                 'type' => ['required', 'in:subject,role,freehand'],
                 'subject_id' => ['required_if:type,subject', 'nullable', 'integer', Rule::exists('subjects', 'id')->where('school_id', current_school_id())],
                 'title' => ['required_if:type,role,freehand', 'nullable', 'string', 'max:255'],
                 'audience_role' => ['required_if:type,role', 'nullable', Rule::in(array_column($this->roles, 'id'))],
             ])->validate();
+
+            if ($event['recurrence'] === 'one_time') {
+                $this->validateEventDate($event['occurs_on'], 'events.'.$index.'.occurs_on');
+
+                if ($this->getErrorBag()->has('events.'.$index.'.occurs_on')) {
+                    return;
+                }
+            }
         }
         $timetable = $timetables->createTimetableWithEvents([
             'name' => $this->name,
             'description' => $this->description ?: null,
             'academic_period_id' => $this->academicPeriodId,
-            'recurrence' => $this->recurrence,
-            'occurs_on' => $this->recurrence === 'one_time' ? $this->occursOn : null,
             'academic_cycle_section_id' => $this->scope === 'section' ? $this->academicCycleSectionId : null,
         ], array_map(fn (array $event): array => [
-            'weekday_id' => (int) $event['weekday_id'],
+            'weekday_id' => $event['recurrence'] === 'one_time'
+                ? (int) $this->weekdayIdForDate($event['occurs_on'])
+                : (int) $event['weekday_id'],
             'start_time' => $event['start_time'],
             'stop_time' => $event['stop_time'],
+            'recurrence' => $event['recurrence'],
+            'occurs_on' => $event['recurrence'] === 'one_time' ? $event['occurs_on'] : null,
             'type' => $event['type'],
             'subject_id' => $event['subject_id'] ?? null,
-            'title' => $event['title'] ?? null,
+            'title' => $event['title'],
             'audience_role' => $event['audience_role'] ?: null,
         ], $this->events));
         $this->redirectRoute('timetables.manage', $timetable, navigate: true);
@@ -227,30 +240,32 @@ class CreateTimetableForm extends Component
         return collect($this->periods)->firstWhere('id', $this->academicPeriodId);
     }
 
-    private function validateOccursOn(): void
+    private function validateEventDate(?string $date, string $attribute): void
     {
-        $this->resetErrorBag('occursOn');
+        $this->resetErrorBag($attribute);
         $period = $this->selectedPeriod();
 
-        if ($this->occursOn === null || $period === null || $period['starts_on'] === null || $period['ends_on'] === null) {
-            $this->addError('occursOn', 'Choose a date inside the selected academic period.');
+        if ($date === null || $period === null || $period['starts_on'] === null || $period['ends_on'] === null) {
+            $this->addError($attribute, 'Choose a date inside the selected academic period.');
 
             return;
         }
 
-        $date = Carbon::parse($this->occursOn);
+        $date = Carbon::parse($date);
 
         if ($date->lt(Carbon::parse($period['starts_on'])) || $date->gt(Carbon::parse($period['ends_on']))) {
-            $this->addError('occursOn', 'The date must be inside the selected academic period.');
+            $this->addError($attribute, 'The date must be inside the selected academic period.');
         }
     }
 
-    private function weekdayIdForDate(): ?int
+    private function weekdayIdForDate(?string $date = null): ?int
     {
-        if ($this->occursOn === null) {
+        $date ??= $this->newEvent['occurs_on'];
+
+        if ($date === null) {
             return null;
         }
 
-        return Weekday::query()->where('name', Carbon::parse($this->occursOn)->englishDayOfWeek)->value('id');
+        return Weekday::query()->where('name', Carbon::parse($date)->englishDayOfWeek)->value('id');
     }
 }

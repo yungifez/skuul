@@ -18,7 +18,7 @@ use Illuminate\Support\Carbon;
  * @property TimetableStatus $status
  * @property int $revision
  * @property int $academic_period_id
- * @property int $academic_cycle_section_id
+ * @property int|null $academic_cycle_section_id
  * @property Carbon|null $published_at
  */
 class Timetable extends Model
@@ -34,8 +34,6 @@ class Timetable extends Model
         'status',
         'revision',
         'academic_period_id',
-        'recurrence',
-        'occurs_on',
         'academic_cycle_section_id',
         'template_timetable_id',
         'effective_from',
@@ -53,7 +51,6 @@ class Timetable extends Model
     protected $attributes = [
         'status' => TimetableStatus::Draft->value,
         'revision' => 1,
-        'recurrence' => 'weekly',
     ];
 
     /**
@@ -67,7 +64,6 @@ class Timetable extends Model
         'effective_from' => 'date:Y-m-d',
         'effective_to' => 'date:Y-m-d',
         'published_at' => 'datetime',
-        'occurs_on' => 'date:Y-m-d',
     ];
 
     /**

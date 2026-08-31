@@ -33,8 +33,6 @@ class ReviseTimetable
                 'status' => TimetableStatus::Draft,
                 'revision' => $timetable->revision + 1,
                 'academic_period_id' => $timetable->academic_period_id,
-                'recurrence' => $timetable->recurrence,
-                'occurs_on' => $timetable->occurs_on,
                 'academic_cycle_section_id' => $timetable->academic_cycle_section_id,
                 'effective_from' => $timetable->effective_from,
                 'effective_to' => $timetable->effective_to,
@@ -46,6 +44,8 @@ class ReviseTimetable
                     'timetable_id' => $draft->id,
                     'start_time' => $slot->start_time,
                     'stop_time' => $slot->stop_time,
+                    'recurrence' => $slot->recurrence,
+                    'occurs_on' => $slot->occurs_on,
                 ]);
 
                 $records = TimetableRecord::query()

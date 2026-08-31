@@ -152,10 +152,10 @@ class AcademicPeriodContext
      * automatically start in the calendar period that covers today, then fall
      * back to the school default when the calendar has no current period.
      */
-    public function resolveFor(School $school, User $user, ?Request $request = null): void
+    public function resolveFor(School $school, ?User $user = null, ?Request $request = null): void
     {
         $year = $this->allowedAcademicYear($school, $request?->session()?->get(self::YEAR_SESSION_KEY))
-            ?? $this->savedAcademicYearFor($user, $school)
+            ?? ($user === null ? null : $this->savedAcademicYearFor($user, $school))
             ?? $school->academicYear;
 
         $this->academicYear = $year;
@@ -168,7 +168,7 @@ class AcademicPeriodContext
             $this->resolutionError = "The calendar has overlapping reporting periods: {$periodNames}. Fix their dates before continuing.";
             $academicPeriod = null;
         } else {
-            $academicPeriod = $year === null ? null : $this->savedPeriodFor($user, $school, $year);
+            $academicPeriod = $year === null || $user === null ? null : $this->savedPeriodFor($user, $school, $year);
 
             // A staff member with no explicit choice follows the calendar.
             $academicPeriod ??= $year?->periodForDate();

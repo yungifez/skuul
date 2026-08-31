@@ -2,13 +2,13 @@
     @if ($periods === [])
         <april:card>
             <slot:title>Set up the school calendar first</slot:title>
-            <slot:description>A recurring timetable needs an academic period with dates.</slot:description>
+            <slot:description>A timetable needs an academic period with dates.</slot:description>
             <slot:content><april:button-link href="{{ route('academic-years.index') }}">Open academic calendar</april:button-link></slot:content>
         </april:card>
     @else
         <april:card>
-            <slot:title>Build a recurring timetable</slot:title>
-            <slot:description>Choose when the events run. You can create a weekly timetable or a one-date calendar schedule.</slot:description>
+            <slot:title>Build a timetable</slot:title>
+            <slot:description>Give the timetable a home, then add events. Each event can repeat every week or happen once.</slot:description>
             <slot:content>
                 <div class="grid gap-4 lg:grid-cols-2">
                     <div class="flex flex-col gap-2 lg:col-span-2">
@@ -24,20 +24,6 @@
                             @endforeach
                         </select>
                     </div>
-                    <div class="flex flex-col gap-2">
-                        <label for="timetable-recurrence" class="text-sm font-medium">Recurrence *</label>
-                        <select id="timetable-recurrence" wire:model.live="recurrence" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
-                            <option value="weekly">Every week during this term</option>
-                            <option value="one_time">One date only</option>
-                        </select>
-                    </div>
-                    @if ($recurrence === 'one_time')
-                        <div class="flex flex-col gap-2">
-                            <label for="occurs-on" class="text-sm font-medium">Date *</label>
-                            <input id="occurs-on" type="date" wire:model.live="occursOn" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
-                            @error('occursOn') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
-                        </div>
-                    @endif
                     <div class="flex flex-col gap-2">
                         <label for="timetable-scope" class="text-sm font-medium">Schedule for *</label>
                         <select id="timetable-scope" wire:model.live="scope" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
@@ -63,14 +49,15 @@
         </april:card>
 
         <april:card>
-            <slot:title>Add recurring events</slot:title>
+            <slot:title>Add calendar events</slot:title>
             <slot:description>A subject belongs to the selected section. A role event is shown to that staff role. Freehand is for anything else.</slot:description>
             <slot:content>
                 <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-6 xl:items-end">
-                    @if ($recurrence === 'weekly')
+                    <div class="flex flex-col gap-2"><label for="event-recurrence" class="text-sm font-medium">When</label><select id="event-recurrence" wire:model.live="newEvent.recurrence" class="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="weekly">Every week</option><option value="one_time">One date</option></select></div>
+                    @if ($newEvent['recurrence'] === 'weekly')
                         <div class="flex flex-col gap-2"><label for="event-weekday" class="text-sm font-medium">Day</label><select id="event-weekday" wire:model="newEvent.weekday_id" class="h-10 rounded-md border border-input bg-background px-3 text-sm">@foreach ($weekdays as $weekday)<option value="{{ $weekday['id'] }}">{{ $weekday['name'] }}</option>@endforeach</select></div>
                     @else
-                        <div class="flex flex-col gap-2"><span class="text-sm font-medium">Day</span><p class="flex h-10 items-center rounded-md border border-dashed px-3 text-sm text-muted-foreground">Taken from {{ $occursOn }}</p></div>
+                        <div class="flex flex-col gap-2"><label for="event-occurs-on" class="text-sm font-medium">Date *</label><input id="event-occurs-on" type="date" wire:model.live="newEvent.occurs_on" class="h-10 rounded-md border border-input bg-background px-3 text-sm">@error('newEvent.occurs_on') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
                     @endif
                     <div class="flex flex-col gap-2"><label for="event-start" class="text-sm font-medium">Starts</label><input id="event-start" type="time" wire:model="newEvent.start_time" class="h-10 rounded-md border border-input bg-background px-3 text-sm"></div>
                     <div class="flex flex-col gap-2"><label for="event-stop" class="text-sm font-medium">Ends</label><input id="event-stop" type="time" wire:model="newEvent.stop_time" class="h-10 rounded-md border border-input bg-background px-3 text-sm"></div>
@@ -90,8 +77,8 @@
         </april:card>
 
         <april:card>
-            <slot:title>Weekly calendar preview</slot:title>
-            <slot:description>{{ count($events) }} {{ $recurrence === 'weekly' ? 'weekly recurring' : 'one-date' }} {{ Str::plural('event', count($events)) }} will be created.</slot:description>
+            <slot:title>Calendar preview</slot:title>
+            <slot:description>{{ count($events) }} {{ Str::plural('event', count($events)) }} will be created. Weekly events repeat during the selected academic period; one-date events do not.</slot:description>
             <slot:content>
                 @if ($events === [])
                     <p class="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">Add an event above to start drawing the week.</p>
@@ -100,7 +87,7 @@
                         @foreach ($weekdays as $weekday)
                             <div wire:key="weekday-{{ $weekday['id'] }}" class="min-h-36 rounded-md border bg-muted/20 p-3"><h3 class="text-sm font-semibold">{{ $weekday['name'] }}</h3><div class="mt-3 space-y-2">
                                 @forelse (collect($events)->where('weekday_id', $weekday['id'])->sortBy('start_time') as $index => $event)
-                                    <div wire:key="event-{{ $index }}" class="rounded-md border bg-background p-2 text-xs"><div class="flex items-start justify-between gap-2"><span class="font-medium">{{ $event['start_time'] }}–{{ $event['stop_time'] }}</span><button type="button" wire:click="removeEvent({{ $index }})" class="text-muted-foreground hover:text-destructive" aria-label="Remove event">×</button></div><p class="mt-1">{{ $event['type'] === 'subject' ? data_get(collect($subjects)->firstWhere('id', $event['subject_id']), 'name', 'Subject') : $event['title'] }}</p>@if ($event['audience_role'])<p class="mt-1 text-muted-foreground">{{ data_get(collect($roles)->firstWhere('id', $event['audience_role']), 'name', $event['audience_role']) }}</p>@endif</div>
+                                    <div wire:key="event-{{ $index }}" class="rounded-md border bg-background p-2 text-xs"><div class="flex items-start justify-between gap-2"><span class="font-medium">{{ $event['start_time'] }}–{{ $event['stop_time'] }}</span><button type="button" wire:click="removeEvent({{ $index }})" class="text-muted-foreground hover:text-destructive" aria-label="Remove event">×</button></div><p class="mt-1">{{ $event['type'] === 'subject' ? data_get(collect($subjects)->firstWhere('id', $event['subject_id']), 'name', 'Subject') : $event['title'] }}</p><p class="mt-1 text-muted-foreground">{{ $event['recurrence'] === 'weekly' ? 'Every week' : 'One date · '.$event['occurs_on'] }}</p>@if ($event['audience_role'])<p class="mt-1 text-muted-foreground">{{ data_get(collect($roles)->firstWhere('id', $event['audience_role']), 'name', $event['audience_role']) }}</p>@endif</div>
                                 @empty <p class="text-xs text-muted-foreground">No events</p>
                                 @endforelse
                             </div></div>

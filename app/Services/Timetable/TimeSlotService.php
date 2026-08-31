@@ -35,6 +35,8 @@ class TimeSlotService
             'start_time' => $data['start_time'],
             'stop_time' => $data['stop_time'],
             'timetable_id' => $data['timetable_id'],
+            'recurrence' => $data['recurrence'] ?? 'weekly',
+            'occurs_on' => $data['occurs_on'] ?? null,
         ]);
     }
 

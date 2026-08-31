@@ -15,4 +15,8 @@
     @if ($cell['audience_role'])
         <span class="mt-1 block text-[0.7rem] leading-snug text-muted-foreground">{{ ucfirst($cell['audience_role']) }} only</span>
     @endif
+
+    @if (($cell['recurrence'] ?? 'weekly') === 'one_time')
+        <span class="mt-1 block text-[0.7rem] leading-snug text-muted-foreground">One date · {{ $cell['occurs_on'] }}</span>
+    @endif
 @endif

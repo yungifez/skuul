@@ -12,6 +12,7 @@ use App\Models\Weekday;
 use App\Services\Timetable\TimeSlotService;
 use App\Services\Timetable\TimetableConflictChecker;
 use App\Services\Timetable\TimetableGrid;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
@@ -46,6 +47,10 @@ class ManageTimetable extends Component
 
     public string $stopTime = '';
 
+    public string $slotRecurrence = 'weekly';
+
+    public ?string $slotOccursOn = null;
+
     /**
      * @var array<string, mixed>
      */
@@ -58,6 +63,7 @@ class ManageTimetable extends Component
 
     public function mount(): void
     {
+        $this->slotOccursOn = $this->timetable->academicPeriod?->starts_on?->toDateString();
         $this->refreshWeek();
     }
 
@@ -127,20 +133,30 @@ class ManageTimetable extends Component
         $this->validate([
             'startTime' => ['required', 'date_format:H:i'],
             'stopTime' => ['required', 'date_format:H:i', 'after:startTime'],
+            'slotRecurrence' => ['required', 'in:weekly,one_time'],
+            'slotOccursOn' => ['required_if:slotRecurrence,one_time', 'nullable', 'date'],
         ], attributes: [
             'startTime' => 'start time',
             'stopTime' => 'end time',
         ]);
+
+        if ($this->slotRecurrence === 'one_time' && !$this->validSlotDate()) {
+            return;
+        }
 
         $this->write(function () use ($timeSlots): void {
             $timeSlots->createTimeSlot([
                 'start_time' => $this->startTime,
                 'stop_time' => $this->stopTime,
                 'timetable_id' => $this->timetable->id,
+                'recurrence' => $this->slotRecurrence,
+                'occurs_on' => $this->slotRecurrence === 'one_time' ? $this->slotOccursOn : null,
             ]);
 
             $this->startTime = '';
             $this->stopTime = '';
+            $this->slotRecurrence = 'weekly';
+            $this->slotOccursOn = $this->timetable->academicPeriod?->starts_on?->toDateString();
         });
     }
 
@@ -205,6 +221,20 @@ class ManageTimetable extends Component
     public function timeSlots()
     {
         return $this->timetable->timeSlots()->get()->sortBy('start_time')->values();
+    }
+
+    /**
+     * Get one-date slots that need attention after a period date change.
+     *
+     * @return Collection<int, TimetableTimeSlot>
+     */
+    #[Computed]
+    public function outOfPeriodSlots()
+    {
+        return $this->timetable->timeSlots()
+            ->get()
+            ->filter(fn (TimetableTimeSlot $slot): bool => $slot->occursOutsideAcademicPeriod())
+            ->values();
     }
 
     /**
@@ -274,5 +304,26 @@ class ManageTimetable extends Component
         $this->grid = app(TimetableGrid::class)->of($this->timetable);
         $this->conflicts = app(TimetableConflictChecker::class)->conflicts($this->timetable);
         unset($this->timeSlots, $this->selectedLabel);
+    }
+
+    private function validSlotDate(): bool
+    {
+        $period = $this->timetable->academicPeriod;
+
+        if ($this->slotOccursOn === null || $period?->starts_on === null || $period->ends_on === null) {
+            $this->addError('slotOccursOn', 'Choose a date inside the selected academic period.');
+
+            return false;
+        }
+
+        $date = Carbon::parse($this->slotOccursOn);
+
+        if ($date->lt($period->starts_on) || $date->gt($period->ends_on)) {
+            $this->addError('slotOccursOn', 'The date must be inside the selected academic period.');
+
+            return false;
+        }
+
+        return true;
     }
 }

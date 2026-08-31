@@ -35,8 +35,6 @@ class CreateSectionTimetableOverride
                 'description' => $template->description,
                 'status' => TimetableStatus::Draft,
                 'academic_period_id' => $template->academic_period_id,
-                'recurrence' => $template->recurrence,
-                'occurs_on' => $template->occurs_on,
                 'academic_cycle_section_id' => $section->id,
                 'template_timetable_id' => $template->id,
                 'effective_from' => $template->effective_from,
@@ -44,7 +42,13 @@ class CreateSectionTimetableOverride
             ]);
 
             foreach ($template->timeSlots()->get() as $slot) {
-                $copy = TimetableTimeSlot::create(['timetable_id' => $override->id, 'start_time' => $slot->start_time, 'stop_time' => $slot->stop_time]);
+                $copy = TimetableTimeSlot::create([
+                    'timetable_id' => $override->id,
+                    'start_time' => $slot->start_time,
+                    'stop_time' => $slot->stop_time,
+                    'recurrence' => $slot->recurrence,
+                    'occurs_on' => $slot->occurs_on,
+                ]);
                 foreach (TimetableRecord::query()->where('timetable_time_slot_id', $slot->id)->get() as $record) {
                     TimetableRecord::create([
                         'timetable_time_slot_id' => $copy->id,

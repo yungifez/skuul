@@ -7,6 +7,7 @@ use App\Enums\AcademicPeriodStatus;
 use App\Enums\AcademicPeriodType;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicYear;
+use App\Models\TimetableTimeSlot;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -24,8 +25,15 @@ class AcademicCalendarForm extends Component
 
     public string $structure = 'three_terms';
 
-    /** @var array<int, array{name: string, type: string, starts_on: string, ends_on: string}> */
+    /** @var array<int, array{id?: int|null, name: string, type: string, starts_on: string, ends_on: string}> */
     public array $periods = [];
+
+    /** @var array<int, array{id: int, timetable: string, period: string, date: string}> */
+    public array $dateImpactWarnings = [];
+
+    public bool $showDateImpactWarning = false;
+
+    public bool $dateImpactAcknowledged = false;
 
     public function mount(?AcademicYear $academicYear = null, bool $setupWizard = false): void
     {
@@ -36,6 +44,7 @@ class AcademicCalendarForm extends Component
             $this->startsOn = $academicYear->starts_on?->toDateString() ?? '';
             $this->endsOn = $academicYear->ends_on?->toDateString() ?? '';
             $this->periods = $academicYear->topLevelPeriods()->get()->map(fn ($period): array => [
+                'id' => $period->id,
                 'name' => $period->displayName,
                 'type' => $period->type->value,
                 'starts_on' => $period->starts_on?->toDateString() ?? '',
@@ -128,6 +137,16 @@ class AcademicCalendarForm extends Component
         $this->authorizeCalendarChange();
         $validated = $this->validate();
 
+        $this->dateImpactWarnings = $this->findTimetableDateImpacts($validated['periods']);
+
+        if ($this->dateImpactWarnings !== [] && !$this->dateImpactAcknowledged) {
+            $this->showDateImpactWarning = true;
+
+            return;
+        }
+
+        $this->showDateImpactWarning = false;
+
         try {
             $calendar = $saveAcademicCalendar->save(
                 school_context()->schoolOrFail(),
@@ -152,6 +171,24 @@ class AcademicCalendarForm extends Component
         $this->redirectRoute('academic-years.show', $calendar);
     }
 
+    public function saveWithDateImpact(SaveAcademicCalendar $saveAcademicCalendar): void
+    {
+        $this->dateImpactAcknowledged = true;
+        $this->save($saveAcademicCalendar);
+    }
+
+    public function reviewDateChanges(): void
+    {
+        $this->dateImpactAcknowledged = false;
+        $this->showDateImpactWarning = false;
+    }
+
+    public function updatedPeriods(): void
+    {
+        $this->dateImpactAcknowledged = false;
+        $this->showDateImpactWarning = false;
+    }
+
     /** @return array<string, array<int, mixed>> */
     protected function rules(): array
     {
@@ -160,6 +197,7 @@ class AcademicCalendarForm extends Component
             'endsOn' => ['required', 'date', 'after_or_equal:startsOn'],
             'structure' => ['required', Rule::in(array_keys($this->structures()))],
             'periods' => ['required', 'array', 'min:1', 'max:8'],
+            'periods.*.id' => ['nullable', 'integer'],
             'periods.*.name' => ['required', 'string', 'max:100'],
             'periods.*.type' => ['required', Rule::in(array_map(fn (AcademicPeriodType $type): string => $type->value, $this->periodTypes()))],
             'periods.*.starts_on' => ['required', 'date'],
@@ -210,6 +248,56 @@ class AcademicCalendarForm extends Component
         $ability = $this->academicYear === null ? 'create' : 'update';
         abort_unless(auth()->user()?->can($ability, $this->academicYear ?? AcademicYear::class), 403);
         abort_unless($this->canEdit(), 422, 'Only draft school calendars can be edited here.');
+    }
+
+    /**
+     * Find one-date slots that a draft calendar edit would leave outside
+     * their period.
+     *
+     * @param  array<int, array{id?: int|null, name: string, type: string, starts_on: string, ends_on: string}>  $periods
+     * @return array<int, array{id: int, timetable: string, period: string, date: string}>
+     */
+    private function findTimetableDateImpacts(array $periods): array
+    {
+        if ($this->academicYear === null) {
+            return [];
+        }
+
+        $periodDates = collect($periods)
+            ->filter(fn (array $period): bool => isset($period['id']))
+            ->mapWithKeys(fn (array $period): array => [
+                (int) $period['id'] => [
+                    'name' => $period['name'],
+                    'starts_on' => Carbon::parse($period['starts_on']),
+                    'ends_on' => Carbon::parse($period['ends_on']),
+                ],
+            ]);
+
+        if ($periodDates->isEmpty()) {
+            return [];
+        }
+
+        return TimetableTimeSlot::query()
+            ->whereHas('timetable', fn ($query) => $query->whereIn('academic_period_id', $periodDates->keys()->all()))
+            ->where('recurrence', 'one_time')
+            ->whereNotNull('occurs_on')
+            ->with('timetable:id,name,academic_period_id')
+            ->get(['id', 'timetable_id', 'occurs_on'])
+            ->filter(function (TimetableTimeSlot $slot) use ($periodDates): bool {
+                $period = $periodDates->get($slot->timetable->academic_period_id);
+
+                return $period !== null
+                    && ($slot->occurs_on->lt($period['starts_on'])
+                        || $slot->occurs_on->gt($period['ends_on']));
+            })
+            ->map(fn (TimetableTimeSlot $slot): array => [
+                'id' => $slot->id,
+                'timetable' => $slot->timetable->name,
+                'period' => $periodDates->get($slot->timetable->academic_period_id)['name'],
+                'date' => $slot->occurs_on->toFormattedDateString(),
+            ])
+            ->values()
+            ->all();
     }
 
     public function render(): View

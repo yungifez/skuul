@@ -29,7 +29,9 @@ class StoreTimetableTimeSlotRequest extends FormRequest
                 ),
             ],
             'start_time' => 'required|date_format:H:i',
-            'stop_time'  => 'required|date_format:H:i|after:start_time',
+            'stop_time' => 'required|date_format:H:i|after:start_time',
+            'recurrence' => ['sometimes', 'in:weekly,one_time'],
+            'occurs_on' => ['required_if:recurrence,one_time', 'nullable', 'date'],
         ];
     }
 }

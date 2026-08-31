@@ -11,6 +11,25 @@
             </div>
         @else
             <form wire:submit="save" class="space-y-8">
+                @if ($showDateImpactWarning)
+                    <div class="rounded-lg border border-amber-500/40 bg-amber-500/10 p-4 text-sm" role="alert">
+                        <p class="font-semibold">These date changes affect one-date timetables</p>
+                        <p class="mt-1 text-muted-foreground">The timetable records will be kept, but these events will sit outside their reporting period until you move the event or adjust the dates.</p>
+                        <ul class="mt-3 space-y-2">
+                            @foreach ($dateImpactWarnings as $impact)
+                                <li wire:key="date-impact-{{ $impact['id'] }}" class="flex flex-wrap justify-between gap-2 rounded-md border border-amber-500/20 bg-background px-3 py-2">
+                                    <span class="font-medium">{{ $impact['timetable'] }} <span class="font-normal text-muted-foreground">in {{ $impact['period'] }}</span></span>
+                                    <span class="text-muted-foreground">{{ $impact['date'] }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                        <div class="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+                            <button type="button" wire:click="reviewDateChanges" class="inline-flex h-9 items-center justify-center rounded-md border border-input bg-background px-3 text-sm font-medium hover:bg-accent">Review dates</button>
+                            <button type="button" wire:click="saveWithDateImpact" class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90">Save dates and keep flagged events</button>
+                        </div>
+                    </div>
+                @endif
+
                 <div class="grid gap-4 md:grid-cols-2">
                     <div class="flex flex-col gap-2">
                         <label for="calendar-starts-on" class="text-sm font-medium">{{ school_term('academic_year', 'School year') }} starts on</label>

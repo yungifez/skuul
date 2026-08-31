@@ -10,8 +10,10 @@ use App\Exceptions\InvalidValueException;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\School;
+use App\Models\Timetable;
 use App\Models\User;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class SaveAcademicCalendar
@@ -19,7 +21,7 @@ class SaveAcademicCalendar
     public function __construct(private RecordAuditEvent $auditor) {}
 
     /**
-     * @param  array<int, array{name: string, type: string, starts_on: string, ends_on: string}>  $periods
+     * @param  array<int, array{id?: int|null, name: string, type: string, starts_on: string, ends_on: string}>  $periods
      */
     public function save(
         School $school,
@@ -63,19 +65,49 @@ class SaveAcademicCalendar
 
             if (!$isNew) {
                 $academicYear->fill($values)->save();
-                $this->removeDraftPeriods($academicYear);
             }
 
+            $existingPeriods = $isNew
+                ? collect()
+                : $academicYear->academicPeriods()->get()->keyBy('id');
+            $preparedIds = collect($preparedPeriods)
+                ->pluck('id')
+                ->filter()
+                ->map(fn (int|string $id): int => (int) $id)
+                ->all();
+            $periodsToRemove = $existingPeriods
+                ->filter(fn (AcademicPeriod $period): bool => !in_array($period->id, $preparedIds, true))
+                ->keyBy('id');
+
+            $this->refuseRemovingPeriodsWithTimetables($periodsToRemove);
+
             foreach ($preparedPeriods as $position => $period) {
-                $academicYear->academicPeriods()->create([
+                $periodModel = $period['id'] === null ? null : $existingPeriods->get($period['id']);
+
+                if ($period['id'] !== null && $periodModel === null) {
+                    throw new InvalidValueException('That reporting period does not belong to this school calendar.');
+                }
+
+                $attributes = [
                     'school_id' => $school->id,
                     'name' => $period['name'],
                     'type' => $period['type'],
                     'position' => $position + 1,
                     'starts_on' => $period['starts_on'],
                     'ends_on' => $period['ends_on'],
-                    'status' => AcademicPeriodStatus::Draft,
-                ]);
+                ];
+
+                if ($periodModel === null) {
+                    $academicYear->academicPeriods()->create($attributes + [
+                        'status' => AcademicPeriodStatus::Draft,
+                    ]);
+                } else {
+                    $periodModel->fill($attributes)->save();
+                }
+            }
+
+            foreach ($periodsToRemove as $period) {
+                $period->delete();
             }
 
             $this->auditor->record(
@@ -95,8 +127,8 @@ class SaveAcademicCalendar
     }
 
     /**
-     * @param  array<int, array{name: string, type: string, starts_on: string, ends_on: string}>  $periods
-     * @return array<int, array{name: string, type: AcademicPeriodType, starts_on: Carbon, ends_on: Carbon}>
+     * @param  array<int, array{id?: int|null, name: string, type: string, starts_on: string, ends_on: string}>  $periods
+     * @return array<int, array{id: int|null, name: string, type: AcademicPeriodType, starts_on: Carbon, ends_on: Carbon}>
      */
     private function preparePeriods(array $periods, Carbon $calendarStartsOn, Carbon $calendarEndsOn): array
     {
@@ -124,6 +156,7 @@ class SaveAcademicCalendar
             }
 
             $prepared[] = [
+                'id' => isset($period['id']) ? (int) $period['id'] : null,
                 'name' => $period['name'],
                 'type' => $type,
                 'starts_on' => $startsOn,
@@ -157,13 +190,35 @@ class SaveAcademicCalendar
         }
     }
 
-    private function removeDraftPeriods(AcademicYear $academicYear): void
+    /**
+     * Do not let a calendar edit delete a period that still owns timetable data.
+     *
+     * Keeping the period row is what keeps its timetable, teaching assignments,
+     * and historical references attached when only its dates change.
+     *
+     * @param  Collection<int, AcademicPeriod>  $periods
+     *
+     * @throws InvalidValueException
+     */
+    private function refuseRemovingPeriodsWithTimetables(Collection $periods): void
     {
-        AcademicPeriod::query()
-            ->where('academic_year_id', $academicYear->id)
-            ->whereNotNull('parent_id')
-            ->delete();
+        if ($periods->isEmpty()) {
+            return;
+        }
 
-        $academicYear->academicPeriods()->delete();
+        $timetableCounts = Timetable::query()
+            ->whereIn('academic_period_id', $periods->keys()->all())
+            ->select('academic_period_id')
+            ->selectRaw('count(*) as timetable_count')
+            ->groupBy('academic_period_id')
+            ->pluck('timetable_count', 'academic_period_id');
+
+        foreach ($timetableCounts as $periodId => $count) {
+            $period = $periods->get($periodId);
+
+            throw new InvalidValueException(
+                "{$period->displayName} has {$count} timetable(s). Keep this period or move its timetables before removing it."
+            );
+        }
     }
 }
