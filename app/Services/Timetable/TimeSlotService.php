@@ -37,6 +37,9 @@ class TimeSlotService
             'timetable_id' => $data['timetable_id'],
             'recurrence' => $data['recurrence'] ?? 'weekly',
             'occurs_on' => $data['occurs_on'] ?? null,
+            'starts_on' => $data['starts_on'] ?? null,
+            'recurrence_interval' => $data['recurrence_interval'] ?? 1,
+            'recurrence_weekdays' => $data['recurrence_weekdays'] ?? null,
         ]);
     }
 

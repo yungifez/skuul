@@ -200,6 +200,65 @@ class TimetableTest extends TestCase
             ->assertSet('calendarDate', '2030-09-08');
     }
 
+    public function test_a_time_slot_can_use_an_explicit_term_scoped_weekly_rule(): void
+    {
+        $this->authorized_user(['update timetable']);
+        $timetable = Timetable::factory()->create();
+        $timetable->academicPeriod()->update([
+            'starts_on' => '2030-09-01',
+            'ends_on' => '2030-12-20',
+        ]);
+        $timetable->refresh();
+        $tuesday = Weekday::query()->where('name', 'Tuesday')->firstOrFail();
+
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->assertSee('Add a time slot')
+            ->assertSee('On these weekdays')
+            ->set('startTime', '01:00')
+            ->set('stopTime', '02:00')
+            ->set('slotRecurrence', 'weekly')
+            ->set('slotRecurrenceInterval', 2)
+            ->set('slotStartsOn', '2030-09-24')
+            ->set('slotWeekdayIds', [$tuesday->id])
+            ->call('addTimeSlot')
+            ->assertHasNoErrors()
+            ->assertSee('01:00')
+            ->assertSee('Every 2 weeks on Tuesday');
+
+        $slot = $timetable->timeSlots()->firstOrFail();
+
+        $this->assertSame('2030-09-24', $slot->starts_on?->toDateString());
+        $this->assertSame(2, $slot->recurrence_interval);
+        $this->assertSame([$tuesday->id], $slot->recurrence_weekdays);
+        $this->assertTrue($slot->occursOn('2030-09-24', $tuesday->id));
+        $this->assertFalse($slot->occursOn('2030-10-01', $tuesday->id));
+        $this->assertTrue($slot->occursOn('2030-10-08', $tuesday->id));
+    }
+
+    public function test_a_time_slot_can_repeat_monthly_from_a_specific_day(): void
+    {
+        $this->authorized_user(['update timetable']);
+        $timetable = Timetable::factory()->create();
+        $timetable->academicPeriod()->update([
+            'starts_on' => '2030-09-01',
+            'ends_on' => '2030-12-20',
+        ]);
+        $timetable->refresh();
+
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->set('startTime', '01:00')
+            ->set('stopTime', '02:00')
+            ->set('slotRecurrence', 'monthly')
+            ->set('slotStartsOn', '2030-09-24')
+            ->call('addTimeSlot')
+            ->assertHasNoErrors();
+
+        $slot = $timetable->timeSlots()->firstOrFail();
+
+        $this->assertTrue($slot->occursOn('2030-10-24'));
+        $this->assertFalse($slot->occursOn('2030-10-23'));
+    }
+
     // test unauthorized user can't view edit timetable
 
     public function test_unauthorized_user_cant_view_edit_timetable()

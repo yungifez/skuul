@@ -63,7 +63,11 @@
             <slot:content>
                 <div class="space-y-5">
                     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-6 xl:items-end">
-                        <div class="flex flex-col gap-2"><label for="event-recurrence" class="text-sm font-medium">Repeat</label><select id="event-recurrence" wire:model.live="newEvent.recurrence" class="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="weekly">Every week</option><option value="one_time">Does not repeat</option></select></div>
+                        <div class="flex flex-col gap-2"><label for="event-recurrence" class="text-sm font-medium">Repeat</label><select id="event-recurrence" wire:model.live="newEvent.recurrence" class="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="weekly">Every week(s)</option><option value="monthly">Every month(s)</option><option value="one_time">One date only</option></select></div>
+                        @if ($newEvent['recurrence'] !== 'one_time')
+                            <div class="flex flex-col gap-2"><label for="event-recurrence-interval" class="text-sm font-medium">Repeats every</label><div class="flex items-center gap-2"><input id="event-recurrence-interval" type="number" min="1" max="52" wire:model.number="newEvent.recurrence_interval" class="h-10 w-20 rounded-md border border-input bg-background px-3 text-sm"><span class="text-sm text-muted-foreground">{{ $newEvent['recurrence'] === 'monthly' ? 'month(s)' : 'week(s)' }}</span></div>@error('newEvent.recurrence_interval') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
+                            <div class="flex flex-col gap-2"><label for="event-starts-on" class="text-sm font-medium">Starts on</label><input id="event-starts-on" type="date" wire:model.live="newEvent.starts_on" class="h-10 rounded-md border border-input bg-background px-3 text-sm">@error('newEvent.starts_on') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
+                        @endif
                         @if ($newEvent['recurrence'] === 'weekly')
                             <div class="flex flex-col gap-2 md:col-span-2 xl:col-span-3">
                                 <span class="text-sm font-medium">On weekdays</span>
@@ -95,10 +99,10 @@
 
                     <div class="rounded-md border border-primary/20 bg-primary/5 p-3 text-sm">
                         <p class="font-medium">Term-scoped recurrence</p>
-                        <p class="mt-1 text-muted-foreground">{{ $selectedPeriod['name'] ?? 'Selected period' }} runs from {{ $selectedPeriod['starts_on'] ?? 'its start date' }} to {{ $selectedPeriod['ends_on'] ?? 'its end date' }}. Weekly events follow these dates if the term is moved later.</p>
-                        @if ($newEvent['recurrence'] === 'weekly')
+                        <p class="mt-1 text-muted-foreground">{{ $selectedPeriod['name'] ?? 'Selected period' }} runs from {{ $selectedPeriod['starts_on'] ?? 'its start date' }} to {{ $selectedPeriod['ends_on'] ?? 'its end date' }}. Recurring events follow these dates if the term is moved later.</p>
+                        @if ($newEvent['recurrence'] !== 'one_time')
                             <div class="mt-3 grid gap-3 sm:grid-cols-2">
-                                <div class="flex flex-col gap-1"><label for="event-term-start" class="text-xs font-medium text-muted-foreground">Recurrence starts</label><input id="event-term-start" type="date" value="{{ $selectedPeriod['starts_on'] ?? '' }}" readonly class="h-9 rounded-md border border-input bg-background px-3 text-sm text-muted-foreground"></div>
+                                <div class="flex flex-col gap-1"><label for="event-term-start" class="text-xs font-medium text-muted-foreground">Recurrence starts</label><input id="event-term-start" type="date" value="{{ $newEvent['starts_on'] ?? '' }}" readonly class="h-9 rounded-md border border-input bg-background px-3 text-sm text-muted-foreground"></div>
                                 <div class="flex flex-col gap-1"><label for="event-term-end" class="text-xs font-medium text-muted-foreground">Recurrence ends</label><input id="event-term-end" type="date" value="{{ $selectedPeriod['ends_on'] ?? '' }}" readonly class="h-9 rounded-md border border-input bg-background px-3 text-sm text-muted-foreground"></div>
                             </div>
                         @endif
@@ -135,7 +139,7 @@
                                 @php
                                     $date = $weekStart->copy()->addDays($dayOffset);
                                     $weekdayId = data_get(collect($weekdays)->firstWhere('name', $date->englishDayOfWeek), 'id');
-                                    $dayEvents = $draftEvents->filter(fn (array $event): bool => $event['recurrence'] === 'one_time' ? $event['occurs_on'] === $date->toDateString() : in_array($weekdayId, $event['weekday_ids'] ?? [$event['weekday_id']], true));
+                                    $dayEvents = $draftEvents->filter(fn (array $event): bool => $this->eventOccursOn($event, $date));
                                 @endphp
                                 <div wire:key="draft-week-day-{{ $date->toDateString() }}" class="min-h-48 bg-background p-2 {{ $date->toDateString() === $calendarDate ? 'ring-2 ring-inset ring-primary' : '' }}">
                                     <button type="button" wire:click="chooseCalendarDate('{{ $date->toDateString() }}')" class="flex w-full items-center justify-between rounded px-1 py-1 text-left hover:bg-muted"><span class="text-xs font-semibold">{{ $date->format('D') }}</span><span class="text-xs text-muted-foreground">{{ $date->format('j M') }}</span></button>
@@ -161,7 +165,7 @@
                                 @php
                                     $date = $monthCursor->copy()->addDays($index);
                                     $weekdayId = data_get(collect($weekdays)->firstWhere('name', $date->englishDayOfWeek), 'id');
-                                    $dayEvents = $draftEvents->filter(fn (array $event): bool => $event['recurrence'] === 'one_time' ? $event['occurs_on'] === $date->toDateString() : in_array($weekdayId, $event['weekday_ids'] ?? [$event['weekday_id']], true));
+                                    $dayEvents = $draftEvents->filter(fn (array $event): bool => $this->eventOccursOn($event, $date));
                                 @endphp
                                 <div wire:key="draft-month-day-{{ $date->toDateString() }}" class="min-h-24 bg-background p-2 {{ $date->month !== $monthStart->month ? 'bg-muted/20 text-muted-foreground' : '' }}">
                                     <button type="button" wire:click="chooseCalendarDate('{{ $date->toDateString() }}')" class="flex size-7 items-center justify-center rounded-full text-xs font-semibold hover:bg-primary hover:text-primary-foreground {{ $date->toDateString() === $calendarDate ? 'bg-primary text-primary-foreground' : '' }}">{{ $date->day }}</button>

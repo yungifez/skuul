@@ -44,7 +44,7 @@ class TimetableService
      * Create a timetable and its calendar entries together.
      *
      * @param  array{name: string, description?: string|null, academic_cycle_section_id?: int|null, academic_period_id: int}  $data
-     * @param  array<int, array{weekday_id: int, start_time: string, stop_time: string, recurrence: string, occurs_on?: string|null, type: string, subject_id?: int|null, title?: string|null, audience_role?: string|null}>  $events
+     * @param  array<int, array{weekday_id: int, start_time: string, stop_time: string, recurrence: string, occurs_on?: string|null, starts_on?: string|null, recurrence_interval?: int, recurrence_weekdays?: array<int, int>|null, type: string, subject_id?: int|null, title?: string|null, audience_role?: string|null}>  $events
      */
     public function createTimetableWithEvents(array $data, array $events): Timetable
     {
@@ -59,7 +59,19 @@ class TimetableService
                     'stop_time' => $event['stop_time'],
                     'recurrence' => $event['recurrence'],
                     'occurs_on' => $event['occurs_on'] ?? null,
+                    'starts_on' => $event['starts_on'] ?? null,
+                    'recurrence_interval' => $event['recurrence_interval'] ?? 1,
                 ]);
+
+                $ruleWeekdays = array_values(array_unique(array_map('intval', $event['recurrence_weekdays'] ?? [])));
+
+                if ($ruleWeekdays !== []) {
+                    $slotWeekdays = array_values(array_unique(array_merge($slot->recurrence_weekdays ?? [], $ruleWeekdays)));
+
+                    if ($slotWeekdays !== ($slot->recurrence_weekdays ?? [])) {
+                        $slot->update(['recurrence_weekdays' => $slotWeekdays]);
+                    }
+                }
 
                 $recordableId = $event['subject_id'] ?? null;
 

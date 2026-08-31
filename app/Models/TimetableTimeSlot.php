@@ -22,6 +22,9 @@ class TimetableTimeSlot extends Model
         'timetable_id',
         'recurrence',
         'occurs_on',
+        'starts_on',
+        'recurrence_interval',
+        'recurrence_weekdays',
     ];
 
     protected $attributes = [
@@ -30,6 +33,9 @@ class TimetableTimeSlot extends Model
 
     protected $casts = [
         'occurs_on' => 'date:Y-m-d',
+        'starts_on' => 'date:Y-m-d',
+        'recurrence_interval' => 'integer',
+        'recurrence_weekdays' => 'array',
     ];
 
     protected $getDateFormat = 'H:i';
@@ -102,6 +108,44 @@ class TimetableTimeSlot extends Model
 
         return $this->occurs_on === null
             || !$this->governingAcademicPeriod()?->covers($this->occurs_on);
+    }
+
+    /**
+     * Check whether this slot's recurrence rule includes one date.
+     */
+    public function occursOn(Carbon|string $date, ?int $weekdayId = null): bool
+    {
+        $date = Carbon::parse($date)->startOfDay();
+
+        if ($this->recurrence === 'one_time') {
+            return $this->occurs_on?->isSameDay($date) ?? false;
+        }
+
+        if ($this->starts_on !== null && $date->lt($this->starts_on->startOfDay())) {
+            return false;
+        }
+
+        if ($this->recurrence === 'monthly') {
+            if ($this->starts_on === null || $date->day !== $this->starts_on->day) {
+                return false;
+            }
+
+            $months = $this->starts_on->startOfMonth()->diffInMonths($date->startOfMonth());
+
+            return $months % max(1, $this->recurrence_interval) === 0;
+        }
+
+        $weeks = $this->starts_on === null
+            ? 0
+            : $this->starts_on->startOfWeek(Carbon::MONDAY)->diffInWeeks($date->startOfWeek(Carbon::MONDAY));
+
+        if ($weeks % max(1, $this->recurrence_interval) !== 0) {
+            return false;
+        }
+
+        $weekdays = $this->recurrence_weekdays ?? [];
+
+        return $weekdayId === null || $weekdays === [] || in_array($weekdayId, $weekdays, true);
     }
 
     public function weekdays(): BelongsToMany

@@ -48,6 +48,9 @@ class CreateSectionTimetableOverride
                     'stop_time' => $slot->stop_time,
                     'recurrence' => $slot->recurrence,
                     'occurs_on' => $slot->occurs_on,
+                    'starts_on' => $slot->starts_on,
+                    'recurrence_interval' => $slot->recurrence_interval,
+                    'recurrence_weekdays' => $slot->recurrence_weekdays,
                 ]);
                 foreach (TimetableRecord::query()->where('timetable_time_slot_id', $slot->id)->get() as $record) {
                     TimetableRecord::create([

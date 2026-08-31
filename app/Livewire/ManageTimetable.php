@@ -56,7 +56,14 @@ class ManageTimetable extends Component
 
     public string $slotRecurrence = 'weekly';
 
+    public int $slotRecurrenceInterval = 1;
+
+    public string $slotStartsOn = '';
+
     public ?string $slotOccursOn = null;
+
+    /** @var array<int, int> */
+    public array $slotWeekdayIds = [];
 
     /**
      * @var array<string, mixed>
@@ -72,8 +79,10 @@ class ManageTimetable extends Component
     {
         $period = $this->timetable->academicPeriod;
         $this->calendarDate = $period?->starts_on?->toDateString() ?? now()->toDateString();
+        $this->slotStartsOn = $this->calendarDate;
         $this->slotOccursOn = $this->calendarDate;
         $this->weekdayMap = Weekday::query()->pluck('id', 'name')->all();
+        $this->slotWeekdayIds = [$this->weekdayMap[Carbon::parse($this->slotStartsOn)->englishDayOfWeek] ?? 1];
         $this->refreshWeek();
     }
 
@@ -106,9 +115,17 @@ class ManageTimetable extends Component
     public function chooseCalendarDate(string $date): void
     {
         $this->calendarDate = Carbon::parse($date)->toDateString();
+        $this->slotRecurrence = 'one_time';
         $this->slotOccursOn = $this->calendarDate;
         $this->calendarView = 'day';
         $this->refreshWeek();
+    }
+
+    public function updatedSlotStartsOn(?string $date): void
+    {
+        if ($this->slotRecurrence === 'weekly' && $date !== null && $date !== '') {
+            $this->slotWeekdayIds = [$this->weekdayMap[Carbon::parse($date)->englishDayOfWeek] ?? 1];
+        }
     }
 
     /**
@@ -165,6 +182,30 @@ class ManageTimetable extends Component
             'month' => $date->format('F Y'),
             default => $date->copy()->startOfWeek(Carbon::MONDAY)->format('j M').' – '.$date->copy()->endOfWeek(Carbon::SUNDAY)->format('j M Y'),
         };
+    }
+
+    public function slotRuleLabel(TimetableTimeSlot $slot): string
+    {
+        if ($slot->recurrence === 'one_time') {
+            return 'One date · '.($slot->occurs_on?->format('j M Y') ?? 'date missing');
+        }
+
+        $unit = $slot->recurrence === 'monthly' ? 'month' : 'week';
+        $interval = (int) $slot->recurrence_interval;
+        $frequency = 'Every '.($interval === 1 ? '' : $interval.' ').$unit.($interval === 1 ? '' : 's');
+
+        if ($slot->recurrence === 'weekly' && filled($slot->recurrence_weekdays)) {
+            $names = array_flip($this->weekdayMap);
+            $days = collect($slot->recurrence_weekdays)
+                ->map(fn (int $weekdayId): ?string => $names[$weekdayId] ?? null)
+                ->filter()
+                ->implode(', ');
+            $frequency .= ' on '.$days;
+        } elseif ($slot->starts_on !== null) {
+            $frequency .= ' on the '.$slot->starts_on->format('jS');
+        }
+
+        return $frequency.' from '.($slot->starts_on?->format('j M Y') ?? 'the term start');
     }
 
     /**
@@ -233,16 +274,25 @@ class ManageTimetable extends Component
         $this->validate([
             'startTime' => ['required', 'date_format:H:i'],
             'stopTime' => ['required', 'date_format:H:i', 'after:startTime'],
-            'slotRecurrence' => ['required', 'in:weekly,one_time'],
+            'slotRecurrence' => ['required', 'in:weekly,monthly,one_time'],
+            'slotRecurrenceInterval' => ['required_unless:slotRecurrence,one_time', 'integer', 'min:1', 'max:52'],
+            'slotStartsOn' => ['required_unless:slotRecurrence,one_time', 'nullable', 'date'],
+            'slotWeekdayIds' => ['required_if:slotRecurrence,weekly', 'array', 'min:1'],
+            'slotWeekdayIds.*' => ['integer', 'exists:weekdays,id'],
             'slotOccursOn' => ['required_if:slotRecurrence,one_time', 'nullable', 'date'],
         ], attributes: [
             'startTime' => 'start time',
             'stopTime' => 'end time',
         ]);
 
-        if ($this->slotRecurrence === 'one_time' && !$this->validSlotDate()) {
+        $date = $this->slotRecurrence === 'one_time' ? $this->slotOccursOn : $this->slotStartsOn;
+        $dateAttribute = $this->slotRecurrence === 'one_time' ? 'slotOccursOn' : 'slotStartsOn';
+
+        if (!$this->validSlotDate($date, $dateAttribute)) {
             return;
         }
+
+        $this->slotWeekdayIds = array_values(array_unique(array_map('intval', $this->slotWeekdayIds)));
 
         $this->write(function () use ($timeSlots): void {
             $timeSlots->createTimeSlot([
@@ -251,12 +301,18 @@ class ManageTimetable extends Component
                 'timetable_id' => $this->timetable->id,
                 'recurrence' => $this->slotRecurrence,
                 'occurs_on' => $this->slotRecurrence === 'one_time' ? $this->slotOccursOn : null,
+                'starts_on' => $this->slotRecurrence === 'one_time' ? null : $this->slotStartsOn,
+                'recurrence_interval' => $this->slotRecurrence === 'one_time' ? 1 : $this->slotRecurrenceInterval,
+                'recurrence_weekdays' => $this->slotRecurrence === 'weekly' ? $this->slotWeekdayIds : null,
             ]);
 
             $this->startTime = '';
             $this->stopTime = '';
             $this->slotRecurrence = 'weekly';
+            $this->slotRecurrenceInterval = 1;
+            $this->slotStartsOn = $this->timetable->academicPeriod?->starts_on?->toDateString() ?? now()->toDateString();
             $this->slotOccursOn = $this->timetable->academicPeriod?->starts_on?->toDateString();
+            $this->slotWeekdayIds = [$this->weekdayMap[Carbon::parse($this->slotStartsOn)->englishDayOfWeek] ?? 1];
         });
     }
 
@@ -427,18 +483,7 @@ class ManageTimetable extends Component
         foreach ($this->grid['rows'] as $row) {
             $cell = $row['cells'][$weekdayId] ?? null;
 
-            if ($cell === null || $cell['kind'] === null) {
-                continue;
-            }
-
-            if ($row['recurrence'] === 'one_time' && $row['occurs_on'] !== $date->toDateString()) {
-                continue;
-            }
-
-            if ($row['recurrence'] === 'weekly'
-                && $this->timetable->academicPeriod !== null
-                && !$this->timetable->academicPeriod->covers($date)
-            ) {
+            if ($cell === null || !$cell['active'] || $cell['kind'] === null) {
                 continue;
             }
 
@@ -454,20 +499,24 @@ class ManageTimetable extends Component
         return $events;
     }
 
-    private function validSlotDate(): bool
+    private function validSlotDate(?string $date, string $attribute): bool
     {
         $period = $this->timetable->academicPeriod;
 
-        if ($this->slotOccursOn === null || $period?->starts_on === null || $period->ends_on === null) {
-            $this->addError('slotOccursOn', 'Choose a date inside the selected academic period.');
+        if ($date === null || $period === null) {
+            $this->addError($attribute, 'Choose a date inside the selected academic period.');
 
             return false;
+        }
+
+        if ($period->starts_on === null || $period->ends_on === null) {
+            return true;
         }
 
         $date = Carbon::parse($this->slotOccursOn);
 
         if ($date->lt($period->starts_on) || $date->gt($period->ends_on)) {
-            $this->addError('slotOccursOn', 'The date must be inside the selected academic period.');
+            $this->addError($attribute, 'The date must be inside the selected academic period.');
 
             return false;
         }

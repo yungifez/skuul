@@ -46,6 +46,9 @@ class ReviseTimetable
                     'stop_time' => $slot->stop_time,
                     'recurrence' => $slot->recurrence,
                     'occurs_on' => $slot->occurs_on,
+                    'starts_on' => $slot->starts_on,
+                    'recurrence_interval' => $slot->recurrence_interval,
+                    'recurrence_weekdays' => $slot->recurrence_weekdays,
                 ]);
 
                 $records = TimetableRecord::query()

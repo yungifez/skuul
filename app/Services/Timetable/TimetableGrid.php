@@ -3,11 +3,13 @@
 namespace App\Services\Timetable;
 
 use App\Enums\RosterMode;
+use App\Models\AcademicPeriod;
 use App\Models\CustomTimetableItem;
 use App\Models\Subject;
 use App\Models\TeachingAssignment;
 use App\Models\Timetable;
 use App\Models\TimetableRecord;
+use App\Models\TimetableTimeSlot;
 use App\Models\Weekday;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -27,7 +29,7 @@ class TimetableGrid
      *
      * @return array{
      *     weekdays: array<int, array{id: int, name: string, short: string, date: string|null, used: bool, is_weekend: bool}>,
-     *     rows: array<int, array{id: int, start: string, stop: string, recurrence: string, occurs_on: string|null, cells: array<int, array{active: bool, kind: string|null, name: string|null, teachers: array<int, string>, audience_role: string|null, recurrence: string, occurs_on: string|null}>}>,
+     *     rows: array<int, array{id: int, start: string, stop: string, recurrence: string, occurs_on: string|null, starts_on: string|null, recurrence_interval: int, recurrence_weekdays: array<int, int>, cells: array<int, array{active: bool, kind: string|null, name: string|null, teachers: array<int, string>, audience_role: string|null, recurrence: string, occurs_on: string|null}>}>,
      *     slot_count: int,
      *     filled_count: int,
      *     empty_count: int
@@ -49,18 +51,11 @@ class TimetableGrid
 
         foreach ($slots as $slot) {
             $cells = [];
-            $oneTimeDate = $slot->recurrence === 'one_time' && $slot->occurs_on !== null
-                ? $slot->occurs_on->toDateString()
-                : null;
-            $oneTimeWeekdayId = $slot->recurrence === 'one_time' && $slot->occurs_on !== null
-                ? $weekdays->firstWhere('name', Carbon::parse($slot->occurs_on)->englishDayOfWeek)?->id
-                : null;
-
             foreach ($weekdays as $weekdayIndex => $weekday) {
                 $date = $weekStart?->copy()->addDays($weekdayIndex);
-                $active = $slot->recurrence !== 'one_time'
-                    ? ($date === null || $period === null || $period->covers($date))
-                    : ($date !== null ? $date->toDateString() === $oneTimeDate : $weekday->id === $oneTimeWeekdayId);
+                $active = $date === null
+                    ? $this->activeWithoutDate($slot, $weekday->id)
+                    : $this->activeOnDate($slot, $weekday->id, $date, $period);
                 $record = $records->get($slot->id.':'.$weekday->id);
                 $cell = $this->cellOf($record, $names, $teachers);
                 $cell['active'] = $active;
@@ -81,6 +76,9 @@ class TimetableGrid
                 'stop' => (string) $slot->stop_time,
                 'recurrence' => (string) $slot->recurrence,
                 'occurs_on' => $slot->occurs_on?->toDateString(),
+                'starts_on' => $slot->starts_on?->toDateString(),
+                'recurrence_interval' => (int) $slot->recurrence_interval,
+                'recurrence_weekdays' => array_map('intval', $slot->recurrence_weekdays ?? []),
                 'cells' => $cells,
             ];
         }
@@ -105,6 +103,30 @@ class TimetableGrid
             'filled_count' => $filled,
             'empty_count' => $slotCount - $filled,
         ];
+    }
+
+    private function activeWithoutDate(TimetableTimeSlot $slot, int $weekdayId): bool
+    {
+        if ($slot->recurrence === 'one_time') {
+            return $slot->occurs_on?->dayOfWeekIso === $weekdayId;
+        }
+
+        if ($slot->recurrence === 'monthly' && $slot->starts_on !== null) {
+            return $slot->starts_on->dayOfWeekIso === $weekdayId;
+        }
+
+        $weekdays = $slot->recurrence_weekdays ?? [];
+
+        return $weekdays === [] || in_array($weekdayId, $weekdays, true);
+    }
+
+    private function activeOnDate(TimetableTimeSlot $slot, int $weekdayId, Carbon $date, ?AcademicPeriod $period): bool
+    {
+        if ($period !== null && !$period->covers($date)) {
+            return false;
+        }
+
+        return $slot->occursOn($date, $weekdayId);
     }
 
     /**

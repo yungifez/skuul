@@ -3,11 +3,13 @@
 namespace App\Services\Timetable;
 
 use App\Enums\RosterMode;
+use App\Models\AcademicPeriod;
 use App\Models\Facility;
 use App\Models\Subject;
 use App\Models\TeachingAssignment;
 use App\Models\Timetable;
 use App\Models\TimetableRecord;
+use App\Models\TimetableTimeSlot;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -41,12 +43,13 @@ class TimetableConflictChecker
      */
     private function overlappingSlots(Timetable $timetable): array
     {
-        $slots = $timetable->timeSlots()->get(['id', 'start_time', 'stop_time', 'recurrence', 'occurs_on'])->values();
+        $slots = $timetable->timeSlots()->get(['id', 'start_time', 'stop_time', 'recurrence', 'occurs_on', 'starts_on', 'recurrence_interval', 'recurrence_weekdays'])->values();
+        $period = $timetable->academicPeriod;
         $conflicts = [];
 
         foreach ($slots as $index => $slot) {
             foreach ($slots->slice($index + 1) as $other) {
-                if ($this->sameSlotOccurrence($slot, $other)
+                if ($this->sameSlotOccurrence($slot, $other, $period)
                     && $this->overlaps($slot->start_time, $slot->stop_time, $other->start_time, $other->stop_time)) {
                     $conflicts[] = "The time slots $slot->start_time-$slot->stop_time and $other->start_time-$other->stop_time overlap.";
                 }
@@ -80,7 +83,7 @@ class TimetableConflictChecker
         foreach ($published as $other) {
             foreach ($this->entriesOf($other) as $otherEntry) {
                 foreach ($entries as $entry) {
-                    if (!$this->sameEntryOccurrence($entry, $otherEntry)) {
+                    if (!$this->sameEntryOccurrence($entry, $otherEntry, $timetable->academicPeriod)) {
                         continue;
                     }
 
@@ -130,7 +133,7 @@ class TimetableConflictChecker
         foreach ($published as $other) {
             foreach ($this->entriesOf($other) as $otherEntry) {
                 foreach ($entries as $entry) {
-                    if ($entry['room'] === null || $entry['room'] !== $otherEntry['room'] || !$this->sameEntryOccurrence($entry, $otherEntry)) {
+                    if ($entry['room'] === null || $entry['room'] !== $otherEntry['room'] || !$this->sameEntryOccurrence($entry, $otherEntry, $timetable->academicPeriod)) {
                         continue;
                     }
 
@@ -189,7 +192,7 @@ class TimetableConflictChecker
                 ->get()
                 ->groupBy('subject_id');
 
-        /** @var Collection<int, array{weekday_id: int, start_time: string, stop_time: string, recurrence: string, occurs_on: string|null, room: string|null, teacher_ids: array<int, int>, teacher_names: array<int|string, string>}> $entries */
+        /** @var Collection<int, array{weekday_id: int, start_time: string, stop_time: string, recurrence: string, occurs_on: string|null, starts_on: string|null, recurrence_interval: int, recurrence_weekdays: array<int, int>, room: string|null, teacher_ids: array<int, int>, teacher_names: array<int|string, string>}> $entries */
         $entries = $records->map(function (TimetableRecord $record) use ($assignmentsBySubject, $facilityNames, $slots, $subjectMorphClass, $subjects, $timetable): ?array {
             $slot = $slots->get($record->timetable_time_slot_id);
             $subject = $record->timetable_time_slot_weekdayable_type === $subjectMorphClass
@@ -210,6 +213,9 @@ class TimetableConflictChecker
                 'stop_time' => (string) $slot->stop_time,
                 'recurrence' => (string) $slot->recurrence,
                 'occurs_on' => $slot->occurs_on?->toDateString(),
+                'starts_on' => $slot->starts_on?->toDateString(),
+                'recurrence_interval' => (int) $slot->recurrence_interval,
+                'recurrence_weekdays' => array_map('intval', $slot->recurrence_weekdays ?? []),
                 // A lesson moved into a shared place claims that place. Every
                 // other lesson keeps the section's own room.
                 'room' => $record->facility_id !== null
@@ -238,11 +244,21 @@ class TimetableConflictChecker
         return $start->lessThan($otherStop) && $stop->greaterThan($otherStart);
     }
 
-    private function sameSlotOccurrence(object $slot, object $other): bool
+    private function sameSlotOccurrence(object $slot, object $other, ?AcademicPeriod $period): bool
     {
-        return $slot->recurrence === 'weekly'
-            || $other->recurrence === 'weekly'
-            || $slot->occurs_on?->toDateString() === $other->occurs_on?->toDateString();
+        if ($period === null || $period->starts_on === null || $period->ends_on === null) {
+            return $slot->recurrence === 'weekly'
+                || $other->recurrence === 'weekly'
+                || $slot->occurs_on?->toDateString() === $other->occurs_on?->toDateString();
+        }
+
+        for ($date = $period->starts_on->copy(); $date->lte($period->ends_on); $date->addDay()) {
+            if ($this->slotOccursOn($slot, $date) && $this->slotOccursOn($other, $date)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
@@ -251,23 +267,67 @@ class TimetableConflictChecker
      * Weekly entries overlap by weekday. A one-date entry only overlaps with
      * that weekday's weekly entries or another entry on the same date.
      *
-     * @param  array{weekday_id: int, recurrence: string, occurs_on: string|null}  $entry
-     * @param  array{weekday_id: int, recurrence: string, occurs_on: string|null}  $other
+     * @param  array{weekday_id: int, recurrence: string, occurs_on: string|null, starts_on: string|null, recurrence_interval: int, recurrence_weekdays: array<int, int>}  $entry
+     * @param  array{weekday_id: int, recurrence: string, occurs_on: string|null, starts_on: string|null, recurrence_interval: int, recurrence_weekdays: array<int, int>}  $other
      */
-    private function sameEntryOccurrence(array $entry, array $other): bool
+    private function sameEntryOccurrence(array $entry, array $other, ?AcademicPeriod $period): bool
     {
-        if ($entry['recurrence'] === 'weekly' && $other['recurrence'] === 'weekly') {
-            return $entry['weekday_id'] === $other['weekday_id'];
+        if ($period !== null && $period->starts_on !== null && $period->ends_on !== null) {
+            for ($date = $period->starts_on->copy(); $date->lte($period->ends_on); $date->addDay()) {
+                if ($this->entryOccursOn($entry, $date) && $this->entryOccursOn($other, $date)) {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
-        if ($entry['recurrence'] === 'one_time' && $other['recurrence'] === 'one_time') {
-            return $entry['occurs_on'] !== null && $entry['occurs_on'] === $other['occurs_on'];
+        return $entry['weekday_id'] === $other['weekday_id']
+            && ($entry['recurrence'] === 'weekly' || $other['recurrence'] === 'weekly');
+    }
+
+    private function slotOccursOn(object $slot, Carbon $date): bool
+    {
+        $weekdayId = $date->dayOfWeekIso;
+
+        return (new TimetableTimeSlot(array_filter([
+            'recurrence' => $slot->recurrence,
+            'occurs_on' => $slot->occurs_on,
+            'starts_on' => $slot->starts_on,
+            'recurrence_interval' => $slot->recurrence_interval,
+            'recurrence_weekdays' => $slot->recurrence_weekdays,
+        ], fn ($value): bool => $value !== null)))->occursOn($date, $weekdayId);
+    }
+
+    /**
+     * Check one placed entry against a date in its timetable period.
+     *
+     * @param  array{weekday_id: int, recurrence: string, occurs_on: string|null, starts_on: string|null, recurrence_interval: int, recurrence_weekdays: array<int, int>}  $entry
+     */
+    private function entryOccursOn(array $entry, Carbon $date): bool
+    {
+        if ($entry['weekday_id'] !== $date->dayOfWeekIso) {
+            return false;
         }
 
-        $oneTime = $entry['recurrence'] === 'one_time' ? $entry : $other;
-        $weekly = $entry['recurrence'] === 'weekly' ? $entry : $other;
+        $startsOn = $entry['starts_on'] === null ? null : Carbon::parse($entry['starts_on']);
 
-        return $oneTime['occurs_on'] !== null
-            && Carbon::parse($oneTime['occurs_on'])->dayOfWeekIso === $weekly['weekday_id'];
+        if ($entry['recurrence'] === 'one_time') {
+            return $entry['occurs_on'] === $date->toDateString();
+        }
+
+        if ($startsOn !== null && $date->lt($startsOn)) {
+            return false;
+        }
+
+        if ($entry['recurrence'] === 'monthly') {
+            return $startsOn !== null
+                && $date->day === $startsOn->day
+                && $startsOn->startOfMonth()->diffInMonths($date->startOfMonth()) % max(1, $entry['recurrence_interval']) === 0;
+        }
+
+        $weeks = $startsOn === null ? 0 : $startsOn->startOfWeek(Carbon::MONDAY)->diffInWeeks($date->startOfWeek(Carbon::MONDAY));
+
+        return $weeks % max(1, $entry['recurrence_interval']) === 0;
     }
 }
