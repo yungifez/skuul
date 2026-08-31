@@ -59,65 +59,52 @@
 
         <april:card>
             <slot:title>Add calendar events</slot:title>
-            <slot:description>Click a date to add a one-time event, or choose one or more weekdays for a recurring event.</slot:description>
+            <slot:description>Build one event at a time. Start with what it is, then choose when it happens and add its details.</slot:description>
             <slot:content>
                 <div class="space-y-5">
-                    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-6 xl:items-end">
-                        <div class="rounded-md border bg-muted/20 p-3 md:col-span-2 xl:col-span-2">
-                            <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Schedule</p>
-                            <p class="mt-1 text-sm font-medium">{{ $this->eventDraftRuleLabel() }}</p>
-                            <button type="button" wire:click="toggleEventScheduleOptions" class="mt-3 inline-flex h-9 items-center rounded-md border bg-background px-3 text-sm font-medium hover:bg-muted">
-                                {{ $showEventScheduleOptions ? 'Hide schedule options' : 'Change schedule' }}
-                            </button>
+                    @if ($eventStep === 1)
+                        <div class="space-y-3">
+                            <div><p class="text-sm font-semibold">1. What are you adding?</p><p class="text-sm text-muted-foreground">Choose the kind of item. We will ask only for the details that apply.</p></div>
+                            <div class="grid gap-3 md:grid-cols-3">
+                                <button type="button" wire:click="chooseEventType('subject')" class="rounded-lg border bg-background p-4 text-left hover:border-primary hover:bg-primary/5"><p class="font-medium">Subject lesson</p><p class="mt-1 text-sm text-muted-foreground">A lesson for this class or section.</p></button>
+                                <button type="button" wire:click="chooseEventType('role')" class="rounded-lg border bg-background p-4 text-left hover:border-primary hover:bg-primary/5"><p class="font-medium">Role event</p><p class="mt-1 text-sm text-muted-foreground">An event shown to a selected school role.</p></button>
+                                <button type="button" wire:click="chooseEventType('freehand')" class="rounded-lg border bg-background p-4 text-left hover:border-primary hover:bg-primary/5"><p class="font-medium">Freehand event</p><p class="mt-1 text-sm text-muted-foreground">A named item such as assembly or club.</p></button>
+                            </div>
                         </div>
-                        @if ($showEventScheduleOptions)
-                        <div class="flex flex-col gap-2"><label for="event-recurrence" class="text-sm font-medium">Repeat</label><select id="event-recurrence" wire:model.live="newEvent.recurrence" class="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="weekly">Every week(s)</option><option value="monthly">Every month(s)</option><option value="one_time">One date only</option></select></div>
-                        @if ($newEvent['recurrence'] !== 'one_time')
-                            <div class="flex flex-col gap-2"><label for="event-recurrence-interval" class="text-sm font-medium">Repeats every</label><div class="flex items-center gap-2"><input id="event-recurrence-interval" type="number" min="1" max="52" wire:model.number="newEvent.recurrence_interval" class="h-10 w-20 rounded-md border border-input bg-background px-3 text-sm"><span class="text-sm text-muted-foreground">{{ $newEvent['recurrence'] === 'monthly' ? 'month(s)' : 'week(s)' }}</span></div>@error('newEvent.recurrence_interval') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
-                            <div class="flex flex-col gap-2"><label for="event-starts-on" class="text-sm font-medium">Starts on</label><input id="event-starts-on" type="date" wire:model.live="newEvent.starts_on" class="h-10 rounded-md border border-input bg-background px-3 text-sm">@error('newEvent.starts_on') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
-                        @endif
-                        @if ($newEvent['recurrence'] === 'weekly')
-                            <div class="flex flex-col gap-2 md:col-span-2 xl:col-span-3">
-                                <span class="text-sm font-medium">On weekdays</span>
-                                <div class="flex flex-wrap gap-2">
-                                    @foreach ($weekdays as $weekday)
-                                        <label class="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/10">
-                                            <input type="checkbox" wire:model="newEvent.weekday_ids" value="{{ $weekday['id'] }}" class="rounded border-input text-primary focus:ring-primary">
-                                            {{ $weekday['name'] }}
-                                        </label>
-                                    @endforeach
-                                </div>
-                                @error('newEvent.weekday_ids') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                    @elseif ($eventStep === 2)
+                        <div class="space-y-4">
+                            <div class="flex items-start justify-between gap-3"><div><p class="text-sm font-semibold">2. When does it happen?</p><p class="text-sm text-muted-foreground">{{ $this->eventDraftRuleLabel() }}</p></div><button type="button" wire:click="backEventStep" class="text-sm underline">Back</button></div>
+                            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                                <div class="flex flex-col gap-2"><label for="event-start" class="text-sm font-medium">Starts</label><input id="event-start" type="time" wire:model="newEvent.start_time" class="h-10 rounded-md border border-input bg-background px-3 text-sm">@error('newEvent.start_time') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
+                                <div class="flex flex-col gap-2"><label for="event-stop" class="text-sm font-medium">Ends</label><input id="event-stop" type="time" wire:model="newEvent.stop_time" class="h-10 rounded-md border border-input bg-background px-3 text-sm">@error('newEvent.stop_time') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
+                                <div class="flex flex-col gap-2"><label for="event-recurrence" class="text-sm font-medium">Repeat</label><select id="event-recurrence" wire:model.live="newEvent.recurrence" class="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="weekly">Every week(s)</option><option value="monthly">Every month(s)</option><option value="one_time">One date only</option></select></div>
+                                @if ($newEvent['recurrence'] === 'one_time')
+                                    <div class="flex flex-col gap-2"><label for="event-occurs-on" class="text-sm font-medium">Date</label><input id="event-occurs-on" type="date" wire:model.live="newEvent.occurs_on" class="h-10 rounded-md border border-input bg-background px-3 text-sm">@error('newEvent.occurs_on') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
+                                @else
+                                    <div class="flex flex-col gap-2"><label for="event-recurrence-interval" class="text-sm font-medium">Repeats every</label><div class="flex items-center gap-2"><input id="event-recurrence-interval" type="number" min="1" max="52" wire:model.number="newEvent.recurrence_interval" class="h-10 w-20 rounded-md border border-input bg-background px-3 text-sm"><span class="text-sm text-muted-foreground">{{ $newEvent['recurrence'] === 'monthly' ? 'month(s)' : 'week(s)' }}</span></div>@error('newEvent.recurrence_interval') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
+                                    <div class="flex flex-col gap-2"><label for="event-starts-on" class="text-sm font-medium">Starts on</label><input id="event-starts-on" type="date" wire:model.live="newEvent.starts_on" class="h-10 rounded-md border border-input bg-background px-3 text-sm">@error('newEvent.starts_on') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
+                                @endif
                             </div>
-                        @else
-                            <div class="flex flex-col gap-2 md:col-span-2"><label for="event-occurs-on" class="text-sm font-medium">Date *</label><input id="event-occurs-on" type="date" wire:model.live="newEvent.occurs_on" class="h-10 rounded-md border border-input bg-background px-3 text-sm">@error('newEvent.occurs_on') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
-                        @endif
-                        @endif
-                        <div class="flex flex-col gap-2"><label for="event-start" class="text-sm font-medium">Starts</label><input id="event-start" type="time" wire:model="newEvent.start_time" class="h-10 rounded-md border border-input bg-background px-3 text-sm"></div>
-                        <div class="flex flex-col gap-2"><label for="event-stop" class="text-sm font-medium">Ends</label><input id="event-stop" type="time" wire:model="newEvent.stop_time" class="h-10 rounded-md border border-input bg-background px-3 text-sm"></div>
-                        <div class="flex flex-col gap-2"><label for="event-type" class="text-sm font-medium">Event type</label><select id="event-type" wire:model.live="newEvent.type" class="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="subject">Subject lesson</option><option value="role">Role event</option><option value="freehand">Freehand</option></select></div>
-                        @if ($newEvent['type'] === 'subject')
-                            <div class="flex flex-col gap-2 xl:col-span-2"><label for="event-subject" class="text-sm font-medium">Subject</label><select id="event-subject" wire:model="newEvent.subject_id" class="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="">Choose a subject</option>@foreach ($subjects as $subject)<option value="{{ $subject['id'] }}">{{ $subject['name'] }}</option>@endforeach</select></div>
-                        @else
-                            <div class="flex flex-col gap-2"><label for="event-title" class="text-sm font-medium">Title</label><input id="event-title" wire:model="newEvent.title" placeholder="Assembly, duty, club…" class="h-10 rounded-md border border-input bg-background px-3 text-sm"></div>
-                        @endif
-                        @if ($newEvent['type'] === 'role')
-                            <div class="flex flex-col gap-2"><label for="event-role" class="text-sm font-medium">Visible to</label><select id="event-role" wire:model="newEvent.audience_role" class="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="">Choose a role</option>@foreach ($roles as $role)<option value="{{ $role['id'] }}">{{ $role['name'] }}</option>@endforeach</select></div>
-                        @endif
-                    </div>
-
-                    <div class="rounded-md border border-primary/20 bg-primary/5 p-3 text-sm">
-                        <p class="font-medium">Term-scoped recurrence</p>
-                        <p class="mt-1 text-muted-foreground">{{ $selectedPeriod['name'] ?? 'Selected period' }} runs from {{ $selectedPeriod['starts_on'] ?? 'its start date' }} to {{ $selectedPeriod['ends_on'] ?? 'its end date' }}. Recurring events follow these dates if the term is moved later.</p>
-                        @if ($newEvent['recurrence'] !== 'one_time')
-                            <div class="mt-3 grid gap-3 sm:grid-cols-2">
-                                <div class="flex flex-col gap-1"><label for="event-term-start" class="text-xs font-medium text-muted-foreground">Recurrence starts</label><input id="event-term-start" type="date" value="{{ $newEvent['starts_on'] ?? '' }}" readonly class="h-9 rounded-md border border-input bg-background px-3 text-sm text-muted-foreground"></div>
-                                <div class="flex flex-col gap-1"><label for="event-term-end" class="text-xs font-medium text-muted-foreground">Recurrence ends</label><input id="event-term-end" type="date" value="{{ $selectedPeriod['ends_on'] ?? '' }}" readonly class="h-9 rounded-md border border-input bg-background px-3 text-sm text-muted-foreground"></div>
-                            </div>
-                        @endif
-                    </div>
-
-                    <div class="flex justify-end"><button type="button" wire:click="addEvent" class="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">Add to calendar</button></div>
+                            @if ($newEvent['recurrence'] === 'weekly')
+                                <fieldset class="space-y-2"><legend class="text-sm font-medium">On these weekdays</legend><div class="flex flex-wrap gap-2">@foreach ($weekdays as $weekday)<label class="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/10"><input type="checkbox" wire:model="newEvent.weekday_ids" value="{{ $weekday['id'] }}" class="rounded border-input text-primary focus:ring-primary">{{ $weekday['name'] }}</label>@endforeach</div>@error('newEvent.weekday_ids') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</fieldset>
+                            @endif
+                            <div class="rounded-md border border-primary/20 bg-primary/5 p-3 text-sm"><p class="font-medium">Term boundary</p><p class="mt-1 text-muted-foreground">Recurring events run from the chosen start date until {{ $selectedPeriod['ends_on'] ?? 'the term ends' }}. Moving the term dates changes the recurring range.</p></div>
+                            <div class="flex justify-between gap-3"><button type="button" wire:click="backEventStep" class="inline-flex h-10 items-center rounded-md border px-4 text-sm font-medium hover:bg-muted">Back</button><button type="button" wire:click="continueEventSchedule" class="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">Continue</button></div>
+                        </div>
+                    @else
+                        <div class="space-y-4">
+                            <div class="flex items-start justify-between gap-3"><div><p class="text-sm font-semibold">3. Add the details</p><p class="text-sm text-muted-foreground">{{ $this->eventDraftRuleLabel() }}</p></div><button type="button" wire:click="backEventStep" class="text-sm underline">Back</button></div>
+                            @if ($newEvent['type'] === 'subject')
+                                <div class="flex flex-col gap-2"><label for="event-subject" class="text-sm font-medium">Subject</label><select id="event-subject" wire:model="newEvent.subject_id" class="h-10 rounded-md border bg-background px-3 text-sm"><option value="">Choose a subject</option>@foreach ($subjects as $subject)<option value="{{ $subject['id'] }}">{{ $subject['name'] }}</option>@endforeach</select>@error('newEvent.subject_id') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
+                            @else
+                                <div class="flex flex-col gap-2"><label for="event-title" class="text-sm font-medium">Title</label><input id="event-title" wire:model="newEvent.title" placeholder="Assembly, duty, club…" class="h-10 rounded-md border bg-background px-3 text-sm">@error('newEvent.title') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
+                            @endif
+                            @if ($newEvent['type'] === 'role')
+                                <div class="flex flex-col gap-2"><label for="event-role" class="text-sm font-medium">Visible to</label><select id="event-role" wire:model="newEvent.audience_role" class="h-10 rounded-md border bg-background px-3 text-sm"><option value="">Choose a role</option>@foreach ($roles as $role)<option value="{{ $role['id'] }}">{{ $role['name'] }}</option>@endforeach</select>@error('newEvent.audience_role') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
+                            @endif
+                            <div class="flex justify-between gap-3"><button type="button" wire:click="backEventStep" class="inline-flex h-10 items-center rounded-md border px-4 text-sm font-medium hover:bg-muted">Back</button><button type="button" wire:click="addEvent" class="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">Add to calendar</button></div>
+                        </div>
+                    @endif
                     @error('newEvent.*') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                 </div>
             </slot:content>

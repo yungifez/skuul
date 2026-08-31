@@ -61,12 +61,16 @@ class TimetableTest extends TestCase
         $this->authorized_user(['create timetable']);
 
         Livewire::test(CreateTimetableForm::class)
-            ->assertSet('showEventScheduleOptions', false)
-            ->assertSee('Change schedule')
+            ->assertSet('eventStep', 1)
+            ->assertSee('What are you adding?')
             ->assertDontSee('On weekdays')
-            ->call('toggleEventScheduleOptions')
-            ->assertSet('showEventScheduleOptions', true)
-            ->assertSee('On weekdays');
+            ->call('chooseEventType', 'subject')
+            ->assertSet('eventStep', 2)
+            ->assertSee('When does it happen?')
+            ->assertSee('On these weekdays')
+            ->call('continueEventSchedule')
+            ->assertSet('eventStep', 3)
+            ->assertSee('Add the details');
     }
 
     public function test_user_can_create_a_schoolwide_recurring_timetable_with_a_role_event(): void

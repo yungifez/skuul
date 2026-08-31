@@ -30,7 +30,7 @@ class CreateTimetableForm extends Component
 
     public string $calendarDate = '';
 
-    public bool $showEventScheduleOptions = false;
+    public int $eventStep = 1;
 
     public bool $canCreateSchoolwide = false;
 
@@ -185,12 +185,57 @@ class CreateTimetableForm extends Component
     public function chooseCalendarDate(string $date): void
     {
         $this->calendarDate = Carbon::parse($date)->toDateString();
-        $this->showEventScheduleOptions = true;
         $this->newEvent['recurrence'] = 'one_time';
         $this->newEvent['occurs_on'] = $this->calendarDate;
         $this->newEvent['starts_on'] = null;
         $this->newEvent['weekday_id'] = $this->weekdayIdForDate($this->calendarDate);
         $this->newEvent['weekday_ids'] = $this->newEvent['weekday_id'] === null ? [] : [(int) $this->newEvent['weekday_id']];
+    }
+
+    public function chooseEventType(string $type): void
+    {
+        if (!in_array($type, ['subject', 'role', 'freehand'], true)) {
+            return;
+        }
+
+        $this->newEvent['type'] = $type;
+        $this->newEvent['subject_id'] = null;
+        $this->newEvent['title'] = '';
+        $this->newEvent['audience_role'] = '';
+        $this->eventStep = 2;
+    }
+
+    public function continueEventSchedule(): void
+    {
+        $this->resetErrorBag();
+
+        $this->validate([
+            'newEvent.start_time' => ['required', 'date_format:H:i'],
+            'newEvent.stop_time' => ['required', 'date_format:H:i', 'after:newEvent.start_time'],
+            'newEvent.recurrence' => ['required', Rule::in(['weekly', 'monthly', 'one_time'])],
+            'newEvent.occurs_on' => ['required_if:newEvent.recurrence,one_time', 'nullable', 'date'],
+            'newEvent.starts_on' => ['required_unless:newEvent.recurrence,one_time', 'nullable', 'date'],
+            'newEvent.recurrence_interval' => ['required_unless:newEvent.recurrence,one_time', 'integer', 'min:1', 'max:52'],
+            'newEvent.weekday_ids' => ['required_if:newEvent.recurrence,weekly', 'array', 'min:1'],
+            'newEvent.weekday_ids.*' => ['integer', Rule::exists('weekdays', 'id')],
+        ]);
+
+        if ($this->newEvent['recurrence'] === 'one_time') {
+            $this->validateEventDate($this->newEvent['occurs_on'], 'newEvent.occurs_on');
+        } else {
+            $this->validateEventDate($this->newEvent['starts_on'], 'newEvent.starts_on');
+        }
+
+        if ($this->getErrorBag()->isNotEmpty()) {
+            return;
+        }
+
+        $this->eventStep = 3;
+    }
+
+    public function backEventStep(): void
+    {
+        $this->eventStep = max(1, $this->eventStep - 1);
     }
 
     public function addEvent(): void
@@ -265,6 +310,7 @@ class CreateTimetableForm extends Component
             ? null
             : $this->newEvent['starts_on'];
         $this->newEvent['recurrence_weekdays'] = $this->newEvent['weekday_ids'];
+        $this->eventStep = 1;
     }
 
     public function eventOccursOn(array $event, Carbon $date): bool
@@ -290,11 +336,6 @@ class CreateTimetableForm extends Component
 
         return in_array($weekdayId, $weekdays, true)
             && $weeks % max(1, (int) ($event['recurrence_interval'] ?? 1)) === 0;
-    }
-
-    public function toggleEventScheduleOptions(): void
-    {
-        $this->showEventScheduleOptions = !$this->showEventScheduleOptions;
     }
 
     public function eventDraftRuleLabel(): string
