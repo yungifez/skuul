@@ -56,6 +56,19 @@ class TimetableTest extends TestCase
             ->assertOk();
     }
 
+    public function test_timetable_schedule_options_are_progressively_disclosed(): void
+    {
+        $this->authorized_user(['create timetable']);
+
+        Livewire::test(CreateTimetableForm::class)
+            ->assertSet('showEventScheduleOptions', false)
+            ->assertSee('Change schedule')
+            ->assertDontSee('On weekdays')
+            ->call('toggleEventScheduleOptions')
+            ->assertSet('showEventScheduleOptions', true)
+            ->assertSee('On weekdays');
+    }
+
     public function test_user_can_create_a_schoolwide_recurring_timetable_with_a_role_event(): void
     {
         $this->authorized_user(['create timetable', 'create schoolwide timetable']);
@@ -213,7 +226,8 @@ class TimetableTest extends TestCase
 
         Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
             ->assertSee('Add a time slot')
-            ->assertSee('On these weekdays')
+            ->assertSee('Change schedule')
+            ->assertDontSee('On these weekdays')
             ->set('startTime', '01:00')
             ->set('stopTime', '02:00')
             ->set('slotRecurrence', 'weekly')

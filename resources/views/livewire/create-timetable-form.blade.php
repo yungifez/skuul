@@ -63,6 +63,14 @@
             <slot:content>
                 <div class="space-y-5">
                     <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-6 xl:items-end">
+                        <div class="rounded-md border bg-muted/20 p-3 md:col-span-2 xl:col-span-2">
+                            <p class="text-xs font-medium uppercase tracking-wide text-muted-foreground">Schedule</p>
+                            <p class="mt-1 text-sm font-medium">{{ $this->eventDraftRuleLabel() }}</p>
+                            <button type="button" wire:click="toggleEventScheduleOptions" class="mt-3 inline-flex h-9 items-center rounded-md border bg-background px-3 text-sm font-medium hover:bg-muted">
+                                {{ $showEventScheduleOptions ? 'Hide schedule options' : 'Change schedule' }}
+                            </button>
+                        </div>
+                        @if ($showEventScheduleOptions)
                         <div class="flex flex-col gap-2"><label for="event-recurrence" class="text-sm font-medium">Repeat</label><select id="event-recurrence" wire:model.live="newEvent.recurrence" class="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="weekly">Every week(s)</option><option value="monthly">Every month(s)</option><option value="one_time">One date only</option></select></div>
                         @if ($newEvent['recurrence'] !== 'one_time')
                             <div class="flex flex-col gap-2"><label for="event-recurrence-interval" class="text-sm font-medium">Repeats every</label><div class="flex items-center gap-2"><input id="event-recurrence-interval" type="number" min="1" max="52" wire:model.number="newEvent.recurrence_interval" class="h-10 w-20 rounded-md border border-input bg-background px-3 text-sm"><span class="text-sm text-muted-foreground">{{ $newEvent['recurrence'] === 'monthly' ? 'month(s)' : 'week(s)' }}</span></div>@error('newEvent.recurrence_interval') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
@@ -83,6 +91,7 @@
                             </div>
                         @else
                             <div class="flex flex-col gap-2 md:col-span-2"><label for="event-occurs-on" class="text-sm font-medium">Date *</label><input id="event-occurs-on" type="date" wire:model.live="newEvent.occurs_on" class="h-10 rounded-md border border-input bg-background px-3 text-sm">@error('newEvent.occurs_on') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
+                        @endif
                         @endif
                         <div class="flex flex-col gap-2"><label for="event-start" class="text-sm font-medium">Starts</label><input id="event-start" type="time" wire:model="newEvent.start_time" class="h-10 rounded-md border border-input bg-background px-3 text-sm"></div>
                         <div class="flex flex-col gap-2"><label for="event-stop" class="text-sm font-medium">Ends</label><input id="event-stop" type="time" wire:model="newEvent.stop_time" class="h-10 rounded-md border border-input bg-background px-3 text-sm"></div>

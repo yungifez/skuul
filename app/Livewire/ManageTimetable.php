@@ -56,6 +56,8 @@ class ManageTimetable extends Component
 
     public string $slotRecurrence = 'weekly';
 
+    public bool $showRecurrenceOptions = false;
+
     public int $slotRecurrenceInterval = 1;
 
     public string $slotStartsOn = '';
@@ -116,6 +118,7 @@ class ManageTimetable extends Component
     {
         $this->calendarDate = Carbon::parse($date)->toDateString();
         $this->slotRecurrence = 'one_time';
+        $this->showRecurrenceOptions = true;
         $this->slotOccursOn = $this->calendarDate;
         $this->calendarView = 'day';
         $this->refreshWeek();
@@ -126,6 +129,11 @@ class ManageTimetable extends Component
         if ($this->slotRecurrence === 'weekly' && $date !== null && $date !== '') {
             $this->slotWeekdayIds = [$this->weekdayMap[Carbon::parse($date)->englishDayOfWeek] ?? 1];
         }
+    }
+
+    public function toggleRecurrenceOptions(): void
+    {
+        $this->showRecurrenceOptions = !$this->showRecurrenceOptions;
     }
 
     /**
@@ -206,6 +214,30 @@ class ManageTimetable extends Component
         }
 
         return $frequency.' from '.($slot->starts_on?->format('j M Y') ?? 'the term start');
+    }
+
+    public function slotDraftRuleLabel(): string
+    {
+        if ($this->slotRecurrence === 'one_time') {
+            return 'One date'.($this->slotOccursOn === null ? '' : ' · '.Carbon::parse($this->slotOccursOn)->format('j M Y'));
+        }
+
+        $unit = $this->slotRecurrence === 'monthly' ? 'month' : 'week';
+        $interval = max(1, $this->slotRecurrenceInterval);
+        $frequency = 'Every '.($interval === 1 ? '' : $interval.' ').$unit.($interval === 1 ? '' : 's');
+
+        if ($this->slotRecurrence === 'weekly' && $this->slotWeekdayIds !== []) {
+            $names = array_flip($this->weekdayMap);
+            $days = collect($this->slotWeekdayIds)
+                ->map(fn (int|string $weekdayId): ?string => $names[(int) $weekdayId] ?? null)
+                ->filter()
+                ->implode(', ');
+            $frequency .= ' on '.($days ?: 'selected weekdays');
+        } elseif ($this->slotStartsOn !== '') {
+            $frequency .= ' on the '.Carbon::parse($this->slotStartsOn)->format('jS');
+        }
+
+        return $frequency.' from '.($this->slotStartsOn === '' ? 'the start date' : Carbon::parse($this->slotStartsOn)->format('j M Y'));
     }
 
     /**
@@ -309,6 +341,7 @@ class ManageTimetable extends Component
             $this->startTime = '';
             $this->stopTime = '';
             $this->slotRecurrence = 'weekly';
+            $this->showRecurrenceOptions = false;
             $this->slotRecurrenceInterval = 1;
             $this->slotStartsOn = $this->timetable->academicPeriod?->starts_on?->toDateString() ?? now()->toDateString();
             $this->slotOccursOn = $this->timetable->academicPeriod?->starts_on?->toDateString();

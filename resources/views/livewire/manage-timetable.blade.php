@@ -95,10 +95,11 @@
                         <div>
                             <p class="text-sm font-semibold">Add a time slot</p>
                             <p class="text-sm text-muted-foreground">Add a row to this calendar, then click its cells to place lessons or events.</p>
+                            <p class="mt-2 text-sm font-medium text-foreground">{{ $this->slotDraftRuleLabel() }}</p>
                         </div>
-                        <span class="rounded-full border bg-background px-3 py-1 text-xs text-muted-foreground">
-                            {{ $timetable->academicPeriod?->displayName ?? 'Academic period' }}
-                        </span>
+                        <button type="button" wire:click="toggleRecurrenceOptions" class="inline-flex h-9 items-center rounded-md border bg-background px-3 text-sm font-medium hover:bg-muted">
+                            {{ $showRecurrenceOptions ? 'Hide schedule options' : 'Change schedule' }}
+                        </button>
                     </div>
 
                     <form wire:submit="addTimeSlot" class="grid gap-4 md:grid-cols-2 xl:grid-cols-6 xl:items-end">
@@ -114,6 +115,7 @@
                                 class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
                             @error('stopTime') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                         </div>
+                        @if ($showRecurrenceOptions)
                         <div class="min-w-0 space-y-2">
                             <april:label for="slot-recurrence">Repeat</april:label>
                             <select id="slot-recurrence" wire:model.live="slotRecurrence"
@@ -124,7 +126,7 @@
                             </select>
                             @error('slotRecurrence') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                         </div>
-                        @if ($slotRecurrence !== 'one_time')
+                            @if ($slotRecurrence !== 'one_time')
                             <div class="min-w-0 space-y-2">
                                 <april:label for="slot-recurrence-interval">Repeats every</april:label>
                                 <div class="flex items-center gap-2">
@@ -140,22 +142,16 @@
                                     class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
                                 @error('slotStartsOn') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                             </div>
-                        @endif
-                        @if ($slotRecurrence === 'one_time')
+                            @endif
+                            @if ($slotRecurrence === 'one_time')
                             <div class="min-w-0 space-y-2">
                                 <april:label for="slot-occurs-on">Date</april:label>
                                 <input type="date" id="slot-occurs-on" wire:model="slotOccursOn"
                                     class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
                                 @error('slotOccursOn') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                             </div>
-                        @endif
-                        <div class="min-w-0 md:col-span-2 xl:col-span-1">
-                            <april:button type="submit" class="w-full">
-                                <x-lucide-plus class="mr-2 size-4" />
-                                Add time slot
-                            </april:button>
-                        </div>
-                        @if ($slotRecurrence === 'weekly')
+                            @endif
+                            @if ($slotRecurrence === 'weekly')
                             <fieldset class="space-y-2 md:col-span-2 xl:col-span-6">
                                 <legend class="text-sm font-medium">On these weekdays</legend>
                                 <div class="flex flex-wrap gap-2">
@@ -168,12 +164,19 @@
                                 </div>
                                 @error('slotWeekdayIds') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                             </fieldset>
-                        @endif
-                        @if ($slotRecurrence !== 'one_time')
+                            @endif
+                            @if ($slotRecurrence !== 'one_time')
                             <p class="text-xs text-muted-foreground md:col-span-2 xl:col-span-6">
                                 This rule runs from {{ $slotStartsOn ?: 'the start date' }} until {{ $timetable->academicPeriod?->ends_on?->toDateString() ?? 'the term ends' }}. Change the term dates later and this recurring slot follows them.
                             </p>
+                            @endif
                         @endif
+                        <div class="min-w-0 md:col-span-2 xl:col-span-1">
+                            <april:button type="submit" class="w-full">
+                                <x-lucide-plus class="mr-2 size-4" />
+                                Add time slot
+                            </april:button>
+                        </div>
                     </form>
                 </div>
 

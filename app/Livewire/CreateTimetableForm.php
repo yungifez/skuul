@@ -30,6 +30,8 @@ class CreateTimetableForm extends Component
 
     public string $calendarDate = '';
 
+    public bool $showEventScheduleOptions = false;
+
     public bool $canCreateSchoolwide = false;
 
     public ?int $academicCycleSectionId = null;
@@ -183,6 +185,7 @@ class CreateTimetableForm extends Component
     public function chooseCalendarDate(string $date): void
     {
         $this->calendarDate = Carbon::parse($date)->toDateString();
+        $this->showEventScheduleOptions = true;
         $this->newEvent['recurrence'] = 'one_time';
         $this->newEvent['occurs_on'] = $this->calendarDate;
         $this->newEvent['starts_on'] = null;
@@ -287,6 +290,32 @@ class CreateTimetableForm extends Component
 
         return in_array($weekdayId, $weekdays, true)
             && $weeks % max(1, (int) ($event['recurrence_interval'] ?? 1)) === 0;
+    }
+
+    public function toggleEventScheduleOptions(): void
+    {
+        $this->showEventScheduleOptions = !$this->showEventScheduleOptions;
+    }
+
+    public function eventDraftRuleLabel(): string
+    {
+        if ($this->newEvent['recurrence'] === 'one_time') {
+            return 'One date'.($this->newEvent['occurs_on'] === null ? '' : ' · '.Carbon::parse($this->newEvent['occurs_on'])->format('j M Y'));
+        }
+
+        $unit = $this->newEvent['recurrence'] === 'monthly' ? 'month' : 'week';
+        $interval = max(1, (int) $this->newEvent['recurrence_interval']);
+        $frequency = 'Every '.($interval === 1 ? '' : $interval.' ').$unit.($interval === 1 ? '' : 's');
+        $weekdayNames = collect($this->weekdays)->whereIn('id', $this->newEvent['weekday_ids'])
+            ->pluck('name')->implode(', ');
+
+        if ($this->newEvent['recurrence'] === 'weekly') {
+            $frequency .= ' on '.($weekdayNames ?: 'selected weekdays');
+        } elseif ($this->newEvent['starts_on'] !== null) {
+            $frequency .= ' on the '.Carbon::parse($this->newEvent['starts_on'])->format('jS');
+        }
+
+        return $frequency.' from '.($this->newEvent['starts_on'] === null ? 'the start date' : Carbon::parse($this->newEvent['starts_on'])->format('j M Y'));
     }
 
     public function removeEvent(int $index): void
