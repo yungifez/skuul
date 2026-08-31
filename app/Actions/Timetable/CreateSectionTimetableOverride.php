@@ -35,6 +35,8 @@ class CreateSectionTimetableOverride
                 'description' => $template->description,
                 'status' => TimetableStatus::Draft,
                 'academic_period_id' => $template->academic_period_id,
+                'recurrence' => $template->recurrence,
+                'occurs_on' => $template->occurs_on,
                 'academic_cycle_section_id' => $section->id,
                 'template_timetable_id' => $template->id,
                 'effective_from' => $template->effective_from,

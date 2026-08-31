@@ -42,6 +42,14 @@ class TimetablePolicy
     }
 
     /**
+     * Determine whether the user can create a schoolwide timetable.
+     */
+    public function createSchoolwide(User $user): bool
+    {
+        return $user->can('create timetable') && $user->can('create schoolwide timetable');
+    }
+
+    /**
      * Determine whether the user can update the model.
      */
     public function update(User $user, Timetable $timetable)

@@ -3,11 +3,13 @@
 namespace Tests\Feature;
 
 use App\Livewire\CreateTimetableForm;
+use App\Models\AcademicPeriod;
 use App\Models\CustomTimetableItem;
 use App\Models\Timetable;
 use App\Models\TimetableTimeSlot;
 use App\Models\Weekday;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -55,7 +57,7 @@ class TimetableTest extends TestCase
 
     public function test_user_can_create_a_schoolwide_recurring_timetable_with_a_role_event(): void
     {
-        $this->authorized_user(['create timetable']);
+        $this->authorized_user(['create timetable', 'create schoolwide timetable']);
         $weekday = Weekday::query()->firstOrFail();
 
         Livewire::test(CreateTimetableForm::class)
@@ -76,6 +78,48 @@ class TimetableTest extends TestCase
             'timetable_time_slot_weekdayable_type' => (new CustomTimetableItem)->getMorphClass(),
             'audience_role' => 'teacher',
             'weekday_id' => $weekday->id,
+        ]);
+    }
+
+    public function test_a_timetable_creator_without_schoolwide_permission_is_kept_to_section_scope(): void
+    {
+        $this->authorized_user(['create timetable']);
+
+        Livewire::test(CreateTimetableForm::class)
+            ->set('scope', 'schoolwide')
+            ->assertSet('scope', 'section');
+    }
+
+    public function test_schoolwide_creation_is_rejected_even_if_the_client_state_is_tampered_with(): void
+    {
+        $this->authorized_user(['create timetable']);
+        $this->expectException(AuthorizationException::class);
+
+        Livewire::test(CreateTimetableForm::class)
+            ->set('canCreateSchoolwide', true)
+            ->set('scope', 'schoolwide')
+            ->call('save');
+    }
+
+    public function test_a_timetable_can_be_created_for_one_date_without_weekly_recurrence(): void
+    {
+        $this->authorized_user(['create timetable']);
+        $period = AcademicPeriod::inSchool()->where('academic_year_id', current_academic_year_id())->firstOrFail();
+
+        Livewire::test(CreateTimetableForm::class)
+            ->set('name', 'Sports day schedule')
+            ->set('recurrence', 'one_time')
+            ->set('occursOn', $period->starts_on?->toDateString())
+            ->set('newEvent.type', 'freehand')
+            ->set('newEvent.title', 'Sports day')
+            ->call('addEvent')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('timetables', [
+            'name' => 'Sports day schedule',
+            'recurrence' => 'one_time',
+            'occurs_on' => $period->starts_on?->toDateString(),
         ]);
     }
 

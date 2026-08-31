@@ -11,21 +11,21 @@
                     <div class="grid max-w-xl gap-4 sm:grid-cols-2">
                         <div class="flex flex-col gap-2">
                             <april:label for="timetable-scope">Schedule for</april:label>
-                            <april:native-select id="timetable-scope" wire:model.live="scope">
+                            <select id="timetable-scope" wire:model.live="scope" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
                                 <option value="section">A section</option>
                                 <option value="schoolwide">Schoolwide</option>
-                            </april:native-select>
+                            </select>
                         </div>
                         @if ($scope === 'section')
                         <div class="flex flex-col gap-2">
                         <april:label for="academic-cycle-section">{{ school_term('section', 'Section') }}</april:label>
-                        <april:native-select id="academic-cycle-section" wire:model.live="academicCycleSectionId">
+                        <select id="academic-cycle-section" wire:model.live="academicCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
                             @forelse ($cycleSections as $cycleSection)
                                 <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['label'] }}</option>
                             @empty
                                 <option value="">No active {{ strtolower(school_terms('section', 'sections')) }} in this {{ strtolower(school_term('academic_year', 'school year')) }}</option>
                             @endforelse
-                        </april:native-select>
+                        </select>
                         </div>
                         @endif
                     </div>

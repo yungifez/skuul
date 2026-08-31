@@ -28,7 +28,7 @@ class TimetableService
     /**
      * Create timetable.
      *
-     * @param  array{name: string, description?: string|null, academic_cycle_section_id?: int|null, academic_period_id: int}  $data
+     * @param  array{name: string, description?: string|null, academic_cycle_section_id?: int|null, academic_period_id: int, recurrence?: string, occurs_on?: string|null}  $data
      */
     public function createTimetable(array $data): Timetable
     {
@@ -37,13 +37,15 @@ class TimetableService
             'description' => $data['description'] ?? null,
             'academic_cycle_section_id' => $data['academic_cycle_section_id'] ?? null,
             'academic_period_id' => $data['academic_period_id'],
+            'recurrence' => $data['recurrence'] ?? 'weekly',
+            'occurs_on' => $data['occurs_on'] ?? null,
         ]);
     }
 
     /**
      * Create a timetable and its recurring weekly calendar entries together.
      *
-     * @param  array{name: string, description?: string|null, academic_cycle_section_id?: int|null, academic_period_id: int}  $data
+     * @param  array{name: string, description?: string|null, academic_cycle_section_id?: int|null, academic_period_id: int, recurrence?: string, occurs_on?: string|null}  $data
      * @param  array<int, array{weekday_id: int, start_time: string, stop_time: string, type: string, subject_id?: int|null, title?: string|null, audience_role?: string|null}>  $events
      */
     public function createTimetableWithEvents(array $data, array $events): Timetable

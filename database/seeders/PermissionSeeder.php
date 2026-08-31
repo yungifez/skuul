@@ -261,6 +261,9 @@ class PermissionSeeder extends Seeder
             'name' => 'create timetable',
         ]);
         Permission::firstOrCreate([
+            'name' => 'create schoolwide timetable',
+        ]);
+        Permission::firstOrCreate([
             'name' => 'read timetable',
         ]);
         Permission::firstOrCreate([
@@ -811,6 +814,7 @@ class PermissionSeeder extends Seeder
             'update syllabus',
             'delete syllabus',
             'create timetable',
+            'create schoolwide timetable',
             'read timetable',
             'update timetable',
             'delete timetable',

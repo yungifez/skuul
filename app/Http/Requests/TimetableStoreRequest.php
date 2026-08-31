@@ -7,6 +7,15 @@ use Illuminate\Validation\Rule;
 
 class TimetableStoreRequest extends FormRequest
 {
+    public function authorize(): bool
+    {
+        $user = $this->user();
+
+        return $user !== null
+            && $user->can('create timetable')
+            && ($this->filled('academic_cycle_section_id') || $user->can('create schoolwide timetable'));
+    }
+
     /**
      * Determine if the user is authorized to make this request.
      *
@@ -19,8 +28,8 @@ class TimetableStoreRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'                      => 'required|string|max:255',
-            'description'               => 'nullable|string|max:10000',
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:10000',
             'academic_cycle_section_id' => [
                 'required',
                 'integer',

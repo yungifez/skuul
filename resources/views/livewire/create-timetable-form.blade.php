@@ -8,7 +8,7 @@
     @else
         <april:card>
             <slot:title>Build a recurring timetable</slot:title>
-            <slot:description>Choose the term. Every event you add repeats weekly for that period.</slot:description>
+            <slot:description>Choose when the events run. You can create a weekly timetable or a one-date calendar schedule.</slot:description>
             <slot:content>
                 <div class="grid gap-4 lg:grid-cols-2">
                     <div class="flex flex-col gap-2 lg:col-span-2">
@@ -17,7 +17,7 @@
                         @error('name') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                     </div>
                     <div class="flex flex-col gap-2">
-                        <label for="academic-period" class="text-sm font-medium">Repeats during *</label>
+                        <label for="academic-period" class="text-sm font-medium">Academic period *</label>
                         <select id="academic-period" wire:model="academicPeriodId" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
                             @foreach ($periods as $period)
                                 <option value="{{ $period['id'] }}">{{ $period['name'] }}{{ $period['starts_on'] ? ' · '.$period['starts_on'].' to '.$period['ends_on'] : '' }}</option>
@@ -25,10 +25,26 @@
                         </select>
                     </div>
                     <div class="flex flex-col gap-2">
+                        <label for="timetable-recurrence" class="text-sm font-medium">Recurrence *</label>
+                        <select id="timetable-recurrence" wire:model.live="recurrence" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                            <option value="weekly">Every week during this term</option>
+                            <option value="one_time">One date only</option>
+                        </select>
+                    </div>
+                    @if ($recurrence === 'one_time')
+                        <div class="flex flex-col gap-2">
+                            <label for="occurs-on" class="text-sm font-medium">Date *</label>
+                            <input id="occurs-on" type="date" wire:model.live="occursOn" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                            @error('occursOn') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        </div>
+                    @endif
+                    <div class="flex flex-col gap-2">
                         <label for="timetable-scope" class="text-sm font-medium">Schedule for *</label>
                         <select id="timetable-scope" wire:model.live="scope" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
-                            <option value="section">One class section</option><option value="schoolwide">Schoolwide</option>
+                            <option value="section">One class section</option>
+                            @if ($canCreateSchoolwide)<option value="schoolwide">Schoolwide</option>@endif
                         </select>
+                        @error('scope') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                     </div>
                     @if ($scope === 'section')
                         <div class="flex flex-col gap-2">
@@ -51,7 +67,11 @@
             <slot:description>A subject belongs to the selected section. A role event is shown to that staff role. Freehand is for anything else.</slot:description>
             <slot:content>
                 <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-6 xl:items-end">
-                    <div class="flex flex-col gap-2"><label for="event-weekday" class="text-sm font-medium">Day</label><select id="event-weekday" wire:model="newEvent.weekday_id" class="h-10 rounded-md border border-input bg-background px-3 text-sm">@foreach ($weekdays as $weekday)<option value="{{ $weekday['id'] }}">{{ $weekday['name'] }}</option>@endforeach</select></div>
+                    @if ($recurrence === 'weekly')
+                        <div class="flex flex-col gap-2"><label for="event-weekday" class="text-sm font-medium">Day</label><select id="event-weekday" wire:model="newEvent.weekday_id" class="h-10 rounded-md border border-input bg-background px-3 text-sm">@foreach ($weekdays as $weekday)<option value="{{ $weekday['id'] }}">{{ $weekday['name'] }}</option>@endforeach</select></div>
+                    @else
+                        <div class="flex flex-col gap-2"><span class="text-sm font-medium">Day</span><p class="flex h-10 items-center rounded-md border border-dashed px-3 text-sm text-muted-foreground">Taken from {{ $occursOn }}</p></div>
+                    @endif
                     <div class="flex flex-col gap-2"><label for="event-start" class="text-sm font-medium">Starts</label><input id="event-start" type="time" wire:model="newEvent.start_time" class="h-10 rounded-md border border-input bg-background px-3 text-sm"></div>
                     <div class="flex flex-col gap-2"><label for="event-stop" class="text-sm font-medium">Ends</label><input id="event-stop" type="time" wire:model="newEvent.stop_time" class="h-10 rounded-md border border-input bg-background px-3 text-sm"></div>
                     <div class="flex flex-col gap-2"><label for="event-type" class="text-sm font-medium">Event type</label><select id="event-type" wire:model.live="newEvent.type" class="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="subject">Subject</option><option value="role">Role event</option><option value="freehand">Freehand</option></select></div>
@@ -71,7 +91,7 @@
 
         <april:card>
             <slot:title>Weekly calendar preview</slot:title>
-            <slot:description>{{ count($events) }} recurring {{ Str::plural('event', count($events)) }} will be created.</slot:description>
+            <slot:description>{{ count($events) }} {{ $recurrence === 'weekly' ? 'weekly recurring' : 'one-date' }} {{ Str::plural('event', count($events)) }} will be created.</slot:description>
             <slot:content>
                 @if ($events === [])
                     <p class="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">Add an event above to start drawing the week.</p>
