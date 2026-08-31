@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Enums\AcademicPeriodStatus;
 use App\Enums\TimetableStatus;
 use App\Models\Timetable;
 use App\Models\User;
@@ -56,8 +57,7 @@ class TimetablePolicy
     {
         if ($user->can('update timetable')
             && $timetable->acceptsChanges()
-            && $timetable->academicPeriod->isOpen()
-            && $timetable->academicPeriod->academicYear->isOpen()
+            && $this->canPlan($timetable)
             && $this->belongsToWorkingSchool($timetable)
         ) {
             return true;
@@ -84,8 +84,7 @@ class TimetablePolicy
     {
         if ($user->can('update timetable')
             && $timetable->status === TimetableStatus::Draft
-            && $timetable->academicPeriod->isOpen()
-            && $timetable->academicPeriod->academicYear->isOpen()
+            && $this->canPlan($timetable)
             && $this->belongsToWorkingSchool($timetable)
         ) {
             return true;
@@ -101,8 +100,7 @@ class TimetablePolicy
     {
         if ($user->can('update timetable')
             && $timetable->status === TimetableStatus::Published
-            && $timetable->academicPeriod->isOpen()
-            && $timetable->academicPeriod->academicYear->isOpen()
+            && $this->canPlan($timetable)
             && $this->belongsToWorkingSchool($timetable)
         ) {
             return true;
@@ -147,6 +145,25 @@ class TimetablePolicy
     private function belongsToWorkingSchool(Timetable $timetable): bool
     {
         return current_school_id() === $timetable->academicPeriod?->school_id;
+    }
+
+    /**
+     * Check whether staff may prepare a timetable for the period.
+     *
+     * Scheduled periods need timetable planning before teaching starts. A
+     * closing or frozen period does not accept new timetable changes.
+     */
+    private function canPlan(Timetable $timetable): bool
+    {
+        $period = $timetable->academicPeriod;
+        $academicYear = $period?->academicYear;
+
+        return $period !== null
+            && $academicYear !== null
+            && !$period->status->isFrozen()
+            && $period->status !== AcademicPeriodStatus::Closing
+            && !$academicYear->status->isFrozen()
+            && $academicYear->status !== AcademicPeriodStatus::Closing;
     }
 
     /**

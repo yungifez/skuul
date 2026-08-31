@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AcademicPeriodStatus;
 use App\Livewire\CreateTimetableForm;
 use App\Models\AcademicPeriod;
 use App\Models\CustomTimetableItem;
@@ -255,6 +256,16 @@ class TimetableTest extends TestCase
     {
         $this->authorized_user(['update timetable'])
             ->get('/dashboard/timetables/1/manage')
+            ->assertOk();
+    }
+
+    public function test_authorized_user_can_manage_a_draft_for_a_scheduled_period(): void
+    {
+        $timetable = Timetable::factory()->create();
+        $timetable->academicPeriod()->update(['status' => AcademicPeriodStatus::Scheduled]);
+
+        $this->authorized_user(['update timetable'])
+            ->get(route('timetables.manage', $timetable))
             ->assertOk();
     }
 
