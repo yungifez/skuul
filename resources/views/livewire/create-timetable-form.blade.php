@@ -57,10 +57,12 @@
             </slot:content>
         </april:card>
 
-        <april:card>
-            <slot:title>Add calendar events</slot:title>
-            <slot:description>Build one event at a time. Start with what it is, then choose when it happens and add its details.</slot:description>
-            <slot:content>
+        <april:dialog dismissable x-effect="show = $wire.showEventDialog">
+            <slot:content class="sm:max-w-2xl">
+                <april:dialog-header>
+                    <slot:title>Add calendar event</slot:title>
+                    <slot:description>Build one event at a time. Start with what it is, then choose when it happens and add its details.</slot:description>
+                </april:dialog-header>
                 <div class="space-y-5">
                     @if ($eventStep === 1)
                         <div class="space-y-3">
@@ -108,11 +110,17 @@
                     @error('newEvent.*') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                 </div>
             </slot:content>
-        </april:card>
+        </april:dialog>
 
         <april:card>
             <slot:title>Calendar preview</slot:title>
-            <slot:description>{{ count($events) }} {{ Str::plural('event', count($events)) }} staged. Click a date in Month view to prefill a one-time event.</slot:description>
+            <slot:description>{{ count($events) }} {{ Str::plural('event', count($events)) }} staged. Click a date to open the event popup.</slot:description>
+            <slot:actions>
+                <button type="button" wire:click="openEventDialog" class="inline-flex h-9 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+                    <x-lucide-plus class="mr-2 size-4" />
+                    Add event
+                </button>
+            </slot:actions>
             <slot:content>
                 <div class="space-y-4">
                     <div class="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-muted/20 p-3">
@@ -138,7 +146,7 @@
                                     $dayEvents = $draftEvents->filter(fn (array $event): bool => $this->eventOccursOn($event, $date));
                                 @endphp
                                 <div wire:key="draft-week-day-{{ $date->toDateString() }}" class="min-h-48 bg-background p-2 {{ $date->toDateString() === $calendarDate ? 'ring-2 ring-inset ring-primary' : '' }}">
-                                    <button type="button" wire:click="chooseCalendarDate('{{ $date->toDateString() }}')" class="flex w-full items-center justify-between rounded px-1 py-1 text-left hover:bg-muted"><span class="text-xs font-semibold">{{ $date->format('D') }}</span><span class="text-xs text-muted-foreground">{{ $date->format('j M') }}</span></button>
+                                    <button type="button" wire:click="openEventDialog('{{ $date->toDateString() }}')" class="flex w-full items-center justify-between rounded px-1 py-1 text-left hover:bg-muted"><span class="text-xs font-semibold">{{ $date->format('D') }}</span><span class="text-xs text-muted-foreground">{{ $date->format('j M') }}</span></button>
                                     <div class="mt-3 space-y-2">
                                         @forelse ($dayEvents->sortBy('start_time') as $event)
                                             @php
@@ -164,7 +172,7 @@
                                     $dayEvents = $draftEvents->filter(fn (array $event): bool => $this->eventOccursOn($event, $date));
                                 @endphp
                                 <div wire:key="draft-month-day-{{ $date->toDateString() }}" class="min-h-24 bg-background p-2 {{ $date->month !== $monthStart->month ? 'bg-muted/20 text-muted-foreground' : '' }}">
-                                    <button type="button" wire:click="chooseCalendarDate('{{ $date->toDateString() }}')" class="flex size-7 items-center justify-center rounded-full text-xs font-semibold hover:bg-primary hover:text-primary-foreground {{ $date->toDateString() === $calendarDate ? 'bg-primary text-primary-foreground' : '' }}">{{ $date->day }}</button>
+                                    <button type="button" wire:click="openEventDialog('{{ $date->toDateString() }}')" class="flex size-7 items-center justify-center rounded-full text-xs font-semibold hover:bg-primary hover:text-primary-foreground {{ $date->toDateString() === $calendarDate ? 'bg-primary text-primary-foreground' : '' }}">{{ $date->day }}</button>
                                     <div class="mt-1 space-y-1">
                                         @foreach ($dayEvents as $event)
                                             <div wire:key="draft-month-event-{{ $date->toDateString() }}-{{ $loop->index }}" class="truncate rounded border border-primary/20 bg-primary/10 px-1 py-0.5 text-[0.65rem]" title="{{ $event['title'] ?: 'Subject' }}">{{ $event['start_time'] }} · {{ $event['type'] === 'subject' ? data_get(collect($subjects)->firstWhere('id', $event['subject_id']), 'name', 'Subject') : $event['title'] }}</div>

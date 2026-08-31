@@ -26,11 +26,13 @@ class CreateTimetableForm extends Component
 
     public string $scope = 'section';
 
-    public string $calendarView = 'week';
+    public string $calendarView = 'month';
 
     public string $calendarDate = '';
 
     public int $eventStep = 1;
+
+    public bool $showEventDialog = false;
 
     public bool $canCreateSchoolwide = false;
 
@@ -192,6 +194,24 @@ class CreateTimetableForm extends Component
         $this->newEvent['weekday_ids'] = $this->newEvent['weekday_id'] === null ? [] : [(int) $this->newEvent['weekday_id']];
     }
 
+    public function openEventDialog(?string $date = null): void
+    {
+        $this->resetErrorBag();
+
+        if ($date !== null) {
+            $this->chooseCalendarDate($date);
+        }
+
+        $this->eventStep = 1;
+        $this->showEventDialog = true;
+    }
+
+    public function closeEventDialog(): void
+    {
+        $this->showEventDialog = false;
+        $this->eventStep = 1;
+    }
+
     public function chooseEventType(string $type): void
     {
         if (!in_array($type, ['subject', 'role', 'freehand'], true)) {
@@ -311,6 +331,7 @@ class CreateTimetableForm extends Component
             : $this->newEvent['starts_on'];
         $this->newEvent['recurrence_weekdays'] = $this->newEvent['weekday_ids'];
         $this->eventStep = 1;
+        $this->showEventDialog = false;
     }
 
     public function eventOccursOn(array $event, Carbon $date): bool

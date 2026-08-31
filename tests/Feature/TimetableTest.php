@@ -61,16 +61,26 @@ class TimetableTest extends TestCase
         $this->authorized_user(['create timetable']);
 
         Livewire::test(CreateTimetableForm::class)
+            ->assertSet('calendarView', 'month')
             ->assertSet('eventStep', 1)
+            ->assertSet('showEventDialog', false)
             ->assertSee('What are you adding?')
             ->assertDontSee('On weekdays')
+            ->call('openEventDialog')
+            ->assertSet('showEventDialog', true)
             ->call('chooseEventType', 'subject')
             ->assertSet('eventStep', 2)
             ->assertSee('When does it happen?')
             ->assertSee('On these weekdays')
             ->call('continueEventSchedule')
             ->assertSet('eventStep', 3)
-            ->assertSee('Add the details');
+            ->assertSee('Add the details')
+            ->call('closeEventDialog')
+            ->assertSet('showEventDialog', false)
+            ->call('openEventDialog', '2030-09-11')
+            ->assertSet('calendarView', 'month')
+            ->assertSet('newEvent.recurrence', 'one_time')
+            ->assertSet('newEvent.occurs_on', '2030-09-11');
     }
 
     public function test_user_can_create_a_schoolwide_recurring_timetable_with_a_role_event(): void
@@ -209,12 +219,21 @@ class TimetableTest extends TestCase
         $timetable = Timetable::factory()->create();
 
         Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->assertSet('calendarView', 'month')
+            ->call('openTimeSlotDialog', '2030-09-08')
+            ->assertSet('showTimeSlotDialog', true)
+            ->assertSet('calendarView', 'month')
+            ->assertSet('slotRecurrence', 'one_time')
+            ->assertSet('slotOccursOn', '2030-09-08')
+            ->call('closeTimeSlotDialog')
+            ->assertSet('showTimeSlotDialog', false)
             ->call('setCalendarView', 'month')
             ->assertSet('calendarView', 'month')
             ->call('setCalendarView', 'day')
             ->assertSet('calendarView', 'day')
             ->call('chooseCalendarDate', '2030-09-08')
-            ->assertSet('calendarDate', '2030-09-08');
+            ->assertSet('calendarDate', '2030-09-08')
+            ->assertSet('calendarView', 'day');
     }
 
     public function test_a_time_slot_can_use_an_explicit_term_scoped_weekly_rule(): void

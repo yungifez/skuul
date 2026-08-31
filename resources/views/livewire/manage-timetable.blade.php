@@ -63,7 +63,7 @@
                                 <span class="text-sm text-muted-foreground">{{ $event['time'] }}</span>
                             </button>
                         @empty
-                            <button type="button" wire:click="setCalendarView('week')" class="w-full rounded-md border border-dashed p-10 text-center text-sm text-muted-foreground hover:border-primary">No events on this date. Choose a time slot from the week view to add one.</button>
+                            <button type="button" wire:click="openTimeSlotDialog('{{ $calendarDate }}')" class="w-full rounded-md border border-dashed p-10 text-center text-sm text-muted-foreground hover:border-primary">No events on this date. Add a time slot for {{ \Illuminate\Support\Carbon::parse($calendarDate)->format('j F') }}.</button>
                         @endforelse
                     </div>
                 @else
@@ -75,7 +75,7 @@
                             @foreach ($this->monthWeeks as $week)
                                 @foreach ($week as $day)
                                     <div wire:key="month-day-{{ $day['date'] }}" class="min-h-28 bg-background p-2 {{ !$day['in_month'] ? 'bg-muted/20 text-muted-foreground' : '' }} {{ !$day['in_period'] && $day['in_month'] ? 'bg-amber-50/50 dark:bg-amber-950/10' : '' }}">
-                                        <button type="button" wire:click="chooseCalendarDate('{{ $day['date'] }}')" class="mb-2 flex size-7 items-center justify-center rounded-full text-xs font-semibold hover:bg-primary hover:text-primary-foreground {{ $day['date'] === $calendarDate ? 'bg-primary text-primary-foreground' : '' }}">{{ $day['day'] }}</button>
+                                        <button type="button" wire:click="openTimeSlotDialog('{{ $day['date'] }}')" class="mb-2 flex size-7 items-center justify-center rounded-full text-xs font-semibold hover:bg-primary hover:text-primary-foreground {{ $day['date'] === $calendarDate ? 'bg-primary text-primary-foreground' : '' }}">{{ $day['day'] }}</button>
                                         <div class="space-y-1">
                                             @foreach ($day['events'] as $event)
                                                 <button wire:key="month-event-{{ $day['date'] }}-{{ $event['key'] }}" type="button" wire:click="selectCell({{ explode(':', $event['key'])[0] }}, {{ explode(':', $event['key'])[1] }})" class="block w-full truncate rounded border border-primary/20 bg-primary/10 px-1.5 py-1 text-left text-[0.7rem] hover:border-primary" title="{{ $event['name'] }} · {{ $event['time'] }}">
@@ -90,100 +90,97 @@
                     </div>
                 @endif
 
-                <div class="rounded-lg border border-dashed bg-muted/20 p-4">
-                    <div class="mb-4 flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                            <p class="text-sm font-semibold">Add a time slot</p>
-                            <p class="text-sm text-muted-foreground">Add a row to this calendar, then click its cells to place lessons or events.</p>
-                            <p class="mt-2 text-sm font-medium text-foreground">{{ $this->slotDraftRuleLabel() }}</p>
-                        </div>
-                        <button type="button" wire:click="toggleRecurrenceOptions" class="inline-flex h-9 items-center rounded-md border bg-background px-3 text-sm font-medium hover:bg-muted">
-                            {{ $showRecurrenceOptions ? 'Hide schedule options' : 'Change schedule' }}
-                        </button>
+                <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed bg-muted/20 p-4">
+                    <div>
+                        <p class="text-sm font-semibold">Add a time slot</p>
+                        <p class="text-sm text-muted-foreground">Click a date or add a row, then place lessons or events in it.</p>
                     </div>
-
-                    <form wire:submit="addTimeSlot" class="grid gap-4 md:grid-cols-2 xl:grid-cols-6 xl:items-end">
-                        <div class="min-w-0 space-y-2">
-                            <april:label for="start-time">Starts</april:label>
-                            <input type="time" id="start-time" wire:model="startTime"
-                                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                            @error('startTime') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
-                        </div>
-                        <div class="min-w-0 space-y-2">
-                            <april:label for="stop-time">Ends</april:label>
-                            <input type="time" id="stop-time" wire:model="stopTime"
-                                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                            @error('stopTime') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
-                        </div>
-                        @if ($showRecurrenceOptions)
-                        <div class="min-w-0 space-y-2">
-                            <april:label for="slot-recurrence">Repeat</april:label>
-                            <select id="slot-recurrence" wire:model.live="slotRecurrence"
-                                class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                                <option value="weekly">Every week(s)</option>
-                                <option value="monthly">Every month(s)</option>
-                                <option value="one_time">One date only</option>
-                            </select>
-                            @error('slotRecurrence') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
-                        </div>
-                            @if ($slotRecurrence !== 'one_time')
-                            <div class="min-w-0 space-y-2">
-                                <april:label for="slot-recurrence-interval">Repeats every</april:label>
-                                <div class="flex items-center gap-2">
-                                    <input type="number" id="slot-recurrence-interval" min="1" max="52" wire:model.number="slotRecurrenceInterval"
-                                        class="flex h-10 w-20 rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                                    <span class="text-sm text-muted-foreground">{{ $slotRecurrence === 'monthly' ? 'month(s)' : 'week(s)' }}</span>
-                                </div>
-                                @error('slotRecurrenceInterval') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
-                            </div>
-                            <div class="min-w-0 space-y-2">
-                                <april:label for="slot-starts-on">Starts on</april:label>
-                                <input type="date" id="slot-starts-on" wire:model.live="slotStartsOn"
-                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                                @error('slotStartsOn') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
-                            </div>
-                            @endif
-                            @if ($slotRecurrence === 'one_time')
-                            <div class="min-w-0 space-y-2">
-                                <april:label for="slot-occurs-on">Date</april:label>
-                                <input type="date" id="slot-occurs-on" wire:model="slotOccursOn"
-                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                                @error('slotOccursOn') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
-                            </div>
-                            @endif
-                            @if ($slotRecurrence === 'weekly')
-                            <fieldset class="space-y-2 md:col-span-2 xl:col-span-6">
-                                <legend class="text-sm font-medium">On these weekdays</legend>
-                                <div class="flex flex-wrap gap-2">
-                                    @foreach ($weekdayMap as $weekdayName => $weekdayId)
-                                        <label class="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/10">
-                                            <input type="checkbox" wire:model="slotWeekdayIds" value="{{ $weekdayId }}" class="size-4 rounded border-input text-primary focus:ring-primary">
-                                            {{ $weekdayName }}
-                                        </label>
-                                    @endforeach
-                                </div>
-                                @error('slotWeekdayIds') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
-                            </fieldset>
-                            @endif
-                            @if ($slotRecurrence !== 'one_time')
-                            <p class="text-xs text-muted-foreground md:col-span-2 xl:col-span-6">
-                                This rule runs from {{ $slotStartsOn ?: 'the start date' }} until {{ $timetable->academicPeriod?->ends_on?->toDateString() ?? 'the term ends' }}. Change the term dates later and this recurring slot follows them.
-                            </p>
-                            @endif
-                        @endif
-                        <div class="min-w-0 md:col-span-2 xl:col-span-1">
-                            <april:button type="submit" class="w-full">
-                                <x-lucide-plus class="mr-2 size-4" />
-                                Add time slot
-                            </april:button>
-                        </div>
-                    </form>
+                    <button type="button" wire:click="openTimeSlotDialog" class="inline-flex h-9 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+                        <x-lucide-plus class="mr-2 size-4" />
+                        Add time slot
+                    </button>
                 </div>
 
                 <div wire:loading class="text-xs text-muted-foreground">Saving…</div>
             </div>
         </slot:content>
     </april:card>
+
+    <april:dialog dismissable x-effect="show = $wire.showTimeSlotDialog">
+        <slot:content class="sm:max-w-2xl">
+            <april:dialog-header>
+                <slot:title>Add a time slot</slot:title>
+                <slot:description>Create the row that holds lessons or events. Recurring slots stop at the term end.</slot:description>
+            </april:dialog-header>
+
+            <form wire:submit="addTimeSlot" class="space-y-5">
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div class="min-w-0 space-y-2">
+                        <april:label for="dialog-start-time">Starts</april:label>
+                        <input type="time" id="dialog-start-time" wire:model="startTime" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                        @error('startTime') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="min-w-0 space-y-2">
+                        <april:label for="dialog-stop-time">Ends</april:label>
+                        <input type="time" id="dialog-stop-time" wire:model="stopTime" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                        @error('stopTime') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                    </div>
+                </div>
+
+                <div class="rounded-lg border bg-muted/20 p-4">
+                    <div class="flex items-start justify-between gap-3">
+                        <div>
+                            <p class="text-sm font-medium">Schedule</p>
+                            <p class="mt-1 text-sm text-muted-foreground">{{ $this->slotDraftRuleLabel() }}</p>
+                        </div>
+                        <button type="button" wire:click="toggleRecurrenceOptions" class="inline-flex h-9 items-center rounded-md border bg-background px-3 text-sm font-medium hover:bg-muted">
+                            {{ $showRecurrenceOptions ? 'Hide options' : 'Change schedule' }}
+                        </button>
+                    </div>
+
+                    @if ($showRecurrenceOptions)
+                        <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                            <div class="min-w-0 space-y-2">
+                                <april:label for="dialog-slot-recurrence">Repeat</april:label>
+                                <select id="dialog-slot-recurrence" wire:model.live="slotRecurrence" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                                    <option value="weekly">Every week(s)</option>
+                                    <option value="monthly">Every month(s)</option>
+                                    <option value="one_time">One date only</option>
+                                </select>
+                                @error('slotRecurrence') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                            </div>
+                            @if ($slotRecurrence === 'one_time')
+                                <div class="min-w-0 space-y-2">
+                                    <april:label for="dialog-slot-occurs-on">Date</april:label>
+                                    <input type="date" id="dialog-slot-occurs-on" wire:model="slotOccursOn" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                                    @error('slotOccursOn') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                </div>
+                            @else
+                                <div class="min-w-0 space-y-2">
+                                    <april:label for="dialog-slot-recurrence-interval">Repeats every</april:label>
+                                    <div class="flex items-center gap-2"><input type="number" id="dialog-slot-recurrence-interval" min="1" max="52" wire:model.number="slotRecurrenceInterval" class="flex h-10 w-20 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"><span class="text-sm text-muted-foreground">{{ $slotRecurrence === 'monthly' ? 'month(s)' : 'week(s)' }}</span></div>
+                                    @error('slotRecurrenceInterval') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                </div>
+                                <div class="min-w-0 space-y-2">
+                                    <april:label for="dialog-slot-starts-on">Starts on</april:label>
+                                    <input type="date" id="dialog-slot-starts-on" wire:model.live="slotStartsOn" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                                    @error('slotStartsOn') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                </div>
+                            @endif
+                        </div>
+                        @if ($slotRecurrence === 'weekly')
+                            <fieldset class="mt-4 space-y-2"><legend class="text-sm font-medium">On these weekdays</legend><div class="flex flex-wrap gap-2">@foreach ($weekdayMap as $weekdayName => $weekdayId)<label class="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/10"><input type="checkbox" wire:model="slotWeekdayIds" value="{{ $weekdayId }}" class="size-4 rounded border-input text-primary focus:ring-primary">{{ $weekdayName }}</label>@endforeach</div>@error('slotWeekdayIds') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</fieldset>
+                        @endif
+                    @endif
+                </div>
+
+                <april:dialog-footer>
+                    <april:button type="button" variant="outline" wire:click="closeTimeSlotDialog">Cancel</april:button>
+                    <april:button type="submit">Add time slot</april:button>
+                </april:dialog-footer>
+            </form>
+        </slot:content>
+    </april:dialog>
 
     @if ($this->selectedLabel !== null)
         <april:card class="border-primary">

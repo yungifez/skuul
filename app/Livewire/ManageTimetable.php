@@ -31,7 +31,7 @@ class ManageTimetable extends Component
 {
     public Timetable $timetable;
 
-    public string $calendarView = 'week';
+    public string $calendarView = 'month';
 
     public string $calendarDate = '';
 
@@ -57,6 +57,8 @@ class ManageTimetable extends Component
     public string $slotRecurrence = 'weekly';
 
     public bool $showRecurrenceOptions = false;
+
+    public bool $showTimeSlotDialog = false;
 
     public int $slotRecurrenceInterval = 1;
 
@@ -117,11 +119,26 @@ class ManageTimetable extends Component
     public function chooseCalendarDate(string $date): void
     {
         $this->calendarDate = Carbon::parse($date)->toDateString();
-        $this->slotRecurrence = 'one_time';
-        $this->showRecurrenceOptions = true;
         $this->slotOccursOn = $this->calendarDate;
-        $this->calendarView = 'day';
         $this->refreshWeek();
+    }
+
+    public function openTimeSlotDialog(?string $date = null): void
+    {
+        if ($date !== null) {
+            $this->chooseCalendarDate($date);
+            $this->slotRecurrence = 'one_time';
+            $this->slotOccursOn = $this->calendarDate;
+        }
+
+        $this->showTimeSlotDialog = true;
+        $this->showRecurrenceOptions = $date !== null;
+    }
+
+    public function closeTimeSlotDialog(): void
+    {
+        $this->showTimeSlotDialog = false;
+        $this->showRecurrenceOptions = false;
     }
 
     public function updatedSlotStartsOn(?string $date): void
@@ -346,6 +363,8 @@ class ManageTimetable extends Component
             $this->slotStartsOn = $this->timetable->academicPeriod?->starts_on?->toDateString() ?? now()->toDateString();
             $this->slotOccursOn = $this->timetable->academicPeriod?->starts_on?->toDateString();
             $this->slotWeekdayIds = [$this->weekdayMap[Carbon::parse($this->slotStartsOn)->englishDayOfWeek] ?? 1];
+            $this->showTimeSlotDialog = false;
+            $this->showRecurrenceOptions = false;
         });
     }
 
