@@ -31,6 +31,13 @@ class ManageTimetable extends Component
 {
     public Timetable $timetable;
 
+    public string $calendarView = 'week';
+
+    public string $calendarDate = '';
+
+    /** @var array<string, int> */
+    public array $weekdayMap = [];
+
     /**
      * The cell being worked on, as "timeSlotId:weekdayId".
      */
@@ -63,8 +70,101 @@ class ManageTimetable extends Component
 
     public function mount(): void
     {
-        $this->slotOccursOn = $this->timetable->academicPeriod?->starts_on?->toDateString();
+        $period = $this->timetable->academicPeriod;
+        $this->calendarDate = $period?->starts_on?->toDateString() ?? now()->toDateString();
+        $this->slotOccursOn = $this->calendarDate;
+        $this->weekdayMap = Weekday::query()->pluck('id', 'name')->all();
         $this->refreshWeek();
+    }
+
+    public function setCalendarView(string $view): void
+    {
+        if (in_array($view, ['day', 'week', 'month'], true)) {
+            $this->calendarView = $view;
+            $this->refreshWeek();
+        }
+    }
+
+    public function moveCalendar(int $direction): void
+    {
+        $date = Carbon::parse($this->calendarDate);
+        $this->calendarDate = ($this->calendarView === 'month'
+            ? $date->addMonths($direction)
+            : $date->addWeeks($direction)
+        )->toDateString();
+        $this->slotOccursOn = $this->calendarDate;
+        $this->refreshWeek();
+    }
+
+    public function goToCalendarToday(): void
+    {
+        $this->calendarDate = now()->toDateString();
+        $this->slotOccursOn = $this->calendarDate;
+        $this->refreshWeek();
+    }
+
+    public function chooseCalendarDate(string $date): void
+    {
+        $this->calendarDate = Carbon::parse($date)->toDateString();
+        $this->slotOccursOn = $this->calendarDate;
+        $this->calendarView = 'day';
+        $this->refreshWeek();
+    }
+
+    /**
+     * Build the month as calendar weeks, including the events that fall on
+     * each date. Recurring entries remain term-scoped because the timetable
+     * owns the academic period rather than a copied end date.
+     *
+     * @return array<int, array<int, array{date: string, day: int, in_month: bool, in_period: bool, events: array<int, array<string, mixed>>}>>
+     */
+    #[Computed]
+    public function monthWeeks(): array
+    {
+        $month = Carbon::parse($this->calendarDate)->startOfMonth();
+        $cursor = $month->copy()->startOfWeek(Carbon::MONDAY);
+        $period = $this->timetable->academicPeriod;
+        $weeks = [];
+
+        for ($week = 0; $week < 6; $week++) {
+            $days = [];
+
+            for ($day = 0; $day < 7; $day++) {
+                $date = $cursor->copy();
+                $days[] = [
+                    'date' => $date->toDateString(),
+                    'day' => $date->day,
+                    'in_month' => $date->month === $month->month,
+                    'in_period' => $period?->covers($date) ?? false,
+                    'events' => $this->eventsForDate($date),
+                ];
+                $cursor->addDay();
+            }
+
+            $weeks[] = $days;
+        }
+
+        return $weeks;
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    #[Computed]
+    public function dayEvents(): array
+    {
+        return $this->eventsForDate(Carbon::parse($this->calendarDate));
+    }
+
+    public function calendarHeading(): string
+    {
+        $date = Carbon::parse($this->calendarDate);
+
+        return match ($this->calendarView) {
+            'day' => $date->format('l, j F Y'),
+            'month' => $date->format('F Y'),
+            default => $date->copy()->startOfWeek(Carbon::MONDAY)->format('j M').' – '.$date->copy()->endOfWeek(Carbon::SUNDAY)->format('j M Y'),
+        };
     }
 
     /**
@@ -301,9 +401,57 @@ class ManageTimetable extends Component
     private function refreshWeek(): void
     {
         $this->timetable->refresh();
-        $this->grid = app(TimetableGrid::class)->of($this->timetable);
+        $this->grid = app(TimetableGrid::class)->of(
+            $this->timetable,
+            Carbon::parse($this->calendarDate)->startOfWeek(Carbon::MONDAY),
+        );
         $this->conflicts = app(TimetableConflictChecker::class)->conflicts($this->timetable);
-        unset($this->timeSlots, $this->selectedLabel);
+        unset($this->timeSlots, $this->selectedLabel, $this->monthWeeks, $this->dayEvents);
+    }
+
+    /**
+     * Read all entries that occur on one actual date.
+     *
+     * @return array<int, array{key: string, time: string, name: string, kind: string, audience_role: string|null}>
+     */
+    private function eventsForDate(Carbon $date): array
+    {
+        $weekdayId = $this->weekdayMap[$date->englishDayOfWeek] ?? null;
+
+        if ($weekdayId === null) {
+            return [];
+        }
+
+        $events = [];
+
+        foreach ($this->grid['rows'] as $row) {
+            $cell = $row['cells'][$weekdayId] ?? null;
+
+            if ($cell === null || $cell['kind'] === null) {
+                continue;
+            }
+
+            if ($row['recurrence'] === 'one_time' && $row['occurs_on'] !== $date->toDateString()) {
+                continue;
+            }
+
+            if ($row['recurrence'] === 'weekly'
+                && $this->timetable->academicPeriod !== null
+                && !$this->timetable->academicPeriod->covers($date)
+            ) {
+                continue;
+            }
+
+            $events[] = [
+                'key' => $row['id'].':'.$weekdayId,
+                'time' => $row['start'].'–'.$row['stop'],
+                'name' => $cell['name'],
+                'kind' => $cell['kind'],
+                'audience_role' => $cell['audience_role'],
+            ];
+        }
+
+        return $events;
     }
 
     private function validSlotDate(): bool

@@ -33,15 +33,18 @@
                     </th>
                     @foreach ($weekdays as $weekday)
                         <th scope="col" class="rounded-md bg-muted/60 px-2 py-2 text-center text-xs font-semibold">
-                            <span class="hidden sm:inline">{{ $weekday['name'] }}</span>
-                            <span class="sm:hidden">{{ $weekday['short'] }}</span>
+                            <span class="block hidden sm:inline">{{ $weekday['name'] }}</span>
+                            <span class="block sm:hidden">{{ $weekday['short'] }}</span>
+                            @if ($weekday['date'])
+                                <span class="mt-1 block text-[0.7rem] font-normal text-muted-foreground">{{ \Illuminate\Support\Carbon::parse($weekday['date'])->format('j M') }}</span>
+                            @endif
                         </th>
                     @endforeach
                 </tr>
             </thead>
             <tbody>
                 @foreach ($grid['rows'] as $row)
-                    <tr>
+                    <tr wire:key="timetable-row-{{ $row['id'] }}">
                         <th scope="row" class="whitespace-nowrap rounded-md bg-muted/60 px-2 py-2 text-left align-middle text-xs font-medium">
                             {{ $row['start'] }}
                             <span class="block font-normal text-muted-foreground">{{ $row['stop'] }}</span>
@@ -60,7 +63,7 @@
                                 };
                             @endphp
 
-                            <td class="p-0 align-top">
+                            <td wire:key="timetable-cell-{{ $row['id'] }}-{{ $weekday['id'] }}" class="p-0 align-top">
                                 @if ($editable && $isActive)
                                     <button type="button"
                                         wire:click="selectCell({{ $row['id'] }}, {{ $weekday['id'] }})"

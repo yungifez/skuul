@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\AcademicPeriodStatus;
 use App\Livewire\CreateTimetableForm;
+use App\Livewire\ManageTimetable;
 use App\Models\AcademicPeriod;
 use App\Models\CustomTimetableItem;
 use App\Models\Timetable;
@@ -163,6 +164,40 @@ class TimetableTest extends TestCase
         $this->assertSame(2, $timetable->timeSlots()->count());
         $this->assertSame(1, $timetable->timeSlots()->where('recurrence', 'weekly')->count());
         $this->assertSame(1, $timetable->timeSlots()->where('recurrence', 'one_time')->count());
+    }
+
+    public function test_a_recurring_event_can_be_added_to_multiple_weekdays(): void
+    {
+        $this->authorized_user(['create timetable']);
+        $weekdays = Weekday::query()->whereIn('name', ['Monday', 'Wednesday'])->get();
+
+        Livewire::test(CreateTimetableForm::class)
+            ->set('name', 'Multi-day timetable')
+            ->set('newEvent.weekday_ids', $weekdays->pluck('id')->all())
+            ->set('newEvent.type', 'freehand')
+            ->set('newEvent.title', 'Morning registration')
+            ->call('addEvent')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $timetable = Timetable::query()->where('name', 'Multi-day timetable')->firstOrFail();
+
+        $this->assertSame(1, $timetable->timeSlots()->count());
+        $this->assertSame($weekdays->count(), $timetable->timeSlots()->firstOrFail()->weekdays()->count());
+    }
+
+    public function test_the_calendar_can_switch_between_week_and_month_views(): void
+    {
+        $this->authorized_user(['update timetable']);
+        $timetable = Timetable::factory()->create();
+
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->call('setCalendarView', 'month')
+            ->assertSet('calendarView', 'month')
+            ->call('setCalendarView', 'day')
+            ->assertSet('calendarView', 'day')
+            ->call('chooseCalendarDate', '2030-09-08')
+            ->assertSet('calendarDate', '2030-09-08');
     }
 
     // test unauthorized user can't view edit timetable

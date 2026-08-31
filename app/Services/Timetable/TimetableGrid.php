@@ -26,16 +26,18 @@ class TimetableGrid
      * Build the whole week of one timetable.
      *
      * @return array{
-     *     weekdays: array<int, array{id: int, name: string, short: string, used: bool, is_weekend: bool}>,
+     *     weekdays: array<int, array{id: int, name: string, short: string, date: string|null, used: bool, is_weekend: bool}>,
      *     rows: array<int, array{id: int, start: string, stop: string, recurrence: string, occurs_on: string|null, cells: array<int, array{active: bool, kind: string|null, name: string|null, teachers: array<int, string>, audience_role: string|null, recurrence: string, occurs_on: string|null}>}>,
      *     slot_count: int,
      *     filled_count: int,
      *     empty_count: int
      * }
      */
-    public function of(Timetable $timetable): array
+    public function of(Timetable $timetable, ?Carbon $weekStart = null): array
     {
         $weekdays = Weekday::query()->orderBy('id')->get(['id', 'name']);
+        $weekStart = $weekStart?->copy()->startOfWeek(Carbon::MONDAY);
+        $period = $timetable->academicPeriod;
         $slots = $timetable->timeSlots()->get()->sortBy('start_time')->values();
         $records = $this->recordsOf($slots->pluck('id')->all());
         $names = $this->namesOf($records);
@@ -47,12 +49,18 @@ class TimetableGrid
 
         foreach ($slots as $slot) {
             $cells = [];
+            $oneTimeDate = $slot->recurrence === 'one_time' && $slot->occurs_on !== null
+                ? $slot->occurs_on->toDateString()
+                : null;
             $oneTimeWeekdayId = $slot->recurrence === 'one_time' && $slot->occurs_on !== null
                 ? $weekdays->firstWhere('name', Carbon::parse($slot->occurs_on)->englishDayOfWeek)?->id
                 : null;
 
-            foreach ($weekdays as $weekday) {
-                $active = $slot->recurrence !== 'one_time' || $weekday->id === $oneTimeWeekdayId;
+            foreach ($weekdays as $weekdayIndex => $weekday) {
+                $date = $weekStart?->copy()->addDays($weekdayIndex);
+                $active = $slot->recurrence !== 'one_time'
+                    ? ($date === null || $period === null || $period->covers($date))
+                    : ($date !== null ? $date->toDateString() === $oneTimeDate : $weekday->id === $oneTimeWeekdayId);
                 $record = $records->get($slot->id.':'.$weekday->id);
                 $cell = $this->cellOf($record, $names, $teachers);
                 $cell['active'] = $active;
@@ -81,10 +89,11 @@ class TimetableGrid
 
         return [
             'weekdays' => $weekdays
-                ->map(fn (Weekday $weekday): array => [
+                ->map(fn (Weekday $weekday, int $weekdayIndex): array => [
                     'id' => $weekday->id,
                     'name' => $weekday->name,
                     'short' => substr($weekday->name, 0, 3),
+                    'date' => $weekStart?->copy()->addDays($weekdayIndex)->toDateString(),
                     'used' => isset($used[$weekday->id]),
                     // A school that teaches at the weekend places lessons
                     // there, and only then does the day earn a column.

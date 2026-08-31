@@ -1,3 +1,12 @@
+@php
+    $selectedPeriod = collect($periods)->firstWhere('id', $academicPeriodId);
+    $calendarAnchor = \Illuminate\Support\Carbon::parse($calendarDate ?: now()->toDateString());
+    $weekStart = $calendarAnchor->copy()->startOfWeek(\Illuminate\Support\Carbon::MONDAY);
+    $monthStart = $calendarAnchor->copy()->startOfMonth();
+    $monthCursor = $monthStart->copy()->startOfWeek(\Illuminate\Support\Carbon::MONDAY);
+    $draftEvents = collect($events);
+@endphp
+
 <div class="space-y-6">
     @if ($periods === [])
         <april:card>
@@ -8,7 +17,7 @@
     @else
         <april:card>
             <slot:title>Build a timetable</slot:title>
-            <slot:description>Give the timetable a home, then add events. Each event can repeat every week or happen once.</slot:description>
+            <slot:description>Choose the term and calendar scope. Recurring entries follow the selected term automatically.</slot:description>
             <slot:content>
                 <div class="grid gap-4 lg:grid-cols-2">
                     <div class="flex flex-col gap-2 lg:col-span-2">
@@ -18,7 +27,7 @@
                     </div>
                     <div class="flex flex-col gap-2">
                         <label for="academic-period" class="text-sm font-medium">Academic period *</label>
-                        <select id="academic-period" wire:model="academicPeriodId" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                        <select id="academic-period" wire:model.live="academicPeriodId" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
                             @foreach ($periods as $period)
                                 <option value="{{ $period['id'] }}">{{ $period['name'] }}{{ $period['starts_on'] ? ' · '.$period['starts_on'].' to '.$period['ends_on'] : '' }}</option>
                             @endforeach
@@ -50,50 +59,122 @@
 
         <april:card>
             <slot:title>Add calendar events</slot:title>
-            <slot:description>A subject belongs to the selected section. A role event is shown to that staff role. Freehand is for anything else.</slot:description>
+            <slot:description>Click a date to add a one-time event, or choose one or more weekdays for a recurring event.</slot:description>
             <slot:content>
-                <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-6 xl:items-end">
-                    <div class="flex flex-col gap-2"><label for="event-recurrence" class="text-sm font-medium">When</label><select id="event-recurrence" wire:model.live="newEvent.recurrence" class="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="weekly">Every week</option><option value="one_time">One date</option></select></div>
-                    @if ($newEvent['recurrence'] === 'weekly')
-                        <div class="flex flex-col gap-2"><label for="event-weekday" class="text-sm font-medium">Day</label><select id="event-weekday" wire:model="newEvent.weekday_id" class="h-10 rounded-md border border-input bg-background px-3 text-sm">@foreach ($weekdays as $weekday)<option value="{{ $weekday['id'] }}">{{ $weekday['name'] }}</option>@endforeach</select></div>
-                    @else
-                        <div class="flex flex-col gap-2"><label for="event-occurs-on" class="text-sm font-medium">Date *</label><input id="event-occurs-on" type="date" wire:model.live="newEvent.occurs_on" class="h-10 rounded-md border border-input bg-background px-3 text-sm">@error('newEvent.occurs_on') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
-                    @endif
-                    <div class="flex flex-col gap-2"><label for="event-start" class="text-sm font-medium">Starts</label><input id="event-start" type="time" wire:model="newEvent.start_time" class="h-10 rounded-md border border-input bg-background px-3 text-sm"></div>
-                    <div class="flex flex-col gap-2"><label for="event-stop" class="text-sm font-medium">Ends</label><input id="event-stop" type="time" wire:model="newEvent.stop_time" class="h-10 rounded-md border border-input bg-background px-3 text-sm"></div>
-                    <div class="flex flex-col gap-2"><label for="event-type" class="text-sm font-medium">Event type</label><select id="event-type" wire:model.live="newEvent.type" class="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="subject">Subject</option><option value="role">Role event</option><option value="freehand">Freehand</option></select></div>
-                    @if ($newEvent['type'] === 'subject')
-                        <div class="flex flex-col gap-2 xl:col-span-2"><label for="event-subject" class="text-sm font-medium">Subject</label><select id="event-subject" wire:model="newEvent.subject_id" class="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="">Choose a subject</option>@foreach ($subjects as $subject)<option value="{{ $subject['id'] }}">{{ $subject['name'] }}</option>@endforeach</select></div>
-                    @else
-                        <div class="flex flex-col gap-2"><label for="event-title" class="text-sm font-medium">Title</label><input id="event-title" wire:model="newEvent.title" placeholder="Assembly, duty, club…" class="h-10 rounded-md border border-input bg-background px-3 text-sm"></div>
-                    @endif
-                    @if ($newEvent['type'] === 'role')
-                        <div class="flex flex-col gap-2"><label for="event-role" class="text-sm font-medium">Visible to</label><select id="event-role" wire:model="newEvent.audience_role" class="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="">Choose a role</option>@foreach ($roles as $role)<option value="{{ $role['id'] }}">{{ $role['name'] }}</option>@endforeach</select></div>
-                    @endif
-                    <div class="xl:col-span-6"><button type="button" wire:click="addEvent" class="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">Add to calendar</button></div>
+                <div class="space-y-5">
+                    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-6 xl:items-end">
+                        <div class="flex flex-col gap-2"><label for="event-recurrence" class="text-sm font-medium">Repeat</label><select id="event-recurrence" wire:model.live="newEvent.recurrence" class="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="weekly">Every week</option><option value="one_time">Does not repeat</option></select></div>
+                        @if ($newEvent['recurrence'] === 'weekly')
+                            <div class="flex flex-col gap-2 md:col-span-2 xl:col-span-3">
+                                <span class="text-sm font-medium">On weekdays</span>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach ($weekdays as $weekday)
+                                        <label class="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/10">
+                                            <input type="checkbox" wire:model="newEvent.weekday_ids" value="{{ $weekday['id'] }}" class="rounded border-input text-primary focus:ring-primary">
+                                            {{ $weekday['name'] }}
+                                        </label>
+                                    @endforeach
+                                </div>
+                                @error('newEvent.weekday_ids') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                            </div>
+                        @else
+                            <div class="flex flex-col gap-2 md:col-span-2"><label for="event-occurs-on" class="text-sm font-medium">Date *</label><input id="event-occurs-on" type="date" wire:model.live="newEvent.occurs_on" class="h-10 rounded-md border border-input bg-background px-3 text-sm">@error('newEvent.occurs_on') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
+                        @endif
+                        <div class="flex flex-col gap-2"><label for="event-start" class="text-sm font-medium">Starts</label><input id="event-start" type="time" wire:model="newEvent.start_time" class="h-10 rounded-md border border-input bg-background px-3 text-sm"></div>
+                        <div class="flex flex-col gap-2"><label for="event-stop" class="text-sm font-medium">Ends</label><input id="event-stop" type="time" wire:model="newEvent.stop_time" class="h-10 rounded-md border border-input bg-background px-3 text-sm"></div>
+                        <div class="flex flex-col gap-2"><label for="event-type" class="text-sm font-medium">Event type</label><select id="event-type" wire:model.live="newEvent.type" class="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="subject">Subject lesson</option><option value="role">Role event</option><option value="freehand">Freehand</option></select></div>
+                        @if ($newEvent['type'] === 'subject')
+                            <div class="flex flex-col gap-2 xl:col-span-2"><label for="event-subject" class="text-sm font-medium">Subject</label><select id="event-subject" wire:model="newEvent.subject_id" class="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="">Choose a subject</option>@foreach ($subjects as $subject)<option value="{{ $subject['id'] }}">{{ $subject['name'] }}</option>@endforeach</select></div>
+                        @else
+                            <div class="flex flex-col gap-2"><label for="event-title" class="text-sm font-medium">Title</label><input id="event-title" wire:model="newEvent.title" placeholder="Assembly, duty, club…" class="h-10 rounded-md border border-input bg-background px-3 text-sm"></div>
+                        @endif
+                        @if ($newEvent['type'] === 'role')
+                            <div class="flex flex-col gap-2"><label for="event-role" class="text-sm font-medium">Visible to</label><select id="event-role" wire:model="newEvent.audience_role" class="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="">Choose a role</option>@foreach ($roles as $role)<option value="{{ $role['id'] }}">{{ $role['name'] }}</option>@endforeach</select></div>
+                        @endif
+                    </div>
+
+                    <div class="rounded-md border border-primary/20 bg-primary/5 p-3 text-sm">
+                        <p class="font-medium">Term-scoped recurrence</p>
+                        <p class="mt-1 text-muted-foreground">{{ $selectedPeriod['name'] ?? 'Selected period' }} runs from {{ $selectedPeriod['starts_on'] ?? 'its start date' }} to {{ $selectedPeriod['ends_on'] ?? 'its end date' }}. Weekly events follow these dates if the term is moved later.</p>
+                        @if ($newEvent['recurrence'] === 'weekly')
+                            <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                                <div class="flex flex-col gap-1"><label for="event-term-start" class="text-xs font-medium text-muted-foreground">Recurrence starts</label><input id="event-term-start" type="date" value="{{ $selectedPeriod['starts_on'] ?? '' }}" readonly class="h-9 rounded-md border border-input bg-background px-3 text-sm text-muted-foreground"></div>
+                                <div class="flex flex-col gap-1"><label for="event-term-end" class="text-xs font-medium text-muted-foreground">Recurrence ends</label><input id="event-term-end" type="date" value="{{ $selectedPeriod['ends_on'] ?? '' }}" readonly class="h-9 rounded-md border border-input bg-background px-3 text-sm text-muted-foreground"></div>
+                            </div>
+                        @endif
+                    </div>
+
+                    <div class="flex justify-end"><button type="button" wire:click="addEvent" class="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">Add to calendar</button></div>
+                    @error('newEvent.*') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                 </div>
-                @error('newEvent.*') <p class="mt-3 text-sm text-destructive">{{ $message }}</p> @enderror
             </slot:content>
         </april:card>
 
         <april:card>
             <slot:title>Calendar preview</slot:title>
-            <slot:description>{{ count($events) }} {{ Str::plural('event', count($events)) }} will be created. Weekly events repeat during the selected academic period; one-date events do not.</slot:description>
+            <slot:description>{{ count($events) }} {{ Str::plural('event', count($events)) }} staged. Click a date in Month view to prefill a one-time event.</slot:description>
             <slot:content>
-                @if ($events === [])
-                    <p class="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">Add an event above to start drawing the week.</p>
-                @else
-                    <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-                        @foreach ($weekdays as $weekday)
-                            <div wire:key="weekday-{{ $weekday['id'] }}" class="min-h-36 rounded-md border bg-muted/20 p-3"><h3 class="text-sm font-semibold">{{ $weekday['name'] }}</h3><div class="mt-3 space-y-2">
-                                @forelse (collect($events)->where('weekday_id', $weekday['id'])->sortBy('start_time') as $index => $event)
-                                    <div wire:key="event-{{ $index }}" class="rounded-md border bg-background p-2 text-xs"><div class="flex items-start justify-between gap-2"><span class="font-medium">{{ $event['start_time'] }}–{{ $event['stop_time'] }}</span><button type="button" wire:click="removeEvent({{ $index }})" class="text-muted-foreground hover:text-destructive" aria-label="Remove event">×</button></div><p class="mt-1">{{ $event['type'] === 'subject' ? data_get(collect($subjects)->firstWhere('id', $event['subject_id']), 'name', 'Subject') : $event['title'] }}</p><p class="mt-1 text-muted-foreground">{{ $event['recurrence'] === 'weekly' ? 'Every week' : 'One date · '.$event['occurs_on'] }}</p>@if ($event['audience_role'])<p class="mt-1 text-muted-foreground">{{ data_get(collect($roles)->firstWhere('id', $event['audience_role']), 'name', $event['audience_role']) }}</p>@endif</div>
-                                @empty <p class="text-xs text-muted-foreground">No events</p>
-                                @endforelse
-                            </div></div>
-                        @endforeach
+                <div class="space-y-4">
+                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-muted/20 p-3">
+                        <div class="flex items-center gap-2">
+                            <button type="button" wire:click="moveCalendar(-1)" class="inline-flex size-9 items-center justify-center rounded-md border bg-background hover:bg-muted" aria-label="Previous calendar period">‹</button>
+                            <button type="button" wire:click="moveCalendar(1)" class="inline-flex size-9 items-center justify-center rounded-md border bg-background hover:bg-muted" aria-label="Next calendar period">›</button>
+                            <button type="button" wire:click="goToCalendarToday" class="inline-flex h-9 items-center rounded-md border bg-background px-3 text-sm font-medium hover:bg-muted">Today</button>
+                            <span class="ml-1 text-sm font-semibold">{{ $calendarView === 'month' ? $calendarAnchor->format('F Y') : $weekStart->format('j M').' – '.$weekStart->copy()->addDays(6)->format('j M Y') }}</span>
+                        </div>
+                        <div class="flex rounded-md border bg-background p-1">
+                            @foreach (['week' => 'Week', 'month' => 'Month'] as $view => $label)
+                                <button type="button" wire:click="setCalendarView('{{ $view }}')" class="rounded px-3 py-1.5 text-sm {{ $calendarView === $view ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted' }}">{{ $label }}</button>
+                            @endforeach
+                        </div>
                     </div>
-                @endif
+
+                    @if ($calendarView === 'week')
+                        <div class="grid min-w-[48rem] grid-cols-7 gap-px overflow-x-auto rounded-md border bg-border">
+                            @foreach (range(0, 6) as $dayOffset)
+                                @php
+                                    $date = $weekStart->copy()->addDays($dayOffset);
+                                    $weekdayId = data_get(collect($weekdays)->firstWhere('name', $date->englishDayOfWeek), 'id');
+                                    $dayEvents = $draftEvents->filter(fn (array $event): bool => $event['recurrence'] === 'one_time' ? $event['occurs_on'] === $date->toDateString() : in_array($weekdayId, $event['weekday_ids'] ?? [$event['weekday_id']], true));
+                                @endphp
+                                <div wire:key="draft-week-day-{{ $date->toDateString() }}" class="min-h-48 bg-background p-2 {{ $date->toDateString() === $calendarDate ? 'ring-2 ring-inset ring-primary' : '' }}">
+                                    <button type="button" wire:click="chooseCalendarDate('{{ $date->toDateString() }}')" class="flex w-full items-center justify-between rounded px-1 py-1 text-left hover:bg-muted"><span class="text-xs font-semibold">{{ $date->format('D') }}</span><span class="text-xs text-muted-foreground">{{ $date->format('j M') }}</span></button>
+                                    <div class="mt-3 space-y-2">
+                                        @forelse ($dayEvents->sortBy('start_time') as $event)
+                                            @php
+                                                $eventIndex = array_search($event, $events, true);
+                                            @endphp
+                                            <div wire:key="draft-week-event-{{ $date->toDateString() }}-{{ $eventIndex }}" class="rounded-md border border-primary/20 bg-primary/10 p-2 text-xs"><div class="flex items-start justify-between gap-2"><span class="font-medium">{{ $event['start_time'] }}–{{ $event['stop_time'] }}</span><button type="button" wire:click="removeEvent({{ $eventIndex }})" class="text-muted-foreground hover:text-destructive" aria-label="Remove event">×</button></div><p class="mt-1">{{ $event['type'] === 'subject' ? data_get(collect($subjects)->firstWhere('id', $event['subject_id']), 'name', 'Subject') : $event['title'] }}</p><p class="mt-1 text-muted-foreground">{{ $event['recurrence'] === 'weekly' ? 'Every week · '.$date->format('D') : 'One date' }}</p></div>
+                                        @empty
+                                            <p class="pt-4 text-center text-xs text-muted-foreground">No events</p>
+                                        @endforelse
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @else
+                        <div class="grid min-w-[48rem] grid-cols-7 gap-px overflow-x-auto rounded-md border bg-border">
+                            @foreach (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as $dayName)
+                                <div class="bg-muted/60 px-2 py-2 text-center text-xs font-semibold">{{ $dayName }}</div>
+                            @endforeach
+                            @foreach (range(0, 41) as $index)
+                                @php
+                                    $date = $monthCursor->copy()->addDays($index);
+                                    $weekdayId = data_get(collect($weekdays)->firstWhere('name', $date->englishDayOfWeek), 'id');
+                                    $dayEvents = $draftEvents->filter(fn (array $event): bool => $event['recurrence'] === 'one_time' ? $event['occurs_on'] === $date->toDateString() : in_array($weekdayId, $event['weekday_ids'] ?? [$event['weekday_id']], true));
+                                @endphp
+                                <div wire:key="draft-month-day-{{ $date->toDateString() }}" class="min-h-24 bg-background p-2 {{ $date->month !== $monthStart->month ? 'bg-muted/20 text-muted-foreground' : '' }}">
+                                    <button type="button" wire:click="chooseCalendarDate('{{ $date->toDateString() }}')" class="flex size-7 items-center justify-center rounded-full text-xs font-semibold hover:bg-primary hover:text-primary-foreground {{ $date->toDateString() === $calendarDate ? 'bg-primary text-primary-foreground' : '' }}">{{ $date->day }}</button>
+                                    <div class="mt-1 space-y-1">
+                                        @foreach ($dayEvents as $event)
+                                            <div wire:key="draft-month-event-{{ $date->toDateString() }}-{{ $loop->index }}" class="truncate rounded border border-primary/20 bg-primary/10 px-1 py-0.5 text-[0.65rem]" title="{{ $event['title'] ?: 'Subject' }}">{{ $event['start_time'] }} · {{ $event['type'] === 'subject' ? data_get(collect($subjects)->firstWhere('id', $event['subject_id']), 'name', 'Subject') : $event['title'] }}</div>
+                                        @endforeach
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
             </slot:content>
         </april:card>
 

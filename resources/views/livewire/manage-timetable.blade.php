@@ -30,16 +30,65 @@
     <april:card>
         <slot:title>Calendar</slot:title>
         <slot:description>
-            Choose a place on the week, then choose what goes there. One-date slots appear on their date's weekday.
-            {{ $grid['filled_count'] }} of {{ $grid['slot_count'] }} places are taken.
+            {{ $timetable->academicPeriod?->displayName ?? 'Academic period' }} ·
+            recurring events follow the term dates automatically. Click a calendar date to inspect that day.
         </slot:description>
         <slot:content>
             <div class="space-y-4">
-                @include('livewire.partials.timetable-grid', [
-                    'grid' => $grid,
-                    'editable' => true,
-                    'selected' => $selected,
-                ])
+                <div class="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-muted/20 p-3">
+                    <div class="flex items-center gap-2">
+                        <button type="button" wire:click="goToCalendarToday" class="inline-flex h-9 items-center rounded-md border bg-background px-3 text-sm font-medium hover:bg-muted">Today</button>
+                        <button type="button" wire:click="moveCalendar(-1)" class="inline-flex size-9 items-center justify-center rounded-md border bg-background hover:bg-muted" aria-label="Previous period">‹</button>
+                        <button type="button" wire:click="moveCalendar(1)" class="inline-flex size-9 items-center justify-center rounded-md border bg-background hover:bg-muted" aria-label="Next period">›</button>
+                        <span class="ml-1 text-sm font-semibold">{{ $this->calendarHeading() }}</span>
+                    </div>
+                    <div class="flex rounded-md border bg-background p-1">
+                        @foreach (['day' => 'Day', 'week' => 'Week', 'month' => 'Month'] as $view => $label)
+                            <button type="button" wire:click="setCalendarView('{{ $view }}')" class="rounded px-3 py-1.5 text-sm {{ $calendarView === $view ? 'bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted' }}">{{ $label }}</button>
+                        @endforeach
+                    </div>
+                </div>
+
+                @if ($calendarView === 'week')
+                    @include('livewire.partials.timetable-grid', [
+                        'grid' => $grid,
+                        'editable' => true,
+                        'selected' => $selected,
+                    ])
+                @elseif ($calendarView === 'day')
+                    <div class="space-y-2">
+                        @forelse ($this->dayEvents as $event)
+                            <button wire:key="day-event-{{ $event['key'] }}" type="button" wire:click="selectCell({{ explode(':', $event['key'])[0] }}, {{ explode(':', $event['key'])[1] }})" class="flex w-full items-center justify-between gap-3 rounded-md border bg-primary/10 px-4 py-3 text-left hover:border-primary">
+                                <span><span class="font-medium">{{ $event['name'] }}</span>@if ($event['audience_role'])<span class="ml-2 text-xs text-muted-foreground">{{ ucfirst($event['audience_role']) }} only</span>@endif</span>
+                                <span class="text-sm text-muted-foreground">{{ $event['time'] }}</span>
+                            </button>
+                        @empty
+                            <button type="button" wire:click="setCalendarView('week')" class="w-full rounded-md border border-dashed p-10 text-center text-sm text-muted-foreground hover:border-primary">No events on this date. Choose a time slot from the week view to add one.</button>
+                        @endforelse
+                    </div>
+                @else
+                    <div class="overflow-x-auto">
+                        <div class="grid min-w-[48rem] grid-cols-7 gap-px overflow-hidden rounded-md border bg-border">
+                            @foreach (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as $dayName)
+                                <div class="bg-muted/60 px-2 py-2 text-center text-xs font-semibold">{{ $dayName }}</div>
+                            @endforeach
+                            @foreach ($this->monthWeeks as $week)
+                                @foreach ($week as $day)
+                                    <div wire:key="month-day-{{ $day['date'] }}" class="min-h-28 bg-background p-2 {{ !$day['in_month'] ? 'bg-muted/20 text-muted-foreground' : '' }} {{ !$day['in_period'] && $day['in_month'] ? 'bg-amber-50/50 dark:bg-amber-950/10' : '' }}">
+                                        <button type="button" wire:click="chooseCalendarDate('{{ $day['date'] }}')" class="mb-2 flex size-7 items-center justify-center rounded-full text-xs font-semibold hover:bg-primary hover:text-primary-foreground {{ $day['date'] === $calendarDate ? 'bg-primary text-primary-foreground' : '' }}">{{ $day['day'] }}</button>
+                                        <div class="space-y-1">
+                                            @foreach ($day['events'] as $event)
+                                                <button wire:key="month-event-{{ $day['date'] }}-{{ $event['key'] }}" type="button" wire:click="selectCell({{ explode(':', $event['key'])[0] }}, {{ explode(':', $event['key'])[1] }})" class="block w-full truncate rounded border border-primary/20 bg-primary/10 px-1.5 py-1 text-left text-[0.7rem] hover:border-primary" title="{{ $event['name'] }} · {{ $event['time'] }}">
+                                                    <span class="font-medium">{{ $event['time'] }}</span> {{ $event['name'] }}
+                                                </button>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                @endforeach
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
 
                 <div wire:loading class="text-xs text-muted-foreground">Saving…</div>
             </div>
@@ -120,8 +169,8 @@
     @endif
 
     <april:card>
-        <slot:title>Time slots</slot:title>
-        <slot:description>Each time slot can repeat every week or happen once. Removing one takes its lessons with it.</slot:description>
+        <slot:title>Add a time window</slot:title>
+        <slot:description>Weekly windows follow {{ $timetable->academicPeriod?->displayName ?? 'the academic period' }} from {{ $timetable->academicPeriod?->starts_on?->toDateString() ?? 'the term start' }} to {{ $timetable->academicPeriod?->ends_on?->toDateString() ?? 'the term end' }}. One-date windows stay fixed and are flagged if the term moves.</slot:description>
         <slot:content>
             <div class="space-y-4">
                 <form wire:submit="addTimeSlot" class="flex flex-wrap items-end gap-3">
