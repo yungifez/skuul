@@ -83,6 +83,7 @@ class TimeSlotService
         string $kind,
         int $recordableId,
         ?int $facilityId = null,
+        ?string $audienceRole = null,
     ): void {
         $type = self::recordableTypes()[$kind] ?? null;
 
@@ -94,6 +95,7 @@ class TimeSlotService
         $timeSlot->weekdays()->attach($weekdayId, [
             'timetable_time_slot_weekdayable_id' => $recordableId,
             'timetable_time_slot_weekdayable_type' => $type,
+            'audience_role' => $audienceRole,
 
             // A lesson can be moved out of the section's own room for this
             // one entry. Publication then checks that place like any other.

@@ -2,13 +2,22 @@
     <april:card>
         <slot:title>Timetables</slot:title>
         <slot:description>
-            A timetable belongs to one {{ strtolower(school_term('section', 'section')) }} and one {{ school_term('period', 'period') }}.
+            A timetable repeats weekly during one {{ strtolower(school_term('period', 'period')) }}. It can belong to a {{ strtolower(school_term('section', 'section')) }} or be schoolwide.
             The published one is what the school teaches; a change goes out as the next revision.
         </slot:description>
         <slot:content>
             <div class="space-y-6">
                 @unless ($isStudent)
-                    <div class="flex max-w-xl flex-col gap-2">
+                    <div class="grid max-w-xl gap-4 sm:grid-cols-2">
+                        <div class="flex flex-col gap-2">
+                            <april:label for="timetable-scope">Schedule for</april:label>
+                            <april:native-select id="timetable-scope" wire:model.live="scope">
+                                <option value="section">A section</option>
+                                <option value="schoolwide">Schoolwide</option>
+                            </april:native-select>
+                        </div>
+                        @if ($scope === 'section')
+                        <div class="flex flex-col gap-2">
                         <april:label for="academic-cycle-section">{{ school_term('section', 'Section') }}</april:label>
                         <april:native-select id="academic-cycle-section" wire:model.live="academicCycleSectionId">
                             @forelse ($cycleSections as $cycleSection)
@@ -17,10 +26,12 @@
                                 <option value="">No active {{ strtolower(school_terms('section', 'sections')) }} in this {{ strtolower(school_term('academic_year', 'school year')) }}</option>
                             @endforelse
                         </april:native-select>
+                        </div>
+                        @endif
                     </div>
                 @endunless
 
-                @if ($academicCycleSectionId === null)
+                @if ($scope === 'section' && $academicCycleSectionId === null)
                     <x-empty-state icon="lucide-users" title="No {{ strtolower(school_term('section', 'section')) }} selected"
                         description="Set up an active {{ strtolower(school_term('section', 'section')) }} for the current {{ strtolower(school_term('academic_year', 'school year')) }} before creating a timetable." />
                 @elseif ($timetables === [])

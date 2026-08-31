@@ -26,7 +26,7 @@ class TimetableGrid
      *
      * @return array{
      *     weekdays: array<int, array{id: int, name: string, short: string, used: bool, is_weekend: bool}>,
-     *     rows: array<int, array{id: int, start: string, stop: string, cells: array<int, array{kind: string|null, name: string|null, teachers: array<int, string>}>}>,
+     *     rows: array<int, array{id: int, start: string, stop: string, cells: array<int, array{kind: string|null, name: string|null, teachers: array<int, string>, audience_role: string|null}>}>,
      *     slot_count: int,
      *     filled_count: int,
      *     empty_count: int
@@ -93,12 +93,12 @@ class TimetableGrid
      *
      * @param  Collection<string, string>  $names
      * @param  Collection<int, array<int, string>>  $teachers
-     * @return array{kind: string|null, name: string|null, teachers: array<int, string>}
+     * @return array{kind: string|null, name: string|null, teachers: array<int, string>, audience_role: string|null}
      */
     private function cellOf(?TimetableRecord $record, Collection $names, Collection $teachers): array
     {
         if ($record === null) {
-            return ['kind' => null, 'name' => null, 'teachers' => []];
+            return ['kind' => null, 'name' => null, 'teachers' => [], 'audience_role' => null];
         }
 
         $type = (string) $record->timetable_time_slot_weekdayable_type;
@@ -107,7 +107,7 @@ class TimetableGrid
 
         if ($name === null) {
             // The subject or item was deleted after the lesson was placed.
-            return ['kind' => null, 'name' => null, 'teachers' => []];
+            return ['kind' => null, 'name' => null, 'teachers' => [], 'audience_role' => null];
         }
 
         $isSubject = $type === (new Subject)->getMorphClass();
@@ -116,6 +116,7 @@ class TimetableGrid
             'kind' => $isSubject ? 'subject' : 'break',
             'name' => $name,
             'teachers' => $isSubject ? $teachers->get($id, []) : [],
+            'audience_role' => $record->audience_role,
         ];
     }
 

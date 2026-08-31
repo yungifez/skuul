@@ -71,7 +71,9 @@ class TimetableController extends Controller
      */
     public function show(Timetable $timetable): View
     {
-        $overrideSections = AcademicCycleSection::inSchool()->where('academic_year_id', $timetable->academicCycleSection->academic_year_id)->where('academic_level_id', $timetable->academicCycleSection->academic_level_id)->whereKeyNot($timetable->academic_cycle_section_id)->orderBy('position')->get(['id', 'name', 'label']);
+        $overrideSections = $timetable->academicCycleSection === null
+            ? collect()
+            : AcademicCycleSection::inSchool()->where('academic_year_id', $timetable->academicCycleSection->academic_year_id)->where('academic_level_id', $timetable->academicCycleSection->academic_level_id)->whereKeyNot($timetable->academic_cycle_section_id)->orderBy('position')->get(['id', 'name', 'label']);
         $substitutionEntries = TimetableRecord::query()
             ->join('timetable_time_slots', 'timetable_time_slot_weekday.timetable_time_slot_id', '=', 'timetable_time_slots.id')
             ->join('weekdays', 'timetable_time_slot_weekday.weekday_id', '=', 'weekdays.id')

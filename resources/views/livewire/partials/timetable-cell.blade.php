@@ -11,4 +11,8 @@
     @elseif ($cell['kind'] === 'break')
         <span class="mt-1 block text-[0.7rem] leading-snug text-muted-foreground">No lesson</span>
     @endif
+
+    @if ($cell['audience_role'])
+        <span class="mt-1 block text-[0.7rem] leading-snug text-muted-foreground">{{ ucfirst($cell['audience_role']) }} only</span>
+    @endif
 @endif

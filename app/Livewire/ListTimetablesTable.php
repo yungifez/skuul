@@ -20,6 +20,8 @@ class ListTimetablesTable extends Component
 
     public ?int $academicCycleSectionId = null;
 
+    public string $scope = 'section';
+
     public bool $isStudent = false;
 
     public function mount(): void
@@ -62,9 +64,18 @@ class ListTimetablesTable extends Component
         $this->loadTimetables();
     }
 
+    public function updatedScope(): void
+    {
+        if ($this->isStudent) {
+            $this->scope = 'section';
+        }
+
+        $this->loadTimetables();
+    }
+
     private function loadTimetables(): void
     {
-        if ($this->academicCycleSectionId === null || current_academic_period_id() === null) {
+        if (($this->scope === 'section' && $this->academicCycleSectionId === null) || current_academic_period_id() === null) {
             $this->timetables = [];
 
             return;
@@ -72,7 +83,8 @@ class ListTimetablesTable extends Component
 
         $this->timetables = Timetable::query()
             ->where('academic_period_id', current_academic_period_id())
-            ->where('academic_cycle_section_id', $this->academicCycleSectionId)
+            ->when($this->scope === 'section', fn ($query) => $query->where('academic_cycle_section_id', $this->academicCycleSectionId))
+            ->when($this->scope === 'schoolwide', fn ($query) => $query->whereNull('academic_cycle_section_id'))
             ->orderByDesc('published_at')
             ->orderByDesc('revision')
             ->get()

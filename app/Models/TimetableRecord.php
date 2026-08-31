@@ -13,6 +13,15 @@ class TimetableRecord extends Pivot
 
     protected $table = 'timetable_time_slot_weekday';
 
+    protected $fillable = [
+        'timetable_time_slot_id',
+        'weekday_id',
+        'timetable_time_slot_weekdayable_id',
+        'timetable_time_slot_weekdayable_type',
+        'audience_role',
+        'facility_id',
+    ];
+
     public function timetableRecordableType(): Attribute
     {
         return new Attribute(

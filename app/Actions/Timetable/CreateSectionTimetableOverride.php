@@ -15,9 +15,7 @@ use Illuminate\Support\Facades\DB;
 
 class CreateSectionTimetableOverride
 {
-    public function __construct(private RecordAuditEvent $auditor)
-    {
-    }
+    public function __construct(private RecordAuditEvent $auditor) {}
 
     public function create(Timetable $template, AcademicCycleSection $section, ?User $actor = null): Timetable
     {
@@ -33,20 +31,27 @@ class CreateSectionTimetableOverride
 
         return DB::transaction(function () use ($template, $section, $actor): Timetable {
             $override = Timetable::create([
-                'name'                      => $template->name.' · '.($section->label ?? $section->name),
-                'description'               => $template->description,
-                'status'                    => TimetableStatus::Draft,
-                'academic_period_id'        => $template->academic_period_id,
+                'name' => $template->name.' · '.($section->label ?? $section->name),
+                'description' => $template->description,
+                'status' => TimetableStatus::Draft,
+                'academic_period_id' => $template->academic_period_id,
                 'academic_cycle_section_id' => $section->id,
-                'template_timetable_id'     => $template->id,
-                'effective_from'            => $template->effective_from,
-                'effective_to'              => $template->effective_to,
+                'template_timetable_id' => $template->id,
+                'effective_from' => $template->effective_from,
+                'effective_to' => $template->effective_to,
             ]);
 
             foreach ($template->timeSlots()->get() as $slot) {
                 $copy = TimetableTimeSlot::create(['timetable_id' => $override->id, 'start_time' => $slot->start_time, 'stop_time' => $slot->stop_time]);
                 foreach (TimetableRecord::query()->where('timetable_time_slot_id', $slot->id)->get() as $record) {
-                    TimetableRecord::create(['timetable_time_slot_id' => $copy->id, 'weekday_id' => $record->weekday_id, 'timetable_time_slot_weekdayable_id' => $record->timetable_time_slot_weekdayable_id, 'timetable_time_slot_weekdayable_type' => $record->timetable_time_slot_weekdayable_type]);
+                    TimetableRecord::create([
+                        'timetable_time_slot_id' => $copy->id,
+                        'weekday_id' => $record->weekday_id,
+                        'timetable_time_slot_weekdayable_id' => $record->timetable_time_slot_weekdayable_id,
+                        'timetable_time_slot_weekdayable_type' => $record->timetable_time_slot_weekdayable_type,
+                        'audience_role' => $record->audience_role,
+                        'facility_id' => $record->facility_id,
+                    ]);
                 }
             }
 

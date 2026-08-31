@@ -172,10 +172,11 @@ class ManageTimetable extends Component
     public function subjects()
     {
         return Subject::query()
-            ->whereHas(
+            ->when($this->timetable->academic_cycle_section_id !== null, fn ($query) => $query->whereHas(
                 'courseOfferings.cycleSections',
                 fn ($query) => $query->whereKey($this->timetable->academic_cycle_section_id),
-            )
+            ))
+            ->inSchool()
             ->when($this->search !== '', fn ($query) => $query->where('name', 'like', '%'.$this->search.'%'))
             ->orderBy('name')
             ->get(['id', 'name']);
