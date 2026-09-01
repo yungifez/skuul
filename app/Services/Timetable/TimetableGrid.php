@@ -10,6 +10,7 @@ use App\Models\TeachingAssignment;
 use App\Models\Timetable;
 use App\Models\TimetableRecord;
 use App\Models\TimetableTimeSlot;
+use App\Models\User;
 use App\Models\Weekday;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -24,6 +25,8 @@ use Illuminate\Support\Collection;
  */
 class TimetableGrid
 {
+    public function __construct(private TimetableAudience $audience) {}
+
     /**
      * Build the whole week of one timetable.
      *
@@ -35,13 +38,17 @@ class TimetableGrid
      *     empty_count: int
      * }
      */
-    public function of(Timetable $timetable, ?Carbon $weekStart = null): array
+    public function of(Timetable $timetable, ?Carbon $weekStart = null, ?User $viewer = null): array
     {
         $weekdays = Weekday::query()->orderBy('id')->get(['id', 'name']);
         $weekStart = $weekStart?->copy()->startOfWeek(Carbon::MONDAY);
         $period = $timetable->academicPeriod;
         $slots = $timetable->timeSlots()->get()->sortBy('start_time')->values();
-        $records = $this->recordsOf($slots->pluck('id')->all());
+        $records = $this->audience->filter(
+            $timetable,
+            $this->recordsOf($slots->pluck('id')->all()),
+            $viewer,
+        );
         $names = $this->namesOf($records);
         $teachers = $this->teachersOf($timetable, $records);
 

@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enums\Role;
 use App\Models\Timetable;
 use App\Services\Timetable\TimetableGrid;
 use Illuminate\View\View;
@@ -29,6 +30,8 @@ class ShowTimetable extends Component
      */
     public bool $showHeading = true;
 
+    public string $audienceNote = '';
+
     /**
      * @var array<string, mixed>
      */
@@ -36,7 +39,14 @@ class ShowTimetable extends Component
 
     public function mount(TimetableGrid $grid): void
     {
-        $this->grid = $grid->of($this->timetable);
+        $viewer = auth()->user();
+        $this->grid = $grid->of($this->timetable, viewer: $viewer);
+
+        if ($viewer?->hasRole(Role::Teacher)) {
+            $this->audienceNote = 'Showing subjects assigned to you, plus events for your role.';
+        } elseif ($viewer?->hasRole(Role::Student)) {
+            $this->audienceNote = 'Showing subjects you take, plus events for your role.';
+        }
     }
 
     public function render(): View

@@ -3,13 +3,21 @@
 namespace Tests\Feature;
 
 use App\Enums\AcademicPeriodStatus;
+use App\Enums\RosterMode;
 use App\Livewire\CreateTimetableForm;
 use App\Livewire\ManageTimetable;
+use App\Livewire\ShowTimetable;
 use App\Models\AcademicPeriod;
+use App\Models\CourseOffering;
 use App\Models\CustomTimetableItem;
+use App\Models\Subject;
+use App\Models\TeachingAssignment;
 use App\Models\Timetable;
+use App\Models\TimetableRecord;
 use App\Models\TimetableTimeSlot;
+use App\Models\User;
 use App\Models\Weekday;
+use App\Services\Timetable\TimetableGrid;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -298,6 +306,155 @@ class TimetableTest extends TestCase
             ->assertSet('showSlotEditorDialog', false)
             ->call('selectCell', $slot->id, $tuesday->id)
             ->assertSet('showSlotEditorDialog', true);
+    }
+
+    public function test_a_teacher_only_sees_subjects_assigned_to_them_in_a_read_only_timetable(): void
+    {
+        $this->authorized_user(['read timetable']);
+        $school = $this->workingSchool();
+        $teacher = $this->memberOf($school);
+        school_context()->set($school, remember: false);
+        $teacher->assignRole('teacher');
+        $teacher->givePermissionTo('read timetable');
+
+        $timetable = Timetable::factory()->create();
+        $timetable->academicPeriod()->update([
+            'starts_on' => now()->subDay()->toDateString(),
+            'ends_on' => now()->addYear()->toDateString(),
+        ]);
+        $section = $timetable->academicCycleSection;
+        $assignedSlot = TimetableTimeSlot::create([
+            'timetable_id' => $timetable->id,
+            'start_time' => '08:00',
+            'stop_time' => '09:00',
+        ]);
+        $otherSlot = TimetableTimeSlot::create([
+            'timetable_id' => $timetable->id,
+            'start_time' => '09:00',
+            'stop_time' => '10:00',
+        ]);
+        $weekday = Weekday::firstOrFail();
+        $assignedSubject = Subject::factory()->create(['school_id' => $school->id, 'name' => 'Assigned subject']);
+        $otherSubject = Subject::factory()->create(['school_id' => $school->id, 'name' => 'Other subject']);
+
+        $offering = CourseOffering::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $section->academic_year_id,
+            'academic_period_id' => $timetable->academic_period_id,
+            'academic_level_id' => $section->academic_level_id,
+            'subject_id' => $assignedSubject->id,
+            'roster_mode' => RosterMode::HomeSection,
+        ]);
+        $offering->cycleSections()->attach($section);
+        TeachingAssignment::create([
+            'school_id' => $school->id,
+            'subject_id' => $assignedSubject->id,
+            'user_id' => $teacher->id,
+            'academic_year_id' => $section->academic_year_id,
+            'academic_period_id' => $timetable->academic_period_id,
+            'course_offering_id' => $offering->id,
+            'starts_on' => now()->toDateString(),
+        ]);
+
+        TimetableRecord::create([
+            'timetable_time_slot_id' => $assignedSlot->id,
+            'weekday_id' => $weekday->id,
+            'timetable_time_slot_weekdayable_id' => $assignedSubject->id,
+            'timetable_time_slot_weekdayable_type' => $assignedSubject->getMorphClass(),
+        ]);
+        TimetableRecord::create([
+            'timetable_time_slot_id' => $otherSlot->id,
+            'weekday_id' => $weekday->id,
+            'timetable_time_slot_weekdayable_id' => $otherSubject->id,
+            'timetable_time_slot_weekdayable_type' => $otherSubject->getMorphClass(),
+        ]);
+
+        $this->actingAsMemberOf($school, $teacher);
+
+        $grid = app(TimetableGrid::class)->of($timetable, viewer: $teacher);
+        $assignedCell = $grid['rows'][0]['cells'][$weekday->id];
+        $otherCell = $grid['rows'][1]['cells'][$weekday->id];
+
+        $this->assertSame('Assigned subject', $assignedCell['name']);
+        $this->assertNull($otherCell['name']);
+
+        Livewire::test(ShowTimetable::class, ['timetable' => $timetable])
+            ->assertSee('Showing subjects assigned to you')
+            ->assertSee('Assigned subject')
+            ->assertDontSee('Other subject');
+    }
+
+    public function test_a_student_only_sees_subjects_allowed_by_their_roster(): void
+    {
+        $this->authorized_user(['read timetable']);
+        $school = $this->workingSchool();
+        $timetable = Timetable::factory()->create();
+        $section = $timetable->academicCycleSection;
+        $student = User::factory()->create();
+        $student = $this->memberOf($school, $student);
+        school_context()->set($school, remember: false);
+        $studentRecord = $student->studentRecords()->create([
+            'school_id' => $school->id,
+            'academic_cycle_section_id' => $section->id,
+            'admission_date' => now()->toDateString(),
+            'status' => 'active',
+            'is_primary' => true,
+        ]);
+        $student->assignRole('student');
+        $student->givePermissionTo('read timetable');
+        $takenSlot = TimetableTimeSlot::create([
+            'timetable_id' => $timetable->id,
+            'start_time' => '08:00',
+            'stop_time' => '09:00',
+        ]);
+        $notTakenSlot = TimetableTimeSlot::create([
+            'timetable_id' => $timetable->id,
+            'start_time' => '09:00',
+            'stop_time' => '10:00',
+        ]);
+        $weekday = Weekday::firstOrFail();
+        $taken = Subject::factory()->create(['school_id' => $school->id, 'name' => 'Taken subject']);
+        $notTaken = Subject::factory()->create(['school_id' => $school->id, 'name' => 'Not taken subject']);
+
+        $takenOffering = CourseOffering::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $section->academic_year_id,
+            'academic_period_id' => $timetable->academic_period_id,
+            'academic_level_id' => $section->academic_level_id,
+            'subject_id' => $taken->id,
+            'roster_mode' => RosterMode::IndividualRoster,
+        ]);
+        $takenOffering->studentRecords()->attach($studentRecord);
+        CourseOffering::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $section->academic_year_id,
+            'academic_period_id' => $timetable->academic_period_id,
+            'academic_level_id' => $section->academic_level_id,
+            'subject_id' => $notTaken->id,
+            'roster_mode' => RosterMode::IndividualRoster,
+        ]);
+
+        TimetableRecord::create([
+            'timetable_time_slot_id' => $takenSlot->id,
+            'weekday_id' => $weekday->id,
+            'timetable_time_slot_weekdayable_id' => $taken->id,
+            'timetable_time_slot_weekdayable_type' => $taken->getMorphClass(),
+        ]);
+        TimetableRecord::create([
+            'timetable_time_slot_id' => $notTakenSlot->id,
+            'weekday_id' => $weekday->id,
+            'timetable_time_slot_weekdayable_id' => $notTaken->id,
+            'timetable_time_slot_weekdayable_type' => $notTaken->getMorphClass(),
+        ]);
+
+        $this->actingAsMemberOf($school, $student);
+
+        $grid = app(TimetableGrid::class)->of($timetable, viewer: $student);
+        $takenCell = $grid['rows'][0]['cells'][$weekday->id];
+        $notTakenCell = $grid['rows'][1]['cells'][$weekday->id];
+
+        $this->assertSame('Taken subject', $takenCell['name']);
+        $this->assertNull($notTakenCell['name']);
     }
 
     public function test_a_time_slot_can_use_an_explicit_term_scoped_weekly_rule(): void
