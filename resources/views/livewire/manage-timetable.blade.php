@@ -44,8 +44,8 @@
                 <div class="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-muted/20 p-3">
                     <div class="flex items-center gap-2">
                         <button type="button" wire:click="goToCalendarToday" class="inline-flex h-9 items-center rounded-md border bg-background px-3 text-sm font-medium hover:bg-muted">Today</button>
-                        <button type="button" wire:click="moveCalendar(-1)" class="inline-flex size-9 items-center justify-center rounded-md border bg-background hover:bg-muted" aria-label="Previous period">‹</button>
-                        <button type="button" wire:click="moveCalendar(1)" class="inline-flex size-9 items-center justify-center rounded-md border bg-background hover:bg-muted" aria-label="Next period">›</button>
+                        <button type="button" wire:click="previousCalendarPeriod" class="inline-flex size-9 items-center justify-center rounded-md border bg-background hover:bg-muted" aria-label="Previous period">‹</button>
+                        <button type="button" wire:click="nextCalendarPeriod" class="inline-flex size-9 items-center justify-center rounded-md border bg-background hover:bg-muted" aria-label="Next period">›</button>
                         <span class="ml-1 text-sm font-semibold">{{ $this->calendarHeading() }}</span>
                     </div>
                     <div class="flex rounded-md border bg-background p-1">

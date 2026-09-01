@@ -107,12 +107,22 @@ class ManageTimetable extends Component
     {
         $date = Carbon::parse($this->calendarDate);
         $this->calendarDate = match ($this->calendarView) {
-            'month' => $date->addMonths($direction)->toDateString(),
+            'month' => $date->addMonthsNoOverflow($direction)->toDateString(),
             'day' => $date->addDays($direction)->toDateString(),
             default => $date->addWeeks($direction)->toDateString(),
         };
         $this->slotOccursOn = $this->calendarDate;
         $this->refreshWeek();
+    }
+
+    public function previousCalendarPeriod(): void
+    {
+        $this->moveCalendar(-1);
+    }
+
+    public function nextCalendarPeriod(): void
+    {
+        $this->moveCalendar(1);
     }
 
     public function goToCalendarToday(): void

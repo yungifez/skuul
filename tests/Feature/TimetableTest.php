@@ -220,6 +220,8 @@ class TimetableTest extends TestCase
 
         Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
             ->assertSet('calendarView', 'month')
+            ->assertSee('wire:click="previousCalendarPeriod"', false)
+            ->assertSee('wire:click="nextCalendarPeriod"', false)
             ->assertSee('x-effect="open = $wire.showTimeSlotDialog"', false)
             ->assertDontSee('x-effect="show = $wire.showTimeSlotDialog"', false)
             ->call('openTimeSlotDialog', '2030-09-08')
@@ -236,6 +238,21 @@ class TimetableTest extends TestCase
             ->call('chooseCalendarDate', '2030-09-08')
             ->assertSet('calendarDate', '2030-09-08')
             ->assertSet('calendarView', 'day');
+    }
+
+    public function test_month_calendar_navigation_moves_across_month_boundaries(): void
+    {
+        $this->authorized_user(['update timetable']);
+        $timetable = Timetable::factory()->create();
+
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->call('chooseCalendarDate', '2030-01-31')
+            ->call('nextCalendarPeriod')
+            ->assertSet('calendarDate', '2030-02-28')
+            ->call('nextCalendarPeriod')
+            ->assertSet('calendarDate', '2030-03-28')
+            ->call('previousCalendarPeriod')
+            ->assertSet('calendarDate', '2030-02-28');
     }
 
     public function test_calendar_views_plot_active_empty_time_slots(): void
