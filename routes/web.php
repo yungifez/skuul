@@ -301,6 +301,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::post('graduation-plans', ['App\Http\Controllers\GraduationPlanController', 'store'])->name('graduation-plans.store');
         Route::get('graduation-plans/{graduationPlan}', ['App\Http\Controllers\GraduationPlanController', 'show'])->name('graduation-plans.show');
         Route::put('graduation-plans/{graduationPlan}', ['App\Http\Controllers\GraduationPlanController', 'update'])->name('graduation-plans.update');
+        Route::post('graduation-plans/{graduationPlan}/children', ['App\Http\Controllers\GraduationPlanController', 'storeChild'])->name('graduation-plans.children.store');
         Route::post('graduation-plans/{graduationPlan}/requirements', ['App\Http\Controllers\GraduationPlanController', 'storeRequirement'])->name('graduation-plans.requirements.store');
         Route::delete('graduation-plans/{graduationPlan}/requirements/{graduationRequirement}', ['App\Http\Controllers\GraduationPlanController', 'destroyRequirement'])->name('graduation-plans.requirements.destroy');
         Route::post('graduation-plans/{graduationPlan}/exemptions', ['App\Http\Controllers\GraduationPlanController', 'storeExemption'])->name('graduation-plans.exemptions.store');

@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * the plan by its requirements alone.
  *
  * @property bool $uses_credits
+ * @property string $completion_operator
+ * @property bool $is_negated
  */
 class GraduationPlan extends Model
 {
@@ -24,8 +26,12 @@ class GraduationPlan extends Model
 
     protected $fillable = [
         'school_id',
+        'parent_id',
         'name',
         'description',
+        'completion_operator',
+        'position',
+        'is_negated',
         'uses_credits',
         'required_credits',
         'cohort_id',
@@ -38,8 +44,11 @@ class GraduationPlan extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
+        'completion_operator' => 'all',
+        'position' => 0,
+        'is_negated' => false,
         'uses_credits' => false,
-        'is_active'    => true,
+        'is_active' => true,
     ];
 
     /**
@@ -48,16 +57,17 @@ class GraduationPlan extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'uses_credits'     => 'boolean',
-        'is_active'        => 'boolean',
+        'position' => 'integer',
+        'is_negated' => 'boolean',
+        'uses_credits' => 'boolean',
+        'is_active' => 'boolean',
         'required_credits' => 'integer',
     ];
 
     /**
      * Limit the query to the plans still in use.
      *
-     * @param Builder<$this> $query
-     *
+     * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
     public function scopeActive(Builder $query): Builder
@@ -73,6 +83,28 @@ class GraduationPlan extends Model
     public function requirements(): HasMany
     {
         return $this->hasMany(GraduationRequirement::class)->orderBy('id');
+    }
+
+    /**
+     * Get the stage this plan sits under, when it is nested.
+     *
+     * @return BelongsTo<GraduationPlan, $this>
+     */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(GraduationPlan::class, 'parent_id');
+    }
+
+    /**
+     * Get the stages that follow this plan.
+     *
+     * @return HasMany<GraduationPlan, $this>
+     */
+    public function children(): HasMany
+    {
+        return $this->hasMany(GraduationPlan::class, 'parent_id')
+            ->orderBy('position')
+            ->orderBy('id');
     }
 
     /**

@@ -43,6 +43,16 @@
                         @error('cohort_id') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                     </div>
 
+                    <div class="flex flex-col gap-2">
+                        <label for="completion_operator" class="text-sm font-medium">Combine required items</label>
+                        <select id="completion_operator" name="completion_operator"
+                            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                            <option value="all" @selected(old('completion_operator', 'all') === 'all')>All items (AND)</option>
+                            <option value="any" @selected(old('completion_operator') === 'any')>Any item (OR)</option>
+                        </select>
+                        @error('completion_operator') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                    </div>
+
                     <div class="flex flex-col gap-2 lg:col-span-2">
                         <april:label for="description">What it is</april:label>
                         <textarea id="description" name="description" rows="3"

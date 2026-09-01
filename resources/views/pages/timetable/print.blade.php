@@ -4,7 +4,7 @@
 
 @section('content')
     <h1 class="school-name">{{current_school()->name}}</h1>
-    @livewire('show-timetable', ['timetable' => $timetable])
+    @livewire('show-timetable', ['timetable' => $timetable, 'showCalendar' => false])
 @endsection
 
 @section('style')

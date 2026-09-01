@@ -10,8 +10,8 @@ use App\Models\Timetable;
 use App\Models\TimetableTimeSlot;
 use App\Models\Weekday;
 use App\Services\Timetable\TimeSlotService;
+use App\Services\Timetable\TimetableCalendar;
 use App\Services\Timetable\TimetableConflictChecker;
-use App\Services\Timetable\TimetableGrid;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
@@ -83,6 +83,13 @@ class ManageTimetable extends Component
 
     /** @var Collection<int, TimetableTimeSlot>|null */
     private ?Collection $calendarSlotModels = null;
+
+    protected TimetableCalendar $calendar;
+
+    public function boot(TimetableCalendar $calendar): void
+    {
+        $this->calendar = $calendar;
+    }
 
     public function mount(): void
     {
@@ -540,9 +547,9 @@ class ManageTimetable extends Component
     {
         $this->timetable->refresh();
         $this->calendarSlotModels = null;
-        $this->grid = app(TimetableGrid::class)->of(
+        $this->grid = $this->calendar->gridFor(
             $this->timetable,
-            Carbon::parse($this->calendarDate)->startOfWeek(Carbon::MONDAY),
+            Carbon::parse($this->calendarDate),
         );
         $this->conflicts = app(TimetableConflictChecker::class)->conflicts($this->timetable);
         unset($this->timeSlots, $this->selectedLabel, $this->monthWeeks, $this->dayEvents);
@@ -565,43 +572,13 @@ class ManageTimetable extends Component
      */
     private function eventsForDate(Carbon $date): array
     {
-        $weekdayId = $this->weekdayMap[$date->englishDayOfWeek] ?? null;
-
-        if ($weekdayId === null) {
-            return [];
-        }
-
-        $events = [];
-
-        $slots = $this->calendarSlots();
-        $period = $this->timetable->academicPeriod;
-
-        foreach ($this->grid['rows'] as $row) {
-            $cell = $row['cells'][$weekdayId] ?? null;
-            $slot = $slots->get($row['id']);
-
-            if ($cell === null || $slot === null) {
-                continue;
-            }
-
-            if ($period !== null && !$period->covers($date)) {
-                continue;
-            }
-
-            if (!$slot->occursOn($date, $weekdayId)) {
-                continue;
-            }
-
-            $events[] = [
-                'key' => $row['id'].':'.$weekdayId,
-                'time' => $row['start'].'–'.$row['stop'],
-                'name' => $cell['name'] ?? 'Open time slot',
-                'kind' => $cell['kind'],
-                'audience_role' => $cell['audience_role'],
-            ];
-        }
-
-        return $events;
+        return $this->calendar->eventsForDate(
+            $this->timetable,
+            $this->grid,
+            $this->calendarSlots(),
+            $this->weekdayMap,
+            $date,
+        );
     }
 
     private function validSlotDate(?string $date, string $attribute): bool

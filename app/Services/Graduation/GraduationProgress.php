@@ -20,7 +20,8 @@ class GraduationProgress
      * Work out where one student stands.
      *
      * @return array{
-     *     requirements: array<int, array{requirement_id: int, description: string, state: string, credits: int, percentage: float|null}>,
+     *     requirements: array<int, array{requirement_id: int, description: string, state: string, credits: int, percentage: float|null, is_required: bool, is_negated: bool}>,
+     *     stages: array<int, array<string, mixed>>,
      *     credits_earned: int,
      *     credits_required: int|null,
      *     is_complete: bool
@@ -28,45 +29,18 @@ class GraduationProgress
      */
     public function for(GraduationPlan $plan, StudentRecord $enrollment): array
     {
-        $requirements = $plan->requirements()->get();
-        $exempt = GraduationExemption::query()
-            ->where('student_record_id', $enrollment->id)
-            ->whereIn('graduation_requirement_id', $requirements->pluck('id'))
-            ->pluck('graduation_requirement_id')
-            ->all();
-
-        $lines = [];
-        $earned = 0;
-        $everythingRequiredIsDone = true;
-
-        foreach ($requirements as $requirement) {
-            $percentage = $this->resultFor($requirement, $enrollment);
-            $state = $this->stateOf($requirement, $percentage, in_array($requirement->id, $exempt, true));
-
-            if (in_array($state, ['met', 'exempt'], true)) {
-                $earned += $requirement->credits;
-            } elseif ($requirement->is_required) {
-                $everythingRequiredIsDone = false;
-            }
-
-            $lines[] = [
-                'requirement_id' => $requirement->id,
-                'description'    => $requirement->description,
-                'state'          => $state,
-                'credits'        => $requirement->credits,
-                'percentage'     => $percentage,
-            ];
-        }
+        $result = $this->evaluatePlan($plan, $enrollment);
 
         $creditsAreEnough = !$plan->uses_credits
             || $plan->required_credits === null
-            || $earned >= $plan->required_credits;
+            || $result['credits_earned'] >= $plan->required_credits;
 
         return [
-            'requirements'     => $lines,
-            'credits_earned'   => $earned,
+            'requirements' => $result['requirements'],
+            'stages' => $result['stages'],
+            'credits_earned' => $result['credits_earned'],
             'credits_required' => $plan->uses_credits ? $plan->required_credits : null,
-            'is_complete'      => $everythingRequiredIsDone && $creditsAreEnough,
+            'is_complete' => $result['is_complete'] && $creditsAreEnough,
         ];
     }
 
@@ -99,6 +73,92 @@ class GraduationProgress
         }
 
         return $percentage >= $requirement->pass_mark ? 'met' : 'not_met';
+    }
+
+    /**
+     * Evaluate one stage and all of its nested stages.
+     *
+     * @return array{requirements: array<int, array{requirement_id: int, description: string, state: string, credits: int, percentage: float|null, is_required: bool, is_negated: bool}>, stages: array<int, array<string, mixed>>, credits_earned: int, is_complete: bool}
+     */
+    private function evaluatePlan(GraduationPlan $plan, StudentRecord $enrollment): array
+    {
+        $requirements = $plan->requirements()->get();
+        $exempt = GraduationExemption::query()
+            ->where('student_record_id', $enrollment->id)
+            ->whereIn('graduation_requirement_id', $requirements->pluck('id'))
+            ->pluck('graduation_requirement_id')
+            ->all();
+        $conditions = [];
+        $lines = [];
+        $earned = 0;
+
+        foreach ($requirements as $requirement) {
+            $percentage = $this->resultFor($requirement, $enrollment);
+            $state = $this->stateOf($requirement, $percentage, in_array($requirement->id, $exempt, true));
+            $isMet = in_array($state, ['met', 'exempt'], true);
+
+            if ($isMet) {
+                $earned += $requirement->credits;
+            }
+
+            if ($requirement->is_required) {
+                $conditions[] = $requirement->is_negated ? !$isMet : $isMet;
+            }
+
+            $lines[] = [
+                'requirement_id' => $requirement->id,
+                'description' => $requirement->description,
+                'state' => $state,
+                'credits' => $requirement->credits,
+                'percentage' => $percentage,
+                'is_required' => $requirement->is_required,
+                'is_negated' => $requirement->is_negated,
+            ];
+        }
+
+        $stages = [];
+        foreach ($plan->children()->where('is_active', true)->get() as $child) {
+            $childResult = $this->evaluatePlan($child, $enrollment);
+            $childIsComplete = $child->is_negated ? !$childResult['is_complete'] : $childResult['is_complete'];
+            $conditions[] = $childIsComplete;
+            $earned += $childResult['credits_earned'];
+            $stages[] = [
+                'plan_id' => $child->id,
+                'name' => $child->name,
+                'operator' => $child->completion_operator,
+                'is_negated' => $child->is_negated,
+                'is_complete' => $childIsComplete,
+                'requirements' => $childResult['requirements'],
+                'stages' => $childResult['stages'],
+            ];
+        }
+
+        $creditsAreEnough = !$plan->uses_credits
+            || $plan->required_credits === null
+            || $earned >= $plan->required_credits;
+
+        return [
+            'requirements' => $lines,
+            'stages' => $stages,
+            'credits_earned' => $earned,
+            'is_complete' => $this->conditionsMatch($conditions, $plan->completion_operator) && $creditsAreEnough,
+        ];
+    }
+
+    /**
+     * Apply a stage's ALL or ANY rule to its required items.
+     *
+     * @param  array<int, bool>  $conditions
+     */
+    private function conditionsMatch(array $conditions, string $operator): bool
+    {
+        if ($conditions === []) {
+            return true;
+        }
+
+        return $operator === 'any'
+            ? in_array(true, $conditions, true)
+            : !in_array(false, $conditions, true);
     }
 
     /**

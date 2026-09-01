@@ -2,19 +2,18 @@
 
 namespace App\Http\Requests;
 
-use App\Models\Cohort;
 use App\Models\GraduationPlan;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
-class StoreGraduationPlanRequest extends FormRequest
+class StoreGraduationChildPlanRequest extends FormRequest
 {
     /**
-     * Determine whether the person may write a plan.
+     * Determine whether the person may add a stage below this plan.
      */
     public function authorize(): bool
     {
-        return $this->user()?->can('create', GraduationPlan::class) ?? false;
+        return $this->user()?->can('update', $this->route('graduationPlan')) ?? false;
     }
 
     /**
@@ -32,10 +31,9 @@ class StoreGraduationPlanRequest extends FormRequest
                 Rule::unique((new GraduationPlan)->getTable(), 'name')->where('school_id', current_school_id()),
             ],
             'description' => ['nullable', 'string', 'max:1000'],
-            'completion_operator' => ['sometimes', Rule::in(['all', 'any'])],
-            'uses_credits' => ['required', 'boolean'],
-            'required_credits' => ['nullable', 'integer', 'min:1', 'max:1000', 'required_if:uses_credits,1'],
-            'cohort_id' => ['nullable', 'integer', Rule::exists((new Cohort)->getTable(), 'id')->where('school_id', current_school_id())],
+            'completion_operator' => ['required', Rule::in(['all', 'any'])],
+            'position' => ['nullable', 'integer', 'min:0', 'max:1000'],
+            'is_negated' => ['required', 'boolean'],
         ];
     }
 
@@ -48,7 +46,6 @@ class StoreGraduationPlanRequest extends FormRequest
     {
         return [
             'name.unique' => 'This school already has a plan with that name.',
-            'required_credits.required_if' => 'A plan that counts credits must say how many are needed.',
         ];
     }
 }

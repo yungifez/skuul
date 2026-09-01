@@ -32,7 +32,7 @@
             <slot:description>{{ $plan->description ?? 'This plan has no description.' }}</slot:description>
             <slot:content>
                 <div class="space-y-6">
-                    <dl class="grid gap-4 sm:grid-cols-3">
+                    <dl class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
                         <div class="rounded-lg border p-4">
                             <dt class="text-sm text-muted-foreground">Credits</dt>
                             <dd class="text-lg font-semibold">
@@ -46,6 +46,10 @@
                         <div class="rounded-lg border p-4">
                             <dt class="text-sm text-muted-foreground">State</dt>
                             <dd class="text-lg font-semibold">{{ $plan->is_active ? 'In use' : 'Closed' }}</dd>
+                        </div>
+                        <div class="rounded-lg border p-4">
+                            <dt class="text-sm text-muted-foreground">Stage rule</dt>
+                            <dd class="text-lg font-semibold">{{ $plan->completion_operator === 'any' ? 'Any item' : 'All items' }}</dd>
                         </div>
                     </dl>
 
@@ -66,6 +70,15 @@
                                 <april:input id="required_credits" name="required_credits" type="number" min="1"
                                     value="{{ old('required_credits', $plan->required_credits) }}" />
                                 @error('required_credits') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label for="completion_operator" class="text-sm font-medium">Combine required items</label>
+                                <select id="completion_operator" name="completion_operator"
+                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                                    <option value="all" @selected(old('completion_operator', $plan->completion_operator) === 'all')>All items (AND)</option>
+                                    <option value="any" @selected(old('completion_operator', $plan->completion_operator) === 'any')>Any item (OR)</option>
+                                </select>
                             </div>
 
                             <label class="flex items-center gap-2 text-sm">
@@ -96,10 +109,75 @@
         </april:card>
 
         <april:card>
+            <slot:title>Build the progression</slot:title>
+            <slot:description>
+                Use stages for years or pathways. Each stage can require all items, or any item. Nest another stage
+                when a branch needs its own rule. A stage marked NOT must not be complete.
+            </slot:description>
+            <slot:content>
+                <div class="space-y-6">
+                    @if ($plan->parent !== null)
+                        <p class="rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm text-muted-foreground">
+                            This is a stage inside
+                            <a class="font-medium underline" href="{{ route('graduation-plans.show', $plan->parent) }}">{{ $plan->parent->name }}</a>.
+                        </p>
+                    @endif
+
+                    @if ($plan->children->isEmpty())
+                        <x-empty-state icon="lucide-git-branch" title="No stages below this plan yet"
+                            description="Add KG1, KG2, KG3, or a nested choice group to model a multi-year pathway." />
+                    @else
+                        <div class="rounded-lg border p-4">
+                            <p class="mb-3 text-sm font-medium">Stages below this plan</p>
+                            @include('pages.graduation-plan.partials.stage-tree', ['stages' => $plan->children, 'depth' => 0])
+                        </div>
+                    @endif
+
+                    @if ($canWrite)
+                        <form method="POST" action="{{ route('graduation-plans.children.store', $plan) }}"
+                            class="grid gap-4 border-t pt-6 lg:grid-cols-5 lg:items-end">
+                            @csrf
+
+                            <div class="flex flex-col gap-2 lg:col-span-2">
+                                <label for="child_name" class="text-sm font-medium">New stage</label>
+                                <input id="child_name" name="name" value="{{ old('name') }}" required
+                                    placeholder="KG 1"
+                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                                @error('name') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label for="child_operator" class="text-sm font-medium">This stage requires</label>
+                                <select id="child_operator" name="completion_operator"
+                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                                    <option value="all" @selected(old('completion_operator', 'all') === 'all')>All (AND)</option>
+                                    <option value="any" @selected(old('completion_operator') === 'any')>Any (OR)</option>
+                                </select>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <input type="hidden" name="is_negated" value="0">
+                                <input id="child_negated" type="checkbox" name="is_negated" value="1"
+                                    @checked(old('is_negated'))
+                                    class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring">
+                                <label for="child_negated" class="text-sm">NOT this stage</label>
+                            </div>
+
+                            <april:button type="submit" class="lg:justify-self-start">
+                                <x-lucide-git-branch-plus class="mr-2 size-4" />
+                                Add stage
+                            </april:button>
+                        </form>
+                    @endif
+                </div>
+            </slot:content>
+        </april:card>
+
+        <april:card>
             <slot:title>What a learner must finish</slot:title>
             <slot:description>
-                A requirement that names a subject is judged from the newest published result. One that names no
-                subject is judged by the school and recorded elsewhere.
+                A requirement that names a subject is judged from the newest published result. Use NOT for an item
+                that must not be met. Requirements in this stage follow the stage rule above.
             </slot:description>
             <slot:content>
                 <div class="space-y-6">
@@ -109,9 +187,9 @@
                     @else
                         <april:data-table>
                             <slot:header>
-                                <april:data-table-row>
-                                    <april:data-table-head>Requirement</april:data-table-head>
-                                    <april:data-table-head>Subject</april:data-table-head>
+                                    <april:data-table-row>
+                                        <april:data-table-head>Requirement</april:data-table-head>
+                                        <april:data-table-head>Subject</april:data-table-head>
                                     <april:data-table-head>Pass mark</april:data-table-head>
                                     <april:data-table-head>Credits</april:data-table-head>
                                     <april:data-table-head class="text-right">Actions</april:data-table-head>
@@ -123,7 +201,11 @@
                                         <april:data-table-cell class="font-medium">
                                             {{ $requirement->description }}
                                             <span class="block text-xs text-muted-foreground">
-                                                {{ $requirement->is_required ? 'Must be met' : 'Optional' }}
+                                                @if ($requirement->is_negated)
+                                                    Must not be met (NOT)
+                                                @else
+                                                    {{ $requirement->is_required ? 'Must be met' : 'Optional' }}
+                                                @endif
                                             </span>
                                         </april:data-table-cell>
                                         <april:data-table-cell class="text-muted-foreground">
@@ -151,7 +233,7 @@
 
                     @if ($canWrite)
                         <form method="POST" action="{{ route('graduation-plans.requirements.store', $plan) }}"
-                            class="grid gap-4 border-t pt-6 lg:grid-cols-5 lg:items-end">
+                            class="grid gap-4 border-t pt-6 lg:grid-cols-6 lg:items-end">
                             @csrf
 
                             <div class="flex flex-col gap-2 lg:col-span-2">
@@ -191,7 +273,14 @@
                                 A learner cannot graduate without this
                             </label>
 
-                            <april:button type="submit" class="lg:col-span-5 lg:justify-self-start">
+                            <label class="flex items-center gap-2 text-sm lg:col-span-2">
+                                <input type="hidden" name="is_negated" value="0">
+                                <input type="checkbox" name="is_negated" value="1" @checked(old('is_negated'))
+                                    class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring">
+                                Must not be met (NOT)
+                            </label>
+
+                            <april:button type="submit" class="lg:col-span-6 lg:justify-self-start">
                                 <x-lucide-plus class="mr-2 size-4" />
                                 Add this requirement
                             </april:button>
@@ -244,6 +333,13 @@
                                 <p class="mt-1 text-sm text-muted-foreground">{{ $progress['credits_earned'] }} credits earned</p>
                             @endif
                         </div>
+
+                        @if ($progress['stages'] !== [])
+                            <div class="rounded-lg border p-4">
+                                <p class="mb-3 text-sm font-medium">Stage progress</p>
+                                @include('pages.graduation-plan.partials.progress-tree', ['stages' => $progress['stages'], 'depth' => 0])
+                            </div>
+                        @endif
 
                         @if ($progress['requirements'] !== [])
                             <april:data-table>

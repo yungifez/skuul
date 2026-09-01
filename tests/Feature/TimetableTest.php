@@ -266,6 +266,71 @@ class TimetableTest extends TestCase
             ->assertSet('calendarDate', '2030-02-28');
     }
 
+    public function test_read_only_timetable_can_switch_between_calendar_views(): void
+    {
+        $this->authorized_user(['read timetable']);
+        $timetable = Timetable::factory()->create();
+
+        Livewire::test(ShowTimetable::class, ['timetable' => $timetable])
+            ->assertSet('calendarView', 'month')
+            ->assertSee('Calendar view')
+            ->call('setCalendarView', 'week')
+            ->assertSet('calendarView', 'week')
+            ->assertSee('No events')
+            ->call('setCalendarView', 'day')
+            ->assertSet('calendarView', 'day')
+            ->assertSee('No events scheduled for this date.')
+            ->call('chooseCalendarDate', '2030-09-08')
+            ->assertSet('calendarDate', '2030-09-08')
+            ->call('nextCalendarPeriod')
+            ->assertSet('calendarDate', '2030-09-09')
+            ->call('previousCalendarPeriod')
+            ->assertSet('calendarDate', '2030-09-08');
+    }
+
+    public function test_read_only_calendar_plots_events_in_month_week_and_day_views(): void
+    {
+        $this->authorized_user(['read timetable']);
+        $timetable = Timetable::factory()->create();
+        $timetable->academicPeriod()->update([
+            'starts_on' => '2030-09-01',
+            'ends_on' => '2030-12-20',
+        ]);
+        $timetable->refresh();
+        $tuesday = Weekday::query()->where('name', 'Tuesday')->firstOrFail();
+        $slot = TimetableTimeSlot::create([
+            'timetable_id' => $timetable->id,
+            'start_time' => '08:00',
+            'stop_time' => '09:00',
+            'recurrence' => 'weekly',
+            'starts_on' => '2030-09-01',
+            'recurrence_interval' => 1,
+            'recurrence_weekdays' => [$tuesday->id],
+        ]);
+        $item = CustomTimetableItem::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'Assembly',
+        ]);
+        TimetableRecord::create([
+            'timetable_time_slot_id' => $slot->id,
+            'weekday_id' => $tuesday->id,
+            'timetable_time_slot_weekdayable_id' => $item->id,
+            'timetable_time_slot_weekdayable_type' => $item->getMorphClass(),
+        ]);
+
+        $component = Livewire::test(ShowTimetable::class, ['timetable' => $timetable])
+            ->assertSee('Assembly')
+            ->assertSee('08:00–09:00');
+
+        $component->call('chooseCalendarDate', '2030-09-03')
+            ->call('setCalendarView', 'week')
+            ->assertSee('Assembly');
+        $component->call('setCalendarView', 'day')
+            ->call('chooseCalendarDate', '2030-09-03')
+            ->assertSee('Assembly')
+            ->assertSee('08:00–09:00');
+    }
+
     public function test_calendar_views_plot_active_empty_time_slots(): void
     {
         $this->authorized_user(['update timetable']);
@@ -378,7 +443,8 @@ class TimetableTest extends TestCase
         $this->assertSame('Assigned subject', $assignedCell['name']);
         $this->assertNull($otherCell['name']);
 
-        Livewire::test(ShowTimetable::class, ['timetable' => $timetable])
+        $show = Livewire::test(ShowTimetable::class, ['timetable' => $timetable]);
+        $show
             ->assertSee('Showing subjects assigned to you')
             ->assertSee('Assigned subject')
             ->assertDontSee('Other subject');

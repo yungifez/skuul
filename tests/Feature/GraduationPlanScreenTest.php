@@ -93,6 +93,48 @@ class GraduationPlanScreenTest extends TestCase
         $this->assertSame(0, $plan->requirements()->count());
     }
 
+    public function test_a_plan_can_have_ordered_nested_stages_and_logic(): void
+    {
+        $this->authorized_user(['read graduation plan', 'manage graduation plan']);
+        $plan = $this->plan();
+
+        $this->from(route('graduation-plans.show', $plan))
+            ->post(route('graduation-plans.children.store', $plan), [
+                'name' => 'KG 1',
+                'completion_operator' => 'all',
+                'position' => 1,
+                'is_negated' => '0',
+            ])->assertRedirect(route('graduation-plans.show', $plan));
+
+        $stage = $plan->children()->sole();
+
+        $this->post(route('graduation-plans.children.store', $plan), [
+            'name' => 'Later kindergarten',
+            'completion_operator' => 'any',
+            'position' => 2,
+            'is_negated' => '0',
+        ]);
+
+        $choice = $plan->children()->where('name', 'Later kindergarten')->sole();
+
+        $this->from(route('graduation-plans.show', $choice))
+            ->post(route('graduation-plans.children.store', $choice), [
+                'name' => 'KG 2',
+                'completion_operator' => 'all',
+                'is_negated' => '0',
+            ])->assertRedirect(route('graduation-plans.show', $choice));
+
+        $this->get(route('graduation-plans.show', $plan))
+            ->assertOk()
+            ->assertSee('KG 1')
+            ->assertSee('Later kindergarten')
+            ->assertSee('KG 2')
+            ->assertSee('Any item (OR)');
+
+        $this->assertSame($plan->id, $stage->fresh()->parent_id);
+        $this->assertSame($choice->id, $choice->children()->sole()->parent_id);
+    }
+
     public function test_the_screen_says_how_far_a_learner_is(): void
     {
         $this->authorized_user(['read graduation plan', 'manage graduation plan', 'read student']);

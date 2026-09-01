@@ -29,6 +29,7 @@ class StoreGraduationRequirementRequest extends FormRequest
             'credits' => ['required', 'integer', 'min:0', 'max:100'],
             'pass_mark' => ['required', 'numeric', 'min:0', 'max:100'],
             'is_required' => ['required', 'boolean'],
+            'is_negated' => ['sometimes', 'boolean'],
         ];
     }
 }

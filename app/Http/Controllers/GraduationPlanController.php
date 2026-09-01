@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\StoreGraduationChildPlanRequest;
 use App\Http\Requests\StoreGraduationExemptionRequest;
 use App\Http\Requests\StoreGraduationPlanRequest;
 use App\Http\Requests\StoreGraduationRequirementRequest;
@@ -78,7 +79,8 @@ class GraduationPlanController extends Controller
     {
         $this->authorize('view', $graduationPlan);
 
-        $graduationPlan->load(['requirements.subject:id,name', 'cohort:id,name']);
+        $graduationPlan->load(['requirements.subject:id,name', 'cohort:id,name', 'parent:id,name']);
+        $this->loadPlanTree($graduationPlan);
 
         $learner = $this->learnerFrom($request);
         $progress = $learner === null ? null : $this->progress->for($graduationPlan, $learner);
@@ -95,6 +97,27 @@ class GraduationPlanController extends Controller
                 ->get()
                 ->keyBy('graduation_requirement_id'),
         ]);
+    }
+
+    /**
+     * Add a nested stage to a plan.
+     */
+    public function storeChild(StoreGraduationChildPlanRequest $request, GraduationPlan $graduationPlan): RedirectResponse
+    {
+        $values = $request->validated();
+
+        GraduationPlan::create([
+            'school_id' => $graduationPlan->school_id,
+            'parent_id' => $graduationPlan->id,
+            'name' => $values['name'],
+            'description' => $values['description'] ?? null,
+            'completion_operator' => $values['completion_operator'],
+            'position' => $values['position'] ?? (($graduationPlan->children()->max('position') ?? -1) + 1),
+            'is_negated' => $values['is_negated'],
+            'cohort_id' => $graduationPlan->cohort_id,
+        ]);
+
+        return back()->with('success', 'The stage was added to the plan.');
     }
 
     /**
@@ -190,5 +213,30 @@ class GraduationPlanController extends Controller
     private function cohorts(): Collection
     {
         return Cohort::query()->inSchool()->active()->orderBy('name')->get(['id', 'name']);
+    }
+
+    /**
+     * Load all nested stages without querying once per branch in the view.
+     */
+    private function loadPlanTree(GraduationPlan $plan): void
+    {
+        $plansByParent = GraduationPlan::query()
+            ->inSchool()
+            ->orderBy('position')
+            ->orderBy('id')
+            ->with('requirements')
+            ->get()
+            ->groupBy('parent_id');
+
+        $attachChildren = function (GraduationPlan $stage) use (&$attachChildren, $plansByParent): void {
+            $children = $plansByParent->get($stage->id, collect())->values();
+            $stage->setRelation('children', $children);
+
+            foreach ($children as $child) {
+                $attachChildren($child);
+            }
+        };
+
+        $attachChildren($plan);
     }
 }

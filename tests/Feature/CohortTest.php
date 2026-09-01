@@ -183,9 +183,9 @@ class CohortTest extends TestCase
         $subject = $this->subject();
         GraduationRequirement::create([
             'graduation_plan_id' => $plan->id,
-            'subject_id'         => $subject->id,
-            'description'        => 'Pass mathematics',
-            'pass_mark'          => 50,
+            'subject_id' => $subject->id,
+            'description' => 'Pass mathematics',
+            'pass_mark' => 50,
         ]);
 
         $progress = app(GraduationProgress::class);
@@ -205,9 +205,9 @@ class CohortTest extends TestCase
         $subject = $this->subject();
         GraduationRequirement::create([
             'graduation_plan_id' => $plan->id,
-            'subject_id'         => $subject->id,
-            'description'        => 'Pass mathematics',
-            'pass_mark'          => 50,
+            'subject_id' => $subject->id,
+            'description' => 'Pass mathematics',
+            'pass_mark' => 50,
         ]);
         $this->publishedResult($enrollment, $subject, 41);
 
@@ -225,13 +225,13 @@ class CohortTest extends TestCase
         $plan = $this->plan();
         $requirement = GraduationRequirement::create([
             'graduation_plan_id' => $plan->id,
-            'subject_id'         => $this->subject()->id,
-            'description'        => 'Pass mathematics',
+            'subject_id' => $this->subject()->id,
+            'description' => 'Pass mathematics',
         ]);
         GraduationExemption::create([
             'graduation_requirement_id' => $requirement->id,
-            'student_record_id'         => $enrollment->id,
-            'reason'                    => 'Studied it at another school',
+            'student_record_id' => $enrollment->id,
+            'reason' => 'Studied it at another school',
         ]);
 
         $progress = app(GraduationProgress::class)->for($plan, $enrollment);
@@ -249,16 +249,16 @@ class CohortTest extends TestCase
         $second = $this->subject();
         GraduationRequirement::create([
             'graduation_plan_id' => $plan->id,
-            'subject_id'         => $first->id,
-            'description'        => 'Pass mathematics',
-            'credits'            => 4,
+            'subject_id' => $first->id,
+            'description' => 'Pass mathematics',
+            'credits' => 4,
         ]);
         GraduationRequirement::create([
             'graduation_plan_id' => $plan->id,
-            'subject_id'         => $second->id,
-            'description'        => 'Pass english',
-            'credits'            => 4,
-            'is_required'        => false,
+            'subject_id' => $second->id,
+            'description' => 'Pass english',
+            'credits' => 4,
+            'is_required' => false,
         ]);
         $this->publishedResult($enrollment, $first, 80);
 
@@ -271,6 +271,57 @@ class CohortTest extends TestCase
         $this->publishedResult($enrollment, $second, 65);
 
         $this->assertTrue(app(GraduationProgress::class)->isComplete($plan, $enrollment));
+    }
+
+    public function test_nested_plan_progress_supports_any_branches_and_not_requirements(): void
+    {
+        $this->authorized_user(['manage graduation plan']);
+        $enrollment = $this->enrollment();
+        $root = $this->plan();
+        $choice = $this->plan([
+            'parent_id' => $root->id,
+            'name' => 'KG 2 or KG 3',
+            'completion_operator' => 'any',
+        ]);
+        $kg2 = $this->plan([
+            'parent_id' => $choice->id,
+            'name' => 'KG 2',
+        ]);
+        $kg3 = $this->plan([
+            'parent_id' => $choice->id,
+            'name' => 'KG 3',
+        ]);
+        $notAdvanced = $this->subject();
+        $advanced = $this->subject();
+
+        GraduationRequirement::create([
+            'graduation_plan_id' => $kg2->id,
+            'subject_id' => $notAdvanced->id,
+            'description' => 'Pass KG 2',
+        ]);
+        GraduationRequirement::create([
+            'graduation_plan_id' => $kg3->id,
+            'subject_id' => $advanced->id,
+            'description' => 'Pass KG 3',
+        ]);
+        GraduationRequirement::create([
+            'graduation_plan_id' => $root->id,
+            'subject_id' => $notAdvanced->id,
+            'description' => 'Do not pass advanced placement',
+            'is_negated' => true,
+        ]);
+
+        $this->publishedResult($enrollment, $advanced, 80);
+
+        $progress = app(GraduationProgress::class)->for($root, $enrollment);
+
+        $this->assertTrue($progress['is_complete']);
+        $this->assertTrue($progress['stages'][0]['is_complete']);
+        $this->assertTrue($progress['stages'][0]['stages'][1]['is_complete']);
+
+        $this->publishedResult($enrollment, $notAdvanced, 80);
+
+        $this->assertFalse(app(GraduationProgress::class)->isComplete($root, $enrollment));
     }
 
     public function test_ranking_is_off_until_a_school_turns_it_on(): void
@@ -376,41 +427,41 @@ class CohortTest extends TestCase
     /**
      * Make a group in the working school.
      *
-     * @param array<string, mixed> $values
+     * @param  array<string, mixed>  $values
      */
     private function cohort(array $values = []): Cohort
     {
         return Cohort::create($values + [
             'school_id' => $this->workingSchool()->id,
-            'name'      => 'Class of '.fake()->unique()->numberBetween(2030, 2999),
-            'type'      => CohortType::GraduationYear,
+            'name' => 'Class of '.fake()->unique()->numberBetween(2030, 2999),
+            'type' => CohortType::GraduationYear,
         ]);
     }
 
     /**
      * Make a programme in the working school.
      *
-     * @param array<string, mixed> $values
+     * @param  array<string, mixed>  $values
      */
     private function program(array $values = []): Program
     {
         return Program::create($values + [
             'school_id' => $this->workingSchool()->id,
-            'name'      => 'Chess club '.fake()->unique()->numberBetween(1, 9999),
-            'type'      => ProgramType::Club,
+            'name' => 'Chess club '.fake()->unique()->numberBetween(1, 9999),
+            'type' => ProgramType::Club,
         ]);
     }
 
     /**
      * Make a graduation plan in the working school.
      *
-     * @param array<string, mixed> $values
+     * @param  array<string, mixed>  $values
      */
     private function plan(array $values = []): GraduationPlan
     {
         return GraduationPlan::create($values + [
             'school_id' => $this->workingSchool()->id,
-            'name'      => 'Leaving plan '.fake()->unique()->numberBetween(1, 9999),
+            'name' => 'Leaving plan '.fake()->unique()->numberBetween(1, 9999),
         ]);
     }
 
@@ -438,22 +489,22 @@ class CohortTest extends TestCase
         $courseOffering = $this->courseOffering($subject, $enrollment->school_id);
 
         return ResultSnapshot::create([
-            'school_id'          => $enrollment->school_id,
-            'student_record_id'  => $enrollment->id,
+            'school_id' => $enrollment->school_id,
+            'student_record_id' => $enrollment->id,
             'course_offering_id' => $courseOffering->id,
-            'revision'           => $revision,
-            'percentage'         => $percentage,
-            'payload'            => ['percentage' => $percentage],
-            'published_at'       => now(),
+            'revision' => $revision,
+            'percentage' => $percentage,
+            'payload' => ['percentage' => $percentage],
+            'published_at' => now(),
         ]);
     }
 
     private function courseOffering(Subject $subject, int $schoolId): CourseOffering
     {
         return $this->courseOfferings[$subject->id] ??= CourseOffering::factory()->create([
-            'school_id'          => $schoolId,
-            'subject_id'         => $subject->id,
-            'academic_year_id'   => current_academic_year_id(),
+            'school_id' => $schoolId,
+            'subject_id' => $subject->id,
+            'academic_year_id' => current_academic_year_id(),
             'academic_period_id' => current_academic_period_id(),
         ]);
     }

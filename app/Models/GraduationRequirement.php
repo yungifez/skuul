@@ -10,7 +10,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * One thing a graduation plan asks for.
  *
- * @property bool  $is_required
+ * @property bool $is_required
+ * @property bool $is_negated
  * @property float $pass_mark
  */
 class GraduationRequirement extends Model
@@ -24,6 +25,7 @@ class GraduationRequirement extends Model
         'credits',
         'pass_mark',
         'is_required',
+        'is_negated',
     ];
 
     /**
@@ -32,9 +34,10 @@ class GraduationRequirement extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'credits'     => 1,
-        'pass_mark'   => 50,
+        'credits' => 1,
+        'pass_mark' => 50,
         'is_required' => true,
+        'is_negated' => false,
     ];
 
     /**
@@ -43,9 +46,10 @@ class GraduationRequirement extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'credits'     => 'integer',
-        'pass_mark'   => 'float',
+        'credits' => 'integer',
+        'pass_mark' => 'float',
         'is_required' => 'boolean',
+        'is_negated' => 'boolean',
     ];
 
     /**

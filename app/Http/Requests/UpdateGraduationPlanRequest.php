@@ -34,6 +34,7 @@ class UpdateGraduationPlanRequest extends FormRequest
                     ->ignore($this->route('graduationPlan')),
             ],
             'description' => ['nullable', 'string', 'max:1000'],
+            'completion_operator' => ['sometimes', Rule::in(['all', 'any'])],
             'uses_credits' => ['required', 'boolean'],
             'required_credits' => ['nullable', 'integer', 'min:1', 'max:1000', 'required_if:uses_credits,1'],
             'cohort_id' => ['nullable', 'integer', Rule::exists((new Cohort)->getTable(), 'id')->where('school_id', current_school_id())],

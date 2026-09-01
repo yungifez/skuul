@@ -5,6 +5,8 @@
             <slot:description>
                 @if ($showDescription && filled($timetable->description))
                     {{ $timetable->description }}
+                @elseif ($showCalendar)
+                    Scan this timetable by month, week, or day.
                 @else
                     {{ $grid['filled_count'] }} of {{ $grid['slot_count'] }} places on the week are taken.
                 @endif
@@ -15,10 +17,18 @@
                         {{ $audienceNote }}
                     </p>
                 @endif
-                @include('livewire.partials.timetable-grid', ['grid' => $grid])
+                @if ($showCalendar)
+                    @include('livewire.partials.read-only-timetable-calendar')
+                @else
+                    @include('livewire.partials.timetable-grid', ['grid' => $grid])
+                @endif
             </slot:content>
         </april:card>
     @else
-        @include('livewire.partials.timetable-grid', ['grid' => $grid])
+        @if ($showCalendar)
+            @include('livewire.partials.read-only-timetable-calendar')
+        @else
+            @include('livewire.partials.timetable-grid', ['grid' => $grid])
+        @endif
     @endif
 </div>
