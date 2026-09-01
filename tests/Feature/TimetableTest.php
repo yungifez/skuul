@@ -262,6 +262,8 @@ class TimetableTest extends TestCase
             ->call('setCalendarView', 'day')
             ->call('chooseCalendarDate', '2030-09-03')
             ->assertSee('Open time slot')
+            ->call('moveCalendar', 1)
+            ->assertSet('calendarDate', '2030-09-04')
             ->call('setCalendarView', 'week')
             ->assertSee('01:00')
             ->assertSee('Open time slot');
