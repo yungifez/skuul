@@ -6,13 +6,6 @@
                 "artisan",
                 "boost:mcp"
             ]
-        },
-        "april-ui": {
-            "command": "vendor/bin/sail",
-            "args": [
-                "artisan",
-                "april:mcp"
-            ]
         }
     }
 }
