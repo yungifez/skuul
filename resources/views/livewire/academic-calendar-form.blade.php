@@ -48,7 +48,7 @@
                     <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
                         @foreach ($this->structures() as $value => $label)
                             <label wire:key="calendar-structure-{{ $value }}" class="flex cursor-pointer items-center gap-3 rounded-lg border p-3 text-sm transition has-[:checked]:border-primary has-[:checked]:bg-primary/5">
-                                <input type="radio" wire:model.live="structure" value="{{ $value }}" class="size-4 border-input text-primary">
+                                <input type="radio" wire:model.live="structure" value="{{ $value }}" class="size-4 border-input text-primary-foreground">
                                 <span class="font-medium">{{ $label }}</span>
                             </label>
                         @endforeach

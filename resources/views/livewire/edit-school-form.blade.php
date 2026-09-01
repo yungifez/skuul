@@ -1,11 +1,11 @@
 <div class="mx-auto max-w-6xl space-y-6">
     <div class="flex flex-col gap-4 rounded-xl border bg-muted/30 p-5 sm:flex-row sm:items-center sm:justify-between md:p-6">
         <div class="min-w-0">
-            <p class="text-sm font-medium text-primary">School profile</p>
+            <p class="text-sm font-medium text-primary-foreground">School profile</p>
             <h2 class="mt-1 truncate text-2xl font-semibold tracking-tight">{{ $school->name }}</h2>
             <p class="mt-1 max-w-2xl text-sm text-muted-foreground">Keep the details families, staff, and printed records use to identify and contact this school.</p>
         </div>
-        <div class="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-background text-xl font-semibold text-primary shadow-sm">
+        <div class="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-background text-xl font-semibold text-primary-foreground shadow-sm">
             @if ($school->logo_path)
                 <img src="{{ $school->logo_url }}" alt="" class="size-full object-cover" />
             @else
@@ -61,7 +61,7 @@
                 <slot:description>Use a square image for the clearest result in the sidebar and printed records.</slot:description>
                 <slot:content class="space-y-5">
                     <div class="flex items-center gap-4 rounded-lg border bg-muted/30 p-4">
-                        <div class="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-background text-xl font-semibold text-primary">
+                        <div class="flex size-16 shrink-0 items-center justify-center overflow-hidden rounded-lg border bg-background text-xl font-semibold text-primary-foreground">
                             @if ($school->logo_path)
                                 <img src="{{ $school->logo_url }}" alt="Current school logo" class="size-full object-cover" />
                             @else

@@ -53,7 +53,7 @@
                                             </form>
                                         @endif
                                         <details class="mt-2 text-left">
-                                            <summary class="cursor-pointer text-sm text-primary">Assign teacher</summary>
+                                            <summary class="cursor-pointer text-sm text-primary-foreground">Assign teacher</summary>
                                             <form method="POST" action="{{ route('course-offerings.teachers.store', $courseOffering) }}" class="mt-2 grid gap-2">
                                                 @csrf
                                                 <select name="teacher_id" class="rounded-md border border-input bg-background px-2 py-1.5 text-sm" required>

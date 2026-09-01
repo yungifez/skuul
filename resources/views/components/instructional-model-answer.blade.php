@@ -12,7 +12,7 @@
 
 <div class="flex flex-col gap-4 rounded-xl border border-sidebar-border/70 bg-card p-6 text-card-foreground shadow-sm sm:flex-row sm:items-center sm:justify-between">
     <div class="flex items-start gap-4">
-        <div class="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+        <div class="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary-foreground">
             <x-icon :name="$icon" class="size-5" />
         </div>
         <div class="min-w-0">

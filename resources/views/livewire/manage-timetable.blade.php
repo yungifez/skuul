@@ -189,7 +189,7 @@
                             @endif
                         </div>
                         @if ($slotRecurrence === 'weekly')
-                            <fieldset class="mt-4 space-y-2"><legend class="text-sm font-medium">On these weekdays</legend><div class="flex flex-wrap gap-2">@foreach ($weekdayMap as $weekdayName => $weekdayId)<label class="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/10"><input type="checkbox" wire:model="slotWeekdayIds" value="{{ $weekdayId }}" class="size-4 rounded border-input text-primary focus:ring-primary">{{ $weekdayName }}</label>@endforeach</div>@error('slotWeekdayIds') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</fieldset>
+                            <fieldset class="mt-4 space-y-2"><legend class="text-sm font-medium">On these weekdays</legend><div class="flex flex-wrap gap-2">@foreach ($weekdayMap as $weekdayName => $weekdayId)<label class="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/10"><input type="checkbox" wire:model="slotWeekdayIds" value="{{ $weekdayId }}" class="size-4 rounded border-input text-primary-foreground focus:ring-primary">{{ $weekdayName }}</label>@endforeach</div>@error('slotWeekdayIds') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</fieldset>
                         @endif
                     @endif
                 </div>

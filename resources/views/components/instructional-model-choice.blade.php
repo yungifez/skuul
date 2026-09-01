@@ -35,8 +35,8 @@
 
         <span @class([
             'flex size-7 shrink-0 items-center justify-center rounded-full transition-colors',
-            'bg-primary/10 text-primary' => $readonly,
-            'bg-muted text-muted-foreground group-has-[:checked]:bg-primary/10 group-has-[:checked]:text-primary' => !$readonly,
+            'bg-primary/10 text-primary-foreground' => $readonly,
+            'bg-muted text-muted-foreground group-has-[:checked]:bg-primary/10 group-has-[:checked]:text-primary-foreground' => !$readonly,
         ])>
             <x-icon :name="$icon" class="size-4" />
         </span>

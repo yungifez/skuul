@@ -59,7 +59,7 @@
                     <label class="flex items-center gap-2 text-sm">
                         <input type="hidden" name="due" value="0">
                         <input type="checkbox" name="due" value="1" @checked($dueOnly)
-                            class="size-4 rounded border-input text-primary focus:ring-2 focus:ring-ring">
+                            class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring">
                         Only the plans due for review
                     </label>
 

@@ -86,7 +86,7 @@
                                 <label class="flex items-center gap-2 text-sm">
                                     <input type="hidden" name="drafts" value="0">
                                     <input type="checkbox" name="drafts" value="1" @checked($draftsOnly)
-                                        class="size-4 rounded border-input text-primary focus:ring-2 focus:ring-ring">
+                                        class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring">
                                     Drafts only
                                 </label>
                             @endif

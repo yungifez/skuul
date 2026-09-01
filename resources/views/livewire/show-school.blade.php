@@ -2,7 +2,7 @@
     <april:card>
         <slot:title class="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
             <span class="flex min-w-0 items-center gap-4">
-                <span class="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted text-lg font-semibold text-primary">
+                <span class="flex size-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-muted text-lg font-semibold text-primary-foreground">
                     @if ($school->logo_path)
                         <img src="{{ $school->logo_url }}" alt="" class="size-full object-cover" />
                     @else
@@ -64,7 +64,7 @@
         <april:card>
             <slot:title class="flex items-center justify-between gap-3">
                 <span class="flex items-center gap-3">
-                <span class="flex size-10 items-center justify-center rounded-md bg-muted text-primary">
+                <span class="flex size-10 items-center justify-center rounded-md bg-muted text-primary-foreground">
                     <x-lucide-calendar-range class="size-5" />
                 </span>
                 Academic workspace
@@ -108,7 +108,7 @@
 
         <april:card>
             <slot:title class="flex items-center gap-3">
-                <span class="flex size-10 items-center justify-center rounded-md bg-muted text-primary">
+                <span class="flex size-10 items-center justify-center rounded-md bg-muted text-primary-foreground">
                     <x-lucide-contact class="size-5" />
                 </span>
                 Contact details
@@ -121,7 +121,7 @@
                         <dt class="text-sm text-muted-foreground">Email</dt>
                         <dd class="mt-1 break-words font-medium">
                             @if ($school->email)
-                                <a href="mailto:{{ $school->email }}" class="text-primary underline-offset-4 hover:underline">{{ $school->email }}</a>
+                                <a href="mailto:{{ $school->email }}" class="text-primary-foreground underline-offset-4 hover:underline">{{ $school->email }}</a>
                             @else
                                 Not provided
                             @endif
@@ -131,7 +131,7 @@
                         <dt class="text-sm text-muted-foreground">Phone</dt>
                         <dd class="mt-1 font-medium">
                             @if ($school->phone)
-                                <a href="tel:{{ $school->phone }}" class="text-primary underline-offset-4 hover:underline">{{ $school->phone }}</a>
+                                <a href="tel:{{ $school->phone }}" class="text-primary-foreground underline-offset-4 hover:underline">{{ $school->phone }}</a>
                             @else
                                 Not provided
                             @endif

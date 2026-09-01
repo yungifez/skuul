@@ -4,26 +4,6 @@
 @source "../../resources/**/*.blade.php";
 @source "../../app/**/*.php";
 
-:root {
-    --primary-text: 145 35% 25%;
-    --accent-text: 145 35% 25%;
-}
-
-.dark {
-    --primary-text: 45 35% 80%;
-    --accent-text: 45 35% 80%;
-}
-
-@layer utilities {
-    .text-primary {
-        color: hsl(var(--primary-text));
-    }
-
-    .text-accent {
-        color: hsl(var(--accent-text));
-    }
-}
-
 /* Alpine ships the x-cloak directive but no CSS. April UI declares this rule
    too; keeping it here means the app's own x-cloak markup never depends on a
    particular April UI version to stay hidden before Alpine starts. */

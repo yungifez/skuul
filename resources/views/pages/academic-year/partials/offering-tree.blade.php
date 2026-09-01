@@ -11,7 +11,7 @@
     @endphp
     <div wire:key="course-offering-subject-{{ $subject->id }}-{{ $subjectOfferings->pluck('id')->join('-') }}" class="flex min-w-0 flex-col gap-2 rounded-md border border-primary/20 bg-primary/5 px-3 py-2 text-sm sm:flex-row sm:items-start sm:justify-between">
         <div class="flex min-w-0 items-start gap-2">
-            <x-lucide-book-marked class="mt-0.5 size-4 shrink-0 text-primary" />
+            <x-lucide-book-marked class="mt-0.5 size-4 shrink-0 text-primary-foreground" />
             <div class="min-w-0">
                 <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
                     <span class="font-medium">{{ $subject->name }}</span>
@@ -35,7 +35,7 @@
                                         : school_roster_label($periodOffering->roster_mode);
                                 @endphp
                                 @can('update', $periodOffering)
-                                    <a href="{{ route('course-offerings.edit', [$periodOffering, 'setup' => 1]) }}" class="font-medium text-primary hover:underline" title="Edit {{ $period?->displayName }} for {{ $offeringSections }}">{{ $offeringSections }}</a>
+                                    <a href="{{ route('course-offerings.edit', [$periodOffering, 'setup' => 1]) }}" class="font-medium text-primary-foreground hover:underline" title="Edit {{ $period?->displayName }} for {{ $offeringSections }}">{{ $offeringSections }}</a>
                                 @else
                                     <span>{{ $offeringSections }}</span>
                                 @endcan

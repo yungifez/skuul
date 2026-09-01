@@ -71,14 +71,14 @@
                             <label class="flex items-center gap-2 text-sm">
                                 <input type="hidden" name="uses_credits" value="0">
                                 <input type="checkbox" name="uses_credits" value="1" @checked(old('uses_credits', $plan->uses_credits))
-                                    class="size-4 rounded border-input text-primary focus:ring-2 focus:ring-ring">
+                                    class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring">
                                 Count credits
                             </label>
 
                             <label class="flex items-center gap-2 text-sm">
                                 <input type="hidden" name="is_active" value="0">
                                 <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $plan->is_active))
-                                    class="size-4 rounded border-input text-primary focus:ring-2 focus:ring-ring">
+                                    class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring">
                                 This plan is in use
                             </label>
 
@@ -187,7 +187,7 @@
                             <label class="flex items-center gap-2 text-sm lg:col-span-2">
                                 <input type="hidden" name="is_required" value="0">
                                 <input type="checkbox" name="is_required" value="1" @checked(old('is_required', true))
-                                    class="size-4 rounded border-input text-primary focus:ring-2 focus:ring-ring">
+                                    class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring">
                                 A learner cannot graduate without this
                             </label>
 

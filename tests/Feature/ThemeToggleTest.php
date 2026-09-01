@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use Illuminate\Support\Facades\File;
 use Tests\TestCase;
 
 class ThemeToggleTest extends TestCase
@@ -52,17 +53,17 @@ class ThemeToggleTest extends TestCase
         $this->assertStringContainsString('document.addEventListener("livewire:navigated"', $appJs);
     }
 
-    public function test_standalone_primary_and_accent_text_use_contrast_tokens_in_both_themes(): void
+    public function test_standalone_primary_text_uses_the_foreground_token(): void
     {
-        $stylesheet = file_get_contents(resource_path('css/app.css'));
+        foreach (File::allFiles(resource_path('views')) as $view) {
+            $markup = file_get_contents($view->getPathname());
 
-        $this->assertIsString($stylesheet);
-        $this->assertStringContainsString('--primary-text: 145 35% 25%;', $stylesheet);
-        $this->assertStringContainsString('--accent-text: 145 35% 25%;', $stylesheet);
-        $this->assertStringContainsString('--primary-text: 45 35% 80%;', $stylesheet);
-        $this->assertStringContainsString('--accent-text: 45 35% 80%;', $stylesheet);
-        $this->assertStringContainsString('color: hsl(var(--primary-text));', $stylesheet);
-        $this->assertStringContainsString('color: hsl(var(--accent-text));', $stylesheet);
-        $this->assertStringNotContainsString('--primary: 0 0% 100%;', $stylesheet);
+            $this->assertIsString($markup);
+            $this->assertDoesNotMatchRegularExpression(
+                '/(?<![A-Za-z0-9_-])text-primary(?!-foreground)/',
+                $markup,
+                "{$view->getRelativePathname()} must use text-primary-foreground for standalone primary text."
+            );
+        }
     }
 }

@@ -183,7 +183,7 @@
                         <div class="space-y-4">
                             @foreach ($studentRecord->statusChanges->sortByDesc('effective_on') as $change)
                                 <div class="flex gap-3" wire:key="enrollment-status-change-{{ $change->id }}">
-                                    <div class="mt-1 rounded-full bg-primary/10 p-2 text-primary">
+                                    <div class="mt-1 rounded-full bg-primary/10 p-2 text-primary-foreground">
                                         <x-lucide-history class="size-4" />
                                     </div>
                                     <div class="min-w-0 flex-1">

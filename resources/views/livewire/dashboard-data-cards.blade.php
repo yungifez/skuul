@@ -5,7 +5,7 @@
                 <div class="flex flex-col justify-between gap-4 sm:flex-row sm:items-start">
                     <div>
                         <div class="flex items-center gap-2">
-                            <p class="text-xs font-semibold uppercase text-primary">School setup</p>
+                            <p class="text-xs font-semibold uppercase text-primary-foreground">School setup</p>
                             <x-help-tooltip label="School setup help">Complete the required setup before your team starts daily work. The next priority below always points to the first unfinished requirement.</x-help-tooltip>
                         </div>
                         @if ($setupChecklist['required_remaining'] > 0)
@@ -48,7 +48,7 @@
 
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <p class="text-xs text-muted-foreground">{{ $setupChecklist['completed'] }} of {{ $setupChecklist['total'] }} setup areas complete</p>
-                    <a href="{{ route('schools.settings') }}" class="inline-flex items-center text-sm font-medium text-primary hover:underline focus:outline-none focus:ring-2 focus:ring-ring">
+                    <a href="{{ route('schools.settings') }}" class="inline-flex items-center text-sm font-medium text-primary-foreground hover:underline focus:outline-none focus:ring-2 focus:ring-ring">
                         View all setup steps
                         <span aria-hidden="true" class="ml-1">→</span>
                     </a>
@@ -74,7 +74,7 @@
                 <april:separator class="mb-6 mt-0" />
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="flex items-center gap-3 rounded-lg border bg-muted p-4">
-                        <span class="flex size-10 shrink-0 items-center justify-center rounded-md bg-background text-primary">
+                        <span class="flex size-10 shrink-0 items-center justify-center rounded-md bg-background text-primary-foreground">
                             <x-icon name="lucide-school" class="size-5" />
                         </span>
                         <div>
@@ -83,7 +83,7 @@
                         </div>
                     </div>
                     <div class="flex items-center gap-3 rounded-lg border bg-muted p-4">
-                        <span class="flex size-10 shrink-0 items-center justify-center rounded-md bg-background text-primary">
+                        <span class="flex size-10 shrink-0 items-center justify-center rounded-md bg-background text-primary-foreground">
                             <x-icon name="lucide-calendar-range" class="size-5" />
                         </span>
                         <div>

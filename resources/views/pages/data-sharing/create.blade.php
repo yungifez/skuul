@@ -65,7 +65,7 @@
                             <label class="flex items-center gap-2 rounded-md border p-3 text-sm">
                                 <input type="checkbox" name="categories[]" value="{{ $category->value }}"
                                     @checked(in_array($category->value, old('categories', []), true))
-                                    class="size-4 rounded border-input text-primary focus:ring-2 focus:ring-ring">
+                                    class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring">
                                 {{ $category->label() }}
                             </label>
                         @endforeach

@@ -10,7 +10,7 @@
                 <div class="rounded-lg border p-4"><p class="text-muted-foreground">Calendar starts</p><p class="mt-1 font-semibold">{{ $academicYear->starts_on?->format('M j, Y') ?? 'Not scheduled' }}</p></div>
                 <div class="rounded-lg border p-4"><p class="text-muted-foreground">Calendar ends</p><p class="mt-1 font-semibold">{{ $academicYear->ends_on?->format('M j, Y') ?? 'Not scheduled' }}</p></div>
                 <div class="rounded-lg border p-4"><p class="text-muted-foreground">{{ school_terms('period', 'Reporting periods') }}</p><p class="mt-1 font-semibold">{{ $topLevelPeriods->count() }}</p></div>
-                <div class="rounded-lg border p-4"><p class="text-muted-foreground">Teaching setup</p><a href="{{ route('academic-years.instructional-model.edit', $academicYear) }}" class="mt-1 inline-flex font-semibold text-primary hover:underline">Manage setup</a></div>
+                <div class="rounded-lg border p-4"><p class="text-muted-foreground">Teaching setup</p><a href="{{ route('academic-years.instructional-model.edit', $academicYear) }}" class="mt-1 inline-flex font-semibold text-primary-foreground hover:underline">Manage setup</a></div>
             </div>
 
             <div class="mt-6 flex flex-wrap items-center gap-3">
@@ -37,7 +37,7 @@
 
     <section class="rounded-xl border bg-muted/30 p-5 md:p-6" aria-labelledby="academic-year-flow-heading">
         <div class="flex items-start gap-3">
-            <span class="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+            <span class="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary-foreground">
                 <x-lucide-route class="size-5" />
             </span>
             <div>

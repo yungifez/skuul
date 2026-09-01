@@ -40,7 +40,7 @@
         </div>
 
         <div class="flex items-start gap-4">
-            <div class="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <div class="flex size-11 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary-foreground">
                 <x-icon :name="$icon" class="size-5" />
             </div>
             <div class="min-w-0">

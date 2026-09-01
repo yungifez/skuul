@@ -52,7 +52,7 @@
             <label class="flex items-center gap-2 text-sm lg:col-span-2">
                 <input type="hidden" name="is_all_day" value="0">
                 <input type="checkbox" name="is_all_day" value="1" @checked(old('is_all_day', $event?->is_all_day ?? true))
-                    class="size-4 rounded border-input text-primary focus:ring-2 focus:ring-ring">
+                    class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring">
                 This lasts all day. The times below are ignored.
             </label>
 
@@ -99,7 +99,7 @@
                             <label class="flex items-center gap-2 rounded-md border p-3 text-sm">
                                 <input type="checkbox" name="academic_cycle_section_ids[]" value="{{ $section->id }}"
                                     @checked($chosenSections->contains($section->id))
-                                    class="size-4 rounded border-input text-primary focus:ring-2 focus:ring-ring">
+                                    class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring">
                                 {{ $section->name }}
                             </label>
                         @endforeach
@@ -119,7 +119,7 @@
                             <label class="flex items-center gap-2 text-sm">
                                 <input type="checkbox" name="user_ids[]" value="{{ $person->id }}"
                                     @checked($chosenPeople->contains($person->id))
-                                    class="size-4 rounded border-input text-primary focus:ring-2 focus:ring-ring">
+                                    class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring">
                                 {{ $person->name }}
                             </label>
                         @endforeach
