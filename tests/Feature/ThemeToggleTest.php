@@ -51,4 +51,18 @@ class ThemeToggleTest extends TestCase
         $this->assertStringContainsString('window.setTheme = setTheme;', $appJs);
         $this->assertStringContainsString('document.addEventListener("livewire:navigated"', $appJs);
     }
+
+    public function test_standalone_primary_and_accent_text_use_contrast_tokens_in_both_themes(): void
+    {
+        $stylesheet = file_get_contents(resource_path('css/app.css'));
+
+        $this->assertIsString($stylesheet);
+        $this->assertStringContainsString('--primary-text: 145 35% 25%;', $stylesheet);
+        $this->assertStringContainsString('--accent-text: 145 35% 25%;', $stylesheet);
+        $this->assertStringContainsString('--primary-text: 45 35% 80%;', $stylesheet);
+        $this->assertStringContainsString('--accent-text: 45 35% 80%;', $stylesheet);
+        $this->assertStringContainsString('color: hsl(var(--primary-text));', $stylesheet);
+        $this->assertStringContainsString('color: hsl(var(--accent-text));', $stylesheet);
+        $this->assertStringNotContainsString('--primary: 0 0% 100%;', $stylesheet);
+    }
 }
