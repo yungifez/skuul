@@ -56,12 +56,32 @@
                 </div>
 
                 @if ($calendarView === 'week')
+                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-md border border-dashed bg-muted/20 p-3">
+                        <div>
+                            <p class="text-sm font-semibold">Week slots</p>
+                            <p class="text-sm text-muted-foreground">Create a recurring time slot, then place lessons or events in it.</p>
+                        </div>
+                        <button type="button" wire:click="openTimeSlotDialog" class="inline-flex h-9 items-center rounded-md border bg-background px-3 text-sm font-medium hover:bg-muted">
+                            <x-lucide-plus class="mr-2 size-4" />
+                            Add recurring slot
+                        </button>
+                    </div>
                     @include('livewire.partials.timetable-grid', [
                         'grid' => $grid,
                         'editable' => true,
                         'selected' => $selected,
                     ])
                 @elseif ($calendarView === 'day')
+                    <div class="flex flex-wrap items-center justify-between gap-3 rounded-md border border-dashed bg-muted/20 p-3">
+                        <div>
+                            <p class="text-sm font-semibold">Day slots</p>
+                            <p class="text-sm text-muted-foreground">Add a one-time slot for {{ \Illuminate\Support\Carbon::parse($calendarDate)->format('j F Y') }}.</p>
+                        </div>
+                        <button type="button" wire:click="openTimeSlotDialog('{{ $calendarDate }}')" class="inline-flex h-9 items-center rounded-md border bg-background px-3 text-sm font-medium hover:bg-muted">
+                            <x-lucide-plus class="mr-2 size-4" />
+                            Add slot for this date
+                        </button>
+                    </div>
                     <div class="space-y-2">
                         @forelse ($this->dayEvents as $event)
                             <button wire:key="day-event-{{ $event['key'] }}" type="button" wire:click="selectCell({{ explode(':', $event['key'])[0] }}, {{ explode(':', $event['key'])[1] }})" class="flex w-full items-center justify-between gap-3 rounded-md border px-4 py-3 text-left hover:border-primary {{ $event['kind'] === null ? 'border-dashed bg-muted/40' : 'bg-primary/10' }}">

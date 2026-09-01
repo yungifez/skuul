@@ -235,9 +235,12 @@ class TimetableTest extends TestCase
             ->assertSet('calendarView', 'month')
             ->call('setCalendarView', 'day')
             ->assertSet('calendarView', 'day')
+            ->assertSee('Add slot for this date')
             ->call('chooseCalendarDate', '2030-09-08')
             ->assertSet('calendarDate', '2030-09-08')
-            ->assertSet('calendarView', 'day');
+            ->assertSet('calendarView', 'day')
+            ->call('setCalendarView', 'week')
+            ->assertSee('Add recurring slot');
     }
 
     public function test_month_calendar_navigation_moves_across_month_boundaries(): void
