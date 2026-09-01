@@ -106,7 +106,7 @@
         </slot:content>
     </april:card>
 
-    <april:dialog dismissable x-effect="show = $wire.showTimeSlotDialog" x-init="$watch('show', value => { if (!value && $wire.showTimeSlotDialog) $wire.closeTimeSlotDialog() })">
+    <april:dialog dismissable x-effect="open = $wire.showTimeSlotDialog" x-init="$watch('open', value => { if (!value && $wire.showTimeSlotDialog) $wire.closeTimeSlotDialog() })">
         <slot:content class="sm:max-w-2xl">
             <april:dialog-header>
                 <slot:title>Add a time slot</slot:title>
@@ -183,7 +183,7 @@
     </april:dialog>
 
     @if ($this->selectedLabel !== null)
-        <april:dialog dismissable x-effect="show = $wire.showSlotEditorDialog" x-init="$watch('show', value => { if (!value && $wire.showSlotEditorDialog) $wire.closeSlotEditorDialog() })">
+        <april:dialog dismissable x-effect="open = $wire.showSlotEditorDialog" x-init="$watch('open', value => { if (!value && $wire.showSlotEditorDialog) $wire.closeSlotEditorDialog() })">
             <slot:content class="sm:max-w-3xl">
                 <april:dialog-header>
                     <slot:title>{{ $this->selectedLabel }}</slot:title>

@@ -178,7 +178,7 @@
         </div>
     </div>
     @csrf
-    <april:button class="w-full md:w-3/12" wire:loading.attr="disabled">
+    <april:button type="submit" class="w-full md:w-3/12" wire:loading.attr="disabled">
         <x-lucide-key class="mr-2 size-4" />
         Create Invoice
     </april:button>

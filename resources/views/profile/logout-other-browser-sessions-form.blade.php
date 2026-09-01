@@ -48,7 +48,7 @@
             </div>
         @endif
 
-        <april:dialog dismissable x-effect="show = $wire.confirmingLogout">
+        <april:dialog dismissable x-effect="open = $wire.confirmingLogout">
             <slot:content class="sm:max-w-md">
                 <april:dialog-header>
                     <slot:title>Log Out Other Browser Sessions</slot:title>
@@ -60,7 +60,7 @@
                 </div>
 
                 <april:dialog-footer>
-                    <april:button variant="destructive" size="sm" wire:click="logoutOtherBrowserSessions" wire:loading.attr="disabled">
+                    <april:button type="button" variant="destructive" size="sm" wire:click="logoutOtherBrowserSessions" wire:loading.attr="disabled">
                         {{ __('Log out other browser sessions') }}
                     </april:button>
                 </april:dialog-footer>

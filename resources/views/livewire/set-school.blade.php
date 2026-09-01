@@ -24,7 +24,7 @@
             </div>
             @csrf
             <div class="flex justify-end">
-                <april:button class="w-full sm:w-auto">
+                <april:button type="submit" class="w-full sm:w-auto">
                     Set working school
                 </april:button>
             </div>

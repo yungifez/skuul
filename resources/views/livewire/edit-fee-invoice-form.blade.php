@@ -14,7 +14,7 @@
                 </div>
                 @method('PUT')
                 @csrf
-                <april:button class="w-full md:w-1/2 ">
+                <april:button type="submit" class="w-full md:w-1/2 ">
                     <x-lucide-pencil class="mr-2 size-4" />
                     Edit
                 </april:button>
@@ -54,7 +54,7 @@
                 <april:input-group id="name-{{$record['id']}}" name="fine" label="fine" type="number" x-model.number="fine" error-bag="some-random-thing" />
                 <p x-text="'Total: ' + (amount - waiver + fine).toLocaleString()" class="md:place-self-center"></p>
                 <input type="hidden" value="{{$record->fee->id}}">
-                <april:button class="self-end">
+                <april:button type="submit" class="self-end">
                     <x-lucide-pencil class="mr-2 size-4" />
                     Edit
                 </april:button>
@@ -132,7 +132,7 @@
             <p x-text="'Total: '+((parseInt(amount) - parseInt(waiver) + parseInt(fine) - parseInt(paid)) || 0).toLocaleString()" class="self-end p-6"></p>
             @csrf
         </div>
-        <april:button class="w-full md:w-1/4">
+        <april:button type="submit" class="w-full md:w-1/4">
             <x-lucide-key class="mr-2 size-4" />
             Create
         </april:button>

@@ -220,6 +220,8 @@ class TimetableTest extends TestCase
 
         Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
             ->assertSet('calendarView', 'month')
+            ->assertSee('x-effect="open = $wire.showTimeSlotDialog"', false)
+            ->assertDontSee('x-effect="show = $wire.showTimeSlotDialog"', false)
             ->call('openTimeSlotDialog', '2030-09-08')
             ->assertSet('showTimeSlotDialog', true)
             ->assertSet('calendarView', 'month')
@@ -270,6 +272,7 @@ class TimetableTest extends TestCase
             ->assertSet('showSlotEditorDialog', false)
             ->call('selectCell', $slot->id, $tuesday->id)
             ->assertSet('showSlotEditorDialog', true)
+            ->assertSee('x-effect="open = $wire.showSlotEditorDialog"', false)
             ->assertSee('Find a subject or a break')
             ->call('closeSlotEditorDialog')
             ->assertSet('showSlotEditorDialog', false)

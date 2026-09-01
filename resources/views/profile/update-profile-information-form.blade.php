@@ -108,7 +108,7 @@
         </div>
     </x-slot>
     <x-slot name="actions">
-        <april:button>
+        <april:button type="submit">
             {{ __('Save') }}
         </april:button>
     </x-slot>

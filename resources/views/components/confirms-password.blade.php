@@ -16,7 +16,7 @@
 </span>
 
 @once
-<april:dialog dismissable x-effect="show = $wire.confirmingPassword">
+<april:dialog dismissable x-effect="open = $wire.confirmingPassword">
     <slot:content class="sm:max-w-md">
         <april:dialog-header>
             <slot:title>{{ $title }}</slot:title>
@@ -28,7 +28,7 @@
         </div>
 
         <april:dialog-footer>
-            <april:button class="ms-2" wire:click="confirmPassword" wire:loading.attr="disabled">
+            <april:button type="button" class="ms-2" wire:click="confirmPassword" wire:loading.attr="disabled">
                 {{ $button }}
             </april:button>
         </april:dialog-footer>

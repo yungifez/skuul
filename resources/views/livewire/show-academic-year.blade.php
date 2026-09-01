@@ -127,7 +127,7 @@
         </slot:content>
     </april:card>
 
-    <april:dialog dismissable x-effect="show = $wire.showSetupRolloverDialog">
+    <april:dialog dismissable x-effect="open = $wire.showSetupRolloverDialog">
         <slot:content class="sm:max-w-2xl">
             <april:dialog-header>
                 <slot:title>Review setup from {{ $previousAcademicYear?->name }}</slot:title>
