@@ -49,7 +49,15 @@
                         </div>
                         <div class="rounded-lg border p-4">
                             <dt class="text-sm text-muted-foreground">Stage rule</dt>
-                            <dd class="text-lg font-semibold">{{ $plan->completion_operator === 'any' ? 'Any item' : 'All items' }}</dd>
+                            <dd class="text-lg font-semibold">
+                                @if ($plan->completion_operator === 'any')
+                                    Any item
+                                @elseif ($plan->completion_operator === 'at_least')
+                                    At least {{ $plan->required_count }} items
+                                @else
+                                    All items
+                                @endif
+                            </dd>
                         </div>
                     </dl>
 
@@ -78,20 +86,27 @@
                                     class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
                                     <option value="all" @selected(old('completion_operator', $plan->completion_operator) === 'all')>All items (AND)</option>
                                     <option value="any" @selected(old('completion_operator', $plan->completion_operator) === 'any')>Any item (OR)</option>
+                                    <option value="at_least" @selected(old('completion_operator', $plan->completion_operator) === 'at_least')>At least a number of items</option>
                                 </select>
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label for="required_count" class="text-sm font-medium">Number needed</label>
+                                <input id="required_count" name="required_count" type="number" min="1"
+                                    value="{{ old('required_count', $plan->required_count) }}" placeholder="For example, 4 of 5"
+                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                                @error('required_count') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                             </div>
 
                             <label class="flex items-center gap-2 text-sm">
                                 <input type="hidden" name="uses_credits" value="0">
-                                <input type="checkbox" name="uses_credits" value="1" @checked(old('uses_credits', $plan->uses_credits))
-                                    class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring">
+                                <april:input type="checkbox" name="uses_credits" value="1" :checked="old('uses_credits', $plan->uses_credits)" />
                                 Count credits
                             </label>
 
                             <label class="flex items-center gap-2 text-sm">
                                 <input type="hidden" name="is_active" value="0">
-                                <input type="checkbox" name="is_active" value="1" @checked(old('is_active', $plan->is_active))
-                                    class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring">
+                                <april:input type="checkbox" name="is_active" value="1" :checked="old('is_active', $plan->is_active)" />
                                 This plan is in use
                             </label>
 
@@ -135,7 +150,7 @@
 
                     @if ($canWrite)
                         <form method="POST" action="{{ route('graduation-plans.children.store', $plan) }}"
-                            class="grid gap-4 border-t pt-6 lg:grid-cols-5 lg:items-end">
+                            class="grid gap-4 border-t pt-6 lg:grid-cols-6 lg:items-end">
                             @csrf
 
                             <div class="flex flex-col gap-2 lg:col-span-2">
@@ -152,14 +167,21 @@
                                     class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
                                     <option value="all" @selected(old('completion_operator', 'all') === 'all')>All (AND)</option>
                                     <option value="any" @selected(old('completion_operator') === 'any')>Any (OR)</option>
+                                    <option value="at_least" @selected(old('completion_operator') === 'at_least')>At least N</option>
                                 </select>
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label for="child_required_count" class="text-sm font-medium">Number needed</label>
+                                <input id="child_required_count" name="required_count" type="number" min="1"
+                                    value="{{ old('required_count') }}" placeholder="4"
+                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                                @error('required_count') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                             </div>
 
                             <div class="flex items-center gap-2">
                                 <input type="hidden" name="is_negated" value="0">
-                                <input id="child_negated" type="checkbox" name="is_negated" value="1"
-                                    @checked(old('is_negated'))
-                                    class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring">
+                                <april:input id="child_negated" type="checkbox" name="is_negated" value="1" :checked="old('is_negated')" />
                                 <label for="child_negated" class="text-sm">NOT this stage</label>
                             </div>
 
@@ -268,15 +290,13 @@
 
                             <label class="flex items-center gap-2 text-sm lg:col-span-2">
                                 <input type="hidden" name="is_required" value="0">
-                                <input type="checkbox" name="is_required" value="1" @checked(old('is_required', true))
-                                    class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring">
+                                <april:input type="checkbox" name="is_required" value="1" :checked="old('is_required', true)" />
                                 A learner cannot graduate without this
                             </label>
 
                             <label class="flex items-center gap-2 text-sm lg:col-span-2">
                                 <input type="hidden" name="is_negated" value="0">
-                                <input type="checkbox" name="is_negated" value="1" @checked(old('is_negated'))
-                                    class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring">
+                                <april:input type="checkbox" name="is_negated" value="1" :checked="old('is_negated')" />
                                 Must not be met (NOT)
                             </label>
 

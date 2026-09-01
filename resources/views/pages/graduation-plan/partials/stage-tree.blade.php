@@ -7,7 +7,13 @@
                         {{ $stage->name }}
                     </a>
                     <p class="text-xs text-muted-foreground">
-                        {{ $stage->completion_operator === 'any' ? 'Any item (OR)' : 'All items (AND)' }}
+                        @if ($stage->completion_operator === 'any')
+                            Any item (OR)
+                        @elseif ($stage->completion_operator === 'at_least')
+                            At least {{ $stage->required_count }} items
+                        @else
+                            All items (AND)
+                        @endif
                         @if ($stage->is_negated)
                             · NOT this stage
                         @endif

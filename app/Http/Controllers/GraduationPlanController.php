@@ -112,6 +112,7 @@ class GraduationPlanController extends Controller
             'name' => $values['name'],
             'description' => $values['description'] ?? null,
             'completion_operator' => $values['completion_operator'],
+            'required_count' => $values['required_count'] ?? null,
             'position' => $values['position'] ?? (($graduationPlan->children()->max('position') ?? -1) + 1),
             'is_negated' => $values['is_negated'],
             'cohort_id' => $graduationPlan->cohort_id,

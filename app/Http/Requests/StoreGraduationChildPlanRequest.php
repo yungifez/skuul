@@ -31,7 +31,8 @@ class StoreGraduationChildPlanRequest extends FormRequest
                 Rule::unique((new GraduationPlan)->getTable(), 'name')->where('school_id', current_school_id()),
             ],
             'description' => ['nullable', 'string', 'max:1000'],
-            'completion_operator' => ['required', Rule::in(['all', 'any'])],
+            'completion_operator' => ['required', Rule::in(['all', 'any', 'at_least'])],
+            'required_count' => ['nullable', 'integer', 'min:1', 'max:1000', 'required_if:completion_operator,at_least'],
             'position' => ['nullable', 'integer', 'min:0', 'max:1000'],
             'is_negated' => ['required', 'boolean'],
         ];

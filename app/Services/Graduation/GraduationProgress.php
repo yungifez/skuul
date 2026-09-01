@@ -126,6 +126,7 @@ class GraduationProgress
                 'plan_id' => $child->id,
                 'name' => $child->name,
                 'operator' => $child->completion_operator,
+                'required_count' => $child->required_count,
                 'is_negated' => $child->is_negated,
                 'is_complete' => $childIsComplete,
                 'requirements' => $childResult['requirements'],
@@ -141,7 +142,7 @@ class GraduationProgress
             'requirements' => $lines,
             'stages' => $stages,
             'credits_earned' => $earned,
-            'is_complete' => $this->conditionsMatch($conditions, $plan->completion_operator) && $creditsAreEnough,
+            'is_complete' => $this->conditionsMatch($conditions, $plan->completion_operator, $plan->required_count) && $creditsAreEnough,
         ];
     }
 
@@ -150,15 +151,17 @@ class GraduationProgress
      *
      * @param  array<int, bool>  $conditions
      */
-    private function conditionsMatch(array $conditions, string $operator): bool
+    private function conditionsMatch(array $conditions, string $operator, ?int $requiredCount): bool
     {
         if ($conditions === []) {
             return true;
         }
 
-        return $operator === 'any'
-            ? in_array(true, $conditions, true)
-            : !in_array(false, $conditions, true);
+        return match ($operator) {
+            'any' => in_array(true, $conditions, true),
+            'at_least' => count(array_filter($conditions)) >= ($requiredCount ?? 1),
+            default => !in_array(false, $conditions, true),
+        };
     }
 
     /**

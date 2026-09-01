@@ -49,8 +49,16 @@
                             class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
                             <option value="all" @selected(old('completion_operator', 'all') === 'all')>All items (AND)</option>
                             <option value="any" @selected(old('completion_operator') === 'any')>Any item (OR)</option>
+                            <option value="at_least" @selected(old('completion_operator') === 'at_least')>At least a number of items</option>
                         </select>
                         @error('completion_operator') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <april:label for="required_count">Number needed</april:label>
+                        <april:input id="required_count" name="required_count" type="number" min="1"
+                            value="{{ old('required_count') }}" placeholder="For example, 4 of 5" />
+                        @error('required_count') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                     </div>
 
                     <div class="flex flex-col gap-2 lg:col-span-2">
@@ -63,8 +71,7 @@
 
                     <label class="flex items-center gap-2 text-sm">
                         <input type="hidden" name="uses_credits" value="0">
-                        <input type="checkbox" name="uses_credits" value="1" @checked(old('uses_credits'))
-                            class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring">
+                        <april:input type="checkbox" name="uses_credits" value="1" :checked="old('uses_credits')" />
                         This plan counts credits
                     </label>
 

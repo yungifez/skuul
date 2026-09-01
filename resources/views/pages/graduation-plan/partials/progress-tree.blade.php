@@ -7,7 +7,13 @@
                         {{ $stage['name'] }}
                     </a>
                     <p class="text-xs text-muted-foreground">
-                        {{ $stage['operator'] === 'any' ? 'Any item (OR)' : 'All items (AND)' }}
+                        @if ($stage['operator'] === 'any')
+                            Any item (OR)
+                        @elseif ($stage['operator'] === 'at_least')
+                            At least {{ $stage['required_count'] }} items
+                        @else
+                            All items (AND)
+                        @endif
                         @if ($stage['is_negated'])
                             · NOT this stage
                         @endif

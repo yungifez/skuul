@@ -117,6 +117,14 @@ class GraduationPlanScreenTest extends TestCase
 
         $choice = $plan->children()->where('name', 'Later kindergarten')->sole();
 
+        $this->from(route('graduation-plans.show', $plan))
+            ->post(route('graduation-plans.children.store', $plan), [
+                'name' => 'Electives',
+                'completion_operator' => 'at_least',
+                'required_count' => 4,
+                'is_negated' => '0',
+            ])->assertRedirect(route('graduation-plans.show', $plan));
+
         $this->from(route('graduation-plans.show', $choice))
             ->post(route('graduation-plans.children.store', $choice), [
                 'name' => 'KG 2',
@@ -129,7 +137,8 @@ class GraduationPlanScreenTest extends TestCase
             ->assertSee('KG 1')
             ->assertSee('Later kindergarten')
             ->assertSee('KG 2')
-            ->assertSee('Any item (OR)');
+            ->assertSee('Any item (OR)')
+            ->assertSee('At least 4 items');
 
         $this->assertSame($plan->id, $stage->fresh()->parent_id);
         $this->assertSame($choice->id, $choice->children()->sole()->parent_id);

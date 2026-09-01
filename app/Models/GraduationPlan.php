@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  *
  * @property bool $uses_credits
  * @property string $completion_operator
+ * @property int|null $required_count
  * @property bool $is_negated
  */
 class GraduationPlan extends Model
@@ -30,6 +31,7 @@ class GraduationPlan extends Model
         'name',
         'description',
         'completion_operator',
+        'required_count',
         'position',
         'is_negated',
         'uses_credits',
@@ -45,6 +47,7 @@ class GraduationPlan extends Model
      */
     protected $attributes = [
         'completion_operator' => 'all',
+        'required_count' => null,
         'position' => 0,
         'is_negated' => false,
         'uses_credits' => false,
@@ -58,6 +61,7 @@ class GraduationPlan extends Model
      */
     protected $casts = [
         'position' => 'integer',
+        'required_count' => 'integer',
         'is_negated' => 'boolean',
         'uses_credits' => 'boolean',
         'is_active' => 'boolean',
