@@ -183,10 +183,12 @@
     </april:dialog>
 
     @if ($this->selectedLabel !== null)
-        <april:card class="border-primary">
-            <slot:title>{{ $this->selectedLabel }}</slot:title>
-            <slot:description>Choose a subject to teach then, or a part of the day that is not a lesson.</slot:description>
-            <slot:content>
+        <april:dialog dismissable x-effect="show = $wire.showSlotEditorDialog" x-init="$watch('show', value => { if (!value && $wire.showSlotEditorDialog) $wire.closeSlotEditorDialog() })">
+            <slot:content class="sm:max-w-3xl">
+                <april:dialog-header>
+                    <slot:title>{{ $this->selectedLabel }}</slot:title>
+                    <slot:description>Choose a subject or a school event for this time slot.</slot:description>
+                </april:dialog-header>
                 <div class="space-y-4">
                     <div class="flex flex-wrap items-end gap-3">
                         <div class="flex min-w-56 flex-1 flex-col gap-2">
@@ -252,7 +254,7 @@
                     </div>
                 </div>
             </slot:content>
-        </april:card>
+        </april:dialog>
     @endif
 
     <april:card>

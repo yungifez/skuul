@@ -247,7 +247,7 @@ class TimetableTest extends TestCase
         $timetable->refresh();
         $tuesday = Weekday::query()->where('name', 'Tuesday')->firstOrFail();
 
-        TimetableTimeSlot::factory()->create([
+        $slot = TimetableTimeSlot::factory()->create([
             'timetable_id' => $timetable->id,
             'start_time' => '01:00',
             'stop_time' => '02:00',
@@ -266,7 +266,15 @@ class TimetableTest extends TestCase
             ->assertSet('calendarDate', '2030-09-04')
             ->call('setCalendarView', 'week')
             ->assertSee('01:00')
-            ->assertSee('Open time slot');
+            ->assertSee('Open time slot')
+            ->assertSet('showSlotEditorDialog', false)
+            ->call('selectCell', $slot->id, $tuesday->id)
+            ->assertSet('showSlotEditorDialog', true)
+            ->assertSee('Find a subject or a break')
+            ->call('closeSlotEditorDialog')
+            ->assertSet('showSlotEditorDialog', false)
+            ->call('selectCell', $slot->id, $tuesday->id)
+            ->assertSet('showSlotEditorDialog', true);
     }
 
     public function test_a_time_slot_can_use_an_explicit_term_scoped_weekly_rule(): void

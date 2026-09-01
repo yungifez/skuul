@@ -60,6 +60,8 @@ class ManageTimetable extends Component
 
     public bool $showTimeSlotDialog = false;
 
+    public bool $showSlotEditorDialog = false;
+
     public int $slotRecurrenceInterval = 1;
 
     public string $slotStartsOn = '';
@@ -267,8 +269,21 @@ class ManageTimetable extends Component
     public function selectCell(int $timeSlotId, int $weekdayId): void
     {
         $key = $timeSlotId.':'.$weekdayId;
-        // Clicking the chosen cell again puts the picker away.
-        $this->selected = $this->selected === $key ? null : $key;
+
+        if ($this->selected === $key) {
+            $this->closeSlotEditorDialog();
+
+            return;
+        }
+
+        $this->selected = $key;
+        $this->showSlotEditorDialog = true;
+    }
+
+    public function closeSlotEditorDialog(): void
+    {
+        $this->selected = null;
+        $this->showSlotEditorDialog = false;
     }
 
     /**
@@ -388,6 +403,7 @@ class ManageTimetable extends Component
         $this->write(function () use ($slot, $timeSlots): void {
             $timeSlots->deleteTimeSlot($slot);
             $this->selected = null;
+            $this->showSlotEditorDialog = false;
         });
     }
 
