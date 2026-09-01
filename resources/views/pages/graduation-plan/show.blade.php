@@ -63,48 +63,46 @@
 
                     @if ($canWrite)
                         <form method="POST" action="{{ route('graduation-plans.update', $plan) }}"
-                            class="grid gap-4 border-t pt-6 lg:grid-cols-4 lg:items-end">
+                            class="grid gap-4 border-t pt-6 lg:grid-cols-12 lg:items-end">
                             @csrf
                             @method('PUT')
 
-                            <div class="flex flex-col gap-2">
+                            <div class="flex flex-col gap-2 lg:col-span-3">
                                 <april:label for="name">Name</april:label>
                                 <april:input id="name" name="name" value="{{ old('name', $plan->name) }}" required />
                                 @error('name') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                             </div>
 
-                            <div class="flex flex-col gap-2">
+                            <div class="flex flex-col gap-2 lg:col-span-2">
                                 <april:label for="required_credits">Credits needed</april:label>
                                 <april:input id="required_credits" name="required_credits" type="number" min="1"
                                     value="{{ old('required_credits', $plan->required_credits) }}" />
                                 @error('required_credits') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                             </div>
 
-                            <div class="flex flex-col gap-2">
+                            <div class="flex flex-col gap-2 lg:col-span-3">
                                 <label for="completion_operator" class="text-sm font-medium">Combine required items</label>
-                                <select id="completion_operator" name="completion_operator"
-                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                                <april:native-select id="completion_operator" name="completion_operator">
                                     <option value="all" @selected(old('completion_operator', $plan->completion_operator) === 'all')>All items (AND)</option>
                                     <option value="any" @selected(old('completion_operator', $plan->completion_operator) === 'any')>Any item (OR)</option>
                                     <option value="at_least" @selected(old('completion_operator', $plan->completion_operator) === 'at_least')>At least a number of items</option>
-                                </select>
+                                </april:native-select>
                             </div>
 
-                            <div class="flex flex-col gap-2">
+                            <div class="flex flex-col gap-2 lg:col-span-2">
                                 <label for="required_count" class="text-sm font-medium">Number needed</label>
-                                <input id="required_count" name="required_count" type="number" min="1"
-                                    value="{{ old('required_count', $plan->required_count) }}" placeholder="For example, 4 of 5"
-                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                                <april:input id="required_count" name="required_count" type="number" min="1"
+                                    value="{{ old('required_count', $plan->required_count) }}" placeholder="For example, 4 of 5" />
                                 @error('required_count') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                             </div>
 
-                            <label class="flex items-center gap-2 text-sm">
+                            <label class="flex min-h-[4.25rem] items-center gap-2 text-sm lg:col-span-1">
                                 <input type="hidden" name="uses_credits" value="0">
                                 <april:input type="checkbox" name="uses_credits" value="1" :checked="old('uses_credits', $plan->uses_credits)" />
                                 Count credits
                             </label>
 
-                            <label class="flex items-center gap-2 text-sm">
+                            <label class="flex min-h-[4.25rem] items-center gap-2 text-sm lg:col-span-1">
                                 <input type="hidden" name="is_active" value="0">
                                 <april:input type="checkbox" name="is_active" value="1" :checked="old('is_active', $plan->is_active)" />
                                 This plan is in use
@@ -113,7 +111,7 @@
                             <input type="hidden" name="description" value="{{ $plan->description }}">
                             <input type="hidden" name="cohort_id" value="{{ $plan->cohort_id }}">
 
-                            <april:button type="submit" class="lg:col-span-4 lg:justify-self-start">
+                            <april:button type="submit" class="lg:col-span-12 lg:justify-self-start">
                                 <x-lucide-save class="mr-2 size-4" />
                                 Save the plan
                             </april:button>
@@ -155,31 +153,27 @@
 
                             <div class="flex flex-col gap-2 lg:col-span-2">
                                 <label for="child_name" class="text-sm font-medium">New stage</label>
-                                <input id="child_name" name="name" value="{{ old('name') }}" required
-                                    placeholder="KG 1"
-                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                                <april:input id="child_name" name="name" value="{{ old('name') }}" required placeholder="KG 1" />
                                 @error('name') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                             </div>
 
                             <div class="flex flex-col gap-2">
                                 <label for="child_operator" class="text-sm font-medium">This stage requires</label>
-                                <select id="child_operator" name="completion_operator"
-                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                                <april:native-select id="child_operator" name="completion_operator">
                                     <option value="all" @selected(old('completion_operator', 'all') === 'all')>All (AND)</option>
                                     <option value="any" @selected(old('completion_operator') === 'any')>Any (OR)</option>
                                     <option value="at_least" @selected(old('completion_operator') === 'at_least')>At least N</option>
-                                </select>
+                                </april:native-select>
                             </div>
 
                             <div class="flex flex-col gap-2">
                                 <label for="child_required_count" class="text-sm font-medium">Number needed</label>
-                                <input id="child_required_count" name="required_count" type="number" min="1"
-                                    value="{{ old('required_count') }}" placeholder="4"
-                                    class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" />
+                                <april:input id="child_required_count" name="required_count" type="number" min="1"
+                                    value="{{ old('required_count') }}" placeholder="4" />
                                 @error('required_count') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                             </div>
 
-                            <div class="flex items-center gap-2">
+                            <div class="flex min-h-[4.25rem] items-center gap-2">
                                 <input type="hidden" name="is_negated" value="0">
                                 <april:input id="child_negated" type="checkbox" name="is_negated" value="1" :checked="old('is_negated')" />
                                 <label for="child_negated" class="text-sm">NOT this stage</label>
@@ -255,17 +249,17 @@
 
                     @if ($canWrite)
                         <form method="POST" action="{{ route('graduation-plans.requirements.store', $plan) }}"
-                            class="grid gap-4 border-t pt-6 lg:grid-cols-6 lg:items-end">
+                            class="grid gap-4 border-t pt-6 lg:grid-cols-12 lg:items-end">
                             @csrf
 
-                            <div class="flex flex-col gap-2 lg:col-span-2">
+                            <div class="flex flex-col gap-2 lg:col-span-3">
                                 <april:label for="description">What must be finished</april:label>
                                 <april:input id="description" name="description" value="{{ old('description') }}" required
                                     placeholder="Pass mathematics" />
                                 @error('description') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                             </div>
 
-                            <div class="flex flex-col gap-2">
+                            <div class="flex flex-col gap-2 lg:col-span-2">
                                 <april:label for="subject_id">Subject</april:label>
                                 <april:native-select id="subject_id" name="subject_id">
                                     <option value="">No subject</option>
@@ -288,19 +282,19 @@
                                 @error('credits') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                             </div>
 
-                            <label class="flex items-center gap-2 text-sm lg:col-span-2">
+                            <label class="flex min-h-[4.25rem] items-center gap-2 text-sm lg:col-span-2">
                                 <input type="hidden" name="is_required" value="0">
                                 <april:input type="checkbox" name="is_required" value="1" :checked="old('is_required', true)" />
                                 A learner cannot graduate without this
                             </label>
 
-                            <label class="flex items-center gap-2 text-sm lg:col-span-2">
+                            <label class="flex min-h-[4.25rem] items-center gap-2 text-sm lg:col-span-2">
                                 <input type="hidden" name="is_negated" value="0">
                                 <april:input type="checkbox" name="is_negated" value="1" :checked="old('is_negated')" />
                                 Must not be met (NOT)
                             </label>
 
-                            <april:button type="submit" class="lg:col-span-6 lg:justify-self-start">
+                            <april:button type="submit" class="lg:col-span-12 lg:justify-self-start">
                                 <x-lucide-plus class="mr-2 size-4" />
                                 Add this requirement
                             </april:button>

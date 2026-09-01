@@ -45,12 +45,11 @@
 
                     <div class="flex flex-col gap-2">
                         <label for="completion_operator" class="text-sm font-medium">Combine required items</label>
-                        <select id="completion_operator" name="completion_operator"
-                            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                        <april:native-select id="completion_operator" name="completion_operator">
                             <option value="all" @selected(old('completion_operator', 'all') === 'all')>All items (AND)</option>
                             <option value="any" @selected(old('completion_operator') === 'any')>Any item (OR)</option>
                             <option value="at_least" @selected(old('completion_operator') === 'at_least')>At least a number of items</option>
-                        </select>
+                        </april:native-select>
                         @error('completion_operator') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                     </div>
 
@@ -69,7 +68,7 @@
                         @error('description') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                     </div>
 
-                    <label class="flex items-center gap-2 text-sm">
+                    <label class="flex min-h-10 items-center gap-2 text-sm">
                         <input type="hidden" name="uses_credits" value="0">
                         <april:input type="checkbox" name="uses_credits" value="1" :checked="old('uses_credits')" />
                         This plan counts credits
