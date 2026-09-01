@@ -31,7 +31,7 @@
         <slot:title>Calendar</slot:title>
         <slot:description>
             {{ $timetable->academicPeriod?->displayName ?? 'Academic period' }} ·
-            recurring events follow the term dates automatically. Click a calendar date to inspect that day.
+            recurring events follow the term dates automatically. Select a date to add a one-time slot, or select a slot to place an item.
         </slot:description>
         <slot:actions>
             <button type="button" wire:click="openTimeSlotDialog" class="inline-flex h-9 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90">
@@ -64,8 +64,8 @@
                 @elseif ($calendarView === 'day')
                     <div class="space-y-2">
                         @forelse ($this->dayEvents as $event)
-                            <button wire:key="day-event-{{ $event['key'] }}" type="button" wire:click="selectCell({{ explode(':', $event['key'])[0] }}, {{ explode(':', $event['key'])[1] }})" class="flex w-full items-center justify-between gap-3 rounded-md border bg-primary/10 px-4 py-3 text-left hover:border-primary">
-                                <span><span class="font-medium">{{ $event['name'] }}</span>@if ($event['audience_role'])<span class="ml-2 text-xs text-muted-foreground">{{ ucfirst($event['audience_role']) }} only</span>@endif</span>
+                            <button wire:key="day-event-{{ $event['key'] }}" type="button" wire:click="selectCell({{ explode(':', $event['key'])[0] }}, {{ explode(':', $event['key'])[1] }})" class="flex w-full items-center justify-between gap-3 rounded-md border px-4 py-3 text-left hover:border-primary {{ $event['kind'] === null ? 'border-dashed bg-muted/40' : 'bg-primary/10' }}">
+                                <span class="min-w-0 truncate"><span class="font-medium">{{ $event['name'] }}</span>@if ($event['audience_role'])<span class="ml-2 text-xs text-muted-foreground">{{ ucfirst($event['audience_role']) }} only</span>@endif</span>
                                 <span class="text-sm text-muted-foreground">{{ $event['time'] }}</span>
                             </button>
                         @empty
@@ -82,10 +82,10 @@
                                 @foreach ($week as $day)
                                     <div wire:key="month-day-{{ $day['date'] }}" class="min-h-28 bg-background p-2 {{ !$day['in_month'] ? 'bg-muted/20 text-muted-foreground' : '' }} {{ !$day['in_period'] && $day['in_month'] ? 'bg-amber-50/50 dark:bg-amber-950/10' : '' }}">
                                         <button type="button" wire:click="openTimeSlotDialog('{{ $day['date'] }}')" class="mb-2 flex size-7 items-center justify-center rounded-full text-xs font-semibold hover:bg-primary hover:text-primary-foreground {{ $day['date'] === $calendarDate ? 'bg-primary text-primary-foreground' : '' }}">{{ $day['day'] }}</button>
-                                        <div class="space-y-1">
+                                        <div class="min-w-0 space-y-1">
                                             @foreach ($day['events'] as $event)
-                                                <button wire:key="month-event-{{ $day['date'] }}-{{ $event['key'] }}" type="button" wire:click="selectCell({{ explode(':', $event['key'])[0] }}, {{ explode(':', $event['key'])[1] }})" class="block w-full truncate rounded border border-primary/20 bg-primary/10 px-1.5 py-1 text-left text-[0.7rem] hover:border-primary" title="{{ $event['name'] }} · {{ $event['time'] }}">
-                                                    <span class="font-medium">{{ $event['time'] }}</span> {{ $event['name'] }}
+                                                <button wire:key="month-event-{{ $day['date'] }}-{{ $event['key'] }}" type="button" wire:click="selectCell({{ explode(':', $event['key'])[0] }}, {{ explode(':', $event['key'])[1] }})" class="flex min-w-0 max-w-full items-center gap-1 overflow-hidden rounded border px-1.5 py-1 text-left text-[0.7rem] hover:border-primary {{ $event['kind'] === null ? 'border-dashed bg-muted/40 text-muted-foreground' : 'border-primary/20 bg-primary/10' }}" title="{{ $event['name'] }} · {{ $event['time'] }}">
+                                                    <span class="shrink-0 font-medium">{{ $event['time'] }}</span><span class="truncate">{{ $event['name'] }}</span>
                                                 </button>
                                             @endforeach
                                         </div>

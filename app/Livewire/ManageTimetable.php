@@ -79,6 +79,9 @@ class ManageTimetable extends Component
      */
     public array $conflicts = [];
 
+    /** @var Collection<int, TimetableTimeSlot>|null */
+    private ?Collection $calendarSlotModels = null;
+
     public function mount(): void
     {
         $period = $this->timetable->academicPeriod;
@@ -509,6 +512,7 @@ class ManageTimetable extends Component
     private function refreshWeek(): void
     {
         $this->timetable->refresh();
+        $this->calendarSlotModels = null;
         $this->grid = app(TimetableGrid::class)->of(
             $this->timetable,
             Carbon::parse($this->calendarDate)->startOfWeek(Carbon::MONDAY),
@@ -518,9 +522,19 @@ class ManageTimetable extends Component
     }
 
     /**
+     * Read time slots once while building the calendar response.
+     *
+     * @return Collection<int, TimetableTimeSlot>
+     */
+    private function calendarSlots(): Collection
+    {
+        return $this->calendarSlotModels ??= $this->timetable->timeSlots()->get()->keyBy('id');
+    }
+
+    /**
      * Read all entries that occur on one actual date.
      *
-     * @return array<int, array{key: string, time: string, name: string, kind: string, audience_role: string|null}>
+     * @return array<int, array{key: string, time: string, name: string, kind: string|null, audience_role: string|null}>
      */
     private function eventsForDate(Carbon $date): array
     {
@@ -532,17 +546,29 @@ class ManageTimetable extends Component
 
         $events = [];
 
+        $slots = $this->calendarSlots();
+        $period = $this->timetable->academicPeriod;
+
         foreach ($this->grid['rows'] as $row) {
             $cell = $row['cells'][$weekdayId] ?? null;
+            $slot = $slots->get($row['id']);
 
-            if ($cell === null || !$cell['active'] || $cell['kind'] === null) {
+            if ($cell === null || $slot === null) {
+                continue;
+            }
+
+            if ($period !== null && !$period->covers($date)) {
+                continue;
+            }
+
+            if (!$slot->occursOn($date, $weekdayId)) {
                 continue;
             }
 
             $events[] = [
                 'key' => $row['id'].':'.$weekdayId,
                 'time' => $row['start'].'–'.$row['stop'],
-                'name' => $cell['name'],
+                'name' => $cell['name'] ?? 'Open time slot',
                 'kind' => $cell['kind'],
                 'audience_role' => $cell['audience_role'],
             ];

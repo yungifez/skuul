@@ -1,11 +1,15 @@
 {{-- What one cell of the week holds. --}}
 @if ($cell['kind'] === null)
-    <span class="text-xs text-muted-foreground">&mdash;</span>
+    @if ($cell['active'] ?? true)
+        <span class="block max-w-full truncate text-xs text-muted-foreground">Open time slot</span>
+    @else
+        <span class="text-xs text-muted-foreground">&mdash;</span>
+    @endif
 @else
-    <span class="block text-xs font-medium leading-snug">{{ $cell['name'] }}</span>
+    <span class="block max-w-full truncate text-xs font-medium leading-snug">{{ $cell['name'] }}</span>
 
     @if ($cell['teachers'] !== [])
-        <span class="mt-1 block text-[0.7rem] leading-snug text-muted-foreground">
+        <span class="mt-1 block max-w-full truncate text-[0.7rem] leading-snug text-muted-foreground">
             {{ implode(', ', $cell['teachers']) }}
         </span>
     @elseif ($cell['kind'] === 'break')

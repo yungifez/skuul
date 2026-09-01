@@ -236,6 +236,37 @@ class TimetableTest extends TestCase
             ->assertSet('calendarView', 'day');
     }
 
+    public function test_calendar_views_plot_active_empty_time_slots(): void
+    {
+        $this->authorized_user(['update timetable']);
+        $timetable = Timetable::factory()->create();
+        $timetable->academicPeriod()->update([
+            'starts_on' => '2030-09-01',
+            'ends_on' => '2030-12-20',
+        ]);
+        $timetable->refresh();
+        $tuesday = Weekday::query()->where('name', 'Tuesday')->firstOrFail();
+
+        TimetableTimeSlot::factory()->create([
+            'timetable_id' => $timetable->id,
+            'start_time' => '01:00',
+            'stop_time' => '02:00',
+            'recurrence' => 'weekly',
+            'starts_on' => '2030-09-01',
+            'recurrence_interval' => 1,
+            'recurrence_weekdays' => [$tuesday->id],
+        ]);
+
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->assertSee('Open time slot')
+            ->call('setCalendarView', 'day')
+            ->call('chooseCalendarDate', '2030-09-03')
+            ->assertSee('Open time slot')
+            ->call('setCalendarView', 'week')
+            ->assertSee('01:00')
+            ->assertSee('Open time slot');
+    }
+
     public function test_a_time_slot_can_use_an_explicit_term_scoped_weekly_rule(): void
     {
         $this->authorized_user(['update timetable']);
