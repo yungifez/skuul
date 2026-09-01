@@ -24,7 +24,7 @@
         "opcodesio/log-viewer": "^3.1.1",
         "spatie/laravel-model-status": "^1.11",
         "spatie/laravel-permission": "^8.0",
-        "yungifez/april-ui": "dev-main"
+        "yungifez/april-ui": "^1.0"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^4.0",
