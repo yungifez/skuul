@@ -6,6 +6,7 @@ use App\Livewire\NationalityAndStateInputFields;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Jetstream\Http\Livewire\UpdateProfileInformationForm;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -23,6 +24,21 @@ class ProfileInformationTest extends TestCase
 
         $this->assertEquals($user->name, $component->state['name']);
         $this->assertEquals($user->email, $component->state['email']);
+    }
+
+    public function test_a_missing_profile_photo_uses_the_default_avatar(): void
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $user->forceFill(['profile_photo_path' => 'profile-photos/missing.png'])->save();
+
+        $this->assertSame($user->defaultProfilePhotoUrl(), $user->fresh()->profile_photo_url);
+
+        $path = 'profile-photos/present.png';
+        Storage::disk('public')->put($path, 'image');
+        $user->forceFill(['profile_photo_path' => $path])->save();
+
+        $this->assertSame(Storage::disk('public')->url($path), $user->fresh()->profile_photo_url);
     }
 
     public function test_the_profile_screen_uses_april_ui_sections(): void

@@ -10,6 +10,7 @@ use App\Enums\SchoolMembershipStatus;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
 use Laravel\Sanctum\HasApiTokens;
@@ -89,6 +91,24 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         static::addGlobalScope('orderByName', function (Builder $builder) {
             $builder->orderBy('name');
+        });
+    }
+
+    /**
+     * Get the uploaded profile photo URL when its backing file exists.
+     *
+     * A local upload can outlive the storage volume on a deployment. Use the
+     * generated profile image instead of returning a URL that will 404.
+     */
+    protected function profilePhotoUrl(): Attribute
+    {
+        return Attribute::get(function (): string {
+            if ($this->profile_photo_path !== null
+                && Storage::disk($this->profilePhotoDisk())->exists($this->profile_photo_path)) {
+                return Storage::disk($this->profilePhotoDisk())->url($this->profile_photo_path);
+            }
+
+            return $this->defaultProfilePhotoUrl();
         });
     }
 

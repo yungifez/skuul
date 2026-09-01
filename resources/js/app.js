@@ -1,6 +1,11 @@
 import { Livewire } from "../../vendor/livewire/livewire/dist/livewire.esm";
 import "../../vendor/yungifez/april-ui/dist/april.js";
 
+// April UI's Livewire bridge still expects find() to return a component
+// object. Livewire 4 returns the component's $wire proxy instead.
+const livewireFind = Livewire.find.bind(Livewire);
+Livewire.find = (id) => Livewire.all().find((component) => component.id === id) ?? livewireFind(id);
+
 const themeStorageKey = "theme";
 const systemThemeQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
