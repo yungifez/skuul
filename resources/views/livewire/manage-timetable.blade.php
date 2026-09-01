@@ -33,6 +33,12 @@
             {{ $timetable->academicPeriod?->displayName ?? 'Academic period' }} ·
             recurring events follow the term dates automatically. Click a calendar date to inspect that day.
         </slot:description>
+        <slot:actions>
+            <button type="button" wire:click="openTimeSlotDialog" class="inline-flex h-9 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+                <x-lucide-plus class="mr-2 size-4" />
+                Add time slot
+            </button>
+        </slot:actions>
         <slot:content>
             <div class="space-y-4">
                 <div class="flex flex-wrap items-center justify-between gap-3 rounded-md border bg-muted/20 p-3">
@@ -90,15 +96,9 @@
                     </div>
                 @endif
 
-                <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-dashed bg-muted/20 p-4">
-                    <div>
-                        <p class="text-sm font-semibold">Add a time slot</p>
-                        <p class="text-sm text-muted-foreground">Click a date or add a row, then place lessons or events in it.</p>
-                    </div>
-                    <button type="button" wire:click="openTimeSlotDialog" class="inline-flex h-9 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90">
-                        <x-lucide-plus class="mr-2 size-4" />
-                        Add time slot
-                    </button>
+                <div class="rounded-lg border border-dashed bg-muted/20 p-4">
+                    <p class="text-sm font-semibold">Add a time slot</p>
+                    <p class="text-sm text-muted-foreground">Click a date to create a one-time slot, or use the button above for a recurring slot.</p>
                 </div>
 
                 <div wire:loading wire:target="addTimeSlot,assign,clearCell,removeTimeSlot" class="text-xs text-muted-foreground">Saving…</div>
