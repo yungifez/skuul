@@ -70,14 +70,14 @@
                             @csrf
                             @method('PUT')
 
-                            <div class="grid gap-4 lg:grid-cols-12 lg:items-end">
+                            <div class="grid gap-4 lg:grid-cols-12 lg:items-start">
                                 <div class="flex flex-col gap-2 lg:col-span-5">
                                     <april:label for="name">Name</april:label>
                                     <april:input id="name" name="name" value="{{ old('name', $plan->name) }}" required />
                                     @error('name') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                                 </div>
 
-                                <label class="flex min-h-[4.25rem] items-center gap-2 text-sm lg:col-span-3">
+                                <label class="flex items-center gap-2 text-sm lg:col-span-3 lg:items-start lg:pt-7">
                                     <input type="hidden" name="is_active" value="0">
                                     <april:input type="checkbox" name="is_active" value="1" :checked="old('is_active', $plan->is_active)" />
                                     This plan is in use
@@ -98,7 +98,7 @@
                                         Use these options for degree plans, elective groups, or a pathway where only
                                         some choices are needed.
                                     </p>
-                                    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 lg:items-end">
+                                    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 lg:items-start">
                                         <div class="flex flex-col gap-2 lg:col-span-2">
                                             <label for="completion_operator" class="text-sm font-medium">How should the choices count?</label>
                                             <april:native-select id="completion_operator" name="completion_operator">
@@ -116,7 +116,7 @@
                                             @error('required_count') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                                         </div>
 
-                                        <label class="flex min-h-[4.25rem] items-center gap-2 text-sm">
+                                        <label class="flex min-h-[4.25rem] items-center gap-2 text-sm lg:items-start lg:pt-7">
                                             <input type="hidden" name="uses_credits" value="0">
                                             <april:input type="checkbox" name="uses_credits" value="1" :checked="old('uses_credits', $plan->uses_credits)" />
                                             Count credits
@@ -172,21 +172,21 @@
                             class="space-y-4 border-t pt-6">
                             @csrf
 
-                            <div class="grid gap-4 lg:grid-cols-6 lg:items-end">
+                            <div class="grid gap-4 lg:grid-cols-6 lg:items-start">
                                 <div class="flex flex-col gap-2 lg:col-span-3">
                                     <label for="child_name" class="text-sm font-medium">Class or pathway stage</label>
                                     <april:input id="child_name" name="name" value="{{ old('name') }}" required placeholder="Primary 1" />
                                     @error('name') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                                 </div>
 
-                                <p class="text-sm text-muted-foreground lg:col-span-3">
+                                <p class="text-sm text-muted-foreground lg:col-span-3 lg:pt-7">
                                     All items in this stage are required by default.
                                 </p>
                             </div>
 
                             <details class="rounded-md border p-4" {{ old('completion_operator') && old('completion_operator') !== 'all' ? 'open' : '' }}>
                                 <summary class="cursor-pointer text-sm font-semibold">Advanced stage rules (optional)</summary>
-                                <div class="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:items-end">
+                                <div class="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:items-start">
                                     <div class="flex flex-col gap-2">
                                         <label for="child_operator" class="text-sm font-medium">How should this stage count?</label>
                                         <april:native-select id="child_operator" name="completion_operator">
@@ -203,7 +203,7 @@
                                         @error('required_count') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                                     </div>
 
-                                    <label class="flex min-h-[4.25rem] items-center gap-2 text-sm">
+                                    <label class="flex min-h-[4.25rem] items-center gap-2 text-sm lg:items-start lg:pt-7">
                                         <input type="hidden" name="is_negated" value="0">
                                         <april:input id="child_negated" type="checkbox" name="is_negated" value="1" :checked="old('is_negated')" />
                                         Exclude this stage (NOT)
@@ -284,7 +284,7 @@
                             class="space-y-4 border-t pt-6">
                             @csrf
 
-                            <div class="grid gap-4 lg:grid-cols-12 lg:items-end">
+                            <div class="grid gap-4 lg:grid-cols-12 lg:items-start">
                                 <div class="flex flex-col gap-2 lg:col-span-4">
                                     <april:label for="description">Subject or requirement</april:label>
                                     <april:input id="description" name="description" value="{{ old('description') }}" required
@@ -309,7 +309,7 @@
                                     @error('pass_mark') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                                 </div>
 
-                                <label class="flex min-h-[4.25rem] items-center gap-2 text-sm lg:col-span-3">
+                                <label class="flex items-center gap-2 text-sm lg:col-span-3 lg:items-start lg:pt-7">
                                     <input type="hidden" name="is_required" value="0">
                                     <april:input type="checkbox" name="is_required" value="1" :checked="old('is_required', true)" />
                                     Required for graduation
@@ -318,7 +318,7 @@
 
                             <details class="rounded-md border p-4" {{ old('is_negated') === '1' || (old('credits') !== null && old('credits') != 1) ? 'open' : '' }}>
                                 <summary class="cursor-pointer text-sm font-semibold">Advanced requirement options (optional)</summary>
-                                <div class="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:items-end">
+                                <div class="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:items-start">
                                     <div class="flex flex-col gap-2">
                                         <input type="hidden" name="is_negated" value="0">
                                         <april:label for="credits">Credits</april:label>
@@ -326,7 +326,7 @@
                                         @error('credits') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                                     </div>
 
-                                    <label class="flex min-h-[4.25rem] items-center gap-2 text-sm">
+                                    <label class="flex min-h-[4.25rem] items-center gap-2 text-sm lg:items-start lg:pt-7">
                                         <april:input id="is_negated" type="checkbox" name="is_negated" value="1" :checked="old('is_negated')" />
                                         This must not be passed (NOT)
                                     </label>
