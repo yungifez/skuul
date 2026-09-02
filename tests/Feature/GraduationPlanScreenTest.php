@@ -156,6 +156,31 @@ class GraduationPlanScreenTest extends TestCase
         $this->assertSame($choice->id, $choice->children()->sole()->parent_id);
     }
 
+    public function test_a_stage_can_require_credits_from_its_subjects(): void
+    {
+        $this->authorized_user(['read graduation plan', 'manage graduation plan']);
+        $plan = $this->plan();
+
+        $this->from(route('graduation-plans.show', $plan))
+            ->post(route('graduation-plans.children.store', $plan), [
+                'name' => 'Science credits',
+                'completion_operator' => 'at_least_credits',
+                'required_credits' => 3,
+                'is_negated' => '0',
+            ])
+            ->assertRedirect(route('graduation-plans.show', $plan));
+
+        $stage = $plan->children()->sole();
+
+        $this->assertTrue($stage->uses_credits);
+        $this->assertSame(3, $stage->required_credits);
+
+        $this->get(route('graduation-plans.show', $plan))
+            ->assertOk()
+            ->assertSee('Require a number of credits')
+            ->assertSee('At least 3 credits');
+    }
+
     public function test_the_screen_says_how_far_a_learner_is(): void
     {
         $this->authorized_user(['read graduation plan', 'manage graduation plan', 'read student']);

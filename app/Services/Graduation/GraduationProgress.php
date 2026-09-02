@@ -31,7 +31,8 @@ class GraduationProgress
     {
         $result = $this->evaluatePlan($plan, $enrollment);
 
-        $creditsAreEnough = !$plan->uses_credits
+        $creditRule = $plan->uses_credits || $plan->completion_operator === 'at_least_credits';
+        $creditsAreEnough = !$creditRule
             || $plan->required_credits === null
             || $result['credits_earned'] >= $plan->required_credits;
 
@@ -39,7 +40,7 @@ class GraduationProgress
             'requirements' => $result['requirements'],
             'stages' => $result['stages'],
             'credits_earned' => $result['credits_earned'],
-            'credits_required' => $plan->uses_credits ? $plan->required_credits : null,
+            'credits_required' => $creditRule ? $plan->required_credits : null,
             'is_complete' => $result['is_complete'] && $creditsAreEnough,
         ];
     }
@@ -127,6 +128,7 @@ class GraduationProgress
                 'name' => $child->name,
                 'operator' => $child->completion_operator,
                 'required_count' => $child->required_count,
+                'required_credits' => $child->required_credits,
                 'is_negated' => $child->is_negated,
                 'is_complete' => $childIsComplete,
                 'requirements' => $childResult['requirements'],
@@ -134,7 +136,8 @@ class GraduationProgress
             ];
         }
 
-        $creditsAreEnough = !$plan->uses_credits
+        $creditRule = $plan->uses_credits || $plan->completion_operator === 'at_least_credits';
+        $creditsAreEnough = !$creditRule
             || $plan->required_credits === null
             || $earned >= $plan->required_credits;
 
@@ -142,17 +145,32 @@ class GraduationProgress
             'requirements' => $lines,
             'stages' => $stages,
             'credits_earned' => $earned,
-            'is_complete' => $this->conditionsMatch($conditions, $plan->completion_operator, $plan->required_count) && $creditsAreEnough,
+            'is_complete' => $this->conditionsMatch(
+                $conditions,
+                $plan->completion_operator,
+                $plan->required_count,
+                $earned,
+                $plan->required_credits,
+            ) && $creditsAreEnough,
         ];
     }
 
     /**
-     * Apply a stage's ALL or ANY rule to its required items.
+     * Apply a stage's completion rule to its required items or credits.
      *
      * @param  array<int, bool>  $conditions
      */
-    private function conditionsMatch(array $conditions, string $operator, ?int $requiredCount): bool
-    {
+    private function conditionsMatch(
+        array $conditions,
+        string $operator,
+        ?int $requiredCount,
+        int $earned,
+        ?int $requiredCredits,
+    ): bool {
+        if ($operator === 'at_least_credits') {
+            return $earned >= ($requiredCredits ?? 1);
+        }
+
         if ($conditions === []) {
             return true;
         }

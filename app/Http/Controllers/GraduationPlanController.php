@@ -69,6 +69,10 @@ class GraduationPlanController extends Controller
             ...$request->validated(),
         ]);
 
+        if ($plan->completion_operator === 'at_least_credits' && !$plan->uses_credits) {
+            $plan->update(['uses_credits' => true]);
+        }
+
         return redirect()->route('graduation-plans.show', $plan)->with('success', 'The plan was written.');
     }
 
@@ -113,6 +117,8 @@ class GraduationPlanController extends Controller
             'description' => $values['description'] ?? null,
             'completion_operator' => $values['completion_operator'],
             'required_count' => $values['required_count'] ?? null,
+            'required_credits' => $values['required_credits'] ?? null,
+            'uses_credits' => ($values['completion_operator'] ?? 'all') === 'at_least_credits',
             'position' => $values['position'] ?? (($graduationPlan->children()->max('position') ?? -1) + 1),
             'is_negated' => $values['is_negated'],
             'cohort_id' => $graduationPlan->cohort_id,
@@ -126,7 +132,11 @@ class GraduationPlanController extends Controller
      */
     public function update(UpdateGraduationPlanRequest $request, GraduationPlan $graduationPlan): RedirectResponse
     {
-        $graduationPlan->update($request->validated());
+        $values = $request->validated();
+        $values['uses_credits'] = $values['uses_credits']
+            || ($values['completion_operator'] ?? $graduationPlan->completion_operator) === 'at_least_credits';
+
+        $graduationPlan->update($values);
 
         return back()->with('success', 'The plan was saved.');
     }

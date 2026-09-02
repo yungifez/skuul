@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $uses_credits
  * @property string $completion_operator
  * @property int|null $required_count
+ * @property int|null $required_credits
  * @property bool $is_negated
  */
 class GraduationPlan extends Model

@@ -32,10 +32,10 @@ class StoreGraduationPlanRequest extends FormRequest
                 Rule::unique((new GraduationPlan)->getTable(), 'name')->where('school_id', current_school_id()),
             ],
             'description' => ['nullable', 'string', 'max:1000'],
-            'completion_operator' => ['sometimes', Rule::in(['all', 'any', 'at_least'])],
+            'completion_operator' => ['sometimes', Rule::in(['all', 'any', 'at_least', 'at_least_credits'])],
             'required_count' => ['nullable', 'integer', 'min:1', 'max:1000', 'required_if:completion_operator,at_least'],
             'uses_credits' => ['required', 'boolean'],
-            'required_credits' => ['nullable', 'integer', 'min:1', 'max:1000', 'required_if:uses_credits,1'],
+            'required_credits' => ['nullable', 'integer', 'min:1', 'max:1000', 'required_if:uses_credits,1', 'required_if:completion_operator,at_least_credits'],
             'cohort_id' => ['nullable', 'integer', Rule::exists((new Cohort)->getTable(), 'id')->where('school_id', current_school_id())],
         ];
     }

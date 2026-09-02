@@ -11,6 +11,8 @@
                             Any item (OR)
                         @elseif ($stage['operator'] === 'at_least')
                             At least {{ $stage['required_count'] }} items
+                        @elseif ($stage['operator'] === 'at_least_credits')
+                            At least {{ $stage['required_credits'] }} credits
                         @else
                             All items (AND)
                         @endif

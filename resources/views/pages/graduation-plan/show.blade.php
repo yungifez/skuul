@@ -57,6 +57,8 @@
                                     Any item
                                 @elseif ($plan->completion_operator === 'at_least')
                                     At least {{ $plan->required_count }} items
+                                @elseif ($plan->completion_operator === 'at_least_credits')
+                                    At least {{ $plan->required_credits }} credits
                                 @else
                                     All items
                                 @endif
@@ -93,23 +95,24 @@
 
                             <details class="rounded-md border p-4" {{ $plan->completion_operator !== 'all' || $plan->uses_credits || (old('completion_operator') && old('completion_operator') !== 'all') ? 'open' : '' }}>
                                 <summary class="cursor-pointer text-sm font-semibold">Advanced rules (optional)</summary>
-                                <div class="mt-4 space-y-4">
+                                <div x-data="{ completionOperator: @js(old('completion_operator', $plan->completion_operator)), countCredits: @js((bool) old('uses_credits', $plan->uses_credits)) }" class="mt-4 space-y-4">
                                     <p class="text-sm text-muted-foreground">
-                                        Use these options for degree plans, elective groups, or a pathway where only
-                                        some choices are needed.
+                                        Use these options for degree plans, elective groups, credit buckets, or a
+                                        pathway where only some choices are needed.
                                     </p>
                                     <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 lg:items-start">
                                         <div class="flex flex-col gap-2 lg:col-span-2">
                                             <label for="completion_operator" class="text-sm font-medium">How should the choices count?</label>
-                                            <april:native-select id="completion_operator" name="completion_operator">
+                                            <april:native-select id="completion_operator" name="completion_operator" x-model="completionOperator">
                                                 <option value="all" @selected(old('completion_operator', $plan->completion_operator) === 'all')>All of these</option>
                                                 <option value="any" @selected(old('completion_operator', $plan->completion_operator) === 'any')>Any one of these</option>
                                                 <option value="at_least" @selected(old('completion_operator', $plan->completion_operator) === 'at_least')>Choose a number of these</option>
+                                                <option value="at_least_credits" @selected(old('completion_operator', $plan->completion_operator) === 'at_least_credits')>Require a number of credits</option>
                                             </april:native-select>
                                             @error('completion_operator') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                                         </div>
 
-                                        <div class="flex flex-col gap-2">
+                                        <div x-show="completionOperator === 'at_least'" x-cloak class="flex flex-col gap-2">
                                             <label for="required_count" class="text-sm font-medium">How many are needed?</label>
                                             <april:input id="required_count" name="required_count" type="number" min="1"
                                                 value="{{ old('required_count', $plan->required_count) }}" placeholder="For example, 4 of 5" />
@@ -118,14 +121,14 @@
 
                                         <label class="flex min-h-[4.25rem] items-center gap-2 text-sm lg:items-start lg:pt-7">
                                             <input type="hidden" name="uses_credits" value="0">
-                                            <april:input type="checkbox" name="uses_credits" value="1" :checked="old('uses_credits', $plan->uses_credits)" />
+                                            <april:input type="checkbox" name="uses_credits" value="1" x-model="countCredits" :checked="old('uses_credits', $plan->uses_credits)" />
                                             Count credits
                                         </label>
 
-                                        <div class="flex flex-col gap-2">
+                                        <div x-show="countCredits || completionOperator === 'at_least_credits'" x-cloak class="flex flex-col gap-2">
                                             <april:label for="required_credits">Credits needed</april:label>
                                             <april:input id="required_credits" name="required_credits" type="number" min="1"
-                                                value="{{ old('required_credits', $plan->required_credits) }}" placeholder="For example, 120" />
+                                                value="{{ old('required_credits', $plan->required_credits) }}" placeholder="For example, 3 or 120" />
                                             @error('required_credits') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                                         </div>
                                     </div>
@@ -186,21 +189,29 @@
 
                             <details class="rounded-md border p-4" {{ old('completion_operator') && old('completion_operator') !== 'all' ? 'open' : '' }}>
                                 <summary class="cursor-pointer text-sm font-semibold">Advanced stage rules (optional)</summary>
-                                <div class="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:items-start">
+                                <div x-data="{ completionOperator: @js(old('completion_operator', 'all')) }" class="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3 lg:items-start">
                                     <div class="flex flex-col gap-2">
                                         <label for="child_operator" class="text-sm font-medium">How should this stage count?</label>
-                                        <april:native-select id="child_operator" name="completion_operator">
+                                        <april:native-select id="child_operator" name="completion_operator" x-model="completionOperator">
                                             <option value="all" @selected(old('completion_operator', 'all') === 'all')>All of these</option>
                                             <option value="any" @selected(old('completion_operator') === 'any')>Any one of these</option>
                                             <option value="at_least" @selected(old('completion_operator') === 'at_least')>Choose a number of these</option>
+                                            <option value="at_least_credits" @selected(old('completion_operator') === 'at_least_credits')>Require a number of credits</option>
                                         </april:native-select>
                                     </div>
 
-                                    <div class="flex flex-col gap-2">
+                                    <div x-show="completionOperator === 'at_least'" x-cloak class="flex flex-col gap-2">
                                         <label for="child_required_count" class="text-sm font-medium">How many are needed?</label>
                                         <april:input id="child_required_count" name="required_count" type="number" min="1"
                                             value="{{ old('required_count') }}" placeholder="For example, 4 of 5" />
                                         @error('required_count') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                    </div>
+
+                                    <div x-show="completionOperator === 'at_least_credits'" x-cloak class="flex flex-col gap-2">
+                                        <label for="child_required_credits" class="text-sm font-medium">How many credits?</label>
+                                        <april:input id="child_required_credits" name="required_credits" type="number" min="1"
+                                            value="{{ old('required_credits') }}" placeholder="For example, 3" />
+                                        @error('required_credits') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
                                     </div>
 
                                     <label class="flex min-h-[4.25rem] items-center gap-2 text-sm lg:items-start lg:pt-7">

@@ -353,6 +353,39 @@ class CohortTest extends TestCase
         $this->assertTrue(app(GraduationProgress::class)->isComplete($plan, $enrollment));
     }
 
+    public function test_a_plan_can_require_a_number_of_credits_from_a_group(): void
+    {
+        $this->authorized_user(['manage graduation plan']);
+        $enrollment = $this->enrollment();
+        $plan = $this->plan([
+            'completion_operator' => 'at_least_credits',
+            'required_credits' => 3,
+        ]);
+        $first = $this->subject();
+        $second = $this->subject();
+
+        GraduationRequirement::create([
+            'graduation_plan_id' => $plan->id,
+            'subject_id' => $first->id,
+            'description' => 'Mathematics elective',
+            'credits' => 2,
+        ]);
+        GraduationRequirement::create([
+            'graduation_plan_id' => $plan->id,
+            'subject_id' => $second->id,
+            'description' => 'Science elective',
+            'credits' => 1,
+        ]);
+
+        $this->publishedResult($enrollment, $first, 75);
+
+        $this->assertFalse(app(GraduationProgress::class)->isComplete($plan, $enrollment));
+
+        $this->publishedResult($enrollment, $second, 75);
+
+        $this->assertTrue(app(GraduationProgress::class)->isComplete($plan, $enrollment));
+    }
+
     public function test_ranking_is_off_until_a_school_turns_it_on(): void
     {
         $this->authorized_user(['read cohort']);
