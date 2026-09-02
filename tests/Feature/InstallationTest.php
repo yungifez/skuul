@@ -74,7 +74,9 @@ class InstallationTest extends TestCase
             ->assertSee('name="locale"', false)
             ->assertSee('English')
             ->assertSee('name="school_language_preset"', false)
-            ->assertSee('Class-based school');
+            ->assertSee('Class-based school')
+            ->assertSee('Add a sample welcome notice')
+            ->assertSee('It does not send an email.');
 
         $content = $response->getContent();
         $countryPosition = strpos($content, 'id="campus_country"');

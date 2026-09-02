@@ -245,8 +245,8 @@
                                 <label class="flex items-start gap-3 text-sm">
                                     <input type="checkbox" name="load_demo_data" value="1" @checked(old('load_demo_data')) class="mt-1 rounded border-input">
                                     <span>
-                                        <span class="font-medium">Load optional demo data</span>
-                                        <span class="block text-muted-foreground">Adds one sample published notice so you can see the platform in action.</span>
+                                        <span class="font-medium">Add a sample welcome notice</span>
+                                        <span class="block text-muted-foreground">Adds one published notice for the installing administrator. It does not send an email.</span>
                                     </span>
                                 </label>
                             </section>
