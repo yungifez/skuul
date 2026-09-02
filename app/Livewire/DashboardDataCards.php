@@ -14,7 +14,7 @@ use App\Models\CourseOffering;
 use App\Models\Organization;
 use App\Models\School;
 use App\Models\User;
-use App\Services\School\SchoolSetupChecklist;
+use App\Services\School\SchoolSetupPhaseService;
 use Illuminate\View\View;
 use Livewire\Component;
 
@@ -66,15 +66,16 @@ class DashboardDataCards extends Component
     /** @var array<int, array{title: string, type: string, date: string, time: string}> */
     public array $upcomingEvents = [];
 
-    public function mount(SchoolSetupChecklist $schoolSetupChecklist): void
+    public function mount(SchoolSetupPhaseService $schoolSetupPhases): void
     {
         $user = auth()->user();
         $school = current_school();
         $currentAcademicYear = current_academic_year();
 
-        $this->setupChecklist = $user->can('manage school settings')
-            ? $schoolSetupChecklist->for($school)
-            : null;
+        if ($user->can('manage school settings')) {
+            $setupState = $schoolSetupPhases->for($school);
+            $this->setupChecklist = $setupState['show_dashboard_card'] ? $setupState : null;
+        }
         $this->organization = $school->organization;
         $this->organizationSchools = $this->organization?->schools()->count() ?? 0;
         $this->calendarTemplates = $this->organization?->calendarTemplates()->count() ?? 0;

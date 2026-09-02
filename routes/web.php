@@ -42,6 +42,7 @@ use App\Http\Controllers\OvernightLeaveController;
 use App\Http\Controllers\ParentController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SchoolSetupController;
+use App\Http\Controllers\SchoolSetupPhaseController;
 use App\Http\Controllers\StudentAccountController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\StudentPaymentController;
@@ -169,6 +170,9 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::put('schools/operating-profile', ['App\Http\Controllers\SchoolOperatingProfileController', 'update'])->name('schools.operating-profile.update')->middleware('App\Http\Middleware\RequireActiveSchool');
     Route::get('schools/features', ['App\Http\Controllers\FeatureSettingsController', 'edit'])->name('schools.features.edit')->middleware('App\Http\Middleware\RequireActiveSchool');
     Route::put('schools/features', ['App\Http\Controllers\FeatureSettingsController', 'update'])->name('schools.features.update')->middleware('App\Http\Middleware\RequireActiveSchool');
+    Route::post('schools/setup/acknowledge', [SchoolSetupPhaseController::class, 'acknowledge'])
+        ->name('schools.setup.acknowledge')
+        ->middleware('App\Http\Middleware\RequireActiveSchool');
 
     // School routes
     Route::get('schools/{school}/setup/{step?}', [SchoolSetupController::class, 'show'])->name('schools.setup');

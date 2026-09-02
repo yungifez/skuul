@@ -13,7 +13,7 @@
                             <p class="mt-1 max-w-2xl text-sm text-muted-foreground">Complete the required setup before your team starts daily work. Recommended records can follow when the essentials are ready.</p>
                         @else
                             <h2 id="school-setup-heading" class="mt-1 text-xl font-semibold tracking-tight">Your school setup is ready</h2>
-                            <p class="mt-1 max-w-2xl text-sm text-muted-foreground">The required setup is complete. Add the recommended records below when your team is ready.</p>
+                            <p class="mt-1 max-w-2xl text-sm text-muted-foreground">The required setup is complete. Acknowledge this once and start your school’s daily work.</p>
                         @endif
                     </div>
                     <div class="shrink-0 rounded-lg border bg-background/70 px-3 py-2 sm:text-right">
@@ -22,7 +22,7 @@
                     </div>
                 </div>
 
-                @if ($setupChecklist['next'] !== null)
+                @if ($setupChecklist['required_remaining'] > 0 && $setupChecklist['next'] !== null)
                     <div class="flex flex-col justify-between gap-4 rounded-lg border bg-background/70 p-4 sm:flex-row sm:items-center">
                         <div class="flex items-start gap-3">
                             <span class="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground">
@@ -42,7 +42,13 @@
                 @else
                     <div class="flex items-start gap-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-4 text-sm">
                         <x-lucide-circle-check class="mt-0.5 size-4 shrink-0 text-emerald-700 dark:text-emerald-300" />
-                        <p><span class="font-semibold">All setup areas are complete.</span> Your school is ready for daily work.</p>
+                        <div class="flex flex-1 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <p><span class="font-semibold">Your school is ready for daily work.</span> The required setup is complete.</p>
+                            <form method="POST" action="{{ route('schools.setup.acknowledge') }}" class="shrink-0">
+                                @csrf
+                                <april:button type="submit" size="sm">Continue to dashboard</april:button>
+                            </form>
+                        </div>
                     </div>
                 @endif
 

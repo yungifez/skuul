@@ -101,6 +101,16 @@ class School extends Model
     }
 
     /**
+     * Get the setup phases recorded for this campus.
+     *
+     * @return HasMany<SchoolSetupPhase, $this>
+     */
+    public function setupPhases(): HasMany
+    {
+        return $this->hasMany(SchoolSetupPhase::class);
+    }
+
+    /**
      * Get the template this campus generates cycles from.
      *
      * A campus override wins. Otherwise the campus follows its organization's
