@@ -74,7 +74,7 @@ class InstallationTest extends TestCase
             ->assertSee('name="locale"', false)
             ->assertSee('English')
             ->assertSee('name="school_language_preset"', false)
-            ->assertSee('Classes and sections');
+            ->assertSee('Class-based school');
     }
 
     public function test_installer_blocks_until_country_and_state_data_is_loaded(): void

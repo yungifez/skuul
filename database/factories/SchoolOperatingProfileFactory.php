@@ -20,8 +20,8 @@ class SchoolOperatingProfileFactory extends Factory
     {
         return [
             'school_id' => School::factory(),
-            'preset'    => 'home_sections',
-            'labels'    => SchoolOperatingProfile::labelsFor('home_sections'),
+            'preset' => SchoolOperatingProfile::DEFAULT_PRESET,
+            'labels' => SchoolOperatingProfile::labelsFor(SchoolOperatingProfile::DEFAULT_PRESET),
         ];
     }
 }

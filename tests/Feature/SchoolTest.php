@@ -216,6 +216,23 @@ class SchoolTest extends TestCase
 
     }
 
+    public function test_school_language_starts_with_one_explicit_default_pattern(): void
+    {
+        $school = $this->workingSchool();
+
+        $response = $this->authorized_user(['manage school settings'], $school)
+            ->get(route('schools.operating-profile.edit'))
+            ->assertSuccessful()
+            ->assertSee('Starting language pattern')
+            ->assertSee('Class-based school')
+            ->assertSee('Grade and subject-based school')
+            ->assertSee('Mixed class and subject school')
+            ->assertSee('Default')
+            ->assertSee('Every option includes the same seven labels');
+
+        $this->assertMatchesRegularExpression('/name="preset" value="home_sections"[^>]*checked/', $response->getContent());
+    }
+
     public function test_school_terminology_is_rendered_on_the_school_setup_screen(): void
     {
         $school = $this->workingSchool();

@@ -20,6 +20,8 @@ class SchoolOperatingProfile extends Model
 
     use InSchool;
 
+    public const DEFAULT_PRESET = 'home_sections';
+
     public const PRESETS = [
         'home_sections' => ['academic_year' => 'Academic year', 'class_level' => 'Class', 'section' => 'Section', 'period' => 'Term', 'course' => 'Subject', 'fee' => 'School fees', 'homeroom_teacher' => 'Class teacher'],
         'subject_schedule' => ['academic_year' => 'Academic year', 'class_level' => 'Grade', 'section' => 'Homeroom', 'period' => 'Semester', 'course' => 'Course', 'fee' => 'Tuition', 'homeroom_teacher' => 'Class teacher'],
@@ -44,6 +46,32 @@ class SchoolOperatingProfile extends Model
     /** @return array<string, string> */
     public static function labelsFor(string $preset): array
     {
-        return self::PRESETS[$preset] ?? self::PRESETS['home_sections'];
+        return self::PRESETS[$preset] ?? self::PRESETS[self::DEFAULT_PRESET];
+    }
+
+    /**
+     * Get the equal-sized starting language choices shown to school admins.
+     *
+     * @return array<string, array{title: string, description: string, labels: array<string, string>}>
+     */
+    public static function presetOptions(): array
+    {
+        return [
+            'home_sections' => [
+                'title' => 'Class-based school',
+                'description' => 'Academic year · Class · Section · Term · Subject · School fees · Class teacher',
+                'labels' => self::labelsFor('home_sections'),
+            ],
+            'subject_schedule' => [
+                'title' => 'Grade and subject-based school',
+                'description' => 'Academic year · Grade · Homeroom · Semester · Course · Tuition · Class teacher',
+                'labels' => self::labelsFor('subject_schedule'),
+            ],
+            'hybrid' => [
+                'title' => 'Mixed class and subject school',
+                'description' => 'Academic year · Grade · Section · Term · Subject · Fees · Class teacher',
+                'labels' => self::labelsFor('hybrid'),
+            ],
+        ];
     }
 }

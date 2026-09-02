@@ -230,12 +230,13 @@
                                 </div>
 
                                 <div>
-                                    <label for="school_language_preset" class="mb-2 block text-sm font-medium">{{ __('Terminology pattern') }}</label>
+                                    <label for="school_language_preset" class="mb-2 block text-sm font-medium">{{ __('Starting language pattern') }}</label>
                                     <select id="school_language_preset" name="school_language_preset" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                                        <option value="home_sections" @selected(old('school_language_preset', 'home_sections') === 'home_sections')>{{ __('Classes and sections') }}</option>
-                                        <option value="subject_schedule" @selected(old('school_language_preset') === 'subject_schedule')>{{ __('Grades, class groups and semesters') }}</option>
-                                        <option value="hybrid" @selected(old('school_language_preset') === 'hybrid')>{{ __('Grades, sections and terms') }}</option>
+                                        @foreach (\App\Models\SchoolOperatingProfile::presetOptions() as $value => $option)
+                                            <option value="{{ $value }}" @selected(old('school_language_preset', \App\Models\SchoolOperatingProfile::DEFAULT_PRESET) === $value)>{{ $option['title'] }}{{ $value === \App\Models\SchoolOperatingProfile::DEFAULT_PRESET ? ' (default)' : '' }} — {{ $option['description'] }}</option>
+                                        @endforeach
                                     </select>
+                                    <p class="mt-1 text-xs text-muted-foreground">Each choice provides the same seven labels. You can customize them later.</p>
                                     @error('school_language_preset') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
                                 </div>
                             </section>

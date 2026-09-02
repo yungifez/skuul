@@ -60,8 +60,8 @@ class SchoolController extends Controller
         $this->authorize('createForOrganization', [School::class, $organization]);
         $school = $this->schoolService->createSchool($attributes);
         $school->operatingProfile()->firstOrCreate([], [
-            'preset' => 'home_sections',
-            'labels' => SchoolOperatingProfile::labelsFor('home_sections'),
+            'preset' => SchoolOperatingProfile::DEFAULT_PRESET,
+            'labels' => SchoolOperatingProfile::labelsFor(SchoolOperatingProfile::DEFAULT_PRESET),
         ]);
         $this->grantSchoolMembership->grant($request->user(), $school, primary: false);
         school_context()->set($school, remember: false);

@@ -14,8 +14,8 @@ class SchoolOperatingProfileController extends Controller
         $school = current_school();
         $this->authorize('update', $school);
         $profile = $school->operatingProfile()->firstOrCreate([], [
-            'preset' => 'home_sections',
-            'labels' => SchoolOperatingProfile::labelsFor('home_sections'),
+            'preset' => SchoolOperatingProfile::DEFAULT_PRESET,
+            'labels' => SchoolOperatingProfile::labelsFor(SchoolOperatingProfile::DEFAULT_PRESET),
         ]);
 
         return view('pages.school.operating-profile', compact('profile'));

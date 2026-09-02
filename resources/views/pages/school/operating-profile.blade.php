@@ -20,13 +20,33 @@
                 <input type="hidden" name="setup" value="1">
             @endif
             <april:card>
-                <slot:title>How learners move through the day</slot:title>
-                <slot:description>Pick the closest starting pattern. You can still change each name below.</slot:description>
+                @php
+                    $presetOptions = \App\Models\SchoolOperatingProfile::presetOptions();
+                    $selectedPreset = old('preset', array_key_exists($profile->preset, \App\Models\SchoolOperatingProfile::PRESETS) ? $profile->preset : \App\Models\SchoolOperatingProfile::DEFAULT_PRESET);
+                @endphp
+                <slot:title>Starting language pattern</slot:title>
+                <slot:description>Choose one complete set of school terms. Every option includes the same seven labels, and you can edit them below.</slot:description>
                 <slot:content class="space-y-3">
-                    @foreach (['home_sections' => 'Learners stay with one class group for most of the day', 'subject_schedule' => 'Learners move between separate subject classes', 'hybrid' => 'Mostly one class group, with some mixed subjects'] as $value => $label)
-                        <label class="flex cursor-pointer items-start gap-3 rounded-lg border p-4 hover:bg-muted/50">
-                            <input type="radio" name="preset" value="{{ $value }}" class="mt-1" {{ old('preset', $profile->preset) === $value ? 'checked' : '' }}>
-                            <span class="text-sm font-medium">{{ $label }}</span>
+                    @foreach ($presetOptions as $value => $option)
+                        @php($isSelected = $selectedPreset === $value)
+                        <label class="block cursor-pointer rounded-lg border p-4 hover:bg-muted/50 has-[:checked]:border-primary has-[:checked]:bg-primary/5">
+                            <span class="flex items-start gap-3">
+                                <input type="radio" name="preset" value="{{ $value }}" class="mt-1 size-4 accent-primary" {{ $isSelected ? 'checked' : '' }}>
+                                <span class="min-w-0 flex-1">
+                                    <span class="flex flex-wrap items-center gap-2 text-sm font-medium">
+                                        {{ $option['title'] }}
+                                        @if ($value === \App\Models\SchoolOperatingProfile::DEFAULT_PRESET)
+                                            <span class="rounded-full bg-muted px-2 py-0.5 text-xs font-normal text-muted-foreground">Default</span>
+                                        @endif
+                                    </span>
+                                    <span class="mt-1 block text-sm text-muted-foreground">{{ $option['description'] }}</span>
+                                    <span class="mt-2 flex flex-wrap gap-1">
+                                        @foreach ($option['labels'] as $label)
+                                            <span class="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">{{ $label }}</span>
+                                        @endforeach
+                                    </span>
+                                </span>
+                            </span>
                         </label>
                     @endforeach
                 </slot:content>

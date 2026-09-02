@@ -105,10 +105,10 @@ class InstallApplication
                 'setup_details_completed_at' => now(),
             ]);
 
-            $schoolLanguagePreset = $data['school_language_preset'] ?? 'home_sections';
+            $schoolLanguagePreset = $data['school_language_preset'] ?? SchoolOperatingProfile::DEFAULT_PRESET;
             $schoolLanguagePreset = array_key_exists($schoolLanguagePreset, SchoolOperatingProfile::PRESETS)
                 ? $schoolLanguagePreset
-                : 'home_sections';
+                : SchoolOperatingProfile::DEFAULT_PRESET;
             $school->operatingProfile()->create([
                 'preset' => $schoolLanguagePreset,
                 'labels' => SchoolOperatingProfile::labelsFor($schoolLanguagePreset),
