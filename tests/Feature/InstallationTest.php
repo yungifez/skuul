@@ -61,7 +61,7 @@ class InstallationTest extends TestCase
         $this->get('/login')
             ->assertRedirect(route('install.index'));
 
-        $this->get(route('install.index'))
+        $response = $this->get(route('install.index'))
             ->assertOk()
             ->assertSee('Install Skuul')
             ->assertSee('System Administrator')
@@ -75,6 +75,17 @@ class InstallationTest extends TestCase
             ->assertSee('English')
             ->assertSee('name="school_language_preset"', false)
             ->assertSee('Class-based school');
+
+        $content = $response->getContent();
+        $countryPosition = strpos($content, 'id="campus_country"');
+        $statePosition = strpos($content, 'id="campus_state"');
+        $cityPosition = strpos($content, 'id="campus_city"');
+
+        $this->assertNotFalse($countryPosition);
+        $this->assertNotFalse($statePosition);
+        $this->assertNotFalse($cityPosition);
+        $this->assertLessThan($statePosition, $countryPosition);
+        $this->assertLessThan($cityPosition, $statePosition);
     }
 
     public function test_installer_blocks_until_country_and_state_data_is_loaded(): void
