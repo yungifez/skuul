@@ -14,6 +14,7 @@ use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 class SchoolTest extends TestCase
@@ -129,6 +130,15 @@ class SchoolTest extends TestCase
             ->assertDontSee('Address line 2')
             ->assertSee('data-slot="combobox"', false)
             ->assertSee('Postal / ZIP code');
+    }
+
+    public function test_missing_school_logo_falls_back_to_the_application_logo(): void
+    {
+        Storage::fake('public');
+        $school = $this->workingSchool();
+        $school->update(['logo_path' => 'schools/missing-logo.png']);
+
+        $this->assertSame(asset(config('app.logo')), $school->fresh()->logo_url);
     }
 
     public function test_school_setup_can_be_rendered_for_the_current_school()

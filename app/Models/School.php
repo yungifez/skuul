@@ -135,9 +135,11 @@ class School extends Model
         return $this->calendar_template_id !== null;
     }
 
-    public function getLogoUrlAttribute()
+    public function getLogoUrlAttribute(): string
     {
-        return $this->logo_path ? Storage::url($this->logo_path) : asset(config('app.logo'));
+        return $this->logo_path && Storage::disk('public')->exists($this->logo_path)
+            ? Storage::url($this->logo_path)
+            : asset(config('app.logo'));
     }
 
     /**
