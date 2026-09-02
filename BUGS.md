@@ -51,12 +51,12 @@
 
 ## Comment-only grade entry returns HTTP 500 in the live build
 
-- Status: Fixed locally, awaiting deployment
+- Status: Fixed and verified in production
 - Area: Gradebook assessment entries
 - Observed: Saving a text/comment-only assessment without a `points` field returned HTTP 500 for each learner in the live gradebook.
 - Impact: Teachers could not record narrative feedback without assigning a numeric mark.
 - Resolution: The controller now treats a missing nullable `points` value as `null`. A regression test covers comment-only grade entries.
-- Live follow-up: The live build still needs the fix deployed before this workflow can be re-tested there.
+- Live follow-up: Six narrative entries were saved successfully after deployment.
 
 ## Automated invoice posting can repeat a batch after a session/redirect failure
 
@@ -69,18 +69,18 @@
 
 ## Expense creation fails when no programme is selected
 
-- Status: Fixed locally, awaiting deployment
+- Status: Fixed and verified in production
 - Area: Finance expenses
 - Observed: Creating an expense without an optional `program_id` returned HTTP 500. The production log reported `Undefined array key "program_id"` in `ExpenseController.php`.
 - Impact: Office users could not record expenses unless the optional programme field was present in the request.
 - Resolution: The controller now treats a missing programme value as `null`. A feature regression test covers recording an expense without a programme.
-- Live follow-up: Deploy the fix and re-run the synthetic classroom-materials expense workflow in production.
+- Live follow-up: A programme-free Primary 6 library-materials expense posted successfully after deployment.
 
 ## Parent assignment page fails with an ambiguous enrollment query
 
-- Status: Fixed locally, awaiting deployment
+- Status: Fixed and verified in production
 - Area: Parent–student relationships
 - Observed: Opening a parent's assign-students page returned HTTP 500. The production log reported `Column 'user_id' in field list is ambiguous` from the constrained `studentRecord` eager load.
 - Impact: Staff could create parent accounts but could not open the page needed to link children.
 - Resolution: Enrollment columns are now qualified with the `student_records` table name. A feature regression test covers opening the assignment page.
-- Live follow-up: Deploy the fix and link the synthetic Carter students to their parent accounts.
+- Live follow-up: The assignment page and parent profile now return 200 after deployment; six direct family links were created.
