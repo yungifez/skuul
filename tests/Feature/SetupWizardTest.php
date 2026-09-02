@@ -10,8 +10,11 @@ use App\Http\Middleware\SetActiveAcademicPeriod;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
+use App\Models\CourseOffering;
+use App\Models\InstructionalModelSetting;
 use App\Models\Organization;
 use App\Models\School;
+use App\Models\Subject;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -107,6 +110,60 @@ class SetupWizardTest extends TestCase
             ->assertSee($academicYear->getAttribute('name'))
             ->assertSee('Choose what is taught, when, and to whom.')
             ->assertSee('Course offering help');
+    }
+
+    public function test_subject_setup_lists_catalog_subjects_and_their_class_assignments(): void
+    {
+        $school = $this->workingSchool();
+        $academicYear = app(SaveAcademicCalendar::class)->save(
+            $school,
+            Carbon::parse('2030-09-01'),
+            Carbon::parse('2031-07-31'),
+            [[
+                'name' => 'First Term',
+                'type' => AcademicPeriodType::Term->value,
+                'starts_on' => '2030-09-01',
+                'ends_on' => '2031-07-31',
+            ]],
+        );
+        $academicPeriod = $academicYear->topLevelPeriods()->firstOrFail();
+        InstructionalModelSetting::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+        ]);
+        $academicLevel = AcademicLevel::factory()->create([
+            'school_id' => $school->id,
+            'name' => 'Primary 4',
+        ]);
+        $section = AcademicCycleSection::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_level_id' => $academicLevel->id,
+            'name' => 'Blue',
+            'label' => 'Blue',
+        ]);
+        $subject = Subject::factory()->create([
+            'school_id' => $school->id,
+            'name' => 'Mathematics',
+            'short_name' => 'Maths',
+        ]);
+        $courseOffering = CourseOffering::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_period_id' => $academicPeriod->id,
+            'academic_level_id' => $academicLevel->id,
+            'subject_id' => $subject->id,
+        ]);
+        $courseOffering->cycleSections()->attach($section);
+
+        $this->authorized_user(['update academic year'], $school)
+            ->get(route('academic-years.setup', [$academicYear, 'subjects']))
+            ->assertSuccessful()
+            ->assertSee('School subject catalogue')
+            ->assertSee('Mathematics')
+            ->assertSee('Maths')
+            ->assertSee('Primary 4 · Blue')
+            ->assertSee('First Term');
     }
 
     public function test_publishing_from_setup_sets_the_school_default_year(): void

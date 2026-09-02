@@ -47,6 +47,7 @@ class AcademicYearSetupController extends Controller
         $academicLevels = collect();
         $subjects = collect();
         $courseOfferings = collect();
+        $subjectAssignments = collect();
         $previousAcademicYear = null;
 
         if ($requested === AcademicYearSetupStep::Structure) {
@@ -73,6 +74,29 @@ class AcademicYearSetupController extends Controller
                 ->orderBy('academic_level_id')
                 ->orderBy('academic_period_id')
                 ->get();
+            $subjectAssignments = $subjects->map(function (Subject $subject) use ($courseOfferings): array {
+                $offerings = $courseOfferings->where('subject_id', $subject->id);
+
+                return [
+                    'subject' => $subject,
+                    'classes' => $offerings->map(function (CourseOffering $offering): string {
+                        $className = $offering->academicLevel?->name ?? 'Class not set';
+                        $sections = $offering->cycleSections
+                            ->map(fn ($section): string => $section->label ?: $section->name)
+                            ->join(', ');
+
+                        if ($sections !== '') {
+                            return $className.' · '.$sections;
+                        }
+
+                        return $className.' · '.$offering->roster_mode->label();
+                    })->unique()->values(),
+                    'periods' => $offerings->map(fn (CourseOffering $offering): ?string => $offering->academicPeriod?->displayName)
+                        ->filter()
+                        ->unique()
+                        ->values(),
+                ];
+            });
             $previousAcademicYear = AcademicYear::inSchool($academicYear->school_id)
                 ->where('start_year', '<', $academicYear->start_year)
                 ->orderByDesc('start_year')
@@ -88,6 +112,7 @@ class AcademicYearSetupController extends Controller
             'previousAcademicYear' => $previousAcademicYear,
             'subjects' => $subjects,
             'courseOfferings' => $courseOfferings,
+            'subjectAssignments' => $subjectAssignments,
         ]);
     }
 

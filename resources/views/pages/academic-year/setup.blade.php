@@ -93,6 +93,50 @@
                             <april:button-link href="{{ route('subjects.create', ['setup' => 1, 'academic_year_id' => $academicYear->id]) }}" class="shrink-0">Create a subject</april:button-link>
                         </div>
                     @else
+                        <div class="overflow-hidden rounded-lg border bg-muted/10">
+                            <div class="border-b px-4 py-4 sm:px-5">
+                                <h3 class="font-semibold">School subject catalogue</h3>
+                                <p class="mt-1 text-sm text-muted-foreground">All subjects available in the school, with the classes where each one is planned for {{ $academicYear->name }}.</p>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full min-w-[38rem] text-left text-sm">
+                                    <thead class="bg-muted/40 text-xs uppercase tracking-wide text-muted-foreground">
+                                        <tr>
+                                            <th scope="col" class="px-4 py-3 font-medium sm:px-5">Subject</th>
+                                            <th scope="col" class="px-4 py-3 font-medium sm:px-5">Assigned classes</th>
+                                            <th scope="col" class="px-4 py-3 font-medium sm:px-5">Periods</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($subjectAssignments as $assignment)
+                                            <tr class="border-t align-top">
+                                                <th scope="row" class="px-4 py-4 font-medium sm:px-5">
+                                                    <div>{{ $assignment['subject']->name }}</div>
+                                                    @if ($assignment['subject']->short_name)
+                                                        <div class="mt-1 text-xs font-normal text-muted-foreground">{{ $assignment['subject']->short_name }}</div>
+                                                    @endif
+                                                </th>
+                                                <td class="px-4 py-4 sm:px-5">
+                                                    @if ($assignment['classes']->isEmpty())
+                                                        <span class="text-muted-foreground">Not assigned to a class yet</span>
+                                                    @else
+                                                        <div class="flex flex-wrap gap-1.5">
+                                                            @foreach ($assignment['classes'] as $class)
+                                                                <span class="rounded-md border bg-background px-2 py-1 text-xs">{{ $class }}</span>
+                                                            @endforeach
+                                                        </div>
+                                                    @endif
+                                                </td>
+                                                <td class="px-4 py-4 text-muted-foreground sm:px-5">
+                                                    {{ $assignment['periods']->isEmpty() ? 'Not planned yet' : $assignment['periods']->join(', ') }}
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
                         <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                             <div>
                                 <h3 class="font-semibold">Subjects in the school catalog</h3>
