@@ -215,6 +215,22 @@ class CourseOfferingTest extends TestCase
         $this->get(route('course-offerings.index'))->assertOk()->assertSee($subject->name);
     }
 
+    public function test_bulk_setup_keeps_the_year_context_fixed_and_places_editable_selectors_together(): void
+    {
+        $this->authorized_user(['create subject']);
+        [, $academicYear, $academicPeriod] = $this->courseContext();
+
+        $this->get(route('course-offerings.bulk-create', [
+            'academic_year_id' => $academicYear->id,
+            'setup' => 1,
+        ]))
+            ->assertOk()
+            ->assertSee('This bulk setup is scoped by the academic year in the link.')
+            ->assertSee('id="subject"', false)
+            ->assertSee('id="academic-period"', false)
+            ->assertSee($academicPeriod->displayName);
+    }
+
     public function test_a_school_user_cannot_update_an_offering_from_another_school(): void
     {
         $this->authorized_user(['update subject']);

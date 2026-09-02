@@ -28,23 +28,25 @@
                     <x-display-validation-errors />
 
                     <div class="grid gap-4 md:grid-cols-2">
-                        <div class="flex flex-col gap-2">
+                        <div class="flex flex-col gap-2 md:col-span-2">
                             <april:label for="academic-year">School year</april:label>
-                            <div id="academic-year" class="rounded-md border bg-muted/30 px-3 py-2">{{ $selectedAcademicYear->name }}</div>
-                            <p class="text-sm text-muted-foreground">The separate offerings will all be created for this school year.</p>
+                            <div id="academic-year" class="rounded-md border bg-muted/30 px-3 py-3">
+                                <p class="font-medium">{{ $selectedAcademicYear->name }}</p>
+                                <p class="mt-1 text-sm text-muted-foreground">The separate offerings will all be created for this school year. This bulk setup is scoped by the academic year in the link.</p>
+                            </div>
                         </div>
                         <div class="flex flex-col gap-2">
                             <april:label for="subject">Subject</april:label>
-                            <select id="subject" name="subject_id" class="rounded-md border border-input bg-background px-3 py-2" required>
+                            <select id="subject" name="subject_id" class="w-full rounded-md border border-input bg-background px-3 py-2" required>
                                 <option value="">Select a subject</option>
                                 @foreach ($subjects as $subject)
                                     <option value="{{ $subject->id }}" @selected($selectedSubjectId === (string) $subject->id)>{{ $subject->name }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="flex flex-col gap-2 md:col-span-2">
+                        <div class="flex flex-col gap-2">
                             <april:label for="academic-period">Reporting period</april:label>
-                            <select id="academic-period" name="academic_period_id" class="rounded-md border border-input bg-background px-3 py-2" required>
+                            <select id="academic-period" name="academic_period_id" class="w-full rounded-md border border-input bg-background px-3 py-2" required>
                                 <option value="">Select a period</option>
                                 <option value="all" @selected($selectedPeriodId === 'all')>All periods in {{ $selectedAcademicYear->name }}</option>
                                 @foreach ($selectedAcademicYear->topLevelPeriods as $academicPeriod)
