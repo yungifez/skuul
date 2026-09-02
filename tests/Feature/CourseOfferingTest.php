@@ -220,7 +220,7 @@ class CourseOfferingTest extends TestCase
         $this->authorized_user(['create subject']);
         [, $academicYear, $academicPeriod] = $this->courseContext();
 
-        $this->get(route('course-offerings.bulk-create', [
+        $this->get(route('course-offerings.bulk-create.form', [
             'academic_year_id' => $academicYear->id,
             'setup' => 1,
         ]))
@@ -230,10 +230,48 @@ class CourseOfferingTest extends TestCase
             ->assertSee('id="academic-period"', false)
             ->assertSee($academicPeriod->displayName)
             ->assertSeeInOrder([
-                'Create offerings for selected levels',
                 'School year',
                 'Subject',
+                'Create offerings for selected levels',
             ]);
+    }
+
+    public function test_subject_setup_table_shows_catalogue_assignments_and_actions(): void
+    {
+        $this->authorized_user(['read subject', 'create subject', 'update subject']);
+        [$subject, $academicYear, $academicPeriod, $academicLevel, $cycleSection] = $this->courseContext();
+        $offering = CourseOffering::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_period_id' => $academicPeriod->id,
+            'subject_id' => $subject->id,
+            'academic_level_id' => $academicLevel->id,
+        ]);
+        $offering->cycleSections()->attach($cycleSection);
+        $unassignedSubject = Subject::factory()->create(['school_id' => $this->workingSchool()->id, 'name' => 'Unassigned subject']);
+
+        $this->get(route('course-offerings.bulk-create', ['academic_year_id' => $academicYear->id]))
+            ->assertSuccessful()
+            ->assertSee('Subjects for '.$academicYear->name)
+            ->assertSee($subject->name)
+            ->assertSee($subject->short_name)
+            ->assertSee($academicLevel->name.' · '.$cycleSection->name)
+            ->assertSee($academicPeriod->displayName)
+            ->assertSee($unassignedSubject->name)
+            ->assertSee('Manage offerings')
+            ->assertSee('Set up across levels');
+    }
+
+    public function test_subject_setup_table_hides_creation_actions_without_create_permission(): void
+    {
+        $this->authorized_user(['read subject']);
+        [, $academicYear] = $this->courseContext();
+
+        $this->get(route('course-offerings.bulk-create', ['academic_year_id' => $academicYear->id]))
+            ->assertSuccessful()
+            ->assertSee('Manage offerings')
+            ->assertDontSee('Set up across levels')
+            ->assertDontSee('Add one offering');
     }
 
     public function test_a_school_user_cannot_update_an_offering_from_another_school(): void

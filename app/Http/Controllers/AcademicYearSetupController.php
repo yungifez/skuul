@@ -7,8 +7,6 @@ use App\Enums\AcademicYearSetupStep;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
-use App\Models\CourseOffering;
-use App\Models\Subject;
 use App\Services\AcademicYear\AcademicYearService;
 use App\Services\AcademicYear\AcademicYearSetupProgress;
 use Illuminate\Http\RedirectResponse;
@@ -43,12 +41,15 @@ class AcademicYearSetupController extends Controller
             $requested = $current;
         }
 
+        if ($requested === AcademicYearSetupStep::Subjects) {
+            return to_route('course-offerings.bulk-create', [
+                'academic_year_id' => $academicYear->id,
+                'setup' => 1,
+            ]);
+        }
+
         $academicYear = $academicYear->load('topLevelPeriods');
         $academicLevels = collect();
-        $subjects = collect();
-        $courseOfferings = collect();
-        $subjectAssignments = collect();
-        $previousAcademicYear = null;
 
         if ($requested === AcademicYearSetupStep::Structure) {
             $academicYear->load(['cycleSections.academicLevel', 'cycleSections.homeroomTeacher']);
@@ -58,61 +59,11 @@ class AcademicYearSetupController extends Controller
                 ->get(['id', 'parent_id', 'name', 'status', 'is_group']);
         }
 
-        if ($requested === AcademicYearSetupStep::Subjects) {
-            $subjects = Subject::inSchool($academicYear->school_id)
-                ->orderBy('name')
-                ->get(['id', 'name', 'short_name']);
-            $courseOfferings = CourseOffering::inSchool($academicYear->school_id)
-                ->where('academic_year_id', $academicYear->id)
-                ->with([
-                    'subject:id,name,short_name',
-                    'academicLevel:id,name',
-                    'academicPeriod:id,name,label',
-                    'cycleSections:id,name,label',
-                ])
-                ->orderBy('subject_id')
-                ->orderBy('academic_level_id')
-                ->orderBy('academic_period_id')
-                ->get();
-            $subjectAssignments = $subjects->map(function (Subject $subject) use ($courseOfferings): array {
-                $offerings = $courseOfferings->where('subject_id', $subject->id);
-
-                return [
-                    'subject' => $subject,
-                    'classes' => $offerings->map(function (CourseOffering $offering): string {
-                        $className = $offering->academicLevel?->name ?? 'Class not set';
-                        $sections = $offering->cycleSections
-                            ->map(fn ($section): string => $section->label ?: $section->name)
-                            ->join(', ');
-
-                        if ($sections !== '') {
-                            return $className.' · '.$sections;
-                        }
-
-                        return $className.' · '.$offering->roster_mode->label();
-                    })->unique()->values(),
-                    'periods' => $offerings->map(fn (CourseOffering $offering): ?string => $offering->academicPeriod?->displayName)
-                        ->filter()
-                        ->unique()
-                        ->values(),
-                ];
-            });
-            $previousAcademicYear = AcademicYear::inSchool($academicYear->school_id)
-                ->where('start_year', '<', $academicYear->start_year)
-                ->orderByDesc('start_year')
-                ->orderByDesc('id')
-                ->first();
-        }
-
         return view('pages.academic-year.setup', [
             'academicYear' => $academicYear,
             'currentStep' => $requested,
             'progress' => $progress,
             'academicLevels' => $academicLevels,
-            'previousAcademicYear' => $previousAcademicYear,
-            'subjects' => $subjects,
-            'courseOfferings' => $courseOfferings,
-            'subjectAssignments' => $subjectAssignments,
         ]);
     }
 

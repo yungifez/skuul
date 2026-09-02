@@ -7,18 +7,21 @@
 @section('page_heading', school_terms('course', 'Course').' being taught')
 
 @section('page_actions')
-    @can('create', \App\Models\CourseOffering::class)
-        <div class="flex flex-wrap gap-2">
-            <april:button-link href="{{ route('course-offerings.bulk-create') }}" variant="outline">Set up across levels</april:button-link>
+    <div class="flex flex-wrap gap-2">
+        @can('viewAny', \App\Models\CourseOffering::class)
+            <april:button-link href="{{ route('course-offerings.bulk-create') }}" variant="outline">Subject setup</april:button-link>
+        @endcan
+        @can('create', \App\Models\CourseOffering::class)
+            <april:button-link href="{{ route('course-offerings.bulk-create.form') }}" variant="outline">Set up across levels</april:button-link>
             <april:button-link href="{{ route('course-offerings.roll-forward.show') }}" variant="outline">Roll over subjects</april:button-link>
             <x-resource-create-action :href="route('course-offerings.create')" ability="create" :arguments="[\App\Models\CourseOffering::class]">Add {{ school_term('course', 'course') }}</x-resource-create-action>
-        </div>
-    @endcan
+        @endcan
+    </div>
 @endsection
 
 @section('content')
     <april:card>
-        <slot:title>{{ school_terms('course', 'Course') }} for an exact {{ school_term('period', 'period') }}</slot:title>
+        <slot:title>{{ $selectedSubject?->name ?? school_terms('course', 'Course').' being taught' }}{{ $selectedAcademicYear ? ' for '.$selectedAcademicYear->name : '' }}</slot:title>
         <slot:description>Create a dated offering from an existing subject. {{ school_terms('section', 'Sections') }} are its default groups; learner placement remains separate.</slot:description>
         <slot:content>
             <div class="overflow-x-auto">

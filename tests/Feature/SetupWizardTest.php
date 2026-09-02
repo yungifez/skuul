@@ -156,10 +156,14 @@ class SetupWizardTest extends TestCase
         ]);
         $courseOffering->cycleSections()->attach($section);
 
-        $this->authorized_user(['update academic year'], $school)
-            ->get(route('academic-years.setup', [$academicYear, 'subjects']))
+        $this->authorized_user(['update academic year', 'read subject'], $school);
+
+        $this->get(route('academic-years.setup', [$academicYear, 'subjects']))
+            ->assertRedirect(route('course-offerings.bulk-create', ['academic_year_id' => $academicYear->id, 'setup' => 1]));
+
+        $this->get(route('course-offerings.bulk-create', ['academic_year_id' => $academicYear->id, 'setup' => 1]))
             ->assertSuccessful()
-            ->assertSee('School subject catalogue')
+            ->assertSee('Subjects for '.$academicYear->name)
             ->assertSee('Mathematics')
             ->assertSee('Maths')
             ->assertSee('Primary 4 · Blue')

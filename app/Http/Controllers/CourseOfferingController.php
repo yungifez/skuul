@@ -50,7 +50,9 @@ class CourseOfferingController extends Controller
 
     public function index(): View
     {
-        $courseOfferings = CourseOffering::inSchool()
+        $academicYearId = request()->integer('academic_year_id');
+        $subjectId = request()->integer('subject_id');
+        $courseOfferingsQuery = CourseOffering::inSchool()
             ->with([
                 'academicLevel:id,name',
                 'academicPeriod:id,name,label',
@@ -60,11 +62,15 @@ class CourseOfferingController extends Controller
                 'subject:id,name,short_name',
                 'teachingAssignments.teacher:id,name',
             ])
-            ->latest()
-            ->paginate(25);
+            ->when($academicYearId > 0, fn (Builder $query): Builder => $query->where('academic_year_id', $academicYearId))
+            ->when($subjectId > 0, fn (Builder $query): Builder => $query->where('subject_id', $subjectId))
+            ->latest();
+        $courseOfferings = $courseOfferingsQuery->paginate(25)->withQueryString();
         $teachers = User::ofSchool()->role(Role::Teacher->value)->get(['users.id', 'users.name']);
+        $selectedAcademicYear = AcademicYear::inSchool()->find($academicYearId);
+        $selectedSubject = Subject::inSchool()->find($subjectId);
 
-        return view('pages.course-offering.index', compact('courseOfferings', 'teachers'));
+        return view('pages.course-offering.index', compact('courseOfferings', 'selectedAcademicYear', 'selectedSubject', 'teachers'));
     }
 
     public function create(): View
@@ -108,6 +114,20 @@ class CourseOfferingController extends Controller
 
     public function bulkCreate(): View
     {
+        $this->authorize('viewAny', CourseOffering::class);
+
+        $academicYears = AcademicYear::inSchool()->with('topLevelPeriods')->orderByDesc('start_year')->get();
+        $selectedAcademicYear = $academicYears->firstWhere('id', request()->integer('academic_year_id'))
+            ?? $academicYears->firstWhere('id', current_academic_year_id())
+            ?? $academicYears->first();
+
+        abort_unless($selectedAcademicYear instanceof AcademicYear, 404);
+
+        return view('pages.course-offering.bulk-create', compact('selectedAcademicYear'));
+    }
+
+    public function bulkCreateForm(): View
+    {
         $this->authorize('create', CourseOffering::class);
 
         $academicYears = AcademicYear::inSchool()->with('topLevelPeriods')->orderByDesc('start_year')->get();
@@ -132,7 +152,7 @@ class CourseOfferingController extends Controller
         $subjects = Subject::inSchool()->orderBy('name')->get();
         $rosterModes = instructional_model($selectedAcademicYear)->rosterModes();
 
-        return view('pages.course-offering.bulk-create', compact('academicCycleSections', 'academicLevels', 'academicYears', 'rosterModes', 'selectedAcademicYear', 'subjects'));
+        return view('pages.course-offering.bulk-create-form', compact('academicCycleSections', 'academicLevels', 'academicYears', 'rosterModes', 'selectedAcademicYear', 'subjects'));
     }
 
     public function bulkStore(StoreCourseOfferingsForLevelsRequest $request): RedirectResponse
@@ -150,7 +170,7 @@ class CourseOfferingController extends Controller
         $message = $created->count().' level-specific subject '.($created->count() === 1 ? 'offering was' : 'offerings were').' created as drafts.';
 
         if ($request->boolean('setup')) {
-            return to_route('academic-years.setup', [$academicYear, 'subjects'])->with('success', $message);
+            return to_route('course-offerings.bulk-create', ['academic_year_id' => $academicYear->id, 'setup' => 1])->with('success', $message);
         }
 
         return to_route('course-offerings.index')->with('success', $message);
