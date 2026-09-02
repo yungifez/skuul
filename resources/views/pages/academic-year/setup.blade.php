@@ -1,4 +1,10 @@
 @php
+    $currentStepComplete = (bool) data_get(
+        collect($progress['steps'])->firstWhere('value', $currentStep->value),
+        'complete',
+        false,
+    );
+    $nextStep = $currentStep->next();
     $stepItems = collect($progress['steps'])->map(function (array $step) use ($academicYear, $currentStep): array {
         $state = $step['value'] === $currentStep->value ? 'current' : ($step['complete'] ? 'complete' : 'upcoming');
 
@@ -140,6 +146,18 @@
                     @livewire('academic-year-structure-tree', ['academicYear' => $academicYear, 'setupLinks' => false, 'showLevelActions' => false])
                 </slot:content>
             </april:card>
+        @endif
+
+        @if ($currentStepComplete && $nextStep !== null)
+            <div class="flex flex-col gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+                <div>
+                    <p class="text-sm font-semibold">Next step: {{ $nextStep->label() }}</p>
+                    <p class="mt-1 text-sm text-muted-foreground">This step is complete. Continue setting up {{ strtolower($academicYear->name) }} when you are ready.</p>
+                </div>
+                <april:button-link href="{{ route('academic-years.setup', [$academicYear, $nextStep->value]) }}" class="shrink-0">
+                    Continue to {{ strtolower($nextStep->label()) }}
+                </april:button-link>
+            </div>
         @endif
 
         <div class="flex justify-between">

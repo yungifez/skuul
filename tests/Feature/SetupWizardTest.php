@@ -7,6 +7,8 @@ use App\Actions\Organization\GrantOrganizationMembership;
 use App\Enums\AcademicPeriodStatus;
 use App\Enums\AcademicPeriodType;
 use App\Http\Middleware\SetActiveAcademicPeriod;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
 use App\Models\Organization;
 use App\Models\School;
@@ -67,6 +69,25 @@ class SetupWizardTest extends TestCase
             ->assertSuccessful()
             ->assertSee('Dates and periods')
             ->assertSee('Set up '.$academicYear->getAttribute('name'));
+    }
+
+    public function test_completed_structure_step_points_to_subject_setup(): void
+    {
+        $school = $this->workingSchool();
+        $academicYear = AcademicYear::factory()->create(['school_id' => $school->id]);
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
+        AcademicCycleSection::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_level_id' => $academicLevel->id,
+        ]);
+
+        $this->authorized_user(['update academic year'], $school)
+            ->get(route('academic-years.setup', [$academicYear, 'structure']))
+            ->assertSuccessful()
+            ->assertSee('Next step: Subjects for this year')
+            ->assertSee('Continue to subjects for this year')
+            ->assertSee(route('academic-years.setup', [$academicYear, 'subjects']), false);
     }
 
     public function test_course_offering_setup_accepts_an_explicit_draft_year(): void
