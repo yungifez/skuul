@@ -33,6 +33,18 @@ class GraduationPlanScreenTest extends TestCase
             ->assertSee(route('graduation-plans.create'));
     }
 
+    public function test_writing_a_plan_starts_with_simple_school_rules(): void
+    {
+        $this->authorized_user(['read graduation plan', 'manage graduation plan']);
+
+        $this->get(route('graduation-plans.create'))
+            ->assertOk()
+            ->assertSee('Start with the basics')
+            ->assertSee('Every item is required by default')
+            ->assertSee('Advanced rules (optional)')
+            ->assertDontSee('mt-6 rounded-md border p-4" open');
+    }
+
     public function test_a_plan_is_written_from_the_screen(): void
     {
         $this->authorized_user(['read graduation plan', 'manage graduation plan']);
