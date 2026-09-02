@@ -9,6 +9,7 @@ use App\Enums\ReportStatus;
 use App\Exceptions\InvalidValueException;
 use App\Jobs\BuildReport;
 use App\Models\AuditEvent;
+use App\Models\FinancialPeriod;
 use App\Models\ReportRun;
 use App\Models\School;
 use App\Models\StudentRecord;
@@ -75,6 +76,12 @@ class ReportTest extends TestCase
         Storage::fake('local');
         $this->authorized_user(['create report']);
         $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        FinancialPeriod::create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'Term one',
+            'starts_on' => now()->startOfYear()->toDateString(),
+            'ends_on' => now()->endOfYear()->toDateString(),
+        ]);
         app(ChargeStudent::class)->charge($enrollment, 500, 'Term one fees');
 
         $run = app(RequestReport::class)->request('student-balances');

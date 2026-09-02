@@ -38,7 +38,9 @@ class ChangeFinancialPeriodStatus
             $period->forceFill([
                 'status' => $status,
                 'closed_at' => $status === FinancialPeriodStatus::Closed ? now() : null,
-                'closed_by' => $status === FinancialPeriodStatus::Closed ? ($actor?->id ?? auth()->id()) : null,
+                'closed_by' => $status === FinancialPeriodStatus::Closed
+                    ? ($actor === null ? auth()->id() : $actor->id)
+                    : null,
                 'close_reason' => $reason,
             ])->saveQuietly();
 

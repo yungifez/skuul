@@ -10,6 +10,7 @@ use App\Models\AcademicYear;
 use App\Models\Fee;
 use App\Models\FeeCategory;
 use App\Models\FeeInvoice;
+use App\Models\FinancialPeriod;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Services\Fee\FeeInvoiceService;
@@ -216,11 +217,20 @@ class FinanceReportTest extends TestCase
      */
     private function cycle(): AcademicYear
     {
-        return AcademicYear::factory()->create([
+        $year = AcademicYear::factory()->create([
             'school_id' => $this->workingSchool()->id,
             'starts_on' => now()->startOfYear()->toDateString(),
             'ends_on' => now()->endOfYear()->toDateString(),
         ]);
+
+        FinancialPeriod::create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'Term one',
+            'starts_on' => now()->startOfYear()->toDateString(),
+            'ends_on' => now()->endOfYear()->toDateString(),
+        ]);
+
+        return $year;
     }
 
     /**
@@ -259,7 +269,7 @@ class FinanceReportTest extends TestCase
         app(FeeInvoiceService::class)->storeFeeInvoice([
             'issue_date' => ($dueDate ?? now())->toDateString(),
             'due_date' => ($dueDate ?? now())->toDateString(),
-            'users' => [$enrollment->user_id],
+            'student_records' => [$enrollment->id],
             'records' => [['fee_id' => $fee->id, 'amount' => $amount, 'waiver' => 0, 'fine' => 0]],
         ]);
 

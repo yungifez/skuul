@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * One request to build a report.
  *
+ * @property int|null $academic_period_id
  * @property ReportStatus $status
  * @property array<string, mixed>|null $parameters
  */

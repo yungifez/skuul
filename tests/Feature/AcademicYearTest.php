@@ -28,7 +28,7 @@ class AcademicYearTest extends TestCase
         $this->authorized_user(['read academic year'])
             ->get('/dashboard/academic-years')
             ->assertOk()
-            ->assertSee('School calendars');
+            ->assertSee(school_terms('academic_year', 'School years'));
     }
 
     public function test_working_calendar_form_uses_the_april_ui_select(): void
@@ -56,7 +56,7 @@ class AcademicYearTest extends TestCase
         $this->authorized_user(['create academic year'])
             ->get('/dashboard/academic-years/create')
             ->assertOk()
-            ->assertSee('Set up a school calendar');
+            ->assertSee('Set up a '.strtolower(school_term('academic_year', 'school year')));
     }
 
     public function test_an_unauthorized_user_cannot_edit_a_school_calendar(): void
@@ -75,7 +75,7 @@ class AcademicYearTest extends TestCase
         $this->authorized_user(['update academic year'])
             ->get("/dashboard/academic-years/{$academicYear->id}/edit")
             ->assertOk()
-            ->assertSee('Edit draft school calendar');
+            ->assertSee('Edit draft '.strtolower(school_term('academic_year', 'school year')));
     }
 
     public function test_a_draft_calendar_overview_points_to_the_next_setup_step(): void

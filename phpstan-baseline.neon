@@ -25,12 +25,6 @@ parameters:
 			path: app/Models/FeeInvoice.php
 
 		-
-			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Builder\<Illuminate\\Database\\Eloquent\\Model\>\:\:ofSchool\(\)\.$#'
-			identifier: method.notFound
-			count: 1
-			path: app/Models/FeeInvoice.php
-
-		-
 			message: '#^PHPDoc type array of property App\\Models\\User\:\:\$appends is not covariant with PHPDoc type list\<string\> of overridden property Illuminate\\Database\\Eloquent\\Model\:\:\$appends\.$#'
 			identifier: property.phpDocType
 			count: 1
@@ -59,18 +53,6 @@ parameters:
 			identifier: property.notFound
 			count: 3
 			path: app/Policies/FeeCategoryPolicy.php
-
-		-
-			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user\.$#'
-			identifier: property.notFound
-			count: 3
-			path: app/Policies/FeeInvoiceRecordPolicy.php
-
-		-
-			message: '#^Method App\\Services\\Fee\\FeeInvoiceService\:\:updateFeeInvoice\(\) with return type void returns App\\Models\\FeeInvoice but should not return anything\.$#'
-			identifier: return.void
-			count: 1
-			path: app/Services/Fee/FeeInvoiceService.php
 
 		-
 			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:students\(\)\.$#'

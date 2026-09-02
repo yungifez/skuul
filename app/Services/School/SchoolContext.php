@@ -34,8 +34,7 @@ class SchoolContext
     public function __construct(
         private SystemPermissionScope $systemPermissionScope,
         private DomainContext $domainContext,
-    ) {
-    }
+    ) {}
 
     /**
      * Get the active school, or null when none is set.
@@ -85,7 +84,7 @@ class SchoolContext
 
         app(PermissionRegistrar::class)->setPermissionsTeamId($school?->id);
 
-        if ($remember && app()->bound('session') && app('session')->isStarted()) {
+        if ($remember && app()->bound('session')) {
             $school === null
                 ? session()->forget(self::SESSION_KEY)
                 : session()->put(self::SESSION_KEY, $school->id);

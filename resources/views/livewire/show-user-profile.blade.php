@@ -27,7 +27,7 @@
                         'Email address' => $user->email,
                         'Phone number' => $user->phone,
                         'Gender' => $user->gender,
-                        'Date of birth' => $user->birthday?->format('M j, Y'),
+                        'Date of birth' => $user->birthday,
                         'Nationality' => $user->nationality,
                         'Country' => $user->country,
                         'State / Province' => $user->state,

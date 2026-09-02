@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Models\Fee;
+use App\Models\FeeCategory;
 use App\Models\FeeInvoice;
 use App\Models\FeeInvoiceRecord;
+use App\Models\FinancialPeriod;
 use App\Models\StudentRecord;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -40,8 +42,16 @@ class FeeInvoiceRecordTest extends TestCase
 
     public function test_authorized_user_can_store_fee_invoice_record()
     {
-        $feeInvoice = FeeInvoice::factory()->create();
-        $fee = Fee::factory()->create();
+        $school = $this->workingSchool();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $school->id]);
+        $this->memberOf($school, $enrollment->user);
+        $feeInvoice = FeeInvoice::factory()->for($enrollment->user)->create([
+            'school_id' => $school->id,
+            'student_record_id' => $enrollment->id,
+        ]);
+        $fee = Fee::factory()->create([
+            'fee_category_id' => FeeCategory::factory()->create(['school_id' => $school->id])->id,
+        ]);
 
         $this->authorized_user(['create fee invoice record'])
             ->post('dashboard/fees/fee-invoices/fee-invoice-records', [
@@ -72,7 +82,7 @@ class FeeInvoiceRecordTest extends TestCase
 
     public function test_authorized_user_can_delete_fee_invoice_record()
     {
-        $feeInvoiceRecord = FeeInvoiceRecord::factory()->create();
+        $feeInvoiceRecord = $this->lineOfAnEnrolledStudent();
 
         $this->authorized_user(['delete fee invoice record'])
             ->delete("dashboard/fees/fee-invoices/fee-invoice-records/$feeInvoiceRecord->id")
@@ -119,13 +129,34 @@ class FeeInvoiceRecordTest extends TestCase
      */
     private function lineOfAnEnrolledStudent(): FeeInvoiceRecord
     {
-        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
-        $this->memberOf($this->workingSchool(), $enrollment->user);
+        $school = $this->workingSchool();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $school->id]);
+        $this->memberOf($school, $enrollment->user);
 
-        $feeInvoice = FeeInvoice::factory()->for($enrollment->user)->create();
+        FinancialPeriod::query()->firstOrCreate(
+            ['school_id' => $school->id, 'name' => 'Term one'],
+            [
+                'starts_on' => now()->startOfYear()->toDateString(),
+                'ends_on' => now()->endOfYear()->toDateString(),
+            ],
+        );
+
+        $feeInvoice = FeeInvoice::factory()->for($enrollment->user)->create([
+            'school_id' => $school->id,
+            'student_record_id' => $enrollment->id,
+            'financial_period_id' => FinancialPeriod::query()
+                ->where('school_id', $school->id)
+                ->where('name', 'Term one')
+                ->value('id'),
+        ]);
+
+        $fee = Fee::factory()->create([
+            'fee_category_id' => FeeCategory::factory()->create(['school_id' => $school->id])->id,
+        ]);
 
         return FeeInvoiceRecord::factory()->create([
             'fee_invoice_id' => $feeInvoice->id,
+            'fee_id' => $fee->id,
             'amount' => 500,
             'waiver' => 0,
             'fine' => 0,

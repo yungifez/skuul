@@ -93,9 +93,23 @@ class ListFeeInvoicesTable extends DataTableComponent
     {
         return $rows->map(function (FeeInvoice $invoice): array {
             $row = $invoice->toArray();
-            $row['student_name'] = $invoice->user?->name ?? 'Unknown student';
-            $row['class_name'] = $invoice->studentRecord?->academicCycleSection?->academicLevel?->name ?? '—';
-            $row['section_name'] = $invoice->studentRecord?->academicCycleSection?->name ?? '—';
+            $row['student_name'] = $invoice->user->name;
+
+            $studentRecord = $invoice->studentRecord;
+            $className = '—';
+            $sectionName = '—';
+
+            if ($studentRecord !== null) {
+                $cycleSection = $studentRecord->academicCycleSection;
+
+                if ($cycleSection !== null) {
+                    $className = $cycleSection->academicLevel->name;
+                    $sectionName = $cycleSection->name;
+                }
+            }
+
+            $row['class_name'] = $className;
+            $row['section_name'] = $sectionName;
             $row['paid_label'] = $invoice->paid->formatToLocale(app()->getLocale());
             $row['balance_label'] = $invoice->balance->formatToLocale(app()->getLocale());
             $row['due_date_label'] = $invoice->due_date->format('M j, Y');

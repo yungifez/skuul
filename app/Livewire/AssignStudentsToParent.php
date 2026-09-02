@@ -6,6 +6,7 @@ use App\Enums\AcademicStructureStatus;
 use App\Models\AcademicCycleSection;
 use App\Models\ParentRecord;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\View\View;
 use Livewire\Component;
 
@@ -69,7 +70,13 @@ class AssignStudentsToParent extends Component
         $this->students = User::role('student')
             ->ofSchool()
             ->whereHas('studentRecord', fn ($query) => $query->where('academic_cycle_section_id', $this->academicCycleSectionId))
-            ->with('studentRecord:id,user_id,admission_number')
+            ->with(['studentRecord' => function (Relation $query): void {
+                $query->select([
+                    'student_records.id',
+                    'student_records.user_id',
+                    'student_records.admission_number',
+                ]);
+            }])
             ->orderBy('name')
             ->get()
             ->map(fn (User $student): array => [

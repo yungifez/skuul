@@ -57,7 +57,7 @@ class RecordCashDeposit
                 'deposit_date' => $date,
                 'bank_reference' => $bankReference,
                 'note' => $note,
-                'recorded_by' => $actor?->id ?? auth()->id(),
+                'recorded_by' => $actor === null ? auth()->id() : $actor->id,
             ]);
 
             $this->auditor->record(AuditAction::CashDepositRecorded, $deposit, ['amount' => $amount], $actor, current_school_id());

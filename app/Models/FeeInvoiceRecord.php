@@ -105,6 +105,8 @@ class FeeInvoiceRecord extends Model
 
     /**
      * Get the fee that owns the FeeInvoice.
+     *
+     * @return BelongsTo<Fee, $this>
      */
     public function fee(): BelongsTo
     {
@@ -113,6 +115,8 @@ class FeeInvoiceRecord extends Model
 
     /**
      * Get the feeInvoice that owns the FeeInvoiceRecord.
+     *
+     * @return BelongsTo<FeeInvoice, $this>
      */
     public function feeInvoice(): BelongsTo
     {

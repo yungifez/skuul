@@ -49,7 +49,7 @@ class ExpenseController extends Controller
             vendor: $data['vendor'] ?? null,
             reference: $data['reference'] ?? null,
             note: $data['note'] ?? null,
-            program: $data['program_id'] === null ? null : Program::query()->inSchool()->findOrFail($data['program_id']),
+            program: ($data['program_id'] ?? null) === null ? null : Program::query()->inSchool()->findOrFail($data['program_id']),
             fund: $data['fund'] ?? null,
         );
 

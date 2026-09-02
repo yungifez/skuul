@@ -98,7 +98,11 @@ class AcademicYearStructureTree extends Component
         $academicYear = $this->academicYear === null
             ? null
             : AcademicYear::inSchool($schoolId)
-                ->with(['cycleSections.academicLevel', 'cycleSections.homeroomTeacher'])
+                ->with([
+                    'cycleSections.academicLevel',
+                    'cycleSections.academicYear',
+                    'cycleSections.homeroomTeacher',
+                ])
                 ->findOrFail($this->academicYear->id);
         $academicLevelsQuery = AcademicLevel::inSchool($schoolId);
 

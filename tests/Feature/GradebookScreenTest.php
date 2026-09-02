@@ -96,6 +96,23 @@ class GradebookScreenTest extends TestCase
 
         $this->assertSame(16.0, GradeEntry::query()->firstOrFail()->points);
 
+        $this->post(route('course-offerings.gradebook.items.store', $courseOffering), [
+            'name' => 'Learning reflection',
+            'type' => GradeItemType::Text->value,
+            'weight' => 1,
+        ])->assertSessionHas('success');
+
+        $commentItem = GradeItem::query()->whereBelongsTo($courseOffering)->latest('id')->firstOrFail();
+
+        $this->post(route('course-offerings.gradebook.entries.store', $courseOffering), [
+            'grade_item_id' => $commentItem->id,
+            'student_record_id' => $enrollment->id,
+            'state' => GradeEntryState::Graded->value,
+            'comment' => 'Reads with confidence.',
+        ])->assertSessionHas('success');
+
+        $this->assertSame('Reads with confidence.', GradeEntry::query()->latest('id')->firstOrFail()->comment);
+
         $this->post(route('course-offerings.gradebook.results.publish', $courseOffering), [
             'student_record_id' => $enrollment->id,
         ])->assertSessionHas('success');

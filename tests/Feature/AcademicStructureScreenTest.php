@@ -44,7 +44,7 @@ class AcademicStructureScreenTest extends TestCase
 
         $actor->get(route('academic-levels.index'))
             ->assertOk()
-            ->assertSee('No academic levels yet')
+            ->assertSee('No '.strtolower(school_terms('class_level', 'classes')).' yet')
             ->assertSee('data-resource-create-action="'.route('academic-levels.create').'"', false);
     }
 
@@ -76,10 +76,10 @@ class AcademicStructureScreenTest extends TestCase
 
         $actor->get(route('academic-levels.show', $academicLevel))
             ->assertOk()
-            ->assertSee('What this level is')
+            ->assertSee('What this '.strtolower(school_term('class_level', 'class')).' is')
             ->assertSee('Primary')
             ->assertSee('Level group')
-            ->assertSee('No cycle section uses this level yet');
+            ->assertSee('No '.strtolower(school_term('section', 'section')).' uses this '.strtolower(school_term('class_level', 'class')).' yet');
     }
 
     public function test_a_manager_can_edit_a_level_and_the_change_is_audited(): void
@@ -89,7 +89,7 @@ class AcademicStructureScreenTest extends TestCase
 
         $actor->get(route('academic-levels.edit', $academicLevel))
             ->assertOk()
-            ->assertSee('Edit the reusable level')
+            ->assertSee('Edit the reusable '.strtolower(school_term('class_level', 'class')))
             ->assertSee('Level name')
             ->assertSee('Level group (optional)')
             ->assertDontSee('Local label (optional)');
@@ -217,7 +217,7 @@ class AcademicStructureScreenTest extends TestCase
 
         $actor->get(route('academic-cycle-sections.create'))
             ->assertOk()
-            ->assertSee('Add an academic level first');
+            ->assertSee('Add a '.strtolower(school_term('class_level', 'class')).' first');
     }
 
     public function test_the_create_screen_preselects_the_level_it_was_opened_from(): void
@@ -239,7 +239,7 @@ class AcademicStructureScreenTest extends TestCase
         $school = $this->workingSchool();
         SchoolOperatingProfile::query()->updateOrCreate(
             ['school_id' => $school->id],
-            ['preset' => 'home_sections', 'labels' => SchoolOperatingProfile::labelsFor('home_sections') + ['homeroom_teacher' => 'Form teacher']],
+            ['preset' => 'home_sections', 'labels' => array_replace(SchoolOperatingProfile::labelsFor('home_sections'), ['homeroom_teacher' => 'Form teacher'])],
         );
         $teacher = $this->teacher();
         $section = AcademicCycleSection::factory()->create([
@@ -250,7 +250,7 @@ class AcademicStructureScreenTest extends TestCase
 
         $actor->get(route('academic-cycle-sections.edit', $section))
             ->assertOk()
-            ->assertSee('The cycle and the level are fixed.')
+            ->assertSee('The '.school_term('academic_year', 'School year').' and '.school_term('class_level', 'Class').' are fixed.')
             ->assertSee('Form teacher');
 
         $actor->put(route('academic-cycle-sections.update', $section), [

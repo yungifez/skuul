@@ -29,6 +29,17 @@ class AcademicPeriodContextTest extends TestCase
         $this->assertSame($school->academic_period_id, current_academic_period_id());
     }
 
+    public function test_a_school_without_a_working_year_has_no_working_period(): void
+    {
+        $school = School::factory()->create();
+
+        academic_period_context()->forget();
+        academic_period_context()->resolveFor($school->fresh());
+
+        $this->assertNull(current_academic_year_id());
+        $this->assertNull(current_academic_period_id());
+    }
+
     public function test_a_remembered_period_wins_over_the_school_default(): void
     {
         $school = $this->workingSchool();
@@ -61,7 +72,7 @@ class AcademicPeriodContextTest extends TestCase
         $school = $this->workingSchool();
         $year = AcademicYear::factory()->create(['school_id' => $school->id]);
         $academicPeriod = AcademicPeriod::factory()->create([
-            'school_id'        => $school->id,
+            'school_id' => $school->id,
             'academic_year_id' => $school->academic_year_id,
         ]);
 
@@ -76,7 +87,7 @@ class AcademicPeriodContextTest extends TestCase
         $school = $this->workingSchool();
         $otherYear = AcademicYear::factory()->create(['school_id' => $school->id]);
         $academicPeriod = AcademicPeriod::factory()->create([
-            'school_id'        => $school->id,
+            'school_id' => $school->id,
             'academic_year_id' => $otherYear->id,
         ]);
 
@@ -89,6 +100,11 @@ class AcademicPeriodContextTest extends TestCase
     {
         $school = $this->workingSchool();
         $year = AcademicYear::factory()->create(['school_id' => $school->id]);
+        AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $year->id,
+            'parent_id' => null,
+        ]);
 
         // The first person moves to another year.
         $this->authorized_user(['set academic year'])

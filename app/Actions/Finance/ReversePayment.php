@@ -49,7 +49,9 @@ class ReversePayment
             $transaction = $payment->ledgerTransaction === null
                 ? null
                 : $this->reverseEntry->reverse($payment->ledgerTransaction, $reason, $actor);
-            $period = $transaction?->financialPeriod ?? $this->periods->currentOpen($payment->school_id);
+            $period = $transaction === null
+                ? $this->periods->currentOpen($payment->school_id)
+                : $transaction->financialPeriod;
 
             $reversal = StudentPayment::create([
                 'school_id' => $payment->school_id,

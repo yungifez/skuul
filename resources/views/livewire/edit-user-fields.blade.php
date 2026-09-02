@@ -13,7 +13,7 @@
 
     <april:input-group name="name" id="name" label="Full name *" placeholder="{{ $role }}'s full name" value="{{ old('name', $user->name) }}" />
     <april:input-group name="email" id="email" type="email" label="Email address *" placeholder="Enter {{ $role }}'s email address" value="{{ old('email', $user->email) }}" />
-    <april:input-group type="date" id="birthday" name="birthday" placeholder="Choose {{ $role }}'s date of birth" label="Date of birth" value="{{ old('birthday', $user->birthday?->toDateString()) }}" />
+    <april:input-group type="date" id="birthday" name="birthday" placeholder="Choose {{ $role }}'s date of birth" label="Date of birth" value="{{ old('birthday', $user->birthday) }}" />
 
     <div class="flex flex-col gap-2">
         <april:label for="gender">Gender</april:label>

@@ -12,6 +12,7 @@ use App\Models\AuditEvent;
 use App\Models\Fee;
 use App\Models\FeeCategory;
 use App\Models\FeeInvoice;
+use App\Models\FinancialPeriod;
 use App\Models\PaymentAllocation;
 use App\Models\School;
 use App\Models\StudentPayment;
@@ -338,8 +339,18 @@ class StudentPaymentTest extends TestCase
      */
     private function enrollment(): StudentRecord
     {
-        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
-        $this->memberOf($this->workingSchool(), $enrollment->user);
+        $school = $this->workingSchool();
+
+        FinancialPeriod::query()->firstOrCreate(
+            ['school_id' => $school->id, 'name' => 'Term one'],
+            [
+                'starts_on' => now()->startOfYear()->toDateString(),
+                'ends_on' => now()->endOfYear()->toDateString(),
+            ],
+        );
+
+        $enrollment = StudentRecord::factory()->create(['school_id' => $school->id]);
+        $this->memberOf($school, $enrollment->user);
 
         return $enrollment->fresh();
     }
@@ -372,7 +383,7 @@ class StudentPaymentTest extends TestCase
         app(FeeInvoiceService::class)->storeFeeInvoice([
             'issue_date' => ($dueDate ?? now())->toDateString(),
             'due_date' => ($dueDate ?? now())->toDateString(),
-            'users' => [$enrollment->user_id],
+            'student_records' => [$enrollment->id],
             'records' => $records,
         ]);
 

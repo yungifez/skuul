@@ -27,6 +27,11 @@ class AcademicPeriodContext
      */
     public const YEAR_SESSION_KEY = 'active_academic_year_id';
 
+    /**
+     * The session key that remembers the academic period.
+     */
+    public const ACADEMIC_PERIOD_SESSION_KEY = 'active_academic_period_id';
+
     private ?AcademicYear $academicYear = null;
 
     private ?AcademicPeriod $academicPeriod = null;
@@ -112,7 +117,7 @@ class AcademicPeriodContext
         $this->resolved = true;
 
         if ($this->academicPeriod !== null && $this->academicPeriod->academic_year_id !== $academicYear?->id) {
-            $this->setAcademicPeriod(null);
+            $this->setAcademicPeriod(null, remember: $remember);
         }
 
         $this->remember(self::YEAR_SESSION_KEY, $academicYear?->id, $remember);
@@ -121,9 +126,11 @@ class AcademicPeriodContext
     /**
      * Set the academic period for this request.
      */
-    public function setAcademicPeriod(?AcademicPeriod $academicPeriod): void
+    public function setAcademicPeriod(?AcademicPeriod $academicPeriod, bool $remember = true): void
     {
         $this->academicPeriod = $academicPeriod;
+
+        $this->remember(self::ACADEMIC_PERIOD_SESSION_KEY, $academicPeriod?->id, $remember);
     }
 
     /**
@@ -168,7 +175,14 @@ class AcademicPeriodContext
             $this->resolutionError = "The calendar has overlapping reporting periods: {$periodNames}. Fix their dates before continuing.";
             $academicPeriod = null;
         } else {
-            $academicPeriod = $year === null || $user === null ? null : $this->savedPeriodFor($user, $school, $year);
+            $academicPeriod = $year === null
+                ? null
+                : $this->allowedAcademicPeriod(
+                    $year,
+                    $request?->session()?->get(self::ACADEMIC_PERIOD_SESSION_KEY),
+                );
+
+            $academicPeriod ??= $year === null || $user === null ? null : $this->savedPeriodFor($user, $school, $year);
 
             // A staff member with no explicit choice follows the calendar.
             $academicPeriod ??= $year?->periodForDate();
@@ -244,7 +258,7 @@ class AcademicPeriodContext
      */
     private function remember(string $key, ?int $value, bool $remember): void
     {
-        if (!$remember || !app()->bound('session') || !app('session')->isStarted()) {
+        if (!$remember || !app()->bound('session')) {
             return;
         }
 

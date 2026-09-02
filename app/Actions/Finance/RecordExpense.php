@@ -82,7 +82,7 @@ class RecordExpense
                 'note' => $note,
                 'program_id' => $program?->id,
                 'fund' => $fund,
-                'recorded_by' => $actor?->id ?? auth()->id(),
+                'recorded_by' => $actor === null ? auth()->id() : $actor->id,
             ]);
 
             $this->auditor->record(AuditAction::ExpenseRecorded, $expense, ['amount' => $amount, 'method' => $method], $actor, current_school_id());

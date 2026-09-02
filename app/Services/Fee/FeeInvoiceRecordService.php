@@ -18,13 +18,16 @@ class FeeInvoiceRecordService
     public function storeFeeInvoiceRecord($records): FeeInvoiceRecord
     {
         $fee = Fee::where('id', $records['fee_id'])->whereRelation('feeCategory', 'school_id', current_school_id())->get();
-        $feeInvoice = FeeInvoice::where('id', $records['fee_invoice_id'])->ofSchool()->get();
+        $feeInvoice = FeeInvoice::query()
+            ->where('id', $records['fee_invoice_id'])
+            ->ofSchool()
+            ->first();
 
-        if ($fee->isEmpty() || $feeInvoice->isEmpty()) {
+        if ($fee->isEmpty() || $feeInvoice === null) {
             throw new InvalidValueException("The fee you selected doesn't exist");
         }
 
-        if ($feeInvoice->first()->ledgerTransaction !== null) {
+        if ($feeInvoice->ledgerTransaction !== null) {
             throw new InvalidValueException('A posted invoice cannot have lines added to it. Create a correcting invoice instead.');
         }
 

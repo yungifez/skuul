@@ -262,7 +262,7 @@ class GradebookController extends Controller
                 $item,
                 $enrollment,
                 GradeEntryState::from($data['state']),
-                $data['points'] === null ? null : (float) $data['points'],
+                isset($data['points']) ? (float) $data['points'] : null,
                 $data['grading_scale_option_id'] ?? null,
                 $data['comment'] ?? null,
                 $request->user(),
