@@ -27,6 +27,11 @@
                     <input type="hidden" name="academic_year_id" value="{{ $selectedAcademicYear->id }}">
                     <x-display-validation-errors />
 
+                    <div class="flex flex-wrap items-center gap-3 border-b pb-6">
+                        <april:button type="submit">Create offerings for selected levels</april:button>
+                        <april:button-link href="{{ request()->boolean('setup') ? route('academic-years.setup', [$selectedAcademicYear, 'subjects']) : route('course-offerings.index') }}" variant="ghost">Cancel</april:button-link>
+                    </div>
+
                     <div class="grid gap-4 md:grid-cols-2">
                         <div class="flex flex-col gap-2 md:col-span-2">
                             <april:label for="academic-year">School year</april:label>
@@ -153,10 +158,6 @@
                         <p x-show="selectedLevels.length === 0" x-cloak class="rounded-md border border-dashed p-4 text-sm text-muted-foreground">Select at least one level to configure the subject.</p>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-3 border-t pt-6">
-                        <april:button type="submit">Create offerings for selected levels</april:button>
-                        <april:button-link href="{{ request()->boolean('setup') ? route('academic-years.setup', [$selectedAcademicYear, 'subjects']) : route('course-offerings.index') }}" variant="ghost">Cancel</april:button-link>
-                    </div>
                 </form>
             </slot:content>
         </april:card>

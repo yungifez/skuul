@@ -228,7 +228,12 @@ class CourseOfferingTest extends TestCase
             ->assertSee('This bulk setup is scoped by the academic year in the link.')
             ->assertSee('id="subject"', false)
             ->assertSee('id="academic-period"', false)
-            ->assertSee($academicPeriod->displayName);
+            ->assertSee($academicPeriod->displayName)
+            ->assertSeeInOrder([
+                'Create offerings for selected levels',
+                'School year',
+                'Subject',
+            ]);
     }
 
     public function test_a_school_user_cannot_update_an_offering_from_another_school(): void
