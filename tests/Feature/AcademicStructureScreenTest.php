@@ -28,12 +28,13 @@ class AcademicStructureScreenTest extends TestCase
     public function test_the_level_index_separates_reusable_levels_from_yearly_sections(): void
     {
         $actor = $this->authorized_user(['read class', 'create class', 'update class']);
-        AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id, 'name' => 'Kestrel Stage']);
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id, 'name' => 'Kestrel Stage']);
 
         $actor->get(route('academic-levels.index'))
             ->assertOk()
-            ->assertSee('Levels are reusable. Sections are not.')
+            ->assertSee('Classes are reusable. Sections are not.')
             ->assertSee('Kestrel Stage')
+            ->assertSee(route('academic-levels.edit', $academicLevel), false)
             ->assertSee(route('academic-levels.create'), false);
     }
 

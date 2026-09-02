@@ -82,6 +82,14 @@
                     @can('view', $academicLevel)
                         <april:button-link href="{{ route('academic-levels.show', $academicLevel) }}" variant="ghost" size="sm">View level</april:button-link>
                     @endcan
+                    @can('update', $academicLevel)
+                        @if ($academicLevel->isEditable())
+                            <april:button-link href="{{ route('academic-levels.edit', $academicLevel) }}" variant="ghost" size="sm">
+                                <x-lucide-pencil class="mr-1.5 size-4" />
+                                Edit {{ strtolower(school_term('class_level', 'class')) }}
+                            </april:button-link>
+                        @endif
+                    @endcan
                     @can('delete', $academicLevel)
                         <button
                             type="button"
