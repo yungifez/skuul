@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AcademicPeriodStatus;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\School;
@@ -75,6 +76,22 @@ class AcademicYearTest extends TestCase
             ->get("/dashboard/academic-years/{$academicYear->id}/edit")
             ->assertOk()
             ->assertSee('Edit draft school calendar');
+    }
+
+    public function test_a_draft_calendar_overview_points_to_the_next_setup_step(): void
+    {
+        $academicYear = AcademicYear::factory()->create([
+            'school_id' => current_school_id(),
+            'status' => AcademicPeriodStatus::Draft,
+        ]);
+
+        $this->authorized_user(['read academic year', 'update academic year'])
+            ->get(route('academic-years.show', $academicYear))
+            ->assertOk()
+            ->assertSee('Continue setup')
+            ->assertSee('Next: Dates and periods')
+            ->assertSee('Continue to dates and periods')
+            ->assertSee(route('academic-years.setup', [$academicYear, 'calendar']), false);
     }
 
     public function test_an_unauthorized_user_cannot_delete_a_school_calendar(): void

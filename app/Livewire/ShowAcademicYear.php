@@ -5,11 +5,13 @@ namespace App\Livewire;
 use App\Actions\Academic\PublishAcademicCalendar;
 use App\Actions\Academic\RollForwardAcademicYearSetup;
 use App\Enums\AcademicPeriodStatus;
+use App\Enums\AcademicYearSetupStep;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Livewire\Concerns\InteractsWithAprilTable;
 use App\Models\AcademicYear;
 use App\Models\Exam;
+use App\Services\AcademicYear\AcademicYearSetupProgress;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
@@ -142,6 +144,7 @@ class ShowAcademicYear extends DataTableComponent
         $topLevelPeriods = $this->academicYear->academicPeriods
             ->whereNull('parent_id')
             ->values();
+        $nextSetupStep = app(AcademicYearSetupProgress::class)->for($this->academicYear)['current'];
 
         return view('livewire.show-academic-year', array_merge($this->aprilTablePayload(), [
             'canEditExams' => auth()->user()->can('update exam'),
@@ -149,6 +152,10 @@ class ShowAcademicYear extends DataTableComponent
             'canCreateExams' => auth()->user()->can('create exam') && $this->academicYear->status->acceptsExamPlanning(),
             'canEditCalendar' => auth()->user()->can('update', $this->academicYear),
             'isDraft' => $this->academicYear->status === AcademicPeriodStatus::Draft,
+            'canContinueSetup' => $this->academicYear->status === AcademicPeriodStatus::Draft
+                && auth()->user()->can('update', $this->academicYear)
+                && $nextSetupStep !== AcademicYearSetupStep::Review,
+            'nextSetupStep' => $nextSetupStep,
             'canRollForwardSetup' => $this->previousAcademicYear !== null
                 && auth()->user()->can('update', $this->academicYear)
                 && !$this->academicYear->status->isFrozen(),

@@ -24,6 +24,18 @@
                 <x-academic-period-status-control :period="$academicYear" route-prefix="academic-years" />
             </div>
             @error('calendar')<p class="mt-3 text-sm text-destructive">{{ $message }}</p>@enderror
+
+            @if ($canContinueSetup)
+                <div class="mt-6 flex flex-col gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                        <p class="text-sm font-semibold">Continue setup</p>
+                        <p class="mt-1 text-sm text-muted-foreground">Next: {{ $nextSetupStep->label() }}. {{ $nextSetupStep->description() }}</p>
+                    </div>
+                    <april:button-link href="{{ route('academic-years.setup', [$academicYear, $nextSetupStep->value]) }}" class="shrink-0">
+                        Continue to {{ strtolower($nextSetupStep->label()) }}
+                    </april:button-link>
+                </div>
+            @endif
         </slot:content>
     </april:card>
 

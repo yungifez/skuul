@@ -167,6 +167,34 @@ class ExamTest extends TestCase
             ->assertOk();
     }
 
+    public function test_exam_edit_uses_the_exam_calendar_when_no_working_calendar_is_set(): void
+    {
+        $school = $this->workingSchool();
+        $school->forceFill([
+            'academic_year_id' => null,
+            'academic_period_id' => null,
+        ])->save();
+        academic_period_context()->forget();
+
+        $academicYear = AcademicYear::factory()->create([
+            'school_id' => $school->id,
+            'status' => AcademicPeriodStatus::Draft,
+        ]);
+        $academicPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'status' => AcademicPeriodStatus::Draft,
+        ]);
+        $exam = Exam::factory()->create([
+            'academic_period_id' => $academicPeriod->id,
+        ]);
+
+        $this->authorized_user(['update exam'], $school)
+            ->get(route('exams.edit', $exam))
+            ->assertOk()
+            ->assertSee($academicPeriod->displayName);
+    }
+
     // test unauthorized user cannot update exam
 
     public function test_unauthorized_user_cant_update_exam()
