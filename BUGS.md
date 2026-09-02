@@ -87,9 +87,9 @@
 
 ## Budgets route is shadowed by the generic fee route
 
-- Status: Fixed locally, awaiting deployment
+- Status: Fixed and verified in production
 - Area: Finance budgets
 - Observed: The visible Budgets menu linked to `/dashboard/fees/budgets`, but the generic `/fees/{fee}` route matched first and returned 404.
 - Impact: Staff could not open the budget planning screen.
 - Resolution: The budgets resource is now registered before the generic fee resource. A feature test covers writing a budget from the screen.
-- Live follow-up: Deploy and verify the budgets page and one synthetic operating budget.
+- Live follow-up: The budgets page now returns 200 and a Term 1 operating budget was saved successfully.
