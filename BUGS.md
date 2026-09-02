@@ -84,3 +84,12 @@
 - Impact: Staff could create parent accounts but could not open the page needed to link children.
 - Resolution: Enrollment columns are now qualified with the `student_records` table name. A feature regression test covers opening the assignment page.
 - Live follow-up: The assignment page and parent profile now return 200 after deployment; six direct family links were created.
+
+## Budgets route is shadowed by the generic fee route
+
+- Status: Fixed locally, awaiting deployment
+- Area: Finance budgets
+- Observed: The visible Budgets menu linked to `/dashboard/fees/budgets`, but the generic `/fees/{fee}` route matched first and returned 404.
+- Impact: Staff could not open the budget planning screen.
+- Resolution: The budgets resource is now registered before the generic fee resource. A feature test covers writing a budget from the screen.
+- Live follow-up: Deploy and verify the budgets page and one synthetic operating budget.

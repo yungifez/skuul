@@ -437,8 +437,8 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::post('fees/fee-invoices/{fee_invoice}/pay', [FeeInvoiceController::class, 'pay'])->name('fee-invoices.pay.store');
             Route::get('fees/fee-invoices/{fee_invoice}/print', [FeeInvoiceController::class, 'print'])->name('fee-invoices.print');
             Route::resource('fees/fee-invoices', FeeInvoiceController::class);
-            Route::resource('fees', FeeController::class);
             Route::resource('fees/budgets', BudgetController::class)->only(['index', 'store', 'destroy']);
+            Route::resource('fees', FeeController::class);
 
             Route::middleware(['App\Http\Middleware\EnsureAcademicPeriodIsSet'])->group(function () {
                 // shared facility routes
