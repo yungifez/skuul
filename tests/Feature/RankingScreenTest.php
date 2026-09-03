@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\CohortType;
 use App\Enums\Feature;
+use App\Enums\RosterMode;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\Cohort;
@@ -11,6 +12,7 @@ use App\Models\CohortMember;
 use App\Models\CourseOffering;
 use App\Models\ResultSnapshot;
 use App\Models\StudentRecord;
+use App\Models\Subject;
 use App\Models\User;
 use App\Services\Feature\FeatureManager;
 use App\Traits\FeatureTestTrait;
@@ -43,8 +45,9 @@ class RankingScreenTest extends TestCase
             ->assertOk()
             ->assertSee('Choose a class or group first')
             ->assertSee('Class or group')
-            ->assertSee('Choose a whole group instead')
-            ->assertSee('md:grid-cols-2 lg:grid-cols-[repeat(5,minmax(0,1fr))_auto] lg:items-start');
+            ->assertSee('Whole group')
+            ->assertSee('What do you want to compare?')
+            ->assertSee('space-y-6');
     }
 
     public function test_a_group_ranks_learners_across_its_child_classes(): void
@@ -85,7 +88,7 @@ class RankingScreenTest extends TestCase
 
         $this->get(route('rankings.index', ['academic_level_id' => $group->id]))
             ->assertOk()
-            ->assertSee('Choose a whole group instead')
+            ->assertSee('Whole group')
             ->assertSee($firstSection->label ?? $firstSection->name)
             ->assertSeeInOrder(['Ada Bell', 'Grace Ola']);
 
@@ -93,6 +96,89 @@ class RankingScreenTest extends TestCase
             ->assertOk()
             ->assertSee($firstSection->label ?? $firstSection->name)
             ->assertDontSee($secondSection->label ?? $secondSection->name);
+    }
+
+    public function test_subject_filter_only_lists_subjects_shared_by_every_group_participant(): void
+    {
+        $this->authorized_user(['read ranking']);
+        $group = AcademicLevel::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'Kindergarten',
+            'is_group' => true,
+            'parent_id' => null,
+        ]);
+        $firstClass = AcademicLevel::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'Kindergarten 1',
+            'parent_id' => $group->id,
+        ]);
+        $secondClass = AcademicLevel::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'Kindergarten 2',
+            'parent_id' => $group->id,
+        ]);
+        $firstSection = AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_level_id' => $firstClass->id,
+        ]);
+        $secondSection = AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_level_id' => $secondClass->id,
+        ]);
+        $sharedSubject = Subject::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'Shared phonics',
+        ]);
+        $firstOnlySubject = Subject::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'First class only',
+        ]);
+        $firstSharedOffering = CourseOffering::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_period_id' => current_academic_period_id(),
+            'academic_level_id' => $firstClass->id,
+            'subject_id' => $sharedSubject->id,
+            'roster_mode' => RosterMode::HomeSection,
+        ]);
+        $secondSharedOffering = CourseOffering::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_period_id' => current_academic_period_id(),
+            'academic_level_id' => $secondClass->id,
+            'subject_id' => $sharedSubject->id,
+            'roster_mode' => RosterMode::HomeSection,
+        ]);
+        $firstOnlyOffering = CourseOffering::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_period_id' => current_academic_period_id(),
+            'academic_level_id' => $firstClass->id,
+            'subject_id' => $firstOnlySubject->id,
+            'roster_mode' => RosterMode::HomeSection,
+        ]);
+        $firstSharedOffering->cycleSections()->attach($firstSection);
+        $secondSharedOffering->cycleSections()->attach($secondSection);
+        $firstOnlyOffering->cycleSections()->attach($firstSection);
+
+        $first = $this->learnerIn($firstSection, 'Ada Bell');
+        $second = $this->learnerIn($secondSection, 'Grace Ola');
+        $this->publishResult($first, $firstSharedOffering, 80);
+        $this->publishResult($second, $secondSharedOffering, 60);
+
+        $this->get(route('rankings.index', ['academic_level_id' => $group->id]))
+            ->assertOk()
+            ->assertSee('Shared phonics')
+            ->assertDontSee('First class only');
+
+        $this->get(route('rankings.index', [
+            'academic_level_id' => $group->id,
+            'subject_id' => $sharedSubject->id,
+        ]))
+            ->assertOk()
+            ->assertSeeInOrder(['Ada Bell', 'Grace Ola']);
     }
 
     public function test_a_home_group_is_put_in_order(): void

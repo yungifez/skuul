@@ -9,6 +9,7 @@
 @php
     $chosen = $academicLevel !== null || $section !== null || $cohort !== null;
     $groupName = $cohort?->name ?? $section?->name ?? $academicLevel?->name;
+    $selectionMode = $academicLevel?->is_group ? 'group' : 'class';
 @endphp
 
 @section('content')
@@ -23,106 +24,142 @@
         <april:card>
             <slot:title>Choose a class or group</slot:title>
             <slot:description>
-                A position is worked out from the published results, every time you open this screen. It is never
-                stored on a learner, so correcting a result changes the order instead of leaving it wrong.
+                Start with who you want to compare. We only offer a subject when every learner in that selection takes it.
             </slot:description>
             <slot:content>
                 <form method="GET" action="{{ route('rankings.index') }}"
-                    class="grid gap-4 md:grid-cols-2 lg:grid-cols-[repeat(5,minmax(0,1fr))_auto] lg:items-start">
-                    <div class="flex flex-col gap-2">
-                        <div class="flex min-h-10 items-start">
-                            <april:label for="academic_level_id">{{ school_term('class_level', 'Class') }}</april:label>
+                    class="space-y-6" x-data="{ selectionMode: @js($selectionMode) }">
+                    <fieldset class="space-y-3">
+                        <legend class="text-sm font-medium">What do you want to compare?</legend>
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            <label class="flex cursor-pointer items-start gap-3 rounded-md border border-input p-3 transition-colors hover:bg-accent/40 has-[:checked]:border-primary/50 has-[:checked]:bg-primary/5">
+                                <input type="radio" name="selection_mode" value="class" class="mt-1 size-4 shrink-0 accent-primary"
+                                    x-model="selectionMode"
+                                    x-on:change="$refs.group && ($refs.group.value = ''); $refs.section.value = ''; $refs.subject.value = '';"
+                                    @checked($selectionMode === 'class')>
+                                <span class="flex min-w-0 flex-col gap-1">
+                                    <span class="text-sm font-semibold">{{ school_term('class_level', 'Class') }}</span>
+                                    <span class="text-xs text-muted-foreground">Compare learners in one class and its sections.</span>
+                                </span>
+                            </label>
+                            @if ($academicLevels->where('is_group', true)->isNotEmpty())
+                                <label class="flex cursor-pointer items-start gap-3 rounded-md border border-input p-3 transition-colors hover:bg-accent/40 has-[:checked]:border-primary/50 has-[:checked]:bg-primary/5">
+                                    <input type="radio" name="selection_mode" value="group" class="mt-1 size-4 shrink-0 accent-primary"
+                                        x-model="selectionMode"
+                                        x-on:change="$refs.class.value = ''; $refs.section.value = ''; $refs.subject.value = '';"
+                                        @checked($selectionMode === 'group')>
+                                    <span class="flex min-w-0 flex-col gap-1">
+                                        <span class="text-sm font-semibold">Whole group</span>
+                                        <span class="text-xs text-muted-foreground">Compare learners across the group’s child classes.</span>
+                                    </span>
+                                </label>
+                            @endif
                         </div>
-                        <april:native-select id="academic_level_id" name="academic_level_id" class="w-full min-w-0"
-                            x-on:change="$refs.section.value = ''; $refs.group && ($refs.group.value = ''); $el.form.requestSubmit()">
-                            <option value="">Choose a {{ strtolower(school_term('class_level', 'class')) }}</option>
-                            <optgroup label="{{ school_terms('class_level', 'Classes') }}">
-                                @foreach ($academicLevels->where('is_group', false) as $option)
-                                    <option value="{{ $option->id }}" @selected(!$academicLevel?->is_group && $academicLevel?->id === $option->id)>
-                                        {{ $option->parent?->name ? $option->parent->name.' → ' : '' }}{{ $option->name }}
-                                    </option>
-                                @endforeach
-                            </optgroup>
-                        </april:native-select>
-                        <p class="text-xs text-muted-foreground">Choose a class to load its sections.</p>
+                    </fieldset>
+
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div x-cloak x-show="selectionMode === 'class'" class="flex flex-col gap-2">
+                            <div class="flex min-h-10 items-start">
+                                <april:label for="academic_level_id">{{ school_term('class_level', 'Class') }}</april:label>
+                            </div>
+                            <april:native-select id="academic_level_id" name="academic_level_id" x-ref="class" class="w-full min-w-0"
+                                x-bind:disabled="selectionMode !== 'class'"
+                                x-on:change="$refs.group && ($refs.group.value = ''); $refs.section.value = ''; $refs.subject.value = ''; $el.form.requestSubmit()">
+                                <option value="">Choose a {{ strtolower(school_term('class_level', 'class')) }}</option>
+                                <optgroup label="{{ school_terms('class_level', 'Classes') }}">
+                                    @foreach ($academicLevels->where('is_group', false) as $option)
+                                        <option value="{{ $option->id }}" @selected(!$academicLevel?->is_group && $academicLevel?->id === $option->id)>
+                                            {{ $option->parent?->name ? $option->parent->name.' → ' : '' }}{{ $option->name }}
+                                        </option>
+                                    @endforeach
+                                </optgroup>
+                            </april:native-select>
+                            <p class="text-xs text-muted-foreground">Sections will appear after you choose a class.</p>
+                        </div>
+
                         @if ($academicLevels->where('is_group', true)->isNotEmpty())
-                            <details class="group rounded-md border p-3" {{ $academicLevel?->is_group ? 'open' : '' }}>
-                                <summary class="flex cursor-pointer list-none items-center justify-between gap-2 text-sm font-medium marker:hidden [&::-webkit-details-marker]:hidden">
-                                    <span>Choose a whole group instead</span>
-                                    <x-lucide-chevron-right class="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
-                                </summary>
-                                <div class="mt-3 flex flex-col gap-2">
-                                    <april:native-select id="group_academic_level_id" name="group_academic_level_id" x-ref="group" class="w-full min-w-0"
-                                        x-on:change="$refs.section.value = ''; $el.form.requestSubmit()">
-                                        <option value="">Choose a group</option>
-                                        @foreach ($academicLevels->where('is_group', true) as $option)
-                                            <option value="{{ $option->id }}" @selected($academicLevel?->is_group && $academicLevel->id === $option->id)>
-                                                {{ $option->parent?->name ? $option->parent->name.' → ' : '' }}{{ $option->name }}
-                                            </option>
-                                        @endforeach
-                                    </april:native-select>
-                                    <p class="text-xs text-muted-foreground">Includes learners from this group’s child classes and uses whole-group offerings.</p>
+                            <div x-cloak x-show="selectionMode === 'group'" class="flex flex-col gap-2">
+                                <div class="flex min-h-10 items-start">
+                                    <april:label for="group_academic_level_id">Whole group</april:label>
                                 </div>
-                            </details>
+                                <april:native-select id="group_academic_level_id" name="group_academic_level_id" x-ref="group" class="w-full min-w-0"
+                                    x-bind:disabled="selectionMode !== 'group'"
+                                    x-on:change="$refs.class.value = ''; $refs.section.value = ''; $refs.subject.value = ''; $el.form.requestSubmit()">
+                                    <option value="">Choose a group</option>
+                                    @foreach ($academicLevels->where('is_group', true) as $option)
+                                        <option value="{{ $option->id }}" @selected($academicLevel?->is_group && $academicLevel->id === $option->id)>
+                                            {{ $option->parent?->name ? $option->parent->name.' → ' : '' }}{{ $option->name }}
+                                        </option>
+                                    @endforeach
+                                </april:native-select>
+                                <p class="text-xs text-muted-foreground">Includes every learner in the group’s child classes.</p>
+                            </div>
                         @endif
                     </div>
 
-                    <div class="flex flex-col gap-2">
-                        <div class="flex min-h-10 items-start">
-                            <april:label for="academic_cycle_section_id">{{ school_term('section', 'Section') }}</april:label>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="flex flex-col gap-2">
+                            <div class="flex min-h-10 items-start">
+                                <april:label for="academic_cycle_section_id">{{ school_term('section', 'Section') }}</april:label>
+                            </div>
+                            <april:native-select id="academic_cycle_section_id" name="academic_cycle_section_id" x-ref="section" class="w-full min-w-0"
+                                :disabled="$academicLevel === null"
+                                x-on:change="$refs.subject.value = ''; $el.form.requestSubmit()">
+                                <option value="">Every section in this {{ strtolower(school_term('class_level', 'class')) }}</option>
+                                @foreach ($sections as $option)
+                                    <option value="{{ $option->id }}" @selected($section?->id === $option->id)>
+                                        {{ $option->academicLevel?->name }} · {{ $option->label ?? $option->name }}
+                                    </option>
+                                @endforeach
+                            </april:native-select>
+                            <p class="text-xs text-muted-foreground">Optional: narrow the comparison to one section.</p>
                         </div>
-                        <april:native-select id="academic_cycle_section_id" name="academic_cycle_section_id" x-ref="section" class="w-full min-w-0"
-                            :disabled="$academicLevel === null">
-                            <option value="">Every section in this {{ strtolower(school_term('class_level', 'class')) }}</option>
-                            @foreach ($sections as $option)
-                                <option value="{{ $option->id }}" @selected($section?->id === $option->id)>
-                                    {{ $option->academicLevel?->name }} · {{ $option->label ?? $option->name }}
-                                </option>
-                            @endforeach
-                        </april:native-select>
-                        <p class="text-xs text-muted-foreground">Narrow the class to one section.</p>
+
+                        <div class="flex flex-col gap-2">
+                            <div class="flex min-h-10 items-start">
+                                <april:label for="cohort_id">Learner group</april:label>
+                            </div>
+                            <april:native-select id="cohort_id" name="cohort_id" class="w-full min-w-0"
+                                x-on:change="$refs.subject.value = ''; $el.form.requestSubmit()">
+                                <option value="">No learner group</option>
+                                @foreach ($cohorts as $option)
+                                    <option value="{{ $option->id }}" @selected($cohort?->id === $option->id)>{{ $option->name }}</option>
+                                @endforeach
+                            </april:native-select>
+                            <p class="text-xs text-muted-foreground">Optional: compare a named set of learners instead.</p>
+                        </div>
                     </div>
 
-                    <div class="flex flex-col gap-2">
-                        <div class="flex min-h-10 items-start">
-                            <april:label for="cohort_id">Or a learner group</april:label>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div class="flex flex-col gap-2">
+                            <div class="flex min-h-10 items-start">
+                                <april:label for="academic_period_id">{{ school_term('period', 'Period') }}</april:label>
+                            </div>
+                            <april:native-select id="academic_period_id" name="academic_period_id" class="w-full min-w-0"
+                                x-on:change="$refs.subject.value = ''; $el.form.requestSubmit()">
+                                <option value="">Every {{ school_term('period', 'period') }}</option>
+                                @foreach ($periods as $option)
+                                    <option value="{{ $option->id }}" @selected($period?->id === $option->id)>{{ $option->label ?? $option->name }}</option>
+                                @endforeach
+                            </april:native-select>
                         </div>
-                        <april:native-select id="cohort_id" name="cohort_id" class="w-full min-w-0">
-                            <option value="">Choose one</option>
-                            @foreach ($cohorts as $option)
-                                <option value="{{ $option->id }}" @selected($cohort?->id === $option->id)>{{ $option->name }}</option>
-                            @endforeach
-                        </april:native-select>
-                        <p class="text-xs text-muted-foreground">A learner group wins when both are chosen.</p>
+
+                        <div class="flex flex-col gap-2">
+                            <div class="flex min-h-10 items-start">
+                                <april:label for="subject_id">Subject</april:label>
+                            </div>
+                            <april:native-select id="subject_id" name="subject_id" x-ref="subject" class="w-full min-w-0"
+                                :disabled="$subjects->isEmpty()">
+                                <option value="">{{ $subjects->isEmpty() ? 'No subject shared by everyone' : 'Every subject' }}</option>
+                                @foreach ($subjects as $option)
+                                    <option value="{{ $option->id }}" @selected($subject?->id === $option->id)>{{ $option->name }}</option>
+                                @endforeach
+                            </april:native-select>
+                            <p class="text-xs text-muted-foreground">Only subjects shared by every learner in the selection are listed.</p>
+                        </div>
                     </div>
 
-                    <div class="flex flex-col gap-2">
-                        <div class="flex min-h-10 items-start">
-                            <april:label for="academic_period_id">{{ school_term('period', 'Period') }}</april:label>
-                        </div>
-                        <april:native-select id="academic_period_id" name="academic_period_id" class="w-full min-w-0">
-                            <option value="">Every {{ school_term('period', 'period') }}</option>
-                            @foreach ($periods as $option)
-                                <option value="{{ $option->id }}" @selected($period?->id === $option->id)>{{ $option->label ?? $option->name }}</option>
-                            @endforeach
-                        </april:native-select>
-                    </div>
-
-                    <div class="flex flex-col gap-2">
-                        <div class="flex min-h-10 items-start">
-                            <april:label for="course_offering_id">Subject</april:label>
-                        </div>
-                        <april:native-select id="course_offering_id" name="course_offering_id" class="w-full min-w-0">
-                            <option value="">Every subject</option>
-                            @foreach ($offerings as $option)
-                                <option value="{{ $option->id }}" @selected($offering?->id === $option->id)>
-                                    {{ $option->subject?->name ?? 'Unnamed' }} · {{ $option->academicLevel?->name ?? 'Unscoped class' }} · {{ school_roster_label($option->roster_mode) }}
-                                </option>
-                            @endforeach
-                        </april:native-select>
-                    </div>
-
-                    <div class="flex flex-wrap gap-2 lg:pt-12">
+                    <div class="flex flex-wrap justify-end gap-2">
                         <april:button type="submit">
                             <x-lucide-list-ordered class="mr-2 size-4" />
                             Work it out
