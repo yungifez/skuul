@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Enums\AcademicPeriodStatus;
+use App\Enums\Role;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\School;
+use App\Models\User;
 use App\Services\Academic\AcademicPeriodContext;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -145,5 +147,32 @@ class AcademicYearTest extends TestCase
         $this->authorized_user(['set academic year'])
             ->post('/dashboard/academic-years/set', ['academic_year_id' => $academicYear->id])
             ->assertSessionMissing(AcademicPeriodContext::YEAR_SESSION_KEY);
+    }
+
+    public function test_a_teacher_can_choose_the_working_calendar_and_term(): void
+    {
+        $school = $this->workingSchool();
+        $academicYear = AcademicYear::factory()->create(['school_id' => $school->id]);
+        $academicPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+        ]);
+        $teacher = User::factory()->create();
+
+        school_context()->set($school, remember: false);
+        $teacher->assignRole(Role::Teacher);
+
+        $this->actingAsMemberOf($school, $teacher)
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('Working '.strtolower(school_term('academic_year', 'school year')));
+
+        $this->post(route('academic-years.set-academic-year'), [
+            'academic_year_id' => $academicYear->id,
+        ])->assertSessionHas(AcademicPeriodContext::YEAR_SESSION_KEY, $academicYear->id);
+
+        $this->post(route('academic-periods.set-academic-period'), [
+            'academic_period_id' => $academicPeriod->id,
+        ])->assertSessionHas(AcademicPeriodContext::ACADEMIC_PERIOD_SESSION_KEY, $academicPeriod->id);
     }
 }

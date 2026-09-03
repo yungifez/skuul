@@ -938,6 +938,8 @@ class PermissionSeeder extends Seeder
             'menu-gradebook',
             'menu-notice',
             'menu-student',
+            'set academic year',
+            'set academic period',
             'read student',
             'read exam',
             'read exam slot',
