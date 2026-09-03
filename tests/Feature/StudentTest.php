@@ -93,15 +93,15 @@ class StudentTest extends TestCase
             'email' => $email,
             'password' => 'password',
             'password_confirmation' => 'password',
-            'gender' => 'male',
+            'gender' => 'Male',
             'nationality' => 'nigeria',
             'state' => 'lagos',
             'city' => 'lagos',
             'address' => 'test address',
-            'birthday' => '2004/04/22',
+            'birthday' => '2004-04-22',
             'phone' => '08080808080',
             'academic_cycle_section_id' => $this->activeCycleSection()->id,
-            'admission_date' => '2004/04/22',
+            'admission_date' => '2004-04-22',
         ])->assertForbidden();
 
         $this->assertDatabaseMissing('users', [
@@ -120,23 +120,23 @@ class StudentTest extends TestCase
             'email' => $email,
             'password' => 'password',
             'password_confirmation' => 'password',
-            'gender' => 'male',
+            'gender' => 'Male',
             'nationality' => 'nigeria',
             'country' => 'Nigeria',
             'state' => 'Lagos',
             'city' => 'Lagos',
             'address' => 'test address',
-            'birthday' => '2004/04/22',
+            'birthday' => '2004-04-22',
             'phone' => '08080808080',
             'academic_cycle_section_id' => $this->activeCycleSection()->id,
-            'admission_date' => '2004/04/22', ])->assertRedirect();
+            'admission_date' => '2004-04-22', ])->assertRedirect();
 
         $this->assertDatabaseHas('users', [
             'email' => $email,
             'address' => 'test address',
             'country' => 'Nigeria',
             'state' => 'Lagos',
-            'birthday' => '2004/04/22',
+            'birthday' => '2004-04-22',
             'phone' => '08080808080',
         ]);
     }
@@ -168,15 +168,15 @@ class StudentTest extends TestCase
             'email' => $email,
             'password' => 'password',
             'password_confirmation' => 'password',
-            'gender' => 'male',
+            'gender' => 'Male',
             'nationality' => 'nigeria',
             'state' => 'lagos',
             'city' => 'lagos',
             'address' => 'test address',
-            'birthday' => '2004/04/22',
+            'birthday' => '2004-04-22',
             'phone' => '08080808080',
             'academic_cycle_section_id' => $this->activeCycleSection()->id,
-            'admission_date' => '2004/04/22', ])
+            'admission_date' => '2004-04-22', ])
             ->assertForbidden();
 
         $this->assertDatabaseMissing('users', [
@@ -194,12 +194,12 @@ class StudentTest extends TestCase
             'email' => $email,
             'password' => 'password',
             'password_confirmation' => 'password',
-            'gender' => 'male',
+            'gender' => 'Male',
             'nationality' => 'nigeria',
             'state' => 'lagos',
             'city' => 'lagos',
             'address' => 'test address',
-            'birthday' => '2004/04/22',
+            'birthday' => '2004-04-22',
             'phone' => '08080808080',
         ]);
 

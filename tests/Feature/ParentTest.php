@@ -83,16 +83,16 @@ class ParentTest extends TestCase
             'email' => $email,
             'password' => 'password',
             'password_confirmation' => 'password',
-            'gender' => 'male',
+            'gender' => 'Male',
             'nationality' => 'nigeria',
             'state' => 'lagos',
             'city' => 'lagos',
             'address' => 'test address',
-            'birthday' => '2004/04/22',
+            'birthday' => '2004-04-22',
             'phone' => '08080808080',
             'my_class_id' => 1,
             'section_id' => 1,
-            'admission_date' => '2004/04/22',
+            'admission_date' => '2004-04-22',
         ])->assertForbidden();
 
         $this->assertDatabaseMissing('users', [
@@ -109,22 +109,22 @@ class ParentTest extends TestCase
             'email' => $email,
             'password' => 'password',
             'password_confirmation' => 'password',
-            'gender' => 'male',
+            'gender' => 'Male',
             'nationality' => 'nigeria',
             'state' => 'lagos',
             'city' => 'lagos',
             'address' => 'test address',
-            'birthday' => '2004/04/22',
+            'birthday' => '2004-04-22',
             'phone' => '08080808080',
             'my_class_id' => 1,
             'section_id' => 1,
-            'admission_date' => '2004/04/22',
+            'admission_date' => '2004-04-22',
         ])->assertRedirect();
 
         $this->assertDatabaseHas('users', [
             'email' => $email,
             'address' => 'test address',
-            'birthday' => '2004/04/22',
+            'birthday' => '2004-04-22',
             'phone' => '08080808080',
         ]);
     }
@@ -155,16 +155,16 @@ class ParentTest extends TestCase
             'email' => $email,
             'password' => 'password',
             'password_confirmation' => 'password',
-            'gender' => 'male',
+            'gender' => 'Male',
             'nationality' => 'nigeria',
             'state' => 'lagos',
             'city' => 'lagos',
             'address' => 'test address',
-            'birthday' => '2004/04/22',
+            'birthday' => '2004-04-22',
             'phone' => '08080808080',
             'my_class_id' => 1,
             'section_id' => 1,
-            'admission_date' => '2004/04/22',
+            'admission_date' => '2004-04-22',
         ])->assertForbidden();
 
         $this->assertDatabaseMissing('users', [
@@ -183,12 +183,12 @@ class ParentTest extends TestCase
             'email' => $email,
             'password' => 'password',
             'password_confirmation' => 'password',
-            'gender' => 'male',
+            'gender' => 'Male',
             'nationality' => 'nigeria',
             'state' => 'lagos',
             'city' => 'lagos',
             'address' => 'test address',
-            'birthday' => '2004/04/22',
+            'birthday' => '2004-04-22',
             'phone' => '08080808080',
         ])->assertRedirect();
 

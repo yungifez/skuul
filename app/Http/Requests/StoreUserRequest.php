@@ -9,7 +9,15 @@ class StoreUserRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return true;
+        $permission = match (true) {
+            $this->routeIs('admins.store') => 'create admin',
+            $this->routeIs('parents.store') => 'create parent',
+            $this->routeIs('teachers.store') => 'create teacher',
+            $this->routeIs('students.store') => 'create student',
+            default => null,
+        };
+
+        return $permission !== null && $this->user()?->can($permission) === true;
     }
 
     /**

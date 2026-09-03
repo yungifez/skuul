@@ -41,7 +41,7 @@ class CalendarTemplateManagementTest extends TestCase
         $school = School::factory()->create(['organization_id' => $organization->id]);
         $user = $this->organizationAdministrator($organization);
         $template = CalendarTemplate::factory()->create([
-            'organization_id'   => $organization->id,
+            'organization_id' => $organization->id,
             'cycle_length_days' => 365,
         ]);
         $template->periods()->createMany([
@@ -68,24 +68,24 @@ class CalendarTemplateManagementTest extends TestCase
         $user = $this->organizationAdministrator($organization);
         $template = CalendarTemplate::factory()->create(['organization_id' => $organization->id]);
         $template->periods()->create([
-            'name'              => 'Term 1',
-            'type'              => 'term',
-            'position'          => 1,
+            'name' => 'Term 1',
+            'type' => 'term',
+            'position' => 1,
             'start_offset_days' => 0,
-            'length_days'       => 84,
+            'length_days' => 84,
         ]);
 
         $this->actingAs($user)
             ->get(route('organizations.calendar-templates.index', $organization))
             ->assertOk()
-            ->assertSee('Academic calendar templates')
+            ->assertSee(school_term('academic_year', 'School year').' calendar templates')
             ->assertSee($template->name);
 
         $this->actingAs($user)
             ->get(route('organizations.calendar-templates.edit', [$organization, $template]))
             ->assertOk()
-            ->assertSee('Cycle periods')
-            ->assertSee('Generate a campus cycle');
+            ->assertSee('School year periods')
+            ->assertSee('Generate a campus school year');
     }
 
     public function test_an_organization_administrator_can_override_and_restore_a_campus_calendar(): void
@@ -123,14 +123,14 @@ class CalendarTemplateManagementTest extends TestCase
     private function templatePayload(): array
     {
         return [
-            'name'                 => 'Three-term calendar',
-            'description'          => 'A calendar for three teaching terms.',
-            'cycle_length_days'    => 365,
-            'is_default'           => true,
-            'auto_open'            => true,
+            'name' => 'Three-term calendar',
+            'description' => 'A calendar for three teaching terms.',
+            'cycle_length_days' => 365,
+            'is_default' => true,
+            'auto_open' => true,
             'generate_ahead_weeks' => 8,
-            'remind_days_before'   => 14,
-            'periods'              => [
+            'remind_days_before' => 14,
+            'periods' => [
                 ['name' => 'Term 1', 'label' => 'Term 1', 'type' => 'term', 'position' => 1, 'start_offset_days' => 0, 'length_days' => 84],
                 ['name' => 'Term 2', 'label' => 'Term 2', 'type' => 'term', 'position' => 2, 'start_offset_days' => 112, 'length_days' => 84],
                 ['name' => 'Term 3', 'label' => 'Term 3', 'type' => 'term', 'position' => 3, 'start_offset_days' => 224, 'length_days' => 84],
