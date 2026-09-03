@@ -129,16 +129,16 @@ class FeatureSettingTest extends TestCase
 
         $actor->put(route('schools.features.update'), [
             'features' => [
-                'attendance'       => '0',
-                'portal'           => '1',
-                'discipline'       => '1',
-                'wellbeing'        => '1',
+                'attendance' => '0',
+                'portal' => '1',
+                'discipline' => '1',
+                'wellbeing' => '1',
                 'staff_operations' => '1',
-                'events'           => '1',
-                'ranking'          => '0',
-                'imports'          => '1',
-                'boarding'         => '0',
-                'library'         => '0',
+                'events' => '1',
+                'ranking' => '0',
+                'imports' => '1',
+                'boarding' => '0',
+                'library' => '0',
             ],
         ])->assertRedirect(route('schools.features.edit'));
 
@@ -169,5 +169,14 @@ class FeatureSettingTest extends TestCase
         ])->assertSessionHasErrors(['features.portal']);
 
         $this->assertTrue(app(FeatureManager::class)->enabled(Feature::Attendance));
+    }
+
+    public function test_an_unauthorized_user_is_forbidden_before_feature_validation(): void
+    {
+        $actor = $this->unauthorized_user();
+
+        $actor->put(route('schools.features.update'), [
+            'features' => ['not-a-feature' => 'invalid'],
+        ])->assertForbidden();
     }
 }

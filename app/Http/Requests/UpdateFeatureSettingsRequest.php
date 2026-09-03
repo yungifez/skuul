@@ -12,7 +12,7 @@ class UpdateFeatureSettingsRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        return $this->user()?->can('update', current_school()) ?? false;
     }
 
     /** @return array<string, array<int, string>> */
