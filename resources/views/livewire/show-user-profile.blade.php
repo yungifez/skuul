@@ -46,3 +46,7 @@
         </div>
     </slot:content>
 </april:card>
+
+@can('manageAccountAccess', $user)
+    <x-account-password-control :user="$user" />
+@endcan

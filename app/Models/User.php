@@ -74,6 +74,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'password_change_required_at' => 'datetime',
         'birthday' => 'datetime:Y-m-d',
         'account_status' => AccountStatus::class,
     ];

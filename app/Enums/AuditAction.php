@@ -61,6 +61,11 @@ enum AuditAction: string
     case AccountInvitationRevoked = 'account_invitation.revoked';
 
     /**
+     * An administrator set a person's password.
+     */
+    case AccountPasswordChanged = 'account.password_changed';
+
+    /**
      * A school administrator acknowledged that a setup phase is ready.
      */
     case SchoolSetupAcknowledged = 'school_setup.acknowledged';
@@ -591,6 +596,7 @@ enum AuditAction: string
             self::AccountStatusChanged => 'Account status changed',
             self::AccountInvitationSent => 'Invitation sent',
             self::AccountInvitationRevoked => 'Invitation revoked',
+            self::AccountPasswordChanged => 'Account password changed',
             self::SchoolSetupAcknowledged => 'School setup acknowledged',
             self::EnrollmentStatusChanged => 'Enrollment status changed',
             self::EnrollmentPlaced => 'Student placed in a class',
