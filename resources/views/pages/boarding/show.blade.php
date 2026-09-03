@@ -32,7 +32,7 @@
         ),
     );
 @endphp
-<div class="mx-auto flex w-full max-w-5xl flex-col gap-6">
+<div class="mx-auto flex w-full max-w-6xl flex-col gap-6">
     <div>
         <div class="flex flex-wrap items-center gap-2">
             <p class="text-xs font-medium uppercase text-muted-foreground">{{ $dormitory->label }}</p>
@@ -78,146 +78,194 @@
 
     <div class="rounded-xl border border-sidebar-border/70 bg-card text-card-foreground shadow-sm">
         <div class="flex flex-col gap-1.5 border-b p-6">
-            <h3 class="text-lg font-semibold leading-none tracking-tight">Rooms and beds</h3>
-            <p class="text-sm text-muted-foreground">Each room can have its own number of beds. Take a room or bed out of use without deleting its history.</p>
+            <h3 class="text-lg font-semibold leading-none tracking-tight">Rooms</h3>
+            <p class="text-sm text-muted-foreground">Each room can have a different number of beds. Rooms with current boarders cannot be taken out of use.</p>
         </div>
 
-        <div class="flex flex-col gap-6 p-6">
-            @forelse ($dormitory->rooms as $room)
-                <div class="rounded-lg border {{ $room->is_active ? '' : 'border-dashed opacity-75' }} p-4">
-                    <div class="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                        <div>
-                            <div class="flex flex-wrap items-center gap-2">
-                                <p class="text-sm font-semibold">{{ $room->name }}</p>
-                                @if ($room->floor)
-                                    <span class="text-xs text-muted-foreground">{{ $room->floor }}</span>
-                                @endif
-                                @if (!$room->is_active)
+        <div class="overflow-x-auto">
+            <table class="w-full min-w-[720px] text-left text-sm">
+                <thead class="border-b bg-muted/40 text-xs uppercase text-muted-foreground">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 font-medium">Room</th>
+                        <th scope="col" class="px-6 py-3 font-medium">Floor</th>
+                        <th scope="col" class="px-6 py-3 font-medium">Beds</th>
+                        <th scope="col" class="px-6 py-3 font-medium">Status</th>
+                        @if ($canManage)
+                            <th scope="col" class="px-6 py-3 font-medium">Edit</th>
+                        @endif
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    @forelse ($dormitory->rooms as $room)
+                        <tr class="align-top {{ $room->is_active ? '' : 'text-muted-foreground' }}">
+                            <td class="px-6 py-4 font-medium text-foreground">{{ $room->name }}</td>
+                            <td class="px-6 py-4">{{ $room->floor ?: '—' }}</td>
+                            <td class="px-6 py-4">{{ $room->beds->count() }}</td>
+                            <td class="px-6 py-4">
+                                @if ($room->is_active)
+                                    <april:badge variant="secondary">In use</april:badge>
+                                @else
                                     <april:badge variant="outline">Out of use</april:badge>
                                 @endif
-                            </div>
-                            <p class="mt-1 text-xs text-muted-foreground">{{ $room->beds->count() }} {{ $room->beds->count() === 1 ? 'bed' : 'beds' }}</p>
-                        </div>
+                            </td>
+                            @if ($canManage)
+                                <td class="px-6 py-4">
+                                    <form action="{{ route('dormitory-rooms.update', $room->id) }}" method="POST" class="flex min-w-[360px] flex-wrap items-end gap-2">
+                                        @csrf
+                                        @method('PUT')
+                                        <div class="flex flex-col gap-1">
+                                            <label for="room-name-{{ $room->id }}" class="text-xs font-medium">Name</label>
+                                            <input id="room-name-{{ $room->id }}" name="name" required maxlength="60" value="{{ $room->name }}"
+                                                class="flex h-8 w-32 rounded-md border border-input bg-background px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                                        </div>
+                                        <div class="flex flex-col gap-1">
+                                            <label for="room-floor-{{ $room->id }}" class="text-xs font-medium">Floor</label>
+                                            <input id="room-floor-{{ $room->id }}" name="floor" maxlength="40" value="{{ $room->floor }}"
+                                                class="flex h-8 w-28 rounded-md border border-input bg-background px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                                        </div>
+                                        <label class="flex h-8 items-center gap-1 text-xs">
+                                            <input type="hidden" name="is_active" value="0">
+                                            <input name="is_active" type="checkbox" value="1" @checked($room->is_active)>
+                                            In use
+                                        </label>
+                                        <april:button type="submit" variant="outline" size="sm">Save</april:button>
+                                    </form>
+                                </td>
+                            @endif
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="{{ $canManage ? 5 : 4 }}" class="px-6 py-8 text-center text-sm text-muted-foreground">This house has no rooms yet.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
 
+        @if ($canManage)
+            <form action="{{ route('dormitory-rooms.store', $dormitory->id) }}" method="POST" class="flex flex-wrap items-end gap-2 border-t p-6">
+                @csrf
+                <div class="flex flex-col gap-1">
+                    <label for="new-room-name" class="text-xs font-medium">Add a room</label>
+                    <input id="new-room-name" name="name" required maxlength="60" placeholder="Room name"
+                        class="flex h-9 w-44 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                </div>
+                <div class="flex flex-col gap-1">
+                    <label for="new-room-floor" class="text-xs font-medium">Floor <span class="font-normal text-muted-foreground">(optional)</span></label>
+                    <input id="new-room-floor" name="floor" maxlength="40" placeholder="Ground floor"
+                        class="flex h-9 w-36 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                </div>
+                <april:button type="submit" size="sm">Add room</april:button>
+            </form>
+        @endif
+    </div>
+
+    <div class="rounded-xl border border-sidebar-border/70 bg-card text-card-foreground shadow-sm">
+        <div class="flex flex-col gap-1.5 border-b p-6">
+            <h3 class="text-lg font-semibold leading-none tracking-tight">Beds</h3>
+            <p class="text-sm text-muted-foreground">Availability is explicit. Occupied is derived from the current boarding record.</p>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full min-w-[1050px] text-left text-sm">
+                <thead class="border-b bg-muted/40 text-xs uppercase text-muted-foreground">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 font-medium">Room</th>
+                        <th scope="col" class="px-6 py-3 font-medium">Bed</th>
+                        <th scope="col" class="px-6 py-3 font-medium">Status</th>
+                        <th scope="col" class="px-6 py-3 font-medium">Occupant</th>
                         @if ($canManage)
-                            <form action="{{ route('dormitory-rooms.update', $room->id) }}" method="POST" class="flex flex-wrap items-end gap-2">
-                                @csrf
-                                @method('PUT')
-                                <div class="flex flex-col gap-1">
-                                    <label for="room-name-{{ $room->id }}" class="text-xs font-medium">Room name</label>
-                                    <input id="room-name-{{ $room->id }}" name="name" required maxlength="60" value="{{ $room->name }}"
-                                        class="flex h-8 w-32 rounded-md border border-input bg-background px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                                </div>
-                                <div class="flex flex-col gap-1">
-                                    <label for="room-floor-{{ $room->id }}" class="text-xs font-medium">Floor</label>
-                                    <input id="room-floor-{{ $room->id }}" name="floor" maxlength="40" value="{{ $room->floor }}"
-                                        class="flex h-8 w-28 rounded-md border border-input bg-background px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                                </div>
-                                <label class="flex h-8 items-center gap-1 text-xs">
-                                    <input type="hidden" name="is_active" value="0">
-                                    <input name="is_active" type="checkbox" value="1" @checked($room->is_active)>
-                                    In use
-                                </label>
-                                <april:button type="submit" variant="outline" size="sm">Save room</april:button>
-                            </form>
+                            <th scope="col" class="px-6 py-3 font-medium">Edit</th>
                         @endif
-                    </div>
-
-                    <div class="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                        @foreach ($room->beds as $bed)
+                    </tr>
+                </thead>
+                <tbody class="divide-y">
+                    @forelse ($dormitory->rooms as $room)
+                        @forelse ($room->beds as $bed)
                             @php
                                 $place = $occupiedBy->get($bed->id);
                                 $status = $bed->status;
                             @endphp
-                            <div class="rounded-lg border p-3 text-sm {{ $place === null && $status === \App\Enums\DormitoryBedStatus::Available && $room->is_active ? 'border-dashed text-muted-foreground' : 'border-input' }}">
-                                <div class="flex items-start justify-between gap-2">
-                                    <p class="text-xs font-medium uppercase text-muted-foreground">{{ $bed->name }}</p>
+                            <tr class="align-top {{ $room->is_active && $bed->is_active ? '' : 'text-muted-foreground' }}">
+                                <td class="px-6 py-4 font-medium text-foreground">{{ $room->name }}</td>
+                                <td class="px-6 py-4 font-medium text-foreground">{{ $bed->name }}</td>
+                                <td class="px-6 py-4">
                                     @if ($place !== null)
                                         <april:badge variant="secondary">Occupied</april:badge>
-                                    @elseif ($status !== \App\Enums\DormitoryBedStatus::Available)
-                                        <april:badge variant="outline">{{ $status->label() }}</april:badge>
                                     @else
-                                        <april:badge variant="outline">Free</april:badge>
+                                        <april:badge variant="outline">{{ $status->label() }}</april:badge>
+                                        @if ($bed->status_reason)
+                                            <p class="mt-1 max-w-xs text-xs">{{ $bed->status_reason }}</p>
+                                        @endif
                                     @endif
-                                </div>
-
-                                @if ($place === null && $status === \App\Enums\DormitoryBedStatus::Available && $room->is_active)
-                                    <p class="mt-2">Ready for a learner.</p>
-                                @elseif ($place === null)
-                                    <p class="mt-2">Not offered for placement.</p>
-                                    @if ($bed->status_reason)
-                                        <p class="mt-1 text-xs text-muted-foreground">{{ $bed->status_reason }}</p>
+                                </td>
+                                <td class="px-6 py-4">
+                                    @if ($place)
+                                        <p class="font-medium text-foreground">{{ $place->studentRecord?->user?->name }}</p>
+                                        <p class="text-xs text-muted-foreground">{{ $place->studentRecord?->admission_number }}</p>
+                                        @if ($canManage)
+                                            <form action="{{ route('boarding-places.destroy', $place->student_record_id) }}" method="POST" class="mt-2 flex min-w-56 flex-col gap-2">
+                                                @csrf
+                                                @method('DELETE')
+                                                <input name="reason" required maxlength="255" placeholder="Why are they leaving?"
+                                                    class="flex h-8 w-full rounded-md border border-input bg-background px-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                                                <april:button type="submit" variant="ghost" size="sm">Leave bed</april:button>
+                                            </form>
+                                        @endif
+                                    @else
+                                        <span class="text-muted-foreground">—</span>
                                     @endif
-                                @else
-                                    <p class="mt-2 font-medium text-foreground">{{ $place->studentRecord?->user?->name }}</p>
-                                    <p class="text-xs text-muted-foreground">{{ $place->studentRecord?->admission_number }}</p>
-                                    @if ($canManage)
-                                        <form action="{{ route('boarding-places.destroy', $place->student_record_id) }}" method="POST" class="mt-2 flex flex-col gap-2">
-                                            @csrf
-                                            @method('DELETE')
-                                            <input name="reason" required maxlength="255" placeholder="Why are they leaving?"
-                                                class="flex h-8 w-full rounded-md border border-input bg-background px-2 text-xs ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                                            <april:button type="submit" variant="ghost" size="sm">Leave bed</april:button>
-                                        </form>
-                                    @endif
-                                @endif
-
+                                </td>
                                 @if ($canManage)
-                                    <form action="{{ route('dormitory-beds.update', $bed->id) }}" method="POST" class="mt-4 space-y-2 border-t pt-3">
-                                        @csrf
-                                        @method('PUT')
-                                        <label for="bed-name-{{ $bed->id }}" class="sr-only">Bed name</label>
-                                        <input id="bed-name-{{ $bed->id }}" name="name" required maxlength="40" value="{{ $bed->name }}"
-                                            class="flex h-8 w-full rounded-md border border-input bg-background px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                                        <label for="bed-status-{{ $bed->id }}" class="sr-only">Bed status</label>
-                                        <select id="bed-status-{{ $bed->id }}" name="status" required
-                                            class="flex h-8 w-full rounded-md border border-input bg-background px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                                            @foreach (\App\Enums\DormitoryBedStatus::cases() as $bedStatus)
-                                                <option value="{{ $bedStatus->value }}" @selected($status === $bedStatus)>{{ $bedStatus->label() }}</option>
-                                            @endforeach
-                                        </select>
-                                        <label for="bed-reason-{{ $bed->id }}" class="sr-only">Status reason</label>
-                                        <input id="bed-reason-{{ $bed->id }}" name="status_reason" maxlength="1000" value="{{ $bed->status_reason }}" placeholder="Reason (optional)"
-                                            class="flex h-8 w-full rounded-md border border-input bg-background px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                                        <april:button type="submit" variant="outline" size="sm" class="w-full">Save bed</april:button>
-                                    </form>
+                                    <td class="px-6 py-4">
+                                        <form action="{{ route('dormitory-beds.update', $bed->id) }}" method="POST" class="flex min-w-52 flex-col gap-2">
+                                            @csrf
+                                            @method('PUT')
+                                            <label for="bed-name-{{ $bed->id }}" class="sr-only">Bed name</label>
+                                            <input id="bed-name-{{ $bed->id }}" name="name" required maxlength="40" value="{{ $bed->name }}"
+                                                class="flex h-8 w-full rounded-md border border-input bg-background px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                                            <label for="bed-status-{{ $bed->id }}" class="sr-only">Bed status</label>
+                                            <select id="bed-status-{{ $bed->id }}" name="status" required
+                                                class="flex h-8 w-full rounded-md border border-input bg-background px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                                                @foreach (\App\Enums\DormitoryBedStatus::cases() as $bedStatus)
+                                                    <option value="{{ $bedStatus->value }}" @selected($status === $bedStatus)>{{ $bedStatus->label() }}</option>
+                                                @endforeach
+                                            </select>
+                                            <label for="bed-reason-{{ $bed->id }}" class="sr-only">Status reason</label>
+                                            <input id="bed-reason-{{ $bed->id }}" name="status_reason" maxlength="1000" value="{{ $bed->status_reason }}" placeholder="Reason (optional)"
+                                                class="flex h-8 w-full rounded-md border border-input bg-background px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                                            <april:button type="submit" variant="outline" size="sm">Save bed</april:button>
+                                        </form>
+                                    </td>
                                 @endif
-                            </div>
-                        @endforeach
-                    </div>
-
-                    @if ($canManage)
-                        <form action="{{ route('dormitory-beds.store', $room->id) }}" method="POST" class="mt-4 flex flex-wrap items-end gap-2 border-t pt-4">
-                            @csrf
-                            <div class="flex flex-col gap-1">
-                                <label for="new-bed-{{ $room->id }}" class="text-xs font-medium">Add a bed</label>
-                                <input id="new-bed-{{ $room->id }}" name="name" required maxlength="40" placeholder="Bed {{ $room->beds->count() + 1 }}"
-                                    class="flex h-8 w-40 rounded-md border border-input bg-background px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                            </div>
-                            <april:button type="submit" variant="outline" size="sm">Add bed</april:button>
-                        </form>
-                    @endif
-                </div>
-            @empty
-                <p class="text-sm text-muted-foreground">This house has no rooms yet.</p>
-            @endforelse
-
-            @if ($canManage)
-                <form action="{{ route('dormitory-rooms.store', $dormitory->id) }}" method="POST" class="flex flex-wrap items-end gap-2 border-t pt-6">
-                    @csrf
-                    <div class="flex flex-col gap-1">
-                        <label for="new-room-name" class="text-xs font-medium">Add a room</label>
-                        <input id="new-room-name" name="name" required maxlength="60" placeholder="Room name"
-                            class="flex h-9 w-44 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                    </div>
-                    <div class="flex flex-col gap-1">
-                        <label for="new-room-floor" class="text-xs font-medium">Floor <span class="font-normal text-muted-foreground">(optional)</span></label>
-                        <input id="new-room-floor" name="floor" maxlength="40" placeholder="Ground floor"
-                            class="flex h-9 w-36 rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                    </div>
-                    <april:button type="submit" size="sm">Add room</april:button>
-                </form>
-            @endif
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="{{ $canManage ? 5 : 4 }}" class="px-6 py-4 text-sm text-muted-foreground">{{ $room->name }} has no beds.</td>
+                            </tr>
+                        @endforelse
+                        @if ($canManage && $room->is_active)
+                            <tr class="bg-muted/20">
+                                <td colspan="{{ $canManage ? 5 : 4 }}" class="px-6 py-4">
+                                    <form action="{{ route('dormitory-beds.store', $room->id) }}" method="POST" class="flex flex-wrap items-end gap-2">
+                                        @csrf
+                                        <div class="flex flex-col gap-1">
+                                            <label for="new-bed-{{ $room->id }}" class="text-xs font-medium">Add a bed to {{ $room->name }}</label>
+                                            <input id="new-bed-{{ $room->id }}" name="name" required maxlength="40" placeholder="Bed {{ $room->beds->count() + 1 }}"
+                                                class="flex h-8 w-48 rounded-md border border-input bg-background px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                                        </div>
+                                        <april:button type="submit" variant="outline" size="sm">Add bed</april:button>
+                                    </form>
+                                </td>
+                            </tr>
+                        @endif
+                    @empty
+                        <tr>
+                            <td colspan="{{ $canManage ? 5 : 4 }}" class="px-6 py-8 text-center text-sm text-muted-foreground">This house has no beds yet.</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
         </div>
     </div>
 
