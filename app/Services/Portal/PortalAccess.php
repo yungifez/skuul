@@ -44,7 +44,7 @@ class PortalAccess
      */
     public function canRead(User $person, StudentRecord $enrollment): bool
     {
-        if (!$this->isOpen()) {
+        if (!$this->isOpen($enrollment->school_id)) {
             return false;
         }
 

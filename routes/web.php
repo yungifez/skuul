@@ -10,6 +10,7 @@ use App\Http\Controllers\AccountPasswordController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdmissionWaitlistController;
 use App\Http\Controllers\BoardingPlaceController;
+use App\Http\Controllers\BoardingRollController;
 use App\Http\Controllers\BudgetController;
 use App\Http\Controllers\CalendarTemplateController;
 use App\Http\Controllers\CashDepositController;
@@ -40,6 +41,7 @@ use App\Http\Controllers\NoticeAttachmentController;
 use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\NoticeNotificationPreferenceController;
 use App\Http\Controllers\OrganizationController;
+use App\Http\Controllers\OrganizationBoardingResidenceController;
 use App\Http\Controllers\OrganizationDashboardController;
 use App\Http\Controllers\OvernightLeaveController;
 use App\Http\Controllers\ParentController;
@@ -145,6 +147,12 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::get('organizations/{organization}/billing-groups', ['App\Http\Controllers\OrganizationBillingGroupController', 'index'])->name('organizations.billing-groups.index');
     Route::post('organizations/{organization}/billing-groups', ['App\Http\Controllers\OrganizationBillingGroupController', 'store'])->name('organizations.billing-groups.store');
     Route::put('organizations/{organization}/campuses/{school}/billing', ['App\Http\Controllers\OrganizationBillingGroupController', 'update'])->name('organizations.billing-groups.update');
+    Route::get('organizations/{organization}/boarding-residences', [OrganizationBoardingResidenceController::class, 'index'])->name('organizations.boarding-residences.index');
+    Route::post('organizations/{organization}/boarding-residences', [OrganizationBoardingResidenceController::class, 'store'])->name('organizations.boarding-residences.store');
+    Route::post('organizations/{organization}/boarding-residences/{boardingResidence}/schools', [OrganizationBoardingResidenceController::class, 'linkSchool'])->name('organizations.boarding-residences.schools.store');
+    Route::delete('organizations/{organization}/boarding-residences/{boardingResidence}/schools/{school}', [OrganizationBoardingResidenceController::class, 'unlinkSchool'])->name('organizations.boarding-residences.schools.destroy');
+    Route::post('organizations/{organization}/boarding-residences/{boardingResidence}/houses', [OrganizationBoardingResidenceController::class, 'attachHouse'])->name('organizations.boarding-residences.houses.store');
+    Route::delete('organizations/{organization}/boarding-residences/{boardingResidence}/houses/{dormitory}', [OrganizationBoardingResidenceController::class, 'detachHouse'])->name('organizations.boarding-residences.houses.destroy');
     Route::resource('organizations', OrganizationController::class)->except('destroy');
     Route::get('organizations/{organization}/dashboard', OrganizationDashboardController::class)->name('organizations.dashboard');
     Route::resource('organizations.calendar-templates', CalendarTemplateController::class)
@@ -230,8 +238,12 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::get('report-cards/{reportCardSnapshot}', ['App\Http\Controllers\ReportCardController', 'show'])->name('report-cards.show');
         Route::get('transcripts', ['App\Http\Controllers\TranscriptController', 'index'])->name('transcripts.index');
         Route::post('transcripts', ['App\Http\Controllers\TranscriptController', 'store'])->name('transcripts.store');
-        Route::get('attendance/register', ['App\Http\Controllers\AttendanceRegisterController', 'index'])->name('attendance.register');
-        Route::post('attendance/register', ['App\Http\Controllers\AttendanceRegisterController', 'store'])->name('attendance.register.store');
+        // Attendance is a school-level tool. Turning it off closes both the
+        // register screen and its write endpoint without deleting history.
+        Route::middleware(['feature:attendance'])->group(function () {
+            Route::get('attendance/register', ['App\Http\Controllers\AttendanceRegisterController', 'index'])->name('attendance.register');
+            Route::post('attendance/register', ['App\Http\Controllers\AttendanceRegisterController', 'store'])->name('attendance.register.store');
+        });
         Route::get('reports/{reportRun}/download', ['App\Http\Controllers\ReportController', 'download'])->name('reports.download');
 
         // discipline routes. A case is written against the day it happened, so
@@ -466,6 +478,10 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                     Route::get('boarding/nights-away', [OvernightLeaveController::class, 'index'])->name('overnight-leaves.index');
                     Route::post('boarding/nights-away', [OvernightLeaveController::class, 'store'])->name('overnight-leaves.store');
                     Route::put('boarding/nights-away/{overnight_leave}', [OvernightLeaveController::class, 'update'])->name('overnight-leaves.update');
+                    Route::get('boarding/rolls', [BoardingRollController::class, 'index'])->name('boarding-rolls.index');
+                    Route::post('boarding/rolls', [BoardingRollController::class, 'store'])->name('boarding-rolls.store');
+                    Route::get('boarding/rolls/{boardingRoll}', [BoardingRollController::class, 'show'])->name('boarding-rolls.show');
+                    Route::put('boarding/rolls/{boardingRoll}', [BoardingRollController::class, 'update'])->name('boarding-rolls.update');
                 });
 
                 // library routes

@@ -109,6 +109,20 @@ class PortalTest extends TestCase
         $this->assertFalse(app(PortalAccess::class)->canRead($enrollment->user, $enrollment));
     }
 
+    public function test_a_portal_reader_cannot_read_a_child_at_a_closed_campus(): void
+    {
+        $openCampus = $this->workingSchool();
+        $closedCampus = School::factory()->create();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $closedCampus->id]);
+        $guardian = $this->guardianOf($enrollment);
+
+        features()->disable(Feature::Portal, $closedCampus->id);
+        school_context()->set($openCampus, remember: false);
+
+        $this->assertSame($closedCampus->id, $enrollment->school_id);
+        $this->assertFalse(app(PortalAccess::class)->canRead($guardian, $enrollment));
+    }
+
     public function test_a_school_closes_one_area_and_keeps_the_rest(): void
     {
         $this->unauthorized_user();
@@ -163,20 +177,20 @@ class PortalTest extends TestCase
         $enrollment = $this->enrollment();
         $this->assertNotNull($enrollment->user_id);
         $published = Notice::create([
-            'school_id'  => $enrollment->school_id,
-            'title'      => 'Current notice',
-            'content'    => 'Current message.',
+            'school_id' => $enrollment->school_id,
+            'title' => 'Current notice',
+            'content' => 'Current message.',
             'start_date' => now()->toDateString(),
-            'stop_date'  => now()->addWeek()->toDateString(),
-            'status'     => NoticeStatus::Published,
+            'stop_date' => now()->addWeek()->toDateString(),
+            'status' => NoticeStatus::Published,
         ]);
         $superseded = Notice::create([
-            'school_id'  => $enrollment->school_id,
-            'title'      => 'Old notice',
-            'content'    => 'Old message.',
+            'school_id' => $enrollment->school_id,
+            'title' => 'Old notice',
+            'content' => 'Old message.',
             'start_date' => now()->toDateString(),
-            'stop_date'  => now()->addWeek()->toDateString(),
-            'status'     => NoticeStatus::Superseded,
+            'stop_date' => now()->addWeek()->toDateString(),
+            'status' => NoticeStatus::Superseded,
         ]);
         NoticeRecipient::create(['notice_id' => $published->id, 'user_id' => $enrollment->user_id, 'state' => NoticeRecipientState::Delivered]);
         NoticeRecipient::create(['notice_id' => $superseded->id, 'user_id' => $enrollment->user_id, 'state' => NoticeRecipientState::Delivered]);
@@ -202,12 +216,12 @@ class PortalTest extends TestCase
         $this->unauthorized_user();
         $enrollment = $this->enrollment();
         AttendanceRecord::create([
-            'school_id'          => $enrollment->school_id,
-            'student_record_id'  => $enrollment->id,
-            'academic_year_id'   => current_academic_year_id(),
+            'school_id' => $enrollment->school_id,
+            'student_record_id' => $enrollment->id,
+            'academic_year_id' => current_academic_year_id(),
             'academic_period_id' => current_academic_period_id(),
-            'attended_on'        => now()->subDay()->toDateString(),
-            'status'             => AttendanceStatus::Present,
+            'attended_on' => now()->subDay()->toDateString(),
+            'status' => AttendanceStatus::Present,
         ]);
 
         $attendance = app(PortalSummary::class)->attendance($enrollment);
@@ -506,22 +520,22 @@ class PortalTest extends TestCase
         $courseOffering = $this->courseOffering($subject, $enrollment->school_id);
 
         return ResultSnapshot::create([
-            'school_id'          => $enrollment->school_id,
-            'student_record_id'  => $enrollment->id,
+            'school_id' => $enrollment->school_id,
+            'student_record_id' => $enrollment->id,
             'course_offering_id' => $courseOffering->id,
-            'revision'           => $revision,
-            'percentage'         => $percentage,
-            'payload'            => ['percentage' => $percentage],
-            'published_at'       => now(),
+            'revision' => $revision,
+            'percentage' => $percentage,
+            'payload' => ['percentage' => $percentage],
+            'published_at' => now(),
         ]);
     }
 
     private function courseOffering(Subject $subject, int $schoolId): CourseOffering
     {
         return $this->courseOfferings[$subject->id] ??= CourseOffering::factory()->create([
-            'school_id'          => $schoolId,
-            'subject_id'         => $subject->id,
-            'academic_year_id'   => current_academic_year_id(),
+            'school_id' => $schoolId,
+            'subject_id' => $subject->id,
+            'academic_year_id' => current_academic_year_id(),
             'academic_period_id' => current_academic_period_id(),
         ]);
     }
