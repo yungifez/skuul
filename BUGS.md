@@ -93,3 +93,12 @@
 - Impact: Staff could not open the budget planning screen.
 - Resolution: The budgets resource is now registered before the generic fee resource. A feature test covers writing a budget from the screen.
 - Live follow-up: The budgets page now returns 200 and a Term 1 operating budget was saved successfully.
+
+## Teacher accounts cannot choose a working school year or term
+
+- Status: Fixed and verified in production
+- Area: Teacher academic context
+- Observed: A fresh teacher session was redirected to the academic-year screen when opening gradebook and timetable pages, but the teacher role could not read or select that screen.
+- Impact: Teachers with valid teaching permissions could not open period-scoped classroom tools unless another session had already selected a calendar.
+- Resolution: The teacher role now has the `set academic year` and `set academic period` permissions. A regression test covers both selections.
+- Live follow-up: A fresh teacher session selected 2026–27 / Term 1, then opened gradebook, attendance, syllabus, timetable, notices, and rankings successfully.
