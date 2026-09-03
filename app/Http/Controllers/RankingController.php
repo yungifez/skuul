@@ -187,6 +187,12 @@ class RankingController extends Controller
      */
     private function academicLevelFrom(Request $request, ?AcademicCycleSection $section): ?AcademicLevel
     {
+        $groupId = $request->integer('group_academic_level_id') ?: null;
+
+        if ($groupId !== null) {
+            return AcademicLevel::query()->inSchool()->where('is_group', true)->find($groupId);
+        }
+
         $id = $request->integer('academic_level_id') ?: null;
 
         if ($id !== null) {

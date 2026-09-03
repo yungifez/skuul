@@ -43,7 +43,8 @@ class RankingScreenTest extends TestCase
             ->assertOk()
             ->assertSee('Choose a class or group first')
             ->assertSee('Class or group')
-            ->assertSee('md:grid-cols-2 lg:grid-cols-[repeat(5,minmax(0,1fr))_auto] lg:items-end');
+            ->assertSee('Choose a whole group instead')
+            ->assertSee('md:grid-cols-2 lg:grid-cols-[repeat(5,minmax(0,1fr))_auto] lg:items-start');
     }
 
     public function test_a_group_ranks_learners_across_its_child_classes(): void
@@ -84,8 +85,14 @@ class RankingScreenTest extends TestCase
 
         $this->get(route('rankings.index', ['academic_level_id' => $group->id]))
             ->assertOk()
-            ->assertSee('Groups · whole-group teaching')
+            ->assertSee('Choose a whole group instead')
+            ->assertSee($firstSection->label ?? $firstSection->name)
             ->assertSeeInOrder(['Ada Bell', 'Grace Ola']);
+
+        $this->get(route('rankings.index', ['academic_level_id' => $firstClass->id]))
+            ->assertOk()
+            ->assertSee($firstSection->label ?? $firstSection->name)
+            ->assertDontSee($secondSection->label ?? $secondSection->name);
     }
 
     public function test_a_home_group_is_put_in_order(): void
