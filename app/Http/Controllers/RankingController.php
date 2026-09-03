@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\Cohort;
 use App\Models\CourseOffering;
@@ -33,20 +34,24 @@ class RankingController extends Controller
         abort_unless($request->user()?->can('read ranking'), 403);
 
         $section = $this->sectionFrom($request);
+        $academicLevel = $this->academicLevelFrom($request, $section);
+        $section = $this->sectionFrom($request, $academicLevel);
         $cohort = $this->cohortFrom($request);
         $period = $this->periodFrom($request);
-        $offering = $this->offeringFrom($request);
+        $offering = $this->offeringFrom($request, $academicLevel, $period);
 
-        [$rows, $error] = $this->rank($section, $cohort, $period, $offering);
+        [$rows, $error] = $this->rank($academicLevel, $section, $cohort, $period, $offering);
 
         return view('pages.ranking.index', [
             'rows' => $rows,
             'error' => $error,
             'learners' => $this->learnersOf($rows),
-            'sections' => AcademicCycleSection::query()->inSchool()->orderBy('name')->get(['id', 'name']),
+            'academicLevels' => AcademicLevel::query()->inSchool()->with('parent:id,name')->orderBy('is_group')->orderBy('position')->orderBy('name')->get(['id', 'parent_id', 'name', 'is_group']),
+            'sections' => $this->sections($academicLevel),
             'cohorts' => Cohort::query()->inSchool()->active()->orderBy('name')->get(['id', 'name']),
             'periods' => AcademicPeriod::query()->inSchool()->ordered()->get(['id', 'name', 'label']),
-            'offerings' => $this->offerings($period),
+            'offerings' => $this->offerings($period, $academicLevel),
+            'academicLevel' => $academicLevel,
             'section' => $section,
             'cohort' => $cohort,
             'period' => $period,
@@ -60,19 +65,26 @@ class RankingController extends Controller
      * @return array{0: Collection<int, array{student_record_id: int, average: float, subjects: int, position: int}>, 1: string|null}
      */
     private function rank(
+        ?AcademicLevel $academicLevel,
         ?AcademicCycleSection $section,
         ?Cohort $cohort,
         ?AcademicPeriod $period,
         ?CourseOffering $offering,
     ): array {
-        if ($section === null && $cohort === null) {
+        if ($academicLevel === null && $section === null && $cohort === null) {
             return [collect(), null];
         }
 
         try {
-            $rows = $cohort !== null
-                ? $this->ranking->forCohort($cohort, academicPeriodId: $period?->id, courseOffering: $offering)
-                : $this->ranking->forCycleSection($section, academicPeriodId: $period?->id, courseOffering: $offering);
+            if ($cohort !== null) {
+                $rows = $this->ranking->forCohort($cohort, academicPeriodId: $period?->id, courseOffering: $offering);
+            } elseif ($section !== null) {
+                $rows = $this->ranking->forCycleSection($section, academicPeriodId: $period?->id, courseOffering: $offering);
+            } elseif ($academicLevel !== null) {
+                $rows = $this->ranking->forAcademicLevel($academicLevel, academicPeriodId: $period?->id, courseOffering: $offering);
+            } else {
+                return [collect(), null];
+            }
         } catch (InvalidValueException $exception) {
             return [collect(), $exception->getMessage()];
         }
@@ -105,11 +117,12 @@ class RankingController extends Controller
      *
      * @return \Illuminate\Database\Eloquent\Collection<int, CourseOffering>
      */
-    private function offerings(?AcademicPeriod $period): \Illuminate\Database\Eloquent\Collection
+    private function offerings(?AcademicPeriod $period, ?AcademicLevel $academicLevel): \Illuminate\Database\Eloquent\Collection
     {
         return CourseOffering::query()
             ->inSchool()
-            ->with('subject:id,name')
+            ->with(['subject:id,name', 'academicLevel:id,name'])
+            ->when($academicLevel !== null, fn (Builder $query): Builder => $query->whereIn('academic_level_id', $this->offeringLevelIds($academicLevel)))
             ->when($period !== null, function (Builder $query) use ($period): void {
                 $query->where('academic_period_id', $period->id);
             })
@@ -118,13 +131,76 @@ class RankingController extends Controller
     }
 
     /**
+     * Get sections below the selected class or group.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, AcademicCycleSection>
+     */
+    private function sections(?AcademicLevel $academicLevel): \Illuminate\Database\Eloquent\Collection
+    {
+        if ($academicLevel === null) {
+            return AcademicCycleSection::query()->inSchool()->whereKey(-1)->get();
+        }
+
+        return AcademicCycleSection::query()
+            ->inSchool()
+            ->with('academicLevel:id,name')
+            ->whereIn('academic_level_id', $academicLevel->teachingScopeIds())
+            ->orderBy('academic_level_id')
+            ->orderBy('position')
+            ->orderBy('name')
+            ->get(['id', 'academic_level_id', 'name', 'label']);
+    }
+
+    /**
+     * Get offerings declared for the selected level, its child levels, or a
+     * parent group that teaches across it.
+     *
+     * @return list<int>
+     */
+    private function offeringLevelIds(AcademicLevel $academicLevel): array
+    {
+        return array_values(array_unique([
+            ...$academicLevel->teachingScopeIds(),
+            ...$academicLevel->hierarchyIds(),
+        ]));
+    }
+
+    /**
      * Read the home group the screen was asked for.
      */
-    private function sectionFrom(Request $request): ?AcademicCycleSection
+    private function sectionFrom(Request $request, ?AcademicLevel $academicLevel = null): ?AcademicCycleSection
     {
         $id = $request->integer('academic_cycle_section_id') ?: null;
 
-        return $id === null ? null : AcademicCycleSection::query()->inSchool()->find($id);
+        return $id === null
+            ? null
+            : AcademicCycleSection::query()
+                ->inSchool()
+                ->when($academicLevel !== null, fn (Builder $query): Builder => $query->whereIn('academic_level_id', $academicLevel->teachingScopeIds()))
+                ->with('academicLevel:id,name,parent_id')
+                ->find($id);
+    }
+
+    /**
+     * Read the selected class or group, or infer its top-level group from a
+     * selected section.
+     */
+    private function academicLevelFrom(Request $request, ?AcademicCycleSection $section): ?AcademicLevel
+    {
+        $id = $request->integer('academic_level_id') ?: null;
+
+        if ($id !== null) {
+            return AcademicLevel::query()->inSchool()->find($id);
+        }
+
+        if ($section === null || $section->academicLevel === null) {
+            return null;
+        }
+
+        $hierarchyIds = $section->academicLevel->hierarchyIds();
+        $rootId = end($hierarchyIds);
+
+        return $rootId === false ? null : AcademicLevel::query()->inSchool()->find($rootId);
     }
 
     /**
@@ -159,10 +235,16 @@ class RankingController extends Controller
     /**
      * Read the subject the screen was asked for.
      */
-    private function offeringFrom(Request $request): ?CourseOffering
+    private function offeringFrom(Request $request, ?AcademicLevel $academicLevel, ?AcademicPeriod $period): ?CourseOffering
     {
         $id = $request->integer('course_offering_id') ?: null;
 
-        return $id === null ? null : CourseOffering::query()->inSchool()->find($id);
+        return $id === null
+            ? null
+            : CourseOffering::query()
+                ->inSchool()
+                ->when($academicLevel !== null, fn (Builder $query): Builder => $query->whereIn('academic_level_id', $this->offeringLevelIds($academicLevel)))
+                ->when($period !== null, fn (Builder $query): Builder => $query->where('academic_period_id', $period->id))
+                ->find($id);
     }
 }

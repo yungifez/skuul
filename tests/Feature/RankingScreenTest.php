@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\CohortType;
 use App\Enums\Feature;
 use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
 use App\Models\Cohort;
 use App\Models\CohortMember;
 use App\Models\CourseOffering;
@@ -40,7 +41,51 @@ class RankingScreenTest extends TestCase
 
         $this->get(route('rankings.index'))
             ->assertOk()
-            ->assertSee('Choose a group first');
+            ->assertSee('Choose a class or group first')
+            ->assertSee('Class or group')
+            ->assertSee('md:grid-cols-2 lg:grid-cols-[repeat(5,minmax(0,1fr))_auto] lg:items-end');
+    }
+
+    public function test_a_group_ranks_learners_across_its_child_classes(): void
+    {
+        $this->authorized_user(['read ranking']);
+        $group = AcademicLevel::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'Kindergarten',
+            'is_group' => true,
+            'parent_id' => null,
+        ]);
+        $firstClass = AcademicLevel::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'Kindergarten 1',
+            'parent_id' => $group->id,
+        ]);
+        $secondClass = AcademicLevel::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'Kindergarten 2',
+            'parent_id' => $group->id,
+        ]);
+        $firstSection = AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_level_id' => $firstClass->id,
+        ]);
+        $secondSection = AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_level_id' => $secondClass->id,
+        ]);
+        $offering = $this->offering();
+        $offering->update(['academic_level_id' => $firstClass->id]);
+        $first = $this->learnerIn($firstSection, 'Ada Bell');
+        $second = $this->learnerIn($secondSection, 'Grace Ola');
+        $this->publishResult($first, $offering, 80);
+        $this->publishResult($second, $offering, 60);
+
+        $this->get(route('rankings.index', ['academic_level_id' => $group->id]))
+            ->assertOk()
+            ->assertSee('Groups · whole-group teaching')
+            ->assertSeeInOrder(['Ada Bell', 'Grace Ola']);
     }
 
     public function test_a_home_group_is_put_in_order(): void
