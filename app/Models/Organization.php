@@ -34,6 +34,12 @@ class Organization extends Model
         return $this->hasMany(School::class);
     }
 
+    /** @return HasMany<BoardingResidence, $this> */
+    public function boardingResidences(): HasMany
+    {
+        return $this->hasMany(BoardingResidence::class);
+    }
+
     /**
      * Get the web addresses this organization answers on.
      *

@@ -10,6 +10,9 @@
 
 @section('page_actions')
     @if ($canManage)
+        <april:button-link href="{{ route('boarding-rolls.index') }}" variant="outline">Boarding rolls</april:button-link>
+    @endif
+    @if ($canManage)
         <april:button-link href="{{ route('dormitories.edit', $dormitory->id) }}" variant="outline">Edit house</april:button-link>
         @if ($dormitory->is_active)
             <form action="{{ route('dormitories.destroy', $dormitory->id) }}" method="POST">
@@ -44,6 +47,11 @@
         <p class="mt-1 text-sm text-muted-foreground">
             {{ $occupancy['taken'] }} occupied, {{ $occupancy['free'] }} available, and {{ $occupancy['unavailable'] }} unavailable out of {{ $occupancy['beds'] }} active beds. {{ $occupancy['away'] }} learners are out tonight.
         </p>
+        @if ($dormitory->boardingResidence)
+            <p class="mt-3 text-sm text-muted-foreground">
+                Physical residence: <span class="font-medium text-foreground">{{ $dormitory->boardingResidence->name }}</span>. This house keeps its own campus roster.
+            </p>
+        @endif
         @if ($dormitory->notes)
             <p class="mt-3 max-w-2xl text-sm text-muted-foreground">{{ $dormitory->notes }}</p>
         @endif

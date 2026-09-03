@@ -32,6 +32,7 @@ class PortalBoardingController extends Controller
         return view('pages.portal.boarding', [
             'studentRecord' => $studentRecord->load('user:id,name', 'school:id,name'),
             'place' => $boarding['place'],
+            'latestRoll' => $boarding['latest_roll'],
         ]);
     }
 }

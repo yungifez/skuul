@@ -22,6 +22,15 @@
                         <p class="text-sm text-muted-foreground">House · room · bed</p>
                     </div>
                 </div>
+                @if ($latestRoll)
+                    <div class="mt-4 flex items-center justify-between gap-3 rounded-lg border bg-muted/20 p-4">
+                        <div>
+                            <p class="text-sm font-medium">Latest boarding check</p>
+                            <p class="mt-1 text-sm text-muted-foreground">{{ $latestRoll['type'] }} · {{ $latestRoll['taken_on'] }}</p>
+                        </div>
+                        <april:badge variant="outline">{{ $latestRoll['status'] }}</april:badge>
+                    </div>
+                @endif
             @endif
         </slot:content>
     </april:card>

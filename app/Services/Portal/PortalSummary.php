@@ -6,6 +6,7 @@ use App\Enums\Feature;
 use App\Enums\NoticeStatus;
 use App\Enums\PortalArea;
 use App\Models\BoardingPlace;
+use App\Models\BoardingRollEntry;
 use App\Models\FeeInvoice;
 use App\Models\LibraryLoan;
 use App\Models\LibraryReservation;
@@ -192,7 +193,7 @@ class PortalSummary
     /**
      * Get the current house, room, and bed for a boarder.
      *
-     * @return array{place: string|null}|null
+     * @return array{place: string|null, latest_roll: array{type: string, status: string, taken_on: string}|null}|null
      */
     public function boarding(StudentRecord $enrollment): ?array
     {
@@ -210,11 +211,24 @@ class PortalSummary
         $bed = $place?->bed;
         $room = $bed?->room;
         $house = $room?->dormitory;
+        $latestRollEntry = $place?->isBoarding()
+            ? BoardingRollEntry::inSchool()
+                ->where('student_record_id', $enrollment->id)
+                ->whereHas('roll', fn ($roll) => $roll->where('school_id', $enrollment->school_id)->whereDate('taken_on', '<=', now()->toDateString()))
+                ->with('roll')
+                ->latest('id')
+                ->first()
+            : null;
 
         return [
             'place' => $place?->isBoarding()
                 ? trim(implode(' · ', array_filter([$house?->name, $room?->name, $bed?->name])), ' ·')
                 : null,
+            'latest_roll' => $latestRollEntry === null ? null : [
+                'type' => $latestRollEntry->roll->type->label(),
+                'status' => $latestRollEntry->status->label(),
+                'taken_on' => $latestRollEntry->roll->taken_on->format('j M Y'),
+            ],
         ];
     }
 }

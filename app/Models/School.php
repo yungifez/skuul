@@ -52,6 +52,14 @@ class School extends Model
         return $this->belongsTo(Organization::class);
     }
 
+    /** @return BelongsToMany<BoardingResidence, $this> */
+    public function boardingResidences(): BelongsToMany
+    {
+        return $this->belongsToMany(BoardingResidence::class, 'boarding_residence_school')
+            ->withPivot('linked_by')
+            ->withTimestamps();
+    }
+
     /**
      * Get the campuses this one keeps a purse with.
      *

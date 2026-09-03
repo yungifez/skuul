@@ -4,14 +4,18 @@ namespace Tests\Feature;
 
 use App\Actions\School\GrantSchoolMembership;
 use App\Enums\AdmissionWaitlistStatus;
+use App\Enums\Feature;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\AdmissionWaitlistEntry;
+use App\Models\BoardingResidence;
+use App\Models\BoardingRoll;
 use App\Models\Cohort;
 use App\Models\CourseOffering;
 use App\Models\CustomTimetableItem;
+use App\Models\Dormitory;
 use App\Models\Exam;
 use App\Models\ExamSlot;
 use App\Models\Fee;
@@ -271,6 +275,31 @@ class CrossSchoolAccessTest extends TestCase
         // The health screens are keyed by the enrollment, which the working
         // school does not hold, so the page is simply not there.
         $actor->get(route('health-records.edit', $enrollment))->assertNotFound();
+    }
+
+    public function test_a_boarding_roll_of_another_school_is_out_of_reach(): void
+    {
+        features()->enable(Feature::Boarding);
+        $house = Dormitory::factory()->create(['school_id' => $this->otherSchool->id]);
+        $roll = BoardingRoll::factory()->create([
+            'school_id' => $this->otherSchool->id,
+            'dormitory_id' => $house->id,
+        ]);
+        $actor = $this->authorized_user(['read boarding', 'manage boarding']);
+
+        $actor->get(route('boarding-rolls.show', $roll))->assertNotFound();
+        $actor->put(route('boarding-rolls.update', $roll), [])->assertForbidden();
+    }
+
+    public function test_a_shared_residence_of_another_organization_is_out_of_reach(): void
+    {
+        $residence = BoardingResidence::factory()->create([
+            'organization_id' => $this->otherSchool->organization_id,
+        ]);
+        $actor = $this->authorized_user(['read boarding']);
+
+        $actor->get(route('organizations.boarding-residences.index', $residence->organization_id))
+            ->assertForbidden();
     }
 
     public function test_the_index_screens_only_count_the_working_school(): void

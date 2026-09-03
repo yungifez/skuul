@@ -250,6 +250,21 @@ enum AuditAction: string
     case OvernightLeaveReturned = 'boarding.leave_returned';
 
     /**
+     * A boarding roll was opened for a house.
+     */
+    case BoardingRollStarted = 'boarding.roll_started';
+
+    /**
+     * Answers were recorded on a boarding roll.
+     */
+    case BoardingRollRecorded = 'boarding.roll_recorded';
+
+    /**
+     * A shared physical boarding residence or its campus/house links changed.
+     */
+    case BoardingResidenceChanged = 'boarding.residence_changed';
+
+    /**
      * Somebody claimed a shared hall, laboratory, vehicle, or set of kit.
      */
     case FacilityBooked = 'facility.booked';
@@ -651,6 +666,9 @@ enum AuditAction: string
             self::OvernightLeaveRequested => 'Night away requested',
             self::OvernightLeaveDecided => 'Night away answered',
             self::OvernightLeaveReturned => 'Learner back in the house',
+            self::BoardingRollStarted => 'Boarding roll started',
+            self::BoardingRollRecorded => 'Boarding roll recorded',
+            self::BoardingResidenceChanged => 'Boarding residence changed',
             self::FacilityBooked => 'Facility booked',
             self::FacilityBookingCancelled => 'Facility booking given up',
             self::LibraryLoanIssued => 'Library copy lent',

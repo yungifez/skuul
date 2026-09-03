@@ -27,6 +27,7 @@ class Dormitory extends Model
 
     protected $fillable = [
         'school_id',
+        'boarding_residence_id',
         'name',
         'label',
         'notes',
@@ -56,6 +57,12 @@ class Dormitory extends Model
     public function school(): BelongsTo
     {
         return $this->belongsTo(School::class);
+    }
+
+    /** @return BelongsTo<BoardingResidence, $this> */
+    public function boardingResidence(): BelongsTo
+    {
+        return $this->belongsTo(BoardingResidence::class);
     }
 
     /**

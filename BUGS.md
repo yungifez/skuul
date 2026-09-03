@@ -1,22 +1,5 @@
 # Known Bugs
 
-## Student import fails when `gender` is omitted
-
-- Status: Fixed
-- Area: Student import
-- Observed: A CSV without a `gender` column passed validation. The apply step then failed with `Undefined array key "gender"` for every row.
-- Impact: The import wrote zero student records.
-- Expected: `gender` is optional, or the importer rejects the file during validation.
-- Resolution: `gender` is now listed as optional, and the importer stores `null` when it is missing. A regression test covers the import path.
-
-## Static analysis errors remain
-
-- Status: Fixed
-- Area: Application type safety
-- Observed: Larastan reports 16 errors in finance actions, report building, fee views and policies. The errors include unnecessary nullsafe access and undefined properties.
-- Impact: Static QA does not pass.
-- Resolution: Finance actor and payment-period access now use explicit nullable branches, `ReportRun` declares its academic-period attribute, fee relationships have concrete return types, stale baseline suppressions were removed, and fee-invoice serialization handles missing enrollments explicitly. Larastan now reports no errors.
-
 ## Repeated queries on setup pages
 
 - Status: Open
@@ -24,14 +7,6 @@
 - Observed: Debugbar reports 52–86 queries, duplicate query groups, and N+1 groups on recent setup requests.
 - Impact: Setup pages may become slow as school data grows.
 - Resolution so far: The academic structure tree now eager-loads each section's academic year. The remaining duplicate and feature-setting queries still need review.
-
-## User profile and edit screens can fail on birthday rendering
-
-- Status: Fixed
-- Area: User profile and edit screens
-- Observed: The `User` model exposes `birthday` as a formatted string, while shared profile and edit views called date methods on it.
-- Impact: Authorized profile and edit pages could throw a 500 error before the form rendered.
-- Resolution: The shared views now use the model's already-formatted birthday value. Parent profile and assignment-page tests cover the affected screens.
 
 ## Full test suite has unrelated failures
 
@@ -49,56 +24,44 @@
 - Impact: Parallel test results are invalid and can leave the testing schema half-migrated.
 - Workaround: Reset the `testing` database and run database-refreshing suites sequentially. A separate database per worker or an explicit no-parallel test policy would prevent recurrence.
 
-## Comment-only grade entry returns HTTP 500 in the live build
+## User creation requests validated before authorization
 
-- Status: Fixed and verified in production
-- Area: Gradebook assessment entries
-- Observed: Saving a text/comment-only assessment without a `points` field returned HTTP 500 for each learner in the live gradebook.
-- Impact: Teachers could not record narrative feedback without assigning a numeric mark.
-- Resolution: The controller now treats a missing nullable `points` value as `null`. A regression test covers comment-only grade entries.
-- Live follow-up: Six narrative entries were saved successfully after deployment.
+- Status: Fixed
+- Area: Administrator, parent, teacher, and student provisioning
+- Observed: Unauthorized users received validation redirects instead of a forbidden response when submitting malformed create requests.
+- Resolution: StoreUserRequest now authorizes each provisioning route before validation; focused administrator, parent, teacher, and student tests cover authorized and unauthorized flows.
 
-## Automated invoice posting can repeat a batch after a session/redirect failure
+## Portal staff-area boundary
 
-- Status: Open
-- Area: Finance invoice creation
-- Observed: A scripted invoice submission returned an unexpected CSRF/redirect response, but later retries produced repeated posted invoices for the same learners.
-- Impact: Retrying after an ambiguous response can create duplicate ledger entries. Posted invoices cannot be deleted by design.
-- Workaround: Confirm the invoice list and ledger state before retrying a submission. The duplicate synthetic invoices remain visible for QA and were not removed outside the accounting workflow.
-- Follow-up: Add an idempotency key or a clear post/redirect confirmation path for invoice batches.
+- Status: Fixed
+- Area: Parent and student portals
+- Observed: Portal-only users could reach staff finance and calendar endpoints directly.
+- Resolution: Staff policies, navigation, and child-scoped invoice routes now enforce the role boundary; portal screen tests cover normal, alternate, empty, and forbidden flows.
 
-## Expense creation fails when no programme is selected
+## Duplicate fee invoice posting
 
-- Status: Fixed and verified in production
-- Area: Finance expenses
-- Observed: Creating an expense without an optional `program_id` returned HTTP 500. The production log reported `Undefined array key "program_id"` in `ExpenseController.php`.
-- Impact: Office users could not record expenses unless the optional programme field was present in the request.
-- Resolution: The controller now treats a missing programme value as `null`. A feature regression test covers recording an expense without a programme.
-- Live follow-up: A programme-free Primary 6 library-materials expense posted successfully after deployment.
+- Status: Fixed
+- Area: Finance
+- Observed: Retrying a fee invoice submission could create duplicate invoices.
+- Resolution: Invoice forms send an idempotency key, and the service uses a school-scoped batch record, lock, and atomic transaction; replay coverage verifies no duplicate posting.
 
-## Parent assignment page fails with an ambiguous enrollment query
+## Cloud login logo fallback
 
-- Status: Fixed and verified in production
-- Area: Parent–student relationships
-- Observed: Opening a parent's assign-students page returned HTTP 500. The production log reported `Column 'user_id' in field list is ambiguous` from the constrained `studentRecord` eager load.
-- Impact: Staff could create parent accounts but could not open the page needed to link children.
-- Resolution: Enrollment columns are now qualified with the `student_records` table name. A feature regression test covers opening the assignment page.
-- Live follow-up: The assignment page and parent profile now return 200 after deployment; six direct family links were created.
+- Status: Fixed
+- Area: Authentication screen
+- Observed: The production login screen rendered a broken logo when the Cloud environment did not define LOGO_PATH.
+- Resolution: The application now uses the committed logo asset as its default, with a regression test for the deployable fallback.
 
-## Budgets route is shadowed by the generic fee route
+## Feature settings validated before authorization
 
-- Status: Fixed and verified in production
-- Area: Finance budgets
-- Observed: The visible Budgets menu linked to `/dashboard/fees/budgets`, but the generic `/fees/{fee}` route matched first and returned 404.
-- Impact: Staff could not open the budget planning screen.
-- Resolution: The budgets resource is now registered before the generic fee resource. A feature test covers writing a budget from the screen.
-- Live follow-up: The budgets page now returns 200 and a Term 1 operating budget was saved successfully.
+- Status: Fixed
+- Area: School feature settings
+- Observed: A school member without settings permission reached feature validation before the update policy ran, so malformed submissions returned validation errors instead of forbidden.
+- Resolution: Feature settings now authorize in the form request before validating the submitted tool choices, with regression coverage for the forbidden exception flow.
 
-## Teacher accounts cannot choose a working school year or term
+## Attendance and cross-campus portal feature gates
 
-- Status: Fixed and verified in production
-- Area: Teacher academic context
-- Observed: A fresh teacher session was redirected to the academic-year screen when opening gradebook and timetable pages, but the teacher role could not read or select that screen.
-- Impact: Teachers with valid teaching permissions could not open period-scoped classroom tools unless another session had already selected a calendar.
-- Resolution: The teacher role now has the `set academic year` and `set academic period` permissions. A regression test covers both selections.
-- Live follow-up: A fresh teacher session selected 2026–27 / Term 1, then opened gradebook, attendance, syllabus, timetable, notices, and rankings successfully.
+- Status: Fixed
+- Area: Attendance register and family portal
+- Observed: Attendance routes were reachable after the school disabled Attendance, and portal access checked the current working campus instead of the enrollment's campus.
+- Resolution: Attendance routes now use the school feature middleware, and portal access resolves the feature setting from the enrollment campus. Normal and closed-campus tests cover both flows.

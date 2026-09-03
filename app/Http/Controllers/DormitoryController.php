@@ -162,7 +162,7 @@ class DormitoryController extends Controller
      */
     public function show(Dormitory $dormitory, BoardingRoster $roster): View
     {
-        $dormitory->loadMissing(['rooms.beds']);
+        $dormitory->loadMissing(['boardingResidence', 'rooms.beds']);
 
         $places = $roster->inDormitory($dormitory);
         $occupiedBy = $places->keyBy('dormitory_bed_id');
