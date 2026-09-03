@@ -206,6 +206,7 @@ class DormitoryController extends Controller
                     : $beds->filter(
                         fn (array $bed): bool => !$bed['is_active'] || $bed['status'] !== 'available',
                     )->count(),
+                'update_url' => route('dormitory-rooms.update', $room),
                 'add_bed_url' => route('dormitory-beds.store', $room),
                 'beds' => $beds->all(),
             ];

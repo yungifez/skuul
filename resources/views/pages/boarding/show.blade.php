@@ -83,17 +83,14 @@
         </div>
 
         <div class="overflow-x-auto">
-            <table class="w-full min-w-[720px] text-left text-sm">
+            <table class="w-full min-w-[640px] text-left text-sm">
                 <thead class="border-b bg-muted/40 text-xs uppercase text-muted-foreground">
                     <tr>
                         <th scope="col" class="px-6 py-3 font-medium">Room</th>
                         <th scope="col" class="px-6 py-3 font-medium">Floor</th>
                         <th scope="col" class="px-6 py-3 font-medium">Capacity</th>
                         <th scope="col" class="px-6 py-3 font-medium">Status</th>
-                        <th scope="col" class="px-6 py-3 font-medium">View</th>
-                        @if ($canManage)
-                            <th scope="col" class="px-6 py-3 font-medium">Edit</th>
-                        @endif
+                        <th scope="col" class="px-6 py-3 font-medium">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y">
@@ -122,37 +119,13 @@
                                 <button type="button" @click="openRoom({{ $room->id }})"
                                     class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-input bg-background px-3 text-sm font-medium shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                                     <x-lucide-eye class="size-4" />
-                                    View beds
+                                    View
                                 </button>
                             </td>
-                            @if ($canManage)
-                                <td class="align-middle px-6 py-4">
-                                    <form action="{{ route('dormitory-rooms.update', $room->id) }}" method="POST" class="flex min-w-[360px] flex-wrap items-end gap-2">
-                                        @csrf
-                                        @method('PUT')
-                                        <div class="flex flex-col gap-1">
-                                            <label for="room-name-{{ $room->id }}" class="text-xs font-medium">Name</label>
-                                            <input id="room-name-{{ $room->id }}" name="name" required maxlength="60" value="{{ $room->name }}"
-                                                class="flex h-8 w-32 rounded-md border border-input bg-background px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                                        </div>
-                                        <div class="flex flex-col gap-1">
-                                            <label for="room-floor-{{ $room->id }}" class="text-xs font-medium">Floor</label>
-                                            <input id="room-floor-{{ $room->id }}" name="floor" maxlength="40" value="{{ $room->floor }}"
-                                                class="flex h-8 w-28 rounded-md border border-input bg-background px-2 text-xs ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                                        </div>
-                                        <label class="flex h-8 items-center gap-1 text-xs">
-                                            <input type="hidden" name="is_active" value="0">
-                                            <input name="is_active" type="checkbox" value="1" @checked($room->is_active)>
-                                            In use
-                                        </label>
-                                        <april:button type="submit" variant="outline" size="sm">Save</april:button>
-                                    </form>
-                                </td>
-                            @endif
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="{{ $canManage ? 6 : 5 }}" class="align-middle px-6 py-8 text-center text-sm text-muted-foreground">This house has no rooms yet.</td>
+                            <td colspan="5" class="align-middle px-6 py-8 text-center text-sm text-muted-foreground">This house has no rooms yet.</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -190,6 +163,38 @@
 
             <template x-if="selectedRoom">
                 <div class="space-y-5">
+                    @if ($canManage)
+                        <div class="flex justify-end">
+                            <button type="button" @click="editingRoom = !editingRoom; editingBedId = null; leavingBedId = null"
+                                class="inline-flex h-8 items-center rounded-md border border-input bg-background px-2.5 text-xs font-medium shadow-sm hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                                <span x-text="editingRoom ? 'Cancel edit' : 'Edit room'"></span>
+                            </button>
+                        </div>
+
+                        <form x-show="editingRoom" x-cloak :action="selectedRoom.update_url" method="POST" class="grid gap-4 rounded-lg border bg-muted/20 p-4 sm:grid-cols-[1fr_1fr_auto] sm:items-end">
+                            @csrf
+                            <input type="hidden" name="_method" value="PUT">
+                            <div class="flex flex-col gap-1">
+                                <label for="modal-room-name" class="text-xs font-medium">Room name</label>
+                                <input id="modal-room-name" name="name" required maxlength="60" :value="selectedRoom.name"
+                                    class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                            </div>
+                            <div class="flex flex-col gap-1">
+                                <label for="modal-room-floor" class="text-xs font-medium">Floor <span class="font-normal text-muted-foreground">(optional)</span></label>
+                                <input id="modal-room-floor" name="floor" maxlength="40" :value="selectedRoom.floor"
+                                    class="flex h-9 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                            </div>
+                            <div class="flex items-center gap-3">
+                                <label class="flex h-9 items-center gap-2 text-sm">
+                                    <input type="hidden" name="is_active" value="0">
+                                    <input name="is_active" type="checkbox" value="1" :checked="selectedRoom.is_active">
+                                    In use
+                                </label>
+                                <button type="submit" class="inline-flex h-9 items-center rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Save</button>
+                            </div>
+                        </form>
+                    @endif
+
                     <div class="grid gap-3 sm:grid-cols-3">
                         <div class="rounded-lg border bg-muted/20 p-3">
                             <p class="text-xs font-medium uppercase text-muted-foreground">Capacity</p>

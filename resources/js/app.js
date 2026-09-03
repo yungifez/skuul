@@ -75,6 +75,7 @@ window.boardingRooms = function boardingRooms(rooms) {
         rooms,
         roomModalOpen: false,
         selectedRoomId: null,
+        editingRoom: false,
         editingBedId: null,
         leavingBedId: null,
 
@@ -84,6 +85,7 @@ window.boardingRooms = function boardingRooms(rooms) {
 
         openRoom(roomId) {
             this.selectedRoomId = roomId;
+            this.editingRoom = false;
             this.editingBedId = null;
             this.leavingBedId = null;
             this.roomModalOpen = true;
