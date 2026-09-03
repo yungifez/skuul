@@ -349,6 +349,8 @@ class BoardingTest extends TestCase
         $actor->get(route('dormitories.show', $dormitory))
             ->assertOk()
             ->assertSee('<table', false)
+            ->assertSee('View beds')
+            ->assertSee('Beds in this room')
             ->assertSee('Room 2')
             ->assertSee('Maintenance')
             ->assertSee('Broken frame');

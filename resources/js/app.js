@@ -70,6 +70,27 @@ window.locationFields = function locationFields(configuration) {
     };
 };
 
+window.boardingRooms = function boardingRooms(rooms) {
+    return {
+        rooms,
+        roomModalOpen: false,
+        selectedRoomId: null,
+        editingBedId: null,
+        leavingBedId: null,
+
+        get selectedRoom() {
+            return this.rooms.find((room) => room.id === this.selectedRoomId) ?? null;
+        },
+
+        openRoom(roomId) {
+            this.selectedRoomId = roomId;
+            this.editingBedId = null;
+            this.leavingBedId = null;
+            this.roomModalOpen = true;
+        },
+    };
+};
+
 document.addEventListener("livewire:navigated", () => {
     setTheme(window.localStorage.getItem(themeStorageKey) ?? "system");
 });
