@@ -12,6 +12,7 @@ use App\Models\DormitoryBed;
 use App\Models\DormitoryRoom;
 use App\Services\Boarding\BoardingRoster;
 use App\Traits\ListsSchoolPeople;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -232,7 +233,15 @@ class DormitoryController extends Controller
     private function hasCurrentBoarders(Dormitory $dormitory): bool
     {
         return $dormitory->beds()
-            ->whereHas('places', fn ($places) => $places->current())
+            ->whereHas('places', function (Builder $places): void {
+                // BoardingPlace::scopeCurrent() is written out here because
+                // relation closures receive a generic Eloquent builder.
+                $places->whereIn('boarding_places.id', function ($newest): void {
+                    $newest->from('boarding_places')
+                        ->selectRaw('max(id)')
+                        ->groupBy('student_record_id');
+                });
+            })
             ->exists();
     }
 }

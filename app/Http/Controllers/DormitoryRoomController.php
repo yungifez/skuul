@@ -9,6 +9,7 @@ use App\Http\Requests\StoreDormitoryRoomRequest;
 use App\Http\Requests\UpdateDormitoryRoomRequest;
 use App\Models\Dormitory;
 use App\Models\DormitoryRoom;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 
@@ -54,7 +55,15 @@ class DormitoryRoomController extends Controller
 
         $isActive = $request->boolean('is_active');
 
-        if (!$isActive && $room->beds()->whereHas('places', fn ($places) => $places->current())->exists()) {
+        if (!$isActive && $room->beds()->whereHas('places', function (Builder $places): void {
+            // BoardingPlace::scopeCurrent() is written out here because
+            // relation closures receive a generic Eloquent builder.
+            $places->whereIn('boarding_places.id', function ($newest): void {
+                $newest->from('boarding_places')
+                    ->selectRaw('max(id)')
+                    ->groupBy('student_record_id');
+            });
+        })->exists()) {
             throw new InvalidValueException('Move the current boarders before taking this room out of use.');
         }
 
