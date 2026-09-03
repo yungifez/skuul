@@ -53,6 +53,12 @@ class ThemeToggleTest extends TestCase
         $this->assertStringContainsString('document.addEventListener("livewire:navigated"', $appJs);
     }
 
+    public function test_the_application_favicon_has_a_deployable_default(): void
+    {
+        $this->assertSame('img/logo/logo.png', config('app.favicon'));
+        $this->assertFileExists(public_path(config('app.favicon')));
+    }
+
     public function test_standalone_primary_text_uses_the_foreground_token(): void
     {
         foreach (File::allFiles(resource_path('views')) as $view) {
