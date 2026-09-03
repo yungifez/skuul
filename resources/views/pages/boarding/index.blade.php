@@ -41,12 +41,20 @@
                             <p class="text-xs font-medium uppercase text-muted-foreground">{{ $dormitory->label }}</p>
                             <h3 class="mt-1 text-lg font-semibold leading-none tracking-tight">{{ $dormitory->name }}</h3>
                         </div>
-                        <x-lucide-arrow-right class="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                        <div class="flex items-center gap-2">
+                            @if (!$dormitory->is_active)
+                                <april:badge variant="outline">Archived</april:badge>
+                            @endif
+                            <x-lucide-arrow-right class="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5" />
+                        </div>
                     </div>
 
                     <div class="flex flex-wrap gap-2">
                         <april:badge variant="outline">{{ $counts['taken'] }} of {{ $counts['beds'] }} beds</april:badge>
                         <april:badge variant="outline">{{ $counts['free'] }} free</april:badge>
+                        @if ($counts['unavailable'] > 0)
+                            <april:badge variant="secondary">{{ $counts['unavailable'] }} unavailable</april:badge>
+                        @endif
                         @if ($counts['away'] > 0)
                             <april:badge variant="secondary">{{ $counts['away'] }} out tonight</april:badge>
                         @endif

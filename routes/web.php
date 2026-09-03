@@ -15,7 +15,9 @@ use App\Http\Controllers\CalendarTemplateController;
 use App\Http\Controllers\CashDepositController;
 use App\Http\Controllers\CourseOfferingController;
 use App\Http\Controllers\CustomTimetableItemController;
+use App\Http\Controllers\DormitoryBedController;
 use App\Http\Controllers\DormitoryController;
+use App\Http\Controllers\DormitoryRoomController;
 use App\Http\Controllers\ExamController;
 use App\Http\Controllers\ExamSlotController;
 use App\Http\Controllers\ExpenseController;
@@ -452,9 +454,13 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 // boarding routes
                 Route::middleware('feature:boarding')->group(function (): void {
                     Route::resource('boarding/houses', DormitoryController::class)
-                        ->only(['index', 'create', 'store', 'show'])
+                        ->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy'])
                         ->parameters(['houses' => 'dormitory'])
                         ->names('dormitories');
+                    Route::post('boarding/houses/{dormitory}/rooms', [DormitoryRoomController::class, 'store'])->name('dormitory-rooms.store');
+                    Route::put('boarding/rooms/{room}', [DormitoryRoomController::class, 'update'])->name('dormitory-rooms.update');
+                    Route::post('boarding/rooms/{room}/beds', [DormitoryBedController::class, 'store'])->name('dormitory-beds.store');
+                    Route::put('boarding/beds/{bed}', [DormitoryBedController::class, 'update'])->name('dormitory-beds.update');
                     Route::post('boarding/places', [BoardingPlaceController::class, 'store'])->name('boarding-places.store');
                     Route::delete('boarding/places/{student_record}', [BoardingPlaceController::class, 'destroy'])->name('boarding-places.destroy');
                     Route::get('boarding/nights-away', [OvernightLeaveController::class, 'index'])->name('overnight-leaves.index');

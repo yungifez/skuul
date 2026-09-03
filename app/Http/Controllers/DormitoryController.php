@@ -2,7 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Audit\RecordAuditEvent;
+use App\Enums\AuditAction;
+use App\Exceptions\InvalidValueException;
 use App\Http\Requests\StoreDormitoryRequest;
+use App\Http\Requests\UpdateDormitoryRequest;
 use App\Models\Dormitory;
 use App\Models\DormitoryBed;
 use App\Models\DormitoryRoom;
@@ -19,7 +23,7 @@ class DormitoryController extends Controller
 {
     use ListsSchoolPeople;
 
-    public function __construct()
+    public function __construct(private RecordAuditEvent $auditor)
     {
         $this->authorizeResource(Dormitory::class, 'dormitory');
     }
@@ -45,6 +49,14 @@ class DormitoryController extends Controller
     public function create(): View
     {
         return view('pages.boarding.create');
+    }
+
+    /**
+     * Show the form for changing a house.
+     */
+    public function edit(Dormitory $dormitory): View
+    {
+        return view('pages.boarding.edit', ['dormitory' => $dormitory]);
     }
 
     /**
@@ -78,12 +90,71 @@ class DormitoryController extends Controller
                 }
             }
 
+            $this->auditor->record(
+                AuditAction::BoardingHouseChanged,
+                $dormitory,
+                ['change' => 'created', 'rooms' => (int) $request->validated('rooms')],
+            );
+
             return $dormitory;
         });
 
         return redirect()
             ->route('dormitories.show', $dormitory->id)
             ->with('success', "$dormitory->name is open.");
+    }
+
+    /**
+     * Change a house without changing its boarding history.
+     */
+    public function update(UpdateDormitoryRequest $request, Dormitory $dormitory): RedirectResponse
+    {
+        $isActive = $request->boolean('is_active');
+
+        if (!$isActive && $this->hasCurrentBoarders($dormitory)) {
+            throw new InvalidValueException('Move the current boarders before closing this house.');
+        }
+
+        DB::transaction(function () use ($dormitory, $request, $isActive): void {
+            $dormitory->update([
+                ...$request->validated(),
+                'is_active' => $isActive,
+            ]);
+
+            $this->auditor->record(
+                AuditAction::BoardingHouseChanged,
+                $dormitory,
+                ['change' => 'updated', 'is_active' => $isActive],
+            );
+        });
+
+        return redirect()
+            ->route('dormitories.show', $dormitory->id)
+            ->with('success', "$dormitory->name was updated.");
+    }
+
+    /**
+     * Archive a house while preserving its rooms, beds, and history.
+     */
+    public function destroy(Dormitory $dormitory): RedirectResponse
+    {
+        if ($this->hasCurrentBoarders($dormitory)) {
+            throw new InvalidValueException('Move the current boarders before archiving this house.');
+        }
+
+        DB::transaction(function () use ($dormitory): void {
+            $dormitory->update(['is_active' => false]);
+
+            $this->auditor->record(
+                AuditAction::BoardingHouseChanged,
+                $dormitory,
+                ['change' => 'archived'],
+            );
+        });
+
+        return redirect()
+            ->route('dormitories.index')
+            ->with('success', "$dormitory->name was archived.");
     }
 
     /**
@@ -105,5 +176,12 @@ class DormitoryController extends Controller
             'learners' => $this->schoolLearners(),
             'canManage' => auth()->user()?->can('manage boarding') === true,
         ]);
+    }
+
+    private function hasCurrentBoarders(Dormitory $dormitory): bool
+    {
+        return $dormitory->beds()
+            ->whereHas('places', fn ($places) => $places->current())
+            ->exists();
     }
 }

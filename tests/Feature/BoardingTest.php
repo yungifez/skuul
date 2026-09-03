@@ -7,6 +7,7 @@ use App\Actions\Boarding\AssignBoardingSupervisor;
 use App\Actions\Boarding\DecideOvernightLeave;
 use App\Actions\Boarding\RequestOvernightLeave;
 use App\Enums\AuditAction;
+use App\Enums\DormitoryBedStatus;
 use App\Enums\Feature;
 use App\Enums\OvernightLeaveStatus;
 use App\Enums\SupervisionRole;
@@ -298,6 +299,88 @@ class BoardingTest extends TestCase
         $actor->get(route('dormitories.show', $dormitory->id))
             ->assertOk()
             ->assertSee($enrollment->user->name);
+    }
+
+    public function test_the_office_can_manage_different_room_sizes_and_bed_states(): void
+    {
+        $actor = $this->authorized_user(['read boarding', 'manage boarding']);
+        app(FeatureManager::class)->enable(Feature::Boarding);
+
+        $actor->post(route('dormitories.store'), [
+            'name' => 'Maple House',
+            'label' => 'Hostel',
+            'rooms' => 1,
+            'beds_per_room' => 2,
+        ])->assertRedirect();
+
+        $dormitory = Dormitory::where('name', 'Maple House')->sole();
+
+        $actor->post(route('dormitory-rooms.store', $dormitory), [
+            'name' => 'Room 2',
+            'floor' => 'First floor',
+        ])->assertRedirect();
+
+        $room = DormitoryRoom::where('dormitory_id', $dormitory->id)->where('name', 'Room 2')->sole();
+
+        foreach (['Bed A', 'Bed B', 'Bed C'] as $name) {
+            $actor->post(route('dormitory-beds.store', $room), ['name' => $name])->assertRedirect();
+        }
+
+        $bed = $room->beds()->where('name', 'Bed B')->sole();
+
+        $actor->put(route('dormitory-beds.update', $bed), [
+            'name' => 'Bed B',
+            'status' => DormitoryBedStatus::Maintenance->value,
+            'status_reason' => 'Broken frame',
+        ])->assertRedirect();
+
+        $actor->put(route('dormitories.update', $dormitory), [
+            'name' => 'Maple Hall',
+            'label' => 'Hostel',
+            'notes' => 'North campus',
+            'is_active' => 1,
+        ])->assertRedirect();
+
+        $this->assertSame(5, $dormitory->fresh()->beds()->count());
+        $this->assertSame(DormitoryBedStatus::Maintenance, $bed->fresh()->status);
+        $this->assertSame('Broken frame', $bed->fresh()->status_reason);
+        $this->assertSame('Maple Hall', $dormitory->fresh()->name);
+
+        $actor->get(route('dormitories.show', $dormitory))
+            ->assertOk()
+            ->assertSee('Room 2')
+            ->assertSee('Maintenance')
+            ->assertSee('Broken frame');
+    }
+
+    public function test_an_unavailable_bed_cannot_receive_a_learner(): void
+    {
+        $this->authorized_user([]);
+        $bed = $this->bed();
+        $bed->update([
+            'status' => DormitoryBedStatus::Unavailable,
+            'status_reason' => 'Reserved for repairs',
+        ]);
+
+        $this->expectException(InvalidValueException::class);
+
+        app(AssignBoardingPlace::class)->assign($this->enrollment(), $bed);
+    }
+
+    public function test_an_occupied_bed_cannot_be_marked_unavailable(): void
+    {
+        $actor = $this->authorized_user(['read boarding', 'manage boarding']);
+        app(FeatureManager::class)->enable(Feature::Boarding);
+        $bed = $this->bed();
+        app(AssignBoardingPlace::class)->assign($this->enrollment(), $bed);
+
+        $actor->put(route('dormitory-beds.update', $bed), [
+            'name' => $bed->name,
+            'status' => DormitoryBedStatus::Maintenance->value,
+            'status_reason' => 'Broken frame',
+        ])->assertRedirect()->assertSessionHas('danger', 'Move the current boarder before making this bed unavailable.');
+
+        $this->assertSame(DormitoryBedStatus::Available, $bed->fresh()->status);
     }
 
     public function test_reading_boarding_does_not_allow_answering_a_night_away(): void

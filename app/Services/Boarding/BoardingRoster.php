@@ -2,6 +2,7 @@
 
 namespace App\Services\Boarding;
 
+use App\Enums\DormitoryBedStatus;
 use App\Models\BoardingPlace;
 use App\Models\Dormitory;
 use App\Models\OvernightLeave;
@@ -74,17 +75,24 @@ class BoardingRoster
     /**
      * Count the beds in a house and how many of them are taken.
      *
-     * @return array{beds: int, taken: int, free: int, away: int}
+     * @return array{beds: int, taken: int, free: int, unavailable: int, away: int}
      */
     public function occupancyOf(Dormitory $dormitory, ?string $night = null): array
     {
-        $beds = $dormitory->beds()->where('dormitory_beds.is_active', true)->count();
+        $bedsQuery = $dormitory->beds()
+            ->where('dormitory_beds.is_active', true)
+            ->whereHas('room', fn ($room) => $room->where('is_active', true));
+        $beds = (clone $bedsQuery)->count();
+        $unavailable = (clone $bedsQuery)
+            ->where('dormitory_beds.status', '!=', DormitoryBedStatus::Available->value)
+            ->count();
         $taken = BoardingPlace::countInDormitory($dormitory->id);
 
         return [
             'beds' => $beds,
             'taken' => $taken,
-            'free' => max($beds - $taken, 0),
+            'free' => max($beds - $taken - $unavailable, 0),
+            'unavailable' => $unavailable,
             'away' => $this->awayFrom($dormitory, $night)->count(),
         ];
     }

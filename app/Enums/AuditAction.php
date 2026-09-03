@@ -215,6 +215,21 @@ enum AuditAction: string
     case BoardingPlaceChanged = 'boarding.place_changed';
 
     /**
+     * A boarding house or its operational state changed.
+     */
+    case BoardingHouseChanged = 'boarding.house_changed';
+
+    /**
+     * A boarding room or its operational state changed.
+     */
+    case BoardingRoomChanged = 'boarding.room_changed';
+
+    /**
+     * A boarding bed or its operational state changed.
+     */
+    case BoardingBedChanged = 'boarding.bed_changed';
+
+    /**
      * Staff on duty in a boarding house changed.
      */
     case BoardingSupervisionChanged = 'boarding.supervision_changed';
@@ -629,6 +644,9 @@ enum AuditAction: string
             self::FinancialPeriodReopened => 'Financial period reopened',
             self::CashDepositRecorded => 'Cash deposited to bank',
             self::BoardingPlaceChanged => 'Boarding place changed',
+            self::BoardingHouseChanged => 'Boarding house changed',
+            self::BoardingRoomChanged => 'Boarding room changed',
+            self::BoardingBedChanged => 'Boarding bed changed',
             self::BoardingSupervisionChanged => 'Boarding duty changed',
             self::OvernightLeaveRequested => 'Night away requested',
             self::OvernightLeaveDecided => 'Night away answered',

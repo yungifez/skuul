@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DormitoryBedStatus;
 use App\Traits\InSchool;
 use Database\Factories\DormitoryBedFactory;
 use Illuminate\Database\Eloquent\Builder;
@@ -28,6 +29,8 @@ class DormitoryBed extends Model
         'dormitory_room_id',
         'name',
         'is_active',
+        'status',
+        'status_reason',
     ];
 
     /**
@@ -35,6 +38,7 @@ class DormitoryBed extends Model
      */
     protected $attributes = [
         'is_active' => true,
+        'status' => DormitoryBedStatus::Available->value,
     ];
 
     /**
@@ -42,6 +46,7 @@ class DormitoryBed extends Model
      */
     protected $casts = [
         'is_active' => 'boolean',
+        'status' => DormitoryBedStatus::class,
     ];
 
     /**
@@ -101,6 +106,22 @@ class DormitoryBed extends Model
     }
 
     /**
+     * Limit the query to beds that can receive a learner.
+     *
+     * @param  Builder<$this>  $query
+     * @return Builder<$this>
+     */
+    public function scopeAssignable(Builder $query): Builder
+    {
+        return $query
+            ->where('dormitory_beds.is_active', true)
+            ->where('dormitory_beds.status', DormitoryBedStatus::Available->value)
+            ->whereHas('room', fn ($room) => $room
+                ->where('is_active', true)
+                ->whereHas('dormitory', fn ($dormitory) => $dormitory->where('is_active', true)));
+    }
+
+    /**
      * Limit the query to the beds nobody sleeps in.
      *
      * @param  Builder<$this>  $query
@@ -108,7 +129,7 @@ class DormitoryBed extends Model
      */
     public function scopeFree(Builder $query): Builder
     {
-        return $query->whereNotIn(
+        return $query->assignable()->whereNotIn(
             'id',
             BoardingPlace::query()->current()->whereNotNull('dormitory_bed_id')->select('dormitory_bed_id'),
         );

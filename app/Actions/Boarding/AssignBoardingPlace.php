@@ -4,6 +4,7 @@ namespace App\Actions\Boarding;
 
 use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AuditAction;
+use App\Enums\DormitoryBedStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\BoardingPlace;
 use App\Models\DormitoryBed;
@@ -130,7 +131,7 @@ class AssignBoardingPlace
             throw new InvalidValueException('That bed is on another campus.');
         }
 
-        if (!$bed->is_active || $bed->room === null || !$bed->room->is_active) {
+        if (!$bed->is_active || $bed->status !== DormitoryBedStatus::Available || $bed->room === null || !$bed->room->is_active || !$bed->room->dormitory?->is_active) {
             throw new InvalidValueException('That bed is out of use.');
         }
 
