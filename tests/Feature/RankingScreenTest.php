@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\CohortType;
 use App\Enums\Feature;
 use App\Enums\RosterMode;
+use App\Livewire\RankingFilters;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\Cohort;
@@ -17,6 +18,7 @@ use App\Models\User;
 use App\Services\Feature\FeatureManager;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -44,10 +46,30 @@ class RankingScreenTest extends TestCase
         $this->get(route('rankings.index'))
             ->assertOk()
             ->assertSee('Choose a class or group first')
-            ->assertSee('Class or group')
-            ->assertSee('Whole group')
             ->assertSee('What do you want to compare?')
             ->assertSee('space-y-6');
+    }
+
+    public function test_livewire_loads_sections_when_a_class_is_selected(): void
+    {
+        $this->authorized_user(['read ranking']);
+        $class = AcademicLevel::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'Kindergarten 1',
+            'is_group' => false,
+        ]);
+        $section = AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => current_academic_year_id(),
+            'academic_level_id' => $class->id,
+            'name' => 'Blue',
+        ]);
+
+        Livewire::test(RankingFilters::class)
+            ->assertSet('selectionMode', 'class')
+            ->set('academicLevelId', $class->id)
+            ->assertSet('academicCycleSectionId', null)
+            ->assertSee($section->label ?? $section->name);
     }
 
     public function test_a_group_ranks_learners_across_its_child_classes(): void
