@@ -270,7 +270,9 @@ class Menu extends Component
                 'text' => 'Calendar',
                 'icon' => 'calendar-days',
                 'route' => 'calendar-events.index',
-                'visible' => feature_enabled(Feature::Events) && $user->can('viewAny', CalendarEvent::class),
+                'visible' => !$this->isPortalOnly($user)
+                    && feature_enabled(Feature::Events)
+                    && $user->can('viewAny', CalendarEvent::class),
             ],
             [
                 'type' => 'menu-item',
@@ -319,7 +321,7 @@ class Menu extends Component
                 'text' => 'Finance',
                 'icon' => 'dollar-sign',
                 'route' => 'fee-invoices.index',
-                'can' => 'read fee invoice',
+                'visible' => !$this->isPortalOnly($user) && $user->can('read fee invoice'),
             ],
             [
                 'type' => 'menu-item',
@@ -446,6 +448,20 @@ class Menu extends Component
             && features()->enabled(Feature::Events, $enrollment->school_id);
 
         return $isOpen ? $enrollment : null;
+    }
+
+    /**
+     * Check whether a person has only a learner or family portal role.
+     *
+     * Portal roles may read their own published records, but staff screens
+     * must not be used as a shortcut around the portal's record boundaries.
+     */
+    private function isPortalOnly(User $user): bool
+    {
+        $roles = collect($user->getRoleNames());
+
+        return $roles->intersect(['parent', 'student'])->isNotEmpty()
+            && $roles->diff(['parent', 'student'])->isEmpty();
     }
 
     /**

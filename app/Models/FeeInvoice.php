@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Casts\Money;
+use App\Traits\InSchool;
 use Brick\Money\Money as BrickMoney;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class FeeInvoice extends Model
 {
     use HasFactory;
+    use InSchool;
     use SoftDeletes;
 
     protected $fillable = [

@@ -65,7 +65,7 @@ class PortalOverviewController extends Controller
         foreach ($enrollments as $enrollment) {
             $open = [];
 
-            foreach ([PortalArea::Attendance, PortalArea::Notices, PortalArea::Calendar, PortalArea::Documents, PortalArea::Boarding, PortalArea::Library, PortalArea::Requests] as $area) {
+            foreach ([PortalArea::Attendance, PortalArea::Notices, PortalArea::Calendar, PortalArea::Invoices, PortalArea::Documents, PortalArea::Boarding, PortalArea::Library, PortalArea::Requests] as $area) {
                 if ($area === PortalArea::Boarding && !features()->enabled(Feature::Boarding, $enrollment->school_id)) {
                     continue;
                 }

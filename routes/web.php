@@ -41,6 +41,7 @@ use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\OrganizationDashboardController;
 use App\Http\Controllers\OvernightLeaveController;
 use App\Http\Controllers\ParentController;
+use App\Http\Controllers\PortalInvoicesController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SchoolSetupController;
 use App\Http\Controllers\SchoolSetupPhaseController;
@@ -121,6 +122,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::put('portal/notification-preferences', [NoticeNotificationPreferenceController::class, 'portalUpdate'])->name('portal.notification-preferences.update');
     Route::get('portal/enrollments/{studentRecord}/attendance', ['App\Http\Controllers\PortalAttendanceController', 'show'])->name('portal.attendance.show');
     Route::get('portal/enrollments/{studentRecord}/calendar', ['App\Http\Controllers\PortalCalendarController', 'index'])->name('portal.calendar.index');
+    Route::get('portal/enrollments/{studentRecord}/invoices', [PortalInvoicesController::class, 'index'])->name('portal.invoices.index');
     Route::get('portal/enrollments/{studentRecord}/documents', ['App\Http\Controllers\PortalDocumentsController', 'index'])->name('portal.documents.index');
     Route::get('portal/enrollments/{studentRecord}/documents/report-cards/{reportCardSnapshot}', ['App\Http\Controllers\PortalDocumentsController', 'downloadReportCard'])->name('portal.documents.report-cards.download');
     Route::get('portal/enrollments/{studentRecord}/documents/transcripts/{transcriptSnapshot}', ['App\Http\Controllers\PortalDocumentsController', 'downloadTranscript'])->name('portal.documents.transcripts.download');

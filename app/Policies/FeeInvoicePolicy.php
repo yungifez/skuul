@@ -12,7 +12,7 @@ class FeeInvoicePolicy
      */
     public function viewAny(User $user)
     {
-        if ($user->can('read fee invoice')) {
+        if ($user->can('read fee invoice') && !$this->isPortalOnly($user)) {
             return true;
         }
     }
@@ -87,5 +87,16 @@ class FeeInvoicePolicy
     public function forceDelete(User $user, FeeInvoice $feeInvoice)
     {
         //
+    }
+
+    /**
+     * Portal roles read invoices from a child-scoped portal screen.
+     */
+    private function isPortalOnly(User $user): bool
+    {
+        $roles = collect($user->getRoleNames());
+
+        return $roles->intersect(['parent', 'student'])->isNotEmpty()
+            && $roles->diff(['parent', 'student'])->isEmpty();
     }
 }

@@ -16,6 +16,7 @@ class StoreFeeInvoiceRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'idempotency_key' => ['nullable', 'uuid'],
             'issue_date' => 'required|date',
             'due_date' => 'required|date|after_or_equal:issue_date',
             'note' => 'nullable|max:10000',

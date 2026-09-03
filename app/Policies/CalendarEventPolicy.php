@@ -22,7 +22,7 @@ class CalendarEventPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('read calendar event');
+        return $user->can('read calendar event') && !$this->isPortalOnly($user);
     }
 
     /**
@@ -33,6 +33,10 @@ class CalendarEventPolicy
      */
     public function view(User $user, CalendarEvent $event): bool
     {
+        if ($this->isPortalOnly($user)) {
+            return false;
+        }
+
         if ($event->school_id !== current_school_id()) {
             return false;
         }
@@ -74,5 +78,16 @@ class CalendarEventPolicy
     public function delete(User $user, CalendarEvent $event): bool
     {
         return $user->can('delete calendar event') && $event->school_id === current_school_id();
+    }
+
+    /**
+     * Portal roles read calendar entries from a child-scoped portal screen.
+     */
+    private function isPortalOnly(User $user): bool
+    {
+        $roles = collect($user->getRoleNames());
+
+        return $roles->intersect(['parent', 'student'])->isNotEmpty()
+            && $roles->diff(['parent', 'student'])->isEmpty();
     }
 }

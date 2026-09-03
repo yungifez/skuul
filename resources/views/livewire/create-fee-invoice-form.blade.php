@@ -178,6 +178,7 @@
         </div>
     </div>
     @csrf
+    <input type="hidden" name="idempotency_key" value="{{ old('idempotency_key', (string) \Illuminate\Support\Str::uuid()) }}">
     <april:button type="submit" class="w-full md:w-3/12" wire:loading.attr="disabled">
         <x-lucide-key class="mr-2 size-4" />
         Create Invoice

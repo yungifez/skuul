@@ -3,12 +3,17 @@
 namespace Tests\Feature;
 
 use App\Models\Fee;
+use App\Models\FeeCategory;
 use App\Models\FeeInvoice;
+use App\Models\FeeInvoiceBatch;
+use App\Models\FinancialPeriod;
 use App\Models\StudentRecord;
+use App\Services\Fee\FeeInvoiceService;
 use App\Traits\FeatureTestTrait;
 use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class FeeInvoiceTest extends TestCase
@@ -127,12 +132,20 @@ class FeeInvoiceTest extends TestCase
             return $student->user;
         });
 
+        FinancialPeriod::query()->firstOrCreate(
+            ['school_id' => $this->workingSchool()->id, 'name' => 'Current finance period'],
+            [
+                'starts_on' => now()->startOfYear()->toDateString(),
+                'ends_on' => now()->endOfYear()->toDateString(),
+            ],
+        );
+
         $this->authorized_user(['create fee invoice'])
             ->post('dashboard/fees/fee-invoices', [
-                'issue_date' => $date,
-                'due_date' => Carbon::instance($date)->addDay(),
+                'issue_date' => $date->toDateString(),
+                'due_date' => Carbon::instance($date)->addDay()->toDateString(),
                 'note' => $this->faker()->sentence(),
-                'users' => $students->pluck('id')->all(),
+                'student_records' => $studentRecords->pluck('id')->all(),
                 'records' => $records,
             ])
             ->assertRedirect();
@@ -146,6 +159,38 @@ class FeeInvoiceTest extends TestCase
             'user_id' => $students[2]->id,
             'issue_date' => $date->format('Y-m-d'),
         ]);
+    }
+
+    public function test_replaying_an_invoice_batch_does_not_create_duplicate_invoices(): void
+    {
+        $school = $this->workingSchool();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $school->id]);
+        $category = FeeCategory::factory()->create(['school_id' => $school->id]);
+        $fee = Fee::factory()->create(['fee_category_id' => $category->id]);
+        $date = now()->toDateString();
+        $key = (string) Str::uuid();
+
+        FinancialPeriod::query()->create([
+            'school_id' => $school->id,
+            'name' => 'Current finance period',
+            'starts_on' => now()->startOfYear()->toDateString(),
+            'ends_on' => now()->endOfYear()->toDateString(),
+        ]);
+
+        $payload = [
+            'idempotency_key' => $key,
+            'issue_date' => $date,
+            'due_date' => $date,
+            'student_records' => [$enrollment->id],
+            'records' => [['fee_id' => $fee->id, 'amount' => 10000, 'waiver' => 0, 'fine' => 0]],
+        ];
+
+        $this->authorized_user(['create fee invoice']);
+        app(FeeInvoiceService::class)->storeFeeInvoice($payload);
+        app(FeeInvoiceService::class)->storeFeeInvoice($payload);
+
+        $this->assertSame(1, FeeInvoice::query()->where('student_record_id', $enrollment->id)->count());
+        $this->assertSame(1, FeeInvoiceBatch::query()->where('idempotency_key', $key)->count());
     }
 
     public function test_unauthorized_user_cannot_view_show_page()
@@ -228,14 +273,13 @@ class FeeInvoiceTest extends TestCase
     public function test_authorized_user_can_update_fee_invoice()
     {
         $feeInvoice = FeeInvoice::factory()->create();
-        $issueDate = $this->faker->date();
-        $dueDate = Carbon::parse($issueDate)->addDays(10);
+        $issueDate = $feeInvoice->issue_date->format('Y-m-d');
+        $dueDate = Carbon::parse($issueDate)->addDays(10)->format('Y-m-d');
 
         $this->authorized_user(['update fee invoice'])
             ->put("dashboard/fees/fee-invoices/$feeInvoice->id/", [
                 'issue_date' => $issueDate,
                 'due_date' => $dueDate,
-
             ])
             ->assertRedirect();
 

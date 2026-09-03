@@ -121,6 +121,7 @@ class PortalSummary
             'invoices' => FeeInvoice::query()
                 ->ofSchool($enrollment->school_id)
                 ->where('student_record_id', $enrollment->id)
+                ->with(['feeInvoiceRecords', 'allocations'])
                 ->orderByDesc('id')
                 ->get(),
             'balance' => $this->ledger->balance($enrollment),

@@ -7,12 +7,15 @@ use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\Fee;
 use App\Models\FeeInvoice;
+use App\Models\FeeInvoiceBatch;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Services\Finance\FinancialPeriodResolver;
 use App\Services\Print\PrintService;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class FeeInvoiceService
 {
@@ -28,56 +31,73 @@ class FeeInvoiceService
      */
     public function storeFeeInvoice(array $records): void
     {
-        $feeIds = collect($records['records'])->pluck('fee_id')->map(fn (mixed $id): int => (int) $id)->unique();
-        $fees = Fee::query()
-            ->whereIn('id', $feeIds)
-            ->whereRelation('feeCategory', 'school_id', current_school_id())
-            ->get();
+        $schoolId = current_school_id();
+        $idempotencyKey = (string) ($records['idempotency_key'] ?? Str::uuid());
 
-        if ($fees->count() !== $feeIds->count()) {
-            throw new InvalidValueException('Some fees are not from this school.');
-        }
+        Cache::lock("fee-invoice-batch:$schoolId:$idempotencyKey", 120)->block(10, function () use ($records, $schoolId, $idempotencyKey): void {
+            if (FeeInvoiceBatch::query()
+                ->inSchool()
+                ->where('idempotency_key', $idempotencyKey)
+                ->exists()) {
+                return;
+            }
 
-        $enrollmentIds = collect($records['student_records'] ?? [])
-            ->map(fn (mixed $id): int => (int) $id)
-            ->unique()
-            ->values();
+            $feeIds = collect($records['records'])->pluck('fee_id')->map(fn (mixed $id): int => (int) $id)->unique();
+            $fees = Fee::query()
+                ->whereIn('id', $feeIds)
+                ->whereRelation('feeCategory', 'school_id', $schoolId)
+                ->get();
 
-        if ($enrollmentIds->isEmpty()) {
-            throw new InvalidValueException('Add at least one enrolled student.');
-        }
+            if ($fees->count() !== $feeIds->count()) {
+                throw new InvalidValueException('Some fees are not from this school.');
+            }
 
-        $enrollments = StudentRecord::query()
-            ->inSchool()
-            ->whereIn('id', $enrollmentIds)
-            ->where('status', EnrollmentStatus::Active)
-            ->with('user')
-            ->get()
-            ->keyBy('id');
+            $enrollmentIds = collect($records['student_records'] ?? [])
+                ->map(fn (mixed $id): int => (int) $id)
+                ->unique()
+                ->values();
 
-        if ($enrollments->count() !== $enrollmentIds->count()) {
-            throw new InvalidValueException('Some selected students are not active in this school.');
-        }
+            if ($enrollmentIds->isEmpty()) {
+                throw new InvalidValueException('Add at least one enrolled student.');
+            }
 
-        $period = $this->periods->openFor(current_school_id(), $records['issue_date']);
+            $enrollments = StudentRecord::query()
+                ->inSchool()
+                ->whereIn('id', $enrollmentIds)
+                ->where('status', EnrollmentStatus::Active)
+                ->with('user')
+                ->get()
+                ->keyBy('id');
 
-        DB::transaction(function () use ($records, $enrollments, $period): void {
-            foreach ($enrollments as $enrollment) {
-                $feeInvoice = FeeInvoice::create([
-                    'issue_date' => $records['issue_date'],
-                    'due_date' => $records['due_date'],
-                    'note' => $records['note'] ?? null,
-                    'name' => $this->generateInvoiceNumber($enrollment->school_id),
-                    'user_id' => $enrollment->user_id,
-                    'school_id' => $enrollment->school_id,
-                    'student_record_id' => $enrollment->id,
-                    'financial_period_id' => $period->id,
+            if ($enrollments->count() !== $enrollmentIds->count()) {
+                throw new InvalidValueException('Some selected students are not active in this school.');
+            }
+
+            $period = $this->periods->openFor($schoolId, $records['issue_date']);
+
+            DB::transaction(function () use ($records, $enrollments, $period, $schoolId, $idempotencyKey): void {
+                FeeInvoiceBatch::create([
+                    'school_id' => $schoolId,
+                    'idempotency_key' => $idempotencyKey,
                 ]);
 
-                $feeInvoice->feeInvoiceRecords()->createMany($records['records']);
+                foreach ($enrollments as $enrollment) {
+                    $feeInvoice = FeeInvoice::create([
+                        'issue_date' => $records['issue_date'],
+                        'due_date' => $records['due_date'],
+                        'note' => $records['note'] ?? null,
+                        'name' => $this->generateInvoiceNumber($enrollment->school_id),
+                        'user_id' => $enrollment->user_id,
+                        'school_id' => $enrollment->school_id,
+                        'student_record_id' => $enrollment->id,
+                        'financial_period_id' => $period->id,
+                    ]);
 
-                $this->chargeTheStudent($feeInvoice);
-            }
+                    $feeInvoice->feeInvoiceRecords()->createMany($records['records']);
+
+                    $this->chargeTheStudent($feeInvoice);
+                }
+            });
         });
     }
 
