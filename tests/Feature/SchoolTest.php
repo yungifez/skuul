@@ -141,6 +141,12 @@ class SchoolTest extends TestCase
         $this->assertSame(asset(config('app.logo')), $school->fresh()->logo_url);
     }
 
+    public function test_the_application_logo_has_a_deployable_default(): void
+    {
+        $this->assertSame('img/logo/logo.png', config('app.logo'));
+        $this->assertFileExists(public_path(config('app.logo')));
+    }
+
     public function test_school_setup_can_be_rendered_for_the_current_school()
     {
         $school = $this->workingSchool();

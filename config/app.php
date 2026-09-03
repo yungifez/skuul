@@ -2,7 +2,7 @@
 
 return [
     'name' => env('APP_NAME', 'Laravel'),
-    'logo' => env('LOGO_PATH'),
+    'logo' => env('LOGO_PATH') ?: 'img/logo/logo.png',
     'favicon' => env('FAVICON_PATH', 'favicon.ico'),
     'currency' => env('APP_CURRENCY', 'NGN'),
 
