@@ -199,8 +199,8 @@ class WellbeingScreenTest extends TestCase
 
     public function test_a_health_record_validation_error_is_shown_on_the_screen(): void
     {
-        config(['session.driver' => 'cookie']);
         $this->authorized_user(['read health record', 'update health record']);
+        config(['session.driver' => 'cookie']);
         $enrollment = $this->enrollment();
 
         $this->put(route('health-records.update', $enrollment), [
