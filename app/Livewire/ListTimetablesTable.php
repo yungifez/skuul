@@ -83,6 +83,7 @@ class ListTimetablesTable extends Component
 
         $this->timetables = Timetable::query()
             ->where('academic_period_id', current_academic_period_id())
+            ->when($this->isStudent, fn ($query) => $query->where('status', TimetableStatus::Published))
             ->when($this->scope === 'section', fn ($query) => $query->where('academic_cycle_section_id', $this->academicCycleSectionId))
             ->when($this->scope === 'schoolwide', fn ($query) => $query->whereNull('academic_cycle_section_id'))
             ->orderByDesc('published_at')

@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Portal roles could open staff curriculum workspaces
+
+- Status: In progress
+- Area: Learner and family role boundaries
+- Observed: On the live site, a student account with the built-in `read syllabus` and `read timetable` permissions could open `/dashboard/syllabi` and `/dashboard/timetables`. The timetable component scoped the learner's rows, but the syllabus list queried the whole school. A guardian account also had the staff-oriented syllabus and timetable navigation available through the seeded read permissions.
+- Impact: Learners could be shown curriculum records outside their roster, and guardians could reach staff workspace screens that are not child-scoped.
+- Reproduction: Sign in as a student or guardian, open the Syllabi or Timetables workspace directly, and inspect the rendered list and filters. Use a second course offering, section, unpublished syllabus, or draft timetable to verify whether unrelated records are exposed.
+- Planned resolution: Keep the learner timetable route as a published, own-section view; show learners only published syllabi for active offerings on their roster; deny guardian access to these staff workspaces and remove their sidebar and command-palette entries. Regression coverage exercises normal, alternate, and exception paths.
+
 ## Portal links ignored disabled top-level school tools
 
 - Status: Fixed

@@ -217,14 +217,14 @@ class Menu extends Component
                 'text' => 'Syllabi',
                 'icon' => 'list',
                 'route' => 'syllabi.index',
-                'can' => 'read syllabus',
+                'visible' => !$user->isParentPortalOnly() && $user->can('read syllabus'),
             ],
             [
                 'type' => 'menu-item',
                 'text' => 'Timetables',
                 'icon' => 'list-checks',
                 'route' => 'timetables.index',
-                'can' => 'read timetable',
+                'visible' => !$user->isParentPortalOnly() && $user->can('read timetable'),
             ],
             ['header' => 'Assessment'],
             [
@@ -275,7 +275,7 @@ class Menu extends Component
                 'text' => 'Calendar',
                 'icon' => 'calendar-days',
                 'route' => 'calendar-events.index',
-                'visible' => !$this->isPortalOnly($user)
+                'visible' => !$user->isPortalOnly()
                     && feature_enabled(Feature::Events)
                     && $user->can('viewAny', CalendarEvent::class),
             ],
@@ -340,13 +340,13 @@ class Menu extends Component
                         'text' => 'Fee invoices',
                         'icon' => 'receipt',
                         'route' => 'fee-invoices.index',
-                        'visible' => !$this->isPortalOnly($user) && $user->can('read fee invoice'),
+                        'visible' => !$user->isPortalOnly() && $user->can('read fee invoice'),
                     ],
                     [
                         'text' => 'Budgets',
                         'icon' => 'wallet',
                         'route' => 'budgets.index',
-                        'visible' => !$this->isPortalOnly($user) && $user->can('read budget'),
+                        'visible' => !$user->isPortalOnly() && $user->can('read budget'),
                     ],
                 ],
             ],
@@ -545,20 +545,6 @@ class Menu extends Component
             && features()->enabled(Feature::Events, $enrollment->school_id);
 
         return $isOpen ? $enrollment : null;
-    }
-
-    /**
-     * Check whether a person has only a learner or family portal role.
-     *
-     * Portal roles may read their own published records, but staff screens
-     * must not be used as a shortcut around the portal's record boundaries.
-     */
-    private function isPortalOnly(User $user): bool
-    {
-        $roles = collect($user->getRoleNames());
-
-        return $roles->intersect(['parent', 'student'])->isNotEmpty()
-            && $roles->diff(['parent', 'student'])->isEmpty();
     }
 
     /**

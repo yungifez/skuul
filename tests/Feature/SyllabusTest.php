@@ -5,12 +5,15 @@ namespace Tests\Feature;
 use App\Actions\Syllabus\PublishSyllabus;
 use App\Actions\Syllabus\ReviseSyllabus;
 use App\Enums\AuditAction;
+use App\Enums\CourseOfferingStatus;
+use App\Enums\RosterMode;
 use App\Enums\SyllabusStatus;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
 use App\Models\CourseOffering;
+use App\Models\StudentRecord;
 use App\Models\Subject;
 use App\Models\Syllabus;
 use App\Traits\FeatureTestTrait;
@@ -38,6 +41,48 @@ class SyllabusTest extends TestCase
             ->assertOk();
     }
 
+    public function test_a_parent_cannot_open_the_staff_syllabus_workspace(): void
+    {
+        $this->authorized_user(['read syllabus']);
+        auth()->user()->assignRole('parent');
+
+        $this->get('/dashboard/syllabi')->assertForbidden();
+    }
+
+    public function test_a_student_only_sees_published_syllabi_for_their_active_offerings(): void
+    {
+        $school = $this->workingSchool();
+        $studentRecord = StudentRecord::factory()->create(['school_id' => $school->id]);
+        $student = $studentRecord->user;
+        $student->givePermissionTo('read syllabus');
+
+        $visibleOffering = $this->courseOffering();
+        $visibleOffering->update([
+            'roster_mode' => RosterMode::IndividualRoster,
+            'status' => CourseOfferingStatus::Active,
+        ]);
+        $visibleOffering->studentRecords()->attach($studentRecord);
+        $visibleSyllabus = Syllabus::factory()->create(['course_offering_id' => $visibleOffering->id]);
+        $visibleSyllabus->update(['status' => SyllabusStatus::Published, 'published_at' => now()]);
+
+        $outsideOffering = $this->courseOffering();
+        $outsideOffering->update([
+            'roster_mode' => RosterMode::IndividualRoster,
+            'status' => CourseOfferingStatus::Active,
+        ]);
+        $outsideSyllabus = Syllabus::factory()->create(['course_offering_id' => $outsideOffering->id]);
+        $outsideSyllabus->update(['status' => SyllabusStatus::Published, 'published_at' => now()]);
+
+        $draftSyllabus = Syllabus::factory()->create(['course_offering_id' => $visibleOffering->id]);
+
+        $this->actingAsMemberOf($school, $student)
+            ->get('/dashboard/syllabi')
+            ->assertOk()
+            ->assertSee($visibleSyllabus->name)
+            ->assertDontSee($outsideSyllabus->name)
+            ->assertDontSee($draftSyllabus->name);
+    }
+
     public function test_unauthorized_user_cant_view_create_syllabus(): void
     {
         $this->unauthorized_user()
@@ -59,10 +104,10 @@ class SyllabusTest extends TestCase
 
         $this->unauthorized_user()
             ->post('/dashboard/syllabi', [
-                'name'               => 'Test syllabus',
+                'name' => 'Test syllabus',
                 'course_offering_id' => $courseOffering->id,
-                'description'        => 'Test syllabus description',
-                'file'               => UploadedFile::fake()->create('test-syllabus.pdf', 100),
+                'description' => 'Test syllabus description',
+                'file' => UploadedFile::fake()->create('test-syllabus.pdf', 100),
             ])->assertForbidden();
     }
 
@@ -73,16 +118,16 @@ class SyllabusTest extends TestCase
 
         $this->authorized_user(['create syllabus'])
             ->post('/dashboard/syllabi', [
-                'name'               => 'Test syllabus',
+                'name' => 'Test syllabus',
                 'course_offering_id' => $courseOffering->id,
-                'description'        => 'Test syllabus description',
-                'file'               => UploadedFile::fake()->create('test-syllabus.pdf', 100),
+                'description' => 'Test syllabus description',
+                'file' => UploadedFile::fake()->create('test-syllabus.pdf', 100),
             ])->assertRedirect(route('syllabi.index'));
 
         $this->assertDatabaseHas('syllabi', [
-            'name'               => 'Test syllabus',
+            'name' => 'Test syllabus',
             'course_offering_id' => $courseOffering->id,
-            'description'        => 'Test syllabus description',
+            'description' => 'Test syllabus description',
         ]);
     }
 
@@ -122,7 +167,7 @@ class SyllabusTest extends TestCase
             AcademicYear::factory()->create(['school_id' => $school->id])->getKey(),
         );
         $academicPeriod = AcademicPeriod::query()->findOrFail(AcademicPeriod::factory()->create([
-            'school_id'        => $school->id,
+            'school_id' => $school->id,
             'academic_year_id' => $academicYear->id,
         ])->getKey());
         $academicLevel = AcademicLevel::query()->findOrFail(
@@ -133,11 +178,11 @@ class SyllabusTest extends TestCase
         );
 
         return CourseOffering::query()->findOrFail(CourseOffering::factory()->create([
-            'school_id'          => $school->id,
-            'academic_year_id'   => $academicYear->id,
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
             'academic_period_id' => $academicPeriod->id,
-            'academic_level_id'  => $academicLevel->id,
-            'subject_id'         => $subject->id,
+            'academic_level_id' => $academicLevel->id,
+            'subject_id' => $subject->id,
         ])->getKey());
     }
 }

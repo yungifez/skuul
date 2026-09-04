@@ -7,6 +7,7 @@ use App\Enums\RosterMode;
 use App\Livewire\CreateTimetableForm;
 use App\Livewire\ManageTimetable;
 use App\Livewire\ShowTimetable;
+use App\Models\AcademicCycleSection;
 use App\Models\AcademicPeriod;
 use App\Models\CourseOffering;
 use App\Models\CustomTimetableItem;
@@ -44,6 +45,45 @@ class TimetableTest extends TestCase
         $this->authorized_user(['read timetable'])
             ->get('/dashboard/timetables')
             ->assertOk();
+    }
+
+    public function test_a_parent_cannot_open_the_staff_timetable_workspace(): void
+    {
+        $this->authorized_user(['read timetable']);
+        auth()->user()->assignRole('parent');
+
+        $this->get('/dashboard/timetables')->assertForbidden();
+    }
+
+    public function test_a_student_can_open_only_a_published_timetable_for_their_section(): void
+    {
+        $school = $this->workingSchool();
+        $student = User::factory()->create();
+        $student = $this->memberOf($school, $student);
+        $student->assignRole('student');
+        $student->givePermissionTo('read timetable');
+        $enrollment = $student->studentRecords()->create([
+            'school_id' => $school->id,
+            'academic_cycle_section_id' => AcademicCycleSection::factory()->create(['school_id' => $school->id])->id,
+            'admission_date' => now()->toDateString(),
+            'status' => 'active',
+            'is_primary' => true,
+        ]);
+
+        $ownTimetable = Timetable::factory()->create([
+            'academic_cycle_section_id' => $enrollment->academic_cycle_section_id,
+            'status' => TimetableStatus::Published,
+            'published_at' => now(),
+        ]);
+        $draftTimetable = Timetable::factory()->create([
+            'academic_cycle_section_id' => $enrollment->academic_cycle_section_id,
+        ]);
+
+        $this->actingAsMemberOf($school, $student)
+            ->get(route('timetables.show', $ownTimetable))
+            ->assertOk();
+
+        $this->get(route('timetables.show', $draftTimetable))->assertForbidden();
     }
 
     // test unauthorized user can't view create timetable

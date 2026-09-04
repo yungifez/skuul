@@ -249,6 +249,27 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Check whether this person has only a learner or family portal role.
+     */
+    public function isPortalOnly(): bool
+    {
+        $roles = collect($this->getRoleNames());
+
+        return $roles->intersect([Role::Parent->value, Role::Student->value])->isNotEmpty()
+            && $roles->diff([Role::Parent->value, Role::Student->value])->isEmpty();
+    }
+
+    /**
+     * Check whether this person is a guardian without a learner workspace.
+     */
+    public function isParentPortalOnly(): bool
+    {
+        return $this->isPortalOnly()
+            && $this->hasRole(Role::Parent)
+            && !$this->hasRole(Role::Student);
+    }
+
+    /**
      * Get every enrollment this person holds, in any school and any state.
      *
      * A person can attend two schools at once, so this is the honest list.

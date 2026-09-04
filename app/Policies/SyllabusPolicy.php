@@ -2,9 +2,12 @@
 
 namespace App\Policies;
 
+use App\Enums\CourseOfferingStatus;
+use App\Enums\Role;
 use App\Enums\SyllabusStatus;
 use App\Models\Syllabus;
 use App\Models\User;
+use App\Services\Gradebook\CourseOfferingRoster;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class SyllabusPolicy
@@ -16,7 +19,7 @@ class SyllabusPolicy
      */
     public function viewAny(User $user): bool
     {
-        return $user->can('read syllabus');
+        return $user->can('read syllabus') && !$user->isParentPortalOnly();
     }
 
     /**
@@ -24,7 +27,23 @@ class SyllabusPolicy
      */
     public function view(User $user, Syllabus $syllabus): bool
     {
-        return $user->can('read syllabus') && current_school_id() === $syllabus->courseOffering->school_id;
+        if (!$user->can('read syllabus')
+            || $user->isParentPortalOnly()
+            || current_school_id() !== $syllabus->courseOffering->school_id
+        ) {
+            return false;
+        }
+
+        if (!$user->hasRole(Role::Student)) {
+            return true;
+        }
+
+        $enrollment = $user->studentRecord()->attending()->first();
+
+        return $syllabus->status === SyllabusStatus::Published
+            && $syllabus->courseOffering->status === CourseOfferingStatus::Active
+            && $enrollment !== null
+            && app(CourseOfferingRoster::class)->includes($syllabus->courseOffering, $enrollment);
     }
 
     /**
@@ -32,7 +51,7 @@ class SyllabusPolicy
      */
     public function create(User $user): bool
     {
-        return $user->can('create syllabus');
+        return $user->can('create syllabus') && !$user->isPortalOnly();
     }
 
     /**
@@ -40,7 +59,9 @@ class SyllabusPolicy
      */
     public function update(User $user, Syllabus $syllabus): bool
     {
-        return $user->can('update syllabus') && current_school_id() === $syllabus->courseOffering->school_id;
+        return $user->can('update syllabus')
+            && !$user->isPortalOnly()
+            && current_school_id() === $syllabus->courseOffering->school_id;
     }
 
     /**
@@ -49,6 +70,7 @@ class SyllabusPolicy
     public function delete(User $user, Syllabus $syllabus): bool
     {
         return $user->can('delete syllabus')
+            && !$user->isPortalOnly()
             && $syllabus->status === SyllabusStatus::Draft
             && current_school_id() === $syllabus->courseOffering->school_id;
     }

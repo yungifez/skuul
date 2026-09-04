@@ -2,6 +2,10 @@
 
 namespace App\Livewire;
 
+use App\Enums\CourseOfferingStatus;
+use App\Enums\Role;
+use App\Enums\RosterMode;
+use App\Enums\SyllabusStatus;
 use App\Livewire\Concerns\InteractsWithAprilTable;
 use App\Models\Syllabus;
 use Illuminate\Database\Eloquent\Builder;
@@ -16,7 +20,43 @@ class ListSyllabiTable extends DataTableComponent
 
     protected function builder(): Builder
     {
-        return Syllabus::query()->inSchool()->with(['courseOffering.subject', 'courseOffering.academicLevel', 'courseOffering.academicPeriod'])->latest();
+        $user = auth()->user();
+        $query = Syllabus::query()
+            ->inSchool()
+            ->with(['courseOffering.subject', 'courseOffering.academicLevel', 'courseOffering.academicPeriod'])
+            ->latest();
+
+        if ($user->hasRole(Role::Student)) {
+            $enrollment = $user->studentRecord()->attending()->first();
+
+            if ($enrollment === null) {
+                return $query->whereKey(-1);
+            }
+
+            $query
+                ->where('status', SyllabusStatus::Published)
+                ->whereHas('courseOffering', function (Builder $offering) use ($enrollment): void {
+                    $offering
+                        ->where('status', CourseOfferingStatus::Active)
+                        ->where(function (Builder $roster) use ($enrollment): void {
+                            $roster
+                                ->whereIn('roster_mode', [RosterMode::HomeSection->value, RosterMode::CombinedHomeSections->value])
+                                ->whereHas('cycleSections', fn (Builder $sections): Builder => $sections->whereKey($enrollment->academic_cycle_section_id))
+                                ->orWhere(function (Builder $roster) use ($enrollment): void {
+                                    $roster
+                                        ->where('roster_mode', RosterMode::AcademicLevel->value)
+                                        ->where('academic_level_id', $enrollment->academicCycleSection?->academic_level_id);
+                                })
+                                ->orWhere(function (Builder $roster) use ($enrollment): void {
+                                    $roster
+                                        ->where('roster_mode', RosterMode::IndividualRoster->value)
+                                        ->whereHas('studentRecords', fn (Builder $students): Builder => $students->whereKey($enrollment->id));
+                                });
+                        });
+                });
+        }
+
+        return $query;
     }
 
     /** @return array<int, Column> */

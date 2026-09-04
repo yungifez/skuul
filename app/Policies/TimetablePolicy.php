@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Enums\AcademicPeriodStatus;
+use App\Enums\Role;
 use App\Enums\TimetableStatus;
 use App\Models\Timetable;
 use App\Models\User;
@@ -15,21 +16,33 @@ class TimetablePolicy
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user)
+    public function viewAny(User $user): bool
     {
-        if ($user->can('read timetable')) {
-            return true;
-        }
+        return $user->can('read timetable') && !$user->isParentPortalOnly();
     }
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Timetable $timetable)
+    public function view(User $user, Timetable $timetable): bool
     {
-        if ($user->can('read timetable') && $this->belongsToWorkingSchool($timetable)) {
+        if (!$user->can('read timetable')
+            || $user->isParentPortalOnly()
+            || !$this->belongsToWorkingSchool($timetable)
+        ) {
+            return false;
+        }
+
+        if (!$user->hasRole(Role::Student)) {
             return true;
         }
+
+        $enrollment = $user->studentRecord()->attending()->first();
+
+        return $timetable->status === TimetableStatus::Published
+            && $enrollment !== null
+            && ($timetable->academic_cycle_section_id === null
+                || $timetable->academic_cycle_section_id === $enrollment->academic_cycle_section_id);
     }
 
     /**

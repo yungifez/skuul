@@ -101,6 +101,18 @@ class SidebarStateTest extends TestCase
         $this->assertStringNotContainsString('View students', $this->withoutLivewireSnapshots($html));
     }
 
+    public function test_a_parent_does_not_see_staff_syllabus_or_timetable_navigation(): void
+    {
+        $this->authorized_user(['read syllabus', 'read timetable']);
+        auth()->user()->assignRole('parent');
+
+        $menu = Livewire::test(Menu::class)->get('menu');
+        $items = collect($menu)->pluck('text')->filter()->all();
+
+        $this->assertNotContains('Syllabi', $items);
+        $this->assertNotContains('Timetables', $items);
+    }
+
     public function test_the_sidebar_shows_the_replacement_academic_structure_without_legacy_navigation(): void
     {
         $this->authorized_user([
