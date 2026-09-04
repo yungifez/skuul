@@ -26,6 +26,7 @@ window.commandPalette = function commandPalette(items) {
         init() {
             this.$watch("query", () => {
                 this.selectedIndex = 0;
+                this.$nextTick(() => this.$refs.results?.scrollTo({ top: 0 }));
             });
         },
 
@@ -43,7 +44,10 @@ window.commandPalette = function commandPalette(items) {
             this.open = true;
             this.query = "";
             this.selectedIndex = 0;
-            this.$nextTick(() => this.$refs.searchInput?.focus());
+            this.$nextTick(() => {
+                this.$refs.searchInput?.focus();
+                this.$refs.results?.scrollTo({ top: 0 });
+            });
         },
 
         closePalette() {
@@ -73,14 +77,14 @@ window.commandPalette = function commandPalette(items) {
 
             if (event.key === "ArrowDown") {
                 event.preventDefault();
-                this.selectedIndex = Math.min(this.selectedIndex + 1, this.filteredItems.length - 1);
+                this.moveSelection(1);
 
                 return;
             }
 
             if (event.key === "ArrowUp") {
                 event.preventDefault();
-                this.selectedIndex = Math.max(this.selectedIndex - 1, 0);
+                this.moveSelection(-1);
 
                 return;
             }
@@ -97,6 +101,23 @@ window.commandPalette = function commandPalette(items) {
 
                 this.closePalette();
             }
+        },
+
+        moveSelection(direction) {
+            if (this.filteredItems.length === 0) {
+                return;
+            }
+
+            this.selectedIndex = Math.max(
+                0,
+                Math.min(this.selectedIndex + direction, this.filteredItems.length - 1),
+            );
+
+            this.$nextTick(() => {
+                this.$refs.results?.querySelector(
+                    `[data-command-index="${this.selectedIndex}"]`,
+                )?.scrollIntoView({ block: "nearest" });
+            });
         },
     };
 };

@@ -162,7 +162,7 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
                     <kbd class="rounded border bg-muted px-2 py-1 font-mono text-xs text-muted-foreground">Esc</kbd>
                 </div>
 
-                <div class="max-h-[min(28rem,60vh)] overflow-y-auto p-2" role="listbox"
+                <div x-ref="results" class="max-h-[60vh] overflow-y-auto overscroll-contain p-2 sm:max-h-[28rem]" role="listbox"
                     aria-label="{{ __('Available pages and features') }}">
                     <template x-if="filteredItems.length === 0">
                         <p class="px-3 py-10 text-center text-sm text-muted-foreground">
@@ -172,6 +172,7 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
 
                     <template x-for="(item, index) in filteredItems" :key="item.key">
                         <a :href="item.url" wire:navigate x-on:click="closePalette()" x-on:mouseenter="selectedIndex = index"
+                            :data-command-index="index"
                             class="flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors"
                             :class="selectedIndex === index ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/60'"
                             role="option" :aria-selected="selectedIndex === index">
