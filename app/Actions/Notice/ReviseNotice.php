@@ -8,7 +8,6 @@ use App\Enums\NoticeStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\Notice;
 use App\Models\User;
-use App\Services\Notice\NoticeContentSanitizer;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -16,10 +15,7 @@ use Illuminate\Support\Facades\DB;
  */
 class ReviseNotice
 {
-    public function __construct(
-        private RecordAuditEvent $auditor,
-        private NoticeContentSanitizer $contentSanitizer,
-    ) {}
+    public function __construct(private RecordAuditEvent $auditor) {}
 
     /**
      * Copy a published notice into the next revision.
@@ -39,7 +35,7 @@ class ReviseNotice
 
             $revision = Notice::create([
                 'title' => $changes['title'] ?? $notice->title,
-                'content' => $this->contentSanitizer->sanitize($changes['content'] ?? $notice->content),
+                'content' => $changes['content'] ?? $notice->content,
                 'attachment' => array_key_exists('attachment', $changes) ? $changes['attachment'] : $notice->attachment,
                 'start_date' => $changes['start_date'] ?? $notice->start_date,
                 'stop_date' => $changes['stop_date'] ?? $notice->stop_date,

@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use App\Enums\NoticeStatus;
+use App\Services\Notice\NoticeContentSanitizer;
 use App\Traits\InSchool;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * One message on the school board.
  *
- * @property NoticeStatus              $status
+ * @property NoticeStatus $status
  * @property array<string, mixed>|null $audience
  */
 class Notice extends Model
@@ -50,7 +52,7 @@ class Notice extends Model
      * @var array<string, mixed>
      */
     protected $attributes = [
-        'status'   => NoticeStatus::Draft->value,
+        'status' => NoticeStatus::Draft->value,
         'revision' => 1,
     ];
 
@@ -60,20 +62,31 @@ class Notice extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'status'        => NoticeStatus::class,
-        'audience'      => 'array',
-        'active'        => 'boolean',
-        'send_email'    => 'boolean',
+        'status' => NoticeStatus::class,
+        'audience' => 'array',
+        'active' => 'boolean',
+        'send_email' => 'boolean',
         'scheduled_for' => 'datetime',
-        'published_at'  => 'datetime',
-        'revision'      => 'integer',
+        'published_at' => 'datetime',
+        'revision' => 'integer',
     ];
+
+    /**
+     * Normalize every notice write before it reaches the database.
+     *
+     * @return Attribute<string, string>
+     */
+    protected function content(): Attribute
+    {
+        return Attribute::make(
+            set: fn (string $content): string => (new NoticeContentSanitizer)->sanitize($content),
+        );
+    }
 
     /**
      * Limit the query to notices the audience can read now.
      *
-     * @param Builder<$this> $query
-     *
+     * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
     public function scopePublished(Builder $query): Builder

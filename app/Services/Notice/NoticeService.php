@@ -9,8 +9,6 @@ use Illuminate\Support\Facades\Storage;
 
 class NoticeService
 {
-    public function __construct(private NoticeContentSanitizer $contentSanitizer) {}
-
     /**
      * Get all notices.
      */
@@ -53,7 +51,7 @@ class NoticeService
         try {
             return Notice::create([
                 'title' => $data['title'],
-                'content' => $this->contentSanitizer->sanitize($data['content']),
+                'content' => $data['content'],
                 'start_date' => $data['start_date'],
                 'stop_date' => $data['stop_date'],
                 'attachment' => $attachmentPath,

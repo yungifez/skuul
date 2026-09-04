@@ -83,7 +83,7 @@ class NoticePublicationTest extends TestCase
         $parentRecord->students()->attach($student->user_id);
         $notice = $this->notice(['audience' => [
             'academic_cycle_section_ids' => [$student->academic_cycle_section_id],
-            'include_guardians'          => true,
+            'include_guardians' => true,
         ]]);
 
         app(PublishNotice::class)->publish($notice);
@@ -235,7 +235,7 @@ class NoticePublicationTest extends TestCase
 
         $revision = app(ReviseNotice::class)->revise($notice, ['content' => 'Sports day is now on Monday.'], $actor);
 
-        $this->assertSame('Sports day is on Friday.', $notice->fresh()->content);
+        $this->assertSame("<p>Sports day is on Friday.</p>\n", $notice->fresh()->content);
         $this->assertSame(NoticeStatus::Published, $notice->fresh()->status);
         $this->assertSame(NoticeStatus::Draft, $revision->status);
         $this->assertSame(2, $revision->revision);
@@ -277,16 +277,16 @@ class NoticePublicationTest extends TestCase
     /**
      * Create a notice in the working school.
      *
-     * @param array<string, mixed> $attributes
+     * @param  array<string, mixed>  $attributes
      */
     private function notice(array $attributes = []): Notice
     {
         return Notice::create($attributes + [
-            'title'      => 'Sports day',
-            'content'    => 'Sports day is on Friday.',
+            'title' => 'Sports day',
+            'content' => 'Sports day is on Friday.',
             'start_date' => now()->toDateString(),
-            'stop_date'  => now()->addWeek()->toDateString(),
-            'school_id'  => $this->workingSchool()->id,
+            'stop_date' => now()->addWeek()->toDateString(),
+            'school_id' => $this->workingSchool()->id,
         ]);
     }
 
