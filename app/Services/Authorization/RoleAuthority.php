@@ -71,11 +71,14 @@ class RoleAuthority
     /**
      * Refuse a role that belongs to another campus.
      *
+     * A null school id is a shared, non-built-in role template and can be
+     * tailored from the campus where the manager is working.
+     *
      * @throws InvalidValueException when the role is not this campus's to change
      */
     public function mustBelongTo(CampusRole $role, School $school): void
     {
-        if ($role->school_id !== $school->id) {
+        if ($role->school_id !== null && $role->school_id !== $school->id) {
             throw new InvalidValueException('That role belongs to another campus.');
         }
     }
@@ -83,8 +86,8 @@ class RoleAuthority
     /**
      * Refuse a role that cannot be given out at this campus.
      *
-     * A campus may give out its own roles and the built-in ones every campus
-     * shares. A role another campus wrote is not one of them.
+     * A campus may give out its own roles and the shared roles every campus
+     * can use. A role another campus wrote is not one of them.
      *
      * @throws InvalidValueException when the role belongs to another campus
      */

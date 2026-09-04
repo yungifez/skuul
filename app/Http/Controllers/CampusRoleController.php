@@ -36,8 +36,8 @@ class CampusRoleController extends Controller
         Gate::authorize('viewAny', CampusRole::class);
 
         return view('pages.role.index', [
-            // The campus's own roles, and the built-in ones every campus
-            // shares. A role another campus wrote is not this campus's
+            // The campus's own roles, and shared roles available to every
+            // campus. A role another campus wrote is not this campus's
             // business at all.
             'roles' => CampusRole::query()
                 ->where(fn ($query) => $query->inSchool()->orWhereNull('school_id'))

@@ -81,6 +81,27 @@ class CampusRoleTest extends TestCase
         app(WriteCampusRole::class)->update($admin, $this->workingSchool(), [], null, $actor);
     }
 
+    public function test_a_shared_non_built_in_role_can_be_rewritten(): void
+    {
+        $actor = $this->roleManager(['read library', 'manage library']);
+        $librarian = CampusRole::query()->where('name', 'librarian')->firstOrFail();
+
+        $this->actingAs($actor)
+            ->put(route('roles.update', $librarian), [
+                'description' => 'Manages the school library',
+                'permissions' => ['read library', 'manage library'],
+            ])
+            ->assertRedirect();
+
+        $librarian = $librarian->fresh();
+
+        $this->assertSame('Manages the school library', $librarian->description);
+        $this->assertSame(
+            ['manage library', 'read library'],
+            $librarian->permissions->pluck('name')->sort()->values()->all(),
+        );
+    }
+
     public function test_a_role_of_another_campus_cannot_be_changed(): void
     {
         $actor = $this->roleManager(['read student']);

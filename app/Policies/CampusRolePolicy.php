@@ -32,13 +32,13 @@ class CampusRolePolicy
     /**
      * Determine whether the user can change this role.
      *
-     * A role of another campus is never theirs to change, and the roles the
-     * application relies on are nobody's to rewrite.
+     * A role of another campus is never theirs to change. Shared roles that
+     * are not application built-ins may be tailored by a campus manager.
      */
     public function update(User $user, CampusRole $role): bool
     {
         return $user->can('manage role')
-            && $role->school_id === current_school_id()
+            && ($role->school_id === null || $role->school_id === current_school_id())
             && !$role->isBuiltIn();
     }
 
