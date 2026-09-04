@@ -141,11 +141,11 @@ class PortalTest extends TestCase
         $access = app(PortalAccess::class);
 
         foreach ([
-            Feature::Attendance => PortalArea::Attendance,
-            Feature::Events => PortalArea::Calendar,
-            Feature::Library => PortalArea::Library,
-            Feature::Boarding => PortalArea::Boarding,
-        ] as $feature => $area) {
+            [Feature::Attendance, PortalArea::Attendance],
+            [Feature::Events, PortalArea::Calendar],
+            [Feature::Library, PortalArea::Library],
+            [Feature::Boarding, PortalArea::Boarding],
+        ] as [$feature, $area]) {
             features()->enable($feature, $enrollment->school_id);
             $this->assertTrue($access->areaIsOpen($area, $enrollment->school_id));
 

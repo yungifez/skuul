@@ -211,14 +211,18 @@ class NoticeTest extends TestCase
                 HTML,
         ]);
 
+        $normalizeHtml = static fn (string $html): string => preg_replace('/>\s+</', '><', trim($html)) ?? trim($html);
+
         $this->assertSame(
-            '<p><a href="https://example.com">External</a></p>'.
-            '<p><a href="mailto:office@example.com">Email</a></p>'.
-            '<p><a href="/dashboard/notices">Internal</a></p>'.
-            '<p><a href="#details">Anchor</a></p>'.
-            '<p><a>Protocol relative</a></p>'.
-            '<p><a>Script</a></p>',
-            preg_replace('/\s+/', '', (string) $notice->content),
+            $normalizeHtml(
+                '<p><a href="https://example.com">External</a></p>'.
+                '<p><a href="mailto:office@example.com">Email</a></p>'.
+                '<p><a href="/dashboard/notices">Internal</a></p>'.
+                '<p><a href="#details">Anchor</a></p>'.
+                '<p><a>Protocol relative</a></p>'.
+                '<p><a>Script</a></p>',
+            ),
+            $normalizeHtml((string) $notice->content),
         );
     }
 

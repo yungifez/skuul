@@ -55,22 +55,21 @@ class SyllabusTest extends TestCase
         $school = $this->workingSchool();
         $studentRecord = StudentRecord::factory()->create(['school_id' => $school->id]);
         $student = $studentRecord->user;
+        $student->assignRole('student');
         $student->givePermissionTo('read syllabus');
 
         $visibleOffering = $this->courseOffering();
-        $visibleOffering->update([
-            'roster_mode' => RosterMode::IndividualRoster,
-            'status' => CourseOfferingStatus::Active,
-        ]);
+        $visibleOffering->roster_mode = RosterMode::IndividualRoster;
+        $visibleOffering->status = CourseOfferingStatus::Active;
+        $visibleOffering->save();
         $visibleOffering->studentRecords()->attach($studentRecord);
         $visibleSyllabus = Syllabus::factory()->create(['course_offering_id' => $visibleOffering->id]);
         $visibleSyllabus->update(['status' => SyllabusStatus::Published, 'published_at' => now()]);
 
         $outsideOffering = $this->courseOffering();
-        $outsideOffering->update([
-            'roster_mode' => RosterMode::IndividualRoster,
-            'status' => CourseOfferingStatus::Active,
-        ]);
+        $outsideOffering->roster_mode = RosterMode::IndividualRoster;
+        $outsideOffering->status = CourseOfferingStatus::Active;
+        $outsideOffering->save();
         $outsideSyllabus = Syllabus::factory()->create(['course_offering_id' => $outsideOffering->id]);
         $outsideSyllabus->update(['status' => SyllabusStatus::Published, 'published_at' => now()]);
 

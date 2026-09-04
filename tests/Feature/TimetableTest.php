@@ -3,7 +3,9 @@
 namespace Tests\Feature;
 
 use App\Enums\AcademicPeriodStatus;
+use App\Enums\AcademicStructureStatus;
 use App\Enums\RosterMode;
+use App\Enums\TimetableStatus;
 use App\Livewire\CreateTimetableForm;
 use App\Livewire\ManageTimetable;
 use App\Livewire\ShowTimetable;
@@ -62,26 +64,37 @@ class TimetableTest extends TestCase
         $student = $this->memberOf($school, $student);
         $student->assignRole('student');
         $student->givePermissionTo('read timetable');
+        $section = AcademicCycleSection::factory()->create([
+            'school_id' => $school->id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
         $enrollment = $student->studentRecords()->create([
             'school_id' => $school->id,
-            'academic_cycle_section_id' => AcademicCycleSection::factory()->create(['school_id' => $school->id])->id,
+            'academic_cycle_section_id' => $section->id,
             'admission_date' => now()->toDateString(),
             'status' => 'active',
             'is_primary' => true,
         ]);
 
+        $academicPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $section->academic_year_id,
+        ]);
         $ownTimetable = Timetable::factory()->create([
-            'academic_cycle_section_id' => $enrollment->academic_cycle_section_id,
+            'academic_cycle_section_id' => $section->id,
+            'academic_period_id' => $academicPeriod->id,
             'status' => TimetableStatus::Published,
             'published_at' => now(),
         ]);
         $draftTimetable = Timetable::factory()->create([
-            'academic_cycle_section_id' => $enrollment->academic_cycle_section_id,
+            'academic_cycle_section_id' => $section->id,
+            'academic_period_id' => $academicPeriod->id,
         ]);
 
-        $this->actingAsMemberOf($school, $student)
-            ->get(route('timetables.show', $ownTimetable))
-            ->assertOk();
+        $response = $this->actingAsMemberOf($school, $student)
+            ->get(route('timetables.show', $ownTimetable));
+
+        $response->assertOk();
 
         $this->get(route('timetables.show', $draftTimetable))->assertForbidden();
     }
