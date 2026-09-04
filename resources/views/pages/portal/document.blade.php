@@ -20,6 +20,7 @@
     </div>
 
     @if ($type === 'report-card')
+        <p><strong>Academic year:</strong> {{ $document->academicYear?->name ?? 'Unknown year' }}</p>
         <p><strong>Period:</strong> {{ $document->academicPeriod->label ?? $document->academicPeriod->name }}</p>
         <p><strong>Revision:</strong> {{ $document->revision }} · <strong>Published:</strong> {{ $document->published_at->format('j M Y') }}</p>
         <p><strong>Average:</strong> {{ $document->average_percentage === null ? '—' : number_format($document->average_percentage, 2).'%' }}</p>

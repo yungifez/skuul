@@ -51,7 +51,7 @@ class PortalDocumentsController extends Controller
             fn (): int => print view('pages.portal.document', [
                 'title' => 'Report card',
                 'studentRecord' => $studentRecord->loadMissing('user:id,name', 'school:id,name'),
-                'document' => $reportCardSnapshot->loadMissing('academicPeriod:id,name,label'),
+                'document' => $reportCardSnapshot->loadMissing('academicYear:id,start_year,stop_year', 'academicPeriod:id,name,label'),
                 'type' => 'report-card',
             ])->render(),
             "report-card-{$reportCardSnapshot->id}.html",

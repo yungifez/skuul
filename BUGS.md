@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Portal report-card downloads omitted the academic year
+
+- Status: Fixed
+- Area: Learner and family historical documents
+- Observed: Staff report-card history showed the academic year, but the learner-facing report-card document showed only `Period: Term 3`.
+- Impact: A learner or guardian with records from multiple years could not identify the year of a downloaded report card when period names repeated.
+- Reproduction: Sign in as a learner or guardian, open an enrollment's Documents page, download a report card, and inspect the standalone document header.
+- Resolution: Portal report-card documents now load and display the academic year beside the period. The existing transcript document already includes `academic year · academic period` for every result. Coverage verifies the year is present in the learner download while portal ownership boundaries remain enforced.
+
 ## Historical report cards were ambiguous across academic years
 
 - Status: Fixed

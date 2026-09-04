@@ -334,10 +334,13 @@ class PortalTest extends TestCase
             ->assertSee('Report cards')
             ->assertSee('Official documents');
 
-        $this->actingAs($enrollment->user)
-            ->get(route('portal.documents.report-cards.download', [$enrollment, $reportCard]))
+        $reportCardResponse = $this->actingAs($enrollment->user)
+            ->get(route('portal.documents.report-cards.download', [$enrollment, $reportCard]));
+
+        $reportCardResponse
             ->assertOk()
             ->assertHeader('content-disposition');
+        $this->assertStringContainsString($year->name, $reportCardResponse->streamedContent());
 
         $this->actingAs($enrollment->user)
             ->get(route('portal.documents.transcripts.download', [$enrollment, $transcript]))
