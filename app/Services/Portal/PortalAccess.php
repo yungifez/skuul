@@ -75,6 +75,18 @@ class PortalAccess
             return false;
         }
 
+        $feature = match ($area) {
+            PortalArea::Attendance => Feature::Attendance,
+            PortalArea::Calendar => Feature::Events,
+            PortalArea::Library => Feature::Library,
+            PortalArea::Boarding => Feature::Boarding,
+            default => null,
+        };
+
+        if ($feature !== null && features()->disabled($feature, $schoolId)) {
+            return false;
+        }
+
         return (bool) features()->config(Feature::Portal, $area->value, true, $schoolId);
     }
 

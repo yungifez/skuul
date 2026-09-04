@@ -134,6 +134,26 @@ class PortalTest extends TestCase
         $this->assertTrue($access->areaIsOpen(PortalArea::Results));
     }
 
+    public function test_matching_school_features_control_their_portal_areas(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $access = app(PortalAccess::class);
+
+        foreach ([
+            Feature::Attendance => PortalArea::Attendance,
+            Feature::Events => PortalArea::Calendar,
+            Feature::Library => PortalArea::Library,
+            Feature::Boarding => PortalArea::Boarding,
+        ] as $feature => $area) {
+            features()->enable($feature, $enrollment->school_id);
+            $this->assertTrue($access->areaIsOpen($area, $enrollment->school_id));
+
+            features()->disable($feature, $enrollment->school_id);
+            $this->assertFalse($access->areaIsOpen($area, $enrollment->school_id));
+        }
+    }
+
     public function test_only_published_results_reach_the_family(): void
     {
         $this->unauthorized_user();
@@ -233,6 +253,7 @@ class PortalTest extends TestCase
     public function test_a_family_can_read_the_learner_library_list(): void
     {
         $this->unauthorized_user();
+        features()->enable(Feature::Library);
         features()->enable(Feature::Portal, config: [PortalArea::Library->value => true]);
         $enrollment = $this->enrollment();
         $student = $this->memberOf($this->workingSchool(), $enrollment->user);
@@ -266,10 +287,23 @@ class PortalTest extends TestCase
     public function test_a_closed_library_portal_area_shows_nothing(): void
     {
         $this->unauthorized_user();
+        features()->enable(Feature::Library);
         features()->enable(Feature::Portal, config: [PortalArea::Library->value => false]);
         $enrollment = $this->enrollment();
 
         $this->assertNull(app(PortalSummary::class)->library($enrollment));
+    }
+
+    public function test_a_closed_library_feature_closes_the_family_library_route(): void
+    {
+        $this->unauthorized_user();
+        features()->enable(Feature::Portal, config: [PortalArea::Library->value => true]);
+        features()->disable(Feature::Library);
+        $enrollment = $this->enrollment();
+
+        $this->actingAs($enrollment->user)
+            ->get(route('portal.library.index', $enrollment))
+            ->assertNotFound();
     }
 
     public function test_a_family_reads_and_downloads_latest_official_documents(): void

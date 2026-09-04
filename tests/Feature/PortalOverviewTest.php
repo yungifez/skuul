@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\Feature;
+use App\Enums\PortalArea;
 use App\Models\Organization;
 use App\Models\School;
 use App\Models\StudentRecord;
@@ -59,6 +60,18 @@ class PortalOverviewTest extends TestCase
             ->get(route('portal.overview'))
             ->assertOk()
             ->assertSee('closed the family pages');
+    }
+
+    public function test_a_campus_that_closed_the_library_hides_the_library_link(): void
+    {
+        $enrollment = $this->enrollment($this->workingSchool());
+        features()->enable(Feature::Portal, config: [PortalArea::Library->value => true]);
+        features()->disable(Feature::Library, $this->workingSchool()->id);
+
+        $this->actingAs($enrollment->user)
+            ->get(route('portal.overview'))
+            ->assertOk()
+            ->assertDontSee(route('portal.library.index', $enrollment));
     }
 
     public function test_a_person_with_no_enrollment_has_no_overview(): void

@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Portal links ignored disabled top-level school tools
+
+- Status: In progress
+- Area: Parent and learner portal
+- Observed: Disabling Library on the live School features screen changed the summary to 9 of 10 tools and made the administrator Library route return 404, but the parent overview still rendered two Library links.
+- Impact: Families could see a link to a school service that the school had turned off. The direct portal route was also not consistently gated by the top-level feature.
+- Reproduction: Turn off Library at `/dashboard/schools/features`, then open `/dashboard/portal/overview` as a guardian with two enrollments.
+- Resolution in progress: `PortalAccess::areaIsOpen()` now requires the matching top-level Attendance, Events, Library, or Boarding feature before it evaluates the portal-area setting. Regression coverage covers the overview link, direct Library route, and all four mapped features.
+
 ## Repeated queries on setup pages
 
 - Status: Fixed
