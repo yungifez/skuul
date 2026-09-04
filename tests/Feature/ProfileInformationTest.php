@@ -41,6 +41,34 @@ class ProfileInformationTest extends TestCase
         $this->assertSame(Storage::disk('public')->url($path), $user->fresh()->profile_photo_url);
     }
 
+    public function test_a_default_avatar_handles_an_incomplete_user_profile_without_deprecations(): void
+    {
+        $user = User::factory()->make([
+            'name' => null,
+            'email' => null,
+        ]);
+        $deprecations = [];
+
+        set_error_handler(function (int $severity, string $message) use (&$deprecations): bool {
+            if ($severity === E_DEPRECATED) {
+                $deprecations[] = $message;
+
+                return true;
+            }
+
+            return false;
+        });
+
+        try {
+            $avatarUrl = $user->defaultProfilePhotoUrl();
+        } finally {
+            restore_error_handler();
+        }
+
+        $this->assertSame([], $deprecations);
+        $this->assertStringContainsString('ui-avatars.com', $avatarUrl);
+    }
+
     public function test_the_profile_screen_uses_april_ui_sections(): void
     {
         $this->actingAs(User::factory()->create());

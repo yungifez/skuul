@@ -411,13 +411,13 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(FeeInvoice::class);
     }
 
-    public function defaultProfilePhotoUrl()
+    public function defaultProfilePhotoUrl(): string
     {
-        $name = trim(collect(explode(' ', $this->name))->map(function ($segment) {
+        $name = trim(collect(explode(' ', (string) $this->name))->map(function (string $segment): string {
             return mb_substr($segment, 0, 1);
         })->join(' '));
 
-        $email = trim($this->email);
+        $email = trim((string) $this->email);
         $email = strtolower($email);
         $email = md5($email);
 
