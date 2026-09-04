@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Exam detail links opened a permanent 404
+
+- Status: Fixed
+- Area: Exams and assessment scheduling
+- Observed: The exam list generated a detail URL for each exam, but the resource controller's `show` action always aborted with a 404. Staff could create an exam but could not follow its normal detail path to manage exam slots.
+- Impact: The assessment workflow stopped after exam creation, leaving exam-slot scheduling unreachable from the user-facing route.
+- Reproduction: Create an exam, open `/dashboard/exams/{exam}`, and follow the expected exam detail or slot-management flow.
+- Resolution: The exam detail action now renders the existing exam-slot workspace. Regression coverage verifies that an authorized user receives the workspace and can continue to slot management.
+
 ## Subject rollover rejected periods with different display labels
 
 - Status: Fixed

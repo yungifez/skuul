@@ -255,6 +255,16 @@ class ExamTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_authorized_user_can_open_an_exam_and_manage_its_slots(): void
+    {
+        $exam = Exam::factory()->create();
+
+        $this->authorized_user(['read exam'])
+            ->get(route('exams.show', $exam))
+            ->assertOk()
+            ->assertSee('Exam Slots In '.$exam->name);
+    }
+
     // test unauthorized user cannot view exam
 
     public function test_unauthorized_user_cannot_delete_exam()

@@ -9,7 +9,6 @@ use App\Models\AcademicPeriod;
 use App\Models\Exam;
 use App\Services\Exam\ExamService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class ExamController extends Controller
@@ -57,9 +56,9 @@ class ExamController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Exam $exam): Response
+    public function show(Exam $exam): View
     {
-        abort(404);
+        return view('pages.exam.exam-slot.index', compact('exam'));
     }
 
     /**
