@@ -122,6 +122,9 @@ class PortalRequestScreenTest extends TestCase
             ->assertSessionHasErrors('response');
 
         $this->assertSame(PortalRequestStatus::Submitted, $request->fresh()->status);
+
+        $this->get(route('portal-requests.index'))
+            ->assertSee('An answered request must carry the answer.');
     }
 
     public function test_a_family_never_answers_its_own_request(): void

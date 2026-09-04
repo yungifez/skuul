@@ -8,10 +8,10 @@
 
 @section('content')
     <div class="space-y-6">
-        @if ($errors->has('status'))
+        @if ($errors->any())
             <april:alert variant="destructive">
                 <slot:title>The request did not move</slot:title>
-                <slot:description>{{ $errors->first('status') }}</slot:description>
+                <slot:description>{{ $errors->first() }}</slot:description>
             </april:alert>
         @endif
 
