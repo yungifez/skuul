@@ -27,6 +27,7 @@ use App\Models\GradeItem;
 use App\Models\GradingScale;
 use App\Models\GradingScaleOption;
 use App\Models\ResultSnapshot;
+use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\Subject;
 use App\Services\Gradebook\GradebookCalculator;
@@ -129,6 +130,77 @@ class GradebookTest extends TestCase
             ->assertOk()
             ->assertSee('Swipe horizontally to view all gradebook columns.')
             ->assertSee('aria-label="Gradebook list"', false);
+    }
+
+    public function test_staff_can_browse_gradebooks_from_a_historical_year_and_period(): void
+    {
+        $this->authorized_user(['read gradebook', 'update subject']);
+        $school = $this->workingSchool();
+        $historicalYear = AcademicYear::factory()->create([
+            'school_id' => $school->id,
+            'start_year' => 2024,
+            'stop_year' => 2025,
+        ]);
+        $firstPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $historicalYear->id,
+            'name' => 'Historical autumn',
+            'status' => AcademicPeriodStatus::Closed,
+        ]);
+        $secondPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $historicalYear->id,
+            'name' => 'Historical spring',
+            'status' => AcademicPeriodStatus::Closed,
+        ]);
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
+        $subject = Subject::factory()->create(['school_id' => $school->id, 'name' => 'Historical Mathematics']);
+        $firstOffering = CourseOffering::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $historicalYear->id,
+            'academic_period_id' => $firstPeriod->id,
+            'academic_level_id' => $academicLevel->id,
+            'subject_id' => $subject->id,
+        ]);
+        CourseOffering::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $historicalYear->id,
+            'academic_period_id' => $secondPeriod->id,
+            'academic_level_id' => $academicLevel->id,
+            'subject_id' => $subject->id,
+        ]);
+
+        $this->get(route('gradebooks.index', ['academic_year_id' => $historicalYear->id]))
+            ->assertOk()
+            ->assertSee('2024 - 2025')
+            ->assertSee('Historical Mathematics')
+            ->assertSee('Historical autumn')
+            ->assertSee('Historical spring');
+
+        $this->get(route('gradebooks.index', [
+            'academic_year_id' => $historicalYear->id,
+            'academic_period_id' => $firstPeriod->id,
+        ]))
+            ->assertOk()
+            ->assertSee('Historical Mathematics')
+            ->assertSee(route('course-offerings.gradebook.show', $firstOffering), false);
+
+        $currentPeriod = current_academic_period();
+        $this->assertInstanceOf(AcademicPeriod::class, $currentPeriod);
+
+        $this->get(route('gradebooks.index', [
+            'academic_year_id' => $historicalYear->id,
+            'academic_period_id' => $currentPeriod->id,
+        ]))->assertNotFound();
+    }
+
+    public function test_gradebook_history_cannot_be_selected_from_another_school(): void
+    {
+        $this->authorized_user(['read gradebook', 'update subject']);
+        $otherSchoolYear = AcademicYear::factory()->create(['school_id' => School::factory()->create()->id]);
+
+        $this->get(route('gradebooks.index', ['academic_year_id' => $otherSchoolYear->id]))
+            ->assertNotFound();
     }
 
     public function test_the_gradebook_detail_uses_april_form_controls(): void

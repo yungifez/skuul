@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Historical gradebooks were not discoverable
+
+- Status: Fixed
+- Area: Gradebook history and navigation
+- Observed: The Gradebooks workspace always queried only the working academic year and period. A staff member could open an older gradebook only if they already had its direct course-offering URL.
+- Impact: Historical marks and result history were technically present but difficult to find, and a multi-period historical year could not be reviewed from the gradebook list.
+- Reproduction: Open `/dashboard/gradebooks`, then try to select a prior academic year or a different period.
+- Resolution: The workspace now provides academic-year and period filters, supports all-period historical views, labels each row with its period and lifecycle state, preserves the working-period default, and rejects cross-school or cross-year period selections. Coverage includes normal, historical, all-period, and invalid-selection flows.
+
 ## Closed gradebooks still presented editable controls
 
 - Status: Fixed
