@@ -17,6 +17,7 @@ use App\Models\StudentRecord;
 use App\Models\Subject;
 use App\Models\Syllabus;
 use App\Traits\FeatureTestTrait;
+use Database\Seeders\SyllabusSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -95,6 +96,14 @@ class SyllabusTest extends TestCase
         $this->authorized_user(['create syllabus'])
             ->get('/dashboard/syllabi/create')
             ->assertOk();
+    }
+
+    public function test_the_syllabus_demo_seeder_creates_usable_records(): void
+    {
+        $this->seed(SyllabusSeeder::class);
+
+        $this->assertCount(10, Syllabus::query()->get());
+        $this->assertTrue(Syllabus::query()->whereNotNull('file')->exists());
     }
 
     public function test_unauthorized_user_cant_create_syllabus(): void

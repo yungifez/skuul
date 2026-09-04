@@ -19,13 +19,13 @@ class SyllabusFactory extends Factory
      */
     public function definition(): array
     {
-        $file = UploadedFile::fake()->create("{$this->faker->name}.pdf")->store('pdfs');
+        $file = UploadedFile::fake()->create(fake()->name().'.pdf')->store('pdfs');
 
         return [
-            'name'               => $this->faker->sentence,
-            'description'        => $this->faker->paragraph,
+            'name' => fake()->sentence(),
+            'description' => fake()->paragraph(),
             'course_offering_id' => CourseOffering::factory(),
-            'file'               => $file,
+            'file' => $file,
         ];
     }
 }

@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Production syllabus demo seeder crashed while generating a fake file name
+
+- Status: Open
+- Area: Demo-school asset creation
+- Observed: Running `php artisan db:seed --class=Database\\Seeders\\SyllabusSeeder --force --no-interaction` on Laravel Cloud failed in `SyllabusFactory.php:22` with `Attempt to read property "name" on null`. No syllabus records were created.
+- Impact: The school simulation could not populate syllabus records, so curriculum and learner portal QA could not exercise a populated syllabus workflow.
+- Reproduction: Run the existing `SyllabusSeeder` in the production runtime.
+- Resolution: Pending. The factory must use the callable Faker helper consistently when creating its fake PDF and text values.
+
 ## Portal roles could read unrelated active notices
 
 - Status: Fixed
