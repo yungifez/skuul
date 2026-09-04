@@ -8,6 +8,13 @@
         <x-show-set-school />
     </div>
     <div class="flex h-full shrink-0 items-center gap-1" x-data="{'fullScreen' : $persist(false) }">
+        <button type="button" x-on:click="$dispatch('open-command-palette')"
+            class="hidden h-9 items-center gap-2 rounded-md border bg-muted/40 px-3 text-sm text-muted-foreground transition-colors hover:bg-muted sm:flex"
+            aria-label="{{ __('Search pages and features') }}">
+            <x-lucide-search class="size-4" />
+            <span>{{ __('Search') }}</span>
+            <kbd class="ml-2 hidden rounded border bg-background px-1.5 py-0.5 font-mono text-[10px] sm:inline-block">{{ __('Ctrl') }} K</kbd>
+        </button>
         {{--full screen toggle--}}
         <april:button variant="ghost" size="icon" class="hidden sm:inline-flex" type="button"
             @click="fullScreen = !fullScreen; fullScreen == true ? document.documentElement.requestFullscreen() : document.exitFullscreen()">

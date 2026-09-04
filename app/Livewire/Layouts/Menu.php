@@ -33,6 +33,11 @@ class Menu extends Component
      */
     public array $menu = [];
 
+    /**
+     * @var list<array{key: string, label: string, group: string, url: string, keywords: string}>
+     */
+    public array $commandItems = [];
+
     public function mount(SchoolService $schoolService): void
     {
         $user = auth()->user();
@@ -397,11 +402,79 @@ class Menu extends Component
         ];
 
         $this->menu = $this->withVisibility($this->menu);
+        $this->commandItems = $this->buildCommandPaletteItems($this->menu);
     }
 
     public function render()
     {
         return view('livewire.layouts.menu');
+    }
+
+    /**
+     * Build route entries from the same permission-filtered tree as the sidebar.
+     *
+     * @param  list<array<string, mixed>>  $menu
+     * @return list<array{key: string, label: string, group: string, url: string, keywords: string}>
+     */
+    private function buildCommandPaletteItems(array $menu, string $group = 'Workspace'): array
+    {
+        $items = [];
+        $group = __($group);
+        $schoolTerms = [
+            school_term('academic_year', 'School year'),
+            school_terms('academic_year', 'School years'),
+            school_term('class_level', 'Class'),
+            school_terms('class_level', 'Classes'),
+            school_term('section', 'Section'),
+            school_terms('section', 'Sections'),
+            school_term('period', 'Academic period'),
+            school_terms('period', 'Academic periods'),
+            school_term('course', 'Course offering'),
+            school_terms('course', 'Course offerings'),
+        ];
+
+        foreach ($menu as $menuItem) {
+            if (isset($menuItem['header'])) {
+                $group = __($menuItem['header']);
+
+                continue;
+            }
+
+            if (!($menuItem['visible'] ?? true)) {
+                continue;
+            }
+
+            if (isset($menuItem['submenu'])) {
+                $items = [
+                    ...$items,
+                    ...$this->buildCommandPaletteItems($menuItem['submenu'], $group),
+                ];
+
+                continue;
+            }
+
+            if (!isset($menuItem['route'], $menuItem['text'])) {
+                continue;
+            }
+
+            $label = __($menuItem['text']);
+            $routeName = (string) $menuItem['route'];
+
+            $items[] = [
+                'key' => $routeName.'-'.count($items),
+                'label' => $label,
+                'group' => $group,
+                'url' => route($routeName, $menuItem['parameters'] ?? []),
+                'keywords' => implode(' ', [
+                    $label,
+                    $group,
+                    str_replace(['.', '-', '_'], ' ', $routeName),
+                    ...$schoolTerms,
+                ]),
+            ];
+        }
+
+        return $items;
     }
 
     /**

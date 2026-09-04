@@ -143,4 +143,55 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
             </a>
         </slot:footer>
     </april:sidebar>
+
+    <div x-data="commandPalette(@js($commandItems))"
+        x-on:open-command-palette.window="openPalette()"
+        x-on:keydown.window="handleKeydown($event)"
+        x-cloak>
+        <div x-show="open" x-transition.opacity class="fixed inset-0 z-[100] flex items-start justify-center bg-black/50 p-4 pt-[12vh] sm:p-6 sm:pt-[15vh]"
+            role="presentation" x-on:click="closePalette()">
+            <div x-show="open" x-transition class="w-full max-w-2xl overflow-hidden rounded-xl border bg-background shadow-2xl"
+                role="dialog" aria-modal="true" aria-labelledby="command-palette-title" x-on:click.stop>
+                <h2 id="command-palette-title" class="sr-only">{{ __('Search pages and features') }}</h2>
+                <div class="flex items-center gap-3 border-b px-4">
+                    <x-lucide-search class="size-5 shrink-0 text-muted-foreground" />
+                    <input x-ref="searchInput" x-model="query" type="search"
+                        placeholder="{{ __('Search pages and features...') }}"
+                        class="h-14 min-w-0 flex-1 bg-transparent text-base outline-none placeholder:text-muted-foreground"
+                        autocomplete="off" spellcheck="false" aria-label="{{ __('Search pages and features') }}">
+                    <kbd class="rounded border bg-muted px-2 py-1 font-mono text-xs text-muted-foreground">Esc</kbd>
+                </div>
+
+                <div class="max-h-[min(28rem,60vh)] overflow-y-auto p-2" role="listbox"
+                    aria-label="{{ __('Available pages and features') }}">
+                    <template x-if="filteredItems.length === 0">
+                        <p class="px-3 py-10 text-center text-sm text-muted-foreground">
+                            {{ __('No pages or features found.') }}
+                        </p>
+                    </template>
+
+                    <template x-for="(item, index) in filteredItems" :key="item.key">
+                        <a :href="item.url" wire:navigate x-on:click="closePalette()" x-on:mouseenter="selectedIndex = index"
+                            class="flex items-center gap-3 rounded-lg px-3 py-3 text-left transition-colors"
+                            :class="selectedIndex === index ? 'bg-accent text-accent-foreground' : 'hover:bg-accent/60'"
+                            role="option" :aria-selected="selectedIndex === index">
+                            <span class="flex size-9 shrink-0 items-center justify-center rounded-md border bg-background text-muted-foreground">
+                                <x-lucide-arrow-right class="size-4" />
+                            </span>
+                            <span class="min-w-0 flex-1">
+                                <span class="block truncate text-sm font-medium" x-text="item.label"></span>
+                                <span class="block truncate text-xs text-muted-foreground" x-text="item.group"></span>
+                            </span>
+                            <x-lucide-corner-down-left class="size-4 shrink-0 text-muted-foreground" />
+                        </a>
+                    </template>
+                </div>
+
+                <div class="hidden items-center justify-between gap-4 border-t px-4 py-2 text-xs text-muted-foreground sm:flex">
+                    <span>{{ __('Navigate') }} <kbd class="font-mono">↑</kbd> <kbd class="font-mono">↓</kbd></span>
+                    <span>{{ __('Open') }} <kbd class="font-mono">Enter</kbd></span>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

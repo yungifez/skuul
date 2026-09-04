@@ -16,6 +16,91 @@ function setTheme(theme) {
 window.setTheme = setTheme;
 setTheme(window.localStorage.getItem(themeStorageKey) ?? "system");
 
+window.commandPalette = function commandPalette(items) {
+    return {
+        items,
+        open: false,
+        query: "",
+        selectedIndex: 0,
+
+        init() {
+            this.$watch("query", () => {
+                this.selectedIndex = 0;
+            });
+        },
+
+        get filteredItems() {
+            const query = this.query.trim().toLocaleLowerCase();
+
+            if (query === "") {
+                return this.items;
+            }
+
+            return this.items.filter((item) => item.keywords.toLocaleLowerCase().includes(query));
+        },
+
+        openPalette() {
+            this.open = true;
+            this.query = "";
+            this.selectedIndex = 0;
+            this.$nextTick(() => this.$refs.searchInput?.focus());
+        },
+
+        closePalette() {
+            this.open = false;
+            this.query = "";
+            this.selectedIndex = 0;
+        },
+
+        handleKeydown(event) {
+            if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+                event.preventDefault();
+                this.open ? this.closePalette() : this.openPalette();
+
+                return;
+            }
+
+            if (!this.open) {
+                return;
+            }
+
+            if (event.key === "Escape") {
+                event.preventDefault();
+                this.closePalette();
+
+                return;
+            }
+
+            if (event.key === "ArrowDown") {
+                event.preventDefault();
+                this.selectedIndex = Math.min(this.selectedIndex + 1, this.filteredItems.length - 1);
+
+                return;
+            }
+
+            if (event.key === "ArrowUp") {
+                event.preventDefault();
+                this.selectedIndex = Math.max(this.selectedIndex - 1, 0);
+
+                return;
+            }
+
+            if (event.key === "Enter" && this.filteredItems[this.selectedIndex]) {
+                event.preventDefault();
+                const url = this.filteredItems[this.selectedIndex].url;
+
+                if (window.Livewire?.navigate) {
+                    window.Livewire.navigate(url);
+                } else {
+                    window.location.assign(url);
+                }
+
+                this.closePalette();
+            }
+        },
+    };
+};
+
 window.locationFields = function locationFields(configuration) {
     return {
         country: configuration.country ?? "",

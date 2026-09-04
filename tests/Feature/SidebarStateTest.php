@@ -3,9 +3,12 @@
 namespace Tests\Feature;
 
 use App\Actions\Organization\GrantOrganizationMembership;
+use App\Livewire\Layouts\Menu;
 use App\Models\Organization;
+use App\Models\SchoolOperatingProfile;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class SidebarStateTest extends TestCase
@@ -120,6 +123,29 @@ class SidebarStateTest extends TestCase
             ->assertSee('Gradebooks')
             ->assertSee(route('course-offerings.index'), false)
             ->assertDontSee('Exam records');
+    }
+
+    public function test_the_command_palette_uses_visible_routes_and_school_terms(): void
+    {
+        $school = $this->workingSchool();
+        $school->operatingProfile()->updateOrCreate([], [
+            'preset' => SchoolOperatingProfile::DEFAULT_PRESET,
+            'labels' => array_replace(SchoolOperatingProfile::labelsFor(SchoolOperatingProfile::DEFAULT_PRESET), [
+                'class_level' => 'Grade',
+                'section' => 'Homeroom',
+            ]),
+        ]);
+
+        $this->authorized_user(['read admin', 'read class', 'read section'], $school);
+
+        $items = Livewire::test(Menu::class)->get('commandItems');
+
+        $this->assertIsArray($items);
+
+        $this->assertTrue(collect($items)->contains(fn (array $item): bool => $item['label'] === 'Grades'));
+        $this->assertTrue(collect($items)->contains(fn (array $item): bool => $item['label'] === 'Homerooms'));
+        $this->assertTrue(collect($items)->contains(fn (array $item): bool => $item['url'] === route('admins.index')));
+        $this->assertFalse(collect($items)->contains(fn (array $item): bool => $item['url'] === route('students.index')));
     }
 
     public function test_the_sidebar_shows_organizations_to_an_organization_administrator(): void
