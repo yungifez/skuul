@@ -1,55 +1,152 @@
-<div class="card">
-    <div class="card-header">
-        <h4 class="card-title">Create Notice</h4>
-    </div>
-    <div class="card-body">
-        <form action="{{route('notices.store')}}" method="post" enctype="multipart/form-data" class="md:w-1/2">
-            <x-display-validation-errors/>
-            <april:input-group id="title" name="title" label="Notice title" placeholder="Enter Notice title" />
-            <div class="flex w-full flex-col gap-2">
-                <april:label for="content">Notice content/body</april:label>
-                <april:editor
-                    name="content"
-                    :value="old('content', '')"
-                    placeholder="Write the announcement..."
-                    bold
-                    italic
-                    heading
-                    bullet-list
-                    ordered-list
-                    blockquote
-                    link
-                    undo
-                    redo
-                />
-            </div>
-            <april:input-group type="date" id="start_date" name="start_date" label="Start date" required />
-            <april:input-group type="date" id="stop_Date" name="stop_date" label="Stop date" />
-            <fieldset class="flex flex-col gap-3 rounded border border-slate-200 p-4 dark:border-slate-700">
-                <legend class="px-1 text-sm font-medium text-slate-900 dark:text-slate-100">Who should receive this?</legend>
-                <p class="text-sm text-slate-600 dark:text-slate-300">Leave {{ strtolower(school_terms('section', 'sections')) }} empty for the whole school community. Select {{ strtolower(school_terms('section', 'sections')) }} to send to those learners only.</p>
-                <label for="academic_cycle_section_ids" class="text-sm font-medium text-slate-800 dark:text-slate-100">{{ school_terms('section', 'Sections') }}</label>
-                <select id="academic_cycle_section_ids" name="audience[academic_cycle_section_ids][]" multiple class="min-h-28 rounded border border-slate-300 bg-white px-3 py-2 text-slate-900 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-100">
-                    @foreach($sections as $section)
-                        <option value="{{ $section->id }}">{{ $section->academicLevel?->name ?? 'Unassigned '.strtolower(school_term('class_level', 'class')) }} — {{ $section->label ?? $section->name }}</option>
-                    @endforeach
-                </select>
-                <label class="flex items-start gap-2 text-sm text-slate-800 dark:text-slate-100">
-                    <input type="hidden" name="audience[include_guardians]" value="0">
-                    <input type="checkbox" name="audience[include_guardians]" value="1" class="mt-0.5 rounded border-slate-300 text-blue-600 focus:ring-blue-500">
-                    <span>Also send this to the selected learners’ guardians.</span>
-                </label>
-            </fieldset>
-            @csrf
-            <april:input-group id="file" type="file" name="attachment" accept=".gif,.jpg,.jpeg,.png,.doc,.docx,.pdf" label="Upload file" placeholder="Choose a file...(optional)" />
-            <div class='col-12 my-2'>
-                <april:button type="submit" class="w-full md:w-1/2">
-                    <x-lucide-key class="mr-2 size-4" />
-                    Create
+@php
+    $selectedSectionIds = collect(old('audience.academic_cycle_section_ids', []))
+        ->map(fn ($sectionId): string => (string) $sectionId)
+        ->all();
+    $includeGuardians = filter_var(old('audience.include_guardians', false), FILTER_VALIDATE_BOOLEAN);
+@endphp
+
+<div class="w-full">
+    <form action="{{ route('notices.store') }}" method="POST" enctype="multipart/form-data" class="grid w-full gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+        @csrf
+
+        <div class="flex min-w-0 flex-col gap-6">
+            <april:card>
+                <slot:title class="flex items-center gap-2">
+                    <span>Write your notice</span>
+                    <x-help-tooltip label="Notice writing help">Keep the title short and make the first sentence tell people what they need to know.</x-help-tooltip>
+                </slot:title>
+                <slot:description>Share an update with your school community.</slot:description>
+                <slot:content class="space-y-6">
+                    <x-display-validation-errors />
+
+                    <div class="flex flex-col gap-2">
+                        <april:label for="title">Notice title</april:label>
+                        <april:input id="title" name="title" value="{{ old('title') }}" required maxlength="255" placeholder="e.g. Parent meeting next Thursday" />
+                        @error('title')
+                            <p class="text-sm text-destructive">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-2">
+                            <april:label for="content">Message</april:label>
+                            <span class="text-xs text-muted-foreground">Use the toolbar to format your message.</span>
+                        </div>
+                        <april:editor
+                            id="content"
+                            name="content"
+                            :value="old('content', '')"
+                            placeholder="Write the announcement..."
+                            bold
+                            italic
+                            heading
+                            bullet-list
+                            ordered-list
+                            blockquote
+                            link
+                            undo
+                            redo
+                        />
+                        @error('content')
+                            <p class="text-sm text-destructive">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </slot:content>
+            </april:card>
+
+            <april:card>
+                <slot:title>Attachment</slot:title>
+                <slot:description>Add a document or image when the message needs supporting information.</slot:description>
+                <slot:content>
+                    <div class="flex flex-col gap-2">
+                        <april:label for="attachment">File <span class="font-normal text-muted-foreground">(optional)</span></april:label>
+                        <input id="attachment" type="file" name="attachment" accept=".gif,.jpg,.jpeg,.png,.doc,.docx,.pdf"
+                            class="flex min-h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground file:mr-4 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                        <p class="text-xs text-muted-foreground">PDF, Word, GIF, JPG, or PNG up to 10 MB.</p>
+                        @error('attachment')
+                            <p class="text-sm text-destructive">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </slot:content>
+            </april:card>
+        </div>
+
+        <aside class="flex min-w-0 flex-col gap-6">
+            <april:card>
+                <slot:title>Publishing dates</slot:title>
+                <slot:description>Choose when people can see this notice.</slot:description>
+                <slot:content class="space-y-5">
+                    <div class="flex flex-col gap-2">
+                        <april:label for="start_date">Starts on</april:label>
+                        <april:input id="start_date" name="start_date" type="date" value="{{ old('start_date', now()->toDateString()) }}" required />
+                        @error('start_date')
+                            <p class="text-sm text-destructive">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <april:label for="stop_date">Ends on</april:label>
+                        <april:input id="stop_date" name="stop_date" type="date" value="{{ old('stop_date') }}" />
+                        <p class="text-xs text-muted-foreground">The notice stops showing after this date.</p>
+                        @error('stop_date')
+                            <p class="text-sm text-destructive">{{ $message }}</p>
+                        @enderror
+                    </div>
+                </slot:content>
+            </april:card>
+
+            <april:card>
+                <slot:title>Audience</slot:title>
+                <slot:description>Leave sections empty to share this with the whole school.</slot:description>
+                <slot:content class="space-y-5">
+                    <div class="flex flex-col gap-2">
+                        <april:label for="academic-cycle-section-ids">Sections <span class="font-normal text-muted-foreground">(optional)</span></april:label>
+                        @if ($sections->isNotEmpty())
+                            <april:select id="academic-cycle-section-ids" name="audience[academic_cycle_section_ids][]" multiple placeholder="Choose sections">
+                                @foreach ($sections as $section)
+                                    <option value="{{ $section->id }}" @selected(in_array((string) $section->id, $selectedSectionIds, true))>
+                                        {{ $section->academicLevel?->name ?? 'Unassigned '.strtolower(school_term('class_level', 'class')) }} · {{ $section->label ?? $section->name }}
+                                    </option>
+                                @endforeach
+                            </april:select>
+                            <p class="text-xs text-muted-foreground">You can choose more than one section.</p>
+                        @else
+                            <div class="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+                                No active sections are available. This notice will go to the whole school.
+                            </div>
+                        @endif
+                        @error('audience.academic_cycle_section_ids')
+                            <p class="text-sm text-destructive">{{ $message }}</p>
+                        @enderror
+                        @error('audience.academic_cycle_section_ids.*')
+                            <p class="text-sm text-destructive">{{ $message }}</p>
+                        @enderror
+                    </div>
+
+                    <label class="flex items-start gap-3 rounded-md border p-3 text-sm transition-colors hover:bg-muted/40">
+                        <input type="hidden" name="audience[include_guardians]" value="0">
+                        <input type="checkbox" name="audience[include_guardians]" value="1" @checked($includeGuardians)
+                            class="mt-0.5 size-4 rounded border-input text-primary accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                        <span>
+                            <span class="font-medium">Include guardians</span>
+                            <span class="mt-1 block text-xs text-muted-foreground">Send this notice to the guardians of the selected learners too.</span>
+                        </span>
+                    </label>
+                </slot:content>
+            </april:card>
+        </aside>
+
+        <div class="flex flex-col-reverse gap-3 border-t pt-6 sm:flex-row sm:items-center sm:justify-between xl:col-span-2">
+            <p class="text-sm text-muted-foreground">You can review and publish the notice after it is created.</p>
+            <div class="flex flex-col-reverse gap-3 sm:flex-row">
+                <april:button-link href="{{ route('notices.index') }}" variant="outline">Cancel</april:button-link>
+                <april:button type="submit">
+                    <x-lucide-send class="mr-2 size-4" />
+                    Create notice
                 </april:button>
             </div>
-        </form>
-    </div>
+        </div>
+    </form>
 </div>
 
 @pushOnce('scripts')

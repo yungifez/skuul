@@ -77,6 +77,8 @@ class NoticeTest extends TestCase
             ->get('dashboard/notices/create')
             ->assertSuccessful()
             ->assertSee('data-slot="editor"', false)
+            ->assertSee('data-slot="select"', false)
+            ->assertSee('name="audience[academic_cycle_section_ids][]"', false)
             ->assertSee('name="content"', false);
     }
 
