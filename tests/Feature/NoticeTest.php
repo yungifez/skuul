@@ -5,6 +5,9 @@ namespace Tests\Feature;
 use App\Enums\NoticeStatus;
 use App\Livewire\ShowNotice;
 use App\Models\Notice;
+use App\Models\NoticeRecipient;
+use App\Models\StudentRecord;
+use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -58,6 +61,48 @@ class NoticeTest extends TestCase
         $this->get(route('notices.show', $notice))
             ->assertSuccessful()
             ->assertSee('Draft');
+    }
+
+    public function test_a_student_only_sees_active_notices_delivered_to_their_account(): void
+    {
+        $school = $this->workingSchool();
+        $studentRecord = StudentRecord::factory()->create(['school_id' => $school->id]);
+        $student = $studentRecord->user;
+        $student->givePermissionTo('read notice');
+
+        $visibleNotice = Notice::factory()->create([
+            'school_id' => $school->id,
+            'title' => 'Learner notice',
+            'status' => NoticeStatus::Published,
+            'active' => true,
+            'start_date' => now()->subDay()->toDateString(),
+            'stop_date' => now()->addDay()->toDateString(),
+        ]);
+        NoticeRecipient::factory()->create([
+            'notice_id' => $visibleNotice->id,
+            'user_id' => $student->id,
+        ]);
+
+        $hiddenNotice = Notice::factory()->create([
+            'school_id' => $school->id,
+            'title' => 'Other class notice',
+            'status' => NoticeStatus::Published,
+            'active' => true,
+            'start_date' => now()->subDay()->toDateString(),
+            'stop_date' => now()->addDay()->toDateString(),
+        ]);
+        NoticeRecipient::factory()->create([
+            'notice_id' => $hiddenNotice->id,
+            'user_id' => User::factory()->create()->id,
+        ]);
+
+        $this->actingAsMemberOf($school, $student)
+            ->get(route('notices.index'))
+            ->assertOk()
+            ->assertSee('Learner notice')
+            ->assertDontSee('Other class notice');
+
+        $this->get(route('notices.show', $hiddenNotice))->assertForbidden();
     }
 
     // asser user cannot view create notice

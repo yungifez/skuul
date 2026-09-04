@@ -13,9 +13,17 @@ class ListNoticesTable extends DataTableComponent
 {
     protected function builder(): Builder
     {
+        $user = auth()->user();
         $query = Notice::query()->inSchool();
 
-        if (!auth()->user()->can('update notice') && !auth()->user()->can('delete notice')) {
+        if ($user->isPortalOnly()) {
+            return $query
+                ->published()
+                ->active()
+                ->whereHas('recipients', fn (Builder $recipients): Builder => $recipients->where('user_id', $user->id));
+        }
+
+        if (!$user->can('update notice') && !$user->can('delete notice')) {
             $query->active();
         }
 

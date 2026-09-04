@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Portal roles could read unrelated active notices
+
+- Status: In progress
+- Area: Learner and family notices
+- Observed: A learner or guardian with the built-in `read notice` permission could open the workspace notice list, which used the school-wide active-notice query instead of the recipient records used by the portal.
+- Impact: A notice aimed at another class, role, or named learner could appear outside its intended audience.
+- Reproduction: Publish two active notices, deliver only one to a learner or guardian, then open `/dashboard/notices` and each notice detail route as that portal user.
+- Planned resolution: Portal-role notice lists and detail views will require a published notice with a recipient record for the signed-in account. Staff notice management will retain its current school-wide permissions. Regression coverage checks the delivered and undelivered normal and exception paths.
+
 ## Portal roles could open staff curriculum workspaces
 
 - Status: In progress
