@@ -78,7 +78,7 @@ class NoticeTest extends TestCase
             'start_date' => now()->subDay()->toDateString(),
             'stop_date' => now()->addDay()->toDateString(),
         ]);
-        NoticeRecipient::factory()->create([
+        NoticeRecipient::create([
             'notice_id' => $visibleNotice->id,
             'user_id' => $student->id,
         ]);
@@ -91,7 +91,7 @@ class NoticeTest extends TestCase
             'start_date' => now()->subDay()->toDateString(),
             'stop_date' => now()->addDay()->toDateString(),
         ]);
-        NoticeRecipient::factory()->create([
+        NoticeRecipient::create([
             'notice_id' => $hiddenNotice->id,
             'user_id' => User::factory()->create()->id,
         ]);
