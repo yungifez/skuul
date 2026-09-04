@@ -199,6 +199,7 @@ class WellbeingScreenTest extends TestCase
 
     public function test_a_health_record_validation_error_is_shown_on_the_screen(): void
     {
+        config(['session.driver' => 'cookie']);
         $this->authorized_user(['read health record', 'update health record']);
         $enrollment = $this->enrollment();
 
@@ -206,12 +207,16 @@ class WellbeingScreenTest extends TestCase
             'notes' => 'Keep the inhaler in the front office.',
         ])->assertRedirect(route('health-records.edit', $enrollment));
 
-        $this->from(route('health-records.edit', $enrollment))
+        $response = $this->from(route('health-records.edit', $enrollment))
             ->put(route('health-records.update', $enrollment), [
                 'notes' => str_repeat('x', 5001),
-            ])
+            ]);
+
+        $response
             ->assertSessionHasErrors('notes')
-            ->followRedirects()
+            ->assertRedirect(route('health-records.edit', $enrollment));
+
+        $this->get(route('health-records.edit', $enrollment))
             ->assertSee('The health record was not saved')
             ->assertSee('The notes field must not be greater than 5000 characters.')
             ->assertSee('Keep the inhaler in the front office.');

@@ -52,6 +52,19 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions
             ->dontReport([ApplicationException::class])
-            ->dontFlash(['current_password', 'password', 'password_confirmation']);
+            ->dontFlash([
+                'current_password',
+                'password',
+                'password_confirmation',
+                'blood_group',
+                'conditions',
+                'allergies',
+                'medications',
+                'dietary_needs',
+                'emergency_contact_name',
+                'emergency_contact_phone',
+                'emergency_contact_relationship',
+                'notes',
+            ]);
     })
     ->create();
