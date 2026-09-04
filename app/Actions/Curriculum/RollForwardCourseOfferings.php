@@ -164,7 +164,6 @@ class RollForwardCourseOfferings
                 ? null
                 : ($map[$sourcePeriod->parent_id]->id ?? null);
             $targetPeriod = $targetPeriods->first(fn (AcademicPeriod $candidate): bool => $candidate->name === $sourcePeriod->name
-                && $candidate->label === $sourcePeriod->label
                 && $candidate->type === $sourcePeriod->type
                 && $candidate->position === $sourcePeriod->position
                 && $candidate->parent_id === $targetParentId);

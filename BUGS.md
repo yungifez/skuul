@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Subject rollover rejected periods with different display labels
+
+- Status: Fixed
+- Area: Academic year setup and subject rollover
+- Observed: The 2027–28 calendar showed Term 1, Term 2, and Term 3 in the edit form, but its display labels were Autumn, Winter, and Spring. Rolling subjects from 2026–27 reported that the matching reporting period did not exist, even though the period name, type, position, and hierarchy matched.
+- Impact: A school could not carry its curriculum into a new year when the new calendar used different presentation labels.
+- Reproduction: Open `/dashboard/course-offerings/roll-forward?source_academic_year_id=1&target_academic_year_id=2` with matching period names and different period labels, then review the rollover.
+- Resolution: Course-offering rollover now matches reporting periods by stable name, type, position, and parent hierarchy. Display labels are presentation metadata and no longer prevent a valid rollover. Regression coverage includes normal, alternate-label, and missing-period exception flows.
+
 ## Production syllabus demo seeder crashed while generating a fake file name
 
 - Status: Fixed
