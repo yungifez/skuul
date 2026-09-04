@@ -136,11 +136,11 @@ class GradebookTest extends TestCase
     {
         $this->authorized_user(['read gradebook', 'update subject']);
         $school = $this->workingSchool();
-        $historicalYear = AcademicYear::factory()->create([
+        $historicalYear = AcademicYear::query()->findOrFail(AcademicYear::factory()->create([
             'school_id' => $school->id,
             'start_year' => 2024,
             'stop_year' => 2025,
-        ]);
+        ])->getKey());
         $firstPeriod = AcademicPeriod::factory()->create([
             'school_id' => $school->id,
             'academic_year_id' => $historicalYear->id,
@@ -197,7 +197,9 @@ class GradebookTest extends TestCase
     public function test_gradebook_history_cannot_be_selected_from_another_school(): void
     {
         $this->authorized_user(['read gradebook', 'update subject']);
-        $otherSchoolYear = AcademicYear::factory()->create(['school_id' => School::factory()->create()->id]);
+        $otherSchoolYear = AcademicYear::query()->findOrFail(AcademicYear::factory()->create([
+            'school_id' => School::factory()->create()->getKey(),
+        ])->getKey());
 
         $this->get(route('gradebooks.index', ['academic_year_id' => $otherSchoolYear->id]))
             ->assertNotFound();
@@ -374,11 +376,14 @@ class GradebookTest extends TestCase
         $this->assertSame(80.0, $snapshot->percentage);
         $this->assertSame(ResultApprovalStatus::Pending, $snapshot->approval_status);
         $this->assertNotEmpty($snapshot->payload['items']);
-        $this->assertNull(app(PublishResult::class)->current($courseOffering, $enrollment));
+        $currentBeforeApproval = app(PublishResult::class)->current($courseOffering, $enrollment);
+        $this->assertNull($currentBeforeApproval);
 
         app(ApproveResult::class)->approve($snapshot, $actor);
 
-        $this->assertSame($snapshot->id, app(PublishResult::class)->current($courseOffering, $enrollment)?->id);
+        $currentAfterApproval = app(PublishResult::class)->current($courseOffering, $enrollment);
+        $this->assertInstanceOf(ResultSnapshot::class, $currentAfterApproval);
+        $this->assertSame($snapshot->getKey(), $currentAfterApproval->getKey());
     }
 
     public function test_a_student_outside_the_offering_cannot_receive_or_publish_a_result(): void
@@ -493,11 +498,11 @@ class GradebookTest extends TestCase
         }
 
         $school = $this->workingSchool();
-        $academicYear = current_academic_year() ?? AcademicYear::factory()->create(['school_id' => $school->id]);
-        $academicPeriod = current_academic_period() ?? AcademicPeriod::factory()->create([
+        $academicYear = current_academic_year() ?? AcademicYear::query()->findOrFail(AcademicYear::factory()->create(['school_id' => $school->id])->getKey());
+        $academicPeriod = current_academic_period() ?? AcademicPeriod::query()->findOrFail(AcademicPeriod::factory()->create([
             'school_id' => $school->id,
             'academic_year_id' => $academicYear->id,
-        ]);
+        ])->getKey());
         $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
         $this->cycleSection = AcademicCycleSection::factory()->create([
             'school_id' => $school->id,
