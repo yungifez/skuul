@@ -149,30 +149,35 @@ class GradebookController extends Controller
     {
         $this->authorize('manageGradebook', $courseOffering);
 
-        $attributes = $request->validated();
+        try {
+            $this->ensureGradebookAcceptsNewWork($courseOffering);
+            $attributes = $request->validated();
 
-        if ($attributes['type'] === GradeItemType::Scale->value) {
-            $scale = GradingScale::query()
-                ->inSchool()
-                ->findOrFail($attributes['grading_scale_id']);
-            $maximumPoints = $scale->options()->max('points');
-            $attributes['max_points'] = $maximumPoints === null ? null : (float) $maximumPoints;
+            if ($attributes['type'] === GradeItemType::Scale->value) {
+                $scale = GradingScale::query()
+                    ->inSchool()
+                    ->findOrFail($attributes['grading_scale_id']);
+                $maximumPoints = $scale->options()->max('points');
+                $attributes['max_points'] = $maximumPoints === null ? null : (float) $maximumPoints;
+            }
+
+            if ($attributes['type'] === GradeItemType::Text->value) {
+                $attributes['max_points'] = null;
+                $attributes['grading_scale_id'] = null;
+            }
+
+            if ($attributes['type'] === GradeItemType::Numeric->value) {
+                $attributes['grading_scale_id'] = null;
+            }
+
+            GradeItem::create($attributes + [
+                'school_id' => $courseOffering->school_id,
+                'course_offering_id' => $courseOffering->id,
+                'created_by' => $request->user()->id,
+            ]);
+        } catch (ClosedPeriodException $exception) {
+            return back()->withErrors(['gradebook' => $exception->getMessage()]);
         }
-
-        if ($attributes['type'] === GradeItemType::Text->value) {
-            $attributes['max_points'] = null;
-            $attributes['grading_scale_id'] = null;
-        }
-
-        if ($attributes['type'] === GradeItemType::Numeric->value) {
-            $attributes['grading_scale_id'] = null;
-        }
-
-        GradeItem::create($attributes + [
-            'school_id' => $courseOffering->school_id,
-            'course_offering_id' => $courseOffering->id,
-            'created_by' => $request->user()->id,
-        ]);
 
         return back()->with('success', 'Assessment added to the gradebook.');
     }
@@ -182,11 +187,16 @@ class GradebookController extends Controller
      */
     public function storeCategory(StoreGradebookCategoryRequest $request, CourseOffering $courseOffering): RedirectResponse
     {
-        GradeCategory::create($request->validated() + [
-            'school_id' => $courseOffering->school_id,
-            'course_offering_id' => $courseOffering->id,
-            'position' => (int) $courseOffering->gradeCategories()->max('position') + 1,
-        ]);
+        try {
+            $this->ensureGradebookAcceptsNewWork($courseOffering);
+            GradeCategory::create($request->validated() + [
+                'school_id' => $courseOffering->school_id,
+                'course_offering_id' => $courseOffering->id,
+                'position' => (int) $courseOffering->gradeCategories()->max('position') + 1,
+            ]);
+        } catch (ClosedPeriodException $exception) {
+            return back()->withErrors(['gradebook' => $exception->getMessage()]);
+        }
 
         return back()->with('success', 'Assessment category added.');
     }
@@ -196,10 +206,15 @@ class GradebookController extends Controller
      */
     public function updateItem(UpdateGradebookItemRequest $request, CourseOffering $courseOffering, GradeItem $gradeItem): RedirectResponse
     {
+        $this->authorize('manageGradebook', $courseOffering);
         $item = $courseOffering->gradeItems()->findOrFail($gradeItem->id);
-        $attributes = $request->validated();
 
-        $item->update($attributes);
+        try {
+            $this->ensureGradebookAcceptsNewWork($courseOffering);
+            $item->update($request->validated());
+        } catch (ClosedPeriodException $exception) {
+            return back()->withErrors(['gradebook' => $exception->getMessage()]);
+        }
 
         return back()->with('success', 'Assessment updated.');
     }
@@ -212,11 +227,17 @@ class GradebookController extends Controller
         $this->authorize('manageGradebook', $courseOffering);
         $item = $courseOffering->gradeItems()->findOrFail($gradeItem->id);
 
-        if ($item->entries()->exists()) {
-            return back()->withErrors(['gradebook' => 'An assessment with learner marks cannot be deleted.']);
-        }
+        try {
+            $this->ensureGradebookAcceptsNewWork($courseOffering);
 
-        $item->delete();
+            if ($item->entries()->exists()) {
+                return back()->withErrors(['gradebook' => 'An assessment with learner marks cannot be deleted.']);
+            }
+
+            $item->delete();
+        } catch (ClosedPeriodException $exception) {
+            return back()->withErrors(['gradebook' => $exception->getMessage()]);
+        }
 
         return back()->with('success', 'Assessment deleted.');
     }
@@ -322,5 +343,20 @@ class GradebookController extends Controller
         }
 
         return back()->with('success', 'Result rejected. The teacher can submit a new revision.');
+    }
+
+    /**
+     * Ensure gradebook structure can still be changed for this period.
+     *
+     * @throws ClosedPeriodException
+     */
+    private function ensureGradebookAcceptsNewWork(CourseOffering $courseOffering): void
+    {
+        $courseOffering->loadMissing(['academicPeriod', 'academicYear']);
+        $period = $courseOffering->academicPeriod ?? $courseOffering->academicYear;
+
+        if ($period !== null && !$period->status->acceptsNewWork()) {
+            throw new ClosedPeriodException('You cannot change gradebook structure while the academic period is closing or closed.');
+        }
     }
 }
