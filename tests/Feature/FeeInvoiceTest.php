@@ -70,8 +70,9 @@ class FeeInvoiceTest extends TestCase
             ->assertDontSee('wire:loading.disable', false)
             ->assertSee('wire:target="addFee"', false)
             ->assertSee('style="display: none"', false)
-            ->assertSee('data-slot="native-select"', false)
-            ->assertDontSee('data-slot="select"', false);
+            ->assertSee('class="space-y-6"', false)
+            ->assertSee('data-slot="select"', false)
+            ->assertDontSee('data-slot="native-select"', false);
     }
 
     public function test_unauthorized_user_cannot_create_fee_invoice()
