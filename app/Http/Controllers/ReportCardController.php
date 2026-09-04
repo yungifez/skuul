@@ -61,7 +61,9 @@ class ReportCardController extends Controller
             'reportCards' => $reportCards,
             'students' => StudentRecord::query()->inSchool()->with('user:id,name')->orderBy('admission_number')->get(['id', 'user_id', 'admission_number']),
             'academicYears' => AcademicYear::query()->inSchool()->orderByDesc('start_year')->orderByDesc('id')->get(['id', 'start_year', 'stop_year']),
-            'periods' => AcademicPeriod::query()->inSchool()->with('academicYear:id,start_year,stop_year')->ordered()->get(['id', 'name', 'label', 'academic_year_id']),
+            'periods' => AcademicPeriod::query()->inSchool()->when($academicYear !== null, function (Builder $query) use ($academicYear): void {
+                $query->where('academic_year_id', $academicYear->id);
+            })->with('academicYear:id,start_year,stop_year')->ordered()->get(['id', 'name', 'label', 'academic_year_id']),
             'selectedStudent' => $selectedStudent,
             'selectedAcademicYear' => $selectedAcademicYear,
             'selectedPeriod' => $selectedPeriod,
