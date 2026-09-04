@@ -100,6 +100,8 @@ class SyllabusTest extends TestCase
 
     public function test_the_syllabus_demo_seeder_creates_usable_records(): void
     {
+        CourseOffering::factory()->count(10)->create();
+
         $this->seed(SyllabusSeeder::class);
 
         $this->assertCount(10, Syllabus::query()->get());

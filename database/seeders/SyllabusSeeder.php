@@ -2,18 +2,43 @@
 
 namespace Database\Seeders;
 
+use App\Models\CourseOffering;
+use App\Models\School;
 use App\Models\Syllabus;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Storage;
 
 class SyllabusSeeder extends Seeder
 {
     /**
      * Run the database seeds.
-     *
-     * @return void
      */
-    public function run()
+    public function run(): void
     {
-        Syllabus::factory()->count(10)->create();
+        $school = School::query()->first();
+
+        if ($school === null) {
+            return;
+        }
+
+        CourseOffering::query()
+            ->where('school_id', $school->id)
+            ->orderBy('id')
+            ->limit(10)
+            ->get()
+            ->values()
+            ->each(function (CourseOffering $courseOffering, int $index): void {
+                $filePath = 'pdfs/demo-syllabus-'.$courseOffering->id.'.pdf';
+                Storage::disk('public')->put($filePath, "%PDF-1.4\nDemo syllabus\n");
+
+                Syllabus::query()->firstOrCreate(
+                    ['course_offering_id' => $courseOffering->id],
+                    [
+                        'name' => 'Demo syllabus '.($index + 1),
+                        'description' => 'Course plan and learning outcomes for the simulated school.',
+                        'file' => $filePath,
+                    ],
+                );
+            });
     }
 }

@@ -4,10 +4,10 @@
 
 - Status: Open
 - Area: Demo-school asset creation
-- Observed: Running `php artisan db:seed --class=Database\\Seeders\\SyllabusSeeder --force --no-interaction` on Laravel Cloud failed in `SyllabusFactory.php:22` with `Attempt to read property "name" on null`. No syllabus records were created.
+- Observed: Running `php artisan db:seed --class=Database\\Seeders\\SyllabusSeeder --force --no-interaction` on Laravel Cloud first failed in `SyllabusFactory.php:22` with `Attempt to read property "name" on null`, then reached `CourseOfferingFactory.php:57` with `Call to undefined function Database\\Factories\\fake()`. No syllabus records were created.
 - Impact: The school simulation could not populate syllabus records, so curriculum and learner portal QA could not exercise a populated syllabus workflow.
 - Reproduction: Run the existing `SyllabusSeeder` in the production runtime.
-- Resolution: In progress. The factory now uses Faker when it is installed and deterministic fallback values when a production build omits the dev-only Faker package. Remote seeder verification is pending.
+- Resolution: In progress. The demo seeder now uses existing school offerings and writes deterministic records and PDF placeholders idempotently, so production asset creation does not traverse test-only Faker factories. Remote seeder verification is pending.
 
 ## Portal roles could read unrelated active notices
 
