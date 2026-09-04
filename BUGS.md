@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Closed gradebooks still presented editable controls
+
+- Status: Fixed
+- Area: Gradebook usability and academic-period lifecycle
+- Observed: A gradebook in a closed reporting period still rendered assessment setup and mark-entry forms. The backend correctly rejected new work, but the screen did not explain the locked state until after a failed submission.
+- Impact: Teachers could waste time filling controls that could not be saved, and the page did not clearly separate historical results from current editing work.
+- Reproduction: Open a course offering whose reporting period is closed, such as `/dashboard/course-offerings/41/gradebook`, and inspect the assessment setup and learner rows.
+- Resolution: Closed gradebooks now show a read-only status banner and summary badge, hide edit controls, keep historical marks/results visible, collapse the workflow guidance, and use a bordered sticky-header grid for long assessment lists. Screen coverage includes open, closed, and invalid-write paths.
+
 ## Exam detail links opened a permanent 404
 
 - Status: Fixed

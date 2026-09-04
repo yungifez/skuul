@@ -12,6 +12,10 @@
 @endsection
 
 @section('content')
+    @php
+        $gradebookIsOpen = $courseOffering->academicPeriod?->status->acceptsNewWork() ?? false;
+    @endphp
+
     <div class="space-y-6">
         <april:card>
             <slot:title>{{ $courseOffering->subject->name }} <span class="font-normal text-muted-foreground">· {{ $courseOffering->academicLevel->name }}</span></slot:title>
@@ -20,35 +24,55 @@
                 · {{ school_roster_label($courseOffering->roster_mode) }}
                 · {{ $students->count() }} learner{{ $students->count() === 1 ? '' : 's' }}
             </slot:description>
+            <slot:actions>
+                <div class="flex flex-wrap justify-end gap-2 text-xs">
+                    <span class="rounded-full border px-2.5 py-1">{{ $gradeItems->count() }} assessment{{ $gradeItems->count() === 1 ? '' : 's' }}</span>
+                    <span class="rounded-full border px-2.5 py-1">{{ $publishedResults->count() }} published</span>
+                    <span class="rounded-full border px-2.5 py-1 {{ $gradebookIsOpen ? 'border-primary/30 bg-primary/10 text-primary' : 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300' }}">
+                        {{ $gradebookIsOpen ? 'Editing open' : 'Read-only' }}
+                    </span>
+                </div>
+            </slot:actions>
         </april:card>
 
-        <april:card class="border-primary/30 bg-primary/[0.03]">
-            <slot:title>Gradebook workflow</slot:title>
-            <slot:description>Set up the assessments once, enter working marks, then submit results for approval.</slot:description>
-            <slot:content>
-                <div class="grid gap-4 md:grid-cols-3">
-                    <div class="flex gap-3">
-                        <span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">1</span>
-                        <div><p class="font-medium">Set up assessments</p><p class="text-sm text-muted-foreground">Choose categories, weights, and assessment types.</p></div>
-                    </div>
-                    <div class="flex gap-3">
-                        <span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">2</span>
-                        <div><p class="font-medium">Enter grades</p><p class="text-sm text-muted-foreground">Save working marks in the learner grid below.</p></div>
-                    </div>
-                    <div class="flex gap-3">
-                        <span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">3</span>
-                        <div><p class="font-medium">Submit results</p><p class="text-sm text-muted-foreground">Send completed results for approval and publication.</p></div>
-                    </div>
+        <details id="gradebook-workflow" class="rounded-xl border border-primary/30 bg-primary/[0.03] p-5">
+            <summary class="flex cursor-pointer list-none items-start justify-between gap-4">
+                <span>
+                    <span class="block text-lg font-semibold">Gradebook workflow</span>
+                    <span class="mt-1 block text-sm text-muted-foreground">Set up assessments, enter working marks, then submit results for approval.</span>
+                </span>
+                <span class="shrink-0 rounded-full border border-primary/30 px-2.5 py-1 text-xs">3 steps</span>
+            </summary>
+            <div class="mt-5 grid gap-4 md:grid-cols-3">
+                <div class="flex gap-3">
+                    <span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">1</span>
+                    <div><p class="font-medium">Set up assessments</p><p class="text-sm text-muted-foreground">Choose categories, weights, and assessment types.</p></div>
                 </div>
-            </slot:content>
-        </april:card>
+                <div class="flex gap-3">
+                    <span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">2</span>
+                    <div><p class="font-medium">Enter grades</p><p class="text-sm text-muted-foreground">Save working marks in the learner grid below.</p></div>
+                </div>
+                <div class="flex gap-3">
+                    <span class="flex size-7 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">3</span>
+                    <div><p class="font-medium">Submit results</p><p class="text-sm text-muted-foreground">Send completed results for approval and publication.</p></div>
+                </div>
+            </div>
+        </details>
 
         @if ($errors->has('gradebook'))
             <div class="rounded-lg border border-destructive/40 bg-destructive/10 px-4 py-3 text-sm text-destructive">{{ $errors->first('gradebook') }}</div>
         @endif
         <x-display-validation-errors />
 
+        @if (!$gradebookIsOpen)
+            <div class="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm">
+                <p class="font-medium text-amber-900 dark:text-amber-100">This gradebook is read-only.</p>
+                <p class="mt-1 text-amber-800 dark:text-amber-200">The {{ $courseOffering->academicPeriod->display_name }} period is {{ strtolower($courseOffering->academicPeriod->status->label()) }}. Existing marks and published results remain available, but assessment setup and mark entry are locked.</p>
+            </div>
+        @endif
+
         @can('manageGradebook', $courseOffering)
+            @if ($gradebookIsOpen)
             <details id="assessment-setup" class="rounded-xl border bg-card p-5" @if ($gradeItems->isEmpty()) open @endif>
                 <summary class="flex cursor-pointer list-none items-start justify-between gap-4">
                     <span>
@@ -90,7 +114,7 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="{{ route('course-offerings.gradebook.categories.store', $courseOffering) }}" class="grid gap-3 sm:grid-cols-[1.4fr_1fr_0.7fr_auto] sm:items-end">
+                    <form method="POST" action="{{ route('course-offerings.gradebook.categories.store', $courseOffering) }}" class="grid gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,1.5fr)_minmax(12rem,1fr)_8rem_auto] xl:items-end">
                         @csrf
                         <div>
                             <april:label for="category-name">Category name</april:label>
@@ -117,9 +141,9 @@
                 <slot:title>Add an assessment</slot:title>
                 <slot:description>Add assignments, tests, projects, observations, or any other work you grade by hand.</slot:description>
                 <slot:content>
-                    <form method="POST" action="{{ route('course-offerings.gradebook.items.store', $courseOffering) }}" class="grid gap-3 md:grid-cols-6">
+                    <form method="POST" action="{{ route('course-offerings.gradebook.items.store', $courseOffering) }}" class="grid gap-4 md:grid-cols-2 lg:grid-cols-4 2xl:grid-cols-10 2xl:items-end">
                         @csrf
-                        <div class="md:col-span-2">
+                        <div class="2xl:col-span-2">
                             <april:label for="assessment-name">Assessment name</april:label>
                             <april:input id="assessment-name" name="name" value="{{ old('name') }}" required placeholder="Term project" />
                         </div>
@@ -135,7 +159,7 @@
                             <april:label for="assessment-points">Maximum points</april:label>
                             <april:input id="assessment-points" name="max_points" type="number" min="0.01" step="0.01" value="{{ old('max_points') }}" placeholder="Maximum points" />
                         </div>
-                        <div>
+                        <div class="2xl:col-span-2">
                             <april:label for="assessment-scale">Grading scale</april:label>
                             <april:native-select id="assessment-scale" name="grading_scale_id">
                                 <option value="">Use only for a scale</option>
@@ -235,6 +259,7 @@
             @endif
                 </div>
             </details>
+            @endif
         @endcan
 
         <april:card>
@@ -249,9 +274,9 @@
                 @elseif ($students->isEmpty())
                     <div class="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">No learners match this offering. Update who attends before entering grades.</div>
                 @else
-                    <div class="overflow-x-auto">
+                    <div class="overflow-x-auto rounded-lg border">
                         <table class="w-full min-w-[920px] text-sm">
-                            <thead class="border-b text-left text-muted-foreground">
+                            <thead class="sticky top-0 z-20 border-b bg-card text-left text-muted-foreground">
                                 <tr>
                                     <th class="sticky left-0 z-10 bg-background px-3 py-2">Learner</th>
                                     @foreach ($gradeItems as $gradeItem)
@@ -277,6 +302,7 @@
                                             @php($entry = $gradeItem->entries->firstWhere('student_record_id', $student->id))
                                             <td class="px-3 py-3">
                                                 @can('manageGradebook', $courseOffering)
+                                                    @if ($gradebookIsOpen)
                                                     <form method="POST" action="{{ route('course-offerings.gradebook.entries.store', $courseOffering) }}" class="grid grid-cols-[1fr_auto] gap-2">
                                                         @csrf
                                                         <input type="hidden" name="grade_item_id" value="{{ $gradeItem->id }}">
@@ -300,6 +326,12 @@
                                                         </april:native-select>
                                                         <april:button size="sm" type="submit" class="col-span-2">Save</april:button>
                                                     </form>
+                                                    @else
+                                                        <span>{{ $entry?->gradingScaleOption?->label ?? $entry?->points ?? $entry?->comment ?? '—' }}</span>
+                                                        @if ($entry !== null && $entry->state !== \App\Enums\GradeEntryState::Graded)
+                                                            <span class="block text-xs text-muted-foreground">{{ $entry->state->label() }}</span>
+                                                        @endif
+                                                    @endif
                                                 @else
                                                     <span>{{ $entry?->gradingScaleOption?->label ?? $entry?->points ?? $entry?->comment ?? '—' }}</span>
                                                     @if ($entry !== null && $entry->state !== \App\Enums\GradeEntryState::Graded)

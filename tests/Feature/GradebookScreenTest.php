@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AcademicPeriodStatus;
 use App\Enums\GradeAggregation;
 use App\Enums\GradeEntryState;
 use App\Enums\GradeItemType;
@@ -76,6 +77,7 @@ class GradebookScreenTest extends TestCase
             ->assertOk()
             ->assertSee('Gradebook workflow')
             ->assertSee('Assessment setup')
+            ->assertSee('Add category')
             ->assertSee('Record grades and publish results');
 
         $this->post(route('course-offerings.gradebook.items.store', $courseOffering), [
@@ -126,6 +128,20 @@ class GradebookScreenTest extends TestCase
         ])->assertSessionHas('success');
 
         $this->assertSame(ResultApprovalStatus::Approved, $snapshot->fresh()->approval_status);
+    }
+
+    public function test_a_closed_gradebook_explains_that_editing_is_locked(): void
+    {
+        $this->authorized_user(['read gradebook', 'manage gradebook', 'update subject']);
+        [$courseOffering] = $this->offeringAndEnrollment();
+        $courseOffering->academicPeriod()->update(['status' => AcademicPeriodStatus::Closed->value]);
+
+        $this->get(route('course-offerings.gradebook.show', $courseOffering))
+            ->assertOk()
+            ->assertSee('This gradebook is read-only.')
+            ->assertSee('assessment setup and mark entry are locked.')
+            ->assertDontSee('Add category')
+            ->assertDontSee('Add an assessment');
     }
 
     public function test_staff_can_save_and_apply_a_school_assessment_template_from_the_gradebook_screen(): void
