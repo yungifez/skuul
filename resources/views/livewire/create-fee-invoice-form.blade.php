@@ -24,16 +24,16 @@
             <div class="md:grid md:grid-cols-3 gap-4">
                 <div class="flex w-full flex-col gap-2">
                     <april:label for="academic-level">{{ school_term('class_level', 'Class') }}</april:label>
-                    <april:select id="academic-level" name="" wire:model.live="academicLevel">
+                    <april:native-select id="academic-level" wire:model.live="academicLevel" class="w-full">
                     @foreach ($academicLevels as $item)
                         <option value="{{$item->id}}">{{$item->label ?? $item->name}}</option>
                     @endforeach
 
-                    </april:select>
+                    </april:native-select>
                 </div>
                 <div class="flex w-full flex-col gap-2">
                     <april:label for="cycle-section">{{ school_term('section', 'Section') }}</april:label>
-                    <april:select id="cycle-section" name="" wire:model.live="cycleSection">
+                    <april:native-select id="cycle-section" wire:model.live="cycleSection" class="w-full">
                     <option value="">All {{ school_terms('section', 'sections') }}</option>
                     @isset($cycleSections)
                         @foreach ($cycleSections as $item)
@@ -41,11 +41,11 @@
                         @endforeach
                     @endisset
 
-                    </april:select>
+                    </april:native-select>
                 </div>
                 <div class="flex w-full flex-col gap-2">
                     <april:label for="student">Student</april:label>
-                    <april:select id="student" name="" wire:model.live="student">
+                    <april:native-select id="student" wire:model.live="student" class="w-full">
                     <option value="">All Students</option>
                     @isset($students)
                         @foreach ($students as $item)
@@ -53,7 +53,7 @@
                         @endforeach
                     @endisset
 
-                    </april:select>
+                    </april:native-select>
                 </div>
                 @php
                     $addStudentArgument = "$academicLevel";
@@ -111,17 +111,17 @@
             <x-loading-spinner wire:target="feeCategory"/>
             <div class="md:grid grid-cols-2 items-end gap-4">
                 <div class="flex w-full flex-col gap-2">
-                    <april:label for="fee">Fee Category</april:label>
-                    <april:select id="fee" name="" wire:model.live="feeCategory">
+                    <april:label for="fee-category">Fee Category</april:label>
+                    <april:native-select id="fee-category" wire:model.live="feeCategory" class="w-full">
                     @foreach ($feeCategories as $item)
                         <option value="{{$item->id}}">{{$item->name}}</option>
                     @endforeach
 
-                    </april:select>
+                    </april:native-select>
                 </div>
                 <div class="flex w-full flex-col gap-2">
                     <april:label for="fee">Fee</april:label>
-                    <april:select id="fee" name="" wire:model.live="fee">
+                    <april:native-select id="fee" wire:model.live="fee" class="w-full">
                     @isset($fees)
                         <option value="">All Fees </option>
                         @foreach ($fees as $item)
@@ -129,7 +129,7 @@
                         @endforeach
                     @endisset
 
-                    </april:select>
+                    </april:native-select>
                 </div>
                 <april:button type="button" wire:click="addFee({{$feeCategory}}, {{$fee}})" class="w-full md:w-2/3" wire:loading.attr="disabled" wire:target="addFee">
                     Add Fee(s)
