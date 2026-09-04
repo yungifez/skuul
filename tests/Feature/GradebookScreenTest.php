@@ -78,6 +78,7 @@ class GradebookScreenTest extends TestCase
             ->assertSee('Gradebook workflow')
             ->assertSee('Assessment setup')
             ->assertSee('Add category')
+            ->assertSee('Editing open')
             ->assertSee('Record grades and publish results');
 
         $this->post(route('course-offerings.gradebook.items.store', $courseOffering), [
@@ -139,6 +140,7 @@ class GradebookScreenTest extends TestCase
         $this->get(route('course-offerings.gradebook.show', $courseOffering))
             ->assertOk()
             ->assertSee('This gradebook is read-only.')
+            ->assertSee('Read-only')
             ->assertSee('assessment setup and mark entry are locked.')
             ->assertDontSee('Add category')
             ->assertDontSee('Add an assessment');

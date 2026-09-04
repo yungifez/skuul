@@ -18,21 +18,21 @@
 
     <div class="space-y-6">
         <april:card>
-            <slot:title>{{ $courseOffering->subject->name }} <span class="font-normal text-muted-foreground">· {{ $courseOffering->academicLevel->name }}</span></slot:title>
+            <slot:title class="flex flex-wrap items-center justify-between gap-3">
+                <span>{{ $courseOffering->subject->name }} <span class="font-normal text-muted-foreground">· {{ $courseOffering->academicLevel->name }}</span></span>
+                <span class="flex flex-wrap justify-end gap-2 text-xs">
+                    <span class="rounded-full border px-2.5 py-1">{{ $gradeItems->count() }} assessment{{ $gradeItems->count() === 1 ? '' : 's' }}</span>
+                    <span class="rounded-full border px-2.5 py-1">{{ $publishedResults->count() }} published</span>
+                    <span class="rounded-full border px-2.5 py-1 {{ $gradebookIsOpen ? 'border-primary/30 bg-primary text-primary-foreground' : 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300' }}">
+                        {{ $gradebookIsOpen ? 'Editing open' : 'Read-only' }}
+                    </span>
+                </span>
+            </slot:title>
             <slot:description>
                 {{ $courseOffering->academicYear->name }} · {{ $courseOffering->academicPeriod->display_name }}
                 · {{ school_roster_label($courseOffering->roster_mode) }}
                 · {{ $students->count() }} learner{{ $students->count() === 1 ? '' : 's' }}
             </slot:description>
-            <slot:actions>
-                <div class="flex flex-wrap justify-end gap-2 text-xs">
-                    <span class="rounded-full border px-2.5 py-1">{{ $gradeItems->count() }} assessment{{ $gradeItems->count() === 1 ? '' : 's' }}</span>
-                    <span class="rounded-full border px-2.5 py-1">{{ $publishedResults->count() }} published</span>
-                    <span class="rounded-full border px-2.5 py-1 {{ $gradebookIsOpen ? 'border-primary/30 bg-primary/10 text-primary' : 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300' }}">
-                        {{ $gradebookIsOpen ? 'Editing open' : 'Read-only' }}
-                    </span>
-                </div>
-            </slot:actions>
         </april:card>
 
         <details id="gradebook-workflow" class="rounded-xl border border-primary/30 bg-primary/[0.03] p-5">
