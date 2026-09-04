@@ -65,3 +65,17 @@
 - Area: Attendance register and family portal
 - Observed: Attendance routes were reachable after the school disabled Attendance, and portal access checked the current working campus instead of the enrollment's campus.
 - Resolution: Attendance routes now use the school feature middleware, and portal access resolves the feature setting from the enrollment campus. Normal and closed-campus tests cover both flows.
+
+## Boarding room checks called a model scope through a generic relation builder
+
+- Status: Fixed
+- Area: Boarding house and room management
+- Observed: Closing a house or room with current boarders triggered static-analysis errors because relation closures called `BoardingPlace::current()` through a generic builder.
+- Resolution: The current-placement condition is now written explicitly in both checks. Boarding tests and PHPStan pass.
+
+## Notice publication was not available from the notice screen
+
+- Status: Fixed
+- Area: Notices and student portal
+- Observed: Administrators could create draft notices, and the publication action existed in the domain layer, but no user-facing control or screen action could publish the draft to recipients.
+- Resolution: The notice screen now exposes an authorized publish action, records recipients through the existing audited publication action, and shows the published content in the portal. Notice content is stored and rendered with an explicit safe HTML tag and attribute allow-list; plain Markdown is converted to that safe HTML first.

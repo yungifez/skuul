@@ -8,6 +8,7 @@ use App\Enums\NoticeStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\Notice;
 use App\Models\User;
+use App\Services\Notice\NoticeContentSanitizer;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -15,14 +16,15 @@ use Illuminate\Support\Facades\DB;
  */
 class ReviseNotice
 {
-    public function __construct(private RecordAuditEvent $auditor)
-    {
-    }
+    public function __construct(
+        private RecordAuditEvent $auditor,
+        private NoticeContentSanitizer $contentSanitizer,
+    ) {}
 
     /**
      * Copy a published notice into the next revision.
      *
-     * @param array{title?: string, content?: string, audience?: array<string, mixed>|null, send_email?: bool, start_date?: string, stop_date?: string, attachment?: string|null} $changes
+     * @param  array{title?: string, content?: string, audience?: array<string, mixed>|null, send_email?: bool, start_date?: string, stop_date?: string, attachment?: string|null}  $changes
      *
      * @throws InvalidValueException when the notice is not a published version
      */
@@ -36,18 +38,18 @@ class ReviseNotice
             }
 
             $revision = Notice::create([
-                'title'          => $changes['title'] ?? $notice->title,
-                'content'        => $changes['content'] ?? $notice->content,
-                'attachment'     => array_key_exists('attachment', $changes) ? $changes['attachment'] : $notice->attachment,
-                'start_date'     => $changes['start_date'] ?? $notice->start_date,
-                'stop_date'      => $changes['stop_date'] ?? $notice->stop_date,
-                'school_id'      => $notice->school_id,
-                'status'         => NoticeStatus::Draft,
-                'audience'       => $changes['audience'] ?? $notice->audience,
-                'send_email'     => $changes['send_email'] ?? $notice->send_email,
-                'revision'       => $notice->revision + 1,
+                'title' => $changes['title'] ?? $notice->title,
+                'content' => $this->contentSanitizer->sanitize($changes['content'] ?? $notice->content),
+                'attachment' => array_key_exists('attachment', $changes) ? $changes['attachment'] : $notice->attachment,
+                'start_date' => $changes['start_date'] ?? $notice->start_date,
+                'stop_date' => $changes['stop_date'] ?? $notice->stop_date,
+                'school_id' => $notice->school_id,
+                'status' => NoticeStatus::Draft,
+                'audience' => $changes['audience'] ?? $notice->audience,
+                'send_email' => $changes['send_email'] ?? $notice->send_email,
+                'revision' => $notice->revision + 1,
                 'revision_of_id' => $notice->id,
-                'active'         => false,
+                'active' => false,
             ]);
 
             $this->auditor->record(

@@ -2,8 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Enums\NoticeStatus;
+use App\Livewire\ShowNotice;
+use App\Models\Notice;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class NoticeTest extends TestCase
@@ -47,7 +51,78 @@ class NoticeTest extends TestCase
     {
         $this->authorized_user(['create notice'])
             ->get('dashboard/notices/create')
-            ->assertSuccessful();
+            ->assertSuccessful()
+            ->assertSee('data-slot="editor"', false)
+            ->assertSee('name="content"', false);
+    }
+
+    public function test_an_authorized_user_can_publish_a_draft_notice_from_its_screen(): void
+    {
+        $this->authorized_user(['read notice', 'update notice']);
+        $notice = Notice::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'status' => NoticeStatus::Draft,
+        ]);
+
+        Livewire::test(ShowNotice::class, ['notice' => $notice])
+            ->call('publishNotice')
+            ->assertHasNoErrors()
+            ->assertSee('Published');
+
+        $this->assertSame(NoticeStatus::Published, $notice->fresh()->status);
+    }
+
+    public function test_publishing_an_archived_notice_explains_the_exception(): void
+    {
+        $this->authorized_user(['read notice', 'update notice']);
+        $notice = Notice::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'status' => NoticeStatus::Archived,
+        ]);
+
+        Livewire::test(ShowNotice::class, ['notice' => $notice])
+            ->call('publishNotice')
+            ->assertHasErrors(['notice' => 'This notice cannot be published from its current state.']);
+
+        $this->assertSame(NoticeStatus::Archived, $notice->fresh()->status);
+    }
+
+    public function test_notice_content_keeps_editor_formatting_and_removes_unsafe_markup(): void
+    {
+        $this->authorized_user(['create notice']);
+
+        $this->post('dashboard/notices', [
+            'title' => 'Formatted Notice',
+            'content' => '<p>Bring <strong>your planner</strong>.</p><script>alert(1)</script><a href="javascript:alert(2)">Unsafe</a>',
+            'start_date' => '2030-01-01',
+            'stop_date' => '2030-01-02',
+        ])->assertRedirect();
+
+        $notice = Notice::query()->where('title', 'Formatted Notice')->firstOrFail();
+
+        $this->assertSame(
+            '<p>Bring <strong>your planner</strong>.</p>alert(1)<a>Unsafe</a>',
+            trim($notice->content),
+        );
+    }
+
+    public function test_notice_content_accepts_markdown_as_safe_html(): void
+    {
+        $this->authorized_user(['create notice']);
+
+        $this->post('dashboard/notices', [
+            'title' => 'Markdown Notice',
+            'content' => "# Bring your planner\n\n- Pencil\n- Notebook",
+            'start_date' => '2030-01-01',
+            'stop_date' => '2030-01-02',
+        ])->assertRedirect();
+
+        $notice = Notice::query()->where('title', 'Markdown Notice')->firstOrFail();
+
+        $this->assertSame(
+            "<h1>Bring your planner</h1>\n<ul>\n<li>Pencil</li>\n<li>Notebook</li>\n</ul>",
+            trim($notice->content),
+        );
     }
 
     // assert unauthorized user can not create notice
@@ -77,7 +152,7 @@ class NoticeTest extends TestCase
 
         $response->assertRedirect() && $this->assertDatabaseHas('notices', [
             'title' => 'Test Notice',
-            'content' => 'Test Description',
+            'content' => "<p>Test Description</p>\n",
             'start_date' => '2019-01-01',
             'stop_date' => '2019-01-02',
         ]);

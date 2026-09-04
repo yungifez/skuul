@@ -240,7 +240,7 @@ class NoticePublicationTest extends TestCase
         $this->assertSame(NoticeStatus::Draft, $revision->status);
         $this->assertSame(2, $revision->revision);
         $this->assertSame($notice->id, $revision->revision_of_id);
-        $this->assertSame('Sports day is now on Monday.', $revision->content);
+        $this->assertSame("<p>Sports day is now on Monday.</p>\n", $revision->content);
         $this->assertSame(0, $revision->recipients()->count());
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::NoticeRevised)->forSubject($revision)->first());
     }

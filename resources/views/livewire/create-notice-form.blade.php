@@ -8,7 +8,20 @@
             <april:input-group id="title" name="title" label="Notice title" placeholder="Enter Notice title" />
             <div class="flex w-full flex-col gap-2">
                 <april:label for="content">Notice content/body</april:label>
-                <april:textarea id="content" name="content" placeholder="Enter body" />
+                <april:editor
+                    name="content"
+                    :value="old('content', '')"
+                    placeholder="Write the announcement..."
+                    bold
+                    italic
+                    heading
+                    bullet-list
+                    ordered-list
+                    blockquote
+                    link
+                    undo
+                    redo
+                />
             </div>
             <april:input-group type="date" id="start_date" name="start_date" label="Start date" required />
             <april:input-group type="date" id="stop_Date" name="stop_date" label="Stop date" />
@@ -38,3 +51,7 @@
         </form>
     </div>
 </div>
+
+@pushOnce('scripts')
+    @aprilEditorScripts
+@endPushOnce
