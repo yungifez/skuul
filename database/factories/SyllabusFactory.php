@@ -6,6 +6,7 @@ use App\Models\CourseOffering;
 use App\Models\Syllabus;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Str;
 
 /**
  * @extends Factory<Syllabus>
@@ -19,13 +20,14 @@ class SyllabusFactory extends Factory
      */
     public function definition(): array
     {
-        $file = UploadedFile::fake()->create(fake()->name().'.pdf')->store('pdfs');
+        $faker = function_exists('fake') ? fake() : null;
+        $fileName = $faker?->name() ?? 'demo-syllabus-'.Str::lower(Str::random(12));
 
         return [
-            'name' => fake()->sentence(),
-            'description' => fake()->paragraph(),
+            'name' => $faker?->sentence() ?? 'Demo syllabus',
+            'description' => $faker?->paragraph() ?? 'Course plan and learning outcomes.',
             'course_offering_id' => CourseOffering::factory(),
-            'file' => $file,
+            'file' => UploadedFile::fake()->create($fileName.'.pdf')->store('pdfs'),
         ];
     }
 }
