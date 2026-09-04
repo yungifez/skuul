@@ -41,7 +41,7 @@ class NoticeContentSanitizer
                 );
                 $href = $hrefMatches[1] ?? $hrefMatches[2] ?? $hrefMatches[3] ?? '';
 
-                if ($href === '' || preg_match('/^(?:https?:\/\/|mailto:|\/|#)/i', $href) !== 1) {
+                if ($href === '' || preg_match('/^(?:https?:\/\/|mailto:|\/(?!\/)|#)/i', $href) !== 1) {
                     return '<a>';
                 }
 

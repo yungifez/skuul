@@ -198,6 +198,30 @@ class NoticeTest extends TestCase
         );
     }
 
+    public function test_notice_content_keeps_only_safe_link_destinations(): void
+    {
+        $notice = Notice::factory()->create([
+            'content' => <<<'HTML'
+                <p><a href="https://example.com" title="ignored">External</a></p>
+                <p><a href="mailto:office@example.com">Email</a></p>
+                <p><a href="/dashboard/notices">Internal</a></p>
+                <p><a href="#details">Anchor</a></p>
+                <p><a href="//evil.example">Protocol relative</a></p>
+                <p><a href="javascript:alert(1)">Script</a></p>
+                HTML,
+        ]);
+
+        $this->assertSame(
+            '<p><a href="https://example.com">External</a></p>'.
+            '<p><a href="mailto:office@example.com">Email</a></p>'.
+            '<p><a href="/dashboard/notices">Internal</a></p>'.
+            '<p><a href="#details">Anchor</a></p>'.
+            '<p><a>Protocol relative</a></p>'.
+            '<p><a>Script</a></p>',
+            preg_replace('/\s+/', '', (string) $notice->content),
+        );
+    }
+
     // assert unauthorized user can not create notice
 
     public function test_unauthorized_user_can_not_create_notice()

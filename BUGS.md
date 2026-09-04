@@ -59,3 +59,12 @@
 - Observed: Running multiple PHPUnit files at the same time caused each process to migrate or drop the same MySQL `testing` database. This produced missing-table and table-already-exists errors.
 - Impact: Parallel test results are invalid and can leave the testing schema half-migrated.
 - Resolution: PHPUnit now acquires a process-wide lock in `tests/bootstrap.php`, so concurrent agent runs wait and execute sequentially against the shared `testing` database. PHPUnit child processes do not reacquire their parent’s lock, so separate-process tests cannot deadlock. The lock is released automatically when the process exits.
+
+## Notice links allowed protocol-relative destinations
+
+- Status: Fixed
+- Area: Notice editor and rendered notice content
+- Observed: The notice sanitizer allowed an `href` beginning with `//`, which can navigate a reader to an external host while looking like a local link.
+- Impact: Notice authors could create misleading external navigation in learner and family portals.
+- Reproduction: Save a notice containing `<a href="//example.com">Open</a>` and inspect the stored content.
+- Resolution: The allow-list now accepts only `http(s)`, `mailto:`, root-relative single-slash, and fragment links. All other link destinations keep the anchor text but lose the `href`; disallowed attributes remain removed. PHPUnit coverage exercises safe links and unsafe protocol-relative and JavaScript links.
