@@ -6,12 +6,18 @@ use App\Actions\Academic\ChangeAcademicPeriodStatus;
 use App\Enums\AcademicPeriodStatus;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicPeriodStatusChange;
 use App\Models\AcademicYear;
+use App\Models\CourseOffering;
 use App\Models\Exam;
 use App\Models\ExamSlot;
+use App\Models\GradeItem;
 use App\Models\School;
+use App\Models\StudentRecord;
+use App\Models\Subject;
 use App\Models\Timetable;
 use App\Models\TimetableTimeSlot;
 use App\Traits\FeatureTestTrait;
@@ -66,7 +72,7 @@ class AcademicPeriodLifecycleTest extends TestCase
     {
         $year = AcademicYear::factory()->create();
         $academicPeriod = AcademicPeriod::factory()->create([
-            'school_id'        => $year->school_id,
+            'school_id' => $year->school_id,
             'academic_year_id' => $year->id,
         ]);
 
@@ -79,7 +85,7 @@ class AcademicPeriodLifecycleTest extends TestCase
     {
         $year = AcademicYear::factory()->create();
         $academicPeriod = AcademicPeriod::factory()->create([
-            'school_id'        => $year->school_id,
+            'school_id' => $year->school_id,
             'academic_year_id' => $year->id,
         ]);
 
@@ -94,7 +100,7 @@ class AcademicPeriodLifecycleTest extends TestCase
     {
         $year = AcademicYear::factory()->create();
         $academicPeriod = AcademicPeriod::factory()->create([
-            'school_id'        => $year->school_id,
+            'school_id' => $year->school_id,
             'academic_year_id' => $year->id,
         ]);
         $action = app(ChangeAcademicPeriodStatus::class);
@@ -125,6 +131,39 @@ class AcademicPeriodLifecycleTest extends TestCase
         $this->expectException(ClosedPeriodException::class);
 
         $exam->fresh()->update(['name' => 'a new name']);
+    }
+
+    public function test_closing_refuses_an_unrecorded_roster_entry(): void
+    {
+        $this->authorized_user([]);
+        $academicPeriod = $this->openAcademicPeriod();
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $academicPeriod->school_id]);
+        $section = AcademicCycleSection::factory()->create([
+            'school_id' => $academicPeriod->school_id,
+            'academic_year_id' => $academicPeriod->academic_year_id,
+            'academic_level_id' => $academicLevel->id,
+        ]);
+        $courseOffering = CourseOffering::factory()->create([
+            'school_id' => $academicPeriod->school_id,
+            'academic_year_id' => $academicPeriod->academic_year_id,
+            'academic_period_id' => $academicPeriod->id,
+            'academic_level_id' => $academicLevel->id,
+            'subject_id' => Subject::factory()->create(['school_id' => $academicPeriod->school_id])->id,
+        ]);
+        $courseOffering->cycleSections()->attach($section);
+        StudentRecord::factory()->create([
+            'school_id' => $academicPeriod->school_id,
+            'academic_cycle_section_id' => $section->id,
+        ]);
+        GradeItem::create([
+            'school_id' => $academicPeriod->school_id,
+            'course_offering_id' => $courseOffering->id,
+            'name' => 'Unrecorded assessment',
+        ]);
+
+        $this->expectException(InvalidValueException::class);
+
+        app(ChangeAcademicPeriodStatus::class)->close($academicPeriod, auth()->user(), 'Term complete');
     }
 
     public function test_a_record_in_a_closed_period_cannot_be_removed(): void
@@ -235,7 +274,7 @@ class AcademicPeriodLifecycleTest extends TestCase
         $year = AcademicYear::factory()->create(['school_id' => current_school_id()]);
 
         return AcademicPeriod::factory()->create([
-            'school_id'        => current_school_id(),
+            'school_id' => current_school_id(),
             'academic_year_id' => $year->id,
         ]);
     }

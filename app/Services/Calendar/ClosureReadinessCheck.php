@@ -9,6 +9,7 @@ use App\Models\AcademicYear;
 use App\Models\GradeEntry;
 use App\Models\GradeItem;
 use App\Models\Timetable;
+use App\Services\Gradebook\CourseOfferingRoster;
 use Illuminate\Support\Collection;
 
 /**
@@ -23,6 +24,8 @@ use Illuminate\Support\Collection;
  */
 class ClosureReadinessCheck
 {
+    public function __construct(private CourseOfferingRoster $roster) {}
+
     /**
      * Run every check against the period.
      *
@@ -97,8 +100,7 @@ class ClosureReadinessCheck
     /**
      * Add up findings of the same kind, so a cycle reports one line each.
      *
-     * @param array<int, ClosureFinding> $findings
-     *
+     * @param  array<int, ClosureFinding>  $findings
      * @return array<int, ClosureFinding>
      */
     private function merge(array $findings): array
@@ -147,13 +149,30 @@ class ClosureReadinessCheck
      */
     private function ungradedItems(AcademicPeriod $period): ClosureFinding
     {
-        $itemIds = GradeItem::query()
+        $items = GradeItem::query()
+            ->with('courseOffering')
             ->whereHas('courseOffering', fn ($query) => $query->where('academic_period_id', $period->id))
-            ->pluck('id');
+            ->get();
 
-        $count = $itemIds->isEmpty() ? 0 : GradeEntry::whereIn('grade_item_id', $itemIds)
-            ->where('state', GradeEntryState::Incomplete)
-            ->count();
+        $count = 0;
+
+        foreach ($items as $item) {
+            $recordedIds = GradeEntry::query()
+                ->where('grade_item_id', $item->id)
+                ->pluck('student_record_id');
+
+            $count += count(array_diff(
+                $this->roster->students($item->courseOffering)->pluck('id')->all(),
+                $recordedIds->all(),
+            ));
+        }
+
+        if ($items->isNotEmpty()) {
+            $count += GradeEntry::query()
+                ->whereIn('grade_item_id', $items->modelKeys())
+                ->where('state', GradeEntryState::Incomplete)
+                ->count();
+        }
 
         return new ClosureFinding(
             key: 'ungraded_entries',
