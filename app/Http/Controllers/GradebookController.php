@@ -91,7 +91,7 @@ class GradebookController extends Controller
 
         $courseOffering->load([
             'academicLevel:id,name',
-            'academicPeriod:id,name,label',
+            'academicPeriod:id,name,label,status',
             'academicYear:id,start_year,stop_year',
             'subject:id,name,short_name',
             'gradeCategories:id,course_offering_id,name,aggregation,weight,position',

@@ -7,7 +7,7 @@
 - Observed: A gradebook in a closed reporting period still rendered assessment setup and mark-entry forms. The backend correctly rejected new work, but the screen did not explain the locked state until after a failed submission.
 - Impact: Teachers could waste time filling controls that could not be saved, and the page did not clearly separate historical results from current editing work.
 - Reproduction: Open a course offering whose reporting period is closed, such as `/dashboard/course-offerings/41/gradebook`, and inspect the assessment setup and learner rows.
-- Resolution: Closed gradebooks now show a read-only status banner and summary badge, hide edit controls, keep historical marks/results visible, collapse the workflow guidance, and use a bordered sticky-header grid for long assessment lists. Screen coverage includes open, closed, and invalid-write paths.
+- Resolution: Closed gradebooks now show a read-only status banner and summary badge, hide edit controls, keep historical marks/results visible, collapse the workflow guidance, and use a bordered sticky-header grid for long assessment lists. The controller also includes the academic-period status in its eager-load projection so the new state-aware view cannot fail at render time. Screen coverage includes open, closed, and invalid-write paths.
 
 ## Exam detail links opened a permanent 404
 
