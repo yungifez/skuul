@@ -4,10 +4,12 @@ namespace Tests\Feature;
 
 use App\Actions\Syllabus\PublishSyllabus;
 use App\Actions\Syllabus\ReviseSyllabus;
+use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
 use App\Enums\CourseOfferingStatus;
 use App\Enums\RosterMode;
 use App\Enums\SyllabusStatus;
+use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
@@ -16,6 +18,7 @@ use App\Models\CourseOffering;
 use App\Models\StudentRecord;
 use App\Models\Subject;
 use App\Models\Syllabus;
+use App\Services\Academic\AcademicPeriodContext;
 use App\Traits\FeatureTestTrait;
 use Database\Seeders\SyllabusSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -55,6 +58,7 @@ class SyllabusTest extends TestCase
         $school = $this->workingSchool();
         $studentRecord = StudentRecord::factory()->create(['school_id' => $school->id]);
         $student = $studentRecord->user;
+        school_context()->set($school, remember: false);
         $student->assignRole('student');
         $student->givePermissionTo('read syllabus');
 
@@ -62,6 +66,14 @@ class SyllabusTest extends TestCase
         $visibleOffering->roster_mode = RosterMode::IndividualRoster;
         $visibleOffering->status = CourseOfferingStatus::Active;
         $visibleOffering->save();
+        $studentSection = AcademicCycleSection::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $visibleOffering->academic_year_id,
+            'academic_level_id' => $visibleOffering->academic_level_id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
+        $studentRecord->academic_cycle_section_id = $studentSection->id;
+        $studentRecord->save();
         $visibleOffering->studentRecords()->attach($studentRecord);
         $visibleSyllabus = Syllabus::factory()->create(['course_offering_id' => $visibleOffering->id]);
         $visibleSyllabus->update(['status' => SyllabusStatus::Published, 'published_at' => now()]);
@@ -75,7 +87,14 @@ class SyllabusTest extends TestCase
 
         $draftSyllabus = Syllabus::factory()->create(['course_offering_id' => $visibleOffering->id]);
 
+        academic_period_context()->setAcademicYear($visibleOffering->academicYear);
+        academic_period_context()->setAcademicPeriod($visibleOffering->academicPeriod);
+
         $this->actingAsMemberOf($school, $student)
+            ->withSession([
+                AcademicPeriodContext::YEAR_SESSION_KEY => $visibleOffering->academic_year_id,
+                AcademicPeriodContext::ACADEMIC_PERIOD_SESSION_KEY => $visibleOffering->academic_period_id,
+            ])
             ->get('/dashboard/syllabi')
             ->assertOk()
             ->assertSee($visibleSyllabus->name)
