@@ -197,6 +197,31 @@ class WellbeingScreenTest extends TestCase
             ->assertSee('Peanuts. Carry the pen.');
     }
 
+    public function test_a_health_record_validation_error_is_shown_on_the_screen(): void
+    {
+        $this->authorized_user(['read health record', 'update health record']);
+        $enrollment = $this->enrollment();
+
+        $this->put(route('health-records.update', $enrollment), [
+            'notes' => 'Keep the inhaler in the front office.',
+        ])->assertRedirect(route('health-records.edit', $enrollment));
+
+        $this->from(route('health-records.edit', $enrollment))
+            ->put(route('health-records.update', $enrollment), [
+                'notes' => str_repeat('x', 5001),
+            ])
+            ->assertSessionHasErrors('notes')
+            ->followRedirects()
+            ->assertSee('The health record was not saved')
+            ->assertSee('The notes field must not be greater than 5000 characters.')
+            ->assertSee('Keep the inhaler in the front office.');
+
+        $this->assertSame(
+            'Keep the inhaler in the front office.',
+            StudentHealthRecord::inSchool()->sole()->notes,
+        );
+    }
+
     public function test_a_person_who_may_only_read_never_sees_the_save_button(): void
     {
         $this->authorized_user(['read health record']);

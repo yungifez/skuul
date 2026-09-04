@@ -86,3 +86,12 @@
 - Impact: Staff could think the answer was saved or be left without a reason why the request remained open.
 - Reproduction: Open `/dashboard/portal-requests`, select `Answered` for an open request, leave `The answer` empty, and submit.
 - Resolution: The inbox now renders the first validation error for any failed status change. PHPUnit coverage verifies the message appears after the failed answer attempt. Live verification confirmed the request remained unchanged before the valid in-review and answered transitions.
+
+## Health-record validation errors were not shown on the edit screen
+
+- Status: Fixed
+- Area: Health records
+- Observed: Submitting a health record with 5,001 characters in `Anything else` redirected back with the previous value unchanged, but the edit screen showed neither the validation error nor a success message.
+- Impact: Staff could not tell why an emergency record was not saved and could repeatedly submit invalid information without feedback.
+- Reproduction: Open `/dashboard/health-records/1`, enter more than 5,000 characters in `Anything else`, and save. Confirm the record remains unchanged and inspect the returned page.
+- Resolution: The health-record edit screen now renders a page-level destructive alert with the first validation error. PHPUnit coverage exercises the valid write, a subsequent invalid update, the visible error, and preservation of the last valid value. Live verification confirmed the invalid write was rejected and role boundaries remained intact: administrator 200, parent 403, student 403.

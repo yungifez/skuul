@@ -33,6 +33,13 @@
 
 @section('content')
     <div class="space-y-6">
+        @if ($errors->any())
+            <april:alert variant="destructive">
+                <slot:title>The health record was not saved</slot:title>
+                <slot:description>{{ $errors->first() }}</slot:description>
+            </april:alert>
+        @endif
+
         <april:alert>
             <slot:icon><x-lucide-lock class="size-4" /></slot:icon>
             <slot:title>This page is not part of the student profile</slot:title>
