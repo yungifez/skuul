@@ -177,8 +177,15 @@ class CourseOfferingTest extends TestCase
             ['school_id' => $this->workingSchool()->id],
             ['preset' => 'home_sections', 'labels' => array_merge(SchoolOperatingProfile::labelsFor('home_sections'), ['section' => 'Stream'])],
         );
+        InstructionalModelSetting::query()->updateOrCreate(
+            [
+                'school_id' => $this->workingSchool()->id,
+                'academic_year_id' => $academicYear->id,
+            ],
+            ['model' => InstructionalModel::Hybrid],
+        );
 
-        $this->get(route('course-offerings.create'))
+        $this->get(route('course-offerings.create', ['academic_year_id' => $academicYear->id]))
             ->assertOk()
             ->assertSee('Who attends')
             ->assertSee('One stream')

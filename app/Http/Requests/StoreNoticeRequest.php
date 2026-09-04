@@ -2,7 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Enums\NoticeAudienceScope;
 use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
 use App\Models\Notice;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
@@ -23,16 +25,25 @@ class StoreNoticeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title'                                 => 'required|string|max:255',
-            'content'                               => 'required|string',
-            'attachment'                            => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx|max:10240',
-            'start_date'                            => 'date',
-            'stop_date'                             => 'date|after:start_date',
-            'audience'                              => 'nullable|array:academic_cycle_section_ids,include_guardians',
-            'audience.academic_cycle_section_ids'   => 'nullable|array',
+            'title' => 'required|string|max:255',
+            'content' => 'required|string',
+            'attachment' => 'nullable|file|mimes:jpeg,png,jpg,gif,pdf,doc,docx|max:10240',
+            'start_date' => 'date',
+            'stop_date' => 'date|after:start_date',
+            'audience' => 'nullable|array:scope,academic_level_ids,academic_cycle_section_ids,include_guardians',
+            'audience.scope' => ['nullable', 'string', Rule::in(NoticeAudienceScope::values())],
+            'audience.academic_level_ids' => ['nullable', 'array', 'required_if:audience.scope,class'],
+            'audience.academic_level_ids.*' => [
+                'integer',
+                'distinct',
+                Rule::exists((new AcademicLevel)->getTable(), 'id')
+                    ->where('school_id', current_school_id()),
+            ],
+            'audience.academic_cycle_section_ids' => ['nullable', 'array', 'required_if:audience.scope,section'],
             'audience.academic_cycle_section_ids.*' => [
                 'integer',
-                Rule::exists((new AcademicCycleSection())->getTable(), 'id')
+                'distinct',
+                Rule::exists((new AcademicCycleSection)->getTable(), 'id')
                     ->where('school_id', current_school_id()),
             ],
             'audience.include_guardians' => 'nullable|boolean',

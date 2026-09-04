@@ -164,11 +164,11 @@ class SchoolTest extends TestCase
             ->assertSee('Set up your school')
             ->assertSee('School setup checklist')
             ->assertSee('How teaching works')
-            ->assertSee('Grades and classes')
+            ->assertSee('Classes')
             ->assertSee('required steps remain')
             ->assertSee('No current school year is selected.')
             ->assertSee('aria-label="School calendar help"', false)
-            ->assertSee('aria-label="Grades and classes help"', false);
+            ->assertSee('aria-label="Classes help"', false);
     }
 
     public function test_school_administrator_sees_setup_guidance_on_the_dashboard(): void
@@ -191,19 +191,26 @@ class SchoolTest extends TestCase
 
         $content = $response->getContent();
         $setupPosition = strpos($content, 'Finish setting up your school');
-        $schoolSelectorPosition = strpos($content, 'Choose the school context for your next action.');
         $schoolOverviewPosition = strpos($content, 'Your school, ready for the day');
+        $workingSchoolPosition = strpos($content, 'You are working in');
 
         $this->assertNotFalse($setupPosition);
-        $this->assertNotFalse($schoolSelectorPosition);
         $this->assertNotFalse($schoolOverviewPosition);
-        $this->assertLessThan($schoolSelectorPosition, $setupPosition);
+        $this->assertNotFalse($workingSchoolPosition);
         $this->assertLessThan($schoolOverviewPosition, $setupPosition);
+        $this->assertLessThan($workingSchoolPosition, $schoolOverviewPosition);
     }
 
     public function test_dashboard_links_to_create_the_first_academic_year_when_none_exists(): void
     {
         $school = School::factory()->create();
+        $school->update([
+            'setup_details_completed_at' => now(),
+            'country' => 'Canada',
+            'state' => 'British Columbia',
+            'city' => 'Vancouver',
+            'postal_code' => 'V6B 1A1',
+        ]);
 
         $this->withoutMiddleware(SetActiveAcademicPeriod::class);
         academic_period_context()->forget();
@@ -408,7 +415,10 @@ class SchoolTest extends TestCase
     {
         $school = $this->workingSchool();
         $otherSchool = School::factory()->create(['name' => 'Second Campus']);
-        $user = $this->authorized_user(['read school'], $school);
+        $user = User::factory()->create();
+        school_context()->set($school, remember: false);
+        $user->givePermissionTo('read school');
+        $this->memberOf($school, $user);
         $this->memberOf($otherSchool, $user);
         $this->actingAsMemberOf($school, $user);
 

@@ -108,8 +108,8 @@ class SetupWizardTest extends TestCase
             ->get(route('course-offerings.create', ['academic_year_id' => $academicYear->getKey()]))
             ->assertSuccessful()
             ->assertSee($academicYear->getAttribute('name'))
-            ->assertSee('Choose what is taught, when, and to whom.')
-            ->assertSee('Course offering help');
+            ->assertSee('Choose the subject, class, period, and learners for this year.')
+            ->assertSee('Subject setup help');
     }
 
     public function test_subject_setup_lists_catalog_subjects_and_their_class_assignments(): void

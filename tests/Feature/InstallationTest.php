@@ -25,6 +25,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Mockery\MockInterface;
+use PHPUnit\Framework\Attributes\PreserveGlobalState;
+use PHPUnit\Framework\Attributes\RunInSeparateProcess;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -172,6 +174,8 @@ class InstallationTest extends TestCase
         app(SeedWorldData::class)->seed();
     }
 
+    #[RunInSeparateProcess]
+    #[PreserveGlobalState(false)]
     public function test_world_data_seed_temporarily_raises_a_low_memory_limit(): void
     {
         $previousMemoryLimit = ini_get('memory_limit');

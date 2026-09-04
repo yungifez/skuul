@@ -1,7 +1,12 @@
 @php
+    $selectedAcademicLevelIds = collect(old('audience.academic_level_ids', []))
+        ->map(fn ($levelId): string => (string) $levelId)
+        ->all();
     $selectedSectionIds = collect(old('audience.academic_cycle_section_ids', []))
         ->map(fn ($sectionId): string => (string) $sectionId)
         ->all();
+    $audienceScope = old('audience.scope')
+        ?? ($selectedAcademicLevelIds !== [] ? 'class' : ($selectedSectionIds !== [] ? 'section' : 'school'));
     $includeGuardians = filter_var(old('audience.include_guardians', false), FILTER_VALIDATE_BOOLEAN);
 @endphp
 
@@ -97,30 +102,88 @@
 
             <april:card>
                 <slot:title>Audience</slot:title>
-                <slot:description>Leave sections empty to share this with the whole school.</slot:description>
+                <slot:description>Choose the broadest audience that fits. You can narrow it to classes or exact sections.</slot:description>
                 <slot:content class="space-y-5">
-                    <div class="flex flex-col gap-2">
-                        <april:label for="academic-cycle-section-ids">Sections <span class="font-normal text-muted-foreground">(optional)</span></april:label>
-                        @if ($sections->isNotEmpty())
-                            <april:select id="academic-cycle-section-ids" name="audience[academic_cycle_section_ids][]" multiple placeholder="Choose sections">
-                                @foreach ($sections as $section)
-                                    <option value="{{ $section->id }}" @selected(in_array((string) $section->id, $selectedSectionIds, true))>
-                                        {{ $section->academicLevel?->name ?? 'Unassigned '.strtolower(school_term('class_level', 'class')) }} · {{ $section->label ?? $section->name }}
-                                    </option>
-                                @endforeach
-                            </april:select>
-                            <p class="text-xs text-muted-foreground">You can choose more than one section.</p>
-                        @else
-                            <div class="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
-                                No active sections are available. This notice will go to the whole school.
-                            </div>
-                        @endif
-                        @error('audience.academic_cycle_section_ids')
-                            <p class="text-sm text-destructive">{{ $message }}</p>
-                        @enderror
-                        @error('audience.academic_cycle_section_ids.*')
-                            <p class="text-sm text-destructive">{{ $message }}</p>
-                        @enderror
+                    <div x-data="{ audienceScope: @js($audienceScope) }" class="space-y-5">
+                        <div class="grid gap-2" role="radiogroup" aria-label="Audience scope">
+                            @foreach ($audienceScopes as $scope)
+                                <label
+                                    class="flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors hover:bg-muted/40"
+                                    :class="{ 'border-primary bg-primary/5': audienceScope === @js($scope->value) }"
+                                >
+                                    <input
+                                        type="radio"
+                                        name="audience[scope]"
+                                        value="{{ $scope->value }}"
+                                        x-model="audienceScope"
+                                        @checked($audienceScope === $scope->value)
+                                        class="mt-0.5 size-4 shrink-0 accent-primary"
+                                    >
+                                    <span>
+                                        <span class="block font-medium">{{ $scope->label() }}</span>
+                                        <span class="mt-1 block text-xs text-muted-foreground">
+                                            @switch($scope->value)
+                                                @case('school') Everyone in this school, including staff and active learners. @break
+                                                @case('class') One or more classes or level groups, including all their current sections. @break
+                                                @case('section') One or more exact sections for the current academic cycle. @break
+                                            @endswitch
+                                        </span>
+                                    </span>
+                                </label>
+                            @endforeach
+                        </div>
+
+                        <div x-cloak x-show="audienceScope === 'school'" class="rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
+                            This notice will be sent to everyone in the school. No class or section selection is needed.
+                        </div>
+
+                        <div x-cloak x-show="audienceScope === 'class'" class="flex flex-col gap-2">
+                            <april:label for="academic-level-ids">Classes or levels</april:label>
+                            @if ($academicLevels->isNotEmpty())
+                                <april:select id="academic-level-ids" name="audience[academic_level_ids][]" multiple placeholder="Choose classes or levels">
+                                    @foreach ($academicLevels as $academicLevel)
+                                        <option value="{{ $academicLevel->id }}" @selected(in_array((string) $academicLevel->id, $selectedAcademicLevelIds, true))>
+                                            {{ $academicLevel->is_group ? 'Group' : 'Class' }} · {{ $academicLevel->name }}
+                                        </option>
+                                    @endforeach
+                                </april:select>
+                                <p class="text-xs text-muted-foreground">Groups include all classes nested under them.</p>
+                            @else
+                                <div class="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+                                    No active classes or levels are available.
+                                </div>
+                            @endif
+                            @error('audience.academic_level_ids')
+                                <p class="text-sm text-destructive">{{ $message }}</p>
+                            @enderror
+                            @error('audience.academic_level_ids.*')
+                                <p class="text-sm text-destructive">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <div x-cloak x-show="audienceScope === 'section'" class="flex flex-col gap-2">
+                            <april:label for="academic-cycle-section-ids">Sections</april:label>
+                            @if ($sections->isNotEmpty())
+                                <april:select id="academic-cycle-section-ids" name="audience[academic_cycle_section_ids][]" multiple placeholder="Choose sections">
+                                    @foreach ($sections as $section)
+                                        <option value="{{ $section->id }}" @selected(in_array((string) $section->id, $selectedSectionIds, true))>
+                                            {{ $section->academicLevel?->name ?? 'Unassigned '.strtolower(school_term('class_level', 'class')) }} · {{ $section->label ?? $section->name }}
+                                        </option>
+                                    @endforeach
+                                </april:select>
+                                <p class="text-xs text-muted-foreground">Choose one or more exact sections.</p>
+                            @else
+                                <div class="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+                                    No active sections are available.
+                                </div>
+                            @endif
+                            @error('audience.academic_cycle_section_ids')
+                                <p class="text-sm text-destructive">{{ $message }}</p>
+                            @enderror
+                            @error('audience.academic_cycle_section_ids.*')
+                                <p class="text-sm text-destructive">{{ $message }}</p>
+                            @enderror
+                        </div>
                     </div>
 
                     <label class="flex items-start gap-3 rounded-md border p-3 text-sm transition-colors hover:bg-muted/40">
@@ -129,7 +192,7 @@
                             class="mt-0.5 size-4 rounded border-input text-primary-foreground accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                         <span>
                             <span class="font-medium">Include guardians</span>
-                            <span class="mt-1 block text-xs text-muted-foreground">Send this notice to the guardians of the selected learners too.</span>
+                            <span class="mt-1 block text-xs text-muted-foreground">Send this notice to the guardians of the targeted learners too.</span>
                         </span>
                     </label>
                 </slot:content>

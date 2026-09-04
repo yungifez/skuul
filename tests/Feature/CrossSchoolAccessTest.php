@@ -78,7 +78,6 @@ class CrossSchoolAccessTest extends TestCase
     {
         return [
             'academic year' => ['academicYear', 'dashboard/academic-years/%d', ['academic year']],
-            'academic period' => ['academicPeriod', 'dashboard/academic-periods/%d', ['academic period']],
             'subject' => ['subject', 'dashboard/subjects/%d', ['subject']],
             'syllabus' => ['syllabus', 'dashboard/syllabi/%d', ['syllabus']],
             'exam' => ['exam', 'dashboard/exams/%d', ['exam']],
@@ -181,6 +180,15 @@ class CrossSchoolAccessTest extends TestCase
         $actor->get($this->uriFor($uri, $key))->assertForbidden();
         $actor->get($this->uriFor($uri, $key).'/edit')->assertForbidden();
         $actor->put($this->uriFor($uri, $key), [])->assertForbidden();
+    }
+
+    public function test_an_academic_period_of_another_school_is_out_of_reach(): void
+    {
+        $actor = $this->actAsFullyPermittedUser(['academic period']);
+        $period = $this->records['academicPeriod'];
+
+        $actor->get("dashboard/academic-periods/$period->id/edit")->assertForbidden();
+        $actor->put("dashboard/academic-periods/$period->id", [])->assertForbidden();
     }
 
     public function test_an_exam_slot_of_another_school_cannot_be_read(): void

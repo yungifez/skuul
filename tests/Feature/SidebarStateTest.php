@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\Organization\GrantOrganizationMembership;
+use App\Enums\Feature;
 use App\Livewire\Layouts\Menu;
 use App\Models\Organization;
 use App\Models\SchoolOperatingProfile;
@@ -17,7 +18,7 @@ class SidebarStateTest extends TestCase
     use RefreshDatabase;
 
     /**
-     * Permissions that render the Students submenu in the sidebar.
+     * Permissions that render the Students workspace in the sidebar.
      *
      * @var list<string>
      */
@@ -54,14 +55,39 @@ class SidebarStateTest extends TestCase
 
     public function test_a_closed_submenu_stays_hidden_until_alpine_starts(): void
     {
-        $html = $this->authorized_user(self::MENU_PERMISSIONS)
-            ->get('dashboard')
+        $this->authorized_user(['read boarding']);
+        features()->enable(Feature::Boarding);
+
+        $html = $this->get('dashboard')
             ->assertOk()
             ->getContent();
 
-        foreach ($this->submenuPanels($html) as $panel) {
+        $panels = $this->submenuPanels($html);
+
+        $this->assertNotEmpty($panels);
+
+        foreach ($panels as $panel) {
             $this->assertStringContainsString('x-cloak', $panel, 'A closed submenu must be cloaked.');
         }
+    }
+
+    public function test_multi_page_features_are_grouped_in_the_sidebar(): void
+    {
+        $this->authorized_user(['read boarding', 'read library']);
+        features()->enable(Feature::Boarding);
+        features()->enable(Feature::Library);
+
+        /** @var list<array<string, mixed>> $menu */
+        $menu = Livewire::test(Menu::class)->get('menu');
+
+        $this->assertSame(
+            ['Houses', 'Nights away'],
+            $this->submenuLabels($menu, 'Boarding'),
+        );
+        $this->assertSame(
+            ['Catalogue', 'Lending desk', 'Library queue'],
+            $this->submenuLabels($menu, 'Library'),
+        );
     }
 
     public function test_the_students_workspace_is_a_direct_link(): void
@@ -88,8 +114,8 @@ class SidebarStateTest extends TestCase
             ->get('dashboard/admins')
             ->assertOk()
             ->assertSee('Academic cycles')
-            ->assertSee('Academic levels')
-            ->assertSee('Cycle sections')
+            ->assertSee(school_terms('class_level', 'Classes'))
+            ->assertSee(school_terms('section', 'Sections'))
             ->assertSee('Course offerings')
             ->assertSee(route('academic-years.index'), false)
             ->assertDontSee('View Classes')
@@ -117,6 +143,8 @@ class SidebarStateTest extends TestCase
         $this->authorized_user([
             'read admin',
             'menu-gradebook',
+            'read gradebook',
+            'read subject',
         ])
             ->get('dashboard/admins')
             ->assertOk()
@@ -192,9 +220,31 @@ class SidebarStateTest extends TestCase
      */
     private function submenuPanels(string $html): array
     {
-        preg_match_all('/<div x-show="open" x-collapse[^>]*>/', $html, $matches);
+        preg_match_all('/<div data-slot="collapsible-content"[^>]*>/', $html, $matches);
 
         return $matches[0];
+    }
+
+    /**
+     * Get the labels inside one feature submenu.
+     *
+     * @param  list<array<string, mixed>>  $menu
+     * @return list<string>
+     */
+    private function submenuLabels(array $menu, string $label): array
+    {
+        foreach ($menu as $menuItem) {
+            if (($menuItem['text'] ?? null) !== $label || !is_array($menuItem['submenu'] ?? null)) {
+                continue;
+            }
+
+            return array_values(array_map(
+                static fn (array $submenu): string => (string) ($submenu['text'] ?? ''),
+                $menuItem['submenu'],
+            ));
+        }
+
+        return [];
     }
 
     /**

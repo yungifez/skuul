@@ -12,6 +12,7 @@ use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
 use App\Models\Budget;
+use App\Models\FinancialPeriod;
 use App\Models\LedgerTransaction;
 use App\Models\Program;
 use App\Models\School;
@@ -150,7 +151,15 @@ class BudgetTest extends TestCase
         $cycle = $this->cycle();
         app(SetBudget::class)->set($cycle, app(ChartOfAccounts::class)->account('operating_expenses'), 500);
 
-        $this->spend(200, date: now()->subYears(3));
+        $outsideDate = now()->subYears(3);
+        FinancialPeriod::query()->create([
+            'school_id' => $cycle->school_id,
+            'name' => 'Historical finance period',
+            'starts_on' => $outsideDate->copy()->startOfYear()->toDateString(),
+            'ends_on' => $outsideDate->copy()->endOfYear()->toDateString(),
+        ]);
+
+        $this->spend(200, date: $outsideDate);
 
         $row = app(BudgetVersusActual::class)->forCycle($cycle)->sole();
 

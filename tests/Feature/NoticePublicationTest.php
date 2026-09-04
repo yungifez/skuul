@@ -5,12 +5,15 @@ namespace Tests\Feature;
 use App\Actions\Notice\PublishNotice;
 use App\Actions\Notice\ReviseNotice;
 use App\Actions\School\GrantSchoolMembership;
+use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
 use App\Enums\NoticeRecipientState;
 use App\Enums\NoticeStatus;
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Jobs\SendNoticeEmails;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
 use App\Models\AuditEvent;
 use App\Models\Notice;
 use App\Models\NoticeNotificationPreference;
@@ -91,6 +94,57 @@ class NoticePublicationTest extends TestCase
         $this->assertTrue($notice->recipients()->where('user_id', $student->user_id)->exists());
         $this->assertTrue($notice->recipients()->where('user_id', $guardian->id)->exists());
         $this->assertSame(2, $notice->recipients()->count());
+    }
+
+    public function test_a_notice_can_go_to_every_current_section_in_a_class(): void
+    {
+        $this->authorized_user([]);
+        $school = $this->workingSchool();
+        $class = AcademicLevel::factory()->create([
+            'school_id' => $school->id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
+        $otherClass = AcademicLevel::factory()->create([
+            'school_id' => $school->id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
+        $firstSection = AcademicCycleSection::factory()->create([
+            'school_id' => $school->id,
+            'academic_level_id' => $class->id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
+        $secondSection = AcademicCycleSection::factory()->create([
+            'school_id' => $school->id,
+            'academic_level_id' => $class->id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
+        $otherSection = AcademicCycleSection::factory()->create([
+            'school_id' => $school->id,
+            'academic_level_id' => $otherClass->id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
+        $firstStudent = StudentRecord::factory()->create([
+            'school_id' => $school->id,
+            'academic_cycle_section_id' => $firstSection->id,
+        ]);
+        $secondStudent = StudentRecord::factory()->create([
+            'school_id' => $school->id,
+            'academic_cycle_section_id' => $secondSection->id,
+        ]);
+        $otherStudent = StudentRecord::factory()->create([
+            'school_id' => $school->id,
+            'academic_cycle_section_id' => $otherSection->id,
+        ]);
+        $notice = $this->notice(['audience' => [
+            'scope' => 'class',
+            'academic_level_ids' => [$class->id],
+        ]]);
+
+        app(PublishNotice::class)->publish($notice);
+
+        $this->assertTrue($notice->recipients()->where('user_id', $firstStudent->user_id)->exists());
+        $this->assertTrue($notice->recipients()->where('user_id', $secondStudent->user_id)->exists());
+        $this->assertFalse($notice->recipients()->where('user_id', $otherStudent->user_id)->exists());
     }
 
     public function test_a_notice_never_reaches_another_school(): void

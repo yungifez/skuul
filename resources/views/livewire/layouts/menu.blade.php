@@ -83,37 +83,36 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
                         $submenuIsOpen = in_array(Route::currentRouteName(), array_column($menuItem['submenu'],
                         'route'));
                         @endphp
-                        <div x-data="{ open: @js($submenuIsOpen) }">
-                            <april:sidebar-menu-item>
-                                <april:sidebar-menu-button type="button" x-on:click="open = !open"
-                                    x-bind:data-state="open ? 'open' : 'closed'">
-                                    <x-icon :name="'lucide-'.($menuItem['icon'] ?? 'circle')" class="shrink-0" />
-                                    <span>{{$menuItem['text']}}</span>
-                                    <span class="ml-auto transition-transform group-data-[collapsible=icon]:!hidden"
-                                        x-bind:class="{ '-rotate-90': !open }">
-                                        <x-lucide-chevron-down class="size-3.5" />
-                                    </span>
-                                </april:sidebar-menu-button>
-                            </april:sidebar-menu-item>
-                            {{-- Cloak only the submenus that start closed. The open one must
-                            paint straight away, or it flashes the other way round. --}}
-                            <div x-show="open" x-collapse @if (!$submenuIsOpen) x-cloak @endif
-                                class="space-y-1 pl-4 group-data-[collapsible=icon]:!hidden">
-                                @foreach ($menuItem['submenu'] as $submenu)
-                                @if ($submenu['visible'] ?? true)
-                                <april:sidebar-menu-item>
-                                    <april:sidebar-menu-button-link href="{{route($submenu['route'])}}"
-                                        wire:navigate
-                                        wire:current.exact="bg-sidebar-accent font-medium text-sidebar-accent-foreground"
-                                        class="pl-3">
-                                        <x-icon :name="'lucide-'.($submenu['icon'] ?? 'circle')" class="w-4 shrink-0" />
-                                        <span>{{$submenu['text']}}</span>
-                                    </april:sidebar-menu-button-link>
-                                </april:sidebar-menu-item>
-                                @endif
-                                @endforeach
-                            </div>
-                        </div>
+                        <april:sidebar-menu-item>
+                            <april:collapsible :open="$submenuIsOpen" class="w-full">
+                                <slot:trigger>
+                                    <april:sidebar-menu-button type="button">
+                                        <x-icon :name="'lucide-'.($menuItem['icon'] ?? 'circle')" class="shrink-0" />
+                                        <span>{{$menuItem['text']}}</span>
+                                        <span class="ml-auto transition-transform group-data-[collapsible=icon]:!hidden"
+                                            x-bind:class="{ '-rotate-90': !open }">
+                                            <x-lucide-chevron-down class="size-3.5" />
+                                        </span>
+                                    </april:sidebar-menu-button>
+                                </slot:trigger>
+                                <slot:content>
+                                    <april:sidebar-menu-sub>
+                                        @foreach ($menuItem['submenu'] as $submenu)
+                                        @if ($submenu['visible'] ?? true)
+                                        <april:sidebar-menu-sub-item>
+                                            <april:sidebar-menu-sub-button href="{{route($submenu['route'])}}"
+                                                wire:navigate
+                                                wire:current.exact="bg-sidebar-accent font-medium text-sidebar-accent-foreground">
+                                                <x-icon :name="'lucide-'.($submenu['icon'] ?? 'circle')" class="shrink-0" />
+                                                <span>{{$submenu['text']}}</span>
+                                            </april:sidebar-menu-sub-button>
+                                        </april:sidebar-menu-sub-item>
+                                        @endif
+                                        @endforeach
+                                    </april:sidebar-menu-sub>
+                                </slot:content>
+                            </april:collapsible>
+                        </april:sidebar-menu-item>
                         @else
                         <april:sidebar-menu-item>
                             <april:sidebar-menu-button-link

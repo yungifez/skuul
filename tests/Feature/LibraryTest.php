@@ -272,12 +272,16 @@ class LibraryTest extends TestCase
     public function test_a_late_book_charges_the_learner_through_the_ledger(): void
     {
         $this->authorized_user([]);
-        FinancialPeriod::create([
-            'school_id' => $this->workingSchool()->id,
-            'name' => 'Current finance period',
-            'starts_on' => now()->startOfYear()->toDateString(),
-            'ends_on' => now()->endOfYear()->toDateString(),
-        ]);
+        FinancialPeriod::query()->firstOrCreate(
+            [
+                'school_id' => $this->workingSchool()->id,
+                'name' => 'Current finance period',
+            ],
+            [
+                'starts_on' => now()->startOfYear()->toDateString(),
+                'ends_on' => now()->endOfYear()->toDateString(),
+            ],
+        );
         LibraryLendingRules::create(['school_id' => $this->workingSchool()->id, 'fine_per_day' => 5_000]);
         $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
         $borrower = $this->memberOf($this->workingSchool(), $enrollment->user);

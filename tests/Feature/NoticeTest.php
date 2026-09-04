@@ -78,6 +78,8 @@ class NoticeTest extends TestCase
             ->assertSuccessful()
             ->assertSee('data-slot="editor"', false)
             ->assertSee('data-slot="select"', false)
+            ->assertSee('name="audience[scope]"', false)
+            ->assertSee('name="audience[academic_level_ids][]"', false)
             ->assertSee('name="audience[academic_cycle_section_ids][]"', false)
             ->assertSee('name="content"', false);
     }

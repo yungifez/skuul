@@ -50,12 +50,20 @@ class FeeInvoiceTest extends TestCase
     public function test_authorized_user_can_view_fee_invoices_with_current_enrollment_placement()
     {
         $studentRecord = StudentRecord::factory()->create();
+        $school = $this->workingSchool();
+        $financialPeriod = FinancialPeriod::query()
+            ->where('school_id', $school->id)
+            ->where('name', 'Current finance period')
+            ->firstOrFail();
         // The list reaches the invoice through its student, so the student
         // needs a membership in the school being worked in.
-        $this->memberOf($this->workingSchool(), $studentRecord->user);
+        $this->memberOf($school, $studentRecord->user);
         // The table lists the running year, newest due date first, ten to a
         // page. The last day of the year puts this invoice on the first page.
         $feeInvoice = FeeInvoice::factory()->for($studentRecord->user)->create([
+            'school_id' => $school->id,
+            'student_record_id' => $studentRecord->id,
+            'financial_period_id' => $financialPeriod->id,
             'due_date' => now()->endOfYear(),
         ]);
 
@@ -187,12 +195,16 @@ class FeeInvoiceTest extends TestCase
         $date = now()->toDateString();
         $key = (string) Str::uuid();
 
-        FinancialPeriod::query()->create([
-            'school_id' => $school->id,
-            'name' => 'Current finance period',
-            'starts_on' => now()->startOfYear()->toDateString(),
-            'ends_on' => now()->endOfYear()->toDateString(),
-        ]);
+        FinancialPeriod::query()->firstOrCreate(
+            [
+                'school_id' => $school->id,
+                'name' => 'Current finance period',
+            ],
+            [
+                'starts_on' => now()->startOfYear()->toDateString(),
+                'ends_on' => now()->endOfYear()->toDateString(),
+            ],
+        );
 
         $payload = [
             'idempotency_key' => $key,
