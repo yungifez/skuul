@@ -25,7 +25,11 @@ class NoticePolicy
      */
     public function view(User $user, Notice $notice)
     {
-        if ($user->can('read notice') && current_school_id() == $notice->school_id) {
+        if (
+            $user->can('read notice')
+            && current_school_id() == $notice->school_id
+            && ($notice->isPublished() || $user->can('update notice') || $user->can('delete notice'))
+        ) {
             return true;
         }
     }

@@ -79,3 +79,10 @@
 - Area: Notices and student portal
 - Observed: Administrators could create draft notices, and the publication action existed in the domain layer, but no user-facing control or screen action could publish the draft to recipients.
 - Resolution: The notice screen now exposes an authorized publish action, records recipients through the existing audited publication action, and shows the published content in the portal. Notice content is stored and rendered with an explicit safe HTML tag and attribute allow-list; plain Markdown is converted to that safe HTML first.
+
+## Draft notices were readable by URL
+
+- Status: Fixed
+- Area: Notice privacy and portal boundaries
+- Observed: A reader without notice-management permission could open a draft notice by visiting its show URL directly, even though draft rows were hidden from their list.
+- Resolution: Notice view authorization now requires Published status for ordinary readers. Users who can update or delete notices may still inspect drafts. Screen tests cover both boundaries.

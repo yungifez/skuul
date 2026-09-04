@@ -36,6 +36,30 @@ class NoticeTest extends TestCase
             ->assertSee('No notices yet');
     }
 
+    public function test_an_ordinary_reader_cannot_open_a_draft_notice(): void
+    {
+        $this->authorized_user(['read notice']);
+        $notice = Notice::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'status' => NoticeStatus::Draft,
+        ]);
+
+        $this->get(route('notices.show', $notice))->assertForbidden();
+    }
+
+    public function test_a_notice_manager_can_open_a_draft_notice(): void
+    {
+        $this->authorized_user(['read notice', 'update notice']);
+        $notice = Notice::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'status' => NoticeStatus::Draft,
+        ]);
+
+        $this->get(route('notices.show', $notice))
+            ->assertSuccessful()
+            ->assertSee('Draft');
+    }
+
     // asser user cannot view create notice
 
     public function test_unauthorized_user_can_not_view_create_notice()
