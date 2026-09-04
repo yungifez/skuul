@@ -131,6 +131,18 @@ class GradebookTest extends TestCase
             ->assertSee('aria-label="Gradebook list"', false);
     }
 
+    public function test_the_gradebook_detail_uses_april_form_controls(): void
+    {
+        $this->authorized_user(['read gradebook', 'manage gradebook', 'update subject']);
+        $courseOffering = $this->courseOffering();
+
+        $this->get(route('course-offerings.gradebook.show', $courseOffering))
+            ->assertOk()
+            ->assertSee('Assessment setup')
+            ->assertSee('data-slot="input"', false)
+            ->assertSee('data-slot="native-select"', false);
+    }
+
     public function test_the_result_is_a_share_of_the_maximum(): void
     {
         $this->authorized_user([]);

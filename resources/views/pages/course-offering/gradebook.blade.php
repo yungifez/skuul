@@ -68,7 +68,7 @@
                     <slot:content>
                         <form method="POST" action="{{ route('course-offerings.gradebook.templates.apply', $courseOffering) }}" class="flex flex-col gap-3 sm:flex-row sm:items-end">
                             @csrf
-                            <div class="min-w-0 flex-1"><label for="assessment-template" class="mb-1 block text-sm font-medium">Template</label><select id="assessment-template" name="assessment_template_id" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">@foreach ($assessmentTemplates as $assessmentTemplate)<option value="{{ $assessmentTemplate->id }}" @selected((string) old('assessment_template_id') === (string) $assessmentTemplate->id)>{{ $assessmentTemplate->name }} · {{ $assessmentTemplate->categories_count }} categories, {{ $assessmentTemplate->items_count }} assessments</option>@endforeach</select>@error('assessment_template_id')<p class="mt-1 text-sm text-destructive">{{ $message }}</p>@enderror</div>
+                            <div class="min-w-0 flex-1"><april:label for="assessment-template">Template</april:label><april:native-select id="assessment-template" name="assessment_template_id">@foreach ($assessmentTemplates as $assessmentTemplate)<option value="{{ $assessmentTemplate->id }}" @selected((string) old('assessment_template_id') === (string) $assessmentTemplate->id)>{{ $assessmentTemplate->name }} · {{ $assessmentTemplate->categories_count }} categories, {{ $assessmentTemplate->items_count }} assessments</option>@endforeach</april:native-select>@error('assessment_template_id')<p class="mt-1 text-sm text-destructive">{{ $message }}</p>@enderror</div>
                             <april:button type="submit">Apply template</april:button>
                         </form>
                     </slot:content>
@@ -93,20 +93,20 @@
                     <form method="POST" action="{{ route('course-offerings.gradebook.categories.store', $courseOffering) }}" class="grid gap-3 sm:grid-cols-[1.4fr_1fr_0.7fr_auto] sm:items-end">
                         @csrf
                         <div>
-                            <label for="category-name" class="mb-1 block text-sm font-medium">Category name</label>
-                            <input id="category-name" name="name" value="{{ old('name') }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Classwork">
+                            <april:label for="category-name">Category name</april:label>
+                            <april:input id="category-name" name="name" value="{{ old('name') }}" required placeholder="Classwork" />
                         </div>
                         <div>
-                            <label for="category-aggregation" class="mb-1 block text-sm font-medium">Calculation</label>
-                            <select id="category-aggregation" name="aggregation" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                            <april:label for="category-aggregation">Calculation</april:label>
+                            <april:native-select id="category-aggregation" name="aggregation" required>
                                 @foreach (\App\Enums\GradeAggregation::cases() as $aggregation)
                                     <option value="{{ $aggregation->value }}" @selected(old('aggregation', \App\Enums\GradeAggregation::WeightedMean->value) === $aggregation->value)>{{ $aggregation->label() }}</option>
                                 @endforeach
-                            </select>
+                            </april:native-select>
                         </div>
                         <div>
-                            <label for="category-weight" class="mb-1 block text-sm font-medium">Weight</label>
-                            <input id="category-weight" name="weight" type="number" min="0.001" step="0.001" value="{{ old('weight', 1) }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                            <april:label for="category-weight">Weight</april:label>
+                            <april:input id="category-weight" name="weight" type="number" min="0.001" step="0.001" value="{{ old('weight', 1) }}" required />
                         </div>
                         <april:button type="submit">Add category</april:button>
                     </form>
@@ -120,47 +120,47 @@
                     <form method="POST" action="{{ route('course-offerings.gradebook.items.store', $courseOffering) }}" class="grid gap-3 md:grid-cols-6">
                         @csrf
                         <div class="md:col-span-2">
-                            <label for="assessment-name" class="mb-1 block text-sm font-medium">Assessment name</label>
-                            <input id="assessment-name" name="name" value="{{ old('name') }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Term project">
+                            <april:label for="assessment-name">Assessment name</april:label>
+                            <april:input id="assessment-name" name="name" value="{{ old('name') }}" required placeholder="Term project" />
                         </div>
                         <div>
-                            <label for="assessment-type" class="mb-1 block text-sm font-medium">Type</label>
-                            <select id="assessment-type" name="type" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                            <april:label for="assessment-type">Type</april:label>
+                            <april:native-select id="assessment-type" name="type">
                                 @foreach (\App\Enums\GradeItemType::cases() as $type)
                                     <option value="{{ $type->value }}" @selected(old('type', \App\Enums\GradeItemType::Numeric->value) === $type->value)>{{ $type->label() }}</option>
                                 @endforeach
-                            </select>
+                            </april:native-select>
                         </div>
                         <div>
-                            <label for="assessment-points" class="mb-1 block text-sm font-medium">Maximum points</label>
-                            <input id="assessment-points" name="max_points" type="number" min="0.01" step="0.01" value="{{ old('max_points') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Maximum points">
+                            <april:label for="assessment-points">Maximum points</april:label>
+                            <april:input id="assessment-points" name="max_points" type="number" min="0.01" step="0.01" value="{{ old('max_points') }}" placeholder="Maximum points" />
                         </div>
                         <div>
-                            <label for="assessment-scale" class="mb-1 block text-sm font-medium">Grading scale</label>
-                            <select id="assessment-scale" name="grading_scale_id" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                            <april:label for="assessment-scale">Grading scale</april:label>
+                            <april:native-select id="assessment-scale" name="grading_scale_id">
                                 <option value="">Use only for a scale</option>
                                 @foreach ($gradingScales as $gradingScale)
                                     <option value="{{ $gradingScale->id }}" @selected((string) old('grading_scale_id') === (string) $gradingScale->id)>{{ $gradingScale->name }} · {{ $gradingScale->scale_type->label() }}</option>
                                 @endforeach
-                            </select>
+                            </april:native-select>
                             <p class="mt-1 text-xs text-muted-foreground">Percentage and GPA scales use their own maximum. Custom-point scales use this assessment’s maximum points.</p>
                         </div>
                         <div>
-                            <label for="assessment-weight" class="mb-1 block text-sm font-medium">Weight</label>
-                            <input id="assessment-weight" name="weight" type="number" min="0.001" step="0.001" value="{{ old('weight', 1) }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                            <april:label for="assessment-weight">Weight</april:label>
+                            <april:input id="assessment-weight" name="weight" type="number" min="0.001" step="0.001" value="{{ old('weight', 1) }}" required />
                         </div>
                         <div>
-                            <label for="assessment-category" class="mb-1 block text-sm font-medium">Category</label>
-                            <select id="assessment-category" name="grade_category_id" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                            <april:label for="assessment-category">Category</april:label>
+                            <april:native-select id="assessment-category" name="grade_category_id">
                                 <option value="">No category</option>
                                 @foreach ($gradeCategories as $gradeCategory)
                                     <option value="{{ $gradeCategory->id }}" @selected((string) old('grade_category_id') === (string) $gradeCategory->id)>{{ $gradeCategory->name }}</option>
                                 @endforeach
-                            </select>
+                            </april:native-select>
                         </div>
                         <div>
-                            <label for="assessment-due-on" class="mb-1 block text-sm font-medium">Due date <span class="font-normal text-muted-foreground">(optional)</span></label>
-                            <input id="assessment-due-on" name="due_on" type="date" value="{{ old('due_on') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                            <april:label for="assessment-due-on">Due date <span class="font-normal text-muted-foreground">(optional)</span></april:label>
+                            <april:input id="assessment-due-on" name="due_on" type="date" value="{{ old('due_on') }}" />
                         </div>
                         <div class="flex items-end"><april:button type="submit" class="w-full">Add assessment</april:button></div>
                     </form>
@@ -179,29 +179,29 @@
                                         @csrf
                                         @method('PUT')
                                         <div class="md:col-span-2">
-                                            <label for="item-name-{{ $gradeItem->id }}" class="mb-1 block text-xs font-medium">Assessment</label>
-                                            <input id="item-name-{{ $gradeItem->id }}" name="name" value="{{ $gradeItem->name }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                            <april:label for="item-name-{{ $gradeItem->id }}" class="text-xs">Assessment</april:label>
+                                            <april:input id="item-name-{{ $gradeItem->id }}" name="name" value="{{ $gradeItem->name }}" required />
                                         </div>
                                         <div>
-                                            <label for="item-category-{{ $gradeItem->id }}" class="mb-1 block text-xs font-medium">Category</label>
-                                            <select id="item-category-{{ $gradeItem->id }}" name="grade_category_id" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                            <april:label for="item-category-{{ $gradeItem->id }}" class="text-xs">Category</april:label>
+                                            <april:native-select id="item-category-{{ $gradeItem->id }}" name="grade_category_id">
                                                 <option value="">No category</option>
                                                 @foreach ($gradeCategories as $gradeCategory)
                                                     <option value="{{ $gradeCategory->id }}" @selected($gradeItem->grade_category_id === $gradeCategory->id)>{{ $gradeCategory->name }}</option>
                                                 @endforeach
-                                            </select>
+                                            </april:native-select>
                                         </div>
                                         <div>
-                                            <label for="item-points-{{ $gradeItem->id }}" class="mb-1 block text-xs font-medium">Maximum points</label>
-                                            <input id="item-points-{{ $gradeItem->id }}" name="max_points" type="number" min="0.01" step="0.01" value="{{ $gradeItem->max_points }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                            <april:label for="item-points-{{ $gradeItem->id }}" class="text-xs">Maximum points</april:label>
+                                            <april:input id="item-points-{{ $gradeItem->id }}" name="max_points" type="number" min="0.01" step="0.01" value="{{ $gradeItem->max_points }}" />
                                         </div>
                                         <div>
-                                            <label for="item-weight-{{ $gradeItem->id }}" class="mb-1 block text-xs font-medium">Weight</label>
-                                            <input id="item-weight-{{ $gradeItem->id }}" name="weight" type="number" min="0.001" step="0.001" value="{{ $gradeItem->weight }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                            <april:label for="item-weight-{{ $gradeItem->id }}" class="text-xs">Weight</april:label>
+                                            <april:input id="item-weight-{{ $gradeItem->id }}" name="weight" type="number" min="0.001" step="0.001" value="{{ $gradeItem->weight }}" required />
                                         </div>
                                         <div>
-                                            <label for="item-due-on-{{ $gradeItem->id }}" class="mb-1 block text-xs font-medium">Due date</label>
-                                            <input id="item-due-on-{{ $gradeItem->id }}" name="due_on" type="date" value="{{ $gradeItem->due_on?->format('Y-m-d') }}" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                            <april:label for="item-due-on-{{ $gradeItem->id }}" class="text-xs">Due date</april:label>
+                                            <april:input id="item-due-on-{{ $gradeItem->id }}" name="due_on" type="date" value="{{ $gradeItem->due_on?->format('Y-m-d') }}" />
                                         </div>
                                         <div class="flex gap-2 md:col-span-6">
                                             <april:button type="submit" size="sm">Save changes</april:button>
@@ -226,8 +226,8 @@
                     <slot:content>
                         <form method="POST" action="{{ route('course-offerings.gradebook.templates.store', $courseOffering) }}" class="grid gap-3 md:grid-cols-[1fr_2fr_auto]">
                             @csrf
-                            <div><input name="template_name" value="{{ old('template_name') }}" required class="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="Template name">@error('template_name')<p class="mt-1 text-sm text-destructive">{{ $message }}</p>@enderror</div>
-                            <div><input name="description" value="{{ old('description') }}" class="h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" placeholder="When should staff use this template?">@error('description')<p class="mt-1 text-sm text-destructive">{{ $message }}</p>@enderror</div>
+                            <div><april:input name="template_name" value="{{ old('template_name') }}" required placeholder="Template name" />@error('template_name')<p class="mt-1 text-sm text-destructive">{{ $message }}</p>@enderror</div>
+                            <div><april:input name="description" value="{{ old('description') }}" placeholder="When should staff use this template?" />@error('description')<p class="mt-1 text-sm text-destructive">{{ $message }}</p>@enderror</div>
                             <april:button type="submit">Save as template</april:button>
                         </form>
                     </slot:content>
@@ -282,22 +282,22 @@
                                                         <input type="hidden" name="grade_item_id" value="{{ $gradeItem->id }}">
                                                         <input type="hidden" name="student_record_id" value="{{ $student->id }}">
                                                         @if ($gradeItem->type === \App\Enums\GradeItemType::Numeric)
-                                                            <input aria-label="{{ $gradeItem->name }} for {{ $student->user?->name ?? $student->admission_number }}" name="points" type="number" min="0" step="0.01" max="{{ $gradeItem->max_points }}" value="{{ $entry?->points }}" class="min-w-0 rounded-md border border-input bg-background px-2 py-1.5" placeholder="Mark">
+                                                            <april:input aria-label="{{ $gradeItem->name }} for {{ $student->user?->name ?? $student->admission_number }}" name="points" type="number" min="0" step="0.01" max="{{ $gradeItem->max_points }}" value="{{ $entry?->points }}" class="min-w-0 px-2 py-1.5" placeholder="Mark" />
                                                         @elseif ($gradeItem->type === \App\Enums\GradeItemType::Text)
-                                                            <input aria-label="{{ $gradeItem->name }} comment for {{ $student->user?->name ?? $student->admission_number }}" name="comment" value="{{ $entry?->comment }}" class="min-w-0 rounded-md border border-input bg-background px-2 py-1.5" placeholder="Comment">
+                                                            <april:input aria-label="{{ $gradeItem->name }} comment for {{ $student->user?->name ?? $student->admission_number }}" name="comment" value="{{ $entry?->comment }}" class="min-w-0 px-2 py-1.5" placeholder="Comment" />
                                                         @else
-                                                            <select aria-label="{{ $gradeItem->name }} grade for {{ $student->user?->name ?? $student->admission_number }}" name="grading_scale_option_id" class="min-w-0 rounded-md border border-input bg-background px-2 py-1.5">
+                                                            <april:native-select aria-label="{{ $gradeItem->name }} grade for {{ $student->user?->name ?? $student->admission_number }}" name="grading_scale_option_id" class="min-w-0 px-2 py-1.5">
                                                                 <option value="">Choose grade</option>
                                                                 @foreach ($gradeItem->gradingScale?->options ?? [] as $option)
                                                                     <option value="{{ $option->id }}" @selected($entry?->grading_scale_option_id === $option->id)>{{ $option->label }}</option>
                                                                 @endforeach
-                                                            </select>
+                                                            </april:native-select>
                                                         @endif
-                                                        <select aria-label="Grade state" name="state" class="rounded-md border border-input bg-background px-2 py-1.5">
+                                                        <april:native-select aria-label="Grade state" name="state" class="px-2 py-1.5">
                                                             @foreach (\App\Enums\GradeEntryState::cases() as $state)
                                                                 <option value="{{ $state->value }}" @selected(($entry?->state ?? \App\Enums\GradeEntryState::Graded) === $state)>{{ $state->label() }}</option>
                                                             @endforeach
-                                                        </select>
+                                                        </april:native-select>
                                                         <april:button size="sm" type="submit" class="col-span-2">Save</april:button>
                                                     </form>
                                                 @else
@@ -339,7 +339,7 @@
                                                         <form method="POST" action="{{ route('course-offerings.gradebook.results.reject', $courseOffering) }}" class="flex gap-2">
                                                             @csrf
                                                             <input type="hidden" name="result_snapshot_id" value="{{ $submittedResult->id }}">
-                                                            <input name="reason" required maxlength="500" placeholder="Reason to reject" class="h-8 w-40 rounded-md border border-input bg-background px-2 text-xs">
+                                                            <april:input name="reason" required maxlength="500" placeholder="Reason to reject" class="h-8 w-40 px-2 text-xs" />
                                                             <april:button size="sm" variant="outline" type="submit">Reject</april:button>
                                                         </form>
                                                     </div>
