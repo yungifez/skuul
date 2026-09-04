@@ -126,7 +126,7 @@
                     <label class="flex items-start gap-3 rounded-md border p-3 text-sm transition-colors hover:bg-muted/40">
                         <input type="hidden" name="audience[include_guardians]" value="0">
                         <input type="checkbox" name="audience[include_guardians]" value="1" @checked($includeGuardians)
-                            class="mt-0.5 size-4 rounded border-input text-primary accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                            class="mt-0.5 size-4 rounded border-input text-primary-foreground accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
                         <span>
                             <span class="font-medium">Include guardians</span>
                             <span class="mt-1 block text-xs text-muted-foreground">Send this notice to the guardians of the selected learners too.</span>
