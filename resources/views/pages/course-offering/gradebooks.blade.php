@@ -18,8 +18,11 @@
                     <april:button-link href="{{ route('course-offerings.index') }}" variant="outline">View subjects being taught</april:button-link>
                 </div>
             @else
-                <div class="overflow-x-auto">
-                    <table class="w-full min-w-[680px] text-sm">
+                <div class="grid gap-2 md:hidden" role="note">
+                    <p class="text-xs text-muted-foreground">Swipe horizontally to view all gradebook columns.</p>
+                </div>
+                <div class="overflow-x-auto rounded-md border" role="region" aria-label="Gradebook list" tabindex="0">
+                    <table class="w-full min-w-[680px] align-middle text-sm">
                         <thead class="border-b text-left text-muted-foreground">
                             <tr>
                                 <th class="px-3 py-2">Subject</th>

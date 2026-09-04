@@ -120,6 +120,17 @@ class GradebookTest extends TestCase
         ]);
     }
 
+    public function test_the_gradebook_list_explains_mobile_horizontal_scrolling(): void
+    {
+        $this->authorized_user(['read gradebook', 'update subject']);
+        $this->courseOffering();
+
+        $this->get(route('gradebooks.index'))
+            ->assertOk()
+            ->assertSee('Swipe horizontally to view all gradebook columns.')
+            ->assertSee('aria-label="Gradebook list"', false);
+    }
+
     public function test_the_result_is_a_share_of_the_maximum(): void
     {
         $this->authorized_user([]);
