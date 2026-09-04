@@ -217,7 +217,7 @@ class WellbeingScreenTest extends TestCase
 
         $this->get(route('health-records.edit', $enrollment))
             ->assertSee('The health record was not saved')
-            ->assertSee('The notes field must not be greater than 5000 characters.')
+            ->assertSee('The notes must not be greater than 5000 characters.')
             ->assertSee('Keep the inhaler in the front office.');
 
         $this->assertSame(
