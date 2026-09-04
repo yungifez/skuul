@@ -103,6 +103,7 @@ class SyllabusTest extends TestCase
         CourseOffering::factory()->count(10)->create();
 
         $this->seed(SyllabusSeeder::class);
+        $this->seed(SyllabusSeeder::class);
 
         $this->assertCount(10, Syllabus::query()->get());
         $this->assertTrue(Syllabus::query()->whereNotNull('file')->exists());

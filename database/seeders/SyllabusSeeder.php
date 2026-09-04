@@ -2,9 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Enums\AcademicPeriodStatus;
 use App\Models\CourseOffering;
 use App\Models\School;
 use App\Models\Syllabus;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Storage;
 
@@ -23,6 +25,12 @@ class SyllabusSeeder extends Seeder
 
         CourseOffering::query()
             ->where('school_id', $school->id)
+            ->whereHas('academicPeriod', function (Builder $query): void {
+                $query->whereNotIn('status', [
+                    AcademicPeriodStatus::Closed->value,
+                    AcademicPeriodStatus::Archived->value,
+                ]);
+            })
             ->orderBy('id')
             ->limit(10)
             ->get()
