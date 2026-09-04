@@ -59,7 +59,7 @@ class AcademicCalendarTest extends TestCase
     {
         $period = AcademicPeriod::factory()->create([
             'starts_on' => '2026-09-01',
-            'ends_on'   => '2026-12-18',
+            'ends_on' => '2026-12-18',
         ]);
 
         $this->assertTrue($period->covers('2026-09-01'));
@@ -79,15 +79,15 @@ class AcademicCalendarTest extends TestCase
         $year = AcademicYear::factory()->create(['school_id' => $this->workingSchool()->id]);
         $first = AcademicPeriod::factory()->create([
             'academic_year_id' => $year->id,
-            'position'         => 1,
-            'starts_on'        => '2026-09-01',
-            'ends_on'          => '2026-12-18',
+            'position' => 1,
+            'starts_on' => '2026-09-01',
+            'ends_on' => '2026-12-18',
         ]);
         AcademicPeriod::factory()->create([
             'academic_year_id' => $year->id,
-            'position'         => 2,
-            'starts_on'        => '2027-01-06',
-            'ends_on'          => '2027-04-02',
+            'position' => 2,
+            'starts_on' => '2027-01-06',
+            'ends_on' => '2027-04-02',
         ]);
 
         $this->assertSame($first->id, $year->periodForDate('2026-10-15')?->id);
@@ -112,9 +112,9 @@ class AcademicCalendarTest extends TestCase
         $this->expectException(InvalidValueException::class);
 
         app(AcademicPeriodService::class)->createAcademicPeriod([
-            'name'      => 'Backwards term',
+            'name' => 'Backwards term',
             'starts_on' => '2026-12-18',
-            'ends_on'   => '2026-09-01',
+            'ends_on' => '2026-09-01',
         ]);
     }
 
@@ -134,9 +134,9 @@ class AcademicCalendarTest extends TestCase
         $period = $service->createAcademicPeriod(['name' => 'First term', 'starts_on' => '2026-09-01', 'ends_on' => '2026-12-18']);
 
         $service->updateAcademicPeriod($period, [
-            'name'      => 'First term',
+            'name' => 'First term',
             'starts_on' => '2026-09-07',
-            'ends_on'   => '2026-12-20',
+            'ends_on' => '2026-12-20',
         ]);
 
         $period = $period->fresh();
@@ -145,13 +145,51 @@ class AcademicCalendarTest extends TestCase
         $this->assertSame('2026-12-20', $period->ends_on->toDateString());
     }
 
+    public function test_an_authorized_user_can_edit_a_period_from_its_screen(): void
+    {
+        $period = AcademicPeriod::factory()->create([
+            'starts_on' => '2026-09-01',
+            'ends_on' => '2026-12-18',
+        ]);
+        $user = $this->authorized_user(['update academic period']);
+
+        $user->get(route('academic-periods.edit', $period))
+            ->assertOk()
+            ->assertSee('Edit '.$period->displayName);
+
+        $user->put(route('academic-periods.update', $period), [
+            'name' => 'First term updated',
+            'starts_on' => '2026-09-07',
+            'ends_on' => '2026-12-20',
+            'type' => AcademicPeriodType::Term->value,
+        ])->assertRedirect(route('academic-years.show', $period->academic_year_id));
+
+        $this->assertSame('First term updated', $period->fresh()->name);
+        $this->assertSame('2026-09-07', $period->fresh()->starts_on->toDateString());
+    }
+
+    public function test_the_period_edit_screen_refuses_an_end_before_the_start(): void
+    {
+        $period = AcademicPeriod::factory()->create();
+
+        $this->authorized_user(['update academic period'])
+            ->from(route('academic-periods.edit', $period))
+            ->put(route('academic-periods.update', $period), [
+                'name' => $period->name,
+                'starts_on' => '2026-12-18',
+                'ends_on' => '2026-09-01',
+                'type' => AcademicPeriodType::Term->value,
+            ])
+            ->assertSessionHasErrors('ends_on');
+    }
+
     public function test_the_form_refuses_an_end_date_before_the_start(): void
     {
         $this->authorized_user(['create academic period'])
             ->post('/dashboard/academic-periods', [
-                'name'      => 'Backwards term',
+                'name' => 'Backwards term',
                 'starts_on' => '2026-12-18',
-                'ends_on'   => '2026-09-01',
+                'ends_on' => '2026-09-01',
             ])
             ->assertSessionHasErrors('ends_on');
     }

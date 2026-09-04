@@ -40,8 +40,8 @@ use App\Http\Controllers\LocationController;
 use App\Http\Controllers\NoticeAttachmentController;
 use App\Http\Controllers\NoticeController;
 use App\Http\Controllers\NoticeNotificationPreferenceController;
-use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\OrganizationBoardingResidenceController;
+use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\OrganizationDashboardController;
 use App\Http\Controllers\OvernightLeaveController;
 use App\Http\Controllers\ParentController;
@@ -430,6 +430,10 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
 
             // academic period routes
             Route::get('academic-periods', [AcademicPeriodController::class, 'index'])->name('academic-periods.index');
+            Route::get('academic-periods/create', [AcademicPeriodController::class, 'create'])->name('academic-periods.create');
+            Route::post('academic-periods', [AcademicPeriodController::class, 'store'])->name('academic-periods.store');
+            Route::get('academic-periods/{academicPeriod}/edit', [AcademicPeriodController::class, 'edit'])->name('academic-periods.edit');
+            Route::put('academic-periods/{academicPeriod}', [AcademicPeriodController::class, 'update'])->name('academic-periods.update');
             Route::post('academic-periods/set', ['App\Http\Controllers\AcademicPeriodController', 'setAcademicPeriod'])->name('academic-periods.set-academic-period');
             Route::post('academic-periods/{academicPeriod}/close', ['App\Http\Controllers\AcademicPeriodController', 'close'])->name('academic-periods.close');
             Route::post('academic-periods/{academicPeriod}/begin-closing', ['App\Http\Controllers\AcademicPeriodController', 'beginClosing'])->name('academic-periods.begin-closing');

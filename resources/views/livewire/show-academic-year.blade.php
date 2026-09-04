@@ -92,7 +92,12 @@
     </section>
 
     <april:card>
-        <slot:title>Reporting timeline</slot:title>
+        <slot:title class="flex flex-wrap items-center justify-between gap-3">
+            <span>Reporting timeline</span>
+            @if ($canCreatePeriods)
+                <april:button-link href="{{ route('academic-periods.create') }}" variant="outline" size="sm">Add period</april:button-link>
+            @endif
+        </slot:title>
         <slot:description>Reporting boundaries drive gradebooks, results, timetables, and reports.</slot:description>
         <slot:content>
             <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -101,7 +106,12 @@
                         <div class="flex items-start justify-between gap-3"><h3 class="font-semibold">{{ $period->displayName }}</h3><span class="rounded-md bg-muted px-2 py-1 text-xs font-medium">{{ $period->typeLabel }}</span></div>
                         <p class="mt-3 text-sm text-muted-foreground">{{ $period->starts_on?->format('M j, Y') ?? 'No start date' }} – {{ $period->ends_on?->format('M j, Y') ?? 'No end date' }}</p>
                         <p class="mt-1 text-xs text-muted-foreground">{{ $period->lengthInDays() ? $period->lengthInDays().' calendar days' : 'Dates not set' }}</p>
-                        <div class="mt-4"><x-academic-period-status-control :period="$period" route-prefix="academic-periods" /></div>
+                        <div class="mt-4 flex flex-wrap items-center gap-3">
+                            @if (auth()->user()->can('update', $period))
+                                <april:button-link href="{{ route('academic-periods.edit', $period) }}" variant="outline" size="sm">Edit dates</april:button-link>
+                            @endif
+                            <x-academic-period-status-control :period="$period" route-prefix="academic-periods" />
+                        </div>
                     </article>
                 @empty
                     <p class="text-sm text-muted-foreground">No reporting periods have been configured.</p>

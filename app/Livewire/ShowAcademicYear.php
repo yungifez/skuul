@@ -9,6 +9,7 @@ use App\Enums\AcademicYearSetupStep;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Livewire\Concerns\InteractsWithAprilTable;
+use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\Exam;
 use App\Services\AcademicYear\AcademicYearSetupProgress;
@@ -151,6 +152,8 @@ class ShowAcademicYear extends DataTableComponent
             'canDeleteExams' => auth()->user()->can('delete exam'),
             'canCreateExams' => auth()->user()->can('create exam') && $this->academicYear->status->acceptsExamPlanning(),
             'canEditCalendar' => auth()->user()->can('update', $this->academicYear),
+            'canCreatePeriods' => auth()->user()->can('create', AcademicPeriod::class)
+                && !$this->academicYear->status->isFrozen(),
             'isDraft' => $this->academicYear->status === AcademicPeriodStatus::Draft,
             'canContinueSetup' => $this->academicYear->status === AcademicPeriodStatus::Draft
                 && auth()->user()->can('update', $this->academicYear)
