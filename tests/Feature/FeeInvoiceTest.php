@@ -29,11 +29,22 @@ class FeeInvoiceTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_authorized_user_can_view_all_fee_invoices()
+    public function test_authorized_user_can_view_all_fee_invoices(): void
     {
-        $this->authorized_user(['read fee invoice'])
+        $response = $this->authorized_user(['read fee invoice'])
             ->get('dashboard/fees/fee-invoices')
-            ->assertSuccessful();
+            ->assertSuccessful()
+            ->assertSee('data-slot="collapsible" data-state="closed"', false)
+            ->assertSee('Finance tasks')
+            ->assertSee('Create an invoice');
+
+        $content = $response->getContent();
+        $collapsiblePosition = strpos($content, 'data-slot="collapsible"');
+        $tablePosition = strpos($content, 'data-slot="data-table"');
+
+        $this->assertIsInt($collapsiblePosition);
+        $this->assertIsInt($tablePosition);
+        $this->assertLessThan($tablePosition, $collapsiblePosition);
     }
 
     public function test_authorized_user_can_view_fee_invoices_with_current_enrollment_placement()
