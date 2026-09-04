@@ -4,12 +4,16 @@ namespace Tests\Feature;
 
 use App\Enums\AuditAction;
 use App\Enums\Feature;
+use App\Livewire\Layouts\Menu;
 use App\Models\AuditEvent;
 use App\Models\School;
 use App\Services\Feature\FeatureManager;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Events\QueryExecuted;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Route;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -117,6 +121,22 @@ class FeatureSettingTest extends TestCase
 
         $this->assertCount(count(Feature::cases()), $answers);
         $this->assertArrayHasKey('attendance', $answers);
+    }
+
+    public function test_the_sidebar_does_not_repeat_feature_setting_queries(): void
+    {
+        $this->authorized_user([]);
+        $featureQueries = 0;
+
+        DB::listen(function (QueryExecuted $query) use (&$featureQueries): void {
+            if (str_contains($query->sql, 'feature_settings')) {
+                $featureQueries++;
+            }
+        });
+
+        Livewire::test(Menu::class);
+
+        $this->assertLessThanOrEqual(2, $featureQueries);
     }
 
     public function test_a_school_administrator_can_manage_optional_school_tools(): void

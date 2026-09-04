@@ -8,6 +8,7 @@ use App\Enums\Feature;
 use App\Models\FeatureSetting;
 use App\Models\School;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * Say whether a feature is on, and turn it on or off.
@@ -25,9 +26,14 @@ class FeatureManager
      */
     private array $answers = [];
 
-    public function __construct(private RecordAuditEvent $auditor)
-    {
-    }
+    /**
+     * The settings loaded for each school context during this request.
+     *
+     * @var array<string, array<string, FeatureSetting>>
+     */
+    private array $settings = [];
+
+    public function __construct(private RecordAuditEvent $auditor) {}
 
     /**
      * Check if the feature is on for the given school.
@@ -61,7 +67,7 @@ class FeatureManager
     /**
      * Turn the feature on for the school.
      *
-     * @param array<string, mixed>|null $config
+     * @param  array<string, mixed>|null  $config
      */
     public function enable(Feature $feature, School|int|null $school = null, ?User $actor = null, ?array $config = null): FeatureSetting
     {
@@ -98,12 +104,13 @@ class FeatureManager
     public function forget(): void
     {
         $this->answers = [];
+        $this->settings = [];
     }
 
     /**
      * Write the setting and record who changed it.
      *
-     * @param array<string, mixed>|null $config
+     * @param  array<string, mixed>|null  $config
      */
     private function set(Feature $feature, bool $enabled, School|int|null $school, ?User $actor, ?array $config = null): FeatureSetting
     {
@@ -112,8 +119,8 @@ class FeatureManager
         $setting = FeatureSetting::updateOrCreate(
             ['school_id' => $schoolId, 'feature' => $feature],
             array_filter([
-                'enabled'    => $enabled,
-                'config'     => $config,
+                'enabled' => $enabled,
+                'config' => $config,
                 'updated_by' => $actor === null ? auth()->id() : $actor->id,
             ], fn (mixed $value): bool => $value !== null),
         );
@@ -149,11 +156,43 @@ class FeatureManager
      */
     private function settingFor(Feature $feature, ?int $schoolId): ?FeatureSetting
     {
-        $ofSchool = $schoolId === null
-            ? null
-            : FeatureSetting::where('school_id', $schoolId)->where('feature', $feature)->first();
+        return $this->settingsFor($schoolId)[$feature->value] ?? null;
+    }
 
-        return $ofSchool ?? FeatureSetting::whereNull('school_id')->where('feature', $feature)->first();
+    /**
+     * Load all settings that can apply to one school in one query.
+     *
+     * @return array<string, FeatureSetting>
+     */
+    private function settingsFor(?int $schoolId): array
+    {
+        $key = (string) ($schoolId ?? 'platform');
+
+        if (array_key_exists($key, $this->settings)) {
+            return $this->settings[$key];
+        }
+
+        $settings = FeatureSetting::query()
+            ->when(
+                $schoolId === null,
+                fn (Builder $query): Builder => $query->whereNull('school_id'),
+                fn (Builder $query): Builder => $query->where(function (Builder $scoped) use ($schoolId): void {
+                    $scoped->where('school_id', $schoolId)->orWhereNull('school_id');
+                }),
+            )
+            ->get();
+
+        $byFeature = [];
+
+        foreach ($settings as $setting) {
+            $feature = $setting->feature->value;
+
+            if (!array_key_exists($feature, $byFeature) || $setting->school_id !== null) {
+                $byFeature[$feature] = $setting;
+            }
+        }
+
+        return $this->settings[$key] = $byFeature;
     }
 
     /**
