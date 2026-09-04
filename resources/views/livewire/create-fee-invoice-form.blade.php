@@ -69,7 +69,7 @@
                         $addStudentArgument.=",null";
                     }
                 @endphp
-                <april:button type="button" wire:click="addStudent({{$addStudentArgument}})" class="w-full" wire:loading.attr="disabled">
+            <april:button type="button" wire:click="addStudent({{$addStudentArgument}})" class="w-full" wire:loading.attr="disabled" wire:target="addStudent">
                     Add Student
                 </april:button>
             </div>
@@ -90,7 +90,7 @@
                                     <td class="border p-4 text-center">{{$addedStudent['email']}}</td>
                                     <td class="border p-4 text-center whitespace-nowrap">
                                         <input type="hidden" name="student_records[]" value="{{$addedStudent->studentRecord?->id}}">
-                                        <april:button type="button" variant="destructive" wire:click="removeStudent({{$addedStudent['id']}})" wire:loading.disable>
+                                        <april:button type="button" variant="destructive" wire:click="removeStudent({{$addedStudent['id']}})" wire:loading.attr="disabled" wire:target="removeStudent">
                                             Remove
                                         </april:button>
                                     </td>
@@ -107,7 +107,7 @@
             <h2 class="card-title">Fees To Include</h2>
         </div>
         <div class="card-body">
-            <x-loading-spinner wire:target="addFees"/>
+            <x-loading-spinner wire:target="addFee"/>
             <x-loading-spinner wire:target="feeCategory"/>
             <div class="md:grid grid-cols-2 items-end gap-4">
                 <div class="flex w-full flex-col gap-2">
@@ -131,7 +131,7 @@
 
                     </april:select>
                 </div>
-                <april:button type="button" wire:click="addFee({{$feeCategory}}, {{$fee}})" class="w-full md:w-2/3" wire:loading.attr="disabled" >
+                <april:button type="button" wire:click="addFee({{$feeCategory}}, {{$fee}})" class="w-full md:w-2/3" wire:loading.attr="disabled" wire:target="addFee">
                     Add Fee(s)
                 </april:button>
             </div>
@@ -165,7 +165,7 @@
                                     </td>
                                     <td class="border p-4 text-center whitespace-nowrap">
                                         <input type="hidden" name="records[{{$addedFee['id']}}][fee_id]" value="{{$addedFee['id']}}">
-                                        <april:button variant="destructive" wire:click="removeFee({{$index}})" type="button" wire:loading.attr="disabled">
+                                        <april:button variant="destructive" wire:click="removeFee({{$index}})" type="button" wire:loading.attr="disabled" wire:target="removeFee">
                                             Remove
                                         </april:button>
                                     </td>
@@ -179,7 +179,7 @@
     </div>
     @csrf
     <input type="hidden" name="idempotency_key" value="{{ old('idempotency_key', (string) \Illuminate\Support\Str::uuid()) }}">
-    <april:button type="submit" class="w-full md:w-3/12" wire:loading.attr="disabled">
+    <april:button type="submit" class="w-full md:w-3/12">
         <x-lucide-key class="mr-2 size-4" />
         Create Invoice
     </april:button>

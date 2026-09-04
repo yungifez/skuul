@@ -62,11 +62,14 @@ class FeeInvoiceTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_authorized_user_can_view_create_fee_invoice()
+    public function test_authorized_user_can_view_create_fee_invoice(): void
     {
         $this->authorized_user(['create fee invoice'])
             ->get('dashboard/fees/fee-invoices/create')
-            ->assertSuccessful();
+            ->assertSuccessful()
+            ->assertDontSee('wire:loading.disable', false)
+            ->assertSee('wire:target="addFee"', false)
+            ->assertSee('style="display: none"', false);
     }
 
     public function test_unauthorized_user_cannot_create_fee_invoice()
