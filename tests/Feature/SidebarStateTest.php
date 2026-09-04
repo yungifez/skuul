@@ -107,7 +107,11 @@ class SidebarStateTest extends TestCase
         auth()->user()->assignRole('parent');
 
         $menu = Livewire::test(Menu::class)->get('menu');
-        $items = collect($menu)->pluck('text')->filter()->all();
+        $items = collect($menu)
+            ->filter(fn (array $item): bool => $item['visible'] ?? true)
+            ->pluck('text')
+            ->filter()
+            ->all();
 
         $this->assertNotContains('Syllabi', $items);
         $this->assertNotContains('Timetables', $items);
