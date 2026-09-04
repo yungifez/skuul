@@ -42,7 +42,7 @@
                                 <option value="">Choose a {{ school_term('period', 'period') }}</option>
                                 @foreach ($periods as $period)
                                     <option value="{{ $period->id }}" @selected(old('academic_period_id') == $period->id)>
-                                        {{ $period->label ?? $period->name }}
+                                        {{ $period->academicYear?->name }} · {{ $period->displayName }}
                                     </option>
                                 @endforeach
                             </april:native-select>
@@ -66,7 +66,7 @@
 
         <april:card>
             <slot:title>Find a card</slot:title>
-            <slot:description>Narrow the list to one learner or one {{ school_term('period', 'period') }}.</slot:description>
+            <slot:description>Search official cards by learner, academic year, or {{ school_term('period', 'period') }}.</slot:description>
             <slot:content>
                 <form method="GET" action="{{ route('report-cards.index') }}" class="grid gap-4 lg:grid-cols-4 lg:items-end">
                     <div class="flex flex-col gap-2">
@@ -82,12 +82,24 @@
                     </div>
 
                     <div class="flex flex-col gap-2">
+                        <april:label for="filter-academic-year">Academic year</april:label>
+                        <april:native-select id="filter-academic-year" name="academic_year_id">
+                            <option value="">Every academic year</option>
+                            @foreach ($academicYears as $academicYear)
+                                <option value="{{ $academicYear->id }}" @selected($selectedAcademicYear === $academicYear->id)>
+                                    {{ $academicYear->name }}
+                                </option>
+                            @endforeach
+                        </april:native-select>
+                    </div>
+
+                    <div class="flex flex-col gap-2">
                         <april:label for="filter-period">{{ school_term('period', 'Academic period') }}</april:label>
                         <april:native-select id="filter-period" name="academic_period_id">
                             <option value="">Every {{ school_term('period', 'period') }}</option>
                             @foreach ($periods as $period)
                                 <option value="{{ $period->id }}" @selected($selectedPeriod === $period->id)>
-                                    {{ $period->label ?? $period->name }}
+                                    {{ $period->academicYear?->name }} · {{ $period->displayName }}
                                 </option>
                             @endforeach
                         </april:native-select>
@@ -98,7 +110,7 @@
                             <x-lucide-filter class="mr-2 size-4" />
                             Apply
                         </april:button>
-                        @if ($selectedStudent !== null || $selectedPeriod !== null)
+                        @if ($selectedStudent !== null || $selectedAcademicYear !== null || $selectedPeriod !== null)
                             <april:button-link href="{{ route('report-cards.index') }}" variant="outline">Clear</april:button-link>
                         @endif
                     </div>
@@ -111,9 +123,9 @@
             <slot:description>Each version stays exactly as it was issued, even after a later correction.</slot:description>
             <slot:content>
                 @if ($reportCards->isEmpty())
-                    @if ($selectedStudent !== null || $selectedPeriod !== null)
+                    @if ($selectedStudent !== null || $selectedAcademicYear !== null || $selectedPeriod !== null)
                         <x-empty-state icon="lucide-search-x" title="Nothing matches this filter"
-                            description="No report card was published for that learner and period.">
+                            description="No report card was published for that learner, year, or period.">
                             <april:button-link href="{{ route('report-cards.index') }}" variant="outline">Show every card</april:button-link>
                         </x-empty-state>
                     @else
@@ -125,6 +137,7 @@
                         <slot:header>
                             <april:data-table-row>
                                 <april:data-table-head>Learner</april:data-table-head>
+                                <april:data-table-head>Academic year</april:data-table-head>
                                 <april:data-table-head>{{ school_term('period', 'Period') }}</april:data-table-head>
                                 <april:data-table-head>Average</april:data-table-head>
                                 <april:data-table-head>Revision</april:data-table-head>
@@ -139,6 +152,7 @@
                                         {{ $card->studentRecord->user?->name ?? $card->studentRecord->admission_number }}
                                         <span class="block text-xs text-muted-foreground">{{ $card->studentRecord->admission_number }}</span>
                                     </april:data-table-cell>
+                                    <april:data-table-cell>{{ $card->academicYear?->name ?? 'Unknown year' }}</april:data-table-cell>
                                     <april:data-table-cell>{{ $card->academicPeriod->label ?? $card->academicPeriod->name }}</april:data-table-cell>
                                     <april:data-table-cell>
                                         {{ $card->average_percentage === null ? '—' : number_format($card->average_percentage, 2).'%' }}

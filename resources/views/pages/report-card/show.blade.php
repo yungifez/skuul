@@ -36,7 +36,7 @@
             <slot:title>{{ $reportCardSnapshot->studentRecord->user?->name ?? $reportCardSnapshot->studentRecord->admission_number }}</slot:title>
             <slot:description>{{ $reportCardSnapshot->studentRecord->admission_number }}</slot:description>
             <slot:content>
-                <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                <dl class="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
                     <div class="rounded-lg border p-4">
                         <dt class="text-sm text-muted-foreground">Overall</dt>
                         <dd class="text-2xl font-semibold">
@@ -47,6 +47,10 @@
                     <div class="rounded-lg border p-4">
                         <dt class="text-sm text-muted-foreground">{{ school_term('period', 'Period') }}</dt>
                         <dd class="text-lg font-semibold">{{ $reportCardSnapshot->academicPeriod->label ?? $reportCardSnapshot->academicPeriod->name }}</dd>
+                    </div>
+                    <div class="rounded-lg border p-4">
+                        <dt class="text-sm text-muted-foreground">Academic year</dt>
+                        <dd class="text-lg font-semibold">{{ $reportCardSnapshot->academicYear?->name ?? 'Unknown year' }}</dd>
                     </div>
                     <div class="rounded-lg border p-4">
                         <dt class="text-sm text-muted-foreground">Revision</dt>

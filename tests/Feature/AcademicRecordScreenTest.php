@@ -105,6 +105,65 @@ class AcademicRecordScreenTest extends TestCase
             ->assertDontSee('A later version exists');
     }
 
+    public function test_the_report_card_screen_distinguishes_the_same_period_across_years(): void
+    {
+        $school = $this->workingSchool();
+        $actor = $this->memberOf($school);
+        $this->authorized_user(['read report', 'create report'], $school);
+        $historicalYear = AcademicYear::factory()->create([
+            'school_id' => $school->id,
+            'start_year' => 2024,
+            'stop_year' => 2025,
+        ]);
+        $historicalPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $historicalYear->id,
+            'name' => 'Term 1',
+            'label' => 'Term 1',
+            'status' => AcademicPeriodStatus::Closing,
+        ]);
+        $currentPeriod = $this->closingPeriod($school);
+        $currentPeriod->update(['name' => 'Term 1', 'label' => 'Term 1']);
+        $historicalLearner = $this->learnerWithAResult($school, $historicalPeriod, 'Historical Learner');
+        $currentLearner = $this->learnerWithAResult($school, $currentPeriod, 'Current Learner');
+        $historicalCard = app(PublishReportCard::class)->publish($historicalLearner, $historicalPeriod, $actor);
+        $currentCard = app(PublishReportCard::class)->publish($currentLearner, $currentPeriod, $actor);
+
+        $this->get(route('report-cards.index', ['academic_year_id' => $historicalYear->id]))
+            ->assertOk()
+            ->assertSee($historicalYear->name)
+            ->assertSee(route('report-cards.show', $historicalCard))
+            ->assertDontSee(route('report-cards.show', $currentCard));
+    }
+
+    public function test_report_card_history_rejects_a_period_from_another_selected_year(): void
+    {
+        $school = $this->workingSchool();
+        $this->authorized_user(['read report', 'create report'], $school);
+        $year = AcademicYear::factory()->create(['school_id' => $school->id]);
+        $otherYear = AcademicYear::factory()->create(['school_id' => $school->id]);
+        $period = AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $otherYear->id,
+        ]);
+
+        $this->get(route('report-cards.index', [
+            'academic_year_id' => $year->id,
+            'academic_period_id' => $period->id,
+        ]))->assertNotFound();
+    }
+
+    public function test_report_card_history_rejects_another_schools_year(): void
+    {
+        $school = $this->workingSchool();
+        $this->authorized_user(['read report', 'create report'], $school);
+        $otherSchool = School::factory()->create();
+        $otherYear = AcademicYear::factory()->create(['school_id' => $otherSchool->id]);
+
+        $this->get(route('report-cards.index', ['academic_year_id' => $otherYear->id]))
+            ->assertNotFound();
+    }
+
     public function test_the_transcript_screen_explains_itself_before_any_transcript_exists(): void
     {
         $this->authorized_user(['read report', 'create report']);

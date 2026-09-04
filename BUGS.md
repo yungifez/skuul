@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Historical report cards were ambiguous across academic years
+
+- Status: Fixed
+- Area: Report-card history and navigation
+- Observed: Report-card filters and rows showed only the period label, so “Term 1” from different academic years looked identical. The records themselves were year-bound, but the user-facing history did not expose that context.
+- Impact: Staff could select or review the wrong year when comparing historical report cards, especially after a learner had attended the school for multiple years.
+- Reproduction: Publish cards for two years that both contain a period named “Term 1”, then open `/dashboard/report-cards` and inspect the period filter and published-card rows.
+- Resolution: Report-card history now provides an academic-year filter, labels period options as `academic year · period`, shows the academic year in each row and detail summary, and rejects mismatched or cross-school year/period selections. Coverage includes normal, duplicate-period alternate, mismatch exception, and cross-school exception flows.
+
 ## Historical gradebooks were not discoverable
 
 - Status: Fixed
