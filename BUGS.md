@@ -2,21 +2,21 @@
 
 ## Portal roles could read unrelated active notices
 
-- Status: In progress
+- Status: Fixed
 - Area: Learner and family notices
 - Observed: A learner or guardian with the built-in `read notice` permission could open the workspace notice list, which used the school-wide active-notice query instead of the recipient records used by the portal.
 - Impact: A notice aimed at another class, role, or named learner could appear outside its intended audience.
 - Reproduction: Publish two active notices, deliver only one to a learner or guardian, then open `/dashboard/notices` and each notice detail route as that portal user.
-- Planned resolution: Portal-role notice lists and detail views will require a published notice with a recipient record for the signed-in account. Staff notice management will retain its current school-wide permissions. Regression coverage checks the delivered and undelivered normal and exception paths.
+- Resolution: Portal-role notice lists and detail views now require a published notice with a recipient record for the signed-in account. Staff notice management retains its current school-wide permissions. Regression coverage checks delivered, undelivered, and draft exception paths. Deployed in `a64a94b3`; the live learner workspace returned 200 with the scoped empty state after release.
 
 ## Portal roles could open staff curriculum workspaces
 
-- Status: In progress
+- Status: Fixed
 - Area: Learner and family role boundaries
 - Observed: On the live site, a student account with the built-in `read syllabus` and `read timetable` permissions could open `/dashboard/syllabi` and `/dashboard/timetables`. The timetable component scoped the learner's rows, but the syllabus list queried the whole school. A guardian account also had the staff-oriented syllabus and timetable navigation available through the seeded read permissions.
 - Impact: Learners could be shown curriculum records outside their roster, and guardians could reach staff workspace screens that are not child-scoped.
 - Reproduction: Sign in as a student or guardian, open the Syllabi or Timetables workspace directly, and inspect the rendered list and filters. Use a second course offering, section, unpublished syllabus, or draft timetable to verify whether unrelated records are exposed.
-- Planned resolution: Keep the learner timetable route as a published, own-section view; show learners only published syllabi for active offerings on their roster; deny guardian access to these staff workspaces and remove their sidebar and command-palette entries. Regression coverage exercises normal, alternate, and exception paths.
+- Resolution: The learner timetable route remains a published, own-section view; learners see only published syllabi for active offerings on their roster; guardian access to these staff workspaces is denied and the sidebar and command-palette entries are removed. Regression coverage exercises normal, alternate, and exception paths. Deployed in `a64a94b3`; learner Syllabi and Timetables returned 200 with their scoped empty states after release.
 
 ## Portal links ignored disabled top-level school tools
 
