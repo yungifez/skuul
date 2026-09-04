@@ -86,7 +86,7 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
                         <april:sidebar-menu-item>
                             <april:collapsible :open="$submenuIsOpen" class="w-full">
                                 <slot:trigger>
-                                    <april:sidebar-menu-button type="button">
+                                    <april:sidebar-menu-button type="button" :expand-sidebar="false">
                                         <x-icon :name="'lucide-'.($menuItem['icon'] ?? 'circle')" class="shrink-0" />
                                         <span>{{$menuItem['text']}}</span>
                                         <span class="ml-auto transition-transform group-data-[collapsible=icon]:!hidden"
