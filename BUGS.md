@@ -248,3 +248,21 @@
 - Impact: The warning did not describe the action. "Take out of use" only deactivates a facility and keeps its bookings. "Give it up" cancels one booking. "Withdraw" takes a library copy off the shelves. "Take it off" removes a queue place. A reader who trusted the warning expected permanent deletion in all four cases.
 - Reproduction: Open `/dashboard/facilities`, `/dashboard/library`, `/dashboard/library/queue`, or `/dashboard/grading-scales` and press any destructive button.
 - Resolution: Each form now carries `data-confirm` text that names its own action. Three tests assert the exact wording on the four screens. All four fail without the fix, because no `data-confirm` existed on any of these pages before.
+
+## Every dashboard page held two main landmarks
+
+- Status: Fixed
+- Area: Page structure, whole application
+- Observed: `april:sidebar-inset` renders a `<main>` element. `layouts/app.blade.php` then rendered its own `<main id="main">` inside it.
+- Impact: HTML does not allow a `<main>` inside another `<main>`. A screen reader announced two main regions on every dashboard page, so "jump to main content" landed the reader in the wrong one.
+- Reproduction: Open any dashboard page and run `document.querySelectorAll('main').length` in the console. It returned 2, and the second was a descendant of the first.
+- Resolution: The inner element is now a `<div id="main" tabindex="-1">`. It keeps the same classes, so nothing moves. `tabindex` lets it accept focus, which a `<div>` cannot do on its own and which the old `<main>` could not do either.
+
+## The skip link stayed invisible while it held focus
+
+- Status: Fixed
+- Area: Keyboard navigation
+- Observed: The "Skip to content" link carried only `sr-only`. That class clips the link to one pixel and never releases it.
+- Impact: The link is the first stop for a keyboard reader on a page with over a hundred sidebar links. Focus moved to a control nobody could see, so a sighted keyboard reader lost track of the focus position and could not tell the link was there.
+- Reproduction: Open any dashboard page, press Tab once, then look at the top left corner. Nothing appeared.
+- Resolution: The link now carries `focus:not-sr-only` with position, padding, background, and a focus ring. Verified in Chrome: while blurred the link measures 1x1 and is clipped; once focused it measures 125x36 at the top left corner, with `clip-path: none`. Three tests in `AppLayoutTest` cover the single landmark, the focusable target, and the focus style. All three fail without the fix.

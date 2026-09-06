@@ -18,7 +18,10 @@
 </head>
 
 <body class="font-sans" data-ui="april">
-    <a href="#main" class="sr-only">
+    {{-- The link stays out of the way until it takes focus. A sighted reader
+    who tabs to an invisible link cannot tell where the focus went. --}}
+    <a href="#main"
+        class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[200] focus:rounded-md focus:bg-background focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-foreground focus:shadow-lg focus:outline-none focus:ring-2 focus:ring-ring">
         Skip to content
     </a>
     <div class="min-h-screen bg-background text-foreground">
@@ -47,9 +50,12 @@
                         </div>
                     </div>
                 </div>
-                <main class="mx-auto w-full max-w-screen-2xl p-4 md:p-8" id="main">
+                {{-- april:sidebar-inset is already a <main>, and a <main>
+                cannot hold another one. This is the skip link's target, so it
+                needs tabindex to accept focus. --}}
+                <div class="mx-auto w-full max-w-screen-2xl p-4 md:p-8" id="main" tabindex="-1">
                     @yield('content')
-                </main>
+                </div>
             </april:sidebar-inset>
         </april:sidebar-layout>
     </div>
