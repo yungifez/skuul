@@ -27,9 +27,11 @@
         <table>
             <thead><tr><th>Subject</th><th>Percentage</th></tr></thead>
             <tbody>
-                @foreach ($document->payload['results'] ?? [] as $result)
+                @forelse ($document->payload['results'] ?? [] as $result)
                     <tr><td>{{ $result['subject']['name'] }}</td><td>{{ $result['percentage'] === null ? '—' : number_format($result['percentage'], 2).'%' }}</td></tr>
-                @endforeach
+                @empty
+                    <tr><td colspan="2" class="muted">No subject was marked in this period.</td></tr>
+                @endforelse
             </tbody>
         </table>
     @else
@@ -37,9 +39,11 @@
         <table>
             <thead><tr><th>Period</th><th>Subject</th><th>Percentage</th></tr></thead>
             <tbody>
-                @foreach ($document->payload['results'] ?? [] as $result)
+                @forelse ($document->payload['results'] ?? [] as $result)
                     <tr><td>{{ $result['academic_year'] }} · {{ $result['academic_period'] }}</td><td>{{ $result['subject'] }}</td><td>{{ $result['percentage'] === null ? '—' : number_format($result['percentage'], 2).'%' }}</td></tr>
-                @endforeach
+                @empty
+                    <tr><td colspan="3" class="muted">No subject has been marked yet.</td></tr>
+                @endforelse
             </tbody>
         </table>
     @endif

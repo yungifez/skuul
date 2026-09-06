@@ -61,31 +61,38 @@
                 @csrf
                 @method('PUT')
             </form>
-            <april:alert-dialog>
-                <slot:trigger>
-                    <april:button variant="outline" size="sm" type="button" class="w-full my-5">
-                        <x-lucide-trash-2 class="mr-2 size-4" />
-                        Delete
-                    </april:button>
-                </slot:trigger>
-                <slot:content>
-                    <april:alert-dialog-header>
-                        <slot:title>Remove {{ $record->fee->name }}?</slot:title>
-                        <slot:description>This takes {{ $record->fee->name }} off the invoice. Anything already paid against it stays on record.</slot:description>
-                    </april:alert-dialog-header>
-                    <april:alert-dialog-footer>
-                        <april:alert-dialog-cancel>Cancel</april:alert-dialog-cancel>
-                        <form action="{{route('fee-invoice-records.destroy', $record->id)}}" method="POST" data-confirm="false">
-                            @method('delete')
-                            @csrf
-                            <april:button type="submit" variant="destructive">
-                                <x-lucide-trash-2 class="mr-2 size-4" />
-                                Continue With Delete
-                            </april:button>
-                        </form>
-                    </april:alert-dialog-footer>
-                </slot:content>
-            </april:alert-dialog>
+            @if ($record->paid->isPositive())
+                <p class="my-5 text-sm text-muted-foreground">
+                    {{ $record->paid->formatToLocale(app()->getLocale()) }} has been paid against this fee, so it cannot
+                    be removed. Raise its waiver to cover what is left instead.
+                </p>
+            @else
+                <april:alert-dialog>
+                    <slot:trigger>
+                        <april:button variant="outline" size="sm" type="button" class="w-full my-5">
+                            <x-lucide-trash-2 class="mr-2 size-4" />
+                            Delete
+                        </april:button>
+                    </slot:trigger>
+                    <slot:content>
+                        <april:alert-dialog-header>
+                            <slot:title>Remove {{ $record->fee->name }}?</slot:title>
+                            <slot:description>This takes {{ $record->fee->name }} off the invoice and lowers what the family owes by {{ $record->payable->formatToLocale(app()->getLocale()) }}.</slot:description>
+                        </april:alert-dialog-header>
+                        <april:alert-dialog-footer>
+                            <april:alert-dialog-cancel>Cancel</april:alert-dialog-cancel>
+                            <form action="{{route('fee-invoice-records.destroy', $record->id)}}" method="POST" data-confirm="false">
+                                @method('delete')
+                                @csrf
+                                <april:button type="submit" variant="destructive">
+                                    <x-lucide-trash-2 class="mr-2 size-4" />
+                                    Continue With Delete
+                                </april:button>
+                            </form>
+                        </april:alert-dialog-footer>
+                    </slot:content>
+                </april:alert-dialog>
+            @endif
         </div>
         @endforeach
     </div>

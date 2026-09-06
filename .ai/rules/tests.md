@@ -22,3 +22,18 @@ with no query string, the screen renders its unfiltered state, and the failure
 looks like a broken filter rather than a broken test.
 
 Write `route('x.show', [$model, 'filter' => 1])`.
+
+## Sign in once per test, not once per request
+
+`authorized_user()` calls `actingAs(...)->withSession(...)`. A second call in
+the same test replaces the session that the first HTTP request wrote, so every
+request after it arrives as a guest and is redirected to `/login`. A test that
+only asserts a redirect then passes for the wrong reason.
+
+Take the return value once, name it, and send every request through it:
+
+```php
+$office = $this->authorized_user(['read fee invoice', 'delete fee invoice record']);
+$office->post(...)->assertRedirect();
+$office->delete(...)->assertSessionHas('danger');
+```

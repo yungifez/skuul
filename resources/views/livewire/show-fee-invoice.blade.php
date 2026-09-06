@@ -36,7 +36,7 @@
                     <th class="p-4 border">Paid</th>
                 </thead>
                 <tbody>
-                    @foreach ($feeInvoice->feeInvoiceRecords as $record)
+                    @forelse ($feeInvoice->feeInvoiceRecords as $record)
                         <tr>
                             <td class="p-4 border">{{$loop->iteration}}</td>
                             <td class="p-4 border">{{$record->fee->name}}</td>
@@ -45,7 +45,11 @@
                             <td class="p-4 border">{{$record->fine->formatToLocale(app()->getLocale())}}</td>
                             <td class="p-4 border">{{$record->paid->formatToLocale(app()->getLocale())}}</td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="6" class="p-4 border text-center text-muted-foreground">No fees are on this invoice yet.</td>
+                        </tr>
+                    @endforelse
                 </tbody>
             </table>
         </div>

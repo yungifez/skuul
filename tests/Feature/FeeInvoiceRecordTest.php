@@ -7,6 +7,7 @@ use App\Models\FeeCategory;
 use App\Models\FeeInvoice;
 use App\Models\FeeInvoiceRecord;
 use App\Models\FinancialPeriod;
+use App\Models\PaymentAllocation;
 use App\Models\StudentRecord;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -89,6 +90,55 @@ class FeeInvoiceRecordTest extends TestCase
             ->assertRedirect();
 
         $this->assertModelMissing($feeInvoiceRecord);
+    }
+
+    /**
+     * The allocations that say what a payment settled are removed with the
+     * line, so taking the line away would leave the money unexplained.
+     */
+    public function test_a_fee_with_money_against_it_cannot_be_removed()
+    {
+        $feeInvoiceRecord = $this->lineOfAnEnrolledStudent();
+        $office = $this->authorized_user(['read fee invoice', 'update fee invoice', 'delete fee invoice record']);
+
+        $office->post(route('fee-invoices.pay.store', $feeInvoiceRecord->fee_invoice_id), [
+            'amount' => 2,
+            'method' => 'cash',
+            'spread' => 'oldest_first',
+        ])->assertRedirect();
+
+        $this->assertSame(1, PaymentAllocation::query()->where('fee_invoice_record_id', $feeInvoiceRecord->id)->count());
+
+        $office->delete("dashboard/fees/fee-invoices/fee-invoice-records/$feeInvoiceRecord->id")
+            ->assertRedirect()
+            ->assertSessionHas('danger');
+
+        $this->assertModelExists($feeInvoiceRecord);
+        $this->assertSame(1, PaymentAllocation::query()->where('fee_invoice_record_id', $feeInvoiceRecord->id)->count());
+    }
+
+    /**
+     * The edit screen must not offer a button the service will refuse.
+     */
+    public function test_the_edit_screen_hides_the_delete_button_on_a_paid_fee()
+    {
+        $feeInvoiceRecord = $this->lineOfAnEnrolledStudent();
+        $office = $this->authorized_user(['read fee invoice', 'update fee invoice', 'delete fee invoice record']);
+
+        $office->get("dashboard/fees/fee-invoices/{$feeInvoiceRecord->fee_invoice_id}/edit")
+            ->assertSuccessful()
+            ->assertSee('Continue With Delete');
+
+        $office->post(route('fee-invoices.pay.store', $feeInvoiceRecord->fee_invoice_id), [
+            'amount' => 2,
+            'method' => 'cash',
+            'spread' => 'oldest_first',
+        ])->assertRedirect();
+
+        $office->get("dashboard/fees/fee-invoices/{$feeInvoiceRecord->fee_invoice_id}/edit")
+            ->assertSuccessful()
+            ->assertDontSee('Continue With Delete')
+            ->assertSee('has been paid against this fee');
     }
 
     /**

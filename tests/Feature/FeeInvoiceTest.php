@@ -240,6 +240,20 @@ class FeeInvoiceTest extends TestCase
             ->assertSuccessful();
     }
 
+    /**
+     * Every fee can be taken off an invoice, so the table has to say when
+     * nothing is left rather than show a heading over blank space.
+     */
+    public function test_an_invoice_with_no_fees_says_so()
+    {
+        $feeInvoice = FeeInvoice::factory()->create();
+
+        $this->authorized_user(['read fee invoice'])
+            ->get("dashboard/fees/fee-invoices/$feeInvoice->id")
+            ->assertSuccessful()
+            ->assertSee('No fees are on this invoice yet.');
+    }
+
     public function test_unauthorized_user_cannot_print_fee_invoice()
     {
         $feeInvoice = FeeInvoice::factory()->create();

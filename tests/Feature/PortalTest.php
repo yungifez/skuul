@@ -348,6 +348,32 @@ class PortalTest extends TestCase
             ->assertHeader('content-disposition');
     }
 
+    /**
+     * A report card can be published before any subject is marked, and a
+     * blank table tells the family nothing.
+     */
+    public function test_a_report_card_with_no_marks_says_so(): void
+    {
+        $this->unauthorized_user();
+        features()->enable(Feature::Portal, config: [PortalArea::Documents->value => true]);
+        $enrollment = $this->enrollment();
+        $year = AcademicYear::factory()->create(['school_id' => $enrollment->school_id]);
+        $period = AcademicPeriod::factory()->create(['school_id' => $enrollment->school_id, 'academic_year_id' => $year->id]);
+        $reportCard = ReportCardSnapshot::factory()->create([
+            'school_id' => $enrollment->school_id,
+            'student_record_id' => $enrollment->id,
+            'academic_year_id' => $year->id,
+            'academic_period_id' => $period->id,
+            'payload' => ['results' => []],
+        ]);
+
+        $response = $this->actingAs($enrollment->user)
+            ->get(route('portal.documents.report-cards.download', [$enrollment, $reportCard]));
+
+        $response->assertOk();
+        $this->assertStringContainsString('No subject was marked in this period.', $response->streamedContent());
+    }
+
     public function test_a_boarder_reads_their_current_house_place(): void
     {
         $this->unauthorized_user();

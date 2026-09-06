@@ -448,3 +448,21 @@
 - Impact: Pressing the "Fine" label put the cursor in the waiver box, and a screen reader read the fine box as "Waiver". A duplicate id also breaks any script that looks a box up by id.
 - Reproduction: Open the edit screen for an invoice with one fee and read the two ids. Both were `name-` followed by the same record id.
 - Resolution: The boxes take `waiver-{id}` and `fine-{id}`. The "fine" label reads "Fine", like every other label on the row, and each row carries a `wire:key`.
+
+## Removing a paid fee deleted the record of where the money went
+
+- Status: Fixed
+- Area: Finance, fee invoice records
+- Observed: `FeeInvoiceRecordService::deleteFeeInvoiceRecord()` refused to remove a line from a posted invoice, but allowed one that already had money against it. `payment_allocations.fee_invoice_record_id` is declared `cascadeOnDelete`, so the database removed the allocations with the line. The sibling method `updateFeeInvoiceRecord()` guards this exact case, which shows the author had it in mind for a change but not for a removal.
+- Impact: The `student_payments` row kept its full amount while the allocations that said what it settled were gone. The invoice then reported less paid than the family had handed over, so the office asked for money it already held. Nothing in the audit trail said the allocations had ever existed.
+- Reproduction: Raise an invoice, take a payment against it, then press "Delete" on the paid fee row. The line and its allocations both went, and the invoice showed the fee as unpaid.
+- Resolution: The service refuses to remove a line whose `paid` is positive and says to raise the waiver instead. The edit screen no longer offers the button on such a row; it explains what has been paid. Its dialog now names what the family stops owing instead of promising that payments stay on record, which was never true. `tests/Feature/FeeInvoiceRecordTest.php` takes a payment and then fails if the line can still be removed.
+
+## Three tables showed a heading over blank space
+
+- Status: Fixed
+- Area: Finance and the family portal
+- Observed: The fee table on the invoice screen and both tables in the printed portal document looped without an empty branch. An invoice can reach zero fees, because every line can be taken off. A report card can be published before any subject is marked, and the view already wrote `payload['results'] ?? []`, which says the author knew the list could be empty.
+- Impact: The reader saw column headings with nothing under them and no way to tell an empty record from a screen that had failed to load. On a printed report card a family got a blank grid with no explanation.
+- Reproduction: Open an invoice with no fee lines, or download a report card whose payload holds no results.
+- Resolution: All three loops use `@forelse` and say what is missing: "No fees are on this invoice yet.", "No subject was marked in this period." and "No subject has been marked yet." `tests/Feature/FeeInvoiceTest.php` and `tests/Feature/PortalTest.php` cover them.

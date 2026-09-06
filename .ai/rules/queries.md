@@ -54,3 +54,16 @@ $query->where(function (Builder $named) use ($id, $sectionId): void {
 
 Write the leak test either way: one record that names the reader, one that
 names somebody else, then assert the second stays out.
+
+## A cascade can delete the record of where money went
+
+`payment_allocations.fee_invoice_record_id` is `cascadeOnDelete`. Deleting a
+fee invoice line therefore removes the allocations that say what a payment
+settled, while the `student_payments` row keeps its full amount. The invoice
+then reports less paid than the school holds.
+
+Before deleting any row, check what cascades with it. A row that money points
+at must refuse to go: `FeeInvoiceRecordService::deleteFeeInvoiceRecord()`
+throws when `paid` is positive and tells the office to raise the waiver
+instead. Hide the button on such a row as well, so no screen offers an action
+the service will refuse.

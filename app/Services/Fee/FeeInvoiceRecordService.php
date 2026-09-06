@@ -71,12 +71,20 @@ class FeeInvoiceRecordService
     }
 
     /**
-     * Delete a fee invoice.
+     * Delete a fee invoice record.
+     *
+     * A line that has money against it cannot go. Its allocations say what
+     * that money paid for, and the database removes them with the line, so
+     * the payment would keep its amount while nothing said where it went.
      */
     public function deleteFeeInvoiceRecord(FeeInvoiceRecord $feeInvoiceRecord): void
     {
         if ($feeInvoiceRecord->feeInvoice?->ledgerTransaction !== null) {
             throw new InvalidValueException('A posted invoice cannot have its lines removed. Create a correcting invoice instead.');
+        }
+
+        if ($feeInvoiceRecord->paid->isPositive()) {
+            throw new InvalidValueException('This fee has money against it, so it cannot be removed. Set its waiver to cover what is left instead.');
         }
 
         $feeInvoiceRecord->delete();
