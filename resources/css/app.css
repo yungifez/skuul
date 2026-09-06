@@ -68,6 +68,23 @@
     --ring: var(--primary-foreground);
 }
 
+/* Eighteen checkboxes and radios across fourteen screens carry no class of
+   their own, so the browser paints them itself. Chrome draws them 13px wide in
+   the operating system accent colour, which is blue, on a page whose every
+   other accent is warm brown. They also sit beside hand-painted checkboxes of
+   the same meaning, 16px wide and brown, so one screen shows two kinds of the
+   same control. accent-color repaints the ones the browser still draws; the
+   hand-painted ones set appearance to none, and a browser ignores accent-color
+   once it does, so they are untouched. Every sized checkbox in the app is 1rem
+   already, so the size rule only grows the unstyled ones to match. Both rules
+   sit outside every layer so they beat the Tailwind utility. */
+input[type="checkbox"],
+input[type="radio"] {
+    accent-color: hsl(var(--primary-foreground));
+    width: 1rem;
+    height: 1rem;
+}
+
 @layer components {
     .beautify-scrollbar::-webkit-scrollbar {
         width: 5px;
