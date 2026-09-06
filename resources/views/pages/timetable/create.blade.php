@@ -1,7 +1,7 @@
 @extends('layouts.app', ['breadcrumbs' => [
         ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-        ['href'=> route('timetables.index'), 'text'=> 'Timetable'],
-        ['href'=> route('timetables.create'), 'text'=> 'create', 'active'],
+        ['href'=> route('timetables.index'), 'text'=> 'Timetables'],
+        ['href'=> route('timetables.create'), 'text'=> 'Create timetable', 'active'],
 ]])
 
 @section('title',  __('Create timetable'))

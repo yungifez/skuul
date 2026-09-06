@@ -3,7 +3,7 @@
     ['href' => route('organizations.index'), 'text' => 'Organizations'],
     ['href' => route('organizations.show', $organization), 'text' => $organization->name],
     ['href' => route('organizations.calendar-templates.index', $organization), 'text' => 'Calendar templates'],
-    ['href' => route('organizations.calendar-templates.create', $organization), 'text' => 'Create', 'active'],
+    ['href' => route('organizations.calendar-templates.create', $organization), 'text' => 'Create calendar template', 'active'],
 ]])
 
 @section('title', __('Create calendar template'))

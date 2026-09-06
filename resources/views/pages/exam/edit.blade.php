@@ -1,6 +1,6 @@
 @extends('layouts.app', ['breadcrumbs' => [
         ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-        ['href'=> route('exams.index'), 'text'=> 'exams' , ],
+        ['href'=> route('exams.index'), 'text'=> 'Exams' , ],
         ['href'=> route('exams.edit', $exam->id), 'text'=> "Edit $exam->name" , 'active']
 ]])
 @section('title', __("Edit $exam->name"))

@@ -1,7 +1,7 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href' => route('dashboard'), 'text' => 'Dashboard'],
     ['href' => route('organizations.index'), 'text' => 'Organizations'],
-    ['href' => route('organizations.create'), 'text' => 'Create', 'active'],
+    ['href' => route('organizations.create'), 'text' => 'Create organization', 'active'],
 ]])
 
 @section('title', __('Create organization'))

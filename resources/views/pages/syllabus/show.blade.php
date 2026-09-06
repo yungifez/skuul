@@ -1,6 +1,6 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-    ['href'=> route('syllabi.index'), 'text'=> 'syllabi'],
+    ['href'=> route('syllabi.index'), 'text'=> 'Syllabi'],
     ['href'=> route('syllabi.show', $syllabus->id), 'text'=> "View $syllabus->name", 'active'],
 ]])
 

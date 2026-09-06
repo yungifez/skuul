@@ -2,12 +2,12 @@
     ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
     ['href'=> route('exams.index'), 'text'=> 'Exams'],
     ['href'=> route('exam-slots.index' ,$exam->id), 'text'=> 'Exam slots'],
-    ['href'=> route('exam-slots.create',$exam->id), 'text'=> 'Create', 'active'],
+    ['href'=> route('exam-slots.create',$exam->id), 'text'=> 'Create exam slot', 'active'],
 ]])
 
-@section('title', __("Create Exam slots in $exam->name"))
+@section('title', __("Create an exam slot in $exam->name"))
 
-@section('page_heading',  __("Create Exam slots in $exam->name"))
+@section('page_heading',  __("Create an exam slot in $exam->name"))
 
 @section('content' )
     @livewire('create-exam-slot-form', ['exam' => $exam])

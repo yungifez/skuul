@@ -1,6 +1,6 @@
 @extends('layouts.app', ['breadcrumbs' => [
      ['href'=> route('dashboard'), 'text'=> 'Dashboard'],
-    ['href'=> route('timetables.index'), 'text'=> 'timetables'],
+    ['href'=> route('timetables.index'), 'text'=> 'Timetables'],
     ['href'=> route('timetables.show', $timetable->id), 'text'=> "View $timetable->name", 'active'],
 ]])
 

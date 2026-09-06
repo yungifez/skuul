@@ -347,3 +347,12 @@
 - Impact: A reader who moves by keyboard could not see where the focus had gone. Every control on every screen was affected, including the login form and each row action on a list.
 - Reproduction: Open any page, press Tab, and read the focused control. `getComputedStyle` returned a ring of `rgb(84,54,28)` on a `rgb(12,18,15)` page. A screenshot showed no visible ring at all.
 - Resolution: `resources/css/app.css` binds `--ring` to `--primary-foreground` in both themes. That is the readable half of the same colour pair and holds the same brown hue, so the ring keeps its look. It now measures 12.32:1 on the light background and 8.11:1 on the dark one, and the worst surface in either theme is 6.37:1. Three tests cover it, including one that fails the day April UI gives the ring its own readable colour.
+
+## The breadcrumb trail named the same page three different ways
+
+- Status: Fixed
+- Area: Navigation, twenty-eight screens
+- Observed: The breadcrumb trail is a list of page names, but the older screens wrote those names by hand and never agreed. The administrator list was called "Administrators" on its own screen, "Administrator" on the create screen, and "admins" on the edit screen. Twenty-three crumbs started with a small letter, so a trail read "Dashboard > students > Edit Ada Bell". Twelve more crumbs said only "Create" or "Edit" and never named the page.
+- Impact: A reader uses the trail to learn where they are and to go back one step. A crumb that reads "students" on one screen and "Students" on the next looks like two different places. A crumb that reads only "Create" says nothing about what is being created, and it is the one crumb the reader lands on. Screen readers read the trail aloud, so the mismatch is heard as well as seen.
+- Reproduction: Open `/dashboard/students`, then open a student and press Edit. The trail changed from "Dashboard > Students" to "Dashboard > students". Open `/dashboard/fees/create`. The trail ended in "Create".
+- Resolution: Every crumb now carries the name of the page it points at, taken from that page's own heading. A crumb that names an action now names the record class with it: "Create student", "Create fee invoice". Four page headings were reworded to match, including "Create Fees Invoice", which was not grammatical. A bare "Edit" is still allowed where the crumb before it names the record, because "Classes > Kindergarten 1 > Edit" reads well. Two tests cover it. They walk every Blade view, so a new screen cannot bring the fault back. Both fail without the fix.
