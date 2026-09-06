@@ -493,3 +493,12 @@
 - Impact: Deleting a fee that was on an invoice took both invoice screens to a 500 error, so the invoice could no longer be read or corrected. Deleting a category took the whole fees index down, and the policy threw on any single fee, so even opening one fee failed. This is the same fault as the taught subject, in the two places above it.
 - Reproduction: Raise an invoice carrying one fee, delete that fee from the catalog, then open the invoice. The page returned 500.
 - Resolution: A fee that is on an invoice and a category that holds fees are both refused, with a message saying what to clear first. Both tables hide the delete action on rows that are in use, using the `when` key added to `x-table-actions`. `tests/Feature/FeeTest.php` and `tests/Feature/FeeCategoryTest.php` delete a record that is in use, then open the screen that reads it.
+
+## Removing a student took down the fee invoices index
+
+- Status: Fixed
+- Area: Finance, invoices and receipts
+- Observed: `StudentService::deleteStudent()` soft deletes the person. `FeeInvoice::user()` and `StudentRecord::user()` were plain `belongsTo` relations, so both read null once the person was removed. `ListFeeInvoicesTable` reads `$invoice->user->name` on every row, and `show-fee-invoice.blade.php` and `edit-fee-invoice-form.blade.php` both read it at the top of the screen.
+- Impact: Removing one student took the fee invoices index to a 500 error for the whole school, so no invoice could be read or paid. Every screen that names a learner through their enrollment fell back to the admission number, so a report card, a boarding roll and a payment receipt all stopped naming the person they were about.
+- Reproduction: Raise an invoice for a student, remove the student, then open `/dashboard/fees/fee-invoices`. The page returned 500 with "Attempt to read property name on null".
+- Resolution: Both relations resolve a removed person with `withTrashed()`. A refusal is wrong here: a school may remove a student, and the invoices raised for them are real financial history that has to keep naming them. `tests/Feature/FeeInvoiceTest.php` removes an invoiced student, then opens the invoice, its edit screen and the index.

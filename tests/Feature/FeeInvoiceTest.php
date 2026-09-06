@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\ListFeeInvoicesTable;
 use App\Models\Fee;
 use App\Models\FeeCategory;
 use App\Models\FeeInvoice;
@@ -14,6 +15,7 @@ use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Str;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class FeeInvoiceTest extends TestCase
@@ -273,6 +275,36 @@ class FeeInvoiceTest extends TestCase
             ->assertHeader('content-type', 'text/html; charset=UTF-8')
             ->assertSee('data-print-button', false)
             ->assertSee('window.print', false);
+    }
+
+    /**
+     * An invoice is financial history. It has to keep naming the person it
+     * was raised for, even after that person is removed from the school.
+     */
+    public function test_an_invoice_still_names_a_removed_student()
+    {
+        $school = $this->workingSchool();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $school->id]);
+        $this->memberOf($school, $enrollment->user);
+        $name = $enrollment->user->name;
+
+        $feeInvoice = FeeInvoice::factory()->for($enrollment->user)->create([
+            'school_id' => $school->id,
+            'student_record_id' => $enrollment->id,
+        ]);
+
+        $office = $this->authorized_user(['read fee invoice', 'update fee invoice']);
+        $enrollment->user->delete();
+
+        $office->get("dashboard/fees/fee-invoices/$feeInvoice->id")
+            ->assertSuccessful()
+            ->assertSee($name);
+
+        $office->get("dashboard/fees/fee-invoices/$feeInvoice->id/edit")
+            ->assertSuccessful()
+            ->assertSee($name);
+
+        Livewire::test(ListFeeInvoicesTable::class, ['status' => 'all'])->assertOk();
     }
 
     public function test_unauthorized_user_cannot_view_edit_page()

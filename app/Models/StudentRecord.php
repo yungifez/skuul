@@ -130,11 +130,14 @@ class StudentRecord extends Model
     /**
      * Get the person this enrollment belongs to.
      *
+     * A record of a past learner keeps naming them after the school removes
+     * them, so registers, rolls and report cards can still be read.
+     *
      * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->withTrashed();
     }
 
     /**

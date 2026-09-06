@@ -75,5 +75,23 @@ every `belongsTo` back to it returns null once it is gone. Screens read
 `$courseOffering->subject->name` without a guard, so deleting a taught subject
 took the course offerings index and every gradebook to a 500.
 
-Before soft deleting a record, check what still points at it.
-`SubjectService::deleteSubject()` refuses when a course offering exists.
+Before soft deleting a record, check what still points at it. There are two
+right answers, and which one applies depends on what the record is.
+
+**A catalog record: refuse the delete.** A subject, a fee or a fee category
+exists to be picked from. Nothing is lost by keeping it, and a record still in
+use has to stay readable. `SubjectService::deleteSubject()`,
+`FeeService::deleteFee()` and `FeeCategoryService::deleteFeeCategory()` all
+throw and say what to clear first. Hide the row action as well, so no screen
+offers an action the server will refuse.
+
+**A person: keep the name.** A school may legitimately remove a student, and
+the invoices, report cards and receipts raised for them are real history that
+has to keep naming them. Do not refuse the delete. Make the relation resolve
+the removed person instead: `belongsTo(User::class)->withTrashed()`, which
+`FeeInvoice::user()` and `StudentRecord::user()` both do. A `withTrashed()`
+`belongsTo` adds no rows to any list, so it is safe on a live screen.
+
+Do not reach for `?->` here. PHPStan reads the relation's declared type as
+non-null and rejects a nullsafe read on the left of `??`. Fix the relation, not
+the screens that read it.

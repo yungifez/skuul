@@ -43,11 +43,14 @@ class FeeInvoice extends Model
     /**
      * Get the user that owns the FeeInvoice.
      *
+     * An invoice is financial history, so it keeps naming the person it was
+     * raised for even after the school removes them.
+     *
      * @return BelongsTo<User, $this>
      */
     public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(User::class)->withTrashed();
     }
 
     /**
