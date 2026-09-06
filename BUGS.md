@@ -149,3 +149,84 @@
 - Impact: Staff could not tell why an emergency record was not saved and could repeatedly submit invalid information without feedback.
 - Reproduction: Open `/dashboard/health-records/1`, enter more than 5,000 characters in `Anything else`, and save. Confirm the record remains unchanged and inspect the returned page.
 - Resolution: The health-record edit screen now renders a page-level destructive alert with the first validation error, and health fields are excluded from flashed input so a large failed value cannot overflow the production cookie session. PHPUnit coverage exercises the valid write, a subsequent invalid update with the cookie session driver, the visible error, and preservation of the last valid value. Live verification confirmed the invalid write was rejected and role boundaries remained intact: administrator 200, parent 403, student 403.
+
+## The committed test suite could not run
+
+- Status: Fixed
+- Area: Test suite
+- Observed: `tests/Feature/CourseOfferingRollForwardTest.php` was committed in Pest style. It called `uses(TestCase::class, RefreshDatabase::class)`, `beforeEach()`, and `it()`. PHPUnit stopped the whole run with "Pest must be run through its own binary".
+- Impact: Every test in the project failed to start, not only this file. The committed `composer.json` lists PHPUnit and no Pest, so CI could not run any test.
+- Reproduction: Run `vendor/bin/sail php vendor/bin/phpunit`. The run stops before the first test.
+- Resolution: The file is now a PHPUnit class. It extends `Tests\TestCase`, uses `FeatureTestTrait` and `RefreshDatabase`, moves the shared setup into `setUp()`, and turns the two global helper functions into private methods. The three roll-forward tests pass. The full suite now runs: 1478 tests.
+
+## Gradebook page two dropped the year and period filter
+
+- Status: Fixed
+- Area: Gradebook history and navigation
+- Observed: `GradebookController::index()` reads `academic_year_id` and `academic_period_id`, then paginates 25 rows. The paginator built its links without the query string, so page two returned to the working year and period.
+- Impact: A school with more than 25 offerings in an older year could not read past the first page of that year. The historical gradebook browsing feature stopped at row 25.
+- Reproduction: Open `/dashboard/gradebooks?academic_year_id=<older year>` in a school with 26 or more offerings in that year, then select page 2.
+- Resolution: The query now ends with `->withQueryString()`. A new test creates 26 offerings in a historical year and asserts both filter names appear in the rendered pagination links. The test fails without the fix.
+
+## Nested buttons inside links broke keyboard navigation
+
+- Status: Fixed
+- Area: Organization workspace
+- Observed: `resources/views/pages/organization/show.blade.php` wrapped eight `<april:button>` elements in `<a href>` tags. HTML does not allow a button inside a link.
+- Impact: A mouse click reached the link, but keyboard users could not follow it. Enter and Space activated the button, and the button did nothing. Screen readers announced two nested controls for one action.
+- Reproduction: Open an organization page, move focus to `Members` with the Tab key, and press Enter.
+- Resolution: All eight are now `<april:button-link>`, the component the project already uses for this. A repository-wide search found no other nested pair.
+
+## Form controls without names were unreadable by screen readers
+
+- Status: Fixed
+- Area: Accessibility
+- Observed: A live audit of the production site found form controls with no accessible name. The course list held 50 unnamed selects, one pair per row. The grading-scale screen held unnamed grade option fields. The financial-period form held three unnamed inputs, two of them bare date fields.
+- Impact: A screen reader announced "combo box" or "edit text" with no name. A person could not tell which row a select belonged to, or which date field was the start.
+- Reproduction: Open `/dashboard/course-offerings`, `/dashboard/grading-scales`, or `/dashboard/fee-invoices` and read the controls with a screen reader or an accessibility inspector.
+- Resolution: The teacher and role selects now name their subject. Grade option fields now carry their option number, including the rows Alpine adds after load. The financial-period form now uses the project's visible `april:label` pattern for `Period name`, `Starts on`, and `Ends on`.
+
+## The school switcher used the same id twice
+
+- Status: Fixed
+- Area: Sidebar navigation
+- Observed: `april:sidebar` renders its header twice, once for the desktop rail and once for the mobile drawer. The school switcher gave its select `id="sidebar-school-switcher"`, so the id appeared twice on every page of the application.
+- Impact: A duplicate id is invalid HTML. The mobile drawer's `<label for>` pointed at the hidden desktop select, so tapping the label focused a control the reader could not see.
+- Reproduction: Open any dashboard page with more than one school and run `document.querySelectorAll('#sidebar-school-switcher').length` in the console. It returned 2.
+- Resolution: The label now wraps the select instead of pointing at it by id, so no id is needed. The select keeps an `aria-label`.
+
+## Five list screens used the wrong pagination view
+
+- Status: Fixed
+- Area: Visual consistency
+- Observed: Five screens called `->links()` with no view name, so Laravel rendered its stock Tailwind paginator. That paginator hard-codes `bg-white` and `text-gray-600`.
+- Impact: On the dark theme the row count text computed to `oklch(0.373 0.034 259.733)` against a `rgb(12, 18, 15)` background. That contrast is below the WCAG AA minimum, and the control did not match the rest of the site.
+- Reproduction: Open `/dashboard/cash-deposits`, `/dashboard/expenses`, `/dashboard/course-offerings`, `/dashboard/reports`, or `/dashboard/academic-cycle-sections` with more than one page of rows.
+- Resolution: All five now call `->links('components.pagination-links-view')`, the project's own paginator. Livewire tables keep `components.datatable-pagination-links-view`.
+
+## Four fee-invoice-record routes always answered 404
+
+- Status: Fixed
+- Area: Routing
+- Observed: `Route::resource('fees/fee-invoices/fee-invoice-records', ...)` registered seven routes. The controller's `index`, `create`, `show`, and `edit` methods each called `abort(404)`. Records are edited from the invoice screen, and no view links to those four routes.
+- Impact: Four dead URLs sat in the route table behind authorization checks. Any reader of `route:list` had to open the controller to learn they did nothing.
+- Reproduction: Run `vendor/bin/sail artisan route:list --path=fee-invoice-records`.
+- Resolution: The resource now declares `->only(['store', 'update', 'destroy'])`, and the four stub methods are deleted.
+
+## A project rule described a bug that does not exist
+
+- Status: Fixed
+- Area: Project rules
+- Observed: `.ai/rules/queries.md` said an `or` inside a `whereHas` closure escapes the relation's join and matches every row. The rule showed SQL without a group. The installed Laravel version runs the closure through `callScope()`, which groups every condition the closure adds.
+- Impact: The rule sent readers to rewrite correct code. Following it, this review first changed a working query in `ListAccountInvitations` and wrote a comment describing a leak that could not happen.
+- Reproduction: Run `vendor/bin/sail artisan tinker --execute 'echo App\Models\AccountInvitation::query()->whereHas("user", fn ($u) => $u->where("name","LIKE","%a%")->orWhere("email","LIKE","%b%"))->toSql();'`. The output reads `and (name LIKE ? or email LIKE ?)`.
+- Resolution: The rule now states the grouped behaviour, shows the real SQL, and tells readers to confirm with `toSql()` before calling a query a leak. It keeps the warning for an `or` chained outside a closure, where the risk is real. The query in `ListAccountInvitations` is back to its committed form. Two search tests were added, because the invitation search had no coverage at all.
+
+## The profile screen showed two nationality fields
+
+- Status: Fixed
+- Area: User profile
+- Observed: `update-profile-information-form.blade.php` draws its own `Nationality` input, then embeds the `nationality-and-state-input-fields` component, which drew a second one. Both used `id="nationality"` and `name="nationality"`.
+- Impact: The screen asked for nationality twice. The second field was under the `Address` heading and had no `wire:model`, so anything typed into it was discarded without a message. The repeated id also made the page invalid HTML, and both `<label for="nationality">` elements pointed at the first input.
+- Reproduction: Open `/user/profile` and run `document.querySelectorAll('[id=nationality]').length` in the console. It returned 2.
+- Resolution: The component now takes a `showNationality` flag, and the profile form passes `false`. The two screens that rely on the component to draw the field, `create-user-fields` and `edit-user-fields`, keep the default. Three tests cover the flag and assert the profile screen holds exactly one nationality field. The count test fails without the fix.

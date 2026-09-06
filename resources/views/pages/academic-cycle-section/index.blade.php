@@ -165,7 +165,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="mt-4">{{ $academicCycleSections->links() }}</div>
+                <div class="mt-4">{{ $academicCycleSections->links('components.pagination-links-view') }}</div>
             @endif
         </slot:content>
     </april:card>

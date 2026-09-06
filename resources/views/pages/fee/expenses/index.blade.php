@@ -29,7 +29,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="mt-4">{{ $expenses->links() }}</div>
+                <div class="mt-4">{{ $expenses->links('components.pagination-links-view') }}</div>
             @endif
         </slot:content>
     </april:card>

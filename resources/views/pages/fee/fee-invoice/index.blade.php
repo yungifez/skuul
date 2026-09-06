@@ -78,7 +78,7 @@
                         @endforelse
                     </div>
                     @can('manage financial period')
-                        <form method="POST" action="{{ route('financial-periods.store') }}" class="mt-5 space-y-3 border-t pt-5">@csrf<p class="text-sm font-medium">Add a period</p><april:input name="name" required placeholder="2026 financial year" value="{{ old('name') }}" /><div class="grid gap-3 sm:grid-cols-2"><april:input name="starts_on" type="date" required value="{{ old('starts_on') }}" /><april:input name="ends_on" type="date" required value="{{ old('ends_on') }}" /></div><april:button type="submit" variant="outline">Add period</april:button></form>
+                        <form method="POST" action="{{ route('financial-periods.store') }}" class="mt-5 space-y-3 border-t pt-5">@csrf<p class="text-sm font-medium">Add a period</p><div class="flex flex-col gap-2"><april:label for="financial-period-name">Period name</april:label><april:input id="financial-period-name" name="name" required placeholder="2026 financial year" value="{{ old('name') }}" /></div><div class="grid gap-3 sm:grid-cols-2"><div class="flex flex-col gap-2"><april:label for="financial-period-starts-on">Starts on</april:label><april:input id="financial-period-starts-on" name="starts_on" type="date" required value="{{ old('starts_on') }}" /></div><div class="flex flex-col gap-2"><april:label for="financial-period-ends-on">Ends on</april:label><april:input id="financial-period-ends-on" name="ends_on" type="date" required value="{{ old('ends_on') }}" /></div></div><april:button type="submit" variant="outline">Add period</april:button></form>
                     @endcan
                 </slot:content>
             </april:card>

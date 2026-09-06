@@ -48,18 +48,23 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
                     <form method="POST" action="{{ route('schools.setSchool') }}"
                         class="flex min-w-0 flex-col gap-1 group-data-[collapsible=icon]:hidden">
                         @csrf
-                        <label for="sidebar-school-switcher"
-                            class="px-1 text-[0.65rem] font-semibold uppercase text-muted-foreground">
-                            Working school
+                        {{-- april:sidebar renders this header twice, once for
+                        the desktop rail and once for the mobile drawer, so an
+                        id here would appear twice and `for` would point at the
+                        copy the reader cannot see. Wrap the control instead. --}}
+                        <label class="flex min-w-0 flex-col gap-1">
+                            <span class="px-1 text-[0.65rem] font-semibold uppercase text-muted-foreground">
+                                Working school
+                            </span>
+                            <april:native-select name="school_id"
+                                aria-label="Working school" onchange="this.form.submit()">
+                                @foreach ($schools as $school)
+                                    <option value="{{ $school->id }}" @selected(current_school_id() === $school->id)>
+                                        {{ $school->name }}
+                                    </option>
+                                @endforeach
+                            </april:native-select>
                         </label>
-                        <april:native-select id="sidebar-school-switcher" name="school_id"
-                            aria-label="Working school" onchange="this.form.submit()">
-                            @foreach ($schools as $school)
-                                <option value="{{ $school->id }}" @selected(current_school_id() === $school->id)>
-                                    {{ $school->name }}
-                                </option>
-                            @endforeach
-                        </april:native-select>
                     </form>
                 @elseif (current_school() !== null)
                     <span class="truncate px-1 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">

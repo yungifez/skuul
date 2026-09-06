@@ -422,9 +422,29 @@ class SchoolTest extends TestCase
         $this->memberOf($otherSchool, $user);
         $this->actingAsMemberOf($school, $user);
 
-        $this->get('/dashboard/schools')
+        $response = $this->get('/dashboard/schools')
             ->assertSuccessful()
-            ->assertSee('sidebar-school-switcher', false)
+            ->assertSee('aria-label="Working school"', false)
             ->assertSee('Second Campus');
+
+        // april:sidebar draws its header twice, once for the desktop rail and
+        // once for the mobile drawer. Anything with an id in that header
+        // appears twice on every page of the application.
+        $this->assertSame([], $this->repeatedElementIds((string) $response->getContent()));
+    }
+
+    /**
+     * List every id that the page uses more than once.
+     *
+     * @return list<string>
+     */
+    private function repeatedElementIds(string $html): array
+    {
+        $matches = [];
+        preg_match_all('/\sid="([^"]+)"/', $html, $matches);
+
+        $counts = array_count_values($matches[1]);
+
+        return array_values(array_keys(array_filter($counts, fn (int $count): bool => $count > 1)));
     }
 }

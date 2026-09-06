@@ -1,5 +1,7 @@
 <div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-    <april:input-group id="nationality" name="nationality" label="Nationality" placeholder="Person's nationality" value="{{ old('nationality', $nationality) }}" />
+    @if ($showNationality)
+        <april:input-group id="nationality" name="nationality" label="Nationality" placeholder="Person's nationality" value="{{ old('nationality', $nationality) }}" />
+    @endif
 
     <div class="flex w-full flex-col gap-2">
         <april:label for="country">Country</april:label>

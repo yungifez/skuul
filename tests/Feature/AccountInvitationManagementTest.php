@@ -55,7 +55,7 @@ class AccountInvitationManagementTest extends TestCase
         $invitee = $this->invitedMember($school);
 
         AccountInvitation::factory()->create([
-            'user_id'    => $invitee->id,
+            'user_id' => $invitee->id,
             'invited_by' => $administrator->id,
         ]);
 
@@ -66,6 +66,42 @@ class AccountInvitationManagementTest extends TestCase
             ->assertSee($administrator->name)
             ->assertSee($school->name)
             ->assertSee('Pending');
+    }
+
+    public function test_the_search_leaves_out_the_invitations_that_do_not_match(): void
+    {
+        $wanted = $this->invitedMember();
+        $wanted->forceFill(['name' => 'Ada Lovelace', 'email' => 'ada@example.test'])->save();
+
+        $other = $this->invitedMember();
+        $other->forceFill(['name' => 'Grace Hopper', 'email' => 'grace@example.test'])->save();
+
+        AccountInvitation::factory()->create(['user_id' => $wanted->id]);
+        AccountInvitation::factory()->create(['user_id' => $other->id]);
+
+        Livewire::actingAs($this->schoolAdministrator())
+            ->test(ListAccountInvitations::class)
+            ->set('search', 'ada@')
+            ->assertSee($wanted->email)
+            ->assertDontSee($other->email);
+    }
+
+    public function test_the_search_reads_the_name_as_well_as_the_email_address(): void
+    {
+        $wanted = $this->invitedMember();
+        $wanted->forceFill(['name' => 'Ada Lovelace', 'email' => 'ada@example.test'])->save();
+
+        $other = $this->invitedMember();
+        $other->forceFill(['name' => 'Grace Hopper', 'email' => 'grace@example.test'])->save();
+
+        AccountInvitation::factory()->create(['user_id' => $wanted->id]);
+        AccountInvitation::factory()->create(['user_id' => $other->id]);
+
+        Livewire::actingAs($this->schoolAdministrator())
+            ->test(ListAccountInvitations::class)
+            ->set('search', 'Lovelace')
+            ->assertSee($wanted->email)
+            ->assertDontSee($other->email);
     }
 
     public function test_each_tab_reads_only_the_invitations_in_that_state(): void
@@ -84,10 +120,10 @@ class AccountInvitationManagementTest extends TestCase
             ->test(ListAccountInvitations::class);
 
         foreach ([
-            'pending'  => $pending,
+            'pending' => $pending,
             'accepted' => $accepted,
-            'expired'  => $expired,
-            'revoked'  => $revoked,
+            'expired' => $expired,
+            'revoked' => $revoked,
         ] as $status => $shown) {
             $component->call('selectStatus', $status)
                 ->assertSee($shown->email);

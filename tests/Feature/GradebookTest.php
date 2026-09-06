@@ -194,6 +194,43 @@ class GradebookTest extends TestCase
         ]))->assertNotFound();
     }
 
+    public function test_the_gradebook_pages_keep_the_year_and_period_filter(): void
+    {
+        $this->authorized_user(['read gradebook', 'update subject']);
+        $school = $this->workingSchool();
+        $historicalYear = AcademicYear::query()->findOrFail(AcademicYear::factory()->create([
+            'school_id' => $school->id,
+            'start_year' => 2024,
+            'stop_year' => 2025,
+        ])->getKey());
+        $period = AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $historicalYear->id,
+            'name' => 'Historical autumn',
+            'status' => AcademicPeriodStatus::Closed,
+        ]);
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
+
+        // The list pages at 25, so 26 offerings force a second page.
+        for ($index = 0; $index < 26; $index++) {
+            CourseOffering::factory()->create([
+                'school_id' => $school->id,
+                'academic_year_id' => $historicalYear->id,
+                'academic_period_id' => $period->id,
+                'academic_level_id' => $academicLevel->id,
+                'subject_id' => Subject::factory()->create(['school_id' => $school->id])->id,
+            ]);
+        }
+
+        $this->get(route('gradebooks.index', [
+            'academic_year_id' => $historicalYear->id,
+            'academic_period_id' => $period->id,
+        ]))
+            ->assertOk()
+            ->assertSee('academic_year_id='.$historicalYear->id, false)
+            ->assertSee('academic_period_id='.$period->id, false);
+    }
+
     public function test_gradebook_history_cannot_be_selected_from_another_school(): void
     {
         $this->authorized_user(['read gradebook', 'update subject']);

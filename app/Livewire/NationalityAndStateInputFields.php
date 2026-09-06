@@ -17,6 +17,15 @@ class NationalityAndStateInputFields extends Component
 
     public $nationality;
 
+    /**
+     * Whether this component draws the nationality field.
+     *
+     * A screen that already has its own nationality field passes false. Two
+     * fields with the same id and name confuse a reader, and the second one
+     * is not bound to anything.
+     */
+    public bool $showNationality = true;
+
     protected $rules = [
         'country' => 'nullable|string',
         'state' => 'nullable|string',

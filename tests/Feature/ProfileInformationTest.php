@@ -125,4 +125,24 @@ class ProfileInformationTest extends TestCase
             ->assertDispatched('country-updated', country: null)
             ->assertDispatched('state-updated', state: null);
     }
+
+    public function test_the_location_fields_draw_nationality_only_when_asked(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        Livewire::test(NationalityAndStateInputFields::class)
+            ->assertSee('id="nationality"', false);
+
+        Livewire::test(NationalityAndStateInputFields::class, ['showNationality' => false])
+            ->assertDontSee('id="nationality"', false);
+    }
+
+    public function test_the_profile_screen_holds_one_nationality_field(): void
+    {
+        $this->actingAs(User::factory()->create());
+
+        $html = $this->get(route('profile.show'))->assertOk()->getContent();
+
+        $this->assertSame(1, substr_count((string) $html, 'id="nationality"'));
+    }
 }

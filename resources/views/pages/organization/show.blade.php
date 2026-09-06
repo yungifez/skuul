@@ -15,25 +15,25 @@
         <slot:content class="space-y-6">
             <div class="flex flex-wrap justify-end gap-2">
                 @can('viewReports', $organization)
-                    <a href="{{ route('organizations.dashboard', $organization) }}"><april:button variant="outline">Organization overview</april:button></a>
+                    <april:button-link href="{{ route('organizations.dashboard', $organization) }}" variant="outline">Organization overview</april:button-link>
                 @endcan
                 @can('manageMembers', $organization)
-                    <a href="{{ route('organizations.members.index', $organization) }}"><april:button variant="outline">Members</april:button></a>
+                    <april:button-link href="{{ route('organizations.members.index', $organization) }}" variant="outline">Members</april:button-link>
                 @endcan
                 @can('manageDomains', $organization)
-                    <a href="{{ route('organizations.domains.index', $organization) }}"><april:button variant="outline">Web addresses</april:button></a>
+                    <april:button-link href="{{ route('organizations.domains.index', $organization) }}" variant="outline">Web addresses</april:button-link>
                 @endcan
                 @can('manageDomains', $organization)
-                    <a href="{{ route('organizations.billing-groups.index', $organization) }}"><april:button variant="outline">Billing groups</april:button></a>
+                    <april:button-link href="{{ route('organizations.billing-groups.index', $organization) }}" variant="outline">Billing groups</april:button-link>
                 @endcan
                 @can('manageCampuses', $organization)
-                    <a href="{{ route('organizations.boarding-residences.index', $organization) }}"><april:button variant="outline">Shared residences</april:button></a>
+                    <april:button-link href="{{ route('organizations.boarding-residences.index', $organization) }}" variant="outline">Shared residences</april:button-link>
                 @endcan
                 @can('manageCalendar', $organization)
-                    <a href="{{ route('organizations.calendar-templates.index', $organization) }}"><april:button variant="outline">Calendar templates</april:button></a>
+                    <april:button-link href="{{ route('organizations.calendar-templates.index', $organization) }}" variant="outline">Calendar templates</april:button-link>
                 @endcan
                 @can('update', $organization)
-                    <a href="{{ route('organizations.edit', $organization) }}"><april:button>Organization settings</april:button></a>
+                    <april:button-link href="{{ route('organizations.edit', $organization) }}">Organization settings</april:button-link>
                 @endcan
             </div>
             <div>
@@ -51,7 +51,7 @@
                 @endforelse
             </div>
             @can('create', \App\Models\School::class)
-                <a href="{{ route('schools.create') }}"><april:button>Add campus</april:button></a>
+                <april:button-link href="{{ route('schools.create') }}">Add campus</april:button-link>
             @endcan
         </slot:content>
     </april:card>

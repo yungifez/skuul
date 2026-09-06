@@ -59,13 +59,13 @@
                                             <summary class="cursor-pointer text-sm text-primary-foreground">Assign teacher</summary>
                                             <form method="POST" action="{{ route('course-offerings.teachers.store', $courseOffering) }}" class="mt-2 grid gap-2">
                                                 @csrf
-                                                <select name="teacher_id" class="rounded-md border border-input bg-background px-2 py-1.5 text-sm" required>
+                                                <select name="teacher_id" aria-label="Teacher for {{ $courseOffering->subject->name }}" class="rounded-md border border-input bg-background px-2 py-1.5 text-sm" required>
                                                     <option value="">Select a teacher</option>
                                                     @foreach ($teachers as $teacher)
                                                         <option value="{{ $teacher->id }}">{{ $teacher->name }}</option>
                                                     @endforeach
                                                 </select>
-                                                <select name="role" class="rounded-md border border-input bg-background px-2 py-1.5 text-sm" required>
+                                                <select name="role" aria-label="Teaching role for {{ $courseOffering->subject->name }}" class="rounded-md border border-input bg-background px-2 py-1.5 text-sm" required>
                                                     @foreach (\App\Enums\TeachingRole::cases() as $role)
                                                         <option value="{{ $role->value }}">{{ $role->label() }}</option>
                                                     @endforeach
@@ -82,7 +82,7 @@
                     </tbody>
                 </table>
             </div>
-            <div class="mt-4">{{ $courseOfferings->links() }}</div>
+            <div class="mt-4">{{ $courseOfferings->links('components.pagination-links-view') }}</div>
         </slot:content>
     </april:card>
 @endsection

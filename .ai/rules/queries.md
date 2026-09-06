@@ -8,31 +8,49 @@ paths:
 
 # Eloquent queries
 
-## An `or` inside a whereHas closure escapes the relation's join
+## A `whereHas` closure groups its own conditions
 
-`whereHas('audiences', fn ($q) => $q->where('user_id', $id)->orWhere('section_id', $s))`
+An earlier version of this rule said an `or` inside a `whereHas` closure
+escapes the relation's join. That is wrong for the installed Laravel version.
+`Builder::has()` runs the closure through `callScope()`, which puts every
+condition the closure adds inside one group.
+
+```php
+AccountInvitation::query()->whereHas('user', fn ($user) => $user
+    ->where('name', 'LIKE', $term)
+    ->orWhere('email', 'LIKE', $term));
+```
+
 builds this:
 
 ```sql
-exists (select * from audiences
-        where events.id = audiences.event_id and user_id = ? or section_id = ?)
+select * from `account_invitations` where exists (
+    select * from `users`
+    where `account_invitations`.`user_id` = `users`.`id`
+      and (`name` LIKE ? or `email` LIKE ?))
 ```
 
-`and` binds tighter than `or`, so the second condition stands alone. The
-`exists` is then true whenever any row of the whole table matches, for any
-parent record and any school. The filter silently passes everything.
+The `or` stays inside the group. Do not rewrite working code to add a second
+closure. `App\Services\Calendar\SchoolCalendar::limitToAudience()` uses the
+grouped shape and its comment repeats the old claim; the code is correct.
 
-Group the alternatives in their own closure:
+Confirm the SQL before you call a query a leak:
+
+```
+vendor/bin/sail artisan tinker --execute 'echo Model::query()->whereHas(...)->toSql();'
+```
+
+## An `or` outside a closure does escape
+
+`callScope()` only wraps what a closure adds. An `or` chained onto the outer
+query still sits beside the other conditions, and `and` binds tighter than
+`or`. Group these yourself:
 
 ```php
-$query->whereHas('audiences', function (Builder $audience) use ($id, $s): void {
-    $audience->where(function (Builder $named) use ($id, $s): void {
-        $named->orWhere('user_id', $id)->orWhere('section_id', $s);
-    });
+$query->where(function (Builder $named) use ($id, $sectionId): void {
+    $named->where('user_id', $id)->orWhere('section_id', $sectionId);
 });
 ```
 
-`App\Services\Calendar\SchoolCalendar::limitToAudience()` carries the fixed
-shape. The bug shipped unnoticed because the method had no caller yet, so
-write the leak test first: one record that names the reader, one that names
-somebody else, and assert the second stays out.
+Write the leak test either way: one record that names the reader, one that
+names somebody else, then assert the second stays out.

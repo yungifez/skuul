@@ -102,7 +102,8 @@ class GradebookController extends Controller
             ])
             ->orderBy('academic_level_id')
             ->orderBy('subject_id')
-            ->paginate(25);
+            ->paginate(25)
+            ->withQueryString();
 
         $selectedAcademicPeriodId = $academicPeriod?->id;
 

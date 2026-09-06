@@ -7,7 +7,6 @@ use App\Http\Requests\UpdateFeeInvoiceRecordRequest;
 use App\Models\FeeInvoiceRecord;
 use App\Services\Fee\FeeInvoiceRecordService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Response;
 
 class FeeInvoiceRecordController extends Controller
 {
@@ -21,22 +20,6 @@ class FeeInvoiceRecordController extends Controller
     }
 
     /**
-     * Display a listing of the resource.
-     */
-    public function index(): Response
-    {
-        abort(404);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create(): Response
-    {
-        abort(404);
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(StoreFeeInvoiceRecordRequest $request): RedirectResponse
@@ -44,22 +27,6 @@ class FeeInvoiceRecordController extends Controller
         $this->feeInvoiceRecordService->storeFeeInvoiceRecord($request->validated());
 
         return back()->with('success', 'Fee added to Fee Invoice Successfully');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(FeeInvoiceRecord $feeInvoiceRecord): Response
-    {
-        abort(404);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(FeeInvoiceRecord $feeInvoiceRecord): Response
-    {
-        abort(404);
     }
 
     /**

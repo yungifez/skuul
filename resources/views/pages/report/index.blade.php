@@ -136,7 +136,7 @@
             </div>
 
             <div class="border-t p-4">
-                {{ $runs->links() }}
+                {{ $runs->links('components.pagination-links-view') }}
             </div>
         @endif
     </div>

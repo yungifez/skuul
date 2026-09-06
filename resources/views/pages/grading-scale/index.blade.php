@@ -52,14 +52,14 @@
                         <div x-data="{ extraOptions: 0 }" class="space-y-3">
                             @foreach ($createOptions as $index => $option)
                                 <div class="grid gap-3 sm:grid-cols-[1fr_12rem_auto]">
-                                    <input name="options[{{ $index }}][label]" value="{{ $option['label'] ?? '' }}" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Excellent">
-                                    <input name="options[{{ $index }}][points]" value="{{ $option['points'] ?? '' }}" type="number" min="0" step="0.01" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Recorded points">
+                                    <input name="options[{{ $index }}][label]" aria-label="Grade option {{ $index + 1 }} name" value="{{ $option['label'] ?? '' }}" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Excellent">
+                                    <input name="options[{{ $index }}][points]" aria-label="Grade option {{ $index + 1 }} recorded points" value="{{ $option['points'] ?? '' }}" type="number" min="0" step="0.01" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Recorded points">
                                 </div>
                             @endforeach
                             <template x-for="index in extraOptions" :key="index">
                                 <div class="grid gap-3 sm:grid-cols-[1fr_12rem_auto]">
-                                    <input x-bind:name="'options[' + ({{ count($createOptions) }} + index - 1) + '][label]'" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="New grade option">
-                                    <input x-bind:name="'options[' + ({{ count($createOptions) }} + index - 1) + '][points]'" type="number" min="0" step="0.01" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Recorded points">
+                                    <input x-bind:name="'options[' + ({{ count($createOptions) }} + index - 1) + '][label]'" x-bind:aria-label="'Grade option ' + ({{ count($createOptions) }} + index) + ' name'" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="New grade option">
+                                    <input x-bind:name="'options[' + ({{ count($createOptions) }} + index - 1) + '][points]'" x-bind:aria-label="'Grade option ' + ({{ count($createOptions) }} + index) + ' recorded points'" type="number" min="0" step="0.01" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Recorded points">
                                 </div>
                             </template>
                             <button type="button" x-on:click="extraOptions++" class="inline-flex items-center rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">
@@ -123,20 +123,20 @@
                                 @foreach ($gradingScale->options as $index => $option)
                                     <div class="grid gap-3 sm:grid-cols-[1fr_12rem_auto]">
                                         <input type="hidden" name="options[{{ $index }}][id]" value="{{ $option->id }}">
-                                        <input name="options[{{ $index }}][label]" value="{{ $option->label }}" required class="h-10 rounded-md border bg-background px-3 py-2 text-sm">
-                                        <input name="options[{{ $index }}][points]" value="{{ $option->points }}" type="number" min="0" step="0.01" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Recorded points">
+                                        <input name="options[{{ $index }}][label]" aria-label="Grade option {{ $index + 1 }} name" value="{{ $option->label }}" required class="h-10 rounded-md border bg-background px-3 py-2 text-sm">
+                                        <input name="options[{{ $index }}][points]" aria-label="Grade option {{ $index + 1 }} recorded points" value="{{ $option->points }}" type="number" min="0" step="0.01" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Recorded points">
                                     </div>
                                 @endforeach
                                 @for ($index = $gradingScale->options->count(); $index < $gradingScale->options->count() + 5; $index++)
                                     <div class="grid gap-3 sm:grid-cols-[1fr_12rem]">
-                                        <input name="options[{{ $index }}][label]" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="New grade option">
-                                        <input name="options[{{ $index }}][points]" type="number" min="0" step="0.01" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Recorded points">
+                                        <input name="options[{{ $index }}][label]" aria-label="Grade option {{ $index + 1 }} name" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="New grade option">
+                                        <input name="options[{{ $index }}][points]" aria-label="Grade option {{ $index + 1 }} recorded points" type="number" min="0" step="0.01" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Recorded points">
                                     </div>
                                 @endfor
                                 <template x-for="index in extraOptions" :key="index">
                                     <div class="grid gap-3 sm:grid-cols-[1fr_12rem]">
-                                        <input x-bind:name="'options[' + ({{ $gradingScale->options->count() + 5 }} + index - 1) + '][label]'" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="New grade option">
-                                        <input x-bind:name="'options[' + ({{ $gradingScale->options->count() + 5 }} + index - 1) + '][points]'" type="number" min="0" step="0.01" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Recorded points">
+                                        <input x-bind:name="'options[' + ({{ $gradingScale->options->count() + 5 }} + index - 1) + '][label]'" x-bind:aria-label="'Grade option ' + ({{ $gradingScale->options->count() + 5 }} + index) + ' name'" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="New grade option">
+                                        <input x-bind:name="'options[' + ({{ $gradingScale->options->count() + 5 }} + index - 1) + '][points]'" x-bind:aria-label="'Grade option ' + ({{ $gradingScale->options->count() + 5 }} + index) + ' recorded points'" type="number" min="0" step="0.01" class="h-10 rounded-md border bg-background px-3 py-2 text-sm" placeholder="Recorded points">
                                     </div>
                                 </template>
                                 <button type="button" x-on:click="extraOptions++" class="inline-flex items-center rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">
