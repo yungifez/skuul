@@ -162,28 +162,28 @@
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div class="sm:col-span-2">
                                         <label for="admin_name" class="mb-2 block text-sm font-medium">Name</label>
-                                        <input id="admin_name" name="admin_name" value="{{ old('admin_name') }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="name">
-                                        @error('admin_name') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
+                                        <input id="admin_name" name="admin_name" value="{{ old('admin_name') }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="name" {{ field_error_bindings('admin_name') }}>
+                                        <x-field-error name="admin_name" class="mt-1" />
                                     </div>
                                     <div class="sm:col-span-2">
                                         <label for="admin_email" class="mb-2 block text-sm font-medium">Email</label>
-                                        <input id="admin_email" type="email" name="admin_email" value="{{ old('admin_email') }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="email">
-                                        @error('admin_email') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
+                                        <input id="admin_email" type="email" name="admin_email" value="{{ old('admin_email') }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="email" {{ field_error_bindings('admin_email') }}>
+                                        <x-field-error name="admin_email" class="mt-1" />
                                     </div>
                                     <div class="sm:col-span-2">
                                         <label for="locale" class="mb-2 block text-sm font-medium">System language <span class="font-normal text-muted-foreground">(optional)</span></label>
-                                        <select id="locale" name="locale" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                        <select id="locale" name="locale" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" {{ field_error_bindings('locale') }}>
                                             @foreach ($locales as $localeCode => $localeName)
                                                 <option value="{{ $localeCode }}" @selected(old('locale', config('app.locale')) === $localeCode)>{{ $localeName }}</option>
                                             @endforeach
                                         </select>
                                         <p class="mt-1 text-sm text-muted-foreground">This sets the default language for the Skuul interface after installation. You can leave English selected.</p>
-                                        @error('locale') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
+                                        <x-field-error name="locale" class="mt-1" />
                                     </div>
                                     <div>
                                         <label for="admin_password" class="mb-2 block text-sm font-medium">Password</label>
-                                        <input id="admin_password" type="password" name="admin_password" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="new-password">
-                                        @error('admin_password') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
+                                        <input id="admin_password" type="password" name="admin_password" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" autocomplete="new-password" {{ field_error_bindings('admin_password') }}>
+                                        <x-field-error name="admin_password" class="mt-1" />
                                     </div>
                                     <div>
                                         <label for="admin_password_confirmation" class="mb-2 block text-sm font-medium">Confirm password</label>
@@ -201,13 +201,13 @@
                                 <div class="grid gap-4 sm:grid-cols-2">
                                     <div>
                                         <label for="organization_name" class="mb-2 block text-sm font-medium">Organization name</label>
-                                        <input id="organization_name" name="organization_name" value="{{ old('organization_name') }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                                        @error('organization_name') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
+                                        <input id="organization_name" name="organization_name" value="{{ old('organization_name') }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" {{ field_error_bindings('organization_name') }}>
+                                        <x-field-error name="organization_name" class="mt-1" />
                                     </div>
                                     <div>
                                         <label for="campus_name" class="mb-2 block text-sm font-medium">First campus name</label>
-                                        <input id="campus_name" name="campus_name" value="{{ old('campus_name') }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
-                                        @error('campus_name') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
+                                        <input id="campus_name" name="campus_name" value="{{ old('campus_name') }}" required class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" {{ field_error_bindings('campus_name') }}>
+                                        <x-field-error name="campus_name" class="mt-1" />
                                     </div>
                                     <div>
                                         <label for="campus_initials" class="mb-2 block text-sm font-medium">Campus initials <span class="font-normal text-muted-foreground">(optional)</span></label>
@@ -231,13 +231,13 @@
 
                                 <div>
                                     <label for="school_language_preset" class="mb-2 block text-sm font-medium">{{ __('Starting language pattern') }}</label>
-                                    <select id="school_language_preset" name="school_language_preset" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm">
+                                    <select id="school_language_preset" name="school_language_preset" class="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" {{ field_error_bindings('school_language_preset') }}>
                                         @foreach (\App\Models\SchoolOperatingProfile::presetOptions() as $value => $option)
                                             <option value="{{ $value }}" @selected(old('school_language_preset', \App\Models\SchoolOperatingProfile::DEFAULT_PRESET) === $value)>{{ $option['title'] }}{{ $value === \App\Models\SchoolOperatingProfile::DEFAULT_PRESET ? ' (default)' : '' }} — {{ $option['description'] }}</option>
                                         @endforeach
                                     </select>
                                     <p class="mt-1 text-xs text-muted-foreground">Each choice provides the same seven labels. You can customize them later.</p>
-                                    @error('school_language_preset') <p class="mt-1 text-sm text-destructive">{{ $message }}</p> @enderror
+                                    <x-field-error name="school_language_preset" class="mt-1" />
                                 </div>
                             </section>
 

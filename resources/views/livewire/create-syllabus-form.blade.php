@@ -19,9 +19,7 @@
                         </option>
                     @endforeach
                 </april:select>
-                @error('course_offering_id')
-                    <p class="text-sm text-destructive">{{ $message }}</p>
-                @enderror
+                <x-field-error name="course_offering_id" />
             </div>
             @if ($courseOfferings->isEmpty())
                 <p class="rounded-md border border-warning/30 bg-warning/10 p-3 text-sm text-warning-foreground">

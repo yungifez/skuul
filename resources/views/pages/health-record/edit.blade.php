@@ -76,7 +76,7 @@
                                 @if ($field['hint'] !== null)
                                     <p class="text-xs text-muted-foreground">{{ $field['hint'] }}</p>
                                 @endif
-                                @error($field['name']) <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                <x-field-error :name="$field['name']" />
                             </div>
                         @endforeach
                     </div>
@@ -97,7 +97,7 @@
                                 @if ($note['hint'] !== null)
                                     <p class="text-xs text-muted-foreground">{{ $note['hint'] }}</p>
                                 @endif
-                                @error($note['name']) <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                <x-field-error :name="$note['name']" />
                             </div>
                         @endforeach
                     </div>

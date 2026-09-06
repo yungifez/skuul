@@ -374,3 +374,22 @@
 - Impact: The reader pressed the button once and it went dead. Nothing said why, and the only way back was a full page reload. This hit the promotion and graduation screens, the timetable time slot form, the academic calendar form, the organization member form, the three status forms on a student profile, and every profile screen that uses the shared form section.
 - Reproduction: Open `/dashboard/students/promote` and submit the "Load students" form. The button came back with `disabled` still set and `aria-busy="true"` still on it. Pressing it again did nothing. The same state was reproduced in the live page by dispatching a cancelable submit on a copy of the form: `{"disabled":true,"flag":"true"}` before and after a Livewire round trip.
 - Resolution: `resources/js/app.js` now registers a Livewire `commit` hook and releases the form when the request comes back, on both the response and the failure path. The release only touches forms carrying a `wire:submit` attribute, so a plain form still stays disabled while it navigates and cannot be sent twice. The fix was proven in the live page: the same stuck form read `{"disabled":false,"flag":null}` once the hook was in place. Five tests cover it, three of which fail without the fix.
+
+## A refused field said nothing on the control itself
+
+- Status: Fixed
+- Area: Forms, 46 screens
+- Observed: The application refuses a field by printing a red line under it. Nothing joined the two. No view in the application used `aria-invalid`, and only two used `aria-describedby`, against 166 error blocks across 48 views.
+- Impact: A screen reader read the control as if nothing were wrong. It gave the label, then the value, then moved on. The message sat on the page as loose text with nothing to say which field it belonged to, so a reader who could not see the layout had no way to tell. On a long form the reader was told the form was refused and then had to hunt for the field.
+- Reproduction: Open any create screen, submit it empty, and read the refused control. `getAttribute('aria-invalid')` returned null and `getAttribute('aria-describedby')` returned null, while the message was on the page.
+- Resolution: A refused control now carries `aria-invalid="true"` and points at its own message with `aria-describedby`. The message carries the matching id. Three helpers in `app/helpers.php` work that id out, so both sides always agree. 162 error blocks became `<x-field-error name="..." />`, which renders the same markup and adds the id. 61 native controls carry `{{ field_error_bindings('...') }}`. `april:input`, `april:native-select` and `april:textarea` read their own `name` or `wire:model` binding, so 72 more controls needed no view change at all; that took three small overrides under `resources/views/vendor/april/components/`, because a Blade directive inside an `<april:*>` tag breaks April's tag precompiler. Three tests cover it and two fail without the fix. `.ai/rules/views.md` records the convention.
+- Not covered: 13 controls that use `april:select`, `april:combobox` or `april:editor`. See the next entry.
+
+## The April select and combobox are not announced as selects
+
+- Status: Open, needs a decision
+- Area: Forms, 12 controls
+- Observed: `april:select` and `april:combobox` build their own menu out of a plain `<button>` and a `<div role="listbox">`. The button carries no `role="combobox"`, no `aria-expanded`, no `aria-controls` and no `aria-haspopup`. The list it opens is never tied to it.
+- Impact: A screen reader announces a button, not a select. It does not say whether the menu is open, does not say how many options there are, and never connects the list to the control that opened it. Adding `aria-invalid` alone would not fix this, which is why these 12 controls were left out of the field wiring above.
+- Reproduction: Open a screen with an `april:select` and read the trigger. It is a `<button type="button">` with no ARIA state.
+- Next step: This is a change to the April UI package, not to the application, and it needs the full combobox keyboard pattern to go with it. Fixing it inside the application means copying two composite components, about 160 lines, into `resources/views/vendor/april/components/` and keeping them in step with the package. That is a decision for the owner of April UI, so it is recorded here rather than patched.

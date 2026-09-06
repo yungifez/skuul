@@ -33,13 +33,13 @@
                 <div class="grid gap-4 md:grid-cols-2">
                     <div class="flex flex-col gap-2">
                         <label for="calendar-starts-on" class="text-sm font-medium">{{ school_term('academic_year', 'School year') }} starts on</label>
-                        <input id="calendar-starts-on" type="date" wire:model="startsOn" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
-                        @error('startsOn')<p class="text-sm text-destructive">{{ $message }}</p>@enderror
+                        <input id="calendar-starts-on" type="date" wire:model="startsOn" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ field_error_bindings('startsOn') }}>
+                        <x-field-error name="startsOn" />
                     </div>
                     <div class="flex flex-col gap-2">
                         <label for="calendar-ends-on" class="text-sm font-medium">{{ school_term('academic_year', 'School year') }} ends on</label>
-                        <input id="calendar-ends-on" type="date" wire:model="endsOn" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
-                        @error('endsOn')<p class="text-sm text-destructive">{{ $message }}</p>@enderror
+                        <input id="calendar-ends-on" type="date" wire:model="endsOn" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ field_error_bindings('endsOn') }}>
+                        <x-field-error name="endsOn" />
                     </div>
                 </div>
 
@@ -76,7 +76,7 @@
                                 <div class="flex flex-col gap-2">
                                     <label for="period-name-{{ $index }}" class="text-sm font-medium">Name</label>
                                     <input id="period-name-{{ $index }}" wire:model="periods.{{ $index }}.name" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
-                                    @error('periods.'.$index.'.name')<p class="text-sm text-destructive">{{ $message }}</p>@enderror
+                                    <x-field-error :name="'periods.'.$index.'.name'" />
                                 </div>
                                 <div class="flex flex-col gap-2">
                                     <label for="period-type-{{ $index }}" class="text-sm font-medium">Type</label>
@@ -98,7 +98,7 @@
                             </div>
                         @endforeach
                     </div>
-                    @error('periods')<p class="text-sm text-destructive">{{ $message }}</p>@enderror
+                    <x-field-error name="periods" />
                 </section>
 
                 <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">

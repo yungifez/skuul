@@ -67,7 +67,7 @@
                             <div class="flex flex-col gap-2">
                                 <april:label for="job_title">Job title</april:label>
                                 <april:input id="job_title" name="job_title" value="{{ old('job_title', $profile->job_title) }}" />
-                                @error('job_title') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                <x-field-error name="job_title" />
                             </div>
 
                             <div class="flex flex-col gap-2">
@@ -105,8 +105,8 @@
                             <div class="flex flex-col gap-2">
                                 <april:label for="left_on">Left on</april:label>
                                 <input type="date" id="left_on" name="left_on" value="{{ old('left_on', $profile->left_on?->toDateString()) }}"
-                                    class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                                @error('left_on') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                    class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('left_on') }}>
+                                <x-field-error name="left_on" />
                             </div>
 
                             <input type="hidden" name="joined_on" value="{{ $profile->joined_on?->toDateString() }}">
@@ -173,13 +173,13 @@
                             <div class="flex flex-col gap-2">
                                 <april:label for="credential-type">Kind</april:label>
                                 <april:input id="credential-type" name="type" value="{{ old('type') }}" required placeholder="Licence" />
-                                @error('type') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                <x-field-error name="type" />
                             </div>
 
                             <div class="flex flex-col gap-2">
                                 <april:label for="credential-name">Name</april:label>
                                 <april:input id="credential-name" name="name" value="{{ old('name') }}" required />
-                                @error('name') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                <x-field-error name="name" />
                             </div>
 
                             <div class="flex flex-col gap-2">
@@ -196,8 +196,8 @@
                             <div class="flex flex-col gap-2">
                                 <april:label for="credential-expires">Runs out on</april:label>
                                 <input type="date" id="credential-expires" name="expires_on" value="{{ old('expires_on') }}"
-                                    class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                                @error('expires_on') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                    class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('expires_on') }}>
+                                <x-field-error name="expires_on" />
                             </div>
 
                             <april:button type="submit" class="lg:col-span-5 lg:justify-self-start">
@@ -244,21 +244,21 @@
                                         <option value="{{ $number }}" @selected(old('day_of_week') == $number)>{{ $name }}</option>
                                     @endforeach
                                 </april:native-select>
-                                @error('day_of_week') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                <x-field-error name="day_of_week" />
                             </div>
 
                             <div class="flex flex-col gap-2">
                                 <april:label for="starts_at">From</april:label>
                                 <input type="time" id="starts_at" name="starts_at" value="{{ old('starts_at') }}" required
-                                    class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                                @error('starts_at') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                    class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('starts_at') }}>
+                                <x-field-error name="starts_at" />
                             </div>
 
                             <div class="flex flex-col gap-2">
                                 <april:label for="ends_at">To</april:label>
                                 <input type="time" id="ends_at" name="ends_at" value="{{ old('ends_at') }}" required
-                                    class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                                @error('ends_at') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                    class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('ends_at') }}>
+                                <x-field-error name="ends_at" />
                             </div>
 
                             <april:button type="submit">

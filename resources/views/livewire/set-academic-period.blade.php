@@ -30,7 +30,7 @@
                     <form action="{{ route('academic-periods.set-academic-period') }}" method="POST" class="flex items-center gap-2">
                         @csrf
                         <label for="compact-working-period" class="sr-only">Set working {{ $periodLabel }}</label>
-                        <select name="academic_period_id" id="compact-working-period" class="h-8 rounded-md border bg-background px-2 text-xs" aria-label="Set working {{ $periodLabel }}">
+                        <select name="academic_period_id" id="compact-working-period" class="h-8 rounded-md border bg-background px-2 text-xs" aria-label="Set working {{ $periodLabel }}" {{ field_error_bindings('academic_period_id') }}>
                             @foreach ($academicPeriods as $academicPeriod)
                                 <option value="{{ $academicPeriod->id }}" @selected($workingPeriod?->id === $academicPeriod->id)>{{ $academicPeriod->displayName }}</option>
                             @endforeach
@@ -66,9 +66,7 @@
                     @else
                         <p class="text-sm text-muted-foreground">Fix the calendar dates before choosing a working {{ $periodLabel }}.</p>
                     @endif
-                    @error('academic_period_id')
-                        <p class="text-sm text-destructive">{{ $message }}</p>
-                    @enderror
+                    <x-field-error name="academic_period_id" />
                 </div>
                 @csrf
                 @if (!$calendarError)

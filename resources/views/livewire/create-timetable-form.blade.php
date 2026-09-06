@@ -22,8 +22,8 @@
                 <div class="grid gap-4 lg:grid-cols-2">
                     <div class="flex flex-col gap-2 lg:col-span-2">
                         <label for="timetable-name" class="text-sm font-medium">Timetable name *</label>
-                        <input id="timetable-name" wire:model="name" placeholder="e.g. Term 1 teaching timetable" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm">
-                        @error('name') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <input id="timetable-name" wire:model="name" placeholder="e.g. Term 1 teaching timetable" required class="flex h-10 w-full rounded-md border border-input bg-background px-3 text-sm" {{ field_error_bindings('name') }}>
+                        <x-field-error name="name" />
                     </div>
                     <div class="flex flex-col gap-2">
                         <label for="academic-period" class="text-sm font-medium">Academic period *</label>
@@ -35,11 +35,11 @@
                     </div>
                     <div class="flex flex-col gap-2">
                         <label for="timetable-scope" class="text-sm font-medium">Schedule for *</label>
-                        <select id="timetable-scope" wire:model.live="scope" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                        <select id="timetable-scope" wire:model.live="scope" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ field_error_bindings('scope') }}>
                             <option value="section">One class section</option>
                             @if ($canCreateSchoolwide)<option value="schoolwide">Schoolwide</option>@endif
                         </select>
-                        @error('scope') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <x-field-error name="scope" />
                     </div>
                     @if ($scope === 'section')
                         <div class="flex flex-col gap-2">
@@ -77,18 +77,18 @@
                         <div class="space-y-4">
                             <div class="flex items-start justify-between gap-3"><div><p class="text-sm font-semibold">2. When does it happen?</p><p class="text-sm text-muted-foreground">{{ $this->eventDraftRuleLabel() }}</p></div><button type="button" wire:click="backEventStep" class="text-sm underline">Back</button></div>
                             <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                                <div class="flex flex-col gap-2"><label for="event-start" class="text-sm font-medium">Starts</label><input id="event-start" type="time" wire:model="newEvent.start_time" class="h-10 rounded-md border border-input bg-background px-3 text-sm">@error('newEvent.start_time') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
-                                <div class="flex flex-col gap-2"><label for="event-stop" class="text-sm font-medium">Ends</label><input id="event-stop" type="time" wire:model="newEvent.stop_time" class="h-10 rounded-md border border-input bg-background px-3 text-sm">@error('newEvent.stop_time') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
+                                <div class="flex flex-col gap-2"><label for="event-start" class="text-sm font-medium">Starts</label><input id="event-start" type="time" wire:model="newEvent.start_time" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ field_error_bindings('newEvent.start_time') }}><x-field-error name="newEvent.start_time" /></div>
+                                <div class="flex flex-col gap-2"><label for="event-stop" class="text-sm font-medium">Ends</label><input id="event-stop" type="time" wire:model="newEvent.stop_time" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ field_error_bindings('newEvent.stop_time') }}><x-field-error name="newEvent.stop_time" /></div>
                                 <div class="flex flex-col gap-2"><label for="event-recurrence" class="text-sm font-medium">Repeat</label><select id="event-recurrence" wire:model.live="newEvent.recurrence" class="h-10 rounded-md border border-input bg-background px-3 text-sm"><option value="weekly">Every week(s)</option><option value="monthly">Every month(s)</option><option value="one_time">One date only</option></select></div>
                                 @if ($newEvent['recurrence'] === 'one_time')
-                                    <div class="flex flex-col gap-2"><label for="event-occurs-on" class="text-sm font-medium">Date</label><input id="event-occurs-on" type="date" wire:model.live="newEvent.occurs_on" class="h-10 rounded-md border border-input bg-background px-3 text-sm">@error('newEvent.occurs_on') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
+                                    <div class="flex flex-col gap-2"><label for="event-occurs-on" class="text-sm font-medium">Date</label><input id="event-occurs-on" type="date" wire:model.live="newEvent.occurs_on" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ field_error_bindings('newEvent.occurs_on') }}><x-field-error name="newEvent.occurs_on" /></div>
                                 @else
-                                    <div class="flex flex-col gap-2"><label for="event-recurrence-interval" class="text-sm font-medium">Repeats every</label><div class="flex items-center gap-2"><input id="event-recurrence-interval" type="number" min="1" max="52" wire:model.number="newEvent.recurrence_interval" class="h-10 w-20 rounded-md border border-input bg-background px-3 text-sm"><span class="text-sm text-muted-foreground">{{ $newEvent['recurrence'] === 'monthly' ? 'month(s)' : 'week(s)' }}</span></div>@error('newEvent.recurrence_interval') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
-                                    <div class="flex flex-col gap-2"><label for="event-starts-on" class="text-sm font-medium">Starts on</label><input id="event-starts-on" type="date" wire:model.live="newEvent.starts_on" class="h-10 rounded-md border border-input bg-background px-3 text-sm">@error('newEvent.starts_on') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
+                                    <div class="flex flex-col gap-2"><label for="event-recurrence-interval" class="text-sm font-medium">Repeats every</label><div class="flex items-center gap-2"><input id="event-recurrence-interval" type="number" min="1" max="52" wire:model.number="newEvent.recurrence_interval" class="h-10 w-20 rounded-md border border-input bg-background px-3 text-sm" {{ field_error_bindings('newEvent.recurrence_interval') }}><span class="text-sm text-muted-foreground">{{ $newEvent['recurrence'] === 'monthly' ? 'month(s)' : 'week(s)' }}</span></div><x-field-error name="newEvent.recurrence_interval" /></div>
+                                    <div class="flex flex-col gap-2"><label for="event-starts-on" class="text-sm font-medium">Starts on</label><input id="event-starts-on" type="date" wire:model.live="newEvent.starts_on" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ field_error_bindings('newEvent.starts_on') }}><x-field-error name="newEvent.starts_on" /></div>
                                 @endif
                             </div>
                             @if ($newEvent['recurrence'] === 'weekly')
-                                <fieldset class="space-y-2"><legend class="text-sm font-medium">On these weekdays</legend><div class="flex flex-wrap gap-2">@foreach ($weekdays as $weekday)<label class="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/10"><input type="checkbox" wire:model="newEvent.weekday_ids" value="{{ $weekday['id'] }}" class="rounded border-input text-primary-foreground focus:ring-primary">{{ $weekday['name'] }}</label>@endforeach</div>@error('newEvent.weekday_ids') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</fieldset>
+                                <fieldset class="space-y-2"><legend class="text-sm font-medium">On these weekdays</legend><div class="flex flex-wrap gap-2">@foreach ($weekdays as $weekday)<label class="inline-flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/10"><input type="checkbox" wire:model="newEvent.weekday_ids" value="{{ $weekday['id'] }}" class="rounded border-input text-primary-foreground focus:ring-primary" {{ field_error_bindings('newEvent.weekday_ids') }}>{{ $weekday['name'] }}</label>@endforeach</div><x-field-error name="newEvent.weekday_ids" /></fieldset>
                             @endif
                             <div class="rounded-md border border-primary/20 bg-primary/5 p-3 text-sm"><p class="font-medium">Term boundary</p><p class="mt-1 text-muted-foreground">Recurring events run from the chosen start date until {{ $selectedPeriod['ends_on'] ?? 'the term ends' }}. Moving the term dates changes the recurring range.</p></div>
                             <div class="flex justify-between gap-3"><button type="button" wire:click="backEventStep" class="inline-flex h-10 items-center rounded-md border px-4 text-sm font-medium hover:bg-muted">Back</button><button type="button" wire:click="continueEventSchedule" class="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">Continue</button></div>
@@ -97,17 +97,17 @@
                         <div class="space-y-4">
                             <div class="flex items-start justify-between gap-3"><div><p class="text-sm font-semibold">3. Add the details</p><p class="text-sm text-muted-foreground">{{ $this->eventDraftRuleLabel() }}</p></div><button type="button" wire:click="backEventStep" class="text-sm underline">Back</button></div>
                             @if ($newEvent['type'] === 'subject')
-                                <div class="flex flex-col gap-2"><label for="event-subject" class="text-sm font-medium">Subject</label><select id="event-subject" wire:model="newEvent.subject_id" class="h-10 rounded-md border bg-background px-3 text-sm"><option value="">Choose a subject</option>@foreach ($subjects as $subject)<option value="{{ $subject['id'] }}">{{ $subject['name'] }}</option>@endforeach</select>@error('newEvent.subject_id') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
+                                <div class="flex flex-col gap-2"><label for="event-subject" class="text-sm font-medium">Subject</label><select id="event-subject" wire:model="newEvent.subject_id" class="h-10 rounded-md border bg-background px-3 text-sm" {{ field_error_bindings('newEvent.subject_id') }}><option value="">Choose a subject</option>@foreach ($subjects as $subject)<option value="{{ $subject['id'] }}">{{ $subject['name'] }}</option>@endforeach</select><x-field-error name="newEvent.subject_id" /></div>
                             @else
-                                <div class="flex flex-col gap-2"><label for="event-title" class="text-sm font-medium">Title</label><input id="event-title" wire:model="newEvent.title" placeholder="Assembly, duty, club…" class="h-10 rounded-md border bg-background px-3 text-sm">@error('newEvent.title') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
+                                <div class="flex flex-col gap-2"><label for="event-title" class="text-sm font-medium">Title</label><input id="event-title" wire:model="newEvent.title" placeholder="Assembly, duty, club…" class="h-10 rounded-md border bg-background px-3 text-sm" {{ field_error_bindings('newEvent.title') }}><x-field-error name="newEvent.title" /></div>
                             @endif
                             @if ($newEvent['type'] === 'role')
-                                <div class="flex flex-col gap-2"><label for="event-role" class="text-sm font-medium">Visible to</label><select id="event-role" wire:model="newEvent.audience_role" class="h-10 rounded-md border bg-background px-3 text-sm"><option value="">Choose a role</option>@foreach ($roles as $role)<option value="{{ $role['id'] }}">{{ $role['name'] }}</option>@endforeach</select>@error('newEvent.audience_role') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</div>
+                                <div class="flex flex-col gap-2"><label for="event-role" class="text-sm font-medium">Visible to</label><select id="event-role" wire:model="newEvent.audience_role" class="h-10 rounded-md border bg-background px-3 text-sm" {{ field_error_bindings('newEvent.audience_role') }}><option value="">Choose a role</option>@foreach ($roles as $role)<option value="{{ $role['id'] }}">{{ $role['name'] }}</option>@endforeach</select><x-field-error name="newEvent.audience_role" /></div>
                             @endif
                             <div class="flex justify-between gap-3"><button type="button" wire:click="backEventStep" class="inline-flex h-10 items-center rounded-md border px-4 text-sm font-medium hover:bg-muted">Back</button><button type="button" wire:click="addEvent" class="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90">Add to calendar</button></div>
                         </div>
                     @endif
-                    @error('newEvent.*') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                    <x-field-error name="newEvent.*" />
                 </div>
             </slot:content>
         </april:dialog>

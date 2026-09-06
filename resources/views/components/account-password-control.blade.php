@@ -16,9 +16,7 @@
                 <april:input-group name="password_confirmation" id="account-password-confirmation" type="password" label="Confirm password" autocomplete="new-password" required />
             </div>
 
-            @error('password')
-                <p class="text-sm text-destructive">{{ $message }}</p>
-            @enderror
+            <x-field-error name="password" />
 
             <label for="force-reset" class="flex items-start gap-3 text-sm">
                 <input type="checkbox" id="force-reset" name="force_reset" value="1" class="mt-0.5 size-4 rounded border-input accent-primary" @checked(old('force_reset', $user->password_change_required_at !== null))>

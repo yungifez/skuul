@@ -67,7 +67,7 @@
                             <div class="flex flex-col gap-2">
                                 <april:label for="name">Name</april:label>
                                 <april:input id="name" name="name" value="{{ old('name', $cohort->name) }}" required />
-                                @error('name') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                <x-field-error name="name" />
                             </div>
 
                             <div class="flex flex-col gap-2 lg:col-span-2">
@@ -154,7 +154,7 @@
                                         </option>
                                     @endforeach
                                 </april:native-select>
-                                @error('student_record_id') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                <x-field-error name="student_record_id" />
                             </div>
 
                             <div class="flex flex-col gap-2">

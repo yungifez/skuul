@@ -137,13 +137,13 @@
                 <div class="grid gap-4 sm:grid-cols-2">
                     <div class="min-w-0 space-y-2">
                         <april:label for="dialog-start-time">Starts</april:label>
-                        <input type="time" id="dialog-start-time" wire:model="startTime" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                        @error('startTime') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <input type="time" id="dialog-start-time" wire:model="startTime" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('startTime') }}>
+                        <x-field-error name="startTime" />
                     </div>
                     <div class="min-w-0 space-y-2">
                         <april:label for="dialog-stop-time">Ends</april:label>
-                        <input type="time" id="dialog-stop-time" wire:model="stopTime" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                        @error('stopTime') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <input type="time" id="dialog-stop-time" wire:model="stopTime" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('stopTime') }}>
+                        <x-field-error name="stopTime" />
                     </div>
                 </div>
 
@@ -162,34 +162,34 @@
                         <div class="mt-4 grid gap-4 sm:grid-cols-2">
                             <div class="min-w-0 space-y-2">
                                 <april:label for="dialog-slot-recurrence">Repeat</april:label>
-                                <select id="dialog-slot-recurrence" wire:model.live="slotRecurrence" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                                <select id="dialog-slot-recurrence" wire:model.live="slotRecurrence" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('slotRecurrence') }}>
                                     <option value="weekly">Every week(s)</option>
                                     <option value="monthly">Every month(s)</option>
                                     <option value="one_time">One date only</option>
                                 </select>
-                                @error('slotRecurrence') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                <x-field-error name="slotRecurrence" />
                             </div>
                             @if ($slotRecurrence === 'one_time')
                                 <div class="min-w-0 space-y-2">
                                     <april:label for="dialog-slot-occurs-on">Date</april:label>
-                                    <input type="date" id="dialog-slot-occurs-on" wire:model="slotOccursOn" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                                    @error('slotOccursOn') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                    <input type="date" id="dialog-slot-occurs-on" wire:model="slotOccursOn" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('slotOccursOn') }}>
+                                    <x-field-error name="slotOccursOn" />
                                 </div>
                             @else
                                 <div class="min-w-0 space-y-2">
                                     <april:label for="dialog-slot-recurrence-interval">Repeats every</april:label>
-                                    <div class="flex items-center gap-2"><input type="number" id="dialog-slot-recurrence-interval" min="1" max="52" wire:model.number="slotRecurrenceInterval" class="flex h-10 w-20 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"><span class="text-sm text-muted-foreground">{{ $slotRecurrence === 'monthly' ? 'month(s)' : 'week(s)' }}</span></div>
-                                    @error('slotRecurrenceInterval') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                    <div class="flex items-center gap-2"><input type="number" id="dialog-slot-recurrence-interval" min="1" max="52" wire:model.number="slotRecurrenceInterval" class="flex h-10 w-20 rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('slotRecurrenceInterval') }}><span class="text-sm text-muted-foreground">{{ $slotRecurrence === 'monthly' ? 'month(s)' : 'week(s)' }}</span></div>
+                                    <x-field-error name="slotRecurrenceInterval" />
                                 </div>
                                 <div class="min-w-0 space-y-2">
                                     <april:label for="dialog-slot-starts-on">Starts on</april:label>
-                                    <input type="date" id="dialog-slot-starts-on" wire:model.live="slotStartsOn" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                                    @error('slotStartsOn') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                    <input type="date" id="dialog-slot-starts-on" wire:model.live="slotStartsOn" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('slotStartsOn') }}>
+                                    <x-field-error name="slotStartsOn" />
                                 </div>
                             @endif
                         </div>
                         @if ($slotRecurrence === 'weekly')
-                            <fieldset class="mt-4 space-y-2"><legend class="text-sm font-medium">On these weekdays</legend><div class="flex flex-wrap gap-2">@foreach ($weekdayMap as $weekdayName => $weekdayId)<label class="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/10"><input type="checkbox" wire:model="slotWeekdayIds" value="{{ $weekdayId }}" class="size-4 rounded border-input text-primary-foreground focus:ring-primary">{{ $weekdayName }}</label>@endforeach</div>@error('slotWeekdayIds') <p class="text-sm text-destructive">{{ $message }}</p> @enderror</fieldset>
+                            <fieldset class="mt-4 space-y-2"><legend class="text-sm font-medium">On these weekdays</legend><div class="flex flex-wrap gap-2">@foreach ($weekdayMap as $weekdayName => $weekdayId)<label class="inline-flex cursor-pointer items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm has-[:checked]:border-primary has-[:checked]:bg-primary/10"><input type="checkbox" wire:model="slotWeekdayIds" value="{{ $weekdayId }}" class="size-4 rounded border-input text-primary-foreground focus:ring-primary" {{ field_error_bindings('slotWeekdayIds') }}>{{ $weekdayName }}</label>@endforeach</div><x-field-error name="slotWeekdayIds" /></fieldset>
                         @endif
                     @endif
                 </div>

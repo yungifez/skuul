@@ -76,7 +76,7 @@
                                 <div class="flex flex-col gap-2 lg:col-span-5">
                                     <april:label for="name">Name</april:label>
                                     <april:input id="name" name="name" value="{{ old('name', $plan->name) }}" required />
-                                    @error('name') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                    <x-field-error name="name" />
                                 </div>
 
                                 <label class="flex items-center gap-2 text-sm lg:col-span-3 lg:items-start lg:pt-7">
@@ -89,7 +89,7 @@
                                 <div class="flex flex-col gap-2 lg:col-span-12">
                                     <april:label for="description">Description (optional)</april:label>
                                     <april:textarea id="description" name="description" rows="2">{{ old('description', $plan->description) }}</april:textarea>
-                                    @error('description') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                    <x-field-error name="description" />
                                 </div>
                             </div>
 
@@ -109,14 +109,14 @@
                                                 <option value="at_least" @selected(old('completion_operator', $plan->completion_operator) === 'at_least')>Choose a number of these</option>
                                                 <option value="at_least_credits" @selected(old('completion_operator', $plan->completion_operator) === 'at_least_credits')>Require a number of credits</option>
                                             </april:native-select>
-                                            @error('completion_operator') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                            <x-field-error name="completion_operator" />
                                         </div>
 
                                         <div x-show="completionOperator === 'at_least'" x-cloak class="flex flex-col gap-2">
                                             <label for="required_count" class="text-sm font-medium">How many are needed?</label>
                                             <april:input id="required_count" name="required_count" type="number" min="1"
                                                 value="{{ old('required_count', $plan->required_count) }}" placeholder="For example, 4 of 5" />
-                                            @error('required_count') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                            <x-field-error name="required_count" />
                                         </div>
 
                                         <label class="flex min-h-[4.25rem] items-center gap-2 text-sm lg:items-start lg:pt-7">
@@ -129,7 +129,7 @@
                                             <april:label for="required_credits">Credits needed</april:label>
                                             <april:input id="required_credits" name="required_credits" type="number" min="1"
                                                 value="{{ old('required_credits', $plan->required_credits) }}" placeholder="For example, 3 or 120" />
-                                            @error('required_credits') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                            <x-field-error name="required_credits" />
                                         </div>
                                     </div>
                                 </div>
@@ -179,7 +179,7 @@
                                 <div class="flex flex-col gap-2 lg:col-span-3">
                                     <label for="child_name" class="text-sm font-medium">Class or pathway stage</label>
                                     <april:input id="child_name" name="name" value="{{ old('name') }}" required placeholder="Primary 1" />
-                                    @error('name') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                    <x-field-error name="name" />
                                 </div>
 
                                 <p class="text-sm text-muted-foreground lg:col-span-3 lg:pt-7">
@@ -204,14 +204,14 @@
                                         <label for="child_required_count" class="text-sm font-medium">How many are needed?</label>
                                         <april:input id="child_required_count" name="required_count" type="number" min="1"
                                             value="{{ old('required_count') }}" placeholder="For example, 4 of 5" />
-                                        @error('required_count') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                        <x-field-error name="required_count" />
                                     </div>
 
                                     <div x-show="completionOperator === 'at_least_credits'" x-cloak class="flex flex-col gap-2">
                                         <label for="child_required_credits" class="text-sm font-medium">How many credits?</label>
                                         <april:input id="child_required_credits" name="required_credits" type="number" min="1"
                                             value="{{ old('required_credits') }}" placeholder="For example, 3" />
-                                        @error('required_credits') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                        <x-field-error name="required_credits" />
                                     </div>
 
                                     <label class="flex min-h-[4.25rem] items-center gap-2 text-sm lg:items-start lg:pt-7">
@@ -300,7 +300,7 @@
                                     <april:label for="description">Subject or requirement</april:label>
                                     <april:input id="description" name="description" value="{{ old('description') }}" required
                                         placeholder="Mathematics" />
-                                    @error('description') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                    <x-field-error name="description" />
                                 </div>
 
                                 <div class="flex flex-col gap-2 lg:col-span-3">
@@ -317,7 +317,7 @@
                                     <april:label for="pass_mark">Pass mark</april:label>
                                     <april:input id="pass_mark" name="pass_mark" type="number" step="0.01" min="0" max="100"
                                         value="{{ old('pass_mark', 50) }}" required />
-                                    @error('pass_mark') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                    <x-field-error name="pass_mark" />
                                 </div>
 
                                 <label class="flex items-center gap-2 text-sm lg:col-span-3 lg:items-start lg:pt-7">
@@ -334,7 +334,7 @@
                                         <input type="hidden" name="is_negated" value="0">
                                         <april:label for="credits">Credits</april:label>
                                         <april:input id="credits" name="credits" type="number" min="0" value="{{ old('credits', 1) }}" required />
-                                        @error('credits') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                        <x-field-error name="credits" />
                                     </div>
 
                                     <label class="flex min-h-[4.25rem] items-center gap-2 text-sm lg:items-start lg:pt-7">

@@ -41,13 +41,13 @@
                                 <option value="{{ $school->id }}" @selected(old('holding_school_id') == $school->id)>{{ $school->name }}</option>
                             @endforeach
                         </april:native-select>
-                        @error('holding_school_id') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <x-field-error name="holding_school_id" />
                     </div>
 
                     <div class="flex flex-col gap-2">
                         <april:label for="admission_number">Their admission number there</april:label>
                         <april:input id="admission_number" name="admission_number" value="{{ old('admission_number') }}" required />
-                        @error('admission_number') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <x-field-error name="admission_number" />
                     </div>
                 </div>
             </slot:content>
@@ -65,27 +65,27 @@
                             <label class="flex items-center gap-2 rounded-md border p-3 text-sm">
                                 <input type="checkbox" name="categories[]" value="{{ $category->value }}"
                                     @checked(in_array($category->value, old('categories', []), true))
-                                    class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring">
+                                    class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring" {{ field_error_bindings('categories') }}>
                                 {{ $category->label() }}
                             </label>
                         @endforeach
                     </div>
-                    @error('categories') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                    <x-field-error name="categories" />
 
                     <div class="grid gap-4 border-t pt-6 lg:grid-cols-3">
                         <div class="flex flex-col gap-2 lg:col-span-2">
                             <april:label for="purpose">Why you need them</april:label>
                             <april:input id="purpose" name="purpose" value="{{ old('purpose') }}" required
                                 placeholder="The learner transferred to us in September" />
-                            @error('purpose') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                            <x-field-error name="purpose" />
                         </div>
 
                         <div class="flex flex-col gap-2">
                             <april:label for="expires_on">Permission runs out on</april:label>
                             <input type="date" id="expires_on" name="expires_on" value="{{ old('expires_on') }}"
-                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('expires_on') }}>
                             <p class="text-xs text-muted-foreground">Optional. After this day the records cannot be handed over.</p>
-                            @error('expires_on') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                            <x-field-error name="expires_on" />
                         </div>
                     </div>
                 </div>

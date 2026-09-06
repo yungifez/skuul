@@ -18,9 +18,7 @@
                 <april:combobox-option value="{{ $item }}">{{ $item }}</april:combobox-option>
             @endforeach
         </april:combobox>
-        @error('country')
-            <p class="text-sm text-destructive">{{ $message }}</p>
-        @enderror
+        <x-field-error name="country" />
     </div>
     <div class="flex w-full flex-col gap-2">
         <april:label for="state">State / Province</april:label>
@@ -39,8 +37,6 @@
                 @endforeach
             @endif
         </april:combobox>
-        @error('state')
-            <p class="text-sm text-destructive">{{ $message }}</p>
-        @enderror
+        <x-field-error name="state" />
     </div>
 </div>

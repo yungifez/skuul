@@ -27,9 +27,7 @@
                     <div class="flex flex-col gap-2">
                         <april:label for="title">Notice title</april:label>
                         <april:input id="title" name="title" value="{{ old('title') }}" required maxlength="255" placeholder="e.g. Parent meeting next Thursday" />
-                        @error('title')
-                            <p class="text-sm text-destructive">{{ $message }}</p>
-                        @enderror
+                        <x-field-error name="title" />
                     </div>
 
                     <div class="flex flex-col gap-2">
@@ -52,9 +50,7 @@
                             undo
                             redo
                         />
-                        @error('content')
-                            <p class="text-sm text-destructive">{{ $message }}</p>
-                        @enderror
+                        <x-field-error name="content" />
                     </div>
                 </slot:content>
             </april:card>
@@ -66,11 +62,9 @@
                     <div class="flex flex-col gap-2">
                         <april:label for="attachment">File <span class="font-normal text-muted-foreground">(optional)</span></april:label>
                         <input id="attachment" type="file" name="attachment" accept=".gif,.jpg,.jpeg,.png,.doc,.docx,.pdf"
-                            class="flex min-h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground file:mr-4 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                            class="flex min-h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground file:mr-4 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" {{ field_error_bindings('attachment') }}>
                         <p class="text-xs text-muted-foreground">PDF, Word, GIF, JPG, or PNG up to 10 MB.</p>
-                        @error('attachment')
-                            <p class="text-sm text-destructive">{{ $message }}</p>
-                        @enderror
+                        <x-field-error name="attachment" />
                     </div>
                 </slot:content>
             </april:card>
@@ -84,18 +78,14 @@
                     <div class="flex flex-col gap-2">
                         <april:label for="start_date">Starts on</april:label>
                         <april:input id="start_date" name="start_date" type="date" value="{{ old('start_date', now()->toDateString()) }}" required />
-                        @error('start_date')
-                            <p class="text-sm text-destructive">{{ $message }}</p>
-                        @enderror
+                        <x-field-error name="start_date" />
                     </div>
 
                     <div class="flex flex-col gap-2">
                         <april:label for="stop_date">Ends on</april:label>
                         <april:input id="stop_date" name="stop_date" type="date" value="{{ old('stop_date') }}" />
                         <p class="text-xs text-muted-foreground">The notice stops showing after this date.</p>
-                        @error('stop_date')
-                            <p class="text-sm text-destructive">{{ $message }}</p>
-                        @enderror
+                        <x-field-error name="stop_date" />
                     </div>
                 </slot:content>
             </april:card>
@@ -153,12 +143,8 @@
                                     No active classes or levels are available.
                                 </div>
                             @endif
-                            @error('audience.academic_level_ids')
-                                <p class="text-sm text-destructive">{{ $message }}</p>
-                            @enderror
-                            @error('audience.academic_level_ids.*')
-                                <p class="text-sm text-destructive">{{ $message }}</p>
-                            @enderror
+                            <x-field-error name="audience.academic_level_ids" />
+                            <x-field-error name="audience.academic_level_ids.*" />
                         </div>
 
                         <div x-cloak x-show="audienceScope === 'section'" class="flex flex-col gap-2">
@@ -177,12 +163,8 @@
                                     No active sections are available.
                                 </div>
                             @endif
-                            @error('audience.academic_cycle_section_ids')
-                                <p class="text-sm text-destructive">{{ $message }}</p>
-                            @enderror
-                            @error('audience.academic_cycle_section_ids.*')
-                                <p class="text-sm text-destructive">{{ $message }}</p>
-                            @enderror
+                            <x-field-error name="audience.academic_cycle_section_ids" />
+                            <x-field-error name="audience.academic_cycle_section_ids.*" />
                         </div>
                     </div>
 

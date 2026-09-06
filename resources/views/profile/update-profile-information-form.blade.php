@@ -23,7 +23,7 @@
                     const reader = new FileReader();
                     reader.onload = (event) => { photoPreview = event.target.result; };
                     reader.readAsDataURL($refs.photo.files[0]);
-                " />
+                "  {{ field_error_bindings('photo') }}/>
 
                 <div class="flex items-center gap-4">
                     <div x-show="! photoPreview">
@@ -52,9 +52,7 @@
                     @endif
                 </div>
             </div>
-            @error('photo')
-                <p class="text-sm text-destructive">{{ $message }}</p>
-            @enderror
+            <x-field-error name="photo" />
         @endif
 
         <div class="grid gap-4 sm:grid-cols-2">
@@ -71,9 +69,7 @@
                 @endforeach
 
                 </april:select>
-                @error('gender')
-                    <p class="text-sm text-destructive">{{ $message }}</p>
-                @enderror
+                <x-field-error name="gender" />
             </div>
 
             <april:input-group id="nationality" name="nationality" label="Nationality" placeholder="Your nationality" wire:model.live="state.nationality" />

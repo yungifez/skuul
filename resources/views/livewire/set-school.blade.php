@@ -18,9 +18,7 @@
                 @endforeach
 
                 </april:select>
-                @error('school_id')
-                    <p class="text-sm text-destructive">{{ $message }}</p>
-                @enderror
+                <x-field-error name="school_id" />
             </div>
             @csrf
             <div class="flex justify-end">

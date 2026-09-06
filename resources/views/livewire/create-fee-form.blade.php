@@ -18,9 +18,7 @@
                 @endforeach
 
                 </april:select>
-                @error('fee_category_id')
-                    <p class="text-sm text-destructive">{{ $message }}</p>
-                @enderror
+                <x-field-error name="fee_category_id" />
             </div>
             @csrf
             <april:button type="submit" class="w-full md:w-1/2">

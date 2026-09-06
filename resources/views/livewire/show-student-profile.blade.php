@@ -45,9 +45,7 @@
                                         <option value="{{ $option['value'] }}">{{ $option['label'] }}</option>
                                     @endforeach
                                 </april:select>
-                                @error('statusSelection')
-                                    <p class="text-sm text-destructive">{{ $message }}</p>
-                                @enderror
+                                <x-field-error name="statusSelection" />
                             </div>
 
                             <div class="grid gap-4 sm:grid-cols-2">
@@ -86,15 +84,13 @@
 
                             <div class="flex flex-col gap-2">
                                 <april:label for="placement-cycle-section">{{ school_term('section', 'Section') }}</april:label>
-                                <select id="placement-cycle-section" wire:model.live="placementCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ !$academicYear || $studentRecord->status->isClosed() ? 'disabled' : '' }}>
+                                <select id="placement-cycle-section" wire:model.live="placementCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ !$academicYear || $studentRecord->status->isClosed() ? 'disabled' : '' }} {{ field_error_bindings('placementCycleSectionId') }}>
                                     <option value="">Choose a {{ strtolower(school_term('section', 'section')) }}</option>
                                     @foreach ($cycleSections as $cycleSection)
                                         <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['level'] }} · {{ $cycleSection['name'] }}</option>
                                     @endforeach
                                 </select>
-                                @error('placementCycleSectionId')
-                                    <p class="text-sm text-destructive">{{ $message }}</p>
-                                @enderror
+                                <x-field-error name="placementCycleSectionId" />
                             </div>
 
                             <div class="grid gap-4 sm:grid-cols-2">
@@ -143,15 +139,13 @@
                                 @if (!$openCampusMoveRequest)
                                 <div class="flex flex-col gap-2">
                                     <april:label for="campus-cycle-section">Campus and {{ strtolower(school_term('section', 'section')) }}</april:label>
-                                    <select id="campus-cycle-section" wire:model.live="campusCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ $studentRecord->status->isClosed() ? 'disabled' : '' }}>
+                                    <select id="campus-cycle-section" wire:model.live="campusCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ $studentRecord->status->isClosed() ? 'disabled' : '' }} {{ field_error_bindings('campusCycleSectionId') }}>
                                         <option value="">Choose a campus {{ strtolower(school_term('section', 'section')) }}</option>
                                         @foreach ($campusCycleSections as $campusCycleSection)
                                             <option value="{{ $campusCycleSection['id'] }}">{{ $campusCycleSection['campus'] }} · {{ $campusCycleSection['level'] }} · {{ $campusCycleSection['name'] }}</option>
                                         @endforeach
                                     </select>
-                                    @error('campusCycleSectionId')
-                                        <p class="text-sm text-destructive">{{ $message }}</p>
-                                    @enderror
+                                    <x-field-error name="campusCycleSectionId" />
                                 </div>
 
                                 <div class="grid gap-4 sm:grid-cols-2">

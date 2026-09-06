@@ -20,9 +20,7 @@
                 @endforeach
 
                 </april:select>
-                @error('academic_period_id')
-                    <p class="text-sm text-destructive">{{ $message }}</p>
-                @enderror
+                <x-field-error name="academic_period_id" />
             </div>
             @csrf
             @method('PUT')

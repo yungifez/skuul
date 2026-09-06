@@ -64,7 +64,7 @@
                                     </option>
                                 @endforeach
                             </april:native-select>
-                            @error('staff_profile_id') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                            <x-field-error name="staff_profile_id" />
                         </div>
 
                         <div class="flex flex-col gap-2">
@@ -79,15 +79,15 @@
                         <div class="flex flex-col gap-2">
                             <april:label for="starts_on">From</april:label>
                             <input type="date" id="starts_on" name="starts_on" value="{{ old('starts_on', now()->toDateString()) }}" required
-                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                            @error('starts_on') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('starts_on') }}>
+                            <x-field-error name="starts_on" />
                         </div>
 
                         <div class="flex flex-col gap-2">
                             <april:label for="ends_on">To</april:label>
                             <input type="date" id="ends_on" name="ends_on" value="{{ old('ends_on', now()->toDateString()) }}" required
-                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                            @error('ends_on') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('ends_on') }}>
+                            <x-field-error name="ends_on" />
                         </div>
 
                         <div class="flex flex-col gap-2 lg:col-span-4">

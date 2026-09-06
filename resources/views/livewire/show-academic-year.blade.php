@@ -23,7 +23,7 @@
                 @endif
                 <x-academic-period-status-control :period="$academicYear" route-prefix="academic-years" />
             </div>
-            @error('calendar')<p class="mt-3 text-sm text-destructive">{{ $message }}</p>@enderror
+            <x-field-error name="calendar" class="mt-3" />
 
             @if ($canContinueSetup)
                 <div class="mt-6 flex flex-col gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -88,7 +88,7 @@
                 </april:button>
             </div>
         @endif
-        @error('rollover')<p class="mt-3 text-sm text-destructive">{{ $message }}</p>@enderror
+        <x-field-error name="rollover" class="mt-3" />
     </section>
 
     <april:card>

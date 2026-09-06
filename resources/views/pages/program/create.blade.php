@@ -26,7 +26,7 @@
                     <div class="flex flex-col gap-2">
                         <april:label for="name">Name</april:label>
                         <april:input id="name" name="name" value="{{ old('name') }}" required placeholder="Chess club" />
-                        @error('name') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <x-field-error name="name" />
                     </div>
 
                     <div class="flex flex-col gap-2">
@@ -36,15 +36,15 @@
                                 <option value="{{ $type->value }}" @selected(old('type') === $type->value)>{{ $type->label() }}</option>
                             @endforeach
                         </april:native-select>
-                        @error('type') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <x-field-error name="type" />
                     </div>
 
                     <div class="flex flex-col gap-2 lg:col-span-2">
                         <april:label for="description">What it is</april:label>
                         <textarea id="description" name="description" rows="3"
                             class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                            placeholder="Optional">{{ old('description') }}</textarea>
-                        @error('description') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                            placeholder="Optional" {{ field_error_bindings('description') }}>{{ old('description') }}</textarea>
+                        <x-field-error name="description" />
                     </div>
                 </div>
             </slot:content>

@@ -146,7 +146,7 @@
                                 <div class="flex flex-col gap-2 lg:col-span-2">
                                     <april:label for="action-description">What has to happen</april:label>
                                     <april:input id="action-description" name="description" value="{{ old('description') }}" required />
-                                    @error('description') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                    <x-field-error name="description" />
                                 </div>
 
                                 <div class="flex flex-col gap-2">
@@ -208,8 +208,8 @@
                                 <div class="flex flex-col gap-2">
                                     <april:label for="note-body">Add a note</april:label>
                                     <textarea id="note-body" name="body" rows="3" required
-                                        class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">{{ old('body') }}</textarea>
-                                    @error('body') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                        class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('body') }}>{{ old('body') }}</textarea>
+                                    <x-field-error name="body" />
                                 </div>
                                 <april:button type="submit">
                                     <x-lucide-plus class="mr-2 size-4" />

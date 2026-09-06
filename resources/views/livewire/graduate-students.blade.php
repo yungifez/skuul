@@ -6,13 +6,13 @@
             <form wire:submit="loadStudents" class="grid gap-4 md:grid-cols-3">
                 <div class="flex flex-col gap-2 md:col-span-2">
                     <april:label for="graduation-section">{{ school_term('section', 'Section') }}</april:label>
-                    <select id="graduation-section" wire:model.live="academicCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                    <select id="graduation-section" wire:model.live="academicCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ field_error_bindings('academicCycleSectionId') }}>
                         <option value="">Choose a {{ strtolower(school_term('section', 'section')) }}</option>
                         @foreach ($cycleSections as $cycleSection)
                             <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['label'] }}</option>
                         @endforeach
                     </select>
-                    @error('academicCycleSectionId') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                    <x-field-error name="academicCycleSectionId" />
                 </div>
                 <div class="flex items-end">
                     <april:button type="submit" wire:loading.attr="disabled" wire:target="loadStudents">Review learners</april:button>

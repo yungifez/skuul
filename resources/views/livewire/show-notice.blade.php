@@ -28,8 +28,6 @@
                 <span wire:loading wire:target="publishNotice">Publishing…</span>
             </button>
         @endif
-        @error('notice')
-            <p class="mt-3 text-sm text-destructive">{{ $message }}</p>
-        @enderror
+        <x-field-error name="notice" class="mt-3" />
     </div>
 </div>

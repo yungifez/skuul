@@ -27,15 +27,15 @@
                                     </option>
                                 @endforeach
                             </april:native-select>
-                            @error('type') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                            <x-field-error name="type" />
                         </div>
 
                         <div class="flex flex-col gap-2 lg:col-span-2">
                             <april:label for="import-file">CSV file</april:label>
                             <input type="file" id="import-file" name="file" accept=".csv,text/csv" required
-                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm file:mr-3 file:border-0 file:bg-transparent file:text-sm file:font-medium" />
+                                class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm file:mr-3 file:border-0 file:bg-transparent file:text-sm file:font-medium"  {{ field_error_bindings('file') }}/>
                             <p class="text-xs text-muted-foreground">Up to 5 MB. The first line must name the columns.</p>
-                            @error('file') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                            <x-field-error name="file" />
                         </div>
 
                         <april:button type="submit">

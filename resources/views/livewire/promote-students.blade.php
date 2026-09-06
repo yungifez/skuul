@@ -6,23 +6,23 @@
             <form wire:submit="loadStudents" class="grid gap-4 md:grid-cols-3">
                 <div class="flex flex-col gap-2">
                     <april:label for="promotion-source">Current {{ strtolower(school_term('section', 'section')) }}</april:label>
-                    <select id="promotion-source" wire:model.live="sourceAcademicCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                    <select id="promotion-source" wire:model.live="sourceAcademicCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ field_error_bindings('sourceAcademicCycleSectionId') }}>
                         <option value="">Choose current section</option>
                         @foreach ($cycleSections as $cycleSection)
                             <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['label'] }}</option>
                         @endforeach
                     </select>
-                    @error('sourceAcademicCycleSectionId') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                    <x-field-error name="sourceAcademicCycleSectionId" />
                 </div>
                 <div class="flex flex-col gap-2">
                     <april:label for="promotion-destination">Destination {{ strtolower(school_term('section', 'section')) }}</april:label>
-                    <select id="promotion-destination" wire:model.live="destinationAcademicCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                    <select id="promotion-destination" wire:model.live="destinationAcademicCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ field_error_bindings('destinationAcademicCycleSectionId') }}>
                         <option value="">Choose destination section</option>
                         @foreach ($cycleSections as $cycleSection)
                             <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['label'] }}</option>
                         @endforeach
                     </select>
-                    @error('destinationAcademicCycleSectionId') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                    <x-field-error name="destinationAcademicCycleSectionId" />
                 </div>
                 <div class="flex items-end">
                     <april:button type="submit" wire:loading.attr="disabled" wire:target="loadStudents">Review learners</april:button>

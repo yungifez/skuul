@@ -34,7 +34,7 @@
                         <april:label for="summary">Summary</april:label>
                         <april:input id="summary" name="summary" value="{{ old('summary') }}" required
                             placeholder="One line that names the event" />
-                        @error('summary') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <x-field-error name="summary" />
                     </div>
 
                     <div class="flex flex-col gap-2">
@@ -49,7 +49,7 @@
                         <p class="text-xs text-muted-foreground">
                             A safeguarding case is restricted the moment you save it. Only the people who handle it can read it.
                         </p>
-                        @error('category') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <x-field-error name="category" />
                     </div>
 
                     <div class="flex flex-col gap-2">
@@ -57,14 +57,14 @@
                         <input type="datetime-local" id="occurred_at" name="occurred_at" required
                             value="{{ old('occurred_at', now()->format('Y-m-d\TH:i')) }}"
                             max="{{ now()->format('Y-m-d\TH:i') }}"
-                            class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                        @error('occurred_at') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                            class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('occurred_at') }}>
+                        <x-field-error name="occurred_at" />
                     </div>
 
                     <div class="flex flex-col gap-2">
                         <april:label for="location">Where it happened</april:label>
                         <april:input id="location" name="location" value="{{ old('location') }}" placeholder="Optional" />
-                        @error('location') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <x-field-error name="location" />
                     </div>
 
                     <div class="flex flex-col gap-2">
@@ -77,15 +77,15 @@
                                 </option>
                             @endforeach
                         </april:native-select>
-                        @error('assigned_to') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <x-field-error name="assigned_to" />
                     </div>
 
                     <div class="flex flex-col gap-2 lg:col-span-2">
                         <april:label for="description">What happened, in full</april:label>
                         <textarea id="description" name="description" rows="5"
                             class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                            placeholder="Optional. Write what you saw, not what you think it means.">{{ old('description') }}</textarea>
-                        @error('description') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                            placeholder="Optional. Write what you saw, not what you think it means." {{ field_error_bindings('description') }}>{{ old('description') }}</textarea>
+                        <x-field-error name="description" />
                     </div>
                 </div>
             </slot:content>

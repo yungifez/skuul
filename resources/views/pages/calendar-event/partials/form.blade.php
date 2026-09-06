@@ -28,7 +28,7 @@
                 <april:label for="title">Title</april:label>
                 <april:input id="title" name="title" value="{{ old('title', $event?->title) }}" required
                     placeholder="Mid-term break" />
-                @error('title') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                <x-field-error name="title" />
             </div>
 
             <div class="flex flex-col gap-2">
@@ -40,13 +40,13 @@
                         </option>
                     @endforeach
                 </april:native-select>
-                @error('type') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                <x-field-error name="type" />
             </div>
 
             <div class="flex flex-col gap-2">
                 <april:label for="location">Where</april:label>
                 <april:input id="location" name="location" value="{{ old('location', $event?->location) }}" placeholder="Optional" />
-                @error('location') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                <x-field-error name="location" />
             </div>
 
             <label class="flex items-center gap-2 text-sm lg:col-span-2">
@@ -59,23 +59,23 @@
             <div class="flex flex-col gap-2">
                 <april:label for="starts_at">Starts</april:label>
                 <input type="datetime-local" id="starts_at" name="starts_at" value="{{ $startsAt }}" required
-                    class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                @error('starts_at') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                    class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('starts_at') }}>
+                <x-field-error name="starts_at" />
             </div>
 
             <div class="flex flex-col gap-2">
                 <april:label for="ends_at">Ends</april:label>
                 <input type="datetime-local" id="ends_at" name="ends_at" value="{{ $endsAt }}" required
-                    class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                @error('ends_at') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                    class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('ends_at') }}>
+                <x-field-error name="ends_at" />
             </div>
 
             <div class="flex flex-col gap-2 lg:col-span-2">
                 <april:label for="description">What it is</april:label>
                 <textarea id="description" name="description" rows="3"
                     class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                    placeholder="Optional">{{ old('description', $event?->description) }}</textarea>
-                @error('description') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                    placeholder="Optional" {{ field_error_bindings('description') }}>{{ old('description', $event?->description) }}</textarea>
+                <x-field-error name="description" />
             </div>
         </div>
     </slot:content>
@@ -104,7 +104,7 @@
                             </label>
                         @endforeach
                     </div>
-                    @error('academic_cycle_section_ids.*') <p class="mt-2 text-sm text-destructive">{{ $message }}</p> @enderror
+                    <x-field-error name="academic_cycle_section_ids.*" class="mt-2" />
                 @endif
             </div>
 
@@ -124,7 +124,7 @@
                             </label>
                         @endforeach
                     </div>
-                    @error('user_ids.*') <p class="mt-2 text-sm text-destructive">{{ $message }}</p> @enderror
+                    <x-field-error name="user_ids.*" class="mt-2" />
                 @endif
             </div>
         </div>

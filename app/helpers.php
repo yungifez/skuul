@@ -10,7 +10,9 @@ use App\Services\Academic\AcademicPeriodContext;
 use App\Services\Curriculum\InstructionalModelResolver;
 use App\Services\Feature\FeatureManager;
 use App\Services\School\SchoolContext;
+use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
+use Illuminate\View\ComponentAttributeBag;
 
 if (!function_exists('school_context')) {
     /**
@@ -196,5 +198,96 @@ if (!function_exists('school_instructional_model_description')) {
             strtolower(school_term('section', 'section')),
             strtolower(school_terms('section', 'sections')),
         );
+    }
+}
+
+if (!function_exists('field_error_id')) {
+    /**
+     * Get the id of the element that carries a field's validation message.
+     *
+     * A control points at its message with aria-describedby, so both sides
+     * have to work the id out the same way.
+     */
+    function field_error_id(string $field): string
+    {
+        $slug = preg_replace('/[^a-z0-9]+/', '-', strtolower($field)) ?? '';
+
+        return trim($slug, '-').'-error';
+    }
+}
+
+if (!function_exists('field_error_key')) {
+    /**
+     * Read the validation key a form control is bound to.
+     *
+     * A control names its field with name="..." or with wire:model. HTML array
+     * syntax and Livewire dot syntax name the same field two ways, so reduce
+     * both to the key the validator uses.
+     */
+    function field_error_key(?string $name): ?string
+    {
+        if ($name === null || $name === '') {
+            return null;
+        }
+
+        return str_replace(['[]', '[', ']'], ['', '.', ''], $name);
+    }
+}
+
+if (!function_exists('field_error_bindings')) {
+    /**
+     * Tie a form control to the message that says why it was refused.
+     *
+     * Without this a screen reader reads the control as if nothing were wrong,
+     * and the message sits on the page with nothing to connect it to.
+     */
+    function field_error_bindings(string $field): HtmlString
+    {
+        $key = field_error_key($field);
+
+        if ($key === null || !view()->shared('errors')?->has($key)) {
+            return new HtmlString('');
+        }
+
+        return new HtmlString(sprintf(
+            'aria-invalid="true" aria-describedby="%s"',
+            e(field_error_id($key)),
+        ));
+    }
+}
+
+if (!function_exists('april_field_error_attributes')) {
+    /**
+     * Work out a component's error wiring from the field it is bound to.
+     *
+     * A blade directive inside an <april:*> tag breaks the tag precompiler, so
+     * an april component cannot take these attributes from the view that uses
+     * it. It reads its own name or wire:model binding instead.
+     *
+     * @return array<string, string>
+     */
+    function april_field_error_attributes(ComponentAttributeBag $attributes): array
+    {
+        $name = $attributes->get('name');
+
+        if (!is_string($name) || $name === '') {
+            $name = null;
+
+            foreach ($attributes->getAttributes() as $attribute => $value) {
+                if (str_starts_with((string) $attribute, 'wire:model') && is_string($value) && $value !== '') {
+                    $name = $value;
+
+                    break;
+                }
+            }
+        }
+
+        $key = field_error_key($name);
+
+        if ($key === null || !view()->shared('errors')?->has($key)) {
+            return [];
+        }
+
+        return ['aria-invalid' => 'true', 'aria-describedby' => field_error_id($key)];
     }
 }

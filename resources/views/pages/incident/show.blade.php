@@ -172,13 +172,13 @@
                                     <april:label for="action-type">What kind</april:label>
                                     <april:input id="action-type" name="type" value="{{ old('type') }}" required
                                         placeholder="Meeting, detention, referral" />
-                                    @error('type') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                    <x-field-error name="type" />
                                 </div>
 
                                 <div class="flex flex-col gap-2 lg:col-span-2">
                                     <april:label for="action-description">What has to happen</april:label>
                                     <april:input id="action-description" name="description" value="{{ old('description') }}" required />
-                                    @error('description') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                    <x-field-error name="description" />
                                 </div>
 
                                 <div class="flex flex-col gap-2">
@@ -244,14 +244,14 @@
                                 <div class="flex flex-col gap-2">
                                     <april:label for="note-body">Add a note</april:label>
                                     <april:textarea id="note-body" name="body" rows="4" required>{{ old('body') }}</april:textarea>
-                                    @error('body') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                    <x-field-error name="body" />
                                 </div>
                                 <label class="flex items-start gap-2 text-sm">
                                     <input type="hidden" name="is_restricted" value="0">
                                     <input type="checkbox" name="is_restricted" value="1" class="mt-0.5 size-4 rounded border-input" @checked(old('is_restricted', true))>
                                     <span><span class="font-medium">Keep this note private</span><span class="block text-muted-foreground">Only the case handler, reporter, and safeguarding readers can see it.</span></span>
                                 </label>
-                                @error('note') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                                <x-field-error name="note" />
                                 <april:button type="submit"><x-lucide-plus class="mr-2 size-4" />Add note</april:button>
                             </form>
                         @else

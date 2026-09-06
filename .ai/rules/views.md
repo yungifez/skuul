@@ -21,6 +21,12 @@ Two failure shapes seen so far:
 `{{ }}` interpolation inside an attribute value is safe: `id="row-{{ $id }}"`.
 Directives are not.
 
+A bare `{{ }}` that stands where an attribute goes breaks it the same way:
+`<april:input name="foo" {{ field_error_bindings('foo') }} />` throws
+"unexpected token endif". Only interpolation inside a quoted value is safe.
+An april component that needs conditional attributes has to work them out
+itself. Override it under `resources/views/vendor/april/components/`.
+
 Write it this way instead:
 
 - Put `wire:key` on a plain element that wraps the component:
@@ -54,3 +60,19 @@ A screen that filters a list still renders every learner in the select. A test
 that asserts `assertDontSee('Ben Hidden')` fails on the menu, not the rows.
 Assert on something only a row carries: the row's show-route URL, or a value
 the record holds.
+
+## Say on the control that a field was refused
+
+A message on its own reaches nobody who cannot see where it sits. Every form
+control that has a message must carry `aria-invalid` and point at that message
+with `aria-describedby`.
+
+- Render the message with `<x-field-error name="admission_date" />`. It gives
+  the message the id the control points at.
+- On a native `<input>`, `<select>` or `<textarea>`, add
+  `{{ field_error_bindings('admission_date') }}` inside the tag.
+- `<april:input>`, `<april:native-select>` and `<april:textarea>` read their own
+  `name` or `wire:model` and wire themselves. Add nothing.
+
+`app/helpers.php` holds all three helpers, so both sides work the id out the
+same way. `tests/Feature/FieldErrorWiringTest.php` covers it.

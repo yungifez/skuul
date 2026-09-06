@@ -92,7 +92,7 @@
                     <slot:content>
                         <form method="POST" action="{{ route('course-offerings.gradebook.templates.apply', $courseOffering) }}" class="flex flex-col gap-3 sm:flex-row sm:items-end">
                             @csrf
-                            <div class="min-w-0 flex-1"><april:label for="assessment-template">Template</april:label><april:native-select id="assessment-template" name="assessment_template_id">@foreach ($assessmentTemplates as $assessmentTemplate)<option value="{{ $assessmentTemplate->id }}" @selected((string) old('assessment_template_id') === (string) $assessmentTemplate->id)>{{ $assessmentTemplate->name }} · {{ $assessmentTemplate->categories_count }} categories, {{ $assessmentTemplate->items_count }} assessments</option>@endforeach</april:native-select>@error('assessment_template_id')<p class="mt-1 text-sm text-destructive">{{ $message }}</p>@enderror</div>
+                            <div class="min-w-0 flex-1"><april:label for="assessment-template">Template</april:label><april:native-select id="assessment-template" name="assessment_template_id">@foreach ($assessmentTemplates as $assessmentTemplate)<option value="{{ $assessmentTemplate->id }}" @selected((string) old('assessment_template_id') === (string) $assessmentTemplate->id)>{{ $assessmentTemplate->name }} · {{ $assessmentTemplate->categories_count }} categories, {{ $assessmentTemplate->items_count }} assessments</option>@endforeach</april:native-select><x-field-error name="assessment_template_id" class="mt-1" /></div>
                             <april:button type="submit">Apply template</april:button>
                         </form>
                     </slot:content>
@@ -250,8 +250,8 @@
                     <slot:content>
                         <form method="POST" action="{{ route('course-offerings.gradebook.templates.store', $courseOffering) }}" class="grid gap-3 md:grid-cols-[1fr_2fr_auto]">
                             @csrf
-                            <div><april:input name="template_name" value="{{ old('template_name') }}" required placeholder="Template name" />@error('template_name')<p class="mt-1 text-sm text-destructive">{{ $message }}</p>@enderror</div>
-                            <div><april:input name="description" value="{{ old('description') }}" placeholder="When should staff use this template?" />@error('description')<p class="mt-1 text-sm text-destructive">{{ $message }}</p>@enderror</div>
+                            <div><april:input name="template_name" value="{{ old('template_name') }}" required placeholder="Template name" /><x-field-error name="template_name" class="mt-1" /></div>
+                            <div><april:input name="description" value="{{ old('description') }}" placeholder="When should staff use this template?" /><x-field-error name="description" class="mt-1" /></div>
                             <april:button type="submit">Save as template</april:button>
                         </form>
                     </slot:content>

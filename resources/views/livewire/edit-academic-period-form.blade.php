@@ -11,14 +11,12 @@
             </div>
             <div class="flex w-full flex-col gap-2">
                 <april:label for="type">Period type</april:label>
-                <select id="type" name="type" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                <select id="type" name="type" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ field_error_bindings('type') }}>
                     @foreach (\App\Enums\AcademicPeriodType::cases() as $type)
                         <option value="{{ $type->value }}" {{ old('type', $academicPeriod->type->value) === $type->value ? 'selected' : '' }}>{{ $type->label() }}</option>
                     @endforeach
                 </select>
-                @error('type')
-                    <p class="text-sm text-destructive">{{ $message }}</p>
-                @enderror
+                <x-field-error name="type" />
             </div>
             @csrf
             @method('PUT')

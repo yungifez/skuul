@@ -33,7 +33,7 @@
                                     </option>
                                 @endforeach
                             </april:native-select>
-                            @error('student_record_id') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                            <x-field-error name="student_record_id" />
                         </div>
 
                         <div class="flex flex-col gap-2 lg:col-span-2">

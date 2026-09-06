@@ -33,25 +33,25 @@
                                 <option value="{{ $person->id }}" @selected(old('user_id') == $person->id)>{{ $person->name }}</option>
                             @endforeach
                         </april:native-select>
-                        @error('user_id') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <x-field-error name="user_id" />
                     </div>
 
                     <div class="flex flex-col gap-2">
                         <april:label for="staff_number">Staff number</april:label>
                         <april:input id="staff_number" name="staff_number" value="{{ old('staff_number') }}" placeholder="Optional" />
-                        @error('staff_number') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <x-field-error name="staff_number" />
                     </div>
 
                     <div class="flex flex-col gap-2">
                         <april:label for="job_title">Job title</april:label>
                         <april:input id="job_title" name="job_title" value="{{ old('job_title') }}" placeholder="Teacher" />
-                        @error('job_title') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <x-field-error name="job_title" />
                     </div>
 
                     <div class="flex flex-col gap-2">
                         <april:label for="department">Department</april:label>
                         <april:input id="department" name="department" value="{{ old('department') }}" placeholder="Science" />
-                        @error('department') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <x-field-error name="department" />
                     </div>
 
                     <div class="flex flex-col gap-2">
@@ -61,14 +61,14 @@
                                 <option value="{{ $type->value }}" @selected(old('employment_type') === $type->value)>{{ $type->label() }}</option>
                             @endforeach
                         </april:native-select>
-                        @error('employment_type') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <x-field-error name="employment_type" />
                     </div>
 
                     <div class="flex flex-col gap-2">
                         <april:label for="joined_on">Joined on</april:label>
                         <input type="date" id="joined_on" name="joined_on" value="{{ old('joined_on', now()->toDateString()) }}"
-                            class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                        @error('joined_on') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                            class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('joined_on') }}>
+                        <x-field-error name="joined_on" />
                     </div>
                 </div>
             </slot:content>

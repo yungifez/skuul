@@ -15,9 +15,7 @@
                         placeholder="person@example.com"
                         aria-label="Email address"
                         class="w-full" />
-                    @error('email')
-                        <p class="mt-1 text-sm text-destructive">{{ $message }}</p>
-                    @enderror
+                    <x-field-error name="email" class="mt-1" />
                 </div>
                 <april:button type="submit">
                     <x-lucide-user-plus class="mr-2 size-4" />
@@ -110,7 +108,7 @@
                                                 wire:model="draftPermissions"
                                                 value="{{ $permission->value }}"
                                                 @checked(in_array($permission->value, $draftPermissions, true))
-                                                class="mt-0.5 size-4 shrink-0 cursor-pointer accent-primary" />
+                                                class="mt-0.5 size-4 shrink-0 cursor-pointer accent-primary"  {{ field_error_bindings('draftPermissions') }}/>
                                             <span>
                                                 <span class="font-medium">{{ $permission->label() }}</span>
                                                 <span class="block text-muted-foreground">{{ $permission->description() }}</span>
@@ -123,9 +121,7 @@
                                 </div>
                             @endunless
 
-                            @error('draftPermissions')
-                                <p class="text-sm text-destructive">{{ $message }}</p>
-                            @enderror
+                            <x-field-error name="draftPermissions" />
 
                             <div class="flex flex-wrap gap-2">
                                 <april:button type="button" size="sm" wire:click="savePermissions">Save permissions</april:button>

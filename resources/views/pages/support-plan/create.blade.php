@@ -40,7 +40,7 @@
                                 </option>
                             @endforeach
                         </april:native-select>
-                        @error('student_record_id') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <x-field-error name="student_record_id" />
                     </div>
 
                     <div class="flex flex-col gap-2">
@@ -55,7 +55,7 @@
                         <p class="text-xs text-muted-foreground">
                             A health or counselling plan is confidential the moment you save it. Only the people who run it can read it.
                         </p>
-                        @error('category') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <x-field-error name="category" />
                     </div>
                 </div>
             </slot:content>
@@ -70,30 +70,30 @@
                         <april:label for="title">Title</april:label>
                         <april:input id="title" name="title" value="{{ old('title') }}" required
                             placeholder="Extra reading, four mornings a week" />
-                        @error('title') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <x-field-error name="title" />
                     </div>
 
                     <div class="flex flex-col gap-2 lg:col-span-2">
                         <april:label for="summary">Summary</april:label>
                         <textarea id="summary" name="summary" rows="4"
                             class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-                            placeholder="Optional. Say what the child needs and what the school agreed to do.">{{ old('summary') }}</textarea>
-                        @error('summary') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                            placeholder="Optional. Say what the child needs and what the school agreed to do." {{ field_error_bindings('summary') }}>{{ old('summary') }}</textarea>
+                        <x-field-error name="summary" />
                     </div>
 
                     <div class="flex flex-col gap-2">
                         <april:label for="starts_on">Starts on</april:label>
                         <input type="date" id="starts_on" name="starts_on" value="{{ old('starts_on', now()->toDateString()) }}"
-                            class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
-                        @error('starts_on') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                            class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('starts_on') }}>
+                        <x-field-error name="starts_on" />
                     </div>
 
                     <div class="flex flex-col gap-2">
                         <april:label for="review_on">Look at it again on</april:label>
                         <input type="date" id="review_on" name="review_on" value="{{ old('review_on') }}"
-                            class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring">
+                            class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring" {{ field_error_bindings('review_on') }}>
                         <p class="text-xs text-muted-foreground">The list warns you when this day passes.</p>
-                        @error('review_on') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <x-field-error name="review_on" />
                     </div>
 
                     <div class="flex flex-col gap-2">
@@ -104,7 +104,7 @@
                                 <option value="{{ $person->id }}" @selected(old('assigned_to') == $person->id)>{{ $person->name }}</option>
                             @endforeach
                         </april:native-select>
-                        @error('assigned_to') <p class="text-sm text-destructive">{{ $message }}</p> @enderror
+                        <x-field-error name="assigned_to" />
                     </div>
                 </div>
             </slot:content>
