@@ -160,7 +160,9 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
             role="presentation" x-on:click="closePalette()">
             <div x-show="open" x-transition class="w-full max-w-2xl overflow-hidden rounded-xl border bg-background shadow-2xl"
                 role="dialog" aria-modal="true" aria-labelledby="command-palette-title" x-on:click.stop>
-                <h2 id="command-palette-title" class="sr-only">{{ __('Search pages and features') }}</h2>
+                {{-- aria-labelledby takes any element. A heading here opened
+                the page one level under nothing, before the page h1. --}}
+                <p id="command-palette-title" class="sr-only">{{ __('Search pages and features') }}</p>
                 <div class="flex items-center gap-3 border-b px-4">
                     <x-lucide-search class="size-5 shrink-0 text-muted-foreground" />
                     <input x-ref="searchInput" x-model="query" type="search"

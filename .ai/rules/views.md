@@ -76,3 +76,17 @@ with `aria-describedby`.
 
 `app/helpers.php` holds all three helpers, so both sides work the id out the
 same way. `tests/Feature/FieldErrorWiringTest.php` covers it.
+
+## Headings step down one level at a time
+
+The page heading in `layouts/app.blade.php` is the only `h1`. Everything under
+it must step down one level at a time, so a screen reader reader can trust the
+outline.
+
+- `april:card`, `april:alert`, `april:dialog-header` and `april:sheet-header`
+  render their title as an `h2`. Pass `level="3"` when the component sits
+  inside a section that already holds a heading.
+- Do not use a heading to label a dialog or a toast. `aria-labelledby` takes
+  any element, and `role="alert"` reads the whole message out.
+
+`tests/Feature/HeadingOrderTest.php` walks real screens and fails on a skip.

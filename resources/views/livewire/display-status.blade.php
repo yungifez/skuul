@@ -43,7 +43,9 @@
                     <span class="flex size-4 items-center justify-center rounded-full border text-xs font-bold" x-text="notification.type === 'danger' ? '!' : '✓'"></span>
                 </div>
                 <div class="w-full">
-                    <h5 class="mb-1 font-medium leading-none tracking-tight" x-text="notification.title"></h5>
+                    {{-- role="alert" reads the whole toast out. A heading in
+                    a message that disappears only clutters heading navigation. --}}
+                    <p class="mb-1 font-medium leading-none tracking-tight" x-text="notification.title"></p>
                     <div class="text-sm" x-text="notification.message"></div>
                 </div>
                 <button type="button" class="absolute right-4 top-4 rounded-sm opacity-70 transition-opacity hover:opacity-100" aria-label="Dismiss notification" x-on:click="remove(notification.id)">
