@@ -74,7 +74,11 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
             </div>
         </slot:header>
 
-        <slot:content class="beautify-scrollbar" wire:navigate:scroll>
+        {{-- april merges these attributes onto the wrapper it draws for the
+        slot, so the sidebar becomes a landmark without a new element. The
+        label separates it from the breadcrumb trail. --}}
+        <slot:content class="beautify-scrollbar" wire:navigate:scroll role="navigation"
+            aria-label="Main">
             @foreach ($menuGroups as $group)
             @if (collect($group['items'])->contains(fn (array $menuItem): bool => $menuItem['visible'] ?? true))
             <april:sidebar-group>

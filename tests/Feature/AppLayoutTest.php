@@ -41,6 +41,16 @@ class AppLayoutTest extends TestCase
         $this->assertStringContainsString('focus:not-sr-only', $html);
     }
 
+    public function test_the_sidebar_is_a_labelled_navigation_landmark(): void
+    {
+        $html = $this->dashboardHtml();
+
+        // april draws the sidebar twice, once for the desktop layout and once
+        // for the mobile sheet. Only one of the two is ever visible, so both
+        // carry the landmark.
+        $this->assertSame(2, substr_count($html, 'role="navigation" aria-label="Main"'));
+    }
+
     /**
      * Render the dashboard as somebody who may open it.
      */
