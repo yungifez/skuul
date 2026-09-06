@@ -240,6 +240,22 @@ function submitButtonsOf(form) {
     return form.querySelectorAll('button:not([type]), button[type="submit"], input[type="submit"]');
 }
 
+function releaseForm(form) {
+    delete form.dataset.submitting;
+
+    submitButtonsOf(form).forEach((submitButton) => {
+        submitButton.disabled = false;
+        submitButton.removeAttribute("aria-busy");
+    });
+}
+
+/**
+ * Does Livewire answer this form's submit itself?
+ */
+function isLivewireForm(form) {
+    return form.getAttributeNames().some((name) => name.startsWith("wire:submit"));
+}
+
 /**
  * Let a form work again after the browser restores the page it was on.
  *
@@ -248,13 +264,22 @@ function submitButtonsOf(form) {
  * it was, so the reader cannot submit it again. Clear the flag on restore.
  */
 function releaseSubmittedForms() {
-    document.querySelectorAll('form[data-submitting="true"]').forEach((form) => {
-        delete form.dataset.submitting;
+    document.querySelectorAll('form[data-submitting="true"]').forEach(releaseForm);
+}
 
-        submitButtonsOf(form).forEach((submitButton) => {
-            submitButton.disabled = false;
-            submitButton.removeAttribute("aria-busy");
-        });
+/**
+ * Let a Livewire form work again once its request comes back.
+ *
+ * A wire:submit form cancels the native submit and sends the work over AJAX,
+ * so the page never navigates. Neither pageshow nor livewire:navigated fires,
+ * and the buttons the submit handler disabled stayed disabled until the reader
+ * reloaded the page. Livewire answers every commit, so release the form there.
+ */
+function releaseLivewireForms() {
+    document.querySelectorAll('form[data-submitting="true"]').forEach((form) => {
+        if (isLivewireForm(form)) {
+            releaseForm(form);
+        }
     });
 }
 
@@ -265,6 +290,13 @@ window.addEventListener("pageshow", (event) => {
 });
 
 document.addEventListener("livewire:navigated", releaseSubmittedForms);
+
+document.addEventListener("livewire:init", () => {
+    Livewire.hook("commit", ({ respond, fail }) => {
+        respond(releaseLivewireForms);
+        fail(releaseLivewireForms);
+    });
+});
 
 systemThemeQuery.addEventListener("change", () => {
     if (window.localStorage.getItem(themeStorageKey) === "system") {
