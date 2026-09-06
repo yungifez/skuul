@@ -266,3 +266,12 @@
 - Impact: The link is the first stop for a keyboard reader on a page with over a hundred sidebar links. Focus moved to a control nobody could see, so a sighted keyboard reader lost track of the focus position and could not tell the link was there.
 - Reproduction: Open any dashboard page, press Tab once, then look at the top left corner. Nothing appeared.
 - Resolution: The link now carries `focus:not-sr-only` with position, padding, background, and a focus ring. Verified in Chrome: while blurred the link measures 1x1 and is clipped; once focused it measures 125x36 at the top left corner, with `clip-path: none`. Three tests in `AppLayoutTest` cover the single landmark, the focusable target, and the focus style. All three fail without the fix.
+
+## Link buttons were painted in a colour nobody could read
+
+- Status: Fixed
+- Area: Colour contrast, whole application
+- Observed: April UI paints its `link` button variant with `text-primary`, and the rich text editor paints its links the same way. `--primary` is a surface colour in this theme, not a text colour: a light tan on the light background, a dark brown on the dark one.
+- Impact: The text landed at 1.59:1 on the light theme and 1.73:1 on the dark one. WCAG AA asks for 4.5:1. The colour is close enough to the page background that the link is hard to find at all. This hit every "link" button in the application, including several primary actions in table rows.
+- Reproduction: Open any page with a link button and measure the computed colour against the page background. Light theme: `rgb(214, 187, 164)` on `rgb(235, 241, 234)`. Dark theme: `rgb(84, 54, 28)` on `rgb(12, 18, 15)`.
+- Resolution: `resources/css/app.css` repaints these links with `--primary-foreground`, the readable half of the same colour pair. It holds the same brown hue, so the links keep their look. They now measure 12.32:1 on the light background and 8.11:1 on the dark one. The rule sits outside every `@layer`, because a layered rule loses to a Tailwind utility whatever its specificity. Three tests cover it, including one that fails the day April UI changes the variant itself.

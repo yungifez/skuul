@@ -19,6 +19,19 @@
     transform: none !important;
 }
 
+/* April UI paints the "link" button variant and rich-text links with
+   --primary. That token is a surface colour in both themes: a light tan on
+   the light background, a dark brown on the dark one. As text it lands at
+   1.59:1 and 1.73:1, far below the 4.5:1 the WCAG AA minimum asks for.
+   --primary-foreground is the readable half of the same pair, and it holds
+   the same brown hue, so these links keep their look and become legible:
+   12.32:1 on the light background and 8.11:1 on the dark one. Both rules sit
+   outside every layer so they beat the Tailwind utility. */
+[data-slot="button"].text-primary,
+[data-slot="editor-content"] .tiptap a {
+    color: hsl(var(--primary-foreground));
+}
+
 @layer components {
     .beautify-scrollbar::-webkit-scrollbar {
         width: 5px;
