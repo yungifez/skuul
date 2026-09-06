@@ -82,7 +82,11 @@ class NativeChoiceControlPaintTest extends TestCase
             $source = (string) file_get_contents($file->getPathname());
             $relative = str_replace($root.'/', '', $file->getPathname());
 
-            if (!preg_match_all('/<input\b[^>]*>/s', $source, $matches, PREG_OFFSET_CAPTURE)) {
+            // A Blade arrow, as in $student->name, puts a > inside the tag and
+            // ends the match early. Blank the arrows before matching.
+            $safe = str_replace(['->', '=>'], ['-_', '=_'], $source);
+
+            if (!preg_match_all('/<input\b[^>]*>/s', $safe, $matches, PREG_OFFSET_CAPTURE)) {
                 continue;
             }
 
@@ -91,7 +95,7 @@ class NativeChoiceControlPaintTest extends TestCase
                     continue;
                 }
 
-                $tags[] = [$relative, substr_count(substr($source, 0, $offset), "\n") + 1, $tag];
+                $tags[] = [$relative, substr_count(substr($safe, 0, $offset), "\n") + 1, $tag];
             }
         }
 
