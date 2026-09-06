@@ -16,7 +16,7 @@ class ListFeesTable extends DataTableComponent
 
     protected function builder(): Builder
     {
-        return Fee::query()->whereRelation('feeCategory', 'school_id', current_school_id())->with('feeCategory')->orderBy('name');
+        return Fee::query()->whereRelation('feeCategory', 'school_id', current_school_id())->with('feeCategory')->withCount('feeInvoiceRecords')->orderBy('name');
     }
 
     /** @return array<int, Column> */

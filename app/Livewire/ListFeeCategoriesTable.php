@@ -16,7 +16,7 @@ class ListFeeCategoriesTable extends DataTableComponent
 
     protected function builder(): Builder
     {
-        return FeeCategory::query()->inSchool()->orderBy('name');
+        return FeeCategory::query()->inSchool()->withCount('fees')->orderBy('name');
     }
 
     /** @return array<int, Column> */

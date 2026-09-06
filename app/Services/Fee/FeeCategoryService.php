@@ -2,6 +2,7 @@
 
 namespace App\Services\Fee;
 
+use App\Exceptions\InvalidValueException;
 use App\Models\FeeCategory;
 
 class FeeCategoryService
@@ -9,14 +10,14 @@ class FeeCategoryService
     /**
      * Store a fee category.
      *
-     * @param array $record
+     * @param  array  $record
      */
     public function storeFeeCategory($record): FeeCategory
     {
         $feeCategory = FeeCategory::create([
-            'name'        => $record['name'],
+            'name' => $record['name'],
             'description' => $record['description'] ?? null,
-            'school_id'   => $record['school_id'],
+            'school_id' => $record['school_id'],
         ]);
 
         return $feeCategory;
@@ -25,12 +26,12 @@ class FeeCategoryService
     /**
      * Update a fee category.
      *
-     * @param array<string, mixed> $record
+     * @param  array<string, mixed>  $record
      */
     public function updateFeeCategory(FeeCategory $feeCategory, $record): FeeCategory
     {
         $feeCategory->update([
-            'name'        => $record['name'],
+            'name' => $record['name'],
             'description' => $record['description'] ?? null,
         ]);
 
@@ -42,6 +43,10 @@ class FeeCategoryService
      */
     public function deleteFeeCategory(FeeCategory $feeCategory): ?bool
     {
+        if ($feeCategory->fees()->exists()) {
+            throw new InvalidValueException('This category holds fees, so it cannot be deleted. Delete the fees in it first.');
+        }
+
         return $feeCategory->delete();
     }
 }

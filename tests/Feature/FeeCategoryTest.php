@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\ListFeeCategoriesTable;
+use App\Models\Fee;
 use App\Models\FeeCategory;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class FeeCategoryTest extends TestCase
@@ -48,13 +51,13 @@ class FeeCategoryTest extends TestCase
         $description = $this->faker->sentence();
         $this->unauthorized_user()
             ->post('dashboard/fees/fee-categories/', [
-                'name'         => $name,
+                'name' => $name,
                 'descripttion' => $description,
             ])
             ->assertForbidden();
 
         $this->assertDatabaseMissing('fee_categories', [
-            'name'        => $name,
+            'name' => $name,
             'description' => $description,
         ]);
     }
@@ -65,13 +68,13 @@ class FeeCategoryTest extends TestCase
         $description = $this->faker->sentence();
         $this->authorized_user(['create fee category'])
             ->post('dashboard/fees/fee-categories/', [
-                'name'        => $name,
+                'name' => $name,
                 'description' => $description,
             ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('fee_categories', [
-            'name'        => $name,
+            'name' => $name,
             'description' => $description,
         ]);
     }
@@ -102,13 +105,13 @@ class FeeCategoryTest extends TestCase
 
         $this->unauthorized_user()
             ->put("dashboard/fees/fee-categories/$FeeCategory->id", [
-                'name'        => $name,
+                'name' => $name,
                 'description' => $description,
             ])
             ->assertForbidden();
 
         $this->assertDatabaseMissing('fee_categories', [
-            'id'   => $FeeCategory->id,
+            'id' => $FeeCategory->id,
             'name' => $name,
         ]);
     }
@@ -121,15 +124,39 @@ class FeeCategoryTest extends TestCase
 
         $this->authorized_user(['update fee category'])
             ->put("dashboard/fees/fee-categories/$FeeCategory->id", [
-                'name'        => $name,
+                'name' => $name,
                 'description' => $description,
             ])
             ->assertRedirect();
 
         $this->assertDatabaseHas('fee_categories', [
-            'id'   => $FeeCategory->id,
+            'id' => $FeeCategory->id,
             'name' => $name,
         ]);
+    }
+
+    /**
+     * The fees index and the fee policy both read the category off the
+     * relation, which is null once the category is soft deleted.
+     */
+    public function test_a_category_that_holds_fees_cannot_be_deleted()
+    {
+        $school = $this->workingSchool();
+        $feeCategory = FeeCategory::factory()->create(['school_id' => $school->id]);
+        Fee::factory()->create(['fee_category_id' => $feeCategory->id]);
+
+        $office = $this->authorized_user(['delete fee category', 'read fee']);
+
+        $office->delete("dashboard/fees/fee-categories/$feeCategory->id")
+            ->assertRedirect()
+            ->assertSessionHas('danger');
+
+        $this->assertNotSoftDeleted($feeCategory);
+
+        $office->get('dashboard/fees')->assertSuccessful();
+
+        Livewire::test(ListFeeCategoriesTable::class)
+            ->assertSee('row.fees_count === 0', false);
     }
 
     public function test_unauthorized_user_cannot_delete_fee_category()

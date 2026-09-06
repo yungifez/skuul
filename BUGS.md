@@ -484,3 +484,12 @@
 - Impact: A reader who pressed such a button was bounced back with a message and no change. Repeated often enough, that teaches a reader to distrust the row actions.
 - Reproduction: Open the subject catalog with one taught subject. The delete action showed on it, and pressing it did nothing but raise an error.
 - Resolution: An action may carry a `when` key holding an Alpine expression over `row`, for example `row.course_offerings_count === 0`. The control is hidden on rows the expression rejects. The expression is worked out in a `@php` block, because a Blade directive inside an april tag breaks its precompiler.
+
+## Deleting a fee or its category broke the screens that named it
+
+- Status: Fixed
+- Area: Finance, the fee catalog
+- Observed: `FeeService::deleteFee()` and `FeeCategoryService::deleteFeeCategory()` both deleted with no check on what pointed at them. Both models soft delete, so the row stayed while every `belongsTo` back to it read null. `show-fee-invoice.blade.php` and `edit-fee-invoice-form.blade.php` read `$record->fee->name`, `ListFeesTable` reads `$fee->feeCategory->name`, and `FeePolicy` reads `$fee->feeCategory->school_id` on every check.
+- Impact: Deleting a fee that was on an invoice took both invoice screens to a 500 error, so the invoice could no longer be read or corrected. Deleting a category took the whole fees index down, and the policy threw on any single fee, so even opening one fee failed. This is the same fault as the taught subject, in the two places above it.
+- Reproduction: Raise an invoice carrying one fee, delete that fee from the catalog, then open the invoice. The page returned 500.
+- Resolution: A fee that is on an invoice and a category that holds fees are both refused, with a message saying what to clear first. Both tables hide the delete action on rows that are in use, using the `when` key added to `x-table-actions`. `tests/Feature/FeeTest.php` and `tests/Feature/FeeCategoryTest.php` delete a record that is in use, then open the screen that reads it.
