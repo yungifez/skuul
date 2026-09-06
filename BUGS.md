@@ -403,3 +403,30 @@
 - Impact: A screen reader reader moves through a page by heading. When the level jumps from 1 to 3 that reader cannot tell whether a section was missed or the page simply left a number out, so they stop trusting the outline and read the whole page instead. WCAG technique G141 asks for heading levels that step down one at a time.
 - Reproduction: Open any dashboard screen and read the headings in order. `/dashboard/cohorts` gave `h2` (command palette), `h1` (page), `h3` (card), `h3` (card), `h5` (toast). `/dashboard/calendar-events` gave `h1` then `h5` for "1 event is still a draft".
 - Resolution: Fixed in April UI 1.2.6. Card, alert, dialog-header and sheet-header now render their title as an `h2`, one level under the page heading, and take a `level` prop for a title that belongs inside a section. A dropdown menu label names a group of items inside `role="menu"`, so it is now a `div` and stays out of the heading order. On the application side the command palette labels its dialog with a `<p>`, because `aria-labelledby` takes any element, and the toast titles itself with a `<p>`, because `role="alert"` reads the whole message out and a message that disappears does not belong in the heading list. Three tests walk real screens and fail on any skipped level.
+
+## Adding a fee to an invoice crashed the screen
+
+- Status: Fixed
+- Area: Finance, the create fee invoice screen
+- Observed: The waiver box on a fee row carried `:max="amount"`. Blade reads a leading colon as a PHP expression, not as an Alpine binding, so the view compiled to a constant named `amount`. The row threw "Undefined constant \"amount\"" as soon as it rendered. A stray bare `x-bind` attribute beside it suggests somebody had already tried to work around this.
+- Impact: The screen worked until the first fee was added, then the whole Livewire component threw and the reader saw an error page. No invoice could be raised from this screen at all. The waiver cap the binding was meant to apply never worked either.
+- Reproduction: Open the create fee invoice screen and press "Add Fee(s)". Rendering the component with one added fee throws a `ViewException`.
+- Resolution: The binding is written in Alpine's long form, `x-bind:max="amount"`, which Blade passes through untouched. `tests/Feature/ControlNameTest.php` renders the component with a fee added; it throws without the fix.
+
+## A form control in a table row did not say what it was for
+
+- Status: Fixed
+- Area: Forms, three screens
+- Observed: Seven controls sat in table cells with no name of their own. The house roll gave each boarder a status select and two text boxes, the create fee invoice screen gave each fee an amount, a waiver and a fine box, and the gradebook reject box carried only a placeholder. A column heading names the column. It is not the accessible name of a control inside the column.
+- Impact: A screen reader read a row as an unlabelled select and two unlabelled boxes, repeated once per boarder or per fee. Nothing said which row was being filled in. WCAG 2.1 SC 1.3.1 and 4.1.2 both ask for a name on the control itself.
+- Reproduction: Open a house roll with one boarder and read the status select. It had no `aria-label`, no `aria-labelledby`, and no label pointing at an id.
+- Resolution: Each control names its row and its column, for example `aria-label="Status for Ada Bello"`. This follows the convention the gradebook mark boxes already used. `tests/Feature/ControlNameTest.php` renders all three screens and fails on any control in a table cell that nothing names.
+
+## Removing a fee moved typed amounts onto the wrong fee
+
+- Status: Fixed
+- Area: Finance, the create fee invoice screen
+- Observed: The added-fee rows and the added-student rows carried no `wire:key`. Livewire matches rows by position when no key says otherwise. A typed value lives on the DOM node, not in the markup Livewire sends, so removing a row from the middle left the typed amounts where they were while the fee ids under them shifted up by one.
+- Impact: The reader removed one fee and the amounts, waivers and fines they had already typed silently moved onto the fees below. The `name` attributes moved with the markup, so the wrong figures were posted under the wrong fee ids. The running total in the last column showed the same wrong numbers, so nothing looked out of place.
+- Reproduction: Add three fees, type an amount into each, then remove the first. The second row kept the first row's amount.
+- Resolution: Both loops key their rows by record id, so Livewire moves the right row. `resources/views/livewire/assign-students-to-parent.blade.php` rebuilds its rows on a Livewire action too and is keyed the same way.

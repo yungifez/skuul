@@ -371,7 +371,7 @@
                                                         <form method="POST" action="{{ route('course-offerings.gradebook.results.reject', $courseOffering) }}" class="flex gap-2">
                                                             @csrf
                                                             <input type="hidden" name="result_snapshot_id" value="{{ $submittedResult->id }}">
-                                                            <april:input name="reason" required maxlength="500" placeholder="Reason to reject" class="h-8 w-40 px-2 text-xs" />
+                                                            <april:input aria-label="Reason to reject the result for {{ $student->user?->name ?? $student->admission_number }}" name="reason" required maxlength="500" placeholder="Reason to reject" class="h-8 w-40 px-2 text-xs" />
                                                             <april:button size="sm" variant="outline" type="submit">Reject</april:button>
                                                         </form>
                                                     </div>

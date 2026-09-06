@@ -39,21 +39,22 @@
                 </thead>
                 <tbody class="divide-y">
                     @foreach ($roll->entries as $entry)
+                        @php($boarder = $entry->studentRecord->user?->name ?? $entry->studentRecord->admission_number)
                         <tr class="align-middle">
                             <td class="px-6 py-4">
-                                <p class="font-medium">{{ $entry->studentRecord->user?->name ?? $entry->studentRecord->admission_number }}</p>
+                                <p class="font-medium">{{ $boarder }}</p>
                                 <p class="mt-1 text-xs text-muted-foreground">{{ $entry->studentRecord->admission_number }}</p>
                             </td>
                             <td class="px-6 py-4">
                                 <input type="hidden" name="entries[{{ $entry->id }}][id]" value="{{ $entry->id }}">
-                                <select name="entries[{{ $entry->id }}][status]" @disabled($roll->isComplete()) class="h-9 rounded-md border border-input bg-background px-3 text-sm">
+                                <select name="entries[{{ $entry->id }}][status]" aria-label="Status for {{ $boarder }}" @disabled($roll->isComplete()) class="h-9 rounded-md border border-input bg-background px-3 text-sm">
                                     @foreach ($statuses as $status)
                                         <option value="{{ $status->value }}" @selected($entry->status === $status)>{{ $status->label() }}</option>
                                     @endforeach
                                 </select>
                             </td>
-                            <td class="px-6 py-4"><input name="entries[{{ $entry->id }}][location]" value="{{ $entry->location }}" @disabled($roll->isComplete()) maxlength="150" placeholder="Optional" class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"></td>
-                            <td class="px-6 py-4"><input name="entries[{{ $entry->id }}][note]" value="{{ $entry->note }}" @disabled($roll->isComplete()) maxlength="1000" placeholder="Optional" class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"></td>
+                            <td class="px-6 py-4"><input name="entries[{{ $entry->id }}][location]" aria-label="Location for {{ $boarder }}" value="{{ $entry->location }}" @disabled($roll->isComplete()) maxlength="150" placeholder="Optional" class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"></td>
+                            <td class="px-6 py-4"><input name="entries[{{ $entry->id }}][note]" aria-label="Note for {{ $boarder }}" value="{{ $entry->note }}" @disabled($roll->isComplete()) maxlength="1000" placeholder="Optional" class="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"></td>
                         </tr>
                     @endforeach
                 </tbody>

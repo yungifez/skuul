@@ -49,7 +49,7 @@
                             </tr>
                         </thead>
                         @foreach($children as $student)
-                            <tr>
+                            <tr wire:key="child-{{ $student['id'] }}">
                                 <td class="p-4 text-center border">{{$loop->iteration}}</td>
                                 <td class="p-4 text-center border">{{ $student['name'] }}</td>
                                 <td class="p-4 text-center border">{{ $student['cycle_section'] ?? 'Not currently placed' }}</td>

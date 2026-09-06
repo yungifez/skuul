@@ -84,7 +84,7 @@
                         </thead>
                         <tbody>
                             @foreach ($addedStudents->SortBy('name') as $addedStudent)
-                                <tr>
+                                <tr wire:key="added-student-{{ $addedStudent['id'] }}">
                                     <td class="border p-4 text-center">{{$loop->iteration}}</td>
                                     <td class="border p-4 text-center">{{$addedStudent['name']}}</td>
                                     <td class="border p-4 text-center">{{$addedStudent['email']}}</td>
@@ -148,17 +148,17 @@
                         </thead>
                         <tbody >
                             @foreach ($addedFees as $index => $addedFee)
-                                <tr x-data="{'amount': 0, 'waiver' : 0, 'fine' : 0}">
+                                <tr wire:key="added-fee-{{ $addedFee['id'] }}" x-data="{'amount': 0, 'waiver' : 0, 'fine' : 0}">
                                     <td class="border p-4 text-center">{{$loop->iteration}}</td>
                                     <td class="border p-4 text-center whitespace-nowrap">{{$addedFee['name']}}</td>
                                     <td class="border p-4 text-center whitespace-nowrap">
-                                        <april:input-group type="number" :id="$addedFee['id'].'-amount'" name="records[{{$addedFee['id']}}][amount]" class="w-40 md:w-full" x-model.number="amount" />
+                                        <april:input-group type="number" aria-label="Amount for {{ $addedFee['name'] }}" :id="$addedFee['id'].'-amount'" name="records[{{$addedFee['id']}}][amount]" class="w-40 md:w-full" x-model.number="amount" />
                                     </td>
                                     <td class="border p-4 text-center whitespace-nowrap">
-                                        <april:input-group type="number" :id="$addedFee['id'].'-waiver'" name="records[{{$addedFee['id']}}][waiver]" class="w-40 md:w-full" x-bind :max="amount" x-model.number="waiver" />
+                                        <april:input-group type="number" aria-label="Waiver for {{ $addedFee['name'] }}" :id="$addedFee['id'].'-waiver'" name="records[{{$addedFee['id']}}][waiver]" class="w-40 md:w-full" x-bind:max="amount" x-model.number="waiver" />
                                     </td>
                                     <td class="border p-4 text-center whitespace-nowrap">
-                                        <april:input-group type="number" :id="$addedFee['id'].'-fine'" name="records[{{$addedFee['id']}}][fine]" class="w-40 md:w-full" x-model.number="fine" />
+                                        <april:input-group type="number" aria-label="Fine for {{ $addedFee['name'] }}" :id="$addedFee['id'].'-fine'" name="records[{{$addedFee['id']}}][fine]" class="w-40 md:w-full" x-model.number="fine" />
                                     </td>
                                     <td class="border p-4 text-center whitespace-nowrap">
                                        <p x-text="((parseInt(amount) - parseInt(waiver) + parseInt(fine) ) || 0).toLocaleString()"></p>

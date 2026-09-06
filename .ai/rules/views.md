@@ -90,3 +90,26 @@ outline.
   any element, and `role="alert"` reads the whole message out.
 
 `tests/Feature/HeadingOrderTest.php` walks real screens and fails on a skip.
+
+## A leading colon is Blade, not Alpine
+
+Blade reads `:attribute="..."` on a component tag as a PHP expression. Alpine
+never sees it. `<april:input-group :max="amount">` compiled to a constant named
+`amount` and threw "Undefined constant". Write Alpine's long form instead:
+`x-bind:max="amount"`. Keep `:id="$record->id.'-amount'"` for a real PHP
+binding, which is what the colon is for.
+
+## Name a control that sits in a table row
+
+A column heading names the column, not the control inside it. Give every form
+control in a table cell an `aria-label` that names its row and its column:
+`aria-label="Status for {{ $boarder }}"`. `tests/Feature/ControlNameTest.php`
+walks three screens and fails on a control that nothing names.
+
+## Key a row a Livewire action can remove
+
+Livewire matches rows by position unless `wire:key` says otherwise. A value the
+reader typed lives on the DOM node, not in the markup, so removing a row from
+the middle carries typed values onto the wrong record. Key by record id:
+`<tr wire:key="added-fee-{{ $fee['id'] }}">`. `wire:key` on an `<april:*>` tag
+breaks the precompiler, so put it on a plain element.
