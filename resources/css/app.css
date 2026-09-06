@@ -52,6 +52,22 @@
     color: hsl(var(--destructive-text));
 }
 
+/* April UI binds --ring to --primary, which is a surface colour, so the focus
+   ring it paints is nearly the colour of the page. It measures 1.59:1 on the
+   light theme and 1.73:1 on the dark one, against the 3:1 WCAG 2.2 asks of a
+   focus indicator. A reader moving by keyboard could not see where the focus
+   had gone. --primary-foreground is the readable half of the same pair and
+   holds the same brown hue, so the ring keeps its look. It clears 3:1 on every
+   surface in both themes, the worst being 6.37:1 on a dark accent. Both rules
+   sit outside every layer so they beat the Tailwind utility. */
+:root {
+    --ring: var(--primary-foreground);
+}
+
+.dark {
+    --ring: var(--primary-foreground);
+}
+
 @layer components {
     .beautify-scrollbar::-webkit-scrollbar {
         width: 5px;

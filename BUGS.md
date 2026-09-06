@@ -338,3 +338,12 @@
 - Impact: A screen reader can list every link on a page. That list read "Open, Open, Open" twenty times over, with nothing to say which record each one opened. The only way to tell them apart was to leave the list and read the table row by row.
 - Reproduction: Open `/dashboard/health-records` and run `[...document.querySelectorAll('main a')].map(a => a.textContent.trim())`. Twenty entries came back reading "Open".
 - Resolution: Twenty views now give the row action an `aria-label` naming the row: "Open the health record for Ada Bell", "Open the gradebook for Mathematics, Year 7". The visible text is unchanged, so nothing moves and the button stays short. Two tests cover it. One walks every Blade view and fails if a link inside a loop carries a generic name with no `aria-label`, so the fault cannot come back on a new screen. Both fail without the fix.
+
+## The keyboard focus ring was almost invisible
+
+- Status: Fixed
+- Area: Keyboard navigation, whole application
+- Observed: April UI binds `--ring` to `--primary`. That token is a surface colour, so the ring the browser draws is nearly the colour of the page behind it. On the light theme it measured 1.59:1 on the page background, 1.71:1 on a card, 1.39:1 on a muted surface and 1.33:1 on an accent. On the dark theme it measured 1.73:1, 1.62:1 and 1.39:1. WCAG 2.2 asks for 3:1 on a focus indicator.
+- Impact: A reader who moves by keyboard could not see where the focus had gone. Every control on every screen was affected, including the login form and each row action on a list.
+- Reproduction: Open any page, press Tab, and read the focused control. `getComputedStyle` returned a ring of `rgb(84,54,28)` on a `rgb(12,18,15)` page. A screenshot showed no visible ring at all.
+- Resolution: `resources/css/app.css` binds `--ring` to `--primary-foreground` in both themes. That is the readable half of the same colour pair and holds the same brown hue, so the ring keeps its look. It now measures 12.32:1 on the light background and 8.11:1 on the dark one, and the worst surface in either theme is 6.37:1. Three tests cover it, including one that fails the day April UI gives the ring its own readable colour.
