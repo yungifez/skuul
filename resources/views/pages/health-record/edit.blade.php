@@ -19,7 +19,7 @@
     $fields = [
         ['name' => 'blood_group', 'label' => 'Blood group', 'hint' => 'Leave empty when the school has not been told'],
         ['name' => 'emergency_contact_name', 'label' => 'Emergency contact', 'hint' => 'The person to call first'],
-        ['name' => 'emergency_contact_phone', 'label' => 'Contact number', 'hint' => null],
+        ['name' => 'emergency_contact_phone', 'label' => 'Contact number', 'hint' => null, 'type' => 'tel'],
         ['name' => 'emergency_contact_relationship', 'label' => 'Relation to the child', 'hint' => null],
     ];
     $notes = [
@@ -69,7 +69,7 @@
                         @foreach ($fields as $field)
                             <div class="flex flex-col gap-2">
                                 <april:label for="{{ $field['name'] }}">{{ $field['label'] }}</april:label>
-                                <input type="text" id="{{ $field['name'] }}" name="{{ $field['name'] }}"
+                                <input type="{{ $field['type'] ?? 'text' }}" id="{{ $field['name'] }}" name="{{ $field['name'] }}"
                                     value="{{ old($field['name'], $record?->{$field['name']}) }}"
                                     @disabled(!$canWrite)
                                     class="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-60">

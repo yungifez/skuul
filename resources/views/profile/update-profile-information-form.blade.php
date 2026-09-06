@@ -77,7 +77,7 @@
             </div>
 
             <april:input-group id="nationality" name="nationality" label="Nationality" placeholder="Your nationality" wire:model.live="state.nationality" />
-            <april:input-group id="phone" name="phone" label="Phone number" placeholder="Your phone number" wire:model.live="state.phone" />
+            <april:input-group id="phone" name="phone" type="tel" autocomplete="tel" label="Phone number" placeholder="Your phone number" wire:model.live="state.phone" />
 
             <div class="flex flex-col gap-1 border-t pt-6 sm:col-span-2">
                 <h3 class="font-semibold">{{ __('Address') }}</h3>

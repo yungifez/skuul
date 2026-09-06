@@ -320,3 +320,12 @@
 - Impact: WCAG 2.2 asks for 24x24px. The sidebar toggle is the only way to reach the menu on a phone, so a reader who misses it cannot navigate at all. The toggle asks for `size-7`, but it sits on a flex line beside a `min-w-0` block, so a narrow screen squeezed it below its own width.
 - Reproduction: Open any dashboard page at 390px wide and measure the toggle. It returned 18x28. Open `/dashboard/calendar-events` and measure a plus icon. It returned 12x12.
 - Resolution: The toggle now carries `shrink-0`, so the flex line cannot squeeze it. The calendar plus icon is now wrapped in a padded 24x24 link that also carries an `aria-label` naming the day. Neither change moves anything on a wide screen. Two tests cover them, and both fail without the fix.
+
+## Phone fields opened a letter keyboard on a phone
+
+- Status: Fixed
+- Area: Mobile data entry, people forms and health records
+- Observed: A sweep of all 107 dashboard route shapes read every form control. The school form and the organization form already set `type="tel"` on their phone field. The create-person form, the edit-person form, the profile form, and the emergency contact number on a health record left theirs as plain text.
+- Impact: A phone shows the letter keyboard for a text field. The person must switch to the number layer for every digit. The emergency contact number is the worst case: it is typed by a nurse who is often standing next to the child.
+- Reproduction: Open `/dashboard/students/create` on a phone and press the phone field. The letter keyboard opens.
+- Resolution: The four remaining phone fields now carry `type="tel"`. The health record view takes an optional `type` per field, so the other three fields on that card stay plain text. The profile phone field also carries `autocomplete="tel"`, because it is the reader's own number. The other people forms record somebody else's number, so they are deliberately left without autocomplete. Two tests cover it. One walks every Blade view and fails if any phone field lacks `type="tel"`, so the fault cannot come back. Both fail without the fix.

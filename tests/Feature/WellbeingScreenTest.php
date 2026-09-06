@@ -197,6 +197,20 @@ class WellbeingScreenTest extends TestCase
             ->assertSee('Peanuts. Carry the pen.');
     }
 
+    public function test_the_emergency_number_asks_for_the_dial_pad(): void
+    {
+        $this->authorized_user(['read health record', 'update health record']);
+        $enrollment = $this->enrollment();
+
+        // A nurse who reads this on a phone needs the number keyboard, not
+        // the letter one. The other fields on the card stay plain text.
+        $html = (string) $this->get(route('health-records.edit', $enrollment))
+            ->assertOk()->getContent();
+
+        $this->assertStringContainsString('<input type="tel" id="emergency_contact_phone"', $html);
+        $this->assertStringContainsString('<input type="text" id="emergency_contact_name"', $html);
+    }
+
     public function test_a_health_record_validation_error_is_shown_on_the_screen(): void
     {
         $this->authorized_user(['read health record', 'update health record']);

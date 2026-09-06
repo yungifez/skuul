@@ -39,7 +39,7 @@
         </april:select>
     </div>
 
-    <april:input-group id="phone" name="phone" label="Phone number" placeholder="{{ $role }}'s phone number" value="{{ old('phone') }}" />
+    <april:input-group id="phone" name="phone" type="tel" label="Phone number" placeholder="{{ $role }}'s phone number" value="{{ old('phone') }}" />
     <april:input-group id="address" name="address" placeholder="{{ $role }}'s address line 1" label="Address line 1" value="{{ old('address') }}" />
     <april:input-group id="address-line-2" name="address_line_2" placeholder="Apartment, suite, or unit" label="Address line 2" value="{{ old('address_line_2') }}" />
 
