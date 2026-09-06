@@ -55,7 +55,7 @@
                             <td class="p-4 text-muted-foreground">{{ $role->users_count }}</td>
                             <td class="p-4 text-right">
                                 @can('assign', $role)
-                                    <april:button-link href="{{ route('roles.edit', $role->id) }}" variant="outline" size="sm">Open</april:button-link>
+                                    <april:button-link href="{{ route('roles.edit', $role->id) }}" variant="outline" size="sm" aria-label="Open the {{ $role->name }} role">Open</april:button-link>
                                 @endcan
                             </td>
                         </tr>

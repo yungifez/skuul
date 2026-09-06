@@ -72,19 +72,19 @@
                         @endif
                     @endcan
                     @can('create', \App\Models\AcademicLevel::class)
-                        <april:button-link href="{{ route('academic-levels.create', ['parent_id' => $academicLevel->id] + $setupParameters) }}" variant="outline" size="sm">Add class</april:button-link>
+                        <april:button-link href="{{ route('academic-levels.create', ['parent_id' => $academicLevel->id] + $setupParameters) }}" variant="outline" size="sm" aria-label="Add a class under {{ $academicLevel->name }}">Add class</april:button-link>
                     @endcan
                     @if (!$academicLevel->is_group && $children->isEmpty() && $academicYear !== null)
                         @can('create', \App\Models\AcademicCycleSection::class)
-                            <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_level_id' => $academicLevel->id] + $setupParameters) }}" variant="outline" size="sm">Add section</april:button-link>
+                            <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_level_id' => $academicLevel->id] + $setupParameters) }}" variant="outline" size="sm" aria-label="Add a section under {{ $academicLevel->name }}">Add section</april:button-link>
                         @endcan
                     @endif
                     @can('view', $academicLevel)
-                        <april:button-link href="{{ route('academic-levels.show', $academicLevel) }}" variant="ghost" size="sm">View level</april:button-link>
+                        <april:button-link href="{{ route('academic-levels.show', $academicLevel) }}" variant="ghost" size="sm" aria-label="View {{ $academicLevel->name }}">View level</april:button-link>
                     @endcan
                     @can('update', $academicLevel)
                         @if ($academicLevel->isEditable())
-                            <april:button-link href="{{ route('academic-levels.edit', $academicLevel) }}" variant="ghost" size="sm">
+                            <april:button-link href="{{ route('academic-levels.edit', $academicLevel) }}" variant="ghost" size="sm" aria-label="Edit {{ $academicLevel->name }}">
                                 <x-lucide-pencil class="mr-1.5 size-4" />
                                 Edit {{ strtolower(school_term('class_level', 'class')) }}
                             </april:button-link>

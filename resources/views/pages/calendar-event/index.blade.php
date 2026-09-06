@@ -208,7 +208,7 @@
                                             @unless ($event->is_published)
                                                 <span class="whitespace-nowrap rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground">Draft</span>
                                             @endunless
-                                            <april:button-link href="{{ route('calendar-events.edit', $event) }}" variant="outline" size="sm">
+                                            <april:button-link href="{{ route('calendar-events.edit', $event) }}" variant="outline" size="sm" aria-label="Open {{ $event->title }}">
                                                 <x-lucide-eye class="mr-1 size-4" />
                                                 Open
                                             </april:button-link>

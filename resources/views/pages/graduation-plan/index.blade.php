@@ -62,7 +62,8 @@
                                         @unless ($plan->is_active)
                                             <span class="whitespace-nowrap rounded-full border border-dashed px-2.5 py-0.5 text-xs text-muted-foreground">Closed</span>
                                         @endunless
-                                        <april:button-link href="{{ route('graduation-plans.show', $plan) }}" variant="outline" size="sm">
+                                        <april:button-link href="{{ route('graduation-plans.show', $plan) }}" variant="outline" size="sm"
+                                            aria-label="Open {{ $plan->name }}">
                                             <x-lucide-eye class="mr-1 size-4" />
                                             Open
                                         </april:button-link>

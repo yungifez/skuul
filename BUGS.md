@@ -329,3 +329,12 @@
 - Impact: A phone shows the letter keyboard for a text field. The person must switch to the number layer for every digit. The emergency contact number is the worst case: it is typed by a nurse who is often standing next to the child.
 - Reproduction: Open `/dashboard/students/create` on a phone and press the phone field. The letter keyboard opens.
 - Resolution: The four remaining phone fields now carry `type="tel"`. The health record view takes an optional `type` per field, so the other three fields on that card stay plain text. The profile phone field also carries `autocomplete="tel"`, because it is the reader's own number. The other people forms record somebody else's number, so they are deliberately left without autocomplete. Two tests cover it. One walks every Blade view and fails if any phone field lacks `type="tel"`, so the fault cannot come back. Both fail without the fix.
+
+## Every row on a list said the same thing to a screen reader
+
+- Status: Fixed
+- Area: Screen reader navigation, twenty list screens
+- Observed: A sweep of all 107 dashboard route shapes grouped the links on each screen by the name a screen reader reads. Fifteen screens held a row action whose name repeated on every row and pointed somewhere different each time. The worst were 25 links called "Open gradebook", 25 called "Edit roster", 20 called "Open", and 20 called "View".
+- Impact: A screen reader can list every link on a page. That list read "Open, Open, Open" twenty times over, with nothing to say which record each one opened. The only way to tell them apart was to leave the list and read the table row by row.
+- Reproduction: Open `/dashboard/health-records` and run `[...document.querySelectorAll('main a')].map(a => a.textContent.trim())`. Twenty entries came back reading "Open".
+- Resolution: Twenty views now give the row action an `aria-label` naming the row: "Open the health record for Ada Bell", "Open the gradebook for Mathematics, Year 7". The visible text is unchanged, so nothing moves and the button stays short. Two tests cover it. One walks every Blade view and fails if a link inside a loop carries a generic name with no `aria-label`, so the fault cannot come back on a new screen. Both fail without the fix.

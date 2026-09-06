@@ -128,7 +128,8 @@
                                         {{ $profile->joined_on?->format('j M Y') ?? 'No date' }}
                                     </april:data-table-cell>
                                     <april:data-table-cell class="text-right">
-                                        <april:button-link href="{{ route('staff-profiles.show', $profile) }}" variant="outline" size="sm">
+                                        <april:button-link href="{{ route('staff-profiles.show', $profile) }}" variant="outline" size="sm"
+                                            aria-label="Open the profile of {{ $profile->user?->name ?? $profile->staff_number ?? 'this member of staff' }}">
                                             <x-lucide-eye class="mr-1 size-4" />
                                             Open
                                         </april:button-link>

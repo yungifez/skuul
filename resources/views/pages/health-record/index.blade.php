@@ -110,7 +110,8 @@
                                         @endif
                                     </april:data-table-cell>
                                     <april:data-table-cell class="text-right">
-                                        <april:button-link href="{{ route('health-records.edit', $learner) }}" variant="outline" size="sm">
+                                        <april:button-link href="{{ route('health-records.edit', $learner) }}" variant="outline" size="sm"
+                                            aria-label="Open the health record for {{ $learner->user?->name ?? $learner->admission_number }}">
                                             <x-lucide-eye class="mr-1 size-4" />
                                             Open
                                         </april:button-link>

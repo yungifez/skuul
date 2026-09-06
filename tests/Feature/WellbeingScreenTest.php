@@ -175,6 +175,22 @@ class WellbeingScreenTest extends TestCase
             ->assertSee('Nothing held');
     }
 
+    public function test_each_row_action_names_the_learner_it_opens(): void
+    {
+        $this->authorized_user(['read health record', 'update health record']);
+        $first = $this->enrollment(User::factory()->create(['name' => 'Ada Bell']));
+        $second = $this->enrollment(User::factory()->create(['name' => 'Ben Cole']));
+
+        // A screen reader can list every link on the page. Rows that all say
+        // "Open" tell the reader nothing about which record each one opens.
+        $this->get(route('health-records.index'))
+            ->assertOk()
+            ->assertSee('aria-label="Open the health record for Ada Bell"', false)
+            ->assertSee('aria-label="Open the health record for Ben Cole"', false);
+
+        $this->assertNotSame($first->id, $second->id);
+    }
+
     public function test_a_health_record_is_written_from_the_screen(): void
     {
         $this->authorized_user(['read health record', 'update health record']);

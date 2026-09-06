@@ -67,12 +67,12 @@
                                     <april:data-table-cell class="text-right">
                                         <div class="flex items-center justify-end gap-2">
                                             @if ($timetable['can_manage'])
-                                                <april:button-link href="{{ route('timetables.manage', $timetable['id']) }}" variant="outline" size="sm">
+                                                <april:button-link href="{{ route('timetables.manage', $timetable['id']) }}" variant="outline" size="sm" aria-label="Build {{ $timetable['name'] }}">
                                                     <x-lucide-pencil-ruler class="mr-1 size-4" />
                                                     Build
                                                 </april:button-link>
                                             @endif
-                                            <april:button-link href="{{ route('timetables.show', $timetable['id']) }}" variant="outline" size="sm">
+                                            <april:button-link href="{{ route('timetables.show', $timetable['id']) }}" variant="outline" size="sm" aria-label="Open {{ $timetable['name'] }}">
                                                 <x-lucide-eye class="mr-1 size-4" />
                                                 Open
                                             </april:button-link>

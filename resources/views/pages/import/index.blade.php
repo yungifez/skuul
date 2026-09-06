@@ -178,7 +178,8 @@
                                         <span class="block text-xs">{{ $batch->createdBy?->name ?? 'Unknown person' }}</span>
                                     </april:data-table-cell>
                                     <april:data-table-cell class="text-right">
-                                        <april:button-link href="{{ route('imports.show', $batch) }}" variant="outline" size="sm">
+                                        <april:button-link href="{{ route('imports.show', $batch) }}" variant="outline" size="sm"
+                                            aria-label="View the rows in {{ $batch->source_name ?? 'this file' }}">
                                             <x-lucide-eye class="mr-1 size-4" />
                                             View rows
                                         </april:button-link>

@@ -131,7 +131,7 @@
                                     {{ $revision->average_percentage === null ? '—' : number_format($revision->average_percentage, 2).'%' }}
                                 </span>
                                 @unless ($revision->is($reportCardSnapshot))
-                                    <april:button-link href="{{ route('report-cards.show', $revision) }}" variant="outline" size="sm">Open</april:button-link>
+                                    <april:button-link href="{{ route('report-cards.show', $revision) }}" variant="outline" size="sm" aria-label="Open revision {{ $revision->revision }}">Open</april:button-link>
                                 @endunless
                             </div>
                         </li>

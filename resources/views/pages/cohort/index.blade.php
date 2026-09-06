@@ -112,7 +112,8 @@
                             {{ $cohort->is_active ? 'In use' : 'Closed' }}
                         </april:data-table-cell>
                         <april:data-table-cell class="text-right">
-                            <april:button-link href="{{ route('cohorts.show', $cohort) }}" variant="outline" size="sm">
+                            <april:button-link href="{{ route('cohorts.show', $cohort) }}" variant="outline" size="sm"
+                                aria-label="Open {{ $cohort->name }}">
                                 <x-lucide-eye class="mr-1 size-4" />
                                 Open
                             </april:button-link>

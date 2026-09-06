@@ -43,11 +43,11 @@
                                 <td class="px-3 py-3 text-right">
                                     <p class="mb-2 text-xs text-muted-foreground">{{ $courseOffering->teachingAssignments->isEmpty() ? 'No teachers assigned' : $courseOffering->teachingAssignments->map(fn ($assignment) => $assignment->teacher->name.' · '.$assignment->role->label())->join(', ') }}</p>
                                     @can('viewGradebook', $courseOffering)
-                                        <april:button-link href="{{ route('course-offerings.gradebook.show', $courseOffering) }}" variant="outline" size="sm">Open gradebook</april:button-link>
+                                        <april:button-link href="{{ route('course-offerings.gradebook.show', $courseOffering) }}" variant="outline" size="sm" aria-label="Open the gradebook for {{ $courseOffering->subject->name }}, {{ $courseOffering->academicLevel->name }}">Open gradebook</april:button-link>
                                     @endcan
                                     @can('update', $courseOffering)
                                         @if ($courseOffering->status !== \App\Enums\CourseOfferingStatus::Archived)
-                                            <april:button-link href="{{ route('course-offerings.edit', $courseOffering) }}" variant="outline" size="sm">Edit roster</april:button-link>
+                                            <april:button-link href="{{ route('course-offerings.edit', $courseOffering) }}" variant="outline" size="sm" aria-label="Edit the roster for {{ $courseOffering->subject->name }}, {{ $courseOffering->academicLevel->name }}">Edit roster</april:button-link>
                                         @endif
                                         @if ($courseOffering->status === \App\Enums\CourseOfferingStatus::Draft)
                                             <form method="POST" action="{{ route('course-offerings.activate', $courseOffering) }}">

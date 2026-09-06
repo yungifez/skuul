@@ -124,7 +124,8 @@
                                 <td class="p-4 text-muted-foreground">{{ $run->row_count ?? '—' }}</td>
                                 <td class="p-4 text-right">
                                     @if ($run->isReady())
-                                        <april:button-link href="{{ route('reports.download', $run->id) }}" variant="outline" size="sm">
+                                        <april:button-link href="{{ route('reports.download', $run->id) }}" variant="outline" size="sm"
+                                            aria-label="Download run {{ $run->id }}">
                                             Download
                                         </april:button-link>
                                     @endif

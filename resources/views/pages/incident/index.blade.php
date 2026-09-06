@@ -133,7 +133,8 @@
                                         {{ $incident->assignedTo?->name ?? 'Nobody yet' }}
                                     </april:data-table-cell>
                                     <april:data-table-cell class="text-right">
-                                        <april:button-link href="{{ route('incidents.show', $incident) }}" variant="outline" size="sm">
+                                        <april:button-link href="{{ route('incidents.show', $incident) }}" variant="outline" size="sm"
+                                            aria-label="Open incident {{ $incident->reference }}">
                                             <x-lucide-eye class="mr-1 size-4" />
                                             Open
                                         </april:button-link>

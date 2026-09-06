@@ -166,7 +166,8 @@
                                         {{ $card->published_at->format('j M Y') }}
                                     </april:data-table-cell>
                                     <april:data-table-cell class="text-right">
-                                        <april:button-link href="{{ route('report-cards.show', $card) }}" variant="outline" size="sm">
+                                        <april:button-link href="{{ route('report-cards.show', $card) }}" variant="outline" size="sm"
+                                            aria-label="View the report card for {{ $card->studentRecord->user?->name ?? $card->studentRecord->admission_number }}">
                                             <x-lucide-eye class="mr-1 size-4" />
                                             View
                                         </april:button-link>

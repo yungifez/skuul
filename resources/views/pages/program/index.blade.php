@@ -103,7 +103,8 @@
                                         {{ $program->is_active ? 'Open' : 'Closed' }}
                                     </april:data-table-cell>
                                     <april:data-table-cell class="text-right">
-                                        <april:button-link href="{{ route('programs.show', $program) }}" variant="outline" size="sm">
+                                        <april:button-link href="{{ route('programs.show', $program) }}" variant="outline" size="sm"
+                                            aria-label="Open {{ $program->name }}">
                                             <x-lucide-eye class="mr-1 size-4" />
                                             Open
                                         </april:button-link>

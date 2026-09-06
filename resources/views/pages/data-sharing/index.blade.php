@@ -65,7 +65,8 @@
                                         </span>
                                     </april:data-table-cell>
                                     <april:data-table-cell class="text-right">
-                                        <april:button-link href="{{ route('data-sharing-requests.show', $request) }}" variant="outline" size="sm">
+                                        <april:button-link href="{{ route('data-sharing-requests.show', $request) }}" variant="outline" size="sm"
+                                            aria-label="Open the request for {{ $request->studentRecord?->user?->name ?? 'an unnamed learner' }}">
                                             <x-lucide-eye class="mr-1 size-4" />
                                             Open
                                         </april:button-link>
@@ -119,7 +120,8 @@
                                         </span>
                                     </april:data-table-cell>
                                     <april:data-table-cell class="text-right">
-                                        <april:button-link href="{{ route('data-sharing-requests.show', $request) }}" variant="outline" size="sm">
+                                        <april:button-link href="{{ route('data-sharing-requests.show', $request) }}" variant="outline" size="sm"
+                                            aria-label="Open the request for {{ $request->studentRecord?->admission_number ?? 'an unknown learner' }}">
                                             <x-lucide-eye class="mr-1 size-4" />
                                             Open
                                         </april:button-link>

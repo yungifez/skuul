@@ -144,10 +144,10 @@
                                     <td class="px-3 py-3"><x-academic-structure-status :status="$academicCycleSection->status" /></td>
                                     <td class="px-3 py-3">
                                         <div class="flex flex-wrap items-center justify-end gap-2">
-                                            <april:button-link href="{{ route('academic-cycle-sections.show', $academicCycleSection) }}" variant="ghost" size="sm">View</april:button-link>
+                                            <april:button-link href="{{ route('academic-cycle-sections.show', $academicCycleSection) }}" variant="ghost" size="sm" aria-label="View {{ $academicCycleSection->label ?? $academicCycleSection->name }}">View</april:button-link>
                                             @can('update', $academicCycleSection)
                                                 @if ($academicCycleSection->isEditable())
-                                                    <april:button-link href="{{ route('academic-cycle-sections.edit', $academicCycleSection) }}" variant="outline" size="sm">Edit</april:button-link>
+                                                    <april:button-link href="{{ route('academic-cycle-sections.edit', $academicCycleSection) }}" variant="outline" size="sm" aria-label="Edit {{ $academicCycleSection->label ?? $academicCycleSection->name }}">Edit</april:button-link>
                                                 @endif
                                                 @if ($academicCycleSection->status === AcademicStructureStatus::Draft)
                                                     <form method="POST" action="{{ route('academic-cycle-sections.status.update', $academicCycleSection) }}">
