@@ -84,7 +84,7 @@
                                 </td>
                                 <td class="p-4 text-right">
                                     @can('delete', $row->budget)
-                                        <form action="{{ route('budgets.destroy', $row->budget->id) }}" method="POST">
+                                        <form action="{{ route('budgets.destroy', $row->budget->id) }}" method="POST" data-confirm="Remove the budget for {{ $row->budget->account?->name ?? 'this account' }}?">
                                             @csrf
                                             @method('DELETE')
                                             <april:button type="submit" variant="ghost" size="sm">Remove</april:button>

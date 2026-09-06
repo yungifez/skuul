@@ -66,7 +66,7 @@
                     @endcan
 
                     @can('delete', $event)
-                        <form method="POST" action="{{ route('calendar-events.destroy', $event) }}" class="ml-auto">
+                        <form method="POST" action="{{ route('calendar-events.destroy', $event) }}" class="ml-auto" data-confirm="Remove {{ $event->title }} from the calendar?">
                             @csrf
                             @method('DELETE')
                             <april:button type="submit" variant="outline" size="sm">

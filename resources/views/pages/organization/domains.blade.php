@@ -110,7 +110,7 @@
                                     </form>
                                 @endif
 
-                                <form action="{{ route('organizations.domains.destroy', [$organization, $domain]) }}" method="POST">
+                                <form action="{{ route('organizations.domains.destroy', [$organization, $domain]) }}" method="POST" data-confirm="Give up {{ $domain->host }}? Nobody reaches the school at this address afterwards.">
                                     @csrf
                                     @method('DELETE')
                                     <april:button type="submit" variant="ghost" size="sm">Give it up</april:button>

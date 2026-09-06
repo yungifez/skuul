@@ -15,7 +15,7 @@
     @if ($canManage)
         <april:button-link href="{{ route('dormitories.edit', $dormitory->id) }}" variant="outline">Edit house</april:button-link>
         @if ($dormitory->is_active)
-            <form action="{{ route('dormitories.destroy', $dormitory->id) }}" method="POST">
+            <form action="{{ route('dormitories.destroy', $dormitory->id) }}" method="POST" data-confirm="Archive {{ $dormitory->name }}? It stops taking placements.">
                 @csrf
                 @method('DELETE')
                 <april:button type="submit" variant="ghost">Archive house</april:button>
@@ -290,7 +290,7 @@
                                                         <button type="submit" class="inline-flex h-8 items-center rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">Save bed</button>
                                                     </form>
 
-                                                    <form x-show="leavingBedId === bed.id" x-cloak :action="bed.leave_url" method="POST" class="mt-3 min-w-[220px] space-y-2 rounded-md bg-muted/20 p-3">
+                                                    <form x-show="leavingBedId === bed.id" x-cloak :action="bed.leave_url" method="POST" x-bind:data-confirm="'End the placement in ' + bed.name + '?'" class="mt-3 min-w-[220px] space-y-2 rounded-md bg-muted/20 p-3">
                                                         @csrf
                                                         <input type="hidden" name="_method" value="DELETE">
                                                         <label class="sr-only" :for="'modal-leave-reason-' + bed.id">Reason for ending placement</label>

@@ -274,7 +274,7 @@
                                         <april:data-table-cell>{{ $requirement->credits }}</april:data-table-cell>
                                         <april:data-table-cell class="text-right">
                                             @if ($canWrite)
-                                                <form method="POST" action="{{ route('graduation-plans.requirements.destroy', [$plan, $requirement]) }}">
+                                                <form method="POST" action="{{ route('graduation-plans.requirements.destroy', [$plan, $requirement]) }}" data-confirm="Remove this requirement: {{ $requirement->description }}?">
                                                     @csrf
                                                     @method('DELETE')
                                                     <april:button type="submit" variant="outline" size="sm">
@@ -443,7 +443,7 @@
                                                             <april:button type="submit" variant="outline" size="sm">Excuse</april:button>
                                                         </form>
                                                     @else
-                                                        <form method="POST" action="{{ route('graduation-plans.exemptions.destroy', [$plan, $exemption]) }}">
+                                                        <form method="POST" action="{{ route('graduation-plans.exemptions.destroy', [$plan, $exemption]) }}" data-confirm="Take back this excuse for {{ $learner->user?->name ?? 'this learner' }}?">
                                                             @csrf
                                                             @method('DELETE')
                                                             <april:button type="submit" variant="outline" size="sm">Take it back</april:button>

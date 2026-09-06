@@ -123,7 +123,7 @@
                                         </april:data-table-cell>
                                         <april:data-table-cell class="text-right">
                                             @if ($canWrite)
-                                                <form method="POST" action="{{ route('cohorts.members.destroy', [$cohort, $member]) }}">
+                                                <form method="POST" action="{{ route('cohorts.members.destroy', [$cohort, $member]) }}" data-confirm="Take {{ $member->studentRecord?->user?->name ?? $member->user?->name ?? 'this member' }} out of {{ $cohort->name }}?">
                                                     @csrf
                                                     @method('DELETE')
                                                     <april:button type="submit" variant="outline" size="sm">

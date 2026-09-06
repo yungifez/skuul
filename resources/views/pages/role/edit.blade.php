@@ -98,7 +98,7 @@
                             <p class="text-sm font-medium">{{ $holder->name }}</p>
                             <p class="text-xs text-muted-foreground">{{ $holder->email }}</p>
                         </div>
-                        <form action="{{ route('roles.members.destroy', $role->id) }}" method="POST">
+                        <form action="{{ route('roles.members.destroy', $role->id) }}" method="POST" data-confirm="Take {{ $role->name }} away from {{ $holder->name }}?">
                             @csrf
                             @method('DELETE')
                             <input type="hidden" name="user_id" value="{{ $holder->id }}">

@@ -218,7 +218,7 @@ document.addEventListener("submit", (event) => {
 
     const deleteMethod = form.querySelector('input[name="_method"][value="DELETE" i]');
 
-    if (deleteMethod) {
+    if (deleteMethod && form.dataset.confirm !== "false") {
         const message = form.dataset.confirm ?? "Delete this item? This action cannot be undone.";
 
         if (!window.confirm(message)) {

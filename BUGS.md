@@ -430,3 +430,21 @@
 - Impact: The reader removed one fee and the amounts, waivers and fines they had already typed silently moved onto the fees below. The `name` attributes moved with the markup, so the wrong figures were posted under the wrong fee ids. The running total in the last column showed the same wrong numbers, so nothing looked out of place.
 - Reproduction: Add three fees, type an amount into each, then remove the first. The second row kept the first row's amount.
 - Resolution: Both loops key their rows by record id, so Livewire moves the right row. `resources/views/livewire/assign-students-to-parent.blade.php` rebuilds its rows on a Livewire action too and is keyed the same way.
+
+## Every destructive button asked the same vague question
+
+- Status: Fixed
+- Area: Forms, 15 screens
+- Observed: `resources/js/app.js` asks the reader to confirm any form carrying the DELETE method. Fifteen hand-written forms gave it no message, so all fifteen read "Delete this item? This action cannot be undone." Three of them do not delete anything: returning a campus to the default calendar, ending a boarding placement and revoking an invitation all use the DELETE method for a change that is not a deletion. A sixteenth form, the fee record on the edit invoice screen, already asks in its own dialog, so the reader was asked twice in a row.
+- Impact: The question named nothing, so a reader with several houses, budgets or domains on screen could not tell which one they were about to lose. Worse, three actions that are reversible announced themselves as permanent deletions, and one asked twice, which teaches a reader to click through the question without reading it.
+- Reproduction: Open `/dashboard/organizations/{id}/domains` and press "Give it up". The browser asked "Delete this item? This action cannot be undone." with no mention of the domain.
+- Resolution: Each of the fifteen forms carries a `data-confirm` that names what it undoes, for example "Give up boarding.example.test? Nobody reaches the school at this address afterwards." The handler now honours `data-confirm="false"`, so the fee record form, which has its own dialog, asks once. That dialog names the fee instead of saying "this resource". `tests/Unit/DestructiveFormConfirmationTest.php` fails on any new DELETE form without a message of its own.
+
+## Two boxes on the edit invoice screen shared one id
+
+- Status: Fixed
+- Area: Finance, the edit fee invoice screen
+- Observed: Each fee row rendered a waiver box and a fine box, both with `id="name-{id}"`. Both labels pointed at the same id. The rows also carried no `wire:key`.
+- Impact: Pressing the "Fine" label put the cursor in the waiver box, and a screen reader read the fine box as "Waiver". A duplicate id also breaks any script that looks a box up by id.
+- Reproduction: Open the edit screen for an invoice with one fee and read the two ids. Both were `name-` followed by the same record id.
+- Resolution: The boxes take `waiver-{id}` and `fine-{id}`. The "fine" label reads "Fine", like every other label on the row, and each row carries a `wire:key`.

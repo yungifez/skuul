@@ -113,3 +113,13 @@ reader typed lives on the DOM node, not in the markup, so removing a row from
 the middle carries typed values onto the wrong record. Key by record id:
 `<tr wire:key="added-fee-{{ $fee['id'] }}">`. `wire:key` on an `<april:*>` tag
 breaks the precompiler, so put it on a plain element.
+
+## Say what a destructive button undoes
+
+`resources/js/app.js` asks the reader to confirm any form carrying the DELETE
+method. Without a message it reads "Delete this item? This action cannot be
+undone.", which names nothing and is wrong for a DELETE route that only
+reverses a setting. Give every such form a `data-confirm` that names the
+record: `data-confirm="Remove {{ $house->name }} from {{ $residence->name }}?"`.
+Use `data-confirm="false"` only when the screen already asks in its own dialog.
+`tests/Unit/DestructiveFormConfirmationTest.php` covers it.

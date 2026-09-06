@@ -256,7 +256,7 @@
                         </div>
 
                         @if ($canExcept && $exception->isRunning())
-                            <form action="{{ route('academic-years.instructional-model.exceptions.destroy', [$academicYear, $exception]) }}" method="POST">
+                            <form action="{{ route('academic-years.instructional-model.exceptions.destroy', [$academicYear, $exception]) }}" method="POST" data-confirm="Take back the exception for {{ $exception->subject?->name ?? 'this subject' }}?">
                                 @csrf
                                 @method('DELETE')
                                 <april:button type="submit" variant="ghost" size="sm">Take it back</april:button>

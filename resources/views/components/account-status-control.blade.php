@@ -38,7 +38,7 @@
             @endif
 
             @if ($user->pendingAccountInvitation() !== null)
-                <form action="{{ route('users.invitation.revoke', $user->id) }}" method="POST">
+                <form action="{{ route('users.invitation.revoke', $user->id) }}" method="POST" data-confirm="Revoke the invitation for {{ $user->name }}? They can be invited again later.">
                     @csrf
                     @method('delete')
                     <april:button type="submit" variant="ghost" class="w-full justify-start gap-2 px-3 py-2 text-left text-sm">

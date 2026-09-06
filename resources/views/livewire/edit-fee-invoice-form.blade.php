@@ -46,12 +46,12 @@
     </div>
     <div class="card-body">
         @foreach ($feeInvoice->feeInvoiceRecords as $record)
-        <div class="overflow-scroll beautify-scrollbar md:grid grid-rows-1 md:grid-cols-6 gap-2 items-end border-b p-2 md:py-0">
+        <div wire:key="fee-invoice-record-{{ $record->id }}" class="overflow-scroll beautify-scrollbar md:grid grid-rows-1 md:grid-cols-6 gap-2 items-end border-b p-2 md:py-0">
             <form action="{{route('fee-invoice-records.update', $record->id)}}" method="POST" class="col-span-5 overflow-scroll beautify-scrollbar grid grid-rows-1 md:grid-cols-6 gap-2 items-center " x-data="{'amount': {{$record->amount->getAmount()->toInt()}}, 'waiver': {{$record->waiver->getAmount()->toInt()}}, 'fine': {{$record->fine->getAmount()->toInt()}}}">
                 <p class="font-bold  md:font-bold">{{$record->fee->name }}</p>
                 <april:input-group id="amount-{{$record['id']}}" name="amount" label="Amount" type="number" x-model.number="amount" error-bag="some-random-thing" />
-                <april:input-group id="name-{{$record['id']}}" name="waiver" label="Waiver" type="number" x-model.number="waiver" error-bag="some-random-thing" />
-                <april:input-group id="name-{{$record['id']}}" name="fine" label="fine" type="number" x-model.number="fine" error-bag="some-random-thing" />
+                <april:input-group id="waiver-{{$record['id']}}" name="waiver" label="Waiver" type="number" x-model.number="waiver" error-bag="some-random-thing" />
+                <april:input-group id="fine-{{$record['id']}}" name="fine" label="Fine" type="number" x-model.number="fine" error-bag="some-random-thing" />
                 <p x-text="'Total: ' + (amount - waiver + fine).toLocaleString()" class="md:place-self-center"></p>
                 <input type="hidden" value="{{$record->fee->id}}">
                 <april:button type="submit" class="self-end">
@@ -70,12 +70,12 @@
                 </slot:trigger>
                 <slot:content>
                     <april:alert-dialog-header>
-                        <slot:title>Confirm Delete</slot:title>
-                        <slot:description>Are you sure you want to delete this resource?</slot:description>
+                        <slot:title>Remove {{ $record->fee->name }}?</slot:title>
+                        <slot:description>This takes {{ $record->fee->name }} off the invoice. Anything already paid against it stays on record.</slot:description>
                     </april:alert-dialog-header>
                     <april:alert-dialog-footer>
                         <april:alert-dialog-cancel>Cancel</april:alert-dialog-cancel>
-                        <form action="{{route('fee-invoice-records.destroy', $record->id)}}" method="POST">
+                        <form action="{{route('fee-invoice-records.destroy', $record->id)}}" method="POST" data-confirm="false">
                             @method('delete')
                             @csrf
                             <april:button type="submit" variant="destructive">

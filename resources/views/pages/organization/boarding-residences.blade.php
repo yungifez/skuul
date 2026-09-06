@@ -77,7 +77,7 @@
                                         <td class="px-4 py-3 font-medium">{{ $campus->name }}</td>
                                         <td class="px-4 py-3 text-right">
                                             @if ($residence->dormitories->where('school_id', $campus->id)->isEmpty())
-                                                <form action="{{ route('organizations.boarding-residences.schools.destroy', [$organization, $residence, $campus]) }}" method="POST">
+                                                <form action="{{ route('organizations.boarding-residences.schools.destroy', [$organization, $residence, $campus]) }}" method="POST" data-confirm="Remove {{ $campus->name }} from {{ $residence->name }}?">
                                                     @csrf
                                                     @method('DELETE')
                                                     <april:button type="submit" variant="ghost" size="sm">Remove</april:button>
@@ -128,7 +128,7 @@
                                         <td class="px-4 py-3 font-medium">{{ $dormitory->name }}</td>
                                         <td class="px-4 py-3 text-muted-foreground">{{ $dormitory->school?->name }}</td>
                                         <td class="px-4 py-3 text-right">
-                                            <form action="{{ route('organizations.boarding-residences.houses.destroy', [$organization, $residence, $dormitory]) }}" method="POST">
+                                            <form action="{{ route('organizations.boarding-residences.houses.destroy', [$organization, $residence, $dormitory]) }}" method="POST" data-confirm="Remove {{ $dormitory->name }} from {{ $residence->name }}?">
                                                 @csrf
                                                 @method('DELETE')
                                                 <april:button type="submit" variant="ghost" size="sm">Remove</april:button>
