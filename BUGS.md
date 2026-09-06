@@ -302,3 +302,12 @@
 - Impact: A screen reader reader moves between landmarks to skip past a menu. With no landmark the sidebar was not in the list, so the only way past it was to read through every link on every page.
 - Reproduction: Open any dashboard page and run `document.querySelectorAll('nav, [role=navigation]')` in the console. Only the pagination trail came back.
 - Resolution: The sidebar content slot now carries `role="navigation"` and `aria-label="Main"`. april merges slot attributes onto the wrapper it already draws, so no element was added and nothing moved. The label separates it from the pagination trail. april draws the sidebar twice, once for the desktop layout and once for the mobile sheet, and only one is visible at a time, so both carry the landmark. A test asserts both are present and fails without the fix.
+
+## Every screen announced two top-level headings
+
+- Status: Fixed
+- Area: Page structure, whole application
+- Observed: The top bar marked the product name as an `<h1>`. `layouts/app.blade.php` draws a second `<h1>` for the page heading.
+- Impact: A screen reader reader who lists the headings on a page found two at the top level, and the first was the word "Skuul" on all 48 screens. The name gave no clue which page was open, and the real page heading came second.
+- Reproduction: Open any dashboard page and run `document.querySelectorAll('h1').length` in the console. It returned 2 on every page.
+- Resolution: The product name is now a `<span>`. It keeps its size and weight, so nothing moves. The link around it already carries `aria-label="Home"`, so no label was lost. A test asserts one `<h1>` per screen and fails without the fix.

@@ -51,6 +51,16 @@ class AppLayoutTest extends TestCase
         $this->assertSame(2, substr_count($html, 'role="navigation" aria-label="Main"'));
     }
 
+    public function test_a_dashboard_screen_holds_one_top_level_heading(): void
+    {
+        $html = $this->dashboardHtml();
+
+        // The header used to mark the product name as an h1, so every screen
+        // announced two top-level headings and the first was not the page.
+        $this->assertSame(1, substr_count($html, '<h1'), 'The page must hold exactly one <h1> element.');
+        $this->assertStringNotContainsString('<h1 class="hidden text-sm', $html);
+    }
+
     /**
      * Render the dashboard as somebody who may open it.
      */

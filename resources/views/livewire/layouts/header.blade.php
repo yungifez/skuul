@@ -3,7 +3,10 @@
     <div class="flex min-w-0 items-center gap-2">
         <april:sidebar-trigger />
         <a href="{{route('home')}}" class="flex shrink-0 items-center gap-3" aria-label="Home">
-            <h1 class="hidden text-sm font-semibold tracking-tight sm:block">{{config('app.name')}}</h1>
+            {{-- The product name is branding, not the heading of the page.
+            layouts/app.blade.php draws the one h1 each screen has. The link
+            around this already carries its own label. --}}
+            <span class="hidden text-sm font-semibold tracking-tight sm:block">{{config('app.name')}}</span>
         </a>
         <x-show-set-school />
     </div>
