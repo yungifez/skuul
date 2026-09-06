@@ -502,3 +502,12 @@
 - Impact: Removing one student took the fee invoices index to a 500 error for the whole school, so no invoice could be read or paid. Every screen that names a learner through their enrollment fell back to the admission number, so a report card, a boarding roll and a payment receipt all stopped naming the person they were about.
 - Reproduction: Raise an invoice for a student, remove the student, then open `/dashboard/fees/fee-invoices`. The page returned 500 with "Attempt to read property name on null".
 - Resolution: Both relations resolve a removed person with `withTrashed()`. A refusal is wrong here: a school may remove a student, and the invoices raised for them are real financial history that has to keep naming them. `tests/Feature/FeeInvoiceTest.php` removes an invoiced student, then opens the invoice, its edit screen and the index.
+
+## A deleted invoice broke the policy on every line it carried
+
+- Status: Fixed
+- Area: Finance, invoice lines
+- Observed: `FeeInvoice` soft deletes, but `FeeInvoiceRecord` does not, so a line outlives the invoice it sat on. `FeeInvoiceRecordPolicy` reads `$feeInvoiceRecord->feeInvoice->school_id` on all three of its checks, and that relation read null once the invoice was gone.
+- Impact: Any request touching a line whose invoice had been deleted returned a 500 from the policy, before the request reached a controller. A policy is the wrong place to fail: it should decide yes or no, not throw.
+- Reproduction: Raise an invoice with one fee, delete the invoice, then send a DELETE to that line's route. The policy threw "Attempt to read property school_id on null".
+- Resolution: `FeeInvoiceRecord::feeInvoice()` resolves a deleted invoice with `withTrashed()`, so the policy reads the school and answers normally. `tests/Feature/FeeInvoiceRecordTest.php` covers it.

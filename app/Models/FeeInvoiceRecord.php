@@ -116,10 +116,14 @@ class FeeInvoiceRecord extends Model
     /**
      * Get the feeInvoice that owns the FeeInvoiceRecord.
      *
+     * A line outlives its invoice, because only the invoice soft deletes. The
+     * line's policy reads the invoice's school on every check, so the relation
+     * has to keep resolving a deleted invoice.
+     *
      * @return BelongsTo<FeeInvoice, $this>
      */
     public function feeInvoice(): BelongsTo
     {
-        return $this->belongsTo(FeeInvoice::class);
+        return $this->belongsTo(FeeInvoice::class)->withTrashed();
     }
 }

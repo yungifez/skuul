@@ -175,6 +175,21 @@ class FeeInvoiceRecordTest extends TestCase
     }
 
     /**
+     * A line outlives the invoice it sat on, because only the invoice soft
+     * deletes. Its policy still has to be able to read the invoice's school.
+     */
+    public function test_a_line_of_a_deleted_invoice_does_not_break_its_policy()
+    {
+        $feeInvoiceRecord = $this->lineOfAnEnrolledStudent();
+        $office = $this->authorized_user(['read fee invoice', 'update fee invoice', 'delete fee invoice record']);
+
+        $feeInvoiceRecord->feeInvoice->delete();
+
+        $office->delete("dashboard/fees/fee-invoices/fee-invoice-records/$feeInvoiceRecord->id")
+            ->assertRedirect();
+    }
+
+    /**
      * Build an invoice line whose student belongs to the working school.
      */
     private function lineOfAnEnrolledStudent(): FeeInvoiceRecord
