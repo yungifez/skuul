@@ -67,3 +67,13 @@ at must refuse to go: `FeeInvoiceRecordService::deleteFeeInvoiceRecord()`
 throws when `paid` is positive and tells the office to raise the waiver
 instead. Hide the button on such a row as well, so no screen offers an action
 the service will refuse.
+
+## A soft delete leaves relations reading null
+
+`Subject` soft deletes. The row stays, so no foreign key cascade fires, but
+every `belongsTo` back to it returns null once it is gone. Screens read
+`$courseOffering->subject->name` without a guard, so deleting a taught subject
+took the course offerings index and every gradebook to a 500.
+
+Before soft deleting a record, check what still points at it.
+`SubjectService::deleteSubject()` refuses when a course offering exists.

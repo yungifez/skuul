@@ -2,11 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\ListSubjectsTable;
+use App\Models\CourseOffering;
 use App\Models\Subject;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class SubjectTest extends TestCase
@@ -48,7 +51,7 @@ class SubjectTest extends TestCase
         $name = $this->faker()->name;
         $this->unauthorized_user()
             ->post('/dashboard/subjects', [
-                'name'       => $name,
+                'name' => $name,
                 'short_name' => 'TS',
             ])
             ->assertForbidden();
@@ -64,7 +67,7 @@ class SubjectTest extends TestCase
 
         $this->authorized_user(['create subject'])
             ->post('/dashboard/subjects', [
-                'name'       => $name,
+                'name' => $name,
                 'short_name' => 'TS',
             ])
             ->assertRedirect();
@@ -94,13 +97,13 @@ class SubjectTest extends TestCase
         $name = $this->faker->name;
         $this->unauthorized_user()
             ->patch("/dashboard/subjects/$subject->id", [
-                'name'       => $name,
+                'name' => $name,
                 'short_name' => 'TS2',
             ])
             ->assertForbidden();
 
         $this->assertDatabaseMissing('subjects', [
-            'id'   => $subject->id,
+            'id' => $subject->id,
             'name' => $name,
         ]);
     }
@@ -111,7 +114,7 @@ class SubjectTest extends TestCase
         $name = $this->faker()->name;
         $this->authorized_user(['update subject'])
             ->patch("/dashboard/subjects/$subject->id", [
-                'name'       => $name,
+                'name' => $name,
                 'short_name' => 'TS2',
             ])->assertRedirect();
 
@@ -140,6 +143,30 @@ class SubjectTest extends TestCase
         $this->assertModelExists($subject);
 
         $this->assertSoftDeleted($subject);
+    }
+
+    /**
+     * Course offerings, gradebooks and syllabi all read the subject name
+     * straight off the relation, which is null once the subject is gone.
+     */
+    public function test_a_taught_subject_cannot_be_deleted()
+    {
+        $school = $this->workingSchool();
+        $subject = Subject::factory()->create(['school_id' => $school->id]);
+        CourseOffering::factory()->create(['school_id' => $school->id, 'subject_id' => $subject->id]);
+
+        $registrar = $this->authorized_user(['delete subject', 'read subject']);
+
+        $registrar->delete("/dashboard/subjects/$subject->id")
+            ->assertRedirect()
+            ->assertSessionHas('danger');
+
+        $this->assertNotSoftDeleted($subject);
+
+        $registrar->get(route('course-offerings.index'))->assertOk();
+
+        Livewire::test(ListSubjectsTable::class)
+            ->assertSee('row.course_offerings_count === 0', false);
     }
 
     public function test_unathorized_user_cannot_view_subject()

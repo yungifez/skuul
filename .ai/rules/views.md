@@ -123,3 +123,14 @@ reverses a setting. Give every such form a `data-confirm` that names the
 record: `data-confirm="Remove {{ $house->name }} from {{ $residence->name }}?"`.
 Use `data-confirm="false"` only when the screen already asks in its own dialog.
 `tests/Unit/DestructiveFormConfirmationTest.php` covers it.
+
+## Hide a row action the server will refuse
+
+`x-table-actions` takes a `when` key on an item, holding an Alpine expression
+over `row`: `'when' => 'row.course_offerings_count === 0'`. The control is
+hidden on rows the expression rejects. Add the count to the Livewire builder
+with `withCount(...)` so the row carries it.
+
+Whenever a service refuses an action on some records, hide the control on
+those records as well. A button that always fails teaches the reader to
+distrust every button beside it.

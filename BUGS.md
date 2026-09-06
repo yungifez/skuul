@@ -466,3 +466,21 @@
 - Impact: The reader saw column headings with nothing under them and no way to tell an empty record from a screen that had failed to load. On a printed report card a family got a blank grid with no explanation.
 - Reproduction: Open an invoice with no fee lines, or download a report card whose payload holds no results.
 - Resolution: All three loops use `@forelse` and say what is missing: "No fees are on this invoice yet.", "No subject was marked in this period." and "No subject has been marked yet." `tests/Feature/FeeInvoiceTest.php` and `tests/Feature/PortalTest.php` cover them.
+
+## Deleting a taught subject broke every course offering screen
+
+- Status: Fixed
+- Area: Academics, the subject catalog
+- Observed: `SubjectService::deleteSubject()` removed a subject with no check on what taught it. `Subject` uses soft deletes, so the row stayed but the `subject` relation on a course offering read null. Every screen that names a subject reads it straight off that relation, for example `{{ $courseOffering->subject->name }}` on the course offerings index and at the top of every gradebook.
+- Impact: One press of "Delete subject" took the course offerings index, the gradebook list and every gradebook screen to a 500 error. Nothing on the subject screen said the subject was in use, and nothing pointed at the subject as the cause once the screens had gone.
+- Reproduction: Create a subject, give it a course offering, delete the subject, then open `/dashboard/course-offerings`. The page returned 500 with "Attempt to read property name on null".
+- Resolution: The service refuses to delete a subject that has a course offering and says to close its offerings first. The catalog hides the delete action on any subject whose offering count is above zero, so the screen no longer offers an action the server will refuse. `tests/Feature/SubjectTest.php` deletes a taught subject, then opens the course offerings index.
+
+## A row action was offered where the server would refuse it
+
+- Status: Fixed
+- Area: Tables, `x-table-actions`
+- Observed: `x-table-actions` rendered every action on every row. A row where the action could not work still showed the button, and the reader only learned that after pressing it.
+- Impact: A reader who pressed such a button was bounced back with a message and no change. Repeated often enough, that teaches a reader to distrust the row actions.
+- Reproduction: Open the subject catalog with one taught subject. The delete action showed on it, and pressing it did nothing but raise an error.
+- Resolution: An action may carry a `when` key holding an Alpine expression over `row`, for example `row.course_offerings_count === 0`. The control is hidden on rows the expression rejects. The expression is worked out in a `@php` block, because a Blade directive inside an april tag breaks its precompiler.

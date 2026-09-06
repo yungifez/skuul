@@ -32,7 +32,7 @@ class SubjectService
     /**
      * Create subject.
      *
-     * @param array{name: string, short_name: string} $data
+     * @param  array{name: string, short_name: string}  $data
      */
     public function createSubject(array $data): void
     {
@@ -48,7 +48,7 @@ class SubjectService
     /**
      * Update subject.
      *
-     * @param array{name: string, short_name: string} $data
+     * @param  array{name: string, short_name: string}  $data
      */
     public function updateSubject(Subject $subject, array $data): void
     {
@@ -61,11 +61,18 @@ class SubjectService
     /**
      * Delete subject.
      *
+     * A subject that is taught cannot go. The delete is a soft delete, so the
+     * row stays but the relation reads null, and every screen that names the
+     * subject of a course offering throws on it.
      *
      * @return void
      */
     public function deleteSubject(Subject $subject)
     {
+        if ($subject->courseOfferings()->exists()) {
+            throw new ResourceNotEmptyException('This subject is taught, so it cannot be deleted. Close its course offerings first.');
+        }
+
         $subject->timetableRecord()->delete();
         $subject->delete();
     }
