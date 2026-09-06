@@ -385,14 +385,15 @@
 - Resolution: A refused control now carries `aria-invalid="true"` and points at its own message with `aria-describedby`. The message carries the matching id. Three helpers in `app/helpers.php` work that id out, so both sides always agree. 162 error blocks became `<x-field-error name="..." />`, which renders the same markup and adds the id. 61 native controls carry `{{ field_error_bindings('...') }}`. `april:input`, `april:native-select` and `april:textarea` read their own `name` or `wire:model` binding, so 72 more controls needed no view change at all; that took three small overrides under `resources/views/vendor/april/components/`, because a Blade directive inside an `<april:*>` tag breaks April's tag precompiler. Three tests cover it and two fail without the fix. `.ai/rules/views.md` records the convention.
 - Not covered: 13 controls that use `april:select`, `april:combobox` or `april:editor`. See the next entry.
 
-## The April select and combobox are not announced as selects
+## The April select and combobox were not announced as selects
 
-- Status: Open, needs a decision
+- Status: Fixed
 - Area: Forms, 12 controls
-- Observed: `april:select` and `april:combobox` build their own menu out of a plain `<button>` and a `<div role="listbox">`. The button carries no `role="combobox"`, no `aria-expanded`, no `aria-controls` and no `aria-haspopup`. The list it opens is never tied to it.
-- Impact: A screen reader announces a button, not a select. It does not say whether the menu is open, does not say how many options there are, and never connects the list to the control that opened it. Adding `aria-invalid` alone would not fix this, which is why these 12 controls were left out of the field wiring above.
-- Reproduction: Open a screen with an `april:select` and read the trigger. It is a `<button type="button">` with no ARIA state.
-- Next step: This is a change to the April UI package, not to the application, and it needs the full combobox keyboard pattern to go with it. Fixing it inside the application means copying two composite components, about 160 lines, into `resources/views/vendor/april/components/` and keeping them in step with the package. That is a decision for the owner of April UI, so it is recorded here rather than patched.
+- Observed: `april:select` and `april:combobox` build their own menu out of a plain `<button>` and a `<div role="listbox">`. The trigger carried no `role="combobox"`, so nothing said the button was a select. The `april:select` list was never tied back to its trigger and never said whether it took more than one answer. An earlier reading of this recorded `aria-expanded`, `aria-controls` and `aria-haspopup` as missing as well. That was wrong: April binds all three from Alpine at runtime, so they were never absent from the live control, only from the view file that was read.
+- Impact: A screen reader announced a button. It did not say a list of options sat behind it, and on a multiple-choice select it did not say more than one answer was allowed.
+- Reproduction: Open a screen with an `april:select` and read the trigger. It was a `<button type="button">` with no role of its own.
+- Resolution: Fixed in April UI 1.2.6. The select trigger and the combobox search field carry `role="combobox"`. The select list points back at its trigger with `aria-labelledby` and reports `aria-multiselectable`, and the trigger carries the id that link needs. A rendering test and a browser test cover it in the package.
+- Still open: these 12 controls carry no `aria-invalid` or `aria-describedby` when a field is refused, unlike the controls in the entry above. The composite control would have to read the error state itself.
 
 ## Every card and alert title skipped a heading level
 
