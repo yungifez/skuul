@@ -34,6 +34,20 @@ class CalendarEventScreenTest extends TestCase
             ->assertSee(now()->format('F Y'));
     }
 
+    public function test_the_add_link_on_a_day_is_big_enough_to_press(): void
+    {
+        $this->authorized_user(['read calendar event', 'create calendar event']);
+
+        $html = (string) $this->get(route('calendar-events.index'))->assertOk()->getContent();
+
+        // The plus icon alone is a 12px target. WCAG 2.2 asks for 24px.
+        $this->assertMatchesRegularExpression(
+            '/<a[^>]*class="[^"]*\bsize-6\b[^"]*"[^>]*aria-label="Add a day on /',
+            $html,
+            'Each day needs an add link of at least 24px.'
+        );
+    }
+
     public function test_a_day_is_added_as_a_draft(): void
     {
         $this->authorized_user(['read calendar event', 'create calendar event', 'update calendar event']);

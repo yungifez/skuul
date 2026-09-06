@@ -311,3 +311,12 @@
 - Impact: A screen reader reader who lists the headings on a page found two at the top level, and the first was the word "Skuul" on all 48 screens. The name gave no clue which page was open, and the real page heading came second.
 - Reproduction: Open any dashboard page and run `document.querySelectorAll('h1').length` in the console. It returned 2 on every page.
 - Resolution: The product name is now a `<span>`. It keeps its size and weight, so nothing moves. The link around it already carries `aria-label="Home"`, so no label was lost. A test asserts one `<h1>` per screen and fails without the fix.
+
+## Two controls were too small to press on a phone
+
+- Status: Fixed
+- Area: Touch target size, whole application and the calendar
+- Observed: A sweep of all 48 dashboard screens at a 390px viewport measured every control. The sidebar toggle rendered at 18x28px on 44 screens. The add-day links on the calendar grid rendered at 12x12px, 35 of them on one screen.
+- Impact: WCAG 2.2 asks for 24x24px. The sidebar toggle is the only way to reach the menu on a phone, so a reader who misses it cannot navigate at all. The toggle asks for `size-7`, but it sits on a flex line beside a `min-w-0` block, so a narrow screen squeezed it below its own width.
+- Reproduction: Open any dashboard page at 390px wide and measure the toggle. It returned 18x28. Open `/dashboard/calendar-events` and measure a plus icon. It returned 12x12.
+- Resolution: The toggle now carries `shrink-0`, so the flex line cannot squeeze it. The calendar plus icon is now wrapped in a padded 24x24 link that also carries an `aria-label` naming the day. Neither change moves anything on a wide screen. Two tests cover them, and both fail without the fix.

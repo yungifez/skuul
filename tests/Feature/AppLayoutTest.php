@@ -61,6 +61,20 @@ class AppLayoutTest extends TestCase
         $this->assertStringNotContainsString('<h1 class="hidden text-sm', $html);
     }
 
+    public function test_the_sidebar_trigger_keeps_its_width_on_a_narrow_screen(): void
+    {
+        $html = $this->dashboardHtml();
+
+        // The trigger sits on a flex line next to a min-w-0 block, so without
+        // shrink-0 a narrow screen squeezed it to 18px. It is the only way to
+        // reach the menu on a phone.
+        $this->assertMatchesRegularExpression(
+            '/<button[^>]*data-slot="sidebar-trigger"[^>]*class="[^"]*\bshrink-0\b/',
+            $html,
+            'The sidebar trigger must not shrink.'
+        );
+    }
+
     /**
      * Render the dashboard as somebody who may open it.
      */

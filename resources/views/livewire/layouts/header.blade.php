@@ -1,7 +1,10 @@
 <header
     class="sticky top-0 z-30 flex h-14 w-full items-center justify-between gap-2 border-b bg-background/95 px-4 backdrop-blur md:px-6">
     <div class="flex min-w-0 items-center gap-2">
-        <april:sidebar-trigger />
+        {{-- The row is a flex line with min-w-0 beside it, so on a narrow
+        screen the trigger was squeezed to 18px wide. It is the only way to
+        reach the menu on a phone. --}}
+        <april:sidebar-trigger class="shrink-0" />
         <a href="{{route('home')}}" class="flex shrink-0 items-center gap-3" aria-label="Home">
             {{-- The product name is branding, not the heading of the page.
             layouts/app.blade.php draws the one h1 each screen has. The link

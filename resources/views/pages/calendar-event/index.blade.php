@@ -112,8 +112,11 @@
                                             {{ $day->day }}
                                         </span>
                                         @can('create', App\Models\CalendarEvent::class)
+                                            {{-- The icon alone is a 12px target. The link is padded
+                                            out to 24px so a finger can hit it. --}}
                                             <a href="{{ route('calendar-events.create', ['day' => $day->toDateString()]) }}"
-                                                class="text-muted-foreground hover:text-foreground" aria-label="Add a day on {{ $day->format('j F Y') }}">
+                                                class="-m-1 flex size-6 shrink-0 items-center justify-center rounded text-muted-foreground hover:bg-muted hover:text-foreground"
+                                                aria-label="Add a day on {{ $day->format('j F Y') }}">
                                                 <x-lucide-plus class="size-3" />
                                             </a>
                                         @endcan
