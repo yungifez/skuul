@@ -92,7 +92,8 @@
                                 </td>
                                 <td class="p-4 text-right">
                                     @if ($canManage && $loan === null && $copy->status->isHeld())
-                                        <form action="{{ route('library-copies.destroy', $copy->id) }}" method="POST">
+                                        <form action="{{ route('library-copies.destroy', $copy->id) }}" method="POST"
+                                            data-confirm="Withdraw this copy from the shelves?">
                                             @csrf
                                             @method('DELETE')
                                             <april:button type="submit" variant="ghost" size="sm">Withdraw</april:button>

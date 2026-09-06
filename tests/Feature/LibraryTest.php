@@ -453,6 +453,23 @@ class LibraryTest extends TestCase
     /**
      * Put one copy on this campus's shelf.
      */
+    public function test_the_library_screens_say_what_each_destructive_button_really_does(): void
+    {
+        $actor = $this->authorized_user(['read library', 'manage library', 'lend library item']);
+        app(FeatureManager::class)->enable(Feature::Library);
+        $copy = $this->copy();
+        $borrower = $this->memberOf($this->workingSchool());
+        app(ReserveTitle::class)->reserve($copy->title, $borrower);
+
+        // Without its own wording, the shared handler warns that the record is
+        // being deleted. Neither button deletes anything the reader can see.
+        $actor->get(route('library-copies.index'))->assertOk()
+            ->assertSee('data-confirm="Withdraw this copy from the shelves?"', false);
+
+        $actor->get(route('library-reservations.index'))->assertOk()
+            ->assertSee('data-confirm="Take this reservation off the queue?"', false);
+    }
+
     private function copy(): LibraryCopy
     {
         return LibraryCopy::factory()->create(['school_id' => $this->workingSchool()->id]);

@@ -230,3 +230,21 @@
 - Impact: The screen asked for nationality twice. The second field was under the `Address` heading and had no `wire:model`, so anything typed into it was discarded without a message. The repeated id also made the page invalid HTML, and both `<label for="nationality">` elements pointed at the first input.
 - Reproduction: Open `/user/profile` and run `document.querySelectorAll('[id=nationality]').length` in the console. It returned 2.
 - Resolution: The component now takes a `showNationality` flag, and the profile form passes `false`. The two screens that rely on the component to draw the field, `create-user-fields` and `edit-user-fields`, keep the default. Three tests cover the flag and assert the profile screen holds exactly one nationality field. The count test fails without the fix.
+
+## A submitted form stayed dead after the reader went back
+
+- Status: Fixed
+- Area: Forms, whole application
+- Observed: The global submit handler in `resources/js/app.js` sets `data-submitting="true"` on the form and disables every submit button, to stop a double submit. Nothing ever cleared that state.
+- Impact: The browser restores a page from its back-forward cache exactly as it was, and `wire:navigate` restores its own snapshot the same way. The form came back with its buttons disabled and its guard flag set, so the reader could not submit it again. Only a hard reload freed it. This hit every form in the application.
+- Reproduction: Submit any form, then press the browser Back button. Run `document.querySelector('form[data-submitting]')` in the console. It returned the form, and its submit button stayed disabled.
+- Resolution: `releaseSubmittedForms()` clears the flag, re-enables the buttons, and removes `aria-busy`. It runs on `pageshow` when the page came from the cache, and on `livewire:navigated`. Verified in Chrome against the built bundle: after a submit the button is disabled and the flag is set; after a restore both are cleared.
+
+## Four screens warned about deleting things that are not deleted
+
+- Status: Fixed
+- Area: Destructive actions
+- Observed: The submit handler asks for confirmation before any `DELETE` form. A form that carries no `data-confirm` gets the default text, "Delete this item? This action cannot be undone." Four screens relied on that default for buttons that do not delete a record.
+- Impact: The warning did not describe the action. "Take out of use" only deactivates a facility and keeps its bookings. "Give it up" cancels one booking. "Withdraw" takes a library copy off the shelves. "Take it off" removes a queue place. A reader who trusted the warning expected permanent deletion in all four cases.
+- Reproduction: Open `/dashboard/facilities`, `/dashboard/library`, `/dashboard/library/queue`, or `/dashboard/grading-scales` and press any destructive button.
+- Resolution: Each form now carries `data-confirm` text that names its own action. Three tests assert the exact wording on the four screens. All four fail without the fix, because no `data-confirm` existed on any of these pages before.

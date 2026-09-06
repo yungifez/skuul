@@ -230,11 +230,41 @@ document.addEventListener("submit", (event) => {
 
     form.dataset.submitting = "true";
 
-    form.querySelectorAll('button:not([type]), button[type="submit"], input[type="submit"]').forEach((submitButton) => {
+    submitButtonsOf(form).forEach((submitButton) => {
         submitButton.disabled = true;
         submitButton.setAttribute("aria-busy", "true");
     });
 }, true);
+
+function submitButtonsOf(form) {
+    return form.querySelectorAll('button:not([type]), button[type="submit"], input[type="submit"]');
+}
+
+/**
+ * Let a form work again after the browser restores the page it was on.
+ *
+ * The submit handler disables the buttons to stop a double submit. A back
+ * button, or a wire:navigate restore, brings that dead form back exactly as
+ * it was, so the reader cannot submit it again. Clear the flag on restore.
+ */
+function releaseSubmittedForms() {
+    document.querySelectorAll('form[data-submitting="true"]').forEach((form) => {
+        delete form.dataset.submitting;
+
+        submitButtonsOf(form).forEach((submitButton) => {
+            submitButton.disabled = false;
+            submitButton.removeAttribute("aria-busy");
+        });
+    });
+}
+
+window.addEventListener("pageshow", (event) => {
+    if (event.persisted) {
+        releaseSubmittedForms();
+    }
+});
+
+document.addEventListener("livewire:navigated", releaseSubmittedForms);
 
 systemThemeQuery.addEventListener("change", () => {
     if (window.localStorage.getItem(themeStorageKey) === "system") {

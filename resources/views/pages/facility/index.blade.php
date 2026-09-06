@@ -60,7 +60,8 @@
                                 <td class="p-4 text-muted-foreground">{{ $facility->upcoming_bookings_count }}</td>
                                 <td class="p-4 text-right">
                                     @if ($canManage && $facility->is_active)
-                                        <form action="{{ route('facilities.destroy', $facility->id) }}" method="POST">
+                                        <form action="{{ route('facilities.destroy', $facility->id) }}" method="POST"
+                                            data-confirm="Take this facility out of use? Nobody will be able to book it.">
                                             @csrf
                                             @method('DELETE')
                                             <april:button type="submit" variant="ghost" size="sm">Take out of use</april:button>
@@ -99,7 +100,8 @@
                         </div>
 
                         @if ($canBook)
-                            <form action="{{ route('facilities.bookings.cancel', $booking->id) }}" method="POST" class="flex gap-2">
+                            <form action="{{ route('facilities.bookings.cancel', $booking->id) }}" method="POST" class="flex gap-2"
+                                data-confirm="Give up this booking? The slot goes back to everybody else.">
                                 @csrf
                                 @method('DELETE')
                                 <input name="reason" maxlength="255" placeholder="Why give it up?"

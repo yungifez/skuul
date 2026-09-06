@@ -147,7 +147,8 @@
                         <div class="flex flex-wrap items-center justify-between gap-3"><april:button type="submit">Save changes</april:button></div>
                     </form>
                     @if ($gradingScale->grade_items_count === 0)
-                        <form method="POST" action="{{ route('grading-scales.destroy', $gradingScale) }}" class="mt-3">
+                        <form method="POST" action="{{ route('grading-scales.destroy', $gradingScale) }}" class="mt-3"
+                            data-confirm="Delete this grading scale? It cannot be brought back.">
                             @csrf
                             @method('DELETE')
                             <button type="submit" class="text-sm text-destructive hover:underline">Delete scale</button>

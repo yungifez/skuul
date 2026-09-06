@@ -18,10 +18,10 @@ class GradingScaleTest extends TestCase
         $this->authorized_user(['manage grading scale']);
 
         $this->post(route('grading-scales.store'), [
-            'name'        => 'Primary grades',
+            'name' => 'Primary grades',
             'description' => 'Used for continuous assessment.',
-            'is_active'   => true,
-            'options'     => [
+            'is_active' => true,
+            'options' => [
                 ['label' => 'Excellent', 'points' => 5],
                 ['label' => 'Secure', 'points' => 3],
                 ['label' => 'Developing', 'points' => 1],
@@ -40,7 +40,7 @@ class GradingScaleTest extends TestCase
 
         $this->from(route('grading-scales.index'))
             ->post(route('grading-scales.store'), [
-                'name'    => 'Mixed scale',
+                'name' => 'Mixed scale',
                 'options' => [
                     ['label' => 'Excellent', 'points' => 5],
                     ['label' => 'Secure', 'points' => null],
@@ -57,11 +57,24 @@ class GradingScaleTest extends TestCase
         $scale = GradingScale::factory()->create(['school_id' => $otherSchool->id]);
 
         $this->put(route('grading-scales.update', $scale), [
-            'name'    => 'Changed',
+            'name' => 'Changed',
             'options' => [
                 ['label' => 'One', 'points' => null],
                 ['label' => 'Two', 'points' => null],
             ],
         ])->assertForbidden();
+    }
+
+    public function test_the_screen_names_the_scale_deletion_in_its_warning(): void
+    {
+        $actor = $this->authorized_user(['manage grading scale']);
+        GradingScale::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'Primary grades',
+        ]);
+
+        // The shared handler warns about "this item" when a form says nothing.
+        $actor->get(route('grading-scales.index'))->assertOk()
+            ->assertSee('data-confirm="Delete this grading scale? It cannot be brought back."', false);
     }
 }

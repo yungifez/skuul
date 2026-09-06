@@ -308,6 +308,20 @@ class FacilityTest extends TestCase
         return $timetable->fresh();
     }
 
+    public function test_the_screen_says_what_each_destructive_button_really_does(): void
+    {
+        $actor = $this->authorized_user(['read facility', 'manage facility', 'book facility']);
+        $hall = $this->facility();
+        app(BookFacility::class)->book($hall, now()->addDay()->setTime(9, 0), now()->addDay()->setTime(11, 0), 'Rehearsal');
+
+        $response = $actor->get(route('facilities.index'))->assertOk();
+
+        // Without its own wording, the shared handler warns that the record is
+        // being deleted. Neither button deletes anything.
+        $response->assertSee('data-confirm="Take this facility out of use? Nobody will be able to book it."', false);
+        $response->assertSee('data-confirm="Give up this booking? The slot goes back to everybody else."', false);
+    }
+
     /**
      * Share one hall on this campus.
      */

@@ -80,7 +80,8 @@
                                 <td class="p-4 text-muted-foreground">{{ $reservation->holds_until?->format('j M Y') }}</td>
                                 <td class="p-4 text-right">
                                     @if ($canManage)
-                                        <form action="{{ route('library-reservations.destroy', $reservation->id) }}" method="POST">
+                                        <form action="{{ route('library-reservations.destroy', $reservation->id) }}" method="POST"
+                                            data-confirm="Take this reservation off the queue?">
                                             @csrf
                                             @method('DELETE')
                                             <april:button type="submit" variant="ghost" size="sm">Take it off</april:button>
@@ -124,7 +125,8 @@
                                 <td class="p-4 text-muted-foreground">{{ $reservation->reserved_on?->format('j M Y') }}</td>
                                 <td class="p-4 text-right">
                                     @if ($canManage)
-                                        <form action="{{ route('library-reservations.destroy', $reservation->id) }}" method="POST">
+                                        <form action="{{ route('library-reservations.destroy', $reservation->id) }}" method="POST"
+                                            data-confirm="Take this reservation off the queue?">
                                             @csrf
                                             @method('DELETE')
                                             <april:button type="submit" variant="ghost" size="sm">Take it off</april:button>
