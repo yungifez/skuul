@@ -47,7 +47,7 @@
                     <div class="overflow-x-auto">
                         <div class="grid min-w-[46rem] grid-cols-7 gap-px rounded-lg border bg-border">
                             @foreach (['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $weekday)
-                                <div class="bg-muted/50 px-2 py-2 text-center text-xs font-medium text-muted-foreground">{{ $weekday }}</div>
+                                <div class="bg-muted/50 px-2 py-2 text-center text-xs font-medium text-foreground">{{ $weekday }}</div>
                             @endforeach
 
                             @foreach ($days as $day)

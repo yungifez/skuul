@@ -63,7 +63,7 @@
         </div>
         <div class="overflow-x-auto rounded-lg border">
             <table class="min-w-[900px] w-full text-sm">
-                <thead class="bg-muted/50 text-left text-xs uppercase tracking-wide text-muted-foreground">
+                <thead class="bg-muted/50 text-left text-xs uppercase tracking-wide text-foreground">
                     <tr>
                         <th class="px-3 py-2">#</th><th class="px-3 py-2">Name</th><th class="px-3 py-2">Local label</th><th class="px-3 py-2">Type</th><th class="px-3 py-2">Order</th><th class="px-3 py-2">Starts day</th><th class="px-3 py-2">Days</th><th class="px-3 py-2">Parent row</th>
                     </tr>

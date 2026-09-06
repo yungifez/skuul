@@ -32,6 +32,26 @@
     color: hsl(var(--primary-foreground));
 }
 
+/* April UI paints destructive text with --destructive. On the dark theme that
+   red measures 4.3:1 on a card and 3.61:1 on an accent surface, under the
+   4.5:1 WCAG AA minimum. --destructive doubles as a button background there,
+   so lightening the token itself would repaint those buttons. This second
+   token is for text only. At 68% lightness the red clears 4.5:1 on every dark
+   surface the app uses, the worst being 5.00:1 on bg-accent. The light theme
+   already passes, so it keeps the token it has. Both rules sit outside every
+   layer so they beat the Tailwind utility. */
+:root {
+    --destructive-text: var(--destructive);
+}
+
+.dark {
+    --destructive-text: 0 72% 68%;
+}
+
+.text-destructive {
+    color: hsl(var(--destructive-text));
+}
+
 @layer components {
     .beautify-scrollbar::-webkit-scrollbar {
         width: 5px;

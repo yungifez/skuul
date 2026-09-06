@@ -275,3 +275,21 @@
 - Impact: The text landed at 1.59:1 on the light theme and 1.73:1 on the dark one. WCAG AA asks for 4.5:1. The colour is close enough to the page background that the link is hard to find at all. This hit every "link" button in the application, including several primary actions in table rows.
 - Reproduction: Open any page with a link button and measure the computed colour against the page background. Light theme: `rgb(214, 187, 164)` on `rgb(235, 241, 234)`. Dark theme: `rgb(84, 54, 28)` on `rgb(12, 18, 15)`.
 - Resolution: `resources/css/app.css` repaints these links with `--primary-foreground`, the readable half of the same colour pair. It holds the same brown hue, so the links keep their look. They now measure 12.32:1 on the light background and 8.11:1 on the dark one. The rule sits outside every `@layer`, because a layered rule loses to a Tailwind utility whatever its specificity. Three tests cover it, including one that fails the day April UI changes the variant itself.
+
+## Calendar weekday headers were too faint to read
+
+- Status: Fixed
+- Area: Colour contrast, calendar screens
+- Observed: The weekday row on the calendar grid, and the header row of the calendar template table, paired `text-muted-foreground` with a `bg-muted/50` surface.
+- Impact: On the light theme the pair measures 4.39:1. WCAG AA asks for 4.5:1 on normal text. The gap is small enough to look fine in a screenshot and still fail a reader with low vision. The affected text is the column label, so a reader who cannot make it out cannot tell which column is which day.
+- Reproduction: Open `/dashboard/calendar-events` on the light theme and measure "Mon" against the strip behind it. Foreground `rgb(85,99,90)`, background `rgb(210,217,206)`.
+- Resolution: The three header rows now use `text-foreground`. A test walks every Blade view and fails if any line pairs `bg-muted/50` with `text-muted-foreground`, so the combination cannot come back anywhere. The test fails without the fix.
+
+## Destructive text was unreadable on the dark theme
+
+- Status: Fixed
+- Area: Colour contrast, whole application
+- Observed: `text-destructive` reads `--destructive`. On the dark theme that red measures 4.3:1 on a card, 3.73:1 on a muted surface, and 3.61:1 on an accent surface, against the 4.5:1 minimum.
+- Impact: Destructive text names the actions a reader most needs to read before pressing, such as "Delete scale". The light theme passes at 4.51:1, so the fault only shows for readers on the dark theme.
+- Reproduction: Open `/dashboard/grading-scales` on the dark theme and measure "Delete scale". Foreground `rgb(225,70,70)`, background `rgb(21,27,22)`.
+- Resolution: `--destructive` doubles as the background of destructive buttons, so lightening it would repaint those buttons. The application adds `--destructive-text` instead. The light theme keeps the shared token. The dark theme raises the lightness to 68%, which clears 4.5:1 on every dark surface the application uses: 6.46:1 on the page background, 5.97:1 on a card, 5.17:1 on a muted surface, and 5.00:1 on an accent surface. Five tests cover it, including one that fails the day April UI gives destructive text its own readable colour.
