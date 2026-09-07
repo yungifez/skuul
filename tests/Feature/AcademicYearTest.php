@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\AcademicPeriodStatus;
 use App\Enums\Role;
+use App\Livewire\ShowAcademicYear;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\School;
@@ -11,6 +12,7 @@ use App\Models\User;
 use App\Services\Academic\AcademicPeriodContext;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class AcademicYearTest extends TestCase
@@ -94,6 +96,21 @@ class AcademicYearTest extends TestCase
             ->assertSee('Next: Dates and periods')
             ->assertSee('Continue to dates and periods')
             ->assertSee(route('academic-years.setup', [$academicYear, 'calendar']), false);
+    }
+
+    public function test_the_calendar_overview_sorts_its_exam_list(): void
+    {
+        // The overview of the working calendar carries the period switcher as
+        // a child component, so this also covers the switcher's root element.
+        $this->authorized_user(['read academic year', 'read exam', 'set academic period']);
+
+        $academicYear = current_academic_year();
+
+        $this->assertNotNull($academicYear);
+
+        Livewire::test(ShowAcademicYear::class, ['academicYear' => $academicYear])
+            ->call('updateTable', ['sort' => ['key' => 'name', 'direction' => 'desc']])
+            ->assertOk();
     }
 
     public function test_an_unauthorized_user_cannot_delete_a_school_calendar(): void

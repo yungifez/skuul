@@ -181,3 +181,25 @@ The row carries whatever `serializeRows()` puts on it, so `row.title` or
 `row.name + ' for ' + row.student_name` work the same way.
 `tests/Unit/DestructiveFormConfirmationTest.php` fails on an action with no
 `names` key.
+
+## Open a Livewire view with its root element
+
+Livewire reads the first `<` in the rendered HTML and takes the tag name after
+it. A directive before that element writes `<!--[if BLOCK]><![endif]-->` first,
+so Livewire reads an empty tag name and stores it against the component. The
+first render still looks right. The next request from a parent component reads
+the stored tag back and throws "Invalid Livewire child tag name", which returns
+a 500.
+
+Put the condition inside the root element, not around it:
+
+```blade
+<div @class(['card' => $record !== null])>
+    @if ($record !== null)
+        ...
+    @endif
+</div>
+```
+
+`@php` is safe before the root because it writes nothing. Every other directive
+is not. `tests/Unit/LivewireRootElementTest.php` covers it.

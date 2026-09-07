@@ -556,3 +556,12 @@
 - Impact: Clicking either column heading returned a 500 from MySQL, "Unknown column in order clause". Both headings looked exactly like the ones that work, so the only way to find out was to click.
 - Reproduction: Open `/dashboard/fees/fee-invoices` and click the Due date heading.
 - Resolution: Both columns sort through a callback on the value the record really holds: the invoice by `due_date`, the promotion by `JSON_LENGTH(students)`. `tests/Feature/FeeInvoiceTest.php` and `tests/Feature/StudentTest.php` sort each column.
+
+## Sorting the exam list on a calendar page took the page down
+
+- Status: Fixed
+- Area: School calendars
+- Observed: Livewire finds a component's root element by reading the first `<` in its rendered HTML. `livewire/set-academic-period.blade.php` wrapped its whole body in `@if ($academicYear !== null)`, which writes a `<!--[if BLOCK]>` marker before the root element, so Livewire read an empty tag name and stored it against the component.
+- Impact: The calendar overview carries the period switcher as a child component. The first render worked, so the screen looked healthy. Any later request from the page then read the stored tag back and threw "Invalid Livewire child tag name", which returned a 500. Sorting, searching or paging the exam list on the working calendar all did this.
+- Reproduction: Open the working calendar at `/dashboard/academic-years/{id}` as a user who can set the academic period, then click a heading on the exam list.
+- Resolution: The view now opens with an unconditional root element and holds its conditions inside it. `tests/Unit/LivewireRootElementTest.php` fails on any Livewire view that opens with a directive, and `tests/Feature/AcademicYearTest.php` sorts the exam list on the calendar overview.
