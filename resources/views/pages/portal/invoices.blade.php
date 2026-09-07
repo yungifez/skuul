@@ -17,12 +17,12 @@
             <april:card>
                 <slot:title>Still owed</slot:title>
                 <slot:description>What the school records as due.</slot:description>
-                <slot:content><p class="text-2xl font-semibold">{{ number_format($balance, 2) }}</p></slot:content>
+                <slot:content><p class="text-2xl font-semibold">{{ money_text($balance) }}</p></slot:content>
             </april:card>
             <april:card>
                 <slot:title>Credit held</slot:title>
                 <slot:description>Money paid that has not been used on an invoice.</slot:description>
-                <slot:content><p class="text-2xl font-semibold">{{ number_format($unappliedCredit, 2) }}</p></slot:content>
+                <slot:content><p class="text-2xl font-semibold">{{ money_text($unappliedCredit) }}</p></slot:content>
             </april:card>
         </div>
 

@@ -47,6 +47,23 @@ class PortalInvoiceScreenTest extends TestCase
             ->assertSee($invoice->name);
     }
 
+    /**
+     * A family reads this screen to learn what it owes. A figure with no
+     * currency beside it does not say what it owes.
+     */
+    public function test_the_portal_statement_names_its_currency(): void
+    {
+        $enrollment = $this->enrollment();
+        $guardian = $this->guardianOf($enrollment);
+        $this->invoiceFor($enrollment);
+
+        $this->actingAs($guardian)
+            ->get(route('portal.invoices.index', $enrollment))
+            ->assertOk()
+            ->assertSee(money_text(0))
+            ->assertDontSee('>0.00<', false);
+    }
+
     public function test_a_guardian_with_no_invoices_sees_an_empty_state(): void
     {
         $enrollment = $this->enrollment();

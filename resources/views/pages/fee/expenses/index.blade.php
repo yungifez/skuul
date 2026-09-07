@@ -24,7 +24,7 @@
                         <thead><tr class="border-b text-muted-foreground"><th class="p-3">Date</th><th class="p-3">Description</th><th class="p-3">Account</th><th class="p-3">Paid from</th><th class="p-3 text-right">Amount</th></tr></thead>
                         <tbody class="divide-y">
                             @foreach ($expenses as $expense)
-                                <tr><td class="p-3">{{ $expense->expense_date->format('j M Y') }}</td><td class="p-3"><div class="font-medium">{{ $expense->description }}</div><div class="text-xs text-muted-foreground">{{ $expense->vendor ?: 'No vendor recorded' }}</div></td><td class="p-3">{{ $expense->account?->name }}</td><td class="p-3">{{ str($expense->method)->replace('_', ' ')->title() }}</td><td class="p-3 text-right">{{ number_format($expense->amount, 2) }}</td></tr>
+                                <tr><td class="p-3">{{ $expense->expense_date->format('j M Y') }}</td><td class="p-3"><div class="font-medium">{{ $expense->description }}</div><div class="text-xs text-muted-foreground">{{ $expense->vendor ?: 'No vendor recorded' }}</div></td><td class="p-3">{{ $expense->account?->name }}</td><td class="p-3">{{ str($expense->method)->replace('_', ' ')->title() }}</td><td class="p-3 text-right">{{ money_text($expense->amount) }}</td></tr>
                             @endforeach
                         </tbody>
                     </table>

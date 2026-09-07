@@ -25,10 +25,10 @@
         </div>
 
         <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <april:card><slot:title>Outstanding</slot:title><slot:description>Unpaid invoices in this period</slot:description><slot:content><p class="text-2xl font-semibold">{{ number_format($summary['outstanding'], 2) }}</p></slot:content></april:card>
+            <april:card><slot:title>Outstanding</slot:title><slot:description>Unpaid invoices in this period</slot:description><slot:content><p class="text-2xl font-semibold">{{ money_text($summary['outstanding']) }}</p></slot:content></april:card>
             <april:card><slot:title>Overdue invoices</slot:title><slot:description>Invoices past their due date</slot:description><slot:content><p class="text-2xl font-semibold">{{ $summary['overdue'] }}</p></slot:content></april:card>
-            <april:card><slot:title>Received</slot:title><slot:description>Payments recorded in this period</slot:description><slot:content><p class="text-2xl font-semibold">{{ number_format($summary['received'], 2) }}</p></slot:content></april:card>
-            <april:card><slot:title>Spent</slot:title><slot:description>Expenses recorded in this period</slot:description><slot:content><p class="text-2xl font-semibold">{{ number_format($summary['spent'], 2) }}</p></slot:content></april:card>
+            <april:card><slot:title>Received</slot:title><slot:description>Payments recorded in this period</slot:description><slot:content><p class="text-2xl font-semibold">{{ money_text($summary['received']) }}</p></slot:content></april:card>
+            <april:card><slot:title>Spent</slot:title><slot:description>Expenses recorded in this period</slot:description><slot:content><p class="text-2xl font-semibold">{{ money_text($summary['spent']) }}</p></slot:content></april:card>
         </div>
 
         <div class="flex min-w-0 flex-col gap-6">

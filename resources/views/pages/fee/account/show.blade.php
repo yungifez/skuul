@@ -31,7 +31,7 @@
         <div class="rounded-xl border border-sidebar-border/70 bg-card p-5 text-card-foreground shadow-sm">
             <p class="text-xs font-medium uppercase text-muted-foreground">Owed to the school</p>
             <p class="mt-2 text-3xl font-semibold tracking-tight {{ $owes ? 'text-foreground' : 'text-muted-foreground' }}">
-                {{ number_format($balance, 2) }}
+                {{ money_text($balance) }}
             </p>
             <p class="mt-1 text-xs text-muted-foreground">{{ $owes ? 'This family still has fees to pay.' : 'Nothing is outstanding.' }}</p>
         </div>
@@ -64,7 +64,7 @@
                 @foreach ($elsewhere as $row)
                     <li class="flex items-center justify-between gap-4">
                         <span>{{ $row['school']->name }}</span>
-                        <span class="font-medium">{{ number_format($row['balance'], 2) }}</span>
+                        <span class="font-medium">{{ money_text($row['balance']) }}</span>
                     </li>
                 @endforeach
             </ul>

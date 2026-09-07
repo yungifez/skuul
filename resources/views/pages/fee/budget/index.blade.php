@@ -70,10 +70,10 @@
                                 <td class="p-4 font-medium">{{ $row->budget->account?->name }}</td>
                                 <td class="p-4 text-muted-foreground">{{ $row->budget->coverage() }}</td>
                                 <td class="p-4 text-muted-foreground">{{ $row->budget->narrowedTo() }}</td>
-                                <td class="p-4">{{ number_format($row->planned, 2) }}</td>
-                                <td class="p-4">{{ number_format($row->actual, 2) }}</td>
+                                <td class="p-4">{{ money_text($row->planned) }}</td>
+                                <td class="p-4">{{ money_text($row->actual) }}</td>
                                 <td class="p-4 {{ $row->isOverspent() ? 'font-semibold text-destructive' : 'text-muted-foreground' }}">
-                                    {{ number_format($row->difference(), 2) }}
+                                    {{ money_text($row->difference()) }}
                                 </td>
                                 <td class="p-4">
                                     @if ($row->used() === null)

@@ -19,7 +19,7 @@
             @if ($deposits->isEmpty())
                 <p class="py-8 text-sm text-muted-foreground">No cash deposits recorded yet.</p>
             @else
-                <div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead><tr class="border-b text-muted-foreground"><th class="p-3">Date</th><th class="p-3">Bank reference</th><th class="p-3">Period</th><th class="p-3 text-right">Amount</th></tr></thead><tbody class="divide-y">@foreach ($deposits as $deposit)<tr><td class="p-3">{{ $deposit->deposit_date->format('j M Y') }}</td><td class="p-3">{{ $deposit->bank_reference ?: '—' }}</td><td class="p-3">{{ $deposit->financialPeriod?->name }}</td><td class="p-3 text-right">{{ number_format($deposit->amount, 2) }}</td></tr>@endforeach</tbody></table></div><div class="mt-4">{{ $deposits->links('components.pagination-links-view') }}</div>
+                <div class="overflow-x-auto"><table class="w-full text-left text-sm"><thead><tr class="border-b text-muted-foreground"><th class="p-3">Date</th><th class="p-3">Bank reference</th><th class="p-3">Period</th><th class="p-3 text-right">Amount</th></tr></thead><tbody class="divide-y">@foreach ($deposits as $deposit)<tr><td class="p-3">{{ $deposit->deposit_date->format('j M Y') }}</td><td class="p-3">{{ $deposit->bank_reference ?: '—' }}</td><td class="p-3">{{ $deposit->financialPeriod?->name }}</td><td class="p-3 text-right">{{ money_text($deposit->amount) }}</td></tr>@endforeach</tbody></table></div><div class="mt-4">{{ $deposits->links('components.pagination-links-view') }}</div>
             @endif
         </slot:content>
     </april:card>

@@ -511,3 +511,12 @@
 - Impact: Any request touching a line whose invoice had been deleted returned a 500 from the policy, before the request reached a controller. A policy is the wrong place to fail: it should decide yes or no, not throw.
 - Reproduction: Raise an invoice with one fee, delete the invoice, then send a DELETE to that line's route. The policy threw "Attempt to read property school_id on null".
 - Resolution: `FeeInvoiceRecord::feeInvoice()` resolves a deleted invoice with `withTrashed()`, so the policy reads the school and answers normally. `tests/Feature/FeeInvoiceRecordTest.php` covers it.
+
+## Money on the finance screens did not name its currency
+
+- Status: Fixed
+- Area: Finance and the family portal
+- Observed: A model column cast to `Money` formats itself and prints "NGN 250,000.00". A figure that arrives as a plain number, such as a sum or a `decimal` column, had nothing to format it, so ten screens rendered money with `number_format($amount, 2)` and no currency at all.
+- Impact: The fee invoices index showed "1,897,000.00" in its summary cards directly above a table showing "NGN 147,000.00", so the same page disagreed with itself about the same money. The budget register, the expense register, the cash deposit list and both ledger account balances did the same. Worst of all, the family portal told a parent they still owed "250,000.00", with nothing saying in what.
+- Reproduction: Open `/dashboard/fees/fee-invoices`. The four cards carried bare numbers while the table under them carried the currency.
+- Resolution: A new `money_text()` helper in `app/helpers.php` formats a plain amount through `Brick\Money`, the same way the `Money` cast does, so both routes read identically. All ten renders use it. It takes a major amount, rounds half up so a float sum cannot throw, and treats null as zero. `tests/Feature/FeeInvoiceTest.php` and `tests/Feature/PortalInvoiceScreenTest.php` both fail if a bare figure comes back.

@@ -134,3 +134,15 @@ with `withCount(...)` so the row carries it.
 Whenever a service refuses an action on some records, hide the control on
 those records as well. A button that always fails teaches the reader to
 distrust every button beside it.
+
+## Write money with money_text
+
+A column cast to `Money` formats itself: `$invoice->balance->formatToLocale(app()->getLocale())`.
+A figure that arrives as a plain number has nothing to format it, and
+`number_format($amount, 2)` prints no currency at all.
+
+Use `money_text($amount)` for those. It reads identically to the cast, so a
+summary card and the table under it agree. Pass a **major** amount: a sum of
+minor units has to be divided by 100 first.
+
+`number_format` still belongs on a count and on a percentage.

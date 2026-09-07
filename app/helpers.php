@@ -10,6 +10,8 @@ use App\Services\Academic\AcademicPeriodContext;
 use App\Services\Curriculum\InstructionalModelResolver;
 use App\Services\Feature\FeatureManager;
 use App\Services\School\SchoolContext;
+use Brick\Math\RoundingMode;
+use Brick\Money\Money as BrickMoney;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 use Illuminate\View\ComponentAttributeBag;
@@ -289,5 +291,33 @@ if (!function_exists('april_field_error_attributes')) {
         }
 
         return ['aria-invalid' => 'true', 'aria-describedby' => field_error_id($key)];
+    }
+}
+
+if (!function_exists('money_text')) {
+    /**
+     * Write an amount in the school's currency.
+     *
+     * Every money figure on a screen has to name its currency. A model that
+     * casts to `Money` formats itself, but a figure that arrives as a plain
+     * number, such as a sum or a decimal column, has nothing to format it.
+     * Both routes must read the same, so this uses the same locale format.
+     *
+     * Pass a major amount: 250000 means two hundred and fifty thousand, not
+     * two thousand five hundred.
+     */
+    function money_text(BrickMoney|float|int|string|null $amount): string
+    {
+        if ($amount instanceof BrickMoney) {
+            return $amount->formatToLocale(app()->getLocale());
+        }
+
+        $money = BrickMoney::of(
+            is_float($amount) ? sprintf('%.4F', $amount) : ($amount ?? 0),
+            config('app.currency'),
+            roundingMode: RoundingMode::HalfUp,
+        );
+
+        return $money->formatToLocale(app()->getLocale());
     }
 }

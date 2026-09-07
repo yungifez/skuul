@@ -307,6 +307,19 @@ class FeeInvoiceTest extends TestCase
         Livewire::test(ListFeeInvoicesTable::class, ['status' => 'all'])->assertOk();
     }
 
+    /**
+     * The summary cards and the table below them show the same money, so they
+     * have to name the currency the same way.
+     */
+    public function test_the_finance_summary_names_its_currency()
+    {
+        $this->authorized_user(['read fee invoice'])
+            ->get('dashboard/fees/fee-invoices')
+            ->assertSuccessful()
+            ->assertSee(money_text(0))
+            ->assertDontSee('>0.00<', false);
+    }
+
     public function test_unauthorized_user_cannot_view_edit_page()
     {
         $feeInvoice = FeeInvoice::factory()->create();
