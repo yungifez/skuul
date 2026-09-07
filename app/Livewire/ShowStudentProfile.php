@@ -2,6 +2,8 @@
 
 namespace App\Livewire;
 
+use App\Actions\Enrollment\ChangeEnrollmentPlacement;
+use App\Actions\Enrollment\ChangeEnrollmentStatus;
 use App\Actions\Enrollment\MoveEnrollmentBetweenCampuses;
 use App\Actions\Enrollment\RequestCampusMove;
 use App\Enums\AcademicStructureStatus;
@@ -78,6 +80,94 @@ class ShowStudentProfile extends Component
      * A person with organization authority moves the student straight away.
      * A campus administrator only asks, and the receiving campus decides.
      */
+    /**
+     * Move the enrollment to another status.
+     */
+    public function changeStatus(ChangeEnrollmentStatus $changeEnrollmentStatus): void
+    {
+        Gate::authorize('update', [$this->student, 'student']);
+
+        if ($this->studentRecord === null) {
+            $this->addError('statusSelection', 'This person has no enrollment in the current school.');
+
+            return;
+        }
+
+        $this->validate([
+            'statusSelection' => ['required', 'in:'.implode(',', array_column($this->statusOptions, 'value'))],
+            'statusReason' => ['nullable', 'string', 'max:1000'],
+            'statusEffectiveOn' => ['required', 'date'],
+        ]);
+
+        try {
+            $changeEnrollmentStatus->change(
+                enrollment: $this->studentRecord,
+                status: EnrollmentStatus::from($this->statusSelection),
+                actor: auth()->user(),
+                reason: filled($this->statusReason) ? $this->statusReason : null,
+                effectiveOn: Carbon::parse($this->statusEffectiveOn),
+            );
+        } catch (InvalidValueException $exception) {
+            $this->addError('statusSelection', $exception->getMessage());
+
+            return;
+        }
+
+        $this->statusReason = '';
+        $this->notify('Enrollment status updated.');
+        $this->refreshEnrollment();
+    }
+
+    /**
+     * Move the enrollment to another section of the working campus.
+     */
+    public function changePlacement(ChangeEnrollmentPlacement $changeEnrollmentPlacement): void
+    {
+        Gate::authorize('update', [$this->student, 'student']);
+
+        if ($this->studentRecord === null) {
+            $this->addError('placementCycleSectionId', 'This person has no enrollment in the current school.');
+
+            return;
+        }
+
+        $this->validate([
+            'placementCycleSectionId' => ['required', 'integer'],
+            'placementReason' => ['nullable', 'string', 'max:1000'],
+            'placementEffectiveOn' => ['required', 'date'],
+        ]);
+
+        $academicCycleSection = AcademicCycleSection::inSchool()
+            ->whereKey($this->placementCycleSectionId)
+            ->where('academic_year_id', current_academic_year_id())
+            ->first();
+
+        if ($academicCycleSection === null) {
+            $this->addError('placementCycleSectionId', 'That section does not belong to the working '.strtolower(school_term('academic_year', 'school year')).'.');
+
+            return;
+        }
+
+        try {
+            $changeEnrollmentPlacement->place(
+                enrollment: $this->studentRecord,
+                academicCycleSection: $academicCycleSection,
+                academicPeriod: current_academic_period(),
+                actor: auth()->user(),
+                reason: filled($this->placementReason) ? $this->placementReason : null,
+                effectiveOn: Carbon::parse($this->placementEffectiveOn),
+            );
+        } catch (InvalidValueException $exception) {
+            $this->addError('placementCycleSectionId', $exception->getMessage());
+
+            return;
+        }
+
+        $this->placementReason = '';
+        $this->notify('Enrollment placement updated.');
+        $this->refreshEnrollment();
+    }
+
     public function moveCampus(
         MoveEnrollmentBetweenCampuses $moveEnrollmentBetweenCampuses,
         RequestCampusMove $requestCampusMove,

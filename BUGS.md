@@ -565,3 +565,12 @@
 - Impact: The calendar overview carries the period switcher as a child component. The first render worked, so the screen looked healthy. Any later request from the page then read the stored tag back and threw "Invalid Livewire child tag name", which returned a 500. Sorting, searching or paging the exam list on the working calendar all did this.
 - Reproduction: Open the working calendar at `/dashboard/academic-years/{id}` as a user who can set the academic period, then click a heading on the exam list.
 - Resolution: The view now opens with an unconditional root element and holds its conditions inside it. `tests/Unit/LivewireRootElementTest.php` fails on any Livewire view that opens with a directive, and `tests/Feature/AcademicYearTest.php` sorts the exam list on the calendar overview.
+
+## Two forms on the student screen did nothing
+
+- Status: Fixed
+- Area: Enrollment
+- Observed: The student screen carries a form that changes the enrollment status and another that changes the placement. Both call a Livewire method by name: `wire:submit="changeStatus"` and `wire:submit="changePlacement"`. A work-in-progress commit that added the campus move removed both methods from `ShowStudentProfile` and left the forms in place.
+- Impact: The forms rendered, took what the reader typed and refused to do anything with it. Livewire answered "Unable to call component method", so nothing was saved and nothing said why. `ChangeEnrollmentStatus` and `ChangeEnrollmentPlacement` were still there, unreachable from the only screen that offered them.
+- Reproduction: Open a student, choose a new status under "Change enrollment status" and press Save status.
+- Resolution: Both methods are back on the component and report through `notify()` like the campus move beside them. A placement now names the working calendar when the section does not belong to it, rather than throwing a 404 inside a Livewire request. `tests/Feature/EnrollmentStatusTest.php` and `tests/Feature/EnrollmentPlacementTest.php` drive each form through the screen.

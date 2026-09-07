@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\Enrollment\ChangeEnrollmentStatus;
 use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\ShowStudentProfile;
 use App\Models\EnrollmentStatusChange;
 use App\Models\StudentRecord;
 use App\Models\User;
@@ -12,6 +13,7 @@ use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Schema;
+use Livewire\Livewire;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -125,6 +127,20 @@ class EnrollmentStatusTest extends TestCase
         $this->expectException(RuntimeException::class);
 
         $change->delete();
+    }
+
+    public function test_staff_change_an_enrollment_status_from_the_student_screen(): void
+    {
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read student', 'update student']);
+
+        Livewire::test(ShowStudentProfile::class, ['student' => $enrollment->user])
+            ->set('statusSelection', EnrollmentStatus::Suspended->value)
+            ->set('statusReason', 'Away for a term')
+            ->call('changeStatus')
+            ->assertHasNoErrors();
+
+        $this->assertSame(EnrollmentStatus::Suspended, $enrollment->fresh()->status);
     }
 
     public function test_authorized_user_can_graduate_a_student(): void

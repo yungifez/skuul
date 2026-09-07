@@ -11,6 +11,7 @@ use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
 use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\ShowStudentProfile;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
@@ -21,6 +22,7 @@ use App\Models\School;
 use App\Models\StudentRecord;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -318,16 +320,31 @@ class EnrollmentPlacementTest extends TestCase
         return $enrollment->fresh()->placements()->firstOrFail();
     }
 
+    public function test_staff_change_a_placement_from_the_student_screen(): void
+    {
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read student', 'update student']);
+        $cycleSection = $this->cycleSection($this->workingSchool(), current_academic_year());
+
+        Livewire::test(ShowStudentProfile::class, ['student' => $enrollment->user])
+            ->set('placementCycleSectionId', $cycleSection->id)
+            ->set('placementReason', 'Moved up a set')
+            ->call('changePlacement')
+            ->assertHasNoErrors();
+
+        $this->assertSame($cycleSection->id, $enrollment->fresh()->academic_cycle_section_id);
+    }
+
     private function cycleSection(School $school, ?AcademicYear $academicYear = null): AcademicCycleSection
     {
         $academicYear ??= AcademicYear::factory()->create(['school_id' => $school->id]);
         $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
 
         return AcademicCycleSection::factory()->create([
-            'school_id'         => $school->id,
-            'academic_year_id'  => $academicYear->id,
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
-            'status'            => AcademicStructureStatus::Active,
+            'status' => AcademicStructureStatus::Active,
         ]);
     }
 }
