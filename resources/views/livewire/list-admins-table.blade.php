@@ -22,7 +22,7 @@
     <x-table-actions :items="array_filter([
         ['label' => 'View administrator', 'icon' => 'eye', 'url' => 'view_url'],
         $canManageAdmins ? ['label' => 'Manage administrator', 'icon' => 'pencil', 'url' => 'edit_url'] : null,
-        $canDeleteAdmins ? ['label' => 'Delete administrator', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete this administrator?'] : null,
+        $canDeleteAdmins ? ['label' => 'Delete administrator', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete :name?', 'names' => 'row.name'] : null,
     ])" />
 </slot:actions>
                 </april:data-table>

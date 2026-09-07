@@ -12,13 +12,28 @@
     $shownWhen = static fn (array $item): string => isset($item['when'])
         ? '('.$item['when'].') ? \'\' : \'hidden\''
         : '\'\'';
+
+    // "Delete this student?" names nobody on a table of twenty-five rows. An
+    // item may carry a `names` key holding an Alpine expression over `row`,
+    // and `:name` in its message is replaced with what that expression reads.
+    $confirmBinding = static function (array $item): ?string {
+        if (! isset($item['names'])) {
+            return null;
+        }
+
+        $parts = explode(':name', $item['confirm'] ?? 'Delete :name?', 2);
+
+        return json_encode($parts[0]).' + ('.$item['names'].') + '.json_encode($parts[1] ?? '');
+    };
 @endphp
 
 <div class="flex items-center justify-end">
     @if (count($items) === 1)
         @php($item = $items[0])
         @if (($item['type'] ?? 'link') === 'delete')
-            <form method="POST" x-bind:action="row.{{ $item['url'] }}" data-confirm="{{ $item['confirm'] ?? 'Delete this item?' }}" x-bind:class="{{ $shownWhen($item) }}">
+            <form method="POST" x-bind:action="row.{{ $item['url'] }}"
+                @if ($confirmBinding($item) !== null) x-bind:data-confirm="{{ $confirmBinding($item) }}" @else data-confirm="{{ $item['confirm'] ?? 'Delete this item?' }}" @endif
+                x-bind:class="{{ $shownWhen($item) }}">
                 @csrf
                 @method('DELETE')
                 <april:button type="submit" variant="outline" size="sm">
@@ -43,7 +58,9 @@
             <slot:content align="end" class="w-52">
                 @foreach ($items as $item)
                     @if (($item['type'] ?? 'link') === 'delete')
-                        <form method="POST" x-bind:action="row.{{ $item['url'] }}" data-confirm="{{ $item['confirm'] ?? 'Delete this item?' }}" class="hidden" x-bind:id="'table-action-'+row.id+'-{{ $loop->index }}'">
+                        <form method="POST" x-bind:action="row.{{ $item['url'] }}"
+                            @if ($confirmBinding($item) !== null) x-bind:data-confirm="{{ $confirmBinding($item) }}" @else data-confirm="{{ $item['confirm'] ?? 'Delete this item?' }}" @endif
+                            class="hidden" x-bind:id="'table-action-'+row.id+'-{{ $loop->index }}'">
                             @csrf
                             @method('DELETE')
                         </form>

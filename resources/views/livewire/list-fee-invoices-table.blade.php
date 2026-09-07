@@ -3,6 +3,6 @@
         ['label' => 'View invoice', 'icon' => 'eye', 'url' => 'view_url'],
         $canManageInvoices ? ['label' => 'Edit invoice', 'icon' => 'settings', 'url' => 'edit_url'] : null,
         $canPayInvoices ? ['label' => 'Take payment', 'icon' => 'credit-card', 'url' => 'pay_url'] : null,
-        $canDeleteInvoices ? ['label' => 'Delete invoice', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete this invoice?'] : null,
+        $canDeleteInvoices ? ['label' => 'Delete invoice', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete :name?', 'names' => "row.name + ' for ' + row.student_name"] : null,
     ])" />
 </slot:actions></april:data-table></div></div></slot:content></april:card>

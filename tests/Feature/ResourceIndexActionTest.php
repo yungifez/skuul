@@ -35,12 +35,14 @@ class ResourceIndexActionTest extends TestCase
             ->assertDontSee('data-resource-create-action="'.route('students.create').'"', false);
     }
 
-    public function test_resource_table_delete_actions_include_a_confirmation_message(): void
+    public function test_resource_table_delete_actions_name_the_record_they_remove(): void
     {
         $this->authorized_user(['read student', 'delete student'])
             ->get(route('students.index'))
             ->assertOk()
-            ->assertSee('data-confirm="Delete this student?"', false);
+            ->assertSee('x-bind:data-confirm=', false)
+            ->assertSee('(row.name)', false)
+            ->assertDontSee('Delete this student?');
     }
 
     public function test_the_shared_status_display_renders_a_session_message(): void

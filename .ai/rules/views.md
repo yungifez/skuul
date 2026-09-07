@@ -165,3 +165,19 @@ The accessor reads `label` and `academicLevel`, so widen the query with it:
 
 A narrow select throws on the missing attribute, and a missing eager load runs
 one query per row.
+
+## A row action names the record it undoes
+
+`data-confirm` on a row action is written once and used on every row, so
+"Delete this student?" names nobody. Give the item a `names` key holding an
+Alpine expression over `row`, and write `:name` in the message:
+
+```php
+['label' => 'Delete student', 'type' => 'delete', 'url' => 'delete_url',
+ 'confirm' => 'Delete :name?', 'names' => 'row.name']
+```
+
+The row carries whatever `serializeRows()` puts on it, so `row.title` or
+`row.name + ' for ' + row.student_name` work the same way.
+`tests/Unit/DestructiveFormConfirmationTest.php` fails on an action with no
+`names` key.

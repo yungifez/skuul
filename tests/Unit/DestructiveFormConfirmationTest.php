@@ -40,6 +40,31 @@ class DestructiveFormConfirmationTest extends TestCase
         );
     }
 
+    public function test_every_row_action_names_the_record_it_undoes(): void
+    {
+        $offenders = [];
+
+        foreach ($this->views() as $path => $source) {
+            if (preg_match_all("/\\[[^\\[\\]]*'type' => 'delete'[^\\[\\]]*\\]/", $source, $matches, PREG_OFFSET_CAPTURE) === 0) {
+                continue;
+            }
+
+            foreach ($matches[0] as [$item, $offset]) {
+                if (str_contains($item, "'names' =>")) {
+                    continue;
+                }
+
+                $offenders[] = $path.':'.(substr_count(substr($source, 0, $offset), "\n") + 1);
+            }
+        }
+
+        $this->assertSame(
+            [],
+            $offenders,
+            "A row action reads the same on every row, so its question must name the record with a `names` key:\n".implode("\n", $offenders)
+        );
+    }
+
     public function test_a_screen_that_asks_its_own_question_can_turn_the_browser_one_off(): void
     {
         $handler = (string) file_get_contents(dirname(__DIR__, 2).'/resources/js/app.js');

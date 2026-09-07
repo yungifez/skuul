@@ -34,7 +34,7 @@
         ['label' => 'View parent', 'icon' => 'eye', 'url' => 'view_url'],
         $canManageParents ? ['label' => 'Manage parent', 'icon' => 'pencil', 'url' => 'manage_url'] : null,
         $canAssignStudents ? ['label' => 'Assign students', 'icon' => 'users', 'url' => 'assign_url'] : null,
-        $canDeleteParents ? ['label' => 'Delete parent', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete this parent?'] : null,
+        $canDeleteParents ? ['label' => 'Delete parent', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete :name?', 'names' => 'row.name'] : null,
     ])" />
 </slot:actions>
                 </april:data-table>

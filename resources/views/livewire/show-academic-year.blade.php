@@ -141,7 +141,7 @@
                         <x-table-actions :items="array_filter([
                             $canEditExams ? ['label' => 'Edit exam', 'icon' => 'settings', 'url' => 'edit_url'] : null,
                             ['label' => 'View exam', 'icon' => 'eye', 'url' => 'view_url'],
-                            $canDeleteExams ? ['label' => 'Delete exam', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete this exam?'] : null,
+                            $canDeleteExams ? ['label' => 'Delete exam', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete :name?', 'names' => 'row.name'] : null,
                         ])" />
                     </slot:actions>
                 </april:data-table>

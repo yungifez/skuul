@@ -2,6 +2,6 @@
     <x-table-actions :items="array_filter([
         ['label' => 'View school', 'icon' => 'eye', 'url' => 'view_url'],
         $canEditSchools ? ['label' => 'Edit school', 'icon' => 'settings', 'url' => 'edit_url'] : null,
-        $canDeleteSchools ? ['label' => 'Delete school', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete this school?'] : null,
+        $canDeleteSchools ? ['label' => 'Delete school', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete :name? Everything it holds goes with it.', 'names' => 'row.name'] : null,
     ])" />
 </slot:actions></april:data-table></div></slot:content></april:card>

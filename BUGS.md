@@ -529,3 +529,12 @@
 - Impact: Choosing who a calendar event is for meant picking between three boxes all labelled "A". The reader could not tell JSS 1 A from JSS 2 A, so an event could be sent to the wrong class with nothing on the screen to catch it. The room clash message named a section the reader could not place.
 - Reproduction: Open `/dashboard/calendar-events/2`. The audience list showed "A", "B", "A" with no class.
 - Resolution: `AcademicCycleSection::qualifiedName()` writes the class and the section together, as "JSS 1 · A", and `displayName()` prefers the school's own label where it set one. The five ambiguous renders use it. The three queries behind them widened their column select and eager load the level, so the accessor cannot throw or lazy load in a list. Sixteen other renders keep the bare name, because a class column already sits beside them. `tests/Feature/CalendarEventScreenTest.php` covers both calendar screens.
+
+## A delete question that named no record
+
+- Status: Fixed
+- Area: Every list screen with a row delete action
+- Observed: `x-table-actions` wrote a fixed `data-confirm` string on every row of a table, so a page of twenty-five students asked "Delete this student?" whatever row the reader picked. Eighteen row actions did this, across students, teachers, parents, administrators, schools, subjects, fees, fee categories, fee invoices, exams, exam slots, syllabi, notices, school years, timetable items, promotions and graduations.
+- Impact: A row action opens from a dropdown, so the row that started it is no longer under the pointer when the question appears. The reader had nothing to check the question against and could only trust that they clicked the right row. On the schools table this deleted a whole school.
+- Reproduction: Open `/dashboard/students`, open the row menu on any student and choose Delete. The question read "Delete this student?" with no name.
+- Resolution: A row action may carry a `names` key holding an Alpine expression over `row`, and `:name` in its message is replaced with what that expression reads, so the question names the record: "Delete Ada Bello? Their invoices and results stay." All eighteen actions name their record. `tests/Unit/DestructiveFormConfirmationTest.php` fails on a row action that carries no `names` key, and `tests/Feature/ResourceIndexActionTest.php` renders the students table and checks the binding.

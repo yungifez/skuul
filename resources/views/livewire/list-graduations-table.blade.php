@@ -2,6 +2,6 @@
     <x-table-actions :items="array_filter([
         $canViewStudents ? ['label' => 'View student', 'icon' => 'eye', 'url' => 'view_url'] : null,
         $canManageStudents ? ['label' => 'Manage student', 'icon' => 'pencil', 'url' => 'edit_url'] : null,
-        $canResetGraduations ? ['label' => 'Reset graduation', 'icon' => 'rotate-ccw', 'url' => 'reset_url', 'type' => 'delete', 'confirm' => 'Reset this graduation?'] : null,
+        $canResetGraduations ? ['label' => 'Reset graduation', 'icon' => 'rotate-ccw', 'url' => 'reset_url', 'type' => 'delete', 'confirm' => 'Reset the graduation of :name?', 'names' => 'row.name'] : null,
     ])" />
 </slot:actions></april:data-table></div></slot:content></april:card>

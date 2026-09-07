@@ -27,7 +27,7 @@
                 <slot:actions>
     <x-table-actions :items="array_filter([
         ['label' => 'View academic year', 'icon' => 'eye', 'url' => 'view_url'],
-        $canDeleteYears ? ['label' => 'Delete '.strtolower(school_term('academic_year', 'school year')), 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete this '.strtolower(school_term('academic_year', 'school year')).'?'] : null,
+        $canDeleteYears ? ['label' => 'Delete '.strtolower(school_term('academic_year', 'school year')), 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete the '.strtolower(school_term('academic_year', 'school year')).' :name?', 'names' => 'row.name'] : null,
     ])" />
 </slot:actions>
             </april:data-table>

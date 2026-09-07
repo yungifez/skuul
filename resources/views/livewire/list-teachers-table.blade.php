@@ -33,7 +33,7 @@
     <x-table-actions :items="array_filter([
         ['label' => 'View teacher', 'icon' => 'eye', 'url' => 'view_url'],
         $canManageTeachers ? ['label' => 'Manage teacher', 'icon' => 'pencil', 'url' => 'manage_url'] : null,
-        $canDeleteTeachers ? ['label' => 'Delete teacher', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete this teacher?'] : null,
+        $canDeleteTeachers ? ['label' => 'Delete teacher', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete :name?', 'names' => 'row.name'] : null,
     ])" />
 </slot:actions>
                 </april:data-table>
