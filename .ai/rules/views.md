@@ -146,3 +146,22 @@ summary card and the table under it agree. Pass a **major** amount: a sum of
 minor units has to be divided by 100 first.
 
 `number_format` still belongs on a count and on a percentage.
+
+## Qualify a section name where no class sits beside it
+
+A section is named "A" or "B" inside its class, so every class has an A. A
+select, a checkbox list or a column that shows the bare name gives the reader
+nothing to choose by.
+
+Call `$section->qualifiedName()` there. It writes "JSS 1 · A". Keep
+`$section->name` only where a class column already sits beside it in the same
+row.
+
+The accessor reads `label` and `academicLevel`, so widen the query with it:
+
+```php
+->with('academicLevel:id,name')->get(['id', 'name', 'label', 'academic_level_id'])
+```
+
+A narrow select throws on the missing attribute, and a missing eager load runs
+one query per row.

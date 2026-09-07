@@ -45,7 +45,7 @@ class CalendarEventController extends Controller
 
         $events = CalendarEvent::query()
             ->inSchool()
-            ->with(['audiences.academicCycleSection:id,name', 'audiences.user:id,name'])
+            ->with(['audiences.academicCycleSection:id,name,label,academic_level_id', 'audiences.academicCycleSection.academicLevel:id,name', 'audiences.user:id,name'])
             ->between($month->copy()->startOfMonth(), $month->copy()->endOfMonth())
             ->when(!$request->user()->can('update calendar event'), function (Builder $query): void {
                 $query->published();
@@ -117,7 +117,7 @@ class CalendarEventController extends Controller
     {
         $this->authorize('view', $calendarEvent);
 
-        $calendarEvent->load(['audiences.academicCycleSection:id,name', 'audiences.user:id,name', 'createdBy:id,name']);
+        $calendarEvent->load(['audiences.academicCycleSection:id,name,label,academic_level_id', 'audiences.academicCycleSection.academicLevel:id,name', 'audiences.user:id,name', 'createdBy:id,name']);
 
         return view('pages.calendar-event.edit', [
             'event' => $calendarEvent,
@@ -251,7 +251,8 @@ class CalendarEventController extends Controller
     {
         return AcademicCycleSection::query()
             ->inSchool()
+            ->with('academicLevel:id,name')
             ->orderBy('name')
-            ->get(['id', 'name']);
+            ->get(['id', 'name', 'label', 'academic_level_id']);
     }
 }

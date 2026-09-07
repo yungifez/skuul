@@ -23,7 +23,7 @@
                 <label class="flex flex-col gap-1 text-sm font-medium">Create an override for
                     <select name="academic_cycle_section_id" class="rounded-md border border-input bg-background px-3 py-2" required>
                         @foreach ($overrideSections as $section)
-                            <option value="{{ $section->id }}">{{ $section->label ?? $section->name }}</option>
+                            <option value="{{ $section->id }}">{{ $section->qualifiedName() }}</option>
                         @endforeach
                     </select>
                 </label>

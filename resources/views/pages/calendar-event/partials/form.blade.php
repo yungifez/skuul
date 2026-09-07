@@ -100,7 +100,7 @@
                                 <input type="checkbox" name="academic_cycle_section_ids[]" value="{{ $section->id }}"
                                     @checked($chosenSections->contains($section->id))
                                     class="size-4 rounded border-input text-primary-foreground focus:ring-2 focus:ring-ring">
-                                {{ $section->name }}
+                                {{ $section->qualifiedName() }}
                             </label>
                         @endforeach
                     </div>

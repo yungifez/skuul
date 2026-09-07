@@ -200,7 +200,7 @@
                                         @if ($event->audiences->isEmpty())
                                             The whole school
                                         @else
-                                            {{ $event->audiences->map(fn ($audience) => $audience->academicCycleSection?->name ?? $audience->user?->name ?? 'One person')->join(', ') }}
+                                            {{ $event->audiences->map(fn ($audience) => $audience->academicCycleSection?->qualifiedName() ?? $audience->user?->name ?? 'One person')->join(', ') }}
                                         @endif
                                     </april:data-table-cell>
                                     <april:data-table-cell class="text-right">

@@ -520,3 +520,12 @@
 - Impact: The fee invoices index showed "1,897,000.00" in its summary cards directly above a table showing "NGN 147,000.00", so the same page disagreed with itself about the same money. The budget register, the expense register, the cash deposit list and both ledger account balances did the same. Worst of all, the family portal told a parent they still owed "250,000.00", with nothing saying in what.
 - Reproduction: Open `/dashboard/fees/fee-invoices`. The four cards carried bare numbers while the table under them carried the currency.
 - Resolution: A new `money_text()` helper in `app/helpers.php` formats a plain amount through `Brick\Money`, the same way the `Money` cast does, so both routes read identically. All ten renders use it. It takes a major amount, rounds half up so a float sum cannot throw, and treats null as zero. `tests/Feature/FeeInvoiceTest.php` and `tests/Feature/PortalInvoiceScreenTest.php` both fail if a bare figure comes back.
+
+## A section select named "A" without saying which class
+
+- Status: Fixed
+- Area: Calendar, timetables, course offerings
+- Observed: A section is named "A" or "B" inside its class, so the name means nothing on its own. Five screens rendered `$section->name` with no class beside it: the calendar event audience checkboxes and the audience column on the calendar index, the class select on the timetable screen, the class select on the course offering edit screen, and the clash message from `FacilityAvailability`.
+- Impact: Choosing who a calendar event is for meant picking between three boxes all labelled "A". The reader could not tell JSS 1 A from JSS 2 A, so an event could be sent to the wrong class with nothing on the screen to catch it. The room clash message named a section the reader could not place.
+- Reproduction: Open `/dashboard/calendar-events/2`. The audience list showed "A", "B", "A" with no class.
+- Resolution: `AcademicCycleSection::qualifiedName()` writes the class and the section together, as "JSS 1 · A", and `displayName()` prefers the school's own label where it set one. The five ambiguous renders use it. The three queries behind them widened their column select and eager load the level, so the accessor cannot throw or lazy load in a list. Sixteen other renders keep the bare name, because a class column already sits beside them. `tests/Feature/CalendarEventScreenTest.php` covers both calendar screens.

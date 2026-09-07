@@ -31,7 +31,7 @@
                     <april:select id="cycle-sections" name="academic_cycle_section_ids[]" multiple placeholder="Select sections">
                         @foreach ($academicCycleSections as $academicCycleSection)
                             <option value="{{ $academicCycleSection->id }}" @selected(in_array($academicCycleSection->id, old('academic_cycle_section_ids', $courseOffering->cycleSections->modelKeys())))>
-                                {{ $academicCycleSection->label ?? $academicCycleSection->name }}
+                                {{ $academicCycleSection->qualifiedName() }}
                             </option>
                         @endforeach
                     </april:select>

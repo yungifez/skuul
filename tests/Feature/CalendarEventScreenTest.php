@@ -183,6 +183,39 @@ class CalendarEventScreenTest extends TestCase
         $this->assertFalse($event->isForEverybody());
     }
 
+    /**
+     * A section is named "A", and every class has an A. The class has to come
+     * with it on any screen that does not already say which class.
+     */
+    public function test_a_section_is_named_with_its_class(): void
+    {
+        $this->authorized_user(['read calendar event', 'create calendar event', 'update calendar event']);
+        $section = AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => current_academic_year_id(),
+            'name' => 'A',
+            'label' => null,
+        ]);
+        $class = $section->academicLevel->name;
+
+        $this->get(route('calendar-events.create'))
+            ->assertOk()
+            ->assertSee($class.' · A');
+
+        $this->post(route('calendar-events.store'), [
+            'title' => 'Year meeting',
+            'type' => CalendarEventType::ParentMeeting->value,
+            'is_all_day' => '1',
+            'starts_at' => now()->format('Y-m-d\TH:i'),
+            'ends_at' => now()->format('Y-m-d\TH:i'),
+            'academic_cycle_section_ids' => [$section->id],
+        ]);
+
+        $this->get(route('calendar-events.index'))
+            ->assertOk()
+            ->assertSee($class.' · A');
+    }
+
     public function test_changing_a_day_replaces_who_it_is_for(): void
     {
         $this->authorized_user(['read calendar event', 'create calendar event', 'update calendar event']);

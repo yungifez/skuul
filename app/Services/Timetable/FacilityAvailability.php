@@ -72,7 +72,7 @@ class FacilityAvailability
     {
         $records = TimetableRecord::query()
             ->where('facility_id', $facility->id)
-            ->with(['timeSlot.timetable.academicCycleSection', 'weekday'])
+            ->with(['timeSlot.timetable.academicCycleSection.academicLevel', 'weekday'])
             ->get();
 
         if ($records->isEmpty()) {
@@ -99,7 +99,7 @@ class FacilityAvailability
 
                 if ($lessonFrom->lessThan($to) && $lessonTo->greaterThan($from)) {
                     $cycleSection = $timetable->academicCycleSection;
-                    $section = $cycleSection === null ? $timetable->name : $cycleSection->name;
+                    $section = $cycleSection === null ? $timetable->name : $cycleSection->qualifiedName();
                     $clashes[] = sprintf(
                         '%s holds a lesson for %s from %s to %s that day.',
                         $facility->name,
