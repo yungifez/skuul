@@ -84,7 +84,11 @@ class ListFeeInvoicesTable extends DataTableComponent
         return array_merge($columns, [
             Column::make('Paid', 'paid_label'),
             Column::make('Balance', 'balance_label'),
-            Column::make('Due date', 'due_date_label')->sortable(),
+            Column::make('Due date', 'due_date_label')->sortable(
+                // The column shows a written date the row works out, which is
+                // no column at all. Sort the date the record actually holds.
+                fn (Builder $query, string $direction): Builder => $query->orderBy('due_date', $direction)
+            ),
         ]);
     }
 

@@ -320,6 +320,17 @@ class FeeInvoiceTest extends TestCase
             ->assertDontSee('>0.00<', false);
     }
 
+    public function test_the_invoice_list_sorts_by_the_date_its_due_date_column_shows(): void
+    {
+        $this->authorized_user(['read fee invoice']);
+
+        FeeInvoice::factory()->count(2)->create();
+
+        Livewire::test(ListFeeInvoicesTable::class)
+            ->call('updateTable', ['sort' => ['key' => 'due_date_label', 'direction' => 'desc']])
+            ->assertOk();
+    }
+
     public function test_unauthorized_user_cannot_view_edit_page()
     {
         $feeInvoice = FeeInvoice::factory()->create();

@@ -37,7 +37,11 @@ class ListPromotionsTable extends DataTableComponent
     /** @return array<int, Column> */
     protected function columns(): array
     {
-        return [Column::make('From '.strtolower(school_term('class_level', 'class')), 'from_level'), Column::make('From '.strtolower(school_term('section', 'section')), 'from_section'), Column::make('To '.strtolower(school_term('class_level', 'class')), 'to_level'), Column::make('To '.strtolower(school_term('section', 'section')), 'to_section'), Column::make('Learners', 'learners_count')->sortable()];
+        return [Column::make('From '.strtolower(school_term('class_level', 'class')), 'from_level'), Column::make('From '.strtolower(school_term('section', 'section')), 'from_section'), Column::make('To '.strtolower(school_term('class_level', 'class')), 'to_level'), Column::make('To '.strtolower(school_term('section', 'section')), 'to_section'), Column::make('Learners', 'learners_count')->sortable(
+            // A promotion holds its learners in a JSON column, so the count is
+            // worked out per row and no column of that name exists to sort on.
+            fn (Builder $query, string $direction): Builder => $query->orderByRaw('JSON_LENGTH(students) '.($direction === 'desc' ? 'desc' : 'asc'))
+        )];
     }
 
     /** @return array<int, array<string, mixed>> */

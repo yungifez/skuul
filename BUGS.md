@@ -547,3 +547,12 @@
 - Impact: `artisan test` with no filter ended in "Tia mode requires Pest tests" and ran nothing, so nobody could check the whole suite. A single file still ran, which hid the fault. The isolated installer test died with `Class "PHPUnit\TextUI\Configuration\Registry" not found`, because its child process loaded no autoloader at all.
 - Reproduction: Run `vendor/bin/sail artisan test`. It stopped at `Tests\Unit\BreadcrumbLabelTest` without running a test.
 - Resolution: `tests/Pest.php` turns TIA off and says why, so it is not put back. `tests/bootstrap.php` defines `PHPUNIT_COMPOSER_INSTALL`, and its database lock now recognises a child of either binary, so an isolated test does not wait on a lock its own parent holds. `.ai/rules/tests.md` records both.
+
+## Sorting two columns took the page down
+
+- Status: Fixed
+- Area: Finance invoices, student promotions
+- Observed: A sortable column sorts on the field it names, and the table adds `ORDER BY <field>` to the query. Two columns named a field the row works out rather than a column the table holds: the invoice list sorted on `due_date_label`, a written date such as "Mar 3, 2026", and the promotion list sorted on `learners_count`, counted from a JSON column.
+- Impact: Clicking either column heading returned a 500 from MySQL, "Unknown column in order clause". Both headings looked exactly like the ones that work, so the only way to find out was to click.
+- Reproduction: Open `/dashboard/fees/fee-invoices` and click the Due date heading.
+- Resolution: Both columns sort through a callback on the value the record really holds: the invoice by `due_date`, the promotion by `JSON_LENGTH(students)`. `tests/Feature/FeeInvoiceTest.php` and `tests/Feature/StudentTest.php` sort each column.

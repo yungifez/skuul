@@ -95,3 +95,20 @@ the removed person instead: `belongsTo(User::class)->withTrashed()`, which
 Do not reach for `?->` here. PHPStan reads the relation's declared type as
 non-null and rejects a nullsafe read on the left of `??`. Fix the relation, not
 the screens that read it.
+
+## A sortable column must name something the table holds
+
+`Column::make('Due date', 'due_date_label')->sortable()` adds
+`ORDER BY due_date_label` to the query. A field that `serializeRows()` works
+out is no column, so the heading returns a 500 from the database.
+
+Sort on the value the record holds, through a callback:
+
+```php
+Column::make('Due date', 'due_date_label')->sortable(
+    fn (Builder $query, string $direction): Builder => $query->orderBy('due_date', $direction)
+),
+```
+
+The same applies to `searchable()`, which runs `orWhere($field, 'like', ...)`.
+A count from `withCount()` is a real alias and sorts without a callback.

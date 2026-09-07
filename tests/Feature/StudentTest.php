@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\AcademicStructureStatus;
+use App\Livewire\ListPromotionsTable;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\Promotion;
@@ -10,6 +11,7 @@ use App\Models\StudentRecord;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class StudentTest extends TestCase
@@ -263,6 +265,17 @@ class StudentTest extends TestCase
     }
 
     // tes unauthorized user cannot view promoteview
+
+    public function test_the_promotion_list_sorts_by_the_number_of_learners_it_shows(): void
+    {
+        $this->authorized_user(['read promotion']);
+
+        Promotion::factory()->count(2)->create();
+
+        Livewire::test(ListPromotionsTable::class)
+            ->call('updateTable', ['sort' => ['key' => 'learners_count', 'direction' => 'desc']])
+            ->assertOk();
+    }
 
     public function test_unauthorized_user_cannot_view_promoteview()
     {
