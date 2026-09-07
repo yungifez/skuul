@@ -8,7 +8,7 @@
     ],
     "license": "MIT",
     "require": {
-        "php": "^8.3",
+        "php": "^8.4",
         "barryvdh/laravel-dompdf": "^3.1",
         "brick/money": "^0.14.0",
         "doctrine/dbal": "^3.5",
@@ -37,7 +37,9 @@
         "laravel/sail": "^1.18",
         "mockery/mockery": "^1.4.4",
         "nunomaduro/collision": "^8.0",
-        "phpunit/phpunit": "^12.0",
+        "pestphp/pest": "^5.0",
+        "pestphp/pest-plugin-laravel": "^5.0",
+        "phpunit/phpunit": "^13.0",
         "spatie/laravel-ignition": "^2.0"
     },
     "autoload": {
@@ -80,7 +82,10 @@
     "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     },
     "minimum-stability": "stable",
     "prefer-stable": true

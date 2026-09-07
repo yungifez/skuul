@@ -538,3 +538,12 @@
 - Impact: A row action opens from a dropdown, so the row that started it is no longer under the pointer when the question appears. The reader had nothing to check the question against and could only trust that they clicked the right row. On the schools table this deleted a whole school.
 - Reproduction: Open `/dashboard/students`, open the row menu on any student and choose Delete. The question read "Delete this student?" with no name.
 - Resolution: A row action may carry a `names` key holding an Alpine expression over `row`, and `:name` in its message is replaced with what that expression reads, so the question names the record: "Delete Ada Bello? Their invoices and results stay." All eighteen actions name their record. `tests/Unit/DestructiveFormConfirmationTest.php` fails on a row action that carries no `names` key, and `tests/Feature/ResourceIndexActionTest.php` renders the students table and checks the binding.
+
+## The test suite would not run at all
+
+- Status: Fixed
+- Area: Test tooling
+- Observed: The in-flight move to Pest 5 and PHPUnit 13 left two faults. `tests/Pest.php` turned on test impact analysis with `pest()->tia()->locally()`, and TIA refuses to run a PHPUnit class. Every test in this project is a PHPUnit class, so a full run stopped on the first file it read. Separately, `tests/bootstrap.php` never defined `PHPUNIT_COMPOSER_INSTALL`, which the child process of a `#[RunInSeparateProcess]` test reads to find the autoloader.
+- Impact: `artisan test` with no filter ended in "Tia mode requires Pest tests" and ran nothing, so nobody could check the whole suite. A single file still ran, which hid the fault. The isolated installer test died with `Class "PHPUnit\TextUI\Configuration\Registry" not found`, because its child process loaded no autoloader at all.
+- Reproduction: Run `vendor/bin/sail artisan test`. It stopped at `Tests\Unit\BreadcrumbLabelTest` without running a test.
+- Resolution: `tests/Pest.php` turns TIA off and says why, so it is not put back. `tests/bootstrap.php` defines `PHPUNIT_COMPOSER_INSTALL`, and its database lock now recognises a child of either binary, so an isolated test does not wait on a lock its own parent holds. `.ai/rules/tests.md` records both.

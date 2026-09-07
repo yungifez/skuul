@@ -37,3 +37,30 @@ $office = $this->authorized_user(['read fee invoice', 'delete fee invoice record
 $office->post(...)->assertRedirect();
 $office->delete(...)->assertSessionHas('danger');
 ```
+
+## Pest runs the suite, but test impact analysis cannot
+
+`pestphp/pest` is installed and `artisan test` runs through it. Every test in
+this project is a PHPUnit class, which Pest runs without complaint.
+
+Do not turn on test impact analysis. `pest()->tia()->locally()` in
+`tests/Pest.php` stops the whole suite on the first file it reads:
+
+```
+ERROR  Tia mode requires Pest tests.
+Encountered PHPUnit class Tests\Unit\BreadcrumbLabelTest
+```
+
+A single file still runs, so the fault only shows on a full run.
+
+## An isolated test needs PHPUNIT_COMPOSER_INSTALL
+
+A test marked `#[RunInSeparateProcess]` runs in a child process PHPUnit builds
+from a template. The template loads the autoloader from
+`PHPUNIT_COMPOSER_INSTALL`, and loads nothing when that constant is missing, so
+the child dies with `Class "PHPUnit\TextUI\Configuration\Registry" not found`.
+The phpunit binary defines the constant; the pest binary does not, so
+`tests/bootstrap.php` defines it.
+
+`tests/bootstrap.php` also holds the database lock. The child process must not
+take that lock, so its parent-process check names both binaries.
