@@ -25,7 +25,7 @@
 
                         <div class="flex flex-col gap-2">
                             <april:label for="transcript-student">Learner</april:label>
-                            <april:native-select id="transcript-student" name="student_record_id" required>
+                            <april:native-select id="transcript-student" name="student_record_id" required class="w-full min-w-0">
                                 <option value="">Choose a learner</option>
                                 @foreach ($students as $student)
                                     <option value="{{ $student->id }}" @selected(old('student_record_id') == $student->id)>
@@ -58,7 +58,7 @@
                 <form method="GET" action="{{ route('transcripts.index') }}" class="grid gap-4 lg:grid-cols-4 lg:items-end">
                     <div class="flex flex-col gap-2 lg:col-span-2">
                         <april:label for="filter-student">Learner</april:label>
-                        <april:native-select id="filter-student" name="student_record_id">
+                        <april:native-select id="filter-student" name="student_record_id" class="w-full min-w-0">
                             <option value="">Every learner</option>
                             @foreach ($students as $student)
                                 <option value="{{ $student->id }}" @selected($selectedStudent === $student->id)>

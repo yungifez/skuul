@@ -25,7 +25,7 @@
 
                         <div class="flex flex-col gap-2">
                             <april:label for="report-card-student">Learner</april:label>
-                            <april:native-select id="report-card-student" name="student_record_id" required>
+                            <april:native-select id="report-card-student" name="student_record_id" required class="w-full min-w-0">
                                 <option value="">Choose a learner</option>
                                 @foreach ($students as $student)
                                     <option value="{{ $student->id }}" @selected(old('student_record_id') == $student->id)>
@@ -38,7 +38,7 @@
 
                         <div class="flex flex-col gap-2">
                             <april:label for="report-card-period">{{ school_term('period', 'Academic period') }}</april:label>
-                            <april:native-select id="report-card-period" name="academic_period_id" required>
+                            <april:native-select id="report-card-period" name="academic_period_id" required class="w-full min-w-0">
                                 <option value="">Choose a {{ school_term('period', 'period') }}</option>
                                 @foreach ($periods as $period)
                                     <option value="{{ $period->id }}" @selected(old('academic_period_id') == $period->id)>
@@ -71,7 +71,7 @@
                 <form method="GET" action="{{ route('report-cards.index') }}" class="grid gap-4 lg:grid-cols-4 lg:items-end">
                     <div class="flex flex-col gap-2">
                         <april:label for="filter-student">Learner</april:label>
-                        <april:native-select id="filter-student" name="student_record_id">
+                        <april:native-select id="filter-student" name="student_record_id" class="w-full min-w-0">
                             <option value="">Every learner</option>
                             @foreach ($students as $student)
                                 <option value="{{ $student->id }}" @selected($selectedStudent === $student->id)>
@@ -83,7 +83,7 @@
 
                     <div class="flex flex-col gap-2">
                         <april:label for="filter-academic-year">Academic year</april:label>
-                        <april:native-select id="filter-academic-year" name="academic_year_id">
+                        <april:native-select id="filter-academic-year" name="academic_year_id" class="w-full min-w-0">
                             <option value="">Every academic year</option>
                             @foreach ($academicYears as $academicYear)
                                 <option value="{{ $academicYear->id }}" @selected($selectedAcademicYear === $academicYear->id)>
@@ -95,7 +95,7 @@
 
                     <div class="flex flex-col gap-2">
                         <april:label for="filter-period">{{ school_term('period', 'Academic period') }}</april:label>
-                        <april:native-select id="filter-period" name="academic_period_id">
+                        <april:native-select id="filter-period" name="academic_period_id" class="w-full min-w-0">
                             <option value="">Every {{ school_term('period', 'period') }}</option>
                             @foreach ($periods as $period)
                                 <option value="{{ $period->id }}" @selected($selectedPeriod === $period->id)>

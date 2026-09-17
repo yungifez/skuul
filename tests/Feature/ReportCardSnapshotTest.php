@@ -55,10 +55,11 @@ class ReportCardSnapshotTest extends TestCase
 
         $this->get(route('report-cards.index'))
             ->assertOk()
-            ->assertSee('Publish a report card');
+            ->assertSee('Publish a report card')
+            ->assertSee('w-full min-w-0', false);
 
         $this->post(route('report-cards.store'), [
-            'student_record_id'  => $student->id,
+            'student_record_id' => $student->id,
             'academic_period_id' => $period->id,
         ])->assertSessionHasNoErrors()->assertSessionHas('success');
 

@@ -628,3 +628,12 @@
 - Impact: The primary task—checking or booking a shared space—was pushed down, especially on a phone. The conflict rule belongs beside the booking action where it is needed.
 - Reproduction: Open `/dashboard/facilities` on a narrow screen and read the text below “What the campus shares”.
 - Resolution: The page lead now identifies shared spaces, vehicles, and equipment in one short sentence. Booking rules remain beside the booking form. `tests/Feature/FacilityTest.php` checks the new lead and guards against the old copy.
+
+## Long report and transcript options pushed selects past the card edge
+
+- Status: Fixed
+- Area: Reports and historical academic records
+- Observed: The shared native select component has no intrinsic width constraint. Learner and academic-period options therefore sized the select to their longest option instead of the form column.
+- Impact: On a phone, report-card and transcript controls extended past the card edge. Labels and buttons appeared aligned, but the input itself was partly off-screen and difficult to use.
+- Reproduction: Open `/dashboard/report-cards` or `/dashboard/transcripts` at a 390px viewport with long learner names or academic-year options.
+- Resolution: The report-card and transcript selects now use `w-full min-w-0`, matching the existing responsive filter pattern. `tests/Feature/ReportCardSnapshotTest.php` and `tests/Feature/TranscriptSnapshotTest.php` check that the constrained controls render.

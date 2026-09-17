@@ -46,7 +46,8 @@ class TranscriptSnapshotTest extends TestCase
             ->assertSessionHas('success');
         $this->get(route('transcripts.index'))
             ->assertOk()
-            ->assertSee('Issued transcripts');
+            ->assertSee('Issued transcripts')
+            ->assertSee('w-full min-w-0', false);
         $this->assertSame(2, TranscriptSnapshot::count());
     }
 
