@@ -20,10 +20,10 @@
 
         <april:card>
             <slot:title class="flex items-center gap-1">
-                <span>What this screen changes</span>
+                <span>School tools</span>
                 <x-help-tooltip label="School tools help">Turn a tool off to hide it from daily work. Nothing is deleted, and permitted reports can still read the records.</x-help-tooltip>
             </slot:title>
-            <slot:description>Choose the tools available to this school.</slot:description>
+            <slot:description>Turn optional tools on or off for this school.</slot:description>
             <slot:content>
                 <p class="text-sm text-muted-foreground">
                     {{ $enabledCount }} of {{ $totalCount }} tools are on. Sign-in, permissions, the audit trail, and enrollment history are always on, so they are not listed here.
@@ -49,11 +49,6 @@
                                         @endif
                                     </span>
                                     <span class="mt-1 block text-sm text-muted-foreground">{{ $feature->description() }}</span>
-                                    @unless ($feature->defaultsToOn())
-                                        <span class="mt-1 block text-xs text-muted-foreground">
-                                            This tool starts off. A school decides to use it, rather than finding that it is already running.
-                                        </span>
-                                    @endunless
                                 </span>
                                 <input type="hidden" name="features[{{ $feature->value }}]" value="0">
                                 <input type="checkbox" id="feature-{{ $feature->value }}"
@@ -67,12 +62,12 @@
             </april:card>
         @endforeach
 
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-start gap-3">
             <april:button type="submit">
                 <x-lucide-save class="mr-2 size-4" />
                 Save feature choices
             </april:button>
-            <p class="text-sm text-muted-foreground">A change applies to everybody in this school straight away.</p>
+            <p class="pt-2 text-sm text-muted-foreground">Changes apply to everybody in this school straight away.</p>
         </div>
     </form>
 @endsection

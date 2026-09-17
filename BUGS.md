@@ -574,3 +574,21 @@
 - Impact: The forms rendered, took what the reader typed and refused to do anything with it. Livewire answered "Unable to call component method", so nothing was saved and nothing said why. `ChangeEnrollmentStatus` and `ChangeEnrollmentPlacement` were still there, unreachable from the only screen that offered them.
 - Reproduction: Open a student, choose a new status under "Change enrollment status" and press Save status.
 - Resolution: Both methods are back on the component and report through `notify()` like the campus move beside them. A placement now names the working calendar when the section does not belong to it, rather than throwing a 404 inside a Livewire request. `tests/Feature/EnrollmentStatusTest.php` and `tests/Feature/EnrollmentPlacementTest.php` drive each form through the screen.
+
+## School feature settings repeated the same explanation for every optional tool
+
+- Status: Fixed
+- Area: School setup and feature management
+- Observed: Every optional tool repeated the same two-sentence explanation that it starts off and that the school decides whether to use it. The page already showed each tool's description and its On or Off state.
+- Impact: The settings list became unnecessarily tall and pushed the save action farther down the page. The repeated copy competed with the actual decision and made the mobile layout harder to scan.
+- Reproduction: Open `/dashboard/schools/features` and inspect any tool that defaults off.
+- Resolution: The page now explains the setting once in its introductory card, then shows only each tool's name, state, and specific description. The save note wraps from the top on narrow screens so it stays aligned with the button. `tests/Feature/FeatureSettingTest.php` checks the concise heading and that the repeated explanation is absent.
+
+## The family overview led with duplicate explanatory copy
+
+- Status: Fixed
+- Area: Family portal overview
+- Observed: The overview showed a large “Everything in one place” heading followed by a paragraph explaining campus record boundaries before showing the campus cards. Each campus header then repeated that its enrolment was “at this campus”.
+- Impact: Families had to read introductory copy before reaching the actions they came to use, and the repeated campus wording added height without helping them choose a page.
+- Reproduction: Open `/dashboard/portal/overview` as a learner or guardian with an enrollment.
+- Resolution: The overview now uses one short orientation line and puts the campus name and enrollment count directly in each card header. `tests/Feature/PortalOverviewTest.php` checks the concise orientation and removes the duplicate heading.

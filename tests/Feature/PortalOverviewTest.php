@@ -30,7 +30,9 @@ class PortalOverviewTest extends TestCase
             ->get(route('portal.overview'))
             ->assertOk()
             ->assertSee($this->workingSchool()->name)
-            ->assertSee($enrollment->admission_number);
+            ->assertSee($enrollment->admission_number)
+            ->assertSee('Choose a campus to view attendance, calendar, notices, invoices, and records.')
+            ->assertDontSee('Everything in one place');
     }
 
     public function test_a_guardian_reads_both_campuses_on_one_page(): void

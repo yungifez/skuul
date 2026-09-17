@@ -177,7 +177,10 @@ class FeatureSettingTest extends TestCase
         }
 
         $response->assertSee(Feature::Wellbeing->description())
-            ->assertSee('6 of 10 tools are on');
+            ->assertSee('6 of 10 tools are on')
+            ->assertSee('School tools')
+            ->assertDontSee('What this screen changes')
+            ->assertDontSee('This tool starts off');
     }
 
     public function test_feature_settings_require_an_explicit_choice_for_every_tool(): void

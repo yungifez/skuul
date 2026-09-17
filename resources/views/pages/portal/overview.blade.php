@@ -9,11 +9,9 @@
 
 @section('content')
 <div class="mx-auto flex w-full max-w-4xl flex-col gap-6">
-    <div>
-        <h2 class="text-2xl font-bold tracking-tight text-foreground md:text-3xl">Everything in one place</h2>
-        <p class="mt-1 text-sm text-muted-foreground">
-            Each campus keeps its own records, so every entry below says which campus it belongs to. This page only
-            shows what is there. Asking the school for something happens on that campus's own page.
+    <div class="flex flex-col gap-1">
+        <p class="text-sm text-muted-foreground">
+            Choose a campus to view attendance, calendar, notices, invoices, and records.
         </p>
     </div>
 
@@ -23,7 +21,6 @@
                 <h3 class="text-lg font-semibold leading-none tracking-tight">{{ $campusName }}</h3>
                 <p class="text-sm text-muted-foreground">
                     {{ trans_choice(':count enrolment|:count enrolments', $enrollments->count(), ['count' => $enrollments->count()]) }}
-                    at this campus.
                 </p>
             </div>
 
