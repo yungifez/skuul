@@ -619,3 +619,12 @@
 - Impact: Staff could not read the current page title, and the overflow made the header and breadcrumb feel misaligned on the quick-setup screen.
 - Reproduction: Open `/dashboard/schools/1/setup/classes` at a 390px viewport for a school with a long name such as “Gentle Touch School for International Science and Creative Arts Campus”.
 - Resolution: The shared `h1` now permits shrinking and wraps long text inside the header width. `tests/Feature/SchoolTest.php` checks that long school names use the wrapping classes.
+
+## The facilities introduction explained the timetable in the page lead
+
+- Status: Fixed
+- Area: Facilities
+- Observed: The facilities page opened with a four-line explanation of moving lessons and timetable conflict rules before showing the catalogue.
+- Impact: The primary task—checking or booking a shared space—was pushed down, especially on a phone. The conflict rule belongs beside the booking action where it is needed.
+- Reproduction: Open `/dashboard/facilities` on a narrow screen and read the text below “What the campus shares”.
+- Resolution: The page lead now identifies shared spaces, vehicles, and equipment in one short sentence. Booking rules remain beside the booking form. `tests/Feature/FacilityTest.php` checks the new lead and guards against the old copy.

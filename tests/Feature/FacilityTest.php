@@ -166,7 +166,11 @@ class FacilityTest extends TestCase
     {
         $actor = $this->authorized_user(['read facility', 'manage facility', 'book facility']);
 
-        $actor->get(route('facilities.index'))->assertOk()->assertSee('What the campus shares');
+        $actor->get(route('facilities.index'))
+            ->assertOk()
+            ->assertSee('What the campus shares')
+            ->assertSee('Shared spaces, vehicles, and equipment that classes can book.')
+            ->assertDontSee('A lesson can be moved into one of these for a single entry');
 
         $actor->post(route('facilities.store'), [
             'name' => 'Main hall',
