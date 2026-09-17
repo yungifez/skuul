@@ -168,18 +168,24 @@
             </section>
         @endif
 
-        @php
-            $snapshotStats = [
-                ['label' => school_terms('class_level', school_term('class_level', 'Class')), 'value' => $academicLevels, 'icon' => 'presentation', 'permission' => 'read class', 'href' => route('academic-levels.index'), 'description' => school_terms('class_level', 'Classes')],
-                ['label' => school_terms('section', school_term('section', 'Section')).' this year', 'value' => $cycleSections, 'icon' => 'landmark', 'permission' => 'read section', 'href' => route('academic-cycle-sections.index'), 'description' => 'Active '.strtolower(school_terms('section', 'groups'))],
-                ['label' => school_terms('period', school_term('period', 'Term or reporting period')), 'value' => $academicPeriods, 'icon' => 'clock', 'permission' => 'read academic period', 'href' => current_academic_year() === null ? route('academic-years.index') : route('academic-years.show', current_academic_year()), 'description' => 'Open periods'],
-                ['label' => school_terms('course', school_term('course', 'Subject')).' being taught', 'value' => $courseOfferings, 'icon' => 'book-marked', 'permission' => 'read subject', 'href' => route('course-offerings.index'), 'description' => 'Course offerings'],
-                ['label' => 'Active students', 'value' => $students, 'icon' => 'users', 'permission' => 'read student', 'href' => route('students.index'), 'description' => 'Current learners'],
-                ['label' => 'Teachers', 'value' => $teachers, 'icon' => 'graduation-cap', 'permission' => 'read teacher', 'href' => route('teachers.index'), 'description' => 'Teaching staff'],
-                ['label' => 'Parents', 'value' => $parents, 'icon' => 'users', 'permission' => 'read parent', 'href' => route('parents.index'), 'description' => 'Family accounts'],
-            ];
-        @endphp
+    @endif
 
+    @php
+        $snapshotStats = [
+            ['label' => school_terms('class_level', school_term('class_level', 'Class')), 'value' => $academicLevels, 'icon' => 'presentation', 'permission' => 'read class', 'href' => route('academic-levels.index'), 'description' => school_terms('class_level', 'Classes')],
+            ['label' => school_terms('section', school_term('section', 'Section')).' this year', 'value' => $cycleSections, 'icon' => 'landmark', 'permission' => 'read section', 'href' => route('academic-cycle-sections.index'), 'description' => 'Active '.strtolower(school_terms('section', 'groups'))],
+            ['label' => school_terms('period', school_term('period', 'Term or reporting period')), 'value' => $academicPeriods, 'icon' => 'clock', 'permission' => 'read academic period', 'href' => current_academic_year() === null ? route('academic-years.index') : route('academic-years.show', current_academic_year()), 'description' => 'Open periods'],
+            ['label' => school_terms('course', school_term('course', 'Subject')).' being taught', 'value' => $courseOfferings, 'icon' => 'book-marked', 'permission' => 'read subject', 'href' => route('course-offerings.index'), 'description' => 'Course offerings'],
+            ['label' => 'Active students', 'value' => $students, 'icon' => 'users', 'permission' => 'read student', 'href' => route('students.index'), 'description' => 'Current learners'],
+            ['label' => 'Teachers', 'value' => $teachers, 'icon' => 'graduation-cap', 'permission' => 'read teacher', 'href' => route('teachers.index'), 'description' => 'Teaching staff'],
+            ['label' => 'Parents', 'value' => $parents, 'icon' => 'users', 'permission' => 'read parent', 'href' => route('parents.index'), 'description' => 'Family accounts'],
+        ];
+        $visibleSnapshotStats = collect($snapshotStats)->filter(
+            fn (array $stat): bool => auth()->user()->can($stat['permission']),
+        );
+    @endphp
+
+    @if (auth()->user()->can('read attendance') || auth()->user()->can('viewAny', \App\Models\CalendarEvent::class))
         <section class="space-y-4" aria-labelledby="today-overview">
             <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
                 <div>
@@ -281,7 +287,9 @@
                 </april:card>
             </div>
         </section>
+    @endif
 
+    @if ($visibleSnapshotStats->isNotEmpty())
         <section class="space-y-4" aria-labelledby="upcoming-overview">
             <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
                 <div>
@@ -337,17 +345,15 @@
                         </div>
                     </div>
                     <div class="mt-5 grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2">
-                        @foreach ($snapshotStats as $stat)
-                            @if (auth()->user()->can($stat['permission']))
-                                <a href="{{ $stat['href'] }}" class="group bg-card p-3 transition-colors hover:bg-muted/40">
-                                    <div class="flex items-center justify-between gap-3">
-                                        <span class="truncate text-sm text-muted-foreground">{{ $stat['label'] }}</span>
-                                        <x-icon :name="'lucide-'.$stat['icon']" class="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
-                                    </div>
-                                    <p class="mt-2 text-xl font-semibold tracking-tight">{{ number_format($stat['value']) }}</p>
-                                    <p class="text-xs text-muted-foreground">{{ $stat['description'] }}</p>
-                                </a>
-                            @endif
+                        @foreach ($visibleSnapshotStats as $stat)
+                            <a href="{{ $stat['href'] }}" class="group bg-card p-3 transition-colors hover:bg-muted/40">
+                                <div class="flex items-center justify-between gap-3">
+                                    <span class="truncate text-sm text-muted-foreground">{{ $stat['label'] }}</span>
+                                    <x-icon :name="'lucide-'.$stat['icon']" class="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+                                </div>
+                                <p class="mt-2 text-xl font-semibold tracking-tight">{{ number_format($stat['value']) }}</p>
+                                <p class="text-xs text-muted-foreground">{{ $stat['description'] }}</p>
+                            </a>
                         @endforeach
                     </div>
                 </div>

@@ -55,6 +55,27 @@ class PlatformPermissionTest extends TestCase
             ->assertOk();
     }
 
+    public function test_school_staff_can_see_the_shared_dashboard_workspace(): void
+    {
+        $this->authorized_user(['read student', 'read calendar event'])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('What needs attention today')
+            ->assertSee('School snapshot')
+            ->assertSee('Active students')
+            ->assertDontSee('Organization context');
+    }
+
+    public function test_a_school_member_without_dashboard_permissions_sees_no_empty_workspace_panels(): void
+    {
+        $this->unauthorized_user()
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertDontSee('What needs attention today')
+            ->assertDontSee('School snapshot')
+            ->assertDontSee('Your school, ready for the day');
+    }
+
     public function test_dashboard_loads_school_role_memberships_once(): void
     {
         $school = School::factory()->create();
@@ -90,8 +111,8 @@ class PlatformPermissionTest extends TestCase
         $user = $this->nonMember();
         $user->organizationMemberships()->create([
             'organization_id' => $organization->id,
-            'status'          => 'active',
-            'joined_at'       => now(),
+            'status' => 'active',
+            'joined_at' => now(),
         ]);
 
         $this->assertFalse($user->fresh()->can('update', $organization));
