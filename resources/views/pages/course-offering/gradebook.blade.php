@@ -13,7 +13,9 @@
 
 @section('content')
     @php
-        $gradebookIsOpen = $courseOffering->academicPeriod?->status->acceptsNewWork() ?? false;
+        $periodStatus = $courseOffering->academicPeriod?->status;
+        $gradebookAcceptsWrites = $periodStatus?->acceptsWrites() ?? false;
+        $gradebookAcceptsNewWork = $periodStatus?->acceptsNewWork() ?? false;
     @endphp
 
     <div class="space-y-6">
@@ -23,8 +25,8 @@
                 <span class="flex flex-wrap justify-end gap-2 text-xs">
                     <span class="rounded-full border px-2.5 py-1">{{ $gradeItems->count() }} assessment{{ $gradeItems->count() === 1 ? '' : 's' }}</span>
                     <span class="rounded-full border px-2.5 py-1">{{ $publishedResults->count() }} published</span>
-                    <span class="rounded-full border px-2.5 py-1 {{ $gradebookIsOpen ? 'border-primary/30 bg-primary text-primary-foreground' : 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300' }}">
-                        {{ $gradebookIsOpen ? 'Editing open' : 'Read-only' }}
+                    <span class="rounded-full border px-2.5 py-1 {{ $gradebookAcceptsNewWork ? 'border-primary/30 bg-primary text-primary-foreground' : ($gradebookAcceptsWrites ? 'border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-300' : 'border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-300') }}">
+                        {{ $gradebookAcceptsNewWork ? 'Editing open' : ($gradebookAcceptsWrites ? 'Corrections open' : 'Read-only') }}
                     </span>
                 </span>
             </slot:title>
@@ -64,7 +66,7 @@
         @endif
         <x-display-validation-errors />
 
-        @if (!$gradebookIsOpen)
+        @if (!$gradebookAcceptsWrites)
             <div class="rounded-lg border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm">
                 <p class="font-medium text-amber-900 dark:text-amber-100">This gradebook is read-only.</p>
                 <p class="mt-1 text-amber-800 dark:text-amber-200">The {{ $courseOffering->academicPeriod->display_name }} period is {{ strtolower($courseOffering->academicPeriod->status->label()) }}. Existing marks and published results remain available, but assessment setup and mark entry are locked.</p>
@@ -72,7 +74,7 @@
         @endif
 
         @can('manageGradebook', $courseOffering)
-            @if ($gradebookIsOpen)
+            @if ($gradebookAcceptsNewWork)
             <details id="assessment-setup" class="rounded-xl border bg-card p-5" @if ($gradeItems->isEmpty()) open @endif>
                 <summary class="flex cursor-pointer list-none items-start justify-between gap-4">
                     <span>
@@ -263,13 +265,13 @@
         @endcan
 
         <april:card>
-            <slot:title>Record grades and publish results</slot:title>
-            <slot:description>Enter working marks for each learner. Submit a result when it is ready for approval and publication.</slot:description>
+            <slot:title>{{ $gradebookAcceptsWrites ? 'Record grades and publish results' : 'Historical results' }}</slot:title>
+            <slot:description>{{ $gradebookAcceptsWrites ? 'Enter working marks for each learner. Submit a result when it is ready for approval and publication.' : 'Review marks and published results from this finished period.' }}</slot:description>
             <slot:content>
                 @if ($gradeItems->isEmpty())
                     <div class="rounded-lg border border-dashed p-8 text-center">
-                        <p class="font-medium">No assessments have been added yet.</p>
-                        <p class="mt-1 text-sm text-muted-foreground">Open Assessment setup above to add the first assessment before entering grades.</p>
+                        <p class="font-medium">No assessments have been recorded.</p>
+                        <p class="mt-1 text-sm text-muted-foreground">{{ $gradebookAcceptsNewWork ? 'Open Assessment setup above to add the first assessment before entering grades.' : 'This gradebook has no assessment history to display.' }}</p>
                     </div>
                 @elseif ($students->isEmpty())
                     <div class="rounded-lg border border-dashed p-8 text-center text-sm text-muted-foreground">No learners match this offering. Update who attends before entering grades.</div>
@@ -302,7 +304,7 @@
                                             @php($entry = $gradeItem->entries->firstWhere('student_record_id', $student->id))
                                             <td class="px-3 py-3">
                                                 @can('manageGradebook', $courseOffering)
-                                                    @if ($gradebookIsOpen)
+                                                @if ($gradebookAcceptsWrites)
                                                     <form method="POST" action="{{ route('course-offerings.gradebook.entries.store', $courseOffering) }}" class="grid grid-cols-[1fr_auto] gap-2">
                                                         @csrf
                                                         <input type="hidden" name="grade_item_id" value="{{ $gradeItem->id }}">
@@ -353,13 +355,15 @@
                                                     Revision {{ $submittedResult->revision }} · {{ $submittedResult->approval_status->label() }}
                                                 </span>
                                             @endif
-                                            @can('publishResult', $courseOffering)
+                                            @if ($gradebookAcceptsWrites)
+                                                @can('publishResult', $courseOffering)
                                                 <form method="POST" action="{{ route('course-offerings.gradebook.results.publish', $courseOffering) }}" class="mt-2">
                                                     @csrf
                                                     <input type="hidden" name="student_record_id" value="{{ $student->id }}">
                                                     <april:button size="sm" variant="outline" type="submit">{{ $publishedResult === null ? 'Submit for approval' : 'Submit revision' }}</april:button>
                                                 </form>
-                                            @endcan
+                                                @endcan
+                                            @endif
                                             @if ($submittedResult?->approval_status === \App\Enums\ResultApprovalStatus::Pending)
                                                 @can('approveResult', $courseOffering)
                                                     <div class="mt-2 flex flex-wrap gap-2">

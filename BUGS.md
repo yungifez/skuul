@@ -592,3 +592,12 @@
 - Impact: Families had to read introductory copy before reaching the actions they came to use, and the repeated campus wording added height without helping them choose a page.
 - Reproduction: Open `/dashboard/portal/overview` as a learner or guardian with an enrollment.
 - Resolution: The overview now uses one short orientation line and puts the campus name and enrollment count directly in each card header. `tests/Feature/PortalOverviewTest.php` checks the concise orientation and removes the duplicate heading.
+
+## A closed gradebook told staff to edit locked work
+
+- Status: Fixed
+- Area: Gradebook hierarchy and period lifecycle
+- Observed: A closed gradebook showed “Record grades and publish results” and an empty-state instruction to open Assessment setup, even though the setup controls were hidden. A period in the `Closing` state was also presented as fully read-only, although closing periods accept corrections to existing marks.
+- Impact: Teachers received contradictory instructions and could not tell whether a missing assessment was a setup problem or a historical fact. Staff could also lose the correction window intended for a period that is closing.
+- Reproduction: Open a gradebook with no assessments in a closed period, then open one in a closing period with an existing assessment.
+- Resolution: The view now has three visible states: Editing open, Corrections open, and Read-only. New assessment setup is available only while the period accepts new work; existing marks and result workflows remain available during closing; closed and archived periods show historical results without edit actions. `tests/Feature/GradebookScreenTest.php` covers closed and closing states.

@@ -141,9 +141,35 @@ class GradebookScreenTest extends TestCase
             ->assertOk()
             ->assertSee('This gradebook is read-only.')
             ->assertSee('Read-only')
+            ->assertSee('Historical results')
+            ->assertSee('This gradebook has no assessment history to display.')
             ->assertSee('assessment setup and mark entry are locked.')
             ->assertDontSee('Add category')
-            ->assertDontSee('Add an assessment');
+            ->assertDontSee('Add an assessment')
+            ->assertDontSee('Open Assessment setup above');
+    }
+
+    public function test_a_closing_gradebook_allows_corrections_but_not_new_assessments(): void
+    {
+        $this->authorized_user(['read gradebook', 'manage gradebook', 'update subject']);
+        [$courseOffering] = $this->offeringAndEnrollment();
+        $courseOffering->academicPeriod()->update(['status' => AcademicPeriodStatus::Closing->value]);
+        GradeItem::create([
+            'school_id' => $courseOffering->school_id,
+            'course_offering_id' => $courseOffering->id,
+            'name' => 'Classwork',
+            'type' => GradeItemType::Numeric,
+            'max_points' => 20,
+        ]);
+
+        $this->get(route('course-offerings.gradebook.show', $courseOffering))
+            ->assertOk()
+            ->assertSee('Corrections open')
+            ->assertSee('Record grades and publish results')
+            ->assertSee('Grade state')
+            ->assertDontSee('Assessment setup')
+            ->assertDontSee('Add an assessment')
+            ->assertDontSee('This gradebook is read-only.');
     }
 
     public function test_staff_can_save_and_apply_a_school_assessment_template_from_the_gradebook_screen(): void
