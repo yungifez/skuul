@@ -47,7 +47,9 @@ class TranscriptSnapshotTest extends TestCase
         $this->get(route('transcripts.index'))
             ->assertOk()
             ->assertSee('Issued transcripts')
-            ->assertSee('w-full min-w-0', false);
+            ->assertSee('Lifetime record of a learner’s latest published results.')
+            ->assertSee('w-full min-w-0', false)
+            ->assertDontSee('It copies the latest official result of every subject the learner took');
         $this->assertSame(2, TranscriptSnapshot::count());
     }
 

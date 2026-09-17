@@ -18,7 +18,7 @@
         @can('create', App\Models\TranscriptSnapshot::class)
             <april:card>
                 <slot:title>Issue a transcript</slot:title>
-                <slot:description>A transcript is the lifetime academic record. It copies the latest official result of every subject the learner took. It never changes once issued, so a correction goes out as the next revision.</slot:description>
+                <slot:description>Lifetime record of a learner’s latest published results. Issued transcripts do not change; corrections create a new revision.</slot:description>
                 <slot:content>
                     <form method="POST" action="{{ route('transcripts.store') }}" class="grid gap-4 lg:grid-cols-4 lg:items-end">
                         @csrf

@@ -637,3 +637,12 @@
 - Impact: On a phone, report-card and transcript controls extended past the card edge. Labels and buttons appeared aligned, but the input itself was partly off-screen and difficult to use.
 - Reproduction: Open `/dashboard/report-cards` or `/dashboard/transcripts` at a 390px viewport with long learner names or academic-year options.
 - Resolution: The report-card and transcript selects now use `w-full min-w-0`, matching the existing responsive filter pattern. `tests/Feature/ReportCardSnapshotTest.php` and `tests/Feature/TranscriptSnapshotTest.php` check that the constrained controls render.
+
+## Report and transcript forms led with too much policy copy
+
+- Status: Fixed
+- Area: Report cards and transcripts
+- Observed: Both official-record screens placed a four-line explanation above their first form control. The text repeated the same immutable-record and revision rule in several clauses.
+- Impact: On a phone, the user had to pass a large block of policy text before choosing a learner. The rule was important, but the form hierarchy was harder to scan.
+- Reproduction: Open `/dashboard/report-cards` or `/dashboard/transcripts` at a 390px viewport.
+- Resolution: Each screen now states the record rule in two short sentences. The full workflow and revision behavior remain unchanged. `tests/Feature/ReportCardSnapshotTest.php` and `tests/Feature/TranscriptSnapshotTest.php` check the concise copy and reject the former wording.

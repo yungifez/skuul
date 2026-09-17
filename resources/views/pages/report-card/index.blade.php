@@ -18,7 +18,7 @@
         @can('create', App\Models\ReportCardSnapshot::class)
             <april:card>
                 <slot:title>Publish a report card</slot:title>
-                <slot:description>A report card is an official record. It is built from the results already published for the period, and it never changes once issued. Publishing again creates the next revision.</slot:description>
+                <slot:description>Official record built from published results. Once issued, it stays unchanged; a correction creates a new revision.</slot:description>
                 <slot:content>
                     <form method="POST" action="{{ route('report-cards.store') }}" class="grid gap-4 lg:grid-cols-4 lg:items-end">
                         @csrf

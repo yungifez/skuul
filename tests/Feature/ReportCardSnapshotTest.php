@@ -56,7 +56,9 @@ class ReportCardSnapshotTest extends TestCase
         $this->get(route('report-cards.index'))
             ->assertOk()
             ->assertSee('Publish a report card')
-            ->assertSee('w-full min-w-0', false);
+            ->assertSee('w-full min-w-0', false)
+            ->assertSee('Official record built from published results.')
+            ->assertDontSee('It is built from the results already published for the period');
 
         $this->post(route('report-cards.store'), [
             'student_record_id' => $student->id,
