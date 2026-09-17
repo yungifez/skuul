@@ -19,6 +19,12 @@
     transform: none !important;
 }
 
+/* Native selects are flex items on form screens. Let long learner and period
+   options shrink to their column instead of pushing the control past the card. */
+[data-slot="native-select"] {
+    min-width: 0;
+}
+
 /* April UI paints the "link" button variant and rich-text links with
    --primary. That token is a surface colour in both themes: a light tan on
    the light background, a dark brown on the dark one. As text it lands at

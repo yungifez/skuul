@@ -636,7 +636,7 @@
 - Observed: The shared native select component has no intrinsic width constraint. Learner and academic-period options therefore sized the select to their longest option instead of the form column.
 - Impact: On a phone, report-card and transcript controls extended past the card edge. Labels and buttons appeared aligned, but the input itself was partly off-screen and difficult to use.
 - Reproduction: Open `/dashboard/report-cards` or `/dashboard/transcripts` at a 390px viewport with long learner names or academic-year options.
-- Resolution: The report-card and transcript selects now use `w-full min-w-0`, matching the existing responsive filter pattern. `tests/Feature/ReportCardSnapshotTest.php` and `tests/Feature/TranscriptSnapshotTest.php` check that the constrained controls render.
+- Resolution: The report-card and transcript selects now use `w-full min-w-0`, and the shared app style lets every native select shrink within its form column. `tests/Feature/ReportCardSnapshotTest.php` and `tests/Feature/TranscriptSnapshotTest.php` check that the constrained controls render.
 
 ## Report and transcript forms led with too much policy copy
 
