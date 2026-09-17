@@ -656,3 +656,4 @@
 - Reproduction: Open `/dashboard/facilities` on a 390px viewport with at least two shared facilities.
 - Resolution: The catalogue now keeps a readable 640px minimum and scrolls horizontally on narrow screens. `tests/Feature/FacilityTest.php` checks the table constraint.
 - [x] Teacher dashboard was empty apart from the academic-year selector. **Status: Fixed.** Shared daily pulse, agenda, upcoming events, and permission-filtered school snapshot panels now render for school staff; organization and school-management context remains restricted. Added normal staff and no-permission coverage in `PlatformPermissionTest`.
+- [x] Calendar-only staff could see today’s agenda but not upcoming events. **Status: Fixed.** The upcoming section now follows Calendar permission independently of school-snapshot permissions, while snapshot content remains hidden without a matching data permission.

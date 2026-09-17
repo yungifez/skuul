@@ -289,7 +289,7 @@
         </section>
     @endif
 
-    @if ($visibleSnapshotStats->isNotEmpty())
+    @if ($visibleSnapshotStats->isNotEmpty() || auth()->user()->can('viewAny', \App\Models\CalendarEvent::class))
         <section class="space-y-4" aria-labelledby="upcoming-overview">
             <div class="flex flex-col justify-between gap-2 sm:flex-row sm:items-end">
                 <div>
@@ -334,29 +334,31 @@
                     @endif
                 </div>
 
-                <div class="rounded-xl border bg-card p-5">
-                    <div class="flex items-center gap-3">
-                        <span class="flex size-9 items-center justify-center rounded-md bg-muted text-muted-foreground">
-                            <x-lucide-layout-dashboard class="size-4" />
-                        </span>
-                        <div>
-                            <p class="font-medium">School snapshot</p>
-                            <p class="text-sm text-muted-foreground">The current working context</p>
+                @if ($visibleSnapshotStats->isNotEmpty())
+                    <div class="rounded-xl border bg-card p-5">
+                        <div class="flex items-center gap-3">
+                            <span class="flex size-9 items-center justify-center rounded-md bg-muted text-muted-foreground">
+                                <x-lucide-layout-dashboard class="size-4" />
+                            </span>
+                            <div>
+                                <p class="font-medium">School snapshot</p>
+                                <p class="text-sm text-muted-foreground">The current working context</p>
+                            </div>
+                        </div>
+                        <div class="mt-5 grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2">
+                            @foreach ($visibleSnapshotStats as $stat)
+                                <a href="{{ $stat['href'] }}" class="group bg-card p-3 transition-colors hover:bg-muted/40">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <span class="truncate text-sm text-muted-foreground">{{ $stat['label'] }}</span>
+                                        <x-icon :name="'lucide-'.$stat['icon']" class="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
+                                    </div>
+                                    <p class="mt-2 text-xl font-semibold tracking-tight">{{ number_format($stat['value']) }}</p>
+                                    <p class="text-xs text-muted-foreground">{{ $stat['description'] }}</p>
+                                </a>
+                            @endforeach
                         </div>
                     </div>
-                    <div class="mt-5 grid gap-px overflow-hidden rounded-lg border bg-border sm:grid-cols-2">
-                        @foreach ($visibleSnapshotStats as $stat)
-                            <a href="{{ $stat['href'] }}" class="group bg-card p-3 transition-colors hover:bg-muted/40">
-                                <div class="flex items-center justify-between gap-3">
-                                    <span class="truncate text-sm text-muted-foreground">{{ $stat['label'] }}</span>
-                                    <x-icon :name="'lucide-'.$stat['icon']" class="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground" />
-                                </div>
-                                <p class="mt-2 text-xl font-semibold tracking-tight">{{ number_format($stat['value']) }}</p>
-                                <p class="text-xs text-muted-foreground">{{ $stat['description'] }}</p>
-                            </a>
-                        @endforeach
-                    </div>
-                </div>
+                @endif
             </div>
         </section>
     @endif

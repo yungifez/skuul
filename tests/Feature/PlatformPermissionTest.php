@@ -76,6 +76,17 @@ class PlatformPermissionTest extends TestCase
             ->assertDontSee('Your school, ready for the day');
     }
 
+    public function test_calendar_staff_can_see_upcoming_events_without_a_school_snapshot(): void
+    {
+        $this->authorized_user(['read calendar event'])
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee('What needs attention today')
+            ->assertSee('The next few days')
+            ->assertSee('Today’s agenda')
+            ->assertDontSee('School snapshot');
+    }
+
     public function test_dashboard_loads_school_role_memberships_once(): void
     {
         $school = School::factory()->create();
