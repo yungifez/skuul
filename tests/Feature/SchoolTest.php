@@ -171,6 +171,25 @@ class SchoolTest extends TestCase
             ->assertSee('aria-label="Classes help"', false);
     }
 
+    public function test_a_long_school_name_can_wrap_in_the_page_heading(): void
+    {
+        $school = $this->workingSchool();
+        $school->update([
+            'name' => 'Gentle Touch School for International Science and Creative Arts Campus',
+            'academic_year_id' => null,
+            'academic_period_id' => null,
+        ]);
+
+        $this->withoutMiddleware(SetActiveAcademicPeriod::class);
+        academic_period_context()->forget();
+
+        $this->authorized_user(['manage school settings'], $school)
+            ->get(route('schools.settings'))
+            ->assertSuccessful()
+            ->assertSee('min-w-0 max-w-full break-words', false)
+            ->assertSee('Gentle Touch School for International Science and Creative Arts Campus');
+    }
+
     public function test_school_administrator_sees_setup_guidance_on_the_dashboard(): void
     {
         $school = $this->workingSchool();

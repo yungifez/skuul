@@ -610,3 +610,12 @@
 - Impact: On a phone, the first action was pushed below unnecessary copy and the long label made the form feel heavier than the simple task.
 - Reproduction: Open `/dashboard/portal/enrollments/{student}/requests` as a learner or guardian at a narrow viewport.
 - Resolution: The form now says what the action does in one sentence, uses “Additional details (optional)”, and keeps the same workflow and privacy meaning. `tests/Feature/PortalRequestScreenTest.php` checks the concise copy and guards against the old wording.
+
+## A long school name was clipped in the page heading on mobile
+
+- Status: Fixed
+- Area: Shared dashboard layout and school setup
+- Observed: The page heading kept a long school name at its minimum content width while the date stayed beside it. On a narrow screen, the heading extended beyond the content column and the first characters were clipped.
+- Impact: Staff could not read the current page title, and the overflow made the header and breadcrumb feel misaligned on the quick-setup screen.
+- Reproduction: Open `/dashboard/schools/1/setup/classes` at a 390px viewport for a school with a long name such as “Gentle Touch School for International Science and Creative Arts Campus”.
+- Resolution: The shared `h1` now permits shrinking and wraps long text inside the header width. `tests/Feature/SchoolTest.php` checks that long school names use the wrapping classes.

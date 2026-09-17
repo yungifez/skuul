@@ -35,7 +35,7 @@
                 <div class="border-b bg-background/95 px-4 py-5 backdrop-blur md:px-8">
                     <div class="mx-auto flex max-w-screen-2xl flex-col gap-3">
                         <div class="flex flex-wrap items-center justify-between gap-3">
-                            <h1 class="text-2xl font-semibold tracking-tight md:text-3xl">@yield('page_heading')</h1>
+                            <h1 class="min-w-0 max-w-full break-words text-2xl font-semibold tracking-tight md:text-3xl">@yield('page_heading')</h1>
                             <div class="flex flex-wrap items-center gap-3">
                                 @yield('page_actions')
                                 <div class="text-sm text-muted-foreground">
