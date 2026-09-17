@@ -180,6 +180,10 @@ class FacilityTest extends TestCase
 
         $hall = Facility::where('name', 'Main hall')->sole();
 
+        $actor->get(route('facilities.index'))
+            ->assertOk()
+            ->assertSee('min-w-[640px] w-full text-sm', false);
+
         $actor->post(route('facilities.book'), [
             'facility_id' => $hall->id,
             'starts_at' => now()->addDay()->setTime(9, 0)->format('Y-m-d\TH:i'),

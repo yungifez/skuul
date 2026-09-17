@@ -646,3 +646,12 @@
 - Impact: On a phone, the user had to pass a large block of policy text before choosing a learner. The rule was important, but the form hierarchy was harder to scan.
 - Reproduction: Open `/dashboard/report-cards` or `/dashboard/transcripts` at a 390px viewport.
 - Resolution: Each screen now states the record rule in two short sentences. The full workflow and revision behavior remain unchanged. `tests/Feature/ReportCardSnapshotTest.php` and `tests/Feature/TranscriptSnapshotTest.php` check the concise copy and reject the former wording.
+
+## The facilities catalogue squeezed names into narrow mobile columns
+
+- Status: Fixed
+- Area: Facilities catalogue
+- Observed: The five-column catalogue used all available phone width, so a facility name such as “Science and Innovation Lab” wrapped into several short lines while the other columns stayed visible.
+- Impact: Rows became unnecessarily tall and the name column was difficult to scan. The table was technically in an overflow wrapper, but it had no readable minimum width to use.
+- Reproduction: Open `/dashboard/facilities` on a 390px viewport with at least two shared facilities.
+- Resolution: The catalogue now keeps a readable 640px minimum and scrolls horizontally on narrow screens. `tests/Feature/FacilityTest.php` checks the table constraint.

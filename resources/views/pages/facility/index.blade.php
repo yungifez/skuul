@@ -35,7 +35,7 @@
             </div>
         @else
             <div class="overflow-x-auto">
-                <table class="w-full text-sm">
+                <table class="min-w-[640px] w-full text-sm">
                     <thead>
                         <tr class="border-b text-left text-xs uppercase tracking-wider text-muted-foreground">
                             <th class="p-4 font-medium">Name</th>
