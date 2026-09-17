@@ -31,7 +31,10 @@ class PortalRequestScreenTest extends TestCase
         $this->actingAs($guardian)
             ->get(route('portal.requests.index', $enrollment))
             ->assertOk()
-            ->assertSee('Ask the school for something')
+            ->assertSee('Ask the school')
+            ->assertSee('Send a message about '.$enrollment->user->name.'. The school will read and answer it.')
+            ->assertDontSee('Ask the school for something')
+            ->assertDontSee('Anything else the school should know')
             ->assertSee('You have not asked for anything yet');
     }
 

@@ -601,3 +601,12 @@
 - Impact: Teachers received contradictory instructions and could not tell whether a missing assessment was a setup problem or a historical fact. Staff could also lose the correction window intended for a period that is closing.
 - Reproduction: Open a gradebook with no assessments in a closed period, then open one in a closing period with an existing assessment.
 - Resolution: The view now has three visible states: Editing open, Corrections open, and Read-only. New assessment setup is available only while the period accepts new work; existing marks and result workflows remain available during closing; closed and archived periods show historical results without edit actions. `tests/Feature/GradebookScreenTest.php` covers closed and closing states.
+
+## The family request form led with too much explanation
+
+- Status: Fixed
+- Area: Family portal requests
+- Observed: The request form used a four-line explanation of how messages are handled, then asked “Anything else the school should know” for an optional message.
+- Impact: On a phone, the first action was pushed below unnecessary copy and the long label made the form feel heavier than the simple task.
+- Reproduction: Open `/dashboard/portal/enrollments/{student}/requests` as a learner or guardian at a narrow viewport.
+- Resolution: The form now says what the action does in one sentence, uses “Additional details (optional)”, and keeps the same workflow and privacy meaning. `tests/Feature/PortalRequestScreenTest.php` checks the concise copy and guards against the old wording.

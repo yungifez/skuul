@@ -16,11 +16,8 @@
         @endif
 
         <april:card>
-            <slot:title>Ask the school for something</slot:title>
-            <slot:description>
-                A request is a message about {{ $studentRecord->user?->name ?? 'your child' }}. It changes no school
-                record by itself: somebody at the school reads it and answers.
-            </slot:description>
+            <slot:title>Ask the school</slot:title>
+            <slot:description>Send a message about {{ $studentRecord->user?->name ?? 'your child' }}. The school will read and answer it.</slot:description>
             <slot:content>
                 <form method="POST" action="{{ route('portal.requests.store', $studentRecord) }}" class="grid gap-4 lg:grid-cols-4 lg:items-end">
                     @csrf
@@ -43,7 +40,7 @@
                     </div>
 
                     <div class="flex flex-col gap-2 lg:col-span-3">
-                        <april:label for="message">Anything else the school should know</april:label>
+                        <april:label for="message">Additional details <span class="font-normal text-muted-foreground">(optional)</span></april:label>
                         <textarea id="message" name="message" rows="3"
                             class="flex w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                             placeholder="Optional" {{ field_error_bindings('message') }}>{{ old('message', $appointmentMessage) }}</textarea>
