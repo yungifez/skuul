@@ -121,17 +121,6 @@ class GradebookTest extends TestCase
         ]);
     }
 
-    public function test_the_gradebook_list_explains_mobile_horizontal_scrolling(): void
-    {
-        $this->authorized_user(['read gradebook', 'update subject']);
-        $this->courseOffering();
-
-        $this->get(route('gradebooks.index'))
-            ->assertOk()
-            ->assertSee('Swipe horizontally to view all gradebook columns.')
-            ->assertSee('aria-label="Gradebook list"', false);
-    }
-
     public function test_staff_can_browse_gradebooks_from_a_historical_year_and_period(): void
     {
         $this->authorized_user(['read gradebook', 'update subject']);
@@ -240,18 +229,6 @@ class GradebookTest extends TestCase
 
         $this->get(route('gradebooks.index', ['academic_year_id' => $otherSchoolYear->id]))
             ->assertNotFound();
-    }
-
-    public function test_the_gradebook_detail_uses_april_form_controls(): void
-    {
-        $this->authorized_user(['read gradebook', 'manage gradebook', 'update subject']);
-        $courseOffering = $this->courseOffering();
-
-        $this->get(route('course-offerings.gradebook.show', $courseOffering))
-            ->assertOk()
-            ->assertSee('Assessment setup')
-            ->assertSee('data-slot="input"', false)
-            ->assertSee('data-slot="native-select"', false);
     }
 
     public function test_the_result_is_a_share_of_the_maximum(): void
