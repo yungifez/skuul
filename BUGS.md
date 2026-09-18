@@ -666,3 +666,12 @@
 - Resolution: Test users now receive a UUID-backed `example.test` address, which is unique across factory instances. The focused screen test and the full attendance file both pass.
 - [x] Teacher dashboard was empty apart from the academic-year selector. **Status: Fixed.** Shared daily pulse, agenda, upcoming events, and permission-filtered school snapshot panels now render for school staff; organization and school-management context remains restricted. Added normal staff and no-permission coverage in `PlatformPermissionTest`.
 - [x] Calendar-only staff could see today’s agenda but not upcoming events. **Status: Fixed.** The upcoming section now follows Calendar permission independently of school-snapshot permissions, while snapshot content remains hidden without a matching data permission.
+
+## Campus moves did not grant the destination student role
+
+- Status: Fixed
+- Area: Campus moves and destination-campus access
+- Observed: A moved learner received an active destination-school membership, but the student role remained scoped only to the source campus. The destination profile route therefore returned 404 even though the enrollment had moved successfully.
+- Impact: Staff at the receiving campus could not open the learner profile, and student-scoped policies could not identify the learner at the new campus.
+- Reproduction: Move an active learner between campuses in one organization, switch to the receiving campus, and open the learner profile.
+- Resolution: Campus moves and cross-organization transfers now grant the destination-scoped student role while preserving the source role and membership for historical access. `CampusMoveRequestTest` covers the destination role.
