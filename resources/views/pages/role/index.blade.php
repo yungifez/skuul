@@ -26,7 +26,43 @@
     <x-display-validation-errors />
 
     <div class="rounded-xl border border-sidebar-border/70 bg-card text-card-foreground shadow-sm">
-        <div class="overflow-x-auto">
+        <div class="grid gap-3 p-4 md:hidden">
+            @foreach ($roles as $role)
+                <article class="rounded-lg border bg-background p-4 shadow-sm {{ $role->isArchived() ? 'text-muted-foreground' : '' }}">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="min-w-0">
+                            <h3 class="break-words font-medium">{{ $role->name }}</h3>
+                            <div class="mt-1 flex flex-wrap gap-1">
+                                @if ($role->isBuiltIn())
+                                    <april:badge variant="secondary">Built in</april:badge>
+                                @endif
+                                @if ($role->isArchived())
+                                    <april:badge variant="outline">Retired</april:badge>
+                                @endif
+                            </div>
+                            @if ($role->description !== null)
+                                <p class="mt-2 break-words text-xs text-muted-foreground">{{ $role->description }}</p>
+                            @endif
+                        </div>
+                        @can('assign', $role)
+                            <april:button-link href="{{ route('roles.edit', $role->id) }}" variant="outline" size="sm" aria-label="Open the {{ $role->name }} role">Open</april:button-link>
+                        @endcan
+                    </div>
+                    <dl class="mt-4 grid grid-cols-2 gap-4 border-t pt-4 text-sm">
+                        <div>
+                            <dt class="text-muted-foreground">Permissions</dt>
+                            <dd class="mt-1 font-medium">{{ $role->permissions_count }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-muted-foreground">People</dt>
+                            <dd class="mt-1 font-medium">{{ $role->users_count }}</dd>
+                        </div>
+                    </dl>
+                </article>
+            @endforeach
+        </div>
+
+        <div class="hidden overflow-x-auto md:block">
             <table class="w-full text-sm">
                 <thead>
                     <tr class="border-b text-left text-xs uppercase tracking-wider text-muted-foreground">
