@@ -2,11 +2,13 @@
 
 namespace App\Actions\School;
 
+use App\Enums\Role;
 use App\Enums\SchoolMembershipStatus;
 use App\Models\School;
 use App\Models\SchoolMembership;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\PermissionRegistrar;
 
 /**
  * Give a person access to a school.
@@ -16,6 +18,8 @@ use Illuminate\Support\Facades\DB;
  */
 class GrantSchoolMembership
 {
+    public function __construct(private PermissionRegistrar $permissionRegistrar) {}
+
     /**
      * Grant or reactivate access and return the membership.
      */
@@ -41,5 +45,24 @@ class GrantSchoolMembership
 
             return $membership;
         });
+    }
+
+    /**
+     * Give a student the school-scoped role at a new campus.
+     *
+     * A membership lets the account be found by school. The team-scoped
+     * student role is also needed by routes and policies that identify the
+     * account as a student.
+     */
+    public function grantStudentRole(User $user, School $school): void
+    {
+        $previousTeamId = $this->permissionRegistrar->getPermissionsTeamId();
+
+        try {
+            $this->permissionRegistrar->setPermissionsTeamId($school->id);
+            $user->assignRole(Role::Student);
+        } finally {
+            $this->permissionRegistrar->setPermissionsTeamId($previousTeamId);
+        }
     }
 }

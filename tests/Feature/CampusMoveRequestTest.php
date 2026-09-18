@@ -11,6 +11,7 @@ use App\Enums\AuditAction;
 use App\Enums\CampusMoveStatus;
 use App\Enums\EnrollmentStatus;
 use App\Enums\OrganizationPermission;
+use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
@@ -72,6 +73,10 @@ class CampusMoveRequestTest extends TestCase
         $this->assertSame($sibling->id, $moved->school_id);
         $this->assertSame($cycleSection->id, $moved->academic_cycle_section_id);
         $this->assertSame(1, StudentRecord::query()->where('user_id', $enrollment->user_id)->count());
+
+        school_context()->set($sibling, remember: false);
+
+        $this->assertTrue($moved->user->hasRole(Role::Student));
     }
 
     public function test_rejecting_leaves_the_student_where_they_are(): void
@@ -208,7 +213,7 @@ class CampusMoveRequestTest extends TestCase
         $sibling = $this->siblingCampus();
         $enrollment = StudentRecord::factory()->create([
             'school_id' => $this->workingSchool()->id,
-            'status'    => EnrollmentStatus::Graduated,
+            'status' => EnrollmentStatus::Graduated,
         ]);
 
         $this->expectException(InvalidValueException::class);
@@ -219,7 +224,7 @@ class CampusMoveRequestTest extends TestCase
     /**
      * Make a person who administers one campus and nothing else.
      *
-     * @param array<int, string> $permissions
+     * @param  array<int, string>  $permissions
      */
     private function campusAdministratorOf(School $school, array $permissions): User
     {
@@ -235,7 +240,7 @@ class CampusMoveRequestTest extends TestCase
     /**
      * Make a person with authority over the working school's organization.
      *
-     * @param array<int, OrganizationPermission> $permissions
+     * @param  array<int, OrganizationPermission>  $permissions
      */
     private function organizationPersonWith(array $permissions): User
     {
@@ -270,10 +275,10 @@ class CampusMoveRequestTest extends TestCase
             ?? AcademicLevel::factory()->create(['school_id' => $school->id]);
 
         return AcademicCycleSection::factory()->create([
-            'school_id'         => $school->id,
-            'academic_year_id'  => $academicYear->id,
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
-            'status'            => AcademicStructureStatus::Active,
+            'status' => AcademicStructureStatus::Active,
         ]);
     }
 }

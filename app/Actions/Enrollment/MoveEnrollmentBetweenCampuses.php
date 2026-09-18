@@ -30,8 +30,7 @@ class MoveEnrollmentBetweenCampuses
         private GrantSchoolMembership $grantSchoolMembership,
         private CarryBalanceToCampus $carryBalance,
         private RecordAuditEvent $auditor,
-    ) {
-    }
+    ) {}
 
     /**
      * Move the enrollment to the campus that owns the given cycle section.
@@ -67,6 +66,7 @@ class MoveEnrollmentBetweenCampuses
             // membership at the old campus stays, so its staff keep reading
             // the records the student made while they were there.
             $this->grantSchoolMembership->grant($enrollment->user, $destination);
+            $this->grantSchoolMembership->grantStudentRole($enrollment->user, $destination);
 
             $enrollment->school_id = $destination->id;
             $enrollment->save();
@@ -91,12 +91,12 @@ class MoveEnrollmentBetweenCampuses
                 AuditAction::EnrollmentCampusChanged,
                 $enrollment,
                 [
-                    'from_school_id'            => $source->id,
-                    'to_school_id'              => $destination->id,
-                    'organization_id'           => $destination->organization_id,
+                    'from_school_id' => $source->id,
+                    'to_school_id' => $destination->id,
+                    'organization_id' => $destination->organization_id,
                     'academic_cycle_section_id' => $academicCycleSection->id,
-                    'carried_balances'          => $carried === [] ? null : $carried,
-                    'reason'                    => $reason,
+                    'carried_balances' => $carried === [] ? null : $carried,
+                    'reason' => $reason,
                 ],
                 $actor,
                 $destination,
