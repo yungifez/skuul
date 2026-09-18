@@ -25,9 +25,9 @@
         </slot:description>
         <slot:content>
             <form method="GET" action="{{ route('cohorts.index') }}" class="grid gap-4 lg:grid-cols-4 lg:items-end">
-                <div class="flex flex-col items-center gap-2">
+                <div class="flex min-w-0 flex-col items-start gap-2">
                     <april:label for="filter-type">Kind of group</april:label>
-                    <april:native-select id="filter-type" name="type">
+                    <april:native-select id="filter-type" name="type" class="w-full min-w-0">
                         <option value="">Every kind</option>
                         @foreach ($types as $type)
                         <option value="{{ $type->value }}" @selected($selectedType===$type)>{{ $type->label() }}
@@ -43,7 +43,7 @@
                     Only the groups still in use
                 </label>
 
-                <div class="flex gap-2">
+                <div class="flex flex-wrap gap-2">
                     <april:button type="submit">
                         <x-lucide-filter class="mr-2 size-4" />
                         Apply
@@ -76,6 +76,51 @@
             </x-empty-state>
             @endif
             @else
+            <div class="md:hidden">
+                <div class="grid gap-3">
+                    @foreach ($cohorts as $cohort)
+                    <article class="rounded-lg border bg-background p-4 shadow-sm">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <h3 class="break-words font-medium leading-6">{{ $cohort->name }}</h3>
+                                @if (filled($cohort->description))
+                                <p class="mt-1 break-words text-sm text-muted-foreground">{{ $cohort->description }}</p>
+                                @endif
+                            </div>
+                            <span class="shrink-0 text-sm text-muted-foreground">
+                                {{ $cohort->is_active ? 'In use' : 'Closed' }}
+                            </span>
+                        </div>
+
+                        <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t pt-4 text-sm">
+                            <div class="min-w-0">
+                                <dt class="text-muted-foreground">Kind</dt>
+                                <dd class="mt-1 break-words font-medium">{{ $cohort->type->label() }}</dd>
+                            </div>
+                            <div class="min-w-0">
+                                <dt class="text-muted-foreground">In it now</dt>
+                                <dd class="mt-1 font-medium">{{ $cohort->current_members_count }}</dd>
+                            </div>
+                            @if ($cohort->is_restricted)
+                            <div class="col-span-2 flex items-center gap-1 text-muted-foreground">
+                                <x-lucide-lock class="size-3" />
+                                <dt class="sr-only">Access</dt>
+                                <dd>Private group</dd>
+                            </div>
+                            @endif
+                        </dl>
+
+                        <april:button-link href="{{ route('cohorts.show', $cohort) }}" variant="outline"
+                            class="mt-4 w-full justify-center" aria-label="Open {{ $cohort->name }}">
+                            <x-lucide-eye class="mr-1 size-4" />
+                            Open group
+                        </april:button-link>
+                    </article>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="hidden md:block">
             <april:data-table>
                 <slot:header>
                     <april:data-table-row>
@@ -122,6 +167,7 @@
                     @endforeach
                 </slot:body>
             </april:data-table>
+            </div>
 
             <div class="pt-4">
                 {{ $cohorts->links('components.pagination-links-view') }}
