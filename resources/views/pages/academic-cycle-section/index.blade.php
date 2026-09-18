@@ -104,7 +104,57 @@
                     @endcan
                 </x-empty-state>
             @else
-                <div class="overflow-x-auto">
+                <div class="grid gap-3 md:hidden">
+                    @foreach ($academicCycleSections as $academicCycleSection)
+                        <article class="rounded-lg border bg-background p-4 shadow-sm">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    <h3 class="break-words font-medium">
+                                        <a href="{{ route('academic-cycle-sections.show', $academicCycleSection) }}" class="hover:underline">{{ $academicCycleSection->label ?? $academicCycleSection->name }}</a>
+                                    </h3>
+                                    <p class="mt-1 break-words text-sm text-muted-foreground">{{ $academicCycleSection->academicYear->name }} › {{ $academicCycleSection->academicLevel->name }}</p>
+                                </div>
+                                <x-academic-structure-status :status="$academicCycleSection->status" />
+                            </div>
+                            <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t pt-4 text-sm">
+                                <div>
+                                    <dt class="text-muted-foreground">Stream / shift</dt>
+                                    <dd class="mt-1 font-medium">{{ collect([$academicCycleSection->stream, $academicCycleSection->shift])->filter()->join(' · ') ?: '—' }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-muted-foreground">Room</dt>
+                                    <dd class="mt-1 font-medium">{{ $academicCycleSection->room ?? '—' }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-muted-foreground">Capacity</dt>
+                                    <dd class="mt-1 font-medium">{{ $academicCycleSection->capacity ?? 'Not set' }}</dd>
+                                </div>
+                                <div>
+                                    <dt class="text-muted-foreground">Class teacher</dt>
+                                    <dd class="mt-1 break-words font-medium">{{ $academicCycleSection->homeroomTeacher?->name ?? 'Not chosen' }}</dd>
+                                </div>
+                            </dl>
+                            <div class="mt-4 flex flex-wrap gap-2 border-t pt-4">
+                                <april:button-link href="{{ route('academic-cycle-sections.show', $academicCycleSection) }}" variant="ghost" size="sm" aria-label="View {{ $academicCycleSection->label ?? $academicCycleSection->name }}">View</april:button-link>
+                                @can('update', $academicCycleSection)
+                                    @if ($academicCycleSection->isEditable())
+                                        <april:button-link href="{{ route('academic-cycle-sections.edit', $academicCycleSection) }}" variant="outline" size="sm" aria-label="Edit {{ $academicCycleSection->label ?? $academicCycleSection->name }}">Edit</april:button-link>
+                                    @endif
+                                    @if ($academicCycleSection->status === AcademicStructureStatus::Draft)
+                                        <form method="POST" action="{{ route('academic-cycle-sections.status.update', $academicCycleSection) }}">
+                                            @csrf
+                                            @method('PUT')
+                                            <input type="hidden" name="status" value="{{ AcademicStructureStatus::Active->value }}">
+                                            <april:button size="sm" type="submit">Activate</april:button>
+                                        </form>
+                                    @endif
+                                @endcan
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+
+                <div class="hidden overflow-x-auto md:block">
                     <table class="w-full min-w-[980px] text-sm">
                         <thead class="border-b text-left text-muted-foreground">
                             <tr>

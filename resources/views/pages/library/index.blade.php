@@ -63,7 +63,45 @@
                 <p class="text-sm font-medium">{{ $search === '' ? 'Nothing on the shelf yet.' : 'Nothing matches that.' }}</p>
             </div>
         @else
-            <div class="overflow-x-auto">
+            <div class="grid gap-3 p-4 md:hidden">
+                @foreach ($copies as $copy)
+                    @php ($loan = $copy->loans->first())
+                    <article class="rounded-lg border bg-background p-4 shadow-sm">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <h4 class="break-words font-medium">{{ $copy->title?->title }}</h4>
+                                <p class="mt-1 break-words font-mono text-xs text-muted-foreground">{{ $copy->barcode }}</p>
+                            </div>
+                            @if ($loan !== null)
+                                <span class="shrink-0 text-xs text-muted-foreground">On loan</span>
+                            @endif
+                        </div>
+                        <dl class="mt-4 grid gap-3 border-t pt-4 text-sm">
+                            <div>
+                                <dt class="text-muted-foreground">Author</dt>
+                                <dd class="mt-1 break-words font-medium">{{ $copy->title?->authors }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-muted-foreground">Where it is</dt>
+                                <dd class="mt-1 break-words font-medium">{{ $copy->whereabouts() }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-muted-foreground">Who has it</dt>
+                                <dd class="mt-1 break-words font-medium">{{ $loan !== null ? $loan->borrower?->name.' · due '.$loan->due_on?->format('j M') : '—' }}</dd>
+                            </div>
+                        </dl>
+                        @if ($canManage && $loan === null && $copy->status->isHeld())
+                            <form action="{{ route('library-copies.destroy', $copy->id) }}" method="POST" class="mt-4 border-t pt-4"
+                                data-confirm="Withdraw this copy from the shelves?">
+                                @csrf
+                                @method('DELETE')
+                                <april:button type="submit" variant="ghost" size="sm" class="w-full">Withdraw</april:button>
+                            </form>
+                        @endif
+                    </article>
+                @endforeach
+            </div>
+            <div class="hidden overflow-x-auto md:block">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b text-left text-xs uppercase tracking-wider text-muted-foreground">

@@ -90,7 +90,45 @@
                 <p class="text-sm font-medium">Nobody has asked for a report yet.</p>
             </div>
         @else
-            <div class="overflow-x-auto">
+            <div class="grid gap-3 p-4 md:hidden">
+                @foreach ($runs as $run)
+                    <article class="rounded-lg border bg-background p-4 shadow-sm">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="font-medium">{{ $reports[$run->type] ?? $run->type }}</p>
+                                <p class="mt-1 text-xs text-muted-foreground">Run {{ $run->id }} · {{ $run->created_at?->diffForHumans() }}</p>
+                            </div>
+                            <april:badge variant="{{ $run->status === \App\Enums\ReportStatus::Failed ? 'destructive' : ($run->status === \App\Enums\ReportStatus::Ready ? 'default' : 'secondary') }}">
+                                {{ $run->status->label() }}
+                            </april:badge>
+                        </div>
+                        <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t pt-4 text-sm">
+                            <div>
+                                <dt class="text-muted-foreground">Shape</dt>
+                                <dd class="mt-1 uppercase font-medium">{{ $run->format }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-muted-foreground">Rows</dt>
+                                <dd class="mt-1 font-medium">{{ $run->row_count ?? '—' }}</dd>
+                            </div>
+                            <div class="col-span-2">
+                                <dt class="text-muted-foreground">Asked by</dt>
+                                <dd class="mt-1 break-words font-medium">{{ $run->requestedBy?->name ?? '—' }}</dd>
+                            </div>
+                        </dl>
+                        @if ($run->error !== null)
+                            <p class="mt-3 break-words text-xs text-muted-foreground">{{ $run->error }}</p>
+                        @endif
+                        @if ($run->isReady())
+                            <april:button-link href="{{ route('reports.download', $run->id) }}" variant="outline" size="sm" class="mt-4 w-full justify-center"
+                                aria-label="Download run {{ $run->id }}">
+                                Download
+                            </april:button-link>
+                        @endif
+                    </article>
+                @endforeach
+            </div>
+            <div class="hidden overflow-x-auto md:block">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b text-left text-xs uppercase tracking-wider text-muted-foreground">
