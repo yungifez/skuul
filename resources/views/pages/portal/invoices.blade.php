@@ -34,7 +34,35 @@
                     <x-empty-state icon="lucide-receipt" title="No invoices yet"
                         description="The school has not recorded an invoice for this learner." />
                 @else
-                    <div class="overflow-x-auto">
+                    <div class="grid gap-3 md:hidden">
+                        @foreach ($invoices as $invoice)
+                            <article class="rounded-lg border p-4">
+                                <div class="flex items-start justify-between gap-3">
+                                    <h3 class="min-w-0 break-words font-medium">{{ $invoice->name }}</h3>
+                                    <p class="shrink-0 text-right font-semibold">
+                                        {{ $invoice->balance->formatToLocale(app()->getLocale()) }}
+                                        <span class="block text-xs font-normal text-muted-foreground">Balance</span>
+                                    </p>
+                                </div>
+                                <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+                                    <div>
+                                        <dt class="text-muted-foreground">Issued</dt>
+                                        <dd class="mt-1">{{ $invoice->issue_date?->format('j M Y') }}</dd>
+                                    </div>
+                                    <div>
+                                        <dt class="text-muted-foreground">Due</dt>
+                                        <dd class="mt-1">{{ $invoice->due_date?->format('j M Y') }}</dd>
+                                    </div>
+                                    <div class="col-span-2">
+                                        <dt class="text-muted-foreground">Total</dt>
+                                        <dd class="mt-1">{{ $invoice->amount->plus($invoice->fine)->minus($invoice->waiver)->formatToLocale(app()->getLocale()) }}</dd>
+                                    </div>
+                                </dl>
+                            </article>
+                        @endforeach
+                    </div>
+
+                    <div class="hidden overflow-x-auto md:block">
                         <table class="w-full text-left text-sm">
                             <thead class="border-b text-muted-foreground">
                                 <tr>

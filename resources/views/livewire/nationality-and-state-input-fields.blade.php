@@ -1,4 +1,4 @@
-<div class="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
+<div class="grid min-w-0 w-full gap-4 sm:grid-cols-2 {{ $showNationality ? 'md:grid-cols-3' : '' }}">
     @if ($showNationality)
         <april:input-group id="nationality" name="nationality" label="Nationality" placeholder="Person's nationality" value="{{ old('nationality', $nationality) }}" />
     @endif
