@@ -655,5 +655,14 @@
 - Impact: Rows became unnecessarily tall and the name column was difficult to scan. The table was technically in an overflow wrapper, but it had no readable minimum width to use.
 - Reproduction: Open `/dashboard/facilities` on a 390px viewport with at least two shared facilities.
 - Resolution: The catalogue now keeps a readable 640px minimum and scrolls horizontally on narrow screens. `tests/Feature/FacilityTest.php` checks the table constraint.
+
+## The user factory could generate duplicate test emails
+
+- Status: Fixed
+- Area: Automated QA fixtures
+- Observed: The attendance simulation intermittently failed before exercising the screen because separate `UserFactory` instances could generate the same Faker email. MySQL correctly rejected the duplicate `users.email` value.
+- Impact: A valid feature test could fail during setup, making the result look like an attendance regression and reducing confidence in repeated school simulations.
+- Reproduction: Run the attendance feature file repeatedly until two factory-created users receive the same generated email.
+- Resolution: Test users now receive a UUID-backed `example.test` address, which is unique across factory instances. The focused screen test and the full attendance file both pass.
 - [x] Teacher dashboard was empty apart from the academic-year selector. **Status: Fixed.** Shared daily pulse, agenda, upcoming events, and permission-filtered school snapshot panels now render for school staff; organization and school-management context remains restricted. Added normal staff and no-permission coverage in `PlatformPermissionTest`.
 - [x] Calendar-only staff could see today’s agenda but not upcoming events. **Status: Fixed.** The upcoming section now follows Calendar permission independently of school-snapshot permissions, while snapshot content remains hidden without a matching data permission.
