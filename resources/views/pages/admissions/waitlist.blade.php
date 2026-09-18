@@ -22,25 +22,25 @@
                 <slot:content>
                     <form action="{{ route('admissions.waitlist.store') }}" method="POST" class="grid gap-4 md:grid-cols-4 md:items-end">
                         @csrf
-                        <div class="flex flex-col gap-2 md:col-span-2">
+                        <div class="min-w-0 flex flex-col gap-2 md:col-span-2">
                             <label for="waitlist-section" class="text-sm font-medium">{{ school_term('section', 'Section') }}</label>
-                            <select id="waitlist-section" name="academic_cycle_section_id" required class="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                            <select id="waitlist-section" name="academic_cycle_section_id" required class="h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm">
                                 @foreach ($sections as $section)
                                     <option value="{{ $section->id }}">{{ $section->academicLevel->name }} · {{ $section->label ?? $section->name }} · {{ $section->academicYear->name }} ({{ $section->capacity }})</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="flex flex-col gap-2">
+                        <div class="min-w-0 flex flex-col gap-2">
                             <label for="waitlist-candidate" class="text-sm font-medium">Candidate</label>
-                            <select id="waitlist-candidate" name="user_id" required class="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                            <select id="waitlist-candidate" name="user_id" required class="h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm">
                                 @foreach ($candidates as $candidate)
                                     <option value="{{ $candidate->id }}">{{ $candidate->name }} · {{ $candidate->email }}</option>
                                 @endforeach
                             </select>
                         </div>
-                        <div class="flex flex-col gap-2">
+                        <div class="min-w-0 flex flex-col gap-2">
                             <label for="waitlist-priority" class="text-sm font-medium">Priority</label>
-                            <input id="waitlist-priority" name="priority" type="number" min="0" max="9999" value="0" class="h-10 rounded-md border border-input bg-background px-3 text-sm">
+                            <input id="waitlist-priority" name="priority" type="number" min="0" max="9999" value="0" class="h-10 w-full min-w-0 rounded-md border border-input bg-background px-3 text-sm">
                         </div>
                         <div class="md:col-span-4">
                             <april:button type="submit">Add to waitlist</april:button>
