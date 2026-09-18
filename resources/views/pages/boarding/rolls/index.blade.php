@@ -30,7 +30,46 @@
             <h3 class="text-lg font-semibold">House checks</h3>
             <p class="mt-1 text-sm text-muted-foreground">Open a roll when staff begin a check. Complete it only after every boarder has an answer.</p>
         </div>
-        <div class="overflow-x-auto">
+        @if ($houses->isEmpty())
+            <div class="p-6 text-center text-sm text-muted-foreground md:hidden">No active boarding houses.</div>
+        @else
+            <div class="grid gap-3 p-4 md:hidden">
+                @foreach ($houses as $house)
+                    <article class="rounded-lg border bg-background p-4 shadow-sm">
+                        <h4 class="break-words font-medium">{{ $house->name }}</h4>
+                        <div class="mt-4 grid gap-2 border-t pt-4">
+                            @foreach ($types as $type)
+                                @php($roll = $rolls->get($house->id, collect())->firstWhere('type', $type))
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <p class="text-sm text-muted-foreground">{{ $type->label() }}</p>
+                                        @if ($roll)
+                                            <p class="text-sm font-medium">{{ $roll->isComplete() ? 'Complete' : 'In progress' }}</p>
+                                            <p class="text-xs text-muted-foreground">{{ $roll->entries->where('status', '!=', 'not_recorded')->count() }}/{{ $roll->entries->count() }} answered</p>
+                                        @elseif (!$canManage)
+                                            <p class="text-sm text-muted-foreground">Not started</p>
+                                        @endif
+                                    </div>
+                                    @if ($roll)
+                                        <a href="{{ route('boarding-rolls.show', $roll) }}" class="shrink-0 rounded-md border px-3 py-2 text-sm font-medium hover:bg-muted">Open</a>
+                                    @elseif ($canManage)
+                                        <form method="POST" action="{{ route('boarding-rolls.store') }}" class="shrink-0">
+                                            @csrf
+                                            <input type="hidden" name="dormitory_id" value="{{ $house->id }}">
+                                            <input type="hidden" name="type" value="{{ $type->value }}">
+                                            <input type="hidden" name="taken_on" value="{{ $date->toDateString() }}">
+                                            <button type="submit" class="rounded-md border border-input bg-background px-3 py-2 text-sm font-medium hover:bg-muted">Start</button>
+                                        </form>
+                                    @endif
+                                </div>
+                            @endforeach
+                        </div>
+                    </article>
+                @endforeach
+            </div>
+        @endif
+
+        <div class="hidden overflow-x-auto md:block">
             <table class="w-full min-w-[900px] text-left text-sm">
                 <thead class="border-b bg-muted/40 text-xs uppercase text-muted-foreground">
                     <tr>

@@ -34,7 +34,41 @@
                 </p>
             </div>
         @else
-            <div class="overflow-x-auto">
+            <div class="grid gap-3 p-4 md:hidden">
+                @foreach ($facilities as $facility)
+                    <article class="rounded-lg border bg-background p-4 shadow-sm">
+                        <div class="flex items-start justify-between gap-3">
+                            <h4 class="min-w-0 break-words font-medium">{{ $facility->name }}</h4>
+                            @if (!$facility->is_active)
+                                <april:badge variant="secondary" class="shrink-0">Out of use</april:badge>
+                            @endif
+                        </div>
+                        <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t pt-4 text-sm">
+                            <div>
+                                <dt class="text-muted-foreground">Kind</dt>
+                                <dd class="mt-1 font-medium">{{ $facility->kind->label() }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-muted-foreground">Holds</dt>
+                                <dd class="mt-1 font-medium">{{ $facility->capacity ?? '—' }}</dd>
+                            </div>
+                            <div>
+                                <dt class="text-muted-foreground">Booked ahead</dt>
+                                <dd class="mt-1 font-medium">{{ $facility->upcoming_bookings_count }}</dd>
+                            </div>
+                        </dl>
+                        @if ($canManage && $facility->is_active)
+                            <form action="{{ route('facilities.destroy', $facility->id) }}" method="POST" class="mt-4 border-t pt-4"
+                                data-confirm="Take this facility out of use? Nobody will be able to book it.">
+                                @csrf
+                                @method('DELETE')
+                                <april:button type="submit" variant="ghost" size="sm" class="w-full">Take out of use</april:button>
+                            </form>
+                        @endif
+                    </article>
+                @endforeach
+            </div>
+            <div class="hidden overflow-x-auto md:block">
                 <table class="min-w-[640px] w-full text-sm">
                     <thead>
                         <tr class="border-b text-left text-xs uppercase tracking-wider text-muted-foreground">
