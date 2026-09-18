@@ -8,7 +8,7 @@
         </div>
     </div>
     <div class="card-body">
-        <div class="prose prose-sm max-w-none dark:prose-invert">{!! $content !!}</div>
+        <div class="rich-text max-w-none text-sm">{!! $content !!}</div>
         <div class="my-6">
             @if($notice->hasManagedAttachment())
                 <a class="inline-flex items-center gap-2 rounded bg-blue-600 px-4 py-2 text-white" href="{{ route('notices.attachments.download', $notice) }}">

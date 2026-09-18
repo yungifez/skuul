@@ -38,6 +38,87 @@
     color: hsl(var(--primary-foreground));
 }
 
+/* Notice content is sanitized to this small set of tags before it is stored.
+   Keep its published form readable even though the typography plugin is not
+   part of the application bundle. */
+.rich-text {
+    overflow-wrap: anywhere;
+}
+
+.rich-text > * + * {
+    margin-top: 0.75rem;
+}
+
+.rich-text h1,
+.rich-text h2,
+.rich-text h3 {
+    font-weight: 600;
+    line-height: 1.25;
+}
+
+.rich-text h1 {
+    font-size: 1.5rem;
+}
+
+.rich-text h2 {
+    font-size: 1.25rem;
+}
+
+.rich-text h3 {
+    font-size: 1.125rem;
+}
+
+.rich-text ul,
+.rich-text ol {
+    padding-left: 1.5rem;
+}
+
+.rich-text ul {
+    list-style: disc;
+}
+
+.rich-text ol {
+    list-style: decimal;
+}
+
+.rich-text blockquote {
+    border-left: 3px solid hsl(var(--border));
+    color: hsl(var(--muted-foreground));
+    padding-left: 1rem;
+}
+
+.rich-text pre {
+    overflow-x: auto;
+    border-radius: 0.375rem;
+    background: hsl(var(--muted));
+    padding: 0.75rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.875rem;
+}
+
+.rich-text code {
+    border-radius: 0.25rem;
+    background: hsl(var(--muted));
+    padding: 0.125rem 0.25rem;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    font-size: 0.875rem;
+}
+
+.rich-text pre code {
+    background: transparent;
+    padding: 0;
+}
+
+.rich-text a {
+    color: hsl(var(--primary-foreground));
+    text-decoration: underline;
+    text-underline-offset: 2px;
+}
+
+.rich-text hr {
+    border-top: 1px solid hsl(var(--border));
+}
+
 /* April UI paints destructive text with --destructive. On the dark theme that
    red measures 4.3:1 on a card and 3.61:1 on an accent surface, under the
    4.5:1 WCAG AA minimum. --destructive doubles as a button background there,
