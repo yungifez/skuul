@@ -25,6 +25,10 @@ enum PortalArea: string
 
     case Boarding = 'boarding';
 
+    case Graduation = 'graduation';
+
+    case Programmes = 'programmes';
+
     /**
      * Get the label to show in the interface.
      */
@@ -41,6 +45,8 @@ enum PortalArea: string
             self::Library => 'Library',
             self::Boarding => 'Boarding',
             self::Requests => 'Requests',
+            self::Graduation => 'Graduation progress',
+            self::Programmes => 'Programmes',
         };
     }
 

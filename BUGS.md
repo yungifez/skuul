@@ -1,5 +1,23 @@
 # Known Bugs
 
+## Academic levels were too dense on mobile
+
+- Status: Fixed
+- Area: Academic levels and school setup
+- Observed: The hierarchy opened every nested level on phones. Repeated action rows and setup-empty messages made the page excessively long and difficult to scan.
+- Impact: Staff had to scroll through the full school structure before reaching the grade they wanted to manage.
+- Reproduction: Open `/dashboard/academic-levels` at a phone-sized viewport with multiple nested levels.
+- Resolution: The top-level structure remains visible while nested levels collapse by default on mobile and remain expanded on desktop. Redundant per-grade setup-empty messages were removed; the level summary and actions communicate the available next step. Browser QA verified the mobile disclosure behavior.
+
+## Learners and families could not see graduation progress or club places
+
+- Status: Fixed
+- Area: Graduation plans, programmes, and learner portal
+- Observed: Graduation progress and programme participation were available only on staff screens. Neither module could be switched off in school settings, and the family portal had no enrollment-scoped view for these records.
+- Impact: Learners and guardians could not follow published graduation requirements or see club and activity schedules. Staff also had no school-level switch to hide either module.
+- Reproduction: Open a plan or programme as school staff, then sign in as a learner or guardian and inspect the campus links. The portal had no corresponding routes.
+- Resolution: Both modules are now school-switchable. Learners and guardians can read graduation progress for plans that apply to their enrollment, and student-facing clubs/activities for that enrollment. Portal routes enforce person, campus, module, and area access; staff notes and intervention/support programmes are not exposed. Inactive and withdrawn enrollments are refused. `PortalAcademicActivityTest`, `PortalOverviewTest`, and `FeatureSettingTest` cover these paths.
+
 ## Academic-level groups repeated the whole-group teaching explanation
 
 - Status: Fixed

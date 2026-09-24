@@ -44,6 +44,10 @@ class PortalAccess
      */
     public function canRead(User $person, StudentRecord $enrollment): bool
     {
+        if (!in_array($enrollment->status, [EnrollmentStatus::Active, EnrollmentStatus::Graduated], true)) {
+            return false;
+        }
+
         if (!$this->isOpen($enrollment->school_id)) {
             return false;
         }
@@ -80,6 +84,8 @@ class PortalAccess
             PortalArea::Calendar => Feature::Events,
             PortalArea::Library => Feature::Library,
             PortalArea::Boarding => Feature::Boarding,
+            PortalArea::Graduation => Feature::GraduationPlans,
+            PortalArea::Programmes => Feature::Programmes,
             default => null,
         };
 

@@ -20,6 +20,7 @@
             'schoolSetup' => $schoolSetup,
             'setupLinks' => $setupLinks,
             'showLevelActions' => $showLevelActions,
+            'levelDepth' => 0,
         ])
     @endif
 </div>

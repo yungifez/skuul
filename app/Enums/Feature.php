@@ -62,6 +62,16 @@ enum Feature: string
     case Library = 'library';
 
     /**
+     * Graduation requirements and learner progression.
+     */
+    case GraduationPlans = 'graduation_plans';
+
+    /**
+     * Clubs and activities beyond classroom teaching.
+     */
+    case Programmes = 'programmes';
+
+    /**
      * Get the label to show in the interface.
      */
     public function label(): string
@@ -77,6 +87,8 @@ enum Feature: string
             self::Imports => 'Imports and integrations',
             self::Boarding => 'Boarding',
             self::Library => 'Library',
+            self::GraduationPlans => 'Graduation planning',
+            self::Programmes => 'Programmes',
         };
     }
 
@@ -96,6 +108,8 @@ enum Feature: string
             self::Imports => 'Bulk uploads and links to outside systems.',
             self::Boarding => 'Boarding houses, who sleeps where, and who is out for the night.',
             self::Library => 'What the school lends, who has it, and when it is due back.',
+            self::GraduationPlans => 'Graduation requirements, pathways, and learner progress.',
+            self::Programmes => 'Clubs and activities outside the normal timetable.',
         };
     }
 
@@ -109,6 +123,8 @@ enum Feature: string
             self::Discipline, self::Wellbeing => 'Care and conduct',
             self::Portal => 'Families and learners',
             self::Ranking => 'Reporting',
+            self::GraduationPlans => 'Learner pathways',
+            self::Programmes => 'Beyond the classroom',
             self::StaffOperations, self::Imports => 'Staff and data',
             self::Boarding, self::Library => 'Beyond the classroom',
         };

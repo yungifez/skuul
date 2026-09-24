@@ -45,7 +45,9 @@ use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\OrganizationDashboardController;
 use App\Http\Controllers\OvernightLeaveController;
 use App\Http\Controllers\ParentController;
+use App\Http\Controllers\PortalGraduationController;
 use App\Http\Controllers\PortalInvoicesController;
+use App\Http\Controllers\PortalProgramController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SchoolSetupController;
 use App\Http\Controllers\SchoolSetupPhaseController;
@@ -135,6 +137,8 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::get('portal/enrollments/{studentRecord}/library', ['App\Http\Controllers\PortalLibraryController', 'index'])->name('portal.library.index');
     Route::get('portal/enrollments/{studentRecord}/requests', ['App\Http\Controllers\PortalRequestController', 'index'])->name('portal.requests.index');
     Route::post('portal/enrollments/{studentRecord}/requests', ['App\Http\Controllers\PortalRequestController', 'store'])->name('portal.requests.store');
+    Route::get('portal/enrollments/{studentRecord}/graduation', [PortalGraduationController::class, 'show'])->name('portal.graduation.show');
+    Route::get('portal/enrollments/{studentRecord}/programmes', [PortalProgramController::class, 'index'])->name('portal.programmes.index');
     Route::get('notices/{notice}/attachment', NoticeAttachmentController::class)->name('notices.attachments.download');
     Route::get('notice-preferences', [NoticeNotificationPreferenceController::class, 'edit'])->middleware('App\Http\Middleware\RequireActiveSchool')->name('notice-preferences.edit');
     Route::put('notice-preferences', [NoticeNotificationPreferenceController::class, 'update'])->middleware('App\Http\Middleware\RequireActiveSchool')->name('notice-preferences.update');
@@ -313,20 +317,20 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::get('portal-requests', ['App\Http\Controllers\PortalRequestController', 'inbox'])->name('portal-requests.index');
         Route::put('portal-requests/{portalRequest}/status', ['App\Http\Controllers\PortalRequestController', 'changeStatus'])->name('portal-requests.status.update');
 
-        // graduation plan routes. A plan says what a learner must finish, and
-        // only a published result counts towards it. Graduation is not one of
-        // the features a school can turn off; the permissions decide who keeps
-        // the plans.
-        Route::get('graduation-plans', ['App\Http\Controllers\GraduationPlanController', 'index'])->name('graduation-plans.index');
-        Route::get('graduation-plans/create', ['App\Http\Controllers\GraduationPlanController', 'create'])->name('graduation-plans.create');
-        Route::post('graduation-plans', ['App\Http\Controllers\GraduationPlanController', 'store'])->name('graduation-plans.store');
-        Route::get('graduation-plans/{graduationPlan}', ['App\Http\Controllers\GraduationPlanController', 'show'])->name('graduation-plans.show');
-        Route::put('graduation-plans/{graduationPlan}', ['App\Http\Controllers\GraduationPlanController', 'update'])->name('graduation-plans.update');
-        Route::post('graduation-plans/{graduationPlan}/children', ['App\Http\Controllers\GraduationPlanController', 'storeChild'])->name('graduation-plans.children.store');
-        Route::post('graduation-plans/{graduationPlan}/requirements', ['App\Http\Controllers\GraduationPlanController', 'storeRequirement'])->name('graduation-plans.requirements.store');
-        Route::delete('graduation-plans/{graduationPlan}/requirements/{graduationRequirement}', ['App\Http\Controllers\GraduationPlanController', 'destroyRequirement'])->name('graduation-plans.requirements.destroy');
-        Route::post('graduation-plans/{graduationPlan}/exemptions', ['App\Http\Controllers\GraduationPlanController', 'storeExemption'])->name('graduation-plans.exemptions.store');
-        Route::delete('graduation-plans/{graduationPlan}/exemptions/{graduationExemption}', ['App\Http\Controllers\GraduationPlanController', 'destroyExemption'])->name('graduation-plans.exemptions.destroy');
+        // Graduation plans remain available when results are published, and
+        // families may read progress only when both school controls are open.
+        Route::middleware(['feature:graduation_plans'])->group(function (): void {
+            Route::get('graduation-plans', ['App\Http\Controllers\GraduationPlanController', 'index'])->name('graduation-plans.index');
+            Route::get('graduation-plans/create', ['App\Http\Controllers\GraduationPlanController', 'create'])->name('graduation-plans.create');
+            Route::post('graduation-plans', ['App\Http\Controllers\GraduationPlanController', 'store'])->name('graduation-plans.store');
+            Route::get('graduation-plans/{graduationPlan}', ['App\Http\Controllers\GraduationPlanController', 'show'])->name('graduation-plans.show');
+            Route::put('graduation-plans/{graduationPlan}', ['App\Http\Controllers\GraduationPlanController', 'update'])->name('graduation-plans.update');
+            Route::post('graduation-plans/{graduationPlan}/children', ['App\Http\Controllers\GraduationPlanController', 'storeChild'])->name('graduation-plans.children.store');
+            Route::post('graduation-plans/{graduationPlan}/requirements', ['App\Http\Controllers\GraduationPlanController', 'storeRequirement'])->name('graduation-plans.requirements.store');
+            Route::delete('graduation-plans/{graduationPlan}/requirements/{graduationRequirement}', ['App\Http\Controllers\GraduationPlanController', 'destroyRequirement'])->name('graduation-plans.requirements.destroy');
+            Route::post('graduation-plans/{graduationPlan}/exemptions', ['App\Http\Controllers\GraduationPlanController', 'storeExemption'])->name('graduation-plans.exemptions.store');
+            Route::delete('graduation-plans/{graduationPlan}/exemptions/{graduationExemption}', ['App\Http\Controllers\GraduationPlanController', 'destroyExemption'])->name('graduation-plans.exemptions.destroy');
+        });
 
         // ranking routes. A position is worked out when it is asked for, so
         // there is nothing to write and nothing to store. A school that does
@@ -349,9 +353,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         });
 
         // cohort and programme routes. A group of people is not a class, so
-        // these routes do not need an academic period. Cohorts are not one of
-        // the features a school can turn off; the permissions decide who sees
-        // them.
+        // these routes do not need an academic period.
         Route::get('cohorts', ['App\Http\Controllers\CohortController', 'index'])->name('cohorts.index');
         Route::get('cohorts/create', ['App\Http\Controllers\CohortController', 'create'])->name('cohorts.create');
         Route::post('cohorts', ['App\Http\Controllers\CohortController', 'store'])->name('cohorts.store');
@@ -360,12 +362,14 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::post('cohorts/{cohort}/members', ['App\Http\Controllers\CohortController', 'storeMember'])->name('cohorts.members.store');
         Route::delete('cohorts/{cohort}/members/{cohortMember}', ['App\Http\Controllers\CohortController', 'removeMember'])->name('cohorts.members.destroy');
 
-        Route::get('programs', ['App\Http\Controllers\ProgramController', 'index'])->name('programs.index');
-        Route::get('programs/create', ['App\Http\Controllers\ProgramController', 'create'])->name('programs.create');
-        Route::post('programs', ['App\Http\Controllers\ProgramController', 'store'])->name('programs.store');
-        Route::get('programs/{program}', ['App\Http\Controllers\ProgramController', 'show'])->name('programs.show');
-        Route::post('programs/{program}/participations', ['App\Http\Controllers\ProgramController', 'storeParticipation'])->name('programs.participations.store');
-        Route::put('programs/{program}/participations/{programParticipation}', ['App\Http\Controllers\ProgramController', 'updateParticipation'])->name('programs.participations.update');
+        Route::middleware(['feature:programmes'])->group(function (): void {
+            Route::get('programs', ['App\Http\Controllers\ProgramController', 'index'])->name('programs.index');
+            Route::get('programs/create', ['App\Http\Controllers\ProgramController', 'create'])->name('programs.create');
+            Route::post('programs', ['App\Http\Controllers\ProgramController', 'store'])->name('programs.store');
+            Route::get('programs/{program}', ['App\Http\Controllers\ProgramController', 'show'])->name('programs.show');
+            Route::post('programs/{program}/participations', ['App\Http\Controllers\ProgramController', 'storeParticipation'])->name('programs.participations.store');
+            Route::put('programs/{program}/participations/{programParticipation}', ['App\Http\Controllers\ProgramController', 'updateParticipation'])->name('programs.participations.update');
+        });
 
         // import routes. An import reads the school, not the period, so it
         // does not need a period to be set first. A school that turned imports

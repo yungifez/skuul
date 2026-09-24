@@ -6,6 +6,8 @@ use App\Enums\AuditAction;
 use App\Enums\Feature;
 use App\Livewire\Layouts\Menu;
 use App\Models\AuditEvent;
+use App\Models\GraduationPlan;
+use App\Models\Program;
 use App\Models\School;
 use App\Services\Feature\FeatureManager;
 use App\Traits\FeatureTestTrait;
@@ -159,6 +161,8 @@ class FeatureSettingTest extends TestCase
                 'imports' => '1',
                 'boarding' => '0',
                 'library' => '0',
+                'graduation_plans' => '1',
+                'programmes' => '1',
             ],
         ])->assertRedirect(route('schools.features.edit'));
 
@@ -177,10 +181,36 @@ class FeatureSettingTest extends TestCase
         }
 
         $response->assertSee(Feature::Wellbeing->description())
-            ->assertSee('6 of 10 tools are on')
+            ->assertSee('8 of 12 tools are on')
             ->assertSee('School tools')
             ->assertDontSee('What this screen changes')
             ->assertDontSee('This tool starts off');
+    }
+
+    public function test_a_school_can_hide_graduation_and_programme_tools_without_deleting_them(): void
+    {
+        $actor = $this->authorized_user(['read graduation plan', 'read program']);
+        $plan = GraduationPlan::create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'Senior diploma',
+        ]);
+        $program = Program::create([
+            'school_id' => $this->workingSchool()->id,
+            'name' => 'Robotics club',
+        ]);
+
+        app(FeatureManager::class)->disable(Feature::GraduationPlans, $this->workingSchool()->id);
+        app(FeatureManager::class)->disable(Feature::Programmes, $this->workingSchool()->id);
+
+        $actor->get(route('graduation-plans.index'))->assertNotFound();
+        $actor->get(route('programs.index'))->assertNotFound();
+
+        Livewire::test(Menu::class)
+            ->assertDontSee('Graduation plans')
+            ->assertDontSee('Programmes');
+
+        $this->assertModelExists($plan);
+        $this->assertModelExists($program);
     }
 
     public function test_feature_settings_require_an_explicit_choice_for_every_tool(): void

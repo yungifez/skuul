@@ -11,7 +11,7 @@
 <div class="mx-auto flex w-full max-w-4xl flex-col gap-6">
     <div class="flex flex-col gap-1">
         <p class="text-sm text-muted-foreground">
-            Choose a campus to view attendance, calendar, notices, invoices, and records.
+            Choose a campus to view the school records and services available to your family.
         </p>
     </div>
 
@@ -53,6 +53,8 @@
                                         \App\Enums\PortalArea::Boarding => route('portal.boarding.index', $enrollment),
                                         \App\Enums\PortalArea::Library => route('portal.library.index', $enrollment),
                                         \App\Enums\PortalArea::Requests => route('portal.requests.index', $enrollment),
+                                        \App\Enums\PortalArea::Graduation => route('portal.graduation.show', $enrollment),
+                                        \App\Enums\PortalArea::Programmes => route('portal.programmes.index', $enrollment),
                                         default => null,
                                     })
                                     @if ($route !== null)

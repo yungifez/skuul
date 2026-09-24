@@ -8,6 +8,7 @@
             ->groupBy(fn ($offering): int => (int) $offering->cycleSections->first()->id);
         $levelOfferings = $offerings->reject(fn ($offering): bool => $offering->roster_mode === \App\Enums\RosterMode::HomeSection && $offering->cycleSections->count() === 1)->values();
         $hasChildren = $children->isNotEmpty() || $sections->isNotEmpty() || $offerings->isNotEmpty();
+        $levelDepth = $levelDepth ?? 0;
         $setupParameters = $setupLinks ? ['setup' => 1] : [];
 
         if ($academicYear !== null) {
@@ -38,7 +39,7 @@
     @endphp
 
     <div wire:key="academic-level-{{ $academicLevel->id }}" class="w-full min-w-0 space-y-2">
-        <details open class="group w-full min-w-0 rounded-md border bg-background p-3">
+        <details open x-init="{{ $levelDepth > 0 ? 'if (window.matchMedia(\'(max-width: 639px)\').matches) $el.open = false' : '' }}" class="group w-full min-w-0 rounded-md border bg-background p-3">
             <summary class="flex cursor-pointer list-none flex-col gap-3 marker:hidden [&::-webkit-details-marker]:hidden sm:flex-row sm:items-start">
                 <span class="flex min-w-0 items-start gap-2">
                     <x-lucide-chevron-right class="mt-0.5 size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
@@ -80,13 +81,16 @@
                         @endcan
                     @endif
                     @can('view', $academicLevel)
-                        <april:button-link href="{{ route('academic-levels.show', $academicLevel) }}" variant="ghost" size="sm" aria-label="View {{ $academicLevel->name }}">View level</april:button-link>
+                        <april:button-link href="{{ route('academic-levels.show', $academicLevel) }}" variant="ghost" size="sm" aria-label="View {{ $academicLevel->name }}">
+                            <x-lucide-eye class="size-4 sm:mr-1.5" />
+                            <span class="hidden sm:inline">View level</span>
+                        </april:button-link>
                     @endcan
                     @can('update', $academicLevel)
                         @if ($academicLevel->isEditable())
                             <april:button-link href="{{ route('academic-levels.edit', $academicLevel) }}" variant="ghost" size="sm" aria-label="Edit {{ $academicLevel->name }}">
-                                <x-lucide-pencil class="mr-1.5 size-4" />
-                                Edit {{ strtolower(school_term('class_level', 'class')) }}
+                                <x-lucide-pencil class="size-4 sm:mr-1.5" />
+                                <span class="hidden sm:inline">Edit {{ strtolower(school_term('class_level', 'class')) }}</span>
                             </april:button-link>
                         @endif
                     @endcan
@@ -119,6 +123,7 @@
                                 'schoolSetup' => $schoolSetup,
                                 'setupLinks' => $setupLinks,
                                 'showLevelActions' => $showLevelActions,
+                                'levelDepth' => $levelDepth + 1,
                             ])
                         @endif
 
@@ -183,10 +188,6 @@
                         @include('pages.academic-year.partials.offering-tree', [
                             'offerings' => $levelOfferings,
                         ])
-                    </div>
-                @else
-                    <div class="ml-2 mt-3 w-full min-w-0 border-l pl-3 text-sm sm:ml-4 sm:pl-4">
-                        <span class="text-muted-foreground">{{ $academicYear === null ? 'Create a school year before adding sections' : 'No section added for this year yet' }}</span>
                     </div>
                 @endif
         </details>

@@ -182,6 +182,7 @@ class Menu extends Component
                 'icon' => 'graduation-cap',
                 'route' => 'graduation-plans.index',
                 'can' => 'read graduation plan',
+                'visible' => feature_enabled(Feature::GraduationPlans) && $user->can('read graduation plan'),
             ],
             [
                 'type' => 'menu-item',
@@ -189,6 +190,7 @@ class Menu extends Component
                 'icon' => 'sparkles',
                 'route' => 'programs.index',
                 'can' => 'read program',
+                'visible' => feature_enabled(Feature::Programmes) && $user->can('read program'),
             ],
             [
                 'type' => 'menu-item',

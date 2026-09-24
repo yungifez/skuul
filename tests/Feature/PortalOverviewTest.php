@@ -31,7 +31,9 @@ class PortalOverviewTest extends TestCase
             ->assertOk()
             ->assertSee($this->workingSchool()->name)
             ->assertSee($enrollment->admission_number)
-            ->assertSee('Choose a campus to view attendance, calendar, notices, invoices, and records.')
+            ->assertSee(route('portal.graduation.show', $enrollment))
+            ->assertSee(route('portal.programmes.index', $enrollment))
+            ->assertSee('Choose a campus to view the school records and services available to your family.')
             ->assertDontSee('Everything in one place');
     }
 
@@ -74,6 +76,21 @@ class PortalOverviewTest extends TestCase
             ->get(route('portal.overview'))
             ->assertOk()
             ->assertDontSee(route('portal.library.index', $enrollment));
+    }
+
+    public function test_a_campus_can_hide_graduation_and_programme_portal_links_independently(): void
+    {
+        $enrollment = $this->enrollment($this->workingSchool());
+        features()->enable(Feature::Portal, config: [
+            PortalArea::Graduation->value => false,
+            PortalArea::Programmes->value => false,
+        ]);
+
+        $this->actingAs($enrollment->user)
+            ->get(route('portal.overview'))
+            ->assertOk()
+            ->assertDontSee(route('portal.graduation.show', $enrollment))
+            ->assertDontSee(route('portal.programmes.index', $enrollment));
     }
 
     public function test_a_person_with_no_enrollment_has_no_overview(): void
