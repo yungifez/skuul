@@ -25,7 +25,7 @@
             <span>{{ school_terms('class_level', 'Classes') }} are reusable. {{ school_terms('section', 'Sections') }} are not.</span>
             <x-help-tooltip label="Classes and sections help">A class is the learner’s level, such as Primary 4, Grade 4, or Form 2. A section is one named group inside that class for one exact school year, such as Primary 4 · Green · 2026–2027.</x-help-tooltip>
         </slot:title>
-        <slot:description>Create reusable classes here, then add sections for each school year.</slot:description>
+        <slot:description>Set up reusable {{ strtolower(school_terms('class_level', 'classes')) }} here, then add {{ strtolower(school_terms('section', 'sections')) }} for each {{ strtolower(school_term('academic_year', 'school year')) }}.</slot:description>
         <slot:content class="flex flex-wrap gap-2">
             <april:button-link href="{{ route('academic-cycle-sections.index', ['academic_year_id' => '']) }}" variant="outline" size="sm">
                 <x-lucide-layers class="mr-1.5 size-3.5" />

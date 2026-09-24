@@ -52,9 +52,11 @@ class AcademicStructureScreenTest extends TestCase
             'parent_id' => $group->id,
         ]);
 
+        $pageLead = 'Set up reusable '.strtolower(school_terms('class_level', 'classes')).' here, then add '.strtolower(school_terms('section', 'sections')).' for each '.strtolower(school_term('academic_year', 'school year')).'.';
+
         $actor->get(route('academic-levels.index'))
             ->assertOk()
-            ->assertSee('Create reusable classes here, then add sections for each school year.')
+            ->assertSee($pageLead)
             ->assertSee('2 levels · can be taught together')
             ->assertSee('Group')
             ->assertDontSee('Group · whole-group teaching available')
