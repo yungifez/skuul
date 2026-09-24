@@ -25,7 +25,7 @@
             <span>{{ school_terms('class_level', 'Classes') }} are reusable. {{ school_terms('section', 'Sections') }} are not.</span>
             <x-help-tooltip label="Classes and sections help">A class is the learner’s level, such as Primary 4, Grade 4, or Form 2. A section is one named group inside that class for one exact school year, such as Primary 4 · Green · 2026–2027.</x-help-tooltip>
         </slot:title>
-        <slot:description>Manage reusable levels before creating year-specific groups. Use an umbrella group such as “Kindergarten” for specific levels such as “KG 1” and “KG 2”. Set the school-wide Class, Grade, Form, or Year wording in school setup.</slot:description>
+        <slot:description>Create reusable classes here, then add sections for each school year.</slot:description>
         <slot:content class="flex flex-wrap gap-2">
             <april:button-link href="{{ route('academic-cycle-sections.index', ['academic_year_id' => '']) }}" variant="outline" size="sm">
                 <x-lucide-layers class="mr-1.5 size-3.5" />
@@ -36,7 +36,7 @@
 
     <april:card>
         <slot:title>All {{ school_terms('class_level', 'classes') }}</slot:title>
-        <slot:description>Set the display order once. Every screen that lists {{ school_terms('class_level', 'classes') }} reads it.</slot:description>
+        <slot:description>Use the arrows to set the order shown in class lists.</slot:description>
         <slot:content>
             <div class="mb-4 flex flex-wrap items-center gap-2">
                 <span class="text-sm text-muted-foreground">Status</span>

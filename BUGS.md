@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Academic-level groups repeated the whole-group teaching explanation
+
+- Status: Fixed
+- Area: Academic levels
+- Observed: Each group row said whole-group teaching was available in its tag and repeated the same idea in the summary, alongside the child-level count. The page lead also repeated setup details already covered by the help tooltip.
+- Impact: The hierarchy became harder to scan, especially on mobile, where each group row used extra lines before its child levels and actions.
+- Reproduction: Open `/dashboard/academic-levels` with one or more level groups and inspect the group rows on desktop or mobile.
+- Resolution: Group rows now show a simple `Group` tag and one summary with the child-level count and teaching capability. The page lead and ordering hint are shortened. `AcademicStructureScreenTest` checks the user-facing summary and guards against the repeated explanation.
+
 ## Portal report-card downloads omitted the academic year
 
 - Status: Fixed

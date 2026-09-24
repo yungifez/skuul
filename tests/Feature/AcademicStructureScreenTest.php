@@ -38,6 +38,29 @@ class AcademicStructureScreenTest extends TestCase
             ->assertSee(route('academic-levels.create'), false);
     }
 
+    public function test_the_level_index_describes_group_teaching_once_and_keeps_the_summary_concise(): void
+    {
+        $actor = $this->authorized_user(['read class', 'create class', 'update class']);
+        $schoolId = $this->workingSchool()->id;
+        $group = AcademicLevel::factory()->create([
+            'school_id' => $schoolId,
+            'name' => 'Kindergarten',
+            'is_group' => true,
+        ]);
+        AcademicLevel::factory()->count(2)->create([
+            'school_id' => $schoolId,
+            'parent_id' => $group->id,
+        ]);
+
+        $actor->get(route('academic-levels.index'))
+            ->assertOk()
+            ->assertSee('Create reusable classes here, then add sections for each school year.')
+            ->assertSee('2 levels · can be taught together')
+            ->assertSee('Group')
+            ->assertDontSee('Group · whole-group teaching available')
+            ->assertDontSee('Level group · can be taught as one group');
+    }
+
     public function test_the_level_index_shows_an_empty_state_and_a_way_in(): void
     {
         $actor = $this->authorized_user(['read class', 'create class'], School::factory()->create());
