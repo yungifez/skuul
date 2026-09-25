@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\Academic\ChangeAcademicPeriodStatus;
+use App\Actions\Curriculum\AssignTeacher;
 use App\Actions\Gradebook\ApproveResult;
 use App\Actions\Gradebook\PublishResult;
 use App\Actions\Gradebook\RecordGrade;
@@ -13,8 +14,11 @@ use App\Enums\GradeAggregation;
 use App\Enums\GradeEntryState;
 use App\Enums\GradeItemType;
 use App\Enums\ResultApprovalStatus;
+use App\Enums\Role;
+use App\Enums\TeachingRole;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\GradebookDirectory as GradebookDirectoryComponent;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
@@ -33,6 +37,7 @@ use App\Models\Subject;
 use App\Services\Gradebook\GradebookCalculator;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -151,7 +156,7 @@ class GradebookTest extends TestCase
             'academic_level_id' => $academicLevel->id,
             'subject_id' => $subject->id,
         ]);
-        CourseOffering::factory()->create([
+        $secondOffering = CourseOffering::factory()->create([
             'school_id' => $school->id,
             'academic_year_id' => $historicalYear->id,
             'academic_period_id' => $secondPeriod->id,
@@ -165,6 +170,16 @@ class GradebookTest extends TestCase
             ->assertSee('Historical Mathematics')
             ->assertSee('Historical autumn')
             ->assertSee('Historical spring');
+
+        Livewire::test(GradebookDirectoryComponent::class, [
+            'academicYearId' => (string) $historicalYear->id,
+        ])
+            ->assertSet('academicPeriodId', '')
+            ->assertSee(route('course-offerings.gradebook.show', $firstOffering))
+            ->assertSee(route('course-offerings.gradebook.show', $secondOffering))
+            ->set('academicPeriodId', (string) $firstPeriod->id)
+            ->assertSee(route('course-offerings.gradebook.show', $firstOffering))
+            ->assertDontSee(route('course-offerings.gradebook.show', $secondOffering));
 
         $this->get(route('gradebooks.index', [
             'academic_year_id' => $historicalYear->id,
@@ -211,13 +226,39 @@ class GradebookTest extends TestCase
             ]);
         }
 
-        $this->get(route('gradebooks.index', [
-            'academic_year_id' => $historicalYear->id,
-            'academic_period_id' => $period->id,
-        ]))
-            ->assertOk()
-            ->assertSee('academic_year_id='.$historicalYear->id, false)
-            ->assertSee('academic_period_id='.$period->id, false);
+        Livewire::test(GradebookDirectoryComponent::class, [
+            'academicYearId' => (string) $historicalYear->id,
+            'academicPeriodId' => (string) $period->id,
+        ])
+            ->assertSet('academicYearId', (string) $historicalYear->id)
+            ->assertSet('academicPeriodId', (string) $period->id)
+            ->call('nextPage')
+            ->assertSet('paginators.page', 2)
+            ->assertSet('academicYearId', (string) $historicalYear->id)
+            ->assertSet('academicPeriodId', (string) $period->id);
+    }
+
+    public function test_a_teacher_sees_only_assigned_gradebooks_in_the_selected_year_and_period(): void
+    {
+        $this->authorized_user(['read gradebook']);
+        $teacher = auth()->user();
+        $this->assertNotNull($teacher);
+        $teacher->assignRole(Role::Teacher->value);
+        $visibleOffering = $this->courseOffering();
+        $hiddenOffering = CourseOffering::factory()->create([
+            'school_id' => $visibleOffering->school_id,
+            'academic_year_id' => $visibleOffering->academic_year_id,
+            'academic_period_id' => $visibleOffering->academic_period_id,
+            'academic_level_id' => $visibleOffering->academic_level_id,
+        ]);
+        app(AssignTeacher::class)->assign($visibleOffering, $teacher, TeachingRole::Lead);
+
+        Livewire::test(GradebookDirectoryComponent::class, [
+            'academicYearId' => (string) $visibleOffering->academic_year_id,
+            'academicPeriodId' => (string) $visibleOffering->academic_period_id,
+        ])
+            ->assertSee(route('course-offerings.gradebook.show', $visibleOffering))
+            ->assertDontSee(route('course-offerings.gradebook.show', $hiddenOffering));
     }
 
     public function test_gradebook_history_cannot_be_selected_from_another_school(): void

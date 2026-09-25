@@ -21,8 +21,6 @@ use App\Http\Requests\StoreGradebookCategoryRequest;
 use App\Http\Requests\StoreGradebookEntryRequest;
 use App\Http\Requests\StoreGradebookItemRequest;
 use App\Http\Requests\UpdateGradebookItemRequest;
-use App\Models\AcademicPeriod;
-use App\Models\AcademicYear;
 use App\Models\AssessmentTemplate;
 use App\Models\CourseOffering;
 use App\Models\GradeCategory;
@@ -30,11 +28,8 @@ use App\Models\GradeItem;
 use App\Models\GradingScale;
 use App\Models\ResultSnapshot;
 use App\Models\StudentRecord;
-use App\Models\User;
 use App\Services\Gradebook\CourseOfferingRoster;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class GradebookController extends Controller
@@ -52,62 +47,11 @@ class GradebookController extends Controller
     /**
      * Show gradebooks for the selected year and period.
      */
-    public function index(Request $request): View
+    public function index(): View
     {
         $this->authorize('viewAnyGradebooks', CourseOffering::class);
 
-        $academicYears = AcademicYear::inSchool()
-            ->with('topLevelPeriods')
-            ->orderByDesc('start_year')
-            ->orderByDesc('id')
-            ->get();
-        $requestedAcademicYearId = $request->integer('academic_year_id');
-        $selectedAcademicYearId = $requestedAcademicYearId > 0
-            ? $requestedAcademicYearId
-            : current_academic_year_id();
-        $academicYear = $academicYears->firstWhere('id', $selectedAcademicYearId);
-        abort_unless($academicYear instanceof AcademicYear, 404);
-
-        $requestedAcademicPeriodId = $request->integer('academic_period_id');
-        $hasAcademicPeriodFilter = $request->has('academic_period_id');
-        $academicPeriod = $academicYear->topLevelPeriods->firstWhere('id', $requestedAcademicPeriodId);
-
-        if ($requestedAcademicPeriodId > 0) {
-            abort_unless($academicPeriod instanceof AcademicPeriod, 404);
-        } elseif (!$hasAcademicPeriodFilter && $academicYear->id === current_academic_year_id()) {
-            $academicPeriod = current_academic_period();
-        }
-
-        $user = $request->user();
-        abort_unless($user instanceof User, 403);
-        $courseOfferings = CourseOffering::query()
-            ->inSchool()
-            ->where('academic_year_id', $academicYear->id)
-            ->when(
-                $academicPeriod instanceof AcademicPeriod,
-                fn (Builder $query): Builder => $query->where('academic_period_id', $academicPeriod->id),
-            )
-            ->when(
-                !$user->can('update subject'),
-                fn (Builder $query): Builder => $query->whereHas(
-                    'teachingAssignments',
-                    fn (Builder $assignments): Builder => $assignments->where('user_id', $user->id),
-                ),
-            )
-            ->with([
-                'academicLevel:id,name',
-                'academicPeriod:id,name,label,status',
-                'cycleSections:id,name,label',
-                'subject:id,name,short_name',
-            ])
-            ->orderBy('academic_level_id')
-            ->orderBy('subject_id')
-            ->paginate(25)
-            ->withQueryString();
-
-        $selectedAcademicPeriodId = $academicPeriod?->id;
-
-        return view('pages.course-offering.gradebooks', compact('academicPeriod', 'academicYear', 'academicYears', 'courseOfferings', 'selectedAcademicPeriodId', 'selectedAcademicYearId'));
+        return view('pages.course-offering.gradebooks');
     }
 
     /**
