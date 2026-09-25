@@ -14,9 +14,7 @@ use App\Models\StaffProfile;
 use App\Services\Staff\StaffAvailability as StaffAvailabilityService;
 use App\Traits\ListsSchoolPeople;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 /**
  * Who works here, in what job, and when they can take work.
@@ -30,47 +28,11 @@ class StaffProfileController extends Controller
     /**
      * Show the people who work in this school.
      */
-    public function index(Request $request): View
+    public function index(): View
     {
         $this->authorize('viewAny', StaffProfile::class);
 
-        $search = $request->string('search')->toString() ?: null;
-        $selectedStatus = StaffStatus::tryFrom($request->string('status')->toString());
-        $awayOnly = $request->boolean('away');
-
-        $profiles = StaffProfile::query()
-            ->inSchool()
-            ->with('user:id,name,email')
-            ->withCount('credentials')
-            ->when($search !== null, function (Builder $query) use ($search): void {
-                $query->where(function (Builder $query) use ($search): void {
-                    $query->where('staff_number', 'like', "%$search%")
-                        ->orWhere('job_title', 'like', "%$search%")
-                        ->orWhere('department', 'like', "%$search%")
-                        ->orWhereHas('user', function (Builder $query) use ($search): void {
-                            $query->where('name', 'like', "%$search%");
-                        });
-                });
-            })
-            ->when($selectedStatus !== null, function (Builder $query) use ($selectedStatus): void {
-                $query->where('status', $selectedStatus);
-            })
-            ->when($awayOnly, function (Builder $query): void {
-                $query->awayOn(now());
-            })
-            ->orderBy('id')
-            ->paginate(20)
-            ->withQueryString();
-
-        return view('pages.staff-profile.index', [
-            'profiles' => $profiles,
-            'statuses' => StaffStatus::cases(),
-            'search' => $search,
-            'selectedStatus' => $selectedStatus,
-            'awayOnly' => $awayOnly,
-            'employedCount' => StaffProfile::query()->inSchool()->employed()->count(),
-            'awayCount' => StaffProfile::query()->inSchool()->awayOn(now())->count(),
-        ]);
+        return view('pages.staff-profile.index');
     }
 
     /**

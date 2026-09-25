@@ -8,12 +8,15 @@ use App\Enums\Feature;
 use App\Enums\LeaveStatus;
 use App\Enums\LeaveType;
 use App\Enums\StaffStatus;
+use App\Livewire\StaffLeaveBoard;
+use App\Livewire\StaffProfileDirectory;
 use App\Models\StaffLeaveRequest;
 use App\Models\StaffProfile;
 use App\Models\User;
 use App\Services\Feature\FeatureManager;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -33,6 +36,36 @@ class StaffScreenTest extends TestCase
             ->assertOk()
             ->assertSee('No employment records yet')
             ->assertSee(route('staff-profiles.create'));
+    }
+
+    public function test_staff_directory_search_and_away_filter_update_without_a_page_submission(): void
+    {
+        $school = $this->workingSchool();
+        $ada = $this->memberOf($school, User::factory()->create(['name' => 'Ada Bell']));
+        $ben = $this->memberOf($school, User::factory()->create(['name' => 'Ben Cedar']));
+        $adaProfile = StaffProfile::factory()->create(['school_id' => $school->id, 'user_id' => $ada->id]);
+        StaffProfile::factory()->create(['school_id' => $school->id, 'user_id' => $ben->id]);
+        $this->authorized_user(['read staff profile', 'read staff leave'], $school);
+
+        $leave = app(ManageStaffLeave::class)->request($adaProfile, now(), now());
+        app(ManageStaffLeave::class)->approve($leave);
+
+        $this->get(route('staff-profiles.index', ['away' => '1']))
+            ->assertOk()
+            ->assertSee('Ada Bell')
+            ->assertDontSee('Ben Cedar');
+
+        Livewire::test(StaffProfileDirectory::class)
+            ->set('search', 'Ada Bell')
+            ->assertSee('Ada Bell')
+            ->assertDontSee('Ben Cedar')
+            ->set('search', '')
+            ->set('awayOnly', true)
+            ->assertSee('Ada Bell')
+            ->assertDontSee('Ben Cedar')
+            ->call('clearFilters')
+            ->assertSee('Ada Bell')
+            ->assertSee('Ben Cedar');
     }
 
     public function test_an_employment_record_is_written_from_the_screen(): void
@@ -187,6 +220,93 @@ class StaffScreenTest extends TestCase
             ->assertSessionHasErrors('leave');
 
         $this->assertSame(1, StaffLeaveRequest::inSchool()->count());
+    }
+
+    public function test_leave_can_be_requested_without_leaving_the_screen(): void
+    {
+        $this->authorized_user(['read staff leave', 'request staff leave']);
+        $profile = $this->profile();
+
+        Livewire::test(StaffLeaveBoard::class)
+            ->set('staffProfileId', (string) $profile->id)
+            ->set('leaveType', LeaveType::Annual->value)
+            ->set('startsOn', now()->addWeek()->toDateString())
+            ->set('endsOn', now()->addWeeks(2)->toDateString())
+            ->set('reason', 'Family wedding')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertSee('The leave was asked for.');
+
+        $this->assertSame(1, StaffLeaveRequest::inSchool()->count());
+        $this->assertSame('Family wedding', StaffLeaveRequest::inSchool()->sole()->reason);
+    }
+
+    public function test_leave_form_rejects_backwards_dates_and_overlapping_days(): void
+    {
+        $this->authorized_user(['read staff leave', 'request staff leave']);
+        $profile = $this->profile();
+
+        Livewire::test(StaffLeaveBoard::class)
+            ->set('staffProfileId', (string) $profile->id)
+            ->set('startsOn', now()->addWeeks(2)->toDateString())
+            ->set('endsOn', now()->addWeek()->toDateString())
+            ->call('save')
+            ->assertHasErrors(['endsOn' => 'after_or_equal']);
+
+        app(ManageStaffLeave::class)->request($profile, now()->addWeek(), now()->addWeeks(2));
+
+        Livewire::test(StaffLeaveBoard::class)
+            ->set('staffProfileId', (string) $profile->id)
+            ->set('startsOn', now()->addWeek()->toDateString())
+            ->set('endsOn', now()->addWeeks(2)->toDateString())
+            ->call('save')
+            ->assertHasErrors('leave');
+
+        $this->assertSame(1, StaffLeaveRequest::inSchool()->count());
+    }
+
+    public function test_leave_filters_update_the_results_and_can_be_cleared(): void
+    {
+        $this->authorized_user(['read staff leave', 'request staff leave']);
+        $requestedProfile = $this->profile();
+        $declinedProfile = $this->profile();
+        app(ManageStaffLeave::class)->request($requestedProfile, now()->addWeek(), now()->addWeek()->addDay(), reason: 'Requested only');
+        $declined = app(ManageStaffLeave::class)->request($declinedProfile, now()->addWeeks(3), now()->addWeeks(3)->addDay(), reason: 'Declined only');
+        app(ManageStaffLeave::class)->decline($declined);
+
+        Livewire::test(StaffLeaveBoard::class)
+            ->set('status', LeaveStatus::Declined->value)
+            ->assertSee('Declined only')
+            ->assertDontSee('Requested only')
+            ->call('clearFilters')
+            ->assertSee('Declined only')
+            ->assertSee('Requested only');
+    }
+
+    public function test_leave_request_can_be_approved_and_self_approval_is_forbidden(): void
+    {
+        $school = $this->workingSchool();
+        $this->authorized_user(['read staff leave', 'request staff leave', 'approve staff leave'], $school);
+        $profile = $this->profile();
+        $leave = app(ManageStaffLeave::class)->request($profile, now()->addWeek(), now()->addWeek()->addDay());
+
+        Livewire::test(StaffLeaveBoard::class)
+            ->call('changeStatus', $leave->id, LeaveStatus::Approved->value)
+            ->assertSee('The leave is now Approved.');
+
+        $this->assertSame(LeaveStatus::Approved, $leave->fresh()->status);
+
+        $person = $this->memberOf($school);
+        $selfProfile = StaffProfile::factory()->create(['school_id' => $school->id, 'user_id' => $person->id]);
+        $selfLeave = app(ManageStaffLeave::class)->request($selfProfile, now()->addMonths(2), now()->addMonths(2)->addDay(), actor: $person);
+        $person->givePermissionTo(['read staff leave', 'approve staff leave']);
+        $this->actingAs($person->refresh());
+
+        Livewire::test(StaffLeaveBoard::class)
+            ->call('changeStatus', $selfLeave->id, LeaveStatus::Approved->value)
+            ->assertForbidden();
+
+        $this->assertSame(LeaveStatus::Requested, $selfLeave->fresh()->status);
     }
 
     public function test_leave_is_agreed_from_the_screen(): void

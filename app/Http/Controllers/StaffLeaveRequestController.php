@@ -11,9 +11,7 @@ use App\Http\Requests\UpdateStaffLeaveStatusRequest;
 use App\Models\StaffLeaveRequest;
 use App\Models\StaffProfile;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 /**
  * Ask for days away, and answer the request.
@@ -28,36 +26,11 @@ class StaffLeaveRequestController extends Controller
     /**
      * Show the leave the school has been asked for.
      */
-    public function index(Request $request): View
+    public function index(): View
     {
         $this->authorize('viewAny', StaffLeaveRequest::class);
 
-        $selectedStatus = LeaveStatus::tryFrom($request->string('status')->toString());
-        $selectedType = LeaveType::tryFrom($request->string('type')->toString());
-
-        $leaveRequests = StaffLeaveRequest::query()
-            ->inSchool()
-            ->with(['staffProfile.user:id,name', 'decidedBy:id,name'])
-            ->when($selectedStatus !== null, function (Builder $query) use ($selectedStatus): void {
-                $query->where('status', $selectedStatus);
-            })
-            ->when($selectedType !== null, function (Builder $query) use ($selectedType): void {
-                $query->where('type', $selectedType);
-            })
-            ->orderByDesc('starts_on')
-            ->paginate(20)
-            ->withQueryString();
-
-        return view('pages.staff-leave.index', [
-            'leaveRequests' => $leaveRequests,
-            'statuses' => LeaveStatus::cases(),
-            'types' => LeaveType::cases(),
-            'selectedStatus' => $selectedStatus,
-            'selectedType' => $selectedType,
-            'profiles' => StaffProfile::query()->inSchool()->employed()->with('user:id,name')->orderBy('id')->get(),
-            'waitingCount' => StaffLeaveRequest::query()->inSchool()->where('status', LeaveStatus::Requested)->count(),
-            'awayToday' => StaffProfile::query()->inSchool()->awayOn(now())->with('user:id,name')->get(),
-        ]);
+        return view('pages.staff-leave.index');
     }
 
     /**
