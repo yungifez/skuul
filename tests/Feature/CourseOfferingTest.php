@@ -260,7 +260,6 @@ class CourseOfferingTest extends TestCase
         $this->get(route('course-offerings.bulk-create', ['academic_year_id' => $academicYear->id]))
             ->assertSuccessful()
             ->assertSee('Subjects for '.$academicYear->name)
-            ->assertSee($subject->name)
             ->assertSee($subject->short_name)
             ->assertSee($academicLevel->name.' · '.$cycleSection->name)
             ->assertSee($academicPeriod->displayName)

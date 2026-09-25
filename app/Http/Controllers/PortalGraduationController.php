@@ -33,7 +33,7 @@ class PortalGraduationController extends Controller
         $cohortIds = CohortMember::query()
             ->where('student_record_id', $studentRecord->id)
             ->whereNull('left_on')
-            ->whereHas('cohort', fn (Builder $query) => $query->inSchool($studentRecord->school_id))
+            ->whereHas('cohort', fn (Builder $query) => $query->where('school_id', $studentRecord->school_id))
             ->pluck('cohort_id');
 
         $plans = GraduationPlan::query()

@@ -30,7 +30,7 @@ class PortalProgramController extends Controller
             ->inSchool($studentRecord->school_id)
             ->where('student_record_id', $studentRecord->id)
             ->whereHas('program', fn (Builder $query) => $query
-                ->inSchool($studentRecord->school_id)
+                ->where('school_id', $studentRecord->school_id)
                 ->whereIn('type', [ProgramType::Club->value, ProgramType::Extracurricular->value]))
             ->with('program:id,name,type,description')
             ->orderByDesc('id')

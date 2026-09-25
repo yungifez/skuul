@@ -18,7 +18,6 @@ use App\Models\IncidentNote;
 use App\Models\User;
 use App\Traits\ListsSchoolPeople;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -40,41 +39,11 @@ class IncidentController extends Controller
     /**
      * Show the cases this person may read.
      */
-    public function index(Request $request): View
+    public function index(): View
     {
         $this->authorize('viewAny', Incident::class);
 
-        $selectedStatus = IncidentStatus::tryFrom($request->string('status')->toString());
-        $selectedCategory = IncidentCategory::tryFrom($request->string('category')->toString());
-        $openOnly = $request->boolean('open');
-
-        $incidents = Incident::query()
-            ->inSchool()
-            ->readableBy($request->user())
-            ->with(['assignedTo:id,name', 'reportedBy:id,name'])
-            ->withCount('participants')
-            ->when($selectedStatus !== null, function (Builder $query) use ($selectedStatus): void {
-                $query->where('status', $selectedStatus);
-            })
-            ->when($selectedCategory !== null, function (Builder $query) use ($selectedCategory): void {
-                $query->where('category', $selectedCategory);
-            })
-            ->when($openOnly, function (Builder $query): void {
-                $query->open();
-            })
-            ->latest('occurred_at')
-            ->paginate(20)
-            ->withQueryString();
-
-        return view('pages.incident.index', [
-            'incidents' => $incidents,
-            'statuses' => IncidentStatus::cases(),
-            'categories' => IncidentCategory::cases(),
-            'selectedStatus' => $selectedStatus,
-            'selectedCategory' => $selectedCategory,
-            'openOnly' => $openOnly,
-            'openCount' => Incident::query()->inSchool()->readableBy($request->user())->open()->count(),
-        ]);
+        return view('pages.incident.index');
     }
 
     /**

@@ -7,12 +7,14 @@ use App\Enums\Feature;
 use App\Enums\IncidentCategory;
 use App\Enums\IncidentParticipantRole;
 use App\Enums\IncidentStatus;
+use App\Livewire\IncidentDirectory as IncidentDirectoryComponent;
 use App\Models\Incident;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Feature\FeatureManager;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -171,6 +173,41 @@ class IncidentScreenTest extends TestCase
             ->assertOk()
             ->assertSee(route('incidents.show', $open))
             ->assertDontSee(route('incidents.show', $closed));
+    }
+
+    public function test_case_filters_update_in_place_clear_and_ignore_invalid_values(): void
+    {
+        $this->authorized_user(['read incident', 'read safeguarding case', 'create incident', 'update incident']);
+        $openBehaviour = app(ReportIncident::class)->report('Broke a window');
+        $closedBehaviour = app(ReportIncident::class)->report('Late for class');
+        app(ReportIncident::class)->changeStatus($closedBehaviour, IncidentStatus::Closed);
+        $openSafeguarding = app(ReportIncident::class)->report('A welfare concern', IncidentCategory::Safeguarding);
+
+        Livewire::test(IncidentDirectoryComponent::class)
+            ->assertSee(route('incidents.show', $openBehaviour))
+            ->assertSee(route('incidents.show', $closedBehaviour))
+            ->assertSee(route('incidents.show', $openSafeguarding))
+            ->set('category', IncidentCategory::Safeguarding->value)
+            ->assertSee(route('incidents.show', $openSafeguarding))
+            ->assertDontSee(route('incidents.show', $openBehaviour))
+            ->set('status', IncidentStatus::Reported->value)
+            ->assertSee(route('incidents.show', $openSafeguarding))
+            ->set('openOnly', true)
+            ->assertSee(route('incidents.show', $openSafeguarding))
+            ->set('category', 'not-a-category')
+            ->assertSet('category', '')
+            ->assertSee(route('incidents.show', $openBehaviour))
+            ->set('openOnly', false)
+            ->set('status', 'not-a-status')
+            ->assertSet('status', '')
+            ->assertSee(route('incidents.show', $closedBehaviour))
+            ->call('clearFilters')
+            ->assertSet('category', '')
+            ->assertSet('status', '')
+            ->assertSet('openOnly', false)
+            ->assertSee(route('incidents.show', $openBehaviour))
+            ->assertSee(route('incidents.show', $closedBehaviour))
+            ->assertSee(route('incidents.show', $openSafeguarding));
     }
 
     public function test_the_screen_needs_permission(): void
