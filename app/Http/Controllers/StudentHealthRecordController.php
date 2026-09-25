@@ -7,9 +7,7 @@ use App\Http\Requests\UpdateStudentHealthRecordRequest;
 use App\Models\StudentHealthRecord;
 use App\Models\StudentRecord;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 /**
  * Keep the health facts the school needs in an emergency.
@@ -24,38 +22,11 @@ class StudentHealthRecordController extends Controller
     /**
      * Show every learner, and whether the school holds their health facts.
      */
-    public function index(Request $request): View
+    public function index(): View
     {
         $this->authorize('viewAny', StudentHealthRecord::class);
 
-        $search = $request->string('search')->toString() ?: null;
-        $missingOnly = $request->boolean('missing');
-
-        $learners = StudentRecord::query()
-            ->inSchool()
-            ->with(['user:id,name', 'healthRecord'])
-            ->when($search !== null, function (Builder $query) use ($search): void {
-                $query->where(function (Builder $query) use ($search): void {
-                    $query->where('admission_number', 'like', "%$search%")
-                        ->orWhereHas('user', function (Builder $query) use ($search): void {
-                            $query->where('name', 'like', "%$search%");
-                        });
-                });
-            })
-            ->when($missingOnly, function (Builder $query): void {
-                $query->whereDoesntHave('healthRecord');
-            })
-            ->orderBy('admission_number')
-            ->paginate(20)
-            ->withQueryString();
-
-        return view('pages.health-record.index', [
-            'learners' => $learners,
-            'search' => $search,
-            'missingOnly' => $missingOnly,
-            'recordedCount' => StudentRecord::query()->inSchool()->whereHas('healthRecord')->count(),
-            'learnerCount' => StudentRecord::query()->inSchool()->count(),
-        ]);
+        return view('pages.health-record.index');
     }
 
     /**

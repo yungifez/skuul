@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Actions\Wellbeing\ManageSupportPlan;
+use App\Actions\Wellbeing\RecordHealthInformation;
 use App\Enums\Feature;
 use App\Enums\SupportCategory;
 use App\Enums\SupportPlanStatus;
+use App\Livewire\StudentHealthRecordDirectory as StudentHealthRecordDirectoryComponent;
 use App\Livewire\SupportPlanDirectory as SupportPlanDirectoryComponent;
 use App\Models\StudentHealthRecord;
 use App\Models\StudentRecord;
@@ -209,6 +211,41 @@ class WellbeingScreenTest extends TestCase
             ->assertSee(route('support-plans.show', $due))
             ->assertSee(route('support-plans.show', $later))
             ->assertDontSee(route('support-plans.show', $confidential));
+    }
+
+    public function test_health_record_search_and_missing_filter_update_and_clear_without_a_reload(): void
+    {
+        $this->authorized_user(['read health record', 'update health record']);
+        $recordedLearner = $this->enrollment(User::factory()->create(['name' => 'Ada Bell']));
+        $missingLearner = $this->enrollment(User::factory()->create(['name' => 'Ben Cole']));
+        $otherLearner = $this->enrollment(User::factory()->create(['name' => 'Cora Dean']));
+        app(RecordHealthInformation::class)->record($recordedLearner, [
+            'emergency_contact_name' => 'Pat Bell',
+            'emergency_contact_phone' => '555-0100',
+        ], auth()->user());
+
+        Livewire::test(StudentHealthRecordDirectoryComponent::class)
+            ->assertSee(route('health-records.edit', $recordedLearner))
+            ->assertSee(route('health-records.edit', $missingLearner))
+            ->assertSee('Without one')
+            ->set('search', 'Ada Bell')
+            ->assertSee(route('health-records.edit', $recordedLearner))
+            ->assertDontSee(route('health-records.edit', $missingLearner))
+            ->set('missingOnly', true)
+            ->assertSee('Nothing matches this search')
+            ->call('clearFilters')
+            ->assertSet('search', '')
+            ->assertSet('missingOnly', false)
+            ->assertSee(route('health-records.edit', $recordedLearner))
+            ->assertSee(route('health-records.edit', $missingLearner))
+            ->set('search', $missingLearner->admission_number)
+            ->set('missingOnly', true)
+            ->assertSee(route('health-records.edit', $missingLearner))
+            ->assertDontSee(route('health-records.edit', $recordedLearner))
+            ->set('search', 'no learner has this name')
+            ->assertSee('Nothing matches this search')
+            ->call('clearFilters')
+            ->assertSee(route('health-records.edit', $otherLearner));
     }
 
     public function test_the_health_screen_counts_the_learners_without_a_record(): void
