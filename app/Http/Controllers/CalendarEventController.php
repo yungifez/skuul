@@ -9,8 +9,6 @@ use App\Models\AcademicCycleSection;
 use App\Models\CalendarEvent;
 use App\Models\CalendarEventAudience;
 use App\Models\User;
-use App\Services\Calendar\SchoolCalendar;
-use App\Traits\ReadsCalendarMonths;
 use Illuminate\Contracts\View\View;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
@@ -28,47 +26,14 @@ use Illuminate\Support\Facades\DB;
  */
 class CalendarEventController extends Controller
 {
-    use ReadsCalendarMonths;
-
-    public function __construct(private SchoolCalendar $calendar) {}
-
     /**
      * Show one month of the calendar.
      */
-    public function index(Request $request): View
+    public function index(): View
     {
         $this->authorize('viewAny', CalendarEvent::class);
 
-        $month = $this->monthFrom($request);
-        $selectedType = CalendarEventType::tryFrom($request->string('type')->toString());
-        $draftsOnly = $request->boolean('drafts');
-
-        $events = CalendarEvent::query()
-            ->inSchool()
-            ->with(['audiences.academicCycleSection:id,name,label,academic_level_id', 'audiences.academicCycleSection.academicLevel:id,name', 'audiences.user:id,name'])
-            ->between($month->copy()->startOfMonth(), $month->copy()->endOfMonth())
-            ->when(!$request->user()->can('update calendar event'), function (Builder $query): void {
-                $query->published();
-            })
-            ->when($selectedType !== null, function (Builder $query) use ($selectedType): void {
-                $query->where('type', $selectedType);
-            })
-            ->when($draftsOnly, function (Builder $query): void {
-                $query->where('is_published', false);
-            })
-            ->orderBy('starts_at')
-            ->get();
-
-        return view('pages.calendar-event.index', [
-            'events' => $events,
-            'month' => $month,
-            'days' => $this->daysOf($month),
-            'types' => CalendarEventType::cases(),
-            'selectedType' => $selectedType,
-            'draftsOnly' => $draftsOnly,
-            'closures' => $this->calendar->closures($month->copy()->startOfMonth(), $month->copy()->endOfMonth()),
-            'draftCount' => CalendarEvent::query()->inSchool()->where('is_published', false)->count(),
-        ]);
+        return view('pages.calendar-event.index');
     }
 
     /**

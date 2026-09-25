@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\CalendarEventType;
 use App\Enums\Feature;
+use App\Livewire\CalendarEventDirectory as CalendarEventDirectoryComponent;
 use App\Models\AcademicCycleSection;
 use App\Models\CalendarEvent;
 use App\Models\School;
@@ -12,6 +13,7 @@ use App\Services\Calendar\SchoolCalendar;
 use App\Services\Feature\FeatureManager;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -111,6 +113,11 @@ class CalendarEventScreenTest extends TestCase
             ->assertSee('A day the school reads')
             ->assertDontSee('A draft nobody reads');
 
+        Livewire::test(CalendarEventDirectoryComponent::class)
+            ->set('draftsOnly', true)
+            ->assertSee('Nothing matches this filter')
+            ->assertDontSee(route('calendar-events.edit', $draft));
+
         $this->get(route('calendar-events.edit', $draft))->assertForbidden();
         $this->get(route('calendar-events.edit', $published))->assertOk();
     }
@@ -148,6 +155,48 @@ class CalendarEventScreenTest extends TestCase
             ->assertOk()
             ->assertSee('Next month event')
             ->assertSee($nextMonth->format('F Y'));
+    }
+
+    public function test_calendar_month_type_and_draft_filters_change_without_a_reload(): void
+    {
+        $this->authorized_user(['read calendar event', 'create calendar event', 'update calendar event']);
+        $holiday = $this->event([
+            'title' => 'Current holiday',
+            'type' => CalendarEventType::Holiday,
+        ]);
+        $assembly = $this->event([
+            'title' => 'Current assembly',
+            'type' => CalendarEventType::Assembly,
+        ]);
+        $draft = $this->event([
+            'title' => 'Current draft assembly',
+            'type' => CalendarEventType::Assembly,
+            'is_published' => false,
+        ]);
+
+        Livewire::test(CalendarEventDirectoryComponent::class)
+            ->assertSee(route('calendar-events.edit', $holiday))
+            ->assertSee(route('calendar-events.edit', $assembly))
+            ->set('type', CalendarEventType::Assembly->value)
+            ->assertSee(route('calendar-events.edit', $assembly))
+            ->assertDontSee(route('calendar-events.edit', $holiday))
+            ->set('type', 'not-a-calendar-kind')
+            ->assertSet('type', '')
+            ->assertSee(route('calendar-events.edit', $holiday))
+            ->set('draftsOnly', true)
+            ->assertSee(route('calendar-events.edit', $draft))
+            ->assertDontSee(route('calendar-events.edit', $assembly))
+            ->call('nextMonth')
+            ->assertSet('month', now()->addMonthNoOverflow()->format('Y-m'))
+            ->assertDontSee(route('calendar-events.edit', $draft))
+            ->call('previousMonth')
+            ->assertSee(route('calendar-events.edit', $draft))
+            ->call('showCurrentMonth')
+            ->assertSet('month', now()->format('Y-m'))
+            ->call('clearFilters')
+            ->assertSet('type', '')
+            ->assertSet('draftsOnly', false)
+            ->assertSee(route('calendar-events.edit', $holiday));
     }
 
     public function test_a_bad_month_falls_back_to_this_one(): void
