@@ -147,6 +147,6 @@ class SchoolController extends Controller
 
         $this->schoolService->setSchool($school);
 
-        return back()->with('success', __('School set successfully'));
+        return to_route('dashboard')->with('success', __('School set successfully'));
     }
 }

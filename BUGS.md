@@ -702,3 +702,21 @@
 - Impact: Staff at the receiving campus could not open the learner profile, and student-scoped policies could not identify the learner at the new campus.
 - Reproduction: Move an active learner between campuses in one organization, switch to the receiving campus, and open the learner profile.
 - Resolution: Campus moves and cross-organization transfers now grant the destination-scoped student role while preserving the source role and membership for historical access. `CampusMoveRequestTest` covers the destination role.
+
+## Families could not read official documents after an internal campus move
+
+- Status: Fixed
+- Area: Campus moves and family academic history
+- Observed: An internal campus move keeps the same enrollment ID but changes its current `school_id`. Published report cards and transcripts remain labelled with the campus where they were issued, so the family portal's current-campus filter hid them and the download check rejected them.
+- Impact: A moved learner's family saw “No report cards yet” and “No transcript yet” even when official history existed for that enrollment. The production QA learner had three report-card revisions and two transcript revisions from Dr Fasheun Campus, but the family portal at West Campus showed neither.
+- Reproduction: Publish report-card and transcript snapshots at one campus, move the enrollment to a sibling campus, and open the learner's family documents page.
+- Resolution: The family portal now finds and validates official documents by enrollment ID. Internal moves preserve that ID; transfers to another organization create a new enrollment ID, keeping unrelated enrollment history isolated. `PortalTest` covers reading and downloading pre-move documents and denies another learner's document.
+
+## Changing campuses returned staff to the page from the previous campus
+
+- Status: Fixed
+- Area: School navigation
+- Observed: The school picker posted to `schools.setSchool`, whose redirect used `back()`. Selecting a campus from a deep link therefore sent the user back to that route under the new school context.
+- Impact: The route could refer to a record that does not exist at the newly selected campus, resulting in a confusing not-found or authorization screen instead of the new campus home.
+- Reproduction: Open a record page, change the Working school selector, and observe that the browser returns to the previous record URL.
+- Resolution: Successful school changes now redirect to the dashboard. `SchoolContextTest` verifies the redirect from a deep page and denies switching to a school without membership.

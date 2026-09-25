@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Enrollment\MoveEnrollmentBetweenCampuses;
 use App\Actions\Library\IssueLoan;
 use App\Actions\Library\ReserveTitle;
 use App\Actions\Portal\SubmitPortalRequest;
+use App\Enums\AcademicStructureStatus;
 use App\Enums\AttendanceStatus;
 use App\Enums\Feature;
 use App\Enums\NoticeRecipientState;
@@ -15,6 +17,8 @@ use App\Enums\PortalRequestType;
 use App\Enums\ResultApprovalStatus;
 use App\Enums\TimetableStatus;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\AttendanceRecord;
@@ -346,6 +350,89 @@ class PortalTest extends TestCase
             ->get(route('portal.documents.transcripts.download', [$enrollment, $transcript]))
             ->assertOk()
             ->assertHeader('content-disposition');
+    }
+
+    public function test_a_family_keeps_official_documents_after_an_internal_campus_move(): void
+    {
+        $source = $this->workingSchool();
+        $destination = School::query()->findOrFail(
+            School::factory()->create(['organization_id' => $source->organization_id])->getKey(),
+        );
+        $documentArea = [PortalArea::Documents->value => true];
+        features()->enable(Feature::Portal, $source->id, config: $documentArea);
+        features()->enable(Feature::Portal, $destination->id, config: $documentArea);
+
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        $guardian = $this->guardianOf($enrollment);
+        $academicYear = AcademicYear::query()->findOrFail(
+            AcademicYear::factory()->create(['school_id' => $source->id])->getKey(),
+        );
+        $academicPeriod = AcademicPeriod::query()->findOrFail(
+            AcademicPeriod::factory()->create([
+                'school_id' => $source->id,
+                'academic_year_id' => $academicYear->id,
+                'name' => 'Term 1',
+            ])->getKey(),
+        );
+        $reportCard = ReportCardSnapshot::factory()->create([
+            'school_id' => $source->id,
+            'student_record_id' => $enrollment->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_period_id' => $academicPeriod->id,
+            'payload' => ['results' => [['subject' => ['name' => 'Mathematics'], 'percentage' => 81.0]]],
+        ]);
+        $transcript = TranscriptSnapshot::create([
+            'school_id' => $source->id,
+            'student_record_id' => $enrollment->id,
+            'revision' => 1,
+            'payload' => ['results' => [['academic_year' => $academicYear->name, 'academic_period' => $academicPeriod->name, 'subject' => 'Mathematics', 'percentage' => 81.0]]],
+            'issued_at' => now(),
+        ]);
+
+        $destinationYear = AcademicYear::query()->findOrFail(
+            AcademicYear::factory()->create(['school_id' => $destination->id])->getKey(),
+        );
+        $destinationLevel = AcademicLevel::query()->findOrFail(
+            AcademicLevel::factory()->create(['school_id' => $destination->id])->getKey(),
+        );
+        $destinationSection = AcademicCycleSection::query()->findOrFail(
+            AcademicCycleSection::factory()->create([
+                'school_id' => $destination->id,
+                'academic_year_id' => $destinationYear->id,
+                'academic_level_id' => $destinationLevel->id,
+                'status' => AcademicStructureStatus::Active,
+            ])->getKey(),
+        );
+        $movedEnrollment = app(MoveEnrollmentBetweenCampuses::class)->move(
+            $enrollment,
+            $destinationSection,
+            reason: 'Family moved across town',
+        );
+
+        $this->actingAs($guardian)
+            ->get(route('portal.documents.index', $movedEnrollment))
+            ->assertOk()
+            ->assertSee('Term 1')
+            ->assertSee('Revision 1')
+            ->assertSee(route('portal.documents.report-cards.download', [$movedEnrollment, $reportCard]))
+            ->assertSee(route('portal.documents.transcripts.download', [$movedEnrollment, $transcript]));
+
+        $reportCardResponse = $this->actingAs($guardian)
+            ->get(route('portal.documents.report-cards.download', [$movedEnrollment, $reportCard]));
+        $reportCardResponse->assertOk();
+        $this->assertStringContainsString('Mathematics', $reportCardResponse->streamedContent());
+
+        $transcriptResponse = $this->actingAs($guardian)
+            ->get(route('portal.documents.transcripts.download', [$movedEnrollment, $transcript]));
+        $transcriptResponse->assertOk();
+        $this->assertStringContainsString('Mathematics', $transcriptResponse->streamedContent());
+
+        $secondEnrollment = StudentRecord::factory()->create(['school_id' => $destination->id]);
+        $guardian->parentRecord->students()->syncWithoutDetaching($secondEnrollment->user);
+
+        $this->actingAs($guardian)
+            ->get(route('portal.documents.report-cards.download', [$secondEnrollment, $reportCard]))
+            ->assertNotFound();
     }
 
     /**

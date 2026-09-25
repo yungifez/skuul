@@ -27,10 +27,25 @@ class SchoolContextTest extends TestCase
         $before = $user->schoolMemberships()->pluck('school_id')->all();
 
         $this->actingAs($user)
+            ->from(route('academic-years.index'))
             ->post('/dashboard/schools/set-school', ['school_id' => $second->id])
+            ->assertRedirect(route('dashboard'))
             ->assertSessionHas(SchoolContext::SESSION_KEY, $second->id);
 
         $this->assertSame($before, $user->fresh()->schoolMemberships()->pluck('school_id')->all());
+    }
+
+    public function test_a_member_cannot_switch_to_a_school_without_membership(): void
+    {
+        $home = $this->workingSchool();
+        $other = School::query()->findOrFail(School::factory()->create()->getKey());
+        $user = $this->memberOf($home);
+
+        $this->actingAsMemberOf($home, $user)
+            ->from(route('academic-years.index'))
+            ->post('/dashboard/schools/set-school', ['school_id' => $other->id])
+            ->assertForbidden()
+            ->assertSessionHas(SchoolContext::SESSION_KEY, $home->id);
     }
 
     public function test_the_remembered_school_is_ignored_when_access_ended(): void

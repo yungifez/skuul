@@ -171,7 +171,6 @@ class PortalSummary
         }
 
         $reportCards = ReportCardSnapshot::query()
-            ->where('school_id', $enrollment->school_id)
             ->where('student_record_id', $enrollment->id)
             ->with('academicPeriod:id,name,label')
             ->orderBy('academic_period_id')
@@ -183,7 +182,6 @@ class PortalSummary
         return [
             'reportCards' => $reportCards,
             'transcript' => TranscriptSnapshot::query()
-                ->where('school_id', $enrollment->school_id)
                 ->where('student_record_id', $enrollment->id)
                 ->latest('revision')
                 ->first(),

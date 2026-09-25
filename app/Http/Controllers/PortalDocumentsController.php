@@ -98,7 +98,6 @@ class PortalDocumentsController extends Controller
         ReportCardSnapshot|TranscriptSnapshot $snapshot,
         StudentRecord $studentRecord,
     ): bool {
-        return $snapshot->school_id === $studentRecord->school_id
-            && $snapshot->student_record_id === $studentRecord->id;
+        return $snapshot->student_record_id === $studentRecord->id;
     }
 }
