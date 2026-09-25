@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\Report\PublishReportCard;
 use App\Actions\Report\PublishTranscript;
 use App\Enums\AcademicPeriodStatus;
+use App\Livewire\ReportCardDirectory as ReportCardDirectoryComponent;
 use App\Livewire\TranscriptDirectory as TranscriptDirectoryComponent;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
@@ -166,6 +167,48 @@ class AcademicRecordScreenTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_report_card_filters_update_and_clear_without_a_page_reload(): void
+    {
+        $school = $this->workingSchool();
+        $actor = $this->memberOf($school);
+        $this->authorized_user(['read report', 'create report'], $school);
+
+        $historicalYear = AcademicYear::factory()->create([
+            'school_id' => $school->id,
+            'start_year' => 2024,
+            'stop_year' => 2025,
+        ]);
+        $historicalPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $historicalYear->id,
+            'status' => AcademicPeriodStatus::Closing,
+        ]);
+        $currentPeriod = $this->closingPeriod($school);
+        $historicalStudent = $this->learnerWithAResult($school, $historicalPeriod, 'Historical Learner');
+        $currentStudent = $this->learnerWithAResult($school, $currentPeriod, 'Current Learner');
+        $historicalCard = app(PublishReportCard::class)->publish($historicalStudent, $historicalPeriod, $actor);
+        $currentCard = app(PublishReportCard::class)->publish($currentStudent, $currentPeriod, $actor);
+
+        Livewire::test(ReportCardDirectoryComponent::class)
+            ->assertSee(route('report-cards.show', $historicalCard))
+            ->assertSee(route('report-cards.show', $currentCard))
+            ->set('studentRecordId', (string) $historicalStudent->id)
+            ->assertSee(route('report-cards.show', $historicalCard))
+            ->assertDontSee(route('report-cards.show', $currentCard))
+            ->set('studentRecordId', '')
+            ->set('academicYearId', (string) $historicalYear->id)
+            ->assertSee(route('report-cards.show', $historicalCard))
+            ->assertDontSee(route('report-cards.show', $currentCard))
+            ->set('academicPeriodId', (string) $historicalPeriod->id)
+            ->assertSee(route('report-cards.show', $historicalCard))
+            ->call('clearFilters')
+            ->assertSet('studentRecordId', '')
+            ->assertSet('academicYearId', '')
+            ->assertSet('academicPeriodId', '')
+            ->assertSee(route('report-cards.show', $historicalCard))
+            ->assertSee(route('report-cards.show', $currentCard));
+    }
+
     public function test_the_transcript_screen_explains_itself_before_any_transcript_exists(): void
     {
         $this->authorized_user(['read report', 'create report']);
@@ -240,8 +283,12 @@ class AcademicRecordScreenTest extends TestCase
 
         $this->get(route('report-cards.index'))
             ->assertOk()
-            ->assertSee('Pagination Navigation')
-            ->assertSee(route('report-cards.index', ['page' => 2]));
+            ->assertSee('Pagination Navigation');
+
+        Livewire::test(ReportCardDirectoryComponent::class)
+            ->assertSet('paginators.page', 1)
+            ->call('gotoPage', 2)
+            ->assertSet('paginators.page', 2);
     }
 
     private function closingPeriod(School $school): AcademicPeriod
