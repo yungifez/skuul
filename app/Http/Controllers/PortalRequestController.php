@@ -13,7 +13,6 @@ use App\Models\PortalRequest;
 use App\Models\StudentRecord;
 use App\Services\Portal\PortalAccess;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -79,33 +78,7 @@ class PortalRequestController extends Controller
     {
         abort_unless($request->user()?->can('read portal request'), 403);
 
-        $selectedStatus = PortalRequestStatus::tryFrom($request->string('status')->toString());
-        $selectedType = PortalRequestType::tryFrom($request->string('type')->toString());
-
-        $requests = PortalRequest::query()
-            ->inSchool()
-            ->with(['studentRecord.user:id,name', 'requestedBy:id,name', 'answeredBy:id,name'])
-            ->when($selectedStatus !== null, function (Builder $query) use ($selectedStatus): void {
-                $query->where('status', $selectedStatus);
-            })
-            ->when($selectedType !== null, function (Builder $query) use ($selectedType): void {
-                $query->where('type', $selectedType);
-            })
-            ->latest('id')
-            ->paginate(20)
-            ->withQueryString();
-
-        return view('pages.portal-request.index', [
-            'requests' => $requests,
-            'statuses' => PortalRequestStatus::cases(),
-            'types' => PortalRequestType::cases(),
-            'selectedStatus' => $selectedStatus,
-            'selectedType' => $selectedType,
-            'waitingCount' => PortalRequest::query()
-                ->inSchool()
-                ->whereIn('status', [PortalRequestStatus::Submitted, PortalRequestStatus::InReview])
-                ->count(),
-        ]);
+        return view('pages.portal-request.index');
     }
 
     /**
@@ -113,10 +86,12 @@ class PortalRequestController extends Controller
      */
     public function changeStatus(UpdatePortalRequestRequest $request, PortalRequest $portalRequest): RedirectResponse
     {
+        $nextStatus = PortalRequestStatus::from($request->string('status')->toString());
+
         try {
             $this->submitRequest->changeStatus(
                 request: $portalRequest,
-                status: PortalRequestStatus::from($request->string('status')->toString()),
+                status: $nextStatus,
                 actor: $request->user(),
                 response: $request->string('response')->toString() ?: null,
             );
@@ -124,6 +99,6 @@ class PortalRequestController extends Controller
             return back()->withErrors(['status' => $exception->getMessage()]);
         }
 
-        return back()->with('success', 'The family will see the answer in the portal.');
+        return back()->with('success', 'Request status updated to '.strtolower($nextStatus->label()).'.');
     }
 }
