@@ -21,10 +21,17 @@ class StoreFeeCategoryRequest extends FormRequest
      */
     public function rules(): array
     {
+        return self::feeCategoryRules() + [
+            'school_id' => 'required|integer|exists:schools,id',
+        ];
+    }
+
+    /** @return array<string, string> */
+    public static function feeCategoryRules(): array
+    {
         return [
-            'name'        => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:10000',
-            'school_id'   => 'required|integer|exists:schools,id',
         ];
     }
 }

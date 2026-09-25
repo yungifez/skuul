@@ -3,12 +3,14 @@
 namespace Tests\Feature;
 
 use App\Actions\School\GrantSchoolMembership;
+use App\Livewire\SetSchool;
 use App\Models\AcademicYear;
 use App\Models\School;
 use App\Models\User;
 use App\Services\School\SchoolContext;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -33,6 +35,42 @@ class SchoolContextTest extends TestCase
             ->assertSessionHas(SchoolContext::SESSION_KEY, $second->id);
 
         $this->assertSame($before, $user->fresh()->schoolMemberships()->pluck('school_id')->all());
+    }
+
+    public function test_livewire_school_switch_redirects_to_dashboard_and_updates_the_session(): void
+    {
+        $home = $this->workingSchool();
+        $destination = School::factory()->create();
+        $user = $this->memberOf($home);
+        $this->memberOf($destination, $user);
+        $this->actingAsMemberOf($home, $user);
+
+        Livewire::test(SetSchool::class)
+            ->set('school_id', $destination->id)
+            ->call('setSchool')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('dashboard'))
+            ->assertSessionHas(SchoolContext::SESSION_KEY, $destination->id);
+
+        $this->assertDatabaseHas('school_memberships', [
+            'user_id' => $user->id,
+            'school_id' => $home->id,
+        ]);
+    }
+
+    public function test_livewire_school_switch_rejects_a_school_without_membership(): void
+    {
+        $home = $this->workingSchool();
+        $other = School::factory()->create();
+        $user = $this->memberOf($home);
+        $this->actingAsMemberOf($home, $user);
+
+        Livewire::test(SetSchool::class)
+            ->set('school_id', $other->id)
+            ->call('setSchool')
+            ->assertForbidden();
+
+        $this->assertSame($home->id, school_context()->id());
     }
 
     public function test_a_member_cannot_switch_to_a_school_without_membership(): void

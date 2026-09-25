@@ -21,10 +21,8 @@ class UpdateFeeCategoryRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'name'        => 'required|string|max:255',
-            'description' => 'nullable|string|max:10000',
-            'school_id'   => 'required|integer|exists:schools,id',
+        return StoreFeeCategoryRequest::feeCategoryRules() + [
+            'school_id' => 'required|integer|exists:schools,id',
         ];
     }
 }

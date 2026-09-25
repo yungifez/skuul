@@ -14,9 +14,12 @@ class UpdateFeeRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'name'        => 'required|max:1024',
-            'description' => 'nullable|max:10000',
-        ];
+        return self::feeRules();
+    }
+
+    /** @return array<string, string> */
+    public static function feeRules(): array
+    {
+        return StoreFeeRequest::feeRules();
     }
 }

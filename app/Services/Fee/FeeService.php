@@ -4,9 +4,17 @@ namespace App\Services\Fee;
 
 use App\Exceptions\InvalidValueException;
 use App\Models\Fee;
+use App\Models\FeeCategory;
+use Illuminate\Database\Eloquent\Collection;
 
 class FeeService
 {
+    /** @return Collection<int, FeeCategory> */
+    public function feeCategoriesForWorkingSchool(): Collection
+    {
+        return FeeCategory::query()->inSchool()->orderBy('name')->get();
+    }
+
     /**
      * Store a new fee.
      *

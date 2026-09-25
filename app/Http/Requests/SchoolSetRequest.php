@@ -24,8 +24,14 @@ class SchoolSetRequest extends FormRequest
      */
     public function rules()
     {
+        return self::schoolRules();
+    }
+
+    /** @return array<string, string> */
+    public static function schoolRules(): array
+    {
         return [
-            'school_id' => 'required:int',
+            'school_id' => 'required|integer|exists:schools,id',
         ];
     }
 }

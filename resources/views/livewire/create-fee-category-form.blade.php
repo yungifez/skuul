@@ -4,16 +4,17 @@
     </div>
     <div class="card-body">
         <x-display-validation-errors/>
-        <form action="{{route('fee-categories.store')}}" class="md:w-6/12" method="POST">
-            <april:input-group id="name" name="name" placeholder="Fee Category Name" label="Name" />
+        <form wire:submit="save" class="space-y-5 md:w-6/12">
+            <april:input-group id="name" wire:model="name" placeholder="Fee Category Name" label="Name" />
             <div class="flex w-full flex-col gap-2">
                 <april:label for="description">Description</april:label>
-                <april:textarea id="description" name="description" placeholder="Fee Category Description" />
+                <april:textarea id="description" wire:model="description" placeholder="Fee Category Description" />
             </div>
-            @csrf
-            <april:button type="submit" class="w-full md:w-1/2">
+            <x-display-validation-errors />
+            <april:button type="submit" wire:loading.attr="disabled" class="w-full md:w-1/2">
                 <x-lucide-key class="mr-2 size-4" />
-                Create
+                <span wire:loading.remove>Create</span>
+                <span wire:loading>Creating…</span>
             </april:button>
         </form>
     </div>

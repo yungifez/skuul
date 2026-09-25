@@ -3,18 +3,17 @@
         <h2 class="card-title">Edit {{$feeCategory->name}}</h2>
     </div>
     <div class="card-body">
-        <form action="{{route('fee-categories.update', $feeCategory->id)}}" class="md:w-6/12" method="POST">
+        <form wire:submit="save" class="space-y-5 md:w-6/12">
             <x-display-validation-errors/>
-            <april:input-group id="name" name="name" placeholder="Fee Category Name" label="Name" :value="$feeCategory->name" />
+            <april:input-group id="name" wire:model="name" placeholder="Fee Category Name" label="Name" />
             <div class="flex w-full flex-col gap-2">
                 <april:label for="description">Description</april:label>
-                <april:textarea id="description" name="description" placeholder="Fee Category Description">{{$feeCategory->description}}</april:textarea>
+                <april:textarea id="description" wire:model="description" placeholder="Fee Category Description" />
             </div>
-            @method('PUT')
-            @csrf
-            <april:button type="submit" class="w-full md:w-1/2">
+            <april:button type="submit" wire:loading.attr="disabled" class="w-full md:w-1/2">
                 <x-lucide-key class="mr-2 size-4" />
-                Create
+                <span wire:loading.remove>Save changes</span>
+                <span wire:loading>Saving…</span>
             </april:button>
         </form>
     </div>

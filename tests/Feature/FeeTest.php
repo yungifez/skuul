@@ -2,12 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\CreateFeeForm;
+use App\Livewire\EditFeeForm;
 use App\Livewire\ListFeesTable;
 use App\Models\Fee;
 use App\Models\FeeCategory;
 use App\Models\FeeInvoice;
 use App\Models\FeeInvoiceRecord;
 use App\Models\FinancialPeriod;
+use App\Models\School;
 use App\Models\StudentRecord;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -87,6 +90,38 @@ class FeeTest extends TestCase
         ]);
     }
 
+    public function test_fee_create_livewire_flow_saves_with_a_working_school_category(): void
+    {
+        $feeCategory = FeeCategory::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['create fee']);
+
+        Livewire::test(CreateFeeForm::class)
+            ->set('name', 'Laboratory fee')
+            ->set('description', 'Annual laboratory use.')
+            ->set('fee_category_id', $feeCategory->id)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('fees.index'));
+
+        $this->assertDatabaseHas('fees', [
+            'name' => 'Laboratory fee',
+            'fee_category_id' => $feeCategory->id,
+        ]);
+    }
+
+    public function test_fee_create_livewire_flow_rejects_invalid_and_cross_school_category(): void
+    {
+        $otherSchool = School::factory()->create();
+        $otherCategory = FeeCategory::factory()->create(['school_id' => $otherSchool->id]);
+        $this->authorized_user(['create fee']);
+
+        Livewire::test(CreateFeeForm::class)
+            ->set('name', '')
+            ->set('fee_category_id', $otherCategory->id)
+            ->call('save')
+            ->assertHasErrors(['name' => 'required', 'fee_category_id' => 'exists']);
+    }
+
     public function test_unauthorized_user_cannot_view_edit_fee()
     {
         $fee = Fee::factory()->create();
@@ -139,6 +174,22 @@ class FeeTest extends TestCase
             'id' => $fee->id,
             'name' => $name,
         ]);
+    }
+
+    public function test_fee_edit_livewire_flow_updates_and_redirects(): void
+    {
+        $fee = Fee::factory()->create();
+        $this->authorized_user(['update fee']);
+
+        Livewire::test(EditFeeForm::class, ['fee' => $fee])
+            ->set('name', 'Updated laboratory fee')
+            ->set('description', 'Revised annual charge.')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('fees.index'));
+
+        $this->assertSame('Updated laboratory fee', $fee->fresh()->name);
+        $this->assertSame('Revised annual charge.', $fee->fresh()->description);
     }
 
     /**

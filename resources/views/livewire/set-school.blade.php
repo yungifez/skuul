@@ -7,23 +7,22 @@
     </slot:title>
     <slot:description>Choose the school context for your next action.</slot:description>
     <slot:content>
-        <form action="{{route('schools.setSchool')}}" method="POST" class="space-y-5">
+        <form wire:submit="setSchool" class="space-y-5">
             <x-display-validation-errors />
             <div class="flex w-full flex-col gap-2">
                 <april:label for="set-school-form">School branch</april:label>
-                <april:select name="school_id" id="set-school-form">
+                <april:select wire:model="school_id" id="set-school-form">
                 @foreach ($schools as $school)
-                <option @selected(current_school_id()==$school->id) value="{{ $school->id }}" @selected(current_school_id()
-                    == $school->id)> {{ $school->name }} - {{$school->address}}</option>
+                <option value="{{ $school->id }}">{{ $school->name }} - {{ $school->address }}</option>
                 @endforeach
 
                 </april:select>
                 <x-field-error name="school_id" />
             </div>
-            @csrf
             <div class="flex justify-end">
-                <april:button type="submit" class="w-full sm:w-auto">
-                    Set working school
+                <april:button type="submit" wire:loading.attr="disabled" class="w-full sm:w-auto">
+                    <span wire:loading.remove>Set working school</span>
+                    <span wire:loading>Changing school…</span>
                 </april:button>
             </div>
         </form>

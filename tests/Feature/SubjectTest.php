@@ -2,7 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\CreateSubjectForm;
+use App\Livewire\EditSubjectForm;
 use App\Livewire\ListSubjectsTable;
+use App\Models\AcademicYear;
 use App\Models\CourseOffering;
 use App\Models\Subject;
 use App\Models\User;
@@ -75,6 +78,72 @@ class SubjectTest extends TestCase
         $this->assertDatabaseHas('subjects', [
             'name' => $name,
         ]);
+    }
+
+    public function test_subject_creation_livewire_flow_saves_and_redirects(): void
+    {
+        $this->authorized_user(['create subject']);
+
+        Livewire::test(CreateSubjectForm::class)
+            ->set('name', 'Livewire Algebra')
+            ->set('short_name', 'ALG')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('subjects.index'));
+
+        $this->assertDatabaseHas('subjects', [
+            'name' => 'Livewire Algebra',
+            'short_name' => 'ALG',
+            'school_id' => $this->workingSchool()->id,
+        ]);
+    }
+
+    public function test_subject_creation_livewire_flow_shows_validation_errors(): void
+    {
+        $this->authorized_user(['create subject']);
+
+        Livewire::test(CreateSubjectForm::class)
+            ->set('name', '')
+            ->set('short_name', '')
+            ->call('save')
+            ->assertHasErrors(['name' => 'required', 'short_name' => 'required']);
+    }
+
+    public function test_subject_creation_from_school_setup_returns_to_subject_setup(): void
+    {
+        $this->authorized_user(['create subject']);
+        $academicYear = AcademicYear::factory()->create(['school_id' => $this->workingSchool()->id]);
+
+        Livewire::test(CreateSubjectForm::class, ['setup' => true, 'academicYearId' => $academicYear->id])
+            ->set('name', 'Setup Algebra')
+            ->set('short_name', 'SA')
+            ->call('save')
+            ->assertRedirect(route('academic-years.setup', [$academicYear, 'subjects']));
+    }
+
+    public function test_subject_edit_livewire_flow_updates_and_refuses_invalid_data(): void
+    {
+        $subject = Subject::factory()->create();
+        $this->authorized_user(['update subject']);
+
+        Livewire::test(EditSubjectForm::class, ['subject' => $subject])
+            ->set('name', 'Updated Algebra')
+            ->set('short_name', 'UA')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('subjects.index'));
+
+        $this->assertSame('Updated Algebra', $subject->fresh()->name);
+        $this->assertSame('UA', $subject->fresh()->short_name);
+    }
+
+    public function test_livewire_subject_edit_refuses_a_subject_from_another_school(): void
+    {
+        $subject = Subject::factory()->create(['school_id' => $this->workingSchool()->id + 1]);
+        $this->authorized_user(['update subject']);
+
+        Livewire::test(EditSubjectForm::class, ['subject' => $subject])
+            ->assertForbidden();
     }
 
     public function test_unauthorized_user_cannot_view_edit_subject()

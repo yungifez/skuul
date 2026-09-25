@@ -2,9 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\CreateFeeCategoryForm;
+use App\Livewire\EditFeeCategoryForm;
 use App\Livewire\ListFeeCategoriesTable;
 use App\Models\Fee;
 use App\Models\FeeCategory;
+use App\Models\School;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -79,6 +82,35 @@ class FeeCategoryTest extends TestCase
         ]);
     }
 
+    public function test_fee_category_create_livewire_flow_saves_in_the_working_school(): void
+    {
+        $this->authorized_user(['create fee category']);
+
+        Livewire::test(CreateFeeCategoryForm::class)
+            ->set('name', 'Boarding fees')
+            ->set('description', 'Charges for residential students.')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('fee-categories.index'));
+
+        $this->assertDatabaseHas('fee_categories', [
+            'name' => 'Boarding fees',
+            'description' => 'Charges for residential students.',
+            'school_id' => $this->workingSchool()->id,
+        ]);
+    }
+
+    public function test_fee_category_create_livewire_flow_reports_invalid_input(): void
+    {
+        $this->authorized_user(['create fee category']);
+
+        Livewire::test(CreateFeeCategoryForm::class)
+            ->set('name', '')
+            ->set('description', str_repeat('x', 10001))
+            ->call('save')
+            ->assertHasErrors(['name' => 'required', 'description' => 'max']);
+    }
+
     public function test_unauthorized_user_cannot_view_edit_fee_category_page()
     {
         $FeeCategory = FeeCategory::factory()->create();
@@ -95,6 +127,32 @@ class FeeCategoryTest extends TestCase
         $this->authorized_user(['update fee category'])
             ->get("dashboard/fees/fee-categories/$FeeCategory->id/edit")
             ->assertSuccessful();
+    }
+
+    public function test_fee_category_edit_livewire_flow_updates_record(): void
+    {
+        $feeCategory = FeeCategory::factory()->create();
+        $this->authorized_user(['update fee category']);
+
+        Livewire::test(EditFeeCategoryForm::class, ['feeCategory' => $feeCategory])
+            ->set('name', 'Updated fees')
+            ->set('description', 'Updated description')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('fee-categories.index'));
+
+        $this->assertSame('Updated fees', $feeCategory->fresh()->name);
+        $this->assertSame('Updated description', $feeCategory->fresh()->description);
+    }
+
+    public function test_livewire_fee_category_edit_refuses_a_record_from_another_school(): void
+    {
+        $otherSchool = School::factory()->create();
+        $feeCategory = FeeCategory::factory()->create(['school_id' => $otherSchool->id]);
+        $this->authorized_user(['update fee category']);
+
+        Livewire::test(EditFeeCategoryForm::class, ['feeCategory' => $feeCategory])
+            ->assertForbidden();
     }
 
     public function test_unauthorized_user_cannot_update_fee_category_page()

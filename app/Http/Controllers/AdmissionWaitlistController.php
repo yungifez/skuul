@@ -19,28 +19,7 @@ class AdmissionWaitlistController extends Controller
     {
         $this->authorize('viewAny', AdmissionWaitlistEntry::class);
 
-        return view('pages.admissions.waitlist', [
-            'entries' => AdmissionWaitlistEntry::inSchool()
-                ->with(['academicCycleSection.academicLevel', 'academicYear', 'candidate'])
-                ->orderByDesc('priority')
-                ->orderBy('position')
-                ->get(),
-            'sections' => AcademicCycleSection::inSchool()
-                ->with(['academicLevel', 'academicYear'])
-                ->where('status', 'active')
-                ->whereNotNull('capacity')
-                ->orderBy('academic_year_id')
-                ->orderBy('academic_level_id')
-                ->orderBy('position')
-                ->get(),
-            'candidates' => User::ofSchool()
-                ->whereDoesntHave('studentRecords', function ($query): void {
-                    $query->where('school_id', current_school_id())
-                        ->where('status', 'active');
-                })
-                ->orderBy('name')
-                ->get(['id', 'name', 'email']),
-        ]);
+        return view('pages.admissions.waitlist');
     }
 
     public function store(StoreAdmissionWaitlistRequest $request, JoinWaitlist $join): RedirectResponse
