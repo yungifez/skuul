@@ -3,6 +3,10 @@
 namespace Tests\Feature;
 
 use App\Enums\Feature;
+use App\Enums\ImportRowState;
+use App\Enums\ImportStatus;
+use App\Livewire\ImportBatchDirectory as ImportBatchDirectoryComponent;
+use App\Livewire\ImportRowDirectory as ImportRowDirectoryComponent;
 use App\Models\ImportBatch;
 use App\Models\School;
 use App\Models\StaffProfile;
@@ -11,6 +15,7 @@ use App\Services\Import\ImportRunner;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -82,6 +87,28 @@ class ImportScreenTest extends TestCase
             ->assertDontSee('ada.bell@gmail.com');
     }
 
+    public function test_the_row_state_filter_updates_reactively_and_normalizes_invalid_values(): void
+    {
+        $this->authorized_user(['read import', 'create import']);
+        $batch = app(ImportRunner::class)->stage('staff', [
+            $this->staffRow(['email' => 'ada.bell@gmail.com']),
+            $this->staffRow(['email' => 'not-an-email']),
+        ], 'staff.csv');
+
+        Livewire::test(ImportRowDirectoryComponent::class, ['batch' => $batch])
+            ->assertSee('ada.bell@gmail.com')
+            ->assertSee('not-an-email')
+            ->set('state', ImportRowState::Invalid->value)
+            ->assertSee('not-an-email')
+            ->assertDontSee('ada.bell@gmail.com')
+            ->set('state', 'not-a-state')
+            ->assertSet('state', '')
+            ->assertSee('ada.bell@gmail.com')
+            ->call('clearFilter')
+            ->assertSet('state', '')
+            ->assertSee('not-an-email');
+    }
+
     public function test_writing_the_import_from_the_screen_saves_the_records(): void
     {
         $this->authorized_user(['read import', 'create import', 'apply import']);
@@ -120,6 +147,36 @@ class ImportScreenTest extends TestCase
             ->assertOk()
             ->assertSee(route('imports.show', $staff))
             ->assertDontSee(route('imports.show', $students));
+    }
+
+    public function test_the_import_list_filters_reactively_clears_and_handles_invalid_values(): void
+    {
+        $this->authorized_user(['read import', 'create import']);
+        $runner = app(ImportRunner::class);
+        $staff = $runner->stage('staff', [$this->staffRow()], 'faculty.csv');
+        $students = $runner->stage('students', [$this->studentRow()], 'learners.csv');
+
+        Livewire::test(ImportBatchDirectoryComponent::class)
+            ->assertSee(route('imports.show', $staff))
+            ->assertSee(route('imports.show', $students))
+            ->set('type', 'staff')
+            ->assertSee(route('imports.show', $staff))
+            ->assertDontSee(route('imports.show', $students))
+            ->set('status', ImportStatus::Checked->value)
+            ->assertSee(route('imports.show', $staff))
+            ->set('status', ImportStatus::Failed->value)
+            ->assertSee('Nothing matches this filter')
+            ->set('status', 'not-a-status')
+            ->assertSet('status', '')
+            ->assertSee(route('imports.show', $staff))
+            ->set('type', 'not-an-import')
+            ->assertSet('type', '')
+            ->assertSee(route('imports.show', $students))
+            ->call('clearFilters')
+            ->assertSet('type', '')
+            ->assertSet('status', '')
+            ->assertSee(route('imports.show', $staff))
+            ->assertSee(route('imports.show', $students));
     }
 
     public function test_the_screen_needs_permission(): void
