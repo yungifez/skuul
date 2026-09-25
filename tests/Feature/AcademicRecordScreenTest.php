@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\Report\PublishReportCard;
 use App\Actions\Report\PublishTranscript;
 use App\Enums\AcademicPeriodStatus;
+use App\Livewire\TranscriptDirectory as TranscriptDirectoryComponent;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
@@ -16,6 +17,7 @@ use App\Models\Subject;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class AcademicRecordScreenTest extends TestCase
@@ -182,6 +184,7 @@ class AcademicRecordScreenTest extends TestCase
         $period = $this->closingPeriod($school);
         $kept = $this->learnerWithAResult($school, $period, 'Ada Kept', 'Kept Subject');
         $hidden = $this->learnerWithAResult($school, $period, 'Ben Hidden', 'Hidden Subject');
+        $emptyStudent = StudentRecord::factory()->create(['school_id' => $school->id]);
         app(PublishTranscript::class)->publish($kept, $actor);
         app(PublishTranscript::class)->publish($hidden, $actor);
 
@@ -191,6 +194,19 @@ class AcademicRecordScreenTest extends TestCase
             ->assertOk()
             ->assertSee('Kept Subject')
             ->assertDontSee('Hidden Subject');
+
+        Livewire::test(TranscriptDirectoryComponent::class)
+            ->set('studentRecordId', (string) $kept->id)
+            ->assertSee('Kept Subject')
+            ->assertDontSee('Hidden Subject')
+            ->set('studentRecordId', (string) $emptyStudent->id)
+            ->assertSee('Nothing matches this filter')
+            ->call('clearFilter')
+            ->assertSet('studentRecordId', '')
+            ->assertSee('Hidden Subject')
+            ->set('studentRecordId', 'not-a-student-id')
+            ->assertSet('studentRecordId', '')
+            ->assertSee('Kept Subject');
     }
 
     public function test_a_transcript_row_carries_the_subjects_it_holds(): void
