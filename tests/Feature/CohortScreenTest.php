@@ -7,6 +7,7 @@ use App\Enums\CohortType;
 use App\Enums\ParticipationStatus;
 use App\Enums\ProgramType;
 use App\Livewire\CohortDirectory as CohortDirectoryComponent;
+use App\Livewire\ProgramDirectory as ProgramDirectoryComponent;
 use App\Models\Cohort;
 use App\Models\Program;
 use App\Models\School;
@@ -137,6 +138,32 @@ class CohortScreenTest extends TestCase
             ->assertDontSee(route('cohorts.show', $graduationGroup));
     }
 
+    public function test_programme_filters_update_without_a_reload_and_keep_query_filter_compatibility(): void
+    {
+        $this->authorized_user(['read program']);
+        $club = $this->program(ProgramType::Club, 'Chess club');
+        $closedClub = $this->program(ProgramType::Club, 'Former club');
+        $closedClub->update(['is_active' => false]);
+        $support = $this->program(ProgramType::Intervention, 'Reading support');
+
+        Livewire::test(ProgramDirectoryComponent::class)
+            ->set('type', ProgramType::Club->value)
+            ->assertSee(route('programs.show', $club))
+            ->assertDontSee(route('programs.show', $support))
+            ->set('activeOnly', true)
+            ->assertSee(route('programs.show', $club))
+            ->assertDontSee(route('programs.show', $closedClub))
+            ->call('clearFilters')
+            ->assertSet('type', '')
+            ->assertSet('activeOnly', false)
+            ->assertSee(route('programs.show', $support));
+
+        $this->get(route('programs.index', ['type' => ProgramType::Club->value, 'active' => 1]))
+            ->assertOk()
+            ->assertSee(route('programs.show', $club))
+            ->assertDontSee(route('programs.show', $support));
+    }
+
     public function test_the_group_is_renamed_and_closed_from_the_screen(): void
     {
         $this->authorized_user(['read cohort', 'create cohort', 'update cohort']);
@@ -252,12 +279,12 @@ class CohortScreenTest extends TestCase
     /**
      * Open a programme in the working school.
      */
-    private function program(): Program
+    private function program(ProgramType $type = ProgramType::Club, string $name = 'Chess club'): Program
     {
         return Program::create([
             'school_id' => $this->workingSchool()->id,
-            'name' => 'Chess club',
-            'type' => ProgramType::Club,
+            'name' => $name,
+            'type' => $type,
         ]);
     }
 

@@ -15,9 +15,7 @@ use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\ListsSchoolPeople;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 /**
  * A named activity a student takes part in.
@@ -34,36 +32,11 @@ class ProgramController extends Controller
     /**
      * Show the programmes this school runs.
      */
-    public function index(Request $request): View
+    public function index(): View
     {
         $this->authorize('viewAny', Program::class);
 
-        $selectedType = ProgramType::tryFrom($request->string('type')->toString());
-        $activeOnly = $request->boolean('active');
-
-        $programs = Program::query()
-            ->inSchool()
-            // The relation closure gets a plain builder, so the condition of
-            // ProgramParticipation::scopeRunning() is written out here.
-            ->withCount(['participations as running_count' => function (Builder $query): void {
-                $query->whereIn('status', [ParticipationStatus::Requested, ParticipationStatus::Active]);
-            }])
-            ->when($selectedType !== null, function (Builder $query) use ($selectedType): void {
-                $query->where('type', $selectedType);
-            })
-            ->when($activeOnly, function (Builder $query): void {
-                $query->active();
-            })
-            ->orderBy('name')
-            ->paginate(20)
-            ->withQueryString();
-
-        return view('pages.program.index', [
-            'programs' => $programs,
-            'types' => ProgramType::cases(),
-            'selectedType' => $selectedType,
-            'activeOnly' => $activeOnly,
-        ]);
+        return view('pages.program.index');
     }
 
     /**
