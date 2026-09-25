@@ -6,6 +6,7 @@ use App\Actions\Cohort\ChangeProgramParticipation;
 use App\Enums\CohortType;
 use App\Enums\ParticipationStatus;
 use App\Enums\ProgramType;
+use App\Livewire\CohortDirectory as CohortDirectoryComponent;
 use App\Models\Cohort;
 use App\Models\Program;
 use App\Models\School;
@@ -13,6 +14,7 @@ use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -107,6 +109,32 @@ class CohortScreenTest extends TestCase
             ->assertDontSee(route('cohorts.show', $watchlist));
 
         $this->get(route('cohorts.show', $watchlist))->assertForbidden();
+    }
+
+    public function test_group_filters_update_without_a_reload_and_keep_query_filter_compatibility(): void
+    {
+        $this->authorized_user(['read cohort']);
+        $graduationGroup = $this->cohort(CohortType::GraduationYear, 'Class of 2030');
+        $club = $this->cohort(CohortType::Club, 'Chess club');
+        $club->update(['is_active' => false]);
+        $activeClub = $this->cohort(CohortType::Club, 'Debate club');
+
+        Livewire::test(CohortDirectoryComponent::class)
+            ->set('type', CohortType::Club->value)
+            ->assertSee(route('cohorts.show', $activeClub))
+            ->assertDontSee(route('cohorts.show', $graduationGroup))
+            ->set('activeOnly', true)
+            ->assertSee(route('cohorts.show', $activeClub))
+            ->assertDontSee(route('cohorts.show', $club))
+            ->call('clearFilters')
+            ->assertSet('type', '')
+            ->assertSet('activeOnly', false)
+            ->assertSee(route('cohorts.show', $graduationGroup));
+
+        $this->get(route('cohorts.index', ['type' => CohortType::Club->value, 'active' => 1]))
+            ->assertOk()
+            ->assertSee(route('cohorts.show', $activeClub))
+            ->assertDontSee(route('cohorts.show', $graduationGroup));
     }
 
     public function test_the_group_is_renamed_and_closed_from_the_screen(): void

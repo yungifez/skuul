@@ -13,9 +13,7 @@ use App\Models\CohortMember;
 use App\Models\StudentRecord;
 use App\Traits\ListsSchoolPeople;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 /**
  * A named group of people that is not a class and not a section.
@@ -32,39 +30,11 @@ class CohortController extends Controller
     /**
      * Show the groups this person may read.
      */
-    public function index(Request $request): View
+    public function index(): View
     {
         $this->authorize('viewAny', Cohort::class);
 
-        $selectedType = CohortType::tryFrom($request->string('type')->toString());
-        $activeOnly = $request->boolean('active');
-
-        $cohorts = Cohort::query()
-            ->inSchool()
-            // The relation closure gets a plain builder, so the condition of
-            // CohortMember::scopeCurrent() is written out here.
-            ->withCount(['members as current_members_count' => function (Builder $query): void {
-                $query->whereNull('left_on');
-            }])
-            ->when(!$request->user()->can('read restricted cohort'), function (Builder $query): void {
-                $query->where('is_restricted', false);
-            })
-            ->when($selectedType !== null, function (Builder $query) use ($selectedType): void {
-                $query->where('type', $selectedType);
-            })
-            ->when($activeOnly, function (Builder $query): void {
-                $query->active();
-            })
-            ->orderBy('name')
-            ->paginate(20)
-            ->withQueryString();
-
-        return view('pages.cohort.index', [
-            'cohorts' => $cohorts,
-            'types' => CohortType::cases(),
-            'selectedType' => $selectedType,
-            'activeOnly' => $activeOnly,
-        ]);
+        return view('pages.cohort.index');
     }
 
     /**
