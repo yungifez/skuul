@@ -12,6 +12,7 @@ use App\Enums\Feature;
 use App\Enums\LibraryCopyStatus;
 use App\Enums\LibraryReservationStatus;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\LibraryCopyCatalog as LibraryCopyCatalogComponent;
 use App\Models\AcademicCycleSection;
 use App\Models\AuditEvent;
 use App\Models\FinancialPeriod;
@@ -27,6 +28,7 @@ use App\Services\Feature\FeatureManager;
 use App\Services\Finance\StudentLedger;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -378,6 +380,31 @@ class LibraryTest extends TestCase
         app(FeatureManager::class)->enable(Feature::Library);
 
         $actor->get(route('library-copies.index'))->assertOk()->assertSee('What this campus owns');
+    }
+
+    public function test_the_library_catalogue_searches_copies_live_and_clears_the_search(): void
+    {
+        $this->authorized_user(['read library']);
+        app(FeatureManager::class)->enable(Feature::Library);
+        $matchingTitle = LibraryTitle::factory()->create(['title' => 'The River Between']);
+        $matchingCopy = LibraryCopy::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'library_title_id' => $matchingTitle->id,
+            'barcode' => 'BOOK-104',
+        ]);
+        $otherCopy = $this->copy();
+
+        Livewire::test(LibraryCopyCatalogComponent::class)
+            ->assertSee($matchingCopy->barcode)
+            ->assertSee($otherCopy->barcode)
+            ->set('search', 'River Between')
+            ->assertSee($matchingCopy->barcode)
+            ->assertDontSee($otherCopy->barcode)
+            ->set('search', 'No such title')
+            ->assertSee('Nothing matches that search.')
+            ->call('clearSearch')
+            ->assertSee($matchingCopy->barcode)
+            ->assertSee($otherCopy->barcode);
     }
 
     public function test_the_librarian_can_shelve_several_copies_at_once(): void

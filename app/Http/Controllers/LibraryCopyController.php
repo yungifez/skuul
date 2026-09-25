@@ -8,7 +8,6 @@ use App\Models\LibraryCopy;
 use App\Models\LibraryLoan;
 use App\Models\LibraryTitle;
 use App\Models\School;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -28,29 +27,7 @@ class LibraryCopyController extends Controller
      */
     public function index(): View
     {
-        $search = trim((string) request()->string('search'));
-
-        $copies = LibraryCopy::inSchool()
-            ->with(['title', 'loans' => fn ($loan) => $loan->whereNull('returned_on')->with('borrower')])
-            ->when($search !== '', function (Builder $query) use ($search): void {
-                $query->where(function (Builder $match) use ($search): void {
-                    $match->where('barcode', 'like', "%$search%")
-                        ->orWhereHas('title', function (Builder $title) use ($search): void {
-                            $title->where(function (Builder $named) use ($search): void {
-                                $named->orWhere('title', 'like', "%$search%")
-                                    ->orWhere('authors', 'like', "%$search%")
-                                    ->orWhere('isbn', 'like', "%$search%");
-                            });
-                        });
-                });
-            })
-            ->orderBy('barcode')
-            ->paginate(20)
-            ->withQueryString();
-
         return view('pages.library.index', [
-            'copies' => $copies,
-            'search' => $search,
             'titles' => LibraryTitle::forSchool()->orderBy('title')->limit(200)->get(),
             'onShelf' => LibraryCopy::inSchool()->available()->count(),
             'out' => LibraryLoan::inSchool()->open()->count(),
