@@ -10,6 +10,7 @@ use App\Enums\AttendanceStatus;
 use App\Enums\Feature;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\AttendanceRegister as AttendanceRegisterComponent;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
@@ -20,6 +21,7 @@ use App\Models\Subject;
 use App\Services\Attendance\AttendanceSummary;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -208,6 +210,83 @@ class AttendanceTest extends TestCase
         $this->assertSame(AttendanceStatus::Absent, AttendanceRecord::query()->where('student_record_id', $second->id)->sole()->status);
     }
 
+    public function test_staff_can_take_and_correct_attendance_without_leaving_the_register(): void
+    {
+        $this->authorized_user(['read attendance', 'take attendance']);
+        $first = $this->enrollment();
+        $second = $this->enrollment();
+        $second->update(['academic_cycle_section_id' => $first->academic_cycle_section_id]);
+
+        Livewire::test(AttendanceRegisterComponent::class, [
+            'academicCycleSectionId' => (string) $first->academic_cycle_section_id,
+            'attendedOn' => now()->toDateString(),
+        ])
+            ->assertSee($first->user->name)
+            ->set('statusesByStudent.'.$first->id, AttendanceStatus::Late->value)
+            ->call('markAll', AttendanceStatus::Absent->value)
+            ->set('statusesByStudent.'.$first->id, AttendanceStatus::Late->value)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertSee('Attendance register saved.');
+
+        $this->assertSame(AttendanceStatus::Late, AttendanceRecord::query()->where('student_record_id', $first->id)->sole()->status);
+        $this->assertSame(AttendanceStatus::Absent, AttendanceRecord::query()->where('student_record_id', $second->id)->sole()->status);
+    }
+
+    public function test_register_rejects_invalid_statuses_and_tampered_rosters(): void
+    {
+        $this->authorized_user(['read attendance', 'take attendance']);
+        $enrollment = $this->enrollment();
+        $outsider = $this->enrollment();
+
+        Livewire::test(AttendanceRegisterComponent::class, [
+            'academicCycleSectionId' => (string) $enrollment->academic_cycle_section_id,
+            'attendedOn' => now()->toDateString(),
+        ])
+            ->set('statusesByStudent.'.$enrollment->id, 'not-a-status')
+            ->call('save')
+            ->assertHasErrors('statusesByStudent.'.$enrollment->id);
+
+        Livewire::test(AttendanceRegisterComponent::class, [
+            'academicCycleSectionId' => (string) $enrollment->academic_cycle_section_id,
+            'attendedOn' => now()->toDateString(),
+        ])
+            ->set('statusesByStudent.'.$outsider->id, AttendanceStatus::Present->value)
+            ->call('save')
+            ->assertHasErrors('register');
+
+        $this->assertSame(0, AttendanceRecord::query()->count());
+    }
+
+    public function test_register_does_not_save_future_days(): void
+    {
+        $this->authorized_user(['read attendance', 'take attendance']);
+        $enrollment = $this->enrollment();
+
+        Livewire::test(AttendanceRegisterComponent::class, [
+            'academicCycleSectionId' => (string) $enrollment->academic_cycle_section_id,
+            'attendedOn' => now()->addDay()->toDateString(),
+        ])
+            ->call('save')
+            ->assertHasErrors('attendedOn');
+
+        $this->assertSame(0, AttendanceRecord::query()->count());
+    }
+
+    public function test_register_prefills_daily_status_without_lesson_records_overriding_it(): void
+    {
+        $this->authorized_user(['read attendance']);
+        $enrollment = $this->enrollment();
+        $action = app(RecordAttendance::class);
+        $action->record($enrollment, AttendanceStatus::Present);
+        $action->record($enrollment, AttendanceStatus::Absent, kind: AttendanceKind::Period, subject: $this->subject());
+
+        Livewire::test(AttendanceRegisterComponent::class, [
+            'academicCycleSectionId' => (string) $enrollment->academic_cycle_section_id,
+            'attendedOn' => now()->toDateString(),
+        ])->assertSet('statusesByStudent.'.$enrollment->id, AttendanceStatus::Present->value);
+    }
+
     public function test_a_disabled_attendance_feature_closes_the_register_screen(): void
     {
         $this->authorized_user(['read attendance']);
@@ -296,14 +375,18 @@ class AttendanceTest extends TestCase
             'attended_on' => now()->toDateString(),
         ]))
             ->assertOk()
-            ->assertSee(route('attendance.register', [
-                'academic_cycle_section_id' => $sectionId,
-                'attended_on' => now()->subDay()->toDateString(),
-            ]))
-            ->assertSee(route('attendance.register', [
-                'academic_cycle_section_id' => $sectionId,
-                'attended_on' => now()->addDay()->toDateString(),
-            ]));
+            ->assertSee('Previous day')
+            ->assertSee('Next day');
+
+        Livewire::test(AttendanceRegisterComponent::class, [
+            'academicCycleSectionId' => (string) $sectionId,
+            'attendedOn' => now()->toDateString(),
+        ])
+            ->call('moveDay', -1)
+            ->assertSet('academicCycleSectionId', (string) $sectionId)
+            ->assertSet('attendedOn', now()->subDay()->toDateString())
+            ->call('moveDay', 1)
+            ->assertSet('attendedOn', now()->toDateString());
     }
 
     public function test_the_register_screen_says_when_a_section_has_nobody(): void

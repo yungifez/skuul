@@ -6,7 +6,6 @@ use App\Actions\Attendance\RecordAttendance;
 use App\Enums\AttendanceStatus;
 use App\Http\Requests\StoreAttendanceRegisterRequest;
 use App\Models\AcademicCycleSection;
-use App\Models\AttendanceRecord;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
@@ -18,16 +17,8 @@ class AttendanceRegisterController extends Controller
     public function index(Request $request): View
     {
         abort_unless($request->user()?->can('read attendance'), 403);
-        $sectionId = $request->integer('academic_cycle_section_id');
-        // The second argument of date() is the format, not a fallback, so a
-        // request without a day has to choose today for itself.
-        $date = $request->date('attended_on') ?? now();
-        $sections = AcademicCycleSection::query()->inSchool()->with('academicLevel:id,name')->orderBy('name')->get();
-        $section = $sectionId === 0 ? null : $sections->firstWhere('id', $sectionId);
-        $students = $section === null ? collect() : $section->currentEnrollments()->attending()->with('user:id,name')->orderBy('admission_number')->get();
-        $records = $students->isEmpty() ? collect() : AttendanceRecord::query()->onDate($date)->whereIn('student_record_id', $students->pluck('id')->all())->get()->keyBy('student_record_id');
 
-        return view('pages.attendance.register', compact('sections', 'section', 'students', 'records', 'date'));
+        return view('pages.attendance.register');
     }
 
     public function store(StoreAttendanceRegisterRequest $request): RedirectResponse
