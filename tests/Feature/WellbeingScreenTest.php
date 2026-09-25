@@ -6,6 +6,7 @@ use App\Actions\Wellbeing\ManageSupportPlan;
 use App\Enums\Feature;
 use App\Enums\SupportCategory;
 use App\Enums\SupportPlanStatus;
+use App\Livewire\SupportPlanDirectory as SupportPlanDirectoryComponent;
 use App\Models\StudentHealthRecord;
 use App\Models\StudentRecord;
 use App\Models\SupportPlan;
@@ -13,6 +14,7 @@ use App\Models\User;
 use App\Services\Feature\FeatureManager;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -162,6 +164,51 @@ class WellbeingScreenTest extends TestCase
             ->assertOk()
             ->assertSee(route('support-plans.show', $due))
             ->assertDontSee(route('support-plans.show', $later));
+    }
+
+    public function test_livewire_plan_filters_keep_confidential_records_private_and_clear_cleanly(): void
+    {
+        $this->authorized_user(['read confidential support plan', 'create support plan']);
+        $confidential = app(ManageSupportPlan::class)->open(
+            $this->enrollment(),
+            'Private counselling plan',
+            SupportCategory::Counselling,
+        );
+
+        $this->authorized_user(['read support plan', 'create support plan']);
+        $manager = app(ManageSupportPlan::class);
+        $due = $manager->open(
+            $this->enrollment(),
+            'Overdue reading plan',
+            SupportCategory::Intervention,
+            reviewOn: now()->subWeek(),
+        );
+        $later = $manager->open(
+            $this->enrollment(),
+            'Later learning plan',
+            SupportCategory::Accommodation,
+            reviewOn: now()->addMonth(),
+        );
+
+        Livewire::test(SupportPlanDirectoryComponent::class)
+            ->assertSee(route('support-plans.show', $due))
+            ->assertSee(route('support-plans.show', $later))
+            ->assertDontSee(route('support-plans.show', $confidential))
+            ->set('status', SupportPlanStatus::Draft->value)
+            ->set('category', SupportCategory::Intervention->value)
+            ->assertSee(route('support-plans.show', $due))
+            ->assertDontSee(route('support-plans.show', $later))
+            ->set('dueOnly', true)
+            ->assertSee(route('support-plans.show', $due))
+            ->set('category', 'not-a-category')
+            ->assertSet('category', '')
+            ->call('clearFilters')
+            ->assertSet('status', '')
+            ->assertSet('category', '')
+            ->assertSet('dueOnly', false)
+            ->assertSee(route('support-plans.show', $due))
+            ->assertSee(route('support-plans.show', $later))
+            ->assertDontSee(route('support-plans.show', $confidential));
     }
 
     public function test_the_health_screen_counts_the_learners_without_a_record(): void

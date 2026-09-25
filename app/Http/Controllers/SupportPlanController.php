@@ -16,9 +16,7 @@ use App\Models\SupportPlanAction;
 use App\Models\User;
 use App\Traits\ListsSchoolPeople;
 use Illuminate\Contracts\View\View;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 
 /**
  * Open a plan of help, run it, and close it.
@@ -36,42 +34,11 @@ class SupportPlanController extends Controller
     /**
      * Show the plans this person may read.
      */
-    public function index(Request $request): View
+    public function index(): View
     {
         $this->authorize('viewAny', SupportPlan::class);
 
-        $selectedStatus = SupportPlanStatus::tryFrom($request->string('status')->toString());
-        $selectedCategory = SupportCategory::tryFrom($request->string('category')->toString());
-        $dueOnly = $request->boolean('due');
-
-        $readable = fn (): Builder => SupportPlan::query()->inSchool()->readableBy($request->user());
-
-        $plans = $readable()
-            ->with(['studentRecord.user:id,name', 'assignedTo:id,name'])
-            ->withCount(['actions', 'notes'])
-            ->when($selectedStatus !== null, function (Builder $query) use ($selectedStatus): void {
-                $query->where('status', $selectedStatus);
-            })
-            ->when($selectedCategory !== null, function (Builder $query) use ($selectedCategory): void {
-                $query->where('category', $selectedCategory);
-            })
-            ->when($dueOnly, function (Builder $query): void {
-                $query->dueForReview();
-            })
-            ->latest('id')
-            ->paginate(20)
-            ->withQueryString();
-
-        return view('pages.support-plan.index', [
-            'plans' => $plans,
-            'statuses' => SupportPlanStatus::cases(),
-            'categories' => SupportCategory::cases(),
-            'selectedStatus' => $selectedStatus,
-            'selectedCategory' => $selectedCategory,
-            'dueOnly' => $dueOnly,
-            'openCount' => $readable()->open()->count(),
-            'dueCount' => $readable()->dueForReview()->count(),
-        ]);
+        return view('pages.support-plan.index');
     }
 
     /**
