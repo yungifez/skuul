@@ -37,7 +37,7 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
     <april:sidebar x-persist="sidebar" collapsible="icon" :default-open="sidebar_open()"
         class="border-r max-h-svh sticky top-0">
         <slot:header>
-            <div class="flex min-w-0 flex-col gap-2">
+            <div class="flex min-w-0 flex-col gap-2 px-2 group-data-[collapsible=icon]:px-0">
                 <a href="{{route('home')}}" wire:navigate class="flex h-10 items-center gap-2" aria-label="Home">
                     <img src="{{asset(current_school()?->logoURL ?? config('app.logo'))}}" alt=""
                         class="h-8 w-8 rounded-md border object-cover">
@@ -53,7 +53,7 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
                         id here would appear twice and `for` would point at the
                         copy the reader cannot see. Wrap the control instead. --}}
                         <label class="flex min-w-0 flex-col gap-1">
-                            <span class="px-1 text-[0.65rem] font-semibold uppercase text-muted-foreground">
+                            <span class="px-2 text-xs font-medium text-sidebar-foreground/70">
                                 Working school
                             </span>
                             <april:native-select name="school_id"
@@ -67,7 +67,7 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
                         </label>
                     </form>
                 @elseif (current_school() !== null)
-                    <span class="truncate px-1 text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
+                    <span class="truncate text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
                         {{ current_school()->name }}
                     </span>
                 @endif

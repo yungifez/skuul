@@ -205,19 +205,17 @@ class SchoolTest extends TestCase
             ->get('/dashboard')
             ->assertSuccessful()
             ->assertSee('Finish setting up your school')
-            ->assertSee('Next priority')
-            ->assertSee('View all setup steps');
+            ->assertSee('Next:')
+            ->assertSee('All setup steps')
+            ->assertDontSee('Your school, ready for the day');
 
         $content = $response->getContent();
-        $setupPosition = strpos($content, 'Finish setting up your school');
-        $schoolOverviewPosition = strpos($content, 'Your school, ready for the day');
-        $workingSchoolPosition = strpos($content, 'You are working in');
+        $setupPosition = strpos($content, 'id="school-setup-heading"');
+        $todayPosition = strpos($content, 'id="today-overview"');
 
         $this->assertNotFalse($setupPosition);
-        $this->assertNotFalse($schoolOverviewPosition);
-        $this->assertNotFalse($workingSchoolPosition);
-        $this->assertLessThan($schoolOverviewPosition, $setupPosition);
-        $this->assertLessThan($workingSchoolPosition, $schoolOverviewPosition);
+        $this->assertNotFalse($todayPosition);
+        $this->assertLessThan($todayPosition, $setupPosition);
     }
 
     public function test_dashboard_links_to_create_the_first_academic_year_when_none_exists(): void

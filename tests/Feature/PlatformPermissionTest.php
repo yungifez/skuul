@@ -60,10 +60,10 @@ class PlatformPermissionTest extends TestCase
         $this->authorized_user(['read student', 'read calendar event'])
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('What needs attention today')
+            ->assertSee('id="today-overview"', false)
             ->assertSee('School snapshot')
             ->assertSee('Active students')
-            ->assertDontSee('Organization context');
+            ->assertDontSee('id="organization-heading"', false);
     }
 
     public function test_a_school_member_without_dashboard_permissions_sees_no_empty_workspace_panels(): void
@@ -71,9 +71,9 @@ class PlatformPermissionTest extends TestCase
         $this->unauthorized_user()
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertDontSee('What needs attention today')
-            ->assertDontSee('School snapshot')
-            ->assertDontSee('Your school, ready for the day');
+            ->assertDontSee('id="today-overview"', false)
+            ->assertDontSee('id="upcoming-overview"', false)
+            ->assertDontSee('School snapshot');
     }
 
     public function test_calendar_staff_can_see_upcoming_events_without_a_school_snapshot(): void
@@ -81,9 +81,9 @@ class PlatformPermissionTest extends TestCase
         $this->authorized_user(['read calendar event'])
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('What needs attention today')
-            ->assertSee('The next few days')
-            ->assertSee('Today’s agenda')
+            ->assertSee('id="today-overview"', false)
+            ->assertSee('Next 7 days')
+            ->assertSee('Upcoming events')
             ->assertDontSee('School snapshot');
     }
 

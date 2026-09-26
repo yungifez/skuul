@@ -747,3 +747,21 @@
 - Impact: Staff on an open year met a dead end. The editable form was long and hard to scan.
 - Reproduction: Open `/dashboard/academic-years/{id}/setup/calendar` for an open year, then open `/dashboard/academic-years/create`.
 - Resolution: An open year now lists its dates and periods, with an "Open calendar" link. The form has no card. Periods read as one table with one header row. Structure is a segmented control. Remove is hidden on the last period. Cancel is hidden inside the setup wizard. Empty dates read "No dates". `AcademicCalendarSetupTest` covers the read-only view and the hidden Remove control.
+
+## The dashboard explained itself instead of showing the day
+
+- Status: Fixed
+- Area: Dashboard
+- Observed: The dashboard opened with a setup banner in the accent colour. The banner had two sentences, a tooltip, and a separate "next priority" box. Next came a "Your school, ready for the day" card that repeated the school and term from the top bar. Each section had an uppercase eyebrow label, and each card and stat had a description line.
+- Impact: The numbers staff come for sat below several screens of prose. The accent colour marked a banner, not an action.
+- Reproduction: Open `/dashboard` as a school administrator.
+- Resolution: Setup is now one line: a progress bar, "7 of 10", the next step, and one accent button. The repeated context card is removed. Organization facts, today's attendance and agenda, the next 7 days, and the school snapshot read as flat sections with plain headings and no description lines. `PlatformPermissionTest` and `SchoolTest` anchor on the section ids.
+
+## Sidebar header did not line up with the navigation
+
+- Status: Fixed
+- Area: Application layout (sidebar)
+- Observed: The logo and working-school select started 8px left of the nav items and group labels. The "Working school" label used a third indent in a different type style.
+- Impact: The sidebar looked ragged at its most visible edge.
+- Reproduction: Open any page with the sidebar expanded and compare the left edges of the logo, the working-school select, and the nav items.
+- Resolution: April's sidebar content section adds `p-2` on top of each group's `p-2` (april-ui commit 5f5652f), but the header gets only one `p-2`. Our header now adds the missing inner padding, and the label uses the group-label style. The logo, avatar, and nav icons share one centre line. The select and nav items share one left edge.
