@@ -5,18 +5,18 @@
 
 ]])
 
-@section('title', __('Set up '.strtolower(school_term('academic_year', 'school year'))))
+@section('title', __('Set up a '.strtolower(school_term('academic_year', 'school year'))))
 
-@section('page_heading', __('Set up '.strtolower(school_term('academic_year', 'school year'))))
+@section('page_heading', __('Set up a '.strtolower(school_term('academic_year', 'school year'))))
 
 @section('content')
     <div class="mx-auto flex w-full max-w-5xl flex-col gap-6">
         <april:steps :items="[
-            ['value' => 'calendar', 'label' => 'Dates and periods', 'description' => 'Set the calendar', 'state' => 'current'],
-            ['value' => 'teaching', 'label' => 'Teaching approach', 'description' => 'Choose the grouping', 'state' => 'upcoming'],
-            ['value' => 'structure', 'label' => 'Classes and teachers', 'description' => 'Build the year', 'state' => 'upcoming'],
-            ['value' => 'subjects', 'label' => 'Subjects', 'description' => 'Choose what is taught', 'state' => 'upcoming'],
-            ['value' => 'review', 'label' => 'Review and publish', 'description' => 'Make it available', 'state' => 'upcoming'],
+            ['value' => 'calendar', 'label' => 'Dates and periods', 'state' => 'current'],
+            ['value' => 'teaching', 'label' => 'Teaching approach', 'state' => 'upcoming'],
+            ['value' => 'structure', 'label' => 'Classes and teachers', 'state' => 'upcoming'],
+            ['value' => 'subjects', 'label' => 'Subjects', 'state' => 'upcoming'],
+            ['value' => 'review', 'label' => 'Review and publish', 'state' => 'upcoming'],
         ]" current="calendar" />
         @livewire('academic-calendar-form', ['setupWizard' => true])
     </div>

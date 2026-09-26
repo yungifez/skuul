@@ -363,4 +363,35 @@ class AcademicCalendarSetupTest extends TestCase
             ->assertSee('Reporting structure')
             ->assertDontSee('Stop year');
     }
+
+    public function test_an_open_year_shows_its_dates_and_a_way_to_the_calendar(): void
+    {
+        $this->authorized_user(['create academic year', 'update academic year']);
+        $calendar = app(SaveAcademicCalendar::class)->save(
+            current_school(),
+            Carbon::parse('2030-09-01'),
+            Carbon::parse('2031-08-31'),
+            [['name' => 'Term 1', 'type' => AcademicPeriodType::Term->value, 'starts_on' => '2030-09-01', 'ends_on' => '2031-08-31']],
+            auth()->user(),
+        );
+        $calendar->update(['status' => AcademicPeriodStatus::Open]);
+
+        Livewire::test(AcademicCalendarForm::class, ['academicYear' => $calendar->fresh(), 'setupWizard' => true])
+            ->assertSee('Term 1')
+            ->assertSee('Sep 1, 2030')
+            ->assertSee(route('academic-years.show', $calendar), false)
+            ->assertDontSee('Save and continue');
+    }
+
+    public function test_the_last_reporting_period_offers_no_remove_control(): void
+    {
+        $this->authorized_user(['create academic year']);
+
+        Livewire::test(AcademicCalendarForm::class)
+            ->set('structure', 'custom')
+            ->assertCount('periods', 1)
+            ->assertDontSeeHtml('wire:click="removePeriod(0)"')
+            ->call('addPeriod')
+            ->assertSeeHtml('wire:click="removePeriod(0)"');
+    }
 }

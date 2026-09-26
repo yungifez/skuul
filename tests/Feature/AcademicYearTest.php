@@ -74,12 +74,16 @@ class AcademicYearTest extends TestCase
 
     public function test_an_authorized_user_can_open_a_school_calendar_draft_for_editing(): void
     {
-        $academicYear = AcademicYear::factory()->create(['school_id' => current_school_id()]);
+        $academicYear = AcademicYear::factory()->create([
+            'school_id' => current_school_id(),
+            'status' => AcademicPeriodStatus::Draft,
+        ]);
 
         $this->authorized_user(['update academic year'])
             ->get("/dashboard/academic-years/{$academicYear->id}/edit")
             ->assertOk()
-            ->assertSee('Edit draft '.strtolower(school_term('academic_year', 'school year')));
+            ->assertSee('Save draft')
+            ->assertSee('Reporting periods');
     }
 
     public function test_a_draft_calendar_overview_points_to_the_next_setup_step(): void

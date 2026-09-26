@@ -738,3 +738,12 @@
 - Impact: The step did not follow the move to Livewire forms, and a refusal reloaded the whole page to show one message.
 - Reproduction: Open `/dashboard/academic-years/{id}/setup/review` and press Publish.
 - Resolution: The `PublishAcademicYear` Livewire component now publishes the year. It shows a refusal inline, next to the button. The old route and controller action were removed. `SetupWizardTest` covers success, a refusal, and a user without permission.
+
+## The calendar setup step hid an open year's dates and offered a dead remove button
+
+- Status: Fixed
+- Area: Academic year setup (dates and periods), academic year create and edit
+- Observed: For an open year, the step showed only a warning. The warning mentioned a "calendar overview" but did not link to it or show the year's dates. The editable form repeated the page title in a card and repeated field labels on every period row. It kept a Remove button on the last period, which the server ignores. It marked the chosen structure with the accent colour. It showed Cancel beside the setup page's own navigation.
+- Impact: Staff on an open year met a dead end. The editable form was long and hard to scan.
+- Reproduction: Open `/dashboard/academic-years/{id}/setup/calendar` for an open year, then open `/dashboard/academic-years/create`.
+- Resolution: An open year now lists its dates and periods, with an "Open calendar" link. The form has no card. Periods read as one table with one header row. Structure is a segmented control. Remove is hidden on the last period. Cancel is hidden inside the setup wizard. Empty dates read "No dates". `AcademicCalendarSetupTest` covers the read-only view and the hidden Remove control.
