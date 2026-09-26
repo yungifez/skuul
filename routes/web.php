@@ -557,7 +557,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
 
         // academic year routes
         Route::get('academic-years/{academic_year}/setup/{step?}', [AcademicYearSetupController::class, 'show'])->name('academic-years.setup');
-        Route::post('academic-years/{academic_year}/setup/publish', [AcademicYearSetupController::class, 'publish'])->name('academic-years.setup.publish');
         Route::resource('academic-years', AcademicYearController::class)->except(['store', 'update']);
         Route::post('academic-years/set', ['App\Http\Controllers\AcademicYearController', 'setAcademicYear'])->name('academic-years.set-academic-year');
         Route::post('academic-years/{academic_year}/close', ['App\Http\Controllers\AcademicYearController', 'close'])->name('academic-years.close');

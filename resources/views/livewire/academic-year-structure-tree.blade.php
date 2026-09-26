@@ -11,16 +11,18 @@
         @error('delete')
             <div class="mb-3 rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive" role="alert">{{ $message }}</div>
         @enderror
-        @include('pages.academic-year.partials.level-tree', [
-            'levels' => $academicLevels->whereNull('parent_id')->values(),
-            'childrenByParent' => $academicLevels->groupBy('parent_id'),
-            'sectionsByLevel' => $sectionsByLevel,
-            'courseOfferingsByLevel' => $courseOfferingsByLevel,
-            'academicYear' => $academicYear,
-            'schoolSetup' => $schoolSetup,
-            'setupLinks' => $setupLinks,
-            'showLevelActions' => $showLevelActions,
-            'levelDepth' => 0,
-        ])
+        <div class="divide-y border-y">
+            @include('pages.academic-year.partials.level-tree', [
+                'levels' => $academicLevels->whereNull('parent_id')->values(),
+                'childrenByParent' => $academicLevels->groupBy('parent_id'),
+                'sectionsByLevel' => $sectionsByLevel,
+                'courseOfferingsByLevel' => $courseOfferingsByLevel,
+                'academicYear' => $academicYear,
+                'schoolSetup' => $schoolSetup,
+                'setupLinks' => $setupLinks,
+                'showLevelActions' => $showLevelActions,
+                'levelDepth' => 0,
+            ])
+        </div>
     @endif
 </div>

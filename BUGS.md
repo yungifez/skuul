@@ -720,3 +720,21 @@
 - Impact: The route could refer to a record that does not exist at the newly selected campus, resulting in a confusing not-found or authorization screen instead of the new campus home.
 - Reproduction: Open a record page, change the Working school selector, and observe that the browser returns to the previous record URL.
 - Resolution: Successful school changes now redirect to the dashboard. `SchoolContextTest` verifies the redirect from a deep page and denies switching to a school without membership.
+
+## The year-setup structure step was cluttered and over-explained
+
+- Status: Fixed
+- Area: Academic year setup (classes and teachers step), academic levels, school setup
+- Observed: The step put cards inside cards and repeated helper text in several places. Each level row had four or five spelled-out buttons, and the up/down arrows looked like expand arrows. Every section row showed "No additional details yet". Every Active row carried a badge in the accent colour.
+- Impact: Staff could not see at a glance which classes needed a section or a teacher. The accent colour marked everything, so nothing stood out as the next action.
+- Reproduction: Open `/dashboard/academic-years/{id}/setup/structure` for a year with several levels and sections.
+- Resolution: The structure now reads as one flat list with dividers. Row actions (including reordering) are in one `⋯` menu. Sections show teacher, room, and capacity in aligned columns, and a missing value reads quietly. Only Draft or Archived statuses show a badge. The header counts sections and sections without a teacher. An empty class shows "No sections this year · Add section". Step descriptions, help tooltips, and the "next step" banner were removed, and Continue moved into the bottom bar. `SetupWizardTest` covers the counts, the single row menu, and the empty-class link.
+
+## Publishing an academic year used a regular form post
+
+- Status: Fixed
+- Area: Academic year setup (review step)
+- Observed: The review step published through a plain POST form to `academic-years.setup.publish`. The review card also declared two footer slots, so the help tooltip footer was lost.
+- Impact: The step did not follow the move to Livewire forms, and a refusal reloaded the whole page to show one message.
+- Reproduction: Open `/dashboard/academic-years/{id}/setup/review` and press Publish.
+- Resolution: The `PublishAcademicYear` Livewire component now publishes the year. It shows a refusal inline, next to the button. The old route and controller action were removed. `SetupWizardTest` covers success, a refusal, and a user without permission.
