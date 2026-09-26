@@ -4,12 +4,14 @@ namespace Tests\Feature;
 
 use App\Enums\AcademicPeriodStatus;
 use App\Enums\Role;
+use App\Livewire\SetAcademicPeriod;
 use App\Livewire\ShowAcademicYear;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\School;
 use App\Models\User;
 use App\Services\Academic\AcademicPeriodContext;
+use App\Services\AcademicYear\AcademicYearService;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -35,17 +37,18 @@ class AcademicYearTest extends TestCase
             ->assertSee(school_terms('academic_year', 'School years'));
     }
 
-    public function test_working_calendar_form_uses_the_april_ui_select(): void
+    public function test_the_working_year_picker_lists_published_years_but_not_drafts(): void
     {
         $academicYear = AcademicYear::factory()->create(['school_id' => current_school_id()]);
+        $draftYear = AcademicYear::factory()->create(['school_id' => current_school_id(), 'status' => AcademicPeriodStatus::Draft]);
 
         $this->authorized_user(['read academic year', 'set academic year'])
             ->get('/dashboard/academic-years')
             ->assertOk()
-            ->assertSee('data-slot="select"', false)
-            ->assertSee('x-data="select(', false)
-            ->assertSee('name="academic_year_id"', false)
-            ->assertSee('value="'.$academicYear->id.'"', false);
+            ->assertSee('id="working-year"', false)
+            ->assertSee('value="'.$academicYear->id.'"', false)
+            ->assertDontSee('value="'.$draftYear->id.'"', false)
+            ->assertDontSee('name="academic_year_id"', false);
     }
 
     public function test_an_unauthorized_user_cannot_open_calendar_setup(): void
@@ -138,8 +141,10 @@ class AcademicYearTest extends TestCase
 
     public function test_an_unauthorized_user_cannot_set_a_working_calendar(): void
     {
-        $this->unauthorized_user()
-            ->post('/dashboard/academic-years/set')
+        $this->unauthorized_user();
+
+        Livewire::test(SetAcademicPeriod::class, ['compact' => true])
+            ->set('workingYearId', current_academic_year_id())
             ->assertForbidden();
     }
 
@@ -153,10 +158,15 @@ class AcademicYearTest extends TestCase
         ]);
         $schoolBefore = current_school()->academic_year_id;
 
-        $this->authorized_user(['set academic year'])
-            ->post('/dashboard/academic-years/set', ['academic_year_id' => $academicYear->id])
-            ->assertSessionHas(AcademicPeriodContext::YEAR_SESSION_KEY, $academicYear->id);
+        $this->authorized_user(['set academic year']);
 
+        Livewire::test(SetAcademicPeriod::class, ['compact' => true])
+            ->assertSeeHtml('id="working-year"')
+            ->set('workingYearId', $academicYear->id)
+            ->assertHasNoErrors()
+            ->assertRedirect();
+
+        $this->assertSame($academicYear->id, session(AcademicPeriodContext::YEAR_SESSION_KEY));
         $this->assertSame($schoolBefore, current_school()->fresh()->academic_year_id);
     }
 
@@ -165,9 +175,26 @@ class AcademicYearTest extends TestCase
         $other = School::factory()->create();
         $academicYear = AcademicYear::factory()->create(['school_id' => $other->id]);
 
-        $this->authorized_user(['set academic year'])
-            ->post('/dashboard/academic-years/set', ['academic_year_id' => $academicYear->id])
-            ->assertSessionMissing(AcademicPeriodContext::YEAR_SESSION_KEY);
+        $this->authorized_user(['set academic year']);
+        $workingYearBefore = session(AcademicPeriodContext::YEAR_SESSION_KEY);
+
+        Livewire::test(SetAcademicPeriod::class, ['compact' => true])
+            ->set('workingYearId', $academicYear->id)
+            ->assertHasErrors('workingYearId')
+            ->assertNoRedirect();
+
+        $this->assertSame($workingYearBefore, session(AcademicPeriodContext::YEAR_SESSION_KEY));
+    }
+
+    public function test_the_working_year_picker_needs_permission_to_change(): void
+    {
+        $academicYear = AcademicYear::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['set academic period']);
+
+        Livewire::test(SetAcademicPeriod::class, ['compact' => true])
+            ->assertDontSeeHtml('id="working-year"')
+            ->call('setWorkingYear', app(AcademicYearService::class))
+            ->assertForbidden();
     }
 
     public function test_a_teacher_can_choose_the_working_calendar_and_term(): void
@@ -188,12 +215,17 @@ class AcademicYearTest extends TestCase
             ->assertOk()
             ->assertSee('Working '.strtolower(school_term('academic_year', 'school year')));
 
-        $this->post(route('academic-years.set-academic-year'), [
-            'academic_year_id' => $academicYear->id,
-        ])->assertSessionHas(AcademicPeriodContext::YEAR_SESSION_KEY, $academicYear->id);
+        Livewire::test(SetAcademicPeriod::class, ['compact' => true])
+            ->set('workingYearId', $academicYear->id)
+            ->assertHasNoErrors()
+            ->assertRedirect();
 
-        $this->post(route('academic-periods.set-academic-period'), [
-            'academic_period_id' => $academicPeriod->id,
-        ])->assertSessionHas(AcademicPeriodContext::ACADEMIC_PERIOD_SESSION_KEY, $academicPeriod->id);
+        $this->assertSame($academicYear->id, session(AcademicPeriodContext::YEAR_SESSION_KEY));
+
+        Livewire::test(SetAcademicPeriod::class)
+            ->set('workingPeriodId', $academicPeriod->id)
+            ->assertHasNoErrors();
+
+        $this->assertSame($academicPeriod->id, session(AcademicPeriodContext::ACADEMIC_PERIOD_SESSION_KEY));
     }
 }

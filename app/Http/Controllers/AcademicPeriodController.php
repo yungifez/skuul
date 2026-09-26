@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Actions\Academic\ChangeAcademicPeriodStatus;
 use App\Http\Requests\ChangeAcademicPeriodStatusRequest;
-use App\Http\Requests\SetAcademicPeriodRequest;
 use App\Http\Requests\StoreAcademicPeriodRequest;
 use App\Http\Requests\UpdateAcademicPeriodRequest;
 use App\Models\AcademicPeriod;
@@ -109,17 +108,5 @@ class AcademicPeriodController extends Controller
         $this->changeAcademicPeriodStatus->beginClosing($academicPeriod, $request->user(), $request->validated('reason'));
 
         return back()->with('success', 'Academic period is now closing. Complete the checklist before final closure.');
-    }
-
-    /**
-     * Set school academic period.
-     */
-    public function setAcademicPeriod(SetAcademicPeriodRequest $request): RedirectResponse
-    {
-        $this->authorize('setAcademicPeriod', AcademicPeriod::class);
-        $academicPeriod = AcademicPeriod::inSchool()->findOrFail($request->validated('academic_period_id'));
-        $this->academicPeriod->setAcademicPeriod($academicPeriod, $request->user());
-
-        return back()->with('success', 'Working term saved for you.');
     }
 }

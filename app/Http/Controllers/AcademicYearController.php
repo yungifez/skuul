@@ -7,7 +7,6 @@ use App\Http\Requests\ChangeAcademicPeriodStatusRequest;
 use App\Models\AcademicYear;
 use App\Services\AcademicYear\AcademicYearService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class AcademicYearController extends Controller
@@ -95,18 +94,5 @@ class AcademicYearController extends Controller
         $this->changeAcademicPeriodStatus->beginClosing($academicYear, $request->user(), $request->validated('reason'));
 
         return back()->with('success', 'Academic cycle is now closing. Complete the checklist before final closure.');
-    }
-
-    /**
-     * Set academic year.
-     */
-    public function setAcademicYear(Request $request): RedirectResponse
-    {
-        $this->authorize('setAcademicYear', AcademicYear::class);
-        $academicYear = $request->academic_year_id;
-
-        $this->academicYear->setAcademicYear((int) $academicYear, $request->user());
-
-        return back()->with('success', 'Working calendar set for '.current_school()->name.' successfully');
     }
 }

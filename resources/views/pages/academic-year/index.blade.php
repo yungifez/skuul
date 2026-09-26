@@ -12,7 +12,6 @@
 @endsection
 
 @section('content', )
-    @livewire('set-academic-year')
 
     @livewire('list-academic-years-table')
 @endsection

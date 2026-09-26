@@ -10,34 +10,15 @@
 
 @livewire('dashboard-data-cards')
 
-@can('set school')
-    @livewire('set-school')
-@endcan
-
-@livewire('set-academic-year')
 
 @if (auth()->user()->hasRole(\App\Enums\Role::Student))
-    <april:card>
-        <slot:content class="flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
-            <div class="flex items-center gap-3">
-                <span class="flex size-10 items-center justify-center rounded-md bg-muted">
-                    <x-lucide-download class="size-5" />
-                </span>
-                <div>
-                    <p class="font-semibold">Download your profile</p>
-                    <p class="text-sm text-muted-foreground">Save a printable copy of your student record.</p>
-                </div>
-            </div>
-            <april:button-link href="{{route('students.print-profile',auth()->user()->id)}}" variant="outline" aria-label="Download Profile">
-                Download profile
-                <x-lucide-arrow-up-right class="ml-2 size-4" />
-            </april:button-link>
-        </slot:content>
-    </april:card>
+    <div class="flex flex-wrap items-center justify-between gap-3 border-y py-3">
+        <p class="font-medium">Your profile</p>
+        <april:button-link href="{{ route('students.print-profile', auth()->user()->id) }}" variant="outline">
+            <x-lucide-download class="mr-2 size-4" />
+            Download profile
+        </april:button-link>
+    </div>
 @endif
-
-@can('read notice')
-    @livewire('list-notices-table')
-@endcan
 
 @endsection

@@ -9,6 +9,7 @@ use App\Enums\AuditAction;
 use App\Enums\InstructionalModel;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\AcademicCalendarForm;
+use App\Livewire\SetAcademicPeriod;
 use App\Livewire\ShowAcademicYear;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
@@ -349,9 +350,12 @@ class AcademicCalendarSetupTest extends TestCase
             [['name' => 'Term 1', 'type' => AcademicPeriodType::Term->value, 'starts_on' => '2030-09-01', 'ends_on' => '2031-08-31']],
         );
 
-        $this->authorized_user(['set academic year'])
-            ->post(route('academic-years.set-academic-year'), ['academic_year_id' => $calendar->id])
-            ->assertSessionHas('danger', 'Publish the school calendar before making it the working calendar.');
+        $this->authorized_user(['set academic year']);
+
+        Livewire::test(SetAcademicPeriod::class, ['compact' => true])
+            ->set('workingYearId', $calendar->id)
+            ->assertHasErrors(['workingYearId' => 'Publish the school calendar before making it the working calendar.'])
+            ->assertNoRedirect();
     }
 
     public function test_the_school_calendar_setup_screen_replaces_the_legacy_year_fields(): void

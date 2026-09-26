@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\SetAcademicPeriod;
 use App\Models\AcademicPeriod;
+use App\Models\AcademicYear;
 use App\Services\Academic\AcademicPeriodContext;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class AcademicPeriodTest extends TestCase
@@ -35,10 +38,44 @@ class AcademicPeriodTest extends TestCase
         ]);
         $schoolBefore = current_school()->academic_period_id;
 
-        $this->authorized_user(['set academic period'])
-            ->post(route('academic-periods.set-academic-period'), ['academic_period_id' => $academicPeriod->id])
-            ->assertSessionHas(AcademicPeriodContext::ACADEMIC_PERIOD_SESSION_KEY, $academicPeriod->id);
+        $this->authorized_user(['set academic period']);
+
+        Livewire::test(SetAcademicPeriod::class, ['compact' => true])
+            ->set('workingPeriodId', $academicPeriod->id)
+            ->assertHasNoErrors()
+            ->assertRedirect();
+
+        $this->assertSame($academicPeriod->id, session(AcademicPeriodContext::ACADEMIC_PERIOD_SESSION_KEY));
 
         $this->assertSame($schoolBefore, current_school()->fresh()->academic_period_id);
+    }
+
+    public function test_the_working_term_bar_refuses_a_period_from_another_year(): void
+    {
+        $otherYear = AcademicYear::factory()->create(['school_id' => current_school_id()]);
+        $otherPeriod = AcademicPeriod::factory()->create([
+            'school_id' => current_school_id(),
+            'academic_year_id' => $otherYear->id,
+        ]);
+        $this->authorized_user(['set academic period']);
+
+        Livewire::test(SetAcademicPeriod::class, ['compact' => true])
+            ->set('workingPeriodId', $otherPeriod->id)
+            ->assertHasErrors('workingPeriodId')
+            ->assertNoRedirect();
+    }
+
+    public function test_the_working_term_bar_needs_permission_to_change(): void
+    {
+        $academicPeriod = AcademicPeriod::factory()->create([
+            'school_id' => current_school_id(),
+            'academic_year_id' => current_school()->academic_year_id,
+        ]);
+        $this->authorized_user([]);
+
+        Livewire::test(SetAcademicPeriod::class, ['compact' => true])
+            ->assertDontSeeHtml('wire:model.live="workingPeriodId"')
+            ->set('workingPeriodId', $academicPeriod->id)
+            ->assertForbidden();
     }
 }

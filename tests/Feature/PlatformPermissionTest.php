@@ -60,10 +60,11 @@ class PlatformPermissionTest extends TestCase
         $this->authorized_user(['read student', 'read calendar event'])
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('id="today-overview"', false)
+            ->assertSee('id="upcoming-overview"', false)
+            ->assertDontSee('id="today-overview"', false)
             ->assertSee('School snapshot')
             ->assertSee('Active students')
-            ->assertDontSee('id="organization-heading"', false);
+            ->assertDontSee('id="organization-campuses"', false);
     }
 
     public function test_a_school_member_without_dashboard_permissions_sees_no_empty_workspace_panels(): void
@@ -81,9 +82,9 @@ class PlatformPermissionTest extends TestCase
         $this->authorized_user(['read calendar event'])
             ->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('id="today-overview"', false)
+            ->assertSee('id="upcoming-overview"', false)
             ->assertSee('Next 7 days')
-            ->assertSee('Upcoming events')
+            ->assertSee('Nothing scheduled.')
             ->assertDontSee('School snapshot');
     }
 

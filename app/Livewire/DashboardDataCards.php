@@ -11,10 +11,12 @@ use App\Models\AcademicLevel;
 use App\Models\AttendanceRecord;
 use App\Models\CalendarEvent;
 use App\Models\CourseOffering;
+use App\Models\Notice;
 use App\Models\Organization;
 use App\Models\School;
 use App\Models\User;
 use App\Services\School\SchoolSetupPhaseService;
+use Illuminate\Support\Carbon;
 use Illuminate\View\View;
 use Livewire\Component;
 
@@ -42,9 +44,7 @@ class DashboardDataCards extends Component
 
     public $organizationSchools;
 
-    public $calendarTemplates;
-
-    public $isOrganizationAdministrator;
+    public bool $showCampuses = false;
 
     public ?array $setupChecklist = null;
 
@@ -66,6 +66,9 @@ class DashboardDataCards extends Component
     /** @var array<int, array{title: string, type: string, date: string, time: string}> */
     public array $upcomingEvents = [];
 
+    /** @var array<int, array{title: string, until: string, url: string}>|null */
+    public ?array $notices = null;
+
     public function mount(SchoolSetupPhaseService $schoolSetupPhases): void
     {
         $user = auth()->user();
@@ -78,10 +81,12 @@ class DashboardDataCards extends Component
         }
         $this->organization = $school->organization;
         $this->organizationSchools = $this->organization?->schools()->count() ?? 0;
-        $this->calendarTemplates = $this->organization?->calendarTemplates()->count() ?? 0;
         $this->organizations = $user->can(PlatformPermission::AccessAllOrganizations) ? Organization::count() : 0;
-        $this->isOrganizationAdministrator = $this->organization !== null
-            && $user->administersOrganization($this->organization);
+        $this->showCampuses = $this->organization !== null && (
+            $user->can(PlatformPermission::AccessAllSchools)
+            || $user->administersOrganization($this->organization)
+            || $user->hasRole(Role::Admin)
+        );
         $this->schools = School::count();
         $this->academicLevels = AcademicLevel::query()->inSchool()->where('is_group', false)->count();
         $this->cycleSections = AcademicCycleSection::query()
@@ -101,6 +106,10 @@ class DashboardDataCards extends Component
 
         if ($user->can('viewAny', CalendarEvent::class)) {
             $this->loadCalendarOverview();
+        }
+
+        if ($user->can('read notice')) {
+            $this->loadCurrentNotices($user);
         }
     }
 
@@ -188,6 +197,30 @@ class DashboardDataCards extends Component
                 'type' => $event->type->label(),
                 'date' => $event->starts_at->format('D, M j'),
                 'time' => $event->is_all_day ? 'All day' : $event->starts_at->format('g:i A'),
+            ])
+            ->all();
+    }
+
+    /**
+     * Load the notices running today that this person may read.
+     */
+    private function loadCurrentNotices(User $user): void
+    {
+        $this->notices = Notice::query()
+            ->inSchool()
+            ->published()
+            ->active()
+            ->when(
+                $user->isPortalOnly(),
+                fn ($query) => $query->whereHas('recipients', fn ($recipients) => $recipients->where('user_id', $user->id)),
+            )
+            ->orderBy('stop_date')
+            ->limit(5)
+            ->get(['id', 'title', 'stop_date'])
+            ->map(fn (Notice $notice): array => [
+                'title' => $notice->title,
+                'until' => Carbon::parse($notice->stop_date)->format('M j'),
+                'url' => route('notices.show', $notice),
             ])
             ->all();
     }

@@ -438,7 +438,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::post('academic-periods', [AcademicPeriodController::class, 'store'])->name('academic-periods.store');
             Route::get('academic-periods/{academicPeriod}/edit', [AcademicPeriodController::class, 'edit'])->name('academic-periods.edit');
             Route::put('academic-periods/{academicPeriod}', [AcademicPeriodController::class, 'update'])->name('academic-periods.update');
-            Route::post('academic-periods/set', ['App\Http\Controllers\AcademicPeriodController', 'setAcademicPeriod'])->name('academic-periods.set-academic-period');
             Route::post('academic-periods/{academicPeriod}/close', ['App\Http\Controllers\AcademicPeriodController', 'close'])->name('academic-periods.close');
             Route::post('academic-periods/{academicPeriod}/begin-closing', ['App\Http\Controllers\AcademicPeriodController', 'beginClosing'])->name('academic-periods.begin-closing');
             Route::post('academic-periods/{academicPeriod}/reopen', ['App\Http\Controllers\AcademicPeriodController', 'reopen'])->name('academic-periods.reopen');
@@ -558,7 +557,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         // academic year routes
         Route::get('academic-years/{academic_year}/setup/{step?}', [AcademicYearSetupController::class, 'show'])->name('academic-years.setup');
         Route::resource('academic-years', AcademicYearController::class)->except(['store', 'update']);
-        Route::post('academic-years/set', ['App\Http\Controllers\AcademicYearController', 'setAcademicYear'])->name('academic-years.set-academic-year');
         Route::post('academic-years/{academic_year}/close', ['App\Http\Controllers\AcademicYearController', 'close'])->name('academic-years.close');
         Route::post('academic-years/{academic_year}/begin-closing', ['App\Http\Controllers\AcademicYearController', 'beginClosing'])->name('academic-years.begin-closing');
         Route::post('academic-years/{academic_year}/reopen', ['App\Http\Controllers\AcademicYearController', 'reopen'])->name('academic-years.reopen');

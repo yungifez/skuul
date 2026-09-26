@@ -2,12 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\SetAcademicPeriod;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\School;
 use App\Services\Academic\AcademicPeriodContext;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -91,9 +93,14 @@ class AcademicPeriodContextTest extends TestCase
             'academic_year_id' => $otherYear->id,
         ]);
 
-        $this->authorized_user(['set academic period'])
-            ->post('/dashboard/academic-periods/set', ['academic_period_id' => $academicPeriod->id])
-            ->assertSessionMissing(AcademicPeriodContext::ACADEMIC_PERIOD_SESSION_KEY);
+        $this->authorized_user(['set academic period']);
+        $workingPeriodBefore = session(AcademicPeriodContext::ACADEMIC_PERIOD_SESSION_KEY);
+
+        Livewire::test(SetAcademicPeriod::class, ['compact' => true])
+            ->set('workingPeriodId', $academicPeriod->id)
+            ->assertHasErrors('workingPeriodId');
+
+        $this->assertSame($workingPeriodBefore, session(AcademicPeriodContext::ACADEMIC_PERIOD_SESSION_KEY));
     }
 
     public function test_two_people_can_work_in_different_periods(): void
@@ -107,9 +114,13 @@ class AcademicPeriodContextTest extends TestCase
         ]);
 
         // The first person moves to another year.
-        $this->authorized_user(['set academic year'])
-            ->post('/dashboard/academic-years/set', ['academic_year_id' => $year->id])
-            ->assertSessionHas(AcademicPeriodContext::YEAR_SESSION_KEY, $year->id);
+        $this->authorized_user(['set academic year']);
+
+        Livewire::test(SetAcademicPeriod::class, ['compact' => true])
+            ->set('workingYearId', $year->id)
+            ->assertHasNoErrors();
+
+        $this->assertSame($year->id, session(AcademicPeriodContext::YEAR_SESSION_KEY));
 
         // The second person still opens in the school default.
         academic_period_context()->forget();

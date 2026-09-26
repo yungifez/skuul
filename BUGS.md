@@ -765,3 +765,11 @@
 - Impact: The sidebar looked ragged at its most visible edge.
 - Reproduction: Open any page with the sidebar expanded and compare the left edges of the logo, the working-school select, and the nav items.
 - Resolution: April's sidebar content section adds `p-2` on top of each group's `p-2` (april-ui commit 5f5652f), but the header gets only one `p-2`. Our header now adds the missing inner padding, and the label uses the group-label style. The logo, avatar, and nav icons share one centre line. The select and nav items share one left edge.
+
+## The dashboard mixed flat sections with heavy cards and empty panels
+- Status: Fixed
+- Area: Dashboard, working school year and term bar
+- Observed: The dashboard showed flat sections, then a large "Working school year" card with an accent button, then a notices data table in a second card. The attendance chart drew seven empty bars when no register existed. The "Next 7 days" grid left half the row empty. Each page carried a full-width working-term row with an accent "Set working term" button. The dashboard also repeated the school picker from the sidebar.
+- Impact: The page looked like scattered boxes. The accent colour marked settings, not actions. The working year and term were set on different screens through plain POST forms.
+- Reproduction: Sign in as an admin and open `/dashboard`. Scroll to the bottom.
+- Resolution: The top bar now reads "Working [year] [term]". Both selects are Livewire and apply on change. Draft years are not listed. The POST routes `academic-years.set-academic-year` and `academic-periods.set-academic-period`, the `SetAcademicYear` component, `SetAcademicPeriodRequest` and the controller methods are removed. The dashboard now shows the setup strip, one row of plain stat links, "Attendance today" ("No register taken yet." and no chart without data), "Next 7 days" for calendar readers, and up to five current notices with an "All notices" link. The school and year cards, the notices table and the student profile card are removed. Tests: `DashboardTest`, and the updated `AcademicYearTest`, `AcademicPeriodTest`, `AcademicPeriodContextTest`, `AcademicCalendarSetupTest` and `PlatformPermissionTest`.

@@ -42,7 +42,6 @@
     @if (current_academic_year_id() === $academicYear->id && auth()->user()->can('set academic period'))
         <april:card>
             <slot:title>Working {{ strtolower(school_term('period', 'academic period')) }}</slot:title>
-            <slot:description>Choose the reporting period staff are working in. This does not change the calendar or historical records.</slot:description>
             <slot:content>@livewire('set-academic-period')</slot:content>
         </april:card>
     @endif
