@@ -241,6 +241,8 @@ class CourseOfferingTest extends TestCase
 
         Livewire::test(CourseOfferingDirectory::class)
             ->assertSee($subject->name)
+            ->assertSee($academicYear->name.' · '.$academicPeriod->display_name)
+            ->assertDontSee($academicYear->name.' · '.$academicYear->name)
             ->call('activate', $courseOffering->id)
             ->assertDispatched('status-message', type: 'success');
 

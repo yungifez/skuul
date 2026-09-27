@@ -6,7 +6,6 @@ use App\Enums\AcademicStructureStatus;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -19,39 +18,9 @@ class AcademicCycleSectionController extends Controller
         $this->authorizeResource(AcademicCycleSection::class, 'academicCycleSection');
     }
 
-    public function index(Request $request): View
+    public function index(): View
     {
-        $academicYears = $this->academicYears();
-        $academicLevels = AcademicLevel::inSchool()->where('is_group', false)->orderBy('position')->orderBy('name')->get(['id', 'name']);
-
-        $selectedAcademicYearId = $this->selectedAcademicYearId($request, $academicYears);
-        $selectedAcademicLevelId = $this->selectedId($request, 'academic_level_id', $academicLevels->modelKeys());
-        $selectedStatus = $this->selectedStatus($request);
-
-        $academicCycleSections = $this->filtered($selectedAcademicYearId, $selectedAcademicLevelId, $selectedStatus)
-            ->with([
-                'academicLevel:id,name',
-                'academicYear:id,start_year,stop_year,status',
-                'homeroomTeacher:id,name',
-            ])
-            ->orderByDesc('academic_year_id')
-            ->orderBy('academic_level_id')
-            ->orderBy('position')
-            ->orderBy('name')
-            ->paginate(25)
-            ->withQueryString();
-
-        $totalCount = AcademicCycleSection::inSchool()->count();
-
-        return view('pages.academic-cycle-section.index', compact(
-            'academicCycleSections',
-            'academicYears',
-            'academicLevels',
-            'selectedAcademicYearId',
-            'selectedAcademicLevelId',
-            'selectedStatus',
-            'totalCount',
-        ));
+        return view('pages.academic-cycle-section.index');
     }
 
     public function create(Request $request): View
@@ -110,17 +79,6 @@ class AcademicCycleSectionController extends Controller
     }
 
     /**
-     * @return Builder<AcademicCycleSection>
-     */
-    private function filtered(?int $academicYearId, ?int $academicLevelId, ?AcademicStructureStatus $status): Builder
-    {
-        return AcademicCycleSection::inSchool()
-            ->when($academicYearId !== null, fn (Builder $query) => $query->where('academic_year_id', $academicYearId))
-            ->when($academicLevelId !== null, fn (Builder $query) => $query->where('academic_level_id', $academicLevelId))
-            ->when($status !== null, fn (Builder $query) => $query->where('status', $status));
-    }
-
-    /**
      * Read the years and classes, so the create page can say what is missing first.
      *
      * @return array{academicYears: Collection<int, AcademicYear>, academicLevels: Collection<int, AcademicLevel>}
@@ -147,25 +105,6 @@ class AcademicCycleSectionController extends Controller
     }
 
     /**
-     * Default the cycle filter to the cycle being worked in.
-     *
-     * An explicit empty value asks for every cycle, so a person can always see
-     * the whole history without clearing the address bar.
-     *
-     * @param  Collection<int, AcademicYear>  $academicYears
-     */
-    private function selectedAcademicYearId(Request $request, Collection $academicYears): ?int
-    {
-        if (!$request->has('academic_year_id')) {
-            $current = current_academic_year_id();
-
-            return in_array($current, $academicYears->modelKeys(), true) ? $current : null;
-        }
-
-        return $this->selectedId($request, 'academic_year_id', $academicYears->modelKeys());
-    }
-
-    /**
      * @param  array<int, int>  $allowed
      */
     private function selectedId(Request $request, string $key, array $allowed): ?int
@@ -177,12 +116,5 @@ class AcademicCycleSectionController extends Controller
         }
 
         return in_array((int) $value, $allowed, true) ? (int) $value : null;
-    }
-
-    private function selectedStatus(Request $request): ?AcademicStructureStatus
-    {
-        $status = $request->query('status');
-
-        return is_string($status) ? AcademicStructureStatus::tryFrom($status) : null;
     }
 }

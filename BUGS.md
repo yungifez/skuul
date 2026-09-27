@@ -1,5 +1,13 @@
 # Known Bugs
 
+## The subjects list printed the school year twice, and the sections list said "this year" while showing every year
+- Status: Fixed
+- Area: Curriculum lists
+- Observed: Each subject row read "2026 - 2027 · 2026 - 2027 · Term 1". The sections page was titled "Sections this year" when its filter showed every year. Its filters needed a separate Apply press on a phone, and each row carried View and Edit buttons beside the status control.
+- Impact: Rows were longer than the screen on a phone and the heading misled staff about what they were looking at.
+- Reproduction: Open the subjects being taught list. Open the sections list and choose "Every school year".
+- Resolution: The subject row shows the year once. The sections list is now a Livewire component: filters apply as they change, the title is "Sections", the section name opens the section, and the status control carries the only row actions.
+
 ## The menu button, year switcher, and create buttons were too small to tap on a phone
 - Status: Fixed
 - Area: Layout, shared controls

@@ -11,6 +11,7 @@ use App\Livewire\AcademicCycleSectionForm;
 use App\Livewire\AcademicLevelForm;
 use App\Livewire\AcademicStructureStatusControl;
 use App\Livewire\RollForwardSections;
+use App\Livewire\SectionDirectory;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
@@ -362,6 +363,38 @@ class AcademicStructureScreenTest extends TestCase
             ->assertOk()
             ->assertSee('Amber')
             ->assertDontSee('>Green<', false);
+    }
+
+    public function test_the_section_list_filters_live_and_ignores_another_schools_ids(): void
+    {
+        $this->authorized_user(['read section']);
+        $school = $this->workingSchool();
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
+        $academicYear = AcademicYear::factory()->create(['school_id' => $school->id]);
+        $this->sectionIn($academicYear, $academicLevel, 'Kingfisher');
+        $foreignYear = AcademicYear::factory()->create(['school_id' => School::factory()->create()->id]);
+        $foreignSection = $this->sectionIn($foreignYear, AcademicLevel::factory()->create(['school_id' => $foreignYear->school_id]), 'Pelican');
+
+        Livewire::withQueryParams(['academic_year_id' => $academicYear->id])
+            ->test(SectionDirectory::class)
+            ->assertSee('Kingfisher')
+            ->set('status', AcademicStructureStatus::Archived->value)
+            ->assertDontSee('Kingfisher')
+            ->assertSee('Show every section')
+            ->call('clearFilters')
+            ->assertSet('academicYearId', '')
+            ->assertSee('Kingfisher')
+            ->assertDontSee('Pelican')
+            ->set('academicYearId', (string) $foreignYear->id)
+            ->assertDontSee('Pelican')
+            ->assertDontSee(route('academic-cycle-sections.show', $foreignSection));
+    }
+
+    public function test_a_reader_cannot_open_the_section_list_without_permission(): void
+    {
+        $this->authorized_user([]);
+
+        Livewire::test(SectionDirectory::class)->assertForbidden();
     }
 
     public function test_the_create_screen_asks_for_a_level_before_anything_else(): void

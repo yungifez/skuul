@@ -53,7 +53,7 @@
                                 @endif
                                 <span class="font-normal text-muted-foreground">· {{ $courseOffering->academicLevel->name }}</span>
                             </p>
-                            <p class="truncate text-muted-foreground">{{ $courseOffering->academicYear->name }} · {{ $courseOffering->academicYear->name }} · {{ $courseOffering->academicPeriod->display_name }} · {{ $roster !== '' ? $roster : '—' }}</p>
+                            <p class="truncate text-muted-foreground">{{ $courseOffering->academicYear->name }} · {{ $courseOffering->academicPeriod->display_name }} · {{ $roster !== '' ? $roster : '—' }}</p>
                             <p class="truncate text-muted-foreground">{{ $teachersLine !== '' ? $teachersLine : '—' }}</p>
                         </div>
                         <div class="flex shrink-0 items-center gap-2">
