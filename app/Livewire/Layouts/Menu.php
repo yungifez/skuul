@@ -19,6 +19,8 @@ use App\Models\User;
 use App\Services\Portal\PortalAccess;
 use App\Services\School\SchoolService;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\Gate;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Component;
 
@@ -27,16 +29,19 @@ class Menu extends Component
     /**
      * @var Collection<int, School>
      */
+    #[Locked]
     public Collection $schools;
 
     /**
      * @var list<array<string, mixed>>
      */
+    #[Locked]
     public array $menu = [];
 
     /**
      * @var list<array{key: string, label: string, group: string, url: string, keywords: string}>
      */
+    #[Locked]
     public array $commandItems = [];
 
     public function mount(SchoolService $schoolService): void
@@ -439,6 +444,22 @@ class Menu extends Component
     public function rebuild(SchoolService $schoolService): void
     {
         $this->mount($schoolService);
+    }
+
+    /**
+     * Work in another school the person belongs to.
+     */
+    public function switchSchool(int $schoolId, SchoolService $schoolService): void
+    {
+        Gate::authorize('setSchool', School::class);
+
+        $school = School::query()->find($schoolId);
+        abort_if($school === null, 404);
+
+        $schoolService->setSchool($school);
+
+        session()->flash('success', __('School set successfully'));
+        $this->redirectRoute('dashboard');
     }
 
     public function render()

@@ -45,9 +45,7 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
                 </a>
 
                 @if ($schools->count() > 1)
-                    <form method="POST" action="{{ route('schools.setSchool') }}"
-                        class="flex min-w-0 flex-col gap-1 group-data-[collapsible=icon]:hidden">
-                        @csrf
+                    <div class="flex min-w-0 flex-col gap-1 group-data-[collapsible=icon]:hidden">
                         {{-- april:sidebar renders this header twice, once for
                         the desktop rail and once for the mobile drawer, so an
                         id here would appear twice and `for` would point at the
@@ -56,8 +54,8 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
                             <span class="px-2 text-xs font-medium text-sidebar-foreground/70">
                                 Working school
                             </span>
-                            <april:native-select name="school_id"
-                                aria-label="Working school" onchange="this.form.submit()">
+                            <april:native-select class="h-11"
+                                aria-label="Working school" wire:change="switchSchool($event.target.value)" wire:loading.attr="disabled" wire:target="switchSchool">
                                 @foreach ($schools as $school)
                                     <option value="{{ $school->id }}" @selected(current_school_id() === $school->id)>
                                         {{ $school->name }}
@@ -65,7 +63,7 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
                                 @endforeach
                             </april:native-select>
                         </label>
-                    </form>
+                    </div>
                 @elseif (current_school() !== null)
                     <span class="truncate text-xs text-muted-foreground group-data-[collapsible=icon]:hidden">
                         {{ current_school()->name }}

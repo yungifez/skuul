@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\School\GrantSchoolMembership;
+use App\Livewire\Layouts\Menu;
 use App\Livewire\SetSchool;
 use App\Models\AcademicYear;
 use App\Models\School;
@@ -10,6 +11,7 @@ use App\Models\User;
 use App\Services\School\SchoolContext;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -28,9 +30,10 @@ class SchoolContextTest extends TestCase
 
         $before = $user->schoolMemberships()->pluck('school_id')->all();
 
-        $this->actingAs($user)
-            ->from(route('academic-years.index'))
-            ->post('/dashboard/schools/set-school', ['school_id' => $second->id])
+        $this->actingAs($user);
+
+        Livewire::test(Menu::class)
+            ->call('switchSchool', $second->id)
             ->assertRedirect(route('dashboard'))
             ->assertSessionHas(SchoolContext::SESSION_KEY, $second->id);
 
@@ -79,11 +82,14 @@ class SchoolContextTest extends TestCase
         $other = School::query()->findOrFail(School::factory()->create()->getKey());
         $user = $this->memberOf($home);
 
-        $this->actingAsMemberOf($home, $user)
-            ->from(route('academic-years.index'))
-            ->post('/dashboard/schools/set-school', ['school_id' => $other->id])
-            ->assertForbidden()
-            ->assertSessionHas(SchoolContext::SESSION_KEY, $home->id);
+        $this->actingAsMemberOf($home, $user);
+
+        Livewire::test(Menu::class)
+            ->call('switchSchool', $other->id)
+            ->assertForbidden();
+
+        $this->assertSame($home->id, school_context()->id());
+        $this->assertFalse(Route::has('schools.setSchool'));
     }
 
     public function test_the_remembered_school_is_ignored_when_access_ended(): void

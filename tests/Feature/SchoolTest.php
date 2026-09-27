@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\Organization\GrantOrganizationMembership;
 use App\Http\Middleware\SetActiveAcademicPeriod;
 use App\Livewire\EditSchoolLanguage;
+use App\Livewire\Layouts\Menu;
 use App\Models\AcademicYear;
 use App\Models\Organization;
 use App\Models\School;
@@ -465,7 +466,8 @@ class SchoolTest extends TestCase
         $this->actingAs($user);
         $school = School::factory()->create();
 
-        $this->post('/dashboard/schools/set-school', ['school_id' => $school->id])
+        Livewire::test(Menu::class)
+            ->call('switchSchool', $school->id)
             ->assertSessionHas(SchoolContext::SESSION_KEY, $school->id);
 
         // Switching school must never write to the person's record.
@@ -476,8 +478,10 @@ class SchoolTest extends TestCase
     {
         $otherSchool = School::factory()->create();
 
-        $this->authorized_user(['read school'])
-            ->post('/dashboard/schools/set-school', ['school_id' => $otherSchool->id])
+        $this->authorized_user(['read school']);
+
+        Livewire::test(Menu::class)
+            ->call('switchSchool', $otherSchool->id)
             ->assertForbidden();
     }
 

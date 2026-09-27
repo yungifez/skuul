@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Actions\School\GrantSchoolMembership;
-use App\Http\Requests\SchoolSetRequest;
 use App\Http\Requests\SchoolStoreRequest;
 use App\Http\Requests\SchoolUpdateRequest;
 use App\Models\Organization;
@@ -129,20 +128,5 @@ class SchoolController extends Controller
             'school' => $school,
             'setupChecklist' => $setupChecklist,
         ]);
-    }
-
-    /**
-     * Set school.
-     */
-    public function setSchool(SchoolSetRequest $request): RedirectResponse
-    {
-        $this->authorize('setSchool', School::class);
-
-        $schoolId = $request->input('school_id');
-        $school = School::findOrFail($schoolId);
-
-        $this->schoolService->setSchool($school);
-
-        return to_route('dashboard')->with('success', __('School set successfully'));
     }
 }

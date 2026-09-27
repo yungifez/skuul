@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Switching the working school reloaded the whole page through a classic form
+- Status: Fixed
+- Area: Layout, school switcher
+- Observed: The sidebar's working-school select posted a hidden form to `schools/set-school` on change. The select was shorter than 44px, and the sidebar's menu lists were browser-writable Livewire properties.
+- Impact: The switch skipped Livewire's loading state, so a slow switch looked like nothing happened and invited a second change.
+- Reproduction: Belong to two schools and change the working school in the sidebar on a slow connection.
+- Resolution: The sidebar calls a Livewire action that checks access, switches the school, and returns to the dashboard. The select is 44px and disabled while it works. The POST route and controller method are gone, and the sidebar's lists are locked.
+
 ## Timetable event dates and audiences could skip their checks through browser-edited lists
 - Status: Fixed
 - Area: Timetables, guardians, enrollment, fees
