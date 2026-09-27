@@ -21,17 +21,20 @@ class AllocationPlanner
     /**
      * Get the lines a student still owes money on, oldest bill first.
      *
+     * @param  int|null  $schoolId  the campus whose bills to read; the one the
+     *                              learner attends when nobody says
      * @return Collection<int, FeeInvoiceRecord>
      */
-    public function openLinesFor(StudentRecord $enrollment, ?int $onlyInvoice = null): Collection
+    public function openLinesFor(StudentRecord $enrollment, ?int $onlyInvoice = null, ?int $schoolId = null): Collection
     {
+        $schoolId ??= $enrollment->school_id;
         $invoiceTable = (new FeeInvoice)->getTable();
         $recordTable = (new FeeInvoiceRecord)->getTable();
 
         return FeeInvoiceRecord::query()
             ->isDue()
-            ->whereHas('feeInvoice', function (Builder $invoice) use ($enrollment, $onlyInvoice): void {
-                $invoice->where('school_id', $enrollment->school_id)
+            ->whereHas('feeInvoice', function (Builder $invoice) use ($enrollment, $onlyInvoice, $schoolId): void {
+                $invoice->where('school_id', $schoolId)
                     ->where('student_record_id', $enrollment->id);
 
                 if ($onlyInvoice !== null) {
@@ -55,12 +58,12 @@ class AllocationPlanner
      *
      * @return array<int, int> the minor amount to write against each line id
      */
-    public function spread(StudentRecord $enrollment, int $amount, ?int $onlyInvoice = null): array
+    public function spread(StudentRecord $enrollment, int $amount, ?int $onlyInvoice = null, ?int $schoolId = null): array
     {
         $left = $amount;
         $plan = [];
 
-        foreach ($this->openLinesFor($enrollment, $onlyInvoice) as $line) {
+        foreach ($this->openLinesFor($enrollment, $onlyInvoice, $schoolId) as $line) {
             if ($left <= 0) {
                 break;
             }
@@ -89,8 +92,9 @@ class AllocationPlanner
      *                               overpaid, or the plan is worth more than
      *                               the payment
      */
-    public function check(StudentRecord $enrollment, int $amount, array $requested): array
+    public function check(StudentRecord $enrollment, int $amount, array $requested, ?int $schoolId = null): array
     {
+        $schoolId ??= $enrollment->school_id;
         $plan = [];
 
         foreach ($requested as $lineId => $share) {
@@ -114,7 +118,7 @@ class AllocationPlanner
         $lines = FeeInvoiceRecord::query()
             ->whereKey(array_keys($plan))
             ->whereHas('feeInvoice', fn (Builder $invoice) => $invoice
-                ->where('school_id', $enrollment->school_id)
+                ->where('school_id', $schoolId)
                 ->where('student_record_id', $enrollment->id))
             ->get()
             ->keyBy('id');

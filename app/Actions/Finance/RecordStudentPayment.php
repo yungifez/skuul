@@ -33,6 +33,8 @@ class RecordStudentPayment
      * @param  string  $into  the purpose of the account the money went into
      * @param  float|null  $applied  how much of it settles what is owed; worked
      *                               out from the balance when nobody says
+     * @param  int|null  $schoolId  the campus whose books take the money; the
+     *                              one the learner attends when nobody says
      *
      * @throws InvalidValueException when the amount is not positive
      */
@@ -47,12 +49,13 @@ class RecordStudentPayment
         ?string $reference = null,
         ?float $applied = null,
         ?FinancialPeriod $period = null,
+        ?int $schoolId = null,
     ): LedgerTransaction {
         if ($amount <= 0) {
             throw new InvalidValueException('A payment must be more than nothing.');
         }
 
-        $schoolId = $enrollment->school_id;
+        $schoolId ??= $enrollment->school_id;
 
         if ($applied === null) {
             $owed = max($this->ledger->balance($enrollment), 0.0);

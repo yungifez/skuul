@@ -305,6 +305,29 @@ class StudentPaymentTest extends TestCase
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::PaymentReceived)->first());
     }
 
+    public function test_a_campus_still_collects_its_invoice_after_the_learner_moves_on(): void
+    {
+        $this->authorized_user(['read fee invoice', 'update fee invoice']);
+        $enrollment = $this->enrollment();
+        $invoice = $this->invoiceFor($enrollment, [['amount' => 100]]);
+        $newCampus = School::factory()->create();
+        $enrollment->forceFill(['school_id' => $newCampus->id])->save();
+
+        Livewire::test(TakeInvoicePayment::class, ['feeInvoice' => $invoice])
+            ->set('amount', '60')
+            ->set('method', 'cash')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $payment = StudentPayment::where('student_record_id', $enrollment->id)->sole();
+        $this->assertSame($this->workingSchool()->id, $payment->school_id);
+        $this->assertSame(6_000, $invoice->fresh()->paid->getMinorAmount()->toInt());
+        $owed = app(StudentLedger::class)->balancesByCampus($enrollment->fresh())->sole();
+        $this->assertSame($this->workingSchool()->id, $owed['school']->id);
+        $this->assertSame(40.0, $owed['balance']);
+        $this->assertSame(0.0, app(StudentLedger::class)->unappliedCredit($enrollment->fresh()));
+    }
+
     public function test_the_office_can_name_the_fee_a_payment_settles(): void
     {
         $actor = $this->authorized_user(['read fee invoice', 'update fee invoice']);

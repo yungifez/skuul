@@ -80,6 +80,7 @@ class TakeInvoicePayment extends Component
                 note: $this->note === '' ? null : $this->note,
                 receivedOn: $this->receivedOn === '' ? null : now()->parse($this->receivedOn),
                 source: $this->feeInvoice,
+                schoolId: $this->feeInvoice->school_id,
             );
         } catch (InvalidValueException $exception) {
             $this->addError($this->splitByFee ? 'lines' : 'amount', $exception->getMessage());

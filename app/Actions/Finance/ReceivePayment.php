@@ -42,6 +42,10 @@ class ReceivePayment
      *                                                           invoice line, or null to
      *                                                           clear the oldest bills first
      * @param  int|null  $onlyInvoice  limit automatic spreading to one invoice
+     * @param  int|null  $schoolId  the campus that is paid; the one the learner
+     *                              attends when nobody says. A campus with its
+     *                              own books still collects what it billed a
+     *                              learner who has since moved on.
      *
      * @throws InvalidValueException when the amount is not positive or a plan is wrong
      */
@@ -56,18 +60,20 @@ class ReceivePayment
         ?CarbonInterface $receivedOn = null,
         ?User $actor = null,
         ?Model $source = null,
+        ?int $schoolId = null,
     ): StudentPayment {
         if ($amount <= 0) {
             throw new InvalidValueException('A payment must be more than nothing.');
         }
 
         $channel = $this->channels->get($method);
+        $schoolId ??= $enrollment->school_id;
 
         $plan = $allocations === null
-            ? $this->planner->spread($enrollment, $amount, $onlyInvoice)
-            : $this->planner->check($enrollment, $amount, $allocations);
+            ? $this->planner->spread($enrollment, $amount, $onlyInvoice, $schoolId)
+            : $this->planner->check($enrollment, $amount, $allocations, $schoolId);
 
-        return DB::transaction(function () use ($enrollment, $amount, $channel, $method, $plan, $reference, $note, $receivedOn, $actor, $source): StudentPayment {
+        return DB::transaction(function () use ($enrollment, $amount, $channel, $method, $plan, $reference, $note, $receivedOn, $actor, $source, $schoolId): StudentPayment {
             $applied = array_sum($plan);
 
             // The books are written first, so the payment record can name the
@@ -82,10 +88,11 @@ class ReceivePayment
                 date: $receivedOn,
                 reference: $reference,
                 applied: round($applied / 100, 2),
+                schoolId: $schoolId,
             );
 
             $payment = StudentPayment::create([
-                'school_id' => $enrollment->school_id,
+                'school_id' => $schoolId,
                 'student_record_id' => $enrollment->id,
                 'financial_period_id' => $transaction->financial_period_id,
                 'amount' => BrickMoney::ofMinor($amount, config('app.currency')),
@@ -110,7 +117,7 @@ class ReceivePayment
                     'reference' => $reference,
                 ],
                 $actor,
-                $enrollment->school_id,
+                $schoolId,
             );
 
             return $payment;

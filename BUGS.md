@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A campus lost the money it collected after its learner moved on
+
+- Status: Fixed
+- Area: Fee invoices, payments, campus moves
+- Observed: A learner moved between two campuses that keep separate books. The old campus took payment on its own open invoice. The payment was booked at the new campus as unused credit, and the invoice stayed unpaid.
+- Impact: The old campus could never clear the debt it was owed. The new campus showed money it never took.
+- Reproduction: Invoice a learner at campus A. Move the learner to campus B (no shared billing group). At campus A, take payment on the invoice.
+- Resolution: A payment taken on an invoice is now booked at the campus that issued the invoice. Other payments still go to the campus the learner attends.
+
 ## People tables and resets reloaded the page, and unused write routes stayed open
 
 - Status: Fixed
