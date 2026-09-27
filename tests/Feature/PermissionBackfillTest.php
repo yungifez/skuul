@@ -56,6 +56,28 @@ class PermissionBackfillTest extends TestCase
         $this->assertSame($grants, DB::table('role_has_permissions')->count());
     }
 
+    public function test_a_new_install_gives_the_librarian_and_accountant_their_work(): void
+    {
+        $this->assertTrue($this->role('librarian')->hasPermissionTo('lend library item'));
+        $this->assertFalse($this->role('librarian')->hasPermissionTo('create fee invoice'));
+        $this->assertTrue($this->role('accountant')->hasPermissionTo('create fee invoice'));
+        $this->assertTrue($this->role('accountant')->hasPermissionTo('create cash deposit'));
+        $this->assertFalse($this->role('accountant')->hasPermissionTo('delete fee invoice'));
+        $this->assertFalse($this->role('accountant')->hasPermissionTo('manage financial period'));
+    }
+
+    public function test_an_old_install_fills_only_an_empty_librarian_or_accountant(): void
+    {
+        $this->role('librarian')->syncPermissions([]);
+        $this->role('accountant')->syncPermissions(['read fee invoice']);
+
+        $migration = require database_path('migrations/2026_09_27_075808_grant_librarian_and_accountant_their_work.php');
+        $migration->up();
+
+        $this->assertTrue($this->role('librarian')->hasPermissionTo('manage library'));
+        $this->assertSame(['read fee invoice'], $this->role('accountant')->permissions->pluck('name')->all());
+    }
+
     private function runBackfill(): void
     {
         $migration = require database_path('migrations/2026_09_27_074218_backfill_permissions_added_after_install.php');

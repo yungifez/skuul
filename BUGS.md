@@ -1056,3 +1056,10 @@
 - **Problem:** Recording a cash deposit was a full page post inside a card, with no tests. A double press posted the deposit to the books twice. The form took any amount, so a typo such as 50000 for 5000 moved money the cash box never held. A deposit could be dated in the future, and amounts with more than two decimals were rounded without a word.
 - **Fix:** The form is now Livewire. It shows what the cash box holds and what is left after the deposit. An amount above the cash box needs a second, explicit yes, and changing the amount asks again. It is not refused, because a school may hold cash it never entered as an opening balance. One key per form stops a double press. Future dates and more than two decimals are refused. A date outside every open finance period shows its error on the date. The list is a flat list, not a table in a card. The store route and `StoreCashDepositRequest` are removed.
 - **Tests:** new `CashDepositTest` (permission, happy path and balances, second yes, changed amount, double press, bad amounts and dates, closed period, another school's deposits).
+
+## A librarian or accountant could open nothing
+
+- **Where:** `database/seeders/PermissionSeeder.php`, `database/migrations/2026_09_27_075808_grant_librarian_and_accountant_their_work.php`.
+- **Problem:** The built-in librarian and accountant roles were created with no permissions. The seeder had empty "assign permissions" comments for them. A school that gave a staff member either role found they could open nothing.
+- **Fix:** The librarian gets the library and can look up students. The accountant gets day-to-day finance work: fees and fee categories, invoices and their fees, refunds, expenses and cash deposits, and reading budgets, financial periods and reports. Deleting, budgets and closing financial periods stay with the admin. A migration fills these two roles on an existing install only while they still hold nothing, so a school's own setup is kept.
+- **Tests:** `PermissionBackfillTest` (new install defaults, only an empty role is filled).

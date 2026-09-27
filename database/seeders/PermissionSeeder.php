@@ -12,6 +12,48 @@ use Spatie\Permission\Models\Role;
 class PermissionSeeder extends Seeder
 {
     /**
+     * What a librarian does: run the library and look up borrowers.
+     *
+     * @var list<string>
+     */
+    public const LIBRARIAN_PERMISSIONS = [
+        'read student',
+        'read library',
+        'manage library',
+        'lend library item',
+    ];
+
+    /**
+     * What an accountant does day to day. Deleting, budgets and closing
+     * financial periods stay with the admin.
+     *
+     * @var list<string>
+     */
+    public const ACCOUNTANT_PERMISSIONS = [
+        'read student',
+        'read report',
+        'create fee',
+        'read fee',
+        'update fee',
+        'create fee category',
+        'read fee category',
+        'update fee category',
+        'create fee invoice',
+        'read fee invoice',
+        'update fee invoice',
+        'create fee invoice record',
+        'read fee invoice record',
+        'update fee invoice record',
+        'refund student payment',
+        'read expense',
+        'create expense',
+        'read cash deposit',
+        'create cash deposit',
+        'read budget',
+        'read financial period',
+    ];
+
+    /**
      * Run the database seeds.
      *
      * @return void
@@ -1014,7 +1056,9 @@ class PermissionSeeder extends Seeder
         $platformAdmin->syncPermissions(Permission::query()->pluck('name')->all());
 
         // assign permissions to librarian
+        Role::query()->where('name', 'librarian')->whereNull('school_id')->firstOrFail()->syncPermissions(self::LIBRARIAN_PERMISSIONS);
 
         // assign permissions to accountant
+        Role::query()->where('name', 'accountant')->whereNull('school_id')->firstOrFail()->syncPermissions(self::ACCOUNTANT_PERMISSIONS);
     }
 }
