@@ -203,6 +203,11 @@ enum AuditAction: string
      */
     case BudgetSet = 'budget.set';
 
+    /**
+     * A campus dropped a plan for an account.
+     */
+    case BudgetRemoved = 'budget.removed';
+
     /** A school recorded money spent on an operating expense. */
     case ExpenseRecorded = 'expense.recorded';
 
@@ -726,6 +731,7 @@ enum AuditAction: string
             self::BalanceCarriedToCampus => 'Balance carried to another campus',
             self::BillingGroupChanged => 'Billing group changed',
             self::BudgetSet => 'Budget set',
+            self::BudgetRemoved => 'Budget removed',
             self::ExpenseRecorded => 'Expense recorded',
             self::FinancialPeriodClosed => 'Financial period closed',
             self::FinancialPeriodReopened => 'Financial period reopened',

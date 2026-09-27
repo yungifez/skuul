@@ -11,6 +11,8 @@ use App\Models\Budget;
 use App\Models\LedgerAccount;
 use App\Models\Program;
 use App\Models\User;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Say what one account is allowed over one stretch of the year.
@@ -55,46 +57,102 @@ class SetBudget
         }
 
         $fund = $fund === null || trim($fund) === '' ? null : trim($fund);
+        $note = $note === null || trim($note) === '' ? null : trim($note);
 
-        $hash = Budget::hashFor(
-            $academicYear->id,
-            $academicPeriod?->id,
-            $account->id,
-            $program?->id,
-            $fund,
-        );
+        try {
+            return $this->write($academicYear, $account, round($amount, 2), $academicPeriod, $program, $fund, $note, $actor);
+        } catch (UniqueConstraintViolationException) {
+            // Somebody wrote the same plan a moment ago, so revise theirs.
+            return $this->write($academicYear, $account, round($amount, 2), $academicPeriod, $program, $fund, $note, $actor);
+        }
+    }
 
-        $budget = Budget::firstOrNew([
-            'school_id' => $academicYear->school_id,
-            'scope_hash' => $hash,
-        ]);
+    /**
+     * Drop a plan, and say so in the audit log.
+     */
+    public function remove(Budget $budget, ?User $actor = null): void
+    {
+        DB::transaction(function () use ($budget, $actor): void {
+            $budget->loadMissing('account:id,name');
 
-        $was = $budget->exists ? $budget->amount : null;
+            $this->auditor->record(
+                AuditAction::BudgetRemoved,
+                $budget,
+                ['account' => $budget->account?->name, 'was' => $budget->amount, 'covers' => $budget->coverage()],
+                $actor,
+                $budget->school_id,
+            );
 
-        $budget->fill([
-            'academic_year_id' => $academicYear->id,
-            'academic_period_id' => $academicPeriod?->id,
-            'ledger_account_id' => $account->id,
-            'program_id' => $program?->id,
-            'fund' => $fund,
-            'amount' => round($amount, 2),
-            'note' => $note,
-            'set_by' => $actor === null ? auth()->id() : $actor->id,
-        ])->save();
+            $budget->delete();
+        });
+    }
 
-        $this->auditor->record(
-            AuditAction::BudgetSet,
-            $budget,
-            [
-                'account' => $account->name,
-                'was' => $was,
-                'now' => $budget->amount,
-                'covers' => $budget->coverage(),
-            ],
-            $actor,
-            $academicYear->school_id,
-        );
+    /**
+     * Write the plan, revising the one that covers the same ground.
+     */
+    private function write(
+        AcademicYear $academicYear,
+        LedgerAccount $account,
+        float $amount,
+        ?AcademicPeriod $academicPeriod,
+        ?Program $program,
+        ?string $fund,
+        ?string $note,
+        ?User $actor,
+    ): Budget {
+        return DB::transaction(function () use ($academicYear, $account, $amount, $academicPeriod, $program, $fund, $note, $actor): Budget {
+            // The books match a fund without regard to capitals, so the plan
+            // must too. Otherwise "Library" and "library" are two plans that
+            // both count the same spending.
+            $budget = Budget::query()
+                ->where('school_id', $academicYear->school_id)
+                ->where('academic_year_id', $academicYear->id)
+                ->where('academic_period_id', $academicPeriod?->id)
+                ->where('ledger_account_id', $account->id)
+                ->where('program_id', $program?->id)
+                ->when(
+                    $fund === null,
+                    fn ($query) => $query->whereNull('fund'),
+                    fn ($query) => $query->whereRaw('LOWER(fund) = ?', [mb_strtolower((string) $fund)]),
+                )
+                ->lockForUpdate()
+                ->first()
+                ?? new Budget([
+                    'school_id' => $academicYear->school_id,
+                    'scope_hash' => Budget::hashFor($academicYear->id, $academicPeriod?->id, $account->id, $program?->id, $fund),
+                    'fund' => $fund,
+                ]);
 
-        return $budget;
+            $was = $budget->exists ? $budget->amount : null;
+
+            if ($was === $amount && $budget->note === $note) {
+                return $budget;
+            }
+
+            $budget->fill([
+                'academic_year_id' => $academicYear->id,
+                'academic_period_id' => $academicPeriod?->id,
+                'ledger_account_id' => $account->id,
+                'program_id' => $program?->id,
+                'amount' => $amount,
+                'note' => $note,
+                'set_by' => $actor === null ? auth()->id() : $actor->id,
+            ])->save();
+
+            $this->auditor->record(
+                AuditAction::BudgetSet,
+                $budget,
+                [
+                    'account' => $account->name,
+                    'was' => $was,
+                    'now' => $budget->amount,
+                    'covers' => $budget->coverage(),
+                ],
+                $actor,
+                $academicYear->school_id,
+            );
+
+            return $budget;
+        });
     }
 }

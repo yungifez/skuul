@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A fund written in other capitals made a second budget that counted the same spending
+- Status: Fixed
+- Area: Budgets (`SetBudget`, budget screen)
+- Observed: "Library fund" and "library fund" made two budgets for one account. The books match a fund without regard to capitals, so both budgets counted the same spending. Removing a budget wrote nothing to the audit log. Saving a budget with no change wrote another "Budget set" entry. Two saves at the same moment could fail on the unique index.
+- Impact: The budget report showed the planned amount twice for one set of spending. A budget could also disappear with no record of who removed it.
+- Reproduction: Write a budget for Operating expenses with the fund "Library fund". Write another with "library fund". Both rows show the same actual amount.
+- Resolution: A budget is found by its account, stretch, programme and fund, and the fund comparison ignores capitals. The first spelling is kept. The row is held while it is revised. A lost race revises the plan that won. A save that changes nothing writes nothing. Removing a budget writes a "Budget removed" audit entry. The screen now runs through Livewire (`BudgetPlanner`), with Revise and Remove in the ⋯ menu. The store and destroy routes and the form request are removed.
+
 ## Revoked records could still be taken in, and sharing answers raced each other
 - Status: Fixed
 - Area: Record sharing between schools (`RequestDataSharing`, `FulfilDataSharingRequest`, ask form)

@@ -8,6 +8,7 @@ use App\Actions\Finance\ReverseLedgerTransaction;
 use App\Actions\Finance\SetBudget;
 use App\Enums\AuditAction;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\BudgetPlanner;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
@@ -20,7 +21,9 @@ use App\Models\StudentRecord;
 use App\Services\Finance\BudgetVersusActual;
 use App\Services\Finance\ChartOfAccounts;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -195,21 +198,24 @@ class BudgetTest extends TestCase
 
     public function test_the_office_can_write_a_budget_from_the_screen(): void
     {
-        $actor = $this->authorized_user(['read budget', 'manage budget']);
+        $this->authorized_user(['read budget', 'manage budget']);
         $cycle = $this->cycle();
         $account = app(ChartOfAccounts::class)->account('operating_expenses');
 
-        $actor->get(route('budgets.index'))->assertOk()->assertSee('Budget against actual');
+        $this->get(route('budgets.index', ['academic_year_id' => $cycle->id]))->assertOk()->assertSee($cycle->name);
 
-        $actor->post(route('budgets.store'), [
-            'academic_year_id' => $cycle->id,
-            'ledger_account_id' => $account->id,
-            'amount' => 1250.50,
-            'fund' => 'library',
-        ])->assertRedirect(route('budgets.index', ['academic_year_id' => $cycle->id]));
+        Livewire::withQueryParams(['academic_year_id' => $cycle->id])
+            ->test(BudgetPlanner::class)
+            ->set('ledgerAccountId', (string) $account->id)
+            ->set('amount', '1250.50')
+            ->set('fund', ' library ')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertSee($account->name);
 
         $this->assertDatabaseHas('budgets', [
             'school_id' => $cycle->school_id,
+            'academic_year_id' => $cycle->id,
             'ledger_account_id' => $account->id,
             'fund' => 'library',
         ]);
@@ -217,16 +223,104 @@ class BudgetTest extends TestCase
 
     public function test_reading_budgets_does_not_allow_writing_them(): void
     {
-        $actor = $this->authorized_user(['read budget']);
+        $this->authorized_user(['read budget']);
         $cycle = $this->cycle();
+        $budget = app(SetBudget::class)->set($cycle, app(ChartOfAccounts::class)->account('operating_expenses'), 100);
 
-        $actor->post(route('budgets.store'), [
-            'academic_year_id' => $cycle->id,
-            'ledger_account_id' => app(ChartOfAccounts::class)->account('operating_expenses')->id,
-            'amount' => 100,
-        ])->assertForbidden();
+        Livewire::test(BudgetPlanner::class)
+            ->set('ledgerAccountId', (string) app(ChartOfAccounts::class)->account('operating_expenses')->id)
+            ->set('amount', '500')
+            ->call('save')
+            ->assertForbidden();
 
-        $this->assertSame(0, Budget::count());
+        Livewire::test(BudgetPlanner::class)->call('remove', $budget->id)->assertForbidden();
+
+        $this->assertSame(100.0, $budget->fresh()->amount);
+    }
+
+    public function test_a_fund_in_other_capitals_revises_the_same_plan(): void
+    {
+        $this->authorized_user([]);
+        $cycle = $this->cycle();
+        $account = app(ChartOfAccounts::class)->account('operating_expenses');
+
+        app(SetBudget::class)->set($cycle, $account, 1_000, fund: 'Library fund');
+        app(SetBudget::class)->set($cycle, $account, 1_500, fund: 'library FUND ');
+
+        $this->assertSame(1, Budget::count());
+        $this->assertSame(1500.0, Budget::sole()->amount);
+        $this->assertSame('Library fund', Budget::sole()->fund);
+    }
+
+    public function test_saving_the_same_plan_again_writes_nothing_new(): void
+    {
+        $this->authorized_user([]);
+        $cycle = $this->cycle();
+        $account = app(ChartOfAccounts::class)->account('operating_expenses');
+
+        app(SetBudget::class)->set($cycle, $account, 1_000);
+        app(SetBudget::class)->set($cycle, $account, 1_000);
+
+        $this->assertSame(1, AuditEvent::ofAction(AuditAction::BudgetSet)->count());
+    }
+
+    public function test_removing_a_plan_is_written_to_the_audit_log(): void
+    {
+        $this->authorized_user(['read budget', 'manage budget']);
+        $budget = app(SetBudget::class)->set($this->cycle(), app(ChartOfAccounts::class)->account('operating_expenses'), 800);
+
+        Livewire::test(BudgetPlanner::class)->call('remove', $budget->id)->assertHasNoErrors();
+
+        $this->assertNull($budget->fresh());
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::BudgetRemoved)->first());
+    }
+
+    public function test_a_plan_of_another_campus_is_never_touched(): void
+    {
+        $this->authorized_user(['read budget', 'manage budget']);
+        $elsewhere = School::factory()->create();
+        $theirCycle = AcademicYear::factory()->create(['school_id' => $elsewhere->id]);
+        $theirAccount = app(ChartOfAccounts::class)->ensureFor($elsewhere->id)->first();
+        $theirs = Budget::query()->create([
+            'school_id' => $elsewhere->id,
+            'academic_year_id' => $theirCycle->id,
+            'ledger_account_id' => $theirAccount->id,
+            'amount' => 900,
+            'scope_hash' => Budget::hashFor($theirCycle->id, null, $theirAccount->id, null, null),
+        ]);
+
+        $planner = Livewire::test(BudgetPlanner::class);
+
+        $this->assertThrows(fn () => $planner->call('remove', $theirs->id), ModelNotFoundException::class);
+        $this->assertThrows(fn () => $planner->call('revise', $theirs->id), ModelNotFoundException::class);
+        $this->assertNotNull($theirs->fresh());
+
+        Livewire::withQueryParams(['academic_year_id' => $theirCycle->id])
+            ->test(BudgetPlanner::class)
+            ->set('ledgerAccountId', (string) $theirAccount->id)
+            ->set('amount', '5')
+            ->call('save')
+            ->assertStatus(404);
+    }
+
+    public function test_revising_starts_from_what_the_plan_says(): void
+    {
+        $this->authorized_user(['read budget', 'manage budget']);
+        $cycle = $this->cycle();
+        $account = app(ChartOfAccounts::class)->account('operating_expenses');
+        $budget = app(SetBudget::class)->set($cycle, $account, 640, fund: 'Sports', note: 'Kit');
+
+        Livewire::test(BudgetPlanner::class)
+            ->call('revise', $budget->id)
+            ->assertSet('ledgerAccountId', (string) $account->id)
+            ->assertSet('amount', '640.00')
+            ->assertSet('fund', 'Sports')
+            ->set('amount', '700')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame(700.0, $budget->fresh()->amount);
+        $this->assertSame(1, Budget::count());
     }
 
     /**
