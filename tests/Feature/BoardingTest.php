@@ -12,6 +12,7 @@ use App\Enums\Feature;
 use App\Enums\OvernightLeaveStatus;
 use App\Enums\SupervisionRole;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\ShowDormitory;
 use App\Models\AuditEvent;
 use App\Models\BoardingPlace;
 use App\Models\Dormitory;
@@ -25,6 +26,7 @@ use App\Services\Boarding\BoardingRoster;
 use App\Services\Feature\FeatureManager;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -289,10 +291,11 @@ class BoardingTest extends TestCase
 
         $bed = $dormitory->beds()->first();
 
-        $actor->post(route('boarding-places.store'), [
-            'student_record_id' => $enrollment->id,
-            'dormitory_bed_id' => $bed->id,
-        ])->assertRedirect();
+        Livewire::test(ShowDormitory::class, ['dormitory' => $dormitory])
+            ->set('placeLearnerId', $enrollment->id)
+            ->set('placeBedId', $bed->id)
+            ->call('place')
+            ->assertHasNoErrors();
 
         $this->assertTrue($bed->fresh()->isTaken());
 
@@ -315,24 +318,28 @@ class BoardingTest extends TestCase
 
         $dormitory = Dormitory::where('name', 'Maple House')->sole();
 
-        $actor->post(route('dormitory-rooms.store', $dormitory), [
-            'name' => 'Room 2',
-            'floor' => 'First floor',
-        ])->assertRedirect();
+        $screen = Livewire::test(ShowDormitory::class, ['dormitory' => $dormitory])
+            ->set('newRoomName', 'Room 2')
+            ->set('newRoomFloor', 'First floor')
+            ->call('addRoom')
+            ->assertHasNoErrors();
 
         $room = DormitoryRoom::where('dormitory_id', $dormitory->id)->where('name', 'Room 2')->sole();
 
         foreach (['Bed A', 'Bed B', 'Bed C'] as $name) {
-            $actor->post(route('dormitory-beds.store', $room), ['name' => $name])->assertRedirect();
+            $screen->set("newBedNames.$room->id", $name)->call('addBed', $room->id)->assertHasNoErrors();
         }
+
+        $screen->set("newBedNames.$room->id", 'Bed A')->call('addBed', $room->id)->assertHasErrors("newBedNames.$room->id");
 
         $bed = $room->beds()->where('name', 'Bed B')->sole();
 
-        $actor->put(route('dormitory-beds.update', $bed), [
-            'name' => 'Bed B',
-            'status' => DormitoryBedStatus::Maintenance->value,
-            'status_reason' => 'Broken frame',
-        ])->assertRedirect();
+        $screen->call('editBed', $bed->id)
+            ->assertSet('bedName', 'Bed B')
+            ->set('bedStatus', DormitoryBedStatus::Maintenance->value)
+            ->set('bedStatusReason', 'Broken frame')
+            ->call('saveBed')
+            ->assertHasNoErrors();
 
         $actor->put(route('dormitories.update', $dormitory), [
             'name' => 'Maple Hall',
@@ -348,10 +355,8 @@ class BoardingTest extends TestCase
 
         $actor->get(route('dormitories.show', $dormitory))
             ->assertOk()
-            ->assertSee('<table', false)
-            ->assertSee('Actions')
-            ->assertSee('Edit room')
-            ->assertSee('Beds in this room')
+            ->assertSee('id="rooms-heading"', false)
+            ->assertSee('Edit Room 2')
             ->assertSee('Room 2')
             ->assertSee('Maintenance')
             ->assertSee('Broken frame');
@@ -378,11 +383,12 @@ class BoardingTest extends TestCase
         $bed = $this->bed();
         app(AssignBoardingPlace::class)->assign($this->enrollment(), $bed);
 
-        $actor->put(route('dormitory-beds.update', $bed), [
-            'name' => $bed->name,
-            'status' => DormitoryBedStatus::Maintenance->value,
-            'status_reason' => 'Broken frame',
-        ])->assertRedirect()->assertSessionHas('danger', 'Move the current boarder before making this bed unavailable.');
+        Livewire::test(ShowDormitory::class, ['dormitory' => $bed->room->dormitory])
+            ->call('editBed', $bed->id)
+            ->set('bedStatus', DormitoryBedStatus::Maintenance->value)
+            ->set('bedStatusReason', 'Broken frame')
+            ->call('saveBed')
+            ->assertHasErrors(['bedStatus']);
 
         $this->assertSame(DormitoryBedStatus::Available, $bed->fresh()->status);
     }
@@ -406,6 +412,55 @@ class BoardingTest extends TestCase
     /**
      * Create a bed in the working school.
      */
+    public function test_the_office_ends_a_placement_from_the_house_screen(): void
+    {
+        $this->authorized_user(['read boarding', 'manage boarding']);
+        app(FeatureManager::class)->enable(Feature::Boarding);
+        $bed = $this->bed();
+        $enrollment = $this->enrollment();
+        app(AssignBoardingPlace::class)->assign($enrollment, $bed);
+
+        Livewire::test(ShowDormitory::class, ['dormitory' => $bed->room->dormitory])
+            ->assertSee($enrollment->user->name)
+            ->call('startLeaving', $bed->id)
+            ->call('endPlacement')
+            ->assertHasErrors(['leaveReason' => 'required'])
+            ->set('leaveReason', 'Moved to day school')
+            ->call('endPlacement')
+            ->assertHasNoErrors();
+
+        $this->assertFalse($bed->fresh()->isTaken());
+    }
+
+    public function test_a_room_with_boarders_stays_in_use(): void
+    {
+        $this->authorized_user(['read boarding', 'manage boarding']);
+        app(FeatureManager::class)->enable(Feature::Boarding);
+        $bed = $this->bed();
+        app(AssignBoardingPlace::class)->assign($this->enrollment(), $bed);
+
+        Livewire::test(ShowDormitory::class, ['dormitory' => $bed->room->dormitory])
+            ->call('editRoom', $bed->room->id)
+            ->set('roomIsActive', false)
+            ->call('saveRoom')
+            ->assertHasErrors('roomIsActive');
+
+        $this->assertTrue($bed->room->fresh()->is_active);
+    }
+
+    public function test_a_reader_cannot_change_the_house(): void
+    {
+        $this->authorized_user(['read boarding']);
+        app(FeatureManager::class)->enable(Feature::Boarding);
+        $bed = $this->bed();
+
+        Livewire::test(ShowDormitory::class, ['dormitory' => $bed->room->dormitory])
+            ->assertDontSee('Add room')
+            ->set('newRoomName', 'Sneaky room')
+            ->call('addRoom')
+            ->assertForbidden();
+    }
+
     private function bed(): DormitoryBed
     {
         $dormitory = Dormitory::factory()->create(['school_id' => $this->workingSchool()->id]);

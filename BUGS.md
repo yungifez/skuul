@@ -821,3 +821,11 @@
 - Impact: The state and the next step sat far apart. Every small update lost the reader's place.
 - Reproduction: Open any case at `/dashboard/incidents/{id}`.
 - Resolution: A new `ShowIncident` Livewire component shows the reference line, one row of facts, and the "Move the case" control at the top. People, Actions, Notes and History follow as plain lists. Adding an action or a note and marking one done happen in place. The card descriptions, the alert paragraph, the three form requests and the three POST/PUT routes are removed. Tests: updated `IncidentScreenTest` and `IncidentTest`, plus new tests for readers without update permission and for a blank action.
+
+## A boarding house hid its beds in a dialog and reloaded for every change
+- Status: Fixed
+- Area: Boarding house page (`dormitories.show`)
+- Observed: Occupancy was one long sentence. On-duty staff and learners away sat in separate cards. Rooms were a table whose "View" button opened a dialog with three boxed counts, a second table of beds and up to three hidden forms per bed. Adding a room, adding a bed, editing either, ending a placement and giving a bed each posted and reloaded the page, which closed the dialog.
+- Impact: The office lost its place after every change, and a phone showed two sideways-scrolling tables.
+- Reproduction: Enable boarding, open a house at `/dashboard/boarding/houses/{id}`, open a room and edit a bed.
+- Resolution: A new `ShowDormitory` Livewire component shows occupancy as four numbers, on-duty staff as one line and learners away as a list. Rooms open in place to show their beds, and each bed has one row menu (Edit bed, End placement). All six changes happen in place. `App\Actions\Boarding\ManageBoardingRooms` now holds the room and bed changes and their audit records. `DormitoryRoomController`, `DormitoryBedController`, `BoardingPlaceController`, their five form requests, their six routes and the `boardingRooms` Alpine store are removed. Edit house and Archive house sit in one page menu. Tests: updated `BoardingTest`, with new tests for ending a placement, a room that still has boarders, and a read-only reader.
