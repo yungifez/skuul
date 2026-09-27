@@ -2,10 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreTimetableRecordRequest;
 use App\Http\Requests\StoreTimetableTimeSlotRequest;
 use App\Http\Requests\UpdateTimetableTimeSlotRequest;
-use App\Models\Timetable;
 use App\Models\TimetableTimeSlot;
 use App\Services\Timetable\TimeSlotService;
 use Illuminate\Http\RedirectResponse;
@@ -80,17 +78,5 @@ class TimetableTimeSlotController extends Controller
         $this->timeSlot->deleteTimeSlot($timeSlot);
 
         return back()->with('success', __('Time slot deleted successfully'));
-    }
-
-    /**
-     * Add Timetable record.
-     */
-    public function addTimetableRecord(TimetableTimeSlot $timeSlot, StoreTimetableRecordRequest $request): RedirectResponse
-    {
-        $timetable = $timeSlot->timetable;
-        $this->authorize('update', $timetable);
-        $this->timeSlot->createTimetableRecord($timeSlot, $request->except('_token'));
-
-        return back()->with('success', __('Timetable record successfully created'));
     }
 }

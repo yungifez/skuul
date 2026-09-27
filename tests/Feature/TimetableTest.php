@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\AcademicPeriodStatus;
 use App\Enums\AcademicStructureStatus;
+use App\Enums\FacilityKind;
 use App\Enums\RosterMode;
 use App\Enums\TimetableStatus;
 use App\Livewire\CreateTimetableForm;
@@ -15,6 +16,8 @@ use App\Models\AcademicCycleSection;
 use App\Models\AcademicPeriod;
 use App\Models\CourseOffering;
 use App\Models\CustomTimetableItem;
+use App\Models\Facility;
+use App\Models\School;
 use App\Models\Subject;
 use App\Models\TeachingAssignment;
 use App\Models\Timetable;
@@ -25,6 +28,7 @@ use App\Models\Weekday;
 use App\Services\Timetable\TimetableGrid;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -867,35 +871,87 @@ class TimetableTest extends TestCase
         ]);
     }
 
-    // test unauthorized user cannot create timetable record
-
-    public function test_unauthorized_user_cannot_create_timetable_record()
+    public function test_the_builder_puts_this_schools_subject_and_room_in_a_cell(): void
     {
-        $timeslot = TimetableTimeSlot::factory()->create();
-        $this->unauthorized_user()
-            ->post("/dashboard/timetables/manage/time-slots/$timeslot->id/record/create", [
-                'type' => 'subject',
-                'weekday_id' => '1',
-                'id' => 1,
-            ])->assertForbidden();
-    }
+        [$timetable, $slot, $weekday] = $this->timetableWithOneSlot();
+        $schoolId = $timetable->academicPeriod->school_id;
+        $subject = Subject::factory()->create(['school_id' => $schoolId]);
+        $room = Facility::factory()->create(['school_id' => $schoolId, 'kind' => FacilityKind::Classroom]);
 
-    // test authorized user can create timetable record
-
-    public function test_authorized_user_can_create_timetable_record()
-    {
-        $timeslot = TimetableTimeSlot::factory()->create();
-        $this->authorized_user(['update timetable'])
-            ->post("/dashboard/timetables/manage/time-slots/$timeslot->id/record/create", [
-                'type' => 'subject',
-                'weekday_id' => '1',
-                'id' => '1',
-            ])->assertRedirect();
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->call('selectCell', $slot->id, $weekday->id)
+            ->set('facilityId', $room->id)
+            ->call('assign', 'subject', $subject->id)
+            ->assertHasNoErrors();
 
         $this->assertDatabaseHas('timetable_time_slot_weekday', [
-            'timetable_time_slot_id' => $timeslot->id,
-            'weekday_id' => 1,
-            'timetable_time_slot_weekdayable_id' => 1,
+            'timetable_time_slot_id' => $slot->id,
+            'weekday_id' => $weekday->id,
+            'timetable_time_slot_weekdayable_id' => $subject->id,
+            'facility_id' => $room->id,
         ]);
+    }
+
+    public function test_the_builder_refuses_another_schools_subject_or_item(): void
+    {
+        [$timetable, $slot, $weekday] = $this->timetableWithOneSlot();
+        $elsewhere = School::factory()->create();
+        $subject = Subject::factory()->create(['school_id' => $elsewhere->id]);
+        $item = CustomTimetableItem::factory()->create(['school_id' => $elsewhere->id]);
+
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->call('selectCell', $slot->id, $weekday->id)
+            ->call('assign', 'subject', $subject->id)
+            ->assertHasErrors('timetable')
+            ->call('assign', 'customTimetableItem', $item->id)
+            ->assertHasErrors('timetable');
+
+        $this->assertDatabaseMissing('timetable_time_slot_weekday', ['timetable_time_slot_id' => $slot->id]);
+    }
+
+    public function test_the_builder_refuses_another_schools_room_or_a_closed_room(): void
+    {
+        [$timetable, $slot, $weekday] = $this->timetableWithOneSlot();
+        $schoolId = $timetable->academicPeriod->school_id;
+        $subject = Subject::factory()->create(['school_id' => $schoolId]);
+        $theirRoom = Facility::factory()->create(['school_id' => School::factory()->create()->id, 'kind' => FacilityKind::Classroom]);
+        $closedRoom = Facility::factory()->create(['school_id' => $schoolId, 'kind' => FacilityKind::Classroom, 'is_active' => false]);
+
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->call('selectCell', $slot->id, $weekday->id)
+            ->set('facilityId', $theirRoom->id)
+            ->call('assign', 'subject', $subject->id)
+            ->assertHasErrors('timetable')
+            ->set('facilityId', $closedRoom->id)
+            ->call('assign', 'subject', $subject->id)
+            ->assertHasErrors('timetable');
+
+        $this->assertDatabaseMissing('timetable_time_slot_weekday', ['timetable_time_slot_id' => $slot->id]);
+    }
+
+    public function test_the_old_record_route_is_gone(): void
+    {
+        $slot = TimetableTimeSlot::factory()->create();
+
+        $this->authorized_user(['update timetable'])
+            ->post("/dashboard/timetables/manage/time-slots/$slot->id/record/create", [
+                'type' => 'subject',
+                'weekday_id' => 1,
+                'id' => 1,
+            ])->assertNotFound();
+
+        $this->assertFalse(Route::has('timetables.records.create'));
+    }
+
+    /**
+     * @return array{0: Timetable, 1: TimetableTimeSlot, 2: Weekday}
+     */
+    private function timetableWithOneSlot(): array
+    {
+        $this->authorized_user(['update timetable']);
+        $timetable = Timetable::factory()->create();
+        $slot = TimetableTimeSlot::factory()->create(['timetable_id' => $timetable->id]);
+
+        return [$timetable, $slot, Weekday::query()->firstOrFail()];
     }
 }

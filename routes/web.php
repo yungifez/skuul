@@ -390,7 +390,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
 
                 // timetable-timeslot route
                 Route::resource('timetables/manage/time-slots', TimetableTimeSlotController::class);
-                Route::post('timetables/manage/time-slots/{time_slot}/record/create', ['App\Http\Controllers\TimetableTimeSlotController', 'addTimetableRecord'])->name('timetables.records.create')->scopeBindings();
 
             });
         });

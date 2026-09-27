@@ -2,7 +2,9 @@
 
 namespace App\Services\Timetable;
 
+use App\Exceptions\InvalidValueException;
 use App\Models\CustomTimetableItem;
+use App\Models\Facility;
 use App\Models\Subject;
 use App\Models\TimetableTimeSlot;
 
@@ -52,32 +54,6 @@ class TimeSlotService
     }
 
     /**
-     * Create timetable time record.
-     *
-     * A request with no chosen item empties the cell instead of filling it.
-     *
-     * @param  array<string, mixed>  $data
-     */
-    public function createTimetableRecord(TimetableTimeSlot $timeSlot, array $data): void
-    {
-        $recordableId = $data['id'] ?? null;
-
-        if ($recordableId === null || $recordableId === '') {
-            $this->clearRecord($timeSlot, (int) $data['weekday_id']);
-
-            return;
-        }
-
-        $this->placeRecord(
-            $timeSlot,
-            (int) $data['weekday_id'],
-            (string) $data['type'],
-            (int) $recordableId,
-            isset($data['facility_id']) ? (int) $data['facility_id'] : null,
-        );
-    }
-
-    /**
      * Put one subject or custom item in one cell of the week.
      *
      * A cell holds one thing, so whatever was there is detached first.
@@ -96,6 +72,8 @@ class TimeSlotService
             return;
         }
 
+        $this->failIfNotOfTheTimetablesSchool($timeSlot, $kind, $recordableId, $facilityId);
+
         $timeSlot->weekdays()->detach($weekdayId);
         $timeSlot->weekdays()->attach($weekdayId, [
             'timetable_time_slot_weekdayable_id' => $recordableId,
@@ -106,6 +84,30 @@ class TimeSlotService
             // one entry. Publication then checks that place like any other.
             'facility_id' => $facilityId,
         ]);
+    }
+
+    /**
+     * Refuse a subject, item, or room that another school owns.
+     *
+     * The builder lists only this school's choices, but the id arrives from the
+     * browser. A room must also be open and able to hold a lesson.
+     *
+     * @throws InvalidValueException
+     */
+    private function failIfNotOfTheTimetablesSchool(TimetableTimeSlot $timeSlot, string $kind, int $recordableId, ?int $facilityId): void
+    {
+        $schoolId = $timeSlot->timetable->academicPeriod->school_id;
+        $recordable = $kind === 'subject' ? Subject::query() : CustomTimetableItem::query();
+
+        if (!$recordable->whereKey($recordableId)->where('school_id', $schoolId)->exists()) {
+            throw new InvalidValueException($kind === 'subject'
+                ? 'Choose a subject this school teaches.'
+                : 'Choose an item this school set up.');
+        }
+
+        if ($facilityId !== null && !Facility::query()->whereKey($facilityId)->where('school_id', $schoolId)->active()->holdsLessons()->exists()) {
+            throw new InvalidValueException('Choose an open room of this school that can hold a lesson.');
+        }
     }
 
     /**

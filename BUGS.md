@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A timetable cell took another school's subject, item, or room
+
+- Status: Fixed
+- Area: Timetable builder (`ManageTimetable::assign`, `TimeSlotService::placeRecord`)
+- Observed: The builder sent the subject, item, and room ids from the browser. The service attached them with no school check. The old record route checked only that the ids existed somewhere.
+- Impact: One school's timetable could show another school's subject names and book another school's rooms. A closed room or a bus could also hold a lesson.
+- Reproduction: Open the builder, choose a cell, then call `assign('subject', <another school's subject id>)`. Or post that id to the old record route.
+- Resolution: `placeRecord` now refuses a subject or item of another school, and a room that is not this school's, open, and able to hold a lesson. The unused record route, its controller method, and `StoreTimetableRecordRequest` are removed.
+
 ## Switching the working school reloaded the whole page through a classic form
 - Status: Fixed
 - Area: Layout, school switcher
