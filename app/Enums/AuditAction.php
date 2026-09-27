@@ -585,6 +585,16 @@ enum AuditAction: string
     case StaffProfileChanged = 'staff_profile.changed';
 
     /**
+     * A group was made, renamed or closed.
+     */
+    case CohortChanged = 'cohort.changed';
+
+    /**
+     * Somebody joined or left a group.
+     */
+    case CohortMembershipChanged = 'cohort.membership_changed';
+
+    /**
      * One school asked another for a student's records.
      */
     case DataSharingRequested = 'data_sharing.requested';
@@ -777,6 +787,8 @@ enum AuditAction: string
             self::StaffLeaveRequested => 'Leave requested',
             self::StaffLeaveStatusChanged => 'Leave status changed',
             self::StaffProfileChanged => 'Employment record changed',
+            self::CohortChanged => 'Group changed',
+            self::CohortMembershipChanged => 'Group membership changed',
             self::DataSharingRequested => 'Records requested',
             self::DataSharingStatusChanged => 'Records request answered',
             self::TransferPackageBuilt => 'Records handed over',

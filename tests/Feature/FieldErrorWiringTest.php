@@ -2,8 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\CreateCohortForm;
+use App\Livewire\CreateFeeCategoryForm;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -19,41 +22,43 @@ class FieldErrorWiringTest extends TestCase
     {
         $html = $this->refusedCohortForm();
 
-        // The textarea is written by hand, so the view carries the wiring.
+        // The controls are written by hand, so the view carries the wiring.
         $this->assertMatchesRegularExpression(
-            '/<textarea[^>]*\bname="description"[^>]*aria-invalid="true"/s',
+            '/<textarea[^>]*\bid="description"[^>]*aria-invalid="true"/s',
             $html,
             'The description field must announce that it was refused.'
         );
-        $this->assertMatchesRegularExpression(
-            '/<textarea[^>]*\baria-describedby="description-error"/s',
-            $html
-        );
-        $this->assertStringContainsString('id="description-error"', $html);
-    }
 
-    public function test_a_refused_april_component_points_at_its_own_message(): void
-    {
-        $html = $this->refusedCohortForm();
-
-        // A blade directive inside an <april:*> tag breaks the tag
-        // precompiler, so these components read their own binding instead.
-        foreach (['name', 'type'] as $field) {
-            $this->assertMatchesRegularExpression(
-                '/\baria-describedby="'.$field.'-error"/',
-                $html,
-                "The {$field} field must point at its message."
-            );
+        foreach (['name', 'type', 'description'] as $field) {
+            $this->assertMatchesRegularExpression('/\baria-describedby="'.$field.'-error"/', $html, "The {$field} field must point at its message.");
             $this->assertStringContainsString('id="'.$field.'-error"', $html);
         }
 
         $this->assertSame(3, substr_count($html, 'aria-invalid="true"'));
     }
 
+    public function test_a_refused_april_component_points_at_its_own_message(): void
+    {
+        $this->authorized_user(['create fee category']);
+
+        // A blade directive inside an <april:*> tag breaks the tag
+        // precompiler, so these components read their own binding instead.
+        $html = Livewire::test(CreateFeeCategoryForm::class)
+            ->set('name', 'Tuition')
+            ->set('description', str_repeat('a', 10001))
+            ->call('save')
+            ->assertHasErrors(['description'])
+            ->html();
+
+        $this->assertMatchesRegularExpression('/<textarea[^>]*\baria-describedby="description-error"/s', $html);
+        $this->assertSame(1, substr_count($html, 'aria-invalid="true"'));
+    }
+
     public function test_a_field_that_passed_says_nothing(): void
     {
-        $actor = $this->authorized_user(['read cohort', 'create cohort']);
-        $html = (string) $actor->get(route('cohorts.create'))->assertOk()->getContent();
+        $this->authorized_user(['read cohort', 'create cohort']);
+
+        $html = Livewire::test(CreateCohortForm::class)->html();
 
         $this->assertStringNotContainsString('aria-invalid', $html);
         $this->assertStringNotContainsString('-error"', $html);
@@ -64,16 +69,14 @@ class FieldErrorWiringTest extends TestCase
      */
     private function refusedCohortForm(): string
     {
-        $actor = $this->authorized_user(['read cohort', 'create cohort']);
+        $this->authorized_user(['read cohort', 'create cohort']);
 
-        $actor->from(route('cohorts.create'))
-            ->post(route('cohorts.store'), [
-                'name' => '',
-                'type' => 'not-a-type',
-                'description' => str_repeat('a', 1001),
-            ])
-            ->assertSessionHasErrors(['name', 'type', 'description']);
-
-        return (string) $actor->get(route('cohorts.create'))->assertOk()->getContent();
+        return Livewire::test(CreateCohortForm::class)
+            ->set('name', '')
+            ->set('type', 'not-a-type')
+            ->set('description', str_repeat('a', 1001))
+            ->call('save')
+            ->assertHasErrors(['name', 'type', 'description'])
+            ->html();
     }
 }

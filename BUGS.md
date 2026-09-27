@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A closed group still took members, and a person could leave a group twice
+
+- Status: Fixed
+- Area: Groups (cohorts)
+- Observed: A group marked closed still took new learners. A joining date in the future was accepted, so the learner showed as in the group before they joined. Taking out a person who had already left moved their leaving date to today. Two groups could share a name when only the capitals differed. Two people adding the same learner at once hit the unique index and showed an error page. Nothing about a watchlist or its members went to the audit log.
+- Impact: Closed groups kept growing, the record of who left and when was rewritten, and nobody could see who put a learner on a private watchlist.
+- Reproduction: Close a group. Open its page in a second tab from before the change and add a learner. The learner joined.
+- Resolution: ChangeCohortMembership locks the group, refuses a closed group and a future joining date, and turns a lost race into the place already held. Taking out somebody who already left is refused. The new SaveCohort action compares names without case under a school lock. Both record CohortChanged or CohortMembershipChanged. The pages are now the Livewire components CreateCohortForm and CohortRecord. The four write routes and their three requests were removed.
+
 ## A repeated staff number crashed the page, and a person who left kept their leave
 
 - Status: Fixed

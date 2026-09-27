@@ -2,18 +2,24 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Cohort\ChangeCohortMembership;
 use App\Actions\Cohort\ChangeProgramParticipation;
+use App\Enums\AuditAction;
 use App\Enums\CohortType;
 use App\Enums\ParticipationStatus;
 use App\Enums\ProgramType;
 use App\Livewire\CohortDirectory as CohortDirectoryComponent;
+use App\Livewire\CohortRecord;
+use App\Livewire\CreateCohortForm;
 use App\Livewire\ProgramDirectory as ProgramDirectoryComponent;
+use App\Models\AuditEvent;
 use App\Models\Cohort;
 use App\Models\Program;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -41,31 +47,42 @@ class CohortScreenTest extends TestCase
     {
         $this->authorized_user(['read cohort', 'create cohort']);
 
-        $response = $this->post(route('cohorts.store'), [
-            'name' => 'Class of 2030',
-            'type' => CohortType::GraduationYear->value,
-            'description' => 'Everybody due to finish in 2030.',
-        ]);
+        $this->get(route('cohorts.create'))->assertOk()->assertSeeLivewire(CreateCohortForm::class);
+
+        Livewire::test(CreateCohortForm::class)
+            ->set('name', '  Class of 2030 ')
+            ->set('type', CohortType::GraduationYear->value)
+            ->set('description', 'Everybody due to finish in 2030.')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('cohorts.show', Cohort::inSchool()->sole()));
 
         $cohort = Cohort::inSchool()->sole();
-
-        $response->assertRedirect(route('cohorts.show', $cohort));
-
         $this->assertSame('Class of 2030', $cohort->name);
         $this->assertFalse($cohort->is_restricted);
+        $this->assertTrue(AuditEvent::query()->where('action', AuditAction::CohortChanged->value)->exists());
     }
 
-    public function test_two_groups_cannot_share_a_name(): void
+    public function test_two_groups_cannot_share_a_name_whatever_the_capitals(): void
     {
-        $this->authorized_user(['read cohort', 'create cohort']);
+        $this->authorized_user(['read cohort', 'create cohort', 'update cohort']);
         Cohort::create(['school_id' => $this->workingSchool()->id, 'name' => 'Class of 2030']);
+        $other = $this->cohort(CohortType::Club, 'Chess club');
 
-        $this->post(route('cohorts.store'), [
-            'name' => 'Class of 2030',
-            'type' => CohortType::GraduationYear->value,
-        ])->assertSessionHasErrors('name');
+        Livewire::test(CreateCohortForm::class)
+            ->set('name', 'class OF 2030')
+            ->call('save')
+            ->assertHasErrors('name')
+            ->assertSee('This school already has a group with that name.');
 
-        $this->assertSame(1, Cohort::inSchool()->count());
+        Livewire::test(CohortRecord::class, ['cohort' => $other])
+            ->call('startEditing')
+            ->set('name', 'CLASS of 2030')
+            ->call('save')
+            ->assertHasErrors('name');
+
+        $this->assertSame(2, Cohort::inSchool()->count());
+        $this->assertSame('Chess club', $other->fresh()->name);
     }
 
     public function test_a_learner_joins_and_leaves_a_group(): void
@@ -74,26 +91,60 @@ class CohortScreenTest extends TestCase
         $cohort = $this->cohort();
         $enrollment = $this->enrollment(User::factory()->create(['name' => 'Ada Bell']));
 
-        $this->from(route('cohorts.show', $cohort))
-            ->post(route('cohorts.members.store', $cohort), ['student_record_id' => $enrollment->id])
-            ->assertRedirect(route('cohorts.show', $cohort));
+        $this->get(route('cohorts.show', $cohort))->assertOk()->assertSeeLivewire(CohortRecord::class);
 
-        $member = $cohort->members()->sole();
-
-        $this->get(route('cohorts.show', $cohort))
-            ->assertOk()
+        $component = Livewire::test(CohortRecord::class, ['cohort' => $cohort])
+            ->set('studentRecordId', (string) $enrollment->id)
+            ->call('addMember')
+            ->assertHasNoErrors()
             ->assertSee('Ada Bell')
             ->assertDontSee('Who has left');
 
-        $this->from(route('cohorts.show', $cohort))
-            ->delete(route('cohorts.members.destroy', [$cohort, $member]))
-            ->assertRedirect(route('cohorts.show', $cohort));
+        $member = $cohort->members()->sole();
 
-        $this->assertNotNull($member->fresh()->left_on);
+        $component->call('removeMember', $member->id)
+            ->assertSee('Who has left')
+            ->call('removeMember', $member->id)
+            ->assertDispatched('status-message', type: 'danger', message: 'This person already left the group.');
 
-        $this->get(route('cohorts.show', $cohort))
-            ->assertOk()
-            ->assertSee('Who has left');
+        $this->assertSame(today()->toDateString(), $member->fresh()->left_on->toDateString());
+        $this->assertSame(2, AuditEvent::query()->where('action', AuditAction::CohortMembershipChanged->value)->count());
+    }
+
+    public function test_a_learner_cannot_join_on_a_day_that_has_not_come(): void
+    {
+        $this->authorized_user(['read cohort', 'update cohort']);
+        $cohort = $this->cohort();
+        $enrollment = $this->enrollment();
+
+        Livewire::test(CohortRecord::class, ['cohort' => $cohort])
+            ->set('studentRecordId', (string) $enrollment->id)
+            ->set('joinedOn', today()->addWeek()->toDateString())
+            ->call('addMember')
+            ->assertHasErrors('joinedOn');
+
+        $this->assertSame(0, $cohort->members()->count());
+    }
+
+    public function test_a_closed_group_takes_nobody_new(): void
+    {
+        $this->authorized_user(['read cohort', 'update cohort']);
+        $cohort = $this->cohort();
+        $enrollment = $this->enrollment();
+        $component = Livewire::test(CohortRecord::class, ['cohort' => $cohort]);
+
+        $cohort->update(['is_active' => false]);
+
+        $component->set('studentRecordId', (string) $enrollment->id)
+            ->call('addMember')
+            ->assertHasErrors('studentRecordId')
+            ->assertSee('is closed');
+
+        $this->assertSame(0, $cohort->members()->count());
+
+        Livewire::test(CohortRecord::class, ['cohort' => $cohort])
+            ->assertSee('The group is closed, so nobody new joins.')
+            ->assertDontSeeHtml('wire:submit="addMember"');
     }
 
     public function test_a_watchlist_is_hidden_from_a_person_who_may_not_read_it(): void
@@ -169,15 +220,38 @@ class CohortScreenTest extends TestCase
         $this->authorized_user(['read cohort', 'create cohort', 'update cohort']);
         $cohort = $this->cohort();
 
-        $this->from(route('cohorts.show', $cohort))
-            ->put(route('cohorts.update', $cohort), [
-                'name' => 'Class of 2031',
-                'is_active' => '0',
-            ])
-            ->assertRedirect(route('cohorts.show', $cohort));
+        Livewire::test(CohortRecord::class, ['cohort' => $cohort])
+            ->call('startEditing')
+            ->set('name', 'Class of 2031')
+            ->set('isActive', false)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertSet('isEditing', false)
+            ->assertSee('Closed');
 
         $this->assertSame('Class of 2031', $cohort->fresh()->name);
         $this->assertFalse($cohort->fresh()->is_active);
+    }
+
+    public function test_a_reader_changes_nothing(): void
+    {
+        $this->authorized_user(['read cohort']);
+        $cohort = $this->cohort();
+        $enrollment = $this->enrollment();
+
+        Livewire::test(CohortRecord::class, ['cohort' => $cohort])
+            ->assertDontSeeHtml('wire:click="startEditing"')
+            ->call('startEditing')
+            ->assertForbidden();
+
+        Livewire::test(CohortRecord::class, ['cohort' => $cohort])
+            ->set('studentRecordId', (string) $enrollment->id)
+            ->call('addMember')
+            ->assertForbidden();
+
+        Livewire::test(CreateCohortForm::class)->assertForbidden();
+
+        $this->assertSame(0, $cohort->members()->count());
     }
 
     public function test_the_programme_list_starts_empty(): void
@@ -247,13 +321,23 @@ class CohortScreenTest extends TestCase
     {
         $this->authorized_user(['read cohort', 'create cohort', 'update cohort']);
         $cohort = $this->cohort();
-        $outsider = StudentRecord::factory()->create(['school_id' => School::factory()->create()->id]);
+        $otherSchool = School::factory()->create();
+        $outsider = StudentRecord::factory()->create(['school_id' => $otherSchool->id]);
+        $theirGroup = Cohort::create(['school_id' => $otherSchool->id, 'name' => 'Their group']);
+        $theirMember = app(ChangeCohortMembership::class)->addStudent($theirGroup, $outsider);
 
-        $this->from(route('cohorts.show', $cohort))
-            ->post(route('cohorts.members.store', $cohort), ['student_record_id' => $outsider->id])
-            ->assertSessionHasErrors('student_record_id');
+        Livewire::test(CohortRecord::class, ['cohort' => $cohort])
+            ->set('studentRecordId', (string) $outsider->id)
+            ->call('addMember')
+            ->assertHasErrors('studentRecordId');
+
+        $this->assertThrows(
+            fn () => Livewire::test(CohortRecord::class, ['cohort' => $cohort])->call('removeMember', $theirMember->id),
+            ModelNotFoundException::class,
+        );
 
         $this->assertSame(0, $cohort->members()->count());
+        $this->assertNull($theirMember->fresh()->left_on);
     }
 
     public function test_the_screens_need_permission(): void

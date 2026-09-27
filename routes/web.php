@@ -307,11 +307,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         // these routes do not need an academic period.
         Route::get('cohorts', ['App\Http\Controllers\CohortController', 'index'])->name('cohorts.index');
         Route::get('cohorts/create', ['App\Http\Controllers\CohortController', 'create'])->name('cohorts.create');
-        Route::post('cohorts', ['App\Http\Controllers\CohortController', 'store'])->name('cohorts.store');
         Route::get('cohorts/{cohort}', ['App\Http\Controllers\CohortController', 'show'])->name('cohorts.show');
-        Route::put('cohorts/{cohort}', ['App\Http\Controllers\CohortController', 'update'])->name('cohorts.update');
-        Route::post('cohorts/{cohort}/members', ['App\Http\Controllers\CohortController', 'storeMember'])->name('cohorts.members.store');
-        Route::delete('cohorts/{cohort}/members/{cohortMember}', ['App\Http\Controllers\CohortController', 'removeMember'])->name('cohorts.members.destroy');
 
         Route::middleware(['feature:programmes'])->group(function (): void {
             Route::get('programs', ['App\Http\Controllers\ProgramController', 'index'])->name('programs.index');
