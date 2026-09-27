@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\TimetableStoreRequest;
-use App\Http\Requests\TimetableUpdateRequest;
 use App\Models\Timetable;
 use App\Services\Timetable\TimetableService;
 use Illuminate\Http\RedirectResponse;
@@ -73,17 +72,6 @@ class TimetableController extends Controller
     public function edit(Timetable $timetable): View
     {
         return view('pages.timetable.edit', compact('timetable'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(TimetableUpdateRequest $request, Timetable $timetable): RedirectResponse
-    {
-        $data = $request->except('_token'.'_method');
-        $this->timetableService->updateTimetable($timetable, $data);
-
-        return back()->with('success', 'Timetable updated successfully');
     }
 
     /**

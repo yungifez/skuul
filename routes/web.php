@@ -393,7 +393,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 Route::resource('syllabi', SyllabusController::class);
 
                 // timetable route
-                Route::resource('timetables', TimetableController::class);
+                Route::resource('timetables', TimetableController::class)->except(['update']);
                 Route::resource('custom-timetable-items', CustomTimetableItemController::class)->except(['store', 'update']);
 
                 // manage timetable

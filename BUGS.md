@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Editing a timetable published in another tab ended in a bare 403
+- Status: Fixed
+- Area: Timetables
+- Observed: The edit screen posted a plain form. When someone published the timetable while the page was open, saving returned a forbidden page with no reason. A blank description could not be cleared cleanly, and the controller built its excluded keys as one joined string.
+- Impact: Planners lost their typing and did not learn why the save failed.
+- Reproduction: Open a draft timetable's edit page, publish it in another tab, then save the edit page.
+- Resolution: The edit screen is a Livewire component. It re-reads the timetable before saving and says it was published; otherwise it saves the trimmed name and description and opens the timetable. The PUT route and its request are gone.
+
 ## A second school could rewrite or take over a shared person, and person forms lost details
 - Status: Fixed
 - Area: People (admins, teachers, parents, students)

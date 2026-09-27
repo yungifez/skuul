@@ -105,7 +105,7 @@ class TimetableService
     public function updateTimetable(Timetable $timetable, $data)
     {
         $timetable->name = $data['name'];
-        $timetable->description = $data['description'];
+        $timetable->description = $data['description'] ?? null;
         $timetable->save();
     }
 

@@ -7,6 +7,7 @@ use App\Enums\AcademicStructureStatus;
 use App\Enums\RosterMode;
 use App\Enums\TimetableStatus;
 use App\Livewire\CreateTimetableForm;
+use App\Livewire\EditTimetableForm;
 use App\Livewire\ManageTimetable;
 use App\Livewire\ShowTimetable;
 use App\Models\AcademicCycleSection;
@@ -654,36 +655,49 @@ class TimetableTest extends TestCase
             ->assertOk();
     }
 
-    // test unauthorized user can't update timetable
-
-    public function test_unauthorized_user_cant_update_timetable()
-    {
-        $this->unauthorized_user()
-            ->patch('/dashboard/timetables/1', [
-                'name' => 'Test timetable',
-                'description' => 'Test timetable description',
-            ])->assertForbidden();
-    }
-
-    // test authorized user can update timetable
-
-    public function test_user_can_update_timetable()
+    public function test_unauthorized_user_cant_update_timetable(): void
     {
         $timetable = Timetable::factory()->create();
+        $this->unauthorized_user();
 
-        $this->authorized_user(['update timetable'])
-            ->patch("/dashboard/timetables/$timetable->id", [
-                'name' => 'Test timetable',
-                'my_class_id' => 1,
-                'description' => 'Test timetable description',
-            ]);
+        Livewire::test(EditTimetableForm::class, ['timetable' => $timetable])->assertForbidden();
+    }
+
+    public function test_user_can_update_timetable(): void
+    {
+        $timetable = Timetable::factory()->create();
+        $this->authorized_user(['update timetable', 'read timetable']);
+
+        Livewire::test(EditTimetableForm::class, ['timetable' => $timetable])
+            ->assertSet('name', $timetable->name)
+            ->set('name', '  Test timetable  ')
+            ->set('description', '')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('timetables.show', $timetable));
 
         $this->assertDatabaseHas('timetables', [
             'id' => $timetable->id,
             'name' => 'Test timetable',
             'academic_cycle_section_id' => $timetable->academic_cycle_section_id,
-            'description' => 'Test timetable description',
+            'description' => null,
         ]);
+    }
+
+    public function test_a_timetable_published_while_the_edit_page_was_open_is_not_changed(): void
+    {
+        $timetable = Timetable::factory()->create();
+        $this->authorized_user(['update timetable']);
+        $component = Livewire::test(EditTimetableForm::class, ['timetable' => $timetable]);
+
+        Timetable::query()->whereKey($timetable->id)->update(['status' => TimetableStatus::Published]);
+
+        $component->set('name', 'Renamed')
+            ->call('save')
+            ->assertHasErrors(['name' => 'This timetable was published, so it can no longer be edited.'])
+            ->assertNoRedirect();
+
+        $this->assertSame($timetable->name, $timetable->fresh()->name);
     }
 
     // test unauthorized user can't delete timetable
