@@ -39,7 +39,7 @@ class FeeInvoiceTest extends TestCase
             ->assertSuccessful()
             ->assertSee('id="finance-owed"', false)
             ->assertSee('Overdue invoices')
-            ->assertSee('More finance pages');
+            ->assertDontSee('More finance pages');
 
         $content = $response->getContent();
         $summaryPosition = strpos($content, 'id="finance-owed"');
@@ -48,6 +48,19 @@ class FeeInvoiceTest extends TestCase
         $this->assertIsInt($summaryPosition);
         $this->assertIsInt($tablePosition);
         $this->assertLessThan($tablePosition, $summaryPosition);
+    }
+
+    public function test_the_finance_menu_lists_only_pages_the_user_can_open(): void
+    {
+        $this->authorized_user(['read fee invoice', 'read fee', 'read expense'])
+            ->get('dashboard/fees/fee-invoices')
+            ->assertSuccessful()
+            ->assertSee('More finance pages')
+            ->assertSee(route('fees.index'), false)
+            ->assertSee(route('expenses.index'), false)
+            ->assertDontSee(route('cash-deposits.index'), false)
+            ->assertDontSee(route('budgets.index'), false)
+            ->assertDontSee(route('expenses.create'), false);
     }
 
     public function test_authorized_user_can_view_fee_invoices_with_current_enrollment_placement()

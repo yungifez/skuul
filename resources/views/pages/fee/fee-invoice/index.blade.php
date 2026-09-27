@@ -7,24 +7,33 @@
 @section('page_heading', 'Finance')
 
 @section('page_actions')
+    @php
+        $financeLinks = collect([
+            ['can' => Gate::allows('create', \App\Models\Expense::class), 'href' => route('expenses.create'), 'icon' => 'receipt', 'text' => 'Record expense'],
+            ['can' => Gate::allows('viewAny', \App\Models\Fee::class), 'href' => route('fees.index'), 'icon' => 'list', 'text' => 'Fees'],
+            ['can' => Gate::allows('viewAny', \App\Models\FeeCategory::class), 'href' => route('fee-categories.index'), 'icon' => 'folder', 'text' => 'Fee categories'],
+            ['can' => Gate::allows('viewAny', \App\Models\Expense::class), 'href' => route('expenses.index'), 'icon' => 'wallet', 'text' => 'Expenses'],
+            ['can' => Gate::allows('viewAny', \App\Models\CashDeposit::class), 'href' => route('cash-deposits.index'), 'icon' => 'landmark', 'text' => 'Cash deposits'],
+            ['can' => Gate::allows('viewAny', \App\Models\Budget::class), 'href' => route('budgets.index'), 'icon' => 'piggy-bank', 'text' => 'Budgets'],
+            ['can' => Gate::allows('viewAny', \App\Models\ReportRun::class), 'href' => route('reports.index'), 'icon' => 'chart-column', 'text' => 'Reports'],
+        ])->where('can', true);
+    @endphp
     <div class="flex items-center gap-2">
         <x-resource-create-action :href="route('fee-invoices.create')" ability="create" :arguments="[\App\Models\FeeInvoice::class]">Add invoice</x-resource-create-action>
-        <april:dropdown-menu>
-            <slot:trigger>
-                <april:button type="button" variant="ghost" size="icon" class="size-11 select-none" aria-label="More finance pages">
-                    <x-lucide-ellipsis class="size-4" />
-                </april:button>
-            </slot:trigger>
-            <slot:content align="end" class="w-52">
-                <april:dropdown-menu-item x-on:click="window.location.href = '{{ route('expenses.create') }}'"><x-lucide-receipt class="mr-2 size-4" />Record expense</april:dropdown-menu-item>
-                <april:dropdown-menu-item x-on:click="window.location.href = '{{ route('fees.index') }}'"><x-lucide-list class="mr-2 size-4" />Fees</april:dropdown-menu-item>
-                <april:dropdown-menu-item x-on:click="window.location.href = '{{ route('fee-categories.index') }}'"><x-lucide-folder class="mr-2 size-4" />Fee categories</april:dropdown-menu-item>
-                <april:dropdown-menu-item x-on:click="window.location.href = '{{ route('expenses.index') }}'"><x-lucide-wallet class="mr-2 size-4" />Expenses</april:dropdown-menu-item>
-                <april:dropdown-menu-item x-on:click="window.location.href = '{{ route('cash-deposits.index') }}'"><x-lucide-landmark class="mr-2 size-4" />Cash deposits</april:dropdown-menu-item>
-                <april:dropdown-menu-item x-on:click="window.location.href = '{{ route('budgets.index') }}'"><x-lucide-piggy-bank class="mr-2 size-4" />Budgets</april:dropdown-menu-item>
-                <april:dropdown-menu-item x-on:click="window.location.href = '{{ route('reports.index') }}'"><x-lucide-chart-column class="mr-2 size-4" />Reports</april:dropdown-menu-item>
-            </slot:content>
-        </april:dropdown-menu>
+        @if ($financeLinks->isNotEmpty())
+            <april:dropdown-menu>
+                <slot:trigger>
+                    <april:button type="button" variant="ghost" size="icon" class="size-11 select-none" aria-label="More finance pages">
+                        <x-lucide-ellipsis class="size-4" />
+                    </april:button>
+                </slot:trigger>
+                <slot:content align="end" class="w-52">
+                    @foreach ($financeLinks as $link)
+                        <april:dropdown-menu-item x-on:click="window.location.href = '{{ $link['href'] }}'"><x-dynamic-component :component="'lucide-'.$link['icon']" class="mr-2 size-4" />{{ $link['text'] }}</april:dropdown-menu-item>
+                    @endforeach
+                </slot:content>
+            </april:dropdown-menu>
+        @endif
     </div>
 @endsection
 

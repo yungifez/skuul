@@ -91,7 +91,8 @@ class CrossSchoolAccessTest extends TestCase
     }
 
     /**
-     * The academic year screen no longer exposes a generic update endpoint.
+     * The academic year and fee invoice screens save through Livewire, so they
+     * no longer expose a generic update endpoint.
      *
      * @return array<string, array{0: string, 1: string, 2: array<int, string>}>
      */
@@ -99,7 +100,7 @@ class CrossSchoolAccessTest extends TestCase
     {
         return array_filter(
             self::schoolOwnedResources(),
-            static fn (array $resource, string $key): bool => $key !== 'academic year',
+            static fn (array $resource, string $key): bool => !in_array($key, ['academic year', 'fee invoice'], true),
             ARRAY_FILTER_USE_BOTH,
         );
     }

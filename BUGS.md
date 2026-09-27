@@ -944,3 +944,10 @@
 - **Problem:** The page showed carded POST forms to add, change and remove fees. Every invoice made through the create screen is posted to the ledger, so the service refused each of these changes after the form was sent. The add form also sent the fee through an unnamed hidden input. The invoice pages still pointed back to "Fees › Fee Invoices", but that page is now "Finance".
 - **Fix:** The edit page is now one Livewire form (`EditFeeInvoiceForm`). It saves the due date and note. It shows the fees of a posted invoice with a lock and no actions. On an unposted invoice, each fee has a ⋯ menu to change or remove it, and "Add fee" opens an inline form. A paid fee cannot be removed. The details Save button drops to outline while a fee form is open, so only one accent button shows. The invoice update route, the fee-line controller and three form requests are removed. The breadcrumbs on the invoice, payment, create and student account pages now read "Dashboard › Finance".
 - **Tests:** `FeeInvoiceRecordTest` and `FeeInvoiceTest` use Livewire for every change. A stale Finance page test from the earlier rebuild is updated.
+
+## Finance menu linked to pages the user cannot open
+
+- **Where:** `/dashboard/fees/fee-invoices`, the ⋯ menu
+- **Problem:** The menu always listed Record expense, Expenses, Cash deposits, Budgets and more. A user without those permissions got a 403 page after choosing one. A user with none of them still saw an empty ⋯ button.
+- **Fix:** Each link is checked against its policy, and the ⋯ button is hidden when no link is left. The cross-school test no longer sends a PUT to the invoice route that was removed when invoice editing moved to Livewire.
+- **Tests:** `FeeInvoiceTest::test_the_finance_menu_lists_only_pages_the_user_can_open`, `CrossSchoolAccessTest`
