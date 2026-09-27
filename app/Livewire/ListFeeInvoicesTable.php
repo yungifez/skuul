@@ -9,6 +9,7 @@ use App\Services\Finance\FinancialPeriodResolver;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
+use Livewire\Attributes\Locked;
 use Yungifez\AprilUI\Livewire\Columns\Column;
 use Yungifez\AprilUI\Livewire\DataTableComponent;
 
@@ -19,6 +20,7 @@ class ListFeeInvoicesTable extends DataTableComponent
     protected $queryString = ['status', 'financialPeriodId'];
 
     /** @var array<int, string> */
+    #[Locked]
     public array $statuses = ['all', 'due', 'paid'];
 
     public string $status = 'due';

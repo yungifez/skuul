@@ -18,6 +18,7 @@ use App\Models\User;
 use App\Services\Authorization\CampusMoveAuthority;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Gate;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class ShowStudentProfile extends Component
@@ -30,6 +31,7 @@ class ShowStudentProfile extends Component
 
     public ?StudentRecord $studentRecord = null;
 
+    #[Locked]
     public array $statusOptions = [];
 
     public string $statusSelection = '';

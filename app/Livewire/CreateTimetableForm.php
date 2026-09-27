@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class CreateTimetableForm extends Component
@@ -65,12 +66,15 @@ class CreateTimetableForm extends Component
     public array $subjects = [];
 
     /** @var array<int, array{id: int, name: string}> */
+    #[Locked]
     public array $weekdays = [];
 
     /** @var array<int, array{id: string, name: string}> */
+    #[Locked]
     public array $roles = [];
 
     /** @var array<int, array{id: int, name: string, starts_on: string|null, ends_on: string|null}> */
+    #[Locked]
     public array $periods = [];
 
     public function mount(): void

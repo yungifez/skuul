@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Timetable event dates and audiences could skip their checks through browser-edited lists
+- Status: Fixed
+- Area: Timetables, guardians, enrollment, fees
+- Observed: The new-timetable form checked event dates against a browser-writable list of terms, and event audiences against a browser-writable list of roles. The guardian screen, the enrollment status choice, and the invoice filter also checked choices against browser-writable lists.
+- Impact: A person could place an event outside its term or give it an audience that is not a school role. The guardian and enrollment actions refuse bad values on their own, so those were defence in depth.
+- Reproduction: Open a new timetable, change a term's dates in the component's `periods` from the browser console, and add an event outside the real term.
+- Resolution: Each of these lists is locked, so only the server sets it. A unit test lists the locked allowlists so a later change cannot unlock one quietly.
+
 ## The dashboard's counts and setup checklist could be rewritten from the browser
 - Status: Fixed
 - Area: Dashboard

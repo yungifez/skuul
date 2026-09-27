@@ -24,16 +24,19 @@ class AssignStudentsToParent extends Component
     public User $parent;
 
     /** @var array<int, array{id: int, label: string}> */
+    #[Locked]
     public array $cycleSections = [];
 
     public ?int $academicCycleSectionId = null;
 
     /** @var array<int, array{id: int, name: string, admission_number: string|null}> */
+    #[Locked]
     public array $students = [];
 
     public ?int $studentId = null;
 
     /** @var array<int, array{id: int, name: string, email: string, admission_number: string|null, cycle_section: string|null}> */
+    #[Locked]
     public array $children = [];
 
     public function mount(User $parent): void
