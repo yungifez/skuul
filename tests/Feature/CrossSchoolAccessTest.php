@@ -6,6 +6,7 @@ use App\Actions\School\GrantSchoolMembership;
 use App\Enums\AdmissionWaitlistStatus;
 use App\Enums\Feature;
 use App\Livewire\BoardingRollSheet;
+use App\Livewire\EditExamForm;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
@@ -93,7 +94,7 @@ class CrossSchoolAccessTest extends TestCase
     }
 
     /**
-     * The academic year and fee invoice screens save through Livewire, so they
+     * The academic year, exam and fee invoice screens save through Livewire, so they
      * no longer expose a generic update endpoint.
      *
      * @return array<string, array{0: string, 1: string, 2: array<int, string>}>
@@ -102,7 +103,7 @@ class CrossSchoolAccessTest extends TestCase
     {
         return array_filter(
             self::schoolOwnedResources(),
-            static fn (array $resource, string $key): bool => !in_array($key, ['academic year', 'fee invoice'], true),
+            static fn (array $resource, string $key): bool => !in_array($key, ['academic year', 'exam', 'fee invoice'], true),
             ARRAY_FILTER_USE_BOTH,
         );
     }
@@ -192,6 +193,13 @@ class CrossSchoolAccessTest extends TestCase
 
         $actor->get("dashboard/academic-periods/$period->id/edit")->assertForbidden();
         $actor->put("dashboard/academic-periods/$period->id", [])->assertForbidden();
+    }
+
+    public function test_an_exam_of_another_school_cannot_be_changed_through_its_form(): void
+    {
+        $this->actAsFullyPermittedUser(['exam']);
+
+        Livewire::test(EditExamForm::class, ['exam' => $this->records['exam']])->assertForbidden();
     }
 
     public function test_an_exam_slot_of_another_school_cannot_be_read(): void

@@ -1,5 +1,14 @@
 # Known Bugs
 
+## An exam could fall outside its term, share a name, and lost its dates when edited
+
+- Status: Fixed
+- Area: Exams
+- Observed: An exam could be dated outside its reporting period, for example a first-term exam in March. One period could hold two exams named "Mid-term", so a report card listed both. The edit form printed the stored date with a time, which a date field rejects, so every edit opened with empty dates. An exam whose papers were already in the gradebook could be moved to another period, which left its marks with the classes of the old term.
+- Impact: Calendars and report cards showed exams in the wrong term, and a teacher who saved an edit without noticing had to type both dates again.
+- Reproduction: Plan an exam from 1 March in a period that ends in December. Or open an existing exam's edit page and look at the date fields.
+- Resolution: `SaveExam` locks the period and refuses dates outside it, an end before the start, a name already used in that period (case-blind), and a move of an exam whose papers are in the gradebook. Each change is audited as `ExamChanged`. The create and edit forms run through Livewire, fill the dates as `Y-m-d`, and offer only periods that still take exams. The store and update routes and their request classes were removed.
+
 ## An import could be written twice, and Excel files lost their first column
 
 - Status: Fixed

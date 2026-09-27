@@ -7,7 +7,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string|null $description
+ * @property int $academic_period_id
+ * @property Carbon $start_date
+ * @property Carbon $stop_date
+ * @property bool $active
+ */
 class Exam extends Model
 {
     use HasFactory;
@@ -29,9 +39,9 @@ class Exam extends Model
      */
     protected $casts = [
         'email_verified_at' => 'datetime',
-        'start_date'        => 'date:Y-m-d',
-        'stop_date'         => 'date:Y-m-d',
-        'active'            => 'boolean',
+        'start_date' => 'date:Y-m-d',
+        'stop_date' => 'date:Y-m-d',
+        'active' => 'boolean',
     ];
 
     /**

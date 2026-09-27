@@ -310,7 +310,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         // Exam planning names its own calendar, so it can be prepared for a
         // draft year before that year becomes the working calendar.
         Route::post('exams/{exam}/set--active-status', ['App\Http\Controllers\ExamController', 'setExamActiveStatus'])->name('exams.set-active-status');
-        Route::resource('exams', ExamController::class);
+        Route::resource('exams', ExamController::class)->except(['store', 'update']);
         Route::scopeBindings()->group(function () {
             Route::resource('exams/{exam}/manage/exam-slots', ExamSlotController::class);
         });

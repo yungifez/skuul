@@ -600,6 +600,11 @@ enum AuditAction: string
     case CohortChanged = 'cohort.changed';
 
     /**
+     * An exam was planned, renamed or given new dates.
+     */
+    case ExamChanged = 'exam.changed';
+
+    /**
      * Somebody joined or left a group.
      */
     case CohortMembershipChanged = 'cohort.membership_changed';
@@ -820,6 +825,7 @@ enum AuditAction: string
             self::StaffLeaveStatusChanged => 'Leave status changed',
             self::StaffProfileChanged => 'Employment record changed',
             self::CohortChanged => 'Group changed',
+            self::ExamChanged => 'Exam changed',
             self::CohortMembershipChanged => 'Group membership changed',
             self::ProgramChanged => 'Programme changed',
             self::ProgramParticipationChanged => 'Programme place changed',

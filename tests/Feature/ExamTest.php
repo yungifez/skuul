@@ -3,12 +3,22 @@
 namespace Tests\Feature;
 
 use App\Enums\AcademicPeriodStatus;
+use App\Enums\AuditAction;
+use App\Livewire\CreateExamForm;
+use App\Livewire\EditExamForm;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
+use App\Models\AuditEvent;
+use App\Models\CourseOffering;
 use App\Models\Exam;
+use App\Models\ExamSlot;
+use App\Models\GradeItem;
+use App\Models\School;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
+use Livewire\Features\SupportTesting\Testable;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class ExamTest extends TestCase
@@ -41,16 +51,17 @@ class ExamTest extends TestCase
             ->assertSee($academicYear->name)
             ->assertSee($academicPeriod->displayName);
 
-        $response = $this->post(route('exams.store'), [
-            'name' => 'Draft calendar assessment',
-            'academic_period_id' => $academicPeriod->id,
-            'start_date' => '2026-09-01',
-            'stop_date' => '2026-09-02',
-        ]);
+        $component = Livewire::withQueryParams(['academic_year_id' => $academicYear->id])
+            ->test(CreateExamForm::class)
+            ->assertSet('academicPeriodId', (string) $academicPeriod->id)
+            ->set('name', 'Draft calendar assessment')
+            ->set('startDate', '2026-09-01')
+            ->set('stopDate', '2026-09-02')
+            ->call('save');
 
         $exam = Exam::query()->where('name', 'Draft calendar assessment')->firstOrFail();
 
-        $response->assertRedirect(route('academic-years.show', $academicYear));
+        $component->assertRedirect(route('academic-years.show', $academicYear));
         $this->assertModelExists($exam);
     }
 
@@ -67,13 +78,16 @@ class ExamTest extends TestCase
             'status' => AcademicPeriodStatus::Scheduled,
         ]);
 
-        $this->authorized_user(['create exam'], $school)
-            ->post(route('exams.store'), [
-                'name' => 'Opening assessment',
-                'academic_period_id' => $academicPeriod->id,
-                'start_date' => '2026-09-01',
-                'stop_date' => '2026-09-02',
-            ])
+        $this->authorized_user(['create exam'], $school);
+
+        Livewire::withQueryParams(['academic_year_id' => $academicYear->id])
+            ->test(CreateExamForm::class)
+            ->set('academicPeriodId', (string) $academicPeriod->id)
+            ->set('name', 'Opening assessment')
+            ->set('startDate', '2026-09-01')
+            ->set('stopDate', '2026-09-02')
+            ->call('save')
+            ->assertHasNoErrors()
             ->assertRedirect();
 
         $this->assertDatabaseHas('exams', [
@@ -118,35 +132,78 @@ class ExamTest extends TestCase
             ->assertOk();
     }
 
-    // test unauthorized user cannot create exam
-
     public function test_unauthorized_user_cant_create_exam()
     {
-        $this->unauthorized_user()
-            ->post('/dashboard/exams')
-            ->assertForbidden();
-    }
+        $this->unauthorized_user();
 
-    // test authorized user can create exam
+        Livewire::test(CreateExamForm::class)->assertForbidden();
+    }
 
     public function test_authorized_user_can_create_exam()
     {
-        $this->authorized_user(['create exam'])
-            ->post('/dashboard/exams', [
-                'name' => 'test exam',
-                'academic_period_id' => '1',
-                'description' => 'test description',
-                'start_date' => '2020-01-01',
-                'stop_date' => '2020-01-01',
-            ]);
+        $period = $this->plannedPeriod();
+        $this->authorized_user(['create exam']);
+
+        $this->planExam($period, ['description' => 'test description'])
+            ->assertHasNoErrors();
 
         $this->assertDatabaseHas('exams', [
             'name' => 'test exam',
-            'academic_period_id' => '1',
+            'academic_period_id' => $period->id,
             'description' => 'test description',
-            'start_date' => '2020-01-01',
-            'stop_date' => '2020-01-01',
+            'start_date' => '2026-10-05',
+            'stop_date' => '2026-10-09',
         ]);
+        $this->assertSame(1, AuditEvent::query()->where('action', AuditAction::ExamChanged)->count());
+    }
+
+    public function test_an_exam_must_sit_inside_its_reporting_period(): void
+    {
+        $period = $this->plannedPeriod();
+        $this->authorized_user(['create exam']);
+
+        $this->planExam($period, ['startDate' => '2026-08-28', 'stopDate' => '2026-09-02'])
+            ->assertHasErrors('startDate');
+        $this->planExam($period, ['startDate' => '2026-12-18', 'stopDate' => '2027-01-08'])
+            ->assertHasErrors('startDate');
+
+        $this->assertSame(0, Exam::query()->where('academic_period_id', $period->id)->count());
+    }
+
+    public function test_an_exam_cannot_end_before_it_starts(): void
+    {
+        $period = $this->plannedPeriod();
+        $this->authorized_user(['create exam']);
+
+        $this->planExam($period, ['startDate' => '2026-10-09', 'stopDate' => '2026-10-05'])
+            ->assertHasErrors('stopDate');
+    }
+
+    public function test_one_period_never_holds_two_exams_with_one_name(): void
+    {
+        $period = $this->plannedPeriod();
+        $this->authorized_user(['create exam']);
+
+        $this->planExam($period, ['name' => 'Mid-term'])->assertHasNoErrors();
+        $this->planExam($period, ['name' => ' MID-TERM '])->assertHasErrors('name');
+
+        $this->assertSame(1, Exam::query()->where('academic_period_id', $period->id)->count());
+    }
+
+    public function test_an_exam_cannot_be_planned_in_another_schools_period(): void
+    {
+        $otherSchool = School::factory()->create();
+        $otherYear = AcademicYear::factory()->create(['school_id' => $otherSchool->id, 'status' => AcademicPeriodStatus::Draft]);
+        $otherPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $otherSchool->id,
+            'academic_year_id' => $otherYear->id,
+            'status' => AcademicPeriodStatus::Draft,
+        ]);
+        $this->authorized_user(['create exam']);
+
+        $this->planExam($otherPeriod)->assertHasErrors('academicPeriodId');
+
+        $this->assertSame(0, Exam::query()->where('academic_period_id', $otherPeriod->id)->count());
     }
 
     // test unauthorized user cannot view edit exam
@@ -195,44 +252,68 @@ class ExamTest extends TestCase
             ->assertSee($academicPeriod->displayName);
     }
 
-    // test unauthorized user cannot update exam
-
     public function test_unauthorized_user_cant_update_exam()
     {
         $exam = Exam::factory()->create();
-        $this->unauthorized_user()
-            ->put("/dashboard/exams/$exam->id", [
-                'name' => 'test',
-                'academic_period_id' => '1',
-                'description' => 'test',
-                'start_date' => '2018-01-01',
-                'stop_date' => '2018-01-01',
-            ])
-            ->assertForbidden();
-    }
+        $this->unauthorized_user();
 
-    // test authorized user can update exam
+        Livewire::test(EditExamForm::class, ['exam' => $exam])->assertForbidden();
+    }
 
     public function test_authorized_user_can_update_exam()
     {
-        $exam = Exam::factory()->create();
-        $this->authorized_user(['update exam'])
-            ->put("/dashboard/exams/$exam->id", [
-                'name' => 'test',
-                'academic_period_id' => '1',
-                'description' => 'test',
-                'start_date' => '2018-01-01',
-                'stop_date' => '2018-01-02',
-            ]);
+        $period = $this->plannedPeriod();
+        $exam = Exam::factory()->create(['academic_period_id' => $period->id, 'start_date' => '2026-10-05', 'stop_date' => '2026-10-09']);
+        $this->authorized_user(['update exam']);
+
+        Livewire::test(EditExamForm::class, ['exam' => $exam])
+            ->assertSet('startDate', '2026-10-05')
+            ->assertSet('stopDate', '2026-10-09')
+            ->set('name', 'test')
+            ->set('description', 'test')
+            ->set('stopDate', '2026-10-12')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('academic-years.show', $period->academic_year_id));
 
         $this->assertDatabaseHas('exams', [
             'id' => $exam->id,
             'name' => 'test',
-            'academic_period_id' => '1',
+            'academic_period_id' => $period->id,
             'description' => 'test',
-            'start_date' => '2018-01-01',
-            'stop_date' => '2018-01-02',
+            'start_date' => '2026-10-05',
+            'stop_date' => '2026-10-12',
         ]);
+    }
+
+    public function test_an_exam_with_marked_papers_stays_in_its_period(): void
+    {
+        $period = $this->plannedPeriod();
+        $otherPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $period->school_id,
+            'academic_year_id' => $period->academic_year_id,
+            'status' => AcademicPeriodStatus::Draft,
+        ]);
+        $exam = Exam::factory()->create(['academic_period_id' => $period->id, 'start_date' => '2026-10-05', 'stop_date' => '2026-10-09']);
+        $slot = ExamSlot::factory()->create(['exam_id' => $exam->id]);
+        $courseOffering = CourseOffering::factory()->create([
+            'school_id' => $period->school_id,
+            'academic_year_id' => $period->academic_year_id,
+            'academic_period_id' => $period->id,
+        ]);
+        GradeItem::create([
+            'school_id' => $period->school_id,
+            'course_offering_id' => $courseOffering->id,
+            'name' => 'Mid-term paper',
+        ])->forceFill(['exam_slot_id' => $slot->id])->save();
+        $this->authorized_user(['update exam']);
+
+        Livewire::test(EditExamForm::class, ['exam' => $exam])
+            ->set('academicPeriodId', (string) $otherPeriod->id)
+            ->call('save')
+            ->assertHasErrors('academicPeriodId');
+
+        $this->assertSame($period->id, $exam->fresh()->academic_period_id);
     }
 
     // test unauthorized user cannot view exam
@@ -294,5 +375,40 @@ class ExamTest extends TestCase
         $this->assertFalse(Route::has('exams.academic-year-result-tabulation'));
         $this->assertFalse(Route::has('exams.result-checker'));
         $this->assertFalse(Route::has('exams.set-publish-result-status'));
+    }
+
+    /**
+     * Make a draft period that runs from September to December 2026.
+     */
+    private function plannedPeriod(): AcademicPeriod
+    {
+        $school = $this->workingSchool();
+        $academicYear = AcademicYear::factory()->create(['school_id' => $school->id, 'status' => AcademicPeriodStatus::Draft]);
+
+        return AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'status' => AcademicPeriodStatus::Draft,
+            'starts_on' => '2026-09-01',
+            'ends_on' => '2026-12-18',
+        ]);
+    }
+
+    /**
+     * Plan an exam in a period through the form.
+     *
+     * @param  array<string, string>  $values
+     */
+    private function planExam(AcademicPeriod $period, array $values = []): Testable
+    {
+        $component = Livewire::withQueryParams(['academic_year_id' => $period->academic_year_id])
+            ->test(CreateExamForm::class)
+            ->set('academicPeriodId', (string) $period->id);
+
+        foreach ($values + ['name' => 'test exam', 'startDate' => '2026-10-05', 'stopDate' => '2026-10-09'] as $property => $value) {
+            $component->set($property, $value);
+        }
+
+        return $component->call('save');
     }
 }
