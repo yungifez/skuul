@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\AssignStudentRequest;
 use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
 use App\Services\Parent\ParentService;
@@ -121,27 +120,5 @@ class ParentController extends Controller
         $this->parentService->user->verifyUserIsOfRoleElseNotFound($parent, 'parent');
 
         return view('pages.parent.assign-students', compact('parent'));
-    }
-
-    /**
-     *  Assign or deassign student to parent.
-     */
-    public function assignStudent(AssignStudentRequest $request, User $parent): RedirectResponse
-    {
-        $this->authorize('update', [$parent, 'parent']);
-
-        $this->parentService->user->verifyUserIsOfRoleElseNotFound($parent, 'parent');
-        $student = $request->student_id;
-        // set to true if null
-        $request->assign == null ? $assign = true : $assign = $request->assign;
-        $this->parentService->assignStudentToParent($parent, $student, $assign);
-
-        if ($assign == false) {
-            $message = 'Student successfully removed from parent';
-        } else {
-            $message = 'Student successfully assigned to parent';
-        }
-
-        return back()->with('success', $message);
     }
 }

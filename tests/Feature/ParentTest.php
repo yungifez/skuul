@@ -2,7 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Identity\ChangeGuardianLink;
+use App\Enums\AuditAction;
+use App\Exceptions\InvalidValueException;
+use App\Livewire\AssignStudentsToParent;
 use App\Livewire\ListParentsTable;
+use App\Models\AuditEvent;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
@@ -222,44 +227,82 @@ class ParentTest extends TestCase
 
     public function test_unauthorised_users_cannot_assign_student_to_parent()
     {
-        $student = StudentRecord::factory()->create();
+        $parent = $this->guardian();
+        $this->unauthorized_user();
 
-        $parent = User::factory()->create();
-        $parent->parentRecord()->create(['user_id' => $parent->id]);
-        $parent->assignRole('parent');
-
-        $this->unauthorized_user()
-            ->post("dashboard/parents/$parent->id/assign-student-to-parent", [
-                'student_id' => $student->user->id,
-                'assign' => true,
-            ])
-            ->assertForbidden();
-
-        $this->assertDatabaseMissing('parent_record_user', [
-            'parent_record_id' => $parent->parentRecord->id,
-            'user_id' => $student->user->id,
-        ]);
+        Livewire::test(AssignStudentsToParent::class, ['parent' => $parent])->assertForbidden();
     }
 
     public function test_authorised_users_can_assign_student_to_parent()
     {
         $student = StudentRecord::factory()->create();
+        $parent = $this->guardian();
+        $this->authorized_user(['update parent']);
+        $auditsBefore = AuditEvent::query()->where('action', AuditAction::GuardianLinkChanged)->count();
 
-        $parent = User::factory()->create();
-        $parent->parentRecord()->create(['user_id' => $parent->id]);
-        $parent->assignRole('parent');
-
-        $this->authorized_user(['update parent'])
-            ->post("dashboard/parents/$parent->id/assign-student-to-parent", [
-                'student_id' => $student->user->id,
-                'assign' => true,
-            ])
-            ->assertRedirect();
+        Livewire::test(AssignStudentsToParent::class, ['parent' => $parent])
+            ->set('academicCycleSectionId', $student->academic_cycle_section_id)
+            ->set('studentId', $student->user_id)
+            ->call('add')
+            ->assertHasNoErrors()
+            ->assertSee($student->user->name);
 
         $this->assertDatabaseHas('parent_record_user', [
             'parent_record_id' => $parent->parentRecord->id,
-            'user_id' => $student->user->id,
+            'user_id' => $student->user_id,
         ]);
+        $this->assertSame($auditsBefore + 1, AuditEvent::query()->where('action', AuditAction::GuardianLinkChanged)->count());
+    }
+
+    public function test_linking_the_same_learner_twice_changes_nothing(): void
+    {
+        $student = StudentRecord::factory()->create();
+        $parent = $this->guardian();
+        $this->authorized_user(['update parent']);
+
+        $component = Livewire::test(AssignStudentsToParent::class, ['parent' => $parent])
+            ->set('academicCycleSectionId', $student->academic_cycle_section_id)
+            ->set('studentId', $student->user_id);
+        $auditsBefore = AuditEvent::query()->where('action', AuditAction::GuardianLinkChanged)->count();
+
+        $component->call('add')->call('add');
+
+        $this->assertSame(1, $parent->parentRecord->students()->count());
+        $this->assertSame($auditsBefore + 1, AuditEvent::query()->where('action', AuditAction::GuardianLinkChanged)->count());
+    }
+
+    public function test_a_linked_learner_can_be_unlinked(): void
+    {
+        $student = StudentRecord::factory()->create();
+        $parent = $this->guardian();
+        $parent->parentRecord->students()->attach($student->user_id);
+        $this->authorized_user(['update parent']);
+
+        Livewire::test(AssignStudentsToParent::class, ['parent' => $parent])
+            ->assertSee($student->user->name)
+            ->call('remove', $student->user_id)
+            ->assertDispatched('status-message');
+
+        $this->assertSame(0, $parent->parentRecord->students()->count());
+    }
+
+    public function test_a_guardian_with_a_child_at_another_school_keeps_that_link_out_of_view(): void
+    {
+        $otherSchool = School::factory()->create();
+        $otherChild = StudentRecord::factory()->create(['school_id' => $otherSchool->id]);
+        $child = StudentRecord::factory()->create();
+        $parent = $this->guardian();
+        $parent->parentRecord->students()->attach([$otherChild->user_id, $child->user_id]);
+        $this->authorized_user(['update parent']);
+
+        $component = Livewire::test(AssignStudentsToParent::class, ['parent' => $parent])
+            ->assertSee($child->user->name)
+            ->assertDontSee($otherChild->user->name)
+            ->assertDontSee($otherChild->user->email);
+
+        $component->call('remove', $otherChild->user_id)->assertNotFound();
+
+        $this->assertSame(2, $parent->parentRecord->students()->count());
     }
 
     public function test_authorised_users_can_open_the_assign_students_page(): void
@@ -279,20 +322,33 @@ class ParentTest extends TestCase
     {
         $otherSchool = School::factory()->create();
         $student = StudentRecord::factory()->create(['school_id' => $otherSchool->id]);
-        $parent = User::factory()->create();
-        $parent->parentRecord()->create(['user_id' => $parent->id]);
-        $parent->assignRole('parent');
+        $parent = $this->guardian();
+        $this->authorized_user(['update parent']);
 
-        $this->authorized_user(['update parent'])
-            ->post("dashboard/parents/{$parent->id}/assign-student-to-parent", [
-                'student_id' => $student->user_id,
-                'assign' => true,
-            ])
-            ->assertNotFound();
+        Livewire::test(AssignStudentsToParent::class, ['parent' => $parent])
+            ->set('studentId', $student->user_id)
+            ->call('add')
+            ->assertHasErrors('studentId');
 
+        $this->assertThrows(
+            fn () => app(ChangeGuardianLink::class)->link($parent, $student->user, auth()->user()),
+            InvalidValueException::class,
+        );
         $this->assertDatabaseMissing('parent_record_user', [
             'parent_record_id' => $parent->parentRecord->id,
             'user_id' => $student->user_id,
         ]);
+    }
+
+    /**
+     * Make a guardian of the working school.
+     */
+    private function guardian(): User
+    {
+        $parent = User::factory()->create();
+        $parent->parentRecord()->create(['user_id' => $parent->id]);
+        $parent->assignRole('parent');
+
+        return $parent;
     }
 }

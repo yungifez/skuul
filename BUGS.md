@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A parent's page showed their children at other schools
+
+- Status: Fixed
+- Area: Guardians, cross-school
+- Observed: A guardian can have children at two schools. On the "assign learners" page, school B listed every linked child, including the child at school A with their name, email, admission number and class. Linking and unlinking a learner wrote no audit entry, although a link opens that learner's records to the guardian in the portal. Unlinking had no confirmation.
+- Impact: School B staff could read the details of a learner they have no relationship with. Nobody could tell who gave a guardian access to a child's records.
+- Reproduction: Link one guardian to a learner at school A and a learner at school B. Open the guardian's assign page while working in school B.
+- Resolution: The page lists only the linked learners who attend the working school, and refuses to unlink any other. `ChangeGuardianLink` refuses a learner of another school, ignores a repeated link, and audits each change as `GuardianLinkChanged`. Linking and unlinking run as Livewire actions, and unlinking asks for confirmation. The POST route, its request class and the old service method were removed.
+
 ## Deleting a timetable item emptied cells of published timetables
 
 - Status: Fixed

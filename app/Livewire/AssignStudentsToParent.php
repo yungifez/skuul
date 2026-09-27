@@ -2,16 +2,25 @@
 
 namespace App\Livewire;
 
+use App\Actions\Identity\ChangeGuardianLink;
 use App\Enums\AcademicStructureStatus;
+use App\Exceptions\InvalidValueException;
+use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Models\AcademicCycleSection;
 use App\Models\ParentRecord;
+use App\Models\StudentRecord;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class AssignStudentsToParent extends Component
 {
+    use DispatchesStatusNotifications;
+
+    #[Locked]
     public User $parent;
 
     /** @var array<int, array{id: int, label: string}> */
@@ -27,8 +36,12 @@ class AssignStudentsToParent extends Component
     /** @var array<int, array{id: int, name: string, email: string, admission_number: string|null, cycle_section: string|null}> */
     public array $children = [];
 
-    public function mount(): void
+    public function mount(User $parent): void
     {
+        Gate::authorize('update', [$parent, 'parent']);
+        abort_unless($parent->hasRole('parent'), 404);
+
+        $this->parent = $parent;
         $this->cycleSections = AcademicCycleSection::inSchool()
             ->with('academicLevel')
             ->where('academic_year_id', current_academic_year_id())
@@ -51,6 +64,51 @@ class AssignStudentsToParent extends Component
 
         $this->academicCycleSectionId = $this->cycleSections[0]['id'];
         $this->loadStudents();
+    }
+
+    public function add(ChangeGuardianLink $changeGuardianLink): void
+    {
+        Gate::authorize('update', [$this->parent, 'parent']);
+
+        $learner = collect($this->students)->firstWhere('id', $this->studentId) === null
+            ? null
+            : User::query()->find($this->studentId);
+
+        if ($learner === null) {
+            $this->addError('studentId', 'Choose a learner from the list.');
+
+            return;
+        }
+
+        try {
+            $changeGuardianLink->link($this->parent, $learner, auth()->user());
+        } catch (InvalidValueException $exception) {
+            $this->addError('studentId', $exception->getMessage());
+
+            return;
+        }
+
+        $this->loadChildren();
+        $this->notify("{$learner->name} is now linked to {$this->parent->name}.");
+    }
+
+    public function remove(int $studentId, ChangeGuardianLink $changeGuardianLink): void
+    {
+        Gate::authorize('update', [$this->parent, 'parent']);
+
+        abort_unless(collect($this->children)->contains('id', $studentId), 404);
+        $learner = User::query()->findOrFail($studentId);
+
+        try {
+            $changeGuardianLink->unlink($this->parent, $learner, auth()->user());
+        } catch (InvalidValueException $exception) {
+            $this->notify($exception->getMessage(), 'danger');
+
+            return;
+        }
+
+        $this->loadChildren();
+        $this->notify("{$learner->name} is no longer linked to {$this->parent->name}.");
     }
 
     public function updatedAcademicCycleSectionId(): void
@@ -99,7 +157,9 @@ class AssignStudentsToParent extends Component
             return;
         }
 
+        // A guardian can have children at other schools. Those stay out of view here.
         $this->children = $parentRecord->students()
+            ->whereIn('users.id', StudentRecord::query()->inSchool()->select('user_id'))
             ->with('studentRecord.academicCycleSection.academicLevel')
             ->orderBy('name')
             ->get()

@@ -422,7 +422,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         // parent routes
         Route::resource('parents', ParentController::class);
         Route::get('parents/{parent}/assign-student-to-parent', ['App\Http\Controllers\ParentController', 'assignStudentsView'])->name('parents.assign-student');
-        Route::post('parents/{parent}/assign-student-to-parent', ['App\Http\Controllers\ParentController', 'assignStudent']);
 
         // account access routes
         Route::get('users/invitations', ['App\Http\Controllers\AccountInvitationController', 'index'])->name('users.invitations.index');

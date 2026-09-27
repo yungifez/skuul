@@ -605,6 +605,11 @@ enum AuditAction: string
     case ExamChanged = 'exam.changed';
 
     /**
+     * A guardian was linked to a learner, or the link was taken away.
+     */
+    case GuardianLinkChanged = 'guardian.link_changed';
+
+    /**
      * Somebody joined or left a group.
      */
     case CohortMembershipChanged = 'cohort.membership_changed';
@@ -826,6 +831,7 @@ enum AuditAction: string
             self::StaffProfileChanged => 'Employment record changed',
             self::CohortChanged => 'Group changed',
             self::ExamChanged => 'Exam changed',
+            self::GuardianLinkChanged => 'Guardian link changed',
             self::CohortMembershipChanged => 'Group membership changed',
             self::ProgramChanged => 'Programme changed',
             self::ProgramParticipationChanged => 'Programme place changed',

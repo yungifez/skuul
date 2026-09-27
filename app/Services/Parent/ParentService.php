@@ -3,8 +3,6 @@
 namespace App\Services\Parent;
 
 use App\Enums\Role;
-use App\Exceptions\InvalidUserException;
-use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Print\PrintService;
 use App\Services\User\UserService;
@@ -83,34 +81,5 @@ class ParentService
     public function printProfile(string $name, string $view, array $data)
     {
         return PrintService::page($view, $data);
-    }
-
-    /**
-     * Add student as child of parent or remove student from parent.
-     *
-     *
-     *
-     *
-     *
-     * @return void
-     *
-     * @throws InvalidUserException
-     */
-    public function assignStudentToParent(User $parent, int $student, bool $assign = true)
-    {
-        $student = $this->user->getUserById($student);
-        if ($student === null || !$this->user->verifyRole($student->id, 'student')) {
-            throw new InvalidUserException('User is not a student', 1);
-        }
-
-        if (!StudentRecord::inSchool()->where('user_id', $student->id)->exists()) {
-            abort(404);
-        }
-
-        if ($assign == false) {
-            $parent->parentRecord->students()->detach($student);
-        } else {
-            $parent->parentRecord->students()->syncWithoutDetaching($student);
-        }
     }
 }
