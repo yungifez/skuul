@@ -4,21 +4,29 @@ namespace Tests\Feature;
 
 use App\Actions\Syllabus\PublishSyllabus;
 use App\Actions\Syllabus\ReviseSyllabus;
+use App\Actions\Syllabus\SubmitSyllabus;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
 use App\Enums\CourseOfferingStatus;
+use App\Enums\LessonNoteStatus;
 use App\Enums\RosterMode;
 use App\Enums\SyllabusStatus;
+use App\Exceptions\InvalidValueException;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
 use App\Models\CourseOffering;
+use App\Models\CurriculumOutline;
+use App\Models\LessonNote;
 use App\Models\StudentRecord;
 use App\Models\Subject;
 use App\Models\Syllabus;
 use App\Models\SyllabusTopic;
+use App\Models\SyllabusTopicCoverage;
+use App\Models\TeachingAssignment;
+use App\Models\User;
 use App\Services\Academic\AcademicPeriodContext;
 use App\Traits\FeatureTestTrait;
 use Database\Seeders\SyllabusSeeder;
@@ -124,8 +132,38 @@ class SyllabusTest extends TestCase
         $this->seed(SyllabusSeeder::class);
         $this->seed(SyllabusSeeder::class);
 
-        $this->assertCount(10, Syllabus::query()->get());
+        $this->assertCount(10, Syllabus::query()->where('status', SyllabusStatus::Published)->get());
         $this->assertTrue(Syllabus::query()->whereNotNull('file')->exists());
+    }
+
+    public function test_the_syllabus_demo_seeder_shows_every_part_of_the_feature(): void
+    {
+        $courseOfferings = [$this->courseOffering(), $this->courseOffering(), $this->courseOffering()];
+        $teacher = User::query()->whereHas('teacherRecord')->orderBy('id')->firstOrFail();
+
+        $this->seed(SyllabusSeeder::class);
+        $this->seed(SyllabusSeeder::class);
+
+        $published = Syllabus::query()->where('status', SyllabusStatus::Published)->withCount('topics')->get();
+        $this->assertCount(3, $published);
+        $this->assertSame([8, 8, 8], $published->pluck('topics_count')->all());
+        $this->assertTrue(SyllabusTopicCoverage::query()->exists());
+        $this->assertSame(3, TeachingAssignment::query()->where('user_id', $teacher->id)->count());
+
+        $notes = LessonNote::query()->where('user_id', $teacher->id)->get();
+        $this->assertCount(12, $notes);
+        $this->assertSame(3, $notes->where('status', LessonNoteStatus::Submitted)->count());
+        $reviewer = User::query()->findOrFail($notes->firstWhere('status', LessonNoteStatus::Approved)?->reviewed_by);
+        $this->assertNotSame($teacher->id, $reviewer->id);
+        $this->assertTrue($reviewer->can('approve syllabus'));
+
+        $revisions = Syllabus::query()->whereNotNull('revision_of_id')->get();
+        $this->assertSame([SyllabusStatus::Submitted, SyllabusStatus::Draft], $revisions->sortBy('id')->pluck('status')->values()->all());
+        $this->assertNotNull($revisions->firstWhere('status', SyllabusStatus::Draft)?->review_note);
+        $this->assertSame($courseOfferings[1]->id, $revisions->firstWhere('status', SyllabusStatus::Submitted)?->course_offering_id);
+
+        $outline = CurriculumOutline::query()->withCount('topics')->sole();
+        $this->assertSame(8, $outline->topics_count);
     }
 
     public function test_unauthorized_user_cant_create_syllabus(): void
@@ -190,6 +228,25 @@ class SyllabusTest extends TestCase
         $this->assertSame(SyllabusStatus::Published, $revision->fresh()->status);
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::SyllabusRevised)->forSubject($revision)->first());
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::SyllabusPublished)->forSubject($revision)->first());
+    }
+
+    public function test_a_syllabus_cannot_be_revised_again_while_a_revision_waits_for_review(): void
+    {
+        $syllabus = Syllabus::factory()->published()->create(['course_offering_id' => $this->courseOffering()->id]);
+        SyllabusTopic::factory()->create(['syllabus_id' => $syllabus->id]);
+        $this->authorized_user(['read syllabus', 'update syllabus']);
+        $actor = auth()->user();
+        $revision = app(ReviseSyllabus::class)->revise($syllabus, [], $actor);
+        app(SubmitSyllabus::class)->submit($revision, $actor);
+
+        $this->get(route('syllabi.show', $syllabus))
+            ->assertOk()
+            ->assertSee('Revision 2 is waiting for review')
+            ->assertSee(route('syllabi.show', $revision))
+            ->assertDontSee('Create revised draft');
+
+        $this->expectException(InvalidValueException::class);
+        app(ReviseSyllabus::class)->revise($syllabus, [], $actor);
     }
 
     private function courseOffering(): CourseOffering

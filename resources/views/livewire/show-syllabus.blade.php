@@ -64,10 +64,14 @@
                 @can('update', $syllabus)
                     @if ($syllabus->status === \App\Enums\SyllabusStatus::Draft)
                         <april:button-link href="{{ route('syllabi.edit', $syllabus) }}" variant="outline">Edit draft</april:button-link>
-                    @elseif ($syllabus->status === \App\Enums\SyllabusStatus::Published && $openRevision)
+                    @elseif ($openRevision?->status === \App\Enums\SyllabusStatus::Draft)
                         <april:button-link href="{{ route('syllabi.edit', $openRevision) }}" variant="outline">Continue draft revision {{ $openRevision->revision }}</april:button-link>
                     @endif
                 @endcan
+
+                @if ($openRevision?->status === \App\Enums\SyllabusStatus::Submitted)
+                    <april:button-link href="{{ route('syllabi.show', $openRevision) }}" variant="outline">Revision {{ $openRevision->revision }} is waiting for review</april:button-link>
+                @endif
             </div>
 
             @if (in_array($syllabus->status, [\App\Enums\SyllabusStatus::Draft, \App\Enums\SyllabusStatus::Submitted, \App\Enums\SyllabusStatus::Published], true))

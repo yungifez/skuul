@@ -30,7 +30,7 @@ class ReviseSyllabus
             }
 
             if ($syllabus->openRevision() !== null) {
-                throw new InvalidValueException('A draft revision of this syllabus is already open. Finish or delete it first.');
+                throw new InvalidValueException('A revision of this syllabus is already open or waiting for review. Finish it first.');
             }
 
             $revision = Syllabus::create([

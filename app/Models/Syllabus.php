@@ -64,11 +64,11 @@ class Syllabus extends Model
     }
 
     /**
-     * Get the draft revision that is still open, if one exists.
+     * Get the revision that is still in progress, as a draft or waiting for review.
      */
     public function openRevision(): ?self
     {
-        return $this->revisions()->where('status', SyllabusStatus::Draft)->first();
+        return $this->revisions()->whereIn('status', [SyllabusStatus::Draft, SyllabusStatus::Submitted])->first();
     }
 
     /**
