@@ -284,9 +284,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::get('data-sharing-requests/create', ['App\Http\Controllers\DataSharingRequestController', 'create'])->name('data-sharing-requests.create');
         Route::post('data-sharing-requests', ['App\Http\Controllers\DataSharingRequestController', 'store'])->name('data-sharing-requests.store');
         Route::get('data-sharing-requests/{dataSharingRequest}', ['App\Http\Controllers\DataSharingRequestController', 'show'])->name('data-sharing-requests.show');
-        Route::put('data-sharing-requests/{dataSharingRequest}/status', ['App\Http\Controllers\DataSharingRequestController', 'changeStatus'])->name('data-sharing-requests.status.update');
-        Route::post('data-sharing-requests/{dataSharingRequest}/fulfil', ['App\Http\Controllers\DataSharingRequestController', 'fulfil'])->name('data-sharing-requests.fulfil');
-        Route::post('data-sharing-requests/{dataSharingRequest}/packages/{transferPackage}/receive', ['App\Http\Controllers\DataSharingRequestController', 'receive'])->name('data-sharing-requests.packages.receive');
 
         // portal request routes. A family asks through the portal; the school
         // reads and answers here. The portal feature gates the family side of

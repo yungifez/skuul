@@ -6,12 +6,14 @@ use App\Actions\Sharing\FulfilDataSharingRequest;
 use App\Actions\Sharing\RequestDataSharing;
 use App\Enums\DataCategory;
 use App\Enums\DataSharingStatus;
+use App\Livewire\ShowDataSharingRequest;
 use App\Models\DataSharingRequest;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\TransferPackage;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -104,14 +106,19 @@ class DataSharingScreenTest extends TestCase
         $request = $this->requestForThisSchool();
         $this->authorized_user(['request data sharing', 'approve data sharing']);
 
-        $this->from(route('data-sharing-requests.show', $request))
-            ->put(route('data-sharing-requests.status.update', $request), [
-                'status' => DataSharingStatus::Approved->value,
-                'note' => 'The guardian agreed.',
-            ])
-            ->assertRedirect(route('data-sharing-requests.show', $request));
+        $this->get(route('data-sharing-requests.show', $request))
+            ->assertOk()
+            ->assertSeeLivewire(ShowDataSharingRequest::class);
+
+        Livewire::test(ShowDataSharingRequest::class, ['sharingRequest' => $request])
+            ->assertSee('Approve')
+            ->set('note', 'The guardian agreed.')
+            ->call('decide', DataSharingStatus::Approved->value)
+            ->assertDispatched('status-message', message: 'Request Approved.')
+            ->assertSee('The guardian agreed.');
 
         $this->assertSame(DataSharingStatus::Approved, $request->fresh()->status);
+        $this->assertSame('The guardian agreed.', $request->fresh()->decision_note);
     }
 
     public function test_the_asking_school_never_answers_its_own_request(): void
@@ -126,10 +133,9 @@ class DataSharingScreenTest extends TestCase
             [DataCategory::Enrollment],
         );
 
-        $this->from(route('data-sharing-requests.show', $request))
-            ->put(route('data-sharing-requests.status.update', $request), [
-                'status' => DataSharingStatus::Approved->value,
-            ])
+        Livewire::test(ShowDataSharingRequest::class, ['sharingRequest' => $request])
+            ->assertDontSee('Approve')
+            ->call('decide', DataSharingStatus::Approved->value)
             ->assertForbidden();
 
         $this->assertSame(DataSharingStatus::Requested, $request->fresh()->status);
@@ -147,9 +153,10 @@ class DataSharingScreenTest extends TestCase
             ->assertOk()
             ->assertSee('Nothing has been handed over');
 
-        $this->from(route('data-sharing-requests.show', $request))
-            ->post(route('data-sharing-requests.fulfil', $request))
-            ->assertRedirect(route('data-sharing-requests.show', $request));
+        Livewire::test(ShowDataSharingRequest::class, ['sharingRequest' => $request->fresh()])
+            ->call('fulfil')
+            ->assertDispatched('status-message', type: 'success')
+            ->assertDontSee('Nothing has been handed over');
 
         $this->assertSame(1, TransferPackage::count());
         $this->assertSame(DataSharingStatus::Fulfilled, $request->fresh()->status);
@@ -160,9 +167,10 @@ class DataSharingScreenTest extends TestCase
         $request = $this->requestForThisSchool();
         $this->authorized_user(['request data sharing', 'approve data sharing', 'fulfil data sharing']);
 
-        $this->from(route('data-sharing-requests.show', $request))
-            ->post(route('data-sharing-requests.fulfil', $request))
-            ->assertSessionHasErrors('fulfil');
+        Livewire::test(ShowDataSharingRequest::class, ['sharingRequest' => $request])
+            ->assertDontSee('Hand the records over')
+            ->call('fulfil')
+            ->assertDispatched('status-message', type: 'danger');
 
         $this->assertSame(0, TransferPackage::count());
     }
@@ -191,11 +199,40 @@ class DataSharingScreenTest extends TestCase
         // Back at the school that asked, somebody takes it in.
         $this->authorized_user(['request data sharing'], $asking);
 
-        $this->from(route('data-sharing-requests.show', $request))
-            ->post(route('data-sharing-requests.packages.receive', [$request, $package]))
-            ->assertRedirect(route('data-sharing-requests.show', $request));
+        Livewire::test(ShowDataSharingRequest::class, ['sharingRequest' => $request->fresh()])
+            ->assertSee('Take the records in')
+            ->call('receive')
+            ->assertDispatched('status-message', message: 'Records taken in.')
+            ->assertDontSee('Take the records in');
 
         $this->assertTrue($package->fresh()->wasReceived());
+    }
+
+    public function test_the_holding_school_takes_the_permission_back(): void
+    {
+        $request = $this->requestForThisSchool();
+        $this->authorized_user(['request data sharing', 'approve data sharing']);
+
+        Livewire::test(ShowDataSharingRequest::class, ['sharingRequest' => $request])
+            ->assertSee('Take permission back')
+            ->call('decide', DataSharingStatus::Revoked->value)
+            ->assertDontSee('Approve');
+
+        $this->assertSame(DataSharingStatus::Revoked, $request->fresh()->status);
+    }
+
+    public function test_handing_over_is_not_a_status_anyone_can_pick(): void
+    {
+        $request = $this->requestForThisSchool();
+        $this->authorized_user(['request data sharing', 'approve data sharing', 'fulfil data sharing']);
+        app(RequestDataSharing::class)->approve($request, auth()->user());
+
+        Livewire::test(ShowDataSharingRequest::class, ['sharingRequest' => $request->fresh()])
+            ->call('decide', DataSharingStatus::Fulfilled->value)
+            ->assertStatus(422);
+
+        $this->assertSame(0, TransferPackage::count());
+        $this->assertSame(DataSharingStatus::Approved, $request->fresh()->status);
     }
 
     public function test_a_school_that_is_neither_side_reads_nothing(): void

@@ -2,17 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Sharing\FulfilDataSharingRequest;
 use App\Actions\Sharing\RequestDataSharing;
 use App\Enums\DataCategory;
 use App\Enums\DataSharingStatus;
 use App\Exceptions\InvalidValueException;
 use App\Http\Requests\StoreDataSharingRequestRequest;
-use App\Http\Requests\UpdateDataSharingRequestRequest;
 use App\Models\DataSharingRequest;
 use App\Models\School;
 use App\Models\StudentRecord;
-use App\Models\TransferPackage;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -28,7 +25,6 @@ class DataSharingRequestController extends Controller
 {
     public function __construct(
         private RequestDataSharing $requestSharing,
-        private FulfilDataSharingRequest $fulfilRequest,
     ) {}
 
     /**
@@ -121,78 +117,6 @@ class DataSharingRequestController extends Controller
     {
         $this->authorize('view', $dataSharingRequest);
 
-        $dataSharingRequest->load([
-            'requestingSchool:id,name',
-            'holdingSchool:id,name',
-            'studentRecord:id,admission_number,user_id',
-            'requestedBy:id,name',
-            'decidedBy:id,name',
-        ]);
-
-        $school = current_school_id();
-
-        return view('pages.data-sharing.show', [
-            'sharingRequest' => $dataSharingRequest,
-            'package' => TransferPackage::query()
-                ->where('data_sharing_request_id', $dataSharingRequest->id)
-                ->latest('id')
-                ->first(),
-            'isHolder' => $school === $dataSharingRequest->holding_school_id,
-            'isRequester' => $school === $dataSharingRequest->requesting_school_id,
-            'nextStatuses' => $dataSharingRequest->status->allowedNext(),
-        ]);
-    }
-
-    /**
-     * Answer the request, or take the permission back.
-     */
-    public function changeStatus(UpdateDataSharingRequestRequest $request, DataSharingRequest $dataSharingRequest): RedirectResponse
-    {
-        try {
-            $this->requestSharing->changeStatus(
-                request: $dataSharingRequest,
-                status: DataSharingStatus::from($request->string('status')->toString()),
-                actor: $request->user(),
-                note: $request->string('note')->toString() ?: null,
-            );
-        } catch (InvalidValueException $exception) {
-            return back()->withErrors(['status' => $exception->getMessage()]);
-        }
-
-        return back()->with('success', 'The request was answered.');
-    }
-
-    /**
-     * Build the copy the request allows.
-     */
-    public function fulfil(Request $request, DataSharingRequest $dataSharingRequest): RedirectResponse
-    {
-        $this->authorize('fulfil', $dataSharingRequest);
-
-        try {
-            $this->fulfilRequest->fulfil($dataSharingRequest, $request->user());
-        } catch (InvalidValueException $exception) {
-            return back()->withErrors(['fulfil' => $exception->getMessage()]);
-        }
-
-        return back()->with('success', 'The records were handed over. The other school still has to take them in.');
-    }
-
-    /**
-     * Take the package in at the school that asked for it.
-     */
-    public function receive(Request $request, DataSharingRequest $dataSharingRequest, TransferPackage $transferPackage): RedirectResponse
-    {
-        abort_unless($transferPackage->data_sharing_request_id === $dataSharingRequest->id, 404);
-        abort_unless($request->user()?->can('request data sharing'), 403);
-        abort_unless($transferPackage->destination_school_id === current_school_id(), 403);
-
-        try {
-            $this->fulfilRequest->receive($transferPackage, actor: $request->user());
-        } catch (InvalidValueException $exception) {
-            return back()->withErrors(['receive' => $exception->getMessage()]);
-        }
-
-        return back()->with('success', 'The records were taken in.');
+        return view('pages.data-sharing.show', ['sharingRequest' => $dataSharingRequest]);
     }
 }
