@@ -1,5 +1,14 @@
 # Known Bugs
 
+## The campus list on a calendar template hid which template a campus followed, and a refused draft lost its date
+
+- Status: Fixed
+- Area: Organization calendar templates
+- Observed: A campus that followed a different template read "Uses another campus override" without naming it. Drafting a school year that overlapped one the campus already had reloaded the page with only a banner, away from the date that caused it. Each campus row also held its own full-page form with a required reason field, so the page showed one reason field for every campus at once.
+- Impact: An organization administrator could not tell which calendar a campus actually followed before drafting a year for it or pointing it at a new template.
+- Reproduction: Point campus A at template X, then open template Y. Or draft a year for a campus on a date that overlaps its current year.
+- Resolution: The Livewire `CalendarTemplateCampuses` names the template each campus follows. It asks for a reason only for the campus being changed, and shows a refused draft under the start date, keeping the typed date. It lists and accepts only this organization's campuses. The draft, override, and inherit POST routes, `AcademicCycleController`, and their requests are gone. `CalendarTemplateManagementTest` covers these paths.
+
 ## A calendar template could lose a sub-period's parent, or generate terms that share days
 
 - Status: Fixed

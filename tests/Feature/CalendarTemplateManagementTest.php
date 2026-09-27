@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\Calendar\SaveCalendarTemplate;
 use App\Actions\Organization\GrantOrganizationMembership;
 use App\Enums\AcademicPeriodStatus;
+use App\Livewire\CalendarTemplateCampuses;
 use App\Livewire\CalendarTemplateForm;
 use App\Models\AcademicYear;
 use App\Models\CalendarTemplate;
@@ -164,12 +165,15 @@ class CalendarTemplateManagementTest extends TestCase
             ['name' => 'Term 2', 'type' => 'term', 'position' => 2, 'start_offset_days' => 112, 'length_days' => 84],
         ]);
 
-        $this->actingAs($user)
-            ->post(route('organizations.calendar-templates.cycles.store', [$organization, $template]), [
-                'school_id' => $school->id,
-                'starts_on' => '2030-09-01',
-            ])
-            ->assertRedirect();
+        $this->actingAs($user);
+
+        Livewire::test(CalendarTemplateCampuses::class, ['organization' => $organization, 'calendarTemplate' => $template])
+            ->assertSet('schoolId', (string) $school->id)
+            ->set('startsOn', '2030-09-01')
+            ->call('generate')
+            ->assertHasNoErrors()
+            ->assertDispatched('status-message', type: 'success')
+            ->assertSet('startsOn', '');
 
         $year = AcademicYear::query()->where('school_id', $school->id)->where('start_year', 2030)->firstOrFail();
 
@@ -200,7 +204,7 @@ class CalendarTemplateManagementTest extends TestCase
             ->get(route('organizations.calendar-templates.edit', [$organization, $template]))
             ->assertOk()
             ->assertSee('School year periods')
-            ->assertSee('Generate a campus school year');
+            ->assertSee('Draft a campus school year');
     }
 
     public function test_an_organization_administrator_can_override_and_restore_a_campus_calendar(): void
@@ -210,17 +214,79 @@ class CalendarTemplateManagementTest extends TestCase
         $user = $this->organizationAdministrator($organization);
         $template = CalendarTemplate::factory()->create(['organization_id' => $organization->id]);
 
-        $this->actingAs($user)
-            ->post(route('organizations.calendar-templates.campuses.override', [$organization, $template, $school]), ['reason' => 'This campus uses a trimester schedule.'])
-            ->assertRedirect();
+        $this->actingAs($user);
+
+        $component = Livewire::test(CalendarTemplateCampuses::class, ['organization' => $organization, 'calendarTemplate' => $template])
+            ->call('startChanging', $school->id)
+            ->call('saveChange')
+            ->assertHasErrors(['reason' => 'required'])
+            ->set('reason', 'This campus uses a trimester schedule.')
+            ->call('saveChange')
+            ->assertHasNoErrors()
+            ->assertSet('changingSchoolId', null);
 
         $this->assertSame($template->id, $school->fresh()->calendar_template_id);
 
-        $this->actingAs($user)
-            ->delete(route('organizations.calendar-templates.campuses.inherit', [$organization, $template, $school]), ['reason' => 'The campus realigned with the organization.'])
-            ->assertRedirect();
+        $component->assertSee('Follows this template')
+            ->call('startChanging', $school->id)
+            ->set('reason', 'The campus realigned with the organization.')
+            ->call('saveChange')
+            ->assertHasNoErrors();
 
         $this->assertNull($school->fresh()->calendar_template_id);
+    }
+
+    public function test_a_campus_of_another_organization_cannot_be_drafted_or_pointed_at_this_template(): void
+    {
+        $organization = Organization::factory()->create();
+        School::factory()->create(['organization_id' => $organization->id]);
+        $foreignSchool = School::factory()->create(['organization_id' => Organization::factory()->create()->id]);
+        $template = CalendarTemplate::factory()->create(['organization_id' => $organization->id]);
+        $this->actingAs($this->organizationAdministrator($organization));
+
+        Livewire::test(CalendarTemplateCampuses::class, ['organization' => $organization, 'calendarTemplate' => $template])
+            ->assertDontSee($foreignSchool->name)
+            ->set('schoolId', (string) $foreignSchool->id)
+            ->set('startsOn', '2030-09-01')
+            ->call('generate')
+            ->assertHasErrors(['schoolId' => 'in'])
+            ->call('startChanging', $foreignSchool->id)
+            ->assertSet('changingSchoolId', null);
+
+        $this->assertFalse(AcademicYear::query()->where('school_id', $foreignSchool->id)->exists());
+        $this->assertNull($foreignSchool->fresh()->calendar_template_id);
+    }
+
+    public function test_a_draft_that_overlaps_a_campus_year_is_refused_under_the_date(): void
+    {
+        $organization = Organization::factory()->create();
+        $school = School::factory()->create(['organization_id' => $organization->id]);
+        $template = CalendarTemplate::factory()->create(['organization_id' => $organization->id, 'cycle_length_days' => 365]);
+        $template->periods()->create(['name' => 'Term 1', 'type' => 'term', 'position' => 1, 'start_offset_days' => 0, 'length_days' => 84]);
+        $this->actingAs($this->organizationAdministrator($organization));
+
+        $component = Livewire::test(CalendarTemplateCampuses::class, ['organization' => $organization, 'calendarTemplate' => $template])
+            ->set('startsOn', '2030-09-01')
+            ->call('generate')
+            ->assertHasNoErrors()
+            ->set('startsOn', '2031-01-10')
+            ->call('generate')
+            ->assertHasErrors('startsOn');
+
+        $this->assertSame(1, AcademicYear::query()->where('school_id', $school->id)->count());
+        $component->assertSet('startsOn', '2031-01-10');
+    }
+
+    public function test_a_campus_on_another_template_names_it(): void
+    {
+        $organization = Organization::factory()->create();
+        $template = CalendarTemplate::factory()->create(['organization_id' => $organization->id]);
+        $trimesters = CalendarTemplate::factory()->create(['organization_id' => $organization->id, 'name' => 'Trimester calendar']);
+        School::factory()->create(['organization_id' => $organization->id, 'calendar_template_id' => $trimesters->id]);
+        $this->actingAs($this->organizationAdministrator($organization));
+
+        Livewire::test(CalendarTemplateCampuses::class, ['organization' => $organization, 'calendarTemplate' => $template])
+            ->assertSee('Follows Trimester calendar');
     }
 
     public function test_a_user_without_organization_scope_cannot_change_a_template(): void
@@ -228,7 +294,10 @@ class CalendarTemplateManagementTest extends TestCase
         $organization = Organization::factory()->create();
         $this->actingAs(User::factory()->create());
 
+        $template = CalendarTemplate::factory()->create(['organization_id' => $organization->id]);
+
         Livewire::test(CalendarTemplateForm::class, ['organization' => $organization])->assertForbidden();
+        Livewire::test(CalendarTemplateCampuses::class, ['organization' => $organization, 'calendarTemplate' => $template])->assertForbidden();
     }
 
     private function fillTemplate(Testable $component): Testable

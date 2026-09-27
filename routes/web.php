@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Controllers\AcademicCycleController;
 use App\Http\Controllers\AcademicCycleSectionController;
 use App\Http\Controllers\AcademicLevelController;
 use App\Http\Controllers\AcademicPeriodController;
@@ -144,9 +143,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::resource('organizations.calendar-templates', CalendarTemplateController::class)
         ->parameters(['calendar-templates' => 'calendarTemplate'])
         ->only(['index', 'create', 'edit']);
-    Route::post('organizations/{organization}/calendar-templates/{calendarTemplate}/cycles', [AcademicCycleController::class, 'store'])->name('organizations.calendar-templates.cycles.store');
-    Route::post('organizations/{organization}/calendar-templates/{calendarTemplate}/campuses/{school}', [CalendarTemplateController::class, 'overrideCampus'])->name('organizations.calendar-templates.campuses.override');
-    Route::delete('organizations/{organization}/calendar-templates/{calendarTemplate}/campuses/{school}', [CalendarTemplateController::class, 'inheritCampus'])->name('organizations.calendar-templates.campuses.inherit');
 
     // roles a campus writes for itself. Role work is campus work, so it needs
     // a working school like any other campus screen.
