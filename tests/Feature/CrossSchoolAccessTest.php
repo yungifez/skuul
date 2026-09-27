@@ -6,6 +6,7 @@ use App\Actions\School\GrantSchoolMembership;
 use App\Enums\AdmissionWaitlistStatus;
 use App\Enums\Feature;
 use App\Livewire\BoardingRollSheet;
+use App\Livewire\EditCustomTimetableItemForm;
 use App\Livewire\EditExamForm;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
@@ -94,7 +95,7 @@ class CrossSchoolAccessTest extends TestCase
     }
 
     /**
-     * The academic year, exam and fee invoice screens save through Livewire, so they
+     * The academic year, custom timetable item, exam and fee invoice screens save through Livewire, so they
      * no longer expose a generic update endpoint.
      *
      * @return array<string, array{0: string, 1: string, 2: array<int, string>}>
@@ -103,7 +104,7 @@ class CrossSchoolAccessTest extends TestCase
     {
         return array_filter(
             self::schoolOwnedResources(),
-            static fn (array $resource, string $key): bool => !in_array($key, ['academic year', 'exam', 'fee invoice'], true),
+            static fn (array $resource, string $key): bool => !in_array($key, ['academic year', 'custom timetable item', 'exam', 'fee invoice'], true),
             ARRAY_FILTER_USE_BOTH,
         );
     }
@@ -200,6 +201,13 @@ class CrossSchoolAccessTest extends TestCase
         $this->actAsFullyPermittedUser(['exam']);
 
         Livewire::test(EditExamForm::class, ['exam' => $this->records['exam']])->assertForbidden();
+    }
+
+    public function test_a_timetable_item_of_another_school_cannot_be_renamed_through_its_form(): void
+    {
+        $this->actAsFullyPermittedUser(['custom timetable item']);
+
+        Livewire::test(EditCustomTimetableItemForm::class, ['customTimetableItem' => $this->records['customTimetableItem']])->assertForbidden();
     }
 
     public function test_an_exam_slot_of_another_school_cannot_be_read(): void

@@ -140,38 +140,4 @@ class TimetableService
     {
         return CustomTimetableItem::inSchool()->get();
     }
-
-    /**
-     * Create custom timetable item.
-     *
-     * @param  array<mixed>  $record
-     * @return CustomTimetableItem
-     */
-    public function createCustomTimetableItem($record)
-    {
-        return CustomTimetableItem::create([
-            'name' => $record['name'],
-            'school_id' => $record['school_id'],
-        ]);
-    }
-
-    /**
-     * Update a given custom timetable item.
-     *
-     * @param  array<mixed>  $record
-     * @return CustomTimetableItem
-     */
-    public function updateCustomTimetableItem(CustomTimetableItem $customTimetableItem, $record)
-    {
-        $customTimetableItem->name = $record['name'];
-        $customTimetableItem->save();
-
-        return $customTimetableItem;
-    }
-
-    public function deleteCustomTimetableItem(CustomTimetableItem $customTimetableItem)
-    {
-        $customTimetableItem->timetableRecord()->delete();
-        $customTimetableItem->delete();
-    }
 }

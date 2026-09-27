@@ -396,7 +396,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
 
                 // timetable route
                 Route::resource('timetables', TimetableController::class);
-                Route::resource('custom-timetable-items', CustomTimetableItemController::class);
+                Route::resource('custom-timetable-items', CustomTimetableItemController::class)->except(['store', 'update']);
 
                 // manage timetable
                 Route::get('timetables/{timetable}/manage', ['App\Http\Controllers\TimetableController', 'manage'])->name('timetables.manage');

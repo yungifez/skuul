@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreCustomTimetableItemRequest;
-use App\Http\Requests\UpdateCustomTimetableItemRequest;
+use App\Actions\Timetable\SaveCustomTimetableItem;
+use App\Exceptions\InvalidValueException;
 use App\Models\CustomTimetableItem;
 use App\Services\Timetable\TimetableService;
 use Illuminate\Http\RedirectResponse;
@@ -40,16 +40,6 @@ class CustomTimetableItemController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreCustomTimetableItemRequest $request): RedirectResponse
-    {
-        $this->timetableService->createCustomTimetableItem($request->validated());
-
-        return back()->with('success', 'Custom timetable item created successfully');
-    }
-
-    /**
      * Display the specified resource.
      */
     public function show(CustomTimetableItem $customTimetableItem): Response
@@ -66,22 +56,16 @@ class CustomTimetableItemController extends Controller
     }
 
     /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateCustomTimetableItemRequest $request, CustomTimetableItem $customTimetableItem): RedirectResponse
-    {
-        $this->timetableService->updateCustomTimetableItem($customTimetableItem, $request->validated());
-
-        return back()->with('success', 'Custom timetable item updated successfully');
-    }
-
-    /**
      * Remove the specified resource from storage.
      */
-    public function destroy(CustomTimetableItem $customTimetableItem): RedirectResponse
+    public function destroy(CustomTimetableItem $customTimetableItem, SaveCustomTimetableItem $saveCustomTimetableItem): RedirectResponse
     {
-        $this->timetableService->deleteCustomTimetableItem($customTimetableItem);
+        try {
+            $saveCustomTimetableItem->delete($customTimetableItem);
+        } catch (InvalidValueException $exception) {
+            return back()->with('danger', $exception->getMessage());
+        }
 
-        return back()->with('success', 'Custom timetable item deleted successfully');
+        return back()->with('success', "{$customTimetableItem->name} was deleted.");
     }
 }

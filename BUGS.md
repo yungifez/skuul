@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Deleting a timetable item emptied cells of published timetables
+
+- Status: Fixed
+- Area: Timetables
+- Observed: Deleting a custom timetable item, such as "Break", deleted every cell that held it, including cells of published and archived timetables. A published timetable is meant to stop changing. The unique name check was case-sensitive, so "Break" and "BREAK" could both exist.
+- Impact: Learners and teachers saw gaps in a timetable that was already published, and no one had changed that timetable.
+- Reproduction: Put "Break" on a timetable, publish it, then delete "Break" from the timetable items list.
+- Resolution: `SaveCustomTimetableItem` refuses to delete an item that a published or archived timetable shows, and says to rename it instead. It still takes the item off draft timetables. Names are checked case-blind under a school lock. The add and rename forms run through Livewire, and the store and update routes and their request classes were removed.
+
 ## A notice without an end date could not be saved, and an empty message passed
 
 - Status: Fixed
