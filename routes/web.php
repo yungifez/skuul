@@ -252,7 +252,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::middleware(['feature:discipline'])->group(function () {
             Route::get('incidents', ['App\Http\Controllers\IncidentController', 'index'])->name('incidents.index');
             Route::get('incidents/create', ['App\Http\Controllers\IncidentController', 'create'])->name('incidents.create');
-            Route::post('incidents', ['App\Http\Controllers\IncidentController', 'store'])->name('incidents.store');
             Route::get('incidents/{incident}', ['App\Http\Controllers\IncidentController', 'show'])->name('incidents.show');
         });
 

@@ -874,3 +874,12 @@
 - Impact: The form read as instructions instead of a form, and the error sat far from the field it was about.
 - Reproduction: Open `/dashboard/support-plans/create`.
 - Resolution: The form is now the `CreateSupportPlan` Livewire component: one plain grid of fields with a Cancel and an "Open the plan" button. Choosing a health or counselling category shows a small "Confidential" mark. Errors show under their fields. The POST route, the `store` action and `StoreSupportPlanRequest` are removed.
+
+## Recording a case uses explained cards and twenty hidden participant rows
+
+- Status: Fixed
+- Area: Discipline, record a case
+- Observed: The form sat in two cards with descriptions and a hint under the category field. It rendered twenty participant rows up front and hid eighteen with Alpine, each row boxed in its own bordered card. An action error showed as an alert at the top.
+- Impact: The page shipped twenty learner lists at once and read as a wall of boxes.
+- Reproduction: Open `/dashboard/incidents/create`.
+- Resolution: The form is now the `CreateIncident` Livewire component. It starts with one row in a plain "People" list; "Add a person" adds a row and ✕ removes it, up to twenty. Choosing a safeguarding kind shows a small "Restricted" mark. Errors show under their fields. The POST route, `store` action, the participant parser and `StoreIncidentRequest` are removed.

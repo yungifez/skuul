@@ -7,6 +7,7 @@ use App\Enums\Feature;
 use App\Enums\IncidentCategory;
 use App\Enums\IncidentParticipantRole;
 use App\Enums\IncidentStatus;
+use App\Livewire\CreateIncident;
 use App\Livewire\IncidentDirectory as IncidentDirectoryComponent;
 use App\Livewire\ShowIncident;
 use App\Models\Incident;
@@ -42,36 +43,64 @@ class IncidentScreenTest extends TestCase
         $this->authorized_user(['read incident', 'create incident']);
         $enrollment = $this->enrollment();
 
-        $response = $this->post(route('incidents.store'), [
-            'summary' => 'Broke a window',
-            'category' => IncidentCategory::Behaviour->value,
-            'description' => 'The window in room four.',
-            'location' => 'Room four',
-            'occurred_at' => now()->subHour()->format('Y-m-d\TH:i'),
-            'participants' => [
-                ['student_record_id' => $enrollment->id, 'role' => IncidentParticipantRole::Subject->value, 'note' => 'Threw the ball'],
-                ['student_record_id' => '', 'role' => IncidentParticipantRole::Witness->value, 'note' => ''],
-            ],
-        ]);
+        $this->get(route('incidents.create'))->assertOk()->assertSeeLivewire(CreateIncident::class);
+
+        $component = Livewire::test(CreateIncident::class)
+            ->set('summary', 'Broke a window')
+            ->set('category', IncidentCategory::Behaviour->value)
+            ->set('description', 'The window in room four.')
+            ->set('location', 'Room four')
+            ->set('occurredAt', now()->subHour()->format('Y-m-d\TH:i'))
+            ->set('participants.0.student_record_id', $enrollment->id)
+            ->set('participants.0.note', 'Threw the ball')
+            ->call('addParticipant')
+            ->set('participants.1.role', IncidentParticipantRole::Witness->value)
+            ->call('save')
+            ->assertHasNoErrors();
 
         $incident = Incident::inSchool()->sole();
 
-        $response->assertRedirect(route('incidents.show', $incident));
+        $component->assertRedirect(route('incidents.show', $incident));
 
         $this->assertSame('Broke a window', $incident->summary);
         $this->assertSame(1, $incident->participants()->count());
         $this->assertSame('Threw the ball', $incident->participants()->sole()->note);
     }
 
+    public function test_rows_are_added_and_removed_and_a_restricted_kind_is_marked(): void
+    {
+        $this->authorized_user(['read incident', 'create incident']);
+        $restricted = collect(IncidentCategory::cases())->first(fn (IncidentCategory $category): bool => $category->isRestricted());
+
+        $component = Livewire::test(CreateIncident::class)
+            ->assertCount('participants', 1)
+            ->call('addParticipant')
+            ->call('addParticipant')
+            ->assertCount('participants', 3)
+            ->call('removeParticipant', 1)
+            ->assertCount('participants', 2);
+
+        if ($restricted !== null) {
+            $component->set('category', $restricted->value)->assertSeeHtml('id="restricted-mark"');
+        }
+    }
+
+    public function test_a_person_who_may_not_record_cases_cannot_open_the_form(): void
+    {
+        $this->authorized_user(['read incident']);
+
+        Livewire::test(CreateIncident::class)->assertForbidden();
+    }
+
     public function test_a_case_cannot_be_recorded_in_the_future(): void
     {
         $this->authorized_user(['read incident', 'create incident']);
 
-        $this->post(route('incidents.store'), [
-            'summary' => 'Something that has not happened',
-            'category' => IncidentCategory::Behaviour->value,
-            'occurred_at' => now()->addDay()->format('Y-m-d\TH:i'),
-        ])->assertSessionHasErrors('occurred_at');
+        Livewire::test(CreateIncident::class)
+            ->set('summary', 'Something that has not happened')
+            ->set('occurredAt', now()->addDay()->format('Y-m-d\TH:i'))
+            ->call('save')
+            ->assertHasErrors(['occurredAt' => 'before_or_equal']);
 
         $this->assertSame(0, Incident::inSchool()->count());
     }
