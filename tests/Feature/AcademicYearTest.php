@@ -125,7 +125,7 @@ class AcademicYearTest extends TestCase
             ->assertOk()
             ->assertSee('aria-label="Actions for '.$period->displayName.'"', false)
             ->assertSee(route('academic-periods.edit', $period), false)
-            ->assertSee(route('academic-periods.begin-closing', $period), false)
+            ->assertSee('beginClosingPeriod('.$period->id.')', false)
             ->assertSee('No dates')
             ->assertDontSee('Reporting boundaries drive gradebooks')
             ->assertDontSee('Working '.strtolower(school_term('period', 'academic period')).'</');

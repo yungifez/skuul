@@ -64,7 +64,7 @@
                         <span wire:loading wire:target="publishCalendar">Publishing…</span>
                     </button>
                 @endif
-                <x-academic-period-status-control :period="$academicYear" route-prefix="academic-years" :show-status="false" />
+                <livewire:academic-period-status-control :period="$academicYear" :show-status="false" :key="'year-status-'.$academicYear->id" />
             </div>
         </div>
         <x-field-error name="calendar" />
@@ -108,7 +108,7 @@
                         <span @class(['col-start-1 row-start-2 text-sm tabular-nums sm:col-start-auto sm:row-start-auto', 'text-muted-foreground' => $period->starts_on === null && $period->ends_on === null])>{{ $dateRange($period->starts_on, $period->ends_on) }}</span>
                         <span class="hidden sm:block">
                             @if ($needsInlineControl)
-                                <x-academic-period-status-control :period="$period" route-prefix="academic-periods" />
+                                <livewire:academic-period-status-control :period="$period" :key="'period-status-wide-'.$period->id" />
                             @elseif ($period->status !== $academicYear->status)
                                 <span class="text-sm text-muted-foreground">{{ $period->status->label() }}</span>
                             @endif
@@ -128,12 +128,9 @@
                                             </april:dropdown-menu-item>
                                         @endif
                                         @if ($canClosePeriod)
-                                            <form action="{{ route('academic-periods.begin-closing', $period) }}" method="POST">
-                                                @csrf
-                                                <april:dropdown-menu-item type="submit">
-                                                    <x-lucide-lock class="mr-2 size-4" />Start closing
-                                                </april:dropdown-menu-item>
-                                            </form>
+                                            <april:dropdown-menu-item wire:click="beginClosingPeriod({{ $period->id }})">
+                                                <x-lucide-lock class="mr-2 size-4" />Start closing
+                                            </april:dropdown-menu-item>
                                         @endif
                                     </slot:content>
                                 </april:dropdown-menu>
@@ -141,7 +138,7 @@
                         </span>
                         @if ($needsInlineControl)
                             <span class="col-span-2 sm:hidden">
-                                <x-academic-period-status-control :period="$period" route-prefix="academic-periods" />
+                                <livewire:academic-period-status-control :period="$period" :key="'period-status-narrow-'.$period->id" />
                             </span>
                         @elseif ($period->status !== $academicYear->status)
                             <span class="col-span-2 text-sm text-muted-foreground sm:hidden">{{ $period->status->label() }}</span>

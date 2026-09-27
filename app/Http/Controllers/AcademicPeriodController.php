@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Academic\ChangeAcademicPeriodStatus;
-use App\Http\Requests\ChangeAcademicPeriodStatusRequest;
 use App\Http\Requests\StoreAcademicPeriodRequest;
 use App\Http\Requests\UpdateAcademicPeriodRequest;
 use App\Models\AcademicPeriod;
@@ -15,7 +13,6 @@ class AcademicPeriodController extends Controller
 {
     public function __construct(
         private AcademicPeriodService $academicPeriod,
-        private ChangeAcademicPeriodStatus $changeAcademicPeriodStatus,
     ) {}
 
     /**
@@ -72,41 +69,5 @@ class AcademicPeriodController extends Controller
 
         return to_route('academic-years.show', $academicPeriod->academic_year_id)
             ->with('success', 'Academic period updated.');
-    }
-
-    /**
-     * Close the academic period and freeze its records.
-     */
-    public function close(ChangeAcademicPeriodStatusRequest $request, AcademicPeriod $academicPeriod): RedirectResponse
-    {
-        $this->authorize('close', $academicPeriod);
-
-        $this->changeAcademicPeriodStatus->close($academicPeriod, $request->user(), $request->validated('reason'), $request->boolean('force'));
-
-        return back()->with('success', 'Academic period closed successfully');
-    }
-
-    /**
-     * Reopen the academic period so it accepts work again.
-     */
-    public function reopen(ChangeAcademicPeriodStatusRequest $request, AcademicPeriod $academicPeriod): RedirectResponse
-    {
-        $this->authorize('reopen', $academicPeriod);
-
-        $this->changeAcademicPeriodStatus->reopen($academicPeriod, $request->user(), $request->validated('reason'));
-
-        return back()->with('success', 'Academic period reopened successfully');
-    }
-
-    /**
-     * Restrict new work while staff finish the closure checklist.
-     */
-    public function beginClosing(ChangeAcademicPeriodStatusRequest $request, AcademicPeriod $academicPeriod): RedirectResponse
-    {
-        $this->authorize('close', $academicPeriod);
-
-        $this->changeAcademicPeriodStatus->beginClosing($academicPeriod, $request->user(), $request->validated('reason'));
-
-        return back()->with('success', 'Academic period is now closing. Complete the checklist before final closure.');
     }
 }

@@ -6,6 +6,8 @@ use App\Actions\Academic\ChangeAcademicPeriodStatus;
 use App\Enums\AcademicPeriodStatus;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\AcademicPeriodStatusControl;
+use App\Livewire\ShowAcademicYear;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
@@ -22,6 +24,7 @@ use App\Models\Timetable;
 use App\Models\TimetableTimeSlot;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -137,29 +140,7 @@ class AcademicPeriodLifecycleTest extends TestCase
     {
         $this->authorized_user([]);
         $academicPeriod = $this->openAcademicPeriod();
-        $academicLevel = AcademicLevel::factory()->create(['school_id' => $academicPeriod->school_id]);
-        $section = AcademicCycleSection::factory()->create([
-            'school_id' => $academicPeriod->school_id,
-            'academic_year_id' => $academicPeriod->academic_year_id,
-            'academic_level_id' => $academicLevel->id,
-        ]);
-        $courseOffering = CourseOffering::factory()->create([
-            'school_id' => $academicPeriod->school_id,
-            'academic_year_id' => $academicPeriod->academic_year_id,
-            'academic_period_id' => $academicPeriod->id,
-            'academic_level_id' => $academicLevel->id,
-            'subject_id' => Subject::factory()->create(['school_id' => $academicPeriod->school_id])->id,
-        ]);
-        $courseOffering->cycleSections()->attach($section);
-        StudentRecord::factory()->create([
-            'school_id' => $academicPeriod->school_id,
-            'academic_cycle_section_id' => $section->id,
-        ]);
-        GradeItem::create([
-            'school_id' => $academicPeriod->school_id,
-            'course_offering_id' => $courseOffering->id,
-            'name' => 'Unrecorded assessment',
-        ]);
+        $this->leaveAnAssessmentUnrecorded($academicPeriod);
 
         $this->expectException(InvalidValueException::class);
 
@@ -214,30 +195,51 @@ class AcademicPeriodLifecycleTest extends TestCase
 
     public function test_authorized_user_can_close_and_reopen_a_year(): void
     {
-        $year = AcademicYear::factory()->create(['school_id' => current_school_id()]);
+        $year = AcademicYear::factory()->create(['school_id' => current_school_id(), 'status' => AcademicPeriodStatus::Closing]);
+        $this->authorized_user(['close academic period', 'reopen academic period']);
 
-        // One signed-in person makes both requests. Signing in again would
-        // invalidate the session.
-        $actor = $this->authorized_user(['close academic period', 'reopen academic period']);
-
-        $actor->post("dashboard/academic-years/$year->id/close", ['reason' => 'the year finished'])
+        Livewire::test(AcademicPeriodStatusControl::class, ['period' => $year])
+            ->call('open', 'close')
+            ->set('reason', 'the year finished')
+            ->call('close')
+            ->assertHasNoErrors()
             ->assertRedirect();
 
         $this->assertTrue($year->fresh()->isClosed());
 
-        $actor->post("dashboard/academic-years/$year->id/reopen", ['reason' => 'a mark was wrong'])
+        Livewire::test(AcademicPeriodStatusControl::class, ['period' => $year->fresh()])
+            ->call('open', 'reopen')
+            ->call('reopen')
+            ->assertHasErrors(['reason' => 'required'])
+            ->set('reason', 'a mark was wrong')
+            ->call('reopen')
             ->assertRedirect();
 
         $this->assertTrue($year->fresh()->isOpen());
         $this->assertSame(2, $year->fresh()->statusChanges()->count());
     }
 
+    public function test_an_open_year_starts_closing_from_its_screen(): void
+    {
+        $year = AcademicYear::factory()->create(['school_id' => current_school_id()]);
+        $this->authorized_user(['close academic period']);
+
+        Livewire::test(AcademicPeriodStatusControl::class, ['period' => $year])
+            ->assertSee('Start closing')
+            ->call('beginClosing')
+            ->assertRedirect();
+
+        $this->assertSame(AcademicPeriodStatus::Closing, $year->fresh()->status);
+    }
+
     public function test_unauthorized_user_cannot_close_a_year(): void
     {
         $year = AcademicYear::factory()->create(['school_id' => current_school_id()]);
+        $this->unauthorized_user();
 
-        $this->unauthorized_user()
-            ->post("dashboard/academic-years/$year->id/close")
+        Livewire::test(AcademicPeriodStatusControl::class, ['period' => $year])
+            ->assertDontSee('Start closing')
+            ->call('close')
             ->assertForbidden();
 
         $this->assertTrue($year->fresh()->isOpen());
@@ -247,23 +249,80 @@ class AcademicPeriodLifecycleTest extends TestCase
     {
         $other = School::factory()->create();
         $year = AcademicYear::factory()->create(['school_id' => $other->id]);
+        $this->authorized_user(['close academic period']);
 
-        $this->authorized_user(['close academic period'])
-            ->post("dashboard/academic-years/$year->id/close")
+        Livewire::test(AcademicPeriodStatusControl::class, ['period' => $year])
+            ->call('close')
             ->assertForbidden();
 
         $this->assertTrue($year->fresh()->isOpen());
     }
 
-    public function test_authorized_user_can_close_an_academic_period(): void
+    public function test_outstanding_work_stops_a_close_until_it_is_accepted(): void
     {
+        $this->authorized_user(['close academic period']);
         $academicPeriod = $this->openAcademicPeriod();
+        $academicPeriod->update(['status' => AcademicPeriodStatus::Closing]);
+        $this->leaveAnAssessmentUnrecorded($academicPeriod);
 
-        $this->authorized_user(['close academic period'])
-            ->post("dashboard/academic-periods/$academicPeriod->id/close")
-            ->assertRedirect();
+        $control = Livewire::test(AcademicPeriodStatusControl::class, ['period' => $academicPeriod->fresh()])
+            ->call('open', 'close')
+            ->assertDontSee('Close with this work still open')
+            ->call('close')
+            ->assertHasErrors('reason')
+            ->assertSet('isBlocked', true)
+            ->assertSee('Close with this work still open')
+            ->assertNoRedirect();
+
+        $this->assertSame(AcademicPeriodStatus::Closing, $academicPeriod->fresh()->status);
+
+        $control->set('force', true)->call('close')->assertRedirect();
 
         $this->assertTrue($academicPeriod->fresh()->isClosed());
+    }
+
+    public function test_the_year_screen_starts_closing_one_period_from_its_menu(): void
+    {
+        $academicPeriod = $this->openAcademicPeriod();
+        $academicPeriod->academicYear->update(['status' => AcademicPeriodStatus::Open]);
+        $academicPeriod->update(['status' => AcademicPeriodStatus::Open, 'parent_id' => null]);
+        $this->authorized_user(['read academic year', 'close academic period']);
+
+        Livewire::test(ShowAcademicYear::class, ['academicYear' => $academicPeriod->academicYear])
+            ->call('beginClosingPeriod', $academicPeriod->id)
+            ->assertDispatched('status-message');
+
+        $this->assertSame(AcademicPeriodStatus::Closing, $academicPeriod->fresh()->status);
+    }
+
+    /**
+     * Give the period a class with a learner and an assessment with no mark.
+     */
+    private function leaveAnAssessmentUnrecorded(AcademicPeriod $academicPeriod): void
+    {
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $academicPeriod->school_id]);
+        $section = AcademicCycleSection::factory()->create([
+            'school_id' => $academicPeriod->school_id,
+            'academic_year_id' => $academicPeriod->academic_year_id,
+            'academic_level_id' => $academicLevel->id,
+        ]);
+        $courseOffering = CourseOffering::factory()->create([
+            'school_id' => $academicPeriod->school_id,
+            'academic_year_id' => $academicPeriod->academic_year_id,
+            'academic_period_id' => $academicPeriod->id,
+            'academic_level_id' => $academicLevel->id,
+            'subject_id' => Subject::factory()->create(['school_id' => $academicPeriod->school_id])->id,
+        ]);
+        $courseOffering->cycleSections()->attach($section);
+        StudentRecord::factory()->create([
+            'school_id' => $academicPeriod->school_id,
+            'academic_cycle_section_id' => $section->id,
+        ]);
+        GradeItem::create([
+            'school_id' => $academicPeriod->school_id,
+            'course_offering_id' => $courseOffering->id,
+            'name' => 'Unrecorded assessment',
+        ]);
     }
 
     /**

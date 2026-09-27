@@ -52,13 +52,8 @@ class ListAcademicYearsTable extends DataTableComponent
             $row['status'] = $status->value;
             $row['status_label'] = $status->label();
             $row['working_label'] = current_academic_year_id() === $academicYear->id ? 'Working '.strtolower(school_term('academic_year', 'school year')) : '—';
-            $row['can_close'] = auth()->user()->can('close', $academicYear);
-            $row['can_reopen'] = auth()->user()->can('reopen', $academicYear);
             $row['view_url'] = route('academic-years.show', $academicYear);
             $row['delete_url'] = route('academic-years.destroy', $academicYear);
-            $row['begin_closing_url'] = route('academic-years.begin-closing', $academicYear);
-            $row['close_url'] = route('academic-years.close', $academicYear);
-            $row['reopen_url'] = route('academic-years.reopen', $academicYear);
 
             return $row;
         })->values()->all();

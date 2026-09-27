@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Actions\Academic\ChangeAcademicPeriodStatus;
 use App\Actions\Academic\PublishAcademicCalendar;
 use App\Actions\Academic\RollForwardAcademicYearSetup;
 use App\Enums\AcademicPeriodStatus;
@@ -15,6 +16,7 @@ use App\Models\Exam;
 use App\Services\AcademicYear\AcademicYearSetupProgress;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use LogicException;
 use Yungifez\AprilUI\Livewire\Columns\Column;
@@ -113,6 +115,22 @@ class ShowAcademicYear extends DataTableComponent
         } catch (InvalidValueException $exception) {
             $this->addError('calendar', $exception->getMessage());
         }
+    }
+
+    public function beginClosingPeriod(int $periodId, ChangeAcademicPeriodStatus $changeAcademicPeriodStatus): void
+    {
+        $period = AcademicPeriod::inSchool()->where('academic_year_id', $this->academicYear->id)->findOrFail($periodId);
+        Gate::authorize('close', $period);
+
+        try {
+            $changeAcademicPeriodStatus->beginClosing($period, auth()->user());
+        } catch (InvalidValueException $exception) {
+            $this->notify($exception->getMessage(), 'danger');
+
+            return;
+        }
+
+        $this->notify("{$period->displayName} is closing. Finish the checklist, then close.");
     }
 
     protected function builder(): Builder
