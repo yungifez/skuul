@@ -24,9 +24,7 @@ use Illuminate\Support\Facades\DB;
  */
 class ManageStaffLeave
 {
-    public function __construct(private RecordAuditEvent $auditor)
-    {
-    }
+    public function __construct(private RecordAuditEvent $auditor) {}
 
     /**
      * Ask for days away.
@@ -52,25 +50,20 @@ class ManageStaffLeave
             throw new InvalidValueException('This person no longer works here.');
         }
 
-        $clash = StaffLeaveRequest::query()
-            ->where('staff_profile_id', $profile->id)
-            ->holding()
-            ->overlapping($start, $end)
-            ->exists();
-
-        if ($clash) {
-            throw new InvalidValueException('These days are already asked for.');
-        }
-
         return DB::transaction(function () use ($profile, $start, $end, $type, $reason, $actor): StaffLeaveRequest {
+            // Two requests for one person wait for each other here, so the
+            // second sees the first when it looks for a clash.
+            StaffProfile::query()->lockForUpdate()->findOrFail($profile->id);
+            $this->refuseAClash($profile, $start, $end);
+
             $request = StaffLeaveRequest::create([
-                'school_id'        => $profile->school_id,
+                'school_id' => $profile->school_id,
                 'staff_profile_id' => $profile->id,
-                'type'             => $type,
-                'starts_on'        => $start,
-                'ends_on'          => $end,
-                'reason'           => $reason,
-                'requested_by'     => $actor === null ? auth()->id() : $actor->id,
+                'type' => $type,
+                'starts_on' => $start,
+                'ends_on' => $end,
+                'reason' => $reason,
+                'requested_by' => $actor === null ? auth()->id() : $actor->id,
             ]);
 
             $this->auditor->record(
@@ -95,17 +88,28 @@ class ManageStaffLeave
         ?User $actor = null,
         ?string $reason = null,
     ): StaffLeaveRequest {
-        $current = $request->status;
+        $seen = $request->status;
 
-        if ($current === $status) {
-            return $request;
-        }
+        return DB::transaction(function () use ($request, $seen, $status, $actor, $reason): StaffLeaveRequest {
+            $request = StaffLeaveRequest::query()->lockForUpdate()->findOrFail($request->id);
+            $current = $request->status;
 
-        if (!$current->canMoveTo($status)) {
-            throw new InvalidValueException("Leave cannot move from {$current->value} to {$status->value}.");
-        }
+            if ($current === $status) {
+                return $request;
+            }
 
-        return DB::transaction(function () use ($request, $current, $status, $actor, $reason): StaffLeaveRequest {
+            if ($current !== $seen) {
+                throw new InvalidValueException("Somebody else already made this leave {$current->label()}.");
+            }
+
+            if (!$current->canMoveTo($status)) {
+                throw new InvalidValueException("Leave cannot move from {$current->value} to {$status->value}.");
+            }
+
+            if ($current === LeaveStatus::Declined && $status === LeaveStatus::Requested) {
+                $this->refuseAClash($request->staffProfile, $request->starts_on, $request->ends_on, except: $request->id);
+            }
+
             $request->status = $status;
 
             if (in_array($status, [LeaveStatus::Approved, LeaveStatus::Declined], true)) {
@@ -118,10 +122,10 @@ class ManageStaffLeave
 
             StaffLeaveStatusChange::create([
                 'staff_leave_request_id' => $request->id,
-                'from_status'            => $current,
-                'to_status'              => $status,
-                'reason'                 => $reason,
-                'changed_by'             => $actor === null ? auth()->id() : $actor->id,
+                'from_status' => $current,
+                'to_status' => $status,
+                'reason' => $reason,
+                'changed_by' => $actor === null ? auth()->id() : $actor->id,
             ]);
 
             $this->auditor->record(
@@ -157,5 +161,24 @@ class ManageStaffLeave
     public function cancel(StaffLeaveRequest $request, ?User $actor = null, ?string $note = null): StaffLeaveRequest
     {
         return $this->changeStatus($request, LeaveStatus::Cancelled, $actor, $note);
+    }
+
+    /**
+     * Refuse days the person already holds.
+     *
+     * @throws InvalidValueException when the days overlap leave still held
+     */
+    private function refuseAClash(StaffProfile $profile, CarbonInterface $start, CarbonInterface $end, ?int $except = null): void
+    {
+        $clash = StaffLeaveRequest::query()
+            ->where('staff_profile_id', $profile->id)
+            ->when($except !== null, fn ($query) => $query->whereKeyNot($except))
+            ->holding()
+            ->overlapping($start, $end)
+            ->exists();
+
+        if ($clash) {
+            throw new InvalidValueException('These days are already asked for.');
+        }
     }
 }

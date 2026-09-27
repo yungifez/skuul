@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A second leave approver could overturn the first answer
+
+- Status: Fixed
+- Area: Staff, leave
+- Observed: Two approvers with the leave board open could both answer one request. The later click won, so an approved leave became declined with no warning. Two requests for the same person's days made at the same moment could both pass the clash check. A declined request asked for again was not checked against leave booked since. The old POST routes for asking and answering were still open beside the Livewire board.
+- Impact: A teacher could be told their leave was approved and then find it declined, or hold the same days twice.
+- Reproduction: Open the leave board in two tabs as two approvers. Approve a request in one, then decline it in the other. The leave ended declined.
+- Resolution: ManageStaffLeave locks the person's profile while it checks for a clash, and locks the request while it changes status. A status change made on a stale reading is refused with "Somebody else already made this leave …". Declined days asked for again are checked for a clash. The store and status routes and both requests were removed.
+
 ## Saving organization settings logged every field as changed
 
 - Status: Fixed

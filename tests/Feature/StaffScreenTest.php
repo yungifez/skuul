@@ -8,6 +8,7 @@ use App\Enums\Feature;
 use App\Enums\LeaveStatus;
 use App\Enums\LeaveType;
 use App\Enums\StaffStatus;
+use App\Exceptions\InvalidValueException;
 use App\Livewire\StaffLeaveBoard;
 use App\Livewire\StaffProfileDirectory;
 use App\Models\StaffLeaveRequest;
@@ -190,15 +191,16 @@ class StaffScreenTest extends TestCase
         $this->authorized_user(['read staff leave', 'request staff leave']);
         $profile = $this->profile();
 
-        $this->from(route('staff-leave.index'))
-            ->post(route('staff-leave.store'), [
-                'staff_profile_id' => $profile->id,
-                'type' => LeaveType::Annual->value,
-                'starts_on' => now()->addWeek()->toDateString(),
-                'ends_on' => now()->addWeeks(2)->toDateString(),
-                'reason' => 'A family wedding.',
-            ])
-            ->assertRedirect(route('staff-leave.index'));
+        $this->get(route('staff-leave.index'))->assertOk()->assertSeeLivewire(StaffLeaveBoard::class);
+
+        Livewire::test(StaffLeaveBoard::class)
+            ->set('staffProfileId', (string) $profile->id)
+            ->set('leaveType', LeaveType::Annual->value)
+            ->set('startsOn', now()->addWeek()->toDateString())
+            ->set('endsOn', now()->addWeeks(2)->toDateString())
+            ->set('reason', 'A family wedding.')
+            ->call('save')
+            ->assertHasNoErrors();
 
         $this->assertSame(1, StaffLeaveRequest::inSchool()->count());
         $this->assertSame(LeaveStatus::Requested, StaffLeaveRequest::inSchool()->sole()->status);
@@ -210,16 +212,30 @@ class StaffScreenTest extends TestCase
         $profile = $this->profile();
         app(ManageStaffLeave::class)->request($profile, now()->addWeek(), now()->addWeeks(2));
 
-        $this->from(route('staff-leave.index'))
-            ->post(route('staff-leave.store'), [
-                'staff_profile_id' => $profile->id,
-                'type' => LeaveType::Annual->value,
-                'starts_on' => now()->addWeek()->toDateString(),
-                'ends_on' => now()->addWeeks(2)->toDateString(),
-            ])
-            ->assertSessionHasErrors('leave');
+        $this->assertThrows(
+            fn () => app(ManageStaffLeave::class)->request($profile, now()->addWeeks(2), now()->addWeeks(3)),
+            InvalidValueException::class,
+            'These days are already asked for.',
+        );
 
         $this->assertSame(1, StaffLeaveRequest::inSchool()->count());
+    }
+
+    public function test_declined_days_asked_for_again_cannot_clash_with_newer_leave(): void
+    {
+        $this->authorized_user(['read staff leave', 'request staff leave']);
+        $profile = $this->profile();
+        $declined = app(ManageStaffLeave::class)->request($profile, now()->addWeek(), now()->addWeeks(2));
+        app(ManageStaffLeave::class)->decline($declined);
+        app(ManageStaffLeave::class)->request($profile, now()->addWeek(), now()->addWeek()->addDay());
+
+        $this->assertThrows(
+            fn () => app(ManageStaffLeave::class)->changeStatus($declined->fresh(), LeaveStatus::Requested),
+            InvalidValueException::class,
+            'These days are already asked for.',
+        );
+
+        $this->assertSame(LeaveStatus::Declined, $declined->fresh()->status);
     }
 
     public function test_leave_can_be_requested_without_leaving_the_screen(): void
@@ -315,9 +331,28 @@ class StaffScreenTest extends TestCase
         $profile = $this->profile();
         $leave = app(ManageStaffLeave::class)->request($profile, now()->addWeek(), now()->addWeeks(2));
 
-        $this->from(route('staff-leave.index'))
-            ->put(route('staff-leave.status.update', $leave), ['status' => LeaveStatus::Approved->value])
-            ->assertRedirect(route('staff-leave.index'));
+        Livewire::test(StaffLeaveBoard::class)
+            ->call('changeStatus', $leave->id, LeaveStatus::Approved->value)
+            ->assertHasNoErrors();
+
+        $this->assertSame(LeaveStatus::Approved, $leave->fresh()->status);
+        $this->assertSame(1, $leave->statusChanges()->count());
+    }
+
+    public function test_a_second_approver_never_overturns_the_first_answer(): void
+    {
+        $this->authorized_user(['read staff leave', 'request staff leave', 'approve staff leave']);
+        $profile = $this->profile();
+        $leave = app(ManageStaffLeave::class)->request($profile, now()->addWeek(), now()->addWeeks(2));
+        $asReadByTheSecond = $leave->fresh();
+
+        app(ManageStaffLeave::class)->approve($leave);
+
+        $this->assertThrows(
+            fn () => app(ManageStaffLeave::class)->decline($asReadByTheSecond),
+            InvalidValueException::class,
+            'Somebody else already made this leave Approved.',
+        );
 
         $this->assertSame(LeaveStatus::Approved, $leave->fresh()->status);
         $this->assertSame(1, $leave->statusChanges()->count());
@@ -334,8 +369,8 @@ class StaffScreenTest extends TestCase
         $person->givePermissionTo(['read staff leave', 'request staff leave', 'approve staff leave']);
         $this->actingAs($person->refresh());
 
-        $this->from(route('staff-leave.index'))
-            ->put(route('staff-leave.status.update', $leave), ['status' => LeaveStatus::Approved->value])
+        Livewire::test(StaffLeaveBoard::class)
+            ->call('changeStatus', $leave->id, LeaveStatus::Declined->value)
             ->assertForbidden();
 
         $this->assertSame(LeaveStatus::Requested, $leave->fresh()->status);

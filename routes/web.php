@@ -260,8 +260,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::post('staff-profiles/{staffProfile}/availabilities', ['App\Http\Controllers\StaffProfileController', 'storeAvailability'])->name('staff-profiles.availabilities.store');
 
             Route::get('staff-leave', ['App\Http\Controllers\StaffLeaveRequestController', 'index'])->name('staff-leave.index');
-            Route::post('staff-leave', ['App\Http\Controllers\StaffLeaveRequestController', 'store'])->name('staff-leave.store');
-            Route::put('staff-leave/{staffLeaveRequest}/status', ['App\Http\Controllers\StaffLeaveRequestController', 'changeStatus'])->name('staff-leave.status.update');
         });
 
         // data sharing routes. Asking, approving, and handing over are three
