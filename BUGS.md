@@ -797,3 +797,11 @@
 - Impact: The one question on the page was hard to find. Each save reloaded the page.
 - Reproduction: Open `/dashboard/academic-years/1/instructional-model`.
 - Resolution: A new `ManageInstructionalModel` Livewire component holds the page. The question sits at the top with one status line. The answers are one radio list, and the chosen answer shows what it allows. The mid-year move opens from a "Move" button. Moves and exceptions are plain row lists, and "Take back" asks by subject name. The tooltips, the `instructional-model-answer` and `instructional-model-choice` components, the update, migrate and exception routes, and their three form requests are removed. Tests: updated `InstructionalModelTest`, `InstructionalModelMigrationTest` and `OfferingExceptionTest`, with new tests for taking back an exception and for a short reason.
+
+## School quick setup wrapped each step in a card with a tooltip
+- Status: Fixed
+- Area: School quick setup (`schools.setup`)
+- Observed: Each step sat in a card with a description and a help tooltip. The classes step showed "Add a class or grade" twice, a tinted "First step" or "Next step" box, and a second heading that repeated the year name. Every step indicator carried a sentence under it.
+- Impact: The one task on each step was lost among five buttons and three blocks of text.
+- Reproduction: Open `/dashboard/schools/1/setup/classes`.
+- Resolution: Each step is now one heading and its actions in a row, with one accent button for the next task. The classes step lists the structure tree under "Classes and sections" with an "All classes" link. The intro line, the cards, the tooltips and the step sentences are removed. Test: `SetupWizardTest::test_each_school_setup_step_names_one_task_and_one_main_action`.

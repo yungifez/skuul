@@ -264,6 +264,19 @@ class SetupWizardTest extends TestCase
             ->assertSee('aria-current="step"', false);
     }
 
+    public function test_each_school_setup_step_names_one_task_and_one_main_action(): void
+    {
+        $school = School::factory()->create();
+
+        $this->authorized_user(['manage school settings'], $school)
+            ->get(route('schools.setup', $school))
+            ->assertSuccessful()
+            ->assertSee('id="setup-step-heading"', false)
+            ->assertSee('Save and finish later')
+            ->assertDontSee('More information')
+            ->assertDontSee('First step');
+    }
+
     public function test_creating_a_school_redirects_to_quick_setup_and_provisions_language(): void
     {
         $organization = Organization::factory()->create();
