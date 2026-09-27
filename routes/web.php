@@ -414,7 +414,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             // the academic period is being prepared or changed.
             Route::resource('fees/fee-categories', FeeCategoryController::class);
             Route::resource('fees/expenses', ExpenseController::class)->only(['index', 'create', 'store']);
-            Route::resource('fees/cash-deposits', CashDepositController::class)->only(['index', 'create', 'store']);
+            Route::resource('fees/cash-deposits', CashDepositController::class)->only(['index', 'create']);
             Route::get('fees/accounts/{student_record}', [StudentAccountController::class, 'show'])->name('student-accounts.show');
             Route::get('fees/payments/{student_payment}/receipt', [StudentPaymentController::class, 'print'])->name('student-payments.receipt');
             Route::get('fees/fee-invoices/{fee_invoice}/pay', [FeeInvoiceController::class, 'payView'])->name('fee-invoices.pay');
