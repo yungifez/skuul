@@ -192,7 +192,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::middleware(['App\Http\Middleware\RequireActiveSchool'])->group(function () {
         Route::resource('grading-scales', GradingScaleController::class)
             ->parameters(['grading-scales' => 'gradingScale'])
-            ->only(['index', 'store', 'update', 'destroy']);
+            ->only(['index']);
 
         // dashboard route
         Route::get('/', function () {

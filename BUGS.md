@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Two people changing one grading scale lost each other's options
+
+- Status: Fixed
+- Area: Grading scales (`SaveGradingScale`, `GradingScaleManager`)
+- Observed: The edit form sent back only the options it showed. When somebody else added an option meanwhile, the later save deleted it without a word. Delete checked for assessments outside any lock. The option checks lived only in the HTTP requests, so any other caller could save a scale with one option or two options named the same.
+- Impact: A grade option a colleague had just added disappeared, and the school did not know why.
+- Reproduction: Open the same scale in two tabs. Add an option in one and save. Rename the scale in the other and save.
+- Resolution: A save names the time the scale was read. If somebody saved since, nothing is written and the form says so. The option checks now live in the action. Delete runs under a lock. The page now works through Livewire: options used in learner records show as locked, and the old routes are gone.
+
 ## Anyone could give up anyone's hall booking, and a hall out of use kept its bookings
 
 - Status: Fixed
