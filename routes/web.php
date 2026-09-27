@@ -399,8 +399,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 Route::resource('syllabi', SyllabusController::class);
 
                 // timetable route
-                Route::post('timetables/{timetable}/section-overrides', [TimetableController::class, 'createSectionOverride'])->name('timetables.section-overrides.store');
-                Route::post('timetables/{timetable}/substitutions', [TimetableController::class, 'storeSubstitution'])->name('timetables.substitutions.store');
                 Route::resource('timetables', TimetableController::class);
                 Route::resource('custom-timetable-items', CustomTimetableItemController::class);
 

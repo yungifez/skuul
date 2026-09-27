@@ -1,5 +1,13 @@
 # Known Bugs
 
+## One teacher could cover two lessons at once, and cover recorded by mistake could not be withdrawn
+- Status: Fixed
+- Area: Timetable cover and section versions (`CreateTimetableSubstitution`, `CreateSectionTimetableOverride`, timetable screen)
+- Observed: The office could book one teacher to cover two overlapping lessons on the same day. Cover could be recorded for a date outside the term or outside the dates the timetable is in use. Cover recorded by mistake could not be removed. Two quick clicks on "Create override draft" made two drafts of one section. A lost race on the same lesson and date showed a database error.
+- Impact: A class was left without a teacher on the day while the timetable showed it as covered. A wrong entry stayed on the record, and duplicate section drafts caused confusion.
+- Reproduction: Publish two timetables with lessons at 08:00–09:00 and 08:30–09:30 on the same weekday. Record cover by the same teacher for both on the next matching date. Both were saved.
+- Resolution: Cover holds the covering teacher while it checks for an overlapping cover on that date, and refuses it. The date must fall inside the term and the timetable's dates. Cover can be withdrawn before the lesson, and the withdrawal is written to the audit log. Cover for a past lesson stays on the record. Only one open section version per template is allowed, and a double click waits on the template lock. The panel now runs through Livewire (`TimetableCoverPanel`). The two POST routes and form requests are removed.
+
 ## A fund written in other capitals made a second budget that counted the same spending
 - Status: Fixed
 - Area: Budgets (`SetBudget`, budget screen)

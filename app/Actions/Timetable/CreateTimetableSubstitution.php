@@ -13,13 +13,12 @@ use App\Models\TimetableTimeSlot;
 use App\Models\User;
 use App\Models\Weekday;
 use Carbon\CarbonInterface;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
 class CreateTimetableSubstitution
 {
-    public function __construct(private RecordAuditEvent $auditor)
-    {
-    }
+    public function __construct(private RecordAuditEvent $auditor) {}
 
     public function create(Timetable $timetable, TimetableTimeSlot $slot, int $weekdayId, User $replacementTeacher, CarbonInterface $date, string $reason, User $actor): TimetableSubstitution
     {
@@ -28,20 +27,75 @@ class CreateTimetableSubstitution
 
         $this->failIfRecordsDoNotFit($timetable, $slot, $weekday, $replacementTeacher, $date);
 
-        if (TimetableSubstitution::query()
-            ->where('timetable_time_slot_id', $slot->id)
-            ->where('weekday_id', $weekdayId)
-            ->whereDate('substituted_on', $date)
-            ->exists()) {
+        try {
+            return DB::transaction(function () use ($timetable, $slot, $weekdayId, $replacementTeacher, $date, $reason, $actor): TimetableSubstitution {
+                // Holding the teacher keeps two offices from booking the same
+                // person into two rooms at once.
+                User::query()->whereKey($replacementTeacher->id)->lockForUpdate()->first();
+
+                if (TimetableSubstitution::query()
+                    ->where('timetable_time_slot_id', $slot->id)
+                    ->where('weekday_id', $weekdayId)
+                    ->whereDate('substituted_on', $date)
+                    ->exists()) {
+                    throw new InvalidValueException('That timetable entry already has a substitution for this date.');
+                }
+
+                $this->failIfTheTeacherIsAlreadyCovering($replacementTeacher, $slot, $date);
+
+                $substitution = TimetableSubstitution::create(['timetable_id' => $timetable->id, 'timetable_time_slot_id' => $slot->id, 'weekday_id' => $weekdayId, 'replacement_teacher_id' => $replacementTeacher->id, 'substituted_on' => $date->toDateString(), 'reason' => $reason, 'approved_by' => $actor->id]);
+
+                $this->auditor->record(AuditAction::TimetableSubstitutionCreated, $substitution, ['timetable_id' => $timetable->id, 'replacement_teacher_id' => $replacementTeacher->id, 'substituted_on' => $date->toDateString()], $actor, $timetable->academicCycleSection->school_id);
+
+                return $substitution;
+            });
+        } catch (UniqueConstraintViolationException) {
             throw new InvalidValueException('That timetable entry already has a substitution for this date.');
         }
+    }
 
-        return DB::transaction(function () use ($timetable, $slot, $weekdayId, $replacementTeacher, $date, $reason, $actor): TimetableSubstitution {
-            $substitution = TimetableSubstitution::create(['timetable_id' => $timetable->id, 'timetable_time_slot_id' => $slot->id, 'weekday_id' => $weekdayId, 'replacement_teacher_id' => $replacementTeacher->id, 'substituted_on' => $date->toDateString(), 'reason' => $reason, 'approved_by' => $actor->id]);
-            $this->auditor->record(AuditAction::TimetableSubstitutionCreated, $substitution, ['timetable_id' => $timetable->id, 'replacement_teacher_id' => $replacementTeacher->id, 'substituted_on' => $date->toDateString()], $actor, $timetable->academicCycleSection->school_id);
+    /**
+     * Take back cover that was recorded by mistake, and say so in the audit log.
+     *
+     * @throws InvalidValueException when the lesson has already happened
+     */
+    public function withdraw(TimetableSubstitution $substitution, User $actor): void
+    {
+        if ($substitution->substituted_on->lt(now()->startOfDay())) {
+            throw new InvalidValueException('That lesson has already happened, so its cover stays on the record.');
+        }
 
-            return $substitution;
+        $substitution->loadMissing('timetable.academicCycleSection');
+
+        DB::transaction(function () use ($substitution, $actor): void {
+            $this->auditor->record(
+                AuditAction::TimetableSubstitutionWithdrawn,
+                $substitution,
+                ['timetable_id' => $substitution->timetable_id, 'replacement_teacher_id' => $substitution->replacement_teacher_id, 'substituted_on' => $substitution->substituted_on->toDateString()],
+                $actor,
+                $substitution->timetable?->academicCycleSection?->school_id,
+            );
+
+            $substitution->delete();
         });
+    }
+
+    /**
+     * Refuse a teacher who already covers a lesson that overlaps this one.
+     */
+    private function failIfTheTeacherIsAlreadyCovering(User $replacementTeacher, TimetableTimeSlot $slot, CarbonInterface $date): void
+    {
+        $isBusy = TimetableSubstitution::query()
+            ->join('timetable_time_slots', 'timetable_time_slots.id', '=', 'timetable_substitutions.timetable_time_slot_id')
+            ->where('timetable_substitutions.replacement_teacher_id', $replacementTeacher->id)
+            ->whereDate('timetable_substitutions.substituted_on', $date)
+            ->where('timetable_time_slots.start_time', '<', $slot->stop_time)
+            ->where('timetable_time_slots.stop_time', '>', $slot->start_time)
+            ->exists();
+
+        if ($isBusy) {
+            throw new InvalidValueException("$replacementTeacher->name already covers another lesson at that time on that day.");
+        }
     }
 
     /**
@@ -60,6 +114,16 @@ class CreateTimetableSubstitution
             ->where('weekday_id', $weekday->id)
             ->exists()) {
             throw new InvalidValueException('Choose a scheduled entry from this timetable.');
+        }
+
+        $period = $timetable->academicPeriod;
+
+        if (($period->starts_on !== null && $date->lt($period->starts_on)) || ($period->ends_on !== null && $date->gt($period->ends_on))) {
+            throw new InvalidValueException('The selected date is outside the term this timetable belongs to.');
+        }
+
+        if (($timetable->effective_from !== null && $date->lt($timetable->effective_from)) || ($timetable->effective_to !== null && $date->gt($timetable->effective_to))) {
+            throw new InvalidValueException('The selected date is outside the dates this timetable is in use.');
         }
 
         if (strcasecmp($weekday->name, $date->format('l')) !== 0) {

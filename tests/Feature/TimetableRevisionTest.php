@@ -12,6 +12,7 @@ use App\Enums\Role;
 use App\Enums\TimetableStatus;
 use App\Exceptions\InvalidValueException;
 use App\Exceptions\TimetableConflictException;
+use App\Livewire\TimetableCoverPanel;
 use App\Livewire\TimetableStatusControl;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
@@ -21,6 +22,7 @@ use App\Models\CourseOffering;
 use App\Models\Subject;
 use App\Models\Timetable;
 use App\Models\TimetableRecord;
+use App\Models\TimetableSubstitution;
 use App\Models\TimetableTimeSlot;
 use App\Models\User;
 use App\Models\Weekday;
@@ -204,7 +206,7 @@ class TimetableRevisionTest extends TestCase
 
     public function test_an_authorized_staff_member_can_record_cover_from_the_timetable_screen(): void
     {
-        $this->authorized_user(['update timetable']);
+        $this->authorized_user(['read timetable', 'update timetable']);
         $replacementTeacher = $this->teacher();
         $timetable = $this->timetableWithLesson($replacementTeacher, '08:00', '09:00');
         $slot = $timetable->timeSlots()->firstOrFail();
@@ -212,12 +214,16 @@ class TimetableRevisionTest extends TestCase
         $date = Carbon::parse('next '.$weekday->name);
         app(PublishTimetable::class)->publish($timetable);
 
-        $this->post(route('timetables.substitutions.store', $timetable), [
-            'timetable_entry' => $slot->id.':'.$weekday->id,
-            'replacement_teacher_id' => $replacementTeacher->id,
-            'substituted_on' => $date->toDateString(),
-            'reason' => 'Teacher is attending training.',
-        ])->assertRedirect();
+        $this->get(route('timetables.show', $timetable))->assertOk()->assertSee('Cover a lesson');
+
+        Livewire::test(TimetableCoverPanel::class, ['timetable' => $timetable->fresh()])
+            ->set('lesson', $slot->id.':'.$weekday->id)
+            ->set('teacherId', (string) $replacementTeacher->id)
+            ->set('coverDate', $date->toDateString())
+            ->set('reason', 'Teacher is attending training.')
+            ->call('recordCover')
+            ->assertHasNoErrors()
+            ->assertSee('Recorded cover');
 
         $this->assertDatabaseHas('timetable_substitutions', [
             'timetable_id' => $timetable->id,
@@ -225,6 +231,110 @@ class TimetableRevisionTest extends TestCase
             'weekday_id' => $weekday->id,
             'replacement_teacher_id' => $replacementTeacher->id,
         ]);
+    }
+
+    public function test_one_teacher_cannot_cover_two_lessons_at_once(): void
+    {
+        $this->authorized_user([]);
+        $teacher = $this->teacher();
+        $first = $this->timetableWithLesson($this->teacher(), '08:00', '09:00');
+        $second = $this->timetableWithLesson($this->teacher(), '08:30', '09:30');
+        $weekday = Weekday::firstOrFail();
+        $date = Carbon::parse('next '.$weekday->name);
+        app(PublishTimetable::class)->publish($first);
+        app(PublishTimetable::class)->publish($second);
+
+        app(CreateTimetableSubstitution::class)->create($first->fresh(), $first->timeSlots()->firstOrFail(), $weekday->id, $teacher, $date, 'Absence', auth()->user());
+
+        $this->expectException(InvalidValueException::class);
+
+        app(CreateTimetableSubstitution::class)->create($second->fresh(), $second->timeSlots()->firstOrFail(), $weekday->id, $teacher, $date, 'Absence', auth()->user());
+    }
+
+    public function test_cover_outside_the_timetables_dates_is_refused(): void
+    {
+        $this->authorized_user([]);
+        $teacher = $this->teacher();
+        $timetable = $this->timetableWithLesson($teacher, '08:00', '09:00');
+        $weekday = Weekday::firstOrFail();
+        $date = Carbon::parse('next '.$weekday->name);
+        $timetable->forceFill(['effective_to' => $date->copy()->subDay()->toDateString()])->save();
+        app(PublishTimetable::class)->publish($timetable);
+
+        $this->expectException(InvalidValueException::class);
+
+        app(CreateTimetableSubstitution::class)->create($timetable->fresh(), $timetable->timeSlots()->firstOrFail(), $weekday->id, $teacher, $date, 'Absence', auth()->user());
+    }
+
+    public function test_cover_recorded_by_mistake_is_withdrawn_before_the_lesson_only(): void
+    {
+        $this->authorized_user(['read timetable', 'update timetable']);
+        $teacher = $this->teacher();
+        $timetable = $this->timetableWithLesson($teacher, '08:00', '09:00');
+        $weekday = Weekday::firstOrFail();
+        app(PublishTimetable::class)->publish($timetable);
+        $coming = app(CreateTimetableSubstitution::class)->create($timetable->fresh(), $timetable->timeSlots()->firstOrFail(), $weekday->id, $teacher, Carbon::parse('next '.$weekday->name), 'Absence', auth()->user());
+        $past = TimetableSubstitution::query()->create([
+            'timetable_id' => $timetable->id,
+            'timetable_time_slot_id' => $coming->timetable_time_slot_id,
+            'weekday_id' => $weekday->id,
+            'replacement_teacher_id' => $teacher->id,
+            'substituted_on' => Carbon::parse('last '.$weekday->name)->toDateString(),
+            'reason' => 'Absence',
+            'approved_by' => auth()->id(),
+        ]);
+
+        Livewire::test(TimetableCoverPanel::class, ['timetable' => $timetable->fresh()])
+            ->call('withdrawCover', $coming->id)
+            ->call('withdrawCover', $past->id);
+
+        $this->assertNull($coming->fresh());
+        $this->assertNotNull($past->fresh());
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::TimetableSubstitutionWithdrawn)->first());
+    }
+
+    public function test_a_section_gets_one_version_of_a_template(): void
+    {
+        $this->authorized_user(['read timetable', 'update timetable']);
+        $template = $this->timetable();
+        TimetableTimeSlot::create(['timetable_id' => $template->id, 'start_time' => '08:00', 'stop_time' => '09:00']);
+        app(PublishTimetable::class)->publish($template);
+        $section = AcademicCycleSection::factory()->create([
+            'school_id' => $template->academicCycleSection->school_id,
+            'academic_year_id' => $template->academicCycleSection->academic_year_id,
+            'academic_level_id' => $template->academicCycleSection->academic_level_id,
+        ]);
+
+        $panel = Livewire::test(TimetableCoverPanel::class, ['timetable' => $template->fresh()])
+            ->set('sectionId', (string) $section->id)
+            ->call('startOverride')
+            ->assertHasNoErrors();
+
+        $override = Timetable::query()->where('template_timetable_id', $template->id)->sole();
+        $panel->assertRedirect(route('timetables.manage', $override));
+
+        Livewire::test(TimetableCoverPanel::class, ['timetable' => $template->fresh()])
+            ->set('sectionId', (string) $section->id)
+            ->call('startOverride')
+            ->assertHasErrors('sectionId');
+
+        $this->assertSame(1, Timetable::query()->where('template_timetable_id', $template->id)->count());
+    }
+
+    public function test_the_panel_never_reaches_another_campus(): void
+    {
+        $this->authorized_user(['read timetable', 'update timetable']);
+        $teacher = $this->teacher();
+        $timetable = $this->timetableWithLesson($teacher, '08:00', '09:00');
+        app(PublishTimetable::class)->publish($timetable);
+        $elsewhere = AcademicCycleSection::factory()->create();
+
+        $panel = Livewire::test(TimetableCoverPanel::class, ['timetable' => $timetable->fresh()])
+            ->set('sectionId', (string) $elsewhere->id)
+            ->call('startOverride')
+            ->assertStatus(404);
+
+        $this->assertSame(0, Timetable::query()->where('academic_cycle_section_id', $elsewhere->id)->count());
     }
 
     public function test_an_archived_timetable_cannot_be_published_again(): void

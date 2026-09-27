@@ -30,6 +30,19 @@ class CreateSectionTimetableOverride
         }
 
         return DB::transaction(function () use ($template, $section, $actor): Timetable {
+            // Holding the template keeps a double click from making two drafts.
+            Timetable::query()->whereKey($template->id)->lockForUpdate()->first();
+
+            $existing = Timetable::query()
+                ->where('template_timetable_id', $template->id)
+                ->where('academic_cycle_section_id', $section->id)
+                ->where('status', '!=', TimetableStatus::Archived)
+                ->exists();
+
+            if ($existing) {
+                throw new InvalidValueException('That section already has its own version of this timetable. Open it instead of starting another.');
+            }
+
             $override = Timetable::create([
                 'name' => $template->name.' · '.($section->label ?? $section->name),
                 'description' => $template->description,

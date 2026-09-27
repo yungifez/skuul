@@ -163,6 +163,11 @@ enum AuditAction: string
     case TimetableSubstitutionCreated = 'timetable.substitution_created';
 
     /**
+     * Cover recorded by mistake was taken back before the lesson.
+     */
+    case TimetableSubstitutionWithdrawn = 'timetable.substitution_withdrawn';
+
+    /**
      * A balanced entry was written into the books.
      */
     case LedgerTransactionPosted = 'ledger.posted';
@@ -723,6 +728,7 @@ enum AuditAction: string
             self::TimetableArchived => 'Timetable archived',
             self::TimetableRevised => 'Timetable revision started',
             self::TimetableSubstitutionCreated => 'Timetable substitution created',
+            self::TimetableSubstitutionWithdrawn => 'Timetable substitution withdrawn',
             self::LedgerTransactionPosted => 'Ledger entry posted',
             self::PaymentReceived => 'Payment received',
             self::PaymentReversed => 'Payment taken back',
