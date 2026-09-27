@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\TakeInvoicePayment;
 use App\Models\Fee;
 use App\Models\FeeCategory;
 use App\Models\FeeInvoice;
@@ -12,6 +13,7 @@ use App\Models\StudentRecord;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class FeeInvoiceRecordTest extends TestCase
@@ -101,11 +103,7 @@ class FeeInvoiceRecordTest extends TestCase
         $feeInvoiceRecord = $this->lineOfAnEnrolledStudent();
         $office = $this->authorized_user(['read fee invoice', 'update fee invoice', 'delete fee invoice record']);
 
-        $office->post(route('fee-invoices.pay.store', $feeInvoiceRecord->fee_invoice_id), [
-            'amount' => 2,
-            'method' => 'cash',
-            'spread' => 'oldest_first',
-        ])->assertRedirect();
+        $this->payAgainst($feeInvoiceRecord, '2');
 
         $this->assertSame(1, PaymentAllocation::query()->where('fee_invoice_record_id', $feeInvoiceRecord->id)->count());
 
@@ -129,11 +127,7 @@ class FeeInvoiceRecordTest extends TestCase
             ->assertSuccessful()
             ->assertSee('Continue With Delete');
 
-        $office->post(route('fee-invoices.pay.store', $feeInvoiceRecord->fee_invoice_id), [
-            'amount' => 2,
-            'method' => 'cash',
-            'spread' => 'oldest_first',
-        ])->assertRedirect();
+        $this->payAgainst($feeInvoiceRecord, '2');
 
         $office->get("dashboard/fees/fee-invoices/{$feeInvoiceRecord->fee_invoice_id}/edit")
             ->assertSuccessful()
@@ -149,12 +143,9 @@ class FeeInvoiceRecordTest extends TestCase
     {
         $feeInvoiceRecord = $this->lineOfAnEnrolledStudent();
 
-        $this->unauthorized_user()
-            ->post(route('fee-invoices.pay.store', $feeInvoiceRecord->fee_invoice_id), [
-                'amount' => 10,
-                'method' => 'cash',
-            ])
-            ->assertForbidden();
+        $this->unauthorized_user();
+
+        Livewire::test(TakeInvoicePayment::class, ['feeInvoice' => $feeInvoiceRecord->feeInvoice])->assertForbidden();
 
         $this->assertTrue($feeInvoiceRecord->fresh()->paid->isZero());
     }
@@ -163,13 +154,9 @@ class FeeInvoiceRecordTest extends TestCase
     {
         $feeInvoiceRecord = $this->lineOfAnEnrolledStudent();
 
-        $this->authorized_user(['read fee invoice', 'update fee invoice'])
-            ->post(route('fee-invoices.pay.store', $feeInvoiceRecord->fee_invoice_id), [
-                'amount' => 10,
-                'method' => 'cash',
-                'spread' => 'oldest_first',
-            ])
-            ->assertRedirect();
+        $this->authorized_user(['read fee invoice', 'update fee invoice']);
+
+        $this->payAgainst($feeInvoiceRecord, '10');
 
         $this->assertSame(1000, $feeInvoiceRecord->fresh()->paid->getMinorAmount()->toInt());
     }
@@ -226,5 +213,15 @@ class FeeInvoiceRecordTest extends TestCase
             'waiver' => 0,
             'fine' => 0,
         ]);
+    }
+
+    private function payAgainst(FeeInvoiceRecord $feeInvoiceRecord, string $amount): void
+    {
+        Livewire::test(TakeInvoicePayment::class, ['feeInvoice' => $feeInvoiceRecord->feeInvoice])
+            ->set('amount', $amount)
+            ->set('method', 'cash')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect();
     }
 }

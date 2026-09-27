@@ -9,6 +9,7 @@ use App\Actions\Finance\ReversePayment;
 use App\Enums\AuditAction;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\ShowStudentAccount;
+use App\Livewire\TakeInvoicePayment;
 use App\Models\AuditEvent;
 use App\Models\Fee;
 use App\Models\FeeCategory;
@@ -290,14 +291,14 @@ class StudentPaymentTest extends TestCase
 
         $actor->get(route('fee-invoices.pay', $invoice->id))
             ->assertOk()
-            ->assertSee('How did the money reach the school?');
+            ->assertSeeLivewire(TakeInvoicePayment::class);
 
-        $actor->post(route('fee-invoices.pay.store', $invoice->id), [
-            'amount' => 60,
-            'method' => 'cash',
-            'spread' => 'oldest_first',
-            'received_on' => now()->toDateString(),
-        ])->assertRedirect(route('fee-invoices.show', $invoice->id));
+        Livewire::test(TakeInvoicePayment::class, ['feeInvoice' => $invoice])
+            ->set('amount', '60')
+            ->set('method', 'cash')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('fee-invoices.show', $invoice->id));
 
         $this->assertSame(6_000, $invoice->fresh()->paid->getMinorAmount()->toInt());
         $this->assertSame(1, StudentPayment::where('student_record_id', $enrollment->id)->count());
@@ -311,12 +312,14 @@ class StudentPaymentTest extends TestCase
         $invoice = $this->invoiceFor($enrollment, [['amount' => 100], ['amount' => 100]]);
         $lines = $invoice->feeInvoiceRecords()->orderBy('id')->get();
 
-        $actor->post(route('fee-invoices.pay.store', $invoice->id), [
-            'amount' => 40,
-            'method' => 'bank_transfer',
-            'spread' => 'by_line',
-            'lines' => [$lines[1]->id => 40],
-        ])->assertRedirect(route('fee-invoices.show', $invoice->id));
+        Livewire::test(TakeInvoicePayment::class, ['feeInvoice' => $invoice])
+            ->set('amount', '40')
+            ->set('method', 'bank_transfer')
+            ->set('splitByFee', true)
+            ->set('lines', [$lines[1]->id => '40'])
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('fee-invoices.show', $invoice->id));
 
         $this->assertSame(0, $lines[0]->fresh()->paid->getMinorAmount()->toInt());
         $this->assertSame(4_000, $lines[1]->fresh()->paid->getMinorAmount()->toInt());
@@ -328,12 +331,59 @@ class StudentPaymentTest extends TestCase
         $enrollment = $this->enrollment();
         $invoice = $this->invoiceFor($enrollment, [['amount' => 100]]);
 
-        $actor->post(route('fee-invoices.pay.store', $invoice->id), [
-            'amount' => 10,
-            'method' => 'carrier-pigeon',
-        ])->assertSessionHasErrors('method');
+        Livewire::test(TakeInvoicePayment::class, ['feeInvoice' => $invoice])
+            ->set('amount', '10')
+            ->set('method', 'carrier-pigeon')
+            ->call('save')
+            ->assertHasErrors('method');
 
         $this->assertSame(0, $invoice->fresh()->paid->getMinorAmount()->toInt());
+    }
+
+    /**
+     * A third decimal place is not money. It must be refused, not rounded.
+     */
+    public function test_the_payment_screen_refuses_fractions_of_the_smallest_coin(): void
+    {
+        $this->authorized_user(['read fee invoice', 'update fee invoice']);
+        $invoice = $this->invoiceFor($this->enrollment(), [['amount' => 100]]);
+
+        Livewire::test(TakeInvoicePayment::class, ['feeInvoice' => $invoice])
+            ->set('amount', '10.005')
+            ->call('save')
+            ->assertHasErrors(['amount' => 'decimal']);
+
+        $this->assertTrue($invoice->fresh()->paid->isZero());
+    }
+
+    /**
+     * The office names more than a fee still owes. The action refuses it,
+     * and the screen says so next to the fees.
+     */
+    public function test_the_payment_screen_reports_a_split_the_fees_cannot_take(): void
+    {
+        $this->authorized_user(['read fee invoice', 'update fee invoice']);
+        $invoice = $this->invoiceFor($this->enrollment(), [['amount' => 100], ['amount' => 100]]);
+        $lines = $invoice->feeInvoiceRecords()->orderBy('id')->get();
+
+        Livewire::test(TakeInvoicePayment::class, ['feeInvoice' => $invoice])
+            ->set('amount', '150')
+            ->set('splitByFee', true)
+            ->set('lines', [$lines[0]->id => '150'])
+            ->call('save')
+            ->assertHasErrors('lines')
+            ->assertNoRedirect();
+
+        $this->assertTrue($invoice->fresh()->paid->isZero());
+    }
+
+    public function test_someone_who_cannot_update_invoices_cannot_open_the_payment_screen(): void
+    {
+        $this->authorized_user(['read fee invoice']);
+        $invoice = $this->invoiceFor($this->enrollment(), [['amount' => 100]]);
+
+        Livewire::test(TakeInvoicePayment::class, ['feeInvoice' => $invoice])->assertForbidden();
+        $this->get(route('fee-invoices.pay', $invoice))->assertForbidden();
     }
 
     public function test_the_student_account_screen_answers_the_parent_at_the_counter(): void

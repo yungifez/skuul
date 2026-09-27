@@ -928,3 +928,12 @@
 - Impact: A bursar had to open the finance page and the reports to see which debts to chase first and whether the school spent more than it took in.
 - Reproduction: Open `/dashboard` as a user who can read fee invoices and expenses.
 - Resolution: Two trends are added. "Owed" totals what is still owed and splits it into not due yet, 1–30, 31–60, 61–90 and over 90 days late. Each line counts only what is left after its allocations, never below zero, and deleted invoices are left out. "Money in and out" compares standing payments with expenses for the last six months and leads with the net. The first needs `read fee invoice`, the second also needs `read expense`, and each stays hidden when it has nothing to draw. `DashboardTrendsTest` covers the buckets, school scope, month totals and permissions.
+
+## Take-payment page was a long carded POST form full of explanations
+
+- Status: Fixed
+- Area: Fees, taking a payment
+- Observed: The page opened with a paragraph about how balances are worked out, three summary cards, and a card with two headed sub-sections. Every payment method was a large card with a description. Two more radio cards explained how the money is spread. Amounts with three decimals were rounded silently. An error from the payment action, such as naming more than a fee owes, came back as a server error page.
+- Impact: Taking money at the counter needed a lot of scrolling and reading. A split the fees could not take lost everything the office had typed.
+- Reproduction: Open `/dashboard/fees/fee-invoices/{id}/pay`, enter 10.005, or split more onto one fee than it owes.
+- Resolution: The page is now the `TakeInvoicePayment` Livewire component. It shows one facts row (From, Paid, Owed), then amount and date, the payment methods as compact choices, and reference and note. "Split across fees" is a checkbox that shows one amount field per fee that still owes, and only appears when more than one fee is open. Amounts accept at most two decimals. An error from the action shows next to the amount or the fees, and the typed values stay. The POST route and `PayFeeInvoiceRequest` are removed. The tests now drive the component and cover decimals, a refused split and permission.
