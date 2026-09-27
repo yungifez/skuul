@@ -73,6 +73,14 @@
                     @livewire('syllabus-workflow-control', ['syllabus' => $syllabus], key('workflow-'.$syllabus->id))
                 </div>
             @endif
+
+            @if ($syllabus->status === \App\Enums\SyllabusStatus::Published && $syllabus->topics->isNotEmpty())
+                @can('create', \App\Models\CurriculumOutline::class)
+                    <div class="mt-4">
+                        @livewire('save-syllabus-to-library', ['syllabus' => $syllabus], key('library-'.$syllabus->id))
+                    </div>
+                @endcan
+            @endif
         </slot:content>
     </april:card>
 

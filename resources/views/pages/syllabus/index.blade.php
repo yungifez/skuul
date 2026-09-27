@@ -8,6 +8,9 @@
 @section('page_heading',  __('Syllabi'))
 
 @section('page_actions')
+    @can('viewAny', \App\Models\CurriculumOutline::class)
+        <april:button-link href="{{ route('syllabi.library') }}" variant="outline">Library</april:button-link>
+    @endcan
     @can('viewCoverage', \App\Models\Syllabus::class)
         <april:button-link href="{{ route('syllabi.coverage') }}" variant="outline">Coverage</april:button-link>
     @endcan

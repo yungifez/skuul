@@ -65,6 +65,14 @@
         @livewire('syllabus-topics-editor', ['syllabus' => $syllabus])
 
         <april:card>
+            <slot:title>Start from an existing plan</slot:title>
+            <slot:description>Copy the weekly topics of a library outline, or of this subject's syllabus from an earlier term.</slot:description>
+            <slot:content>
+                @livewire('syllabus-topic-importer', ['syllabus' => $syllabus])
+            </slot:content>
+        </april:card>
+
+        <april:card>
             <slot:title>When the plan is ready</slot:title>
             <slot:description>A reviewer approves the syllabus before students see it.</slot:description>
             <slot:content>

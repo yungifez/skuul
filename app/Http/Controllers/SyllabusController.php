@@ -6,6 +6,7 @@ use App\Enums\LessonNoteStatus;
 use App\Enums\SyllabusStatus;
 use App\Http\Requests\StoreSyllabusRequest;
 use App\Http\Requests\UpdateSyllabusRequest;
+use App\Models\CurriculumOutline;
 use App\Models\LessonNote;
 use App\Models\Syllabus;
 use App\Services\Syllabus\SyllabusService;
@@ -112,6 +113,16 @@ class SyllabusController extends Controller
         $this->authorize('viewCoverage', Syllabus::class);
 
         return view('pages.syllabus.coverage');
+    }
+
+    /**
+     * Show the school's library of reusable schemes of work.
+     */
+    public function library(): View
+    {
+        $this->authorize('viewAny', CurriculumOutline::class);
+
+        return view('pages.syllabus.library');
     }
 
     /**
