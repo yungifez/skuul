@@ -8,6 +8,7 @@ use App\Enums\RosterMode;
 use App\Enums\TimetableStatus;
 use App\Livewire\CreateTimetableForm;
 use App\Livewire\EditTimetableForm;
+use App\Livewire\ListTimetablesTable;
 use App\Livewire\ManageTimetable;
 use App\Livewire\ShowTimetable;
 use App\Models\AcademicCycleSection;
@@ -24,6 +25,7 @@ use App\Models\Weekday;
 use App\Services\Timetable\TimetableGrid;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -98,6 +100,60 @@ class TimetableTest extends TestCase
         $response->assertOk();
 
         $this->get(route('timetables.show', $draftTimetable))->assertForbidden();
+    }
+
+    public function test_a_student_lists_only_published_timetables_for_their_section_and_the_school(): void
+    {
+        $school = $this->workingSchool();
+        $student = $this->memberOf($school);
+        $student->assignRole('student');
+        $student->givePermissionTo('read timetable');
+        [$ownSection, $otherSection] = AcademicCycleSection::factory()->count(2)->create([
+            'school_id' => $school->id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
+        $student->studentRecords()->create([
+            'school_id' => $school->id,
+            'academic_cycle_section_id' => $ownSection->id,
+            'admission_date' => now()->toDateString(),
+            'status' => 'active',
+            'is_primary' => true,
+        ]);
+        $periodId = current_academic_period_id();
+        $this->assertNotNull($periodId);
+        $published = ['academic_period_id' => $periodId, 'status' => TimetableStatus::Published, 'published_at' => now()];
+        Timetable::factory()->create($published + ['academic_cycle_section_id' => $ownSection->id, 'name' => 'Own lessons']);
+        Timetable::factory()->create($published + ['academic_cycle_section_id' => null, 'name' => 'Assembly rota']);
+        Timetable::factory()->create($published + ['academic_cycle_section_id' => $otherSection->id, 'name' => 'Other lessons']);
+        Timetable::factory()->create(['academic_period_id' => $periodId, 'academic_cycle_section_id' => $ownSection->id, 'name' => 'Draft lessons']);
+
+        $this->actingAsMemberOf($school, $student);
+
+        $component = Livewire::test(ListTimetablesTable::class)
+            ->assertSee('Own lessons')
+            ->assertSee('Assembly rota')
+            ->assertDontSee('Other lessons')
+            ->assertDontSee('Draft lessons')
+            ->set('scope', 'schoolwide')
+            ->set('academicCycleSectionId', $otherSection->id)
+            ->assertDontSee('Other lessons')
+            ->assertDontSee('Draft lessons');
+
+        foreach (['isStudent' => false, 'cycleSections' => [['id' => $otherSection->id, 'label' => 'Other']]] as $property => $value) {
+            try {
+                $component->set($property, $value);
+                $this->fail("{$property} took a value from the browser.");
+            } catch (CannotUpdateLockedPropertyException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+    }
+
+    public function test_the_timetable_list_refuses_a_person_without_timetable_access(): void
+    {
+        $this->unauthorized_user();
+
+        Livewire::test(ListTimetablesTable::class)->assertForbidden();
     }
 
     // test unauthorized user can't view create timetable

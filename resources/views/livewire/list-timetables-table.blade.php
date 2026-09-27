@@ -31,9 +31,12 @@
                     </div>
                 @endunless
 
-                @if ($scope === 'section' && $academicCycleSectionId === null)
+                @if (!$isStudent && $scope === 'section' && $academicCycleSectionId === null)
                     <x-empty-state icon="lucide-users" title="No {{ strtolower(school_term('section', 'section')) }} selected"
                         description="Set up an active {{ strtolower(school_term('section', 'section')) }} for the current {{ strtolower(school_term('academic_year', 'school year')) }} before creating a timetable." />
+                @elseif ($timetables === [] && $isStudent)
+                    <x-empty-state icon="lucide-calendar-clock" title="No timetable yet"
+                        description="Your school has not published a timetable for this {{ strtolower(school_term('period', 'period')) }}." />
                 @elseif ($timetables === [])
                     <x-empty-state icon="lucide-calendar-clock" title="No timetable yet"
                         description="Create a draft for this {{ strtolower(school_term('section', 'section')) }}, place its lessons, then publish it when it is ready." />

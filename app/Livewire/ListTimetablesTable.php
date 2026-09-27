@@ -7,29 +7,39 @@ use App\Enums\Role;
 use App\Enums\TimetableStatus;
 use App\Models\AcademicCycleSection;
 use App\Models\Timetable;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class ListTimetablesTable extends Component
 {
     /** @var array<int, array{id: int, label: string}> */
+    #[Locked]
     public array $cycleSections = [];
 
     /** @var array<int, array{id: int, name: string, description: string|null, status: string, variant: string, revision: int, published_at: string|null, can_manage: bool}> */
+    #[Locked]
     public array $timetables = [];
 
     public ?int $academicCycleSectionId = null;
 
     public string $scope = 'section';
 
+    /**
+     * A student sees only the published timetables of the section they attend, and the schoolwide ones.
+     */
+    #[Locked]
     public bool $isStudent = false;
 
     public function mount(): void
     {
+        Gate::authorize('viewAny', Timetable::class);
+
         $this->isStudent = auth()->user()->hasRole(Role::Student);
 
         if ($this->isStudent) {
-            $this->academicCycleSectionId = auth()->user()->studentRecord?->academic_cycle_section_id;
+            $this->academicCycleSectionId = $this->attendedSectionId();
         } else {
             $this->cycleSections = AcademicCycleSection::inSchool()
                 ->with('academicLevel')
@@ -66,7 +76,7 @@ class ListTimetablesTable extends Component
 
     public function updatedScope(): void
     {
-        if ($this->isStudent) {
+        if ($this->isStudent || !in_array($this->scope, ['section', 'schoolwide'], true)) {
             $this->scope = 'section';
         }
 
@@ -75,7 +85,11 @@ class ListTimetablesTable extends Component
 
     private function loadTimetables(): void
     {
-        if (($this->scope === 'section' && $this->academicCycleSectionId === null) || current_academic_period_id() === null) {
+        if ($this->isStudent) {
+            $this->academicCycleSectionId = $this->attendedSectionId();
+        }
+
+        if ((!$this->isStudent && $this->scope === 'section' && $this->academicCycleSectionId === null) || current_academic_period_id() === null) {
             $this->timetables = [];
 
             return;
@@ -83,9 +97,13 @@ class ListTimetablesTable extends Component
 
         $this->timetables = Timetable::query()
             ->where('academic_period_id', current_academic_period_id())
-            ->when($this->isStudent, fn ($query) => $query->where('status', TimetableStatus::Published))
-            ->when($this->scope === 'section', fn ($query) => $query->where('academic_cycle_section_id', $this->academicCycleSectionId))
-            ->when($this->scope === 'schoolwide', fn ($query) => $query->whereNull('academic_cycle_section_id'))
+            ->when($this->isStudent, fn ($query) => $query
+                ->where('status', TimetableStatus::Published)
+                ->where(fn ($query) => $query
+                    ->whereNull('academic_cycle_section_id')
+                    ->when($this->academicCycleSectionId !== null, fn ($query) => $query->orWhere('academic_cycle_section_id', $this->academicCycleSectionId))))
+            ->when(!$this->isStudent && $this->scope === 'section', fn ($query) => $query->where('academic_cycle_section_id', $this->academicCycleSectionId))
+            ->when(!$this->isStudent && $this->scope === 'schoolwide', fn ($query) => $query->whereNull('academic_cycle_section_id'))
             ->orderByDesc('published_at')
             ->orderByDesc('revision')
             ->get()
@@ -105,6 +123,11 @@ class ListTimetablesTable extends Component
                 'can_manage' => auth()->user()->can('update', $timetable),
             ])
             ->all();
+    }
+
+    private function attendedSectionId(): ?int
+    {
+        return auth()->user()->studentRecord()->attending()->value('academic_cycle_section_id');
     }
 
     public function render(): View

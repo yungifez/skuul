@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A student could list any section's timetables, drafts included, by editing the timetable list in the browser
+- Status: Fixed
+- Area: Timetables, security
+- Observed: The timetable list kept `isStudent` and the allowed section list as browser-writable properties. A student could set `isStudent` to false and add another section to the list, then see that section's timetables, drafts included. The component had no access check of its own. A student's section came from any enrollment, not the one they attend, and students never saw schoolwide timetables that they may open.
+- Impact: Students saw unpublished timetables and other classes' schedules. A student who had left a section still listed its timetables. Students missed assemblies and other schoolwide schedules.
+- Reproduction: Sign in as a student, open Timetables, and set `isStudent` to false and `cycleSections` to another section from the browser console.
+- Resolution: The component checks timetable access on mount, locks the properties the server sets, and works out a student's attended section on the server each time. Students see published timetables for their section and the school, and a student-facing empty state.
+
 ## The classes page linked to "sections this year" but opened every year, and the class tree took its display flags from the browser
 - Status: Fixed
 - Area: Academic structure, classes
