@@ -10,6 +10,7 @@ use App\Exceptions\InvalidValueException;
 use App\Models\LessonNote;
 use App\Models\Syllabus;
 use App\Models\User;
+use App\Notifications\SyllabusWorkNotification;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -127,7 +128,7 @@ class LessonNoteService
 
     private function review(LessonNote $note, LessonNoteStatus $outcome, ?string $reviewNote, AuditAction $action, ?User $actor): LessonNote
     {
-        return DB::transaction(function () use ($note, $outcome, $reviewNote, $action, $actor): LessonNote {
+        $reviewed = DB::transaction(function () use ($note, $outcome, $reviewNote, $action, $actor): LessonNote {
             $note = LessonNote::query()->lockForUpdate()->findOrFail($note->id);
 
             if ($note->status !== LessonNoteStatus::Submitted) {
@@ -144,5 +145,42 @@ class LessonNoteService
 
             return $note;
         });
+
+        $this->tellAuthor($reviewed, $actor);
+
+        return $reviewed;
+    }
+
+    /**
+     * Tell the author how the review of their note ended.
+     */
+    private function tellAuthor(LessonNote $note, ?User $reviewer): void
+    {
+        $author = $note->author;
+        $syllabus = Syllabus::query()
+            ->where('course_offering_id', $note->course_offering_id)
+            ->where('status', SyllabusStatus::Published)
+            ->first();
+
+        if ($author === null || $syllabus === null || $author->id === ($reviewer ?? auth()->user())?->id) {
+            return;
+        }
+
+        $subject = $note->courseOffering->subject->name;
+        $notification = $note->status === LessonNoteStatus::Approved
+            ? new SyllabusWorkNotification(
+                "Week {$note->week} lesson note approved",
+                ["Your {$subject} lesson note for week {$note->week} was approved."],
+                'Open lesson notes',
+                route('syllabi.lesson-notes', $syllabus),
+            )
+            : new SyllabusWorkNotification(
+                "Week {$note->week} lesson note needs changes",
+                ["Your {$subject} lesson note for week {$note->week} was sent back:", (string) $note->review_note, 'Change the note, then send it again.'],
+                'Open lesson notes',
+                route('syllabi.lesson-notes', $syllabus),
+            );
+
+        $author->notify($notification);
     }
 }

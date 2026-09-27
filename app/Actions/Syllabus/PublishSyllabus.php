@@ -11,6 +11,7 @@ use App\Models\Syllabus;
 use App\Models\SyllabusTopic;
 use App\Models\SyllabusTopicCoverage;
 use App\Models\User;
+use App\Notifications\SyllabusWorkNotification;
 use Illuminate\Support\Facades\DB;
 
 class PublishSyllabus
@@ -19,7 +20,7 @@ class PublishSyllabus
 
     public function publish(Syllabus $syllabus, ?User $actor = null): Syllabus
     {
-        return DB::transaction(function () use ($syllabus, $actor): Syllabus {
+        $published = DB::transaction(function () use ($syllabus, $actor): Syllabus {
             $syllabus = Syllabus::query()->lockForUpdate()->findOrFail($syllabus->id);
 
             if (!in_array($syllabus->status, [SyllabusStatus::Draft, SyllabusStatus::Submitted], true)) {
@@ -46,6 +47,19 @@ class PublishSyllabus
 
             return $syllabus;
         });
+
+        $author = $published->submittedBy;
+
+        if ($author !== null && $author->id !== $actor?->id) {
+            $author->notify(new SyllabusWorkNotification(
+                "{$published->name} was approved",
+                ["{$published->name} (revision {$published->revision}) was approved and published. Students now see it."],
+                'Open the syllabus',
+                route('syllabi.show', $published),
+            ));
+        }
+
+        return $published;
     }
 
     /**

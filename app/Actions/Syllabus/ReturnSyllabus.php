@@ -8,6 +8,7 @@ use App\Enums\SyllabusStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\Syllabus;
 use App\Models\User;
+use App\Notifications\SyllabusWorkNotification;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -25,7 +26,7 @@ class ReturnSyllabus
             throw new InvalidValueException('Say what needs to change before sending the syllabus back.');
         }
 
-        return DB::transaction(function () use ($syllabus, $reviewNote, $actor): Syllabus {
+        $returned = DB::transaction(function () use ($syllabus, $reviewNote, $actor): Syllabus {
             $syllabus = Syllabus::query()->lockForUpdate()->findOrFail($syllabus->id);
 
             if ($syllabus->status !== SyllabusStatus::Submitted) {
@@ -37,5 +38,18 @@ class ReturnSyllabus
 
             return $syllabus;
         });
+
+        $author = $returned->submittedBy;
+
+        if ($author !== null && $author->id !== $actor?->id) {
+            $author->notify(new SyllabusWorkNotification(
+                "{$returned->name} needs changes",
+                ["A reviewer sent {$returned->name} back for changes:", $reviewNote, 'Change the draft, then send it for review again.'],
+                'Edit the draft',
+                route('syllabi.edit', $returned),
+            ));
+        }
+
+        return $returned;
     }
 }

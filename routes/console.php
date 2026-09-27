@@ -9,6 +9,7 @@ use App\Console\Commands\ProcessNotices;
 use App\Console\Commands\PruneExpiredInvitations;
 use App\Console\Commands\RehearseRestore;
 use App\Console\Commands\SendAcademicCalendarReminders;
+use App\Console\Commands\SendSyllabusBehindReminders;
 use App\Http\Controllers\HealthController;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -64,6 +65,9 @@ Schedule::command(GenerateUpcomingAcademicCycles::class)->weeklyOn(1, '01:00')->
 // Remind the staff who can prepare or close a period. The command remembers
 // each deadline, so a scheduler retry cannot send the same reminder twice.
 Schedule::command(SendAcademicCalendarReminders::class)->dailyAt('07:15')->withoutOverlapping();
+
+// Tell teachers on Monday which classes fell behind their syllabus last week.
+Schedule::command(SendSyllabusBehindReminders::class)->weeklyOn(1, '07:30')->withoutOverlapping();
 
 // Take the nightly backup, locked, and remove the ones the rule no longer
 // keeps. The uploaded files go with it, because a database without the files
