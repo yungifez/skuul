@@ -1028,3 +1028,10 @@
 - **Problem:** The form posted to a controller. Its fee picker loaded a fee category and its fees by id without a school scope. A bursar could see another school's fee names by changing the id.
 - **Fix:** The whole form is now Livewire. A bursar adds a whole class or one student, then adds a whole fee category or one fee. The footer shows "N invoices · X each". Every lookup is scoped to the current school. A student must be active in this school. A waiver cannot be more than its fee. A date outside every open finance period shows an error on the issue date. One key per form stops a double press from making two batches. The store route, controller method and `StoreFeeInvoiceRequest` are removed.
 - **Tests:** `FeeInvoiceTest` (whole section, backdated date, waiver, another school's fees and students, withdrawn student, double press) and `ControlNameTest`.
+
+## The organization members screen could name any account and crash on a tampered editor
+
+- **Where:** `app/Livewire/OrganizationMembers.php`.
+- **Problem:** `revoke` and `savePermissions` loaded the person by id from every account on the platform. Revoking a stranger changed nothing but said "{name} no longer administers …", so an administrator could read any account's name by id. Saving permissions for a stranger threw an uncaught error (500).
+- **Fix:** Both actions now find the person only through this organization's active memberships. Any other id is not found.
+- **Tests:** `OrganizationMembersScreenTest` (a stranger from another organization, a past administrator).

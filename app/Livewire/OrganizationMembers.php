@@ -123,7 +123,7 @@ class OrganizationMembers extends Component
     {
         Gate::authorize('manageMembers', $this->organization);
 
-        $user = User::query()->findOrFail($userId);
+        $user = $this->activeMember($userId);
 
         try {
             $revokeOrganizationMembership->revoke($user, $this->organization, auth()->user());
@@ -184,7 +184,7 @@ class OrganizationMembers extends Component
             return;
         }
 
-        $user = User::query()->findOrFail($this->editingUserId);
+        $user = $this->activeMember($this->editingUserId);
 
         $permissions = $this->fullAuthority ? null : array_values(array_filter(array_map(
             fn (string $value): ?OrganizationPermission => OrganizationPermission::tryFrom($value),
@@ -201,6 +201,21 @@ class OrganizationMembers extends Component
 
         $this->stopEditing();
         $this->notify("Permissions updated for {$user->name}.");
+    }
+
+    /**
+     * Find a person who currently administers this organization.
+     *
+     * Any other id is refused, so the screen never acts on, or names, an
+     * account that does not belong here.
+     */
+    private function activeMember(int $userId): User
+    {
+        return $this->organization->memberships()
+            ->active()
+            ->where('user_id', $userId)
+            ->firstOrFail()
+            ->user;
     }
 
     /**

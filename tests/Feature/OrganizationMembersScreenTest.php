@@ -11,6 +11,7 @@ use App\Models\Organization;
 use App\Models\School;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -165,15 +166,52 @@ class OrganizationMembersScreenTest extends TestCase
 
         $this->assertDatabaseHas('organization_memberships', [
             'organization_id' => $organization->id,
-            'user_id'         => $member->id,
-            'status'          => OrganizationMembershipStatus::Ended->value,
+            'user_id' => $member->id,
+            'status' => OrganizationMembershipStatus::Ended->value,
         ]);
+    }
+
+    public function test_the_screen_does_not_act_on_or_name_a_stranger(): void
+    {
+        $organization = Organization::factory()->create();
+        $manager = $this->grantedMember($organization);
+        $otherOrganization = Organization::factory()->create();
+        $stranger = $this->grantedMember($otherOrganization);
+
+        $screen = Livewire::actingAs($manager)
+            ->test(OrganizationMembers::class, ['organization' => $organization]);
+
+        $this->assertThrows(fn () => $screen->call('revoke', $stranger->id), ModelNotFoundException::class);
+        $this->assertThrows(
+            fn () => $screen->set('editingUserId', $stranger->id)->call('savePermissions'),
+            ModelNotFoundException::class,
+        );
+
+        $this->assertTrue($stranger->fresh()->administersOrganization($otherOrganization));
+    }
+
+    public function test_a_past_administrator_cannot_be_edited_again(): void
+    {
+        $organization = Organization::factory()->create();
+        $manager = $this->grantedMember($organization);
+        $member = $this->grantedMember($organization);
+
+        $screen = Livewire::actingAs($manager)
+            ->test(OrganizationMembers::class, ['organization' => $organization])
+            ->call('edit', $member->id)
+            ->call('revoke', $member->id);
+
+        $this->assertThrows(
+            fn () => $screen->set('editingUserId', $member->id)->call('savePermissions'),
+            ModelNotFoundException::class,
+        );
+        $this->assertFalse($member->fresh()->administersOrganization($organization));
     }
 
     /**
      * Give a person organization scope, delegated to the named permissions.
      *
-     * @param list<OrganizationPermission>|null $permissions null gives every permission
+     * @param  list<OrganizationPermission>|null  $permissions  null gives every permission
      */
     private function grantedMember(Organization $organization, ?array $permissions = null): User
     {
