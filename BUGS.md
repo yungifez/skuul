@@ -901,3 +901,12 @@
 - Impact: The page was hard to scan and looked unlike the rest of the app. Families got an "invoice" for money they had already paid, with no proof of the payments.
 - Reproduction: Open `/dashboard/fees/fee-invoices/{id}` and its print view, for a part-paid invoice and for a fully paid one.
 - Resolution: The page now shows the student line with one state badge (Not paid, Part paid, Overdue, Paid or No fees), a facts row (Issued, Due, Charged, Owed), a fee table with totals, and the payments with receipt links. The primary action is "Take payment" while money is owed, and "Print receipt" once the invoice is settled. Print, Edit and Student account are in the ⋯ menu. An invoice due today is not overdue. The print sheet is now a structured document. While money is owed, it is an invoice with an "Amount due" box. Once settled, it is a receipt with a "Paid in full" stamp and the payments received. An April badge renders a `<div>`, so a `<p>` around one split the line; the invoice and domains pages now use a `<div>`, and `.ai/rules/views.md` records this.
+
+## Invoice and promotion lists had no way to open a row
+
+- Status: Fixed
+- Area: Fees invoice list, promotions list
+- Observed: On `/dashboard/fees/fee-invoices`, the Actions column was empty on every row, and the invoice name was plain text. Nothing on the list opened an invoice. The promotions list had the same empty column.
+- Impact: Staff could not reach an invoice from the finance page, so they could not view, edit or take payment on it.
+- Reproduction: Open the finance page and look at the Actions column of the invoice list.
+- Resolution: The cause was a Blade trap, not April UI. The `:items="…"` attribute of `<x-table-actions>` held a PHP string in double quotes. The inner `"` ended the attribute, so Blade left `<x-table-actions>` in the HTML uncompiled, and the browser drew nothing. Both views now build the items in `@php` and pass `:items="$rowActions"`. The invoice name now links to the invoice. The invoice list filters are plain selects without the card. `BladeComponentTagTest` compiles every view and fails on any component tag left raw, and `.ai/rules/views.md` records the trap.

@@ -1,8 +1,61 @@
-<april:card><slot:title>Fee invoices</slot:title><slot:description>Review invoices for the selected financial period.</slot:description><slot:content><div class="space-y-5"><div class="grid gap-4 md:grid-cols-2"><div class="flex flex-col gap-2"><april:label for="financial-period">Financial period</april:label><april:select id="financial-period" wire:model.live="financialPeriodId"><option value="">All periods</option>@foreach ($financialPeriods as $financialPeriod)<option value="{{ $financialPeriod->id }}">{{ $financialPeriod->name }}{{ $financialPeriod->isClosed() ? ' · Closed' : '' }}</option>@endforeach</april:select></div><div class="flex flex-col gap-2"><april:label for="invoice-status">Invoice status</april:label><april:select id="invoice-status" wire:model.live="status">@foreach ($statuses as $invoiceStatus)<option value="{{ $invoiceStatus }}">{{ ucfirst($invoiceStatus) }}</option>@endforeach</april:select></div></div><div wire:key="{{ $id }}-{{ $this->tableRevision }}"><april:data-table id="{{ $id }}" :data="$data" :columns="$columns" :pagination="$pagination" :per-page-options="$perPageOptions" row-key="{{ $rowKey }}" :searchable="$searchable" @query-change="$wire.updateTable($event.detail)"><slot:empty><div class="space-y-1"><p class="font-medium text-foreground">No invoices found</p><p>Choose another financial period or invoice status.</p></div></slot:empty><slot:actions>
-    <x-table-actions :items="array_filter([
-        ['label' => 'View invoice', 'icon' => 'eye', 'url' => 'view_url'],
-        $canManageInvoices ? ['label' => 'Edit invoice', 'icon' => 'settings', 'url' => 'edit_url'] : null,
-        $canPayInvoices ? ['label' => 'Take payment', 'icon' => 'credit-card', 'url' => 'pay_url'] : null,
-        $canDeleteInvoices ? ['label' => 'Delete invoice', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete :name?', 'names' => "row.name + ' for ' + row.student_name"] : null,
-    ])" />
-</slot:actions></april:data-table></div></div></slot:content></april:card>
+<div class="flex flex-col gap-4">
+    @php
+        // Built here, not inside the tag: a double quote inside a component
+        // attribute ends the attribute, and Blade then leaves the tag raw.
+        $rowActions = array_filter([
+            ['label' => 'View invoice', 'icon' => 'eye', 'url' => 'view_url'],
+            $canManageInvoices ? ['label' => 'Edit invoice', 'icon' => 'settings', 'url' => 'edit_url'] : null,
+            $canPayInvoices ? ['label' => 'Take payment', 'icon' => 'credit-card', 'url' => 'pay_url'] : null,
+            $canDeleteInvoices ? ['label' => 'Delete invoice', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete :name?', 'names' => "row.name + ' for ' + row.student_name"] : null,
+        ]);
+        $controlClasses = 'h-11 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+    @endphp
+
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <h2 class="text-base font-semibold">Invoices</h2>
+        <div class="grid grid-cols-2 gap-3 sm:w-96">
+            <div>
+                <label for="financial-period" class="sr-only">Financial period</label>
+                <select id="financial-period" wire:model.live="financialPeriodId" class="{{ $controlClasses }}">
+                    <option value="">All periods</option>
+                    @foreach ($financialPeriods as $financialPeriod)
+                        <option value="{{ $financialPeriod->id }}">{{ $financialPeriod->name }}{{ $financialPeriod->isClosed() ? ' · Closed' : '' }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div>
+                <label for="invoice-status" class="sr-only">Invoice status</label>
+                <select id="invoice-status" wire:model.live="status" class="{{ $controlClasses }}">
+                    @foreach ($statuses as $invoiceStatus)
+                        <option value="{{ $invoiceStatus }}">{{ ucfirst($invoiceStatus) }}</option>
+                    @endforeach
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div wire:key="{{ $id }}-{{ $this->tableRevision }}">
+        <april:data-table
+            id="{{ $id }}"
+            :data="$data"
+            :columns="$columns"
+            :pagination="$pagination"
+            :per-page-options="$perPageOptions"
+            row-key="{{ $rowKey }}"
+            :searchable="$searchable"
+            @query-change="$wire.updateTable($event.detail)"
+        >
+            <slot:empty>
+                <p>No invoices</p>
+            </slot:empty>
+
+            <slot:cell-name>
+                <a :href="row.view_url" class="font-medium hover:underline" x-text="row.name"></a>
+            </slot:cell-name>
+
+            <slot:actions>
+    <x-table-actions :items="$rowActions" />
+            </slot:actions>
+        </april:data-table>
+    </div>
+</div>

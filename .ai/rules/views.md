@@ -215,3 +215,7 @@ widens the whole page at phone width. Give the wrapper `relative`:
 ## An April badge never goes inside a `<p>`
 
 `<april:badge>` renders a `<div>`. Inside a `<p>`, the browser closes the paragraph at the badge, so the badge falls out of the flex row and floats away from its text. Wrap a line that holds a badge in a `<div>`.
+
+## Never put a double quote inside a component attribute
+
+`<x-table-actions :items="[... 'names' => "row.name + ' for ' + row.student_name"]" />` looks fine, but the inner `"` ends the attribute. Blade then leaves the whole tag as raw HTML, and the browser silently shows nothing. Build the array in `@php` and pass the variable (`:items="$rowActions"`). `BladeComponentTagTest` fails on any tag left uncompiled.
