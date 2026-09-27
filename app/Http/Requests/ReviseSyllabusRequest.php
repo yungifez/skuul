@@ -5,10 +5,10 @@ namespace App\Http\Requests;
 use App\Models\Syllabus;
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateSyllabusRequest extends FormRequest
+class ReviseSyllabusRequest extends FormRequest
 {
     /**
-     * Determine if the user can change this syllabus.
+     * Determine if the user can revise this syllabus.
      */
     public function authorize(): bool
     {
@@ -25,10 +25,19 @@ class UpdateSyllabusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'description' => ['nullable', 'string', 'max:65535'],
-            'file' => ['nullable', 'file', 'mimes:pdf', 'max:10000'],
-            'remove_file' => ['sometimes', 'boolean'],
+            'change_note' => ['required', 'string', 'max:2000'],
+        ];
+    }
+
+    /**
+     * Get the messages for validation errors.
+     *
+     * @return array<string, string>
+     */
+    public function messages(): array
+    {
+        return [
+            'change_note.required' => 'Say what will change in this revision and why.',
         ];
     }
 }

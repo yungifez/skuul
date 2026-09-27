@@ -18,6 +18,7 @@ use App\Models\CourseOffering;
 use App\Models\StudentRecord;
 use App\Models\Subject;
 use App\Models\Syllabus;
+use App\Models\SyllabusTopic;
 use App\Services\Academic\AcademicPeriodContext;
 use App\Traits\FeatureTestTrait;
 use Database\Seeders\SyllabusSeeder;
@@ -152,12 +153,13 @@ class SyllabusTest extends TestCase
                 'course_offering_id' => $courseOffering->id,
                 'description' => 'Test syllabus description',
                 'file' => UploadedFile::fake()->create('test-syllabus.pdf', 100),
-            ])->assertRedirect(route('syllabi.index'));
+            ])->assertRedirect(route('syllabi.edit', Syllabus::query()->latest('id')->firstOrFail()));
 
         $this->assertDatabaseHas('syllabi', [
             'name' => 'Test syllabus',
             'course_offering_id' => $courseOffering->id,
             'description' => 'Test syllabus description',
+            'status' => SyllabusStatus::Draft->value,
         ]);
     }
 
@@ -171,8 +173,8 @@ class SyllabusTest extends TestCase
 
     public function test_published_syllabus_is_revised_and_superseded_instead_of_deleted(): void
     {
-        $syllabus = Syllabus::factory()->create(['course_offering_id' => $this->courseOffering()->id]);
-        $syllabus->update(['status' => SyllabusStatus::Published, 'published_at' => now()]);
+        $syllabus = Syllabus::factory()->published()->create(['course_offering_id' => $this->courseOffering()->id]);
+        SyllabusTopic::factory()->create(['syllabus_id' => $syllabus->id]);
         $this->authorized_user(['update syllabus']);
         $actor = auth()->user();
 

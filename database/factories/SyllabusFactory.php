@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\SyllabusStatus;
 use App\Models\CourseOffering;
 use App\Models\Syllabus;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -29,5 +30,16 @@ class SyllabusFactory extends Factory
             'course_offering_id' => CourseOffering::factory(),
             'file' => UploadedFile::fake()->create($fileName.'.pdf')->store('pdfs'),
         ];
+    }
+
+    /**
+     * Mark the syllabus as the published revision.
+     */
+    public function published(): static
+    {
+        return $this->state(fn (): array => [
+            'status' => SyllabusStatus::Published,
+            'published_at' => now(),
+        ]);
     }
 }

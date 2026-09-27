@@ -67,6 +67,8 @@ class ListSyllabiTable extends DataTableComponent
             Column::make('Subject', 'subject_name'),
             Column::make(school_term('class_level', 'Class'), 'academic_level_label'),
             Column::make(school_term('period', 'Period'), 'academic_period_label'),
+            Column::make('Revision', 'revision')->sortable(),
+            Column::make('Status', 'status_label'),
         ];
     }
 
@@ -78,6 +80,8 @@ class ListSyllabiTable extends DataTableComponent
             $row['subject_name'] = $syllabus->courseOffering->subject->name;
             $row['academic_level_label'] = $syllabus->courseOffering->academicLevel->name;
             $row['academic_period_label'] = $syllabus->courseOffering->academicPeriod->label;
+            $row['status_label'] = $syllabus->status->label();
+            $row['is_draft'] = $syllabus->status === SyllabusStatus::Draft;
             $row['view_url'] = route('syllabi.show', $syllabus);
             $row['delete_url'] = route('syllabi.destroy', $syllabus);
 

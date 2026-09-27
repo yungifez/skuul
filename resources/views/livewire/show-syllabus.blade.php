@@ -1,33 +1,117 @@
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">{{$syllabus->name}}</h2>
-    </div>
-    <div class="card-body">
-        <dl class="mb-5 grid gap-3 text-sm sm:grid-cols-3">
-            <div><dt class="text-muted-foreground">Subject</dt><dd class="font-medium">{{ $syllabus->courseOffering->subject->name }}</dd></div>
-            <div><dt class="text-muted-foreground">{{ school_term('class_level', 'Class') }}</dt><dd class="font-medium">{{ $syllabus->courseOffering->academicLevel->name }}</dd></div>
-            <div><dt class="text-muted-foreground">Academic period</dt><dd class="font-medium">{{ $syllabus->courseOffering->academicPeriod->label ?? $syllabus->courseOffering->academicPeriod->name }}</dd></div>
-        </dl>
-        <p class="my-3">
-            {{$syllabus->description}}
-        </p>
-        <p class="mb-4 text-sm text-muted-foreground">Revision {{ $syllabus->revision }} · {{ $syllabus->status->value }}</p>
-        @can('update', $syllabus)
-            @if ($syllabus->status === \App\Enums\SyllabusStatus::Published)
-                <form method="POST" action="{{ route('syllabi.revise', $syllabus) }}" class="mb-3">
-                    @csrf
-                    <april:button type="submit" variant="outline">Create revised draft</april:button>
-                </form>
-            @elseif ($syllabus->status === \App\Enums\SyllabusStatus::Draft)
-                <form method="POST" action="{{ route('syllabi.publish', $syllabus) }}" class="mb-3">
-                    @csrf
-                    <april:button type="submit">Publish revision</april:button>
-                </form>
+<div class="space-y-4">
+    <april:card>
+        <slot:title>{{ $syllabus->name }}</slot:title>
+        <slot:content>
+            <div class="mb-4 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                <span @class([
+                    'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold',
+                    'border-transparent bg-primary text-primary-foreground' => $syllabus->status === \App\Enums\SyllabusStatus::Published,
+                    'bg-muted text-muted-foreground' => $syllabus->status !== \App\Enums\SyllabusStatus::Published,
+                ])>{{ $syllabus->status->label() }}</span>
+                <span>Revision {{ $syllabus->revision }}</span>
+                @if ($syllabus->published_at)
+                    <span>· Published {{ $syllabus->published_at->format('M j, Y') }}{{ $syllabus->publishedBy ? ' by '.$syllabus->publishedBy->name : '' }}</span>
+                @endif
+            </div>
+
+            <dl class="mb-5 grid gap-3 text-sm sm:grid-cols-3">
+                <div><dt class="text-muted-foreground">Subject</dt><dd class="font-medium">{{ $syllabus->courseOffering->subject->name }}</dd></div>
+                <div><dt class="text-muted-foreground">{{ school_term('class_level', 'Class') }}</dt><dd class="font-medium">{{ $syllabus->courseOffering->academicLevel->name }}</dd></div>
+                <div><dt class="text-muted-foreground">{{ school_term('period', 'Academic period') }}</dt><dd class="font-medium">{{ $syllabus->courseOffering->academicPeriod->label ?? $syllabus->courseOffering->academicPeriod->name }}</dd></div>
+            </dl>
+
+            @if ($syllabus->description)
+                <p class="mb-4 whitespace-pre-line">{{ $syllabus->description }}</p>
             @endif
-        @endcan
-        <a class="bg-blue-600 py-2 px-4 text-white rounded" href="{{asset('storage/'.$syllabus->file)}}" download>
-            <x-lucide-download class="size-4"  />
-            Download
-        </a>
-    </div>
+
+            @if ($syllabus->status === \App\Enums\SyllabusStatus::Superseded)
+                <p class="mb-4 rounded-md border bg-muted/40 p-3 text-sm">
+                    A newer revision replaced this one.
+                    @if ($replacement)
+                        <a class="font-medium underline" href="{{ route('syllabi.show', $replacement) }}">Open revision {{ $replacement->revision }}</a>.
+                    @endif
+                </p>
+            @endif
+
+            @if ($syllabus->change_note)
+                <p class="mb-4 text-sm"><span class="font-medium">Why this revision:</span> {{ $syllabus->change_note }}</p>
+            @endif
+
+            <div class="flex flex-wrap items-start gap-2">
+                @if ($syllabus->file)
+                    <april:button type="button" variant="outline" wire:click="download">
+                        <x-lucide-download class="mr-2 size-4" />
+                        Download PDF
+                    </april:button>
+                @endif
+
+                @can('update', $syllabus)
+                    @if ($syllabus->status === \App\Enums\SyllabusStatus::Draft)
+                        <april:button-link href="{{ route('syllabi.edit', $syllabus) }}" variant="outline">Edit draft</april:button-link>
+                        <form method="POST" action="{{ route('syllabi.publish', $syllabus) }}">
+                            @csrf
+                            <april:button type="submit">{{ $syllabus->revision_of_id === null ? 'Publish syllabus' : 'Publish revision '.$syllabus->revision }}</april:button>
+                        </form>
+                    @elseif ($syllabus->status === \App\Enums\SyllabusStatus::Published)
+                        @if ($openRevision)
+                            <april:button-link href="{{ route('syllabi.edit', $openRevision) }}" variant="outline">Continue draft revision {{ $openRevision->revision }}</april:button-link>
+                        @endif
+                    @endif
+                @endcan
+            </div>
+
+            @can('update', $syllabus)
+                @if ($syllabus->status === \App\Enums\SyllabusStatus::Published && !$openRevision)
+                    <form method="POST" action="{{ route('syllabi.revise', $syllabus) }}" class="mt-5 space-y-2 border-t pt-4 md:w-1/2">
+                        @csrf
+                        <april:label for="change_note">Revise this syllabus</april:label>
+                        <p class="text-sm text-muted-foreground">Students keep seeing this revision until the new one is published.</p>
+                        <textarea id="change_note" name="change_note" rows="2" required placeholder="What will change and why"
+                            class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            {{ field_error_bindings('change_note') }}>{{ old('change_note') }}</textarea>
+                        <x-field-error name="change_note" />
+                        <april:button type="submit" variant="outline">Create revised draft</april:button>
+                    </form>
+                @endif
+            @endcan
+        </slot:content>
+    </april:card>
+
+    <april:card>
+        <slot:title>Weekly plan</slot:title>
+        <slot:content>
+            @if ($currentWeek)
+                <p class="mb-3 text-sm text-muted-foreground">This is week {{ $currentWeek }} of the {{ strtolower(school_term('period', 'period')) }}.</p>
+            @endif
+            @forelse ($topicsByWeek as $week => $topics)
+                @php($isCurrentWeek = (string) $currentWeek === $week)
+                <section @class(['mb-4 rounded-md border p-3 last:mb-0', 'border-primary bg-primary/5' => $isCurrentWeek])>
+                    <h3 class="mb-2 text-sm font-semibold">
+                        {{ $week === 'Unscheduled' ? 'Unscheduled' : 'Week '.$week }}
+                        @if ($isCurrentWeek)
+                            <span class="ml-1 text-xs font-medium text-primary">This week</span>
+                        @endif
+                    </h3>
+                    <ul class="space-y-3">
+                        @foreach ($topics as $topic)
+                            <li>
+                                <p class="font-medium">{{ $topic->title }}</p>
+                                @if ($topic->objectives)
+                                    <p class="mt-1 whitespace-pre-line text-sm"><span class="font-medium">Objectives:</span> {{ $topic->objectives }}</p>
+                                @endif
+                                @if ($topic->content)
+                                    <p class="mt-1 whitespace-pre-line text-sm text-muted-foreground">{{ $topic->content }}</p>
+                                @endif
+                                @if ($topic->resources)
+                                    <p class="mt-1 whitespace-pre-line text-sm text-muted-foreground"><span class="font-medium">Resources:</span> {{ $topic->resources }}</p>
+                                @endif
+                            </li>
+                        @endforeach
+                    </ul>
+                </section>
+            @empty
+                <p class="text-sm text-muted-foreground">No weekly topics are planned in this syllabus yet.</p>
+            @endforelse
+        </slot:content>
+    </april:card>
 </div>

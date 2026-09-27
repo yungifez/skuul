@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\AcademicPeriodStatus;
+use App\Enums\SyllabusStatus;
 use App\Models\CourseOffering;
 use App\Models\School;
 use App\Models\Syllabus;
@@ -39,14 +40,30 @@ class SyllabusSeeder extends Seeder
                 $filePath = 'pdfs/demo-syllabus-'.$courseOffering->id.'.pdf';
                 Storage::disk('public')->put($filePath, "%PDF-1.4\nDemo syllabus\n");
 
-                Syllabus::query()->firstOrCreate(
+                $syllabus = Syllabus::query()->firstOrCreate(
                     ['course_offering_id' => $courseOffering->id],
                     [
                         'name' => 'Demo syllabus '.($index + 1),
                         'description' => 'Course plan and learning outcomes for the simulated school.',
                         'file' => $filePath,
+                        'status' => SyllabusStatus::Published,
+                        'published_at' => now(),
                     ],
                 );
+
+                if ($syllabus->topics()->exists()) {
+                    return;
+                }
+
+                foreach (range(1, 6) as $week) {
+                    $syllabus->topics()->create([
+                        'week' => $week,
+                        'position' => $week,
+                        'title' => 'Week '.$week.' topic',
+                        'objectives' => 'Students can explain and apply the ideas taught in week '.$week.'.',
+                        'content' => 'Introduction, worked examples, and class practice.',
+                    ]);
+                }
             });
     }
 }

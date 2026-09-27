@@ -4,20 +4,20 @@ namespace App\Http\Controllers;
 
 use App\Actions\Syllabus\PublishSyllabus;
 use App\Actions\Syllabus\ReviseSyllabus;
+use App\Enums\SyllabusStatus;
 use App\Http\Requests\PublishSyllabusRequest;
+use App\Http\Requests\ReviseSyllabusRequest;
 use App\Http\Requests\StoreSyllabusRequest;
 use App\Http\Requests\UpdateSyllabusRequest;
 use App\Models\Syllabus;
 use App\Services\Syllabus\SyllabusService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class SyllabusController extends Controller
 {
     public function __construct(private SyllabusService $syllabus, private PublishSyllabus $publishSyllabus, private ReviseSyllabus $reviseSyllabus)
     {
-        $this->syllabus = $syllabus;
         $this->authorizeResource(Syllabus::class, 'syllabus');
     }
 
@@ -43,9 +43,8 @@ class SyllabusController extends Controller
     public function store(StoreSyllabusRequest $request): RedirectResponse
     {
         $syllabus = $this->syllabus->createSyllabus($request->validated());
-        $this->publishSyllabus->publish($syllabus, $request->user());
 
-        return redirect()->route('syllabi.index')->with('success', 'Syllabus created.');
+        return redirect()->route('syllabi.edit', $syllabus)->with('success', 'Syllabus draft created. Add the weekly topics, then publish it.');
     }
 
     /**
@@ -53,7 +52,7 @@ class SyllabusController extends Controller
      */
     public function show(Syllabus $syllabus): View
     {
-        $syllabus->load('courseOffering.subject', 'courseOffering.academicPeriod', 'courseOffering.academicLevel');
+        $syllabus->load('courseOffering.subject', 'courseOffering.academicPeriod', 'courseOffering.academicLevel', 'topics', 'revisionOf', 'publishedBy');
 
         return view('pages.syllabus.show', compact('syllabus'));
     }
@@ -61,17 +60,28 @@ class SyllabusController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Syllabus $syllabus): Response
+    public function edit(Syllabus $syllabus): View|RedirectResponse
     {
-        abort(404);
+        if ($syllabus->status !== SyllabusStatus::Draft) {
+            return redirect()->route('syllabi.show', $syllabus)->with('info', 'Only a draft can be edited. Create a revised draft to change this syllabus.');
+        }
+
+        $syllabus->load('courseOffering.subject', 'courseOffering.academicPeriod', 'courseOffering.academicLevel', 'revisionOf');
+
+        return view('pages.syllabus.edit', compact('syllabus'));
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateSyllabusRequest $request, Syllabus $syllabus): Response
+    public function update(UpdateSyllabusRequest $request, Syllabus $syllabus): RedirectResponse
     {
-        abort(404);
+        $this->syllabus->updateDraft($syllabus, [
+            ...$request->safe()->only(['name', 'description', 'file']),
+            'remove_file' => $request->boolean('remove_file'),
+        ]);
+
+        return redirect()->route('syllabi.edit', $syllabus)->with('success', 'Syllabus details saved.');
     }
 
     /**
@@ -84,12 +94,11 @@ class SyllabusController extends Controller
         return redirect()->route('syllabi.index')->with('success', 'Syllabus deleted.');
     }
 
-    public function revise(Syllabus $syllabus): RedirectResponse
+    public function revise(ReviseSyllabusRequest $request, Syllabus $syllabus): RedirectResponse
     {
-        $this->authorize('update', $syllabus);
-        $revision = $this->reviseSyllabus->revise($syllabus, actor: request()->user());
+        $revision = $this->reviseSyllabus->revise($syllabus, ['change_note' => $request->validated('change_note')], $request->user());
 
-        return redirect()->route('syllabi.show', $revision)->with('success', 'A new syllabus draft was created. Review it, then publish it.');
+        return redirect()->route('syllabi.edit', $revision)->with('success', 'A revised draft was created. Make the changes, then publish it.');
     }
 
     public function publish(PublishSyllabusRequest $request, Syllabus $syllabus): RedirectResponse

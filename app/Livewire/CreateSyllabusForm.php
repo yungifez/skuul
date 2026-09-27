@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Enums\CourseOfferingStatus;
 use App\Models\CourseOffering;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\View\View;
@@ -15,6 +16,7 @@ class CreateSyllabusForm extends Component
     public function mount(): void
     {
         $this->courseOfferings = CourseOffering::inSchool()
+            ->where('status', '!=', CourseOfferingStatus::Archived)
             ->with(['subject:id,name,short_name', 'academicPeriod:id,name,label', 'academicLevel:id,name'])
             ->orderByDesc('academic_year_id')
             ->orderBy('academic_level_id')

@@ -28,13 +28,13 @@
             @endif
             <april:input-group id="name" name="name" id="name" label="Name *" placeholder="Name (Eg: Physics second academic period syllabus) " wire:ignore />
             <div class="flex w-full flex-col gap-2 md:col-span-6">
-                <april:label for="description">Description</april:label>
+                <april:label for="description">Overview</april:label>
                 <april:textarea id="description" name="description" placeholder="Insert description (optional)..." rows="5" />
             </div>
-            <april:input-group id="file" type="file" name="file" accept="application/pdf" label="Upload file *" placeholder="Choose a PDF file..." fgroup-class="col-md-6" />
+            <april:input-group id="file" type="file" name="file" accept="application/pdf" label="Attach a PDF (optional)" placeholder="Choose a PDF file..." fgroup-class="col-md-6" />
+            <p class="text-sm text-muted-foreground">The syllabus starts as a draft. Next, you plan its weekly topics, then publish it to students.</p>
             <april:button type="submit" class="w-full md:w-6/12">
-                <x-lucide-key class="mr-2 size-4" />
-                Create
+                Create draft
             </april:button>
         </form>
     </div>
