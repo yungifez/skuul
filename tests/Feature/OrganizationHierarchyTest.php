@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Actions\Organization\AssignSchoolToOrganization;
 use App\Actions\Organization\GrantOrganizationMembership;
+use App\Models\BillingGroup;
+use App\Models\CalendarTemplate;
 use App\Models\Organization;
 use App\Models\School;
 use App\Models\User;
@@ -73,6 +75,27 @@ class OrganizationHierarchyTest extends TestCase
 
         $this->assertSame($organization->id, $school->fresh()->organization_id);
         $this->assertTrue($user->fresh()->belongsToSchool($school));
+    }
+
+    public function test_a_campus_that_changes_organization_leaves_the_old_purse_and_calendar(): void
+    {
+        $previous = Organization::factory()->create();
+        $group = BillingGroup::factory()->create(['organization_id' => $previous->id]);
+        $template = CalendarTemplate::factory()->create(['organization_id' => $previous->id]);
+        $school = School::factory()->create([
+            'organization_id' => $previous->id,
+            'billing_group_id' => $group->id,
+            'calendar_template_id' => $template->id,
+        ]);
+        $sister = School::factory()->create(['organization_id' => $previous->id, 'billing_group_id' => $group->id]);
+
+        app(AssignSchoolToOrganization::class)->assign($school, Organization::factory()->create());
+
+        $school->refresh();
+        $this->assertNull($school->billing_group_id);
+        $this->assertNull($school->calendar_template_id);
+        $this->assertFalse($school->billsWith($sister->fresh()));
+        $this->assertFalse($group->schools()->whereKey($school->id)->exists());
     }
 
     public function test_a_platform_administrator_can_manage_any_organization(): void

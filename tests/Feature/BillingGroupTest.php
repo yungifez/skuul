@@ -12,6 +12,7 @@ use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
 use App\Enums\OrganizationPermission;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\OrganizationBillingGroups;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
@@ -24,7 +25,9 @@ use App\Models\User;
 use App\Services\Finance\ChartOfAccounts;
 use App\Services\Finance\StudentLedger;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -154,17 +157,34 @@ class BillingGroupTest extends TestCase
         $manager = $this->organizationManager($organization);
 
         $this->actingAs($manager)
-            ->post(route('organizations.billing-groups.store', $organization), ['name' => 'City campuses'])
-            ->assertRedirect();
+            ->get(route('organizations.billing-groups.index', $organization))
+            ->assertOk()
+            ->assertSeeLivewire(OrganizationBillingGroups::class);
+
+        $component = Livewire::actingAs($manager)
+            ->test(OrganizationBillingGroups::class, ['organization' => $organization])
+            ->set('name', '  City campuses ')
+            ->call('startGroup')
+            ->assertHasNoErrors()
+            ->assertSet('name', '');
 
         $group = BillingGroup::firstWhere('name', 'City campuses');
         $this->assertNotNull($group);
 
-        $this->actingAs($manager)
-            ->put(route('organizations.billing-groups.update', [$organization, $first]), ['billing_group_id' => $group->id])
-            ->assertRedirect();
+        $component->set('name', 'city CAMPUSES')
+            ->call('startGroup')
+            ->assertHasErrors('name')
+            ->assertSee('This organization already has a group with that name.');
+
+        $component->call('placeCampus', $first->id, (string) $group->id)
+            ->assertDispatched('status-message', type: 'success');
 
         $this->assertSame($group->id, $first->fresh()->billing_group_id);
+        $this->assertSame('campus_placed', AuditEvent::ofAction(AuditAction::BillingGroupChanged)->latest('id')->first()?->context['change']);
+
+        $component->call('placeCampus', $first->id, '');
+
+        $this->assertNull($first->fresh()->billing_group_id);
     }
 
     public function test_a_campus_of_another_organization_cannot_be_put_in_the_group(): void
@@ -173,9 +193,10 @@ class BillingGroupTest extends TestCase
         $manager = $this->organizationManager($organization);
         $elsewhere = School::factory()->create(['organization_id' => Organization::factory()->create()->id]);
 
-        $this->actingAs($manager)
-            ->put(route('organizations.billing-groups.update', [$organization, $elsewhere]), ['billing_group_id' => null])
-            ->assertNotFound();
+        $this->assertThrows(
+            fn () => Livewire::actingAs($manager)->test(OrganizationBillingGroups::class, ['organization' => $organization])->call('placeCampus', $elsewhere->id, ''),
+            ModelNotFoundException::class,
+        );
     }
 
     public function test_a_group_of_another_organization_is_refused(): void
@@ -184,9 +205,56 @@ class BillingGroupTest extends TestCase
         $manager = $this->organizationManager($organization);
         $elsewhere = BillingGroup::factory()->create();
 
-        $this->actingAs($manager)
-            ->put(route('organizations.billing-groups.update', [$organization, $first]), ['billing_group_id' => $elsewhere->id])
-            ->assertSessionHasErrors('billing_group_id');
+        Livewire::actingAs($manager)
+            ->test(OrganizationBillingGroups::class, ['organization' => $organization])
+            ->assertDontSee($elsewhere->name)
+            ->call('placeCampus', $first->id, (string) $elsewhere->id)
+            ->assertDispatched('status-message', type: 'danger');
+
+        $this->assertNull($first->fresh()->billing_group_id);
+
+        $this->assertThrows(
+            fn () => Livewire::actingAs($manager)->test(OrganizationBillingGroups::class, ['organization' => $organization])->call('deleteGroup', $elsewhere->id),
+            ModelNotFoundException::class,
+        );
+        $this->assertNotNull($elsewhere->fresh());
+    }
+
+    public function test_a_group_that_holds_a_campus_is_not_deleted(): void
+    {
+        [$first, , $group] = $this->twoCampuses(sharing: true);
+        $manager = $this->organizationManager($first->organization);
+
+        Livewire::actingAs($manager)
+            ->test(OrganizationBillingGroups::class, ['organization' => $first->organization])
+            ->assertDontSeeHtml('wire:click="deleteGroup('.$group->id.')"')
+            ->call('deleteGroup', $group->id)
+            ->assertDispatched('status-message', type: 'danger', message: "Take every campus out of {$group->name} first.");
+
+        $this->assertNotNull($group->fresh());
+    }
+
+    public function test_an_empty_group_is_deleted_and_cannot_then_take_a_campus(): void
+    {
+        [$first, , $organization] = $this->twoCampusesAndOrganization();
+        $manager = $this->organizationManager($organization);
+        $group = BillingGroup::factory()->create(['organization_id' => $organization->id]);
+
+        // A second manager still has the page open with the group listed.
+        $stale = Livewire::actingAs($manager)->test(OrganizationBillingGroups::class, ['organization' => $organization]);
+
+        Livewire::actingAs($manager)
+            ->test(OrganizationBillingGroups::class, ['organization' => $organization])
+            ->assertSeeHtml('wire:click="deleteGroup('.$group->id.')"')
+            ->call('deleteGroup', $group->id)
+            ->assertDispatched('status-message', type: 'success');
+
+        $this->assertNull($group->fresh());
+
+        $stale->call('placeCampus', $first->id, (string) $group->id)
+            ->assertDispatched('status-message', type: 'danger', message: 'That group no longer exists. Choose another.');
+
+        $this->assertNull($first->fresh()->billing_group_id);
     }
 
     public function test_a_member_without_organization_management_cannot_open_the_screen(): void
@@ -198,6 +266,8 @@ class BillingGroupTest extends TestCase
         $this->actingAs($reader)
             ->get(route('organizations.billing-groups.index', $organization))
             ->assertForbidden();
+
+        Livewire::actingAs($reader)->test(OrganizationBillingGroups::class, ['organization' => $organization])->assertForbidden();
     }
 
     /**

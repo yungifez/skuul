@@ -141,8 +141,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::post('organizations/{organization}/domains/{domain}/verify', ['App\Http\Controllers\OrganizationDomainController', 'verify'])->name('organizations.domains.verify');
     Route::delete('organizations/{organization}/domains/{domain}', ['App\Http\Controllers\OrganizationDomainController', 'destroy'])->name('organizations.domains.destroy');
     Route::get('organizations/{organization}/billing-groups', ['App\Http\Controllers\OrganizationBillingGroupController', 'index'])->name('organizations.billing-groups.index');
-    Route::post('organizations/{organization}/billing-groups', ['App\Http\Controllers\OrganizationBillingGroupController', 'store'])->name('organizations.billing-groups.store');
-    Route::put('organizations/{organization}/campuses/{school}/billing', ['App\Http\Controllers\OrganizationBillingGroupController', 'update'])->name('organizations.billing-groups.update');
     Route::get('organizations/{organization}/boarding-residences', [OrganizationBoardingResidenceController::class, 'index'])->name('organizations.boarding-residences.index');
     Route::post('organizations/{organization}/boarding-residences', [OrganizationBoardingResidenceController::class, 'store'])->name('organizations.boarding-residences.store');
     Route::post('organizations/{organization}/boarding-residences/{boardingResidence}/schools', [OrganizationBoardingResidenceController::class, 'linkSchool'])->name('organizations.boarding-residences.schools.store');

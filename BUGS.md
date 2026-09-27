@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A campus that changed organization kept billing with its old sister campuses
+
+- Status: Fixed
+- Area: Organizations, billing groups
+- Observed: Moving a campus to another organization left its billing group and calendar template in place. The campus still billed with campuses of the organization it left, and still showed in that organization's group. A billing group could not be deleted, a name differing only in case was allowed twice, and a campus could be placed in a group another manager had just deleted. Placing a campus in a group left no audit record.
+- Impact: A debt could be carried between campuses of two different organizations, and a new owner could not see why.
+- Reproduction: Put two campuses of one organization in a group. Assign one of them to another organization. It still bills with the other campus.
+- Resolution: AssignSchoolToOrganization clears the billing group and the calendar template. The new ManageBillingGroups action starts, places and deletes groups under locks, compares names without case, refuses a group that is gone, and records BillingGroupChanged. The page is now the Livewire component OrganizationBillingGroups. The store and update routes and their requests were removed.
+
 ## Two nurses saving one health record could silently replace an allergy
 
 - Status: Fixed

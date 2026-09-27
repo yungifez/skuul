@@ -193,6 +193,12 @@ enum AuditAction: string
     case BalanceCarriedToCampus = 'student.balance_carried_to_campus';
 
     /**
+     * An organization started or deleted a billing group, or moved a campus
+     * into or out of one.
+     */
+    case BillingGroupChanged = 'organization.billing_group_changed';
+
+    /**
      * A campus said what an account is allowed to spend or take in.
      */
     case BudgetSet = 'budget.set';
@@ -683,6 +689,7 @@ enum AuditAction: string
             self::StudentCreditApplied => 'Credit used against fees',
             self::StudentRefunded => 'Money given back',
             self::BalanceCarriedToCampus => 'Balance carried to another campus',
+            self::BillingGroupChanged => 'Billing group changed',
             self::BudgetSet => 'Budget set',
             self::ExpenseRecorded => 'Expense recorded',
             self::FinancialPeriodClosed => 'Financial period closed',
