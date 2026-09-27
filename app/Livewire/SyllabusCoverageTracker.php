@@ -38,7 +38,7 @@ class SyllabusCoverageTracker extends Component
 
     public function mark(int $topicId, string $status, SyllabusCoverageService $coverage): void
     {
-        Gate::authorize('recordCoverage', $this->syllabus);
+        Gate::authorize('recordCoverage', [$this->syllabus, $this->trackId()]);
         $topic = $this->syllabus->topics()->findOrFail($topicId);
         $existing = $coverage->coverageFor($this->syllabus, $this->trackId())->get($topicId);
 
@@ -55,7 +55,7 @@ class SyllabusCoverageTracker extends Component
 
     public function saveNote(int $topicId, string $note, SyllabusCoverageService $coverage): void
     {
-        Gate::authorize('recordCoverage', $this->syllabus);
+        Gate::authorize('recordCoverage', [$this->syllabus, $this->trackId()]);
         $topic = $this->syllabus->topics()->findOrFail($topicId);
         $existing = $coverage->coverageFor($this->syllabus, $this->trackId())->get($topicId);
         $note = trim(mb_substr($note, 0, 1000));
@@ -84,7 +84,7 @@ class SyllabusCoverageTracker extends Component
             'topics' => $this->syllabus->topics()->get(),
             'coverages' => $coverage->coverageFor($this->syllabus, $this->trackId()),
             'summary' => collect($coverage->summary($this->syllabus))->firstWhere('id', $this->trackId()),
-            'canRecord' => Gate::allows('recordCoverage', $this->syllabus),
+            'canRecord' => Gate::allows('recordCoverage', [$this->syllabus, $this->trackId()]),
             'statuses' => TopicCoverageStatus::cases(),
         ]);
     }

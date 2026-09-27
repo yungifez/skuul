@@ -147,7 +147,7 @@ class SyllabusTest extends TestCase
         Storage::fake('public');
         $courseOffering = $this->courseOffering();
 
-        $this->authorized_user(['create syllabus'])
+        $this->authorized_user(['create syllabus', 'approve syllabus'])
             ->post('/dashboard/syllabi', [
                 'name' => 'Test syllabus',
                 'course_offering_id' => $courseOffering->id,

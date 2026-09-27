@@ -2,11 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Syllabus\PublishSyllabus;
-use App\Actions\Syllabus\ReviseSyllabus;
 use App\Enums\SyllabusStatus;
-use App\Http\Requests\PublishSyllabusRequest;
-use App\Http\Requests\ReviseSyllabusRequest;
 use App\Http\Requests\StoreSyllabusRequest;
 use App\Http\Requests\UpdateSyllabusRequest;
 use App\Models\Syllabus;
@@ -16,7 +12,7 @@ use Illuminate\View\View;
 
 class SyllabusController extends Controller
 {
-    public function __construct(private SyllabusService $syllabus, private PublishSyllabus $publishSyllabus, private ReviseSyllabus $reviseSyllabus)
+    public function __construct(private SyllabusService $syllabus)
     {
         $this->authorizeResource(Syllabus::class, 'syllabus');
     }
@@ -26,7 +22,16 @@ class SyllabusController extends Controller
      */
     public function index(): View
     {
-        return view('pages.syllabus.index');
+        $awaitingReview = auth()->user()?->can('approve syllabus')
+            ? Syllabus::query()
+                ->inSchool()
+                ->where('status', SyllabusStatus::Submitted)
+                ->with(['courseOffering.subject:id,name', 'courseOffering.academicLevel:id,name', 'submittedBy:id,name'])
+                ->oldest('submitted_at')
+                ->get()
+            : collect();
+
+        return view('pages.syllabus.index', compact('awaitingReview'));
     }
 
     /**
@@ -44,7 +49,7 @@ class SyllabusController extends Controller
     {
         $syllabus = $this->syllabus->createSyllabus($request->validated());
 
-        return redirect()->route('syllabi.edit', $syllabus)->with('success', 'Syllabus draft created. Add the weekly topics, then publish it.');
+        return redirect()->route('syllabi.edit', $syllabus)->with('success', 'Syllabus draft created. Add the weekly topics, then send it for review.');
     }
 
     /**
@@ -52,7 +57,7 @@ class SyllabusController extends Controller
      */
     public function show(Syllabus $syllabus): View
     {
-        $syllabus->load('courseOffering.subject', 'courseOffering.academicPeriod', 'courseOffering.academicLevel', 'topics', 'revisionOf', 'publishedBy');
+        $syllabus->load('courseOffering.subject', 'courseOffering.academicPeriod', 'courseOffering.academicLevel', 'topics', 'revisionOf', 'publishedBy', 'submittedBy');
 
         return view('pages.syllabus.show', compact('syllabus'));
     }
@@ -102,19 +107,5 @@ class SyllabusController extends Controller
         $this->authorize('viewCoverage', Syllabus::class);
 
         return view('pages.syllabus.coverage');
-    }
-
-    public function revise(ReviseSyllabusRequest $request, Syllabus $syllabus): RedirectResponse
-    {
-        $revision = $this->reviseSyllabus->revise($syllabus, ['change_note' => $request->validated('change_note')], $request->user());
-
-        return redirect()->route('syllabi.edit', $revision)->with('success', 'A revised draft was created. Make the changes, then publish it.');
-    }
-
-    public function publish(PublishSyllabusRequest $request, Syllabus $syllabus): RedirectResponse
-    {
-        $this->publishSyllabus->publish($syllabus, $request->user());
-
-        return redirect()->route('syllabi.show', $syllabus)->with('success', 'Syllabus published.');
     }
 }

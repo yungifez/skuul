@@ -21,7 +21,7 @@ class PublishSyllabus
         return DB::transaction(function () use ($syllabus, $actor): Syllabus {
             $syllabus = Syllabus::query()->lockForUpdate()->findOrFail($syllabus->id);
 
-            if ($syllabus->status !== SyllabusStatus::Draft) {
+            if (!in_array($syllabus->status, [SyllabusStatus::Draft, SyllabusStatus::Submitted], true)) {
                 throw new InvalidValueException('Only a draft syllabus can be published.');
             }
 
@@ -40,7 +40,7 @@ class PublishSyllabus
                 $this->carryCoverageForward($syllabus);
             }
 
-            $syllabus->update(['status' => SyllabusStatus::Published, 'published_at' => now(), 'published_by' => $actor?->id]);
+            $syllabus->update(['status' => SyllabusStatus::Published, 'published_at' => now(), 'published_by' => $actor?->id, 'review_note' => null]);
             $this->auditor->record(AuditAction::SyllabusPublished, $syllabus, ['revision' => $syllabus->revision], $actor);
 
             return $syllabus;

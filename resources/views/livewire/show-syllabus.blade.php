@@ -33,6 +33,16 @@
                 </p>
             @endif
 
+            @if ($syllabus->status === \App\Enums\SyllabusStatus::Submitted)
+                <p class="mb-4 rounded-md border bg-muted/40 p-3 text-sm">
+                    Waiting for review{{ $syllabus->submittedBy ? ' · sent by '.$syllabus->submittedBy->name : '' }}{{ $syllabus->submitted_at ? ' on '.$syllabus->submitted_at->format('M j, Y') : '' }}.
+                </p>
+            @elseif ($syllabus->status === \App\Enums\SyllabusStatus::Draft && $syllabus->review_note)
+                <p class="mb-4 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
+                    <span class="font-medium">Sent back for changes:</span> {{ $syllabus->review_note }}
+                </p>
+            @endif
+
             @if ($syllabus->change_note)
                 <p class="mb-4 text-sm"><span class="font-medium">Why this revision:</span> {{ $syllabus->change_note }}</p>
             @endif
@@ -48,32 +58,17 @@
                 @can('update', $syllabus)
                     @if ($syllabus->status === \App\Enums\SyllabusStatus::Draft)
                         <april:button-link href="{{ route('syllabi.edit', $syllabus) }}" variant="outline">Edit draft</april:button-link>
-                        <form method="POST" action="{{ route('syllabi.publish', $syllabus) }}">
-                            @csrf
-                            <april:button type="submit">{{ $syllabus->revision_of_id === null ? 'Publish syllabus' : 'Publish revision '.$syllabus->revision }}</april:button>
-                        </form>
-                    @elseif ($syllabus->status === \App\Enums\SyllabusStatus::Published)
-                        @if ($openRevision)
-                            <april:button-link href="{{ route('syllabi.edit', $openRevision) }}" variant="outline">Continue draft revision {{ $openRevision->revision }}</april:button-link>
-                        @endif
+                    @elseif ($syllabus->status === \App\Enums\SyllabusStatus::Published && $openRevision)
+                        <april:button-link href="{{ route('syllabi.edit', $openRevision) }}" variant="outline">Continue draft revision {{ $openRevision->revision }}</april:button-link>
                     @endif
                 @endcan
             </div>
 
-            @can('update', $syllabus)
-                @if ($syllabus->status === \App\Enums\SyllabusStatus::Published && !$openRevision)
-                    <form method="POST" action="{{ route('syllabi.revise', $syllabus) }}" class="mt-5 space-y-2 border-t pt-4 md:w-1/2">
-                        @csrf
-                        <april:label for="change_note">Revise this syllabus</april:label>
-                        <p class="text-sm text-muted-foreground">Students keep seeing this revision until the new one is published.</p>
-                        <textarea id="change_note" name="change_note" rows="2" required placeholder="What will change and why"
-                            class="flex w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                            {{ field_error_bindings('change_note') }}>{{ old('change_note') }}</textarea>
-                        <x-field-error name="change_note" />
-                        <april:button type="submit" variant="outline">Create revised draft</april:button>
-                    </form>
-                @endif
-            @endcan
+            @if (in_array($syllabus->status, [\App\Enums\SyllabusStatus::Draft, \App\Enums\SyllabusStatus::Submitted, \App\Enums\SyllabusStatus::Published], true))
+                <div class="mt-4">
+                    @livewire('syllabus-workflow-control', ['syllabus' => $syllabus], key('workflow-'.$syllabus->id))
+                </div>
+            @endif
         </slot:content>
     </april:card>
 

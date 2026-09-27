@@ -10,6 +10,7 @@ use App\Livewire\Concerns\InteractsWithAprilTable;
 use App\Models\Syllabus;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Yungifez\AprilUI\Livewire\Columns\Column;
 use Yungifez\AprilUI\Livewire\DataTableComponent;
@@ -81,7 +82,7 @@ class ListSyllabiTable extends DataTableComponent
             $row['academic_level_label'] = $syllabus->courseOffering->academicLevel->name;
             $row['academic_period_label'] = $syllabus->courseOffering->academicPeriod->label;
             $row['status_label'] = $syllabus->status->label();
-            $row['is_draft'] = $syllabus->status === SyllabusStatus::Draft;
+            $row['can_delete'] = Gate::allows('delete', $syllabus);
             $row['view_url'] = route('syllabi.show', $syllabus);
             $row['delete_url'] = route('syllabi.destroy', $syllabus);
 

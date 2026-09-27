@@ -5,6 +5,7 @@ namespace App\Enums;
 enum SyllabusStatus: string
 {
     case Draft = 'draft';
+    case Submitted = 'submitted';
     case Published = 'published';
     case Superseded = 'superseded';
     case Archived = 'archived';
@@ -13,6 +14,7 @@ enum SyllabusStatus: string
     {
         return match ($this) {
             self::Draft => 'Draft',
+            self::Submitted => 'Awaiting review',
             self::Published => 'Published',
             self::Superseded => 'Superseded',
             self::Archived => 'Archived',

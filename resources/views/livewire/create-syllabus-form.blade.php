@@ -23,7 +23,7 @@
             </div>
             @if ($courseOfferings->isEmpty())
                 <p class="rounded-md border border-warning/30 bg-warning/10 p-3 text-sm text-warning-foreground">
-                    Create a course offering before uploading a syllabus. The offering defines who receives the work and when it applies.
+                    No course offering is open to you. A syllabus belongs to an offering that is still in use, and teachers add syllabi only for the offerings they are assigned to teach.
                 </p>
             @endif
             <april:input-group id="name" name="name" id="name" label="Name *" placeholder="Name (Eg: Physics second academic period syllabus) " wire:ignore />

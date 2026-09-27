@@ -11,10 +11,6 @@
 
 @section('page_actions')
     <april:button-link href="{{ route('syllabi.show', $syllabus) }}" variant="outline">Preview</april:button-link>
-    <form method="POST" action="{{ route('syllabi.publish', $syllabus) }}">
-        @csrf
-        <april:button type="submit">{{ $syllabus->revision_of_id === null ? 'Publish syllabus' : 'Publish revision '.$syllabus->revision }}</april:button>
-    </form>
 @endsection
 
 @section('content')
@@ -26,6 +22,11 @@
                 · Revision {{ $syllabus->revision }}
             </slot:description>
             <slot:content>
+                @if ($syllabus->review_note)
+                    <p class="mb-4 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
+                        <span class="font-medium">Sent back for changes:</span> {{ $syllabus->review_note }}
+                    </p>
+                @endif
                 @if ($syllabus->revisionOf !== null)
                     <p class="mb-4 rounded-md border bg-muted/40 p-3 text-sm">
                         Revises <a class="font-medium underline" href="{{ route('syllabi.show', $syllabus->revisionOf) }}">revision {{ $syllabus->revisionOf->revision }}</a>.
@@ -62,6 +63,14 @@
         </april:card>
 
         @livewire('syllabus-topics-editor', ['syllabus' => $syllabus])
+
+        <april:card>
+            <slot:title>When the plan is ready</slot:title>
+            <slot:description>A reviewer approves the syllabus before students see it.</slot:description>
+            <slot:content>
+                @livewire('syllabus-workflow-control', ['syllabus' => $syllabus])
+            </slot:content>
+        </april:card>
 
         @can('delete', $syllabus)
             <form method="POST" action="{{ route('syllabi.destroy', $syllabus) }}" data-confirm="Delete the draft {{ $syllabus->name }}?{{ $syllabus->revision_of_id !== null ? ' The published revision stays as it is.' : '' }}">

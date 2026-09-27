@@ -34,7 +34,7 @@ class SyllabusCoverageTest extends TestCase
     {
         $syllabus = $this->publishedSyllabus();
         $topic = $syllabus->topics()->firstOrFail();
-        $this->authorized_user(['read syllabus', 'update syllabus']);
+        $this->authorized_user(['read syllabus', 'update syllabus', 'approve syllabus']);
 
         Livewire::test(SyllabusCoverageTracker::class, ['syllabus' => $syllabus])
             ->call('mark', $topic->id, TopicCoverageStatus::Covered->value)
@@ -51,7 +51,7 @@ class SyllabusCoverageTest extends TestCase
     {
         $syllabus = $this->publishedSyllabus();
         $topic = $syllabus->topics()->firstOrFail();
-        $this->authorized_user(['read syllabus', 'update syllabus']);
+        $this->authorized_user(['read syllabus', 'update syllabus', 'approve syllabus']);
 
         $tracker = Livewire::test(SyllabusCoverageTracker::class, ['syllabus' => $syllabus])
             ->call('mark', $topic->id, TopicCoverageStatus::Partial->value)
@@ -150,7 +150,7 @@ class SyllabusCoverageTest extends TestCase
         $service = app(SyllabusCoverageService::class);
         $onTrack->topics()->get()->take(2)->each(fn (SyllabusTopic $topic) => $service->record($onTrack, $topic, null, TopicCoverageStatus::Covered));
 
-        $this->authorized_user(['update syllabus']);
+        $this->authorized_user(['update syllabus', 'approve syllabus']);
 
         Livewire::test(SyllabusCoverageReport::class, ['academicPeriodId' => (string) $behind->courseOffering->academic_period_id])
             ->assertSeeInOrder(['Geography', '2 topics', 'Chemistry', 'On track']);
@@ -172,7 +172,7 @@ class SyllabusCoverageTest extends TestCase
     {
         $this->publishedSyllabus();
 
-        $this->authorized_user(['read syllabus', 'update syllabus'])
+        $this->authorized_user(['read syllabus', 'update syllabus', 'approve syllabus'])
             ->get(route('syllabi.coverage'))
             ->assertOk()
             ->assertSee('Syllabus coverage');
@@ -182,7 +182,7 @@ class SyllabusCoverageTest extends TestCase
     {
         $syllabus = $this->publishedSyllabus();
 
-        $this->authorized_user(['read syllabus', 'update syllabus'])
+        $this->authorized_user(['read syllabus', 'update syllabus', 'approve syllabus'])
             ->get(route('syllabi.show', $syllabus))
             ->assertOk()
             ->assertSee('Not yet taught');

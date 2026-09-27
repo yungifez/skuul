@@ -18,7 +18,7 @@ class Syllabus extends Model
 
     protected $fillable = [
         'name', 'description', 'file', 'course_offering_id',
-        'status', 'revision', 'revision_of_id', 'change_note', 'published_at', 'published_by',
+        'status', 'revision', 'revision_of_id', 'change_note', 'submitted_at', 'submitted_by', 'review_note', 'published_at', 'published_by',
     ];
 
     protected $attributes = [
@@ -30,6 +30,7 @@ class Syllabus extends Model
         'status' => SyllabusStatus::class,
         'revision' => 'integer',
         'published_at' => 'datetime',
+        'submitted_at' => 'datetime',
     ];
 
     /**
@@ -85,6 +86,14 @@ class Syllabus extends Model
         }
 
         return intdiv((int) $period->starts_on->diffInDays($date), 7) + 1;
+    }
+
+    /**
+     * @return BelongsTo<User, $this>
+     */
+    public function submittedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'submitted_by')->withTrashed();
     }
 
     public function publishedBy(): BelongsTo

@@ -334,6 +334,16 @@ enum AuditAction: string
     case SyllabusRevised = 'syllabus.revised';
 
     /**
+     * A teacher sent a syllabus draft for review.
+     */
+    case SyllabusSubmitted = 'syllabus.submitted';
+
+    /**
+     * A reviewer sent a syllabus draft back with the changes it needs.
+     */
+    case SyllabusReturned = 'syllabus.returned';
+
+    /**
      * Somebody asked for a report.
      */
     case ReportRequested = 'report.requested';
@@ -684,6 +694,8 @@ enum AuditAction: string
             self::NoticeRevised => 'Notice revision started',
             self::SyllabusPublished => 'Syllabus published',
             self::SyllabusRevised => 'Syllabus revision started',
+            self::SyllabusSubmitted => 'Syllabus sent for review',
+            self::SyllabusReturned => 'Syllabus sent back for changes',
             self::ReportRequested => 'Report requested',
             self::ReportDownloaded => 'Report downloaded',
             self::FeatureEnabled => 'Feature turned on',

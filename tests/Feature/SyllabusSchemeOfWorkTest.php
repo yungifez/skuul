@@ -11,6 +11,7 @@ use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\ShowSyllabus;
 use App\Livewire\SyllabusTopicsEditor;
+use App\Livewire\SyllabusWorkflowControl;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
@@ -35,7 +36,7 @@ class SyllabusSchemeOfWorkTest extends TestCase
     {
         $courseOffering = $this->courseOffering();
 
-        $this->authorized_user(['create syllabus'])
+        $this->authorized_user(['create syllabus', 'approve syllabus'])
             ->post('/dashboard/syllabi', [
                 'name' => 'Algebra plan',
                 'course_offering_id' => $courseOffering->id,
@@ -50,7 +51,7 @@ class SyllabusSchemeOfWorkTest extends TestCase
     {
         $courseOffering = $this->courseOffering(['status' => CourseOfferingStatus::Archived]);
 
-        $this->authorized_user(['create syllabus'])
+        $this->authorized_user(['create syllabus', 'approve syllabus'])
             ->post('/dashboard/syllabi', [
                 'name' => 'Late plan',
                 'course_offering_id' => $courseOffering->id,
@@ -62,21 +63,25 @@ class SyllabusSchemeOfWorkTest extends TestCase
     public function test_a_draft_needs_a_topic_before_it_is_published(): void
     {
         $syllabus = $this->draft();
-        $staff = $this->authorized_user(['update syllabus']);
+        $this->authorized_user(['update syllabus', 'approve syllabus']);
 
-        $staff->post(route('syllabi.publish', $syllabus))->assertSessionHas('danger');
+        Livewire::test(SyllabusWorkflowControl::class, ['syllabus' => $syllabus])
+            ->call('publish')
+            ->assertNoRedirect();
         $this->assertSame(SyllabusStatus::Draft, $syllabus->fresh()->status);
 
         SyllabusTopic::factory()->create(['syllabus_id' => $syllabus->id]);
 
-        $staff->post(route('syllabi.publish', $syllabus))->assertRedirect(route('syllabi.show', $syllabus));
+        Livewire::test(SyllabusWorkflowControl::class, ['syllabus' => $syllabus->fresh()])
+            ->call('publish')
+            ->assertRedirect(route('syllabi.show', $syllabus));
         $this->assertSame(SyllabusStatus::Published, $syllabus->fresh()->status);
     }
 
     public function test_staff_plan_weekly_topics_on_a_draft(): void
     {
         $syllabus = $this->draft();
-        $this->authorized_user(['update syllabus']);
+        $this->authorized_user(['update syllabus', 'approve syllabus']);
 
         $component = Livewire::test(SyllabusTopicsEditor::class, ['syllabus' => $syllabus])
             ->set('week', 2)
@@ -103,7 +108,7 @@ class SyllabusSchemeOfWorkTest extends TestCase
     public function test_a_topic_needs_a_title_and_a_sensible_week(): void
     {
         $syllabus = $this->draft();
-        $this->authorized_user(['update syllabus']);
+        $this->authorized_user(['update syllabus', 'approve syllabus']);
 
         Livewire::test(SyllabusTopicsEditor::class, ['syllabus' => $syllabus])
             ->set('week', 0)
@@ -118,7 +123,7 @@ class SyllabusSchemeOfWorkTest extends TestCase
     {
         $syllabus = $this->published();
         $topic = $syllabus->topics()->firstOrFail();
-        $this->authorized_user(['update syllabus']);
+        $this->authorized_user(['update syllabus', 'approve syllabus']);
 
         Livewire::test(SyllabusTopicsEditor::class, ['syllabus' => $syllabus])
             ->set('title', 'Sneaked in')
@@ -158,7 +163,7 @@ class SyllabusSchemeOfWorkTest extends TestCase
         $syllabus = $this->draft(['file' => UploadedFile::fake()->create('old.pdf', 10)->store('syllabus', 'public')]);
         $oldFile = $syllabus->file;
 
-        $this->authorized_user(['update syllabus'])
+        $this->authorized_user(['update syllabus', 'approve syllabus'])
             ->put(route('syllabi.update', $syllabus), [
                 'name' => 'Renamed plan',
                 'description' => 'New overview',
@@ -175,7 +180,7 @@ class SyllabusSchemeOfWorkTest extends TestCase
     public function test_a_published_syllabus_cannot_be_edited_in_place(): void
     {
         $syllabus = $this->published();
-        $staff = $this->authorized_user(['update syllabus']);
+        $staff = $this->authorized_user(['update syllabus', 'approve syllabus']);
 
         $staff->get(route('syllabi.edit', $syllabus))->assertRedirect(route('syllabi.show', $syllabus));
         $staff->put(route('syllabi.update', $syllabus), ['name' => 'Changed'])->assertSessionHas('danger');
@@ -188,7 +193,7 @@ class SyllabusSchemeOfWorkTest extends TestCase
         $syllabus = $this->draft();
         SyllabusTopic::factory()->create(['syllabus_id' => $syllabus->id, 'title' => 'Fractions and decimals']);
 
-        $this->authorized_user(['update syllabus', 'read syllabus'])
+        $this->authorized_user(['update syllabus', 'read syllabus', 'approve syllabus'])
             ->get(route('syllabi.edit', $syllabus))
             ->assertOk()
             ->assertSee('Fractions and decimals')
@@ -198,13 +203,16 @@ class SyllabusSchemeOfWorkTest extends TestCase
     public function test_a_revision_carries_the_topics_and_the_reason_for_the_change(): void
     {
         $syllabus = $this->published();
-        $staff = $this->authorized_user(['update syllabus']);
+        $this->authorized_user(['update syllabus', 'approve syllabus']);
 
-        $staff->post(route('syllabi.revise', $syllabus), [])->assertSessionHasErrors('change_note');
+        $control = Livewire::test(SyllabusWorkflowControl::class, ['syllabus' => $syllabus])
+            ->call('revise')
+            ->assertHasErrors(['changeNote' => 'required']);
 
-        $staff->post(route('syllabi.revise', $syllabus), ['change_note' => 'Swap weeks 3 and 4'])->assertRedirect();
+        $control->set('changeNote', 'Swap weeks 3 and 4')->call('revise');
 
         $revision = $syllabus->revisions()->firstOrFail();
+        $control->assertRedirect(route('syllabi.edit', $revision));
         $this->assertSame('Swap weeks 3 and 4', $revision->change_note);
         $this->assertSame(
             $syllabus->topics()->pluck('title')->all(),
@@ -249,7 +257,7 @@ class SyllabusSchemeOfWorkTest extends TestCase
         $syllabus = $this->published(['file' => UploadedFile::fake()->create('plan.pdf', 10)->store('syllabus', 'public')]);
         $revision = app(ReviseSyllabus::class)->revise($syllabus, ['change_note' => 'Try a new order']);
 
-        $this->authorized_user(['delete syllabus'])
+        $this->authorized_user(['delete syllabus', 'update syllabus', 'approve syllabus'])
             ->delete(route('syllabi.destroy', $revision))
             ->assertRedirect(route('syllabi.index'));
 
