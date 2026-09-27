@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Actions\Enrollment\RequestCampusMove;
+use App\Exceptions\ApplicationException;
 use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Models\CampusMoveRequest;
 use Illuminate\Support\Collection;
@@ -74,7 +75,13 @@ class ListCampusMoveRequests extends Component
 
         $this->authorize('decide', $request);
 
-        $requestCampusMove->{$decision}($request, auth()->user(), $this->noteFor($requestId));
+        try {
+            $requestCampusMove->{$decision}($request, auth()->user(), $this->noteFor($requestId));
+        } catch (ApplicationException $exception) {
+            $this->notify($exception->getMessage(), 'danger');
+
+            return;
+        }
 
         unset($this->notes[$requestId]);
         $this->notify(

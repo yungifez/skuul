@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A stale campus move request pulled a student out of a campus that never agreed
+
+- Status: Fixed
+- Area: Campus moves (`RequestCampusMove::approve`, `ListCampusMoveRequests`)
+- Observed: Campus A asked campus B to take a student. The organization then moved the student to campus C. B could still approve, and the student moved from C to B.
+- Impact: Campus C lost a student without a request or a decision. When the move itself refused, the queue screen failed with an error page.
+- Reproduction: Request a move from A to B. Move the student from A to C as an organization person. Approve the request as B.
+- Resolution: Approving now refuses when the student no longer attends the campus that asked, and says to reject the request. The queue shows any refusal as a message.
+
 ## The calendar editor named any account on the platform
 
 - Status: Fixed

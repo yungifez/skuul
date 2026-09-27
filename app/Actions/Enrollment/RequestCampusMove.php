@@ -27,8 +27,7 @@ class RequestCampusMove
     public function __construct(
         private MoveEnrollmentBetweenCampuses $moveEnrollment,
         private RecordAuditEvent $auditor,
-    ) {
-    }
+    ) {}
 
     /**
      * Ask the campus that owns the given cycle section to take the student.
@@ -52,13 +51,13 @@ class RequestCampusMove
         }
 
         $request = CampusMoveRequest::create([
-            'student_record_id'         => $enrollment->id,
-            'from_school_id'            => $enrollment->school_id,
-            'to_school_id'              => $academicCycleSection->school_id,
+            'student_record_id' => $enrollment->id,
+            'from_school_id' => $enrollment->school_id,
+            'to_school_id' => $academicCycleSection->school_id,
             'academic_cycle_section_id' => $academicCycleSection->id,
-            'reason'                    => $reason,
-            'effective_on'              => $effectiveOn === null ? now()->toDateString() : Carbon::parse($effectiveOn)->toDateString(),
-            'requested_by'              => $actor === null ? auth()->id() : $actor->id,
+            'reason' => $reason,
+            'effective_on' => $effectiveOn === null ? now()->toDateString() : Carbon::parse($effectiveOn)->toDateString(),
+            'requested_by' => $actor === null ? auth()->id() : $actor->id,
         ]);
 
         $this->auditor->record(
@@ -66,9 +65,9 @@ class RequestCampusMove
             $request,
             [
                 'student_record_id' => $enrollment->id,
-                'from_school_id'    => $request->from_school_id,
-                'to_school_id'      => $request->to_school_id,
-                'reason'            => $reason,
+                'from_school_id' => $request->from_school_id,
+                'to_school_id' => $request->to_school_id,
+                'reason' => $reason,
             ],
             $actor,
             $request->to_school_id,
@@ -86,6 +85,7 @@ class RequestCampusMove
             $request = CampusMoveRequest::query()->lockForUpdate()->findOrFail($request->getKey());
 
             $this->failIfTheRequestCannotMoveTo($request, CampusMoveStatus::Approved);
+            $this->failIfTheStudentLeftTheAskingCampus($request);
 
             $this->moveEnrollment->move(
                 enrollment: $request->studentRecord,
@@ -166,6 +166,21 @@ class RequestCampusMove
     {
         if (!$request->status->canMoveTo($status)) {
             throw new InvalidValueException("A campus move request cannot move from {$request->status->value} to {$status->value}.");
+        }
+    }
+
+    /**
+     * Refuse a request whose student no longer attends the campus that asked.
+     *
+     * The student may have been moved straight away by the organization since.
+     * Approving then would pull them out of a campus that never agreed.
+     *
+     * @throws InvalidValueException
+     */
+    private function failIfTheStudentLeftTheAskingCampus(CampusMoveRequest $request): void
+    {
+        if ($request->studentRecord->school_id !== $request->from_school_id) {
+            throw new InvalidValueException('The student no longer attends the campus that asked. Reject this request, and ask their current campus to ask again.');
         }
     }
 

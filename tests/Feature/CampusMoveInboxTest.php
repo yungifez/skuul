@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Enrollment\MoveEnrollmentBetweenCampuses;
 use App\Actions\Enrollment\RequestCampusMove;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\CampusMoveStatus;
@@ -49,6 +50,25 @@ class CampusMoveInboxTest extends TestCase
         $this->assertSame(CampusMoveStatus::Approved, $request->fresh()->status);
         $this->assertSame($destination->id, $moved->school_id);
         $this->assertSame($cycleSection->id, $moved->academic_cycle_section_id);
+    }
+
+    public function test_a_stale_request_is_refused_on_the_screen(): void
+    {
+        $source = $this->workingSchool();
+        $destination = $this->siblingCampus();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        $request = app(RequestCampusMove::class)->request($enrollment, $this->cycleSection($destination));
+        $third = $this->siblingCampus();
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment->fresh(), $this->cycleSection($third));
+
+        $this->actAsCampusUser($destination, [CampusMoveAuthority::ApprovePermission]);
+
+        Livewire::test(ListCampusMoveRequests::class)
+            ->call('approve', $request->id)
+            ->assertDispatched('status-message', type: 'danger');
+
+        $this->assertSame(CampusMoveStatus::Requested, $request->fresh()->status);
+        $this->assertSame($third->id, $enrollment->fresh()->school_id);
     }
 
     public function test_the_receiving_campus_can_reject_with_a_note(): void

@@ -199,6 +199,29 @@ class CampusMoveRequestTest extends TestCase
         app(RequestCampusMove::class)->approve($request->fresh());
     }
 
+    public function test_a_request_cannot_be_approved_after_the_student_moved_elsewhere(): void
+    {
+        $sibling = $this->siblingCampus();
+        $third = $this->siblingCampus();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $request = app(RequestCampusMove::class)->request($enrollment, $this->cycleSection($sibling));
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment->fresh(), $this->cycleSection($third));
+        $approver = $this->campusAdministratorOf($sibling, [CampusMoveAuthority::ApprovePermission]);
+
+        try {
+            app(RequestCampusMove::class)->approve($request, $approver);
+            $this->fail('A stale request was approved.');
+        } catch (InvalidValueException) {
+        }
+
+        $this->assertSame($third->id, $enrollment->fresh()->school_id);
+        $this->assertSame(CampusMoveStatus::Requested, $request->fresh()->status);
+
+        app(RequestCampusMove::class)->reject($request->fresh(), $approver);
+
+        $this->assertSame(CampusMoveStatus::Rejected, $request->fresh()->status);
+    }
+
     public function test_a_request_to_another_organization_is_refused(): void
     {
         $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
