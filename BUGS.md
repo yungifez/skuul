@@ -773,3 +773,11 @@
 - Impact: The page looked like scattered boxes. The accent colour marked settings, not actions. The working year and term were set on different screens through plain POST forms.
 - Reproduction: Sign in as an admin and open `/dashboard`. Scroll to the bottom.
 - Resolution: The top bar now reads "Working [year] [term]". Both selects are Livewire and apply on change. Draft years are not listed. The POST routes `academic-years.set-academic-year` and `academic-periods.set-academic-period`, the `SetAcademicYear` component, `SetAcademicPeriodRequest` and the controller methods are removed. The dashboard now shows the setup strip, one row of plain stat links, "Attendance today" ("No register taken yet." and no chart without data), "Next 7 days" for calendar readers, and up to five current notices with an "All notices" link. The school and year cards, the notices table and the student profile card are removed. Tests: `DashboardTest`, and the updated `AcademicYearTest`, `AcademicPeriodTest`, `AcademicPeriodContextTest`, `AcademicCalendarSetupTest` and `PlatformPermissionTest`.
+
+## The dashboard showed counts but no sense of direction
+- Status: Fixed
+- Area: Dashboard
+- Observed: The dashboard listed today's totals only. Nobody could see whether attendance was slipping, whether fees came in, or whether incidents were rising.
+- Impact: Leaders had to open four separate screens to judge the term.
+- Reproduction: Open `/dashboard` as an admin with attendance, fee, incident and student permissions.
+- Resolution: A deferred "Trends" section draws four charts with April UI's `chart` component: weekly attendance rate (last 4 weeks against the 4 before), fees billed and collected by month, enrolment by class against section seats, and incidents per week. `App\Services\Dashboard\SchoolTrends` groups the rows in MySQL. Each chart needs its own permission and hides without data. Reversed payments, unrecorded register days, restricted incidents and other schools' rows stay out. Test: `DashboardTrendsTest`.

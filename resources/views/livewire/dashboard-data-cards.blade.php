@@ -154,6 +154,10 @@
         </div>
     @endif
 
+    @if (auth()->user()->canAny(['read attendance', 'read fee invoice', 'read incident', 'read student']))
+        <livewire:dashboard-trends />
+    @endif
+
     @if ($notices !== null)
         <section class="min-w-0" aria-labelledby="notices-overview">
             <div class="flex min-h-10 flex-wrap items-center justify-between gap-2 border-b pb-2">
