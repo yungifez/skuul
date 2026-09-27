@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\LibraryCopyStatus;
 use App\Http\Requests\StoreLibraryCopyRequest;
 use App\Models\LibraryCopy;
 use App\Models\LibraryLoan;
@@ -72,22 +71,5 @@ class LibraryCopyController extends Controller
         });
 
         return back()->with('success', $made === 1 ? 'The copy is on the shelf.' : "$made copies are on the shelf.");
-    }
-
-    /**
-     * Take a copy out of the library for good.
-     */
-    public function destroy(LibraryCopy $libraryCopy): RedirectResponse
-    {
-        if ($libraryCopy->isOut()) {
-            return back()->with('danger', 'Somebody has this copy. Take it back first.');
-        }
-
-        // The copy is kept, because its loans are the library's history. It
-        // simply stops being something anybody can borrow.
-        $libraryCopy->status = LibraryCopyStatus::Withdrawn;
-        $libraryCopy->save();
-
-        return back()->with('success', 'The copy was taken out of the library.');
     }
 }

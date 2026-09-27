@@ -89,6 +89,7 @@ class IssueLoan
         return LibraryReservation::query()
             ->where('library_copy_id', $copy->id)
             ->where('status', LibraryReservationStatus::Ready->value)
+            ->lockForUpdate()
             ->first();
     }
 

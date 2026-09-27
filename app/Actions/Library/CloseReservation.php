@@ -40,15 +40,13 @@ class CloseReservation
      */
     public function cancel(LibraryReservation $reservation, ?User $actor = null): LibraryReservation
     {
-        if (!$reservation->isOpen()) {
-            throw new InvalidValueException('This reservation has already ended.');
-        }
-
         return $this->close($reservation, LibraryReservationStatus::Cancelled, $actor);
     }
 
     /**
      * Give up on a hold nobody came for.
+     *
+     * @throws InvalidValueException when the copy is no longer behind the desk
      */
     public function expire(LibraryReservation $reservation, ?User $actor = null): LibraryReservation
     {
@@ -57,11 +55,26 @@ class CloseReservation
 
     /**
      * Write the ending and offer the copy to the next person.
+     *
+     * The reservation is read again under a lock, so a stale screen or the
+     * nightly clean-up cannot end a reservation that was collected meanwhile.
+     *
+     * @throws InvalidValueException when the reservation has already ended
      */
     private function close(LibraryReservation $reservation, LibraryReservationStatus $status, ?User $actor): LibraryReservation
     {
         return DB::transaction(function () use ($reservation, $status, $actor): LibraryReservation {
-            $reservation->loadMissing('title');
+            $reservation = LibraryReservation::query()->lockForUpdate()->findOrFail($reservation->getKey());
+
+            if (!$reservation->isOpen()) {
+                throw new InvalidValueException('This reservation has already ended.');
+            }
+
+            if ($status === LibraryReservationStatus::Expired && $reservation->status !== LibraryReservationStatus::Ready) {
+                throw new InvalidValueException('Only a copy behind the desk can run out of time.');
+            }
+
+            $reservation->load('title');
             $title = $reservation->title;
 
             $reservation->status = $status;

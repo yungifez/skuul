@@ -58,12 +58,9 @@
                             </div>
                         </dl>
                         @if ($canManage && $loan === null && $copy->status->isHeld())
-                            <form action="{{ route('library-copies.destroy', $copy->id) }}" method="POST" class="mt-4 border-t pt-4"
-                                data-confirm="Withdraw this copy from the shelves?">
-                                @csrf
-                                @method('DELETE')
-                                <april:button type="submit" variant="ghost" size="sm" class="w-full">Withdraw</april:button>
-                            </form>
+                            <div class="mt-4 border-t pt-4">
+                                <april:button type="button" variant="ghost" class="h-11 w-full select-none" wire:click="withdraw({{ $copy->id }})" wire:confirm="Withdraw this copy from the shelves?" wire:loading.attr="disabled" wire:target="withdraw">Withdraw</april:button>
+                            </div>
                         @endif
                     </article>
                 @endforeach
@@ -98,12 +95,7 @@
                                 </td>
                                 <td class="p-4 text-right">
                                     @if ($canManage && $loan === null && $copy->status->isHeld())
-                                        <form action="{{ route('library-copies.destroy', $copy->id) }}" method="POST"
-                                            data-confirm="Withdraw this copy from the shelves?">
-                                            @csrf
-                                            @method('DELETE')
-                                            <april:button type="submit" variant="ghost" size="sm">Withdraw</april:button>
-                                        </form>
+                                        <april:button type="button" variant="ghost" class="h-11 select-none" wire:click="withdraw({{ $copy->id }})" wire:confirm="Withdraw this copy from the shelves?" wire:loading.attr="disabled" wire:target="withdraw">Withdraw</april:button>
                                     @endif
                                 </td>
                             </tr>

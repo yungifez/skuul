@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Library\CloseReservation;
 use App\Actions\Library\IssueLoan;
 use App\Actions\Library\IssueTitleToSection;
 use App\Actions\Library\RenewLoan;
@@ -14,6 +15,7 @@ use App\Enums\LibraryReservationStatus;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\LibraryCopyCatalog as LibraryCopyCatalogComponent;
 use App\Livewire\LibraryLendingDesk;
+use App\Livewire\LibraryReservationQueue;
 use App\Models\AcademicCycleSection;
 use App\Models\AuditEvent;
 use App\Models\FinancialPeriod;
@@ -28,6 +30,7 @@ use App\Models\StudentRecord;
 use App\Services\Feature\FeatureManager;
 use App\Services\Finance\StudentLedger;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -192,17 +195,156 @@ class LibraryTest extends TestCase
 
     public function test_the_lending_desk_can_add_somebody_to_the_library_queue(): void
     {
-        $actor = $this->authorized_user(['read library', 'lend library item']);
+        $this->authorized_user(['read library', 'lend library item']);
         app(FeatureManager::class)->enable(Feature::Library);
         $copy = $this->copy();
         $borrower = $this->memberOf($this->workingSchool());
 
-        $actor->post(route('library-reservations.store'), [
-            'library_title_id' => $copy->library_title_id,
-            'user_id' => $borrower->id,
-        ])->assertRedirect();
+        Livewire::test(LibraryReservationQueue::class)
+            ->call('startAdding')
+            ->set('titleId', (string) $copy->library_title_id)
+            ->set('borrowerSearch', $borrower->name)
+            ->assertSee($borrower->name)
+            ->call('reserveFor', $borrower->id)
+            ->assertHasNoErrors()
+            ->assertSet('isAdding', false)
+            ->assertSee('Behind the desk');
+
+        $this->assertSame(LibraryReservationStatus::Ready, LibraryReservation::sole()->status);
+
+        Livewire::test(LibraryReservationQueue::class)
+            ->call('startAdding')
+            ->set('titleId', (string) $copy->library_title_id)
+            ->call('reserveFor', $borrower->id)
+            ->assertHasErrors('borrowerSearch')
+            ->assertSee('This person is already in the queue for this title.');
 
         $this->assertSame(1, LibraryReservation::query()->count());
+    }
+
+    public function test_the_queue_takes_nobody_and_nothing_from_another_campus(): void
+    {
+        $this->authorized_user(['read library', 'lend library item']);
+        app(FeatureManager::class)->enable(Feature::Library);
+        $otherSchool = School::factory()->create();
+        $copy = $this->copy();
+        $outsider = $this->memberOf($otherSchool, $this->nonMember());
+        $foreignCopy = LibraryCopy::factory()->create(['school_id' => $otherSchool->id]);
+        $foreignReservation = app(ReserveTitle::class)->reserve($foreignCopy->title, $this->memberOf($otherSchool, $this->nonMember()), schoolId: $otherSchool->id);
+
+        Livewire::test(LibraryReservationQueue::class)
+            ->assertDontSee($foreignCopy->title->title)
+            ->call('startAdding')
+            ->set('titleId', (string) $copy->library_title_id)
+            ->set('borrowerSearch', $outsider->name)
+            ->assertSee('Nobody on this campus matches')
+            ->call('reserveFor', $outsider->id)
+            ->assertHasErrors('borrowerSearch')
+            ->set('titleId', (string) $foreignCopy->library_title_id)
+            ->call('reserveFor', $this->memberOf($this->workingSchool())->id)
+            ->assertHasErrors('titleId');
+
+        $this->assertThrows(fn () => Livewire::test(LibraryReservationQueue::class)
+            ->call('takeOff', $foreignReservation->id), ModelNotFoundException::class);
+
+        $this->assertSame(1, LibraryReservation::query()->count());
+        $this->assertTrue($foreignReservation->fresh()->isOpen());
+    }
+
+    public function test_a_stale_screen_cannot_take_off_a_reservation_that_was_collected(): void
+    {
+        $this->authorized_user(['read library', 'lend library item']);
+        app(FeatureManager::class)->enable(Feature::Library);
+        $copy = $this->copy();
+        $borrower = $this->memberOf($this->workingSchool());
+        $reservation = app(ReserveTitle::class)->reserve($copy->title, $borrower);
+
+        $stale = Livewire::test(LibraryReservationQueue::class)->assertSee($borrower->name);
+        app(IssueLoan::class)->issue($copy->fresh(), $borrower);
+
+        $stale->call('takeOff', $reservation->id)
+            ->assertDispatched('status-message', type: 'danger', message: 'This reservation has already ended.');
+
+        $reservation = $reservation->fresh();
+        $this->assertSame(LibraryReservationStatus::Collected, $reservation->status);
+        $this->assertSame($copy->id, $reservation->library_copy_id);
+    }
+
+    public function test_the_nightly_run_leaves_a_hold_collected_after_it_was_listed(): void
+    {
+        $this->authorized_user([]);
+        $copy = $this->copy();
+        $borrower = $this->memberOf($this->workingSchool());
+        $reservation = app(ReserveTitle::class)->reserve($copy->title, $borrower);
+        app(IssueLoan::class)->issue($copy->fresh(), $borrower);
+
+        try {
+            app(CloseReservation::class)->expire($reservation);
+            $this->fail('A collected hold was expired.');
+        } catch (InvalidValueException $exception) {
+            $this->assertSame('This reservation has already ended.', $exception->getMessage());
+        }
+
+        $this->assertSame(LibraryReservationStatus::Collected, $reservation->fresh()->status);
+        $this->assertSame($copy->id, $reservation->fresh()->library_copy_id);
+    }
+
+    public function test_a_withdrawn_copy_passes_its_hold_to_another_copy(): void
+    {
+        $this->authorized_user(['read library', 'manage library']);
+        app(FeatureManager::class)->enable(Feature::Library);
+        $copy = $this->copy();
+        $borrower = $this->memberOf($this->workingSchool());
+        $reservation = app(ReserveTitle::class)->reserve($copy->title, $borrower);
+        $this->assertSame($copy->id, $reservation->library_copy_id);
+
+        $spare = LibraryCopy::factory()->create(['school_id' => $copy->school_id, 'library_title_id' => $copy->library_title_id]);
+
+        Livewire::test(LibraryCopyCatalogComponent::class)
+            ->call('withdraw', $copy->id)
+            ->assertDispatched('status-message', type: 'success');
+
+        $this->assertSame(LibraryCopyStatus::Withdrawn, $copy->fresh()->status);
+        $this->assertSame(LibraryReservationStatus::Ready, $reservation->fresh()->status);
+        $this->assertSame($spare->id, $reservation->fresh()->library_copy_id);
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::LibraryCopyWithdrawn)->first());
+    }
+
+    public function test_the_last_copy_withdrawn_puts_its_reader_back_at_the_front_of_the_queue(): void
+    {
+        $this->authorized_user(['read library', 'manage library']);
+        app(FeatureManager::class)->enable(Feature::Library);
+        $copy = $this->copy();
+        $first = app(ReserveTitle::class)->reserve($copy->title, $this->memberOf($this->workingSchool()));
+        $second = app(ReserveTitle::class)->reserve($copy->title, $this->memberOf($this->workingSchool()));
+
+        Livewire::test(LibraryCopyCatalogComponent::class)->call('withdraw', $copy->id);
+
+        $first = $first->fresh();
+        $this->assertSame(LibraryReservationStatus::Waiting, $first->status);
+        $this->assertNull($first->library_copy_id);
+        $this->assertNull($first->holds_until);
+        $this->assertSame(1, $first->placeInQueue());
+        $this->assertSame(2, $second->fresh()->placeInQueue());
+    }
+
+    public function test_a_copy_somebody_has_or_another_campus_owns_is_not_withdrawn(): void
+    {
+        $this->authorized_user(['read library', 'manage library']);
+        app(FeatureManager::class)->enable(Feature::Library);
+        $copy = $this->copy();
+        app(IssueLoan::class)->issue($copy, $this->memberOf($this->workingSchool()));
+        $foreign = LibraryCopy::factory()->create(['school_id' => School::factory()->create()->id]);
+
+        Livewire::test(LibraryCopyCatalogComponent::class)
+            ->call('withdraw', $copy->id)
+            ->assertDispatched('status-message', type: 'danger', message: 'Somebody has this copy. Take it back first.');
+
+        $this->assertThrows(fn () => Livewire::test(LibraryCopyCatalogComponent::class)
+            ->call('withdraw', $foreign->id), ModelNotFoundException::class);
+
+        $this->assertSame(LibraryCopyStatus::OnShelf, $copy->fresh()->status);
+        $this->assertSame(LibraryCopyStatus::OnShelf, $foreign->fresh()->status);
     }
 
     public function test_a_librarian_can_lend_a_title_to_every_attending_learner_in_a_section(): void
@@ -609,10 +751,10 @@ class LibraryTest extends TestCase
         // Without its own wording, the shared handler warns that the record is
         // being deleted. Neither button deletes anything the reader can see.
         $actor->get(route('library-copies.index'))->assertOk()
-            ->assertSee('data-confirm="Withdraw this copy from the shelves?"', false);
+            ->assertSee('wire:confirm="Withdraw this copy from the shelves?"', false);
 
         $actor->get(route('library-reservations.index'))->assertOk()
-            ->assertSee('data-confirm="Take this reservation off the queue?"', false);
+            ->assertSee('wire:confirm="Take this reservation off the queue? The copy goes to the next person."', false);
     }
 
     private function copy(): LibraryCopy

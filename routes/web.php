@@ -431,11 +431,8 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 Route::middleware('feature:library')->group(function (): void {
                     Route::get('library', [LibraryCopyController::class, 'index'])->name('library-copies.index');
                     Route::post('library', [LibraryCopyController::class, 'store'])->name('library-copies.store');
-                    Route::delete('library/copies/{library_copy}', [LibraryCopyController::class, 'destroy'])->name('library-copies.destroy');
                     Route::get('library/desk', [LibraryLoanController::class, 'index'])->name('library-loans.index');
                     Route::get('library/queue', [LibraryReservationController::class, 'index'])->name('library-reservations.index');
-                    Route::post('library/queue', [LibraryReservationController::class, 'store'])->name('library-reservations.store');
-                    Route::delete('library/queue/{library_reservation}', [LibraryReservationController::class, 'destroy'])->name('library-reservations.destroy');
                     Route::get('library/rules', [LibraryLendingRulesController::class, 'edit'])->name('library-rules.edit');
                     Route::put('library/rules', [LibraryLendingRulesController::class, 'update'])->name('library-rules.update');
                 });

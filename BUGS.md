@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A library hold was lost to a stale screen, the nightly run, or a withdrawn copy
+
+- Status: Fixed
+- Area: Library queue (`CloseReservation`, `WithdrawLibraryCopy`, `LibraryReservationQueue`)
+- Observed: Taking a reservation off from a screen opened before the copy was collected turned the loan's reservation into "Cancelled" and cleared its copy. The nightly hold clean-up did the same to a hold collected while it ran. Withdrawing a copy that was held behind the desk left the reader waiting for a copy that no longer existed; the desk refused to lend it.
+- Impact: The queue lost its record of who collected what, and a reader at the front of the queue could wait for ever.
+- Reproduction: Open the queue. Lend the held copy at the desk. Take the reservation off from the first screen. Or withdraw a copy that shows under "Behind the desk".
+- Resolution: A reservation is read again under a lock before it closes, and one that has ended is refused. The nightly run skips such a hold. Withdrawing a copy now puts its reader back at the front of the queue and holds the next free copy for them. The queue and the withdraw button now work through Livewire, and the POST and DELETE routes are gone.
+
 ## Two taps on "Take it back" charged a late fine twice
 
 - Status: Fixed

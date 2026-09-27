@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Actions\Library\CloseReservation;
 use App\Enums\LibraryReservationStatus;
+use App\Exceptions\InvalidValueException;
 use App\Models\LibraryReservation;
 use Illuminate\Console\Command;
 
@@ -45,8 +46,13 @@ class ProcessLibraryHolds extends Command
             ->lazyById();
 
         foreach ($reservations as $reservation) {
-            $close->expire($reservation);
-            $ended++;
+            // A hold collected while this ran is simply left alone.
+            try {
+                $close->expire($reservation);
+                $ended++;
+            } catch (InvalidValueException) {
+                continue;
+            }
         }
 
         $this->info("$ended holds ended.");

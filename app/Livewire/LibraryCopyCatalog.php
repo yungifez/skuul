@@ -2,7 +2,10 @@
 
 namespace App\Livewire;
 
+use App\Actions\Library\WithdrawLibraryCopy;
 use App\Enums\Feature;
+use App\Exceptions\InvalidValueException;
+use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Models\LibraryCopy;
 use App\Services\Library\LibraryCopyCatalog as LibraryCopyCatalogService;
 use Illuminate\Contracts\View\View;
@@ -14,6 +17,7 @@ use Livewire\WithPagination;
 
 class LibraryCopyCatalog extends Component
 {
+    use DispatchesStatusNotifications;
     use WithPagination;
 
     #[Url(except: '')]
@@ -38,6 +42,22 @@ class LibraryCopyCatalog extends Component
     {
         $this->search = '';
         $this->resetPage();
+    }
+
+    public function withdraw(int $copyId, WithdrawLibraryCopy $withdrawLibraryCopy): void
+    {
+        $copy = LibraryCopy::query()->inSchool()->findOrFail($copyId);
+        Gate::authorize('delete', $copy);
+
+        try {
+            $withdrawLibraryCopy->withdraw($copy, auth()->user());
+        } catch (InvalidValueException $exception) {
+            $this->notify($exception->getMessage(), 'danger');
+
+            return;
+        }
+
+        $this->notify('The copy was taken out of the library.');
     }
 
     public function render(): View

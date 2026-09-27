@@ -310,6 +310,11 @@ enum AuditAction: string
     case LibrarySectionLoansIssued = 'library.section_loans_issued';
 
     /**
+     * A copy was taken out of the library for good.
+     */
+    case LibraryCopyWithdrawn = 'library.copy_withdrawn';
+
+    /**
      * A notice was put on the board.
      */
     case NoticePublished = 'notice.published';
@@ -703,6 +708,7 @@ enum AuditAction: string
             self::LibraryReservationReady => 'Library copy ready to collect',
             self::LibraryReservationClosed => 'Library reservation ended',
             self::LibrarySectionLoansIssued => 'Library section loans issued',
+            self::LibraryCopyWithdrawn => 'Library copy withdrawn',
             self::NoticePublished => 'Notice published',
             self::NoticeScheduled => 'Notice scheduled',
             self::NoticeExpired => 'Notice expired',
