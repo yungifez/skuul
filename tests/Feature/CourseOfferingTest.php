@@ -15,6 +15,7 @@ use App\Enums\RosterMode;
 use App\Enums\TeachingRole;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\CreateCourseOffering as CreateCourseOfferingForm;
+use App\Livewire\SetUpSubjectAcrossLevels;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
@@ -227,25 +228,102 @@ class CourseOfferingTest extends TestCase
         $this->get(route('course-offerings.index'))->assertOk()->assertSee($subject->name);
     }
 
-    public function test_bulk_setup_keeps_the_year_context_fixed_and_places_editable_selectors_together(): void
+    public function test_the_bulk_setup_page_opens_on_the_year_in_the_link(): void
     {
         $this->authorized_user(['create subject']);
-        [, $academicYear, $academicPeriod] = $this->courseContext();
+        [$subject, $academicYear, $academicPeriod, $academicLevel] = $this->courseContext();
 
-        $this->get(route('course-offerings.bulk-create.form', [
-            'academic_year_id' => $academicYear->id,
-            'setup' => 1,
-        ]))
+        $this->get(route('course-offerings.bulk-create.form', ['academic_year_id' => $academicYear->id, 'setup' => 1]))
             ->assertOk()
-            ->assertSee('This bulk setup is scoped by the academic year in the link.')
-            ->assertSee('id="subject"', false)
-            ->assertSee('id="academic-period"', false)
+            ->assertSeeLivewire(SetUpSubjectAcrossLevels::class)
             ->assertSee($academicPeriod->displayName)
-            ->assertSeeInOrder([
-                'School year',
-                'Subject',
-                'Create offerings for selected levels',
-            ]);
+            ->assertSee($academicLevel->name)
+            ->assertSee($subject->name)
+            ->assertDontSee('<april:', false)
+            ->assertDontSee('<slot:', false);
+    }
+
+    public function test_someone_without_create_access_cannot_open_the_bulk_setup(): void
+    {
+        $this->authorized_user(['read subject']);
+        [, $academicYear] = $this->courseContext();
+
+        Livewire::test(SetUpSubjectAcrossLevels::class, ['academicYear' => $academicYear])->assertForbidden();
+    }
+
+    public function test_the_bulk_setup_adds_one_offering_for_each_chosen_class_and_group(): void
+    {
+        $this->authorized_user(['create subject', 'read subject']);
+        [$subject, $academicYear, $academicPeriod, $academicLevel, $cycleSection] = $this->courseContext();
+        $secondSection = AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_level_id' => $academicLevel->id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
+        $group = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id, 'is_group' => true]);
+        InstructionalModelSetting::query()->updateOrCreate(
+            ['school_id' => $this->workingSchool()->id, 'academic_year_id' => $academicYear->id],
+            ['model' => InstructionalModel::Hybrid],
+        );
+
+        Livewire::test(SetUpSubjectAcrossLevels::class, ['academicYear' => $academicYear])
+            ->set('subjectId', $subject->id)
+            ->set('academicPeriodId', (string) $academicPeriod->id)
+            ->set('levelIds', [(string) $academicLevel->id, (string) $group->id])
+            ->assertSee('Everyone in the group')
+            ->assertSee($secondSection->label ?? $secondSection->name)
+            ->set("configurations.{$academicLevel->id}.roster_mode", RosterMode::CombinedHomeSections->value)
+            ->set("configurations.{$academicLevel->id}.section_ids", [(string) $cycleSection->id, (string) $secondSection->id])
+            ->set("configurations.{$academicLevel->id}.planned_periods_per_week", '4')
+            ->set("configurations.{$group->id}.capacity", '60')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('course-offerings.index'));
+
+        $classOffering = CourseOffering::query()->where('academic_level_id', $academicLevel->id)->where('subject_id', $subject->id)->sole();
+        $groupOffering = CourseOffering::query()->where('academic_level_id', $group->id)->where('subject_id', $subject->id)->sole();
+
+        $this->assertSame(RosterMode::CombinedHomeSections, $classOffering->roster_mode);
+        $this->assertSame(4, $classOffering->planned_periods_per_week);
+        $this->assertEqualsCanonicalizing([$cycleSection->id, $secondSection->id], $classOffering->cycleSections()->pluck('academic_cycle_sections.id')->all());
+        $this->assertSame(RosterMode::AcademicLevel, $groupOffering->roster_mode);
+        $this->assertSame(60, $groupOffering->capacity);
+        $this->assertSame($academicPeriod->id, $groupOffering->academic_period_id);
+    }
+
+    public function test_the_bulk_setup_asks_for_a_subject_a_period_and_a_class(): void
+    {
+        $this->authorized_user(['create subject']);
+        [, $academicYear] = $this->courseContext();
+
+        Livewire::test(SetUpSubjectAcrossLevels::class, ['academicYear' => $academicYear])
+            ->call('save')
+            ->assertHasErrors(['subjectId' => 'required', 'academicPeriodId' => 'required', 'levelIds' => 'required']);
+
+        $this->assertSame(0, CourseOffering::query()->count());
+    }
+
+    public function test_the_bulk_setup_refuses_a_period_of_another_year(): void
+    {
+        $this->authorized_user(['create subject']);
+        [$subject, $academicYear, , $academicLevel] = $this->courseContext();
+        [, , $otherPeriod] = $this->courseContext();
+
+        Livewire::test(SetUpSubjectAcrossLevels::class, ['academicYear' => $academicYear])
+            ->set('subjectId', $subject->id)
+            ->set('academicPeriodId', (string) $otherPeriod->id)
+            ->set('levelIds', [(string) $academicLevel->id])
+            ->call('save')
+            ->assertHasErrors('academicPeriodId');
+    }
+
+    public function test_the_bulk_setup_cannot_open_a_year_of_another_school(): void
+    {
+        $this->authorized_user(['create subject']);
+        $otherYear = AcademicYear::factory()->create(['school_id' => School::factory()->create()->id]);
+
+        Livewire::test(SetUpSubjectAcrossLevels::class, ['academicYear' => $otherYear])->assertNotFound();
     }
 
     public function test_subject_setup_table_shows_catalogue_assignments_and_actions(): void

@@ -951,3 +951,10 @@
 - **Problem:** The menu always listed Record expense, Expenses, Cash deposits, Budgets and more. A user without those permissions got a 403 page after choosing one. A user with none of them still saw an empty ⋯ button.
 - **Fix:** Each link is checked against its policy, and the ⋯ button is hidden when no link is left. The cross-school test no longer sends a PUT to the invoice route that was removed when invoice editing moved to Livewire.
 - **Tests:** `FeeInvoiceTest::test_the_finance_menu_lists_only_pages_the_user_can_open`, `CrossSchoolAccessTest`
+
+## Subject setup across levels printed raw component tags
+
+- **Where:** `/dashboard/course-offerings/bulk-create/form`
+- **Problem:** The settings of each chosen class printed raw `<april:input-group>` tags instead of inputs. Their `value` attributes held `old("...")` with double quotes, which Blade does not compile inside a component tag. The page was also a card holding a POST form, with long explanations and a read-only "School year" box. The roster list offered "Named learners", but the form had no way to pick learners. The store route had no tests.
+- **Fix:** The page is now the Livewire component `SetUpSubjectAcrossLevels`. Classes and groups are chips. Each chosen one gets a flat row with its roster, section chips, periods a week and capacity. Groups are always taught to everyone in them. Named learners is no longer offered here. The POST route and `StoreCourseOfferingsForLevelsRequest` are removed.
+- **Tests:** `CourseOfferingTest` covers the page, access, a mixed class and group save, missing choices, a period of another year and a year of another school.
