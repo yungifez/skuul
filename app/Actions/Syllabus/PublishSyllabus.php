@@ -49,10 +49,10 @@ class PublishSyllabus
     }
 
     /**
-     * Move what classes were taught, and the lesson notes that name a topic,
-     * onto the matching topics of the new revision.
+     * Move what classes were taught, the lesson notes, and the gradebook items
+     * that name a topic onto the matching topics of the new revision.
      *
-     * A topic the revision dropped keeps its coverage and notes on the
+     * A topic the revision dropped keeps these records on the
      * superseded revision, so the history of what was taught is never lost.
      */
     private function carryCoverageForward(Syllabus $revision): void
@@ -63,6 +63,9 @@ class PublishSyllabus
                     ->where('syllabus_topic_id', $topic->copied_from_id)
                     ->update(['syllabus_topic_id' => $topic->id]);
                 LessonNote::query()
+                    ->where('syllabus_topic_id', $topic->copied_from_id)
+                    ->update(['syllabus_topic_id' => $topic->id]);
+                DB::table('grade_item_syllabus_topic')
                     ->where('syllabus_topic_id', $topic->copied_from_id)
                     ->update(['syllabus_topic_id' => $topic->id]);
             });

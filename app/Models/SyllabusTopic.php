@@ -7,6 +7,7 @@ use Database\Factories\SyllabusTopicFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -36,6 +37,16 @@ class SyllabusTopic extends Model
     public function syllabus(): BelongsTo
     {
         return $this->belongsTo(Syllabus::class);
+    }
+
+    /**
+     * Get the gradebook items that assess this topic.
+     *
+     * @return BelongsToMany<GradeItem, $this>
+     */
+    public function gradeItems(): BelongsToMany
+    {
+        return $this->belongsToMany(GradeItem::class)->withTimestamps();
     }
 
     /**

@@ -119,6 +119,10 @@
         </slot:content>
     </april:card>
 
+    @if ($syllabus->status === \App\Enums\SyllabusStatus::Published)
+        @livewire('syllabus-assessment-plan', ['syllabus' => $syllabus], key('assessment-'.$syllabus->id))
+    @endif
+
     @if ($showTracker)
         @livewire('syllabus-coverage-tracker', ['syllabus' => $syllabus], key('coverage-'.$syllabus->id))
     @endif

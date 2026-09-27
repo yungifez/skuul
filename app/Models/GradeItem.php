@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -102,6 +103,16 @@ class GradeItem extends Model
     public function gradingScale(): BelongsTo
     {
         return $this->belongsTo(GradingScale::class);
+    }
+
+    /**
+     * Get the syllabus topics this item assesses.
+     *
+     * @return BelongsToMany<SyllabusTopic, $this>
+     */
+    public function syllabusTopics(): BelongsToMany
+    {
+        return $this->belongsToMany(SyllabusTopic::class)->withTimestamps();
     }
 
     /**
