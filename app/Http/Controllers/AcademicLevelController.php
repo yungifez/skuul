@@ -2,11 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Curriculum\ChangeAcademicLevelStatus;
 use App\Actions\Curriculum\CreateAcademicLevel;
 use App\Actions\Curriculum\UpdateAcademicLevel;
 use App\Enums\AcademicStructureStatus;
-use App\Http\Requests\ChangeAcademicLevelStatusRequest;
 use App\Http\Requests\StoreAcademicLevelRequest;
 use App\Http\Requests\UpdateAcademicLevelRequest;
 use App\Models\AcademicLevel;
@@ -22,7 +20,6 @@ class AcademicLevelController extends Controller
     public function __construct(
         private CreateAcademicLevel $createAcademicLevel,
         private UpdateAcademicLevel $updateAcademicLevel,
-        private ChangeAcademicLevelStatus $changeAcademicLevelStatus,
     ) {
         $this->authorizeResource(AcademicLevel::class, 'academicLevel');
     }
@@ -139,15 +136,6 @@ class AcademicLevelController extends Controller
         return redirect()
             ->route('academic-levels.show', $academicLevel)
             ->with('success', 'Academic level updated.');
-    }
-
-    public function changeStatus(ChangeAcademicLevelStatusRequest $request, AcademicLevel $academicLevel): RedirectResponse
-    {
-        $status = AcademicStructureStatus::from($request->validated('status'));
-
-        $this->changeAcademicLevelStatus->change($academicLevel, $status, $request->user());
-
-        return back()->with('success', "Academic level is now {$status->label()}.");
     }
 
     /**

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
 use App\Enums\Role;
+use App\Livewire\AcademicStructureStatusControl;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
@@ -14,6 +15,7 @@ use App\Models\SchoolOperatingProfile;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -101,10 +103,10 @@ class AcademicStructureScreenTest extends TestCase
 
         $actor->get(route('academic-levels.show', $academicLevel))
             ->assertOk()
-            ->assertSee('What this '.strtolower(school_term('class_level', 'class')).' is')
-            ->assertSee('Primary')
-            ->assertSee('Level group')
-            ->assertSee('No '.strtolower(school_term('section', 'section')).' uses this '.strtolower(school_term('class_level', 'class')).' yet');
+            ->assertSee(route('academic-levels.show', $parent))
+            ->assertSee(AcademicStructureStatus::Active->label())
+            ->assertSee('No '.strtolower(school_terms('section', 'sections')))
+            ->assertDontSee('Not set');
     }
 
     public function test_a_manager_can_edit_a_level_and_the_change_is_audited(): void
@@ -138,17 +140,18 @@ class AcademicStructureScreenTest extends TestCase
             'status' => AcademicStructureStatus::Active,
         ]);
 
-        $actor->from(route('academic-levels.show', $academicLevel))
-            ->put(route('academic-levels.status.update', $academicLevel), ['status' => AcademicStructureStatus::Archived->value])
-            ->assertSessionHas('danger');
+        Livewire::test(AcademicStructureStatusControl::class, ['record' => $academicLevel])
+            ->call('archive')
+            ->assertDispatched('status-message', type: 'danger')
+            ->assertNoRedirect();
 
         $this->assertSame(AcademicStructureStatus::Active, $academicLevel->fresh()->status);
 
         $section->update(['status' => AcademicStructureStatus::Archived]);
 
-        $actor->from(route('academic-levels.show', $academicLevel))
-            ->put(route('academic-levels.status.update', $academicLevel), ['status' => AcademicStructureStatus::Archived->value])
-            ->assertSessionHas('success');
+        Livewire::test(AcademicStructureStatusControl::class, ['record' => $academicLevel->fresh()])
+            ->call('archive')
+            ->assertRedirect();
 
         $this->assertSame(AcademicStructureStatus::Archived, $academicLevel->fresh()->status);
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::AcademicLevelStatusChanged)->forSubject($academicLevel)->first());
@@ -327,15 +330,32 @@ class AcademicStructureScreenTest extends TestCase
 
         $actor->get(route('academic-cycle-sections.show', $section))->assertOk()->assertSee('Archive');
 
-        $actor->from(route('academic-cycle-sections.show', $section))
-            ->put(route('academic-cycle-sections.status.update', $section), ['status' => AcademicStructureStatus::Archived->value])
-            ->assertSessionHas('success');
+        Livewire::test(AcademicStructureStatusControl::class, ['record' => $section])
+            ->call('archive')
+            ->assertRedirect();
 
         $this->assertSame(AcademicStructureStatus::Archived, $section->fresh()->status);
 
         $actor->get(route('academic-cycle-sections.edit', $section))
             ->assertRedirect(route('academic-cycle-sections.show', $section))
             ->assertSessionHas('danger');
+    }
+
+    public function test_a_reader_sees_the_status_but_cannot_change_it(): void
+    {
+        $this->authorized_user(['read section']);
+        $section = AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'status' => AcademicStructureStatus::Draft,
+        ]);
+
+        Livewire::test(AcademicStructureStatusControl::class, ['record' => $section])
+            ->assertSee(AcademicStructureStatus::Draft->label())
+            ->assertDontSee('Activate')
+            ->call('activate')
+            ->assertForbidden();
+
+        $this->assertSame(AcademicStructureStatus::Draft, $section->fresh()->status);
     }
 
     public function test_the_cycle_section_show_screen_says_the_section_serves_one_cycle(): void
@@ -351,10 +371,11 @@ class AcademicStructureScreenTest extends TestCase
 
         $actor->get(route('academic-cycle-sections.show', $section))
             ->assertOk()
-            ->assertSee('One cycle only')
-            ->assertSee('This section serves '.$section->academicYear->name)
+            ->assertSee($section->academicYear->name)
             ->assertSee('Block A')
-            ->assertSee('no learners, no teachers, no attendance');
+            ->assertSee('—')
+            ->assertDontSee('Not set')
+            ->assertDontSee('Roll into another year');
     }
 
     public function test_the_roll_forward_screen_reviews_the_copy_before_it_is_made(): void

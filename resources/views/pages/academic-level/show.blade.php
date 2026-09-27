@@ -1,135 +1,100 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href' => route('dashboard'), 'text' => 'Dashboard'],
     ['href' => route('academic-levels.index'), 'text' => school_terms('class_level', 'Classes')],
-    ['href' => route('academic-levels.show', $academicLevel), 'text' => $academicLevel->name, 'active'],
+    ['text' => $academicLevel->name, 'active'],
 ]])
 
-@section('title', __($academicLevel->name))
-@section('page_heading', __($academicLevel->name))
+@section('title', $academicLevel->name)
+@section('page_heading', $academicLevel->name)
+
+@php
+    $sectionTerm = strtolower(school_term('section', 'section'));
+    $canAddSection = !$academicLevel->is_group
+        && $academicLevel->status === \App\Enums\AcademicStructureStatus::Active
+        && auth()->user()->can('create', \App\Models\AcademicCycleSection::class);
+    $sectionsByCycle = $cycleSections->groupBy(fn ($section) => $section->academicYear->name);
+@endphp
 
 @section('page_actions')
-    @can('update', $academicLevel)
-        @if ($academicLevel->isEditable())
-            <april:button-link href="{{ route('academic-levels.edit', $academicLevel) }}" variant="outline">
-                <x-lucide-pencil class="mr-1.5 size-4" />
-                Edit {{ strtolower(school_term('class_level', 'class')) }}
+    <div class="flex items-center gap-2">
+        @if ($canAddSection)
+            <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_level_id' => $academicLevel->id]) }}" class="h-11 select-none">
+                <x-lucide-plus class="mr-2 size-4" />Add {{ $sectionTerm }}
             </april:button-link>
         @endif
-    @endcan
+        @can('update', $academicLevel)
+            @if ($academicLevel->isEditable())
+                <april:button-link href="{{ route('academic-levels.edit', $academicLevel) }}" variant="outline" class="h-11 select-none">Edit</april:button-link>
+            @endif
+        @endcan
+    </div>
 @endsection
 
 @section('content')
-    @php
-        $sectionsByCycle = $cycleSections->groupBy(fn ($section) => $section->academicYear->name);
-    @endphp
+    <div class="mx-auto flex w-full max-w-4xl flex-col gap-10">
+        <livewire:academic-structure-status-control :record="$academicLevel" />
 
-    <div class="grid gap-6 lg:grid-cols-3">
-        <april:card class="lg:col-span-2">
-            <slot:title>What this {{ strtolower(school_term('class_level', 'class')) }} is</slot:title>
-            <slot:description>{{ $academicLevel->is_group ? 'An organizing group for teachable levels. Learners, sections, and subjects belong under its child levels.' : 'A reusable level a learner can be placed into. Use a parent level to organize groups such as Kindergarten → KG 1.' }}</slot:description>
-            <slot:content class="space-y-4">
-                <dl class="grid gap-4 sm:grid-cols-2">
-                    <div>
-                        <dt class="text-sm text-muted-foreground">{{ school_term('class_level', 'Class') }} name</dt>
-                        <dd class="font-medium">{{ $academicLevel->name }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm text-muted-foreground">Short code</dt>
-                        <dd class="font-medium">{{ $academicLevel->code ?? 'Not set' }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm text-muted-foreground">Display order</dt>
-                        <dd class="font-medium">{{ $academicLevel->position }}</dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm text-muted-foreground">Level group</dt>
-                        <dd class="font-medium">
-                            @if ($academicLevel->is_group)
-                                Yes — organizing only
-                            @elseif ($academicLevel->parent)
-                                <a href="{{ route('academic-levels.show', $academicLevel->parent) }}" class="hover:underline">{{ $academicLevel->parent->name }}</a>
-                            @else
-                                No parent group. This is a top-level group or standalone {{ strtolower(school_term('class_level', 'level')) }}.
-                            @endif
-                        </dd>
-                    </div>
-                    <div>
-                        <dt class="text-sm text-muted-foreground">{{ school_terms('class_level', 'Classes') }} under this one</dt>
-                        <dd class="font-medium">{{ $academicLevel->children->isEmpty() ? 'None' : $academicLevel->children->pluck('name')->join(', ') }}</dd>
-                    </div>
-                </dl>
-            </slot:content>
-        </april:card>
-
-        <april:card>
-            <slot:title>Status</slot:title>
-                            <slot:description>An archived {{ strtolower(school_term('class_level', 'class')) }} can no longer receive a new {{ strtolower(school_term('section', 'section')) }}.</slot:description>
-            <slot:content class="space-y-4">
-                <x-academic-structure-status-control
-                    :status="$academicLevel->status"
-                    :action="route('academic-levels.status.update', $academicLevel)"
-                    :can-update="auth()->user()->can('update', $academicLevel)"
-                        archive-note="Archiving stops new {{ strtolower(school_terms('section', 'sections')) }}. Past sections, placements, and results keep naming this {{ strtolower(school_term('class_level', 'class')) }}." />
-
-                <dl class="space-y-2 text-sm">
-                    <div class="flex items-center justify-between gap-4">
-                        <dt class="text-muted-foreground">{{ school_terms('section', 'Sections') }}</dt>
-                        <dd class="font-medium">{{ $cycleSections->count() }}</dd>
-                    </div>
-                    <div class="flex items-center justify-between gap-4">
-                        <dt class="text-muted-foreground">{{ school_terms('academic_year', 'School years') }} covered</dt>
-                        <dd class="font-medium">{{ $sectionsByCycle->count() }}</dd>
-                    </div>
-                </dl>
-
-                @can('create', \App\Models\AcademicCycleSection::class)
-                    @if (!$academicLevel->is_group && $academicLevel->status === \App\Enums\AcademicStructureStatus::Active)
-                        <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_level_id' => $academicLevel->id]) }}" class="w-full">
-                            <x-lucide-plus class="mr-1.5 size-4" />
-                            Add {{ strtolower(school_term('section', 'section')) }}
-                        </april:button-link>
+        <dl class="grid grid-cols-2 gap-x-6 gap-y-4 border-y py-4 sm:grid-cols-4">
+            <div>
+                <dt class="text-sm text-muted-foreground">Code</dt>
+                <dd class="font-medium">{{ $academicLevel->code ?? '—' }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm text-muted-foreground">Order</dt>
+                <dd class="font-medium tabular-nums">{{ $academicLevel->position }}</dd>
+            </div>
+            <div>
+                <dt class="text-sm text-muted-foreground">{{ $academicLevel->is_group ? 'Kind' : 'Group' }}</dt>
+                <dd class="font-medium">
+                    @if ($academicLevel->is_group)
+                        Group
+                    @elseif ($academicLevel->parent)
+                        <a href="{{ route('academic-levels.show', $academicLevel->parent) }}" class="underline-offset-4 hover:underline">{{ $academicLevel->parent->name }}</a>
+                    @else
+                        —
                     @endif
-                @endcan
-            </slot:content>
-        </april:card>
-    </div>
-
-    <april:card class="mt-6">
-        <slot:title>{{ school_terms('section', 'Sections') }} created for this {{ strtolower(school_term('class_level', 'class')) }}</slot:title>
-        <slot:description>Each {{ strtolower(school_term('academic_year', 'school year')) }} keeps its own {{ strtolower(school_terms('section', 'sections')) }}. A later year needs its own, either created again or rolled forward.</slot:description>
-        <slot:content>
-            @if ($cycleSections->isEmpty())
-                <x-empty-state
-                    icon="lucide-layers"
-                    title="No {{ strtolower(school_term('section', 'section')) }} uses this {{ strtolower(school_term('class_level', 'class')) }} yet"
-                    description="{{ $academicLevel->is_group ? 'This is an organizing group. Add a child level before creating a section.' : 'Create the first named group, such as “Green”, for the '.strtolower(school_term('academic_year', 'school year')).' that will run it.' }}">
-                    @can('create', \App\Models\AcademicCycleSection::class)
-                        @if (!$academicLevel->is_group)
-                        <april:button-link href="{{ route('academic-cycle-sections.create', ['academic_level_id' => $academicLevel->id]) }}">
-                            <x-lucide-plus class="mr-1.5 size-4" />
-                            Add {{ strtolower(school_term('section', 'section')) }}
-                        </april:button-link>
-                        @endif
-                    @endcan
-                </x-empty-state>
-            @else
-                <div class="space-y-6">
-                    @foreach ($sectionsByCycle as $cycleName => $sections)
-                        <div>
-                            <h3 class="mb-2 text-sm font-semibold">{{ $cycleName }}</h3>
-                            <div class="flex flex-wrap gap-2">
-                                @foreach ($sections as $section)
-                                    <a href="{{ route('academic-cycle-sections.show', $section) }}" class="flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-accent">
-                                        <span class="font-medium">{{ $section->label ?? $section->name }}</span>
-                                        <x-academic-structure-status :status="$section->status" />
-                                        <span class="text-muted-foreground">{{ $section->homeroomTeacher?->name ?? 'No '.strtolower(school_term('homeroom_teacher', 'class teacher')) }}</span>
-                                    </a>
-                                @endforeach
-                            </div>
-                        </div>
-                    @endforeach
+                </dd>
+            </div>
+            <div>
+                <dt class="text-sm text-muted-foreground">{{ school_terms('section', 'Sections') }}</dt>
+                <dd class="font-medium tabular-nums">{{ $cycleSections->count() }}</dd>
+            </div>
+            @if ($academicLevel->children->isNotEmpty())
+                <div class="col-span-2 sm:col-span-4">
+                    <dt class="text-sm text-muted-foreground">{{ school_terms('class_level', 'Classes') }} in this group</dt>
+                    <dd class="flex flex-wrap gap-x-3 font-medium">
+                        @foreach ($academicLevel->children as $child)
+                            <a href="{{ route('academic-levels.show', $child) }}" class="underline-offset-4 hover:underline">{{ $child->name }}</a>
+                        @endforeach
+                    </dd>
                 </div>
             @endif
-        </slot:content>
-    </april:card>
+        </dl>
+
+        <section aria-labelledby="sections-heading" class="flex flex-col gap-6">
+            <h2 id="sections-heading" class="text-base font-semibold">{{ school_terms('section', 'Sections') }}</h2>
+            @if ($cycleSections->isEmpty())
+                <p class="text-sm text-muted-foreground">No {{ strtolower(school_terms('section', 'sections')) }}</p>
+            @else
+                @foreach ($sectionsByCycle as $cycleName => $sections)
+                    <div class="flex flex-col gap-2">
+                        <h3 class="text-sm text-muted-foreground">{{ $cycleName }}</h3>
+                        <ul class="divide-y border-y">
+                            @foreach ($sections as $section)
+                                <li>
+                                    <a href="{{ route('academic-cycle-sections.show', $section) }}" class="flex min-h-11 items-center justify-between gap-4 py-2 text-sm hover:bg-muted/50">
+                                        <span class="min-w-0 truncate font-medium">{{ $section->label ?? $section->name }}</span>
+                                        <span class="flex shrink-0 items-center gap-3 text-muted-foreground">
+                                            <span class="hidden truncate sm:inline">{{ $section->homeroomTeacher?->name ?? '—' }}</span>
+                                            <span @class(['text-foreground' => $section->status === \App\Enums\AcademicStructureStatus::Active])>{{ $section->status->label() }}</span>
+                                        </span>
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endforeach
+            @endif
+        </section>
+    </div>
 @endsection

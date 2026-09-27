@@ -2,14 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Curriculum\ChangeAcademicCycleSectionStatus;
 use App\Actions\Curriculum\CreateAcademicCycleSection;
 use App\Actions\Curriculum\RollForwardAcademicCycleSections;
 use App\Actions\Curriculum\UpdateAcademicCycleSection;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
-use App\Http\Requests\ChangeAcademicCycleSectionStatusRequest;
 use App\Http\Requests\RollForwardAcademicCycleSectionsRequest;
 use App\Http\Requests\StoreAcademicCycleSectionRequest;
 use App\Http\Requests\UpdateAcademicCycleSectionRequest;
@@ -28,7 +26,6 @@ class AcademicCycleSectionController extends Controller
     public function __construct(
         private CreateAcademicCycleSection $createAcademicCycleSection,
         private UpdateAcademicCycleSection $updateAcademicCycleSection,
-        private ChangeAcademicCycleSectionStatus $changeAcademicCycleSectionStatus,
         private RollForwardAcademicCycleSections $rollForwardAcademicCycleSections,
     ) {
         $this->authorizeResource(AcademicCycleSection::class, 'academicCycleSection');
@@ -158,15 +155,6 @@ class AcademicCycleSectionController extends Controller
         return redirect()
             ->route('academic-cycle-sections.show', $academicCycleSection)
             ->with('success', 'Cycle section updated.');
-    }
-
-    public function changeStatus(ChangeAcademicCycleSectionStatusRequest $request, AcademicCycleSection $academicCycleSection): RedirectResponse
-    {
-        $status = AcademicStructureStatus::from($request->validated('status'));
-
-        $this->changeAcademicCycleSectionStatus->change($academicCycleSection, $status, $request->user());
-
-        return back()->with('success', "Cycle section is now {$status->label()}.");
     }
 
     /**

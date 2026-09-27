@@ -114,7 +114,7 @@
                                     </h3>
                                     <p class="mt-1 break-words text-sm text-muted-foreground">{{ $academicCycleSection->academicYear->name }} › {{ $academicCycleSection->academicLevel->name }}</p>
                                 </div>
-                                <x-academic-structure-status :status="$academicCycleSection->status" />
+                                <livewire:academic-structure-status-control :record="$academicCycleSection" :key="'status-card-'.$academicCycleSection->id" />
                             </div>
                             <dl class="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t pt-4 text-sm">
                                 <div>
@@ -127,11 +127,11 @@
                                 </div>
                                 <div>
                                     <dt class="text-muted-foreground">Capacity</dt>
-                                    <dd class="mt-1 font-medium">{{ $academicCycleSection->capacity ?? 'Not set' }}</dd>
+                                    <dd class="mt-1 font-medium">{{ $academicCycleSection->capacity ?? '—' }}</dd>
                                 </div>
                                 <div>
                                     <dt class="text-muted-foreground">Class teacher</dt>
-                                    <dd class="mt-1 break-words font-medium">{{ $academicCycleSection->homeroomTeacher?->name ?? 'Not chosen' }}</dd>
+                                    <dd class="mt-1 break-words font-medium">{{ $academicCycleSection->homeroomTeacher?->name ?? '—' }}</dd>
                                 </div>
                             </dl>
                             <div class="mt-4 flex flex-wrap gap-2 border-t pt-4">
@@ -139,14 +139,6 @@
                                 @can('update', $academicCycleSection)
                                     @if ($academicCycleSection->isEditable())
                                         <april:button-link href="{{ route('academic-cycle-sections.edit', $academicCycleSection) }}" variant="outline" size="sm" aria-label="Edit {{ $academicCycleSection->label ?? $academicCycleSection->name }}">Edit</april:button-link>
-                                    @endif
-                                    @if ($academicCycleSection->status === AcademicStructureStatus::Draft)
-                                        <form method="POST" action="{{ route('academic-cycle-sections.status.update', $academicCycleSection) }}">
-                                            @csrf
-                                            @method('PUT')
-                                            <input type="hidden" name="status" value="{{ AcademicStructureStatus::Active->value }}">
-                                            <april:button size="sm" type="submit">Activate</april:button>
-                                        </form>
                                     @endif
                                 @endcan
                             </div>
@@ -189,23 +181,15 @@
                                     </td>
                                     <td class="px-3 py-3">{{ collect([$academicCycleSection->stream, $academicCycleSection->shift])->filter()->join(' · ') ?: '—' }}</td>
                                     <td class="px-3 py-3">{{ $academicCycleSection->room ?? '—' }}</td>
-                                    <td class="px-3 py-3">{{ $academicCycleSection->capacity ?? 'Not set' }}</td>
-                                    <td class="px-3 py-3">{{ $academicCycleSection->homeroomTeacher?->name ?? 'Not chosen' }}</td>
-                                    <td class="px-3 py-3"><x-academic-structure-status :status="$academicCycleSection->status" /></td>
+                                    <td class="px-3 py-3">{{ $academicCycleSection->capacity ?? '—' }}</td>
+                                    <td class="px-3 py-3">{{ $academicCycleSection->homeroomTeacher?->name ?? '—' }}</td>
+                                    <td class="px-3 py-3"><livewire:academic-structure-status-control :record="$academicCycleSection" :key="'status-row-'.$academicCycleSection->id" /></td>
                                     <td class="px-3 py-3">
                                         <div class="flex flex-wrap items-center justify-end gap-2">
                                             <april:button-link href="{{ route('academic-cycle-sections.show', $academicCycleSection) }}" variant="ghost" size="sm" aria-label="View {{ $academicCycleSection->label ?? $academicCycleSection->name }}">View</april:button-link>
                                             @can('update', $academicCycleSection)
                                                 @if ($academicCycleSection->isEditable())
                                                     <april:button-link href="{{ route('academic-cycle-sections.edit', $academicCycleSection) }}" variant="outline" size="sm" aria-label="Edit {{ $academicCycleSection->label ?? $academicCycleSection->name }}">Edit</april:button-link>
-                                                @endif
-                                                @if ($academicCycleSection->status === AcademicStructureStatus::Draft)
-                                                    <form method="POST" action="{{ route('academic-cycle-sections.status.update', $academicCycleSection) }}">
-                                                        @csrf
-                                                        @method('PUT')
-                                                        <input type="hidden" name="status" value="{{ AcademicStructureStatus::Active->value }}">
-                                                        <april:button size="sm" type="submit">Activate</april:button>
-                                                    </form>
                                                 @endif
                                             @endcan
                                         </div>

@@ -9,6 +9,7 @@ use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\AcademicStructureStatusControl;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
@@ -18,6 +19,7 @@ use App\Models\User;
 use App\Policies\AcademicCycleSectionPolicy;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class AcademicCycleSectionTest extends TestCase
@@ -116,9 +118,9 @@ class AcademicCycleSectionTest extends TestCase
             ->where('academic_level_id', $academicLevel->id)
             ->sole();
 
-        $actor->put(route('academic-cycle-sections.status.update', $section), [
-            'status' => AcademicStructureStatus::Active->value,
-        ])->assertRedirect();
+        Livewire::test(AcademicStructureStatusControl::class, ['record' => $section])
+            ->call('activate')
+            ->assertRedirect();
 
         $this->assertSame(AcademicStructureStatus::Active, $section->fresh()->status);
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::AcademicCycleSectionStatusChanged)->forSubject($section)->first());
