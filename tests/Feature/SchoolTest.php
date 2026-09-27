@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Actions\Organization\GrantOrganizationMembership;
 use App\Http\Middleware\SetActiveAcademicPeriod;
+use App\Livewire\EditSchoolLanguage;
 use App\Models\AcademicYear;
 use App\Models\Organization;
 use App\Models\School;
@@ -15,6 +16,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class SchoolTest extends TestCase
@@ -245,33 +247,83 @@ class SchoolTest extends TestCase
     public function test_a_school_can_save_its_familiar_operating_language(): void
     {
         $school = $this->workingSchool();
-        $this->authorized_user(['manage school settings'], $school)
-            ->put('/dashboard/schools/operating-profile', [
-                'preset' => 'subject_schedule',
-                'labels' => ['academic_year' => 'Academic year', 'class_level' => 'Form', 'section' => 'Stream', 'period' => 'Semester', 'course' => 'Course', 'fee' => 'Tuition', 'homeroom_teacher' => 'Form teacher'],
-            ])
-            ->assertRedirect('/dashboard/schools/settings');
+        $this->authorized_user(['manage school settings'], $school);
 
-        $this->assertDatabaseHas('school_operating_profiles', ['school_id' => $school->id, 'preset' => 'subject_schedule']);
-        $this->assertSame('Form teacher', SchoolOperatingProfile::query()->where('school_id', $school->id)->firstOrFail()->labels['homeroom_teacher']);
+        Livewire::test(EditSchoolLanguage::class)
+            ->set('preset', 'subject_schedule')
+            ->set('labels.class_level', 'Form')
+            ->set('labels.homeroom_teacher', 'Form teacher')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('schools.settings'));
 
+        $profile = SchoolOperatingProfile::query()->where('school_id', $school->id)->firstOrFail();
+        $this->assertSame('subject_schedule', $profile->preset);
+        $this->assertSame('Form teacher', $profile->labels['homeroom_teacher']);
+        $this->assertSame('Form', $profile->labels['class_level']);
+        $this->assertNotNull($profile->setup_completed_at);
     }
 
     public function test_school_language_starts_with_one_explicit_default_pattern(): void
     {
         $school = $this->workingSchool();
 
-        $response = $this->authorized_user(['manage school settings'], $school)
+        $this->authorized_user(['manage school settings'], $school)
             ->get(route('schools.operating-profile.edit'))
             ->assertSuccessful()
+            ->assertSeeLivewire(EditSchoolLanguage::class)
             ->assertSee('Starting language pattern')
             ->assertSee('Class-based school')
             ->assertSee('Grade and subject-based school')
             ->assertSee('Mixed class and subject school')
-            ->assertSee('Default')
-            ->assertSee('Every option includes the same seven labels');
+            ->assertSee('Default');
 
-        $this->assertMatchesRegularExpression('/name="preset" value="home_sections"[^>]*checked/', $response->getContent());
+        Livewire::test(EditSchoolLanguage::class)->assertSet('preset', SchoolOperatingProfile::DEFAULT_PRESET);
+    }
+
+    public function test_picking_a_language_pattern_fills_in_its_words(): void
+    {
+        $this->authorized_user(['manage school settings']);
+        $words = SchoolOperatingProfile::labelsFor('subject_schedule');
+
+        Livewire::test(EditSchoolLanguage::class)
+            ->set('preset', 'subject_schedule')
+            ->assertSet('labels.class_level', $words['class_level'])
+            ->assertSet('labels.course', $words['course']);
+    }
+
+    public function test_every_school_word_must_be_filled_in(): void
+    {
+        $this->authorized_user(['manage school settings']);
+
+        Livewire::test(EditSchoolLanguage::class)
+            ->set('labels.fee', '')
+            ->set('labels.section', str_repeat('a', 41))
+            ->call('save')
+            ->assertHasErrors(['labels.fee' => 'required', 'labels.section' => 'max']);
+    }
+
+    public function test_school_language_during_setup_continues_to_classes(): void
+    {
+        $school = $this->workingSchool();
+        $this->authorized_user(['manage school settings'], $school);
+
+        Livewire::test(EditSchoolLanguage::class, ['setup' => true])
+            ->call('save')
+            ->assertRedirect(route('schools.setup', [$school, 'classes']));
+
+        Livewire::test(EditSchoolLanguage::class)
+            ->call('save', true)
+            ->assertRedirect(route('schools.setup', [$school, 'classes']));
+    }
+
+    public function test_someone_without_school_settings_access_cannot_change_its_language(): void
+    {
+        $this->unauthorized_user()
+            ->get(route('schools.operating-profile.edit'))
+            ->assertForbidden();
+
+        Livewire::test(EditSchoolLanguage::class)->assertForbidden();
     }
 
     public function test_school_terminology_is_rendered_on_the_school_setup_screen(): void

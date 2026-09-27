@@ -177,8 +177,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
 
     // manage school settings
     Route::get('schools/settings', ['App\Http\Controllers\SchoolController', 'settings'])->name('schools.settings')->middleware('App\Http\Middleware\RequireActiveSchool');
-    Route::get('schools/operating-profile', ['App\Http\Controllers\SchoolOperatingProfileController', 'edit'])->name('schools.operating-profile.edit')->middleware('App\Http\Middleware\RequireActiveSchool');
-    Route::put('schools/operating-profile', ['App\Http\Controllers\SchoolOperatingProfileController', 'update'])->name('schools.operating-profile.update')->middleware('App\Http\Middleware\RequireActiveSchool');
+    Route::view('schools/operating-profile', 'pages.school.operating-profile')->name('schools.operating-profile.edit')->middleware('App\Http\Middleware\RequireActiveSchool');
     Route::view('schools/features', 'pages.school.features')->name('schools.features.edit')->middleware('App\Http\Middleware\RequireActiveSchool');
     Route::post('schools/setup/acknowledge', [SchoolSetupPhaseController::class, 'acknowledge'])
         ->name('schools.setup.acknowledge')

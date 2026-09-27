@@ -965,3 +965,10 @@
 - **Problem:** The page to turn school tools such as Boarding on or off was a stack of cards around one POST form. A change took effect only after "Save feature choices", and the sidebar kept the old links until the next page load. The checkboxes were plain 16px boxes in a label, with On and Off badges that repeated the checkbox state.
 - **Fix:** The page is now the Livewire component `ManageSchoolFeatures`. Each tool is a switch in a flat, grouped list, and a switch saves straight away with a toast. The sidebar listens for `school-features-changed` and rebuilds itself. Tools that are off read muted. The PUT route, `FeatureSettingsController` and `UpdateFeatureSettingsRequest` are removed. The global 1rem checkbox size in `app.css` now skips `role="switch"`.
 - **Tests:** `FeatureSettingTest` covers turning a tool off, turning Boarding on with the sidebar following, an unknown tool, and a user without access.
+
+## Picking a school language pattern did not change its words
+
+- **Where:** `/dashboard/schools/operating-profile`
+- **Problem:** The page listed three language patterns, each showing its own words, but choosing one left the word inputs below unchanged. A school saved the new pattern with the old words. The page was two cards around a POST form, with a help tooltip and a sentence that repeated the heading.
+- **Fix:** The page is now the Livewire component `EditSchoolLanguage`. Picking a pattern fills in its words, and each word can still be changed. The patterns are a flat radio list that shows each pattern's words in one line. "Save" is the one accent button, and "Save and continue to classes" sits beside it as outline. The PUT route, `SchoolOperatingProfileController` and `UpdateSchoolOperatingProfileRequest` are removed.
+- **Tests:** `SchoolTest` covers saving, the default pattern, a pattern filling its words, empty and long words, the setup redirect, and a user without access.
