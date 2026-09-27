@@ -11,6 +11,7 @@ use App\Services\Library\LibraryCopyCatalog as LibraryCopyCatalogService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\View as ViewFactory;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 use Livewire\WithPagination;
@@ -41,6 +42,15 @@ class LibraryCopyCatalog extends Component
     public function clearSearch(): void
     {
         $this->search = '';
+        $this->resetPage();
+    }
+
+    /**
+     * Show copies that were just put on the shelf.
+     */
+    #[On('library-copies-shelved')]
+    public function refreshCopies(): void
+    {
         $this->resetPage();
     }
 

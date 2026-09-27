@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Shelving several copies crashed when a numbered barcode was taken
+
+- Status: Fixed
+- Area: Library shelving (`ShelveLibraryCopies`, `LibraryShelvingForm`)
+- Observed: Only the first barcode was checked. Shelving four copies from "BOX" when "BOX-2" was already on the shelf gave a server error. A long barcode numbered past 60 characters did the same. The book picker only listed the first 200 books, and the same ISBN could be described twice.
+- Impact: The librarian lost the form. A big catalogue could not be used, so books were described again.
+- Reproduction: Shelve a copy with barcode BOX-2. Then shelve 4 copies of any book from barcode BOX.
+- Resolution: Every numbered barcode is checked first, and the error names the ones taken. A long barcode is refused. The book is found by a search of title, author or ISBN, and a known ISBN points to the existing book. Shelving now works through Livewire, and the POST route is gone.
+
 ## A library fine with three decimals crashed the rules page
 
 - Status: Fixed

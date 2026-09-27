@@ -17,6 +17,7 @@ use App\Livewire\LibraryCopyCatalog as LibraryCopyCatalogComponent;
 use App\Livewire\LibraryLendingDesk;
 use App\Livewire\LibraryLendingRulesForm;
 use App\Livewire\LibraryReservationQueue;
+use App\Livewire\LibraryShelvingForm;
 use App\Models\AcademicCycleSection;
 use App\Models\AuditEvent;
 use App\Models\FinancialPeriod;
@@ -523,7 +524,7 @@ class LibraryTest extends TestCase
 
         app(FeatureManager::class)->enable(Feature::Library);
 
-        $actor->get(route('library-copies.index'))->assertOk()->assertSee('What this campus owns');
+        $actor->get(route('library-copies.index'))->assertOk()->assertSee('on the shelf')->assertSeeLivewire(LibraryCopyCatalogComponent::class);
     }
 
     public function test_the_library_catalogue_searches_copies_live_and_clears_the_search(): void
@@ -556,15 +557,104 @@ class LibraryTest extends TestCase
         $actor = $this->authorized_user(['read library', 'manage library']);
         app(FeatureManager::class)->enable(Feature::Library);
 
-        $actor->post(route('library-copies.store'), [
-            'title' => 'Things Fall Apart',
-            'authors' => 'Chinua Achebe',
-            'barcode' => 'LIB-1000',
-            'copies' => 3,
-        ])->assertRedirect();
+        $actor->get(route('library-copies.index'))->assertOk()->assertSeeLivewire(LibraryShelvingForm::class);
 
-        $this->assertSame(3, LibraryCopy::inSchool()->count());
+        Livewire::test(LibraryShelvingForm::class)
+            ->call('start')
+            ->set('titleSearch', 'Things Fall Apart')
+            ->call('describeNew')
+            ->assertSet('title', 'Things Fall Apart')
+            ->set('authors', 'Chinua Achebe')
+            ->set('isbn', '9780385474542')
+            ->set('barcode', 'LIB-1000')
+            ->set('copies', '3')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertSet('isShelving', false)
+            ->assertDispatched('library-copies-shelved');
+
+        $this->assertSame(['LIB-1000', 'LIB-1000-1', 'LIB-1000-2'], LibraryCopy::inSchool()->orderBy('id')->pluck('barcode')->all());
         $this->assertSame(1, LibraryTitle::where('title', 'Things Fall Apart')->count());
+
+        $title = LibraryTitle::where('title', 'Things Fall Apart')->sole();
+
+        Livewire::test(LibraryShelvingForm::class)
+            ->call('start')
+            ->set('titleSearch', 'Achebe')
+            ->assertSee('Things Fall Apart')
+            ->call('pickTitle', $title->id)
+            ->set('barcode', 'LIB-2000')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame(4, $title->copies()->count());
+    }
+
+    public function test_a_numbered_barcode_that_clashes_shelves_nothing_and_says_which(): void
+    {
+        $this->authorized_user(['read library', 'manage library']);
+        app(FeatureManager::class)->enable(Feature::Library);
+        $copy = LibraryCopy::factory()->create(['school_id' => $this->workingSchool()->id, 'barcode' => 'BOX-2']);
+
+        Livewire::test(LibraryShelvingForm::class)
+            ->call('start')
+            ->call('pickTitle', $copy->library_title_id)
+            ->set('barcode', 'BOX')
+            ->set('copies', '4')
+            ->call('save')
+            ->assertHasErrors('barcode')
+            ->assertSee('This campus already has a copy with the barcode BOX-2.');
+
+        $this->assertSame(1, LibraryCopy::query()->count());
+    }
+
+    public function test_the_same_isbn_is_not_described_twice(): void
+    {
+        $this->authorized_user(['read library', 'manage library']);
+        app(FeatureManager::class)->enable(Feature::Library);
+        LibraryTitle::factory()->create(['organization_id' => $this->workingSchool()->organization_id, 'title' => 'Arrow of God', 'isbn' => '9780385014809']);
+
+        Livewire::test(LibraryShelvingForm::class)
+            ->call('start')
+            ->call('describeNew')
+            ->set('title', 'Arrow of God (2nd)')
+            ->set('isbn', '9780385014809')
+            ->set('barcode', 'AOG-1')
+            ->call('save')
+            ->assertHasErrors('isbn')
+            ->assertSee('The catalogue already has this ISBN as');
+
+        $this->assertSame(1, LibraryTitle::query()->count());
+        $this->assertSame(0, LibraryCopy::query()->count());
+    }
+
+    public function test_a_book_of_another_school_group_cannot_be_picked(): void
+    {
+        $this->authorized_user(['read library', 'manage library']);
+        app(FeatureManager::class)->enable(Feature::Library);
+        $foreign = LibraryTitle::factory()->create(['organization_id' => School::factory()->create()->organization_id, 'title' => 'Private reader']);
+
+        $this->assertThrows(fn () => Livewire::test(LibraryShelvingForm::class)
+            ->call('start')
+            ->set('titleSearch', 'Private reader')
+            ->assertDontSee('Private reader')
+            ->call('pickTitle', $foreign->id), ModelNotFoundException::class);
+
+        Livewire::test(LibraryShelvingForm::class)
+            ->call('start')
+            ->set('barcode', 'X-1')
+            ->call('save')
+            ->assertHasErrors('titleSearch');
+
+        $this->assertSame(0, LibraryCopy::query()->count());
+    }
+
+    public function test_a_reader_cannot_shelve(): void
+    {
+        $this->authorized_user(['read library']);
+        app(FeatureManager::class)->enable(Feature::Library);
+
+        Livewire::test(LibraryShelvingForm::class)->assertForbidden();
     }
 
     public function test_the_desk_lends_and_takes_back_from_the_screen(): void

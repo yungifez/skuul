@@ -430,7 +430,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 // library routes
                 Route::middleware('feature:library')->group(function (): void {
                     Route::get('library', [LibraryCopyController::class, 'index'])->name('library-copies.index');
-                    Route::post('library', [LibraryCopyController::class, 'store'])->name('library-copies.store');
                     Route::get('library/desk', [LibraryLoanController::class, 'index'])->name('library-loans.index');
                     Route::get('library/queue', [LibraryReservationController::class, 'index'])->name('library-reservations.index');
                     Route::get('library/rules', [LibraryLendingRulesController::class, 'edit'])->name('library-rules.edit');
