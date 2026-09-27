@@ -8,6 +8,7 @@ use App\Enums\AuditAction;
 use App\Enums\InstructionalModel;
 use App\Enums\RosterMode;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\ManageInstructionalModel;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
 use App\Models\InstructionalModelSetting;
@@ -15,6 +16,8 @@ use App\Models\School;
 use App\Services\Curriculum\InstructionalModelResolver;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Features\SupportTesting\Testable;
+use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -65,10 +68,12 @@ class InstructionalModelTest extends TestCase
         $actor = $this->authorized_user(['manage school settings']);
         $academicYear = $this->futureCycle();
 
-        $actor->put("dashboard/academic-years/$academicYear->id/instructional-model", [
-            'model' => $preset,
-            'reason' => 'the campus agreed this at the planning meeting',
-        ])->assertRedirect();
+        $this->teachingSetup($academicYear)
+            ->set('model', $preset)
+            ->set('reason', 'the campus agreed this at the planning meeting')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('academic-years.instructional-model.edit', $academicYear));
 
         $this->assertDatabaseHas('instructional_model_settings', [
             'school_id' => $academicYear->school_id,
@@ -113,21 +118,20 @@ class InstructionalModelTest extends TestCase
 
         $actor->get("dashboard/academic-years/$theirs->id/edit")->assertForbidden();
 
-        $actor->put("dashboard/academic-years/$theirs->id/instructional-model", [
-            'model' => 'hybrid',
-        ])->assertForbidden();
+        $this->teachingSetup($theirs)->assertForbidden();
 
         $this->assertDatabaseCount('instructional_model_settings', 0);
     }
 
     public function test_a_person_without_the_permission_cannot_change_the_model(): void
     {
-        $actor = $this->unauthorized_user();
+        $this->authorized_user(['read academic year']);
         $academicYear = $this->futureCycle();
 
-        $actor->put("dashboard/academic-years/$academicYear->id/instructional-model", [
-            'model' => 'hybrid',
-        ])->assertForbidden();
+        $this->teachingSetup($academicYear)
+            ->set('model', 'hybrid')
+            ->call('save')
+            ->assertForbidden();
 
         $this->assertDatabaseCount('instructional_model_settings', 0);
     }
@@ -142,9 +146,10 @@ class InstructionalModelTest extends TestCase
             'starts_on' => now()->subMonth()->toDateString(),
         ])->save();
 
-        $actor->put("dashboard/academic-years/$academicYear->id/instructional-model", [
-            'model' => 'subject_based_schedule',
-        ])->assertRedirect()->assertSessionHas('danger');
+        $this->teachingSetup($academicYear)
+            ->set('model', 'subject_based_schedule')
+            ->call('save')
+            ->assertHasErrors('model');
 
         $this->assertDatabaseCount('instructional_model_settings', 0);
     }
@@ -174,10 +179,11 @@ class InstructionalModelTest extends TestCase
         $actor = $this->authorized_user(['manage school settings']);
         $academicYear = $this->futureCycle();
 
-        $actor->put("dashboard/academic-years/$academicYear->id/instructional-model", [
-            'model' => 'hybrid',
-            'reason' => 'the campus combines music classes',
-        ])->assertRedirect();
+        $this->teachingSetup($academicYear)
+            ->set('model', 'hybrid')
+            ->set('reason', 'the campus combines music classes')
+            ->call('save')
+            ->assertRedirect();
 
         $setting = InstructionalModelSetting::firstOrFail();
         $event = AuditEvent::ofAction(AuditAction::InstructionalModelChanged)->forSubject($setting)->firstOrFail();
@@ -231,7 +237,6 @@ class InstructionalModelTest extends TestCase
         foreach (InstructionalModel::cases() as $model) {
             $page->assertSee($model->setupAnswer(), false);
             $page->assertSee(school_instructional_model_description($model), false);
-            $page->assertSee($model->example(), false);
         }
 
         $page->assertSee('Save teaching setup', false);
@@ -280,7 +285,6 @@ class InstructionalModelTest extends TestCase
 
         $actor->get("dashboard/academic-years/$academicYear->id/instructional-model")
             ->assertOk()
-            ->assertSee('This cycle has already started', false)
             ->assertSee('Fixed for this '.strtolower(school_term('academic_year', 'school year')), false)
             ->assertDontSee('Save teaching setup', false);
     }
@@ -292,7 +296,7 @@ class InstructionalModelTest extends TestCase
 
         $actor->get("dashboard/academic-years/$academicYear->id/instructional-model")
             ->assertOk()
-            ->assertSee('Ask a campus administrator', false)
+            ->assertSee('Only a campus administrator can change this.', false)
             ->assertDontSee('Save teaching setup', false);
     }
 
@@ -351,6 +355,14 @@ class InstructionalModelTest extends TestCase
     /**
      * Create a cycle that is planned but has not started.
      */
+    /**
+     * Open the teaching setup component for a cycle.
+     */
+    private function teachingSetup(AcademicYear $academicYear): Testable
+    {
+        return Livewire::test(ManageInstructionalModel::class, ['academicYear' => $academicYear]);
+    }
+
     private function futureCycle(?School $school = null): AcademicYear
     {
         $school = $this->workingSchool($school);

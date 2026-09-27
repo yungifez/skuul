@@ -10,6 +10,7 @@ use App\Enums\AuditAction;
 use App\Enums\InstructionalModel;
 use App\Enums\RosterMode;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\ManageInstructionalModel;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
@@ -21,6 +22,7 @@ use App\Models\School;
 use App\Models\Subject;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -243,17 +245,49 @@ class OfferingExceptionTest extends TestCase
             ->assertOk()
             ->assertSee('Subjects taught differently');
 
-        $actor->post(route('academic-years.instructional-model.exceptions.store', $academicYear->id), [
-            'subject_id' => $subject->id,
-            'roster_mode' => RosterMode::CombinedHomeSections->value,
-            'reason' => 'One combined music class for the whole level.',
-        ])->assertRedirect(route('academic-years.instructional-model.edit', $academicYear->id));
+        Livewire::test(ManageInstructionalModel::class, ['academicYear' => $academicYear])
+            ->set('exceptionSubjectId', $subject->id)
+            ->set('exceptionRosterMode', RosterMode::CombinedHomeSections->value)
+            ->set('exceptionReason', 'One combined music class for the whole level.')
+            ->call('grantException')
+            ->assertHasNoErrors()
+            ->assertSee('One combined music class for the whole level.');
 
         $this->assertDatabaseHas('instructional_model_exceptions', [
             'academic_year_id' => $academicYear->id,
             'subject_id' => $subject->id,
             'roster_mode' => RosterMode::CombinedHomeSections->value,
         ]);
+    }
+
+    public function test_staff_can_take_an_exception_back_from_the_teaching_setup_screen(): void
+    {
+        $this->authorized_user(['manage school settings']);
+        [$subject, $academicYear] = $this->cycle();
+        $exception = app(GrantOfferingException::class)->grant($academicYear, $subject, RosterMode::CombinedHomeSections, 'One combined music class.');
+
+        Livewire::test(ManageInstructionalModel::class, ['academicYear' => $academicYear])
+            ->assertSee('Take back')
+            ->call('revokeException', $exception->id)
+            ->assertHasNoErrors()
+            ->assertSee('Taken back');
+
+        $this->assertFalse($exception->fresh()->isRunning());
+    }
+
+    public function test_an_exception_needs_a_reason_somebody_can_read_later(): void
+    {
+        $this->authorized_user(['manage school settings']);
+        [$subject, $academicYear] = $this->cycle();
+
+        Livewire::test(ManageInstructionalModel::class, ['academicYear' => $academicYear])
+            ->set('exceptionSubjectId', $subject->id)
+            ->set('exceptionRosterMode', RosterMode::CombinedHomeSections->value)
+            ->set('exceptionReason', 'music')
+            ->call('grantException')
+            ->assertHasErrors(['exceptionReason' => 'min']);
+
+        $this->assertSame(0, InstructionalModelException::where('academic_year_id', $academicYear->id)->count());
     }
 
     /**

@@ -8,6 +8,7 @@ use App\Enums\AuditAction;
 use App\Enums\InstructionalModel;
 use App\Enums\RosterMode;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\ManageInstructionalModel;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
 use App\Models\CourseOffering;
@@ -17,6 +18,8 @@ use App\Models\School;
 use App\Services\Curriculum\InstructionalModelResolver;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Features\SupportTesting\Testable;
+use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
 use RuntimeException;
 use Tests\TestCase;
@@ -53,11 +56,9 @@ class InstructionalModelMigrationTest extends TestCase
         $actor = $this->authorized_user(['migrate instructional model']);
         $academicYear = $this->runningCycle();
 
-        $actor->post("dashboard/academic-years/$academicYear->id/instructional-model/migration", [
-            'model' => 'hybrid',
-            'reason' => 'The campus agreed to combine two sections for music.',
-            'confirm' => '1',
-        ])->assertRedirect(route('academic-years.instructional-model.edit', $academicYear));
+        $this->moveCycle($academicYear, 'hybrid', 'The campus agreed to combine two sections for music.')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('academic-years.instructional-model.edit', $academicYear));
 
         $this->assertSame(InstructionalModel::Hybrid, app(InstructionalModelResolver::class)->for($academicYear));
 
@@ -167,11 +168,8 @@ class InstructionalModelMigrationTest extends TestCase
             'starts_on' => now()->addMonths(3)->toDateString(),
         ])->save();
 
-        $actor->post("dashboard/academic-years/$academicYear->id/instructional-model/migration", [
-            'model' => 'hybrid',
-            'reason' => 'The campus asked for the change in writing.',
-            'confirm' => '1',
-        ])->assertRedirect()->assertSessionHas('danger');
+        $this->moveCycle($academicYear, 'hybrid', 'The campus asked for the change in writing.')
+            ->assertHasErrors('moveTo');
 
         $this->assertDatabaseCount('instructional_model_migrations', 0);
     }
@@ -195,38 +193,29 @@ class InstructionalModelMigrationTest extends TestCase
         $actor = $this->authorized_user(['migrate instructional model']);
         $academicYear = $this->runningCycle();
 
-        $actor->post("dashboard/academic-years/$academicYear->id/instructional-model/migration", [
-            'model' => 'hybrid',
-            'reason' => 'because',
-        ])->assertSessionHasErrors(['reason', 'confirm']);
+        $this->moveCycle($academicYear, 'hybrid', 'because', false)
+            ->assertHasErrors(['moveReason', 'confirmMove']);
 
         $this->assertDatabaseCount('instructional_model_migrations', 0);
     }
 
     public function test_the_settings_permission_alone_cannot_move_a_running_cycle(): void
     {
-        $actor = $this->authorized_user(['manage school settings']);
+        $this->authorized_user(['manage school settings']);
         $academicYear = $this->runningCycle();
 
-        $actor->post("dashboard/academic-years/$academicYear->id/instructional-model/migration", [
-            'model' => 'hybrid',
-            'reason' => 'The campus agreed to combine two sections for music.',
-            'confirm' => '1',
-        ])->assertForbidden();
+        $this->moveCycle($academicYear, 'hybrid', 'The campus agreed to combine two sections for music.')
+            ->assertForbidden();
 
         $this->assertDatabaseCount('instructional_model_migrations', 0);
     }
 
     public function test_a_running_cycle_of_another_campus_cannot_be_moved(): void
     {
-        $actor = $this->authorized_user(['migrate instructional model']);
+        $this->authorized_user(['migrate instructional model']);
         $theirs = $this->runningCycle(School::factory()->create());
 
-        $actor->post("dashboard/academic-years/$theirs->id/instructional-model/migration", [
-            'model' => 'hybrid',
-            'reason' => 'The campus agreed to combine two sections for music.',
-            'confirm' => '1',
-        ])->assertForbidden();
+        Livewire::test(ManageInstructionalModel::class, ['academicYear' => $theirs])->assertForbidden();
 
         $this->assertDatabaseCount('instructional_model_migrations', 0);
     }
@@ -266,7 +255,7 @@ class InstructionalModelMigrationTest extends TestCase
             ->assertOk()
             ->assertSee('Move this cycle mid-year', false)
             ->assertSee('Why the cycle is moving', false)
-            ->assertDontSee('Moves recorded for this cycle', false);
+            ->assertDontSee('id="moves-heading"', false);
 
         app(MigrateInstructionalModel::class)->migrate(
             $academicYear,
@@ -276,7 +265,7 @@ class InstructionalModelMigrationTest extends TestCase
 
         $actor->get("dashboard/academic-years/$academicYear->id/instructional-model")
             ->assertOk()
-            ->assertSee('Moves recorded for this cycle', false)
+            ->assertSee('id="moves-heading"', false)
             ->assertSee('The campus agreed to combine two sections for music.', false)
             ->assertSee(InstructionalModel::Hybrid->label(), false);
     }
@@ -288,8 +277,20 @@ class InstructionalModelMigrationTest extends TestCase
 
         $actor->get("dashboard/academic-years/$academicYear->id/instructional-model")
             ->assertOk()
-            ->assertSee('This cycle has already started', false)
+            ->assertSee('Fixed for this '.strtolower(school_term('academic_year', 'school year')), false)
             ->assertDontSee('Move this cycle mid-year', false);
+    }
+
+    /**
+     * Ask the teaching setup component to move a cycle.
+     */
+    private function moveCycle(AcademicYear $academicYear, string $model, string $reason, bool $confirm = true): Testable
+    {
+        return Livewire::test(ManageInstructionalModel::class, ['academicYear' => $academicYear])
+            ->set('moveTo', $model)
+            ->set('moveReason', $reason)
+            ->set('confirmMove', $confirm)
+            ->call('migrate');
     }
 
     /**

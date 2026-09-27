@@ -789,3 +789,11 @@
 - Impact: Fifteen periods filled four screens. The accent colour marked a state, not an action.
 - Reproduction: Open `/dashboard/academic-years/1`.
 - Resolution: A one-line status stepper replaces the lifecycle cards. Dates, period count and teaching setup sit in one row with the year's actions. Periods are one row each, with Edit dates and Start closing in a single row menu. The duplicate term picker is removed (the top bar has it). Status badges use quiet variants. Tests: `AcademicYearTest::test_the_calendar_overview_lists_periods_with_their_actions_in_one_menu` and the updated lifecycle test.
+
+## The teaching setup page hid its answer under cards and tooltips
+- Status: Fixed
+- Area: Teaching setup (`academic-years.instructional-model.edit`)
+- Observed: The page repeated the year name as a second heading, showed the answer in a card with pills, nested the question in another card, and carried about twelve help tooltips. The mid-year move filled a red card with a boxed confirm. Four plain POST forms saved the answer, the move and the exceptions.
+- Impact: The one question on the page was hard to find. Each save reloaded the page.
+- Reproduction: Open `/dashboard/academic-years/1/instructional-model`.
+- Resolution: A new `ManageInstructionalModel` Livewire component holds the page. The question sits at the top with one status line. The answers are one radio list, and the chosen answer shows what it allows. The mid-year move opens from a "Move" button. Moves and exceptions are plain row lists, and "Take back" asks by subject name. The tooltips, the `instructional-model-answer` and `instructional-model-choice` components, the update, migrate and exception routes, and their three form requests are removed. Tests: updated `InstructionalModelTest`, `InstructionalModelMigrationTest` and `OfferingExceptionTest`, with new tests for taking back an exception and for a short reason.
