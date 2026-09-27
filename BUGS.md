@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Two staff taking one boarding roll erased each other's answers
+
+- Status: Fixed
+- Area: Boarding rolls
+- Observed: The roll page sent every row on each save, so a save carried the answers as the page first read them. When two staff split a house by floor, the second save put the first person's boarders back to "Not recorded". A save could also land after another person completed the roll, because the action checked completion before it took a lock.
+- Impact: A boarder marked present could show as not recorded, or a finished roll could change after it closed. On a curfew roll this hides where a child is.
+- Reproduction: Open one roll in two tabs. Mark boarder A present in the first tab and save. Mark boarder B late in the second tab and save. Boarder A is back to "Not recorded".
+- Resolution: The Livewire `BoardingRollSheet` saves only the rows this person changed and shows the answers others saved. A row someone else answered since the sheet was read is refused once, with what they recorded. A save after completion is refused with nothing written. `RecordBoardingRoll` reads the roll again under a lock. Completing with a boarder unaccounted for says so. The `BoardingRollBoard` starts rolls without a page reload. It starts none for a future day or a closed house, and it shows today for a date it cannot read. `BoardingRollTest` covers these paths.
+
 ## A five-digit year crashed any form with a date
 
 - Status: Fixed

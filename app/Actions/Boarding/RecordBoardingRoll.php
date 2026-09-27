@@ -27,11 +27,15 @@ class RecordBoardingRoll
      */
     public function record(BoardingRoll $roll, array $entries, bool $complete = false, ?User $actor = null): BoardingRoll
     {
-        if ($roll->isComplete()) {
-            throw new InvalidValueException('A completed roll cannot be changed.');
-        }
-
         return DB::transaction(function () use ($roll, $entries, $complete, $actor): BoardingRoll {
+            // Another person may complete the roll while this save waits, so
+            // read the roll again under a lock before touching an answer.
+            $roll = BoardingRoll::query()->lockForUpdate()->findOrFail($roll->id);
+
+            if ($roll->isComplete()) {
+                throw new InvalidValueException('A completed roll cannot be changed.');
+            }
+
             foreach ($entries as $entry) {
                 $rollEntry = BoardingRollEntry::query()
                     ->where('school_id', $roll->school_id)

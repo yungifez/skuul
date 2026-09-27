@@ -426,9 +426,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                     Route::post('boarding/nights-away', [OvernightLeaveController::class, 'store'])->name('overnight-leaves.store');
                     Route::put('boarding/nights-away/{overnight_leave}', [OvernightLeaveController::class, 'update'])->name('overnight-leaves.update');
                     Route::get('boarding/rolls', [BoardingRollController::class, 'index'])->name('boarding-rolls.index');
-                    Route::post('boarding/rolls', [BoardingRollController::class, 'store'])->name('boarding-rolls.store');
                     Route::get('boarding/rolls/{boardingRoll}', [BoardingRollController::class, 'show'])->name('boarding-rolls.show');
-                    Route::put('boarding/rolls/{boardingRoll}', [BoardingRollController::class, 'update'])->name('boarding-rolls.update');
                 });
 
                 // library routes

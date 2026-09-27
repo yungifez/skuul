@@ -4,8 +4,10 @@ namespace Tests\Feature;
 
 use App\Actions\Boarding\AssignBoardingPlace;
 use App\Actions\Boarding\StartBoardingRoll;
+use App\Enums\BoardingRollEntryStatus;
 use App\Enums\BoardingRollType;
 use App\Enums\Feature;
+use App\Livewire\BoardingRollSheet;
 use App\Livewire\CreateFeeInvoiceForm;
 use App\Livewire\GradebookMarkSheet;
 use App\Livewire\GradebookSetup;
@@ -52,14 +54,15 @@ class ControlNameTest extends TestCase
         $roll = app(StartBoardingRoll::class)->start($house, BoardingRollType::Morning);
         $boarder = $student->user->name;
 
-        $html = (string) $actor->get(route('boarding-rolls.show', $roll))->assertOk()->getContent();
+        $actor->get(route('boarding-rolls.show', $roll))->assertOk();
 
-        foreach (['Status', 'Location', 'Note'] as $column) {
-            $this->assertStringContainsString(
-                'aria-label="'.$column.' for '.e($boarder).'"',
-                $html,
-                "The {$column} box must name the boarder it belongs to."
-            );
+        $entry = $roll->entries()->sole();
+        $html = Livewire::test(BoardingRollSheet::class, ['roll' => $roll])
+            ->set("answers.{$entry->id}.status", BoardingRollEntryStatus::Away->value)
+            ->html();
+
+        foreach (['Answer for '.e($boarder), 'Where '.e($boarder).' is', 'Note for '.e($boarder)] as $name) {
+            $this->assertStringContainsString('aria-label="'.$name.'"', $html, "A box must name the boarder it belongs to: {$name}.");
         }
 
         $this->assertEveryControlInATableIsNamed($html);

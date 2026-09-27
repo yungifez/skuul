@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\School\GrantSchoolMembership;
 use App\Enums\AdmissionWaitlistStatus;
 use App\Enums\Feature;
+use App\Livewire\BoardingRollSheet;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
@@ -39,6 +40,7 @@ use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use PHPUnit\Framework\Attributes\DataProvider;
 use Tests\TestCase;
 
@@ -297,7 +299,7 @@ class CrossSchoolAccessTest extends TestCase
         $actor = $this->authorized_user(['read boarding', 'manage boarding']);
 
         $actor->get(route('boarding-rolls.show', $roll))->assertNotFound();
-        $actor->put(route('boarding-rolls.update', $roll), [])->assertForbidden();
+        Livewire::test(BoardingRollSheet::class, ['roll' => $roll])->assertNotFound();
     }
 
     public function test_a_shared_residence_of_another_organization_is_out_of_reach(): void
