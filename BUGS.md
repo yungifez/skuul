@@ -980,7 +980,7 @@
 - **Fix:** The menu is now the Livewire component `ManageAccountAccess`, behind a 44px ⋯ button. It sends, resends or revokes an invitation and suspends, archives or reinstates the account. Suspend, archive and revoke ask first. The profile shows one flat facts row: account, membership, joined, roles, invitation, and primary school. A missing value reads "—". The account status and invitation POST and DELETE routes, `AccountStatusController`, `ChangeAccountStatusRequest` and the `account-status-control` Blade component are removed.
 - **Tests:** `AccountStatusTest` and `AccountInvitationTest` drive the component, and `AdminTest` checks the flat profile.
 
-## Timetable publish and revise sent full page posts, and "New revision" ran unasked
+## Timetable publish and revise sent full page posts, and a clash left the page
 
 - **Where:** `/dashboard/timetables/{id}` and `/dashboard/timetables/{id}/manage`
 - **Problem:** Publish and New revision were small POST forms. Publish asked through a browser `onsubmit` confirm, and a clash sent the page back with the whole conflict list in a flash. The status was a badge beside the buttons. Neither route had a test.
