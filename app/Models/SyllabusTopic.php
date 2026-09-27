@@ -7,6 +7,7 @@ use Database\Factories\SyllabusTopicFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * One planned topic in a syllabus: what is taught, in which week, and why.
@@ -19,7 +20,7 @@ class SyllabusTopic extends Model
     use InAcademicPeriod;
 
     protected $fillable = [
-        'syllabus_id', 'week', 'position', 'title', 'objectives', 'content', 'resources',
+        'syllabus_id', 'copied_from_id', 'week', 'position', 'title', 'objectives', 'content', 'resources',
     ];
 
     protected $casts = [
@@ -35,6 +36,16 @@ class SyllabusTopic extends Model
     public function syllabus(): BelongsTo
     {
         return $this->belongsTo(Syllabus::class);
+    }
+
+    /**
+     * Get what each class was taught of this topic.
+     *
+     * @return HasMany<SyllabusTopicCoverage, $this>
+     */
+    public function coverages(): HasMany
+    {
+        return $this->hasMany(SyllabusTopicCoverage::class);
     }
 
     /**

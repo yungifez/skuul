@@ -7,6 +7,8 @@ use App\Enums\AuditAction;
 use App\Enums\SyllabusStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\Syllabus;
+use App\Models\SyllabusTopic;
+use App\Models\SyllabusTopicCoverage;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -35,6 +37,7 @@ class PublishSyllabus
                 }
 
                 $replaced->update(['status' => SyllabusStatus::Superseded]);
+                $this->carryCoverageForward($syllabus);
             }
 
             $syllabus->update(['status' => SyllabusStatus::Published, 'published_at' => now(), 'published_by' => $actor?->id]);
@@ -42,5 +45,21 @@ class PublishSyllabus
 
             return $syllabus;
         });
+    }
+
+    /**
+     * Move what classes were taught onto the matching topics of the new revision.
+     *
+     * A topic the revision dropped keeps its coverage on the superseded revision,
+     * so the history of what was taught is never lost.
+     */
+    private function carryCoverageForward(Syllabus $revision): void
+    {
+        $revision->topics()->whereNotNull('copied_from_id')->get(['id', 'copied_from_id'])
+            ->each(function (SyllabusTopic $topic): void {
+                SyllabusTopicCoverage::query()
+                    ->where('syllabus_topic_id', $topic->copied_from_id)
+                    ->update(['syllabus_topic_id' => $topic->id]);
+            });
     }
 }

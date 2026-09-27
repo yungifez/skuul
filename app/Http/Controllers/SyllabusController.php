@@ -94,6 +94,16 @@ class SyllabusController extends Controller
         return redirect()->route('syllabi.index')->with('success', 'Syllabus deleted.');
     }
 
+    /**
+     * Show every class's progress through its syllabus.
+     */
+    public function coverage(): View
+    {
+        $this->authorize('viewCoverage', Syllabus::class);
+
+        return view('pages.syllabus.coverage');
+    }
+
     public function revise(ReviseSyllabusRequest $request, Syllabus $syllabus): RedirectResponse
     {
         $revision = $this->reviseSyllabus->revise($syllabus, ['change_note' => $request->validated('change_note')], $request->user());

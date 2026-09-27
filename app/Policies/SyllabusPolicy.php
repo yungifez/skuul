@@ -76,6 +76,23 @@ class SyllabusPolicy
     }
 
     /**
+     * Determine whether the user can record what a class was taught.
+     */
+    public function recordCoverage(User $user, Syllabus $syllabus): bool
+    {
+        return $syllabus->status === SyllabusStatus::Published
+            && $this->update($user, $syllabus);
+    }
+
+    /**
+     * Determine whether the user can see coverage across every syllabus.
+     */
+    public function viewCoverage(User $user): bool
+    {
+        return $user->can('update syllabus') && !$user->isPortalOnly();
+    }
+
+    /**
      * Determine whether the user can restore the model.
      */
     public function restore(User $user, Syllabus $syllabus)

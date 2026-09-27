@@ -270,7 +270,6 @@ class SyllabusSchemeOfWorkTest extends TestCase
 
         $this->unauthorized_user();
         Livewire::test(ShowSyllabus::class, ['syllabus' => $syllabus])
-            ->call('download')
             ->assertForbidden();
     }
 

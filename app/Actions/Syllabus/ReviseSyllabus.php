@@ -44,9 +44,10 @@ class ReviseSyllabus
                 'revision_of_id' => $syllabus->id,
             ]);
 
-            $revision->topics()->createMany($syllabus->topics->map(fn (SyllabusTopic $topic): array => $topic->only([
-                'week', 'position', 'title', 'objectives', 'content', 'resources',
-            ]))->all());
+            $revision->topics()->createMany($syllabus->topics->map(fn (SyllabusTopic $topic): array => [
+                'copied_from_id' => $topic->id,
+                ...$topic->only(['week', 'position', 'title', 'objectives', 'content', 'resources']),
+            ])->all());
 
             $this->auditor->record(AuditAction::SyllabusRevised, $revision, ['revision_of_id' => $syllabus->id, 'revision' => $revision->revision, 'change_note' => $revision->change_note], $actor);
 

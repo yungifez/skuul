@@ -8,6 +8,9 @@
 @section('page_heading',  __('Syllabi'))
 
 @section('page_actions')
+    @can('viewCoverage', \App\Models\Syllabus::class)
+        <april:button-link href="{{ route('syllabi.coverage') }}" variant="outline">Coverage</april:button-link>
+    @endcan
     <x-resource-create-action :href="route('syllabi.create')" ability="create" :arguments="[\App\Models\Syllabus::class]">Add syllabus</x-resource-create-action>
 @endsection
 

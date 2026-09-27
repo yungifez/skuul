@@ -95,7 +95,12 @@
                     <ul class="space-y-3">
                         @foreach ($topics as $topic)
                             <li>
-                                <p class="font-medium">{{ $topic->title }}</p>
+                                <p class="font-medium">
+                                    {{ $topic->title }}
+                                    @if ($studentCoverage->has($topic->id))
+                                        <span class="ml-1 text-xs font-medium text-muted-foreground">· {{ $studentCoverage->get($topic->id)->status->label() }}</span>
+                                    @endif
+                                </p>
                                 @if ($topic->objectives)
                                     <p class="mt-1 whitespace-pre-line text-sm"><span class="font-medium">Objectives:</span> {{ $topic->objectives }}</p>
                                 @endif
@@ -114,4 +119,8 @@
             @endforelse
         </slot:content>
     </april:card>
+
+    @if ($showTracker)
+        @livewire('syllabus-coverage-tracker', ['syllabus' => $syllabus], key('coverage-'.$syllabus->id))
+    @endif
 </div>
