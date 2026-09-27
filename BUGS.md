@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A class added from school setup lost its way back, and a level with sections could become a group
+
+- Status: Fixed
+- Area: Academic structure / class levels
+- Observed: The school setup links to the add-class screen with `school_setup=1`, but the form posted only `setup` and `academic_year_id`, so a save landed on the "set up an academic year" step. Separately, the edit form let a level that already had sections, or subjects taught by section, be marked as a level group.
+- Impact: A new school was sent past the classes step during onboarding. A level turned into a group kept sections that groups may not have, which breaks section creation, rankings, and subject rosters for that level.
+- Reproduction: From school setup, add a class and save. Or give a level one section, edit the level, and tick "This is a level group".
+- Resolution: The Livewire `AcademicLevelForm` keeps the setup return path, and only a year of this school counts. It offers only this school's active groups as a parent and clears the parent when the level becomes a group. `UpdateAcademicLevel` refuses to make a group of a level that has sections or section-based subjects. The store and update routes and their requests are gone. `AcademicStructureScreenTest` and `CrossSchoolAccessTest` cover these paths.
+
 ## Rolling subjects into a new year skipped a section whose sibling already existed
 - Status: Fixed
 - Area: Course offerings / year rollover

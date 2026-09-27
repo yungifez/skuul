@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
 use App\Enums\Role;
+use App\Livewire\AcademicLevelForm;
 use App\Livewire\AcademicStructureStatusControl;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
@@ -15,6 +16,7 @@ use App\Models\SchoolOperatingProfile;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -121,10 +123,12 @@ class AcademicStructureScreenTest extends TestCase
             ->assertSee('Level group (optional)')
             ->assertDontSee('Local label (optional)');
 
-        $actor->put(route('academic-levels.update', $academicLevel), [
-            'name' => 'Grade 4',
-            'position' => 4,
-        ])->assertRedirect(route('academic-levels.show', $academicLevel));
+        Livewire::test(AcademicLevelForm::class, ['academicLevel' => $academicLevel])
+            ->set('name', ' Grade 4 ')
+            ->set('position', '4')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('academic-levels.show', $academicLevel));
 
         $this->assertSame('Grade 4', $academicLevel->fresh()->name);
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::AcademicLevelUpdated)->forSubject($academicLevel)->first());
@@ -132,7 +136,7 @@ class AcademicStructureScreenTest extends TestCase
 
     public function test_a_level_is_archived_only_when_no_section_of_it_still_runs(): void
     {
-        $actor = $this->authorized_user(['read class', 'update class']);
+        $this->authorized_user(['read class', 'update class']);
         $academicLevel = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id]);
         $section = AcademicCycleSection::factory()->create([
             'school_id' => $this->workingSchool()->id,
@@ -176,7 +180,123 @@ class AcademicStructureScreenTest extends TestCase
         $academicLevel = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id]);
 
         $actor->get(route('academic-levels.edit', $academicLevel))->assertForbidden();
-        $actor->put(route('academic-levels.update', $academicLevel), ['name' => 'Grade 4'])->assertForbidden();
+        $this->assertFalse(Route::has('academic-levels.update'));
+        $this->assertFalse(Route::has('academic-levels.store'));
+
+        Livewire::test(AcademicLevelForm::class, ['academicLevel' => $academicLevel])->assertForbidden();
+        Livewire::test(AcademicLevelForm::class)->assertForbidden();
+    }
+
+    public function test_a_level_added_from_school_setup_returns_to_the_classes_step(): void
+    {
+        $actor = $this->authorized_user(['read class', 'create class']);
+
+        $actor->get(route('academic-levels.create', ['setup' => 1, 'school_setup' => 1]))->assertOk()->assertSee('Create class');
+
+        Livewire::test(AcademicLevelForm::class, ['setup' => true, 'schoolSetup' => true])
+            ->set('name', 'Primary 4')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('schools.setup', [current_school(), 'classes']));
+
+        $this->assertTrue(AcademicLevel::inSchool()->where('name', 'Primary 4')->exists());
+    }
+
+    public function test_a_level_added_from_a_year_setup_returns_to_that_year_only_when_it_belongs_here(): void
+    {
+        $this->authorized_user(['read class', 'create class']);
+        $academicYear = AcademicYear::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $otherYear = AcademicYear::factory()->create(['school_id' => School::factory()->create()->id]);
+
+        Livewire::test(AcademicLevelForm::class, ['setup' => true, 'academicYearId' => $academicYear->id])
+            ->set('name', 'Primary 5')
+            ->call('save')
+            ->assertRedirect(route('academic-years.setup', [$academicYear, 'structure']));
+
+        Livewire::test(AcademicLevelForm::class, ['setup' => true, 'academicYearId' => $otherYear->id])
+            ->assertSet('academicYearId', null)
+            ->set('name', 'Primary 6')
+            ->call('save')
+            ->assertRedirect(route('schools.setup', [current_school(), 'academic-year']));
+    }
+
+    public function test_a_level_can_only_sit_under_a_listed_group_of_this_school(): void
+    {
+        $this->authorized_user(['read class', 'create class']);
+        $group = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id, 'is_group' => true, 'name' => 'Kindergarten']);
+        $plainLevel = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id, 'is_group' => false]);
+        $foreignGroup = AcademicLevel::factory()->create(['school_id' => School::factory()->create()->id, 'is_group' => true]);
+
+        foreach ([$plainLevel, $foreignGroup] as $wrongParent) {
+            Livewire::test(AcademicLevelForm::class)
+                ->set('name', 'KG 1')
+                ->set('parentId', (string) $wrongParent->id)
+                ->call('save')
+                ->assertHasErrors(['parentId' => 'in']);
+        }
+
+        Livewire::test(AcademicLevelForm::class, ['preselectedParentId' => $group->id])
+            ->assertSet('parentId', (string) $group->id)
+            ->set('name', 'KG 1')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame($group->id, AcademicLevel::inSchool()->where('name', 'KG 1')->value('parent_id'));
+    }
+
+    public function test_choosing_a_group_clears_the_group_above_it(): void
+    {
+        $this->authorized_user(['read class', 'create class']);
+        $group = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id, 'is_group' => true]);
+
+        Livewire::test(AcademicLevelForm::class)
+            ->set('name', 'Lower school')
+            ->set('parentId', (string) $group->id)
+            ->set('isGroup', true)
+            ->assertSet('parentId', '')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $created = AcademicLevel::inSchool()->where('name', 'Lower school')->firstOrFail();
+        $this->assertTrue($created->is_group);
+        $this->assertNull($created->parent_id);
+    }
+
+    public function test_a_level_with_sections_cannot_become_a_group(): void
+    {
+        $this->authorized_user(['read class', 'update class']);
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id, 'is_group' => false]);
+        AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_level_id' => $academicLevel->id,
+        ]);
+
+        Livewire::test(AcademicLevelForm::class, ['academicLevel' => $academicLevel])
+            ->set('isGroup', true)
+            ->call('save')
+            ->assertHasErrors('isGroup')
+            ->assertNoRedirect();
+
+        $this->assertFalse($academicLevel->fresh()->is_group);
+    }
+
+    public function test_a_repeated_level_name_or_code_reads_as_a_message(): void
+    {
+        $this->authorized_user(['read class', 'create class']);
+        AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id, 'name' => 'Primary 4', 'code' => 'P4']);
+        AcademicLevel::factory()->create(['school_id' => School::factory()->create()->id, 'name' => 'Primary 5', 'code' => 'P5']);
+
+        Livewire::test(AcademicLevelForm::class)
+            ->set('name', 'Primary 4')
+            ->set('code', 'P4')
+            ->call('save')
+            ->assertHasErrors(['name' => 'unique', 'code' => 'unique']);
+
+        Livewire::test(AcademicLevelForm::class)
+            ->set('name', 'Primary 5')
+            ->set('code', 'P5')
+            ->call('save')
+            ->assertHasNoErrors();
     }
 
     public function test_the_cycle_section_index_defaults_to_the_cycle_being_worked_in(): void

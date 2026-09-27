@@ -2,25 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Curriculum\CreateAcademicLevel;
-use App\Actions\Curriculum\UpdateAcademicLevel;
 use App\Enums\AcademicStructureStatus;
-use App\Http\Requests\StoreAcademicLevelRequest;
-use App\Http\Requests\UpdateAcademicLevelRequest;
 use App\Models\AcademicLevel;
-use App\Models\AcademicYear;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class AcademicLevelController extends Controller
 {
-    public function __construct(
-        private CreateAcademicLevel $createAcademicLevel,
-        private UpdateAcademicLevel $updateAcademicLevel,
-    ) {
+    public function __construct()
+    {
         $this->authorizeResource(AcademicLevel::class, 'academicLevel');
     }
 
@@ -54,44 +46,7 @@ class AcademicLevelController extends Controller
                 ->find($request->integer('parent_id'))
             : null;
 
-        return view('pages.academic-level.create', $this->formOptions() + compact('preselectedParent'));
-    }
-
-    public function store(StoreAcademicLevelRequest $request): RedirectResponse
-    {
-        $data = $request->validated();
-
-        $academicLevel = $this->createAcademicLevel->create(
-            $data['name'],
-            $data['code'] ?? null,
-            $this->parentFrom($data['parent_id'] ?? null),
-            $data['position'] ?? 0,
-            $request->user(),
-            $request->boolean('is_group'),
-        );
-
-        if ($request->boolean('setup')) {
-            if ($request->boolean('school_setup')) {
-                return to_route('schools.setup', [current_school(), 'classes'])
-                    ->with('success', 'Class created. Review it and create this year’s sections.');
-            }
-
-            $academicYearId = $request->integer('academic_year_id');
-
-            if ($academicYearId > 0) {
-                $academicYear = AcademicYear::inSchool()->findOrFail($academicYearId);
-
-                return to_route('academic-years.setup', [$academicYear, 'structure'])
-                    ->with('success', 'Class created. Continue by building this year’s classes.');
-            }
-
-            return to_route('schools.setup', [current_school(), 'academic-year'])
-                ->with('success', 'Class created. Continue by setting up an academic year.');
-        }
-
-        return redirect()
-            ->route('academic-levels.show', $academicLevel)
-            ->with('success', 'Academic level created. Add a cycle section to use it in a cycle.');
+        return view('pages.academic-level.create', compact('preselectedParent'));
     }
 
     public function show(AcademicLevel $academicLevel): View
@@ -119,52 +74,7 @@ class AcademicLevelController extends Controller
                 ->with('danger', 'An archived academic level cannot be edited.');
         }
 
-        return view('pages.academic-level.edit', $this->formOptions($academicLevel) + compact('academicLevel'));
-    }
-
-    public function update(UpdateAcademicLevelRequest $request, AcademicLevel $academicLevel): RedirectResponse
-    {
-        $data = $request->validated();
-
-        $this->updateAcademicLevel->update(
-            $academicLevel,
-            $data,
-            $this->parentFrom($data['parent_id'] ?? null),
-            $request->user(),
-        );
-
-        return redirect()
-            ->route('academic-levels.show', $academicLevel)
-            ->with('success', 'Academic level updated.');
-    }
-
-    /**
-     * Read the level list a form can choose from.
-     *
-     * @return array{academicLevels: Collection<int, AcademicLevel>}
-     */
-    private function formOptions(?AcademicLevel $except = null): array
-    {
-        $academicLevels = AcademicLevel::inSchool()
-            ->where('status', AcademicStructureStatus::Active)
-            ->where(function (Builder $query) use ($except): void {
-                $query->where('is_group', true);
-
-                if ($except?->parent_id !== null) {
-                    $query->orWhereKey($except->parent_id);
-                }
-            })
-            ->when($except !== null, fn (Builder $query) => $query->whereKeyNot($except->id))
-            ->orderBy('position')
-            ->orderBy('name')
-            ->get(['id', 'name']);
-
-        return compact('academicLevels');
-    }
-
-    private function parentFrom(int|string|null $parentId): ?AcademicLevel
-    {
-        return $parentId === null ? null : AcademicLevel::inSchool()->findOrFail($parentId);
+        return view('pages.academic-level.edit', compact('academicLevel'));
     }
 
     private function readStatus(Request $request): ?AcademicStructureStatus

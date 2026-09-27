@@ -32,12 +32,11 @@
                     Adding a level under <span class="font-semibold">{{ $preselectedParent->name }}</span>. You can change the level group below.
                 </div>
             @endif
-            <x-academic-level-form
-                :action="route('academic-levels.store', request()->boolean('setup') ? array_filter(['setup' => 1, 'academic_year_id' => request('academic_year_id')]) : [])"
-                :academic-levels="$academicLevels"
-                :preselected-parent-id="$preselectedParent?->id"
-                submit-label="Create class"
-                :cancel-href="route('academic-levels.index')" />
+            <livewire:academic-level-form
+                :setup="request()->boolean('setup')"
+                :school-setup="request()->boolean('school_setup')"
+                :academic-year-id="request()->integer('academic_year_id') ?: null"
+                :preselected-parent-id="$preselectedParent?->id" />
         </slot:content>
     </april:card>
 @endsection

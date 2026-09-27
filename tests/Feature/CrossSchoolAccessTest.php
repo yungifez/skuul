@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\School\GrantSchoolMembership;
 use App\Enums\AdmissionWaitlistStatus;
 use App\Enums\Feature;
+use App\Livewire\AcademicLevelForm;
 use App\Livewire\BoardingRollSheet;
 use App\Livewire\EditCustomTimetableItemForm;
 use App\Livewire\EditExamForm;
@@ -185,7 +186,17 @@ class CrossSchoolAccessTest extends TestCase
 
         $actor->get($this->uriFor($uri, $key))->assertForbidden();
         $actor->get($this->uriFor($uri, $key).'/edit')->assertForbidden();
-        $actor->put($this->uriFor($uri, $key), [])->assertForbidden();
+
+        if ($key !== 'academicLevel') {
+            $actor->put($this->uriFor($uri, $key), [])->assertForbidden();
+        }
+    }
+
+    public function test_an_academic_level_of_another_school_cannot_be_changed_through_its_form(): void
+    {
+        $this->actAsFullyPermittedUser(['class']);
+
+        Livewire::test(AcademicLevelForm::class, ['academicLevel' => $this->records['academicLevel']])->assertForbidden();
     }
 
     public function test_an_academic_period_of_another_school_is_out_of_reach(): void

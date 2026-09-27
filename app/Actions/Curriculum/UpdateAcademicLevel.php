@@ -5,8 +5,10 @@ namespace App\Actions\Curriculum;
 use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
+use App\Enums\RosterMode;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicLevel;
+use App\Models\CourseOffering;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -93,6 +95,17 @@ class UpdateAcademicLevel
     ): void {
         if ($isGroup && $parent !== null) {
             throw new InvalidValueException('A level group must be a top-level group without a parent.');
+        }
+
+        if ($isGroup && !$academicLevel->is_group && $academicLevel->cycleSections()->exists()) {
+            throw new InvalidValueException('This level has sections, so it cannot become a level group.');
+        }
+
+        if ($isGroup && !$academicLevel->is_group && CourseOffering::query()
+            ->whereBelongsTo($academicLevel)
+            ->where('roster_mode', '!=', RosterMode::AcademicLevel)
+            ->exists()) {
+            throw new InvalidValueException('This level has subjects taught by section or to named learners, so it cannot become a level group.');
         }
 
         if (!$isGroup && $academicLevel->children()->exists()) {

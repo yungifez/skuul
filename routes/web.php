@@ -184,7 +184,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         // one academic cycle and one level.
         Route::resource('academic-levels', AcademicLevelController::class)
             ->parameters(['academic-levels' => 'academicLevel'])
-            ->only(['index', 'create', 'store', 'show', 'edit', 'update']);
+            ->only(['index', 'create', 'show', 'edit']);
 
         // The roll-forward review page is registered before the resource so
         // "roll-forward" is not read as a cycle section key.

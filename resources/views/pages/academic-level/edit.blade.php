@@ -15,13 +15,7 @@
             A change here renames the {{ strtolower(school_term('class_level', 'class')) }} everywhere it is read. It never moves a learner, a result, or a {{ strtolower(school_term('section', 'section')) }} between school years.
         </slot:description>
         <slot:content>
-            <x-academic-level-form
-                :action="route('academic-levels.update', $academicLevel)"
-                method="PUT"
-                :academic-level="$academicLevel"
-                :academic-levels="$academicLevels"
-                submit-label="Save changes"
-                :cancel-href="route('academic-levels.show', $academicLevel)" />
+            <livewire:academic-level-form :academic-level="$academicLevel" />
         </slot:content>
     </april:card>
 @endsection
