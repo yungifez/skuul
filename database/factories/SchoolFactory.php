@@ -7,6 +7,9 @@ use App\Models\Organization;
 use App\Models\School;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
+/**
+ * @extends Factory<School>
+ */
 class SchoolFactory extends Factory
 {
     public function configure(): static

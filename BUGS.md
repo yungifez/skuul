@@ -1,5 +1,14 @@
 # Known Bugs
 
+## An open tab kept writing after a feature was turned off or the school was switched
+
+- Status: Fixed
+- Area: Livewire screens, school features, and working school
+- Observed: Feature switches and the active-school check ran only on page addresses. A Livewire screen already open in a tab sent its actions to the Livewire endpoint, which skipped both. A person who worked at two schools could open a form in school A, switch to school B in another tab, and save. The record went into school B.
+- Impact: A school that turned off events, boarding, library or another feature could still get records through an open tab. A person with two schools could file a record in the wrong school without any sign of it.
+- Reproduction: Open `Add a day` on the calendar. Turn events off, or switch the working school in a second tab. Press save in the first tab.
+- Resolution: `EnsureFeatureIsEnabled` and `RequireActiveSchool` now run as Livewire persistent middleware, so each action obeys the rules of the page it came from. Each component also remembers the school it was drawn for. An action from another school gets a 409 page that tells the person to reload. `StaleLivewireTabTest` covers the three paths.
+
 ## Academic levels were too dense on mobile
 
 - Status: Fixed

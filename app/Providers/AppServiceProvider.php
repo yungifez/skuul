@@ -9,6 +9,8 @@ use App\Actions\Jetstream\DeleteUser;
 use App\Enums\OrganizationPermission;
 use App\Enums\PlatformPermission;
 use App\Events\AccountStatusChanged;
+use App\Http\Middleware\EnsureFeatureIsEnabled;
+use App\Http\Middleware\RequireActiveSchool;
 use App\Listeners\RecordAccountStatusChange;
 use App\Listeners\RecordPermissionChanges;
 use App\Services\Academic\AcademicPeriodContext;
@@ -30,6 +32,11 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Fortify\Fortify;
 use Laravel\Jetstream\Jetstream;
+use Livewire\Component;
+use Livewire\Livewire;
+use Livewire\Mechanisms\HandleComponents\ComponentContext;
+
+use function Livewire\on;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -105,5 +112,34 @@ class AppServiceProvider extends ServiceProvider
         Jetstream::defaultApiTokenPermissions(['read']);
         Jetstream::permissions(['create', 'read', 'update', 'delete']);
         Jetstream::deleteUsersUsing(DeleteUser::class);
+
+        $this->keepLivewireInsideItsSchool();
+    }
+
+    /**
+     * Hold every Livewire request to the rules of the page it came from.
+     *
+     * A screen left open in a tab keeps talking to the server. It must stop
+     * when the school turns its feature off, and it must never write into
+     * another school after the person switched school in another tab.
+     */
+    private function keepLivewireInsideItsSchool(): void
+    {
+        Livewire::addPersistentMiddleware([
+            EnsureFeatureIsEnabled::class,
+            RequireActiveSchool::class,
+        ]);
+
+        on('dehydrate', function (Component $component, ComponentContext $context): void {
+            $context->addMemo('school', current_school_id());
+        });
+
+        on('hydrate', function (Component $component, array $memo): void {
+            abort_if(
+                array_key_exists('school', $memo) && $memo['school'] !== current_school_id(),
+                409,
+                'You switched school in another tab. Reload this page to work in the school you chose.',
+            );
+        });
     }
 }
