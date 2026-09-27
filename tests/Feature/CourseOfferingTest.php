@@ -14,6 +14,7 @@ use App\Enums\Role;
 use App\Enums\RosterMode;
 use App\Enums\TeachingRole;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\CourseOfferingDirectory;
 use App\Livewire\CreateCourseOffering as CreateCourseOfferingForm;
 use App\Livewire\SetUpSubjectAcrossLevels;
 use App\Models\AcademicCycleSection;
@@ -31,6 +32,7 @@ use App\Models\TeachingAssignment;
 use App\Models\User;
 use App\Policies\CourseOfferingPolicy;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -226,6 +228,131 @@ class CourseOfferingTest extends TestCase
         ]);
 
         $this->get(route('course-offerings.index'))->assertOk()->assertSee($subject->name);
+    }
+
+    public function test_a_draft_subject_is_activated_from_the_list(): void
+    {
+        $this->authorized_user(['read subject', 'update subject']);
+        [$subject, $academicYear, $academicPeriod, $academicLevel] = $this->courseContext();
+        $courseOffering = app(CreateCourseOffering::class)->create($subject, $academicYear, $academicPeriod, $academicLevel, [], RosterMode::AcademicLevel);
+
+        $this->get(route('course-offerings.index'))->assertOk()->assertSeeLivewire(CourseOfferingDirectory::class);
+
+        Livewire::test(CourseOfferingDirectory::class)
+            ->assertSee($subject->name)
+            ->call('activate', $courseOffering->id)
+            ->assertDispatched('status-message', type: 'success');
+
+        $this->assertSame(CourseOfferingStatus::Active, $courseOffering->fresh()->status);
+    }
+
+    public function test_a_refused_activation_stays_on_the_list_and_says_why(): void
+    {
+        $this->authorized_user(['read subject', 'update subject']);
+        [$subject, $academicYear, $academicPeriod, $academicLevel] = $this->courseContext(AcademicPeriodStatus::Scheduled);
+        $courseOffering = app(CreateCourseOffering::class)->create($subject, $academicYear, $academicPeriod, $academicLevel, [], RosterMode::AcademicLevel);
+
+        Livewire::test(CourseOfferingDirectory::class)
+            ->call('activate', $courseOffering->id)
+            ->assertDispatched('status-message', type: 'danger');
+
+        $this->assertSame(CourseOfferingStatus::Draft, $courseOffering->fresh()->status);
+    }
+
+    public function test_a_teacher_is_added_from_the_list(): void
+    {
+        $this->authorized_user(['read subject', 'update subject']);
+        [$subject, $academicYear, $academicPeriod, $academicLevel] = $this->courseContext();
+        $courseOffering = app(CreateCourseOffering::class)->create($subject, $academicYear, $academicPeriod, $academicLevel, [], RosterMode::AcademicLevel);
+        $teacher = $this->memberOf($this->workingSchool());
+        $teacher->assignRole(Role::Teacher->value);
+
+        Livewire::test(CourseOfferingDirectory::class)
+            ->call('startAssigning', $courseOffering->id)
+            ->assertSee($teacher->name)
+            ->call('assignTeacher')
+            ->assertHasErrors(['teacherId' => 'required'])
+            ->set('teacherId', (string) $teacher->id)
+            ->set('role', TeachingRole::Supporting->value)
+            ->call('assignTeacher')
+            ->assertHasNoErrors()
+            ->assertSet('assigningId', null);
+
+        $this->assertTrue(TeachingAssignment::query()
+            ->where('course_offering_id', $courseOffering->id)
+            ->where('user_id', $teacher->id)
+            ->where('role', TeachingRole::Supporting)
+            ->exists());
+    }
+
+    public function test_the_list_refuses_a_person_who_is_not_a_teacher_here(): void
+    {
+        $this->authorized_user(['read subject', 'update subject']);
+        [$subject, $academicYear, $academicPeriod, $academicLevel] = $this->courseContext();
+        $courseOffering = app(CreateCourseOffering::class)->create($subject, $academicYear, $academicPeriod, $academicLevel, [], RosterMode::AcademicLevel);
+        $otherSchool = School::factory()->create();
+        $stranger = $this->memberOf($otherSchool);
+        school_context()->set($otherSchool, remember: false);
+        $stranger->assignRole(Role::Teacher->value);
+        school_context()->set($this->workingSchool(), remember: false);
+
+        Livewire::test(CourseOfferingDirectory::class)
+            ->call('startAssigning', $courseOffering->id)
+            ->set('teacherId', (string) $stranger->id)
+            ->call('assignTeacher')
+            ->assertHasErrors('teacherId');
+
+        $this->assertSame(0, TeachingAssignment::query()->where('course_offering_id', $courseOffering->id)->count());
+    }
+
+    public function test_a_reader_cannot_change_a_subject_from_the_list(): void
+    {
+        $this->authorized_user(['read subject']);
+        [$subject, $academicYear, $academicPeriod, $academicLevel] = $this->courseContext();
+        $courseOffering = app(CreateCourseOffering::class)->create($subject, $academicYear, $academicPeriod, $academicLevel, [], RosterMode::AcademicLevel);
+
+        Livewire::test(CourseOfferingDirectory::class)
+            ->assertSee($subject->name)
+            ->assertDontSee('Activate')
+            ->call('activate', $courseOffering->id)
+            ->assertForbidden();
+
+        $this->assertSame(CourseOfferingStatus::Draft, $courseOffering->fresh()->status);
+    }
+
+    public function test_the_list_cannot_touch_another_schools_subject(): void
+    {
+        $otherSchool = School::factory()->create();
+        [$subject, $academicYear, $academicPeriod, $academicLevel] = $this->courseContext(school: $otherSchool);
+        $foreign = CourseOffering::factory()->create([
+            'school_id' => $otherSchool->id,
+            'academic_year_id' => $academicYear->id,
+            'academic_period_id' => $academicPeriod->id,
+            'academic_level_id' => $academicLevel->id,
+            'subject_id' => $subject->id,
+        ]);
+        $this->authorized_user(['read subject', 'update subject']);
+
+        $directory = Livewire::test(CourseOfferingDirectory::class)->assertDontSee($subject->name);
+
+        $this->assertThrows(fn () => $directory->call('activate', $foreign->id), ModelNotFoundException::class);
+        $this->assertThrows(fn () => $directory->call('startAssigning', $foreign->id), ModelNotFoundException::class);
+
+        $this->assertSame(CourseOfferingStatus::Draft, $foreign->fresh()->status);
+    }
+
+    public function test_the_list_filters_by_subject(): void
+    {
+        $this->authorized_user(['read subject']);
+        [$subject, $academicYear, $academicPeriod, $academicLevel] = $this->courseContext();
+        app(CreateCourseOffering::class)->create($subject, $academicYear, $academicPeriod, $academicLevel, [], RosterMode::AcademicLevel);
+        $other = Subject::factory()->create(['school_id' => $this->workingSchool()->id, 'name' => 'Zz Other Subject']);
+        app(CreateCourseOffering::class)->create($other, $academicYear, $academicPeriod, $academicLevel, [], RosterMode::AcademicLevel);
+
+        Livewire::withQueryParams(['subject_id' => $subject->id])
+            ->test(CourseOfferingDirectory::class)
+            ->assertSee($subject->name)
+            ->assertDontSee('Zz Other Subject</a>', false);
     }
 
     public function test_the_bulk_setup_page_opens_on_the_year_in_the_link(): void

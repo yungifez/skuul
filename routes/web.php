@@ -376,8 +376,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::resource('course-offerings', CourseOfferingController::class)
                 ->only(['index', 'create', 'edit', 'update'])
                 ->parameters(['course-offerings' => 'courseOffering']);
-            Route::post('course-offerings/{courseOffering}/activate', ['App\Http\Controllers\CourseOfferingController', 'activate'])->name('course-offerings.activate');
-            Route::post('course-offerings/{courseOffering}/teachers', ['App\Http\Controllers\CourseOfferingController', 'assignTeacher'])->name('course-offerings.teachers.store');
             Route::get('course-offerings/{courseOffering}/gradebook', [GradebookController::class, 'show'])->name('course-offerings.gradebook.show');
             Route::post('course-offerings/{courseOffering}/gradebook/templates', [GradebookController::class, 'storeAssessmentTemplate'])->name('course-offerings.gradebook.templates.store');
             Route::post('course-offerings/{courseOffering}/gradebook/templates/apply', [GradebookController::class, 'applyAssessmentTemplate'])->name('course-offerings.gradebook.templates.apply');
@@ -464,6 +462,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                     Route::put('library/rules', [LibraryLendingRulesController::class, 'update'])->name('library-rules.update');
                 });
 
+                Route::get('syllabi/coverage', [SyllabusController::class, 'coverage'])->name('syllabi.coverage');
                 Route::post('syllabi/{syllabus}/revise', [SyllabusController::class, 'revise'])->name('syllabi.revise');
                 Route::post('syllabi/{syllabus}/publish', [SyllabusController::class, 'publish'])->name('syllabi.publish');
                 Route::resource('syllabi', SyllabusController::class);

@@ -2,26 +2,17 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Curriculum\AssignTeacher;
-use App\Actions\Curriculum\ChangeCourseOfferingStatus;
 use App\Actions\Curriculum\RollForwardCourseOfferings;
 use App\Actions\Curriculum\UpdateCourseOfferingRoster;
 use App\Enums\AcademicStructureStatus;
-use App\Enums\CourseOfferingStatus;
-use App\Enums\Role;
 use App\Enums\RosterMode;
-use App\Enums\TeachingRole;
 use App\Exceptions\InvalidValueException;
-use App\Http\Requests\AssignTeacherToCourseOfferingRequest;
-use App\Http\Requests\ChangeCourseOfferingStatusRequest;
 use App\Http\Requests\RollForwardCourseOfferingsRequest;
 use App\Http\Requests\UpdateCourseOfferingRosterRequest;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicYear;
 use App\Models\CourseOffering;
 use App\Models\StudentRecord;
-use App\Models\Subject;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -30,8 +21,6 @@ use Illuminate\View\View;
 class CourseOfferingController extends Controller
 {
     public function __construct(
-        private ChangeCourseOfferingStatus $changeCourseOfferingStatus,
-        private AssignTeacher $assignTeacher,
         private RollForwardCourseOfferings $rollForwardCourseOfferings,
         private UpdateCourseOfferingRoster $updateCourseOfferingRoster,
     ) {
@@ -40,27 +29,7 @@ class CourseOfferingController extends Controller
 
     public function index(): View
     {
-        $academicYearId = request()->integer('academic_year_id');
-        $subjectId = request()->integer('subject_id');
-        $courseOfferingsQuery = CourseOffering::inSchool()
-            ->with([
-                'academicLevel:id,name',
-                'academicPeriod:id,name,label',
-                'academicYear:id,start_year,stop_year',
-                'cycleSections:id,name,label',
-                'studentRecords.user:id,name',
-                'subject:id,name,short_name',
-                'teachingAssignments.teacher:id,name',
-            ])
-            ->when($academicYearId > 0, fn (Builder $query): Builder => $query->where('academic_year_id', $academicYearId))
-            ->when($subjectId > 0, fn (Builder $query): Builder => $query->where('subject_id', $subjectId))
-            ->latest();
-        $courseOfferings = $courseOfferingsQuery->paginate(25)->withQueryString();
-        $teachers = User::ofSchool()->role(Role::Teacher->value)->get(['users.id', 'users.name']);
-        $selectedAcademicYear = AcademicYear::inSchool()->find($academicYearId);
-        $selectedSubject = Subject::inSchool()->find($subjectId);
-
-        return view('pages.course-offering.index', compact('courseOfferings', 'selectedAcademicYear', 'selectedSubject', 'teachers'));
+        return view('pages.course-offering.index');
     }
 
     public function create(): View
@@ -201,27 +170,5 @@ class CourseOfferingController extends Controller
         }
 
         return to_route('course-offerings.index')->with('success', 'Roster updated.');
-    }
-
-    public function activate(ChangeCourseOfferingStatusRequest $request, CourseOffering $courseOffering): RedirectResponse
-    {
-        $this->changeCourseOfferingStatus->change($courseOffering, CourseOfferingStatus::Active, $request->user());
-
-        return back()->with('success', 'Course offering activated.');
-    }
-
-    public function assignTeacher(AssignTeacherToCourseOfferingRequest $request, CourseOffering $courseOffering): RedirectResponse
-    {
-        $data = $request->validated();
-        $teacher = User::ofSchool()->findOrFail($data['teacher_id']);
-
-        $this->assignTeacher->assign(
-            $courseOffering,
-            $teacher,
-            TeachingRole::from($data['role']),
-            actor: $request->user(),
-        );
-
-        return back()->with('success', 'Teacher assigned to the course offering.');
     }
 }
