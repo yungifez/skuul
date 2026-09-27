@@ -4,9 +4,13 @@ namespace Tests\Feature;
 
 use App\Livewire\CreateExamSlotForm;
 use App\Livewire\EditExamSlotForm;
+use App\Livewire\ListExamSlotsTable;
+use App\Models\AcademicPeriod;
 use App\Models\Exam;
 use App\Models\ExamSlot;
+use App\Models\School;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -167,7 +171,12 @@ class ExamSlotTest extends TestCase
             ->get(route('exam-slots.edit', [$otherExam, $examSlot]))
             ->assertNotFound();
 
-        $this->delete(route('exam-slots.destroy', [$otherExam, $examSlot]))->assertNotFound();
+        try {
+            Livewire::test(ListExamSlotsTable::class, ['exam' => $otherExam])->call('deleteSlot', $examSlot->id);
+            $this->fail('A slot of another exam was reached.');
+        } catch (ModelNotFoundException) {
+        }
+
         $this->assertModelExists($examSlot);
     }
 
@@ -176,9 +185,13 @@ class ExamSlotTest extends TestCase
     public function test_unauthorized_user_cant_delete_exam_slot()
     {
         $examSlot = ExamSlot::factory()->create();
-        $this->unauthorized_user()
-            ->delete("/dashboard/exams/{$examSlot->exam->id}/manage/exam-slots/$examSlot->id")
-            ->assertForbidden() && $this->assertModelExists($examSlot);
+        $this->authorized_user(['read exam slot']);
+
+        Livewire::test(ListExamSlotsTable::class, ['exam' => $examSlot->exam])
+            ->call('deleteSlot', $examSlot->id)
+            ->assertForbidden();
+
+        $this->assertModelExists($examSlot);
     }
 
     // test authorized user can delete exam slot
@@ -186,9 +199,30 @@ class ExamSlotTest extends TestCase
     public function test_authorized_user_can_delete_exam_slot()
     {
         $examSlot = ExamSlot::factory()->create();
-        $this->authorized_user(['delete exam slot'])
-            ->delete("/dashboard/exams/{$examSlot->exam->id}/manage/exam-slots/$examSlot->id");
+        $this->authorized_user(['read exam slot', 'delete exam slot']);
+
+        Livewire::test(ListExamSlotsTable::class, ['exam' => $examSlot->exam])
+            ->call('deleteSlot', $examSlot->id)
+            ->assertDispatched('status-message', type: 'success');
 
         $this->assertModelMissing($examSlot);
+    }
+
+    public function test_another_schools_exam_slot_cannot_be_deleted()
+    {
+        $otherSchool = School::factory()->create();
+        $theirExam = Exam::factory()->create([
+            'academic_period_id' => AcademicPeriod::factory()->create(['school_id' => $otherSchool->id])->id,
+        ]);
+        $theirs = ExamSlot::factory()->create(['exam_id' => $theirExam->id]);
+        $this->authorized_user(['read exam slot', 'delete exam slot']);
+
+        try {
+            Livewire::test(ListExamSlotsTable::class, ['exam' => $theirExam])->call('deleteSlot', $theirs->id);
+            $this->fail('Another school\'s exam slot was reached.');
+        } catch (ModelNotFoundException) {
+        }
+
+        $this->assertModelExists($theirs);
     }
 }

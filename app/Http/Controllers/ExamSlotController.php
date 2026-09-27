@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Exam;
 use App\Models\ExamSlot;
 use App\Services\Exam\ExamSlotService;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
 
@@ -53,17 +52,5 @@ class ExamSlotController extends Controller
         abort_unless($examSlot->exam_id === $exam->id, 404);
 
         return view('pages.exam.exam-slot.edit', compact('examSlot', 'exam'));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Exam $exam, ExamSlot $examSlot): RedirectResponse
-    {
-        abort_unless($examSlot->exam_id === $exam->id, 404);
-
-        $this->examSlot->deleteExamSlot($examSlot);
-
-        return back()->with('success', 'Exam Slot Deleted Successfully');
     }
 }

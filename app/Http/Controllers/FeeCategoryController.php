@@ -74,14 +74,4 @@ class FeeCategoryController extends Controller
 
         return back()->with('success', 'Fee Category Updated Successfully');
     }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(FeeCategory $feeCategory): RedirectResponse
-    {
-        $this->feeCategoryService->deleteFeeCategory($feeCategory);
-
-        return back()->with('success', 'Fee Category Deleted Successfully');
-    }
 }

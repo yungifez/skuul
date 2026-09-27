@@ -299,9 +299,9 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         // Exam planning names its own calendar, so it can be prepared for a
         // draft year before that year becomes the working calendar.
         Route::post('exams/{exam}/set--active-status', ['App\Http\Controllers\ExamController', 'setExamActiveStatus'])->name('exams.set-active-status');
-        Route::resource('exams', ExamController::class)->except(['store', 'update']);
+        Route::resource('exams', ExamController::class)->except(['store', 'update', 'destroy']);
         Route::scopeBindings()->group(function () {
-            Route::resource('exams/{exam}/manage/exam-slots', ExamSlotController::class)->except(['store', 'update']);
+            Route::resource('exams/{exam}/manage/exam-slots', ExamSlotController::class)->except(['store', 'update', 'destroy']);
         });
 
         Route::middleware(['App\Http\Middleware\EnsureAcademicYearIsSet', 'App\Http\Middleware\CreateCurrentAcademicYearRecord'])->group(function () {
@@ -340,16 +340,16 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             // Finance records use financial periods, not the staff member's
             // current teaching term. A school can read and post finance while
             // the academic period is being prepared or changed.
-            Route::resource('fees/fee-categories', FeeCategoryController::class);
+            Route::resource('fees/fee-categories', FeeCategoryController::class)->except(['destroy']);
             Route::resource('fees/expenses', ExpenseController::class)->only(['index', 'create']);
             Route::resource('fees/cash-deposits', CashDepositController::class)->only(['index', 'create']);
             Route::get('fees/accounts/{student_record}', [StudentAccountController::class, 'show'])->name('student-accounts.show');
             Route::get('fees/payments/{student_payment}/receipt', [StudentPaymentController::class, 'print'])->name('student-payments.receipt');
             Route::get('fees/fee-invoices/{fee_invoice}/pay', [FeeInvoiceController::class, 'payView'])->name('fee-invoices.pay');
             Route::get('fees/fee-invoices/{fee_invoice}/print', [FeeInvoiceController::class, 'print'])->name('fee-invoices.print');
-            Route::resource('fees/fee-invoices', FeeInvoiceController::class)->except(['store', 'update']);
+            Route::resource('fees/fee-invoices', FeeInvoiceController::class)->except(['store', 'update', 'destroy']);
             Route::get('fees/budgets', [BudgetController::class, 'index'])->name('budgets.index');
-            Route::resource('fees', FeeController::class);
+            Route::resource('fees', FeeController::class)->except(['destroy']);
 
             Route::middleware(['App\Http\Middleware\EnsureAcademicPeriodIsSet'])->group(function () {
                 // shared facility routes
@@ -417,9 +417,9 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::get('academic-years/{academic_year}/instructional-model', ['App\Http\Controllers\InstructionalModelController', 'edit'])->name('academic-years.instructional-model.edit');
 
         // subject routes
-        Route::resource('subjects', SubjectController::class);
+        Route::resource('subjects', SubjectController::class)->except(['store', 'update', 'destroy']);
 
         // notice routes
-        Route::resource('notices', NoticeController::class)->except(['store']);
+        Route::resource('notices', NoticeController::class)->only(['index', 'create', 'show']);
     });
 });

@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Seven more tables deleted rows through a full page reload
+
+- Status: Fixed
+- Area: Subjects, notices, fees, fee categories, fee invoices, exams (list and academic-year page), exam slots
+- Observed: Each row's delete posted a classic form. The page reloaded and dropped the table's search, sort, and page. Unused store, update, and edit routes for subjects and notices were still open.
+- Impact: After each delete, the person had to find their place again. The unused routes were extra surface that no screen used or tested through the UI.
+- Reproduction: Search the fees table, go to page 2, and delete a fee.
+- Resolution: Each table now deletes through a Livewire method. The method finds the record inside the working school, checks the policy, and shows a refusal as a message. The delete routes, the subject store and update routes, the notice edit and update routes, and `UpdateNoticeRequest` are removed. `CrossSchoolAccessTest` now checks that these records have no delete route left.
+
 ## Table row buttons were 32px and deleted through a page reload
 
 - Status: Fixed

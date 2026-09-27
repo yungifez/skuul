@@ -4,8 +4,10 @@ namespace App\Livewire;
 
 use App\Livewire\Concerns\InteractsWithAprilTable;
 use App\Models\Exam;
+use App\Services\Exam\ExamService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Yungifez\AprilUI\Livewire\Columns\Column;
 use Yungifez\AprilUI\Livewire\DataTableComponent;
@@ -35,10 +37,20 @@ class ListExamsTable extends DataTableComponent
             $row['stop_date_label'] = $exam->stop_date->format('M j, Y');
             $row['active_label'] = $exam->active ? 'Active' : 'Inactive';
             $row['edit_url'] = route('exams.edit', $exam);
-            $row['delete_url'] = route('exams.destroy', $exam);
 
             return $row;
         })->values()->all();
+    }
+
+    /**
+     * Delete one exam of the working school.
+     */
+    public function deleteExam(int $examId, ExamService $examService): void
+    {
+        $exam = Exam::query()->whereRelation('academicPeriod', 'school_id', current_school_id())->findOrFail($examId);
+        Gate::authorize('delete', $exam);
+
+        $this->changeRow(fn () => $examService->deleteExam($exam), "{$exam->name} was deleted.");
     }
 
     public function render(): View

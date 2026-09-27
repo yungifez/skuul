@@ -71,14 +71,4 @@ class FeeController extends Controller
 
         return back()->with('success', 'Fee Updated Successfully');
     }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Fee $fee): RedirectResponse
-    {
-        $this->feeService->deleteFee($fee);
-
-        return back()->with('success', 'Fee Deleted Successfully');
-    }
 }

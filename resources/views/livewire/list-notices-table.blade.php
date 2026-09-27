@@ -23,7 +23,7 @@
                 <slot:actions>
     <x-table-actions :items="array_filter([
         ['label' => 'View notice', 'icon' => 'eye', 'url' => 'view_url'],
-        $canDeleteNotices ? ['label' => 'Delete notice', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete :name?', 'names' => 'row.title'] : null,
+        $canDeleteNotices ? ['label' => 'Delete notice', 'icon' => 'trash-2', 'method' => 'deleteNotice', 'type' => 'action', 'confirm' => 'Delete :name?', 'names' => 'row.title'] : null,
     ])" />
 </slot:actions>
             </april:data-table>

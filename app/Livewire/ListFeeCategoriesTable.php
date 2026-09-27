@@ -4,8 +4,10 @@ namespace App\Livewire;
 
 use App\Livewire\Concerns\InteractsWithAprilTable;
 use App\Models\FeeCategory;
+use App\Services\Fee\FeeCategoryService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Yungifez\AprilUI\Livewire\Columns\Column;
 use Yungifez\AprilUI\Livewire\DataTableComponent;
@@ -37,10 +39,20 @@ class ListFeeCategoriesTable extends DataTableComponent
         return $rows->map(function (FeeCategory $category): array {
             $row = $category->toArray();
             $row['edit_url'] = route('fee-categories.edit', $category);
-            $row['delete_url'] = route('fee-categories.destroy', $category);
 
             return $row;
         })->values()->all();
+    }
+
+    /**
+     * Delete one fee category. A category that holds fees is refused.
+     */
+    public function deleteCategory(int $categoryId, FeeCategoryService $feeCategoryService): void
+    {
+        $category = FeeCategory::query()->inSchool()->findOrFail($categoryId);
+        Gate::authorize('delete', $category);
+
+        $this->changeRow(fn () => $feeCategoryService->deleteFeeCategory($category), "{$category->name} was deleted.");
     }
 
     public function render(): View

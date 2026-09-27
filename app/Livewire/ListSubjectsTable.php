@@ -4,8 +4,10 @@ namespace App\Livewire;
 
 use App\Livewire\Concerns\InteractsWithAprilTable;
 use App\Models\Subject;
+use App\Services\Subject\SubjectService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Yungifez\AprilUI\Livewire\Columns\Column;
 use Yungifez\AprilUI\Livewire\DataTableComponent;
@@ -41,10 +43,20 @@ class ListSubjectsTable extends DataTableComponent
         return $rows->map(function (Subject $subject): array {
             $row = $subject->toArray();
             $row['edit_url'] = route('subjects.edit', $subject);
-            $row['delete_url'] = route('subjects.destroy', $subject);
 
             return $row;
         })->values()->all();
+    }
+
+    /**
+     * Delete one subject that nobody teaches.
+     */
+    public function deleteSubject(int $subjectId, SubjectService $subjects): void
+    {
+        $subject = Subject::query()->inSchool()->findOrFail($subjectId);
+        Gate::authorize('delete', $subject);
+
+        $this->changeRow(fn () => $subjects->deleteSubject($subject), "{$subject->name} was deleted.");
     }
 
     public function render(): View

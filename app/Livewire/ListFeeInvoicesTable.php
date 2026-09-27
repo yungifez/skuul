@@ -5,9 +5,11 @@ namespace App\Livewire;
 use App\Livewire\Concerns\InteractsWithAprilTable;
 use App\Models\FeeInvoice;
 use App\Models\FinancialPeriod;
+use App\Services\Fee\FeeInvoiceService;
 use App\Services\Finance\FinancialPeriodResolver;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Attributes\Locked;
 use Yungifez\AprilUI\Livewire\Columns\Column;
@@ -122,10 +124,20 @@ class ListFeeInvoicesTable extends DataTableComponent
             $row['view_url'] = route('fee-invoices.show', $invoice);
             $row['edit_url'] = route('fee-invoices.edit', $invoice);
             $row['pay_url'] = route('fee-invoices.pay', $invoice);
-            $row['delete_url'] = route('fee-invoices.destroy', $invoice);
 
             return $row;
         })->values()->all();
+    }
+
+    /**
+     * Delete one invoice. A posted invoice is refused.
+     */
+    public function deleteInvoice(int $invoiceId, FeeInvoiceService $feeInvoiceService): void
+    {
+        $invoice = FeeInvoice::query()->ofSchool()->findOrFail($invoiceId);
+        Gate::authorize('delete', $invoice);
+
+        $this->changeRow(fn () => $feeInvoiceService->deleteFeeInvoice($invoice), "{$invoice->name} was deleted.");
     }
 
     public function render(): View

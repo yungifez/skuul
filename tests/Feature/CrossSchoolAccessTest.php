@@ -107,9 +107,47 @@ class CrossSchoolAccessTest extends TestCase
     {
         return array_filter(
             self::schoolOwnedResources(),
-            static fn (array $resource, string $key): bool => !in_array($key, ['academic year', 'custom timetable item', 'exam', 'fee invoice', 'timetable'], true),
+            static fn (array $resource, string $key): bool => !in_array($key, ['academic year', 'custom timetable item', 'exam', 'fee invoice', 'timetable', 'subject', 'notice'], true),
             ARRAY_FILTER_USE_BOTH,
         );
+    }
+
+    /**
+     * The records that still open a classic edit page.
+     *
+     * @return array<string, array{0: string, 1: string, 2: array<int, string>}>
+     */
+    public static function schoolOwnedEditableResources(): array
+    {
+        return array_diff_key(self::schoolOwnedResources(), array_flip(['notice']));
+    }
+
+    /**
+     * The records a table deletes through Livewire, which has no delete route.
+     *
+     * @return array<int, string>
+     */
+    private static function livewireDeletedResources(): array
+    {
+        return ['subject', 'exam', 'notice', 'custom timetable item', 'fee category', 'fee', 'fee invoice'];
+    }
+
+    /**
+     * The records that still take a classic delete request.
+     *
+     * @return array<string, array{0: string, 1: string, 2: array<int, string>}>
+     */
+    public static function schoolOwnedDeletableResources(): array
+    {
+        return array_diff_key(self::schoolOwnedResources(), array_flip(self::livewireDeletedResources()));
+    }
+
+    /**
+     * @return array<string, array{0: string, 1: string, 2: array<int, string>}>
+     */
+    public static function livewireDeletedSchoolOwnedResources(): array
+    {
+        return array_intersect_key(self::schoolOwnedResources(), array_flip(self::livewireDeletedResources()));
     }
 
     /**
@@ -126,7 +164,7 @@ class CrossSchoolAccessTest extends TestCase
     /**
      * @param  array<int, string>  $subjects
      */
-    #[DataProvider('schoolOwnedResources')]
+    #[DataProvider('schoolOwnedEditableResources')]
     public function test_a_record_of_another_school_cannot_be_edited(string $key, string $uri, array $subjects): void
     {
         $this->actAsFullyPermittedUser($subjects)
@@ -148,12 +186,31 @@ class CrossSchoolAccessTest extends TestCase
     /**
      * @param  array<int, string>  $subjects
      */
-    #[DataProvider('schoolOwnedResources')]
+    #[DataProvider('schoolOwnedDeletableResources')]
     public function test_a_record_of_another_school_cannot_be_deleted(string $key, string $uri, array $subjects): void
     {
         $this->actAsFullyPermittedUser($subjects)
             ->delete($this->uriFor($uri, $key))
             ->assertForbidden();
+
+        $this->assertDatabaseHas(
+            $this->records[$key]->getTable(),
+            ['id' => $this->records[$key]->id]
+        );
+    }
+
+    /**
+     * The table deletes these through Livewire, which scopes the lookup to
+     * the working school. No delete route is left to reach them.
+     *
+     * @param  array<int, string>  $subjects
+     */
+    #[DataProvider('livewireDeletedSchoolOwnedResources')]
+    public function test_a_record_deleted_through_its_table_has_no_delete_route(string $key, string $uri, array $subjects): void
+    {
+        $this->actAsFullyPermittedUser($subjects)
+            ->delete($this->uriFor($uri, $key))
+            ->assertStatus(405);
 
         $this->assertDatabaseHas(
             $this->records[$key]->getTable(),

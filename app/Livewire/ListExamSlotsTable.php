@@ -5,8 +5,10 @@ namespace App\Livewire;
 use App\Livewire\Concerns\InteractsWithAprilTable;
 use App\Models\Exam;
 use App\Models\ExamSlot;
+use App\Services\Exam\ExamSlotService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Yungifez\AprilUI\Livewire\Columns\Column;
 use Yungifez\AprilUI\Livewire\DataTableComponent;
@@ -35,10 +37,25 @@ class ListExamSlotsTable extends DataTableComponent
             $row = $slot->toArray();
             $row['period_label'] = $slot->exam->academicPeriod->label ?? $slot->exam->academicPeriod->name ?? '—';
             $row['edit_url'] = route('exam-slots.edit', [$this->exam, $slot]);
-            $row['delete_url'] = route('exam-slots.destroy', [$this->exam, $slot]);
 
             return $row;
         })->values()->all();
+    }
+
+    /**
+     * Delete one slot of this exam.
+     *
+     * The slot must belong to the exam the table shows, and to the working school.
+     */
+    public function deleteSlot(int $slotId, ExamSlotService $examSlotService): void
+    {
+        $slot = ExamSlot::query()
+            ->where('exam_id', $this->exam->id)
+            ->whereRelation('exam.academicPeriod', 'school_id', current_school_id())
+            ->findOrFail($slotId);
+        Gate::authorize('delete', $slot);
+
+        $this->changeRow(fn () => $examSlotService->deleteExamSlot($slot), "{$slot->name} was deleted.");
     }
 
     public function render(): View

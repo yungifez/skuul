@@ -6,7 +6,7 @@
             ['label' => 'View invoice', 'icon' => 'eye', 'url' => 'view_url'],
             $canManageInvoices ? ['label' => 'Edit invoice', 'icon' => 'settings', 'url' => 'edit_url'] : null,
             $canPayInvoices ? ['label' => 'Take payment', 'icon' => 'credit-card', 'url' => 'pay_url'] : null,
-            $canDeleteInvoices ? ['label' => 'Delete invoice', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete :name?', 'names' => "row.name + ' for ' + row.student_name"] : null,
+            $canDeleteInvoices ? ['label' => 'Delete invoice', 'icon' => 'trash-2', 'method' => 'deleteInvoice', 'type' => 'action', 'confirm' => 'Delete :name?', 'names' => "row.name + ' for ' + row.student_name"] : null,
         ]);
         $controlClasses = 'h-11 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
     @endphp

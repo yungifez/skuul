@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\SubjectStoreRequest;
-use App\Models\AcademicYear;
 use App\Models\Subject;
 use App\Services\Subject\SubjectService;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
 
@@ -37,23 +34,6 @@ class SubjectController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     */
-    public function store(SubjectStoreRequest $request): RedirectResponse
-    {
-        $this->subject->createSubject($request->validated());
-
-        if ($request->boolean('setup')) {
-            $academicYear = AcademicYear::inSchool()->findOrFail($request->integer('academic_year_id'));
-
-            return to_route('academic-years.setup', [$academicYear, 'subjects'])
-                ->with('success', 'Subject created. Choose where it is taught.');
-        }
-
-        return back()->with('success', 'Subject created successfully');
-    }
-
-    /**
      * Display the specified resource.
      */
     public function show(Subject $subject): Response
@@ -69,25 +49,5 @@ class SubjectController extends Controller
         $data['subject'] = $subject;
 
         return view('pages.subject.edit', $data);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(SubjectStoreRequest $request, Subject $subject): RedirectResponse
-    {
-        $this->subject->updateSubject($subject, $request->validated());
-
-        return back()->with('success', 'Subject updated successfully');
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Subject $subject): RedirectResponse
-    {
-        $this->subject->deleteSubject($subject);
-
-        return back()->with('success', 'Subject deleted successfully');
     }
 }

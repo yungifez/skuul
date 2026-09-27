@@ -2,15 +2,20 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\InteractsWithAprilTable;
 use App\Models\Notice;
+use App\Services\Notice\NoticeService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Yungifez\AprilUI\Livewire\Columns\Column;
 use Yungifez\AprilUI\Livewire\DataTableComponent;
 
 class ListNoticesTable extends DataTableComponent
 {
+    use InteractsWithAprilTable;
+
     protected function builder(): Builder
     {
         $user = auth()->user();
@@ -54,10 +59,20 @@ class ListNoticesTable extends DataTableComponent
             $row['start_date_for_humans'] = $notice->start_date_for_humans;
             $row['stop_date_for_humans'] = $notice->stop_date_for_humans;
             $row['view_url'] = route('notices.show', $notice);
-            $row['delete_url'] = route('notices.destroy', $notice);
 
             return $row;
         })->values()->all();
+    }
+
+    /**
+     * Delete one notice.
+     */
+    public function deleteNotice(int $noticeId, NoticeService $notices): void
+    {
+        $notice = Notice::query()->inSchool()->findOrFail($noticeId);
+        Gate::authorize('delete', $notice);
+
+        $this->changeRow(fn () => $notices->deleteNotice($notice), "{$notice->title} was deleted.");
     }
 
     public function render(): View

@@ -6,6 +6,7 @@ use App\Enums\AcademicPeriodStatus;
 use App\Enums\AuditAction;
 use App\Livewire\CreateExamForm;
 use App\Livewire\EditExamForm;
+use App\Livewire\ListExamsTable;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
@@ -15,6 +16,7 @@ use App\Models\ExamSlot;
 use App\Models\GradeItem;
 use App\Models\School;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
 use Livewire\Features\SupportTesting\Testable;
@@ -351,20 +353,42 @@ class ExamTest extends TestCase
     public function test_unauthorized_user_cannot_delete_exam()
     {
         $exam = Exam::factory()->create();
-        $this->unauthorized_user()
-            ->delete("dashboard/exams/$exam->id")
-            ->assertForbidden();
-    }
+        $this->authorized_user(['read exam']);
 
-    // test unauthorized user cannot view exam
+        Livewire::test(ListExamsTable::class)
+            ->call('deleteExam', $exam->id)
+            ->assertForbidden();
+
+        $this->assertModelExists($exam);
+    }
 
     public function test_authorized_user_can_delete_exam()
     {
         $exam = Exam::factory()->create();
-        $this->authorized_user(['delete exam'])
-            ->delete("dashboard/exams/$exam->id");
+        $this->authorized_user(['read exam', 'delete exam']);
+
+        Livewire::test(ListExamsTable::class)
+            ->call('deleteExam', $exam->id)
+            ->assertDispatched('status-message', type: 'success');
 
         $this->assertModelMissing($exam);
+    }
+
+    public function test_another_schools_exam_cannot_be_deleted()
+    {
+        $otherSchool = School::factory()->create();
+        $theirs = Exam::factory()->create([
+            'academic_period_id' => AcademicPeriod::factory()->create(['school_id' => $otherSchool->id])->id,
+        ]);
+        $this->authorized_user(['read exam', 'delete exam']);
+
+        try {
+            Livewire::test(ListExamsTable::class)->call('deleteExam', $theirs->id);
+            $this->fail('Another school\'s exam was reached.');
+        } catch (ModelNotFoundException) {
+        }
+
+        $this->assertModelExists($theirs);
     }
 
     public function test_legacy_exam_result_routes_are_not_registered(): void

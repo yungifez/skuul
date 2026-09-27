@@ -4,14 +4,18 @@ namespace Tests\Feature;
 
 use App\Enums\NoticeStatus;
 use App\Livewire\CreateNoticeForm;
+use App\Livewire\ListNoticesTable;
 use App\Livewire\ShowNotice;
 use App\Models\AcademicLevel;
 use App\Models\Notice;
 use App\Models\NoticeRecipient;
+use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -352,5 +356,56 @@ class NoticeTest extends TestCase
         }
 
         return $component->call('save');
+    }
+
+    public function test_a_notice_is_deleted_from_the_table(): void
+    {
+        $notice = Notice::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read notice', 'delete notice']);
+
+        Livewire::test(ListNoticesTable::class)
+            ->assertSeeHtml('$wire.call(&quot;deleteNotice&quot;, row.id)')
+            ->call('deleteNotice', $notice->id)
+            ->assertDispatched('status-message', type: 'success');
+
+        $this->assertModelMissing($notice);
+    }
+
+    public function test_deleting_a_notice_needs_permission(): void
+    {
+        $notice = Notice::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read notice']);
+
+        Livewire::test(ListNoticesTable::class)
+            ->call('deleteNotice', $notice->id)
+            ->assertForbidden();
+
+        $this->assertModelExists($notice);
+    }
+
+    public function test_another_schools_notice_cannot_be_deleted(): void
+    {
+        $theirs = Notice::factory()->create(['school_id' => School::factory()->create()->id]);
+        $this->authorized_user(['read notice', 'delete notice']);
+
+        try {
+            Livewire::test(ListNoticesTable::class)->call('deleteNotice', $theirs->id);
+            $this->fail('Another school\'s notice was reached.');
+        } catch (ModelNotFoundException) {
+        }
+
+        $this->assertModelExists($theirs);
+    }
+
+    public function test_the_classic_notice_write_routes_are_gone(): void
+    {
+        $notice = Notice::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read notice', 'update notice', 'delete notice']);
+
+        $this->delete("/dashboard/notices/{$notice->id}")->assertStatus(405);
+        $this->get("/dashboard/notices/{$notice->id}/edit")->assertNotFound();
+        $this->assertFalse(Route::has('notices.destroy'));
+        $this->assertFalse(Route::has('notices.update'));
+        $this->assertModelExists($notice);
     }
 }

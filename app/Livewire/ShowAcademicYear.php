@@ -13,6 +13,7 @@ use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\Exam;
 use App\Services\AcademicYear\AcademicYearSetupProgress;
+use App\Services\Exam\ExamService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
@@ -131,6 +132,20 @@ class ShowAcademicYear extends DataTableComponent
         $this->notify("{$period->displayName} is closing. Finish the checklist, then close.");
     }
 
+    /**
+     * Delete one exam of this academic year.
+     */
+    public function deleteExam(int $examId, ExamService $examService): void
+    {
+        $exam = Exam::query()
+            ->whereRelation('academicPeriod', 'academic_year_id', $this->academicYear->id)
+            ->whereRelation('academicPeriod', 'school_id', current_school_id())
+            ->findOrFail($examId);
+        Gate::authorize('delete', $exam);
+
+        $this->changeRow(fn () => $examService->deleteExam($exam), "{$exam->name} was deleted.");
+    }
+
     protected function builder(): Builder
     {
         return Exam::query()->whereRelation('academicPeriod', 'academic_year_id', $this->academicYear->id)->with('academicPeriod');
@@ -150,7 +165,6 @@ class ShowAcademicYear extends DataTableComponent
             $row['academic_period_name'] = $exam->academicPeriod->name;
             $row['edit_url'] = route('exams.edit', $exam);
             $row['view_url'] = route('exams.show', $exam);
-            $row['delete_url'] = route('exams.destroy', $exam);
 
             return $row;
         })->values()->all();

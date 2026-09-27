@@ -8,11 +8,13 @@ use App\Livewire\SetAcademicPeriod;
 use App\Livewire\ShowAcademicYear;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
+use App\Models\Exam;
 use App\Models\School;
 use App\Models\User;
 use App\Services\Academic\AcademicPeriodContext;
 use App\Services\AcademicYear\AcademicYearService;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -144,6 +146,47 @@ class AcademicYearTest extends TestCase
         Livewire::test(ShowAcademicYear::class, ['academicYear' => $academicYear])
             ->call('updateTable', ['sort' => ['key' => 'name', 'direction' => 'desc']])
             ->assertOk();
+    }
+
+    public function test_the_calendar_overview_deletes_one_of_its_exams(): void
+    {
+        $exam = Exam::factory()->create(['academic_period_id' => current_school()->academic_period_id]);
+        $this->authorized_user(['read academic year', 'read exam', 'delete exam']);
+
+        Livewire::test(ShowAcademicYear::class, ['academicYear' => current_academic_year()])
+            ->call('deleteExam', $exam->id)
+            ->assertDispatched('status-message', type: 'success');
+
+        $this->assertModelMissing($exam);
+    }
+
+    public function test_the_calendar_overview_refuses_an_exam_delete_without_permission(): void
+    {
+        $exam = Exam::factory()->create(['academic_period_id' => current_school()->academic_period_id]);
+        $this->authorized_user(['read academic year', 'read exam']);
+
+        Livewire::test(ShowAcademicYear::class, ['academicYear' => current_academic_year()])
+            ->call('deleteExam', $exam->id)
+            ->assertForbidden();
+
+        $this->assertModelExists($exam);
+    }
+
+    public function test_the_calendar_overview_cannot_delete_an_exam_of_another_school(): void
+    {
+        $otherSchool = School::factory()->create();
+        $theirs = Exam::factory()->create([
+            'academic_period_id' => AcademicPeriod::factory()->create(['school_id' => $otherSchool->id])->id,
+        ]);
+        $this->authorized_user(['read academic year', 'read exam', 'delete exam']);
+
+        try {
+            Livewire::test(ShowAcademicYear::class, ['academicYear' => current_academic_year()])->call('deleteExam', $theirs->id);
+            $this->fail('Another school\'s exam was reached.');
+        } catch (ModelNotFoundException) {
+        }
+
+        $this->assertModelExists($theirs);
     }
 
     public function test_an_unauthorized_user_cannot_delete_a_school_calendar(): void

@@ -8,7 +8,6 @@ use App\Models\FinancialPeriod;
 use App\Models\StudentPayment;
 use App\Services\Fee\FeeInvoiceService;
 use App\Services\Finance\FinancialPeriodResolver;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
 
@@ -93,16 +92,6 @@ class FeeInvoiceController extends Controller
     public function edit(FeeInvoice $feeInvoice): View
     {
         return view('pages.fee.fee-invoice.edit', compact('feeInvoice'));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(FeeInvoice $feeInvoice): RedirectResponse
-    {
-        $this->feeInvoiceService->deleteFeeInvoice($feeInvoice);
-
-        return back()->with('success', 'Fee Invoice Deleted Successfully');
     }
 
     /**

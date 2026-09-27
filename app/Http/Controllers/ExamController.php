@@ -51,16 +51,6 @@ class ExamController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Exam $exam): RedirectResponse
-    {
-        $this->examService->deleteExam($exam);
-
-        return back()->with('success', 'Exam deleted successfully');
-    }
-
-    /**
      * Set exam status.
      */
     public function setExamActiveStatus(Exam $exam, UpdateExamStatusRequest $request): RedirectResponse

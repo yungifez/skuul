@@ -19,6 +19,7 @@ use App\Models\School;
 use App\Models\StudentRecord;
 use App\Services\Fee\FeeInvoiceService;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Str;
@@ -453,10 +454,11 @@ class FeeInvoiceTest extends TestCase
 
     public function test_unauthorized_user_cannot_delete_fee_invoice()
     {
-        $feeInvoice = FeeInvoice::factory()->create();
+        $feeInvoice = FeeInvoice::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read fee invoice']);
 
-        $this->unauthorized_user()
-            ->delete("dashboard/fees/fee-invoices/$feeInvoice->id")
+        Livewire::test(ListFeeInvoicesTable::class, ['status' => 'all'])
+            ->call('deleteInvoice', $feeInvoice->id)
             ->assertForbidden();
 
         $this->assertModelExists($feeInvoice);
@@ -466,15 +468,31 @@ class FeeInvoiceTest extends TestCase
 
     public function test_authorized_user_can_delete_fee_invoice()
     {
-        $feeInvoice = FeeInvoice::factory()->create();
+        $feeInvoice = FeeInvoice::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read fee invoice', 'delete fee invoice']);
 
-        $this->authorized_user(['delete fee invoice'])
-            ->delete("dashboard/fees/fee-invoices/$feeInvoice->id")
-            ->assertRedirect();
+        Livewire::test(ListFeeInvoicesTable::class, ['status' => 'all'])
+            ->call('deleteInvoice', $feeInvoice->id)
+            ->assertDispatched('status-message', type: 'success');
 
         $this->assertModelExists($feeInvoice);
 
         $this->assertSoftDeleted($feeInvoice);
+    }
+
+    public function test_another_schools_fee_invoice_cannot_be_deleted()
+    {
+        $theirs = FeeInvoice::factory()->create(['school_id' => School::factory()->create()->id]);
+        $this->authorized_user(['read fee invoice', 'delete fee invoice']);
+
+        try {
+            Livewire::test(ListFeeInvoicesTable::class, ['status' => 'all'])->call('deleteInvoice', $theirs->id);
+            $this->fail('Another school\'s invoice was reached.');
+        } catch (ModelNotFoundException) {
+        }
+
+        $this->assertModelExists($theirs);
+        $this->assertNotSoftDeleted($theirs);
     }
 
     /**

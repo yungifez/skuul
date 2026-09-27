@@ -13,6 +13,7 @@ use App\Models\FinancialPeriod;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Livewire\Livewire;
@@ -226,11 +227,11 @@ class FeeTest extends TestCase
             'fine' => 0,
         ]);
 
-        $office = $this->authorized_user(['delete fee', 'read fee invoice']);
+        $office = $this->authorized_user(['read fee', 'delete fee', 'read fee invoice']);
 
-        $office->delete("dashboard/fees/$fee->id")
-            ->assertRedirect()
-            ->assertSessionHas('danger');
+        Livewire::test(ListFeesTable::class)
+            ->call('deleteFee', $fee->id)
+            ->assertDispatched('status-message', type: 'danger');
 
         $this->assertNotSoftDeleted($fee);
 
@@ -240,25 +241,55 @@ class FeeTest extends TestCase
             ->assertSee('row.fee_invoice_records_count === 0', false);
     }
 
-    public function test_unauthorized_user_cannot_delete_fee_category()
+    public function test_unauthorized_user_cannot_delete_fee()
     {
-        $fee = Fee::factory()->create();
+        $fee = $this->feeOfWorkingSchool();
+        $this->authorized_user(['read fee']);
 
-        $this->unauthorized_user()
-            ->delete("dashboard/fees/$fee->id")
+        Livewire::test(ListFeesTable::class)
+            ->call('deleteFee', $fee->id)
             ->assertForbidden();
 
         $this->assertModelExists($fee);
+        $this->assertNotSoftDeleted($fee);
     }
 
-    public function test_authorized_user_can_delete_fee_category()
+    public function test_authorized_user_can_delete_fee()
     {
-        $fee = Fee::factory()->create();
+        $fee = $this->feeOfWorkingSchool();
+        $this->authorized_user(['read fee', 'delete fee']);
 
-        $this->authorized_user(['delete fee'])
-            ->delete("dashboard/fees/$fee->id")
-            ->assertRedirect();
+        Livewire::test(ListFeesTable::class)
+            ->call('deleteFee', $fee->id)
+            ->assertDispatched('status-message', type: 'success');
 
         $this->assertSoftDeleted($fee);
+    }
+
+    public function test_another_schools_fee_cannot_be_deleted()
+    {
+        $theirs = Fee::factory()->create([
+            'fee_category_id' => FeeCategory::factory()->create(['school_id' => School::factory()->create()->id])->id,
+        ]);
+        $this->authorized_user(['read fee', 'delete fee']);
+
+        try {
+            Livewire::test(ListFeesTable::class)->call('deleteFee', $theirs->id);
+            $this->fail('Another school\'s fee was reached.');
+        } catch (ModelNotFoundException) {
+        }
+
+        $this->assertModelExists($theirs);
+        $this->assertNotSoftDeleted($theirs);
+    }
+
+    /**
+     * Make a fee in a category of the working school.
+     */
+    private function feeOfWorkingSchool(): Fee
+    {
+        return Fee::factory()->create([
+            'fee_category_id' => FeeCategory::factory()->create(['school_id' => $this->workingSchool()->id])->id,
+        ]);
     }
 }
