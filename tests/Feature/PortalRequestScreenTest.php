@@ -8,6 +8,7 @@ use App\Enums\PortalArea;
 use App\Enums\PortalRequestStatus;
 use App\Enums\PortalRequestType;
 use App\Livewire\PortalRequestInbox;
+use App\Livewire\PortalRequests;
 use App\Models\PortalRequest;
 use App\Models\School;
 use App\Models\StudentRecord;
@@ -46,26 +47,118 @@ class PortalRequestScreenTest extends TestCase
     {
         $enrollment = $this->enrollment();
         $guardian = $this->guardianOf($enrollment);
+        $this->actingAs($guardian);
 
-        $this->actingAs($guardian)
-            ->from(route('portal.requests.index', $enrollment))
-            ->post(route('portal.requests.store', $enrollment), [
-                'subject' => 'A copy of the result slip',
-                'type' => PortalRequestType::Document->value,
-                'message' => 'For a visa application.',
-            ])
-            ->assertRedirect(route('portal.requests.index', $enrollment));
+        $this->get(route('portal.requests.index', $enrollment))->assertSeeLivewire(PortalRequests::class);
+
+        Livewire::test(PortalRequests::class, ['studentRecord' => $enrollment])
+            ->set('subject', 'A copy of the result slip')
+            ->set('type', PortalRequestType::Document->value)
+            ->set('message', 'For a visa application.')
+            ->call('send')
+            ->assertHasNoErrors()
+            ->assertDispatched('status-message', type: 'success', message: 'Your request was sent to the school.')
+            ->assertSet('subject', '')
+            ->assertSee('A copy of the result slip')
+            ->assertSee('Sent');
 
         $request = PortalRequest::sole();
 
         $this->assertSame($guardian->id, $request->requested_by);
         $this->assertSame(PortalRequestStatus::Submitted, $request->status);
+    }
 
-        $this->actingAs($guardian)
-            ->get(route('portal.requests.index', $enrollment))
-            ->assertOk()
-            ->assertSee('A copy of the result slip')
-            ->assertSee('Sent');
+    public function test_pressing_send_twice_sends_one_request(): void
+    {
+        $enrollment = $this->enrollment();
+        $this->actingAs($this->guardianOf($enrollment));
+
+        Livewire::test(PortalRequests::class, ['studentRecord' => $enrollment])
+            ->set('subject', 'A copy of the result slip')
+            ->call('send')
+            ->set('subject', 'A copy of the result slip')
+            ->call('send')
+            ->assertHasErrors('subject')
+            ->assertSee('You already asked for this.');
+
+        $this->assertSame(1, PortalRequest::query()->count());
+    }
+
+    public function test_a_calendar_link_fills_in_the_request(): void
+    {
+        $enrollment = $this->enrollment();
+        $this->actingAs($this->guardianOf($enrollment));
+
+        Livewire::withQueryParams([
+            'type' => PortalRequestType::Appointment->value,
+            'subject' => 'Appointment: Open day',
+            'message' => 'I would like the published time.',
+        ])->test(PortalRequests::class, ['studentRecord' => $enrollment])
+            ->assertSet('type', PortalRequestType::Appointment->value)
+            ->assertSet('subject', 'Appointment: Open day')
+            ->assertSet('message', 'I would like the published time.');
+
+        Livewire::withQueryParams(['type' => 'not-a-type'])
+            ->test(PortalRequests::class, ['studentRecord' => $enrollment])
+            ->assertSet('type', PortalRequestType::Document->value);
+    }
+
+    public function test_a_family_takes_back_an_open_request_only(): void
+    {
+        $enrollment = $this->enrollment();
+        $guardian = $this->guardianOf($enrollment);
+        $open = app(SubmitPortalRequest::class)->submit($enrollment, 'A copy of the result slip', person: $guardian);
+        $answered = app(SubmitPortalRequest::class)->submit($enrollment, 'An appointment', person: $guardian);
+        app(SubmitPortalRequest::class)->answer($answered, 'Come on Tuesday.', User::factory()->create());
+        $this->actingAs($guardian);
+
+        Livewire::test(PortalRequests::class, ['studentRecord' => $enrollment])
+            ->call('withdraw', $open->id)
+            ->assertDispatched('status-message', type: 'success', message: 'Request taken back.')
+            ->call('withdraw', $answered->id)
+            ->assertDispatched('status-message', type: 'danger', message: 'The school has already closed this request.');
+
+        $this->assertSame(PortalRequestStatus::Cancelled, $open->fresh()->status);
+        $this->assertSame(PortalRequestStatus::Answered, $answered->fresh()->status);
+    }
+
+    public function test_a_family_never_takes_back_somebody_elses_request(): void
+    {
+        $enrollment = $this->enrollment();
+        $guardian = $this->guardianOf($enrollment);
+        $learnersOwn = $this->request($enrollment);
+        $this->actingAs($guardian);
+
+        $this->assertThrows(
+            fn () => Livewire::test(PortalRequests::class, ['studentRecord' => $enrollment])->call('withdraw', $learnersOwn->id),
+            ModelNotFoundException::class,
+        );
+
+        $this->assertSame(PortalRequestStatus::Submitted, $learnersOwn->fresh()->status);
+    }
+
+    public function test_a_guardian_whose_link_ended_cannot_keep_asking(): void
+    {
+        $enrollment = $this->enrollment();
+        $guardian = $this->guardianOf($enrollment);
+        $this->actingAs($guardian);
+
+        $screen = Livewire::test(PortalRequests::class, ['studentRecord' => $enrollment]);
+        $guardian->parentRecord->students()->detach($enrollment->user);
+
+        $screen->set('subject', 'A copy of the result slip')->call('send')->assertForbidden();
+
+        $this->assertSame(0, PortalRequest::query()->count());
+    }
+
+    public function test_a_family_cannot_open_another_familys_screen_through_livewire(): void
+    {
+        $enrollment = $this->enrollment();
+        $otherSchool = School::factory()->create();
+        $foreignEnrollment = StudentRecord::factory()->create(['school_id' => $otherSchool->id]);
+        $this->actingAs($this->guardianOf($enrollment));
+
+        Livewire::test(PortalRequests::class, ['studentRecord' => $foreignEnrollment])->assertForbidden();
     }
 
     public function test_a_stranger_never_opens_the_request_screen(): void
@@ -104,59 +197,33 @@ class PortalRequestScreenTest extends TestCase
         $request = $this->request($enrollment);
         $this->authorized_user(['read portal request', 'answer portal request']);
 
-        $this->from(route('portal-requests.index'))
-            ->put(route('portal-requests.status.update', $request), [
-                'status' => PortalRequestStatus::Answered->value,
-                'response' => 'The slip is ready at the office.',
-            ])
-            ->assertRedirect(route('portal-requests.index'))
-            ->assertSessionHas('success', 'Request status updated to answered.');
+        Livewire::test(PortalRequestInbox::class)
+            ->set('statusesByRequest.'.$request->id, PortalRequestStatus::Answered->value)
+            ->set('responsesByRequest.'.$request->id, 'The slip is ready at the office.')
+            ->call('changeStatus', $request->id)
+            ->assertHasNoErrors();
 
         $this->assertSame(PortalRequestStatus::Answered, $request->fresh()->status);
         $this->assertSame('The slip is ready at the office.', $request->fresh()->response);
         $this->assertNotNull($request->fresh()->answered_at);
+        $this->assertSame(auth()->id(), $request->fresh()->answered_by);
     }
 
-    public function test_an_answer_must_carry_the_answer(): void
-    {
-        $enrollment = $this->enrollment();
-        $request = $this->request($enrollment);
-        $this->authorized_user(['read portal request', 'answer portal request']);
-
-        $this->from(route('portal-requests.index'))
-            ->put(route('portal-requests.status.update', $request), [
-                'status' => PortalRequestStatus::Answered->value,
-            ])
-            ->assertSessionHasErrors('response');
-
-        $this->assertSame(PortalRequestStatus::Submitted, $request->fresh()->status);
-
-        $this->get(route('portal-requests.index'))
-            ->assertSee('An answered request must carry the answer.');
-    }
-
-    public function test_a_family_never_answers_its_own_request(): void
+    public function test_the_school_cannot_answer_a_request_the_family_took_back(): void
     {
         $enrollment = $this->enrollment();
         $guardian = $this->guardianOf($enrollment);
-        $request = app(SubmitPortalRequest::class)->submit(
-            $enrollment,
-            'A copy of the result slip',
-            person: $guardian,
-        );
+        $request = app(SubmitPortalRequest::class)->submit($enrollment, 'A copy of the result slip', person: $guardian);
+        app(SubmitPortalRequest::class)->withdraw($request, $guardian);
+        $this->authorized_user(['read portal request', 'answer portal request']);
 
-        school_context()->set($this->workingSchool(), remember: false);
-        $guardian->givePermissionTo(['read portal request', 'answer portal request']);
+        Livewire::test(PortalRequestInbox::class)
+            ->set('statusesByRequest.'.$request->id, PortalRequestStatus::Answered->value)
+            ->set('responsesByRequest.'.$request->id, 'Too late.')
+            ->call('changeStatus', $request->id)
+            ->assertHasErrors('status');
 
-        $this->actingAs($guardian->refresh())
-            ->from(route('portal-requests.index'))
-            ->put(route('portal-requests.status.update', $request), [
-                'status' => PortalRequestStatus::Answered->value,
-                'response' => 'I answer myself.',
-            ])
-            ->assertForbidden();
-
-        $this->assertSame(PortalRequestStatus::Submitted, $request->fresh()->status);
+        $this->assertSame(PortalRequestStatus::Cancelled, $request->fresh()->status);
     }
 
     public function test_the_family_reads_the_answer_in_the_portal(): void

@@ -1035,3 +1035,10 @@
 - **Problem:** `revoke` and `savePermissions` loaded the person by id from every account on the platform. Revoking a stranger changed nothing but said "{name} no longer administers …", so an administrator could read any account's name by id. Saving permissions for a stranger threw an uncaught error (500).
 - **Fix:** Both actions now find the person only through this organization's active memberships. Any other id is not found.
 - **Tests:** `OrganizationMembersScreenTest` (a stranger from another organization, a past administrator).
+
+## Families could send the same request twice and could not take one back
+
+- **Where:** `app/Livewire/PortalRequests.php`, `resources/views/livewire/portal-requests.blade.php`, `app/Actions/Portal/SubmitPortalRequest.php`, `PortalRequestController`, `routes/web.php`.
+- **Problem:** The family requests page was a full page post inside cards. A double press or a resend sent the same open request twice. A family had no way to take back a request, although the status list has "Cancelled". The staff inbox was already Livewire, but an old PUT status route stayed open next to it.
+- **Fix:** The family page is now Livewire, with a flat form and a flat list. A calendar "Request this time" link still fills the form, and an unknown kind falls back to a document request. The action refuses a second open request with the same subject from the same person. A family can take back its own open request from a ⋯ menu. Only the person who asked can do this, and never after the school closed it. The school cannot answer a request that was taken back. Access is checked again on every send, so a guardian whose link ended cannot keep asking. The store and PUT status routes and their two form requests are removed.
+- **Tests:** `PortalRequestScreenTest` (send, double send, calendar prefill, take back, somebody else's request, ended link, another school, answer after take back).

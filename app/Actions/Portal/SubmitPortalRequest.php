@@ -19,14 +19,12 @@ use App\Services\Portal\PortalAccess;
  */
 class SubmitPortalRequest
 {
-    public function __construct(private PortalAccess $access)
-    {
-    }
+    public function __construct(private PortalAccess $access) {}
 
     /**
      * Send a request about one student.
      *
-     * @throws InvalidValueException when the area is closed or the person may not read the student
+     * @throws InvalidValueException when the area is closed, the person may not read the student, or the same request is still open
      */
     public function submit(
         StudentRecord $enrollment,
@@ -49,14 +47,48 @@ class SubmitPortalRequest
             throw new InvalidValueException('This person cannot ask about this student.');
         }
 
+        $alreadyAsked = PortalRequest::query()
+            ->where('student_record_id', $enrollment->id)
+            ->where('requested_by', $person->id)
+            ->where('subject', $subject)
+            ->whereIn('status', [PortalRequestStatus::Submitted, PortalRequestStatus::InReview])
+            ->exists();
+
+        if ($alreadyAsked) {
+            throw new InvalidValueException('You already asked for this. The school has not answered yet.');
+        }
+
         return PortalRequest::create([
-            'school_id'         => $enrollment->school_id,
+            'school_id' => $enrollment->school_id,
             'student_record_id' => $enrollment->id,
-            'requested_by'      => $person->id,
-            'type'              => $type,
-            'subject'           => $subject,
-            'message'           => $message,
+            'requested_by' => $person->id,
+            'type' => $type,
+            'subject' => $subject,
+            'message' => $message,
         ]);
+    }
+
+    /**
+     * Take back a request the school has not finished with.
+     *
+     * Only the person who asked may take it back.
+     *
+     * @throws InvalidValueException when somebody else asked, or the school already closed it
+     */
+    public function withdraw(PortalRequest $request, User $person): PortalRequest
+    {
+        if ($request->requested_by !== $person->id) {
+            throw new InvalidValueException('Only the person who asked can take this request back.');
+        }
+
+        if (!$request->status->isOpen()) {
+            throw new InvalidValueException('The school has already closed this request.');
+        }
+
+        $request->status = PortalRequestStatus::Cancelled;
+        $request->save();
+
+        return $request;
     }
 
     /**

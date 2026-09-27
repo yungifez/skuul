@@ -7,12 +7,5 @@
 @section('page_heading', 'Family requests')
 
 @section('content')
-    @if ($errors->any())
-        <april:alert variant="destructive">
-            <slot:title>The request did not move</slot:title>
-            <slot:description>{{ $errors->first() }}</slot:description>
-        </april:alert>
-    @endif
-
     <livewire:portal-request-inbox />
 @endsection

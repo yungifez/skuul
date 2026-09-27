@@ -130,7 +130,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::get('portal/enrollments/{studentRecord}/notices', ['App\Http\Controllers\PortalNoticeController', 'index'])->name('portal.notices.index');
     Route::get('portal/enrollments/{studentRecord}/library', ['App\Http\Controllers\PortalLibraryController', 'index'])->name('portal.library.index');
     Route::get('portal/enrollments/{studentRecord}/requests', ['App\Http\Controllers\PortalRequestController', 'index'])->name('portal.requests.index');
-    Route::post('portal/enrollments/{studentRecord}/requests', ['App\Http\Controllers\PortalRequestController', 'store'])->name('portal.requests.store');
     Route::get('portal/enrollments/{studentRecord}/graduation', [PortalGraduationController::class, 'show'])->name('portal.graduation.show');
     Route::get('portal/enrollments/{studentRecord}/programmes', [PortalProgramController::class, 'index'])->name('portal.programmes.index');
     Route::get('notices/{notice}/attachment', NoticeAttachmentController::class)->name('notices.attachments.download');
@@ -290,7 +289,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         // this, not the school's inbox, so a school that closes the portal can
         // still finish what it was already asked.
         Route::get('portal-requests', ['App\Http\Controllers\PortalRequestController', 'inbox'])->name('portal-requests.index');
-        Route::put('portal-requests/{portalRequest}/status', ['App\Http\Controllers\PortalRequestController', 'changeStatus'])->name('portal-requests.status.update');
 
         // Graduation plans remain available when results are published, and
         // families may read progress only when both school controls are open.
@@ -463,8 +461,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 });
 
                 Route::get('syllabi/coverage', [SyllabusController::class, 'coverage'])->name('syllabi.coverage');
-                Route::post('syllabi/{syllabus}/revise', [SyllabusController::class, 'revise'])->name('syllabi.revise');
-                Route::post('syllabi/{syllabus}/publish', [SyllabusController::class, 'publish'])->name('syllabi.publish');
                 Route::resource('syllabi', SyllabusController::class);
 
                 // timetable route
