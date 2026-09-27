@@ -19,35 +19,48 @@ use App\Services\School\SchoolSetupPhaseService;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class DashboardDataCards extends Component
 {
     use DispatchesStatusNotifications;
 
+    #[Locked]
     public $academicLevels;
 
+    #[Locked]
     public $cycleSections;
 
+    #[Locked]
     public $academicPeriods;
 
+    #[Locked]
     public $courseOfferings;
 
+    #[Locked]
     public $students;
 
+    #[Locked]
     public $teachers;
 
+    #[Locked]
     public $parents;
 
+    #[Locked]
     public $organization;
 
+    #[Locked]
     public $organizationSchools;
 
+    #[Locked]
     public bool $showCampuses = false;
 
+    #[Locked]
     public ?array $setupChecklist = null;
 
     /** @var array{registered: int, present: int, absent: int, late: int, rate: float|null} */
+    #[Locked]
     public array $todayAttendance = [
         'registered' => 0,
         'present' => 0,

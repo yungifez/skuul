@@ -9,6 +9,7 @@ use App\Models\AcademicPeriod;
 use App\Models\Notice;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -56,6 +57,21 @@ class DashboardTest extends TestCase
 
         $this->assertArrayNotHasKey('schools', $data);
         $this->assertArrayNotHasKey('organizations', $data);
+    }
+
+    public function test_the_dashboard_counts_cannot_be_changed_from_the_browser(): void
+    {
+        $this->authorized_user(['read student']);
+        $component = Livewire::test(DashboardDataCards::class);
+
+        foreach (['students' => 999999, 'showCampuses' => true, 'organizationSchools' => 40, 'setupChecklist' => null] as $property => $value) {
+            try {
+                $component->set($property, $value);
+                $this->fail("{$property} took a value from the browser.");
+            } catch (CannotUpdateLockedPropertyException) {
+                $this->addToAssertionCount(1);
+            }
+        }
     }
 
     public function test_the_open_period_count_leaves_out_periods_that_are_not_open(): void

@@ -1,5 +1,13 @@
 # Known Bugs
 
+## The dashboard's counts and setup checklist could be rewritten from the browser
+- Status: Fixed
+- Area: Dashboard
+- Observed: Every count on the dashboard, the campus tile flag, and the setup checklist were browser-writable Livewire properties.
+- Impact: A changed value survived the next request from the same component, so a person could show a campus tile or a checklist that the server had not chosen. No data leaked, but the screen could no longer be trusted as the server's view.
+- Reproduction: Open the dashboard and set `showCampuses` or `students` from the browser console, then press a dashboard button.
+- Resolution: The dashboard's display properties are locked. Only the server sets them.
+
 ## A student could list any section's timetables, drafts included, by editing the timetable list in the browser
 - Status: Fixed
 - Area: Timetables, security
