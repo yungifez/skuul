@@ -27,15 +27,11 @@
                     <april:button-link href="{{ route('academic-years.index') }}" variant="outline">Go to academic years</april:button-link>
                 </x-empty-state>
             @else
-                <x-academic-cycle-section-form
-                    :action="route('academic-cycle-sections.store', request()->boolean('setup') ? ['setup' => 1] : [])"
-                    :academic-years="$academicYears"
-                    :academic-levels="$academicLevels"
-                    :teachers="$teachers"
+                <livewire:academic-cycle-section-form
+                    :setup="request()->boolean('setup')"
+                    :school-setup="request()->boolean('school_setup')"
                     :preselected-academic-year-id="$preselectedAcademicYearId"
-                    :preselected-academic-level-id="$preselectedAcademicLevelId"
-                    submit-label="Create draft section"
-                    :cancel-href="route('academic-cycle-sections.index')" />
+                    :preselected-academic-level-id="$preselectedAcademicLevelId" />
             @endif
         </slot:content>
     </april:card>

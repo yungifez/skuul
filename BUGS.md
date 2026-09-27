@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A section added from school setup lost its way back, and a section's capacity could drop below its class list
+- Status: Fixed
+- Area: Academic structure, sections
+- Observed: A section created from the school setup classes step returned to the year setup instead. A section's capacity could be set below the number of learners already placed in it. A class teacher who left the school showed as "Not chosen yet" on edit.
+- Impact: Setup lost its place. Capacity numbers were false and could not be trusted for admissions. A save cleared a teacher link without the editor seeing it.
+- Reproduction: Open school setup, add a section at the classes step, and save. Or place three learners in a section and set its capacity to 2.
+- Resolution: The section form is now a Livewire component. It returns to the step that opened it, refuses a capacity below the placed learners, names a departed teacher, and takes only this school's years, active classes, and current teachers.
+
 ## Every dashboard sent the platform's school count to the browser, and "Open terms" counted closed ones
 
 - Status: Fixed

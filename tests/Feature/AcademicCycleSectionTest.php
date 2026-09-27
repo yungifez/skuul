@@ -9,6 +9,7 @@ use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\AcademicCycleSectionForm;
 use App\Livewire\AcademicStructureStatusControl;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
@@ -105,12 +106,14 @@ class AcademicCycleSectionTest extends TestCase
         $actor->get(route('academic-cycle-sections.create'))
             ->assertOk()
             ->assertSee('Add one '.strtolower(school_term('section', 'section')).' for one '.strtolower(school_term('academic_year', 'school year')));
-        $actor->post(route('academic-cycle-sections.store'), [
-            'academic_year_id' => $academicYear->id,
-            'academic_level_id' => $academicLevel->id,
-            'name' => 'Green',
-            'capacity' => 32,
-        ])->assertRedirect();
+        Livewire::test(AcademicCycleSectionForm::class)
+            ->set('academicYearId', (string) $academicYear->id)
+            ->set('academicLevelId', (string) $academicLevel->id)
+            ->set('name', 'Green')
+            ->set('capacity', '32')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect();
 
         /** @var AcademicCycleSection $section */
         $section = AcademicCycleSection::query()

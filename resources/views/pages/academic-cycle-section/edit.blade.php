@@ -15,13 +15,7 @@
             A change here updates this one {{ strtolower(school_term('section', 'section')) }} in this one {{ strtolower(school_term('academic_year', 'school year')) }}. No learner, result, attendance, or timetable record moves.
         </slot:description>
         <slot:content>
-            <x-academic-cycle-section-form
-                :action="route('academic-cycle-sections.update', $academicCycleSection)"
-                method="PUT"
-                :section="$academicCycleSection"
-                :teachers="$teachers"
-                submit-label="Save changes"
-                :cancel-href="route('academic-cycle-sections.show', $academicCycleSection)" />
+            <livewire:academic-cycle-section-form :academic-cycle-section="$academicCycleSection" />
         </slot:content>
     </april:card>
 @endsection

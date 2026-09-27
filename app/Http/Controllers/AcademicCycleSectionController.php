@@ -2,19 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Curriculum\CreateAcademicCycleSection;
 use App\Actions\Curriculum\RollForwardAcademicCycleSections;
-use App\Actions\Curriculum\UpdateAcademicCycleSection;
 use App\Enums\AcademicStructureStatus;
-use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Http\Requests\RollForwardAcademicCycleSectionsRequest;
-use App\Http\Requests\StoreAcademicCycleSectionRequest;
-use App\Http\Requests\UpdateAcademicCycleSectionRequest;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
-use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
@@ -24,8 +18,6 @@ use Illuminate\View\View;
 class AcademicCycleSectionController extends Controller
 {
     public function __construct(
-        private CreateAcademicCycleSection $createAcademicCycleSection,
-        private UpdateAcademicCycleSection $updateAcademicCycleSection,
         private RollForwardAcademicCycleSections $rollForwardAcademicCycleSections,
     ) {
         $this->authorizeResource(AcademicCycleSection::class, 'academicCycleSection');
@@ -79,36 +71,6 @@ class AcademicCycleSectionController extends Controller
         ));
     }
 
-    public function store(StoreAcademicCycleSectionRequest $request): RedirectResponse
-    {
-        $data = $request->validated();
-        $academicYear = AcademicYear::inSchool()->findOrFail($data['academic_year_id']);
-        $academicLevel = AcademicLevel::inSchool()->findOrFail($data['academic_level_id']);
-
-        $section = $this->createAcademicCycleSection->create(
-            $academicYear,
-            $academicLevel,
-            $data['name'],
-            $data,
-            $this->teacherFrom($data['homeroom_teacher_id'] ?? null),
-            $request->user(),
-        );
-
-        if ($request->boolean('setup')) {
-            if ($request->boolean('school_setup')) {
-                return to_route('schools.setup', [current_school(), 'classes'])
-                    ->with('success', 'Section created for the year. Review it in the class setup.');
-            }
-
-            return to_route('academic-years.setup', [$academicYear, 'structure'])
-                ->with('success', 'Section created for the year. Review it in the setup tree.');
-        }
-
-        return redirect()
-            ->route('academic-cycle-sections.show', $section)
-            ->with('success', 'Cycle section created as a draft. Activate it when the setup is right.');
-    }
-
     public function show(AcademicCycleSection $academicCycleSection): View
     {
         $academicCycleSection->load([
@@ -138,23 +100,7 @@ class AcademicCycleSectionController extends Controller
                 ->with('danger', 'This cycle section is archived or its cycle is closed, so its setup cannot change.');
         }
 
-        return view('pages.academic-cycle-section.edit', $this->formOptions() + compact('academicCycleSection'));
-    }
-
-    public function update(UpdateAcademicCycleSectionRequest $request, AcademicCycleSection $academicCycleSection): RedirectResponse
-    {
-        $data = $request->validated();
-
-        $this->updateAcademicCycleSection->update(
-            $academicCycleSection,
-            $data,
-            $this->teacherFrom($data['homeroom_teacher_id'] ?? null),
-            $request->user(),
-        );
-
-        return redirect()
-            ->route('academic-cycle-sections.show', $academicCycleSection)
-            ->with('success', 'Cycle section updated.');
+        return view('pages.academic-cycle-section.edit', compact('academicCycleSection'));
     }
 
     /**
@@ -223,9 +169,9 @@ class AcademicCycleSectionController extends Controller
     }
 
     /**
-     * Read the records the create and edit forms can choose from.
+     * Read the years and classes, so the create page can say what is missing first.
      *
-     * @return array{academicYears: Collection<int, AcademicYear>, academicLevels: Collection<int, AcademicLevel>, teachers: Collection<int, User>}
+     * @return array{academicYears: Collection<int, AcademicYear>, academicLevels: Collection<int, AcademicLevel>}
      */
     private function formOptions(): array
     {
@@ -237,9 +183,7 @@ class AcademicCycleSectionController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        $teachers = User::ofSchool()->role(Role::Teacher->value)->orderBy('name')->get(['users.id', 'users.name']);
-
-        return compact('academicYears', 'academicLevels', 'teachers');
+        return compact('academicYears', 'academicLevels');
     }
 
     /**
@@ -298,10 +242,5 @@ class AcademicCycleSectionController extends Controller
         $id = $this->selectedId($request, $key, $academicYears->modelKeys());
 
         return $id === null ? null : $academicYears->firstWhere('id', $id);
-    }
-
-    private function teacherFrom(int|string|null $teacherId): ?User
-    {
-        return $teacherId === null ? null : User::query()->findOrFail($teacherId);
     }
 }

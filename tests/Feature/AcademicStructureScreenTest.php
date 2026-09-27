@@ -4,7 +4,9 @@ namespace Tests\Feature;
 
 use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
+use App\Enums\EnrollmentStatus;
 use App\Enums\Role;
+use App\Livewire\AcademicCycleSectionForm;
 use App\Livewire\AcademicLevelForm;
 use App\Livewire\AcademicStructureStatusControl;
 use App\Models\AcademicCycleSection;
@@ -13,6 +15,7 @@ use App\Models\AcademicYear;
 use App\Models\AuditEvent;
 use App\Models\School;
 use App\Models\SchoolOperatingProfile;
+use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -377,8 +380,10 @@ class AcademicStructureScreenTest extends TestCase
 
         $actor->get(route('academic-cycle-sections.create', ['academic_level_id' => $academicLevel->id]))
             ->assertOk()
-            ->assertSee('value="'.$academicLevel->id.'" selected', false)
-            ->assertSee('3. Optional details');
+            ->assertSee('Optional details');
+
+        Livewire::test(AcademicCycleSectionForm::class, ['preselectedAcademicLevelId' => $academicLevel->id])
+            ->assertSet('academicLevelId', (string) $academicLevel->id);
     }
 
     public function test_a_manager_can_edit_a_cycle_section_without_moving_its_cycle(): void
@@ -398,15 +403,16 @@ class AcademicStructureScreenTest extends TestCase
 
         $actor->get(route('academic-cycle-sections.edit', $section))
             ->assertOk()
-            ->assertSee('The '.school_term('academic_year', 'School year').' and '.school_term('class_level', 'Class').' are fixed.')
+            ->assertSee($section->academicYear->name)
             ->assertSee('Form teacher');
 
-        $actor->put(route('academic-cycle-sections.update', $section), [
-            'name' => 'Kestrel',
-            'room' => 'Block B, Room 2',
-            'capacity' => 40,
-            'homeroom_teacher_id' => $teacher->id,
-        ])->assertRedirect(route('academic-cycle-sections.show', $section));
+        Livewire::test(AcademicCycleSectionForm::class, ['academicCycleSection' => $section])
+            ->set('room', ' Block B, Room 2 ')
+            ->set('capacity', '40')
+            ->set('homeroomTeacherId', (string) $teacher->id)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('academic-cycle-sections.show', $section));
 
         $section->refresh();
         $this->assertSame('Block B, Room 2', $section->room);
@@ -425,18 +431,123 @@ class AcademicStructureScreenTest extends TestCase
         $taken = ['academic_year_id' => $academicYear->id, 'academic_level_id' => $academicLevel->id, 'name' => 'Osprey'];
         AcademicCycleSection::factory()->create($taken + ['school_id' => $school->id]);
 
-        $actor->from(route('academic-cycle-sections.create'))
-            ->post(route('academic-cycle-sections.store'), $taken)
-            ->assertRedirect(route('academic-cycle-sections.create'))
-            ->assertSessionHasErrors('name');
+        Livewire::test(AcademicCycleSectionForm::class)
+            ->set('academicYearId', (string) $academicYear->id)
+            ->set('academicLevelId', (string) $academicLevel->id)
+            ->set('name', 'Osprey')
+            ->call('save')
+            ->assertHasErrors(['name' => 'unique']);
 
         // The same name is still free in another level of the same cycle.
         $otherLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
-        $actor->post(route('academic-cycle-sections.store'), [
-            'academic_year_id' => $academicYear->id,
-            'academic_level_id' => $otherLevel->id,
-            'name' => 'Osprey',
-        ])->assertSessionHasNoErrors();
+        Livewire::test(AcademicCycleSectionForm::class)
+            ->set('academicYearId', (string) $academicYear->id)
+            ->set('academicLevelId', (string) $otherLevel->id)
+            ->set('name', 'Osprey')
+            ->call('save')
+            ->assertHasNoErrors();
+    }
+
+    public function test_a_section_added_from_school_setup_returns_to_the_classes_step(): void
+    {
+        $this->authorized_user(['create section', 'read section']);
+        $school = $this->workingSchool();
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
+        $academicYear = AcademicYear::factory()->create(['school_id' => $school->id]);
+
+        Livewire::test(AcademicCycleSectionForm::class, ['setup' => true, 'schoolSetup' => true, 'preselectedAcademicYearId' => $academicYear->id, 'preselectedAcademicLevelId' => $academicLevel->id])
+            ->assertSet('academicYearId', (string) $academicYear->id)
+            ->set('name', 'Heron')
+            ->call('save')
+            ->assertRedirect(route('schools.setup', [current_school(), 'classes']));
+
+        Livewire::test(AcademicCycleSectionForm::class, ['setup' => true, 'preselectedAcademicYearId' => $academicYear->id, 'preselectedAcademicLevelId' => $academicLevel->id])
+            ->set('name', 'Egret')
+            ->call('save')
+            ->assertRedirect(route('academic-years.setup', [$academicYear, 'structure']));
+    }
+
+    public function test_a_section_takes_only_this_schools_years_classes_and_teachers(): void
+    {
+        $this->authorized_user(['create section', 'read section']);
+        $school = $this->workingSchool();
+        $otherSchool = School::factory()->create();
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
+        $academicYear = AcademicYear::factory()->create(['school_id' => $school->id]);
+        $foreignYear = AcademicYear::factory()->create(['school_id' => $otherSchool->id]);
+        $foreignLevel = AcademicLevel::factory()->create(['school_id' => $otherSchool->id]);
+        $group = AcademicLevel::factory()->create(['school_id' => $school->id, 'is_group' => true]);
+        $foreignTeacher = $this->memberOf($otherSchool);
+        $foreignTeacher->assignRole(Role::Teacher->value);
+        $foreignTeacher->schoolMemberships()->where('school_id', $school->id)->delete();
+
+        Livewire::test(AcademicCycleSectionForm::class, ['preselectedAcademicYearId' => $foreignYear->id])
+            ->assertSet('academicYearId', '')
+            ->set('academicYearId', (string) $foreignYear->id)
+            ->set('academicLevelId', (string) $foreignLevel->id)
+            ->set('name', 'Wren')
+            ->call('save')
+            ->assertHasErrors(['academicYearId' => 'in', 'academicLevelId' => 'in'])
+            ->set('academicYearId', (string) $academicYear->id)
+            ->set('academicLevelId', (string) $group->id)
+            ->call('save')
+            ->assertHasErrors(['academicLevelId' => 'in'])
+            ->set('academicLevelId', (string) $academicLevel->id)
+            ->set('homeroomTeacherId', (string) $foreignTeacher->id)
+            ->call('save')
+            ->assertHasErrors(['homeroomTeacherId' => 'in']);
+
+        $this->assertFalse(AcademicCycleSection::query()->where('name', 'Wren')->exists());
+        $this->assertFalse(Route::has('academic-cycle-sections.store'));
+        $this->assertFalse(Route::has('academic-cycle-sections.update'));
+    }
+
+    public function test_a_capacity_below_the_placed_learners_is_refused(): void
+    {
+        $this->authorized_user(['read section', 'update section']);
+        $section = AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'status' => AcademicStructureStatus::Active,
+            'capacity' => 30,
+        ]);
+        StudentRecord::factory()->count(3)->create([
+            'school_id' => $section->school_id,
+            'academic_cycle_section_id' => $section->id,
+            'status' => EnrollmentStatus::Active,
+        ]);
+
+        Livewire::test(AcademicCycleSectionForm::class, ['academicCycleSection' => $section])
+            ->set('capacity', '2')
+            ->call('save')
+            ->assertHasErrors('capacity')
+            ->assertNoRedirect()
+            ->set('capacity', '3')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame(3, $section->fresh()->capacity);
+    }
+
+    public function test_a_class_teacher_who_left_is_named_until_the_section_is_changed(): void
+    {
+        $this->authorized_user(['read section', 'update section']);
+        $former = $this->memberOf(School::factory()->create());
+        $former->forceFill(['name' => 'Moses Adeyemi'])->save();
+        $section = AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'status' => AcademicStructureStatus::Active,
+            'homeroom_teacher_id' => $former->id,
+        ]);
+
+        Livewire::test(AcademicCycleSectionForm::class, ['academicCycleSection' => $section])
+            ->assertSee('Moses Adeyemi (no longer at this school)')
+            ->call('save')
+            ->assertHasErrors(['homeroomTeacherId' => 'in'])
+            ->set('homeroomTeacherId', '')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertNull($section->fresh()->homeroom_teacher_id);
     }
 
     public function test_a_cycle_section_can_be_archived_from_its_own_screen(): void

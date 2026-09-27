@@ -186,7 +186,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             ->name('academic-cycle-sections.roll-forward');
         Route::resource('academic-cycle-sections', AcademicCycleSectionController::class)
             ->parameters(['academic-cycle-sections' => 'academicCycleSection'])
-            ->only(['index', 'create', 'store', 'show', 'edit', 'update']);
+            ->only(['index', 'create', 'show', 'edit']);
 
         Route::get('admissions/waitlist', [AdmissionWaitlistController::class, 'index'])->name('admissions.waitlist.index');
         Route::post('admissions/waitlist', [AdmissionWaitlistController::class, 'store'])->name('admissions.waitlist.store');

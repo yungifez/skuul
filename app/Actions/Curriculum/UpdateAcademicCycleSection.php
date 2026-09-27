@@ -5,11 +5,14 @@ namespace App\Actions\Curriculum;
 use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
+use App\Enums\EnrollmentStatus;
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicCycleSection;
+use App\Models\StudentRecord;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class UpdateAcademicCycleSection
 {
@@ -40,6 +43,7 @@ class UpdateAcademicCycleSection
                 ->findOrFail($section->id);
 
             $this->failIfRecordsDoNotFit($section, $homeroomTeacher);
+            $this->failIfCapacityIsBelowLearners($section, $details['capacity'] ?? null);
 
             $before = $this->readable($section);
 
@@ -97,6 +101,33 @@ class UpdateAcademicCycleSection
             if (!$homeroomTeacher->hasRole(Role::Teacher->value)) {
                 throw new InvalidValueException('Only a teacher can be a '.strtolower(school_term('homeroom_teacher', 'class teacher')).'.');
             }
+        }
+    }
+
+    /**
+     * Refuse a capacity lower than the learners the section already holds.
+     *
+     * Placement refuses a learner once the section is full, so a capacity
+     * below the class list would leave the section over its own limit.
+     *
+     * @throws ValidationException
+     */
+    private function failIfCapacityIsBelowLearners(AcademicCycleSection $section, ?int $capacity): void
+    {
+        if ($capacity === null) {
+            return;
+        }
+
+        $placed = StudentRecord::query()
+            ->where('school_id', $section->school_id)
+            ->where('academic_cycle_section_id', $section->id)
+            ->where('status', EnrollmentStatus::Active)
+            ->count();
+
+        if ($capacity < $placed) {
+            throw ValidationException::withMessages([
+                'capacity' => "$placed learners are placed in this section now. Set a capacity of at least $placed.",
+            ]);
         }
     }
 
