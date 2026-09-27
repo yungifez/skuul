@@ -2,11 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\NoticeEmailPreferences;
+use App\Models\NoticeNotificationPreference;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class PortalNotificationPreferenceTest extends TestCase
@@ -27,25 +30,25 @@ class PortalNotificationPreferenceTest extends TestCase
             ->assertSee($this->workingSchool()->name)
             ->assertSee('Second campus');
 
-        $this->actingAs($guardian)
-            ->put(route('portal.notification-preferences.update'), [
-                'preferences' => [
-                    $first->school_id => '0',
-                    $second->school_id => '1',
-                ],
-            ])
-            ->assertRedirect();
+        Livewire::actingAs($guardian)
+            ->test(NoticeEmailPreferences::class, ['isPortal' => true])
+            ->assertSet("emailEnabled.{$first->school_id}", true)
+            ->set("emailEnabled.{$first->school_id}", false)
+            ->assertDispatched('status-message', type: 'success')
+            ->set("emailEnabled.{$first->school_id}", false)
+            ->assertSee('Notices only here');
 
         $this->assertDatabaseHas('notice_notification_preferences', [
             'user_id' => $guardian->id,
             'school_id' => $first->school_id,
             'email_enabled' => false,
         ]);
-        $this->assertDatabaseHas('notice_notification_preferences', [
-            'user_id' => $guardian->id,
-            'school_id' => $second->school_id,
-            'email_enabled' => true,
-        ]);
+        $this->assertSame(1, NoticeNotificationPreference::query()->where('user_id', $guardian->id)->count());
+
+        Livewire::actingAs($guardian)
+            ->test(NoticeEmailPreferences::class, ['isPortal' => true])
+            ->assertSet("emailEnabled.{$first->school_id}", false)
+            ->assertSet("emailEnabled.{$second->school_id}", true);
     }
 
     public function test_a_guardian_cannot_change_a_campus_outside_their_family(): void
@@ -55,12 +58,10 @@ class PortalNotificationPreferenceTest extends TestCase
         $otherEnrollment = $this->enrollment($otherSchool);
         $guardian = $this->guardianOf($enrollment);
 
-        $this->actingAs($guardian)
-            ->put(route('portal.notification-preferences.update'), [
-                'preferences' => [$otherEnrollment->school_id => '0'],
-            ])
-            ->assertRedirect()
-            ->assertSessionHasErrors('preferences');
+        Livewire::actingAs($guardian)
+            ->test(NoticeEmailPreferences::class, ['isPortal' => true])
+            ->set("emailEnabled.{$otherEnrollment->school_id}", false)
+            ->assertDispatched('status-message', type: 'danger', message: 'You can only change the setting for your own schools.');
 
         $this->assertDatabaseMissing('notice_notification_preferences', [
             'user_id' => $guardian->id,
@@ -70,9 +71,13 @@ class PortalNotificationPreferenceTest extends TestCase
 
     public function test_a_person_without_a_portal_enrollment_cannot_open_notification_settings(): void
     {
-        $this->actingAs($this->memberOf($this->workingSchool()))
+        $person = $this->memberOf($this->workingSchool());
+
+        $this->actingAs($person)
             ->get(route('portal.notification-preferences.edit'))
             ->assertNotFound();
+
+        Livewire::actingAs($person)->test(NoticeEmailPreferences::class, ['isPortal' => true])->assertNotFound();
     }
 
     /**

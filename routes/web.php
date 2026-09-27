@@ -119,7 +119,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     // Families use portal authorization, not a staff working-school membership.
     Route::get('portal/overview', ['App\Http\Controllers\PortalOverviewController', 'index'])->name('portal.overview');
     Route::get('portal/notification-preferences', [NoticeNotificationPreferenceController::class, 'portalEdit'])->name('portal.notification-preferences.edit');
-    Route::put('portal/notification-preferences', [NoticeNotificationPreferenceController::class, 'portalUpdate'])->name('portal.notification-preferences.update');
     Route::get('portal/enrollments/{studentRecord}/attendance', ['App\Http\Controllers\PortalAttendanceController', 'show'])->name('portal.attendance.show');
     Route::get('portal/enrollments/{studentRecord}/calendar', ['App\Http\Controllers\PortalCalendarController', 'index'])->name('portal.calendar.index');
     Route::get('portal/enrollments/{studentRecord}/invoices', [PortalInvoicesController::class, 'index'])->name('portal.invoices.index');
@@ -135,7 +134,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::get('portal/enrollments/{studentRecord}/syllabi', ['App\Http\Controllers\PortalSyllabusController', 'index'])->name('portal.syllabi.index');
     Route::get('notices/{notice}/attachment', NoticeAttachmentController::class)->name('notices.attachments.download');
     Route::get('notice-preferences', [NoticeNotificationPreferenceController::class, 'edit'])->middleware('App\Http\Middleware\RequireActiveSchool')->name('notice-preferences.edit');
-    Route::put('notice-preferences', [NoticeNotificationPreferenceController::class, 'update'])->middleware('App\Http\Middleware\RequireActiveSchool')->name('notice-preferences.update');
     // Organization administration is separate from working-school access.
     Route::get('organizations/{organization}/members', ['App\Http\Controllers\OrganizationMemberController', 'index'])->name('organizations.members.index');
     Route::get('organizations/{organization}/domains', ['App\Http\Controllers\OrganizationDomainController', 'index'])->name('organizations.domains.index');

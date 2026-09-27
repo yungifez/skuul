@@ -12,6 +12,7 @@ use App\Enums\NoticeStatus;
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Jobs\SendNoticeEmails;
+use App\Livewire\NoticeEmailPreferences;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AuditEvent;
@@ -27,6 +28,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Schedule;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -350,28 +352,37 @@ class NoticePublicationTest extends TestCase
 
         $actor->get(route('notice-preferences.edit'))
             ->assertOk()
-            ->assertSee('Optional notice email')
-            ->assertSee('What this does not change')
+            ->assertSeeLivewire(NoticeEmailPreferences::class)
+            ->assertSee('Email me a copy of notices')
             ->assertSee('Account and safety messages, such as a password reset, are always sent. You cannot turn those off here.');
     }
 
     public function test_the_delivery_screen_shows_the_choice_that_is_saved(): void
     {
+        $this->authorized_user([]);
+        $schoolId = $this->workingSchool()->id;
+
+        Livewire::test(NoticeEmailPreferences::class)
+            ->assertSet("emailEnabled.{$schoolId}", true)
+            ->set("emailEnabled.{$schoolId}", false)
+            ->assertSee('Notices only here');
+
+        $this->assertFalse(NoticeNotificationPreference::query()->where('user_id', auth()->id())->sole()->email_enabled);
+
+        Livewire::test(NoticeEmailPreferences::class)
+            ->assertSet("emailEnabled.{$schoolId}", false)
+            ->set("emailEnabled.{$schoolId}", true);
+
+        $this->assertTrue(NoticeNotificationPreference::query()->where('user_id', auth()->id())->sole()->email_enabled);
+    }
+
+    public function test_opening_the_delivery_screen_writes_nothing(): void
+    {
         $actor = $this->authorized_user([]);
 
-        $actor->put(route('notice-preferences.update'), ['email_enabled' => '0'])
-            ->assertRedirect();
+        $actor->get(route('notice-preferences.edit'))->assertOk();
 
-        $actor->get(route('notice-preferences.edit'))
-            ->assertOk()
-            ->assertSee('Off')
-            ->assertDontSee('checked', false);
-
-        $actor->put(route('notice-preferences.update'), ['email_enabled' => '1'])->assertRedirect();
-
-        $actor->get(route('notice-preferences.edit'))
-            ->assertOk()
-            ->assertSee('checked', false);
+        $this->assertSame(0, NoticeNotificationPreference::query()->count());
     }
 
     /**

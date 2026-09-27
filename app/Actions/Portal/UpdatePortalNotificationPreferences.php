@@ -6,7 +6,6 @@ use App\Exceptions\InvalidValueException;
 use App\Models\NoticeNotificationPreference;
 use App\Models\User;
 use App\Services\Portal\PortalAccess;
-use Illuminate\Support\Facades\DB;
 
 class UpdatePortalNotificationPreferences
 {
@@ -32,16 +31,16 @@ class UpdatePortalNotificationPreferences
             throw new InvalidValueException('You can only change notification settings for your own schools.');
         }
 
-        DB::transaction(function () use ($person, $preferences): void {
-            foreach ($preferences as $schoolId => $emailEnabled) {
-                NoticeNotificationPreference::updateOrCreate(
-                    [
-                        'user_id' => $person->id,
-                        'school_id' => (int) $schoolId,
-                    ],
-                    ['email_enabled' => (bool) $emailEnabled],
-                );
-            }
-        });
+        // One upsert, so a double tap cannot race two inserts into the
+        // one-row-per-campus rule.
+        NoticeNotificationPreference::query()->upsert(
+            collect($preferences)->map(fn (bool|int|string $emailEnabled, int|string $schoolId): array => [
+                'user_id' => $person->id,
+                'school_id' => (int) $schoolId,
+                'email_enabled' => (bool) $emailEnabled,
+            ])->values()->all(),
+            ['user_id', 'school_id'],
+            ['email_enabled'],
+        );
     }
 }

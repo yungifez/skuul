@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Opening notice delivery wrote a row, and a double tap could fail
+
+- Status: Fixed
+- Area: Notice email preferences (`NoticeEmailPreferences`, `UpdatePortalNotificationPreferences`)
+- Observed: Only opening the staff page created a preference row. Two tabs opening at once could both try to insert the one row per person and school, and one got a server error. The family save used one insert-or-update per campus, which can race the same way on a double tap.
+- Impact: A parent or teacher saw an error page when they only wanted to look.
+- Reproduction: Open Notice delivery in two tabs at the same moment on a fresh account.
+- Resolution: Opening the page writes nothing. Each switch saves at once with one upsert, and a campus outside the family is refused. Both pages now work through Livewire, and the PUT routes are gone.
+
 ## Two people changing one grading scale lost each other's options
 
 - Status: Fixed
