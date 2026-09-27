@@ -9,6 +9,7 @@ use App\Enums\IncidentCategory;
 use App\Enums\IncidentParticipantRole;
 use App\Enums\IncidentStatus;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\ShowIncident;
 use App\Models\AuditEvent;
 use App\Models\Incident;
 use App\Models\IncidentNote;
@@ -17,6 +18,7 @@ use App\Models\StudentRecord;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
+use Livewire\Livewire;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -166,11 +168,13 @@ class IncidentTest extends TestCase
         $reporter = auth()->user();
         $incident = app(ReportIncident::class)->report('Late every morning');
 
-        $this->from(route('incidents.show', $incident))
-            ->post(route('incidents.notes.store', $incident), [
-                'body' => 'The guardian called back.',
-                'is_restricted' => '1',
-            ])->assertRedirect(route('incidents.show', $incident));
+        Livewire::test(ShowIncident::class, ['incident' => $incident])
+            ->assertSet('noteIsRestricted', true)
+            ->set('noteBody', 'The guardian called back.')
+            ->call('addNote')
+            ->assertHasNoErrors()
+            ->assertSee('The guardian called back.')
+            ->assertSet('noteBody', '');
 
         $note = IncidentNote::query()->sole();
         $this->assertSame('The guardian called back.', $note->body);

@@ -813,3 +813,11 @@
 - Impact: Staff met the same task in two places and had to open panels to find it.
 - Reproduction: Open `/dashboard/schools/settings`.
 - Resolution: The page now shows the guided-setup button, then the checklist as open row lists by group. Each row links to its area and shows a reason only while it is still to do. A plain "Day to day" link list replaces the card grid. The accent button turns quiet once the required steps are done. The duplicate cards, the tooltips and the unused count variables in `SchoolController::settings` are removed. Test: updated `SchoolTest`.
+
+## The case page stacked five cards and reloaded for every note
+- Status: Fixed
+- Area: Discipline case page (`incidents.show`)
+- Observed: The page showed a restriction alert with a paragraph, a summary card of four boxed facts, and four more cards with descriptions under each title. People and actions sat in data tables. Each of the four forms (move, action, mark done, note) posted and reloaded the page.
+- Impact: The state and the next step sat far apart. Every small update lost the reader's place.
+- Reproduction: Open any case at `/dashboard/incidents/{id}`.
+- Resolution: A new `ShowIncident` Livewire component shows the reference line, one row of facts, and the "Move the case" control at the top. People, Actions, Notes and History follow as plain lists. Adding an action or a note and marking one done happen in place. The card descriptions, the alert paragraph, the three form requests and the three POST/PUT routes are removed. Tests: updated `IncidentScreenTest` and `IncidentTest`, plus new tests for readers without update permission and for a blank action.

@@ -8,6 +8,7 @@ use App\Enums\IncidentCategory;
 use App\Enums\IncidentParticipantRole;
 use App\Enums\IncidentStatus;
 use App\Livewire\IncidentDirectory as IncidentDirectoryComponent;
+use App\Livewire\ShowIncident;
 use App\Models\Incident;
 use App\Models\StudentRecord;
 use App\Models\User;
@@ -98,12 +99,12 @@ class IncidentScreenTest extends TestCase
         $this->authorized_user(['read incident', 'create incident', 'update incident']);
         $incident = app(ReportIncident::class)->report('Broke a window');
 
-        $this->from(route('incidents.show', $incident))
-            ->put(route('incidents.status.update', $incident), [
-                'status' => IncidentStatus::UnderReview->value,
-                'reason' => 'The head of year is looking into it.',
-            ])
-            ->assertRedirect(route('incidents.show', $incident));
+        Livewire::test(ShowIncident::class, ['incident' => $incident])
+            ->set('nextStatus', IncidentStatus::UnderReview->value)
+            ->set('statusReason', 'The head of year is looking into it.')
+            ->call('changeStatus')
+            ->assertHasNoErrors()
+            ->assertSee('The head of year is looking into it.');
 
         $this->assertSame(IncidentStatus::UnderReview, $incident->fresh()->status);
         $this->assertSame(1, $incident->statusChanges()->count());
@@ -115,9 +116,11 @@ class IncidentScreenTest extends TestCase
         $incident = app(ReportIncident::class)->report('Broke a window');
         app(ReportIncident::class)->changeStatus($incident, IncidentStatus::Closed);
 
-        $this->from(route('incidents.show', $incident))
-            ->put(route('incidents.status.update', $incident), ['status' => IncidentStatus::Referred->value])
-            ->assertSessionHasErrors('status');
+        Livewire::test(ShowIncident::class, ['incident' => $incident])
+            ->assertDontSee('Move the case')
+            ->set('nextStatus', IncidentStatus::Referred->value)
+            ->call('changeStatus')
+            ->assertHasErrors('nextStatus');
 
         $this->assertSame(IncidentStatus::Closed, $incident->fresh()->status);
     }
@@ -127,23 +130,47 @@ class IncidentScreenTest extends TestCase
         $this->authorized_user(['read incident', 'create incident', 'update incident']);
         $incident = app(ReportIncident::class)->report('Broke a window');
 
-        $this->from(route('incidents.show', $incident))
-            ->post(route('incidents.actions.store', $incident), [
-                'type' => 'Meeting',
-                'description' => 'Speak to the guardian.',
-                'due_on' => now()->addWeek()->toDateString(),
-            ])
-            ->assertRedirect(route('incidents.show', $incident));
+        $screen = Livewire::test(ShowIncident::class, ['incident' => $incident])
+            ->set('actionType', 'Meeting')
+            ->set('actionDescription', 'Speak to the guardian.')
+            ->set('actionDueOn', now()->addWeek()->toDateString())
+            ->call('addAction')
+            ->assertHasNoErrors()
+            ->assertSee('Speak to the guardian.')
+            ->assertSet('actionType', '');
 
         $action = $incident->actions()->sole();
 
         $this->assertTrue($action->isOutstanding());
 
-        $this->from(route('incidents.show', $incident))
-            ->post(route('incidents.actions.complete', [$incident, $action]))
-            ->assertRedirect(route('incidents.show', $incident));
+        $screen->call('completeAction', $action->id)->assertSee('Done '.now()->format('j M Y'));
 
         $this->assertFalse($action->fresh()->isOutstanding());
+    }
+
+    public function test_a_reader_without_update_permission_sees_no_forms(): void
+    {
+        $this->authorized_user(['read incident', 'create incident']);
+        $incident = app(ReportIncident::class)->report('Broke a window');
+
+        Livewire::test(ShowIncident::class, ['incident' => $incident])
+            ->assertDontSee('Move the case')
+            ->assertDontSee('Add action')
+            ->assertDontSee('Add note')
+            ->call('addNote')
+            ->assertForbidden();
+    }
+
+    public function test_an_action_needs_a_kind_and_what_has_to_happen(): void
+    {
+        $this->authorized_user(['read incident', 'create incident', 'update incident']);
+        $incident = app(ReportIncident::class)->report('Broke a window');
+
+        Livewire::test(ShowIncident::class, ['incident' => $incident])
+            ->call('addAction')
+            ->assertHasErrors(['actionType' => 'required', 'actionDescription' => 'required']);
+
+        $this->assertSame(0, $incident->actions()->count());
     }
 
     public function test_the_list_hides_a_safeguarding_case_from_a_person_who_may_not_read_it(): void

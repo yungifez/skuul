@@ -258,10 +258,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::get('incidents/create', ['App\Http\Controllers\IncidentController', 'create'])->name('incidents.create');
             Route::post('incidents', ['App\Http\Controllers\IncidentController', 'store'])->name('incidents.store');
             Route::get('incidents/{incident}', ['App\Http\Controllers\IncidentController', 'show'])->name('incidents.show');
-            Route::post('incidents/{incident}/notes', ['App\Http\Controllers\IncidentController', 'storeNote'])->name('incidents.notes.store');
-            Route::put('incidents/{incident}/status', ['App\Http\Controllers\IncidentController', 'changeStatus'])->name('incidents.status.update');
-            Route::post('incidents/{incident}/actions', ['App\Http\Controllers\IncidentController', 'storeAction'])->name('incidents.actions.store');
-            Route::post('incidents/{incident}/actions/{incidentAction}/complete', ['App\Http\Controllers\IncidentController', 'completeAction'])->name('incidents.actions.complete');
         });
 
         // wellbeing routes. A plan of help runs across periods, so it does not

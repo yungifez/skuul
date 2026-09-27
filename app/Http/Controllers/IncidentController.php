@@ -2,19 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Discipline\AddIncidentNote;
 use App\Actions\Discipline\ReportIncident;
 use App\Enums\IncidentCategory;
 use App\Enums\IncidentParticipantRole;
-use App\Enums\IncidentStatus;
 use App\Exceptions\InvalidValueException;
-use App\Http\Requests\StoreIncidentActionRequest;
-use App\Http\Requests\StoreIncidentNoteRequest;
 use App\Http\Requests\StoreIncidentRequest;
-use App\Http\Requests\UpdateIncidentStatusRequest;
 use App\Models\Incident;
-use App\Models\IncidentAction;
-use App\Models\IncidentNote;
 use App\Models\User;
 use App\Traits\ListsSchoolPeople;
 use Illuminate\Contracts\View\View;
@@ -33,7 +26,6 @@ class IncidentController extends Controller
 
     public function __construct(
         private ReportIncident $reportIncident,
-        private AddIncidentNote $addIncidentNote,
     ) {}
 
     /**
@@ -91,107 +83,11 @@ class IncidentController extends Controller
     /**
      * Show one case with everything recorded against it.
      */
-    public function show(Request $request, Incident $incident): View
+    public function show(Incident $incident): View
     {
         $this->authorize('view', $incident);
 
-        $incident->load([
-            'participants.user:id,name',
-            'participants.studentRecord.user:id,name',
-            'actions.assignedTo:id,name',
-            'statusChanges.changedBy:id,name',
-            'reportedBy:id,name',
-            'assignedTo:id,name',
-            'notes.writtenBy:id,name',
-        ]);
-
-        $notes = $incident->notes
-            ->filter(fn (IncidentNote $note): bool => $request->user()->can('view', $note))
-            ->values();
-
-        return view('pages.incident.show', [
-            'incident' => $incident,
-            'nextStatuses' => $incident->status->allowedNext(),
-            'staff' => $this->schoolStaff(),
-            'notes' => $notes,
-        ]);
-    }
-
-    /**
-     * Add one append-only note to an open case.
-     */
-    public function storeNote(StoreIncidentNoteRequest $request, Incident $incident): RedirectResponse
-    {
-        try {
-            $this->addIncidentNote->add(
-                incident: $incident,
-                body: $request->string('body')->toString(),
-                restricted: $request->boolean('is_restricted'),
-                actor: $request->user(),
-            );
-        } catch (InvalidValueException $exception) {
-            return back()->withErrors(['note' => $exception->getMessage()])->withInput();
-        }
-
-        return back()->with('success', 'The note was added to the case.');
-    }
-
-    /**
-     * Move the case to another state.
-     */
-    public function changeStatus(UpdateIncidentStatusRequest $request, Incident $incident): RedirectResponse
-    {
-        try {
-            $this->reportIncident->changeStatus(
-                incident: $incident,
-                status: IncidentStatus::from($request->string('status')->toString()),
-                actor: $request->user(),
-                reason: $request->string('reason')->toString() ?: null,
-            );
-        } catch (InvalidValueException $exception) {
-            return back()->withErrors(['status' => $exception->getMessage()]);
-        }
-
-        return back()->with('success', 'The case moved to '.$incident->fresh()->status->label().'.');
-    }
-
-    /**
-     * Record something the school will do about the case.
-     */
-    public function storeAction(StoreIncidentActionRequest $request, Incident $incident): RedirectResponse
-    {
-        $assignee = $request->filled('assigned_to')
-            ? User::findOrFail($request->integer('assigned_to'))
-            : null;
-
-        try {
-            $this->reportIncident->addAction(
-                incident: $incident,
-                type: $request->string('type')->toString(),
-                description: $request->string('description')->toString(),
-                dueOn: $request->string('due_on')->toString() ?: null,
-                assignee: $assignee,
-                actor: $request->user(),
-            );
-        } catch (InvalidValueException $exception) {
-            return back()->withErrors(['action' => $exception->getMessage()])->withInput();
-        }
-
-        return back()->with('success', 'The action was added to the case.');
-    }
-
-    /**
-     * Record that an action is done.
-     */
-    public function completeAction(Incident $incident, IncidentAction $incidentAction): RedirectResponse
-    {
-        $this->authorize('update', $incident);
-
-        abort_unless($incidentAction->incident_id === $incident->id, 404);
-
-        $incidentAction->complete();
-
-        return back()->with('success', 'The action was marked done.');
+        return view('pages.incident.show', ['incident' => $incident]);
     }
 
     /**
