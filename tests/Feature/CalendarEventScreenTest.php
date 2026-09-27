@@ -16,6 +16,7 @@ use App\Services\Calendar\SchoolCalendar;
 use App\Services\Feature\FeatureManager;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -469,12 +470,38 @@ class CalendarEventScreenTest extends TestCase
             ->set('personSearch', 'Ben')
             ->assertDontSee('Ben Elsewhere')
             ->call('addPerson', $stranger->id)
-            ->assertSet('userIds', [])
-            ->set('userIds', [$stranger->id])
-            ->call('save')
-            ->assertHasErrors('userIds.0');
+            ->assertSet('userIds', []);
 
         $this->assertSame(0, CalendarEvent::inSchool()->count());
+    }
+
+    public function test_the_chosen_people_cannot_be_written_from_the_browser(): void
+    {
+        $this->authorized_user(['read calendar event', 'create calendar event']);
+        $stranger = $this->personOfAnotherSchool('Ben Elsewhere');
+
+        $this->expectException(CannotUpdateLockedPropertyException::class);
+
+        Livewire::test(CalendarEventEditor::class)->set('userIds', [$stranger->id]);
+    }
+
+    public function test_the_editor_drops_a_person_who_has_left_the_school(): void
+    {
+        $this->authorized_user(['read calendar event', 'create calendar event', 'update calendar event']);
+        $stayer = $this->memberOf($this->workingSchool(), User::factory()->create(['name' => 'Ada Stayer']));
+        $leaver = $this->memberOf($this->workingSchool(), User::factory()->create(['name' => 'Ben Leaver']));
+        $event = $this->event(['type' => CalendarEventType::Appointment]);
+        $event->audiences()->createMany([['user_id' => $stayer->id], ['user_id' => $leaver->id]]);
+        $leaver->schoolMemberships()->update(['status' => SchoolMembershipStatus::Ended]);
+
+        Livewire::test(CalendarEventEditor::class, ['event' => $event->fresh()])
+            ->assertSet('userIds', [$stayer->id])
+            ->assertSee('Ada Stayer')
+            ->assertDontSee('Ben Leaver')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame([$stayer->id], $event->audiences()->pluck('user_id')->filter()->values()->all());
     }
 
     public function test_the_form_offers_the_people_of_this_school_only(): void

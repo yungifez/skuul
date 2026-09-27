@@ -1,5 +1,14 @@
 # Known Bugs
 
+## The calendar editor named any account on the platform
+
+- Status: Fixed
+- Area: Calendar event editor (`CalendarEventEditor`)
+- Observed: The browser could write `userIds`. The page then read those users with no school limit and showed their names as chosen people.
+- Impact: A person who can add a calendar day could read the name behind any user id on the platform.
+- Reproduction: Open the add form, set `userIds` to another school's user id from the browser, and read the chosen list.
+- Resolution: `userIds` is locked, so only "add" and "remove" change it. The chosen list reads this school's active people only. Editing a day drops people who have since left the school.
+
 ## A members-only organization administrator could give themself full authority
 
 - Status: Fixed

@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
@@ -51,7 +52,12 @@ class CalendarEventEditor extends Component
     /** @var list<int> */
     public array $sectionIds = [];
 
-    /** @var list<int> */
+    /**
+     * The people named on the event, changed only by adding or removing one.
+     *
+     * @var list<int>
+     */
+    #[Locked]
     public array $userIds = [];
 
     public string $personSearch = '';
@@ -70,7 +76,12 @@ class CalendarEventEditor extends Component
             $this->startsAt = $event->starts_at->format($this->isAllDay ? 'Y-m-d' : 'Y-m-d\TH:i');
             $this->endsAt = $event->ends_at->format($this->isAllDay ? 'Y-m-d' : 'Y-m-d\TH:i');
             $this->sectionIds = $event->audiences->pluck('academic_cycle_section_id')->filter()->map(fn ($id): int => (int) $id)->values()->all();
-            $this->userIds = $event->audiences->pluck('user_id')->filter()->map(fn ($id): int => (int) $id)->values()->all();
+            $this->userIds = $this->people()
+                ->whereKey($event->audiences->pluck('user_id')->filter())
+                ->pluck('id')
+                ->map(fn ($id): int => (int) $id)
+                ->values()
+                ->all();
 
             return;
         }
@@ -217,7 +228,7 @@ class CalendarEventEditor extends Component
         return view('livewire.calendar-event-editor', [
             'types' => CalendarEventType::cases(),
             'sections' => $this->sections(),
-            'chosenPeople' => User::query()->whereKey($this->userIds)->orderBy('name')->get(['id', 'name']),
+            'chosenPeople' => $this->people()->whereKey($this->userIds)->orderBy('name')->get(['id', 'name']),
             'matches' => mb_strlen($search) < 2 ? collect() : $this->people()
                 ->where('name', 'like', '%'.str_replace(['%', '_'], ['\%', '\_'], $search).'%')
                 ->whereKeyNot($this->userIds)
