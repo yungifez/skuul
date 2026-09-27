@@ -805,3 +805,11 @@
 - Impact: The one task on each step was lost among five buttons and three blocks of text.
 - Reproduction: Open `/dashboard/schools/1/setup/classes`.
 - Resolution: Each step is now one heading and its actions in a row, with one accent button for the next task. The classes step lists the structure tree under "Classes and sections" with an "All classes" link. The intro line, the cards, the tooltips and the step sentences are removed. Test: `SetupWizardTest::test_each_school_setup_step_names_one_task_and_one_main_action`.
+
+## School settings showed the same setup areas twice, in 17 cards
+- Status: Fixed
+- Area: School settings (`schools.settings`)
+- Observed: The page opened with a tinted hero card, then a checklist card with a coloured warning box and a collapsed list. A second collapsed panel held eight cards for the same setup areas, and a "Run the school" section held seven more cards. Each card had a help tooltip, about 16 in all.
+- Impact: Staff met the same task in two places and had to open panels to find it.
+- Reproduction: Open `/dashboard/schools/settings`.
+- Resolution: The page now shows the guided-setup button, then the checklist as open row lists by group. Each row links to its area and shows a reason only while it is still to do. A plain "Day to day" link list replaces the card grid. The accent button turns quiet once the required steps are done. The duplicate cards, the tooltips and the unused count variables in `SchoolController::settings` are removed. Test: updated `SchoolTest`.

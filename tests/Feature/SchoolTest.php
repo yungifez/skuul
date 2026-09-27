@@ -163,12 +163,13 @@ class SchoolTest extends TestCase
             ->assertSuccessful()
             ->assertSee('Set up your school')
             ->assertSee('School setup checklist')
-            ->assertSee('How teaching works')
+            ->assertSee('Teaching approach')
             ->assertSee('Classes')
             ->assertSee('required steps remain')
             ->assertSee('No current school year is selected.')
-            ->assertSee('aria-label="School calendar help"', false)
-            ->assertSee('aria-label="Classes help"', false);
+            ->assertSee('id="day-to-day-heading"', false)
+            ->assertDontSee('More information')
+            ->assertDontSee('School calendar help');
     }
 
     public function test_a_long_school_name_can_wrap_in_the_page_heading(): void
@@ -288,7 +289,7 @@ class SchoolTest extends TestCase
             ->get('/dashboard/schools/settings')
             ->assertSuccessful()
             ->assertSee('Forms')
-            ->assertSee('Streams this academic year');
+            ->assertSee('Streams for this year');
     }
 
     public function test_unauthorized_user_cannot_update_school()

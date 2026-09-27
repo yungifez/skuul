@@ -7,122 +7,39 @@
 @section('page_heading', __('Set up your school'))
 
 @section('content')
-    <div class="mx-auto max-w-6xl space-y-8">
-        <section class="rounded-xl border bg-muted/40 p-6 md:p-8">
-            <p class="text-xs font-semibold uppercase text-muted-foreground">{{ $school->name }}</p>
-            <div class="mt-2 flex items-center gap-1">
-                <h2 class="text-2xl font-semibold tracking-tight">Get your school ready</h2>
-                <x-help-tooltip label="School setup help">Complete the required setup in order, then return to any completed area when you need to review it.</x-help-tooltip>
-            </div>
-            <div class="mt-5">
-                <april:button-link href="{{ route('schools.setup', [$school, 'details']) }}">Continue guided setup</april:button-link>
-            </div>
-        </section>
+    @php
+        $dayToDay = [
+            ['label' => 'Students', 'icon' => 'lucide-user-round-plus', 'href' => route('students.index')],
+            ['label' => 'Parents and guardians', 'icon' => 'lucide-heart-handshake', 'href' => route('parents.index')],
+            ['label' => 'Fees and payments', 'icon' => 'lucide-wallet-cards', 'href' => route('fee-invoices.index')],
+            ['label' => 'Notices', 'icon' => 'lucide-megaphone', 'href' => route('notices.index')],
+            ['label' => 'Staff access', 'icon' => 'lucide-shield-check', 'href' => route('admins.index')],
+            ['label' => 'Timetables', 'icon' => 'lucide-clock-3', 'href' => route('timetables.index')],
+            ['label' => 'School language', 'icon' => 'lucide-languages', 'href' => route('schools.operating-profile.edit')],
+            ['label' => 'School tools', 'icon' => 'lucide-sliders-horizontal', 'href' => route('schools.features.edit')],
+        ];
+    @endphp
+    <div class="mx-auto flex w-full max-w-4xl flex-col gap-10">
+        <div class="flex flex-col gap-3 border-b pb-6 sm:flex-row sm:items-center sm:justify-between">
+            <p class="text-sm text-muted-foreground">{{ $school->name }}</p>
+            <april:button-link href="{{ route('schools.setup', [$school, 'details']) }}" :variant="$setupChecklist['required_remaining'] > 0 ? 'default' : 'outline'" class="h-11">Continue guided setup</april:button-link>
+        </div>
 
         <x-school-setup-checklist :checklist="$setupChecklist" />
 
-        <details class="rounded-xl border bg-card">
-            <summary class="cursor-pointer px-6 py-4 text-sm font-semibold">Open individual setup areas</summary>
-            <section class="grid gap-4 border-t p-6 md:grid-cols-2 xl:grid-cols-3">
-            <april:card>
-                <slot:title class="flex items-center justify-between gap-3"><span>School details</span><span class="flex items-center gap-1"><x-help-tooltip label="School details help">School name, address, contacts and logo.</x-help-tooltip><x-lucide-building-2 class="size-5 text-muted-foreground" /></span></slot:title>
-                <slot:content><april:badge variant="secondary">Ready</april:badge></slot:content>
-                <slot:footer><april:button-link href="{{ route('schools.edit', $school) }}" variant="link" size="none" class="gap-1 p-0">Review details <span aria-hidden="true">→</span></april:button-link></slot:footer>
-            </april:card>
-
-            <april:card>
-                    <slot:title class="flex items-center justify-between gap-3"><span>School calendar</span><span class="flex items-center gap-1"><x-help-tooltip label="School calendar help">Choose the {{ strtolower(school_term('academic_year', 'school year')) }} and the terms your school uses.</x-help-tooltip><x-lucide-calendar-range class="size-5 text-muted-foreground" /></span></slot:title>
-                <slot:content><april:badge variant="{{ $academicYear ? 'secondary' : 'outline' }}">{{ $academicYear ? 'Ready' : 'Needs attention' }}</april:badge></slot:content>
-                <slot:footer><april:button-link href="{{ route('academic-years.index') }}" variant="link" size="none" class="gap-1 p-0">Manage school year <span aria-hidden="true">→</span></april:button-link></slot:footer>
-            </april:card>
-
-            <april:card>
-                <slot:title class="flex items-center justify-between gap-3"><span>How teaching works</span><span class="flex items-center gap-1"><x-help-tooltip label="Teaching approach help">Choose whether learners stay together all day or move between subject classes.</x-help-tooltip><x-lucide-users class="size-5 text-muted-foreground" /></span></slot:title>
-                <slot:content><april:badge variant="{{ $academicYear ? 'secondary' : 'outline' }}">{{ $academicYear ? 'Choose for this year' : 'Set the '.strtolower(school_term('academic_year', 'school year')).' first' }}</april:badge></slot:content>
-                <slot:footer>
-                    @if ($academicYear)
-                        <april:button-link href="{{ route('academic-years.instructional-model.edit', $academicYear) }}" variant="link" size="none" class="gap-1 p-0">Set teaching approach <span aria-hidden="true">→</span></april:button-link>
-                    @endif
-                </slot:footer>
-            </april:card>
-
-            <april:card>
-                <slot:title class="flex items-center justify-between gap-3"><span>School language</span><span class="flex items-center gap-1"><x-help-tooltip label="School language help">Choose the familiar words your school uses for classes, terms, subjects and fees.</x-help-tooltip><x-lucide-languages class="size-5 text-muted-foreground" /></span></slot:title>
-                <slot:footer><april:button-link href="{{ route('schools.operating-profile.edit') }}" variant="link" size="none" class="gap-1 p-0">Set school language <span aria-hidden="true">→</span></april:button-link></slot:footer>
-            </april:card>
-
-            <april:card>
-                    <slot:title class="flex items-center justify-between gap-3"><span>{{ school_terms('class_level', 'Classes') }}</span><span class="flex items-center gap-1"><x-help-tooltip label="Classes help">Add the grades or {{ strtolower(school_terms('class_level', 'classes')) }} your school teaches.</x-help-tooltip><x-lucide-presentation class="size-5 text-muted-foreground" /></span></slot:title>
-                <slot:content><april:badge variant="{{ $academicLevelsCount ? 'secondary' : 'outline' }}">{{ $academicLevelsCount ? 'Ready' : 'Needs attention' }}</april:badge></slot:content>
-                <slot:footer><april:button-link href="{{ route('academic-levels.index') }}" variant="link" size="none" class="gap-1 p-0">Manage {{ strtolower(school_terms('class_level', 'classes')) }} <span aria-hidden="true">→</span></april:button-link></slot:footer>
-            </april:card>
-
-            <april:card>
-                <slot:title class="flex items-center justify-between gap-3"><span>{{ school_terms('section', 'Classes') }} this {{ strtolower(school_term('academic_year', 'year')) }}</span><span class="flex items-center gap-1"><x-help-tooltip label="Classes this year help">Create the {{ strtolower(school_terms('section', 'sections')) }} that run this {{ strtolower(school_term('academic_year', 'year')) }}.</x-help-tooltip><x-lucide-landmark class="size-5 text-muted-foreground" /></span></slot:title>
-                <slot:content><april:badge variant="{{ $cycleSectionsCount ? 'secondary' : 'outline' }}">{{ $cycleSectionsCount ? 'Ready' : 'Needs attention' }}</april:badge></slot:content>
-                <slot:footer><april:button-link href="{{ route('academic-cycle-sections.index') }}" variant="link" size="none" class="gap-1 p-0">Manage this {{ strtolower(school_term('academic_year', 'year')) }}’s {{ strtolower(school_terms('section', 'classes')) }} <span aria-hidden="true">→</span></april:button-link></slot:footer>
-            </april:card>
-
-            <april:card>
-                <slot:title class="flex items-center justify-between gap-3"><span>Subjects being taught</span><span class="flex items-center gap-1"><x-help-tooltip label="Subjects being taught help">Choose the subjects that each grade or class will study.</x-help-tooltip><x-lucide-book-marked class="size-5 text-muted-foreground" /></span></slot:title>
-                <slot:content><april:badge variant="{{ $courseOfferingsCount ? 'secondary' : 'outline' }}">{{ $courseOfferingsCount ? 'Ready' : 'Needs attention' }}</april:badge></slot:content>
-                <slot:footer><april:button-link href="{{ route('course-offerings.index') }}" variant="link" size="none" class="gap-1 p-0">Manage subjects being taught <span aria-hidden="true">→</span></april:button-link></slot:footer>
-            </april:card>
-
-            @can('manage grading scale')
-                <april:card>
-                    <slot:title class="flex items-center justify-between gap-3"><span>Grading scales</span><span class="flex items-center gap-1"><x-help-tooltip label="Grading scales help">Set the familiar grade names teachers select when marking work.</x-help-tooltip><x-lucide-list-checks class="size-5 text-muted-foreground" /></span></slot:title>
-                    <slot:footer><april:button-link href="{{ route('grading-scales.index') }}" variant="link" size="none" class="gap-1 p-0">Manage grading scales <span aria-hidden="true">→</span></april:button-link></slot:footer>
-                </april:card>
-            @endcan
-            </section>
-        </details>
-
-        <section class="space-y-5">
-            <div class="flex max-w-2xl items-center gap-1">
-                <span class="text-sm font-medium text-muted-foreground">Run the school</span>
-                <x-help-tooltip label="Day-to-day tools help">These areas contain the records and working tools your team uses after the school year is prepared.</x-help-tooltip>
-            </div>
-            <div class="max-w-2xl">
-                <h2 class="text-xl font-semibold tracking-tight">The day-to-day areas your team manages</h2>
-            </div>
-
-            <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-                <april:card class="h-full">
-                    <slot:title class="flex items-center justify-between gap-3 text-base leading-snug tracking-normal"><span>Student records and admissions</span><span class="flex items-center gap-1"><x-help-tooltip label="Student records and admissions help">Admission numbers, learner details, required documents and placement into this {{ strtolower(school_term('academic_year', 'year')) }}’s {{ strtolower(school_terms('section', 'classes')) }}.</x-help-tooltip><x-lucide-user-round-plus class="size-4 shrink-0 text-muted-foreground" /></span></slot:title>
-                    <slot:footer><april:button-link href="{{ route('students.index') }}" variant="link" size="none" class="gap-1 p-0">Manage students <span aria-hidden="true">→</span></april:button-link></slot:footer>
-                </april:card>
-
-                <april:card class="h-full">
-                    <slot:title class="flex items-center justify-between gap-3 text-base leading-snug tracking-normal"><span>Parents and guardians</span><span class="flex items-center gap-1"><x-help-tooltip label="Parents and guardians help">Family contacts, parent access and the information staff can share with them.</x-help-tooltip><x-lucide-heart-handshake class="size-4 shrink-0 text-muted-foreground" /></span></slot:title>
-                    <slot:footer><april:button-link href="{{ route('parents.index') }}" variant="link" size="none" class="gap-1 p-0">Manage families <span aria-hidden="true">→</span></april:button-link></slot:footer>
-                </april:card>
-
-                <april:card class="h-full">
-                    <slot:title class="flex items-center justify-between gap-3 text-base leading-snug tracking-normal"><span>Fees and payments</span><span class="flex items-center gap-1"><x-help-tooltip label="Fees and payments help">Fee categories, invoices, payment records and the financial rules for this school.</x-help-tooltip><x-lucide-wallet-cards class="size-4 shrink-0 text-muted-foreground" /></span></slot:title>
-                    <slot:footer><april:button-link href="{{ route('fee-invoices.index') }}" variant="link" size="none" class="gap-1 p-0">Manage fees and payments <span aria-hidden="true">→</span></april:button-link></slot:footer>
-                </april:card>
-
-                <april:card class="h-full">
-                    <slot:title class="flex items-center justify-between gap-3 text-base leading-snug tracking-normal"><span>School communication</span><span class="flex items-center gap-1"><x-help-tooltip label="School communication help">Notices and announcements for learners, families and staff.</x-help-tooltip><x-lucide-megaphone class="size-4 shrink-0 text-muted-foreground" /></span></slot:title>
-                    <slot:footer><april:button-link href="{{ route('notices.index') }}" variant="link" size="none" class="gap-1 p-0">Manage notices <span aria-hidden="true">→</span></april:button-link></slot:footer>
-                </april:card>
-
-                <april:card class="h-full">
-                    <slot:title class="flex items-center justify-between gap-3 text-base leading-snug tracking-normal"><span>Staff access</span><span class="flex items-center gap-1"><x-help-tooltip label="Staff access help">Administrator accounts, invitations and who can carry out each task in the school.</x-help-tooltip><x-lucide-shield-check class="size-4 shrink-0 text-muted-foreground" /></span></slot:title>
-                    <slot:footer><april:button-link href="{{ route('admins.index') }}" variant="link" size="none" class="gap-1 p-0">Manage staff access <span aria-hidden="true">→</span></april:button-link></slot:footer>
-                </april:card>
-
-                <april:card class="h-full">
-                    <slot:title class="flex items-center justify-between gap-3 text-base leading-snug tracking-normal"><span>Timetable and school day</span><span class="flex items-center gap-1"><x-help-tooltip label="Timetable and school day help">Lesson times, rooms and the timetable learners and teachers follow each day.</x-help-tooltip><x-lucide-clock-3 class="size-4 shrink-0 text-muted-foreground" /></span></slot:title>
-                    <slot:footer><april:button-link href="{{ route('timetables.index') }}" variant="link" size="none" class="gap-1 p-0">Manage timetable <span aria-hidden="true">→</span></april:button-link></slot:footer>
-                </april:card>
-
-                <april:card class="h-full">
-                    <slot:title class="flex items-center justify-between gap-3 text-base leading-snug tracking-normal"><span>Tools your school uses</span><span class="flex items-center gap-1"><x-help-tooltip label="School tools help">Choose which optional school tools are available to staff and families.</x-help-tooltip><x-lucide-sliders-horizontal class="size-4 shrink-0 text-muted-foreground" /></span></slot:title>
-                    <slot:footer><april:button-link href="{{ route('schools.features.edit') }}" variant="link" size="none" class="gap-1 p-0">Choose school tools <span aria-hidden="true">→</span></april:button-link></slot:footer>
-                </april:card>
-            </div>
+        <section aria-labelledby="day-to-day-heading" class="flex flex-col gap-3">
+            <h2 id="day-to-day-heading" class="text-lg font-semibold">Day to day</h2>
+            <ul class="grid gap-x-6 sm:grid-cols-2">
+                @foreach ($dayToDay as $area)
+                    <li class="border-b">
+                        <a href="{{ $area['href'] }}" class="group flex min-h-11 items-center gap-3 py-3 text-sm font-medium select-none">
+                            <x-icon :name="$area['icon']" class="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                            <span class="flex-1 group-hover:underline">{{ $area['label'] }}</span>
+                            <x-lucide-chevron-right class="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
         </section>
     </div>
 @endsection

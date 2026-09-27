@@ -127,10 +127,6 @@ class SchoolController extends Controller
 
         return view('pages.school.settings', [
             'school' => $school,
-            'academicYear' => $setupChecklist['academicYear'],
-            'academicLevelsCount' => $setupChecklist['counts']['academicLevels'],
-            'cycleSectionsCount' => $setupChecklist['counts']['cycleSections'],
-            'courseOfferingsCount' => $setupChecklist['counts']['courseOfferings'],
             'setupChecklist' => $setupChecklist,
         ]);
     }
