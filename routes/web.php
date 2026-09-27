@@ -182,8 +182,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         // "roll-forward" is not read as a cycle section key.
         Route::get('academic-cycle-sections/roll-forward', [AcademicCycleSectionController::class, 'rollForwardForm'])
             ->name('academic-cycle-sections.roll-forward.show');
-        Route::post('academic-cycle-sections/roll-forward', [AcademicCycleSectionController::class, 'rollForward'])
-            ->name('academic-cycle-sections.roll-forward');
         Route::resource('academic-cycle-sections', AcademicCycleSectionController::class)
             ->parameters(['academic-cycle-sections' => 'academicCycleSection'])
             ->only(['index', 'create', 'show', 'edit']);

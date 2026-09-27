@@ -2,10 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Curriculum\RollForwardAcademicCycleSections;
 use App\Enums\AcademicStructureStatus;
-use App\Exceptions\InvalidValueException;
-use App\Http\Requests\RollForwardAcademicCycleSectionsRequest;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
@@ -17,9 +14,8 @@ use Illuminate\View\View;
 
 class AcademicCycleSectionController extends Controller
 {
-    public function __construct(
-        private RollForwardAcademicCycleSections $rollForwardAcademicCycleSections,
-    ) {
+    public function __construct()
+    {
         $this->authorizeResource(AcademicCycleSection::class, 'academicCycleSection');
     }
 
@@ -106,55 +102,11 @@ class AcademicCycleSectionController extends Controller
     /**
      * Show what a roll-forward would copy before anything is written.
      */
-    public function rollForwardForm(Request $request): View
+    public function rollForwardForm(): View
     {
         $this->authorize('create', AcademicCycleSection::class);
 
-        $academicYears = $this->academicYears();
-        $source = $this->cycleFrom($request, 'source_academic_year_id', $academicYears);
-        $target = $this->cycleFrom($request, 'target_academic_year_id', $academicYears);
-
-        $preview = null;
-        $problem = null;
-
-        if ($source !== null && $target !== null) {
-            try {
-                $preview = $this->rollForwardAcademicCycleSections->preview($source, $target);
-            } catch (InvalidValueException $exception) {
-                $problem = $exception->getMessage();
-            }
-        }
-
-        return view('pages.academic-cycle-section.roll-forward', compact('academicYears', 'source', 'target', 'preview', 'problem'));
-    }
-
-    public function rollForward(RollForwardAcademicCycleSectionsRequest $request): RedirectResponse
-    {
-        $data = $request->validated();
-        $source = AcademicYear::inSchool()->findOrFail($data['source_academic_year_id']);
-        $target = AcademicYear::inSchool()->findOrFail($data['target_academic_year_id']);
-
-        $sections = $this->rollForwardAcademicCycleSections->rollForward($source, $target, $request->user());
-
-        if ($sections->isEmpty()) {
-            if ($request->boolean('setup')) {
-                return to_route('schools.setup', [current_school(), 'classes'])
-                    ->with('success', "{$target->name} already has every section of {$source->name}. Nothing was copied.");
-            }
-
-            return redirect()
-                ->route('academic-cycle-sections.index', ['academic_year_id' => $target->id])
-                ->with('success', "{$target->name} already has every section of {$source->name}. Nothing was copied.");
-        }
-
-        if ($request->boolean('setup')) {
-            return to_route('schools.setup', [current_school(), 'classes'])
-                ->with('success', "{$sections->count()} draft sections were created in {$target->name}.");
-        }
-
-        return redirect()
-            ->route('academic-cycle-sections.index', ['academic_year_id' => $target->id])
-            ->with('success', "{$sections->count()} draft cycle sections were created in {$target->name}. Learners, teachers, and timetables did not come along.");
+        return view('pages.academic-cycle-section.roll-forward');
     }
 
     /**
@@ -232,15 +184,5 @@ class AcademicCycleSectionController extends Controller
         $status = $request->query('status');
 
         return is_string($status) ? AcademicStructureStatus::tryFrom($status) : null;
-    }
-
-    /**
-     * @param  Collection<int, AcademicYear>  $academicYears
-     */
-    private function cycleFrom(Request $request, string $key, Collection $academicYears): ?AcademicYear
-    {
-        $id = $this->selectedId($request, $key, $academicYears->modelKeys());
-
-        return $id === null ? null : $academicYears->firstWhere('id', $id);
     }
 }

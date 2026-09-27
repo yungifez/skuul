@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AcademicPeriodStatus;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
 use App\Enums\EnrollmentStatus;
@@ -9,6 +10,7 @@ use App\Enums\Role;
 use App\Livewire\AcademicCycleSectionForm;
 use App\Livewire\AcademicLevelForm;
 use App\Livewire\AcademicStructureStatusControl;
+use App\Livewire\RollForwardSections;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
@@ -612,34 +614,22 @@ class AcademicStructureScreenTest extends TestCase
     public function test_the_roll_forward_screen_reviews_the_copy_before_it_is_made(): void
     {
         $actor = $this->authorized_user(['create section', 'read section']);
-        $school = $this->workingSchool();
-        $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id, 'name' => 'Primary 4']);
-        $source = AcademicYear::factory()->create(['school_id' => $school->id, 'start_year' => 2025, 'stop_year' => 2026]);
-        $target = AcademicYear::factory()->create(['school_id' => $school->id, 'start_year' => 2026, 'stop_year' => 2027]);
-
-        AcademicCycleSection::factory()->create([
-            'school_id' => $school->id, 'academic_year_id' => $source->id,
-            'academic_level_id' => $academicLevel->id, 'name' => 'Green',
-        ]);
-        AcademicCycleSection::factory()->create([
-            'school_id' => $school->id, 'academic_year_id' => $source->id,
-            'academic_level_id' => $academicLevel->id, 'name' => 'Amber',
-        ]);
-        AcademicCycleSection::factory()->create([
-            'school_id' => $school->id, 'academic_year_id' => $target->id,
-            'academic_level_id' => $academicLevel->id, 'name' => 'Amber',
-        ]);
+        [$academicLevel, $source, $target] = $this->rollForwardYears();
+        $this->sectionIn($source, $academicLevel, 'Green');
+        $this->sectionIn($source, $academicLevel, 'Amber');
+        $this->sectionIn($target, $academicLevel, 'Amber');
 
         $actor->get(route('academic-cycle-sections.roll-forward.show', [
             'source_academic_year_id' => $source->id,
             'target_academic_year_id' => $target->id,
-        ]))
-            ->assertOk()
+        ]))->assertOk()->assertSeeLivewire(RollForwardSections::class);
+
+        Livewire::withQueryParams(['source_academic_year_id' => $source->id, 'target_academic_year_id' => $target->id])
+            ->test(RollForwardSections::class)
             ->assertSee('Will be created as drafts')
             ->assertSee('Already in '.$target->name)
-            ->assertSee('It never copies')
-            ->assertSee('Learners and their placements')
-            ->assertSee('Create 1 draft section in '.$target->name);
+            ->assertSee('Learners')
+            ->assertSee('Create 1 draft section');
 
         // Reviewing writes nothing.
         $this->assertSame(1, AcademicCycleSection::query()->where('academic_year_id', $target->id)->count());
@@ -647,27 +637,102 @@ class AcademicStructureScreenTest extends TestCase
 
     public function test_confirming_a_roll_forward_twice_is_safe(): void
     {
-        $actor = $this->authorized_user(['create section', 'read section']);
-        $school = $this->workingSchool();
-        $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
-        $source = AcademicYear::factory()->create(['school_id' => $school->id, 'start_year' => 2025, 'stop_year' => 2026]);
-        $target = AcademicYear::factory()->create(['school_id' => $school->id, 'start_year' => 2026, 'stop_year' => 2027]);
-        AcademicCycleSection::factory()->create([
-            'school_id' => $school->id, 'academic_year_id' => $source->id,
-            'academic_level_id' => $academicLevel->id, 'name' => 'Green',
-        ]);
+        $this->authorized_user(['create section', 'read section']);
+        [$academicLevel, $source, $target] = $this->rollForwardYears();
+        $this->sectionIn($source, $academicLevel, 'Green');
 
-        $payload = ['source_academic_year_id' => $source->id, 'target_academic_year_id' => $target->id];
-
-        $actor->post(route('academic-cycle-sections.roll-forward'), $payload)
-            ->assertRedirect(route('academic-cycle-sections.index', ['academic_year_id' => $target->id]));
-        $actor->post(route('academic-cycle-sections.roll-forward'), $payload)
-            ->assertRedirect(route('academic-cycle-sections.index', ['academic_year_id' => $target->id]));
+        foreach ([1, 2] as $attempt) {
+            Livewire::withQueryParams(['source_academic_year_id' => $source->id, 'target_academic_year_id' => $target->id])
+                ->test(RollForwardSections::class)
+                ->call('rollForward')
+                ->assertHasNoErrors()
+                ->assertRedirect(route('academic-cycle-sections.index', ['academic_year_id' => $target->id]));
+        }
 
         $copies = AcademicCycleSection::query()->where('academic_year_id', $target->id)->get();
         $this->assertCount(1, $copies);
         $this->assertSame(AcademicStructureStatus::Draft, $copies->sole()->status);
         $this->assertCount(1, AuditEvent::ofAction(AuditAction::AcademicCycleSectionsRolledForward)->get());
+        $this->assertFalse(Route::has('academic-cycle-sections.roll-forward'));
+    }
+
+    public function test_a_roll_forward_defaults_to_the_year_before_and_returns_to_setup(): void
+    {
+        $this->authorized_user(['create section', 'read section']);
+        [$academicLevel, $source, $target] = $this->rollForwardYears();
+        $this->sectionIn($source, $academicLevel, 'Green');
+
+        Livewire::withQueryParams(['target_academic_year_id' => $target->id])
+            ->test(RollForwardSections::class, ['setup' => true])
+            ->assertSet('sourceAcademicYearId', (string) $source->id)
+            ->call('rollForward')
+            ->assertRedirect(route('schools.setup', [current_school(), 'classes']));
+
+        $this->assertTrue(AcademicCycleSection::query()->where('academic_year_id', $target->id)->where('name', 'Green')->exists());
+    }
+
+    public function test_a_roll_forward_leaves_archived_sections_and_retired_classes_behind(): void
+    {
+        $this->authorized_user(['create section', 'read section']);
+        [$academicLevel, $source, $target] = $this->rollForwardYears();
+        $school = $this->workingSchool();
+        $retiredLevel = AcademicLevel::factory()->create(['school_id' => $school->id, 'name' => 'Old Stage']);
+        $groupedLevel = AcademicLevel::factory()->create(['school_id' => $school->id, 'name' => 'Upper School']);
+        $this->sectionIn($source, $academicLevel, 'Green');
+        $this->sectionIn($source, $academicLevel, 'Closed Stream')->forceFill(['status' => AcademicStructureStatus::Archived])->save();
+        $this->sectionIn($source, $retiredLevel, 'Blue');
+        $this->sectionIn($source, $groupedLevel, 'Red');
+        $retiredLevel->forceFill(['status' => AcademicStructureStatus::Archived])->save();
+        $groupedLevel->forceFill(['is_group' => true])->save();
+
+        Livewire::withQueryParams(['source_academic_year_id' => $source->id, 'target_academic_year_id' => $target->id])
+            ->test(RollForwardSections::class)
+            ->assertSee('Left behind')
+            ->assertSee('Old Stage · Blue')
+            ->assertSee('Create 1 draft section')
+            ->call('rollForward');
+
+        $this->assertSame(['Green'], AcademicCycleSection::query()->where('academic_year_id', $target->id)->pluck('name')->all());
+    }
+
+    public function test_a_roll_forward_into_the_same_or_a_closed_year_is_refused(): void
+    {
+        $this->authorized_user(['create section', 'read section']);
+        [$academicLevel, $source, $target] = $this->rollForwardYears();
+        $this->sectionIn($source, $academicLevel, 'Green');
+
+        Livewire::withQueryParams(['source_academic_year_id' => $source->id, 'target_academic_year_id' => $source->id])
+            ->test(RollForwardSections::class)
+            ->assertSee('Choose a different academic cycle')
+            ->assertDontSee('Create 1 draft section');
+
+        $target->forceFill(['status' => AcademicPeriodStatus::Closed])->save();
+
+        Livewire::withQueryParams(['source_academic_year_id' => $source->id, 'target_academic_year_id' => $target->id])
+            ->test(RollForwardSections::class)
+            ->assertSee($target->name.' is closed')
+            ->assertDontSee('Create 1 draft section')
+            ->call('rollForward')
+            ->assertHasErrors('targetAcademicYearId')
+            ->assertNoRedirect();
+
+        $this->assertSame(0, AcademicCycleSection::query()->where('academic_year_id', $target->id)->count());
+    }
+
+    public function test_a_roll_forward_ignores_another_schools_year(): void
+    {
+        $this->authorized_user(['create section', 'read section']);
+        [$academicLevel, $source] = $this->rollForwardYears();
+        $this->sectionIn($source, $academicLevel, 'Green');
+        $foreignYear = AcademicYear::factory()->create(['school_id' => School::factory()->create()->id]);
+
+        Livewire::withQueryParams(['source_academic_year_id' => $source->id, 'target_academic_year_id' => $foreignYear->id])
+            ->test(RollForwardSections::class)
+            ->call('rollForward')
+            ->assertHasErrors('sourceAcademicYearId')
+            ->assertNoRedirect();
+
+        $this->assertSame(0, AcademicCycleSection::query()->where('academic_year_id', $foreignYear->id)->count());
     }
 
     public function test_a_reader_cannot_open_the_roll_forward_screen(): void
@@ -675,6 +740,31 @@ class AcademicStructureScreenTest extends TestCase
         $actor = $this->authorized_user(['read section']);
 
         $actor->get(route('academic-cycle-sections.roll-forward.show'))->assertForbidden();
+        Livewire::test(RollForwardSections::class)->assertForbidden();
+    }
+
+    /**
+     * @return array{0: AcademicLevel, 1: AcademicYear, 2: AcademicYear}
+     */
+    private function rollForwardYears(): array
+    {
+        $school = $this->workingSchool();
+
+        return [
+            AcademicLevel::factory()->create(['school_id' => $school->id, 'name' => 'Primary 4']),
+            AcademicYear::factory()->create(['school_id' => $school->id, 'start_year' => 2090, 'stop_year' => 2091]),
+            AcademicYear::factory()->create(['school_id' => $school->id, 'start_year' => 2091, 'stop_year' => 2092]),
+        ];
+    }
+
+    private function sectionIn(AcademicYear $academicYear, AcademicLevel $academicLevel, string $name): AcademicCycleSection
+    {
+        return AcademicCycleSection::factory()->create([
+            'school_id' => $academicYear->school_id,
+            'academic_year_id' => $academicYear->id,
+            'academic_level_id' => $academicLevel->id,
+            'name' => $name,
+        ]);
     }
 
     private function teacher(): User

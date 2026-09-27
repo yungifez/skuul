@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Rolling sections into a new year brought back archived sections and retired classes
+- Status: Fixed
+- Area: Academic structure, section roll forward
+- Observed: The roll forward copied every section of the source year. Archived sections, and sections of a class that was archived or had become a group, came back as drafts in the new year.
+- Impact: A school that closed a stream or retired a class saw it return every year. Staff could activate a section under a class that no longer takes learners.
+- Reproduction: Archive a section, or archive its class, in last year. Roll last year's sections into this year.
+- Resolution: The roll forward copies only live sections of active classes that take sections, and lists the rest as "Left behind". The page is now a Livewire component. It proposes last year as the source, refuses a closed year before the button shows, and returns to school setup when opened from there.
+
 ## A section added from school setup lost its way back, and a section's capacity could drop below its class list
 - Status: Fixed
 - Area: Academic structure, sections

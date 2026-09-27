@@ -22,10 +22,11 @@ class RollForwardAcademicCycleSections
      * The screen shows this before the person confirms, so the copy is never
      * a surprise. `copies` are the sections that would be created as drafts.
      * `skips` are the source sections whose name already exists in the target
-     * cycle, which is what makes a repeated confirmation safe.
+     * cycle, which is what makes a repeated confirmation safe. `leftBehind`
+     * are archived sections, and sections of a class that is archived or now
+     * a group, which a new year must not bring back.
      *
-     *
-     * @return array{copies: Collection<int, AcademicCycleSection>, skips: Collection<int, AcademicCycleSection>}
+     * @return array{copies: Collection<int, AcademicCycleSection>, skips: Collection<int, AcademicCycleSection>, leftBehind: Collection<int, AcademicCycleSection>}
      *
      * @throws InvalidValueException when the source and target cannot share a structure
      */
@@ -38,7 +39,16 @@ class RollForwardAcademicCycleSections
         /** @var Collection<int, AcademicCycleSection> $skips */
         $skips = new Collection;
 
+        /** @var Collection<int, AcademicCycleSection> $leftBehind */
+        $leftBehind = new Collection;
+
         foreach ($this->sectionsOf($source) as $sourceSection) {
+            if (!$this->canCarryForward($sourceSection)) {
+                $leftBehind->push($sourceSection);
+
+                continue;
+            }
+
             if ($this->targetAlreadyHas($target, $sourceSection)) {
                 $skips->push($sourceSection);
 
@@ -48,7 +58,7 @@ class RollForwardAcademicCycleSections
             $copies->push($sourceSection);
         }
 
-        return ['copies' => $copies, 'skips' => $skips];
+        return ['copies' => $copies, 'skips' => $skips, 'leftBehind' => $leftBehind];
     }
 
     /**
@@ -78,7 +88,7 @@ class RollForwardAcademicCycleSections
             $created = new Collection;
 
             foreach ($this->sectionsOf($source) as $sourceSection) {
-                if ($this->targetAlreadyHas($target, $sourceSection)) {
+                if (!$this->canCarryForward($sourceSection) || $this->targetAlreadyHas($target, $sourceSection)) {
                     continue;
                 }
 
@@ -121,11 +131,21 @@ class RollForwardAcademicCycleSections
     private function sectionsOf(AcademicYear $source): Collection
     {
         return AcademicCycleSection::inSchool()
-            ->with('academicLevel:id,name')
+            ->with('academicLevel:id,name,status,is_group')
             ->whereBelongsTo($source, 'academicYear')
             ->orderBy('position')
             ->orderBy('id')
             ->get();
+    }
+
+    /**
+     * Only a live section of a live class that still takes sections comes forward.
+     */
+    private function canCarryForward(AcademicCycleSection $sourceSection): bool
+    {
+        return $sourceSection->status !== AcademicStructureStatus::Archived
+            && $sourceSection->academicLevel->status === AcademicStructureStatus::Active
+            && !$sourceSection->academicLevel->is_group;
     }
 
     private function targetAlreadyHas(AcademicYear $target, AcademicCycleSection $sourceSection): bool
