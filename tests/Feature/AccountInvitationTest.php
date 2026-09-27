@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\AccountStatus;
+use App\Livewire\ManageAccountAccess;
 use App\Models\AccountInvitation;
 use App\Models\School;
 use App\Models\User;
@@ -11,6 +12,7 @@ use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Support\Str;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class AccountInvitationTest extends TestCase
@@ -30,7 +32,7 @@ class AccountInvitationTest extends TestCase
         $user = User::factory()->invited()->create();
 
         AccountInvitation::factory()->create(array_merge([
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
             'token_hash' => AccountInvitation::hashToken($token),
         ], $invitationAttributes));
 
@@ -76,7 +78,7 @@ class AccountInvitationTest extends TestCase
         [$user, $token] = $this->invitedUserWithToken();
 
         $this->post("/invitations/$token", [
-            'password'              => 'Str0ng-Passw0rd!',
+            'password' => 'Str0ng-Passw0rd!',
             'password_confirmation' => 'Str0ng-Passw0rd!',
         ])->assertRedirect(route('dashboard'));
 
@@ -95,14 +97,14 @@ class AccountInvitationTest extends TestCase
         [, $token] = $this->invitedUserWithToken();
 
         $this->post("/invitations/$token", [
-            'password'              => 'Str0ng-Passw0rd!',
+            'password' => 'Str0ng-Passw0rd!',
             'password_confirmation' => 'Str0ng-Passw0rd!',
         ])->assertRedirect(route('dashboard'));
 
         $this->post('/logout');
 
         $this->post("/invitations/$token", [
-            'password'              => 'An0ther-Passw0rd!',
+            'password' => 'An0ther-Passw0rd!',
             'password_confirmation' => 'An0ther-Passw0rd!',
         ])->assertSessionHasErrors('token');
     }
@@ -112,7 +114,7 @@ class AccountInvitationTest extends TestCase
         [$user, $token] = $this->invitedUserWithToken(['expires_at' => now()->subHour()]);
 
         $this->post("/invitations/$token", [
-            'password'              => 'Str0ng-Passw0rd!',
+            'password' => 'Str0ng-Passw0rd!',
             'password_confirmation' => 'Str0ng-Passw0rd!',
         ])->assertSessionHasErrors('token');
 
@@ -125,7 +127,7 @@ class AccountInvitationTest extends TestCase
         [$user, $token] = $this->invitedUserWithToken();
 
         $this->post("/invitations/$token", [
-            'password'              => 'abc',
+            'password' => 'abc',
             'password_confirmation' => 'abc',
         ])->assertSessionHasErrors('password');
 
@@ -138,9 +140,11 @@ class AccountInvitationTest extends TestCase
 
         $target = User::factory()->invited()->create();
 
-        $this->authorized_user(['manage account access'])
-            ->post(route('users.invitation.send', $target->id))
-            ->assertRedirect();
+        $this->authorized_user(['manage account access']);
+
+        Livewire::test(ManageAccountAccess::class, ['user' => $target])
+            ->call('sendInvitation')
+            ->assertHasNoErrors();
 
         Notification::assertSentTo($target, AccountInvitationNotification::class);
         $this->assertDatabaseCount('account_invitations', 1);
@@ -152,8 +156,10 @@ class AccountInvitationTest extends TestCase
 
         $target = User::factory()->invited()->create();
 
-        $this->unauthorized_user()
-            ->post(route('users.invitation.send', $target->id))
+        $this->unauthorized_user();
+
+        Livewire::test(ManageAccountAccess::class, ['user' => $target])
+            ->call('sendInvitation')
             ->assertForbidden();
 
         Notification::assertNothingSent();
@@ -167,8 +173,10 @@ class AccountInvitationTest extends TestCase
         $target = $this->memberOf($otherSchool, User::factory()->invited()->create());
         $target->schoolMemberships()->where('school_id', '!=', $otherSchool->id)->delete();
 
-        $this->authorized_user(['manage account access'])
-            ->post(route('users.invitation.send', $target->id))
+        $this->authorized_user(['manage account access']);
+
+        Livewire::test(ManageAccountAccess::class, ['user' => $target])
+            ->call('sendInvitation')
             ->assertForbidden();
 
         Notification::assertNothingSent();
@@ -180,9 +188,11 @@ class AccountInvitationTest extends TestCase
 
         [$target, $oldToken] = $this->invitedUserWithToken();
 
-        $this->authorized_user(['manage account access'])
-            ->post(route('users.invitation.send', $target->id))
-            ->assertRedirect();
+        $this->authorized_user(['manage account access']);
+
+        Livewire::test(ManageAccountAccess::class, ['user' => $target])
+            ->call('sendInvitation')
+            ->assertHasNoErrors();
 
         $this->post('/logout');
 
@@ -194,9 +204,11 @@ class AccountInvitationTest extends TestCase
     {
         [$target, $token] = $this->invitedUserWithToken();
 
-        $this->authorized_user(['manage account access'])
-            ->delete(route('users.invitation.revoke', $target->id))
-            ->assertRedirect();
+        $this->authorized_user(['manage account access']);
+
+        Livewire::test(ManageAccountAccess::class, ['user' => $target])
+            ->call('revokeInvitation')
+            ->assertHasNoErrors();
 
         $this->post('/logout');
 

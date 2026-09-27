@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\Identity\ChangeAccountStatus;
 use App\Enums\AccountStatus;
 use App\Events\AccountStatusChanged;
+use App\Livewire\ManageAccountAccess;
 use App\Models\AccountInvitation;
 use App\Models\School;
 use App\Models\User;
@@ -12,6 +13,7 @@ use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Hash;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class AccountStatusTest extends TestCase
@@ -23,10 +25,11 @@ class AccountStatusTest extends TestCase
     {
         $target = User::factory()->create();
 
-        $this->authorized_user(['manage account access'])
-            ->post(route('users.account-status', $target->id), [
-                'account_status' => AccountStatus::Suspended->value,
-            ])->assertRedirect();
+        $this->authorized_user(['manage account access']);
+
+        Livewire::test(ManageAccountAccess::class, ['user' => $target])
+            ->call('suspend')
+            ->assertHasNoErrors();
 
         $this->assertSame(AccountStatus::Suspended, $target->fresh()->account_status);
     }
@@ -35,10 +38,11 @@ class AccountStatusTest extends TestCase
     {
         $target = User::factory()->suspended()->create();
 
-        $this->authorized_user(['manage account access'])
-            ->post(route('users.account-status', $target->id), [
-                'account_status' => AccountStatus::Active->value,
-            ])->assertRedirect();
+        $this->authorized_user(['manage account access']);
+
+        Livewire::test(ManageAccountAccess::class, ['user' => $target])
+            ->call('reinstate')
+            ->assertHasNoErrors();
 
         $this->assertSame(AccountStatus::Active, $target->fresh()->account_status);
     }
@@ -48,10 +52,11 @@ class AccountStatusTest extends TestCase
         $target = User::factory()->invited()->create();
         $target->forceFill(['account_status' => AccountStatus::Suspended])->save();
 
-        $this->authorized_user(['manage account access'])
-            ->post(route('users.account-status', $target->id), [
-                'account_status' => AccountStatus::Active->value,
-            ])->assertRedirect();
+        $this->authorized_user(['manage account access']);
+
+        Livewire::test(ManageAccountAccess::class, ['user' => $target])
+            ->call('reinstate')
+            ->assertHasNoErrors();
 
         $this->assertSame(AccountStatus::Invited, $target->fresh()->account_status);
     }
@@ -60,10 +65,11 @@ class AccountStatusTest extends TestCase
     {
         $target = User::factory()->create();
 
-        $this->unauthorized_user()
-            ->post(route('users.account-status', $target->id), [
-                'account_status' => AccountStatus::Suspended->value,
-            ])->assertForbidden();
+        $this->unauthorized_user();
+
+        Livewire::test(ManageAccountAccess::class, ['user' => $target])
+            ->call('suspend')
+            ->assertForbidden();
 
         $this->assertSame(AccountStatus::Active, $target->fresh()->account_status);
     }
@@ -74,10 +80,11 @@ class AccountStatusTest extends TestCase
         $target = $this->memberOf($otherSchool, User::factory()->create());
         $target->schoolMemberships()->where('school_id', '!=', $otherSchool->id)->delete();
 
-        $this->authorized_user(['manage account access'])
-            ->post(route('users.account-status', $target->id), [
-                'account_status' => AccountStatus::Suspended->value,
-            ])->assertForbidden();
+        $this->authorized_user(['manage account access']);
+
+        Livewire::test(ManageAccountAccess::class, ['user' => $target])
+            ->call('suspend')
+            ->assertForbidden();
 
         $this->assertSame(AccountStatus::Active, $target->fresh()->account_status);
     }
@@ -87,22 +94,47 @@ class AccountStatusTest extends TestCase
         $user = User::factory()->create();
         $user->givePermissionTo('manage account access');
 
-        $this->actingAs($user)
-            ->post(route('users.account-status', $user->id), [
-                'account_status' => AccountStatus::Suspended->value,
-            ])->assertForbidden();
+        $this->actingAs($user);
+
+        Livewire::test(ManageAccountAccess::class, ['user' => $user])
+            ->call('suspend')
+            ->assertForbidden();
 
         $this->assertSame(AccountStatus::Active, $user->fresh()->account_status);
     }
 
-    public function test_the_invited_state_cannot_be_set_directly()
+    public function test_a_suspended_account_is_offered_only_reinstatement()
+    {
+        $target = User::factory()->suspended()->create();
+        $this->authorized_user(['manage account access']);
+
+        Livewire::test(ManageAccountAccess::class, ['user' => $target])
+            ->assertSee('Suspended')
+            ->assertSee('Reinstate account')
+            ->assertDontSee('Suspend account')
+            ->assertDontSee('Archive account');
+    }
+
+    public function test_the_account_menu_is_hidden_without_access()
     {
         $target = User::factory()->create();
+        $this->unauthorized_user();
 
-        $this->authorized_user(['manage account access'])
-            ->post(route('users.account-status', $target->id), [
-                'account_status' => AccountStatus::Invited->value,
-            ])->assertSessionHasErrors('account_status');
+        Livewire::test(ManageAccountAccess::class, ['user' => $target])
+            ->assertSee('Active')
+            ->assertDontSee('Suspend account');
+    }
+
+    public function test_an_administrator_archives_an_account()
+    {
+        $target = User::factory()->create();
+        $this->authorized_user(['manage account access']);
+
+        Livewire::test(ManageAccountAccess::class, ['user' => $target])
+            ->call('archive')
+            ->assertDispatched('status-message', type: 'success', message: "Set {$target->name}'s account to Archived.");
+
+        $this->assertSame(AccountStatus::Archived, $target->fresh()->account_status);
     }
 
     public function test_suspending_an_account_revokes_its_pending_invitations()
@@ -110,10 +142,11 @@ class AccountStatusTest extends TestCase
         $target = User::factory()->invited()->create();
         AccountInvitation::factory()->create(['user_id' => $target->id]);
 
-        $this->authorized_user(['manage account access'])
-            ->post(route('users.account-status', $target->id), [
-                'account_status' => AccountStatus::Suspended->value,
-            ])->assertRedirect();
+        $this->authorized_user(['manage account access']);
+
+        Livewire::test(ManageAccountAccess::class, ['user' => $target])
+            ->call('suspend')
+            ->assertHasNoErrors();
 
         $this->assertNotNull($target->accountInvitations()->first()->revoked_at);
     }
@@ -124,17 +157,17 @@ class AccountStatusTest extends TestCase
 
         $target = User::factory()->create();
 
-        $this->authorized_user(['manage account access'])
-            ->post(route('users.account-status', $target->id), [
-                'account_status' => AccountStatus::Suspended->value,
-                'reason'         => 'Left the school',
-            ])->assertRedirect();
+        $this->authorized_user(['manage account access']);
+
+        Livewire::test(ManageAccountAccess::class, ['user' => $target])
+            ->call('suspend')
+            ->assertHasNoErrors();
 
         Event::assertDispatched(AccountStatusChanged::class, function (AccountStatusChanged $event) use ($target): bool {
             return $event->user->is($target)
                 && $event->from === AccountStatus::Active
                 && $event->to === AccountStatus::Suspended
-                && $event->reason === 'Left the school';
+                && $event->reason === null;
         });
     }
 
@@ -175,7 +208,7 @@ class AccountStatusTest extends TestCase
         $user = User::factory()->invited()->create();
 
         $this->post('/login', [
-            'email'    => $user->email,
+            'email' => $user->email,
             'password' => 'password',
         ]);
 
@@ -189,7 +222,7 @@ class AccountStatusTest extends TestCase
         ]);
 
         $this->post('/login', [
-            'email'    => $user->email,
+            'email' => $user->email,
             'password' => 'Str0ng-Passw0rd!',
         ]);
 

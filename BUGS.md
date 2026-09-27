@@ -972,3 +972,10 @@
 - **Problem:** The page listed three language patterns, each showing its own words, but choosing one left the word inputs below unchanged. A school saved the new pattern with the old words. The page was two cards around a POST form, with a help tooltip and a sentence that repeated the heading.
 - **Fix:** The page is now the Livewire component `EditSchoolLanguage`. Picking a pattern fills in its words, and each word can still be changed. The patterns are a flat radio list that shows each pattern's words in one line. "Save" is the one accent button, and "Save and continue to classes" sits beside it as outline. The PUT route, `SchoolOperatingProfileController` and `UpdateSchoolOperatingProfileRequest` are removed.
 - **Tests:** `SchoolTest` covers saving, the default pattern, a pattern filling its words, empty and long words, the setup redirect, and a user without access.
+
+## Account access menu posted forms and suspended with no confirmation
+
+- **Where:** `/dashboard/admins/{id}`
+- **Problem:** The account "Manage" menu was a 28px button holding one POST form per action. "Suspend account" and "Archive account" ran on the first click with no confirmation. The profile below it stacked two cards of uppercase labels, with sentences like "No pending invitation." and "Not recorded" where a value was missing.
+- **Fix:** The menu is now the Livewire component `ManageAccountAccess`, behind a 44px ⋯ button. It sends, resends or revokes an invitation and suspends, archives or reinstates the account. Suspend, archive and revoke ask first. The profile shows one flat facts row: account, membership, joined, roles, invitation, and primary school. A missing value reads "—". The account status and invitation POST and DELETE routes, `AccountStatusController`, `ChangeAccountStatusRequest` and the `account-status-control` Blade component are removed.
+- **Tests:** `AccountStatusTest` and `AccountInvitationTest` drive the component, and `AdminTest` checks the flat profile.

@@ -3,11 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Identity\AcceptAccountInvitation;
-use App\Actions\Identity\RevokeAccountInvitation;
-use App\Actions\Identity\SendAccountInvitation;
 use App\Http\Requests\AcceptAccountInvitationRequest;
 use App\Models\AccountInvitation;
-use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -36,7 +33,7 @@ class AccountInvitationController extends Controller
 
         return view('auth.accept-invitation', [
             'token' => $token,
-            'user'  => $invitation->user,
+            'user' => $invitation->user,
         ]);
     }
 
@@ -55,31 +52,5 @@ class AccountInvitationController extends Controller
         $request->session()->regenerate();
 
         return redirect()->route('dashboard')->with('success', 'Your account is ready. Welcome to '.config('app.name').'.');
-    }
-
-    /**
-     * Send or resend an invitation to a provisioned account.
-     */
-    public function send(User $user, SendAccountInvitation $sendAccountInvitation): RedirectResponse
-    {
-        $this->authorize('manageAccountAccess', $user);
-
-        $sendAccountInvitation->send($user, auth()->user());
-
-        return back()->with('success', "Sent an invitation to {$user->email}.");
-    }
-
-    /**
-     * Stop every unused invitation link for an account.
-     */
-    public function revoke(User $user, RevokeAccountInvitation $revokeAccountInvitation): RedirectResponse
-    {
-        $this->authorize('manageAccountAccess', $user);
-
-        $revoked = $revokeAccountInvitation->revoke($user, auth()->user());
-
-        return back()->with('success', $revoked > 0
-            ? "Revoked the invitation for {$user->name}."
-            : "{$user->name} has no invitation to revoke.");
     }
 }

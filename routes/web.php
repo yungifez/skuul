@@ -514,9 +514,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
 
         // account access routes
         Route::get('users/invitations', ['App\Http\Controllers\AccountInvitationController', 'index'])->name('users.invitations.index');
-        Route::post('users/{user}/account-status', ['App\Http\Controllers\AccountStatusController', 'update'])->name('users.account-status');
-        Route::post('users/{user}/invitation', ['App\Http\Controllers\AccountInvitationController', 'send'])->name('users.invitation.send');
-        Route::delete('users/{user}/invitation', ['App\Http\Controllers\AccountInvitationController', 'revoke'])->name('users.invitation.revoke');
 
         // academic year routes
         Route::get('academic-years/{academic_year}/setup/{step?}', [AcademicYearSetupController::class, 'show'])->name('academic-years.setup');

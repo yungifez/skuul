@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\ManageAccountAccess;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -29,9 +30,13 @@ class AdminTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole('admin');
 
-        $this->authorized_user(['read admin'])
+        $this->authorized_user(['read admin', 'manage account access'])
             ->get('dashboard/admins/'.$admin->id)
-            ->assertOk();
+            ->assertOk()
+            ->assertSeeLivewire(ManageAccountAccess::class)
+            ->assertSee('id="account-status"', false)
+            ->assertSee('Admin')
+            ->assertDontSee('data-slot="card"', false);
     }
 
     public function test_create_admin_cannot_be_accessed_by_unauthorised_users()
