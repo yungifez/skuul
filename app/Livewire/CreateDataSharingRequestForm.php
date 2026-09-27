@@ -9,6 +9,7 @@ use App\Models\DataSharingRequest;
 use App\Models\School;
 use App\Models\StudentRecord;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Livewire\Component;
@@ -22,6 +23,11 @@ use Livewire\Component;
  */
 class CreateDataSharingRequestForm extends Component
 {
+    /**
+     * How many admission numbers one person may get wrong in an hour.
+     */
+    private const MissedLookupsPerHour = 10;
+
     public string $holdingSchoolId = '';
 
     public string $admissionNumber = '';
@@ -65,6 +71,15 @@ class CreateDataSharingRequestForm extends Component
             'expiresOn' => 'end date',
         ]);
 
+        $guessKey = 'data-sharing-lookup:'.auth()->id();
+
+        if (RateLimiter::tooManyAttempts($guessKey, self::MissedLookupsPerHour)) {
+            $minutes = (int) ceil(RateLimiter::availableIn($guessKey) / 60);
+            $this->addError('admissionNumber', "Too many admission numbers were not found. Try again in {$minutes} minutes.");
+
+            return;
+        }
+
         $enrollment = StudentRecord::query()
             ->where('school_id', (int) $this->holdingSchoolId)
             ->where('admission_number', $this->admissionNumber)
@@ -72,7 +87,9 @@ class CreateDataSharingRequestForm extends Component
 
         if ($enrollment === null) {
             // The message says nothing about which half was wrong, so a wrong
-            // guess never tells one school who attends another.
+            // guess never tells one school who attends another. Counting the
+            // misses stops a person from walking through another school's roll.
+            RateLimiter::hit($guessKey, 3600);
             $this->addError('admissionNumber', 'That school holds no learner with that admission number.');
 
             return;

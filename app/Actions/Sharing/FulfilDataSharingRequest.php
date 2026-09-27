@@ -30,7 +30,7 @@ class FulfilDataSharingRequest
     /**
      * Build the package the request allows.
      *
-     * @throws InvalidValueException when the request was not approved or has run out
+     * @throws InvalidValueException when the request was not approved, has run out, or the learner moved campus
      */
     public function fulfil(DataSharingRequest $request, ?User $actor = null): TransferPackage
     {
@@ -45,6 +45,10 @@ class FulfilDataSharingRequest
 
             if ($request->hasExpired()) {
                 throw new InvalidValueException('This permission has run out.');
+            }
+
+            if (!$request->isStillHeldByTheAskedSchool()) {
+                throw new InvalidValueException('The learner now attends another campus, so this school no longer holds their records. Decline this request; the other school must ask the learner\'s current campus.');
             }
 
             $package = TransferPackage::create([

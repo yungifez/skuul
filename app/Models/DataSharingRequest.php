@@ -89,7 +89,18 @@ class DataSharingRequest extends Model
      */
     public function isUsable(): bool
     {
-        return $this->status->allowsFulfilment() && !$this->hasExpired();
+        return $this->status->allowsFulfilment() && !$this->hasExpired() && $this->isStillHeldByTheAskedSchool();
+    }
+
+    /**
+     * Check if the learner still attends the school that was asked.
+     *
+     * After a campus move another campus holds the records. The school that
+     * was asked can no longer agree to share them.
+     */
+    public function isStillHeldByTheAskedSchool(): bool
+    {
+        return $this->studentRecord?->school_id === $this->holding_school_id;
     }
 
     /**

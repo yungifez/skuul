@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A school could share records it no longer held, and guess another school's roll
+
+- Status: Fixed
+- Area: Data sharing (`RequestDataSharing`, `FulfilDataSharingRequest`, `DataSharingRequest`, `CreateDataSharingRequestForm`)
+- Observed: A request names the school that held the learner when it was sent. After a campus move, that school could still approve and hand over the records, including those the new campus wrote. Also, the ask form told a person when an admission number missed, with no limit on tries.
+- Impact: A campus that no longer holds a learner could send out another campus's records. A person could walk through another school's admission numbers to learn who attends.
+- Reproduction: Ask school A for a learner. Move the learner from A to a sibling campus. Approve and hand over as A. For the second case, submit many admission numbers against one school.
+- Resolution: Approving and handing over now refuse when the learner no longer attends the asked school, and the handover button hides. One person may miss 10 admission numbers an hour, then the form asks them to wait.
+
 ## A campus move could place a student in a draft, archived, or past-year section
 
 - Status: Fixed

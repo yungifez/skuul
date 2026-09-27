@@ -77,6 +77,29 @@ class DataSharingScreenTest extends TestCase
         $this->assertSame(0, DataSharingRequest::count());
     }
 
+    public function test_guessing_admission_numbers_stops_after_ten_misses(): void
+    {
+        $holder = School::factory()->create();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $holder->id]);
+        $this->authorized_user(['request data sharing']);
+
+        $form = Livewire::test(CreateDataSharingRequestForm::class)
+            ->set('holdingSchoolId', (string) $holder->id)
+            ->set('purpose', 'Fishing.')
+            ->set('categories', [DataCategory::Enrollment->value]);
+
+        foreach (range(1, 10) as $guess) {
+            $form->set('admissionNumber', "GUESS-{$guess}")->call('save');
+        }
+
+        $form->set('admissionNumber', $enrollment->admission_number)
+            ->call('save')
+            ->assertHasErrors('admissionNumber')
+            ->assertSee('Too many admission numbers were not found');
+
+        $this->assertSame(0, DataSharingRequest::count());
+    }
+
     public function test_a_school_cannot_ask_itself(): void
     {
         $this->authorized_user(['request data sharing']);

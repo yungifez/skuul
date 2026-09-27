@@ -149,6 +149,10 @@ class RequestDataSharing
                 throw new InvalidValueException('This request ran out before it was answered. The other school must ask again.');
             }
 
+            if ($status === DataSharingStatus::Approved && !$locked->isStillHeldByTheAskedSchool()) {
+                throw new InvalidValueException('The learner now attends another campus, so this school no longer holds their records. Decline this request; the other school must ask the learner\'s current campus.');
+            }
+
             $locked->status = $status;
             $locked->decided_by = $actor === null ? auth()->id() : $actor->id;
             $locked->decided_at = now();

@@ -251,6 +251,45 @@ class DataSharingTest extends TestCase
         app(RequestDataSharing::class)->approve($request->fresh());
     }
 
+    public function test_a_request_cannot_be_approved_after_the_learner_moved_campus(): void
+    {
+        $this->authorized_user(['approve data sharing']);
+        $enrollment = $this->enrollment();
+        $request = $this->request([DataCategory::Identity], $enrollment);
+        $enrollment->forceFill(['school_id' => School::factory()->create(['organization_id' => $this->workingSchool()->organization_id])->id])->save();
+
+        try {
+            app(RequestDataSharing::class)->approve($request);
+            $this->fail('A school approved sharing records it no longer holds.');
+        } catch (InvalidValueException) {
+        }
+
+        $this->assertSame(DataSharingStatus::Requested, $request->fresh()->status);
+
+        app(RequestDataSharing::class)->decline($request);
+
+        $this->assertSame(DataSharingStatus::Declined, $request->fresh()->status);
+    }
+
+    public function test_nothing_is_handed_over_after_the_learner_moved_campus(): void
+    {
+        $this->authorized_user(['approve data sharing', 'fulfil data sharing']);
+        $enrollment = $this->enrollment();
+        $request = $this->request([DataCategory::Identity], $enrollment);
+        app(RequestDataSharing::class)->approve($request);
+        $enrollment->forceFill(['school_id' => School::factory()->create(['organization_id' => $this->workingSchool()->organization_id])->id])->save();
+
+        $this->assertFalse($request->fresh()->isUsable());
+
+        try {
+            app(FulfilDataSharingRequest::class)->fulfil($request);
+            $this->fail('Records were handed over by a school that no longer holds them.');
+        } catch (InvalidValueException) {
+        }
+
+        $this->assertSame(0, TransferPackage::query()->count());
+    }
+
     public function test_an_answer_given_meanwhile_wins_over_a_stale_screen(): void
     {
         $this->authorized_user(['approve data sharing']);
