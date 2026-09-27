@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Rolling subjects into a new year skipped a section whose sibling already existed
+- Status: Fixed
+- Area: Course offerings / year rollover
+- Observed: The rollover treated any offering for the same subject, period, and level in the new year as "already there". When section A's Maths was set up by hand, section B's Maths was skipped with no warning.
+- Impact: Section B started the year with no Maths offering, so it had no timetable slots, gradebook, or report lines until someone noticed.
+- Reproduction: Last year has Maths for sections A and B as separate offerings. In the new year, add Maths for section A only, then roll subjects over.
+- Resolution: A section-based offering now claims only its own sections, and a whole-level or named-learner offering claims everyone. The rollover screen is a Livewire component that keeps the setup return path and says when nothing new was copied. The POST route and its request are gone.
+
 ## Saving a roster from the year setup lost the way back to setup
 - Status: Fixed
 - Area: Course offerings / rosters

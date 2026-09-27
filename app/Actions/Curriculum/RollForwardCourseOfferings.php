@@ -111,24 +111,26 @@ class RollForwardCourseOfferings
             ->where('status', '!=', AcademicStructureStatus::Archived)
             ->get()
             ->keyBy(fn (AcademicCycleSection $section): string => $section->academic_level_id.':'.$section->name);
-        $existing = CourseOffering::inSchool()
-            ->where('academic_year_id', $target->id)
-            ->get()
-            ->keyBy(fn (CourseOffering $offering): string => $offering->subject_id.':'.$offering->academic_period_id.':'.$offering->academic_level_id);
+        // What the target year already teaches, per subject, period, and level.
+        // A section-based offering only claims its own sections.
+        $claimed = [];
+
+        foreach (CourseOffering::inSchool()->with('cycleSections')->where('academic_year_id', $target->id)->get() as $existingOffering) {
+            $claimed[$existingOffering->subject_id.':'.$existingOffering->academic_period_id.':'.$existingOffering->academic_level_id][] = $existingOffering->roster_mode->usesHomeSections()
+                ? $existingOffering->cycleSections->modelKeys()
+                : null;
+        }
 
         return CourseOffering::inSchool()
             ->with(['subject', 'academicPeriod', 'academicLevel', 'cycleSections'])
             ->where('academic_year_id', $source->id)
+            ->orderBy('id')
             ->get()
-            ->map(function (CourseOffering $offering) use ($periods, $targetSections, $existing): array {
+            ->map(function (CourseOffering $offering) use ($periods, $targetSections, &$claimed): array {
                 $period = $periods[$offering->academic_period_id] ?? null;
 
                 if (!$period instanceof AcademicPeriod) {
                     return ['status' => 'problem', 'offering' => $offering, 'period' => null, 'section_ids' => [], 'reason' => 'The matching reporting period does not exist in the new year.'];
-                }
-
-                if ($existing->has($offering->subject_id.':'.$period->id.':'.$offering->academic_level_id)) {
-                    return ['status' => 'skip', 'offering' => $offering, 'period' => $period, 'section_ids' => []];
                 }
 
                 $sectionIds = $offering->roster_mode->usesHomeSections()
@@ -144,10 +146,39 @@ class RollForwardCourseOfferings
                     return ['status' => 'problem', 'offering' => $offering, 'period' => $period, 'section_ids' => [], 'reason' => 'Create the matching sections in the new year first.'];
                 }
 
+                $key = $offering->subject_id.':'.$period->id.':'.$offering->academic_level_id;
+                $wanted = $offering->roster_mode->usesHomeSections() ? $sectionIds : null;
+
+                if ($this->alreadyTaught($claimed[$key] ?? [], $wanted)) {
+                    return ['status' => 'skip', 'offering' => $offering, 'period' => $period, 'section_ids' => []];
+                }
+
+                $claimed[$key][] = $wanted;
+
                 return ['status' => 'copy', 'offering' => $offering, 'period' => $period, 'section_ids' => $sectionIds];
             })
             ->values()
             ->all();
+    }
+
+    /**
+     * Whether the target year already teaches these learners.
+     *
+     * A null entry is an offering for the whole level or named learners, which
+     * covers everyone. Section offerings clash only when they share a section.
+     *
+     * @param  list<list<int>|null>  $claims
+     * @param  list<int>|null  $sectionIds
+     */
+    private function alreadyTaught(array $claims, ?array $sectionIds): bool
+    {
+        foreach ($claims as $claim) {
+            if ($claim === null || $sectionIds === null || array_intersect($claim, $sectionIds) !== []) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

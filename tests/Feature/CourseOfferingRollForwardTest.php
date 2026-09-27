@@ -6,14 +6,17 @@ use App\Actions\Curriculum\RollForwardCourseOfferings;
 use App\Enums\AcademicPeriodType;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\RosterMode;
+use App\Livewire\RollOverSubjects;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\CourseOffering;
+use App\Models\School;
 use App\Models\Subject;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class CourseOfferingRollForwardTest extends TestCase
@@ -70,6 +73,66 @@ class CourseOfferingRollForwardTest extends TestCase
             'The matching reporting period does not exist in the new year.',
             $preview['problems']->first()['reason'],
         );
+    }
+
+    public function test_a_second_section_is_copied_when_only_the_first_already_exists(): void
+    {
+        [$source, $target, $sourcePeriod, $targetPeriod, $sourceSection, $subject] = $this->rollForwardContext();
+        $sourceSectionB = AcademicCycleSection::factory()->create([
+            'school_id' => $source->school_id,
+            'academic_year_id' => $source->id,
+            'academic_level_id' => $sourceSection->academic_level_id,
+            'name' => 'B',
+            'status' => AcademicStructureStatus::Active,
+        ]);
+        $targetSectionB = AcademicCycleSection::factory()->create([
+            'school_id' => $source->school_id,
+            'academic_year_id' => $target->id,
+            'academic_level_id' => $sourceSection->academic_level_id,
+            'name' => 'B',
+            'status' => AcademicStructureStatus::Active,
+        ]);
+        $this->createOffering($source, $sourcePeriod, $sourceSection, $subject);
+        $this->createOffering($source, $sourcePeriod, $sourceSectionB, $subject);
+        $targetSectionA = AcademicCycleSection::query()->where('academic_year_id', $target->id)->where('name', 'A')->sole();
+        $this->createOffering($target, $targetPeriod, $targetSectionA, $subject);
+
+        $created = app(RollForwardCourseOfferings::class)->rollForward($source, $target);
+
+        $this->assertCount(1, $created);
+        $this->assertSame([$targetSectionB->id], $created->first()->cycleSections->modelKeys());
+    }
+
+    public function test_the_screen_copies_the_subjects_once_and_returns_to_the_setup(): void
+    {
+        $this->authorized_user(['create subject', 'read subject']);
+        [$source, $target, $sourcePeriod, , $sourceSection, $subject] = $this->rollForwardContext();
+        $this->createOffering($source, $sourcePeriod, $sourceSection, $subject);
+
+        $open = fn () => Livewire::withQueryParams(['source_academic_year_id' => $source->id, 'target_academic_year_id' => $target->id])
+            ->test(RollOverSubjects::class, ['setup' => true]);
+        $firstTab = $open()->assertSee('Copy 1 subject');
+        $secondTab = $open();
+
+        $firstTab->call('rollOver')->assertRedirect(route('academic-years.setup', [$target, 'subjects']));
+        $secondTab->call('rollOver')->assertRedirect();
+
+        $this->assertSame(1, CourseOffering::query()->where('academic_year_id', $target->id)->count());
+        $this->assertSame("Nothing new to copy into {$target->name}.", session('success'));
+    }
+
+    public function test_the_screen_ignores_a_year_of_another_school(): void
+    {
+        $this->authorized_user(['create subject']);
+        [, $target] = $this->rollForwardContext();
+        $foreignYear = AcademicYear::factory()->create(['school_id' => School::factory()->create()->id]);
+
+        Livewire::withQueryParams(['source_academic_year_id' => $foreignYear->id, 'target_academic_year_id' => $target->id])
+            ->test(RollOverSubjects::class)
+            ->assertNotSet('sourceAcademicYearId', (string) $foreignYear->id)
+            ->set('sourceAcademicYearId', (string) $foreignYear->id)
+            ->call('rollOver')
+            ->assertHasErrors('sourceAcademicYearId');
     }
 
     /**
