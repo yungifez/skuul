@@ -277,14 +277,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::middleware(['feature:graduation_plans'])->group(function (): void {
             Route::get('graduation-plans', ['App\Http\Controllers\GraduationPlanController', 'index'])->name('graduation-plans.index');
             Route::get('graduation-plans/create', ['App\Http\Controllers\GraduationPlanController', 'create'])->name('graduation-plans.create');
-            Route::post('graduation-plans', ['App\Http\Controllers\GraduationPlanController', 'store'])->name('graduation-plans.store');
             Route::get('graduation-plans/{graduationPlan}', ['App\Http\Controllers\GraduationPlanController', 'show'])->name('graduation-plans.show');
-            Route::put('graduation-plans/{graduationPlan}', ['App\Http\Controllers\GraduationPlanController', 'update'])->name('graduation-plans.update');
-            Route::post('graduation-plans/{graduationPlan}/children', ['App\Http\Controllers\GraduationPlanController', 'storeChild'])->name('graduation-plans.children.store');
-            Route::post('graduation-plans/{graduationPlan}/requirements', ['App\Http\Controllers\GraduationPlanController', 'storeRequirement'])->name('graduation-plans.requirements.store');
-            Route::delete('graduation-plans/{graduationPlan}/requirements/{graduationRequirement}', ['App\Http\Controllers\GraduationPlanController', 'destroyRequirement'])->name('graduation-plans.requirements.destroy');
-            Route::post('graduation-plans/{graduationPlan}/exemptions', ['App\Http\Controllers\GraduationPlanController', 'storeExemption'])->name('graduation-plans.exemptions.store');
-            Route::delete('graduation-plans/{graduationPlan}/exemptions/{graduationExemption}', ['App\Http\Controllers\GraduationPlanController', 'destroyExemption'])->name('graduation-plans.exemptions.destroy');
         });
 
         // ranking routes. A position is worked out when it is asked for, so

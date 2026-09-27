@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A graduation plan with nothing in it told families the learner had finished
+
+- Status: Fixed
+- Area: Graduation plans, family portal
+- Observed: A plan or stage with no requirements and no stages counted as complete, so the portal told a family their child had finished a plan the school had only just named. The plan list showed every nested stage as a plan of its own. A stage asking for "at least 4" items while holding 2 gave no sign that nobody could finish it. A plan name could repeat when only the capitals differed, and two people saving at once hit the unique index. Changing a plan to a simpler rule kept the old count and credits in the record. Excusing a learner, taking an excusal back and removing a requirement left no trace in the audit log.
+- Impact: Families read a false "finished". Staff could not tell a plan from its stages, and nobody could see who excused a learner from a subject.
+- Reproduction: Write an active plan for every learner and add nothing to it. Open the portal graduation page as a guardian. The plan said the learner had finished.
+- Resolution: GraduationProgress never marks a stage without requirements or stages in use as complete. The plan list shows top-level plans only. The page names an empty stage and a count it cannot reach. The new ManageGraduationPlan action writes plans, stages, requirements and excusals under a school lock, compares names without case, keeps only the numbers the chosen rule reads, and records GraduationPlanChanged or GraduationExemptionChanged. The pages are now the Livewire components CreateGraduationPlanForm and GraduationPlanRecord. The seven write routes and five requests were removed.
+
 ## Two people could move one programme place at once, and a withdrawn place reopened in a closed programme
 
 - Status: Fixed

@@ -79,6 +79,9 @@ class GraduationProgress
     /**
      * Evaluate one stage and all of its nested stages.
      *
+     * A stage with no requirements and no stages in use is never complete, so
+     * a plan still being written never tells a family the learner finished.
+     *
      * @return array{requirements: array<int, array{requirement_id: int, description: string, state: string, credits: int, percentage: float|null, is_required: bool, is_negated: bool}>, stages: array<int, array<string, mixed>>, credits_earned: int, is_complete: bool}
      */
     private function evaluatePlan(GraduationPlan $plan, StudentRecord $enrollment): array
@@ -145,7 +148,7 @@ class GraduationProgress
             'requirements' => $lines,
             'stages' => $stages,
             'credits_earned' => $earned,
-            'is_complete' => $this->conditionsMatch(
+            'is_complete' => ($requirements->isNotEmpty() || $stages !== []) && $this->conditionsMatch(
                 $conditions,
                 $plan->completion_operator,
                 $plan->required_count,

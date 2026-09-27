@@ -605,6 +605,16 @@ enum AuditAction: string
     case ProgramParticipationChanged = 'program.participation_changed';
 
     /**
+     * A graduation plan, one of its stages or one of its requirements changed.
+     */
+    case GraduationPlanChanged = 'graduation_plan.changed';
+
+    /**
+     * A learner was excused from a graduation requirement, or the excusal was taken back.
+     */
+    case GraduationExemptionChanged = 'graduation_plan.exemption_changed';
+
+    /**
      * One school asked another for a student's records.
      */
     case DataSharingRequested = 'data_sharing.requested';
@@ -801,6 +811,8 @@ enum AuditAction: string
             self::CohortMembershipChanged => 'Group membership changed',
             self::ProgramChanged => 'Programme changed',
             self::ProgramParticipationChanged => 'Programme place changed',
+            self::GraduationPlanChanged => 'Graduation plan changed',
+            self::GraduationExemptionChanged => 'Graduation excusal changed',
             self::DataSharingRequested => 'Records requested',
             self::DataSharingStatusChanged => 'Records request answered',
             self::TransferPackageBuilt => 'Records handed over',
