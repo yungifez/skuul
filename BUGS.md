@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A boarding house could close in the moment a child took a bed in it
+
+- Status: Fixed
+- Area: Boarding houses
+- Observed: Closing a house checked for boarders without a lock. A bed placement read the house without a lock too. A placement and a close at the same moment could both pass, which leaves a closed house with a child in it. The edit form also closed the house whenever its checkbox was left clear, and the switch gave no sign that boarders stopped it.
+- Impact: A closed house drops off the boarding rolls, so the child in it is never checked.
+- Reproduction: Close a house in one tab while another tab places a learner in one of its beds.
+- Resolution: `ManageBoardingHouse` locks the house before it checks for boarders. `AssignBoardingPlace` reads the house under the same lock. The Livewire `DormitoryForm` opens and changes houses. Its "Takes boarders" switch is locked while anyone sleeps there and says why. The house POST, PUT and DELETE routes and their requests are gone. `BoardingTest` covers closing, reopening, names that clash, and houses on another campus.
+
 ## A boarder who did not come back from a night away left every list
 
 - Status: Fixed

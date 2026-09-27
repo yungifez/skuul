@@ -12,6 +12,7 @@ use App\Enums\Feature;
 use App\Enums\OvernightLeaveStatus;
 use App\Enums\SupervisionRole;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\DormitoryForm;
 use App\Livewire\OvernightLeaveDesk;
 use App\Livewire\ShowDormitory;
 use App\Models\AuditEvent;
@@ -280,12 +281,13 @@ class BoardingTest extends TestCase
         app(FeatureManager::class)->enable(Feature::Boarding);
         $enrollment = $this->enrollment();
 
-        $actor->post(route('dormitories.store'), [
-            'name' => 'Mandela House',
-            'label' => 'House',
-            'rooms' => 2,
-            'beds_per_room' => 3,
-        ])->assertRedirect();
+        Livewire::test(DormitoryForm::class)
+            ->set('name', 'Mandela House')
+            ->set('rooms', '2')
+            ->set('bedsPerRoom', '3')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect();
 
         $dormitory = Dormitory::where('name', 'Mandela House')->sole();
         $this->assertSame(6, $dormitory->beds()->count());
@@ -310,12 +312,13 @@ class BoardingTest extends TestCase
         $actor = $this->authorized_user(['read boarding', 'manage boarding']);
         app(FeatureManager::class)->enable(Feature::Boarding);
 
-        $actor->post(route('dormitories.store'), [
-            'name' => 'Maple House',
-            'label' => 'Hostel',
-            'rooms' => 1,
-            'beds_per_room' => 2,
-        ])->assertRedirect();
+        Livewire::test(DormitoryForm::class)
+            ->set('name', 'Maple House')
+            ->set('label', 'Hostel')
+            ->set('rooms', '1')
+            ->set('bedsPerRoom', '2')
+            ->call('save')
+            ->assertRedirect();
 
         $dormitory = Dormitory::where('name', 'Maple House')->sole();
 
@@ -342,12 +345,12 @@ class BoardingTest extends TestCase
             ->call('saveBed')
             ->assertHasNoErrors();
 
-        $actor->put(route('dormitories.update', $dormitory), [
-            'name' => 'Maple Hall',
-            'label' => 'Hostel',
-            'notes' => 'North campus',
-            'is_active' => 1,
-        ])->assertRedirect();
+        Livewire::test(DormitoryForm::class, ['dormitory' => $dormitory])
+            ->set('name', 'Maple Hall')
+            ->set('notes', 'North campus')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('dormitories.show', $dormitory));
 
         $this->assertSame(5, $dormitory->fresh()->beds()->count());
         $this->assertSame(DormitoryBedStatus::Maintenance, $bed->fresh()->status);
@@ -392,6 +395,65 @@ class BoardingTest extends TestCase
             ->assertHasErrors(['bedStatus']);
 
         $this->assertSame(DormitoryBedStatus::Available, $bed->fresh()->status);
+    }
+
+    public function test_a_house_with_a_boarder_does_not_close(): void
+    {
+        $this->authorized_user(['read boarding', 'manage boarding']);
+        app(FeatureManager::class)->enable(Feature::Boarding);
+        $bed = $this->bed();
+        $dormitory = $bed->room->dormitory;
+        $learner = $this->enrollment();
+        app(AssignBoardingPlace::class)->assign($learner, $bed);
+
+        Livewire::test(DormitoryForm::class, ['dormitory' => $dormitory])
+            ->assertSee('Move the boarders out before closing the house.')
+            ->set('isActive', false)
+            ->call('save')
+            ->assertHasErrors('isActive')
+            ->assertSee("Move the boarders out of {$dormitory->name} before closing it.");
+
+        $this->assertTrue($dormitory->fresh()->is_active);
+
+        app(AssignBoardingPlace::class)->end($learner, 'Became a day learner');
+
+        Livewire::test(DormitoryForm::class, ['dormitory' => $dormitory])
+            ->set('isActive', false)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertFalse($dormitory->fresh()->is_active);
+        $this->assertSame('archived', AuditEvent::ofAction(AuditAction::BoardingHouseChanged)->latest('id')->first()->context['change']);
+
+        $this->expectException(InvalidValueException::class);
+        $this->expectExceptionMessage('That bed is out of use.');
+
+        app(AssignBoardingPlace::class)->assign($this->enrollment(), $bed->fresh());
+    }
+
+    public function test_a_house_name_is_used_once_per_campus_and_another_campus_house_is_out_of_reach(): void
+    {
+        $this->authorized_user(['read boarding', 'manage boarding']);
+        app(FeatureManager::class)->enable(Feature::Boarding);
+        Dormitory::factory()->create(['school_id' => $this->workingSchool()->id, 'name' => 'Mandela House']);
+        $elsewhere = Dormitory::factory()->create(['school_id' => School::factory()->create()->id]);
+
+        Livewire::test(DormitoryForm::class)
+            ->set('name', 'Mandela House')
+            ->call('save')
+            ->assertHasErrors(['name' => 'unique']);
+
+        Livewire::test(DormitoryForm::class, ['dormitory' => $elsewhere])->assertForbidden();
+
+        $this->assertSame(1, Dormitory::query()->where('name', 'Mandela House')->count());
+    }
+
+    public function test_a_reader_cannot_open_a_house(): void
+    {
+        $this->authorized_user(['read boarding']);
+        app(FeatureManager::class)->enable(Feature::Boarding);
+
+        Livewire::test(DormitoryForm::class)->assertForbidden();
     }
 
     public function test_reading_boarding_does_not_allow_answering_a_night_away(): void

@@ -419,7 +419,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 // boarding routes
                 Route::middleware('feature:boarding')->group(function (): void {
                     Route::resource('boarding/houses', DormitoryController::class)
-                        ->only(['index', 'create', 'store', 'show', 'edit', 'update', 'destroy'])
+                        ->only(['index', 'create', 'show', 'edit'])
                         ->parameters(['houses' => 'dormitory'])
                         ->names('dormitories');
                     Route::get('boarding/nights-away', [OvernightLeaveController::class, 'index'])->name('overnight-leaves.index');

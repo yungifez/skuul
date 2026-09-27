@@ -19,17 +19,8 @@
             </slot:trigger>
             <slot:content>
                 <april:dropdown-menu-item x-on:click="window.location.href = '{{ route('dormitories.edit', $dormitory->id) }}'">
-                    <x-lucide-pencil class="mr-2 size-4" />Edit house
+                    <x-lucide-pencil class="mr-2 size-4" />Change or close the house
                 </april:dropdown-menu-item>
-                @if ($dormitory->is_active)
-                    <form action="{{ route('dormitories.destroy', $dormitory->id) }}" method="POST" data-confirm="Archive {{ $dormitory->name }}? It stops taking placements.">
-                        @csrf
-                        @method('DELETE')
-                        <april:dropdown-menu-item type="submit">
-                            <x-lucide-archive class="mr-2 size-4" />Archive house
-                        </april:dropdown-menu-item>
-                    </form>
-                @endif
             </slot:content>
         </april:dropdown-menu>
     @endif

@@ -7,6 +7,7 @@ use App\Enums\AuditAction;
 use App\Enums\DormitoryBedStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\BoardingPlace;
+use App\Models\Dormitory;
 use App\Models\DormitoryBed;
 use App\Models\StudentRecord;
 use App\Models\User;
@@ -37,7 +38,13 @@ class AssignBoardingPlace
         ?CarbonInterface $effectiveOn = null,
     ): BoardingPlace {
         return DB::transaction(function () use ($enrollment, $bed, $actor, $reason, $effectiveOn): BoardingPlace {
-            $bed = DormitoryBed::query()->lockForUpdate()->with('room.dormitory')->findOrFail($bed->getKey());
+            $bed = DormitoryBed::query()->lockForUpdate()->with('room')->findOrFail($bed->getKey());
+
+            // Read the house under the lock that closing it takes, so a child
+            // is never placed in a house that closed a moment ago.
+            if ($bed->room !== null) {
+                $bed->room->setRelation('dormitory', Dormitory::query()->lockForUpdate()->find($bed->room->dormitory_id));
+            }
 
             $this->refuseWhatDoesNotFit($enrollment, $bed);
 
