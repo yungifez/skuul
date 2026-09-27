@@ -55,10 +55,6 @@
                     </april:button>
                 @endif
 
-                @can('viewAny', [\App\Models\LessonNote::class, $syllabus])
-                    <april:button-link href="{{ route('syllabi.lesson-notes', $syllabus) }}" variant="outline">Lesson notes</april:button-link>
-                @endcan
-
                 @can('update', $syllabus)
                     @if ($syllabus->status === \App\Enums\SyllabusStatus::Draft)
                         <april:button-link href="{{ route('syllabi.edit', $syllabus) }}" variant="outline">Edit draft</april:button-link>

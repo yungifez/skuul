@@ -461,7 +461,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 });
 
                 Route::get('syllabi/coverage', [SyllabusController::class, 'coverage'])->name('syllabi.coverage');
-                Route::get('syllabi/{syllabus}/lesson-notes', [SyllabusController::class, 'lessonNotes'])->name('syllabi.lesson-notes');
                 Route::resource('syllabi', SyllabusController::class);
 
                 // timetable route

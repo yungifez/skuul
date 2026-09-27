@@ -37,27 +37,5 @@
             </slot:content>
         </april:card>
     @endif
-    @if ($lessonNotesAwaitingReview->isNotEmpty())
-        <april:card class="mb-4">
-            <slot:title>Lesson notes to review</slot:title>
-            <slot:description>Weekly lesson notes that teachers sent for your approval.</slot:description>
-            <slot:content>
-                <ul class="divide-y rounded-md border">
-                    @foreach ($lessonNotesAwaitingReview as $pending)
-                        <li class="flex flex-wrap items-center justify-between gap-2 p-3">
-                            <div>
-                                <p class="font-medium">{{ $pending->name }}</p>
-                                <p class="text-sm text-muted-foreground">
-                                    {{ $pending->courseOffering->subject->name }} · {{ $pending->courseOffering->academicLevel->name }}
-                                    · {{ trans_choice(':count note|:count notes', $pending->pending_lesson_notes) }}
-                                </p>
-                            </div>
-                            <april:button-link href="{{ route('syllabi.lesson-notes', ['syllabus' => $pending, 'status' => \App\Enums\LessonNoteStatus::Submitted->value]) }}" variant="outline" size="sm">Review notes<span class="sr-only"> for {{ $pending->name }}</span></april:button-link>
-                        </li>
-                    @endforeach
-                </ul>
-            </slot:content>
-        </april:card>
-    @endif
     @livewire('list-syllabi-table')
 @endsection

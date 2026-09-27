@@ -2,14 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\LessonNoteStatus;
 use App\Enums\SyllabusStatus;
 use App\Http\Requests\StoreSyllabusRequest;
 use App\Http\Requests\UpdateSyllabusRequest;
-use App\Models\LessonNote;
 use App\Models\Syllabus;
 use App\Services\Syllabus\SyllabusService;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -25,8 +22,7 @@ class SyllabusController extends Controller
      */
     public function index(): View
     {
-        $isReviewer = auth()->user()?->can('approve syllabus') ?? false;
-        $awaitingReview = $isReviewer
+        $awaitingReview = auth()->user()?->can('approve syllabus')
             ? Syllabus::query()
                 ->inSchool()
                 ->where('status', SyllabusStatus::Submitted)
@@ -34,9 +30,8 @@ class SyllabusController extends Controller
                 ->oldest('submitted_at')
                 ->get()
             : collect();
-        $lessonNotesAwaitingReview = $isReviewer ? $this->lessonNotesAwaitingReview() : collect();
 
-        return view('pages.syllabus.index', compact('awaitingReview', 'lessonNotesAwaitingReview'));
+        return view('pages.syllabus.index', compact('awaitingReview'));
     }
 
     /**
@@ -112,38 +107,5 @@ class SyllabusController extends Controller
         $this->authorize('viewCoverage', Syllabus::class);
 
         return view('pages.syllabus.coverage');
-    }
-
-    /**
-     * Show the weekly lesson notes written against a published syllabus.
-     */
-    public function lessonNotes(Syllabus $syllabus): View
-    {
-        $this->authorize('viewAny', [LessonNote::class, $syllabus]);
-
-        return view('pages.syllabus.lesson-notes', compact('syllabus'));
-    }
-
-    /**
-     * Count the lesson notes waiting for review, by the published syllabus they follow.
-     *
-     * @return Collection<int, Syllabus>
-     */
-    private function lessonNotesAwaitingReview(): Collection
-    {
-        $pendingByOffering = LessonNote::query()
-            ->inSchool()
-            ->where('status', LessonNoteStatus::Submitted)
-            ->where('user_id', '!=', auth()->id())
-            ->selectRaw('course_offering_id, count(*) as pending')
-            ->groupBy('course_offering_id')
-            ->pluck('pending', 'course_offering_id');
-
-        return Syllabus::query()
-            ->whereIn('course_offering_id', $pendingByOffering->keys())
-            ->where('status', SyllabusStatus::Published)
-            ->with(['courseOffering.subject:id,name', 'courseOffering.academicLevel:id,name'])
-            ->get()
-            ->each(fn (Syllabus $syllabus) => $syllabus->setAttribute('pending_lesson_notes', (int) $pendingByOffering[$syllabus->course_offering_id]));
     }
 }
