@@ -24,6 +24,12 @@ class DashboardTrends extends Component
     /** @var list<array{month: string, billed: float, collected: float}>|null */
     public ?array $fees = null;
 
+    /** @var list<array{label: string, owed: float}>|null */
+    public ?array $owed = null;
+
+    /** @var list<array{month: string, received: float, spent: float}>|null */
+    public ?array $cash = null;
+
     /** @var list<array{week: string, incidents: int}>|null */
     public ?array $incidents = null;
 
@@ -43,6 +49,14 @@ class DashboardTrends extends Component
         if ($user->can('read fee invoice')) {
             $fees = $trends->feesByMonth($today);
             $this->fees = collect($fees)->every(fn (array $month): bool => $month['billed'] == 0 && $month['collected'] == 0) ? null : $fees;
+
+            $owed = $trends->owedByLateness($today);
+            $this->owed = collect($owed)->sum('owed') == 0 ? null : $owed;
+        }
+
+        if ($user->can('read fee invoice') && $user->can('read expense')) {
+            $cash = $trends->cashByMonth($today);
+            $this->cash = collect($cash)->every(fn (array $month): bool => $month['received'] == 0 && $month['spent'] == 0) ? null : $cash;
         }
 
         if ($user->can('read incident')) {
@@ -60,7 +74,7 @@ class DashboardTrends extends Component
 
     public function hasTrends(): bool
     {
-        return $this->attendance !== null || $this->fees !== null || $this->incidents !== null || $this->enrolment !== null;
+        return $this->attendance !== null || $this->fees !== null || $this->owed !== null || $this->cash !== null || $this->incidents !== null || $this->enrolment !== null;
     }
 
     public function placeholder(): View

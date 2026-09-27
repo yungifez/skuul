@@ -8,6 +8,7 @@ use App\Enums\EnrollmentStatus;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AttendanceRecord;
+use App\Models\Expense;
 use App\Models\Incident;
 use App\Models\StudentPayment;
 use App\Models\StudentRecord;
@@ -112,6 +113,78 @@ class SchoolTrends
                 'month' => $month->format('M'),
                 'billed' => (int) ($billed[$key] ?? 0) / 100,
                 'collected' => (int) ($collected[$key] ?? 0) / 100,
+            ];
+        })->all();
+    }
+
+    /**
+     * Split what families still owe by how late it is, on the due date.
+     *
+     * A line paid more than it asked for counts as nothing owed, never as a
+     * credit that hides another family's debt.
+     *
+     * @return list<array{label: string, owed: float}>
+     */
+    public function owedByLateness(CarbonImmutable $today): array
+    {
+        $paid = '(select coalesce(sum(payment_allocations.amount), 0) from payment_allocations where payment_allocations.fee_invoice_record_id = fee_invoice_records.id)';
+        $owed = "greatest(fee_invoice_records.amount + coalesce(fee_invoice_records.fine, 0) - coalesce(fee_invoice_records.waiver, 0) - $paid, 0)";
+        $daysLate = 'datediff(?, fee_invoices.due_date)';
+
+        $totals = DB::table('fee_invoice_records')
+            ->join('fee_invoices', 'fee_invoices.id', '=', 'fee_invoice_records.fee_invoice_id')
+            ->where('fee_invoices.school_id', current_school_id())
+            ->whereNull('fee_invoices.deleted_at')
+            ->selectRaw("case when $daysLate <= 0 then 'current' when $daysLate <= 30 then 'late30' when $daysLate <= 60 then 'late60' when $daysLate <= 90 then 'late90' else 'late90plus' end as bucket", array_fill(0, 4, $today->toDateString()))
+            ->selectRaw("sum($owed) as total")
+            ->groupBy('bucket')
+            ->pluck('total', 'bucket');
+
+        return collect([
+            'current' => 'Not due yet',
+            'late30' => '1–30 days late',
+            'late60' => '31–60 days late',
+            'late90' => '61–90 days late',
+            'late90plus' => 'Over 90 days late',
+        ])->map(fn (string $label, string $bucket): array => [
+            'label' => $label,
+            'owed' => (int) ($totals[$bucket] ?? 0) / 100,
+        ])->values()->all();
+    }
+
+    /**
+     * Compare the money received with the money spent, month by month.
+     *
+     * @return list<array{month: string, received: float, spent: float}>
+     */
+    public function cashByMonth(CarbonImmutable $today, int $months = 6): array
+    {
+        $firstMonth = $today->startOfMonth()->subMonths($months - 1);
+
+        $received = StudentPayment::query()
+            ->inSchool()
+            ->stillStanding()
+            ->whereBetween('received_on', [$firstMonth->toDateString(), $today->toDateString()])
+            ->selectRaw("date_format(received_on, '%Y-%m') as month, sum(amount) as total")
+            ->groupBy('month')
+            ->toBase()
+            ->pluck('total', 'month');
+
+        $spent = Expense::query()
+            ->inSchool()
+            ->whereBetween('expense_date', [$firstMonth->toDateString(), $today->toDateString()])
+            ->selectRaw("date_format(expense_date, '%Y-%m') as month, sum(amount) as total")
+            ->groupBy('month')
+            ->toBase()
+            ->pluck('total', 'month');
+
+        return collect(range(0, $months - 1))->map(function (int $offset) use ($firstMonth, $received, $spent): array {
+            $key = $firstMonth->addMonths($offset)->format('Y-m');
+
+            return [
+                'month' => $firstMonth->addMonths($offset)->format('M'),
+                'received' => (int) ($received[$key] ?? 0) / 100,
+                'spent' => round((float) ($spent[$key] ?? 0), 2),
             ];
         })->all();
     }

@@ -56,6 +56,54 @@
                     </div>
                 @endif
 
+                @if ($owed !== null)
+                    @php
+                        $owedTotal = collect($owed)->sum('owed');
+                        $lateTotal = collect($owed)->slice(1)->sum('owed');
+                        $largest = max(1, collect($owed)->max('owed'));
+                    @endphp
+                    <div class="min-w-0" id="trend-owed">
+                        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                            <h3 class="text-sm font-medium">Owed</h3>
+                            <p class="text-sm text-muted-foreground">By how late</p>
+                        </div>
+                        <p class="mt-1 flex flex-wrap items-baseline gap-x-3">
+                            <span class="text-3xl font-semibold tabular-nums">{{ money_text($owedTotal) }}</span>
+                            <span class="text-sm tabular-nums text-muted-foreground">{{ money_text($lateTotal) }} late</span>
+                        </p>
+                        <ul class="mt-4 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-x-3 gap-y-3 text-sm">
+                            @foreach ($owed as $bucket)
+                                <li class="contents">
+                                    <span class="truncate">{{ $bucket['label'] }}</span>
+                                    <span class="relative h-2 overflow-hidden rounded-full bg-muted" aria-hidden="true">
+                                        <span @class(['absolute inset-y-0 left-0 rounded-full', 'bg-muted-foreground/40' => $loop->first, 'bg-[var(--chart-5)]' => !$loop->first]) style="width: {{ $bucket['owed'] / $largest * 100 }}%"></span>
+                                    </span>
+                                    <span @class(['text-right tabular-nums', 'text-muted-foreground' => $bucket['owed'] == 0])>{{ $bucket['owed'] == 0 ? '—' : money_text($bucket['owed']) }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
+
+                @if ($cash !== null)
+                    @php
+                        $cashIn = collect($cash)->sum('received');
+                        $cashOut = collect($cash)->sum('spent');
+                        $net = $cashIn - $cashOut;
+                    @endphp
+                    <div class="min-w-0" id="trend-cash">
+                        <div class="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                            <h3 class="text-sm font-medium">Money in and out</h3>
+                            <p class="text-sm text-muted-foreground">Last 6 months</p>
+                        </div>
+                        <p class="mt-1 flex flex-wrap items-baseline gap-x-3">
+                            <span @class(['text-3xl font-semibold tabular-nums', 'text-destructive' => $net < 0])>{{ $net < 0 ? '−' : '' }}{{ money_text(abs($net)) }}</span>
+                            <span class="text-sm tabular-nums text-muted-foreground">{{ money_text($cashIn) }} in · {{ money_text($cashOut) }} out</span>
+                        </p>
+                        <april:chart class="{{ $chartClass }} mt-4" label="Money received and spent by month" :data="$cash" :config="['received' => ['label' => 'In', 'color' => 'var(--chart-2)'], 'spent' => ['label' => 'Out', 'color' => 'var(--chart-5)']]" xKey="month" type="bar" height="200" />
+                    </div>
+                @endif
+
                 @if ($enrolment !== null)
                     @php
                         $seats = collect($enrolment)->sum('capacity');

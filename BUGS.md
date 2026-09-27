@@ -919,3 +919,12 @@
 - Impact: The invoice list, the reason to open the page, sat below the fold. People without the permission saw Close and Reopen buttons that failed with 403.
 - Reproduction: Open `/dashboard/fees/fee-invoices` as a user without `manage financial period`.
 - Resolution: The page now shows the period name, one facts row (Owed, Overdue invoices, Received, Spent), the invoice list and the periods list. "Add invoice" stays the one primary action. Record expense and the other finance pages are in the ⋯ menu. Financial periods are the `ManageFinancialPeriods` Livewire component. Adding a period opens in place, and Close and Reopen confirm first and show only with `manage financial period`. The three POST routes, `FinancialPeriodController` and `StoreFinancialPeriodRequest` are removed. Overdue now means due before today. `FinancialPeriodScreenTest` covers adding, validation, closing, reopening, permission and school scope.
+
+## Dashboard trends showed collections but not what was owed or spent
+
+- Status: Fixed
+- Area: Dashboard trends
+- Observed: The only money trend was "Fees collected" against billed. The dashboard did not show how much families still owed, how late that money was, or how the money received compared with expenses.
+- Impact: A bursar had to open the finance page and the reports to see which debts to chase first and whether the school spent more than it took in.
+- Reproduction: Open `/dashboard` as a user who can read fee invoices and expenses.
+- Resolution: Two trends are added. "Owed" totals what is still owed and splits it into not due yet, 1–30, 31–60, 61–90 and over 90 days late. Each line counts only what is left after its allocations, never below zero, and deleted invoices are left out. "Money in and out" compares standing payments with expenses for the last six months and leads with the net. The first needs `read fee invoice`, the second also needs `read expense`, and each stays hidden when it has nothing to draw. `DashboardTrendsTest` covers the buckets, school scope, month totals and permissions.
