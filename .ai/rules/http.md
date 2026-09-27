@@ -36,6 +36,9 @@ entry in `App\Livewire\Layouts\Menu` a `visible` of
 `feature_enabled(Feature::X) && $user->can(...)`. The middleware closes the way
 in; the menu stops offering a link that would 404. Records are never touched,
 so a school can turn the feature back on and find its history.
+A Livewire component on that page needs no check of its own: `AppServiceProvider`
+runs `EnsureFeatureIsEnabled` and `RequireActiveSchool` as Livewire persistent
+middleware, and refuses an action from a tab drawn for another school.
 
 ## The layout already shows session messages
 `layouts.app` renders `@livewire('display-status')`, which shows

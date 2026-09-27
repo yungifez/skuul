@@ -3,22 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Gradebook\ApplyAssessmentTemplate;
-use App\Actions\Gradebook\ApproveResult;
 use App\Actions\Gradebook\CreateAssessmentTemplateFromGradebook;
-use App\Actions\Gradebook\PublishResult;
-use App\Actions\Gradebook\RecordGrade;
-use App\Actions\Gradebook\RejectResult;
-use App\Enums\GradeEntryState;
 use App\Enums\GradeItemType;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
 use App\Http\Requests\ApplyAssessmentTemplateRequest;
-use App\Http\Requests\ApproveGradebookResultRequest;
-use App\Http\Requests\PublishGradebookResultRequest;
-use App\Http\Requests\RejectGradebookResultRequest;
 use App\Http\Requests\StoreAssessmentTemplateRequest;
 use App\Http\Requests\StoreGradebookCategoryRequest;
-use App\Http\Requests\StoreGradebookEntryRequest;
 use App\Http\Requests\StoreGradebookItemRequest;
 use App\Http\Requests\UpdateGradebookItemRequest;
 use App\Models\AssessmentTemplate;
@@ -27,7 +18,6 @@ use App\Models\GradeCategory;
 use App\Models\GradeItem;
 use App\Models\GradingScale;
 use App\Models\ResultSnapshot;
-use App\Models\StudentRecord;
 use App\Services\Gradebook\CourseOfferingRoster;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -38,10 +28,6 @@ class GradebookController extends Controller
         private CourseOfferingRoster $roster,
         private ApplyAssessmentTemplate $applyAssessmentTemplate,
         private CreateAssessmentTemplateFromGradebook $createAssessmentTemplate,
-        private RecordGrade $recordGrade,
-        private PublishResult $publishResult,
-        private ApproveResult $approveResult,
-        private RejectResult $rejectResult,
     ) {}
 
     /**
@@ -74,9 +60,6 @@ class GradebookController extends Controller
             ->with([
                 'category:id,name',
                 'gradingScale:id,name',
-                'gradingScale.options:id,grading_scale_id,label,points,position',
-                'entries' => fn ($query) => $query->whereIn('student_record_id', $studentIds),
-                'entries.gradingScaleOption:id,label,points',
             ])
             ->orderBy('position')
             ->orderBy('id')
@@ -85,13 +68,6 @@ class GradebookController extends Controller
             ->whereBelongsTo($courseOffering)
             ->whereIn('student_record_id', $studentIds)
             ->approved()
-            ->latestRevision()
-            ->get()
-            ->unique('student_record_id')
-            ->keyBy('student_record_id');
-        $submittedResults = ResultSnapshot::query()
-            ->whereBelongsTo($courseOffering)
-            ->whereIn('student_record_id', $studentIds)
             ->latestRevision()
             ->get()
             ->unique('student_record_id')
@@ -111,7 +87,7 @@ class GradebookController extends Controller
             ->get();
         $gradeCategories = $courseOffering->gradeCategories;
 
-        return view('pages.course-offering.gradebook', compact('assessmentTemplates', 'courseOffering', 'gradeCategories', 'gradeItems', 'gradingScales', 'publishedResults', 'students', 'submittedResults'));
+        return view('pages.course-offering.gradebook', compact('assessmentTemplates', 'courseOffering', 'gradeCategories', 'gradeItems', 'gradingScales', 'publishedResults', 'students'));
     }
 
     /**
@@ -238,83 +214,6 @@ class GradebookController extends Controller
         }
 
         return back()->with('success', 'Assessment template applied.');
-    }
-
-    /**
-     * Record one learner's grade from the shared gradebook screen.
-     */
-    public function storeEntry(StoreGradebookEntryRequest $request, CourseOffering $courseOffering): RedirectResponse
-    {
-        $this->authorize('manageGradebook', $courseOffering);
-        $data = $request->validated();
-        $item = $courseOffering->gradeItems()->findOrFail($data['grade_item_id']);
-        $enrollment = StudentRecord::inSchool()->findOrFail($data['student_record_id']);
-
-        try {
-            $this->recordGrade->record(
-                $item,
-                $enrollment,
-                GradeEntryState::from($data['state']),
-                isset($data['points']) ? (float) $data['points'] : null,
-                $data['grading_scale_option_id'] ?? null,
-                $data['comment'] ?? null,
-                $request->user(),
-            );
-        } catch (ClosedPeriodException|InvalidValueException $exception) {
-            return back()->withErrors(['gradebook' => $exception->getMessage()]);
-        }
-
-        return back()->with('success', 'Grade saved.');
-    }
-
-    /**
-     * Publish one learner's current gradebook calculation.
-     */
-    public function publish(PublishGradebookResultRequest $request, CourseOffering $courseOffering): RedirectResponse
-    {
-        $this->authorize('publishResult', $courseOffering);
-        $data = $request->validated();
-        $enrollment = StudentRecord::inSchool()->findOrFail($data['student_record_id']);
-
-        try {
-            $this->publishResult->publish($courseOffering, $enrollment, $request->user(), $data['reason'] ?? null);
-        } catch (InvalidValueException $exception) {
-            return back()->withErrors(['gradebook' => $exception->getMessage()]);
-        }
-
-        return back()->with('success', 'Result submitted for approval.');
-    }
-
-    /**
-     * Approve one submitted result from the gradebook workspace.
-     */
-    public function approve(ApproveGradebookResultRequest $request, CourseOffering $courseOffering): RedirectResponse
-    {
-        $result = $courseOffering->resultSnapshots()->findOrFail($request->integer('result_snapshot_id'));
-
-        try {
-            $this->approveResult->approve($result, $request->user(), $request->validated('reason'));
-        } catch (InvalidValueException $exception) {
-            return back()->withErrors(['gradebook' => $exception->getMessage()]);
-        }
-
-        return back()->with('success', 'Result approved and made official.');
-    }
-
-    /**
-     * Reject one submitted result from the gradebook workspace.
-     */
-    public function reject(RejectGradebookResultRequest $request, CourseOffering $courseOffering): RedirectResponse
-    {
-        $result = $courseOffering->resultSnapshots()->findOrFail($request->integer('result_snapshot_id'));
-
-        try {
-            $this->rejectResult->reject($result, $request->user(), $request->string('reason')->toString());
-        } catch (InvalidValueException $exception) {
-            return back()->withErrors(['gradebook' => $exception->getMessage()]);
-        }
-
-        return back()->with('success', 'Result rejected. The teacher can submit a new revision.');
     }
 
     /**

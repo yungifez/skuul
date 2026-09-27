@@ -5,6 +5,7 @@ namespace App\Actions\Gradebook;
 use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AuditAction;
 use App\Enums\ResultApprovalStatus;
+use App\Exceptions\InvalidValueException;
 use App\Models\CourseOffering;
 use App\Models\ResultSnapshot;
 use App\Models\StudentRecord;
@@ -26,11 +27,12 @@ class PublishResult
         private GradebookCalculator $calculator,
         private CourseOfferingRoster $roster,
         private RecordAuditEvent $auditor,
-    ) {
-    }
+    ) {}
 
     /**
      * Publish the result of one enrollment in one course offering.
+     *
+     * @throws InvalidValueException when the same result already waits for approval
      */
     public function publish(
         CourseOffering $courseOffering,
@@ -46,19 +48,26 @@ class PublishResult
                 ->where('student_record_id', $enrollment->id)
                 ->whereBelongsTo($courseOffering)
                 ->latestRevision()
+                ->lockForUpdate()
                 ->first();
 
+            // A second press, or a second teacher, must not queue the same
+            // result twice for the person who approves it.
+            if ($previous?->approval_status === ResultApprovalStatus::Pending && $previous->payload == $result) {
+                throw new InvalidValueException("Revision {$previous->revision} with this result is already waiting for approval.");
+            }
+
             $snapshot = ResultSnapshot::create([
-                'school_id'          => $courseOffering->school_id,
-                'student_record_id'  => $enrollment->id,
+                'school_id' => $courseOffering->school_id,
+                'student_record_id' => $enrollment->id,
                 'course_offering_id' => $courseOffering->id,
-                'revision'           => $previous === null ? 1 : $previous->revision + 1,
-                'percentage'         => $result['percentage'],
-                'payload'            => $result,
-                'reason'             => $reason,
+                'revision' => $previous === null ? 1 : $previous->revision + 1,
+                'percentage' => $result['percentage'],
+                'payload' => $result,
+                'reason' => $reason,
                 'approval_status' => ResultApprovalStatus::Pending,
-                'published_at'       => now(),
-                'published_by'       => $actor === null ? auth()->id() : $actor->id,
+                'published_at' => now(),
+                'published_by' => $actor === null ? auth()->id() : $actor->id,
             ]);
 
             $this->auditor->record(
@@ -66,10 +75,10 @@ class PublishResult
                 $snapshot,
                 [
                     'course_offering_id' => $courseOffering->id,
-                    'student_record_id'  => $enrollment->id,
-                    'revision'           => $snapshot->revision,
-                    'percentage'         => $snapshot->percentage,
-                    'reason'             => $reason,
+                    'student_record_id' => $enrollment->id,
+                    'revision' => $snapshot->revision,
+                    'percentage' => $snapshot->percentage,
+                    'reason' => $reason,
                 ],
                 $actor,
             );

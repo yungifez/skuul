@@ -37,6 +37,16 @@ class ApproveResult
                 throw new InvalidValueException('Only a result awaiting approval can be approved.');
             }
 
+            $newerRevision = ResultSnapshot::query()
+                ->where('student_record_id', $result->student_record_id)
+                ->where('course_offering_id', $result->course_offering_id)
+                ->where('revision', '>', $result->revision)
+                ->max('revision');
+
+            if ($newerRevision !== null) {
+                throw new InvalidValueException("The teacher sent revision $newerRevision after this one. Approve that one instead.");
+            }
+
             $result->approve($actor, $reason);
 
             $this->auditor->record(

@@ -6,9 +6,9 @@ use App\Actions\Boarding\AssignBoardingPlace;
 use App\Actions\Boarding\StartBoardingRoll;
 use App\Enums\BoardingRollType;
 use App\Enums\Feature;
-use App\Enums\GradeEntryState;
 use App\Enums\GradeItemType;
 use App\Livewire\CreateFeeInvoiceForm;
+use App\Livewire\GradebookMarkSheet;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
@@ -19,7 +19,7 @@ use App\Models\DormitoryBed;
 use App\Models\DormitoryRoom;
 use App\Models\Fee;
 use App\Models\FeeCategory;
-use App\Models\GradeItem;
+use App\Models\ResultSnapshot;
 use App\Models\StudentRecord;
 use App\Models\Subject;
 use App\Models\User;
@@ -77,23 +77,19 @@ class ControlNameTest extends TestCase
             'weight' => 1,
         ])->assertSessionHas('success');
 
-        $this->post(route('course-offerings.gradebook.entries.store', $courseOffering), [
-            'grade_item_id' => GradeItem::query()->whereBelongsTo($courseOffering)->sole()->id,
-            'student_record_id' => $enrollment->id,
-            'state' => GradeEntryState::Graded->value,
-            'points' => 16,
-        ])->assertSessionHas('success');
+        Livewire::test(GradebookMarkSheet::class, ['courseOffering' => $courseOffering])
+            ->set("marks.$enrollment->id.points", '16')
+            ->call('save');
 
         // Only a result that waits for a decision draws the reject box.
-        $this->post(route('course-offerings.gradebook.results.publish', $courseOffering), [
-            'student_record_id' => $enrollment->id,
-        ])->assertSessionHas('success');
-
-        $html = (string) $this->get(route('course-offerings.gradebook.show', $courseOffering))->assertOk()->getContent();
+        $html = Livewire::test(GradebookMarkSheet::class, ['courseOffering' => $courseOffering])
+            ->call('submitResult', $enrollment->id)
+            ->call('startRejecting', ResultSnapshot::query()->sole()->id)
+            ->html();
         $student = $enrollment->user->name;
 
         $this->assertStringContainsString(
-            'aria-label="Reason to reject the result for '.e($student).'"',
+            'Reason to send back the result for '.e($student),
             $html,
             'The reject box must name the student whose result it refuses.'
         );

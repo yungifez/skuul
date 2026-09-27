@@ -4,9 +4,9 @@ namespace Tests\Feature;
 
 use App\Enums\AcademicPeriodStatus;
 use App\Enums\GradeAggregation;
-use App\Enums\GradeEntryState;
 use App\Enums\GradeItemType;
 use App\Enums\ResultApprovalStatus;
+use App\Livewire\GradebookMarkSheet;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
@@ -22,6 +22,7 @@ use App\Models\Subject;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class GradebookScreenTest extends TestCase
@@ -75,11 +76,10 @@ class GradebookScreenTest extends TestCase
 
         $this->get(route('course-offerings.gradebook.show', $courseOffering))
             ->assertOk()
-            ->assertSee('Gradebook workflow')
             ->assertSee('Assessment setup')
             ->assertSee('Add category')
             ->assertSee('Editing open')
-            ->assertSee('Record grades and publish results');
+            ->assertSeeLivewire(GradebookMarkSheet::class);
 
         $this->post(route('course-offerings.gradebook.items.store', $courseOffering), [
             'name' => 'Term project',
@@ -90,12 +90,10 @@ class GradebookScreenTest extends TestCase
 
         $item = GradeItem::query()->whereBelongsTo($courseOffering)->firstOrFail();
 
-        $this->post(route('course-offerings.gradebook.entries.store', $courseOffering), [
-            'grade_item_id' => $item->id,
-            'student_record_id' => $enrollment->id,
-            'state' => GradeEntryState::Graded->value,
-            'points' => 16,
-        ])->assertSessionHas('success');
+        Livewire::test(GradebookMarkSheet::class, ['courseOffering' => $courseOffering])
+            ->set("marks.$enrollment->id.points", '16')
+            ->call('save')
+            ->assertHasNoErrors();
 
         $this->assertSame(16.0, GradeEntry::query()->firstOrFail()->points);
 
@@ -107,26 +105,22 @@ class GradebookScreenTest extends TestCase
 
         $commentItem = GradeItem::query()->whereBelongsTo($courseOffering)->latest('id')->firstOrFail();
 
-        $this->post(route('course-offerings.gradebook.entries.store', $courseOffering), [
-            'grade_item_id' => $commentItem->id,
-            'student_record_id' => $enrollment->id,
-            'state' => GradeEntryState::Graded->value,
-            'comment' => 'Reads with confidence.',
-        ])->assertSessionHas('success');
+        Livewire::withQueryParams(['assessment' => $commentItem->id])
+            ->test(GradebookMarkSheet::class, ['courseOffering' => $courseOffering])
+            ->set("marks.$enrollment->id.comment", 'Reads with confidence.')
+            ->call('save')
+            ->assertHasNoErrors();
 
         $this->assertSame('Reads with confidence.', GradeEntry::query()->latest('id')->firstOrFail()->comment);
 
-        $this->post(route('course-offerings.gradebook.results.publish', $courseOffering), [
-            'student_record_id' => $enrollment->id,
-        ])->assertSessionHas('success');
+        $sheet = Livewire::test(GradebookMarkSheet::class, ['courseOffering' => $courseOffering])
+            ->call('submitResult', $enrollment->id);
 
         $snapshot = ResultSnapshot::query()->firstOrFail();
         $this->assertSame(80.0, $snapshot->percentage);
         $this->assertSame(ResultApprovalStatus::Pending, $snapshot->approval_status);
 
-        $this->post(route('course-offerings.gradebook.results.approve', $courseOffering), [
-            'result_snapshot_id' => $snapshot->id,
-        ])->assertSessionHas('success');
+        $sheet->call('approveResult', $snapshot->id);
 
         $this->assertSame(ResultApprovalStatus::Approved, $snapshot->fresh()->approval_status);
     }
@@ -141,8 +135,7 @@ class GradebookScreenTest extends TestCase
             ->assertOk()
             ->assertSee('This gradebook is read-only.')
             ->assertSee('Read-only')
-            ->assertSee('Historical results')
-            ->assertSee('This gradebook has no assessment history to display.')
+            ->assertSee('No assessments yet')
             ->assertSee('assessment setup and mark entry are locked.')
             ->assertDontSee('Add category')
             ->assertDontSee('Add an assessment')
@@ -165,8 +158,7 @@ class GradebookScreenTest extends TestCase
         $this->get(route('course-offerings.gradebook.show', $courseOffering))
             ->assertOk()
             ->assertSee('Corrections open')
-            ->assertSee('Record grades and publish results')
-            ->assertSee('Grade state')
+            ->assertSee('Save marks')
             ->assertDontSee('Assessment setup')
             ->assertDontSee('Add an assessment')
             ->assertDontSee('This gradebook is read-only.');

@@ -378,10 +378,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::post('course-offerings/{courseOffering}/gradebook/items', [GradebookController::class, 'storeItem'])->name('course-offerings.gradebook.items.store');
             Route::put('course-offerings/{courseOffering}/gradebook/items/{gradeItem}', [GradebookController::class, 'updateItem'])->name('course-offerings.gradebook.items.update');
             Route::delete('course-offerings/{courseOffering}/gradebook/items/{gradeItem}', [GradebookController::class, 'destroyItem'])->name('course-offerings.gradebook.items.destroy');
-            Route::post('course-offerings/{courseOffering}/gradebook/entries', [GradebookController::class, 'storeEntry'])->name('course-offerings.gradebook.entries.store');
-            Route::post('course-offerings/{courseOffering}/gradebook/results', [GradebookController::class, 'publish'])->name('course-offerings.gradebook.results.publish');
-            Route::post('course-offerings/{courseOffering}/gradebook/results/approve', [GradebookController::class, 'approve'])->name('course-offerings.gradebook.results.approve');
-            Route::post('course-offerings/{courseOffering}/gradebook/results/reject', [GradebookController::class, 'reject'])->name('course-offerings.gradebook.results.reject');
 
             // promotion routes
             Route::get('students/promotions', ['App\Http\Controllers\PromotionController', 'index'])->name('students.promotions');

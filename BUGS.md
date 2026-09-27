@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Two teachers could overwrite each other's marks, and a result could be sent twice
+
+- Status: Fixed
+- Area: Gradebook
+- Observed: Each mark was its own form and a full page reload. A teacher who opened the gradebook, then saved a mark after a co-teacher had changed it, replaced the co-teacher's mark without a sign. Pressing submit twice queued two identical revisions for approval. An approver could also approve revision 1 after the teacher had sent revision 2.
+- Impact: Marks were lost without anyone knowing. Approvers saw duplicate work, and an old result could become official over a correction.
+- Reproduction: Open one gradebook in two tabs. Save a mark in one, then a different mark for the same learner in the other.
+- Resolution: The Livewire `GradebookMarkSheet` takes the marks of one assessment down the class list and saves them in one press. It remembers every mark as it read it. A mark someone else changed since then shows their value and needs a second save. `PublishResult` refuses a result that already waits for approval unchanged, and `ApproveResult` refuses a revision that a newer one replaced. The per-mark and per-result POST routes are gone. `GradebookMarkSheetTest` covers these paths.
+
 ## An open tab kept writing after a feature was turned off or the school was switched
 
 - Status: Fixed
