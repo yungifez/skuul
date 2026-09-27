@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Actions\Report\PublishReportCard;
 use App\Enums\AcademicPeriodStatus;
+use App\Livewire\ReportCardDirectory;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
@@ -14,6 +15,8 @@ use App\Models\StudentRecord;
 use App\Models\Subject;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class ReportCardSnapshotTest extends TestCase
@@ -60,16 +63,60 @@ class ReportCardSnapshotTest extends TestCase
             ->assertSee('Official record built from published results.')
             ->assertDontSee('It is built from the results already published for the period');
 
-        $this->post(route('report-cards.store'), [
-            'student_record_id' => $student->id,
-            'academic_period_id' => $period->id,
-        ])->assertSessionHasNoErrors()->assertSessionHas('success');
+        Livewire::test(ReportCardDirectory::class)
+            ->set('student_record_id', $student->id)
+            ->set('academic_period_id', $period->id)
+            ->call('publishReportCard')
+            ->assertHasNoErrors()
+            ->assertDispatched('status-message', type: 'success')
+            ->assertSet('student_record_id', null);
+
+        $this->assertFalse(Route::has('report-cards.store'));
+        $this->post(route('report-cards.index'))->assertMethodNotAllowed();
 
         $reportCard = ReportCardSnapshot::query()->sole();
         $this->assertSame(1, ReportCardSnapshot::count());
         $this->get(route('report-cards.show', $reportCard))
             ->assertOk()
             ->assertSee('Subject results');
+
+        Livewire::test(ReportCardDirectory::class)
+            ->set('student_record_id', $student->id)
+            ->set('academic_period_id', $period->id)
+            ->set('reason', 'Corrected result')
+            ->call('publishReportCard')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('report_card_snapshots', [
+            'student_record_id' => $student->id,
+            'academic_period_id' => $period->id,
+            'revision' => 2,
+            'reason' => 'Corrected result',
+        ]);
+    }
+
+    public function test_livewire_report_card_publish_requires_published_results(): void
+    {
+        $school = $this->workingSchool();
+        $academicYear = AcademicYear::factory()->create(['school_id' => $school->id]);
+        $period = AcademicPeriod::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
+            'status' => AcademicPeriodStatus::Closing,
+        ]);
+        $student = StudentRecord::factory()->create(['school_id' => $school->id]);
+        $this->authorized_user(['read report', 'create report']);
+
+        Livewire::test(ReportCardDirectory::class)
+            ->set('student_record_id', $student->id)
+            ->set('academic_period_id', $period->id)
+            ->call('publishReportCard')
+            ->assertHasErrors('report_card');
+
+        $this->assertDatabaseMissing('report_card_snapshots', [
+            'student_record_id' => $student->id,
+            'academic_period_id' => $period->id,
+        ]);
     }
 
     /** @return array{StudentRecord, AcademicPeriod} */

@@ -24,9 +24,15 @@ class StoreTranscriptRequest extends FormRequest
      */
     public function rules(): array
     {
+        return self::transcriptRules();
+    }
+
+    /** @return array<string, array<int, mixed>> */
+    public static function transcriptRules(): array
+    {
         return [
-            'student_record_id' => ['required', 'integer', Rule::exists((new StudentRecord())->getTable(), 'id')->where('school_id', current_school_id())],
-            'reason'            => ['nullable', 'string', 'max:500'],
+            'student_record_id' => ['required', 'integer', Rule::exists((new StudentRecord)->getTable(), 'id')->where('school_id', current_school_id())],
+            'reason' => ['nullable', 'string', 'max:500'],
         ];
     }
 }

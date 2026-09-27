@@ -9,6 +9,15 @@
 - Reproduction: Charge a learner at campus A. Move them to campus B (no shared billing group). Open the portal's invoices page as their guardian.
 - Resolution: The portal invoices page lists "Owed at <campus>" beneath the current balance for each other campus the learner still owes.
 
+## Report cards and transcripts reloaded the page to publish
+
+- Status: Fixed
+- Area: Report cards, transcripts
+- Observed: Publishing a report card or issuing a transcript posted a classic form and reloaded the page. The directory below lost its filters and page.
+- Impact: Staff issuing cards for a whole class started their search again after every card.
+- Reproduction: Filter the report-card directory, then publish a card.
+- Resolution: The Livewire `ReportCardDirectory` and `TranscriptDirectory` publish in place, show a notification, and clear the form. The `report-cards.store` and `transcripts.store` routes and their controller methods are removed. A flaky `TimetableRevisionTest` case now builds its foreign section in another school.
+
 ## A campus lost the money it collected after its learner moved on
 
 - Status: Fixed
@@ -1294,6 +1303,24 @@
 - Impact: The route could refer to a record that does not exist at the newly selected campus, resulting in a confusing not-found or authorization screen instead of the new campus home.
 - Reproduction: Open a record page, change the Working school selector, and observe that the browser returns to the previous record URL.
 - Resolution: Successful school changes now redirect to the dashboard. `SchoolContextTest` verifies the redirect from a deep page and denies switching to a school without membership.
+
+## Fee editing posted to the fee-category route
+
+- Status: Fixed
+- Area: Fees
+- Observed: The fee edit form submitted to `fee-categories.update` instead of `fees.update`.
+- Impact: Editing a fee sent its data to a different resource route and could not complete the intended update.
+- Reproduction: Open a fee’s edit screen, change its name, and save.
+- Resolution: Fee create and edit now submit through Livewire to `FeeService`; feature coverage verifies a successful update and redirect.
+
+## A fee could reference a category from another school
+
+- Status: Fixed
+- Area: Fee validation and school boundaries
+- Observed: Fee creation validated `fee_category_id` against all fee categories instead of categories belonging to the working school.
+- Impact: A crafted request could associate a school's fee with another school's category.
+- Reproduction: Submit a fee with the ID of a fee category owned by another school.
+- Resolution: The shared fee request rules now scope the category existence check to the working school. The Livewire create action uses those rules, and `FeeTest` covers the cross-school refusal.
 
 ## The year-setup structure step was cluttered and over-explained
 

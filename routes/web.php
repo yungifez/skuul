@@ -194,10 +194,8 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         // does not need one to be set first.
         Route::get('reports', ['App\Http\Controllers\ReportController', 'index'])->name('reports.index');
         Route::get('report-cards', ['App\Http\Controllers\ReportCardController', 'index'])->name('report-cards.index');
-        Route::post('report-cards', ['App\Http\Controllers\ReportCardController', 'store'])->name('report-cards.store');
         Route::get('report-cards/{reportCardSnapshot}', ['App\Http\Controllers\ReportCardController', 'show'])->name('report-cards.show');
         Route::get('transcripts', ['App\Http\Controllers\TranscriptController', 'index'])->name('transcripts.index');
-        Route::post('transcripts', ['App\Http\Controllers\TranscriptController', 'store'])->name('transcripts.store');
         // Attendance is a school-level tool. Turning it off closes both the
         // register screen and its write endpoint without deleting history.
         Route::middleware(['feature:attendance'])->group(function () {

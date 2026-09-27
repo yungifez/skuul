@@ -1,4 +1,49 @@
 <div class="space-y-6">
+    <x-display-validation-errors />
+    @can('create', App\Models\ReportCardSnapshot::class)
+        <april:card>
+            <slot:title>Publish a report card</slot:title>
+            <slot:description>Official record built from published results. Once issued, it stays unchanged; a correction creates a new revision.</slot:description>
+            <slot:content>
+                <form wire:submit="publishReportCard" class="grid gap-4 lg:grid-cols-4 lg:items-end">
+                    <div class="flex min-w-0 flex-col gap-2">
+                        <april:label for="report-card-student">Learner</april:label>
+                        <april:native-select id="report-card-student" wire:model="student_record_id" required class="w-full min-w-0">
+                            <option value="">Choose a learner</option>
+                            @foreach ($students as $student)
+                                <option value="{{ $student->id }}">{{ $student->user?->name ?? 'Unnamed' }} · {{ $student->admission_number }}</option>
+                            @endforeach
+                        </april:native-select>
+                        <x-field-error name="student_record_id" />
+                    </div>
+
+                    <div class="flex min-w-0 flex-col gap-2">
+                        <april:label for="report-card-period">{{ school_term('period', 'Academic period') }}</april:label>
+                        <april:native-select id="report-card-period" wire:model="academic_period_id" required class="w-full min-w-0">
+                            <option value="">Choose a {{ school_term('period', 'period') }}</option>
+                            @foreach ($periods as $period)
+                                <option value="{{ $period->id }}">{{ $period->academicYear?->name }} · {{ $period->displayName }}</option>
+                            @endforeach
+                        </april:native-select>
+                        <x-field-error name="academic_period_id" />
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+                        <april:label for="report-card-reason">Reason for a revision</april:label>
+                        <april:input id="report-card-reason" wire:model="reason" placeholder="Only needed when reissuing" />
+                        <x-field-error name="reason" />
+                    </div>
+
+                    <april:button type="submit" wire:loading.attr="disabled">
+                        <x-lucide-file-check class="mr-2 size-4" />
+                        <span wire:loading.remove>Publish</span>
+                        <span wire:loading>Publishing…</span>
+                    </april:button>
+                </form>
+            </slot:content>
+        </april:card>
+    @endcan
+
     <april:card>
         <slot:title>Find a card</slot:title>
         <slot:description>Search official cards by learner, academic year, or {{ school_term('period', 'period') }}.</slot:description>

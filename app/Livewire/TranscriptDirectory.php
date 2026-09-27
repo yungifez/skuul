@@ -2,6 +2,11 @@
 
 namespace App\Livewire;
 
+use App\Actions\Report\PublishTranscript;
+use App\Exceptions\InvalidValueException;
+use App\Http\Requests\StoreTranscriptRequest;
+use App\Livewire\Concerns\DispatchesStatusNotifications;
+use App\Models\StudentRecord;
 use App\Models\TranscriptSnapshot;
 use App\Services\Report\TranscriptDirectory as TranscriptDirectoryService;
 use Illuminate\Contracts\View\View;
@@ -13,10 +18,15 @@ use Livewire\WithPagination;
 
 class TranscriptDirectory extends Component
 {
+    use DispatchesStatusNotifications;
     use WithPagination;
 
     #[Url(as: 'student_record_id', except: '')]
     public string $studentRecordId = '';
+
+    public ?int $student_record_id = null;
+
+    public string $reason = '';
 
     protected TranscriptDirectoryService $directory;
 
@@ -47,6 +57,29 @@ class TranscriptDirectory extends Component
     {
         $this->studentRecordId = '';
         $this->resetPage();
+    }
+
+    public function issueTranscript(PublishTranscript $publishTranscript): void
+    {
+        Gate::authorize('create', TranscriptSnapshot::class);
+
+        $validated = $this->validate(StoreTranscriptRequest::transcriptRules());
+        $student = StudentRecord::inSchool()->findOrFail($validated['student_record_id']);
+
+        try {
+            $publishTranscript->publish(
+                $student,
+                auth()->user(),
+                filled($validated['reason'] ?? null) ? $validated['reason'] : null,
+            );
+        } catch (InvalidValueException $exception) {
+            $this->addError('transcript', $exception->getMessage());
+
+            return;
+        }
+
+        $this->reset(['student_record_id', 'reason']);
+        $this->notify('Transcript issued.');
     }
 
     public function render(): View

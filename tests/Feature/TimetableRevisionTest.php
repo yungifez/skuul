@@ -19,6 +19,7 @@ use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
 use App\Models\CourseOffering;
+use App\Models\School;
 use App\Models\Subject;
 use App\Models\Timetable;
 use App\Models\TimetableRecord;
@@ -327,9 +328,14 @@ class TimetableRevisionTest extends TestCase
         $teacher = $this->teacher();
         $timetable = $this->timetableWithLesson($teacher, '08:00', '09:00');
         app(PublishTimetable::class)->publish($timetable);
-        $elsewhere = AcademicCycleSection::factory()->create();
+        $ownSection = $timetable->academicCycleSection;
+        $elsewhere = AcademicCycleSection::factory()->create([
+            'school_id' => School::factory()->create()->id,
+            'academic_year_id' => $ownSection->academic_year_id,
+            'academic_level_id' => $ownSection->academic_level_id,
+        ]);
 
-        $panel = Livewire::test(TimetableCoverPanel::class, ['timetable' => $timetable->fresh()])
+        Livewire::test(TimetableCoverPanel::class, ['timetable' => $timetable->fresh()])
             ->set('sectionId', (string) $elsewhere->id)
             ->call('startOverride')
             ->assertStatus(404);

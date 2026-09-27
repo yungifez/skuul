@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\Report\PublishTranscript;
+use App\Livewire\TranscriptDirectory;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
@@ -13,6 +14,8 @@ use App\Models\Subject;
 use App\Models\TranscriptSnapshot;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class TranscriptSnapshotTest extends TestCase
@@ -41,9 +44,15 @@ class TranscriptSnapshotTest extends TestCase
         $this->assertContains($latest->id, array_column($transcript->payload['results'], 'source_result_snapshot_id'));
 
         $this->authorized_user(['read report', 'create report']);
-        $this->post(route('transcripts.store'), ['student_record_id' => $student->id])
-            ->assertSessionHasNoErrors()
-            ->assertSessionHas('success');
+        Livewire::test(TranscriptDirectory::class)
+            ->set('student_record_id', $student->id)
+            ->call('issueTranscript')
+            ->assertHasNoErrors()
+            ->assertDispatched('status-message', type: 'success')
+            ->assertSet('student_record_id', null);
+
+        $this->assertFalse(Route::has('transcripts.store'));
+        $this->post(route('transcripts.index'))->assertMethodNotAllowed();
         $this->get(route('transcripts.index'))
             ->assertOk()
             ->assertSee('Issued transcripts')
@@ -51,6 +60,34 @@ class TranscriptSnapshotTest extends TestCase
             ->assertSee('w-full min-w-0', false)
             ->assertDontSee('It copies the latest official result of every subject the learner took');
         $this->assertSame(2, TranscriptSnapshot::count());
+
+        Livewire::test(TranscriptDirectory::class)
+            ->set('student_record_id', $student->id)
+            ->set('reason', 'Corrected academic history')
+            ->call('issueTranscript')
+            ->assertHasNoErrors();
+
+        $this->assertDatabaseHas('transcript_snapshots', [
+            'student_record_id' => $student->id,
+            'revision' => 3,
+            'reason' => 'Corrected academic history',
+        ]);
+    }
+
+    public function test_livewire_transcript_issue_reports_when_no_results_are_published(): void
+    {
+        $school = $this->workingSchool();
+        $student = StudentRecord::factory()->create(['school_id' => $school->id]);
+        $this->authorized_user(['read report', 'create report']);
+
+        Livewire::test(TranscriptDirectory::class)
+            ->set('student_record_id', $student->id)
+            ->call('issueTranscript')
+            ->assertHasErrors('transcript');
+
+        $this->assertDatabaseMissing('transcript_snapshots', [
+            'student_record_id' => $student->id,
+        ]);
     }
 
     private function offering(int $schoolId, int $yearId, int $periodId): CourseOffering

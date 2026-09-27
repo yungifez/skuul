@@ -1,17 +1,17 @@
 <div class="space-y-6">
+    <x-display-validation-errors />
     @can('create', App\Models\TranscriptSnapshot::class)
         <april:card>
             <slot:title>Issue a transcript</slot:title>
             <slot:description>Lifetime record of a learner’s latest published results. Issued transcripts stay fixed; corrections create a new revision.</slot:description>
             <slot:content>
-                <form method="POST" action="{{ route('transcripts.store') }}" class="grid gap-4 lg:grid-cols-4 lg:items-end">
-                    @csrf
+                <form wire:submit="issueTranscript" class="grid gap-4 lg:grid-cols-4 lg:items-end">
                     <div class="flex min-w-0 flex-col gap-2">
                         <april:label for="transcript-student">Learner</april:label>
-                        <april:native-select id="transcript-student" name="student_record_id" required class="w-full min-w-0">
+                        <april:native-select id="transcript-student" wire:model="student_record_id" required class="w-full min-w-0">
                             <option value="">Choose a learner</option>
                             @foreach ($students as $student)
-                                <option value="{{ $student->id }}" @selected(old('student_record_id') == $student->id)>
+                                <option value="{{ $student->id }}">
                                     {{ $student->user?->name ?? 'Unnamed' }} · {{ $student->admission_number }}
                                 </option>
                             @endforeach
@@ -21,11 +21,14 @@
 
                     <div class="flex flex-col gap-2 lg:col-span-2">
                         <april:label for="transcript-reason">Reason for a revision</april:label>
-                        <april:input id="transcript-reason" name="reason" value="{{ old('reason') }}" placeholder="Only needed when reissuing" />
+                        <april:input id="transcript-reason" wire:model="reason" placeholder="Only needed when reissuing" />
+                        <x-field-error name="reason" />
                     </div>
 
-                    <april:button type="submit">
-                        <x-lucide-scroll-text class="mr-2 size-4" /> Issue transcript
+                    <april:button type="submit" wire:loading.attr="disabled">
+                        <x-lucide-scroll-text class="mr-2 size-4" />
+                        <span wire:loading.remove>Issue transcript</span>
+                        <span wire:loading>Issuing…</span>
                     </april:button>
                 </form>
             </slot:content>

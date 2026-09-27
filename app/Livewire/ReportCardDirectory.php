@@ -2,9 +2,14 @@
 
 namespace App\Livewire;
 
+use App\Actions\Report\PublishReportCard;
+use App\Exceptions\InvalidValueException;
+use App\Http\Requests\StoreReportCardRequest;
+use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\ReportCardSnapshot;
+use App\Models\StudentRecord;
 use App\Services\Report\ReportCardDirectory as ReportCardDirectoryService;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
@@ -15,6 +20,7 @@ use Livewire\WithPagination;
 
 class ReportCardDirectory extends Component
 {
+    use DispatchesStatusNotifications;
     use WithPagination;
 
     #[Url(as: 'student_record_id', except: '')]
@@ -25,6 +31,12 @@ class ReportCardDirectory extends Component
 
     #[Url(as: 'academic_period_id', except: '')]
     public string $academicPeriodId = '';
+
+    public ?int $student_record_id = null;
+
+    public ?int $academic_period_id = null;
+
+    public string $reason = '';
 
     protected ReportCardDirectoryService $directory;
 
@@ -67,6 +79,31 @@ class ReportCardDirectory extends Component
         $this->academicYearId = '';
         $this->academicPeriodId = '';
         $this->resetPage();
+    }
+
+    public function publishReportCard(PublishReportCard $publishReportCard): void
+    {
+        Gate::authorize('create', ReportCardSnapshot::class);
+
+        $validated = $this->validate(StoreReportCardRequest::reportCardRules());
+        $student = StudentRecord::inSchool()->findOrFail($validated['student_record_id']);
+        $period = AcademicPeriod::inSchool()->findOrFail($validated['academic_period_id']);
+
+        try {
+            $publishReportCard->publish(
+                $student,
+                $period,
+                auth()->user(),
+                filled($validated['reason'] ?? null) ? $validated['reason'] : null,
+            );
+        } catch (InvalidValueException $exception) {
+            $this->addError('report_card', $exception->getMessage());
+
+            return;
+        }
+
+        $this->reset(['student_record_id', 'academic_period_id', 'reason']);
+        $this->notify('Report card published.');
     }
 
     public function render(): View
