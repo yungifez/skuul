@@ -2,197 +2,271 @@
 
 namespace App\Livewire;
 
+use App\Enums\EnrollmentStatus;
+use App\Exceptions\InvalidValueException;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\Fee;
 use App\Models\FeeCategory;
-use App\Models\User;
-use Illuminate\Database\Eloquent\Collection;
+use App\Models\FeeInvoice;
+use App\Models\StudentRecord;
+use App\Services\Fee\FeeInvoiceService;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
+use Illuminate\View\View;
 use Livewire\Component;
 
+/**
+ * Invoice the same fees to one student, a section, or a whole class.
+ *
+ * Every lookup stays inside the working school, so an id from another school
+ * finds nothing. Each student gets their own invoice.
+ */
 class CreateFeeInvoiceForm extends Component
 {
-    public $feeCategories;
+    public string $issueDate = '';
 
-    public int $feeCategory;
+    public string $dueDate = '';
 
-    public $fees;
+    public string $note = '';
 
-    public $fee = null;
+    /** Sent with the batch so a double submit makes the invoices once. */
+    public string $idempotencyKey = '';
 
-    public $addedFees;
+    public string $academicLevelId = '';
 
-    public $addedStudents;
+    public string $cycleSectionId = '';
 
-    public $academicLevels;
+    public string $studentRecordId = '';
 
-    public $academicLevel;
+    /** @var array<int, int> */
+    public array $studentRecordIds = [];
 
-    public $cycleSections;
+    public string $feeCategoryId = '';
 
-    public $cycleSection;
+    public string $feeId = '';
 
-    public $students;
+    /**
+     * The fees on every invoice, keyed by fee id.
+     *
+     * @var array<int|string, array{amount: int|string|null, waiver: int|string|null, fine: int|string|null}>
+     */
+    public array $lines = [];
 
-    public $student;
-
-    public function mount()
+    public function mount(): void
     {
-        $this->addedFees = collect();
-        $this->addedStudents = collect();
-        $this->feeCategories = FeeCategory::inSchool()->get();
-        $this->academicLevels = AcademicLevel::inSchool()
-            ->where('is_group', false)
-            ->whereHas('cycleSections', fn ($query) => $query->where('academic_year_id', current_academic_year_id()))
-            ->orderBy('position')
-            ->orderBy('name')
-            ->get();
-        if ($this->academicLevels->isNotEmpty()) {
-            $this->academicLevel = $this->academicLevels->first()->id;
-            $this->updatedAcademicLevel();
-        }
+        Gate::authorize('create', FeeInvoice::class);
 
-        if ($this->feeCategories->isNotEmpty()) {
-            $this->feeCategory = $this->feeCategories->first()->id;
-            $this->updatedFeeCategory();
-        }
-
-        $this->setOldValues();
+        $this->issueDate = now()->toDateString();
+        $this->idempotencyKey = (string) Str::uuid();
+        $this->academicLevelId = (string) ($this->levels()->first()?->id);
+        $this->feeCategoryId = (string) (FeeCategory::inSchool()->orderBy('name')->value('id') ?? '');
     }
 
-    public function updatedAcademicLevel()
+    public function updatedAcademicLevelId(): void
     {
-        $this->cycleSections = AcademicCycleSection::inSchool()
-            ->where('academic_year_id', current_academic_year_id())
-            ->where('academic_level_id', $this->academicLevel)
-            ->orderBy('position')
-            ->orderBy('name')
-            ->get();
-
-        if ($this->cycleSections->isNotEmpty()) {
-            $this->cycleSection = $this->cycleSections->first()->id;
-            $this->updatedCycleSection();
-        } else {
-            $this->cycleSections = null;
-            $this->students = null;
-        }
+        $this->reset('cycleSectionId', 'studentRecordId');
     }
 
-    public function updatedCycleSection()
+    public function updatedCycleSectionId(): void
     {
-        if ($this->cycleSection == null) {
-            $this->students = null;
-            $this->student = null;
-
-            return;
-        }
-
-        $this->students = $this->studentsOfSections([$this->cycleSection]);
-        if ($this->students->isNotEmpty()) {
-            $this->student = $this->students->first()->id;
-        }
+        $this->reset('studentRecordId');
     }
 
-    public function updatedFeeCategory()
+    public function updatedFeeCategoryId(): void
     {
-        $this->fees = $this->feeCategories->find($this->feeCategory)->fees;
-        if ($this->fees != null && !$this->fees->isEmpty()) {
-            $this->fee = $this->fees->first()->id;
-        }
-    }
-
-    public function addFee(FeeCategory $feeCategory, $fee = 0)
-    {
-        $fee = Fee::find($fee);
-
-        if ($fee == null || !$fee->exists()) {
-            $this->addedFees = $this->addedFees->merge($feeCategory->fees);
-        } else {
-            $this->addedFees = $this->addedFees->push($fee);
-        }
-
-        $this->addedFees = $this->addedFees->unique('id');
+        $this->reset('feeId');
     }
 
     /**
-     * Add one student, a whole cycle section, or a whole academic level.
+     * Add the chosen student, or everyone in the chosen section or class.
      */
-    public function addStudent(AcademicLevel $academicLevel, $cycleSection = null, $student = null)
+    public function addStudents(): void
     {
-        $student = User::students()->ofSchool()->find($student);
+        $sectionIds = $this->sectionsQuery()
+            ->when($this->cycleSectionId !== '', fn (Builder $query) => $query->whereKey((int) $this->cycleSectionId))
+            ->pluck('id');
 
-        if ($student != null && $student->exists()) {
-            $this->addedStudents = $this->addedStudents->push($student->load('studentRecord'));
-            $this->addedStudents = $this->addedStudents->keyBy('id');
-
-            return;
-        }
-
-        $sectionIds = AcademicCycleSection::inSchool()
-            ->where('academic_year_id', current_academic_year_id())
-            ->when(
-                $cycleSection != null,
-                fn ($query) => $query->whereKey($cycleSection),
-                fn ($query) => $query->where('academic_level_id', $academicLevel->id),
-            )
+        $ids = $this->activeEnrollments($sectionIds)
+            ->when($this->studentRecordId !== '', fn (Builder $query) => $query->whereKey((int) $this->studentRecordId))
             ->pluck('id')
             ->all();
 
-        $this->addedStudents = $this->addedStudents->merge($this->studentsOfSections($sectionIds));
-        $this->addedStudents = $this->addedStudents->keyBy('id');
+        if ($ids === []) {
+            $this->addError('studentRecordIds', 'No active students there.');
+
+            return;
+        }
+
+        $this->resetErrorBag('studentRecordIds');
+        $this->studentRecordIds = array_values(array_unique([...$this->studentRecordIds, ...$ids]));
+    }
+
+    public function removeStudent(int $studentRecordId): void
+    {
+        $this->studentRecordIds = array_values(array_diff($this->studentRecordIds, [$studentRecordId]));
+    }
+
+    public function clearStudents(): void
+    {
+        $this->studentRecordIds = [];
     }
 
     /**
-     * Get the active students placed in any of the given cycle sections.
-     *
-     * @param  array<int, int>  $cycleSectionIds
-     * @return Collection<int, User>
+     * Add the chosen fee, or every fee in the chosen category.
      */
-    private function studentsOfSections(array $cycleSectionIds)
+    public function addFees(): void
     {
-        return User::activeStudents()
-            ->whereHas('studentRecord', fn ($query) => $query->whereIn('academic_cycle_section_id', $cycleSectionIds))
-            ->with('studentRecord')
+        $fees = $this->feesQuery()
+            ->when($this->feeId !== '', fn (Builder $query) => $query->whereKey((int) $this->feeId))
+            ->get(['fees.id']);
+
+        foreach ($fees as $fee) {
+            $this->lines[$fee->id] ??= ['amount' => null, 'waiver' => null, 'fine' => null];
+        }
+
+        $this->resetErrorBag('lines');
+    }
+
+    public function removeFee(int $feeId): void
+    {
+        unset($this->lines[$feeId]);
+    }
+
+    public function save(FeeInvoiceService $feeInvoiceService): void
+    {
+        Gate::authorize('create', FeeInvoice::class);
+
+        $this->validate([
+            'issueDate' => ['required', 'date'],
+            'dueDate' => ['required', 'date', 'after_or_equal:issueDate'],
+            'note' => ['nullable', 'string', 'max:10000'],
+            'studentRecordIds' => ['required', 'array', 'min:1'],
+            'studentRecordIds.*' => ['integer', Rule::exists('student_records', 'id')->where('school_id', current_school_id())->where('status', EnrollmentStatus::Active->value)],
+            'lines' => ['required', 'array', 'min:1'],
+            'lines.*.amount' => ['required', 'integer', 'min:1'],
+            'lines.*.waiver' => ['nullable', 'integer', 'min:0'],
+            'lines.*.fine' => ['nullable', 'integer', 'min:0'],
+        ], [
+            'dueDate.after_or_equal' => 'The due date cannot be before the issue date.',
+            'studentRecordIds.required' => 'Add at least one student.',
+            'studentRecordIds.*.exists' => 'A student here is no longer active in this school.',
+            'lines.required' => 'Add at least one fee.',
+        ], [
+            'issueDate' => 'issue date',
+            'dueDate' => 'due date',
+            'lines.*.amount' => 'amount',
+            'lines.*.waiver' => 'waiver',
+            'lines.*.fine' => 'fine',
+        ]);
+
+        foreach ($this->lines as $feeId => $line) {
+            if ((int) ($line['waiver'] ?? 0) > (int) $line['amount']) {
+                $this->addError("lines.{$feeId}.waiver", 'The waiver cannot be more than the amount.');
+            }
+        }
+
+        if ($this->getErrorBag()->isNotEmpty()) {
+            return;
+        }
+
+        try {
+            $feeInvoiceService->storeFeeInvoice([
+                'idempotency_key' => $this->idempotencyKey,
+                'issue_date' => $this->issueDate,
+                'due_date' => $this->dueDate,
+                'note' => trim($this->note) === '' ? null : trim($this->note),
+                'student_records' => $this->studentRecordIds,
+                'records' => collect($this->lines)->map(fn (array $line, int|string $feeId): array => [
+                    'fee_id' => (int) $feeId,
+                    'amount' => (int) $line['amount'],
+                    'waiver' => (int) ($line['waiver'] ?? 0),
+                    'fine' => (int) ($line['fine'] ?? 0),
+                ])->values()->all(),
+            ]);
+        } catch (InvalidValueException $exception) {
+            $this->addError('issueDate', $exception->getMessage());
+
+            return;
+        }
+
+        $count = count($this->studentRecordIds);
+        session()->flash('success', $count === 1 ? 'Invoice created.' : "{$count} invoices created.");
+        $this->redirectRoute('fee-invoices.index');
+    }
+
+    public function render(): View
+    {
+        $students = StudentRecord::inSchool()
+            ->whereKey($this->studentRecordIds)
+            ->with(['user:id,name', 'academicCycleSection:id,name,label,academic_level_id', 'academicCycleSection.academicLevel:id,name'])
+            ->get()
+            ->sortBy(fn (StudentRecord $record): string => (string) $record->user?->name);
+        $addedFees = Fee::query()
+            ->whereIn('id', array_keys($this->lines))
+            ->whereRelation('feeCategory', 'school_id', current_school_id())
+            ->get(['id', 'name'])
+            ->keyBy('id');
+        $sections = $this->sectionsQuery()->orderBy('position')->orderBy('name')->get(['id', 'name', 'label']);
+
+        $perInvoice = collect($this->lines)->sum(fn (array $line): int => max(0, (int) $line['amount'] - (int) $line['waiver']) + (int) $line['fine']);
+
+        return view('livewire.create-fee-invoice-form', [
+            'levels' => $this->levels(),
+            'sections' => $sections,
+            'studentsToPick' => $this->cycleSectionId === '' ? collect() : $this->activeEnrollments(collect([(int) $this->cycleSectionId]))->with('user:id,name')->get()->sortBy(fn (StudentRecord $record): string => (string) $record->user?->name),
+            'students' => $students,
+            'categories' => FeeCategory::inSchool()->orderBy('name')->get(['id', 'name']),
+            'feesToPick' => $this->feesQuery()->orderBy('name')->get(['fees.id', 'fees.name']),
+            'addedFees' => $addedFees,
+            'perInvoice' => $perInvoice,
+        ]);
+    }
+
+    /**
+     * @return Collection<int, AcademicLevel>
+     */
+    private function levels(): Collection
+    {
+        return AcademicLevel::inSchool()
+            ->where('is_group', false)
+            ->whereHas('cycleSections', fn (Builder $query) => $query->where('academic_year_id', current_academic_year_id()))
+            ->orderBy('position')
             ->orderBy('name')
-            ->get();
+            ->get(['id', 'name']);
     }
 
-    public function removeStudent($student)
+    /**
+     * @return Builder<AcademicCycleSection>
+     */
+    private function sectionsQuery(): Builder
     {
-        $this->addedStudents->forget($student);
+        return AcademicCycleSection::inSchool()
+            ->where('academic_year_id', current_academic_year_id())
+            ->where('academic_level_id', (int) $this->academicLevelId);
     }
 
-    public function removeFee($fee)
+    /**
+     * @param  Collection<int, mixed>  $sectionIds
+     * @return Builder<StudentRecord>
+     */
+    private function activeEnrollments(Collection $sectionIds): Builder
     {
-        $this->addedFees->forget($fee);
+        return StudentRecord::inSchool()
+            ->where('status', EnrollmentStatus::Active)
+            ->whereIn('academic_cycle_section_id', $sectionIds);
     }
 
-    public function setOldValues()
+    /**
+     * @return Builder<Fee>
+     */
+    private function feesQuery(): Builder
     {
-        $oldRecords = collect(old('records'));
-        if ($oldRecords->isNotEmpty()) {
-            $fees = Fee::whereRelation('feeCategory', 'school_id', current_school_id())->whereIn('id', $oldRecords->pluck('fee_id'))->get();
-
-            $this->addedFees = $this->addedFees->merge($fees);
-
-            $this->addedFees = $this->addedFees->keyBy('id');
-        }
-
-        $oldStudents = collect(old('student_records'));
-        if ($oldStudents->isNotEmpty()) {
-            $students = User::students()
-                ->ofSchool()
-                ->whereHas('studentRecord', fn ($query) => $query->whereIn('student_records.id', $oldStudents))
-                ->with('studentRecord')
-                ->get();
-
-            $this->addedStudents = $this->addedStudents->merge($students);
-        }
-        $this->addedFees = $this->addedFees->unique('id');
-    }
-
-    public function render()
-    {
-        return view('livewire.create-fee-invoice-form');
+        return Fee::query()
+            ->where('fee_category_id', (int) $this->feeCategoryId)
+            ->whereRelation('feeCategory', 'school_id', current_school_id());
     }
 }

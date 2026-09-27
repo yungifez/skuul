@@ -2,17 +2,23 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AcademicStructureStatus;
+use App\Enums\EnrollmentStatus;
+use App\Livewire\CreateFeeInvoiceForm;
 use App\Livewire\EditFeeInvoiceForm;
 use App\Livewire\ListFeeInvoicesTable;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
+use App\Models\AcademicYear;
 use App\Models\Fee;
 use App\Models\FeeCategory;
 use App\Models\FeeInvoice;
 use App\Models\FeeInvoiceBatch;
 use App\Models\FinancialPeriod;
+use App\Models\School;
 use App\Models\StudentRecord;
 use App\Services\Fee\FeeInvoiceService;
 use App\Traits\FeatureTestTrait;
-use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Str;
@@ -102,104 +108,149 @@ class FeeInvoiceTest extends TestCase
         $this->authorized_user(['create fee invoice'])
             ->get('dashboard/fees/fee-invoices/create')
             ->assertSuccessful()
-            ->assertDontSee('wire:loading.disable', false)
-            ->assertSee('wire:target="addFee"', false)
-            ->assertSee('style="display: none"', false)
-            ->assertSee('class="space-y-6"', false)
-            ->assertSee('data-slot="select"', false)
+            ->assertSeeLivewire(CreateFeeInvoiceForm::class)
+            ->assertSee('wire:submit="save"', false)
+            ->assertSee('wire:target="addFees"', false)
             ->assertDontSee('data-slot="native-select"', false);
     }
 
-    public function test_unauthorized_user_cannot_create_fee_invoice()
+    public function test_unauthorized_user_cannot_create_fee_invoice(): void
     {
-        $studentRecords = StudentRecord::factory()->count(10)->create();
-        $fees = Fee::factory()->count(4)->create();
-        $records = [];
-        foreach ($fees as $fee) {
-            $amount = mt_rand(100, 10000);
-            $waiver = $amount - 10;
-            $fine = $amount - 20;
-            array_push($records, [
-                'fee_id' => $fee->id,
-                'amount' => $amount,
-                'waiver' => $waiver,
-                'fine' => $fine,
-            ]);
-        }
-        $date = now();
-        $students = $studentRecords->map(function ($student) {
-            return $student->user;
-        });
+        $this->unauthorized_user();
 
-        $this->unauthorized_user()
-            ->post('dashboard/fees/fee-invoices', [
-                'issue_date' => $date,
-                'due_date' => $date->addDay(),
-                'note' => $this->faker()->sentence(),
-                'users' => $students->pluck('id'),
-                'records' => $records,
-            ])
-            ->assertForbidden();
+        Livewire::test(CreateFeeInvoiceForm::class)->assertForbidden();
 
-        $this->assertDatabaseMissing('fee_invoices', [
-            'user_id' => $students->first()->id,
-            'issue_date' => $date->format('Y-m-d'),
-        ]);
-
-        $this->assertDatabaseMissing('fee_invoices', [
-            'user_id' => $students[2]->id,
-            'issue_date' => $date->format('Y-m-d'),
-        ]);
+        $this->get(route('fee-invoices.create'))->assertForbidden();
     }
 
-    public function test_authorized_user_can_create_fee_invoice()
+    public function test_a_bursar_invoices_a_whole_section_in_one_go(): void
     {
-        $studentRecords = StudentRecord::factory()->count(10)->create();
-        $fees = Fee::factory()->count(4)->create();
-        $records = [];
-        foreach ($fees as $fee) {
-            $amount = mt_rand(100, 10000);
-            $waiver = $amount - 10;
-            $fine = $amount - 20;
-            array_push($records, [
-                'fee_id' => $fee->id,
-                'amount' => $amount,
-                'waiver' => $waiver,
-                'fine' => $fine,
-            ]);
+        $this->authorized_user(['create fee invoice']);
+        [$section, $first, $second] = $this->sectionWithTwoStudents();
+        [$category, $tuition, $books] = $this->categoryWithTwoFees();
+
+        $this->get(route('fee-invoices.create'))->assertOk()->assertSeeLivewire(CreateFeeInvoiceForm::class);
+
+        Livewire::test(CreateFeeInvoiceForm::class)
+            ->set('academicLevelId', (string) $section->academic_level_id)
+            ->set('cycleSectionId', (string) $section->id)
+            ->call('addStudents')
+            ->assertSee($first->user->name)
+            ->assertSee($second->user->name)
+            ->set('feeCategoryId', (string) $category->id)
+            ->call('addFees')
+            ->set("lines.{$tuition->id}.amount", 5000)
+            ->set("lines.{$tuition->id}.waiver", 500)
+            ->set("lines.{$books->id}.amount", 1200)
+            ->set('dueDate', now()->addMonth()->toDateString())
+            ->assertSee('Create 2 invoices')
+            ->assertSee('5,700 each')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('fee-invoices.index'));
+
+        foreach ([$first, $second] as $enrollment) {
+            $invoice = FeeInvoice::query()->where('student_record_id', $enrollment->id)->sole();
+            $this->assertSame(2, $invoice->feeInvoiceRecords()->count());
         }
-        $date = now();
-        $students = $studentRecords->map(function ($student) {
-            return $student->user;
-        });
+    }
 
-        FinancialPeriod::query()->firstOrCreate(
-            ['school_id' => $this->workingSchool()->id, 'name' => 'Current finance period'],
-            [
-                'starts_on' => now()->startOfYear()->toDateString(),
-                'ends_on' => now()->endOfYear()->toDateString(),
-            ],
-        );
+    public function test_an_invoice_dated_outside_every_financial_period_is_refused(): void
+    {
+        $this->authorized_user(['create fee invoice']);
+        [$section, $first] = $this->sectionWithTwoStudents();
+        [$category, $tuition] = $this->categoryWithTwoFees();
 
-        $this->authorized_user(['create fee invoice'])
-            ->post('dashboard/fees/fee-invoices', [
-                'issue_date' => $date->toDateString(),
-                'due_date' => Carbon::instance($date)->addDay()->toDateString(),
-                'note' => $this->faker()->sentence(),
-                'student_records' => $studentRecords->pluck('id')->all(),
-                'records' => $records,
-            ])
-            ->assertRedirect();
+        $before = FeeInvoice::query()->count();
 
-        $this->assertDatabaseHas('fee_invoices', [
-            'user_id' => $students->first()->id,
-            'issue_date' => $date->format('Y-m-d'),
-        ]);
+        Livewire::test(CreateFeeInvoiceForm::class)
+            ->set('issueDate', now()->subYears(2)->toDateString())
+            ->set('studentRecordIds', [$first->id])
+            ->set('lines', [$tuition->id => ['amount' => 5000, 'waiver' => null, 'fine' => null]])
+            ->set('dueDate', now()->toDateString())
+            ->call('save')
+            ->assertHasErrors('issueDate')
+            ->assertNoRedirect();
 
-        $this->assertDatabaseHas('fee_invoices', [
-            'user_id' => $students[2]->id,
-            'issue_date' => $date->format('Y-m-d'),
-        ]);
+        $this->assertSame($before, FeeInvoice::query()->count());
+    }
+
+    public function test_a_waiver_cannot_be_more_than_the_fee(): void
+    {
+        $this->authorized_user(['create fee invoice']);
+        [$section, $first] = $this->sectionWithTwoStudents();
+        [$category, $tuition] = $this->categoryWithTwoFees();
+        $before = FeeInvoice::query()->count();
+
+        Livewire::test(CreateFeeInvoiceForm::class)
+            ->set('studentRecordIds', [$first->id])
+            ->set('lines', [$tuition->id => ['amount' => 100, 'waiver' => 150, 'fine' => null]])
+            ->set('dueDate', now()->toDateString())
+            ->call('save')
+            ->assertHasErrors("lines.{$tuition->id}.waiver");
+
+        $this->assertSame($before, FeeInvoice::query()->count());
+    }
+
+    public function test_another_schools_fees_and_students_never_reach_an_invoice(): void
+    {
+        $this->authorized_user(['create fee invoice']);
+        [$section, $first] = $this->sectionWithTwoStudents();
+        $before = FeeInvoice::query()->count();
+        $otherSchool = School::factory()->create();
+        $foreignCategory = FeeCategory::factory()->create(['school_id' => $otherSchool->id]);
+        $foreignFee = Fee::factory()->create(['fee_category_id' => $foreignCategory->id, 'name' => 'Foreign levy']);
+        $foreignEnrollment = StudentRecord::factory()->create(['school_id' => $otherSchool->id]);
+
+        $form = Livewire::test(CreateFeeInvoiceForm::class)
+            ->set('feeCategoryId', (string) $foreignCategory->id)
+            ->call('addFees')
+            ->assertSet('lines', [])
+            ->assertDontSee('Foreign levy');
+
+        $form->set('lines', [$foreignFee->id => ['amount' => 100, 'waiver' => null, 'fine' => null]])
+            ->set('studentRecordIds', [$first->id])
+            ->set('dueDate', now()->toDateString())
+            ->assertDontSee('Foreign levy')
+            ->call('save')
+            ->assertHasErrors('issueDate');
+
+        $form->set('lines', [])
+            ->set('studentRecordIds', [$foreignEnrollment->id])
+            ->call('save')
+            ->assertHasErrors('studentRecordIds.0');
+
+        $this->assertSame($before, FeeInvoice::query()->count());
+    }
+
+    public function test_a_student_who_left_is_not_added(): void
+    {
+        $this->authorized_user(['create fee invoice']);
+        [$section, $first, $second] = $this->sectionWithTwoStudents();
+        $second->update(['status' => EnrollmentStatus::Withdrawn]);
+
+        Livewire::test(CreateFeeInvoiceForm::class)
+            ->set('academicLevelId', (string) $section->academic_level_id)
+            ->set('cycleSectionId', (string) $section->id)
+            ->call('addStudents')
+            ->assertSet('studentRecordIds', [$first->id]);
+    }
+
+    public function test_pressing_create_twice_makes_the_invoices_once(): void
+    {
+        $this->authorized_user(['create fee invoice']);
+        [$section, $first] = $this->sectionWithTwoStudents();
+        [$category, $tuition] = $this->categoryWithTwoFees();
+
+        $form = Livewire::test(CreateFeeInvoiceForm::class)
+            ->set('studentRecordIds', [$first->id])
+            ->set('lines', [$tuition->id => ['amount' => 5000, 'waiver' => null, 'fine' => null]])
+            ->set('dueDate', now()->toDateString());
+
+        $form->call('save');
+        $form->call('save');
+
+        $this->assertSame(1, FeeInvoice::query()->where('student_record_id', $first->id)->count());
     }
 
     public function test_replaying_an_invoice_batch_does_not_create_duplicate_invoices(): void
@@ -424,5 +475,41 @@ class FeeInvoiceTest extends TestCase
         $this->assertModelExists($feeInvoice);
 
         $this->assertSoftDeleted($feeInvoice);
+    }
+
+    /**
+     * Make a section of the working year with two active students.
+     *
+     * @return array{0: AcademicCycleSection, 1: StudentRecord, 2: StudentRecord}
+     */
+    private function sectionWithTwoStudents(): array
+    {
+        $school = $this->workingSchool();
+        $year = AcademicYear::factory()->create(['school_id' => $school->id]);
+        academic_period_context()->setAcademicYear($year);
+        $section = AcademicCycleSection::factory()->create([
+            'school_id' => $school->id,
+            'academic_year_id' => $year->id,
+            'academic_level_id' => AcademicLevel::factory()->create(['school_id' => $school->id])->id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
+        $first = StudentRecord::factory()->create(['school_id' => $school->id, 'academic_cycle_section_id' => $section->id]);
+        $second = StudentRecord::factory()->create(['school_id' => $school->id, 'academic_cycle_section_id' => $section->id]);
+
+        return [$section, $first->load('user'), $second->load('user')];
+    }
+
+    /**
+     * @return array{0: FeeCategory, 1: Fee, 2: Fee}
+     */
+    private function categoryWithTwoFees(): array
+    {
+        $category = FeeCategory::factory()->create(['school_id' => $this->workingSchool()->id]);
+
+        return [
+            $category,
+            Fee::factory()->create(['fee_category_id' => $category->id, 'name' => 'Tuition']),
+            Fee::factory()->create(['fee_category_id' => $category->id, 'name' => 'Books']),
+        ];
     }
 }

@@ -421,7 +421,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::get('fees/payments/{student_payment}/receipt', [StudentPaymentController::class, 'print'])->name('student-payments.receipt');
             Route::get('fees/fee-invoices/{fee_invoice}/pay', [FeeInvoiceController::class, 'payView'])->name('fee-invoices.pay');
             Route::get('fees/fee-invoices/{fee_invoice}/print', [FeeInvoiceController::class, 'print'])->name('fee-invoices.print');
-            Route::resource('fees/fee-invoices', FeeInvoiceController::class)->except(['update']);
+            Route::resource('fees/fee-invoices', FeeInvoiceController::class)->except(['store', 'update']);
             Route::resource('fees/budgets', BudgetController::class)->only(['index', 'store', 'destroy']);
             Route::resource('fees', FeeController::class);
 

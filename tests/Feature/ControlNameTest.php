@@ -111,7 +111,9 @@ class ControlNameTest extends TestCase
         ]);
 
         $html = Livewire::test(CreateFeeInvoiceForm::class)
-            ->call('addFee', $category->id, $fee->id)
+            ->set('feeCategoryId', (string) $category->id)
+            ->set('feeId', (string) $fee->id)
+            ->call('addFees')
             ->html();
 
         foreach (['Amount', 'Waiver', 'Fine'] as $column) {

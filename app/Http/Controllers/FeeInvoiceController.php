@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreFeeInvoiceRequest;
 use App\Models\Expense;
 use App\Models\FeeInvoice;
 use App\Models\FinancialPeriod;
@@ -60,16 +59,6 @@ class FeeInvoiceController extends Controller
     public function create(): View
     {
         return view('pages.fee.fee-invoice.create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreFeeInvoiceRequest $request): RedirectResponse
-    {
-        $this->feeInvoiceService->storeFeeInvoice($request->validated());
-
-        return redirect()->route('fee-invoices.index')->with('success', 'Invoice created successfully.');
     }
 
     /**
