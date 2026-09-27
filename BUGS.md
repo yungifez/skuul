@@ -1063,3 +1063,10 @@
 - **Problem:** The built-in librarian and accountant roles were created with no permissions. The seeder had empty "assign permissions" comments for them. A school that gave a staff member either role found they could open nothing.
 - **Fix:** The librarian gets the library and can look up students. The accountant gets day-to-day finance work: fees and fee categories, invoices and their fees, refunds, expenses and cash deposits, and reading budgets, financial periods and reports. Deleting, budgets and closing financial periods stay with the admin. A migration fills these two roles on an existing install only while they still hold nothing, so a school's own setup is kept.
 - **Tests:** `PermissionBackfillTest` (new install defaults, only an empty role is filled).
+
+## Expenses took a bank transfer with no reference, could post twice and took any typed amount
+
+- **Where:** `app/Livewire/RecordExpenseForm.php`, `resources/views/livewire/record-expense-form.blade.php`, `pages/fee/expenses/*`, `ExpenseController`, `routes/web.php`.
+- **Problem:** Recording an expense was a full page post inside a card. Every payment channel says whether it needs a reference, but the expense form ignored it. A bank transfer, card or cheque could be recorded with nothing to find it by on the statement. A double press posted twice. Any amount was taken, even far above what the cash box or bank held. A future date was allowed.
+- **Fix:** The form is now Livewire. It shows what the paid-from account holds and what is left. An amount above that needs a second yes, and changing the amount or the channel asks again. A channel that needs a reference now requires it. One key per form stops a double press. Future dates are refused, and another school's accounts and programmes are refused. The list is a flat list, not a table in a card. The store route and `StoreExpenseRequest` are removed.
+- **Tests:** `FinanceExpenseScreenTest` (permission, happy path, transfer reference, second yes, double press, another school, future date and wrong account type).

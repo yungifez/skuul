@@ -12,25 +12,20 @@
 @endsection
 
 @section('content')
-    <april:card>
-        <slot:title>Recorded expenses</slot:title>
-        <slot:description>Money already spent by the school. Posted expenses stay in the books.</slot:description>
-        <slot:content>
-            @if ($expenses->isEmpty())
-                <p class="py-8 text-sm text-muted-foreground">No expenses have been recorded yet.</p>
-            @else
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left text-sm">
-                        <thead><tr class="border-b text-muted-foreground"><th class="p-3">Date</th><th class="p-3">Description</th><th class="p-3">Account</th><th class="p-3">Paid from</th><th class="p-3 text-right">Amount</th></tr></thead>
-                        <tbody class="divide-y">
-                            @foreach ($expenses as $expense)
-                                <tr><td class="p-3">{{ $expense->expense_date->format('j M Y') }}</td><td class="p-3"><div class="font-medium">{{ $expense->description }}</div><div class="text-xs text-muted-foreground">{{ $expense->vendor ?: 'No vendor recorded' }}</div></td><td class="p-3">{{ $expense->account?->name }}</td><td class="p-3">{{ str($expense->method)->replace('_', ' ')->title() }}</td><td class="p-3 text-right">{{ money_text($expense->amount) }}</td></tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-                <div class="mt-4">{{ $expenses->links('components.pagination-links-view') }}</div>
-            @endif
-        </slot:content>
-    </april:card>
+    @if ($expenses->isEmpty())
+        <p class="py-8 text-sm text-muted-foreground">No expenses yet</p>
+    @else
+        <ul class="divide-y border-y" aria-label="Expenses">
+            @foreach ($expenses as $expense)
+                <li class="flex items-center justify-between gap-4 py-3">
+                    <div class="min-w-0 text-sm">
+                        <p class="truncate font-medium">{{ $expense->description }}</p>
+                        <p class="truncate text-muted-foreground">{{ $expense->expense_date->format('j M Y') }} · {{ $expense->vendor ?: '—' }} · {{ $expense->account?->name ?? '—' }} · {{ str($expense->method)->replace('_', ' ')->ucfirst() }}</p>
+                    </div>
+                    <span class="shrink-0 text-sm font-medium tabular-nums">{{ money_text($expense->amount) }}</span>
+                </li>
+            @endforeach
+        </ul>
+        <div class="mt-4">{{ $expenses->links('components.pagination-links-view') }}</div>
+    @endif
 @endsection

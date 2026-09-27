@@ -413,7 +413,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             // current teaching term. A school can read and post finance while
             // the academic period is being prepared or changed.
             Route::resource('fees/fee-categories', FeeCategoryController::class);
-            Route::resource('fees/expenses', ExpenseController::class)->only(['index', 'create', 'store']);
+            Route::resource('fees/expenses', ExpenseController::class)->only(['index', 'create']);
             Route::resource('fees/cash-deposits', CashDepositController::class)->only(['index', 'create']);
             Route::get('fees/accounts/{student_record}', [StudentAccountController::class, 'show'])->name('student-accounts.show');
             Route::get('fees/payments/{student_payment}/receipt', [StudentPaymentController::class, 'print'])->name('student-payments.receipt');
