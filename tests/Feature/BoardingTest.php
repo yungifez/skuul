@@ -12,6 +12,7 @@ use App\Enums\Feature;
 use App\Enums\OvernightLeaveStatus;
 use App\Enums\SupervisionRole;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\OvernightLeaveDesk;
 use App\Livewire\ShowDormitory;
 use App\Models\AuditEvent;
 use App\Models\BoardingPlace;
@@ -404,7 +405,7 @@ class BoardingTest extends TestCase
             'Home',
         );
 
-        $actor->put(route('overnight-leaves.update', $leave->id), ['status' => 'approved'])->assertForbidden();
+        Livewire::test(OvernightLeaveDesk::class)->call('approve', $leave->id)->assertForbidden();
 
         $this->assertSame(OvernightLeaveStatus::Requested, $leave->fresh()->status);
     }

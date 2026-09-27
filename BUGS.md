@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A boarder who did not come back from a night away left every list
+
+- Status: Fixed
+- Area: Boarding, nights away
+- Observed: "Out tonight" only lists leave that covers today. When the return day passed and nobody recorded the learner back, the leave stayed approved but showed on no list. Two people could also answer one request at once, and the later answer replaced the earlier one without a word. A night already under way could be called off, which records a learner out of the building as in it. The learner list offered day learners, who are always refused.
+- Impact: A child who never came back to the house disappears from the screen staff read at lights out. A family told "yes" could find the request marked refused.
+- Reproduction: Approve a night away from today to tomorrow. Do not record the learner back. Two days later the learner is on no list.
+- Resolution: The Livewire `OvernightLeaveDesk` lists overdue learners first under "Not back yet". `DecideOvernightLeave` reads the request again under a lock and names the answer given first. It refuses to approve nights that have passed. It refuses to call off a night already under way, and refuses to record a learner back who has not left. Only boarders are offered. A refusal needs a reason. The house can call off a night but cannot approve one. `OvernightLeaveDeskTest` covers these paths.
+
 ## Two staff taking one boarding roll erased each other's answers
 
 - Status: Fixed

@@ -423,8 +423,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                         ->parameters(['houses' => 'dormitory'])
                         ->names('dormitories');
                     Route::get('boarding/nights-away', [OvernightLeaveController::class, 'index'])->name('overnight-leaves.index');
-                    Route::post('boarding/nights-away', [OvernightLeaveController::class, 'store'])->name('overnight-leaves.store');
-                    Route::put('boarding/nights-away/{overnight_leave}', [OvernightLeaveController::class, 'update'])->name('overnight-leaves.update');
                     Route::get('boarding/rolls', [BoardingRollController::class, 'index'])->name('boarding-rolls.index');
                     Route::get('boarding/rolls/{boardingRoll}', [BoardingRollController::class, 'show'])->name('boarding-rolls.show');
                 });

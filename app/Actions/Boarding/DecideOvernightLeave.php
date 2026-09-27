@@ -8,6 +8,7 @@ use App\Enums\OvernightLeaveStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\OvernightLeave;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Answer a request for a night away, and record the learner coming back.
@@ -30,35 +31,51 @@ class DecideOvernightLeave
         ?string $note = null,
         ?User $actor = null,
     ): OvernightLeave {
-        if (!$leave->status->canMoveTo($status)) {
-            throw new InvalidValueException(
-                "A request that is {$leave->status->label()} cannot become {$status->label()}.",
+        return DB::transaction(function () use ($leave, $status, $note, $actor): OvernightLeave {
+            // Two people may answer one request at once. Read it again under
+            // a lock, so the second answer meets the first instead of hiding it.
+            $leave = OvernightLeave::query()->lockForUpdate()->findOrFail($leave->id);
+
+            if (!$leave->status->canMoveTo($status)) {
+                throw new InvalidValueException("This request was answered already: {$leave->status->label()}.");
+            }
+
+            if ($status === OvernightLeaveStatus::Approved && $leave->returns_on->isBefore(today())) {
+                throw new InvalidValueException('The nights on this request have passed. Refuse it instead.');
+            }
+
+            if ($status === OvernightLeaveStatus::Returned && $leave->leaves_on->isAfter(today())) {
+                throw new InvalidValueException('This learner has not left yet. Cancel the night away instead.');
+            }
+
+            if ($status === OvernightLeaveStatus::Cancelled && $leave->status === OvernightLeaveStatus::Approved && !$leave->leaves_on->isAfter(today())) {
+                throw new InvalidValueException('This learner has left already. Record them back in the house instead.');
+            }
+
+            $was = $leave->status;
+            $leave->status = $status;
+
+            if ($status === OvernightLeaveStatus::Returned) {
+                $leave->returned_at = now();
+            } else {
+                $leave->decided_by = $actor === null ? auth()->id() : $actor->id;
+                $leave->decided_at = now();
+                $leave->decision_note = $note;
+            }
+
+            $leave->save();
+
+            $this->auditor->record(
+                $status === OvernightLeaveStatus::Returned
+                    ? AuditAction::OvernightLeaveReturned
+                    : AuditAction::OvernightLeaveDecided,
+                $leave,
+                ['was' => $was->value, 'now' => $status->value, 'note' => $note],
+                $actor,
+                $leave->school_id,
             );
-        }
 
-        $was = $leave->status;
-        $leave->status = $status;
-
-        if ($status === OvernightLeaveStatus::Returned) {
-            $leave->returned_at = now();
-        } else {
-            $leave->decided_by = $actor === null ? auth()->id() : $actor->id;
-            $leave->decided_at = now();
-            $leave->decision_note = $note;
-        }
-
-        $leave->save();
-
-        $this->auditor->record(
-            $status === OvernightLeaveStatus::Returned
-                ? AuditAction::OvernightLeaveReturned
-                : AuditAction::OvernightLeaveDecided,
-            $leave,
-            ['was' => $was->value, 'now' => $status->value, 'note' => $note],
-            $actor,
-            $leave->school_id,
-        );
-
-        return $leave;
+            return $leave;
+        });
     }
 }
