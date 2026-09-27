@@ -46,12 +46,18 @@ class BookFacility
             throw new InvalidValueException('Say what the booking is for.');
         }
 
-        if (!$facility->is_active) {
-            throw new InvalidValueException("$facility->name is out of use.");
+        if ($to->lessThanOrEqualTo(now())) {
+            throw new InvalidValueException('That time has passed. Choose a time still ahead.');
         }
 
         return DB::transaction(function () use ($facility, $from, $to, $purpose, $actor): FacilityBooking {
             $facility = Facility::query()->lockForUpdate()->findOrFail($facility->getKey());
+
+            // Read under the lock, so a booking cannot slip in while the
+            // thing is being taken out of use.
+            if (!$facility->is_active) {
+                throw new InvalidValueException("$facility->name is out of use.");
+            }
 
             $clashes = $this->availability->clashesFor($facility, $from, $to);
 
@@ -88,27 +94,35 @@ class BookFacility
     /**
      * Give the booking up again.
      *
-     * @throws InvalidValueException when it was already cancelled
+     * @throws InvalidValueException when it was already given up or is over
      */
     public function cancel(FacilityBooking $booking, string $reason, ?User $actor = null): FacilityBooking
     {
-        if (!$booking->isRunning()) {
-            throw new InvalidValueException('This booking was already given up.');
-        }
+        return DB::transaction(function () use ($booking, $reason, $actor): FacilityBooking {
+            $booking = FacilityBooking::query()->lockForUpdate()->findOrFail($booking->getKey());
 
-        $booking->cancelled_at = now();
-        $booking->cancelled_by = $actor === null ? auth()->id() : $actor->id;
-        $booking->cancelled_reason = trim($reason) === '' ? null : $reason;
-        $booking->save();
+            if (!$booking->isRunning()) {
+                throw new InvalidValueException('This booking was already given up.');
+            }
 
-        $this->auditor->record(
-            AuditAction::FacilityBookingCancelled,
-            $booking,
-            ['reason' => $reason],
-            $actor,
-            $booking->school_id,
-        );
+            if ($booking->ends_at->lessThanOrEqualTo(now())) {
+                throw new InvalidValueException('This booking is over, so it stays in the record.');
+            }
 
-        return $booking;
+            $booking->cancelled_at = now();
+            $booking->cancelled_by = $actor === null ? auth()->id() : $actor->id;
+            $booking->cancelled_reason = trim($reason) === '' ? null : trim($reason);
+            $booking->save();
+
+            $this->auditor->record(
+                AuditAction::FacilityBookingCancelled,
+                $booking,
+                ['reason' => $booking->cancelled_reason],
+                $actor,
+                $booking->school_id,
+            );
+
+            return $booking;
+        });
     }
 }

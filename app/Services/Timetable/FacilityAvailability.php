@@ -40,7 +40,7 @@ class FacilityAvailability
                 '%s is already booked from %s to %s for %s.',
                 $facility->name,
                 $booking->starts_at->format('j M, H:i'),
-                $booking->ends_at->format('H:i'),
+                $booking->ends_at->format($booking->ends_at->isSameDay($booking->starts_at) ? 'H:i' : 'j M, H:i'),
                 $booking->purpose,
             );
         }

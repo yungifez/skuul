@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Anyone could give up anyone's hall booking, and a hall out of use kept its bookings
+
+- Status: Fixed
+- Area: Facilities (`BookFacility`, `ManageFacility`, `FacilityBoard`)
+- Observed: Anybody who could book could give up another person's booking. A second tap from a stale screen wrote over the first reason. A booking that was over could be given up, which changed the record. Taking a hall out of use left its bookings ahead in place, so people still went there. A booking could be made for a time already gone. The out-of-use check ran outside the lock, so a booking could slip in during retirement. A clash that ran over two days showed only the end hour.
+- Impact: A teacher could lose the hall to a colleague's mistake, and the record of who gave it up could be wrong.
+- Reproduction: As a teacher with "book facility", open Facilities and give up a booking another teacher made.
+- Resolution: Only the person who booked, or a facilities manager, may give a booking up. The booking is read again under a lock, and one that is over is refused. Taking something out of use gives up every booking ahead with a reason, and keeps the past. It can be brought back into use. Times gone by are refused. The page now works through Livewire, with change and bring-back actions, and the old routes are gone.
+
 ## Shelving several copies crashed when a numbered barcode was taken
 
 - Status: Fixed

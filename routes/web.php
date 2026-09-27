@@ -412,9 +412,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
 
             Route::middleware(['App\Http\Middleware\EnsureAcademicPeriodIsSet'])->group(function () {
                 // shared facility routes
-                Route::resource('facilities', FacilityController::class)->only(['index', 'store', 'update', 'destroy']);
-                Route::post('facilities/bookings', [FacilityController::class, 'book'])->name('facilities.book');
-                Route::delete('facilities/bookings/{facility_booking}', [FacilityController::class, 'cancelBooking'])->name('facilities.bookings.cancel');
+                Route::get('facilities', [FacilityController::class, 'index'])->name('facilities.index');
 
                 // boarding routes
                 Route::middleware('feature:boarding')->group(function (): void {

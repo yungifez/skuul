@@ -8,6 +8,7 @@ use App\Enums\AuditAction;
 use App\Enums\FacilityKind;
 use App\Exceptions\InvalidValueException;
 use App\Exceptions\TimetableConflictException;
+use App\Livewire\FacilityBoard;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
@@ -22,7 +23,9 @@ use App\Models\TimetableTimeSlot;
 use App\Models\Weekday;
 use App\Services\Timetable\FacilityAvailability;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -144,17 +147,25 @@ class FacilityTest extends TestCase
 
     public function test_a_campus_cannot_book_another_campus_s_hall(): void
     {
-        $actor = $this->authorized_user(['read facility', 'book facility']);
-        $elsewhere = Facility::factory()->create(['school_id' => School::factory()->create()->id]);
+        $this->authorized_user(['read facility', 'book facility', 'manage facility']);
+        $elsewhere = Facility::factory()->create(['school_id' => School::factory()->create()->id, 'name' => 'Their hall']);
+        $booking = FacilityBooking::factory()->create(['school_id' => $elsewhere->school_id, 'facility_id' => $elsewhere->id]);
 
-        $actor->post(route('facilities.book'), [
-            'facility_id' => $elsewhere->id,
-            'starts_at' => now()->addDay()->setTime(9, 0)->format('Y-m-d\TH:i'),
-            'ends_at' => now()->addDay()->setTime(10, 0)->format('Y-m-d\TH:i'),
-            'purpose' => 'Assembly',
-        ])->assertSessionHasErrors('facility_id');
+        Livewire::test(FacilityBoard::class)
+            ->assertDontSee('Their hall')
+            ->call('startBooking')
+            ->set('facilityId', (string) $elsewhere->id)
+            ->set('startsAt', now()->addDay()->setTime(9, 0)->format('Y-m-d\TH:i'))
+            ->set('endsAt', now()->addDay()->setTime(10, 0)->format('Y-m-d\TH:i'))
+            ->set('purpose', 'Assembly')
+            ->call('book')
+            ->assertHasErrors('facilityId');
 
-        $this->assertSame(0, FacilityBooking::count());
+        $this->assertThrows(fn () => Livewire::test(FacilityBoard::class)->call('retire', $elsewhere->id), ModelNotFoundException::class);
+        $this->assertThrows(fn () => Livewire::test(FacilityBoard::class)->call('startGivingUp', $booking->id), ModelNotFoundException::class);
+
+        $this->assertSame(1, FacilityBooking::count());
+        $this->assertTrue($elsewhere->fresh()->is_active);
     }
 
     public function test_an_unauthorized_user_cannot_see_what_the_campus_shares(): void
@@ -166,59 +177,159 @@ class FacilityTest extends TestCase
     {
         $actor = $this->authorized_user(['read facility', 'manage facility', 'book facility']);
 
-        $actor->get(route('facilities.index'))
-            ->assertOk()
-            ->assertSee('What the campus shares')
-            ->assertSee('Shared spaces, vehicles, and equipment that classes can book.')
-            ->assertDontSee('A lesson can be moved into one of these for a single entry');
+        $actor->get(route('facilities.index'))->assertOk()->assertSeeLivewire(FacilityBoard::class);
 
-        $actor->post(route('facilities.store'), [
-            'name' => 'Main hall',
-            'kind' => FacilityKind::Hall->value,
-            'capacity' => 300,
-        ])->assertRedirect();
+        Livewire::test(FacilityBoard::class)
+            ->assertSee('Nothing is shared yet.')
+            ->call('startSharing')
+            ->set('name', 'Main hall')
+            ->set('capacity', '300')
+            ->call('saveFacility')
+            ->assertHasNoErrors()
+            ->assertSee('Main hall');
 
         $hall = Facility::where('name', 'Main hall')->sole();
+        $this->assertSame(FacilityKind::Hall, $hall->kind);
 
-        $actor->get(route('facilities.index'))
-            ->assertOk()
-            ->assertSee('min-w-[640px] w-full text-sm', false);
-
-        $actor->post(route('facilities.book'), [
-            'facility_id' => $hall->id,
-            'starts_at' => now()->addDay()->setTime(9, 0)->format('Y-m-d\TH:i'),
-            'ends_at' => now()->addDay()->setTime(10, 0)->format('Y-m-d\TH:i'),
-            'purpose' => 'Assembly',
-        ])->assertRedirect();
+        Livewire::test(FacilityBoard::class)
+            ->call('startBooking', $hall->id)
+            ->assertSet('facilityId', (string) $hall->id)
+            ->set('startsAt', now()->addDay()->setTime(9, 0)->format('Y-m-d\TH:i'))
+            ->set('endsAt', now()->addDay()->setTime(10, 0)->format('Y-m-d\TH:i'))
+            ->set('purpose', 'Assembly')
+            ->call('book')
+            ->assertHasNoErrors()
+            ->assertSet('isBooking', false)
+            ->assertSee('Assembly');
 
         $this->assertSame(1, FacilityBooking::where('facility_id', $hall->id)->count());
+
+        Livewire::test(FacilityBoard::class)
+            ->call('startChanging', $hall->id)
+            ->assertSet('name', 'Main hall')
+            ->set('name', 'Great hall')
+            ->call('saveFacility')
+            ->assertHasNoErrors();
+
+        $this->assertSame('Great hall', $hall->fresh()->name);
+    }
+
+    public function test_a_clash_or_a_time_gone_by_is_said_on_the_screen(): void
+    {
+        $this->authorized_user(['read facility', 'book facility']);
+        $hall = $this->facility();
+        app(BookFacility::class)->book($hall, now()->addDay()->setTime(9, 0), now()->addDays(2)->setTime(11, 0), 'Exams');
+
+        Livewire::test(FacilityBoard::class)
+            ->call('startBooking', $hall->id)
+            ->set('startsAt', now()->addDays(2)->setTime(10, 0)->format('Y-m-d\TH:i'))
+            ->set('endsAt', now()->addDays(2)->setTime(12, 0)->format('Y-m-d\TH:i'))
+            ->set('purpose', 'Assembly')
+            ->call('book')
+            ->assertHasErrors('startsAt')
+            ->assertSee(' to '.now()->addDays(2)->format('j M').', 11:00 for Exams.')
+            ->set('startsAt', now()->subDays(2)->setTime(9, 0)->format('Y-m-d\TH:i'))
+            ->set('endsAt', now()->subDays(2)->setTime(10, 0)->format('Y-m-d\TH:i'))
+            ->call('book')
+            ->assertHasErrors('startsAt')
+            ->assertSee('That time has passed. Choose a time still ahead.');
+
+        $this->assertSame(1, FacilityBooking::count());
     }
 
     public function test_reading_the_catalogue_does_not_allow_booking(): void
     {
-        $actor = $this->authorized_user(['read facility']);
+        $this->authorized_user(['read facility']);
         $hall = $this->facility();
 
-        $actor->post(route('facilities.book'), [
-            'facility_id' => $hall->id,
-            'starts_at' => now()->addDay()->setTime(9, 0)->format('Y-m-d\TH:i'),
-            'ends_at' => now()->addDay()->setTime(10, 0)->format('Y-m-d\TH:i'),
-            'purpose' => 'Assembly',
-        ])->assertForbidden();
+        Livewire::test(FacilityBoard::class)
+            ->assertDontSee('Book something')
+            ->set('facilityId', (string) $hall->id)
+            ->set('startsAt', now()->addDay()->setTime(9, 0)->format('Y-m-d\TH:i'))
+            ->set('endsAt', now()->addDay()->setTime(10, 0)->format('Y-m-d\TH:i'))
+            ->set('purpose', 'Assembly')
+            ->call('book')
+            ->assertForbidden();
 
         $this->assertSame(0, FacilityBooking::count());
     }
 
-    public function test_taking_something_out_of_use_keeps_its_bookings(): void
+    public function test_only_the_person_who_booked_or_the_manager_gives_a_booking_up(): void
     {
-        $actor = $this->authorized_user(['read facility', 'manage facility', 'book facility']);
+        $this->authorized_user(['read facility', 'book facility']);
         $hall = $this->facility();
-        app(BookFacility::class)->book($hall, now()->addDay()->setTime(9, 0), now()->addDay()->setTime(11, 0), 'Rehearsal');
+        $mine = app(BookFacility::class)->book($hall, now()->addDay()->setTime(9, 0), now()->addDay()->setTime(10, 0), 'My lesson');
+        $theirs = FacilityBooking::factory()->create([
+            'school_id' => $hall->school_id,
+            'facility_id' => $hall->id,
+            'starts_at' => now()->addDay()->setTime(11, 0),
+            'ends_at' => now()->addDay()->setTime(12, 0),
+        ]);
 
-        $actor->delete(route('facilities.destroy', $hall->id))->assertRedirect();
+        Livewire::test(FacilityBoard::class)
+            ->assertSeeHtml('wire:click="startGivingUp('.$mine->id.')"')
+            ->assertDontSeeHtml('wire:click="startGivingUp('.$theirs->id.')"')
+            ->call('startGivingUp', $theirs->id)
+            ->assertForbidden();
+
+        Livewire::test(FacilityBoard::class)
+            ->call('startGivingUp', $mine->id)
+            ->set('giveUpReason', 'The class is on a trip')
+            ->call('giveUp')
+            ->assertDispatched('status-message', type: 'success');
+
+        $this->assertFalse($mine->fresh()->isRunning());
+        $this->assertSame('The class is on a trip', $mine->fresh()->cancelled_reason);
+        $this->assertTrue($theirs->fresh()->isRunning());
+    }
+
+    public function test_a_stale_screen_cannot_give_up_a_booking_twice_or_one_that_is_over(): void
+    {
+        $this->authorized_user(['read facility', 'book facility', 'manage facility']);
+        $hall = $this->facility();
+        $booking = app(BookFacility::class)->book($hall, now()->addHour(), now()->addHours(2), 'Rehearsal');
+
+        $stale = Livewire::test(FacilityBoard::class)->call('startGivingUp', $booking->id);
+        Livewire::test(FacilityBoard::class)->call('startGivingUp', $booking->id)->set('giveUpReason', 'First')->call('giveUp');
+
+        $stale->set('giveUpReason', 'Second')->call('giveUp')
+            ->assertDispatched('status-message', type: 'danger', message: 'This booking was already given up.');
+
+        $this->assertSame('First', $booking->fresh()->cancelled_reason);
+
+        $later = app(BookFacility::class)->book($hall, now()->addHours(3), now()->addHours(4), 'Choir');
+        $this->travel(5)->hours();
+
+        $this->expectExceptionMessage('This booking is over, so it stays in the record.');
+        app(BookFacility::class)->cancel($later, 'Too late');
+    }
+
+    public function test_taking_something_out_of_use_gives_up_what_is_ahead_and_keeps_the_past(): void
+    {
+        $this->authorized_user(['read facility', 'manage facility', 'book facility']);
+        $hall = $this->facility();
+        $past = FacilityBooking::factory()->create([
+            'school_id' => $hall->school_id,
+            'facility_id' => $hall->id,
+            'starts_at' => now()->subDays(3)->setTime(9, 0),
+            'ends_at' => now()->subDays(3)->setTime(10, 0),
+        ]);
+        $ahead = app(BookFacility::class)->book($hall, now()->addDay()->setTime(9, 0), now()->addDay()->setTime(11, 0), 'Rehearsal');
+
+        Livewire::test(FacilityBoard::class)
+            ->call('retire', $hall->id)
+            ->assertDispatched('status-message', type: 'success', message: "{$hall->name} is out of use. 1 booking ahead was given up.")
+            ->assertSee('out of use')
+            ->assertDontSeeHtml('wire:click="startBooking('.$hall->id.')"');
 
         $this->assertFalse($hall->fresh()->is_active);
-        $this->assertSame(1, FacilityBooking::where('facility_id', $hall->id)->count());
+        $this->assertTrue($past->fresh()->isRunning());
+        $this->assertFalse($ahead->fresh()->isRunning());
+        $this->assertSame("{$hall->name} was taken out of use.", $ahead->fresh()->cancelled_reason);
+
+        Livewire::test(FacilityBoard::class)->call('restore', $hall->id);
+
+        $this->assertTrue($hall->fresh()->is_active);
     }
 
     public function test_a_lesson_moved_into_a_hall_blocks_a_booking_of_it(): void
@@ -322,12 +433,8 @@ class FacilityTest extends TestCase
         $hall = $this->facility();
         app(BookFacility::class)->book($hall, now()->addDay()->setTime(9, 0), now()->addDay()->setTime(11, 0), 'Rehearsal');
 
-        $response = $actor->get(route('facilities.index'))->assertOk();
-
-        // Without its own wording, the shared handler warns that the record is
-        // being deleted. Neither button deletes anything.
-        $response->assertSee('data-confirm="Take this facility out of use? Nobody will be able to book it."', false);
-        $response->assertSee('data-confirm="Give up this booking? The slot goes back to everybody else."', false);
+        $actor->get(route('facilities.index'))->assertOk()
+            ->assertSee('wire:confirm="Take '.e($hall->name).' out of use? Nobody will be able to book it, and 1 booking(s) ahead will be given up."', false);
     }
 
     /**
