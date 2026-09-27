@@ -14,7 +14,7 @@
         <april:card>
             <slot:title>Template definition</slot:title>
             <slot:description>Changes shape future generated school years. Existing school years keep their own dated records.</slot:description>
-            <slot:content><x-calendar-template-form :organization="$organization" :calendar-template="$calendarTemplate" /></slot:content>
+            <slot:content><livewire:calendar-template-form :organization="$organization" :calendar-template="$calendarTemplate" /></slot:content>
         </april:card>
 
         <april:card>

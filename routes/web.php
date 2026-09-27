@@ -143,7 +143,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::get('organizations/{organization}/dashboard', OrganizationDashboardController::class)->name('organizations.dashboard');
     Route::resource('organizations.calendar-templates', CalendarTemplateController::class)
         ->parameters(['calendar-templates' => 'calendarTemplate'])
-        ->except(['show', 'destroy']);
+        ->only(['index', 'create', 'edit']);
     Route::post('organizations/{organization}/calendar-templates/{calendarTemplate}/cycles', [AcademicCycleController::class, 'store'])->name('organizations.calendar-templates.cycles.store');
     Route::post('organizations/{organization}/calendar-templates/{calendarTemplate}/campuses/{school}', [CalendarTemplateController::class, 'overrideCampus'])->name('organizations.calendar-templates.campuses.override');
     Route::delete('organizations/{organization}/calendar-templates/{calendarTemplate}/campuses/{school}', [CalendarTemplateController::class, 'inheritCampus'])->name('organizations.calendar-templates.campuses.inherit');

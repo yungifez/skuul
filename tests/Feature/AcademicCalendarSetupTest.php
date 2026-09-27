@@ -9,6 +9,7 @@ use App\Enums\AuditAction;
 use App\Enums\InstructionalModel;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\AcademicCalendarForm;
+use App\Livewire\CreateExamForm;
 use App\Livewire\SetAcademicPeriod;
 use App\Livewire\ShowAcademicYear;
 use App\Models\AcademicPeriod;
@@ -337,9 +338,12 @@ class AcademicCalendarSetupTest extends TestCase
 
         $this->get(route('exams.create', ['academic_year_id' => $academicYear->id]))
             ->assertOk()
-            ->assertSee('Create an exam for '.$academicYear->name)
-            ->assertSee('Exam setup help')
-            ->assertSee('value="'.$period->id.'" selected', false);
+            ->assertSee('The exam goes on the calendar of '.$academicYear->name);
+
+        Livewire::withQueryParams(['academic_year_id' => $academicYear->id])
+            ->test(CreateExamForm::class)
+            ->assertSet('academicYearId', $academicYear->id)
+            ->assertSet('academicPeriodId', (string) $period->id);
     }
 
     public function test_a_draft_calendar_cannot_be_made_the_working_calendar(): void

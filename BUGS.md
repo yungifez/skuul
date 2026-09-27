@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A calendar template could lose a sub-period's parent, or generate terms that share days
+
+- Status: Fixed
+- Area: Organization calendar templates
+- Observed: The template form showed eight numbered rows, and "Parent row" named a row by that number. The save dropped blank rows and then counted only the filled ones, so a parent named after a blank row pointed at the wrong period or was refused. On reopening, periods were listed by display order, so a sub-period with a lower order than its parent was listed above it, where its parent could not be chosen, and the next save quietly removed the link. Nothing checked a period against the year or its parent, or two terms against each other.
+- Impact: Every campus year generated from the template could get a half-term under the wrong term, terms that ran past the year's end, or two terms covering the same day. A period typed by hand is refused for that last case, because "the period that covers today" then has two answers.
+- Reproduction: Leave row 2 blank, fill rows 3 and 4, and set row 4's parent to row 3. Or give Term 2 a half-term with order 1, save, and save again. Or set Term 2 to start on day 80 while Term 1 runs 84 days.
+- Resolution: The save reads each parent by the row number the form showed. It refuses a period that ends after the year, a sub-period outside its parent, and periods side by side that share a day, naming the rows. The Livewire `CalendarTemplateForm` lists every parent before its sub-periods, adds and removes rows (renumbering parents), and fits a phone screen. The store and update routes and their requests are gone. `CalendarTemplateManagementTest` covers these paths. A stale assertion in `AcademicCalendarSetupTest` from the exam form move now checks the preselected period on the component.
+
 ## A class added from school setup lost its way back, and a level with sections could become a group
 
 - Status: Fixed
