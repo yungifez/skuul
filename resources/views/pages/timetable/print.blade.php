@@ -2,6 +2,8 @@
 
 @section('title', $timetable->name)
 
+@section('back_url', route('timetables.show', $timetable))
+
 @section('content')
     <h1 class="school-name">{{current_school()->name}}</h1>
     @livewire('show-timetable', ['timetable' => $timetable, 'showCalendar' => false])

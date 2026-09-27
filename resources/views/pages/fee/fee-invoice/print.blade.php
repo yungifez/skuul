@@ -2,6 +2,8 @@
 
 @section('title', $feeInvoice->name)
 
+@section('back_url', route('fee-invoices.show', $feeInvoice))
+
 @section('content')
     @livewire('show-fee-invoice', ['feeInvoice' => $feeInvoice])
 @endsection

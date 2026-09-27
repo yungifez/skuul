@@ -838,3 +838,12 @@
 - Impact: Staff scrolled past forms they rarely use to read the record. The printed record had no structure a school could file or stamp.
 - Reproduction: Open `/dashboard/students/{id}` as an administrator, then open its print view.
 - Resolution: The profile is now a flat identity block and a facts list. Enrollment shows its facts, and one ⋯ menu opens the status, placement or campus form in place; a pending campus move shows as one line with "Take the request back". Histories and fee invoices are plain lists, and Print moved to the page actions. Setting a password is now the `ManageAccountPassword` Livewire component; the POST route, controller and request are removed. The print view is a dedicated record sheet with bordered sections for personal details, enrollment, guardians, placement and status history, plus a signature line.
+
+## Printed pages show the admin URL, and Back on print pages goes nowhere
+
+- Status: Fixed
+- Area: Print layout (student record, fee invoice, receipt, timetable)
+- Observed: Printing added the browser's header and footer, which showed the admin dashboard URL on the paper. The Back link used the previous URL, so it did nothing when the print page was opened directly or in a new tab.
+- Impact: Printed records given to families exposed an internal admin address. Staff could not leave the print page.
+- Reproduction: Open `/dashboard/students/{id}/print` in a new tab, press Back, then print.
+- Resolution: The print layout sets a zero page margin, so the browser prints no header or footer, and pads the page instead. Back returns through history when the visitor came from the app, and otherwise opens a page each print view names (student, fee invoice, timetable), falling back to the dashboard.

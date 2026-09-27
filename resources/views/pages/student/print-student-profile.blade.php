@@ -2,6 +2,8 @@
 
 @section('title', $student->name.' · Student record')
 
+@section('back_url', route('students.show', $student))
+
 @section('content')
     @php
         $section = $studentRecord?->academicCycleSection;

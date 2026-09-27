@@ -67,8 +67,9 @@
         th { background: #f4f4f5; font-weight: 700; }
         td, th { padding: 0.65rem 0.75rem; }
         @media print {
-            @page { margin: 12mm; }
-            body { background: #fff; }
+            /* A zero page margin stops the browser printing its own header and footer (URL, date, title). */
+            @page { margin: 0; }
+            body { background: #fff; padding: 12mm; }
             .print-toolbar { display: none !important; }
             .print-document { width: 100%; margin: 0; padding: 0; box-shadow: none; }
             header { margin-bottom: 1rem; }
@@ -80,7 +81,7 @@
 </head>
 <body>
     <div class="print-toolbar" data-print-toolbar>
-        <a href="{{ url()->previous() }}">Back</a>
+        <a href="@yield('back_url', route('dashboard'))" data-back-link>Back</a>
         <button type="button" data-print-button>Print</button>
     </div>
 
@@ -102,6 +103,12 @@
 
     <script>
         document.querySelector('[data-print-button]')?.addEventListener('click', () => window.print());
+        document.querySelector('[data-back-link]')?.addEventListener('click', (event) => {
+            if (document.referrer.startsWith(location.origin) && history.length > 1) {
+                event.preventDefault();
+                history.back();
+            }
+        });
     </script>
 </body>
 </html>
