@@ -595,6 +595,16 @@ enum AuditAction: string
     case CohortMembershipChanged = 'cohort.membership_changed';
 
     /**
+     * A programme was opened, renamed or closed.
+     */
+    case ProgramChanged = 'program.changed';
+
+    /**
+     * A learner was given a place in a programme, or a place changed state.
+     */
+    case ProgramParticipationChanged = 'program.participation_changed';
+
+    /**
      * One school asked another for a student's records.
      */
     case DataSharingRequested = 'data_sharing.requested';
@@ -789,6 +799,8 @@ enum AuditAction: string
             self::StaffProfileChanged => 'Employment record changed',
             self::CohortChanged => 'Group changed',
             self::CohortMembershipChanged => 'Group membership changed',
+            self::ProgramChanged => 'Programme changed',
+            self::ProgramParticipationChanged => 'Programme place changed',
             self::DataSharingRequested => 'Records requested',
             self::DataSharingStatusChanged => 'Records request answered',
             self::TransferPackageBuilt => 'Records handed over',

@@ -312,10 +312,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::middleware(['feature:programmes'])->group(function (): void {
             Route::get('programs', ['App\Http\Controllers\ProgramController', 'index'])->name('programs.index');
             Route::get('programs/create', ['App\Http\Controllers\ProgramController', 'create'])->name('programs.create');
-            Route::post('programs', ['App\Http\Controllers\ProgramController', 'store'])->name('programs.store');
             Route::get('programs/{program}', ['App\Http\Controllers\ProgramController', 'show'])->name('programs.show');
-            Route::post('programs/{program}/participations', ['App\Http\Controllers\ProgramController', 'storeParticipation'])->name('programs.participations.store');
-            Route::put('programs/{program}/participations/{programParticipation}', ['App\Http\Controllers\ProgramController', 'updateParticipation'])->name('programs.participations.update');
         });
 
         // import routes. An import reads the school, not the period, so it

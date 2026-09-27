@@ -11,7 +11,9 @@ use App\Enums\ProgramType;
 use App\Livewire\CohortDirectory as CohortDirectoryComponent;
 use App\Livewire\CohortRecord;
 use App\Livewire\CreateCohortForm;
+use App\Livewire\CreateProgramForm;
 use App\Livewire\ProgramDirectory as ProgramDirectoryComponent;
+use App\Livewire\ProgramRecord;
 use App\Models\AuditEvent;
 use App\Models\Cohort;
 use App\Models\Program;
@@ -264,25 +266,62 @@ class CohortScreenTest extends TestCase
             ->assertSee(route('programs.create'));
     }
 
+    public function test_a_programme_is_opened_from_the_screen(): void
+    {
+        $this->authorized_user(['read program', 'create program']);
+        $this->program(ProgramType::Club, 'Chess club');
+
+        $this->get(route('programs.create'))->assertOk()->assertSeeLivewire(CreateProgramForm::class);
+
+        Livewire::test(CreateProgramForm::class)
+            ->set('name', 'CHESS CLUB')
+            ->call('save')
+            ->assertHasErrors('name')
+            ->set('name', ' Reading support ')
+            ->set('type', ProgramType::Intervention->value)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('programs.show', Program::inSchool()->where('name', 'Reading support')->sole()));
+
+        $this->assertTrue(AuditEvent::query()->where('action', AuditAction::ProgramChanged->value)->exists());
+    }
+
     public function test_a_programme_gives_a_learner_a_place(): void
     {
         $this->authorized_user(['read program', 'create program', 'update program']);
         $program = $this->program();
         $enrollment = $this->enrollment(User::factory()->create(['name' => 'Ada Bell']));
+        $coach = $this->memberOf($this->workingSchool(), User::factory()->create(['name' => 'Coach Obi']));
 
-        $this->from(route('programs.show', $program))
-            ->post(route('programs.participations.store', $program), [
-                'student_record_id' => $enrollment->id,
-                'schedule' => 'Tuesday, 15:30',
-            ])
-            ->assertRedirect(route('programs.show', $program));
+        $this->get(route('programs.show', $program))->assertOk()->assertSeeLivewire(ProgramRecord::class);
 
-        $this->get(route('programs.show', $program))
-            ->assertOk()
+        Livewire::test(ProgramRecord::class, ['program' => $program])
+            ->set('studentRecordId', (string) $enrollment->id)
+            ->set('schedule', 'Tuesday, 15:30')
+            ->set('staffId', (string) $coach->id)
+            ->call('givePlace')
+            ->assertHasNoErrors()
             ->assertSee('Ada Bell')
-            ->assertSee('Tuesday, 15:30');
+            ->assertSee('Tuesday, 15:30')
+            ->assertSee('Coach Obi');
 
         $this->assertSame(1, $program->participations()->count());
+        $this->assertTrue(AuditEvent::query()->where('action', AuditAction::ProgramParticipationChanged->value)->exists());
+    }
+
+    public function test_a_learner_never_runs_a_programme(): void
+    {
+        $this->authorized_user(['read program', 'update program']);
+        $program = $this->program();
+        $learner = $this->enrollment();
+
+        Livewire::test(ProgramRecord::class, ['program' => $program])
+            ->set('studentRecordId', (string) $learner->id)
+            ->set('staffId', (string) $learner->user_id)
+            ->call('givePlace')
+            ->assertHasErrors('staffId');
+
+        $this->assertSame(0, $program->participations()->count());
     }
 
     public function test_a_place_moves_to_another_state(): void
@@ -291,30 +330,86 @@ class CohortScreenTest extends TestCase
         $program = $this->program();
         $place = app(ChangeProgramParticipation::class)->join($program, $this->enrollment());
 
-        $this->from(route('programs.show', $program))
-            ->put(route('programs.participations.update', [$program, $place]), [
-                'status' => ParticipationStatus::Withdrawn->value,
-                'note' => 'The learner asked to stop.',
-            ])
-            ->assertRedirect(route('programs.show', $program));
+        Livewire::test(ProgramRecord::class, ['program' => $program])
+            ->call('movePlace', $place->id, ParticipationStatus::Withdrawn->value, ParticipationStatus::Requested->value)
+            ->assertDispatched('status-message', type: 'success');
 
         $this->assertSame(ParticipationStatus::Withdrawn, $place->fresh()->status);
         $this->assertNotNull($place->fresh()->ends_on);
+    }
+
+    public function test_a_second_person_moving_the_same_place_is_told_it_already_moved(): void
+    {
+        $this->authorized_user(['read program', 'update program']);
+        $program = $this->program();
+        $place = app(ChangeProgramParticipation::class)->join($program, $this->enrollment());
+
+        Livewire::test(ProgramRecord::class, ['program' => $program])
+            ->call('movePlace', $place->id, ParticipationStatus::Active->value, ParticipationStatus::Requested->value);
+
+        Livewire::test(ProgramRecord::class, ['program' => $program])
+            ->call('movePlace', $place->id, ParticipationStatus::Withdrawn->value, ParticipationStatus::Requested->value)
+            ->assertDispatched('status-message', type: 'danger', message: 'Somebody else already moved this place to Taking part.');
+
+        $this->assertSame(ParticipationStatus::Active, $place->fresh()->status);
+    }
+
+    public function test_a_withdrawn_place_reopens_only_while_the_door_is_open(): void
+    {
+        $this->authorized_user(['read program', 'update program']);
+        $program = $this->program();
+        $enrollment = $this->enrollment();
+        $action = app(ChangeProgramParticipation::class);
+        $first = $action->changeStatus($action->join($program, $enrollment), ParticipationStatus::Withdrawn);
+        $second = $action->join($program, $enrollment);
+
+        Livewire::test(ProgramRecord::class, ['program' => $program])
+            ->call('movePlace', $first->id, ParticipationStatus::Active->value, ParticipationStatus::Withdrawn->value)
+            ->assertDispatched('status-message', type: 'danger', message: 'The learner already holds another place in this programme.');
+
+        $action->changeStatus($second, ParticipationStatus::Withdrawn);
+        $program->update(['is_active' => false]);
+
+        Livewire::test(ProgramRecord::class, ['program' => $program])
+            ->call('movePlace', $first->id, ParticipationStatus::Active->value, ParticipationStatus::Withdrawn->value)
+            ->assertDispatched('status-message', type: 'danger', message: 'This programme is closed.');
+
+        $this->assertSame(ParticipationStatus::Withdrawn, $first->fresh()->status);
     }
 
     public function test_a_closed_programme_gives_no_new_places(): void
     {
         $this->authorized_user(['read program', 'create program', 'update program']);
         $program = $this->program();
-        $program->update(['is_active' => false]);
+        $enrollment = $this->enrollment();
+        $component = Livewire::test(ProgramRecord::class, ['program' => $program])
+            ->call('startEditing')
+            ->set('isActive', false)
+            ->call('save')
+            ->assertSee('The programme is closed, so it gives no new places.');
 
-        $this->from(route('programs.show', $program))
-            ->post(route('programs.participations.store', $program), [
-                'student_record_id' => $this->enrollment()->id,
-            ])
-            ->assertSessionHasErrors('participation');
+        $component->set('studentRecordId', (string) $enrollment->id)
+            ->call('givePlace')
+            ->assertHasErrors('studentRecordId');
 
+        $this->assertFalse($program->fresh()->is_active);
         $this->assertSame(0, $program->participations()->count());
+    }
+
+    public function test_a_place_of_another_programme_is_out_of_reach(): void
+    {
+        $this->authorized_user(['read program', 'update program']);
+        $program = $this->program();
+        $other = $this->program(ProgramType::Intervention, 'Reading support');
+        $theirPlace = app(ChangeProgramParticipation::class)->join($other, $this->enrollment());
+
+        $this->assertThrows(
+            fn () => Livewire::test(ProgramRecord::class, ['program' => $program])
+                ->call('movePlace', $theirPlace->id, ParticipationStatus::Withdrawn->value, ParticipationStatus::Requested->value),
+            ModelNotFoundException::class,
+        );
+
+        $this->assertSame(ParticipationStatus::Requested, $theirPlace->fresh()->status);
     }
 
     public function test_a_learner_of_another_school_never_joins_the_group(): void

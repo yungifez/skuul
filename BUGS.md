@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Two people could move one programme place at once, and a withdrawn place reopened in a closed programme
+
+- Status: Fixed
+- Area: Programmes
+- Observed: Two members of staff moving the same place both succeeded, so the second answer quietly replaced the first. A withdrawn place could be marked as taking part again after the programme closed, after the learner's enrollment ended, or while the learner already held a new place, which left two running places. Two people giving the same learner a place at once made two places. A programme could not be renamed or closed from its page. A name could repeat when only the capitals differed. Any school member, a learner too, could be named as the person who runs a place. Nothing about places went to the audit log.
+- Impact: Places counted twice, closed programmes kept filling, and nobody could see who moved a learner out of a support programme.
+- Reproduction: Open a requested place in two tabs. Mark it as taking part in one and withdrawn in the other. Both saves were accepted.
+- Resolution: ChangeProgramParticipation locks the programme and the place, refuses a state that changed since it was shown, and checks the open door and the running place again before a place reopens. A withdrawn place that had not started ends on its start day. The new SaveProgram action opens, renames and closes a programme with a case-blind name check. Both record ProgramChanged or ProgramParticipationChanged. The pages are now the Livewire components CreateProgramForm and ProgramRecord. Only staff can run a place. The three write routes and their requests were removed.
+
 ## A closed group still took members, and a person could leave a group twice
 
 - Status: Fixed
