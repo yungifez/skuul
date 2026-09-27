@@ -203,3 +203,11 @@ Put the condition inside the root element, not around it:
 
 `@php` is safe before the root because it writes nothing. Every other directive
 is not. `tests/Unit/LivewireRootElementTest.php` covers it.
+
+## A horizontal scroll box needs `relative` when it holds `sr-only` text
+
+Tailwind's `sr-only` is `position: absolute`. Inside an `overflow-x-auto`
+wrapper that is not positioned, the hidden text is placed against the nearest
+positioned ancestor instead, often `main`. It then sits past the scroll box and
+widens the whole page at phone width. Give the wrapper `relative`:
+`<div class="relative overflow-x-auto">`.

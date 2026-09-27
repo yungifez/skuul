@@ -8,6 +8,7 @@ use App\Actions\Finance\RefundStudent;
 use App\Actions\Finance\ReversePayment;
 use App\Enums\AuditAction;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\ShowStudentAccount;
 use App\Models\AuditEvent;
 use App\Models\Fee;
 use App\Models\FeeCategory;
@@ -22,6 +23,7 @@ use App\Services\Finance\PaymentChannelRegistry;
 use App\Services\Finance\StudentLedger;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -281,8 +283,13 @@ class StudentPaymentTest extends TestCase
 
         $actor->get(route('student-accounts.show', $enrollment->id))
             ->assertOk()
+            ->assertSeeLivewire(ShowStudentAccount::class);
+
+        Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment])
             ->assertSee($invoice->name)
-            ->assertSee('Held for this student');
+            ->assertSee('Credit held')
+            ->assertSee('Receipt')
+            ->assertDontSee('Give money back');
     }
 
     public function test_only_a_named_person_can_give_money_back(): void
@@ -291,13 +298,74 @@ class StudentPaymentTest extends TestCase
         $enrollment = $this->enrollment();
         app(ReceivePayment::class)->receive($enrollment, 5_000);
 
-        $actor->post(route('student-accounts.refund', $enrollment->id), [
-            'amount' => 10,
-            'method' => 'cash',
-            'reason' => 'The family asked for it back',
-        ])->assertForbidden();
+        Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment])
+            ->set('isRefunding', true)
+            ->set('refundAmount', '10')
+            ->set('refundReason', 'The family asked for it back')
+            ->call('refund')
+            ->assertForbidden();
 
         $this->assertSame(5_000, app(ApplyStudentCredit::class)->creditHeld($enrollment));
+    }
+
+    public function test_the_account_screen_gives_held_money_back(): void
+    {
+        $this->authorized_user(['read fee invoice', 'refund student payment']);
+        $enrollment = $this->enrollment();
+        app(ReceivePayment::class)->receive($enrollment, 5_000);
+
+        Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment])
+            ->call('$set', 'isRefunding', true)
+            ->set('refundAmount', '80')
+            ->set('refundReason', 'The family asked for it back')
+            ->call('refund')
+            ->assertHasErrors('refundAmount')
+            ->set('refundAmount', '20.505')
+            ->call('refund')
+            ->assertHasErrors(['refundAmount' => 'decimal'])
+            ->set('refundAmount', '20')
+            ->call('refund')
+            ->assertHasNoErrors()
+            ->assertSet('isRefunding', false);
+
+        $this->assertSame(3_000, app(ApplyStudentCredit::class)->creditHeld($enrollment));
+    }
+
+    public function test_the_account_screen_takes_a_payment_back_with_a_reason(): void
+    {
+        $this->authorized_user(['read fee invoice', 'refund student payment']);
+        $enrollment = $this->enrollment();
+        $invoice = $this->invoiceFor($enrollment, [['amount' => 100]]);
+        $payment = app(ReceivePayment::class)->receive($enrollment, 4_000);
+
+        Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment])
+            ->call('startReversing', $payment->id)
+            ->assertSet('reversingPaymentId', $payment->id)
+            ->call('reversePayment')
+            ->assertHasErrors(['reverseReason' => 'required'])
+            ->set('reverseReason', 'Recorded against the wrong child')
+            ->call('reversePayment')
+            ->assertHasNoErrors()
+            ->assertSee('Taken back');
+
+        $this->assertTrue($payment->fresh()->isReversed());
+        $this->assertSame(0, $invoice->fresh()->paid->getMinorAmount()->toInt());
+    }
+
+    public function test_the_account_screen_uses_held_credit_against_what_is_owed(): void
+    {
+        $this->authorized_user(['read fee invoice', 'update fee invoice']);
+        $enrollment = $this->enrollment();
+        app(ReceivePayment::class)->receive($enrollment, 3_000);
+        $invoice = $this->invoiceFor($enrollment, [['amount' => 100]]);
+
+        Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment])
+            ->assertSee('Use credit against fees')
+            ->call('applyCredit')
+            ->assertHasNoErrors();
+
+        $this->assertSame(3_000, $invoice->fresh()->paid->getMinorAmount()->toInt());
+        $this->assertSame(0, app(ApplyStudentCredit::class)->creditHeld($enrollment));
     }
 
     public function test_a_school_cannot_read_another_school_s_account(): void

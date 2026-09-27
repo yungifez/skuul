@@ -883,3 +883,12 @@
 - Impact: The page shipped twenty learner lists at once and read as a wall of boxes.
 - Reproduction: Open `/dashboard/incidents/create`.
 - Resolution: The form is now the `CreateIncident` Livewire component. It starts with one row in a plain "People" list; "Add a person" adds a row and ✕ removes it, up to twenty. Choosing a safeguarding kind shows a small "Restricted" mark. Errors show under their fields. The POST route, `store` action, the participant parser and `StoreIncidentRequest` are removed.
+
+## Student fee account is stacked cards with an always-open reversal form on every payment
+
+- Status: Fixed
+- Area: Fees, student account
+- Observed: The account page had cards with explanation lines under each figure, an amber box of explanation for other campuses, and four POST forms. Every payment row carried its own open "Why is it being taken back?" field and button. The refund form sat in its own card at the bottom. At 390px the page scrolled sideways.
+- Impact: The page read as a wall of fields beside real money. A reversal field on every row made it easy to reverse the wrong payment.
+- Reproduction: Open `/dashboard/fees/accounts/{student_record}` with refund access, then narrow the window to 390px.
+- Resolution: The page is now the `ShowStudentAccount` Livewire component. Owed and credit held sit in one facts row, and other campuses show as quiet "Owed at …" lines. "Use credit against fees" and "Give money back" appear only when there is credit; the refund form opens in place and confirms before saving. Each payment has a ⋯ menu with Receipt and Take back; Take back opens one reason field for that payment only. Refund amounts must have at most two decimals. The three POST routes and two form requests are removed. The sideways scroll came from an `sr-only` table header escaping its scroll box; that wrapper and five others now have `relative`, and `.ai/rules/views.md` records the trap.

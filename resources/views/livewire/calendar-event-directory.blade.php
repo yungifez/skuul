@@ -75,7 +75,7 @@
 
                 <p wire:loading class="text-sm text-muted-foreground" role="status">Updating the calendar…</p>
 
-                <div class="overflow-x-auto">
+                <div class="relative overflow-x-auto">
                     <div class="grid min-w-[46rem] grid-cols-7 gap-px rounded-lg border bg-border">
                         @foreach (['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'] as $weekday)
                             <div class="bg-muted/50 px-2 py-2 text-center text-xs font-medium text-foreground">{{ $weekday }}</div>

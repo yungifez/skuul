@@ -441,9 +441,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::resource('fees/expenses', ExpenseController::class)->only(['index', 'create', 'store']);
             Route::resource('fees/cash-deposits', CashDepositController::class)->only(['index', 'create', 'store']);
             Route::get('fees/accounts/{student_record}', [StudentAccountController::class, 'show'])->name('student-accounts.show');
-            Route::post('fees/accounts/{student_record}/credit', [StudentAccountController::class, 'applyCredit'])->name('student-accounts.apply-credit');
-            Route::post('fees/accounts/{student_record}/refund', [StudentAccountController::class, 'refund'])->name('student-accounts.refund');
-            Route::post('fees/payments/{student_payment}/reverse', [StudentAccountController::class, 'reverse'])->name('student-payments.reverse');
             Route::get('fees/payments/{student_payment}/receipt', [StudentPaymentController::class, 'print'])->name('student-payments.receipt');
             Route::get('fees/fee-invoices/{fee_invoice}/pay', [FeeInvoiceController::class, 'payView'])->name('fee-invoices.pay');
             Route::post('fees/fee-invoices/{fee_invoice}/pay', [FeeInvoiceController::class, 'pay'])->name('fee-invoices.pay.store');

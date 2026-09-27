@@ -55,7 +55,7 @@
             @if ($entries->isEmpty())
                 <x-empty-state icon="lucide-users" title="No waitlist entries" description="Candidates added to a full section will appear here." />
             @else
-                <div class="overflow-x-auto">
+                <div class="relative overflow-x-auto">
                     <table class="w-full text-sm">
                         <thead>
                             <tr class="border-b text-left text-xs uppercase tracking-wider text-muted-foreground">

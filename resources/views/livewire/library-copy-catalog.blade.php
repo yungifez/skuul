@@ -69,7 +69,7 @@
                 @endforeach
             </div>
 
-            <div class="hidden overflow-x-auto md:block">
+            <div class="relative hidden overflow-x-auto md:block">
                 <table class="w-full text-sm">
                     <thead>
                         <tr class="border-b text-left text-xs uppercase tracking-wider text-muted-foreground">
