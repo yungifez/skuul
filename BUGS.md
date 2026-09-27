@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Every dashboard sent the platform's school count to the browser, and "Open terms" counted closed ones
+
+- Status: Fixed
+- Area: Dashboard
+- Observed: `DashboardDataCards` kept `School::count()` and, for platform staff, `Organization::count()` in public properties that no screen read. Livewire writes every public property into the page, so any teacher, parent, or learner could read how many schools the whole platform hosts. The "Open terms" figure counted every period of the year, including drafts and closed ones. "Continue to dashboard" was a full-page form that always said "Your school is ready for daily work", even when a tab left open had fallen behind a setup step that slipped back and nothing was recorded.
+- Impact: One tenant could learn the size of the platform. Staff read a wrong count of open terms. An administrator could believe setup was confirmed when it was not.
+- Reproduction: Open the dashboard as any user and search the page source for the component snapshot. Or give the current year one open and two draft periods and read "Open terms".
+- Resolution: The unused counts are gone, and the open-term figure counts only open periods. "Continue to dashboard" is a Livewire action that checks the school, confirms only a ready setup, and otherwise says setup needs attention again. The acknowledge POST route and its controller are gone. `DashboardTest` and `SchoolSetupPhaseTest` cover these paths.
+
 ## The campus list on a calendar template hid which template a campus followed, and a refused draft lost its date
 
 - Status: Fixed

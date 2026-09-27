@@ -44,10 +44,7 @@
                     </april:button-link>
                 </div>
             @else
-                <form method="POST" action="{{ route('schools.setup.acknowledge') }}" class="shrink-0">
-                    @csrf
-                    <april:button type="submit">Continue to dashboard</april:button>
-                </form>
+                <april:button type="button" class="h-11 shrink-0 select-none" wire:click="acknowledgeSetup" wire:loading.attr="disabled" wire:target="acknowledgeSetup">Continue to dashboard</april:button>
             @endif
         </section>
     @endif

@@ -2,27 +2,28 @@
 
 namespace App\Livewire;
 
+use App\Enums\AcademicPeriodStatus;
 use App\Enums\AttendanceKind;
 use App\Enums\AttendanceStatus;
 use App\Enums\PlatformPermission;
 use App\Enums\Role;
+use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AttendanceRecord;
 use App\Models\CalendarEvent;
 use App\Models\CourseOffering;
 use App\Models\Notice;
-use App\Models\Organization;
-use App\Models\School;
 use App\Models\User;
 use App\Services\School\SchoolSetupPhaseService;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Component;
 
 class DashboardDataCards extends Component
 {
-    public $schools;
+    use DispatchesStatusNotifications;
 
     public $academicLevels;
 
@@ -37,8 +38,6 @@ class DashboardDataCards extends Component
     public $teachers;
 
     public $parents;
-
-    public $organizations;
 
     public $organization;
 
@@ -81,19 +80,17 @@ class DashboardDataCards extends Component
         }
         $this->organization = $school->organization;
         $this->organizationSchools = $this->organization?->schools()->count() ?? 0;
-        $this->organizations = $user->can(PlatformPermission::AccessAllOrganizations) ? Organization::count() : 0;
         $this->showCampuses = $this->organization !== null && (
             $user->can(PlatformPermission::AccessAllSchools)
             || $user->administersOrganization($this->organization)
             || $user->hasRole(Role::Admin)
         );
-        $this->schools = School::count();
         $this->academicLevels = AcademicLevel::query()->inSchool()->where('is_group', false)->count();
         $this->cycleSections = AcademicCycleSection::query()
             ->inSchool()
             ->when($currentAcademicYear !== null, fn ($query) => $query->where('academic_year_id', $currentAcademicYear->id))
             ->count();
-        $this->academicPeriods = $currentAcademicYear?->academicPeriods()->count() ?? 0;
+        $this->academicPeriods = $currentAcademicYear?->academicPeriods()->where('status', AcademicPeriodStatus::Open)->count() ?? 0;
         $this->courseOfferings = CourseOffering::query()
             ->inSchool()
             ->when($currentAcademicYear !== null, fn ($query) => $query->where('academic_year_id', $currentAcademicYear->id))
@@ -111,6 +108,29 @@ class DashboardDataCards extends Component
         if ($user->can('read notice')) {
             $this->loadCurrentNotices($user);
         }
+    }
+
+    /**
+     * Say the school is ready for daily work. A tab left open while setup slipped back is told so instead.
+     */
+    public function acknowledgeSetup(SchoolSetupPhaseService $schoolSetupPhases): void
+    {
+        $school = current_school();
+        Gate::authorize('update', $school);
+
+        /** @var User $actor */
+        $actor = auth()->user();
+
+        if (!$schoolSetupPhases->acknowledge($school, $actor)) {
+            $setupState = $schoolSetupPhases->for($school);
+            $this->setupChecklist = $setupState['show_dashboard_card'] ? $setupState : null;
+            $this->notify('Setup needs attention again. Finish the steps it lists first.', 'danger');
+
+            return;
+        }
+
+        session()->flash('success', 'Your school is ready for daily work.');
+        $this->redirectRoute('dashboard');
     }
 
     public function render(): View

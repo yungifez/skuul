@@ -2,10 +2,14 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AcademicPeriodStatus;
 use App\Enums\NoticeStatus;
+use App\Livewire\DashboardDataCards;
+use App\Models\AcademicPeriod;
 use App\Models\Notice;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class DashboardTest extends TestCase
@@ -42,6 +46,34 @@ class DashboardTest extends TestCase
             ->assertSee('Until '.now()->addDays(3)->format('M j'))
             ->assertDontSee('Last term fees reminder')
             ->assertDontSee('data-slot="data-table"', false);
+    }
+
+    public function test_the_dashboard_sends_no_platform_wide_counts_to_the_browser(): void
+    {
+        $this->authorized_user(['read student']);
+
+        $data = Livewire::test(DashboardDataCards::class)->snapshot['data'];
+
+        $this->assertArrayNotHasKey('schools', $data);
+        $this->assertArrayNotHasKey('organizations', $data);
+    }
+
+    public function test_the_open_period_count_leaves_out_periods_that_are_not_open(): void
+    {
+        $this->authorized_user(['read academic period']);
+        $academicYear = current_academic_year();
+        $this->assertNotNull($academicYear);
+        $before = Livewire::test(DashboardDataCards::class)->get('academicPeriods');
+
+        foreach ([AcademicPeriodStatus::Draft, AcademicPeriodStatus::Closed] as $status) {
+            AcademicPeriod::factory()->create(['school_id' => current_school_id(), 'academic_year_id' => $academicYear->id, 'status' => $status]);
+        }
+
+        Livewire::test(DashboardDataCards::class)->assertSet('academicPeriods', $before);
+
+        AcademicPeriod::factory()->create(['school_id' => current_school_id(), 'academic_year_id' => $academicYear->id, 'status' => AcademicPeriodStatus::Open]);
+
+        Livewire::test(DashboardDataCards::class)->assertSet('academicPeriods', $before + 1);
     }
 
     public function test_the_dashboard_hides_notices_from_people_who_cannot_read_them(): void

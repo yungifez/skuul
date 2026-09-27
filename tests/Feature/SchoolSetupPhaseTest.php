@@ -3,12 +3,15 @@
 namespace Tests\Feature;
 
 use App\Enums\SchoolSetupPhaseStatus;
+use App\Livewire\DashboardDataCards;
 use App\Models\AcademicYear;
 use App\Models\User;
 use App\Services\School\SchoolSetupChecklist;
 use App\Services\School\SchoolSetupPhaseService;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Route;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class SchoolSetupPhaseTest extends TestCase
@@ -106,9 +109,47 @@ class SchoolSetupPhaseTest extends TestCase
     {
         $school = $this->workingSchool();
 
-        $this->unauthorized_user($school)
-            ->post(route('schools.setup.acknowledge'))
+        $this->unauthorized_user($school);
+
+        Livewire::test(DashboardDataCards::class)
+            ->call('acknowledgeSetup')
             ->assertForbidden();
+        $this->assertFalse(Route::has('schools.setup.acknowledge'));
+    }
+
+    public function test_the_dashboard_card_acknowledges_a_ready_setup(): void
+    {
+        $school = $this->workingSchool();
+        $this->authorized_user(['manage school settings', 'update school'], $school);
+        $this->mockChecklist([$this->dashboardChecklist(0), $this->dashboardChecklist(0)]);
+
+        Livewire::test(DashboardDataCards::class)
+            ->assertSee('Continue to dashboard')
+            ->call('acknowledgeSetup')
+            ->assertRedirect(route('dashboard'));
+
+        $this->assertDatabaseHas('school_setup_phases', [
+            'school_id' => $school->id,
+            'status' => SchoolSetupPhaseStatus::Acknowledged->value,
+        ]);
+    }
+
+    public function test_a_stale_dashboard_tab_is_told_that_setup_needs_attention_again(): void
+    {
+        $school = $this->workingSchool();
+        $this->authorized_user(['manage school settings', 'update school'], $school);
+        $this->mockChecklist([$this->dashboardChecklist(0), $this->dashboardChecklist(2), $this->dashboardChecklist(2)]);
+
+        Livewire::test(DashboardDataCards::class)
+            ->assertSee('Continue to dashboard')
+            ->call('acknowledgeSetup')
+            ->assertNoRedirect()
+            ->assertDispatched('status-message', type: 'danger');
+
+        $this->assertDatabaseMissing('school_setup_phases', [
+            'school_id' => $school->id,
+            'status' => SchoolSetupPhaseStatus::Acknowledged->value,
+        ]);
     }
 
     private function completeChecklist(int $calls = 1): void
@@ -117,7 +158,17 @@ class SchoolSetupPhaseTest extends TestCase
     }
 
     /**
-     * @param  list<array{academicYear: null, required_remaining: int}>  $states
+     * A checklist state with everything the dashboard card reads.
+     *
+     * @return array{academicYear: null, required_remaining: int, total: int, completed: int, next: null}
+     */
+    private function dashboardChecklist(int $requiredRemaining): array
+    {
+        return ['academicYear' => null, 'required_remaining' => $requiredRemaining, 'total' => 5, 'completed' => 5 - $requiredRemaining, 'next' => null];
+    }
+
+    /**
+     * @param  list<array<string, mixed>>  $states
      */
     private function mockChecklist(array $states): void
     {

@@ -43,7 +43,6 @@ use App\Http\Controllers\PortalInvoicesController;
 use App\Http\Controllers\PortalProgramController;
 use App\Http\Controllers\SchoolController;
 use App\Http\Controllers\SchoolSetupController;
-use App\Http\Controllers\SchoolSetupPhaseController;
 use App\Http\Controllers\StudentAccountController;
 use App\Http\Controllers\StudentController;
 use App\Http\Controllers\StudentPaymentController;
@@ -156,9 +155,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::get('schools/settings', ['App\Http\Controllers\SchoolController', 'settings'])->name('schools.settings')->middleware('App\Http\Middleware\RequireActiveSchool');
     Route::view('schools/operating-profile', 'pages.school.operating-profile')->name('schools.operating-profile.edit')->middleware('App\Http\Middleware\RequireActiveSchool');
     Route::view('schools/features', 'pages.school.features')->name('schools.features.edit')->middleware('App\Http\Middleware\RequireActiveSchool');
-    Route::post('schools/setup/acknowledge', [SchoolSetupPhaseController::class, 'acknowledge'])
-        ->name('schools.setup.acknowledge')
-        ->middleware('App\Http\Middleware\RequireActiveSchool');
 
     // School routes
     Route::get('schools/{school}/setup/{step?}', [SchoolSetupController::class, 'show'])->name('schools.setup');
