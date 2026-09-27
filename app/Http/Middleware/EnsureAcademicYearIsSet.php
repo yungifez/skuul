@@ -29,7 +29,7 @@ class EnsureAcademicYearIsSet
 
     private function hasExplicitAcademicYear(Request $request): bool
     {
-        if (!$request->routeIs('course-offerings.create', 'course-offerings.store')) {
+        if (!$request->routeIs('course-offerings.create')) {
             return false;
         }
 

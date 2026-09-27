@@ -392,7 +392,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::get('course-offerings/roll-forward', [CourseOfferingController::class, 'rollForwardForm'])->name('course-offerings.roll-forward.show');
             Route::post('course-offerings/roll-forward', [CourseOfferingController::class, 'rollForward'])->name('course-offerings.roll-forward');
             Route::resource('course-offerings', CourseOfferingController::class)
-                ->only(['index', 'create', 'store', 'edit', 'update'])
+                ->only(['index', 'create', 'edit', 'update'])
                 ->parameters(['course-offerings' => 'courseOffering']);
             Route::post('course-offerings/{courseOffering}/activate', ['App\Http\Controllers\CourseOfferingController', 'activate'])->name('course-offerings.activate');
             Route::post('course-offerings/{courseOffering}/teachers', ['App\Http\Controllers\CourseOfferingController', 'assignTeacher'])->name('course-offerings.teachers.store');

@@ -14,6 +14,7 @@ use App\Enums\Role;
 use App\Enums\RosterMode;
 use App\Enums\TeachingRole;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\CreateCourseOffering as CreateCourseOfferingForm;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
@@ -30,6 +31,7 @@ use App\Models\User;
 use App\Policies\CourseOfferingPolicy;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class CourseOfferingTest extends TestCase
@@ -187,21 +189,24 @@ class CourseOfferingTest extends TestCase
 
         $this->get(route('course-offerings.create', ['academic_year_id' => $academicYear->id]))
             ->assertOk()
+            ->assertSeeLivewire(CreateCourseOfferingForm::class);
+
+        Livewire::test(CreateCourseOfferingForm::class, ['academicYearId' => $academicYear->id])
             ->assertSee('Who attends')
             ->assertSee('One stream')
             ->assertSee('Combined streams')
             ->assertSee('All '.strtolower(school_terms('period', 'periods')).' in the '.strtolower(school_term('academic_year', 'school year')))
-            ->assertDontSee('home section');
-
-        $this->post(route('course-offerings.store'), [
-            'academic_year_id' => $academicYear->id,
-            'academic_period_id' => 'all',
-            'subject_id' => $subject->id,
-            'academic_level_id' => $academicLevel->id,
-            'roster_mode' => RosterMode::HomeSection->value,
-            'academic_cycle_section_ids' => [$cycleSection->id],
-            'planned_periods_per_week' => 5,
-        ])->assertRedirect(route('course-offerings.index'));
+            ->assertDontSee('home section')
+            ->set('subjectId', $subject->id)
+            ->set('academicLevelId', $academicLevel->id)
+            ->assertSee($cycleSection->label ?? $cycleSection->name)
+            ->set('rosterMode', RosterMode::HomeSection->value)
+            ->set('academicCycleSectionIds', [$cycleSection->id])
+            ->set('academicPeriodId', 'all')
+            ->set('plannedPeriodsPerWeek', 5)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('course-offerings.index'));
 
         $this->assertSame(2, CourseOffering::query()
             ->where('school_id', $this->workingSchool()->id)
@@ -303,6 +308,43 @@ class CourseOfferingTest extends TestCase
     /**
      * @return array{Subject, AcademicYear, AcademicPeriod, AcademicLevel, AcademicCycleSection}
      */
+    public function test_the_add_subject_form_asks_for_sections_and_a_period_of_the_chosen_year(): void
+    {
+        $this->authorized_user(['create subject', 'read subject']);
+        [$subject, $academicYear, , $academicLevel] = $this->courseContext();
+        [, , $otherPeriod] = $this->courseContext();
+        $before = CourseOffering::query()->where('subject_id', $subject->id)->count();
+
+        Livewire::test(CreateCourseOfferingForm::class, ['academicYearId' => $academicYear->id])
+            ->set('subjectId', $subject->id)
+            ->set('academicLevelId', $academicLevel->id)
+            ->set('rosterMode', RosterMode::HomeSection->value)
+            ->set('academicPeriodId', (string) $otherPeriod->id)
+            ->call('save')
+            ->assertHasErrors(['academicCycleSectionIds' => 'required', 'academicPeriodId']);
+
+        $this->assertSame($before, CourseOffering::query()->where('subject_id', $subject->id)->count());
+    }
+
+    public function test_choosing_a_group_switches_the_form_to_everyone_in_the_group(): void
+    {
+        $this->authorized_user(['create subject', 'read subject']);
+        [, $academicYear] = $this->courseContext();
+        $group = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id, 'is_group' => true]);
+
+        Livewire::test(CreateCourseOfferingForm::class, ['academicYearId' => $academicYear->id])
+            ->set('academicLevelId', $group->id)
+            ->assertSet('rosterMode', RosterMode::AcademicLevel->value)
+            ->assertSee('Everyone in '.$group->name);
+    }
+
+    public function test_a_person_without_create_access_cannot_open_the_add_subject_form(): void
+    {
+        $this->unauthorized_user();
+
+        Livewire::test(CreateCourseOfferingForm::class)->assertForbidden();
+    }
+
     private function courseContext(AcademicPeriodStatus $periodStatus = AcademicPeriodStatus::Open, ?School $school = null): array
     {
         $school ??= $this->workingSchool();

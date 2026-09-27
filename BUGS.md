@@ -847,3 +847,12 @@
 - Impact: Printed records given to families exposed an internal admin address. Staff could not leave the print page.
 - Reproduction: Open `/dashboard/students/{id}/print` in a new tab, press Back, then print.
 - Resolution: The print layout sets a zero page margin, so the browser prints no header or footer, and pads the page instead. Back returns through history when the visitor came from the app, and otherwise opens a page each print view names (student, fee invoice, timetable), falling back to the dashboard.
+
+## Adding a subject to a year is a long POST form full of tooltips and hints
+
+- Status: Fixed
+- Area: Course offerings, add subject
+- Observed: The form sat in a card with five help tooltips and seven explanation paragraphs. The period list showed every period of every year. Sections were hidden Alpine templates, one per class. Learners were a long multi-select of the whole school.
+- Impact: The form was hard to scan, and staff could pick a period from the wrong year.
+- Reproduction: Open `/dashboard/course-offerings/create`.
+- Resolution: The form is now the `CreateCourseOffering` Livewire component. Choosing a year limits the periods and sections to that year. Choosing a class lists its sections as checkboxes, or its learners for a named roster. Choosing a group switches to "Everyone in {group}". Validation now refuses a period of another year and asks for sections or learners when the roster needs them. The POST route, the controller `store` action and `StoreCourseOfferingRequest` are removed.

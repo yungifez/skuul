@@ -4,9 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Curriculum\AssignTeacher;
 use App\Actions\Curriculum\ChangeCourseOfferingStatus;
-use App\Actions\Curriculum\CreateCourseOffering;
 use App\Actions\Curriculum\CreateCourseOfferingsForLevels;
-use App\Actions\Curriculum\CreateCourseOfferingsForSections;
 use App\Actions\Curriculum\RollForwardCourseOfferings;
 use App\Actions\Curriculum\UpdateCourseOfferingRoster;
 use App\Enums\AcademicStructureStatus;
@@ -18,12 +16,10 @@ use App\Exceptions\InvalidValueException;
 use App\Http\Requests\AssignTeacherToCourseOfferingRequest;
 use App\Http\Requests\ChangeCourseOfferingStatusRequest;
 use App\Http\Requests\RollForwardCourseOfferingsRequest;
-use App\Http\Requests\StoreCourseOfferingRequest;
 use App\Http\Requests\StoreCourseOfferingsForLevelsRequest;
 use App\Http\Requests\UpdateCourseOfferingRosterRequest;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
-use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\CourseOffering;
 use App\Models\StudentRecord;
@@ -37,9 +33,7 @@ use Illuminate\View\View;
 class CourseOfferingController extends Controller
 {
     public function __construct(
-        private CreateCourseOffering $createCourseOffering,
         private CreateCourseOfferingsForLevels $createCourseOfferingsForLevels,
-        private CreateCourseOfferingsForSections $createCourseOfferingsForSections,
         private ChangeCourseOfferingStatus $changeCourseOfferingStatus,
         private AssignTeacher $assignTeacher,
         private RollForwardCourseOfferings $rollForwardCourseOfferings,
@@ -75,41 +69,7 @@ class CourseOfferingController extends Controller
 
     public function create(): View
     {
-        $academicYears = AcademicYear::inSchool()->with('topLevelPeriods')->orderByDesc('start_year')->get();
-        $academicLevels = AcademicLevel::inSchool()->orderBy('position')->orderBy('name')->get();
-        $selectedAcademicYearId = request()->integer('academic_year_id');
-        $academicCycleSectionsQuery = AcademicCycleSection::inSchool()
-            ->with(['academicLevel:id,name', 'academicYear:id,start_year,stop_year'])
-            ->where('status', '!=', AcademicStructureStatus::Archived)
-            ->orderByDesc('academic_year_id')
-            ->orderBy('academic_level_id')
-            ->orderBy('position')
-            ->orderBy('name');
-
-        if ($selectedAcademicYearId > 0) {
-            $academicCycleSectionsQuery->where('academic_year_id', $selectedAcademicYearId);
-        }
-
-        $academicCycleSections = $academicCycleSectionsQuery->get();
-        $subjects = Subject::inSchool()->orderBy('name')->get();
-        $studentRecordsQuery = StudentRecord::inSchool()
-            ->attending()
-            ->with(['academicCycleSection.academicLevel:id,name', 'user:id,name'])
-            ->orderBy('admission_number');
-
-        if ($selectedAcademicYearId > 0) {
-            $studentRecordsQuery->whereHas('academicCycleSection', function (Builder $query) use ($selectedAcademicYearId): void {
-                $query->where('academic_year_id', $selectedAcademicYearId);
-            });
-        }
-
-        $studentRecords = $studentRecordsQuery->get();
-        $selectedAcademicYear = $academicYears->firstWhere('id', $selectedAcademicYearId ?: current_academic_year_id());
-        $rosterModes = $selectedAcademicYear instanceof AcademicYear
-            ? instructional_model($selectedAcademicYear)->rosterModes()
-            : RosterMode::cases();
-
-        return view('pages.course-offering.create', compact('academicCycleSections', 'academicLevels', 'academicYears', 'rosterModes', 'studentRecords', 'subjects'));
+        return view('pages.course-offering.create');
     }
 
     public function bulkCreate(): View
@@ -253,73 +213,6 @@ class CourseOfferingController extends Controller
         }
 
         return view('pages.course-offering.edit', compact('academicCycleSections', 'courseOffering', 'rosterModes', 'studentRecords'));
-    }
-
-    public function store(StoreCourseOfferingRequest $request): RedirectResponse
-    {
-        $data = $request->validated();
-        $academicYear = AcademicYear::inSchool()->findOrFail($data['academic_year_id']);
-        $subject = Subject::inSchool()->findOrFail($data['subject_id']);
-        $academicLevel = AcademicLevel::inSchool()->findOrFail($data['academic_level_id']);
-        $rosterMode = RosterMode::from($data['roster_mode']);
-        $academicCycleSectionIds = in_array($rosterMode, [RosterMode::HomeSection, RosterMode::CombinedHomeSections], true)
-            ? ($data['academic_cycle_section_ids'] ?? [])
-            : [];
-        $studentRecordIds = $rosterMode === RosterMode::IndividualRoster
-            ? ($data['student_record_ids'] ?? [])
-            : [];
-        $plannedPeriodsPerWeek = $data['planned_periods_per_week'] ?? null;
-        $capacity = $data['capacity'] ?? null;
-
-        if ($rosterMode === RosterMode::HomeSection && count($academicCycleSectionIds) > 1) {
-            $courseOfferings = $this->createCourseOfferingsForSections->create(
-                $subject,
-                $academicYear,
-                $data['academic_period_id'],
-                $academicLevel,
-                $academicCycleSectionIds,
-                $plannedPeriodsPerWeek,
-                $capacity,
-                $request->user(),
-            );
-        } elseif ($data['academic_period_id'] === 'all') {
-            $courseOfferings = $this->createCourseOffering->createForAcademicYear(
-                $subject,
-                $academicYear,
-                $academicLevel,
-                $academicCycleSectionIds,
-                $rosterMode,
-                $studentRecordIds,
-                $plannedPeriodsPerWeek,
-                $capacity,
-                $request->user(),
-            );
-        } else {
-            $courseOffering = $this->createCourseOffering->create(
-                $subject,
-                $academicYear,
-                AcademicPeriod::inSchool()->findOrFail((int) $data['academic_period_id']),
-                $academicLevel,
-                $academicCycleSectionIds,
-                $rosterMode,
-                $studentRecordIds,
-                $plannedPeriodsPerWeek,
-                $capacity,
-                $request->user(),
-            );
-            $courseOfferings = collect([$courseOffering]);
-        }
-
-        $message = $courseOfferings->count() === 1
-            ? 'Subject added to the school year for review. Activate it when the academic period opens.'
-            : $courseOfferings->count().' subject entries added to the school year for review.';
-
-        if ($request->boolean('setup')) {
-            return to_route('academic-years.setup', [$academicYear, 'subjects'])
-                ->with('success', $message);
-        }
-
-        return redirect()->route('course-offerings.index')->with('success', $message);
     }
 
     public function update(UpdateCourseOfferingRosterRequest $request, CourseOffering $courseOffering): RedirectResponse
