@@ -17,7 +17,19 @@
             <april:card>
                 <slot:title>Still owed</slot:title>
                 <slot:description>What the school records as due.</slot:description>
-                <slot:content><p class="text-2xl font-semibold">{{ money_text($balance) }}</p></slot:content>
+                <slot:content>
+                    <p class="text-2xl font-semibold">{{ money_text($balance) }}</p>
+                    @if ($elsewhere->isNotEmpty())
+                        <ul class="mt-3 flex flex-col gap-1 text-sm" aria-label="Owed at other campuses">
+                            @foreach ($elsewhere as $row)
+                                <li class="flex items-center justify-between gap-4">
+                                    <span class="min-w-0 break-words text-muted-foreground">Owed at {{ $row['school']->name }}</span>
+                                    <span class="shrink-0 font-medium tabular-nums">{{ money_text($row['balance']) }}</span>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+                </slot:content>
             </april:card>
             <april:card>
                 <slot:title>Credit held</slot:title>

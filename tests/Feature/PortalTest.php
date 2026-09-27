@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\Enrollment\MoveEnrollmentBetweenCampuses;
+use App\Actions\Finance\ChargeStudent;
 use App\Actions\Library\IssueLoan;
 use App\Actions\Library\ReserveTitle;
 use App\Actions\Portal\SubmitPortalRequest;
@@ -433,6 +434,24 @@ class PortalTest extends TestCase
         $this->actingAs($guardian)
             ->get(route('portal.documents.report-cards.download', [$secondEnrollment, $reportCard]))
             ->assertNotFound();
+    }
+
+    public function test_a_family_sees_what_a_campus_they_left_is_still_owed(): void
+    {
+        $source = $this->workingSchool();
+        $source->forceFill(['name' => 'North Campus'])->save();
+        $destination = School::factory()->create(['organization_id' => $source->organization_id]);
+        features()->enable(Feature::Portal, $destination->id, config: [PortalArea::Invoices->value => true]);
+        $enrollment = $this->enrollment();
+        $guardian = $this->guardianOf($enrollment);
+        app(ChargeStudent::class)->charge($enrollment, 500, 'Term one fees');
+        $enrollment->forceFill(['school_id' => $destination->id])->save();
+
+        $this->actingAs($guardian)
+            ->get(route('portal.invoices.index', $enrollment))
+            ->assertOk()
+            ->assertSee('Owed at North Campus')
+            ->assertSee(money_text(500.0));
     }
 
     /**

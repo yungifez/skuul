@@ -13,6 +13,7 @@ use App\Models\LibraryReservation;
 use App\Models\NoticeRecipient;
 use App\Models\ReportCardSnapshot;
 use App\Models\ResultSnapshot;
+use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\Timetable;
 use App\Models\TranscriptSnapshot;
@@ -110,7 +111,10 @@ class PortalSummary
     /**
      * Get the invoices and what the student owes.
      *
-     * @return array{invoices: Collection<int, FeeInvoice>, balance: float, unapplied_credit: float}|null
+     * A campus with its own books keeps what a learner owed it after they
+     * moved on, so the family sees those debts beside the current campus.
+     *
+     * @return array{invoices: Collection<int, FeeInvoice>, balance: float, unapplied_credit: float, elsewhere: Collection<int, array{school: School, balance: float}>}|null
      */
     public function invoices(StudentRecord $enrollment): ?array
     {
@@ -127,6 +131,9 @@ class PortalSummary
                 ->get(),
             'balance' => $this->ledger->balance($enrollment),
             'unapplied_credit' => $this->ledger->unappliedCredit($enrollment),
+            'elsewhere' => $this->ledger->balancesByCampus($enrollment)
+                ->reject(fn (array $row): bool => $row['school']->id === $enrollment->school_id)
+                ->values(),
         ];
     }
 

@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A family could not see what a campus they left was still owed
+
+- Status: Fixed
+- Area: Parent portal, invoices, campus moves
+- Observed: A learner moved to a campus with separate books while owing the old campus. The portal showed only the new campus's balance, so the family saw nothing owed.
+- Impact: Families did not know about a debt the old campus still chased. Staff saw it on the account screen, but the family did not.
+- Reproduction: Charge a learner at campus A. Move them to campus B (no shared billing group). Open the portal's invoices page as their guardian.
+- Resolution: The portal invoices page lists "Owed at <campus>" beneath the current balance for each other campus the learner still owes.
+
 ## A campus lost the money it collected after its learner moved on
 
 - Status: Fixed

@@ -35,6 +35,7 @@ class PortalInvoicesController extends Controller
             'invoices' => $invoices['invoices'],
             'balance' => $invoices['balance'],
             'unappliedCredit' => $invoices['unapplied_credit'],
+            'elsewhere' => $invoices['elsewhere'],
         ]);
     }
 }
