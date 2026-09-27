@@ -937,3 +937,10 @@
 - Impact: Taking money at the counter needed a lot of scrolling and reading. A split the fees could not take lost everything the office had typed.
 - Reproduction: Open `/dashboard/fees/fee-invoices/{id}/pay`, enter 10.005, or split more onto one fee than it owes.
 - Resolution: The page is now the `TakeInvoicePayment` Livewire component. It shows one facts row (From, Paid, Owed), then amount and date, the payment methods as compact choices, and reference and note. "Split across fees" is a checkbox that shows one amount field per fee that still owes, and only appears when more than one fee is open. Amounts accept at most two decimals. An error from the action shows next to the amount or the fees, and the typed values stay. The POST route and `PayFeeInvoiceRequest` are removed. The tests now drive the component and cover decimals, a refused split and permission.
+
+## Invoice edit page offered fee changes that posted invoices always refuse
+
+- **Where:** `/dashboard/fees/fee-invoices/{id}/edit`
+- **Problem:** The page showed carded POST forms to add, change and remove fees. Every invoice made through the create screen is posted to the ledger, so the service refused each of these changes after the form was sent. The add form also sent the fee through an unnamed hidden input. The invoice pages still pointed back to "Fees › Fee Invoices", but that page is now "Finance".
+- **Fix:** The edit page is now one Livewire form (`EditFeeInvoiceForm`). It saves the due date and note. It shows the fees of a posted invoice with a lock and no actions. On an unposted invoice, each fee has a ⋯ menu to change or remove it, and "Add fee" opens an inline form. A paid fee cannot be removed. The details Save button drops to outline while a fee form is open, so only one accent button shows. The invoice update route, the fee-line controller and three form requests are removed. The breadcrumbs on the invoice, payment, create and student account pages now read "Dashboard › Finance".
+- **Tests:** `FeeInvoiceRecordTest` and `FeeInvoiceTest` use Livewire for every change. A stale Finance page test from the earlier rebuild is updated.

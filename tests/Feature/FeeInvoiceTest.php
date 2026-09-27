@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\EditFeeInvoiceForm;
 use App\Livewire\ListFeeInvoicesTable;
 use App\Models\Fee;
 use App\Models\FeeCategory;
@@ -36,17 +37,17 @@ class FeeInvoiceTest extends TestCase
         $response = $this->authorized_user(['read fee invoice'])
             ->get('dashboard/fees/fee-invoices')
             ->assertSuccessful()
-            ->assertSee('data-slot="collapsible" data-state="closed"', false)
-            ->assertSee('Finance tasks')
-            ->assertSee('Create an invoice');
+            ->assertSee('id="finance-owed"', false)
+            ->assertSee('Overdue invoices')
+            ->assertSee('More finance pages');
 
         $content = $response->getContent();
-        $collapsiblePosition = strpos($content, 'data-slot="collapsible"');
+        $summaryPosition = strpos($content, 'id="finance-owed"');
         $tablePosition = strpos($content, 'data-slot="data-table"');
 
-        $this->assertIsInt($collapsiblePosition);
+        $this->assertIsInt($summaryPosition);
         $this->assertIsInt($tablePosition);
-        $this->assertLessThan($tablePosition, $collapsiblePosition);
+        $this->assertLessThan($tablePosition, $summaryPosition);
     }
 
     public function test_authorized_user_can_view_fee_invoices_with_current_enrollment_placement()
@@ -346,47 +347,44 @@ class FeeInvoiceTest extends TestCase
 
         $this->authorized_user(['update fee invoice'])
             ->get("dashboard/fees/fee-invoices/$feeInvoice->id/edit")
-            ->assertSuccessful();
+            ->assertSuccessful()
+            ->assertSeeInOrder(['Finance', $feeInvoice->name, 'Edit'])
+            ->assertDontSee('Fee Invoices');
     }
 
     public function test_unauthorized_user_cannot_update_fee_invoice()
     {
         $feeInvoice = FeeInvoice::factory()->create();
-        $issueDate = $this->faker->date();
-        $dueDate = $this->faker->date();
+        $this->unauthorized_user();
 
-        $this->unauthorized_user()
-            ->put("dashboard/fees/fee-invoices/$feeInvoice->id/", [
-                'issue_date' => $issueDate,
-                'due_date' => $dueDate,
-            ])
-            ->assertForbidden();
-
-        $this->assertDatabaseMissing('fee_invoices', [
-            'id' => $feeInvoice->id,
-            'issue_date' => $issueDate,
-            'due_date' => $dueDate,
-        ]);
+        Livewire::test(EditFeeInvoiceForm::class, ['feeInvoice' => $feeInvoice])->assertForbidden();
     }
 
     public function test_authorized_user_can_update_fee_invoice()
     {
-        $feeInvoice = FeeInvoice::factory()->create();
-        $issueDate = $feeInvoice->issue_date->format('Y-m-d');
-        $dueDate = Carbon::parse($issueDate)->addDays(10)->format('Y-m-d');
+        $feeInvoice = FeeInvoice::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $dueDate = $feeInvoice->issue_date->copy()->addDays(10)->format('Y-m-d');
+        $this->authorized_user(['update fee invoice']);
 
-        $this->authorized_user(['update fee invoice'])
-            ->put("dashboard/fees/fee-invoices/$feeInvoice->id/", [
-                'issue_date' => $issueDate,
-                'due_date' => $dueDate,
-            ])
-            ->assertRedirect();
+        Livewire::test(EditFeeInvoiceForm::class, ['feeInvoice' => $feeInvoice])
+            ->set('dueDate', $dueDate)
+            ->set('note', 'Second term')
+            ->call('saveDetails')
+            ->assertHasNoErrors();
 
-        $this->assertDatabaseHas('fee_invoices', [
-            'id' => $feeInvoice->id,
-            'issue_date' => $issueDate,
-            'due_date' => $dueDate,
-        ]);
+        $this->assertSame($dueDate, $feeInvoice->fresh()->due_date->format('Y-m-d'));
+        $this->assertSame('Second term', $feeInvoice->fresh()->note);
+    }
+
+    public function test_a_due_date_cannot_come_before_the_issue_date()
+    {
+        $feeInvoice = FeeInvoice::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['update fee invoice']);
+
+        Livewire::test(EditFeeInvoiceForm::class, ['feeInvoice' => $feeInvoice])
+            ->set('dueDate', $feeInvoice->issue_date->copy()->subDay()->format('Y-m-d'))
+            ->call('saveDetails')
+            ->assertHasErrors(['dueDate' => 'after_or_equal']);
     }
 
     public function test_unauthorized_user_cannot_delete_fee_invoice()

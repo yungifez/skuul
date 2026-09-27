@@ -22,7 +22,6 @@ use App\Http\Controllers\FacilityController;
 use App\Http\Controllers\FeeCategoryController;
 use App\Http\Controllers\FeeController;
 use App\Http\Controllers\FeeInvoiceController;
-use App\Http\Controllers\FeeInvoiceRecordController;
 use App\Http\Controllers\GradebookController;
 use App\Http\Controllers\GradingScaleController;
 use App\Http\Controllers\HealthController;
@@ -431,16 +430,13 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             // current teaching term. A school can read and post finance while
             // the academic period is being prepared or changed.
             Route::resource('fees/fee-categories', FeeCategoryController::class);
-            // Records are edited from the invoice screen, so the resource keeps only
-            // the writes. The read routes existed but always answered 404.
-            Route::resource('fees/fee-invoices/fee-invoice-records', FeeInvoiceRecordController::class)->only(['store', 'update', 'destroy']);
             Route::resource('fees/expenses', ExpenseController::class)->only(['index', 'create', 'store']);
             Route::resource('fees/cash-deposits', CashDepositController::class)->only(['index', 'create', 'store']);
             Route::get('fees/accounts/{student_record}', [StudentAccountController::class, 'show'])->name('student-accounts.show');
             Route::get('fees/payments/{student_payment}/receipt', [StudentPaymentController::class, 'print'])->name('student-payments.receipt');
             Route::get('fees/fee-invoices/{fee_invoice}/pay', [FeeInvoiceController::class, 'payView'])->name('fee-invoices.pay');
             Route::get('fees/fee-invoices/{fee_invoice}/print', [FeeInvoiceController::class, 'print'])->name('fee-invoices.print');
-            Route::resource('fees/fee-invoices', FeeInvoiceController::class);
+            Route::resource('fees/fee-invoices', FeeInvoiceController::class)->except(['update']);
             Route::resource('fees/budgets', BudgetController::class)->only(['index', 'store', 'destroy']);
             Route::resource('fees', FeeController::class);
 

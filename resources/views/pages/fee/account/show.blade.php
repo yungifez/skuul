@@ -1,7 +1,6 @@
 @extends('layouts.app', ['breadcrumbs' => [
     ['href' => route('dashboard'), 'text' => 'Dashboard'],
-    ['href' => route('fees.index'), 'text' => 'Fees'],
-    ['href' => route('fee-invoices.index'), 'text' => 'Fee invoices'],
+    ['href' => route('fee-invoices.index'), 'text' => 'Finance'],
     ['href' => route('student-accounts.show', $enrollment->id), 'text' => $enrollment->user?->name ?? 'Student account', 'active'],
 ]])
 

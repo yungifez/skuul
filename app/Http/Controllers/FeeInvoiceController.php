@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreFeeInvoiceRequest;
-use App\Http\Requests\UpdateFeeInvoiceRequest;
 use App\Models\Expense;
 use App\Models\FeeInvoice;
 use App\Models\FinancialPeriod;
@@ -105,16 +104,6 @@ class FeeInvoiceController extends Controller
     public function edit(FeeInvoice $feeInvoice): View
     {
         return view('pages.fee.fee-invoice.edit', compact('feeInvoice'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateFeeInvoiceRequest $request, FeeInvoice $feeInvoice): RedirectResponse
-    {
-        $this->feeInvoiceService->updateFeeInvoice($feeInvoice, $request->validated());
-
-        return back()->with('success', 'Fee Invoice Updated Successfully');
     }
 
     /**
