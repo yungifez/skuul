@@ -2,21 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Organization\CreateOrganization;
-use App\Actions\Organization\UpdateOrganization;
 use App\Enums\PlatformPermission;
-use App\Http\Requests\OrganizationStoreRequest;
-use App\Http\Requests\OrganizationUpdateRequest;
 use App\Models\Organization;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class OrganizationController extends Controller
 {
-    public function __construct(
-        private CreateOrganization $createOrganization,
-        private UpdateOrganization $updateOrganization,
-    ) {
+    public function __construct()
+    {
         $this->authorizeResource(Organization::class, 'organization');
     }
 
@@ -41,16 +34,6 @@ class OrganizationController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     */
-    public function store(OrganizationStoreRequest $request): RedirectResponse
-    {
-        $organization = $this->createOrganization->create($request->validated(), $request->user());
-
-        return redirect()->route('organizations.show', $organization)->with('success', __('Organization created successfully'));
-    }
-
-    /**
      * Display the specified resource.
      */
     public function show(Organization $organization): View
@@ -66,23 +49,5 @@ class OrganizationController extends Controller
     public function edit(Organization $organization): View
     {
         return view('pages.organization.edit', compact('organization'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(OrganizationUpdateRequest $request, Organization $organization): RedirectResponse
-    {
-        $this->updateOrganization->update($organization, $request->validated(), $request->user());
-
-        return redirect()->route('organizations.show', $organization)->with('success', __('Organization updated successfully'));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Organization $organization): RedirectResponse
-    {
-        abort(405);
     }
 }

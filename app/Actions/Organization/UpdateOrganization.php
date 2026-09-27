@@ -10,22 +10,27 @@ use Illuminate\Support\Facades\DB;
 
 class UpdateOrganization
 {
-    public function __construct(private RecordAuditEvent $recordAuditEvent)
-    {
-    }
+    public function __construct(private RecordAuditEvent $recordAuditEvent) {}
 
     /**
-     * @param array{name: string, code?: string|null, address?: string|null, email?: string|null, phone?: string|null} $attributes
+     * @param  array{name: string, code?: string|null, address?: string|null, email?: string|null, phone?: string|null}  $attributes
      */
     public function update(Organization $organization, array $attributes, ?User $actor = null): Organization
     {
         return DB::transaction(function () use ($organization, $attributes, $actor): Organization {
-            $organization->update($attributes);
+            $organization->fill($attributes);
+            $changed = array_keys($organization->getDirty());
+
+            if ($changed === []) {
+                return $organization;
+            }
+
+            $organization->save();
 
             $this->recordAuditEvent->record(
                 AuditAction::OrganizationUpdated,
                 $organization,
-                ['organization_id' => $organization->id, 'changed' => array_keys($attributes)],
+                ['organization_id' => $organization->id, 'changed' => $changed],
                 $actor,
             );
 

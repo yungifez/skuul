@@ -139,7 +139,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::get('organizations/{organization}/domains', ['App\Http\Controllers\OrganizationDomainController', 'index'])->name('organizations.domains.index');
     Route::get('organizations/{organization}/billing-groups', ['App\Http\Controllers\OrganizationBillingGroupController', 'index'])->name('organizations.billing-groups.index');
     Route::get('organizations/{organization}/boarding-residences', [OrganizationBoardingResidenceController::class, 'index'])->name('organizations.boarding-residences.index');
-    Route::resource('organizations', OrganizationController::class)->except('destroy');
+    Route::resource('organizations', OrganizationController::class)->only(['index', 'create', 'show', 'edit']);
     Route::get('organizations/{organization}/dashboard', OrganizationDashboardController::class)->name('organizations.dashboard');
     Route::resource('organizations.calendar-templates', CalendarTemplateController::class)
         ->parameters(['calendar-templates' => 'calendarTemplate'])

@@ -9,20 +9,5 @@
 @section('page_heading', __('Create organization'))
 
 @section('content')
-    <april:card>
-        <slot:title>Create organization</slot:title>
-        <slot:description>Use one organization for a school group, district, or independent school. A campus can be added afterwards.</slot:description>
-        <slot:content>
-            <form method="POST" action="{{ route('organizations.store') }}" class="space-y-4 md:max-w-xl">
-                @csrf
-                <x-display-validation-errors />
-                <april:input-group name="name" id="name" label="Organization name *" value="{{ old('name') }}" required />
-                <april:input-group name="code" id="code" label="Organization code" value="{{ old('code') }}" />
-                <april:input-group name="address" id="address" type="text" label="Address" value="{{ old('address') }}" />
-                <april:input-group name="email" id="email" type="email" label="Email" value="{{ old('email') }}" />
-                <april:input-group name="phone" id="phone" type="tel" label="Phone" value="{{ old('phone') }}" />
-                <april:button type="submit">Create organization</april:button>
-            </form>
-        </slot:content>
-    </april:card>
+    @livewire('organization-form')
 @endsection

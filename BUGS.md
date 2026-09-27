@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Saving organization settings logged every field as changed
+
+- Status: Fixed
+- Area: Organizations, settings
+- Observed: Saving the organization settings recorded every field in the audit log, even when nothing changed. Spaces around the name and code were stored, and an empty email or phone was kept as blank text. No test covered creating or changing an organization.
+- Impact: The audit log could not show who changed an organization's name or code.
+- Reproduction: Open the organization settings and save without changing anything. The log said name, code, address, email and phone changed.
+- Resolution: UpdateOrganization writes and logs only the fields that changed, and nothing when none did. The new Livewire component OrganizationForm creates and edits organizations, trims values and stores blanks as empty. The store and update routes and both requests were removed. OrganizationSettingsTest covers create, a taken code, the log and access.
+
 ## A proved web address kept opening a campus that had left the organization
 
 - Status: Fixed
