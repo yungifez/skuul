@@ -433,9 +433,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                     Route::post('library', [LibraryCopyController::class, 'store'])->name('library-copies.store');
                     Route::delete('library/copies/{library_copy}', [LibraryCopyController::class, 'destroy'])->name('library-copies.destroy');
                     Route::get('library/desk', [LibraryLoanController::class, 'index'])->name('library-loans.index');
-                    Route::post('library/desk', [LibraryLoanController::class, 'store'])->name('library-loans.store');
-                    Route::post('library/desk/section', [LibraryLoanController::class, 'storeForSection'])->name('library-loans.section.store');
-                    Route::put('library/desk/{library_loan}', [LibraryLoanController::class, 'update'])->name('library-loans.update');
                     Route::get('library/queue', [LibraryReservationController::class, 'index'])->name('library-reservations.index');
                     Route::post('library/queue', [LibraryReservationController::class, 'store'])->name('library-reservations.store');
                     Route::delete('library/queue/{library_reservation}', [LibraryReservationController::class, 'destroy'])->name('library-reservations.destroy');

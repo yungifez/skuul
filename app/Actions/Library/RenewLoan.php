@@ -8,6 +8,7 @@ use App\Exceptions\InvalidValueException;
 use App\Models\LibraryLendingRules;
 use App\Models\LibraryLoan;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Give the borrower more time with a copy.
@@ -26,37 +27,41 @@ class RenewLoan
      */
     public function renew(LibraryLoan $loan, ?User $actor = null): LibraryLoan
     {
-        if (!$loan->isOpen()) {
-            throw new InvalidValueException('This copy is already back.');
-        }
+        return DB::transaction(function () use ($loan, $actor): LibraryLoan {
+            $loan = LibraryLoan::query()->lockForUpdate()->findOrFail($loan->id);
 
-        $policy = LibraryLendingRules::forSchool($loan->school_id);
+            if (!$loan->isOpen()) {
+                throw new InvalidValueException('This copy is already back.');
+            }
 
-        if ($policy->renewals_allowed === 0) {
-            throw new InvalidValueException('This library does not renew loans.');
-        }
+            $policy = LibraryLendingRules::forSchool($loan->school_id);
 
-        if ($loan->renewals >= $policy->renewals_allowed) {
-            throw new InvalidValueException('This loan has been renewed as often as the library allows.');
-        }
+            if ($policy->renewals_allowed === 0) {
+                throw new InvalidValueException('This library does not renew loans.');
+            }
 
-        if ($loan->daysLate() > 0) {
-            throw new InvalidValueException('This copy is late. Bring it back before it goes out again.');
-        }
+            if ($loan->renewals >= $policy->renewals_allowed) {
+                throw new InvalidValueException('This loan has been renewed as often as the library allows.');
+            }
 
-        $was = $loan->due_on->toDateString();
-        $loan->due_on = $loan->due_on->copy()->addDays($policy->loan_days);
-        $loan->renewals = $loan->renewals + 1;
-        $loan->save();
+            if ($loan->daysLate() > 0) {
+                throw new InvalidValueException('This copy is late. Bring it back before it goes out again.');
+            }
 
-        $this->auditor->record(
-            AuditAction::LibraryLoanRenewed,
-            $loan,
-            ['was' => $was, 'now' => $loan->due_on->toDateString(), 'renewals' => $loan->renewals],
-            $actor,
-            $loan->school_id,
-        );
+            $was = $loan->due_on->toDateString();
+            $loan->due_on = $loan->due_on->copy()->addDays($policy->loan_days);
+            $loan->renewals = $loan->renewals + 1;
+            $loan->save();
 
-        return $loan;
+            $this->auditor->record(
+                AuditAction::LibraryLoanRenewed,
+                $loan,
+                ['was' => $was, 'now' => $loan->due_on->toDateString(), 'renewals' => $loan->renewals],
+                $actor,
+                $loan->school_id,
+            );
+
+            return $loan;
+        });
     }
 }

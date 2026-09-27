@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Two taps on "Take it back" charged a late fine twice
+
+- Status: Fixed
+- Area: Library lending desk
+- Observed: `ReturnLoan` checked that the copy was out before its transaction, using the loan as the page read it. Two returns at once, from a double tap or two tabs, both passed and both posted the fine to the learner's account. `RenewLoan` had the same gap, so two renewals at once could go past the campus limit. The desk also listed every person on the campus in one select, with no way to search.
+- Impact: A family was billed twice for one late book, through the ledger that answers what they owe.
+- Reproduction: Lend a copy 20 days ago on a campus that fines. Press "Take it back" twice quickly. Two fines appear on the account.
+- Resolution: Both actions read the loan again under a lock. The Livewire `LibraryLendingDesk` works from a scan. A copy that is out offers "Take it back" and "Renew". A copy on the shelf offers a search by name or admission number, limited to this campus. The desk finds no copy and no person of another campus. The class set sits behind the ⋯ menu. The loan POST and PUT routes and their requests are gone. `LibraryTest` covers the double return, the stale renewal, and a class set that is short of copies.
+
 ## A boarding house could close in the moment a child took a bed in it
 
 - Status: Fixed

@@ -13,6 +13,7 @@ use App\Enums\LibraryCopyStatus;
 use App\Enums\LibraryReservationStatus;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\LibraryCopyCatalog as LibraryCopyCatalogComponent;
+use App\Livewire\LibraryLendingDesk;
 use App\Models\AcademicCycleSection;
 use App\Models\AuditEvent;
 use App\Models\FinancialPeriod;
@@ -428,31 +429,148 @@ class LibraryTest extends TestCase
         $actor = $this->authorized_user(['read library', 'lend library item']);
         app(FeatureManager::class)->enable(Feature::Library);
         $copy = $this->copy();
-        $borrower = $this->memberOf($this->workingSchool());
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id, 'admission_number' => 'ADM-7781']);
+        $borrower = $this->memberOf($this->workingSchool(), $enrollment->user);
 
-        $actor->post(route('library-loans.store'), [
-            'barcode' => $copy->barcode,
-            'user_id' => $borrower->id,
-        ])->assertRedirect();
+        $actor->get(route('library-loans.index'))->assertOk()->assertSeeLivewire(LibraryLendingDesk::class);
+
+        $desk = Livewire::test(LibraryLendingDesk::class)
+            ->set('barcode', $copy->barcode)
+            ->call('scan')
+            ->set('borrowerSearch', '7781')
+            ->assertSee($borrower->name)
+            ->call('lendTo', $borrower->id)
+            ->assertHasNoErrors()
+            ->assertSet('scannedCopyId', null);
 
         $loan = LibraryLoan::sole();
-        $this->assertTrue($loan->isOpen());
+        $this->assertSame($borrower->id, $loan->user_id);
 
-        $actor->put(route('library-loans.update', $loan->id), ['do' => 'return'])->assertRedirect();
+        $desk->set('barcode', $copy->barcode)
+            ->call('scan')
+            ->assertSee('Take it back')
+            ->assertDontSee('Who is taking it?')
+            ->call('takeBack', $loan->id)
+            ->assertDispatched('status-message', type: 'success', message: 'The copy is back.');
 
         $this->assertFalse($loan->fresh()->isOpen());
     }
 
+    public function test_the_desk_finds_no_copy_or_person_of_another_campus(): void
+    {
+        $this->authorized_user(['read library', 'lend library item']);
+        app(FeatureManager::class)->enable(Feature::Library);
+        $otherSchool = School::factory()->create();
+        $foreignCopy = LibraryCopy::factory()->create(['school_id' => $otherSchool->id]);
+        $outsider = $this->memberOf($otherSchool, $this->nonMember());
+        $copy = $this->copy();
+
+        Livewire::test(LibraryLendingDesk::class)
+            ->set('barcode', $foreignCopy->barcode)
+            ->call('scan')
+            ->assertHasErrors('barcode')
+            ->assertSee('No copy on this campus has that barcode.')
+            ->set('barcode', $copy->barcode)
+            ->call('scan')
+            ->assertHasNoErrors()
+            ->set('borrowerSearch', $outsider->name)
+            ->assertSee('Nobody on this campus matches')
+            ->call('lendTo', $outsider->id)
+            ->assertHasErrors('borrowerSearch')
+            ->assertSee('This person does not belong to this campus.');
+
+        $this->assertSame(0, LibraryLoan::count());
+    }
+
+    public function test_a_second_tap_on_take_it_back_charges_no_second_fine(): void
+    {
+        $this->authorized_user(['read library', 'lend library item']);
+        app(FeatureManager::class)->enable(Feature::Library);
+        FinancialPeriod::query()->firstOrCreate(
+            ['school_id' => $this->workingSchool()->id, 'name' => 'Current finance period'],
+            ['starts_on' => now()->startOfYear()->toDateString(), 'ends_on' => now()->endOfYear()->toDateString()],
+        );
+        LibraryLendingRules::create(['school_id' => $this->workingSchool()->id, 'fine_per_day' => 5_000]);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $borrower = $this->memberOf($this->workingSchool(), $enrollment->user);
+        $loan = app(IssueLoan::class)->issue($this->copy(), $borrower, issuedOn: now()->subDays(20));
+
+        $firstTab = Livewire::test(LibraryLendingDesk::class);
+        $secondTab = Livewire::test(LibraryLendingDesk::class);
+
+        $firstTab->call('takeBack', $loan->id)->assertDispatched('status-message', type: 'success');
+        $secondTab->call('takeBack', $loan->id)->assertDispatched('status-message', type: 'danger', message: 'This copy is already back.');
+
+        // The loan object the second return holds still reads as open.
+        try {
+            app(ReturnLoan::class)->receive($loan);
+            $this->fail('A stale loan came back twice.');
+        } catch (InvalidValueException) {
+        }
+
+        $this->assertSame(300.0, app(StudentLedger::class)->balance($enrollment->fresh()));
+    }
+
+    public function test_a_stale_loan_is_not_renewed_past_the_limit(): void
+    {
+        $this->authorized_user([]);
+        LibraryLendingRules::create(['school_id' => $this->workingSchool()->id, 'renewals_allowed' => 1]);
+        $loan = app(IssueLoan::class)->issue($this->copy(), $this->memberOf($this->workingSchool()));
+        app(RenewLoan::class)->renew($loan);
+
+        $this->expectException(InvalidValueException::class);
+        $this->expectExceptionMessage('This loan has been renewed as often as the library allows.');
+
+        try {
+            app(RenewLoan::class)->renew($loan);
+        } finally {
+            $this->assertSame(1, $loan->fresh()->renewals);
+        }
+    }
+
+    public function test_the_desk_lends_a_class_set_or_says_why_not(): void
+    {
+        $this->authorized_user(['read library', 'lend library item']);
+        app(FeatureManager::class)->enable(Feature::Library);
+        $school = $this->workingSchool();
+        $section = AcademicCycleSection::factory()->create(['school_id' => $school->id]);
+        foreach (range(1, 2) as $learner) {
+            $enrollment = StudentRecord::factory()->create(['school_id' => $school->id, 'academic_cycle_section_id' => $section->id]);
+            $this->memberOf($school, $enrollment->user);
+        }
+        $title = LibraryTitle::factory()->create();
+        LibraryCopy::factory()->create(['school_id' => $school->id, 'library_title_id' => $title->id]);
+
+        $desk = Livewire::test(LibraryLendingDesk::class)
+            ->call('$set', 'isLendingSet', true)
+            ->set('sectionId', (string) $section->id)
+            ->set('titleId', (string) $title->id)
+            ->call('lendSet')
+            ->assertHasErrors('sectionId');
+
+        $this->assertSame(0, LibraryLoan::count());
+
+        LibraryCopy::factory()->create(['school_id' => $school->id, 'library_title_id' => $title->id]);
+
+        $desk->call('lendSet')
+            ->assertHasNoErrors()
+            ->assertDispatched('status-message', type: 'success', message: "2 copies of {$title->title} are out to the class.");
+
+        $this->assertSame(2, LibraryLoan::count());
+    }
+
     public function test_reading_the_library_does_not_allow_lending(): void
     {
-        $actor = $this->authorized_user(['read library']);
+        $this->authorized_user(['read library']);
         app(FeatureManager::class)->enable(Feature::Library);
         $copy = $this->copy();
 
-        $actor->post(route('library-loans.store'), [
-            'barcode' => $copy->barcode,
-            'user_id' => $this->memberOf($this->workingSchool())->id,
-        ])->assertForbidden();
+        Livewire::test(LibraryLendingDesk::class)
+            ->assertDontSee('Scan a copy')
+            ->set('barcode', $copy->barcode)
+            ->call('scan')
+            ->call('lendTo', $this->memberOf($this->workingSchool())->id)
+            ->assertForbidden();
 
         $this->assertSame(0, LibraryLoan::count());
     }

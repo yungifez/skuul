@@ -34,13 +34,18 @@ class ReturnLoan
      */
     public function receive(LibraryLoan $loan, ?User $actor = null, ?Carbon $returnedOn = null): LibraryLoan
     {
-        if (!$loan->isOpen()) {
-            throw new InvalidValueException('This copy is already back.');
-        }
-
         $returnedOn ??= now();
 
         return DB::transaction(function () use ($loan, $actor, $returnedOn): LibraryLoan {
+            // A double tap at the desk sends two returns. Read the loan again
+            // under a lock, so the second meets the first and no fine is
+            // charged twice.
+            $loan = LibraryLoan::query()->lockForUpdate()->findOrFail($loan->id);
+
+            if (!$loan->isOpen()) {
+                throw new InvalidValueException('This copy is already back.');
+            }
+
             $loan->returned_on = $returnedOn;
             $loan->received_by = $actor === null ? auth()->id() : $actor->id;
 
