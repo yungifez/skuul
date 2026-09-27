@@ -7,6 +7,7 @@ use App\Actions\Wellbeing\RecordHealthInformation;
 use App\Enums\Feature;
 use App\Enums\SupportCategory;
 use App\Enums\SupportPlanStatus;
+use App\Livewire\ShowSupportPlan;
 use App\Livewire\StudentHealthRecordDirectory as StudentHealthRecordDirectoryComponent;
 use App\Livewire\SupportPlanDirectory as SupportPlanDirectoryComponent;
 use App\Models\StudentHealthRecord;
@@ -82,15 +83,14 @@ class WellbeingScreenTest extends TestCase
         $this->authorized_user(['read support plan', 'create support plan', 'update support plan']);
         $plan = $this->plan();
 
-        $this->from(route('support-plans.show', $plan))
-            ->post(route('support-plans.actions.store', $plan), [
-                'description' => 'Read with the learner every Tuesday.',
-            ])
-            ->assertRedirect(route('support-plans.show', $plan));
-
-        $this->from(route('support-plans.show', $plan))
-            ->post(route('support-plans.notes.store', $plan), ['body' => 'The learner read a page alone.'])
-            ->assertRedirect(route('support-plans.show', $plan));
+        Livewire::test(ShowSupportPlan::class, ['plan' => $plan])
+            ->set('actionDescription', 'Read with the learner every Tuesday.')
+            ->call('addAction')
+            ->assertHasNoErrors()
+            ->assertSet('actionDescription', '')
+            ->set('noteBody', 'The learner read a page alone.')
+            ->call('addNote')
+            ->assertHasNoErrors();
 
         $this->get(route('support-plans.show', $plan))
             ->assertOk()
@@ -104,9 +104,9 @@ class WellbeingScreenTest extends TestCase
         $plan = $this->plan();
         $action = app(ManageSupportPlan::class)->addAction($plan, 'Read with the learner every Tuesday.');
 
-        $this->from(route('support-plans.show', $plan))
-            ->post(route('support-plans.actions.complete', [$plan, $action]))
-            ->assertRedirect(route('support-plans.show', $plan));
+        Livewire::test(ShowSupportPlan::class, ['plan' => $plan])
+            ->call('completeAction', $action->id)
+            ->assertSee('Done '.now()->format('j M Y'));
 
         $this->assertNotNull($action->fresh()->completed_at);
     }
@@ -116,12 +116,12 @@ class WellbeingScreenTest extends TestCase
         $this->authorized_user(['read support plan', 'create support plan', 'update support plan']);
         $plan = $this->plan();
 
-        $this->from(route('support-plans.show', $plan))
-            ->put(route('support-plans.status.update', $plan), [
-                'status' => SupportPlanStatus::Active->value,
-                'reason' => 'The guardian agreed.',
-            ])
-            ->assertRedirect(route('support-plans.show', $plan));
+        Livewire::test(ShowSupportPlan::class, ['plan' => $plan])
+            ->set('nextStatus', SupportPlanStatus::Active->value)
+            ->set('statusReason', 'The guardian agreed.')
+            ->call('changeStatus')
+            ->assertHasNoErrors()
+            ->assertSee('The guardian agreed.');
 
         $this->assertSame(SupportPlanStatus::Active, $plan->fresh()->status);
         $this->assertSame(1, $plan->statusChanges()->count());
@@ -132,11 +132,48 @@ class WellbeingScreenTest extends TestCase
         $this->authorized_user(['read support plan', 'create support plan', 'update support plan']);
         $plan = $this->plan();
 
-        $this->from(route('support-plans.show', $plan))
-            ->put(route('support-plans.status.update', $plan), ['status' => SupportPlanStatus::OnHold->value])
-            ->assertSessionHasErrors('status');
+        Livewire::test(ShowSupportPlan::class, ['plan' => $plan])
+            ->set('nextStatus', SupportPlanStatus::OnHold->value)
+            ->call('changeStatus')
+            ->assertHasErrors('nextStatus');
 
         $this->assertSame(SupportPlanStatus::Draft, $plan->fresh()->status);
+    }
+
+    public function test_a_person_who_may_only_read_a_plan_cannot_change_it(): void
+    {
+        $this->authorized_user(['read support plan', 'create support plan', 'update support plan']);
+        $plan = $this->plan();
+        $this->authorized_user(['read support plan']);
+
+        Livewire::test(ShowSupportPlan::class, ['plan' => $plan])
+            ->assertDontSee('Move the plan')
+            ->assertDontSee('Add step')
+            ->set('noteBody', 'Not allowed')
+            ->call('addNote')
+            ->assertForbidden();
+
+        $this->assertSame(0, $plan->notes()->count());
+    }
+
+    public function test_a_step_needs_words_and_a_finished_plan_takes_no_steps(): void
+    {
+        $this->authorized_user(['read support plan', 'create support plan', 'update support plan']);
+        $plan = $this->plan();
+
+        Livewire::test(ShowSupportPlan::class, ['plan' => $plan])
+            ->call('addAction')
+            ->assertHasErrors(['actionDescription' => 'required']);
+
+        $manager = app(ManageSupportPlan::class);
+        $manager->changeStatus($plan, SupportPlanStatus::Active);
+        $manager->changeStatus($plan->fresh(), SupportPlanStatus::Completed);
+
+        Livewire::test(ShowSupportPlan::class, ['plan' => $plan->fresh()])
+            ->assertDontSee('Add step')
+            ->set('actionDescription', 'Too late')
+            ->call('addAction')
+            ->assertHasErrors('actionDescription');
     }
 
     public function test_the_list_hides_a_confidential_plan_from_a_person_who_may_not_read_it(): void

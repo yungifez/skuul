@@ -856,3 +856,12 @@
 - Impact: The form was hard to scan, and staff could pick a period from the wrong year.
 - Reproduction: Open `/dashboard/course-offerings/create`.
 - Resolution: The form is now the `CreateCourseOffering` Livewire component. Choosing a year limits the periods and sections to that year. Choosing a class lists its sections as checkboxes, or its learners for a named roster. Choosing a group switches to "Everyone in {group}". Validation now refuses a period of another year and asks for sections or learners when the roster needs them. The POST route, the controller `store` action and `StoreCourseOfferingRequest` are removed.
+
+## Support plan page is four cards of explanations and four POST forms
+
+- Status: Fixed
+- Area: Wellbeing, support plans
+- Observed: The plan page stacked two alerts, four cards with explanatory descriptions, fact boxes with sub-captions, and separate POST forms for steps, notes, completing a step and moving the plan. Every change reloaded the page.
+- Impact: The plan's steps sat below a screen of text, and each change lost the reader's place.
+- Reproduction: Open `/dashboard/support-plans/{id}` as someone who runs the plan.
+- Resolution: The page is now the `ShowSupportPlan` Livewire component, laid out like the case page: a summary line (with a "Confidential" mark), a facts row where an overdue review reads "· due" in red, the move form, and then Steps, Notes and History as plain lists. Four routes and three form requests are removed. New tests cover read-only viewers and a finished plan refusing steps.

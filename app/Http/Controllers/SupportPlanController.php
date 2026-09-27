@@ -4,15 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Actions\Wellbeing\ManageSupportPlan;
 use App\Enums\SupportCategory;
-use App\Enums\SupportPlanStatus;
 use App\Exceptions\InvalidValueException;
-use App\Http\Requests\StoreSupportPlanActionRequest;
-use App\Http\Requests\StoreSupportPlanNoteRequest;
 use App\Http\Requests\StoreSupportPlanRequest;
-use App\Http\Requests\UpdateSupportPlanStatusRequest;
 use App\Models\StudentRecord;
 use App\Models\SupportPlan;
-use App\Models\SupportPlanAction;
 use App\Models\User;
 use App\Traits\ListsSchoolPeople;
 use Illuminate\Contracts\View\View;
@@ -87,90 +82,6 @@ class SupportPlanController extends Controller
     {
         $this->authorize('view', $supportPlan);
 
-        $supportPlan->load([
-            'studentRecord.user:id,name',
-            'actions.assignedTo:id,name',
-            'notes.writtenBy:id,name',
-            'statusChanges.changedBy:id,name',
-            'createdBy:id,name',
-            'assignedTo:id,name',
-        ]);
-
-        return view('pages.support-plan.show', [
-            'plan' => $supportPlan,
-            'nextStatuses' => $supportPlan->status->allowedNext(),
-            'staff' => $this->schoolStaff(),
-        ]);
-    }
-
-    /**
-     * Move the plan to another state.
-     */
-    public function changeStatus(UpdateSupportPlanStatusRequest $request, SupportPlan $supportPlan): RedirectResponse
-    {
-        try {
-            $this->manageSupportPlan->changeStatus(
-                plan: $supportPlan,
-                status: SupportPlanStatus::from($request->string('status')->toString()),
-                actor: $request->user(),
-                reason: $request->string('reason')->toString() ?: null,
-            );
-        } catch (InvalidValueException $exception) {
-            return back()->withErrors(['status' => $exception->getMessage()]);
-        }
-
-        return back()->with('success', 'The plan moved to '.$supportPlan->fresh()->status->label().'.');
-    }
-
-    /**
-     * Add a step the school agrees to take.
-     */
-    public function storeAction(StoreSupportPlanActionRequest $request, SupportPlan $supportPlan): RedirectResponse
-    {
-        try {
-            $this->manageSupportPlan->addAction(
-                plan: $supportPlan,
-                description: $request->string('description')->toString(),
-                dueOn: $request->string('due_on')->toString() ?: null,
-                assignee: $request->filled('assigned_to') ? User::findOrFail($request->integer('assigned_to')) : null,
-                actor: $request->user(),
-            );
-        } catch (InvalidValueException $exception) {
-            return back()->withErrors(['action' => $exception->getMessage()])->withInput();
-        }
-
-        return back()->with('success', 'The step was added to the plan.');
-    }
-
-    /**
-     * Record that a step is done.
-     */
-    public function completeAction(SupportPlan $supportPlan, SupportPlanAction $supportPlanAction): RedirectResponse
-    {
-        $this->authorize('update', $supportPlan);
-
-        abort_unless($supportPlanAction->support_plan_id === $supportPlan->id, 404);
-
-        $this->manageSupportPlan->completeAction($supportPlanAction, request()->user());
-
-        return back()->with('success', 'The step was marked done.');
-    }
-
-    /**
-     * Write a note about how the plan is going.
-     */
-    public function storeNote(StoreSupportPlanNoteRequest $request, SupportPlan $supportPlan): RedirectResponse
-    {
-        try {
-            $this->manageSupportPlan->addNote(
-                plan: $supportPlan,
-                body: $request->string('body')->toString(),
-                actor: $request->user(),
-            );
-        } catch (InvalidValueException $exception) {
-            return back()->withErrors(['note' => $exception->getMessage()])->withInput();
-        }
-
-        return back()->with('success', 'The note was added to the plan.');
+        return view('pages.support-plan.show', ['plan' => $supportPlan]);
     }
 }

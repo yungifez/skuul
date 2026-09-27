@@ -264,10 +264,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::get('support-plans/create', ['App\Http\Controllers\SupportPlanController', 'create'])->name('support-plans.create');
             Route::post('support-plans', ['App\Http\Controllers\SupportPlanController', 'store'])->name('support-plans.store');
             Route::get('support-plans/{supportPlan}', ['App\Http\Controllers\SupportPlanController', 'show'])->name('support-plans.show');
-            Route::put('support-plans/{supportPlan}/status', ['App\Http\Controllers\SupportPlanController', 'changeStatus'])->name('support-plans.status.update');
-            Route::post('support-plans/{supportPlan}/actions', ['App\Http\Controllers\SupportPlanController', 'storeAction'])->name('support-plans.actions.store');
-            Route::post('support-plans/{supportPlan}/actions/{supportPlanAction}/complete', ['App\Http\Controllers\SupportPlanController', 'completeAction'])->name('support-plans.actions.complete');
-            Route::post('support-plans/{supportPlan}/notes', ['App\Http\Controllers\SupportPlanController', 'storeNote'])->name('support-plans.notes.store');
 
             Route::get('health-records', ['App\Http\Controllers\StudentHealthRecordController', 'index'])->name('health-records.index');
             Route::get('health-records/{studentRecord}', ['App\Http\Controllers\StudentHealthRecordController', 'edit'])->name('health-records.edit');
