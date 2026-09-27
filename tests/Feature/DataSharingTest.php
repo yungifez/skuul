@@ -240,6 +240,77 @@ class DataSharingTest extends TestCase
         $this->assertFalse($request->fresh()->isUsable());
     }
 
+    public function test_a_request_that_ran_out_cannot_be_approved(): void
+    {
+        $this->authorized_user(['approve data sharing']);
+        $request = $this->request([DataCategory::Identity], expiresOn: now()->addDay());
+        $request->forceFill(['expires_on' => now()->subDay()])->save();
+
+        $this->expectException(InvalidValueException::class);
+
+        app(RequestDataSharing::class)->approve($request->fresh());
+    }
+
+    public function test_an_answer_given_meanwhile_wins_over_a_stale_screen(): void
+    {
+        $this->authorized_user(['approve data sharing']);
+        $request = $this->request([DataCategory::Identity]);
+        $staleCopy = $request->fresh();
+
+        app(RequestDataSharing::class)->decline($request);
+
+        try {
+            app(RequestDataSharing::class)->approve($staleCopy);
+            $this->fail('A declined request was approved from a stale copy.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString('Declined', $exception->getMessage());
+        }
+
+        $this->assertSame(DataSharingStatus::Declined, $request->fresh()->status);
+    }
+
+    public function test_records_are_handed_over_once_from_a_stale_screen(): void
+    {
+        $this->authorized_user(['approve data sharing', 'fulfil data sharing']);
+        $request = $this->request([DataCategory::Identity]);
+        app(RequestDataSharing::class)->approve($request);
+        $staleCopy = $request->fresh();
+
+        app(FulfilDataSharingRequest::class)->fulfil($request->fresh());
+
+        $this->assertThrows(fn () => app(FulfilDataSharingRequest::class)->fulfil($staleCopy), InvalidValueException::class);
+        $this->assertSame(1, TransferPackage::count());
+    }
+
+    public function test_revoked_records_are_never_taken_in(): void
+    {
+        $this->authorized_user(['approve data sharing', 'fulfil data sharing']);
+        $request = $this->request([DataCategory::Identity]);
+        app(RequestDataSharing::class)->approve($request);
+        $package = app(FulfilDataSharingRequest::class)->fulfil($request->fresh());
+        app(RequestDataSharing::class)->revoke($request->fresh(), note: 'Sent to the wrong school');
+
+        $this->assertThrows(fn () => app(FulfilDataSharingRequest::class)->receive($package), InvalidValueException::class);
+        $this->assertFalse($package->fresh()->wasReceived());
+    }
+
+    public function test_a_school_asks_again_once_the_first_answer_is_no(): void
+    {
+        $this->authorized_user(['approve data sharing']);
+        $enrollment = $this->enrollment();
+        $asking = School::factory()->create();
+        $first = $this->request([DataCategory::Identity], $enrollment, $asking);
+
+        $this->assertThrows(fn () => $this->request([DataCategory::Enrollment], $enrollment, $asking), InvalidValueException::class);
+
+        app(RequestDataSharing::class)->decline($first);
+        $second = $this->request([DataCategory::Enrollment], $enrollment, $asking);
+
+        $this->assertNotSame($first->id, $second->id);
+        $this->request([DataCategory::Identity], $enrollment, School::factory()->create());
+        $this->assertSame(3, DataSharingRequest::count());
+    }
+
     public function test_asking_and_handing_over_are_written_to_the_audit_log(): void
     {
         $this->authorized_user(['approve data sharing', 'fulfil data sharing']);
@@ -255,7 +326,7 @@ class DataSharingTest extends TestCase
     /**
      * Make a request from another school for one enrollment here.
      *
-     * @param array<int, DataCategory> $categories
+     * @param  array<int, DataCategory>  $categories
      */
     private function request(
         array $categories,
@@ -286,20 +357,20 @@ class DataSharingTest extends TestCase
     private function publishedResult(StudentRecord $enrollment, float $percentage): ResultSnapshot
     {
         $this->courseOffering ??= CourseOffering::factory()->create([
-            'school_id'          => $enrollment->school_id,
-            'subject_id'         => Subject::factory()->create(['school_id' => $enrollment->school_id])->id,
-            'academic_year_id'   => current_academic_year_id(),
+            'school_id' => $enrollment->school_id,
+            'subject_id' => Subject::factory()->create(['school_id' => $enrollment->school_id])->id,
+            'academic_year_id' => current_academic_year_id(),
             'academic_period_id' => current_academic_period_id(),
         ]);
 
         return ResultSnapshot::create([
-            'school_id'          => $enrollment->school_id,
-            'student_record_id'  => $enrollment->id,
+            'school_id' => $enrollment->school_id,
+            'student_record_id' => $enrollment->id,
             'course_offering_id' => $this->courseOffering->id,
-            'revision'           => 1,
-            'percentage'         => $percentage,
-            'payload'            => ['percentage' => $percentage],
-            'published_at'       => now(),
+            'revision' => 1,
+            'percentage' => $percentage,
+            'payload' => ['percentage' => $percentage],
+            'published_at' => now(),
         ]);
     }
 }

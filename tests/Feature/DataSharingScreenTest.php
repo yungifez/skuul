@@ -6,6 +6,7 @@ use App\Actions\Sharing\FulfilDataSharingRequest;
 use App\Actions\Sharing\RequestDataSharing;
 use App\Enums\DataCategory;
 use App\Enums\DataSharingStatus;
+use App\Livewire\CreateDataSharingRequestForm;
 use App\Livewire\ShowDataSharingRequest;
 use App\Models\DataSharingRequest;
 use App\Models\School;
@@ -41,17 +42,19 @@ class DataSharingScreenTest extends TestCase
         $enrollment = StudentRecord::factory()->create(['school_id' => $holder->id]);
         $this->authorized_user(['request data sharing']);
 
-        $response = $this->post(route('data-sharing-requests.store'), [
-            'holding_school_id' => $holder->id,
-            'admission_number' => $enrollment->admission_number,
-            'purpose' => 'The learner transferred to us in September.',
-            'categories' => [DataCategory::Enrollment->value, DataCategory::AcademicResults->value],
-        ]);
+        $this->get(route('data-sharing-requests.create'))->assertOk()->assertSee($holder->name);
+
+        $form = Livewire::test(CreateDataSharingRequestForm::class)
+            ->set('holdingSchoolId', (string) $holder->id)
+            ->set('admissionNumber', " {$enrollment->admission_number} ")
+            ->set('purpose', 'The learner transferred to us in September.')
+            ->set('categories', [DataCategory::Enrollment->value, DataCategory::AcademicResults->value])
+            ->call('save')
+            ->assertHasNoErrors();
 
         $request = DataSharingRequest::sole();
 
-        $response->assertRedirect(route('data-sharing-requests.show', $request));
-
+        $form->assertRedirect(route('data-sharing-requests.show', $request));
         $this->assertSame($enrollment->id, $request->student_record_id);
         $this->assertSame($holder->id, $request->holding_school_id);
         $this->assertSame(DataSharingStatus::Requested, $request->status);
@@ -63,12 +66,13 @@ class DataSharingScreenTest extends TestCase
         StudentRecord::factory()->create(['school_id' => $holder->id]);
         $this->authorized_user(['request data sharing']);
 
-        $this->post(route('data-sharing-requests.store'), [
-            'holding_school_id' => $holder->id,
-            'admission_number' => 'NOT-A-REAL-NUMBER',
-            'purpose' => 'Fishing.',
-            'categories' => [DataCategory::Enrollment->value],
-        ])->assertSessionHasErrors('admission_number');
+        Livewire::test(CreateDataSharingRequestForm::class)
+            ->set('holdingSchoolId', (string) $holder->id)
+            ->set('admissionNumber', 'NOT-A-REAL-NUMBER')
+            ->set('purpose', 'Fishing.')
+            ->set('categories', [DataCategory::Enrollment->value])
+            ->call('save')
+            ->assertHasErrors('admissionNumber');
 
         $this->assertSame(0, DataSharingRequest::count());
     }
@@ -78,12 +82,13 @@ class DataSharingScreenTest extends TestCase
         $this->authorized_user(['request data sharing']);
         $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
 
-        $this->post(route('data-sharing-requests.store'), [
-            'holding_school_id' => $this->workingSchool()->id,
-            'admission_number' => $enrollment->admission_number,
-            'purpose' => 'Asking myself.',
-            'categories' => [DataCategory::Enrollment->value],
-        ])->assertSessionHasErrors('data_sharing');
+        Livewire::test(CreateDataSharingRequestForm::class)
+            ->set('holdingSchoolId', (string) $this->workingSchool()->id)
+            ->set('admissionNumber', $enrollment->admission_number)
+            ->set('purpose', 'Asking myself.')
+            ->set('categories', [DataCategory::Enrollment->value])
+            ->call('save')
+            ->assertHasErrors('holdingSchoolId');
 
         $this->assertSame(0, DataSharingRequest::count());
     }
@@ -94,11 +99,39 @@ class DataSharingScreenTest extends TestCase
         $enrollment = StudentRecord::factory()->create(['school_id' => $holder->id]);
         $this->authorized_user(['request data sharing']);
 
-        $this->post(route('data-sharing-requests.store'), [
-            'holding_school_id' => $holder->id,
-            'admission_number' => $enrollment->admission_number,
-            'purpose' => 'Everything please.',
-        ])->assertSessionHasErrors('categories');
+        Livewire::test(CreateDataSharingRequestForm::class)
+            ->set('holdingSchoolId', (string) $holder->id)
+            ->set('admissionNumber', $enrollment->admission_number)
+            ->set('purpose', 'Everything please.')
+            ->call('save')
+            ->assertHasErrors('categories');
+    }
+
+    public function test_asking_twice_for_the_same_learner_sends_one_request(): void
+    {
+        $holder = School::factory()->create();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $holder->id]);
+        $this->authorized_user(['request data sharing']);
+
+        $ask = fn () => Livewire::test(CreateDataSharingRequestForm::class)
+            ->set('holdingSchoolId', (string) $holder->id)
+            ->set('admissionNumber', $enrollment->admission_number)
+            ->set('purpose', 'The learner transferred to us.')
+            ->set('categories', [DataCategory::Enrollment->value])
+            ->call('save');
+
+        $ask()->assertHasNoErrors();
+        $ask()->assertHasErrors('holdingSchoolId');
+
+        $this->assertSame(1, DataSharingRequest::count());
+    }
+
+    public function test_the_ask_form_needs_permission(): void
+    {
+        $this->unauthorized_user();
+
+        $this->get(route('data-sharing-requests.create'))->assertForbidden();
+        Livewire::test(CreateDataSharingRequestForm::class)->assertForbidden();
     }
 
     public function test_the_holding_school_answers_the_request(): void

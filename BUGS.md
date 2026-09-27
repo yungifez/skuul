@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Revoked records could still be taken in, and sharing answers raced each other
+- Status: Fixed
+- Area: Record sharing between schools (`RequestDataSharing`, `FulfilDataSharingRequest`, ask form)
+- Observed: After the holding school took a permission back, the school that asked could still take in a package that was already built. Two people could answer one request at once without seeing each other's answer. A second click on "Hand the records over", or a revoke at the same moment, could still build a package. A request could be approved after its end date. A school could send the same learner request again and again while the first one was open. Refusals showed raw values such as "approved to declined".
+- Impact: Records crossed a school boundary after the holding school withdrew consent. The holding school also had to answer duplicate requests.
+- Reproduction: Approve and hand over a request, then take the permission back. At the asking school, "Take the records in" still worked.
+- Resolution: Each change holds the request row, or the package row, and reads its state again inside the lock. The action refuses to take in a package whose request was revoked, and the screen says why. The action refuses an approval after the request ran out. While a request for the same learner is open, the school cannot ask again. Messages use labels. The ask form now runs through Livewire (`CreateDataSharingRequestForm`). The store route and form request are removed.
+
 ## One campus rewrote a shared role for every campus, showed other campuses' holders, and could lock itself out of role management
 - Status: Fixed
 - Area: Roles (`WriteCampusRole`, `AssignCampusRole`, `RoleAuthority`, role screens)

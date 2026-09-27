@@ -119,7 +119,9 @@
                     <dd class="font-medium">{{ $package->received_at?->format('j M Y') ?? '—' }}</dd>
                 </div>
             </dl>
-            @if ($isRequester && !$package->wasReceived())
+            @if ($isRequester && !$package->wasReceived() && $sharingRequest->status === \App\Enums\DataSharingStatus::Revoked)
+                <p class="text-sm text-muted-foreground">The other school took this permission back before the records were taken in.</p>
+            @elseif ($isRequester && !$package->wasReceived())
                 <div>
                     <april:button type="button" class="h-11 select-none" wire:click="receive" wire:loading.attr="disabled" wire:target="receive">
                         <x-lucide-download class="mr-2 size-4" />Take the records in

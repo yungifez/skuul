@@ -256,7 +256,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         // Both schools read the request, so these routes are not scoped to one.
         Route::get('data-sharing-requests', ['App\Http\Controllers\DataSharingRequestController', 'index'])->name('data-sharing-requests.index');
         Route::get('data-sharing-requests/create', ['App\Http\Controllers\DataSharingRequestController', 'create'])->name('data-sharing-requests.create');
-        Route::post('data-sharing-requests', ['App\Http\Controllers\DataSharingRequestController', 'store'])->name('data-sharing-requests.store');
         Route::get('data-sharing-requests/{dataSharingRequest}', ['App\Http\Controllers\DataSharingRequestController', 'show'])->name('data-sharing-requests.show');
 
         // portal request routes. A family asks through the portal; the school

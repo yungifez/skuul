@@ -11,6 +11,7 @@ use App\Models\DataSharingRequest;
 use App\Models\TransferPackage;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
@@ -23,6 +24,7 @@ class ShowDataSharingRequest extends Component
 {
     use DispatchesStatusNotifications;
 
+    #[Locked]
     public DataSharingRequest $sharingRequest;
 
     public string $note = '';

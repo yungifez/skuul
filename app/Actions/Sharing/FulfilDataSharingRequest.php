@@ -25,8 +25,7 @@ class FulfilDataSharingRequest
     public function __construct(
         private TransferPackageBuilder $builder,
         private RecordAuditEvent $auditor,
-    ) {
-    }
+    ) {}
 
     /**
      * Build the package the request allows.
@@ -35,23 +34,27 @@ class FulfilDataSharingRequest
      */
     public function fulfil(DataSharingRequest $request, ?User $actor = null): TransferPackage
     {
-        if (!$request->status->allowsFulfilment()) {
-            throw new InvalidValueException('Only an approved request can be handed over.');
-        }
-
-        if ($request->hasExpired()) {
-            throw new InvalidValueException('This permission has run out.');
-        }
-
         return DB::transaction(function () use ($request, $actor): TransferPackage {
+            // A second click, or a revoke arriving at the same moment, waits
+            // here and then sees the request as it now stands.
+            $request = DataSharingRequest::query()->lockForUpdate()->findOrFail($request->id);
+
+            if (!$request->status->allowsFulfilment()) {
+                throw new InvalidValueException('Only an approved request can be handed over.');
+            }
+
+            if ($request->hasExpired()) {
+                throw new InvalidValueException('This permission has run out.');
+            }
+
             $package = TransferPackage::create([
                 'data_sharing_request_id' => $request->id,
-                'source_school_id'        => $request->holding_school_id,
-                'destination_school_id'   => $request->requesting_school_id,
-                'student_record_id'       => $request->student_record_id,
-                'categories'              => $request->categories,
-                'payload'                 => $this->builder->build($request),
-                'built_by'                => $actor === null ? auth()->id() : $actor->id,
+                'source_school_id' => $request->holding_school_id,
+                'destination_school_id' => $request->requesting_school_id,
+                'student_record_id' => $request->student_record_id,
+                'categories' => $request->categories,
+                'payload' => $this->builder->build($request),
+                'built_by' => $actor === null ? auth()->id() : $actor->id,
             ]);
 
             $request->status = DataSharingStatus::Fulfilled;
@@ -72,32 +75,45 @@ class FulfilDataSharingRequest
     /**
      * Take the package in at the school that asked for it.
      *
-     * @throws InvalidValueException when the enrollment belongs to another school or it was taken in already
+     * @throws InvalidValueException when the enrollment belongs to another school, it was taken in already,
+     *                               or the holding school took the permission back
      */
     public function receive(TransferPackage $package, ?StudentRecord $enrollment = null, ?User $actor = null): TransferPackage
     {
-        if ($package->wasReceived()) {
-            throw new InvalidValueException('This package was already taken in.');
-        }
-
         if ($enrollment !== null && $enrollment->school_id !== $package->destination_school_id) {
             throw new InvalidValueException('That enrollment is not in the school the package was sent to.');
         }
 
-        $package->forceFill([
-            'received_at'                => now(),
-            'received_by'                => $actor === null ? auth()->id() : $actor->id,
-            'received_student_record_id' => $enrollment?->id,
-        ])->save();
+        return DB::transaction(function () use ($package, $enrollment, $actor): TransferPackage {
+            $package = TransferPackage::query()->lockForUpdate()->findOrFail($package->id);
 
-        $this->auditor->record(
-            AuditAction::TransferPackageReceived,
-            $package,
-            ['source_school_id' => $package->source_school_id],
-            $actor,
-            $package->destination_school_id,
-        );
+            if ($package->wasReceived()) {
+                throw new InvalidValueException('This package was already taken in.');
+            }
 
-        return $package;
+            // Taking the permission back after the hand-over still counts
+            // until the records are taken in.
+            $status = DataSharingRequest::query()->whereKey($package->data_sharing_request_id)->value('status');
+
+            if ($status === DataSharingStatus::Revoked) {
+                throw new InvalidValueException('The other school took this permission back. The records cannot be taken in.');
+            }
+
+            $package->forceFill([
+                'received_at' => now(),
+                'received_by' => $actor === null ? auth()->id() : $actor->id,
+                'received_student_record_id' => $enrollment?->id,
+            ])->save();
+
+            $this->auditor->record(
+                AuditAction::TransferPackageReceived,
+                $package,
+                ['source_school_id' => $package->source_school_id],
+                $actor,
+                $package->destination_school_id,
+            );
+
+            return $package;
+        });
     }
 }

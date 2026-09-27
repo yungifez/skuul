@@ -13,6 +13,7 @@ use App\Models\StudentRecord;
 use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Ask another school for a student's records, and answer such a request.
@@ -23,16 +24,15 @@ use Illuminate\Support\Carbon;
  */
 class RequestDataSharing
 {
-    public function __construct(private RecordAuditEvent $auditor)
-    {
-    }
+    public function __construct(private RecordAuditEvent $auditor) {}
 
     /**
      * Ask the school that holds the records.
      *
-     * @param array<int, DataCategory> $categories
+     * @param  array<int, DataCategory>  $categories
      *
-     * @throws InvalidValueException when the schools are the same, no category is named, or the end date has passed
+     * @throws InvalidValueException when the schools are the same, no category is named, the end date has passed,
+     *                               or this school still has an open request for the learner
      */
     public function request(
         StudentRecord $enrollment,
@@ -56,28 +56,44 @@ class RequestDataSharing
             throw new InvalidValueException('A request cannot end before it starts.');
         }
 
-        $request = DataSharingRequest::create([
-            'requesting_school_id' => $requestingSchool->id,
-            'holding_school_id'    => $enrollment->school_id,
-            'student_record_id'    => $enrollment->id,
-            'categories'           => array_values(array_unique(array_map(
-                fn (DataCategory $category): string => $category->value,
-                $categories,
-            ))),
-            'purpose'      => $purpose,
-            'expires_on'   => $expiry,
-            'requested_by' => $actor === null ? auth()->id() : $actor->id,
-        ]);
+        return DB::transaction(function () use ($enrollment, $requestingSchool, $purpose, $categories, $expiry, $actor): DataSharingRequest {
+            // Holding the asking school keeps a double click from sending two asks.
+            School::query()->whereKey($requestingSchool->id)->lockForUpdate()->first();
 
-        $this->auditor->record(
-            AuditAction::DataSharingRequested,
-            $request,
-            ['categories' => $request->categories, 'requesting_school_id' => $requestingSchool->id],
-            $actor,
-            $enrollment->school_id,
-        );
+            $stillOpen = DataSharingRequest::query()
+                ->where('requesting_school_id', $requestingSchool->id)
+                ->where('student_record_id', $enrollment->id)
+                ->whereIn('status', [DataSharingStatus::Requested, DataSharingStatus::Approved])
+                ->get()
+                ->contains(fn (DataSharingRequest $open): bool => !$open->hasExpired());
 
-        return $request;
+            if ($stillOpen) {
+                throw new InvalidValueException('This school already has an open request for that learner. Wait for its answer before asking again.');
+            }
+
+            $request = DataSharingRequest::create([
+                'requesting_school_id' => $requestingSchool->id,
+                'holding_school_id' => $enrollment->school_id,
+                'student_record_id' => $enrollment->id,
+                'categories' => array_values(array_unique(array_map(
+                    fn (DataCategory $category): string => $category->value,
+                    $categories,
+                ))),
+                'purpose' => $purpose,
+                'expires_on' => $expiry,
+                'requested_by' => $actor === null ? auth()->id() : $actor->id,
+            ]);
+
+            $this->auditor->record(
+                AuditAction::DataSharingRequested,
+                $request,
+                ['categories' => $request->categories, 'requesting_school_id' => $requestingSchool->id],
+                $actor,
+                $enrollment->school_id,
+            );
+
+            return $request;
+        });
     }
 
     /**
@@ -107,7 +123,8 @@ class RequestDataSharing
     /**
      * Move the request to another state.
      *
-     * @throws InvalidValueException when the state cannot follow the current one
+     * @throws InvalidValueException when the state cannot follow the current one, or an
+     *                               approval comes after the request ran out
      */
     public function changeStatus(
         DataSharingRequest $request,
@@ -115,30 +132,38 @@ class RequestDataSharing
         ?User $actor = null,
         ?string $note = null,
     ): DataSharingRequest {
-        $current = $request->status;
+        return DB::transaction(function () use ($request, $status, $actor, $note): DataSharingRequest {
+            // Two people answering at once must see each other's answer.
+            $locked = DataSharingRequest::query()->lockForUpdate()->findOrFail($request->id);
+            $current = $locked->status;
 
-        if ($current === $status) {
-            return $request;
-        }
+            if ($current === $status) {
+                return $locked;
+            }
 
-        if (!$current->canMoveTo($status)) {
-            throw new InvalidValueException("A request cannot move from {$current->value} to {$status->value}.");
-        }
+            if (!$current->canMoveTo($status)) {
+                throw new InvalidValueException("This request is already {$current->label()}, so it cannot be {$status->label()}.");
+            }
 
-        $request->status = $status;
-        $request->decided_by = $actor === null ? auth()->id() : $actor->id;
-        $request->decided_at = now();
-        $request->decision_note = $note ?? $request->decision_note;
-        $request->save();
+            if ($status === DataSharingStatus::Approved && $locked->hasExpired()) {
+                throw new InvalidValueException('This request ran out before it was answered. The other school must ask again.');
+            }
 
-        $this->auditor->record(
-            AuditAction::DataSharingStatusChanged,
-            $request,
-            ['from' => $current->value, 'to' => $status->value, 'note' => $note],
-            $actor,
-            $request->holding_school_id,
-        );
+            $locked->status = $status;
+            $locked->decided_by = $actor === null ? auth()->id() : $actor->id;
+            $locked->decided_at = now();
+            $locked->decision_note = $note ?? $locked->decision_note;
+            $locked->save();
 
-        return $request;
+            $this->auditor->record(
+                AuditAction::DataSharingStatusChanged,
+                $locked,
+                ['from' => $current->value, 'to' => $status->value, 'note' => $note],
+                $actor,
+                $locked->holding_school_id,
+            );
+
+            return $locked;
+        });
     }
 }
