@@ -6,13 +6,16 @@ use App\Actions\Enrollment\ChangeEnrollmentStatus;
 use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\GraduateStudents;
+use App\Livewire\ListGraduationsTable;
 use App\Livewire\ShowStudentProfile;
 use App\Models\EnrollmentStatusChange;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Schema;
 use Livewire\Livewire;
 use RuntimeException;
@@ -176,11 +179,15 @@ class EnrollmentStatusTest extends TestCase
         $enrollment = StudentRecord::factory()->create();
         app(ChangeEnrollmentStatus::class)->graduate($enrollment);
 
-        $this->authorized_user(['reset graduation'])
-            ->delete("dashboard/students/graduations/$enrollment->user_id/reset")
-            ->assertRedirect();
+        $this->authorized_user(['read student', 'reset graduation']);
+
+        Livewire::test(ListGraduationsTable::class)
+            ->assertSeeHtml('$wire.call(&quot;resetGraduation&quot;, row.id)')
+            ->call('resetGraduation', $enrollment->user_id)
+            ->assertDispatched('status-message', type: 'success');
 
         $this->assertSame(EnrollmentStatus::Active, $enrollment->fresh()->status);
+        $this->assertFalse(Route::has('students.graduations.reset'));
     }
 
     public function test_unauthorized_user_cannot_reset_a_graduation(): void
@@ -188,8 +195,10 @@ class EnrollmentStatusTest extends TestCase
         $enrollment = StudentRecord::factory()->create();
         app(ChangeEnrollmentStatus::class)->graduate($enrollment);
 
-        $this->unauthorized_user()
-            ->delete("dashboard/students/graduations/$enrollment->user_id/reset")
+        $this->authorized_user(['read student']);
+
+        Livewire::test(ListGraduationsTable::class)
+            ->call('resetGraduation', $enrollment->user_id)
             ->assertForbidden();
 
         $this->assertSame(EnrollmentStatus::Graduated, $enrollment->fresh()->status);
@@ -245,9 +254,13 @@ class EnrollmentStatusTest extends TestCase
         $student = User::findOrFail($enrollment->user_id);
         $student->schoolMemberships()->delete();
 
-        $this->authorized_user(['reset graduation'])
-            ->delete("dashboard/students/graduations/$student->id/reset")
-            ->assertForbidden();
+        $this->authorized_user(['read student', 'reset graduation']);
+
+        try {
+            Livewire::test(ListGraduationsTable::class)->call('resetGraduation', $student->id);
+            $this->fail('A graduation of another school was reached.');
+        } catch (ModelNotFoundException) {
+        }
 
         $this->assertSame(EnrollmentStatus::Graduated, $enrollment->fresh()->status);
     }

@@ -6,7 +6,6 @@ use App\Models\User;
 use App\Services\Student\StudentService;
 use App\Services\User\UserService;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
 
@@ -105,20 +104,5 @@ class StudentController extends Controller
         $data['student'] = $student;
 
         return view('pages.student.edit', $data);
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     *
-     * @throws AuthorizationException
-     */
-    public function destroy(User $student): RedirectResponse
-    {
-        $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
-        $this->authorize('delete', [$student, 'student']);
-        $this->student->deleteStudent($student);
-
-        return back()->with('success', 'Student Deleted Successfully');
     }
 }

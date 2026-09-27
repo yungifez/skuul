@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\TimetableStoreRequest;
 use App\Models\Timetable;
 use App\Services\Timetable\TimetableService;
 use Illuminate\Http\RedirectResponse;
@@ -33,19 +32,6 @@ class TimetableController extends Controller
     public function create(): View
     {
         return view('pages.timetable.create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(TimetableStoreRequest $request): RedirectResponse
-    {
-        $data = $request->except('_token');
-        $data['academic_period_id'] = current_academic_period_id();
-
-        $timetable = $this->timetableService->createTimetable($data);
-
-        return to_route('timetables.manage', $timetable->id)->with('success', 'Timetable created successfully');
     }
 
     /**

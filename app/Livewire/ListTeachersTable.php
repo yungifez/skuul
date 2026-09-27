@@ -3,9 +3,12 @@
 namespace App\Livewire;
 
 use App\Enums\Role;
+use App\Livewire\Concerns\InteractsWithAprilTable;
 use App\Models\User;
+use App\Services\Teacher\TeacherService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\MessageBag;
 use Illuminate\View\View;
 use Yungifez\AprilUI\Livewire\Columns\Column;
@@ -13,6 +16,8 @@ use Yungifez\AprilUI\Livewire\DataTableComponent;
 
 class ListTeachersTable extends DataTableComponent
 {
+    use InteractsWithAprilTable;
+
     public function mount(): void
     {
         parent::mount();
@@ -20,6 +25,9 @@ class ListTeachersTable extends DataTableComponent
         $this->setErrorBag(session()->get('errors', new MessageBag)->getMessages());
     }
 
+    /**
+     * @return Builder<User>
+     */
     protected function builder(): Builder
     {
         return User::query()
@@ -57,10 +65,20 @@ class ListTeachersTable extends DataTableComponent
             $row = $teacher->toArray();
             $row['view_url'] = route('teachers.show', $teacher);
             $row['manage_url'] = route('teachers.edit', $teacher);
-            $row['delete_url'] = route('teachers.destroy', $teacher);
 
             return $row;
         })->values()->all();
+    }
+
+    /**
+     * Delete one teacher of this school.
+     */
+    public function deleteTeacher(int $userId, TeacherService $teachers): void
+    {
+        $teacher = $this->builder()->findOrFail($userId);
+        Gate::authorize('delete', [$teacher, 'teacher']);
+
+        $this->changeRow(fn () => $teachers->deleteTeacher($teacher), "{$teacher->name} was deleted.");
     }
 
     public function render(): View

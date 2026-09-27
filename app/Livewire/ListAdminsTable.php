@@ -5,8 +5,10 @@ namespace App\Livewire;
 use App\Enums\Role;
 use App\Livewire\Concerns\InteractsWithAprilTable;
 use App\Models\User;
+use App\Services\Admin\AdminService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Yungifez\AprilUI\Livewire\Columns\Column;
 use Yungifez\AprilUI\Livewire\DataTableComponent;
@@ -37,6 +39,9 @@ class ListAdminsTable extends DataTableComponent
         $this->archivedAdmins = (clone $admins)->where('account_status', 'archived')->count();
     }
 
+    /**
+     * @return Builder<User>
+     */
     protected function builder(): Builder
     {
         return User::query()->role(Role::Admin)->ofSchool()->orderBy('name');
@@ -66,10 +71,28 @@ class ListAdminsTable extends DataTableComponent
             $row = $admin->toArray();
             $row['view_url'] = route('admins.show', $admin);
             $row['edit_url'] = route('admins.edit', $admin);
-            $row['delete_url'] = route('admins.destroy', $admin);
 
             return $row;
         })->values()->all();
+    }
+
+    /**
+     * Delete one administrator of this school.
+     *
+     * Nobody deletes themself, so the school always keeps the person acting.
+     */
+    public function deleteAdmin(int $userId, AdminService $admins): void
+    {
+        $admin = $this->builder()->findOrFail($userId);
+        Gate::authorize('delete', [$admin, 'admin']);
+
+        if ($admin->is(auth()->user())) {
+            $this->notify('You cannot delete your own account. Ask another administrator.', 'danger');
+
+            return;
+        }
+
+        $this->changeRow(fn () => $admins->deleteAdmin($admin), "{$admin->name} was deleted.");
     }
 
     public function render(): View

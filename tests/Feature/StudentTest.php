@@ -17,8 +17,10 @@ use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Route;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -202,26 +204,45 @@ class StudentTest extends TestCase
         $this->assertSame('Flat 3', $student->user->fresh()->address_line_2);
     }
 
-    // test unauthorised users cannot delete students
-
     public function test_unauthorised_users_cannot_delete_students()
     {
-        $student = StudentRecord::factory()->create();
-        $this->unauthorized_user()
-            ->delete('dashboard/students/'.$student->user->id)
+        $student = StudentRecord::factory()->create()->user;
+        $this->authorized_user(['read student']);
+
+        Livewire::test(ListStudentsTable::class)
+            ->call('deleteStudent', $student->id)
             ->assertForbidden();
 
-        $this->assertModelExists($student->user) && $this->assertNotSoftDeleted($student->user);
+        $this->assertNotSoftDeleted($student);
     }
-
-    // test authorised users can delete students
 
     public function test_authorised_users_can_delete_students()
     {
-        $student = StudentRecord::factory()->create();
-        $this->authorized_user(['delete student'])->delete('dashboard/students/'.$student->user->id);
+        $student = StudentRecord::factory()->create()->user;
+        $this->authorized_user(['read student', 'delete student']);
 
-        $this->assertModelExists($student->user) && $this->assertSoftDeleted($student->user);
+        Livewire::test(ListStudentsTable::class)
+            ->assertSeeHtml('$wire.call(&quot;deleteStudent&quot;, row.id)')
+            ->call('deleteStudent', $student->id)
+            ->assertDispatched('status-message', type: 'success');
+
+        $this->assertSoftDeleted($student);
+    }
+
+    public function test_a_student_of_another_school_cannot_be_deleted()
+    {
+        $student = StudentRecord::factory()->create()->user;
+        $student->schoolMemberships()->delete();
+        $this->memberOf(School::factory()->create(), $student->refresh());
+        $this->authorized_user(['read student', 'delete student']);
+
+        try {
+            Livewire::test(ListStudentsTable::class)->call('deleteStudent', $student->id);
+            $this->fail('A student of another school was reached.');
+        } catch (ModelNotFoundException) {
+        }
+
+        $this->assertNotSoftDeleted($student);
     }
 
     // test unauthorized user annot view all promotions
@@ -425,21 +446,43 @@ class StudentTest extends TestCase
             ->assertHasErrors(['sourceAcademicCycleSectionId' => 'No active learners are in this section.']);
     }
 
-    // test unauthorized user cannot delete promotion
-
-    public function test_unauthorized_user_cannot_delete_promotion()
+    public function test_resetting_a_promotion_needs_permission()
     {
-        $this->unauthorized_user()->delete('dashboard/students/promotions/1/reset')->assertForbidden();
+        $promotion = Promotion::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read promotion']);
+
+        Livewire::test(ListPromotionsTable::class)
+            ->call('resetPromotion', $promotion->id)
+            ->assertForbidden();
+
+        $this->assertModelExists($promotion);
     }
 
-    // test authorized user can delete promotion
-
-    public function test_authorized_user_can_delete_promotion()
+    public function test_authorized_user_can_reset_a_promotion()
     {
-        $promotion = Promotion::factory()->create();
-        $this->authorized_user(['reset promotion'])->delete('dashboard/students/promotions/'.$promotion->id.'/reset');
+        $promotion = Promotion::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read promotion', 'reset promotion']);
+
+        Livewire::test(ListPromotionsTable::class)
+            ->call('resetPromotion', $promotion->id)
+            ->assertDispatched('status-message', type: 'success');
 
         $this->assertModelMissing($promotion);
+        $this->assertFalse(Route::has('students.promotions.reset'));
+    }
+
+    public function test_another_schools_promotion_cannot_be_reset()
+    {
+        $promotion = Promotion::factory()->create(['school_id' => School::factory()->create()->id]);
+        $this->authorized_user(['read promotion', 'reset promotion']);
+
+        try {
+            Livewire::test(ListPromotionsTable::class)->call('resetPromotion', $promotion->id);
+            $this->fail('Another school\'s promotion was reached.');
+        } catch (ModelNotFoundException) {
+        }
+
+        $this->assertModelExists($promotion);
     }
 
     // test unauthorized user cannot view all graduations

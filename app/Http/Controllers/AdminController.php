@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Services\Admin\AdminService;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class AdminController extends Controller
@@ -59,18 +58,5 @@ class AdminController extends Controller
         $this->authorize('update', [$admin, 'admin']);
 
         return view('pages.admin.edit', compact('admin'));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @throws AuthorizationException
-     */
-    public function destroy(User $admin): RedirectResponse
-    {
-        $this->authorize('delete', [$admin, 'admin']);
-        $this->admin->deleteAdmin($admin);
-
-        return back()->with('success', 'Admin Deleted Successfully');
     }
 }

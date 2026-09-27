@@ -2,25 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreFeeCategoryRequest;
-use App\Http\Requests\UpdateFeeCategoryRequest;
 use App\Models\FeeCategory;
-use App\Services\Fee\FeeCategoryService;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class FeeCategoryController extends Controller
 {
-    /**
-     * Service instance of fee category.
-     */
-    public FeeCategoryService $feeCategoryService;
-
-    public function __construct(FeeCategoryService $feeCategoryService)
+    public function __construct()
     {
         $this->authorizeResource(FeeCategory::class, 'fee_category');
-        $this->feeCategoryService = $feeCategoryService;
     }
 
     /**
@@ -40,16 +30,6 @@ class FeeCategoryController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreFeeCategoryRequest $request): RedirectResponse
-    {
-        $this->feeCategoryService->storeFeeCategory($request->validated());
-
-        return back()->with('success', 'Fee Category Successfully Created');
-    }
-
-    /**
      * Display the specified resource.
      */
     public function show(FeeCategory $feeCategory): Response
@@ -63,15 +43,5 @@ class FeeCategoryController extends Controller
     public function edit(FeeCategory $feeCategory): View
     {
         return view('pages.fee.fee-category.edit', compact('feeCategory'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateFeeCategoryRequest $request, FeeCategory $feeCategory): RedirectResponse
-    {
-        $this->feeCategoryService->updateFeeCategory($feeCategory, $request->validated());
-
-        return back()->with('success', 'Fee Category Updated Successfully');
     }
 }

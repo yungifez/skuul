@@ -3,9 +3,12 @@
 namespace App\Livewire;
 
 use App\Livewire\Concerns\InteractsWithAprilTable;
+use App\Models\Graduation;
 use App\Models\User;
+use App\Services\Student\StudentService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Yungifez\AprilUI\Livewire\Columns\Column;
 use Yungifez\AprilUI\Livewire\DataTableComponent;
@@ -14,6 +17,7 @@ class ListGraduationsTable extends DataTableComponent
 {
     use InteractsWithAprilTable;
 
+    /** @return Builder<User> */
     protected function builder(): Builder
     {
         return User::query()->students()->ofSchool()->has('graduatedStudentRecord')->with('graduatedStudentRecord.academicCycleSection.academicLevel');
@@ -36,10 +40,20 @@ class ListGraduationsTable extends DataTableComponent
             $row['from_section'] = $record->academicCycleSection->name;
             $row['edit_url'] = route('students.edit', $student);
             $row['view_url'] = route('students.show', $student);
-            $row['reset_url'] = route('students.graduations.reset', $student);
 
             return $row;
         })->values()->all();
+    }
+
+    /**
+     * Put one graduated learner of this school back into attendance.
+     */
+    public function resetGraduation(int $studentId, StudentService $students): void
+    {
+        $student = $this->builder()->findOrFail($studentId);
+        Gate::authorize('resetGraduation', [Graduation::class, $student]);
+
+        $this->changeRow(fn () => $students->resetGraduation($student), "{$student->name} attends again.");
     }
 
     public function render(): View

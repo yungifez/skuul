@@ -107,7 +107,7 @@ class CrossSchoolAccessTest extends TestCase
     {
         return array_filter(
             self::schoolOwnedResources(),
-            static fn (array $resource, string $key): bool => !in_array($key, ['academic year', 'custom timetable item', 'exam', 'fee invoice', 'timetable', 'subject', 'notice'], true),
+            static fn (array $resource, string $key): bool => !in_array($key, ['academic year', 'custom timetable item', 'exam', 'fee invoice', 'timetable', 'subject', 'notice', 'fee category', 'fee'], true),
             ARRAY_FILTER_USE_BOTH,
         );
     }
@@ -304,13 +304,17 @@ class CrossSchoolAccessTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_a_timetable_time_slot_of_another_school_cannot_be_read(): void
+    /**
+     * Time slots are read and changed only inside the timetable builder, which
+     * is opened through its timetable. No route names a slot on its own.
+     */
+    public function test_a_timetable_time_slot_of_another_school_has_no_route(): void
     {
         $slot = $this->records['timetableTimeSlot'];
 
         $this->actAsFullyPermittedUser(['timetable'])
             ->get("dashboard/timetables/manage/time-slots/$slot->id")
-            ->assertForbidden();
+            ->assertNotFound();
     }
 
     public function test_a_promotion_of_another_school_cannot_be_read(): void

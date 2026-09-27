@@ -4,10 +4,12 @@ namespace Tests\Feature;
 
 use App\Livewire\CreateAdminForm;
 use App\Livewire\EditAdminForm;
+use App\Livewire\ListAdminsTable;
 use App\Livewire\ManageAccountAccess;
 use App\Models\School;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Http\UploadedFile;
@@ -184,21 +186,56 @@ class AdminTest extends TestCase
     {
         $admin = User::factory()->create();
         $admin->assignRole('admin');
-        $this->unauthorized_user()
-            ->delete('dashboard/admins/'.$admin->id)
+        $this->authorized_user(['read admin']);
+
+        Livewire::test(ListAdminsTable::class)
+            ->call('deleteAdmin', $admin->id)
             ->assertForbidden();
 
-        $this->assertModelExists($admin) && $this->assertNotSoftDeleted($admin);
+        $this->assertNotSoftDeleted($admin);
     }
 
     public function test_authorised_users_can_delete_admins()
     {
         $admin = User::factory()->create();
         $admin->assignRole('admin');
-        $this->authorized_user(['delete admin'])
-            ->delete('dashboard/admins/'.$admin->id)
-            ->assertRedirect();
+        $this->authorized_user(['read admin', 'delete admin']);
 
-        $this->assertModelExists($admin) && $this->assertSoftDeleted($admin);
+        Livewire::test(ListAdminsTable::class)
+            ->assertSeeHtml('$wire.call(&quot;deleteAdmin&quot;, row.id)')
+            ->call('deleteAdmin', $admin->id)
+            ->assertDispatched('status-message', type: 'success');
+
+        $this->assertSoftDeleted($admin);
+    }
+
+    public function test_a_admin_of_another_school_cannot_be_deleted()
+    {
+        $admin = User::factory()->create();
+        $admin->assignRole('admin');
+        $admin->schoolMemberships()->delete();
+        $this->memberOf(School::factory()->create(), $admin->refresh());
+        $this->authorized_user(['read admin', 'delete admin']);
+
+        try {
+            Livewire::test(ListAdminsTable::class)->call('deleteAdmin', $admin->id);
+            $this->fail('A admin of another school was reached.');
+        } catch (ModelNotFoundException) {
+        }
+
+        $this->assertNotSoftDeleted($admin);
+    }
+
+    public function test_an_administrator_cannot_delete_themself(): void
+    {
+        $this->authorized_user(['read admin', 'delete admin']);
+        $self = auth()->user();
+        $self->assignRole('admin');
+
+        Livewire::test(ListAdminsTable::class)
+            ->call('deleteAdmin', $self->id)
+            ->assertDispatched('status-message', type: 'danger');
+
+        $this->assertNotSoftDeleted($self);
     }
 }

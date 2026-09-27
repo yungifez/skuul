@@ -6,8 +6,10 @@ use App\Livewire\Concerns\InteractsWithAprilTable;
 use App\Models\AcademicYear;
 use App\Models\Promotion;
 use App\Services\AcademicYear\AcademicYearService;
+use App\Services\Student\StudentService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Yungifez\AprilUI\Livewire\Columns\Column;
 use Yungifez\AprilUI\Livewire\DataTableComponent;
@@ -55,10 +57,20 @@ class ListPromotionsTable extends DataTableComponent
             $row['to_section'] = $promotion->destinationAcademicCycleSection->name;
             $row['learners_count'] = count($promotion->students ?? []);
             $row['view_url'] = route('students.promotions.show', $promotion);
-            $row['reset_url'] = route('students.promotions.reset', $promotion);
 
             return $row;
         })->values()->all();
+    }
+
+    /**
+     * Undo one promotion, putting its learners back in their old section.
+     */
+    public function resetPromotion(int $promotionId, StudentService $students): void
+    {
+        Gate::authorize('reset', Promotion::class);
+        $promotion = Promotion::query()->inSchool()->findOrFail($promotionId);
+
+        $this->changeRow(fn () => $students->resetPromotion($promotion), 'The promotion was reset. Its learners are back in their old section.');
     }
 
     public function render(): View

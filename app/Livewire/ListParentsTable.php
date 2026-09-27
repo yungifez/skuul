@@ -3,15 +3,23 @@
 namespace App\Livewire;
 
 use App\Enums\Role;
+use App\Livewire\Concerns\InteractsWithAprilTable;
 use App\Models\User;
+use App\Services\Parent\ParentService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Yungifez\AprilUI\Livewire\Columns\Column;
 use Yungifez\AprilUI\Livewire\DataTableComponent;
 
 class ListParentsTable extends DataTableComponent
 {
+    use InteractsWithAprilTable;
+
+    /**
+     * @return Builder<User>
+     */
     protected function builder(): Builder
     {
         return User::query()
@@ -50,10 +58,20 @@ class ListParentsTable extends DataTableComponent
             $row['view_url'] = route('parents.show', $parent);
             $row['manage_url'] = route('parents.edit', $parent);
             $row['assign_url'] = route('parents.assign-student', $parent);
-            $row['delete_url'] = route('parents.destroy', $parent);
 
             return $row;
         })->values()->all();
+    }
+
+    /**
+     * Delete one parent of this school.
+     */
+    public function deleteParent(int $userId, ParentService $parents): void
+    {
+        $parent = $this->builder()->findOrFail($userId);
+        Gate::authorize('delete', [$parent, 'parent']);
+
+        $this->changeRow(fn () => $parents->deleteParent($parent), "{$parent->name} was deleted.");
     }
 
     public function render(): View

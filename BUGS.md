@@ -1,5 +1,14 @@
 # Known Bugs
 
+## People tables and resets reloaded the page, and unused write routes stayed open
+
+- Status: Fixed
+- Area: Students, teachers, parents, admins, promotions, graduations; fee, fee-category, timetable, and time-slot controllers
+- Observed: Deleting a person, resetting a promotion, or resetting a graduation posted a classic form and reloaded the page. An administrator could delete their own account. The fee, fee-category, and timetable store and update routes, and the whole time-slot controller, had no screen that used them.
+- Impact: A delete lost the table's place. An administrator who deleted themself was locked out of their school. The unused routes were open surface that no screen covered.
+- Reproduction: Delete a teacher from page 2 of a searched teachers table. As an admin, delete your own row in the admins table.
+- Resolution: The four people tables and the promotion and graduation tables now act through Livewire methods that find the row with the table's own school scope. Nobody can delete their own admin account. The unused routes, `TimetableTimeSlotController`, and five unused form requests are removed.
+
 ## Seven more tables deleted rows through a full page reload
 
 - Status: Fixed

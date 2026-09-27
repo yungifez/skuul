@@ -50,7 +50,6 @@ use App\Http\Controllers\SubjectController;
 use App\Http\Controllers\SyllabusController;
 use App\Http\Controllers\TeacherController;
 use App\Http\Controllers\TimetableController;
-use App\Http\Controllers\TimetableTimeSlotController;
 use App\Http\Middleware\ResolveDomainContext;
 use App\Http\Middleware\SetActiveAcademicPeriod;
 use App\Http\Middleware\SetActiveSchool;
@@ -320,7 +319,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::get('students/promotions', ['App\Http\Controllers\PromotionController', 'index'])->name('students.promotions');
             Route::get('students/promote', ['App\Http\Controllers\PromotionController', 'promoteView'])->name('students.promote');
             Route::get('students/promotions/{promotion}', ['App\Http\Controllers\PromotionController', 'show'])->name('students.promotions.show');
-            Route::delete('students/promotions/{promotion}/reset', ['App\Http\Controllers\PromotionController', 'resetPromotion'])->name('students.promotions.reset');
 
             // campus move routes. A campus decides the moves arriving at it.
             Route::get('students/campus-moves', ['App\Http\Controllers\CampusMoveRequestController', 'index'])->name('campus-moves.index');
@@ -328,7 +326,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             // graduation routes
             Route::get('students/graduations', ['App\Http\Controllers\GraduationController', 'index'])->name('students.graduations');
             Route::get('students/graduate', ['App\Http\Controllers\GraduationController', 'graduateView'])->name('students.graduate');
-            Route::delete('students/graduations/{student}/reset', ['App\Http\Controllers\GraduationController', 'resetGraduation'])->name('students.graduations.reset');
 
             // academic period routes
             Route::get('academic-periods', [AcademicPeriodController::class, 'index'])->name('academic-periods.index');
@@ -340,7 +337,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             // Finance records use financial periods, not the staff member's
             // current teaching term. A school can read and post finance while
             // the academic period is being prepared or changed.
-            Route::resource('fees/fee-categories', FeeCategoryController::class)->except(['destroy']);
+            Route::resource('fees/fee-categories', FeeCategoryController::class)->except(['store', 'update', 'destroy']);
             Route::resource('fees/expenses', ExpenseController::class)->only(['index', 'create']);
             Route::resource('fees/cash-deposits', CashDepositController::class)->only(['index', 'create']);
             Route::get('fees/accounts/{student_record}', [StudentAccountController::class, 'show'])->name('student-accounts.show');
@@ -349,7 +346,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             Route::get('fees/fee-invoices/{fee_invoice}/print', [FeeInvoiceController::class, 'print'])->name('fee-invoices.print');
             Route::resource('fees/fee-invoices', FeeInvoiceController::class)->except(['store', 'update', 'destroy']);
             Route::get('fees/budgets', [BudgetController::class, 'index'])->name('budgets.index');
-            Route::resource('fees', FeeController::class)->except(['destroy']);
+            Route::resource('fees', FeeController::class)->except(['store', 'update', 'destroy']);
 
             Route::middleware(['App\Http\Middleware\EnsureAcademicPeriodIsSet'])->group(function () {
                 // shared facility routes
@@ -381,7 +378,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 Route::resource('syllabi', SyllabusController::class);
 
                 // timetable route
-                Route::resource('timetables', TimetableController::class)->except(['update']);
+                Route::resource('timetables', TimetableController::class)->except(['store', 'update']);
                 Route::resource('custom-timetable-items', CustomTimetableItemController::class)->except(['store', 'update', 'destroy']);
 
                 // manage timetable
@@ -389,23 +386,22 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 Route::get('timetables/{timetable}/print', ['App\Http\Controllers\TimetableController', 'print'])->name('timetables.print');
 
                 // timetable-timeslot route
-                Route::resource('timetables/manage/time-slots', TimetableTimeSlotController::class);
 
             });
         });
 
         // student routes
-        Route::resource('students', StudentController::class)->except(['store', 'update']);
+        Route::resource('students', StudentController::class)->except(['store', 'update', 'destroy']);
         Route::get('students/{student}/print', ['App\Http\Controllers\StudentController', 'printProfile'])->name('students.print-profile')->withoutMiddleware(['App\Http\Middleware\PreventGraduatedStudent']);
 
         // admin routes
-        Route::resource('admins', AdminController::class)->except(['store', 'update']);
+        Route::resource('admins', AdminController::class)->except(['store', 'update', 'destroy']);
 
         // teacher routes
-        Route::resource('teachers', TeacherController::class)->except(['store', 'update']);
+        Route::resource('teachers', TeacherController::class)->except(['store', 'update', 'destroy']);
 
         // parent routes
-        Route::resource('parents', ParentController::class)->except(['store', 'update']);
+        Route::resource('parents', ParentController::class)->except(['store', 'update', 'destroy']);
         Route::get('parents/{parent}/assign-student-to-parent', ['App\Http\Controllers\ParentController', 'assignStudentsView'])->name('parents.assign-student');
 
         // account access routes

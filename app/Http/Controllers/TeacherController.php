@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Services\Teacher\TeacherService;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class TeacherController extends Controller
@@ -61,19 +60,5 @@ class TeacherController extends Controller
         $this->authorize('update', [$teacher, 'teacher']);
 
         return view('pages.teacher.edit', compact('teacher'));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     *
-     * @throws AuthorizationException
-     */
-    public function destroy(User $teacher): RedirectResponse
-    {
-        $this->authorize('delete', [$teacher, 'teacher']);
-        $this->teacherService->deleteTeacher($teacher);
-
-        return back()->with('success', 'Teacher Deleted Successfully');
     }
 }

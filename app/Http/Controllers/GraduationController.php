@@ -3,24 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Graduation;
-use App\Models\User;
-use App\Services\Student\StudentService;
-use App\Services\User\UserService;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
 
 class GraduationController extends Controller
 {
-    public $userService;
-
-    public $studentService;
-
-    public function __construct(StudentService $studentService, UserService $userService)
-    {
-        $this->studentService = $studentService;
-        $this->userService = $userService;
-    }
-
     /**
      * Display a listing of the resource.
      */
@@ -39,17 +25,5 @@ class GraduationController extends Controller
         $this->authorize('graduate', Graduation::class);
 
         return view('pages.student.graduation.graduate');
-    }
-
-    /**
-     * Reset user graduation.
-     */
-    public function resetGraduation(User $student): RedirectResponse
-    {
-        $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
-        $this->authorize('resetGraduation', [Graduation::class, $student]);
-        $this->studentService->resetGraduation($student);
-
-        return back()->with('success', 'Graduation Reset Successfully');
     }
 }

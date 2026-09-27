@@ -2,9 +2,12 @@
 
 namespace App\Livewire;
 
+use App\Livewire\Concerns\InteractsWithAprilTable;
 use App\Models\User;
+use App\Services\Student\StudentService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\MessageBag;
 use Illuminate\View\View;
 use Yungifez\AprilUI\Livewire\Columns\Column;
@@ -12,6 +15,8 @@ use Yungifez\AprilUI\Livewire\DataTableComponent;
 
 class ListStudentsTable extends DataTableComponent
 {
+    use InteractsWithAprilTable;
+
     public function mount(): void
     {
         parent::mount();
@@ -19,6 +24,9 @@ class ListStudentsTable extends DataTableComponent
         $this->setErrorBag(session()->get('errors', new MessageBag)->getMessages());
     }
 
+    /**
+     * @return Builder<User>
+     */
     protected function builder(): Builder
     {
         $query = User::query()
@@ -71,10 +79,22 @@ class ListStudentsTable extends DataTableComponent
             $row = $student->toArray();
             $row['view_url'] = route('students.show', $student);
             $row['manage_url'] = route('students.edit', $student);
-            $row['delete_url'] = route('students.destroy', $student);
 
             return $row;
         })->values()->all();
+    }
+
+    /**
+     * Delete one active student of this school.
+     *
+     * Their invoices and results stay.
+     */
+    public function deleteStudent(int $userId, StudentService $students): void
+    {
+        $student = $this->builder()->findOrFail($userId);
+        Gate::authorize('delete', [$student, 'student']);
+
+        $this->changeRow(fn () => $students->deleteStudent($student), "{$student->name} was deleted.");
     }
 
     public function render(): View

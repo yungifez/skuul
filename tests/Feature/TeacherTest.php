@@ -8,6 +8,7 @@ use App\Livewire\ListTeachersTable;
 use App\Models\School;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Livewire\Livewire;
@@ -159,21 +160,43 @@ class TeacherTest extends TestCase
     {
         $teacher = User::factory()->create();
         $teacher->assignRole('teacher');
-        $this->unauthorized_user()
-            ->delete('dashboard/teachers/'.$teacher->id)
+        $this->authorized_user(['read teacher']);
+
+        Livewire::test(ListTeachersTable::class)
+            ->call('deleteTeacher', $teacher->id)
             ->assertForbidden();
 
-        $this->assertModelExists($teacher) && $this->assertNotSoftDeleted($teacher);
+        $this->assertNotSoftDeleted($teacher);
     }
 
     public function test_authorised_users_can_delete_teachers()
     {
         $teacher = User::factory()->create();
         $teacher->assignRole('teacher');
-        $this->authorized_user(['delete teacher'])
-            ->delete('dashboard/teachers/'.$teacher->id)
-            ->assertRedirect();
+        $this->authorized_user(['read teacher', 'delete teacher']);
 
-        $this->assertModelExists($teacher) && $this->assertSoftDeleted($teacher);
+        Livewire::test(ListTeachersTable::class)
+            ->assertSeeHtml('$wire.call(&quot;deleteTeacher&quot;, row.id)')
+            ->call('deleteTeacher', $teacher->id)
+            ->assertDispatched('status-message', type: 'success');
+
+        $this->assertSoftDeleted($teacher);
+    }
+
+    public function test_a_teacher_of_another_school_cannot_be_deleted()
+    {
+        $teacher = User::factory()->create();
+        $teacher->assignRole('teacher');
+        $teacher->schoolMemberships()->delete();
+        $this->memberOf(School::factory()->create(), $teacher->refresh());
+        $this->authorized_user(['read teacher', 'delete teacher']);
+
+        try {
+            Livewire::test(ListTeachersTable::class)->call('deleteTeacher', $teacher->id);
+            $this->fail('A teacher of another school was reached.');
+        } catch (ModelNotFoundException) {
+        }
+
+        $this->assertNotSoftDeleted($teacher);
     }
 }

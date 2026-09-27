@@ -14,6 +14,7 @@ use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Livewire\Livewire;
@@ -180,22 +181,44 @@ class ParentTest extends TestCase
     {
         $parent = User::factory()->create();
         $parent->assignRole('parent');
-        $this->unauthorized_user()
-            ->delete('dashboard/parents/'.$parent->id)
+        $this->authorized_user(['read parent']);
+
+        Livewire::test(ListParentsTable::class)
+            ->call('deleteParent', $parent->id)
             ->assertForbidden();
 
-        $this->assertModelExists($parent) && $this->assertNotSoftDeleted($parent);
+        $this->assertNotSoftDeleted($parent);
     }
 
     public function test_authorised_users_can_delete_parents()
     {
         $parent = User::factory()->create();
         $parent->assignRole('parent');
-        $this->authorized_user(['delete parent'])
-            ->delete('dashboard/parents/'.$parent->id)
-            ->assertRedirect();
+        $this->authorized_user(['read parent', 'delete parent']);
 
-        $this->assertModelExists($parent) && $this->assertSoftDeleted($parent);
+        Livewire::test(ListParentsTable::class)
+            ->assertSeeHtml('$wire.call(&quot;deleteParent&quot;, row.id)')
+            ->call('deleteParent', $parent->id)
+            ->assertDispatched('status-message', type: 'success');
+
+        $this->assertSoftDeleted($parent);
+    }
+
+    public function test_a_parent_of_another_school_cannot_be_deleted()
+    {
+        $parent = User::factory()->create();
+        $parent->assignRole('parent');
+        $parent->schoolMemberships()->delete();
+        $this->memberOf(School::factory()->create(), $parent->refresh());
+        $this->authorized_user(['read parent', 'delete parent']);
+
+        try {
+            Livewire::test(ListParentsTable::class)->call('deleteParent', $parent->id);
+            $this->fail('A parent of another school was reached.');
+        } catch (ModelNotFoundException) {
+        }
+
+        $this->assertNotSoftDeleted($parent);
     }
 
     public function test_unauthorised_users_cannot_assign_student_to_parent()

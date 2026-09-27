@@ -16,6 +16,7 @@ use App\Traits\FeatureTestTrait;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -51,44 +52,6 @@ class FeeTest extends TestCase
         $this->authorized_user(['create fee'])
             ->get('dashboard/fees/create')
             ->assertSuccessful();
-    }
-
-    public function test_unauthorized_user_cannot_store_fee()
-    {
-        $name = $this->faker->name();
-        $description = $this->faker->sentence();
-        $feeCategory = FeeCategory::factory()->create();
-
-        $this->unauthorized_user()
-            ->post('dashboard/fees', [
-                'name' => $name,
-                'description' => $description,
-                'fee_category_id' => $feeCategory->id,
-            ])
-            ->assertForbidden();
-
-        $this->assertDatabaseMissing('fees', [
-            'name' => $name,
-        ]);
-    }
-
-    public function test_authorized_user_can_store_fee()
-    {
-        $name = $this->faker->name();
-        $description = $this->faker->sentence();
-        $feeCategory = FeeCategory::factory()->create();
-
-        $this->authorized_user(['create fee'])
-            ->post('dashboard/fees', [
-                'name' => $name,
-                'description' => $description,
-                'fee_category_id' => $feeCategory->id,
-            ])
-            ->assertRedirect();
-
-        $this->assertDatabaseHas('fees', [
-            'name' => $name,
-        ]);
     }
 
     public function test_fee_create_livewire_flow_saves_with_a_working_school_category(): void
@@ -139,42 +102,12 @@ class FeeTest extends TestCase
             ->assertSuccessful();
     }
 
-    public function test_unauthorized_user_cannot_update_fee()
+    public function test_the_classic_fee_write_routes_are_gone(): void
     {
-        $fee = Fee::factory()->create();
-        $name = $this->faker->name();
-        $description = $this->faker->sentence();
-
-        $this->unauthorized_user()
-            ->put("dashboard/fees/$fee->id", [
-                'name' => $name,
-                'description' => $description,
-            ])
-            ->assertForbidden();
-
-        $this->assertDatabaseMissing('fees', [
-            'id' => $fee->id,
-            'name' => $name,
-        ]);
-    }
-
-    public function test_authorized_user_can_update_fee()
-    {
-        $fee = Fee::factory()->create();
-        $name = $this->faker->name();
-        $description = $this->faker->sentence();
-
-        $this->authorized_user(['update fee'])
-            ->put("dashboard/fees/$fee->id", [
-                'name' => $name,
-                'description' => $description,
-            ])
-            ->assertRedirect();
-
-        $this->assertDatabaseHas('fees', [
-            'id' => $fee->id,
-            'name' => $name,
-        ]);
+        $this->assertFalse(Route::has('fees.store'));
+        $this->assertFalse(Route::has('fees.update'));
+        $this->authorized_user(['create fee'])->post('dashboard/fees', ['name' => 'Posted'])->assertStatus(405);
+        $this->assertDatabaseMissing('fees', ['name' => 'Posted']);
     }
 
     public function test_fee_edit_livewire_flow_updates_and_redirects(): void

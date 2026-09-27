@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use App\Services\Parent\ParentService;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class ParentController extends Controller
@@ -66,21 +65,6 @@ class ParentController extends Controller
         $this->parentService->user->verifyUserIsOfRoleElseNotFound($parent, 'parent');
 
         return view('pages.parent.edit', compact('parent'));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     *
-     * @throws AuthorizationException
-     */
-    public function destroy(User $parent): RedirectResponse
-    {
-        $this->authorize('delete', [$parent, 'parent']);
-        $this->parentService->user->verifyUserIsOfRoleElseNotFound($parent, 'parent');
-        $this->parentService->deleteParent($parent);
-
-        return back()->with('success', 'Parent Deleted Successfully');
     }
 
     /**

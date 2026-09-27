@@ -12,6 +12,7 @@ use App\Traits\FeatureTestTrait;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -47,40 +48,6 @@ class FeeCategoryTest extends TestCase
         $this->authorized_user(['create fee category'])
             ->get('dashboard/fees/fee-categories/create')
             ->assertSuccessful();
-    }
-
-    public function test_unauthorized_user_cannot_store_a_fee_categories()
-    {
-        $name = $this->faker->name();
-        $description = $this->faker->sentence();
-        $this->unauthorized_user()
-            ->post('dashboard/fees/fee-categories/', [
-                'name' => $name,
-                'descripttion' => $description,
-            ])
-            ->assertForbidden();
-
-        $this->assertDatabaseMissing('fee_categories', [
-            'name' => $name,
-            'description' => $description,
-        ]);
-    }
-
-    public function test_unauthorized_user_can_store_a_fee_categories()
-    {
-        $name = $this->faker->name();
-        $description = $this->faker->sentence();
-        $this->authorized_user(['create fee category'])
-            ->post('dashboard/fees/fee-categories/', [
-                'name' => $name,
-                'description' => $description,
-            ])
-            ->assertRedirect();
-
-        $this->assertDatabaseHas('fee_categories', [
-            'name' => $name,
-            'description' => $description,
-        ]);
     }
 
     public function test_fee_category_create_livewire_flow_saves_in_the_working_school(): void
@@ -156,48 +123,14 @@ class FeeCategoryTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_unauthorized_user_cannot_update_fee_category_page()
+    public function test_the_classic_fee_category_write_routes_are_gone(): void
     {
-        $FeeCategory = FeeCategory::factory()->create();
-        $name = $this->faker()->name();
-        $description = $this->faker()->sentence();
-
-        $this->unauthorized_user()
-            ->put("dashboard/fees/fee-categories/$FeeCategory->id", [
-                'name' => $name,
-                'description' => $description,
-            ])
-            ->assertForbidden();
-
-        $this->assertDatabaseMissing('fee_categories', [
-            'id' => $FeeCategory->id,
-            'name' => $name,
-        ]);
+        $this->assertFalse(Route::has('fee-categories.store'));
+        $this->assertFalse(Route::has('fee-categories.update'));
+        $this->authorized_user(['create fee category'])->post('dashboard/fees/fee-categories', ['name' => 'Posted'])->assertStatus(405);
+        $this->assertDatabaseMissing('fee_categories', ['name' => 'Posted']);
     }
 
-    public function test_authorized_user_can_update_fee_category_page()
-    {
-        $FeeCategory = FeeCategory::factory()->create();
-        $name = $this->faker()->name();
-        $description = $this->faker()->sentence();
-
-        $this->authorized_user(['update fee category'])
-            ->put("dashboard/fees/fee-categories/$FeeCategory->id", [
-                'name' => $name,
-                'description' => $description,
-            ])
-            ->assertRedirect();
-
-        $this->assertDatabaseHas('fee_categories', [
-            'id' => $FeeCategory->id,
-            'name' => $name,
-        ]);
-    }
-
-    /**
-     * The fees index and the fee policy both read the category off the
-     * relation, which is null once the category is soft deleted.
-     */
     public function test_a_category_that_holds_fees_cannot_be_deleted()
     {
         $school = $this->workingSchool();

@@ -814,61 +814,33 @@ class TimetableTest extends TestCase
             ->assertOk();
     }
 
-    // test unauthorized user cannot store timetable time slot
-
-    public function test_unauthorized_user_cant_store_timetable_time_slot()
+    public function test_the_builder_removes_a_time_slot_of_its_own_timetable(): void
     {
-        $this->unauthorized_user()
-            ->post('/dashboard/timetables/manage/time-slots', [
-                'start_time' => '10:00',
-                'stop_time' => '11:00',
-            ])->assertForbidden();
+        [$timetable, $slot] = $this->timetableWithOneSlot();
+        $otherSlot = TimetableTimeSlot::factory()->create();
+
+        Livewire::test(ManageTimetable::class, ['timetable' => $timetable])
+            ->call('removeTimeSlot', $otherSlot->id)
+            ->call('removeTimeSlot', $slot->id)
+            ->assertHasNoErrors();
+
+        $this->assertModelMissing($slot);
+        $this->assertModelExists($otherSlot);
     }
 
-    // test authorized user can store timetable time slot
-
-    public function test_authorized_user_can_store_timetable_time_slot()
+    public function test_the_classic_timetable_write_routes_are_gone(): void
     {
-        $timetable = Timetable::factory()->create();
+        $slot = TimetableTimeSlot::factory()->create();
+        $this->authorized_user(['create timetable', 'update timetable']);
 
-        $this->authorized_user(['update timetable'])
-            ->post('/dashboard/timetables/manage/time-slots', [
-                'start_time' => '10:00',
-                'stop_time' => '11:00',
-                'timetable_id' => $timetable->id,
-            ]);
+        $this->post('/dashboard/timetables', ['name' => 'Posted'])->assertStatus(405);
+        $this->post('/dashboard/timetables/manage/time-slots', ['start_time' => '10:00', 'stop_time' => '11:00', 'timetable_id' => $slot->timetable_id])->assertNotFound();
+        $this->delete("/dashboard/timetables/manage/time-slots/$slot->id")->assertNotFound();
 
-        $this->assertDatabaseHas('timetable_time_slots', [
-            'timetable_id' => $timetable->id,
-            'start_time' => '10:00:00',
-            'stop_time' => '11:00:00',
-        ]);
-    }
-
-    // test unatuorized user cannot delete timetable time slot
-
-    public function test_unauthorized_user_cant_delete_timetable_time_slot()
-    {
-        $timeslot = TimetableTimeSlot::factory()->create();
-        $this->unauthorized_user()
-            ->delete("/dashboard/timetables/manage/time-slots/$timeslot->id")
-            ->assertForbidden();
-    }
-
-    // test authorized user can delete timetable time slot
-
-    public function test_authorized_user_can_delete_timetable_time_slot()
-    {
-        $timeslot = TimetableTimeSlot::factory()->create();
-        $this->authorized_user(['update timetable'])
-            ->delete("/dashboard/timetables/manage/time-slots/$timeslot->id");
-
-        $this->assertDatabaseMissing('timetable_time_slots', [
-            'id' => $timeslot->id,
-            'timetable_id' => $timeslot->timetable_id,
-            'start_time' => "$timeslot->start_time:00",
-            'stop_time' => "$timeslot->stop_time:00",
-        ]);
+        $this->assertModelExists($slot);
+        $this->assertFalse(Route::has('timetables.store'));
+        $this->assertFalse(Route::has('time-slots.store'));
+        $this->assertFalse(Route::has('time-slots.destroy'));
     }
 
     public function test_the_builder_puts_this_schools_subject_and_room_in_a_cell(): void
