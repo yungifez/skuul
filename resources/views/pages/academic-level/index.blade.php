@@ -20,55 +20,41 @@
         }
     @endphp
 
-    <april:card class="mb-6">
-        <slot:title class="flex items-center gap-1">
-            <span>{{ school_terms('class_level', 'Classes') }} are reusable. {{ school_terms('section', 'Sections') }} are not.</span>
-            <x-help-tooltip label="Classes and sections help">A class is the learner’s level, such as Primary 4, Grade 4, or Form 2. A section is one named group inside that class for one exact school year, such as Primary 4 · Green · 2026–2027.</x-help-tooltip>
-        </slot:title>
-        <slot:description>Set up reusable {{ strtolower(school_terms('class_level', 'classes')) }} here, then add {{ strtolower(school_terms('section', 'sections')) }} for each {{ strtolower(school_term('academic_year', 'school year')) }}.</slot:description>
-        <slot:content class="flex flex-wrap gap-2">
-            <april:button-link href="{{ route('academic-cycle-sections.index', ['academic_year_id' => '']) }}" variant="outline" size="sm">
-                <x-lucide-layers class="mr-1.5 size-3.5" />
-                Go to {{ school_terms('section', 'section') }} this year
-            </april:button-link>
-        </slot:content>
-    </april:card>
-
-    <april:card>
-        <slot:title>All {{ school_terms('class_level', 'classes') }}</slot:title>
-        <slot:description>Use the arrows to set the order shown in class lists.</slot:description>
-        <slot:content>
-            <div class="mb-4 flex flex-wrap items-center gap-2">
-                <span class="text-sm text-muted-foreground">Status</span>
+    <div class="flex flex-col gap-6">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <nav class="flex flex-wrap items-center gap-2" aria-label="Filter by status">
                 @foreach ($statusFilters as $filter)
                     <april:button-link
                         href="{{ route('academic-levels.index', array_filter(['status' => $filter['value']])) }}"
                         variant="{{ $status?->value === $filter['value'] ? 'default' : 'outline' }}"
-                        size="sm">{{ $filter['text'] }}</april:button-link>
+                        :aria-current="$status?->value === $filter['value'] ? 'page' : null"
+                        class="h-11 select-none">{{ $filter['text'] }}</april:button-link>
                 @endforeach
+            </nav>
+            <div class="flex items-center gap-1">
+                <april:button-link href="{{ route('academic-cycle-sections.index') }}" variant="ghost" class="h-11 select-none">{{ school_terms('section', 'Section') }}</april:button-link>
+                <x-help-tooltip label="Classes and sections help">A class is the learner’s level, such as Primary 4, Grade 4, or Form 2. A section is one named group inside that class for one exact school year, such as Primary 4 · Green · 2026–2027.</x-help-tooltip>
             </div>
+        </div>
 
-            @if ($totalCount === 0)
-                <x-empty-state
-                    icon="lucide-graduation-cap"
-                    title="No {{ school_terms('class_level', 'class') }} yet"
-                    description="Add the {{ school_terms('class_level', 'classes') }} this school teaches, such as Primary 1 to Primary 6. You need at least one before you can create a {{ school_term('section', 'section') }} for a {{ strtolower(school_term('academic_year', 'school year')) }}.">
-                    <x-resource-create-action :href="route('academic-levels.create')" ability="create" :arguments="[\App\Models\AcademicLevel::class]">Add {{ school_term('class_level', 'class') }}</x-resource-create-action>
-                </x-empty-state>
-            @elseif ($academicLevels->isEmpty())
-                <x-empty-state
-                    icon="lucide-filter"
-                    title="No {{ strtolower(school_term('class_level', 'class')) }} matches this status"
-                    description="This school has {{ $totalCount }} {{ strtolower(school_terms('class_level', 'classes')) }}. Clear the filter to see them.">
-                    <april:button-link href="{{ route('academic-levels.index') }}" variant="outline" size="sm">Show all {{ strtolower(school_terms('class_level', 'classes')) }}</april:button-link>
-                </x-empty-state>
-            @else
-                @livewire('academic-year-structure-tree', [
-                    'allowWithoutAcademicYear' => true,
-                    'setupLinks' => false,
-                    'status' => $status?->value,
-                ])
-            @endif
-        </slot:content>
-    </april:card>
+        @if ($totalCount === 0)
+            <x-empty-state
+                icon="lucide-graduation-cap"
+                title="No {{ strtolower(school_terms('class_level', 'Class')) }} yet"
+                description="A {{ strtolower(school_term('section', 'section')) }} needs a {{ strtolower(school_term('class_level', 'class')) }} first, such as Primary 1.">
+                <x-resource-create-action :href="route('academic-levels.create')" ability="create" :arguments="[\App\Models\AcademicLevel::class]">Add {{ school_term('class_level', 'class') }}</x-resource-create-action>
+            </x-empty-state>
+        @elseif (!$hasMatches)
+            <div class="flex flex-wrap items-center gap-3 text-sm">
+                <p class="text-muted-foreground">No {{ strtolower(school_term('class_level', 'class')) }} is {{ strtolower($status->label()) }}. This school has <span class="tabular-nums">{{ $totalCount }}</span> in all.</p>
+                <april:button-link href="{{ route('academic-levels.index') }}" variant="outline" class="h-11 select-none">Show every {{ strtolower(school_term('class_level', 'class')) }}</april:button-link>
+            </div>
+        @else
+            @livewire('academic-year-structure-tree', [
+                'allowWithoutAcademicYear' => true,
+                'setupLinks' => false,
+                'status' => $status?->value,
+            ])
+        @endif
+    </div>
 @endsection

@@ -20,21 +20,13 @@ class AcademicLevelController extends Controller
     {
         $status = $this->readStatus($request);
 
-        $academicLevels = AcademicLevel::inSchool()
-            ->with(['parent:id,name'])
-            ->withCount([
-                'cycleSections',
-                'cycleSections as active_cycle_sections_count' => fn (Builder $query) => $query->where('status', AcademicStructureStatus::Active),
-            ])
+        $hasMatches = AcademicLevel::inSchool()
             ->when($status !== null, fn (Builder $query) => $query->where('status', $status))
-            ->orderBy('position')
-            ->orderBy('name')
-            ->paginate(25)
-            ->withQueryString();
+            ->exists();
 
         $totalCount = AcademicLevel::inSchool()->count();
 
-        return view('pages.academic-level.index', compact('academicLevels', 'status', 'totalCount'));
+        return view('pages.academic-level.index', compact('hasMatches', 'status', 'totalCount'));
     }
 
     public function create(Request $request): View

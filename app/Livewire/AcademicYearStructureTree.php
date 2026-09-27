@@ -12,6 +12,7 @@ use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
 use App\Models\CourseOffering;
 use Illuminate\View\View;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 class AcademicYearStructureTree extends Component
@@ -20,12 +21,16 @@ class AcademicYearStructureTree extends Component
 
     public ?AcademicYear $academicYear = null;
 
+    #[Locked]
     public bool $schoolSetup = false;
 
+    #[Locked]
     public bool $setupLinks = true;
 
+    #[Locked]
     public bool $showLevelActions = true;
 
+    #[Locked]
     public ?string $status = null;
 
     public function mount(

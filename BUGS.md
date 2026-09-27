@@ -1,5 +1,13 @@
 # Known Bugs
 
+## The classes page linked to "sections this year" but opened every year, and the class tree took its display flags from the browser
+- Status: Fixed
+- Area: Academic structure, classes
+- Observed: The classes page's "Go to sections this year" link opened the sections list for every year. The status filter buttons were 36px. The page wrapped a short explanation in a card above a second card. The class tree's school-setup, link, and status flags were writable from the browser.
+- Impact: Staff landed on a list that did not match the link. A changed flag in the browser could show setup links or a different status filter than the page chose.
+- Reproduction: Open Classes and press the sections link. Or set the tree's status property from the browser console.
+- Resolution: The page shows the status filter as 44px links with the current one marked, a plain "Sections" link, and the help button. The controller checks for a match instead of loading a page of classes it never showed. The tree's flags are locked.
+
 ## The subjects list printed the school year twice, and the sections list said "this year" while showing every year
 - Status: Fixed
 - Area: Curriculum lists

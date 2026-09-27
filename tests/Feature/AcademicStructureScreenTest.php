@@ -10,6 +10,7 @@ use App\Enums\Role;
 use App\Livewire\AcademicCycleSectionForm;
 use App\Livewire\AcademicLevelForm;
 use App\Livewire\AcademicStructureStatusControl;
+use App\Livewire\AcademicYearStructureTree;
 use App\Livewire\RollForwardSections;
 use App\Livewire\SectionDirectory;
 use App\Models\AcademicCycleSection;
@@ -23,6 +24,7 @@ use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
+use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -42,7 +44,8 @@ class AcademicStructureScreenTest extends TestCase
 
         $actor->get(route('academic-levels.index'))
             ->assertOk()
-            ->assertSee('Classes are reusable. Sections are not.')
+            ->assertSee('Classes and sections help')
+            ->assertSee(route('academic-cycle-sections.index'), false)
             ->assertSee('Kestrel Stage')
             ->assertSee(route('academic-levels.edit', $academicLevel), false)
             ->assertSee(route('academic-levels.create'), false);
@@ -62,11 +65,8 @@ class AcademicStructureScreenTest extends TestCase
             'parent_id' => $group->id,
         ]);
 
-        $pageLead = 'Set up reusable '.strtolower(school_terms('class_level', 'classes')).' here, then add '.strtolower(school_terms('section', 'sections')).' for each '.strtolower(school_term('academic_year', 'school year')).'.';
-
         $actor->get(route('academic-levels.index'))
             ->assertOk()
-            ->assertSee($pageLead)
             ->assertSee('2 levels · can be taught together')
             ->assertSee('Group')
             ->assertDontSee('Group · whole-group teaching available')
@@ -96,7 +96,24 @@ class AcademicStructureScreenTest extends TestCase
         $actor->get(route('academic-levels.index', ['status' => AcademicStructureStatus::Archived->value]))
             ->assertOk()
             ->assertSee('Merlin Stage')
-            ->assertDontSee('Kestrel Stage');
+            ->assertDontSee('Kestrel Stage')
+            ->assertSee('aria-current="page"', false);
+
+        $actor->get(route('academic-levels.index', ['status' => AcademicStructureStatus::Draft->value]))
+            ->assertOk()
+            ->assertSee('No class is draft. This school has')
+            ->assertSee('Show every class');
+    }
+
+    public function test_the_structure_tree_keeps_its_display_flags_from_the_browser(): void
+    {
+        $this->authorized_user(['read class']);
+        AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id, 'status' => AcademicStructureStatus::Archived]);
+
+        $this->expectException(CannotUpdateLockedPropertyException::class);
+
+        Livewire::test(AcademicYearStructureTree::class, ['allowWithoutAcademicYear' => true, 'status' => AcademicStructureStatus::Active->value])
+            ->set('status', null);
     }
 
     public function test_the_level_show_screen_reads_in_plain_words(): void
