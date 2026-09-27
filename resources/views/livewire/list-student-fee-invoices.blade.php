@@ -1,32 +1,30 @@
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">
-            Student Fee Invoices
-        </h2>
-    </div>
-    <div class="card-body">
-        @forelse ($feeInvoices as $feeInvoice)
-            <a class="grid md:grid-cols-5 gap-y-3 my-3 border rounded p-5 items-center hover:bg-white hover:bg-opacity-30 " href="{{route('fee-invoices.show', $feeInvoice->id)}}">
-                <p>{{$feeInvoice->name}}</p>
-                <p>Amount: {{$feeInvoice->amount}}</p>
-                <p>Paid: {{$feeInvoice->paid}}</p>
-                <p>Due Date: {{$feeInvoice->due_date->toFormattedDateString()}}</p>
-                @if ($feeInvoice->balance->isLessThanOrEqualTo(0))
-                <div class=" font-bold text-green-400 capitalize rounded">
-                    Paid
-                </div>
-                @elseif ($feeInvoice->paid->isGreaterThan(0))
-                    <div class=" font-bold  text-yellow-400 capitalize rounded">
-                        Paid Partially
-                    </div>
-                @else
-                    <div class=" font-bold text-red-400 capitalize rounded">
-                        <strong>Not</strong> Paid
-                    </div>
-                @endif            
-            </a>
-        @empty
-            <p>No Fee Invoice Records</p>
-        @endforelse
-    </div>
-</div>
+<section aria-labelledby="fee-invoices-heading" class="flex flex-col gap-3">
+    <h2 id="fee-invoices-heading" class="text-base font-semibold">Fee invoices</h2>
+    @if ($feeInvoices->isEmpty())
+        <p class="text-sm text-muted-foreground">No invoices</p>
+    @else
+        <ul class="divide-y border-y">
+            @foreach ($feeInvoices as $feeInvoice)
+                @php
+                    $state = match (true) {
+                        $feeInvoice->balance->isLessThanOrEqualTo(0) => 'Paid',
+                        $feeInvoice->paid->isGreaterThan(0) => 'Part paid',
+                        default => 'Unpaid',
+                    };
+                @endphp
+                <li wire:key="fee-invoice-{{ $feeInvoice->id }}">
+                    <a href="{{ route('fee-invoices.show', $feeInvoice->id) }}" class="flex min-h-11 flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-3 text-sm hover:bg-muted/50">
+                        <span class="min-w-0">
+                            <span class="font-medium">{{ $feeInvoice->name }}</span>
+                            <span class="block text-muted-foreground">Due {{ $feeInvoice->due_date->format('j M Y') }}</span>
+                        </span>
+                        <span class="text-right">
+                            <span class="font-medium tabular-nums">{{ $feeInvoice->paid }} / {{ $feeInvoice->amount }}</span>
+                            <span @class(['block', 'text-muted-foreground' => $state === 'Paid', 'text-destructive' => $state === 'Unpaid'])>{{ $state }}</span>
+                        </span>
+                    </a>
+                </li>
+            @endforeach
+        </ul>
+    @endif
+</section>

@@ -39,6 +39,7 @@ class CampusMoveScreenTest extends TestCase
 
         Livewire::test(ShowStudentProfile::class, ['student' => $enrollment->user])
             ->assertSee('Move to another campus')
+            ->set('managing', 'campus')
             ->assertSee($sibling->name)
             ->assertSee($cycleSection->name);
     }
@@ -51,7 +52,9 @@ class CampusMoveScreenTest extends TestCase
         $this->authorized_user(['read student', 'update student', CampusMoveAuthority::RequestPermission]);
 
         Livewire::test(ShowStudentProfile::class, ['student' => $enrollment->user])
+            ->set('managing', 'campus')
             ->assertSee('The receiving campus has to agree')
+            ->assertSee('Ask the other campus')
             ->set('campusCycleSectionId', $cycleSection->id)
             ->set('campusReason', 'Family moved across town')
             ->call('moveCampus')
@@ -73,7 +76,9 @@ class CampusMoveScreenTest extends TestCase
         $this->actingAs($actor->refresh());
 
         Livewire::test(ShowStudentProfile::class, ['student' => $enrollment->user])
-            ->assertSee('this move happens straight away')
+            ->set('managing', 'campus')
+            ->assertDontSee('The receiving campus has to agree')
+            ->assertSee('Move campus')
             ->set('campusCycleSectionId', $cycleSection->id)
             ->call('moveCampus')
             ->assertHasNoErrors();
@@ -105,7 +110,7 @@ class CampusMoveScreenTest extends TestCase
     /**
      * Make a person with authority over the working school's organization.
      *
-     * @param array<int, OrganizationPermission> $permissions
+     * @param  array<int, OrganizationPermission>  $permissions
      */
     private function organizationPersonWith(array $permissions): User
     {
@@ -161,10 +166,10 @@ class CampusMoveScreenTest extends TestCase
         $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
 
         return AcademicCycleSection::factory()->create([
-            'school_id'         => $school->id,
-            'academic_year_id'  => $academicYear->id,
+            'school_id' => $school->id,
+            'academic_year_id' => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
-            'status'            => AcademicStructureStatus::Active,
+            'status' => AcademicStructureStatus::Active,
         ]);
     }
 }

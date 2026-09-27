@@ -72,7 +72,8 @@ class ParentTest extends TestCase
         $this->authorized_user(['read parent'])
             ->get("dashboard/parents/$parent->id")
             ->assertOk()
-            ->assertSee('Personal information');
+            ->assertSee('Email address')
+            ->assertSee('10 Apr 1985');
     }
 
     public function test_unauthorised_users_cannot_create_parents()

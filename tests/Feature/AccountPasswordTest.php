@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\AccountStatus;
 use App\Enums\AuditAction;
+use App\Livewire\ManageAccountPassword;
 use App\Models\AccountInvitation;
 use App\Models\AuditEvent;
 use App\Models\User;
@@ -25,12 +26,14 @@ class AccountPasswordTest extends TestCase
         $target = User::factory()->invited()->create();
         $invitation = AccountInvitation::factory()->create(['user_id' => $target->id]);
 
-        $actor = $this->authorized_user(['manage account access']);
+        $this->authorized_user(['manage account access']);
 
-        $actor->post(route('users.password.update', $target), [
-            'password' => 'New-Password-123!',
-            'password_confirmation' => 'New-Password-123!',
-        ])->assertRedirect();
+        Livewire::test(ManageAccountPassword::class, ['user' => $target])
+            ->set('password', 'New-Password-123!')
+            ->set('password_confirmation', 'New-Password-123!')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertSet('isOpen', false);
 
         $target = $target->fresh();
 
@@ -50,12 +53,14 @@ class AccountPasswordTest extends TestCase
             'password' => Hash::make('Temporary-Password-123!'),
         ]);
 
-        $this->authorized_user(['manage account access'])
-            ->post(route('users.password.update', $target), [
-                'password' => 'Temporary-Password-123!',
-                'password_confirmation' => 'Temporary-Password-123!',
-                'force_reset' => '1',
-            ])->assertRedirect();
+        $this->authorized_user(['manage account access']);
+
+        Livewire::test(ManageAccountPassword::class, ['user' => $target])
+            ->set('password', 'Temporary-Password-123!')
+            ->set('password_confirmation', 'Temporary-Password-123!')
+            ->set('forceReset', true)
+            ->call('save')
+            ->assertHasNoErrors();
 
         $target->refresh();
         $this->assertNotNull($target->password_change_required_at);
@@ -94,17 +99,31 @@ class AccountPasswordTest extends TestCase
         $this->assertNull($target->password_change_required_at);
     }
 
+    public function test_a_password_must_be_confirmed(): void
+    {
+        $target = User::factory()->create(['password' => Hash::make('Original-Password-123!')]);
+        $this->authorized_user(['manage account access']);
+
+        Livewire::test(ManageAccountPassword::class, ['user' => $target])
+            ->set('isOpen', true)
+            ->set('password', 'New-Password-123!')
+            ->set('password_confirmation', 'Different-Password-123!')
+            ->call('save')
+            ->assertHasErrors('password')
+            ->assertSet('isOpen', true);
+
+        $this->assertTrue(Hash::check('Original-Password-123!', $target->fresh()->password));
+    }
+
     public function test_an_unauthorized_user_cannot_set_another_persons_password(): void
     {
         $target = User::factory()->create([
             'password' => Hash::make('Original-Password-123!'),
         ]);
 
-        $this->unauthorized_user()
-            ->post(route('users.password.update', $target), [
-                'password' => 'New-Password-123!',
-                'password_confirmation' => 'New-Password-123!',
-            ])->assertForbidden();
+        $this->unauthorized_user();
+
+        Livewire::test(ManageAccountPassword::class, ['user' => $target])->assertForbidden();
 
         $this->assertTrue(Hash::check('Original-Password-123!', $target->fresh()->password));
     }

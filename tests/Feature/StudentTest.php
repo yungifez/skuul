@@ -43,8 +43,11 @@ class StudentTest extends TestCase
             ->assertOk()
             ->assertHeader('content-type', 'text/html; charset=UTF-8')
             ->assertSee('data-print-button', false)
+            ->assertSeeInOrder(['Student record', $student->user->name, 'Personal details', 'Enrollment', 'Parents and guardians', 'Placement history', 'Status history', 'Signature and school stamp'])
+            ->assertSee($student->admission_number)
             ->assertDontSee('Change enrollment status')
-            ->assertDontSee('Save placement');
+            ->assertDontSee('Save placement')
+            ->assertDontSee('Set password');
     }
 
     public function test_student_detail_does_not_render_a_blocking_n_plus_one_alert(): void

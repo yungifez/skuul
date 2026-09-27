@@ -6,7 +6,6 @@ use App\Http\Controllers\AcademicLevelController;
 use App\Http\Controllers\AcademicPeriodController;
 use App\Http\Controllers\AcademicYearController;
 use App\Http\Controllers\AcademicYearSetupController;
-use App\Http\Controllers\AccountPasswordController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\AdmissionWaitlistController;
 use App\Http\Controllers\BoardingRollController;
@@ -539,7 +538,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::post('users/{user}/account-status', ['App\Http\Controllers\AccountStatusController', 'update'])->name('users.account-status');
         Route::post('users/{user}/invitation', ['App\Http\Controllers\AccountInvitationController', 'send'])->name('users.invitation.send');
         Route::delete('users/{user}/invitation', ['App\Http\Controllers\AccountInvitationController', 'revoke'])->name('users.invitation.revoke');
-        Route::post('users/{user}/password', [AccountPasswordController::class, 'update'])->name('users.password.update');
 
         // academic year routes
         Route::get('academic-years/{academic_year}/setup/{step?}', [AcademicYearSetupController::class, 'show'])->name('academic-years.setup');

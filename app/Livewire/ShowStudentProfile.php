@@ -59,6 +59,11 @@ class ShowStudentProfile extends Component
 
     public bool $movesCampusFreely = false;
 
+    /**
+     * The enrollment form that is open: status, placement, campus, or none.
+     */
+    public string $managing = '';
+
     public function mount(bool $showManagement = true): void
     {
         $this->showManagement = $showManagement;
@@ -74,12 +79,6 @@ class ShowStudentProfile extends Component
         $this->refreshEnrollment();
     }
 
-    /**
-     * Move the student to another campus, or ask that campus to take them.
-     *
-     * A person with organization authority moves the student straight away.
-     * A campus administrator only asks, and the receiving campus decides.
-     */
     /**
      * Move the enrollment to another status.
      */
@@ -114,6 +113,7 @@ class ShowStudentProfile extends Component
         }
 
         $this->statusReason = '';
+        $this->managing = '';
         $this->notify('Enrollment status updated.');
         $this->refreshEnrollment();
     }
@@ -164,10 +164,17 @@ class ShowStudentProfile extends Component
         }
 
         $this->placementReason = '';
+        $this->managing = '';
         $this->notify('Enrollment placement updated.');
         $this->refreshEnrollment();
     }
 
+    /**
+     * Move the student to another campus, or ask that campus to take them.
+     *
+     * A person with organization authority moves the student straight away.
+     * A campus administrator only asks, and the receiving campus decides.
+     */
     public function moveCampus(
         MoveEnrollmentBetweenCampuses $moveEnrollmentBetweenCampuses,
         RequestCampusMove $requestCampusMove,
@@ -238,6 +245,7 @@ class ShowStudentProfile extends Component
         }
 
         $this->campusReason = '';
+        $this->managing = '';
         $this->notify($message);
         $this->refreshEnrollment();
     }

@@ -829,3 +829,12 @@
 - Impact: The office lost its place after every change, and a phone showed two sideways-scrolling tables.
 - Reproduction: Enable boarding, open a house at `/dashboard/boarding/houses/{id}`, open a room and edit a bed.
 - Resolution: A new `ShowDormitory` Livewire component shows occupancy as four numbers, on-duty staff as one line and learners away as a list. Rooms open in place to show their beds, and each bed has one row menu (Edit bed, End placement). All six changes happen in place. `App\Actions\Boarding\ManageBoardingRooms` now holds the room and bed changes and their audit records. `DormitoryRoomController`, `DormitoryBedController`, `BoardingPlaceController`, their five form requests, their six routes and the `boardingRooms` Alpine store are removed. Edit house and Archive house sit in one page menu. Tests: updated `BoardingTest`, with new tests for ending a placement, a room that still has boarders, and a read-only reader.
+
+## Student profile stacks three forms and nested cards, and the print view prints the live screen
+
+- Status: Fixed
+- Area: Students, people profiles, account passwords, student print view
+- Observed: The student page showed one large card with three always-open forms (status, placement, campus move), each with an explanation paragraph, then two more history cards. Every profile had a "Sign-in access" card with a regular POST form. The print view reused the interactive screen, so it printed the "Set password" section and looked sparse.
+- Impact: Staff scrolled past forms they rarely use to read the record. The printed record had no structure a school could file or stamp.
+- Reproduction: Open `/dashboard/students/{id}` as an administrator, then open its print view.
+- Resolution: The profile is now a flat identity block and a facts list. Enrollment shows its facts, and one ⋯ menu opens the status, placement or campus form in place; a pending campus move shows as one line with "Take the request back". Histories and fee invoices are plain lists, and Print moved to the page actions. Setting a password is now the `ManageAccountPassword` Livewire component; the POST route, controller and request are removed. The print view is a dedicated record sheet with bordered sections for personal details, enrollment, guardians, placement and status history, plus a signature line.

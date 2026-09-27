@@ -95,6 +95,17 @@ class StudentController extends Controller
             abort(404);
         }
 
+        $data['studentRecord'] = $student->studentRecord()
+            ->with([
+                'academicCycleSection.academicLevel',
+                'statusChanges.changedBy:id,name',
+                'placements.academicYear',
+                'placements.academicPeriod',
+                'placements.academicCycleSection.academicLevel',
+            ])
+            ->first();
+        $data['guardians'] = $student->parents()->with('user:id,name,email,phone')->get();
+
         return $this->student->printProfile($data['student']->name, 'pages.student.print-student-profile', $data);
     }
 
