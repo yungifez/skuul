@@ -8,7 +8,9 @@ use App\Exceptions\InvalidValueException;
 use App\Models\CampusRole;
 use App\Models\School;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\PermissionRegistrar;
 
@@ -111,10 +113,92 @@ class RoleAuthority
     }
 
     /**
-     * Get the permissions the person holds at one campus.
+     * Get the people who hold a role at one campus.
      *
-     * @return array<int, string>
+     * A shared role is one row for every campus, so its holders elsewhere are
+     * never this campus's business.
+     *
+     * @return Builder<User>
      */
+    public function holdersAt(CampusRole $role, School $school): Builder
+    {
+        return User::query()->whereIn('users.id', DB::table('model_has_roles')
+            ->select('model_id')
+            ->where('role_id', $role->id)
+            ->where('school_id', $school->id)
+            ->where('model_type', (new User)->getMorphClass()));
+    }
+
+    /**
+     * Check whether anybody at the campus can still manage its roles.
+     *
+     * Read straight from the tables, so a change made inside the same
+     * transaction counts before any cache catches up.
+     */
+    public function campusHasARoleManager(School $school): bool
+    {
+        $user = (new User)->getMorphClass();
+
+        $throughARole = DB::table('model_has_roles')
+            ->join('role_has_permissions', 'role_has_permissions.role_id', '=', 'model_has_roles.role_id')
+            ->join('permissions', 'permissions.id', '=', 'role_has_permissions.permission_id')
+            ->where('model_has_roles.school_id', $school->id)
+            ->where('model_has_roles.model_type', $user)
+            ->where('permissions.name', 'manage role')
+            ->exists();
+
+        return $throughARole || DB::table('model_has_permissions')
+            ->join('permissions', 'permissions.id', '=', 'model_has_permissions.permission_id')
+            ->where('model_has_permissions.school_id', $school->id)
+            ->where('model_has_permissions.model_type', $user)
+            ->where('permissions.name', 'manage role')
+            ->exists();
+    }
+
+    /**
+     * Refuse a change that leaves the campus with nobody who can manage roles.
+     *
+     * @param  callable(): mixed  $change
+     *
+     * @throws InvalidValueException when the last way to manage roles would go
+     */
+    public function mustKeepARoleManager(School $school, callable $change): mixed
+    {
+        try {
+            return DB::transaction(function () use ($school, $change): mixed {
+                // Two managers taking the role from each other at once must
+                // not both succeed, so the campus is held while this runs.
+                School::query()->whereKey($school->id)->lockForUpdate()->first();
+                $hadOne = $this->campusHasARoleManager($school);
+
+                $result = $change();
+
+                if ($hadOne && !$this->campusHasARoleManager($school)) {
+                    throw new InvalidValueException('Nobody at this campus could manage roles after that. Give somebody else role management first.');
+                }
+
+                return $result;
+            });
+        } finally {
+            app(PermissionRegistrar::class)->forgetCachedPermissions();
+        }
+    }
+
+    /**
+     * Find the campus's own copy of a shared role, when it made one.
+     */
+    public function tailoredCopyOf(CampusRole $role, School $school): ?CampusRole
+    {
+        if ($role->school_id !== null) {
+            return null;
+        }
+
+        return CampusRole::query()
+            ->inSchool($school)
+            ->whereRaw('LOWER(name) = ?', [mb_strtolower($role->name)])
+            ->first();
+    }
+
     private function heldBy(User $actor, School $school): array
     {
         $registrar = app(PermissionRegistrar::class);

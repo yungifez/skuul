@@ -17,6 +17,9 @@ use Spatie\Permission\PermissionRegistrar;
  * A role can only be given to somebody who works at that campus, and only a
  * role the campus still offers. Both directions are written to the audit log,
  * because a role is how a person got whatever they were able to do.
+ *
+ * Giving a role somebody already holds, or taking one they do not, changes
+ * nothing and writes nothing.
  */
 class AssignCampusRole
 {
@@ -49,6 +52,14 @@ class AssignCampusRole
             throw new InvalidValueException("$role->name is no longer offered at this campus.");
         }
 
+        if ($this->authority->tailoredCopyOf($role, $school) !== null) {
+            throw new InvalidValueException("This campus keeps its own $role->name. Give that one instead.");
+        }
+
+        if ($this->authority->holdersAt($role, $school)->whereKey($person->id)->exists()) {
+            return;
+        }
+
         $this->within($school, function () use ($person, $role): void {
             $person->assignRole($role);
         });
@@ -64,13 +75,21 @@ class AssignCampusRole
 
     /**
      * Take the role away again.
+     *
+     * @throws InvalidValueException when nobody at the campus could manage roles afterwards
      */
     public function take(User $person, CampusRole $role, School $school, ?User $actor = null): void
     {
         $this->authority->mustBeAssignableAt($role, $school);
 
-        $this->within($school, function () use ($person, $role): void {
-            $person->removeRole($role);
+        if (!$this->authority->holdersAt($role, $school)->whereKey($person->id)->exists()) {
+            return;
+        }
+
+        $this->authority->mustKeepARoleManager($school, function () use ($person, $role, $school): void {
+            $this->within($school, function () use ($person, $role): void {
+                $person->removeRole($role);
+            });
         });
 
         $this->auditor->record(

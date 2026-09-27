@@ -1,5 +1,13 @@
 # Known Bugs
 
+## One campus rewrote a shared role for every campus, showed other campuses' holders, and could lock itself out of role management
+- Status: Fixed
+- Area: Roles (`WriteCampusRole`, `AssignCampusRole`, `RoleAuthority`, role screens)
+- Observed: Shared roles such as Librarian and Accountant are one row for every campus. A role manager at one campus could change or retire one, and this changed it for every campus in every organization. The role page listed the name and email of every holder at every campus. A manager could take role management from the last person who had it, so nobody at the campus could manage roles. Role names could repeat in other capitals, or copy a shared role's name. Giving a role twice wrote a second audit entry.
+- Impact: One school silently changed what staff at other schools could do. It also exposed those staff's email addresses, and could lock itself out of its own roles.
+- Reproduction: As a role manager at campus A, save the Librarian role with fewer permissions. A librarian at campus B loses those permissions. Open the role: campus B's librarians are listed.
+- Resolution: A change to a shared role now makes the campus's own copy. The copy has the same permissions, and the campus's holders move onto it. Other campuses keep the shared role. The campus copy replaces the shared role in the list, and opening the shared role goes to the copy. The copy's page only lists holders at this campus. Taking a role away or changing a role is refused when nobody at the campus could manage roles afterwards. This check holds the campus lock. Names are checked without case against the campus's roles and the shared roles. Giving or taking a role that does not change anything is ignored. The role screens now run through Livewire (`CreateCampusRoleForm`, `CampusRoleRecord`). The seven POST routes and three form requests are removed.
+
 ## A graduation plan with nothing in it told families the learner had finished
 
 - Status: Fixed

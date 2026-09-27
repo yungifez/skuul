@@ -153,14 +153,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::middleware('App\Http\Middleware\RequireActiveSchool')->group(function () {
         Route::get('roles', ['App\Http\Controllers\CampusRoleController', 'index'])->name('roles.index');
         Route::get('roles/create', ['App\Http\Controllers\CampusRoleController', 'create'])->name('roles.create');
-        Route::post('roles', ['App\Http\Controllers\CampusRoleController', 'store'])->name('roles.store');
         Route::get('roles/{role}/edit', ['App\Http\Controllers\CampusRoleController', 'edit'])->name('roles.edit');
-        Route::put('roles/{role}', ['App\Http\Controllers\CampusRoleController', 'update'])->name('roles.update');
-        Route::post('roles/{role}/copy', ['App\Http\Controllers\CampusRoleController', 'duplicate'])->name('roles.duplicate');
-        Route::post('roles/{role}/archive', ['App\Http\Controllers\CampusRoleController', 'archive'])->name('roles.archive');
-        Route::post('roles/{role}/restore', ['App\Http\Controllers\CampusRoleController', 'restore'])->name('roles.restore');
-        Route::post('roles/{role}/members', ['App\Http\Controllers\CampusRoleController', 'give'])->name('roles.members.store');
-        Route::delete('roles/{role}/members', ['App\Http\Controllers\CampusRoleController', 'take'])->name('roles.members.destroy');
     });
 
     // manage school settings

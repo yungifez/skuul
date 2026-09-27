@@ -1,4 +1,4 @@
-@props(['grantable', 'held' => []])
+@props(['grantable', 'model' => 'permissions'])
 
 {{-- The permissions of one campus, grouped by the word they end with, which is
      the thing they are about. --}}
@@ -9,26 +9,22 @@
 
         return $words === [] ? $permission : implode(' ', $words);
     })->sortKeys();
-    $held = collect($held)->all();
 @endphp
 
-<div class="rounded-xl border border-sidebar-border/70 bg-card text-card-foreground shadow-sm">
-    <div class="flex flex-col gap-1.5 border-b p-6">
-        <h3 class="text-lg font-semibold leading-none tracking-tight">What the role may do</h3>
-        <p class="text-sm text-muted-foreground">Only what you can do yourself is listed.</p>
-    </div>
+<fieldset class="flex flex-col gap-3" {{ field_error_bindings($model) }}>
+    <legend class="text-base font-semibold">What the role may do</legend>
+    <p class="text-sm text-muted-foreground">Only what you can do yourself at this campus is listed.</p>
 
     @if ($groups->isEmpty())
-        <p class="p-6 text-sm text-muted-foreground">You hold nothing at this campus that you could put in a role.</p>
+        <p class="text-sm text-muted-foreground">You hold nothing at this campus that you could put in a role.</p>
     @else
-        <div class="grid gap-6 p-6 sm:grid-cols-2">
+        <div class="grid gap-x-6 gap-y-4 sm:grid-cols-2">
             @foreach ($groups as $subject => $permissions)
-                <div class="flex flex-col gap-2">
+                <div class="flex flex-col">
                     <p class="text-xs font-medium uppercase text-muted-foreground">{{ $subject }}</p>
                     @foreach ($permissions as $permission)
-                        <label class="flex items-start gap-2 text-sm">
-                            <input type="checkbox" name="permissions[]" value="{{ $permission }}" class="mt-0.5 size-4"
-                                @checked(in_array($permission, $held, true))>
+                        <label class="flex min-h-11 select-none items-center gap-3 text-sm">
+                            <input type="checkbox" wire:model="{{ $model }}" value="{{ $permission }}" class="size-5 rounded border-input">
                             <span>{{ $permission }}</span>
                         </label>
                     @endforeach
@@ -36,4 +32,6 @@
             @endforeach
         </div>
     @endif
-</div>
+    <x-field-error :name="$model" />
+    <x-field-error :name="$model.'.*'" />
+</fieldset>
