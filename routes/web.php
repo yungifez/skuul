@@ -253,11 +253,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::middleware(['feature:staff_operations'])->group(function () {
             Route::get('staff-profiles', ['App\Http\Controllers\StaffProfileController', 'index'])->name('staff-profiles.index');
             Route::get('staff-profiles/create', ['App\Http\Controllers\StaffProfileController', 'create'])->name('staff-profiles.create');
-            Route::post('staff-profiles', ['App\Http\Controllers\StaffProfileController', 'store'])->name('staff-profiles.store');
             Route::get('staff-profiles/{staffProfile}', ['App\Http\Controllers\StaffProfileController', 'show'])->name('staff-profiles.show');
-            Route::put('staff-profiles/{staffProfile}', ['App\Http\Controllers\StaffProfileController', 'update'])->name('staff-profiles.update');
-            Route::post('staff-profiles/{staffProfile}/credentials', ['App\Http\Controllers\StaffProfileController', 'storeCredential'])->name('staff-profiles.credentials.store');
-            Route::post('staff-profiles/{staffProfile}/availabilities', ['App\Http\Controllers\StaffProfileController', 'storeAvailability'])->name('staff-profiles.availabilities.store');
 
             Route::get('staff-leave', ['App\Http\Controllers\StaffLeaveRequestController', 'index'])->name('staff-leave.index');
         });

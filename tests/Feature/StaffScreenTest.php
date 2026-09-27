@@ -9,13 +9,18 @@ use App\Enums\LeaveStatus;
 use App\Enums\LeaveType;
 use App\Enums\StaffStatus;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\CreateStaffProfileForm;
 use App\Livewire\StaffLeaveBoard;
 use App\Livewire\StaffProfileDirectory;
+use App\Livewire\StaffProfileRecord;
+use App\Models\School;
+use App\Models\StaffAvailability;
 use App\Models\StaffLeaveRequest;
 use App\Models\StaffProfile;
 use App\Models\User;
 use App\Services\Feature\FeatureManager;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -75,20 +80,22 @@ class StaffScreenTest extends TestCase
         $person = $this->memberOf($school, User::factory()->create(['name' => 'Ada Bell']));
         $this->authorized_user(['read staff profile', 'create staff profile'], $school);
 
-        $response = $this->post(route('staff-profiles.store'), [
-            'user_id' => $person->id,
-            'staff_number' => 'STF-0001',
-            'job_title' => 'Teacher',
-            'department' => 'Science',
-            'employment_type' => EmploymentType::FullTime->value,
-            'joined_on' => now()->toDateString(),
-        ]);
+        $this->get(route('staff-profiles.create'))->assertOk()->assertSeeLivewire(CreateStaffProfileForm::class);
+
+        $component = Livewire::test(CreateStaffProfileForm::class)
+            ->set('userId', (string) $person->id)
+            ->set('staffNumber', ' STF-0001 ')
+            ->set('jobTitle', 'Teacher')
+            ->set('department', 'Science')
+            ->call('save')
+            ->assertHasNoErrors();
 
         $profile = StaffProfile::inSchool()->sole();
 
-        $response->assertRedirect(route('staff-profiles.show', $profile));
+        $component->assertRedirect(route('staff-profiles.show', $profile));
 
         $this->assertSame('Teacher', $profile->job_title);
+        $this->assertSame('STF-0001', $profile->staff_number);
         $this->assertSame($school->id, $profile->school_id);
     }
 
@@ -99,12 +106,43 @@ class StaffScreenTest extends TestCase
         StaffProfile::factory()->create(['school_id' => $school->id, 'user_id' => $person->id]);
         $this->authorized_user(['read staff profile', 'create staff profile'], $school);
 
-        $this->post(route('staff-profiles.store'), [
-            'user_id' => $person->id,
-            'employment_type' => EmploymentType::FullTime->value,
-        ])->assertSessionHasErrors('user_id');
+        Livewire::test(CreateStaffProfileForm::class)
+            ->set('userId', (string) $person->id)
+            ->call('save')
+            ->assertHasErrors('userId')
+            ->assertSee('This person already has an employment record here.');
 
         $this->assertSame(1, StaffProfile::inSchool()->count());
+    }
+
+    public function test_a_staff_number_is_held_by_one_person_per_school(): void
+    {
+        $school = $this->workingSchool();
+        StaffProfile::factory()->create(['school_id' => $school->id, 'user_id' => $this->memberOf($school)->id, 'staff_number' => 'STF-7']);
+        $newcomer = $this->memberOf($school);
+        $outsider = $this->memberOf(School::factory()->create(), $this->nonMember());
+        $this->authorized_user(['read staff profile', 'create staff profile', 'update staff profile'], $school);
+
+        Livewire::test(CreateStaffProfileForm::class)
+            ->set('userId', (string) $newcomer->id)
+            ->set('staffNumber', 'stf-7')
+            ->call('save')
+            ->assertHasErrors('staffNumber')
+            ->set('userId', (string) $outsider->id)
+            ->set('staffNumber', '')
+            ->call('save')
+            ->assertHasErrors(['userId' => 'exists']);
+
+        $profile = $this->profile();
+
+        Livewire::test(StaffProfileRecord::class, ['profile' => $profile])
+            ->call('startEditingJob')
+            ->set('staffNumber', 'STF-7')
+            ->call('saveJob')
+            ->assertHasErrors('staffNumber');
+
+        $this->assertNotSame('STF-7', $profile->fresh()->staff_number);
+        $this->assertSame(2, StaffProfile::inSchool()->count());
     }
 
     public function test_the_job_is_changed_from_the_screen(): void
@@ -112,13 +150,16 @@ class StaffScreenTest extends TestCase
         $this->authorized_user(['read staff profile', 'update staff profile']);
         $profile = $this->profile();
 
-        $this->from(route('staff-profiles.show', $profile))
-            ->put(route('staff-profiles.update', $profile), [
-                'job_title' => 'Head of year',
-                'employment_type' => EmploymentType::PartTime->value,
-                'status' => StaffStatus::Active->value,
-            ])
-            ->assertRedirect(route('staff-profiles.show', $profile));
+        $this->get(route('staff-profiles.show', $profile))->assertOk()->assertSeeLivewire(StaffProfileRecord::class);
+
+        Livewire::test(StaffProfileRecord::class, ['profile' => $profile])
+            ->call('startEditingJob')
+            ->set('jobTitle', 'Head of year')
+            ->set('employmentType', EmploymentType::PartTime->value)
+            ->call('saveJob')
+            ->assertHasNoErrors()
+            ->assertSet('isEditingJob', false)
+            ->assertSee('Head of year');
 
         $this->assertSame('Head of year', $profile->fresh()->job_title);
         $this->assertSame(EmploymentType::PartTime, $profile->fresh()->employment_type);
@@ -128,62 +169,138 @@ class StaffScreenTest extends TestCase
     {
         $this->authorized_user(['read staff profile', 'update staff profile']);
         $profile = $this->profile();
+        $profile->update(['joined_on' => now()->toDateString()]);
 
-        $this->from(route('staff-profiles.show', $profile))
-            ->put(route('staff-profiles.update', $profile), [
-                'employment_type' => EmploymentType::FullTime->value,
-                'status' => StaffStatus::Left->value,
-                'joined_on' => now()->toDateString(),
-                'left_on' => now()->subYear()->toDateString(),
-            ])
-            ->assertSessionHasErrors('left_on');
+        Livewire::test(StaffProfileRecord::class, ['profile' => $profile])
+            ->call('startEditingJob')
+            ->set('status', StaffStatus::Left->value)
+            ->set('leftOn', now()->subYear()->toDateString())
+            ->call('saveJob')
+            ->assertHasErrors('leftOn');
+
+        $this->assertNotSame(StaffStatus::Left, $profile->fresh()->status);
     }
 
-    public function test_a_qualification_and_working_hours_are_added(): void
+    public function test_a_person_who_leaves_gets_a_date_and_loses_leave_after_it(): void
+    {
+        $this->authorized_user(['read staff profile', 'update staff profile']);
+        $profile = $this->profile();
+        $past = app(ManageStaffLeave::class)->request($profile, now()->subWeeks(3), now()->subWeeks(2));
+        app(ManageStaffLeave::class)->approve($past);
+        $ahead = app(ManageStaffLeave::class)->request($profile, now()->addWeek(), now()->addWeeks(2));
+        app(ManageStaffLeave::class)->approve($ahead);
+
+        Livewire::test(StaffProfileRecord::class, ['profile' => $profile])
+            ->call('startEditingJob')
+            ->set('status', StaffStatus::Left->value)
+            ->call('saveJob')
+            ->assertHasNoErrors();
+
+        $profile->refresh();
+        $this->assertSame(now()->toDateString(), $profile->left_on?->toDateString());
+        $this->assertSame(LeaveStatus::Cancelled, $ahead->fresh()->status);
+        $this->assertSame(LeaveStatus::Approved, $past->fresh()->status);
+
+        Livewire::test(StaffProfileRecord::class, ['profile' => $profile])
+            ->call('startEditingJob')
+            ->set('status', StaffStatus::Active->value)
+            ->call('saveJob');
+
+        $this->assertNull($profile->fresh()->left_on);
+    }
+
+    public function test_a_qualification_and_working_hours_are_added_and_removed(): void
     {
         $this->authorized_user(['read staff profile', 'update staff profile']);
         $profile = $this->profile();
 
-        $this->from(route('staff-profiles.show', $profile))
-            ->post(route('staff-profiles.credentials.store', $profile), [
-                'type' => 'Licence',
-                'name' => 'Teaching licence',
-                'issuer' => 'The board',
-                'expires_on' => now()->addYear()->toDateString(),
-            ])
-            ->assertRedirect(route('staff-profiles.show', $profile));
-
-        $this->from(route('staff-profiles.show', $profile))
-            ->post(route('staff-profiles.availabilities.store', $profile), [
-                'day_of_week' => 1,
-                'starts_at' => '08:00',
-                'ends_at' => '15:00',
-            ])
-            ->assertRedirect(route('staff-profiles.show', $profile));
-
-        $this->get(route('staff-profiles.show', $profile))
-            ->assertOk()
+        Livewire::test(StaffProfileRecord::class, ['profile' => $profile])
+            ->set('credentialType', 'Licence')
+            ->set('credentialName', 'Teaching licence')
+            ->set('credentialIssuer', 'The board')
+            ->set('credentialExpiresOn', now()->addYear()->toDateString())
+            ->call('addCredential')
+            ->assertHasNoErrors()
+            ->set('dayOfWeek', '1')
+            ->set('startsAt', '08:00')
+            ->set('endsAt', '15:00')
+            ->call('addHours')
+            ->assertHasNoErrors()
             ->assertSee('Teaching licence')
             ->assertSee('Monday');
 
         $this->assertSame(1, $profile->credentials()->count());
         $this->assertSame(1, $profile->availabilities()->count());
+
+        Livewire::test(StaffProfileRecord::class, ['profile' => $profile])
+            ->call('removeCredential', $profile->credentials()->sole()->id)
+            ->call('removeHours', $profile->availabilities()->sole()->id);
+
+        $this->assertSame(0, $profile->credentials()->count());
+        $this->assertSame(0, $profile->availabilities()->count());
     }
 
-    public function test_working_hours_must_end_after_they_start(): void
+    public function test_working_hours_must_end_after_they_start_and_not_overlap(): void
     {
         $this->authorized_user(['read staff profile', 'update staff profile']);
         $profile = $this->profile();
 
-        $this->from(route('staff-profiles.show', $profile))
-            ->post(route('staff-profiles.availabilities.store', $profile), [
-                'day_of_week' => 1,
-                'starts_at' => '15:00',
-                'ends_at' => '08:00',
-            ])
-            ->assertSessionHasErrors('ends_at');
+        Livewire::test(StaffProfileRecord::class, ['profile' => $profile])
+            ->set('startsAt', '15:00')
+            ->set('endsAt', '08:00')
+            ->call('addHours')
+            ->assertHasErrors(['endsAt' => 'after'])
+            ->set('startsAt', '08:00')
+            ->set('endsAt', '12:00')
+            ->call('addHours')
+            ->assertHasNoErrors()
+            ->set('startsAt', '11:00')
+            ->set('endsAt', '14:00')
+            ->call('addHours')
+            ->assertHasErrors('startsAt')
+            ->set('startsAt', '12:00')
+            ->set('endsAt', '14:00')
+            ->call('addHours')
+            ->assertHasNoErrors();
 
-        $this->assertSame(0, $profile->availabilities()->count());
+        $this->assertSame(2, $profile->availabilities()->count());
+    }
+
+    public function test_a_reader_sees_the_record_but_cannot_change_it(): void
+    {
+        $this->authorized_user(['read staff profile']);
+        $profile = $this->profile();
+
+        Livewire::test(StaffProfileRecord::class, ['profile' => $profile])
+            ->assertDontSeeHtml('wire:click="startEditingJob"')
+            ->call('startEditingJob')
+            ->assertForbidden();
+
+        Livewire::test(StaffProfileRecord::class, ['profile' => $profile])
+            ->set('credentialType', 'Licence')
+            ->set('credentialName', 'Forged')
+            ->call('addCredential')
+            ->assertForbidden();
+
+        $this->assertSame(0, $profile->credentials()->count());
+    }
+
+    public function test_a_record_of_another_school_is_out_of_reach(): void
+    {
+        $this->authorized_user(['read staff profile', 'update staff profile']);
+        $school = School::factory()->create();
+        $theirs = StaffProfile::factory()->create(['school_id' => $school->id, 'user_id' => $this->memberOf($school)->id]);
+        $mine = $this->profile();
+        $theirHours = StaffAvailability::create(['staff_profile_id' => $theirs->id, 'day_of_week' => 1, 'starts_at' => '08:00', 'ends_at' => '12:00']);
+
+        Livewire::test(StaffProfileRecord::class, ['profile' => $theirs])->assertForbidden();
+
+        $this->assertThrows(
+            fn () => Livewire::test(StaffProfileRecord::class, ['profile' => $mine])->call('removeHours', $theirHours->id),
+            ModelNotFoundException::class,
+        );
+
+        $this->assertNotNull($theirHours->fresh());
     }
 
     public function test_leave_is_asked_for_from_the_screen(): void

@@ -580,6 +580,11 @@ enum AuditAction: string
     case StaffLeaveStatusChanged = 'staff_leave.status_changed';
 
     /**
+     * An employment record, a qualification or working hours changed.
+     */
+    case StaffProfileChanged = 'staff_profile.changed';
+
+    /**
      * One school asked another for a student's records.
      */
     case DataSharingRequested = 'data_sharing.requested';
@@ -771,6 +776,7 @@ enum AuditAction: string
             self::HealthRecordUpdated => 'Health record updated',
             self::StaffLeaveRequested => 'Leave requested',
             self::StaffLeaveStatusChanged => 'Leave status changed',
+            self::StaffProfileChanged => 'Employment record changed',
             self::DataSharingRequested => 'Records requested',
             self::DataSharingStatusChanged => 'Records request answered',
             self::TransferPackageBuilt => 'Records handed over',

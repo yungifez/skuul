@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A repeated staff number crashed the page, and a person who left kept their leave
+
+- Status: Fixed
+- Area: Staff, employment records
+- Observed: A staff number another person in the school already held reached the database's unique index and showed an error page. Marking a person as left kept any leave they had asked for or been given after that day, and did not need a leaving date. A leaving date could stay on a person set back to active. Working hours could overlap on one day, and a wrong qualification or wrong hours could not be removed. Nothing about the record went to the audit log.
+- Impact: The leave board counted a person who had left as away, and wrong qualifications stayed on the record for good.
+- Reproduction: Give one person staff number STF-7. Write a record for another person with staff number stf-7. The page failed.
+- Resolution: The new ManageStaffProfile action refuses a staff number the school already uses, without case, and a second record for one person. Leaving sets the date to today unless one is given, and withdraws leave still held after it. Other states clear the date. Hours that overlap on one day are refused. Qualifications and hours can be removed. Every change records StaffProfileChanged. The pages are now the Livewire components CreateStaffProfileForm and StaffProfileRecord. The four write routes and their requests were removed.
+
 ## A second leave approver could overturn the first answer
 
 - Status: Fixed
