@@ -12,6 +12,7 @@ use App\Enums\Role;
 use App\Enums\TimetableStatus;
 use App\Exceptions\InvalidValueException;
 use App\Exceptions\TimetableConflictException;
+use App\Livewire\TimetableStatusControl;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
@@ -26,6 +27,7 @@ use App\Models\Weekday;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -89,8 +91,8 @@ class TimetableRevisionTest extends TestCase
 
         TimetableTimeSlot::create([
             'timetable_id' => $timetable->id,
-            'start_time'   => '08:00',
-            'stop_time'    => '09:00',
+            'start_time' => '08:00',
+            'stop_time' => '09:00',
         ]);
     }
 
@@ -111,9 +113,9 @@ class TimetableRevisionTest extends TestCase
         $slot = TimetableTimeSlot::create(['timetable_id' => $timetable->id, 'start_time' => '08:00', 'stop_time' => '09:00']);
         $subject = $this->subject();
         TimetableRecord::create([
-            'timetable_time_slot_id'               => $slot->id,
-            'weekday_id'                           => Weekday::first()->id,
-            'timetable_time_slot_weekdayable_id'   => $subject->id,
+            'timetable_time_slot_id' => $slot->id,
+            'weekday_id' => Weekday::first()->id,
+            'timetable_time_slot_weekdayable_id' => $subject->id,
             'timetable_time_slot_weekdayable_type' => $subject->getMorphClass(),
         ]);
         app(PublishTimetable::class)->publish($timetable);
@@ -150,8 +152,8 @@ class TimetableRevisionTest extends TestCase
         TimetableTimeSlot::create(['timetable_id' => $template->id, 'start_time' => '08:00', 'stop_time' => '09:00']);
         app(PublishTimetable::class)->publish($template);
         $section = AcademicCycleSection::factory()->create([
-            'school_id'         => $template->academicCycleSection->school_id,
-            'academic_year_id'  => $template->academicCycleSection->academic_year_id,
+            'school_id' => $template->academicCycleSection->school_id,
+            'academic_year_id' => $template->academicCycleSection->academic_year_id,
             'academic_level_id' => $template->academicCycleSection->academic_level_id,
         ]);
 
@@ -184,12 +186,12 @@ class TimetableRevisionTest extends TestCase
         );
 
         $this->assertDatabaseHas('timetable_substitutions', [
-            'id'                     => $substitution->id,
-            'timetable_id'           => $timetable->id,
+            'id' => $substitution->id,
+            'timetable_id' => $timetable->id,
             'timetable_time_slot_id' => $slot->id,
-            'weekday_id'             => $weekday->id,
+            'weekday_id' => $weekday->id,
             'replacement_teacher_id' => $replacementTeacher->id,
-            'substituted_on'         => $date->toDateString(),
+            'substituted_on' => $date->toDateString(),
         ]);
         $this->assertSame(TimetableStatus::Published, $timetable->fresh()->status);
         $this->assertSame(1, $timetable->fresh()->timeSlots()->count());
@@ -211,16 +213,16 @@ class TimetableRevisionTest extends TestCase
         app(PublishTimetable::class)->publish($timetable);
 
         $this->post(route('timetables.substitutions.store', $timetable), [
-            'timetable_entry'        => $slot->id.':'.$weekday->id,
+            'timetable_entry' => $slot->id.':'.$weekday->id,
             'replacement_teacher_id' => $replacementTeacher->id,
-            'substituted_on'         => $date->toDateString(),
-            'reason'                 => 'Teacher is attending training.',
+            'substituted_on' => $date->toDateString(),
+            'reason' => 'Teacher is attending training.',
         ])->assertRedirect();
 
         $this->assertDatabaseHas('timetable_substitutions', [
-            'timetable_id'           => $timetable->id,
+            'timetable_id' => $timetable->id,
             'timetable_time_slot_id' => $slot->id,
-            'weekday_id'             => $weekday->id,
+            'weekday_id' => $weekday->id,
             'replacement_teacher_id' => $replacementTeacher->id,
         ]);
     }
@@ -301,6 +303,68 @@ class TimetableRevisionTest extends TestCase
         );
     }
 
+    public function test_the_office_publishes_a_draft_from_the_timetable_screen(): void
+    {
+        $this->authorized_user(['read timetable', 'update timetable']);
+        $timetable = $this->timetable();
+
+        $this->get(route('timetables.manage', $timetable))
+            ->assertOk()
+            ->assertSeeLivewire(TimetableStatusControl::class);
+
+        Livewire::test(TimetableStatusControl::class, ['timetable' => $timetable])
+            ->assertSee('Draft')
+            ->assertSee('Publish')
+            ->call('publish')
+            ->assertRedirect();
+
+        $this->assertSame(TimetableStatus::Published, $timetable->fresh()->status);
+    }
+
+    public function test_a_clash_keeps_the_timetable_a_draft_and_says_why(): void
+    {
+        $this->authorized_user(['update timetable']);
+        $timetable = $this->timetable();
+        TimetableTimeSlot::create(['timetable_id' => $timetable->id, 'start_time' => '08:00', 'stop_time' => '09:00']);
+        TimetableTimeSlot::create(['timetable_id' => $timetable->id, 'start_time' => '08:30', 'stop_time' => '09:30']);
+
+        Livewire::test(TimetableStatusControl::class, ['timetable' => $timetable])
+            ->call('publish')
+            ->assertNoRedirect()
+            ->assertDispatched('status-message', fn (string $name, array $params): bool => $params['type'] === 'danger'
+                && str_starts_with($params['message'], 'This timetable cannot be published'));
+
+        $this->assertSame(TimetableStatus::Draft, $timetable->fresh()->status);
+    }
+
+    public function test_the_office_starts_a_revision_of_a_published_timetable(): void
+    {
+        $this->authorized_user(['update timetable']);
+        $timetable = app(PublishTimetable::class)->publish($this->timetable());
+
+        $component = Livewire::test(TimetableStatusControl::class, ['timetable' => $timetable])
+            ->assertSee('New revision')
+            ->assertDontSee('wire:click="publish"', false)
+            ->call('revise');
+
+        $draft = Timetable::query()->where('revision', 2)->sole();
+        $component->assertRedirect(route('timetables.manage', $draft));
+        $this->assertSame(TimetableStatus::Draft, $draft->status);
+    }
+
+    public function test_someone_without_update_access_cannot_publish(): void
+    {
+        $this->authorized_user(['read timetable']);
+        $timetable = $this->timetable();
+
+        Livewire::test(TimetableStatusControl::class, ['timetable' => $timetable])
+            ->assertDontSee('wire:click="publish"', false)
+            ->call('publish')
+            ->assertForbidden();
+
+        $this->assertSame(TimetableStatus::Draft, $timetable->fresh()->status);
+    }
+
     /**
      * Create a draft timetable for a new class in the working school.
      */
@@ -309,16 +373,16 @@ class TimetableRevisionTest extends TestCase
         $academicYear = AcademicYear::query()->where('school_id', $this->workingSchool()->id)->firstOrFail();
         $academicLevel = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id]);
         $cycleSection = AcademicCycleSection::factory()->create([
-            'school_id'         => $this->workingSchool()->id,
-            'academic_year_id'  => $academicYear->id,
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
         ]);
 
         return Timetable::create([
-            'name'                      => 'Week plan',
-            'description'               => 'The normal week',
+            'name' => 'Week plan',
+            'description' => 'The normal week',
             'academic_cycle_section_id' => $cycleSection->id,
-            'academic_period_id'        => current_academic_period_id(),
+            'academic_period_id' => current_academic_period_id(),
         ]);
     }
 
@@ -331,25 +395,25 @@ class TimetableRevisionTest extends TestCase
         $subject = $this->subject();
         $cycleSection = $timetable->academicCycleSection;
         $courseOffering = CourseOffering::factory()->create([
-            'school_id'          => $this->workingSchool()->id,
-            'academic_year_id'   => $cycleSection->academic_year_id,
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => $cycleSection->academic_year_id,
             'academic_period_id' => $timetable->academic_period_id,
-            'academic_level_id'  => $cycleSection->academic_level_id,
-            'subject_id'         => $subject->id,
+            'academic_level_id' => $cycleSection->academic_level_id,
+            'subject_id' => $subject->id,
         ]);
         $courseOffering->cycleSections()->attach($cycleSection);
         app(AssignTeacher::class)->assign($courseOffering, $teacher);
 
         $slot = TimetableTimeSlot::create([
             'timetable_id' => $timetable->id,
-            'start_time'   => $start,
-            'stop_time'    => $stop,
+            'start_time' => $start,
+            'stop_time' => $stop,
         ]);
 
         TimetableRecord::create([
-            'timetable_time_slot_id'               => $slot->id,
-            'weekday_id'                           => Weekday::first()->id,
-            'timetable_time_slot_weekdayable_id'   => $subject->id,
+            'timetable_time_slot_id' => $slot->id,
+            'weekday_id' => Weekday::first()->id,
+            'timetable_time_slot_weekdayable_id' => $subject->id,
             'timetable_time_slot_weekdayable_type' => $subject->getMorphClass(),
         ]);
 

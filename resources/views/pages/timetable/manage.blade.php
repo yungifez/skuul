@@ -9,7 +9,7 @@
 
 @section('page_actions')
     <div class="flex flex-wrap items-center gap-3">
-        <x-timetable-status-control :timetable="$timetable" />
+        <livewire:timetable-status-control :timetable="$timetable" />
         <april:button-link href="{{ route('timetables.show', $timetable) }}" variant="outline">
             <x-lucide-eye class="mr-2 size-4" />
             View

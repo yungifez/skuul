@@ -487,8 +487,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                 // manage timetable
                 Route::get('timetables/{timetable}/manage', ['App\Http\Controllers\TimetableController', 'manage'])->name('timetables.manage');
                 Route::get('timetables/{timetable}/print', ['App\Http\Controllers\TimetableController', 'print'])->name('timetables.print');
-                Route::post('timetables/{timetable}/publish', ['App\Http\Controllers\TimetableController', 'publish'])->name('timetables.publish');
-                Route::post('timetables/{timetable}/revise', ['App\Http\Controllers\TimetableController', 'revise'])->name('timetables.revise');
 
                 // timetable-timeslot route
                 Route::resource('timetables/manage/time-slots', TimetableTimeSlotController::class);

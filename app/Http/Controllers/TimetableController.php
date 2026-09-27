@@ -4,8 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Actions\Timetable\CreateSectionTimetableOverride;
 use App\Actions\Timetable\CreateTimetableSubstitution;
-use App\Actions\Timetable\PublishTimetable;
-use App\Actions\Timetable\ReviseTimetable;
 use App\Enums\Role;
 use App\Http\Requests\CreateSectionTimetableOverrideRequest;
 use App\Http\Requests\StoreTimetableSubstitutionRequest;
@@ -18,7 +16,6 @@ use App\Models\TimetableTimeSlot;
 use App\Models\User;
 use App\Services\Timetable\TimetableService;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
 
@@ -28,8 +25,6 @@ class TimetableController extends Controller
 
     public function __construct(
         TimetableService $timetableService,
-        private PublishTimetable $publishTimetable,
-        private ReviseTimetable $reviseTimetable,
         private CreateSectionTimetableOverride $createSectionTimetableOverride,
         private CreateTimetableSubstitution $createTimetableSubstitution,
     ) {
@@ -145,28 +140,6 @@ class TimetableController extends Controller
         $this->authorize('update', $timetable);
 
         return view('pages.timetable.manage', compact('timetable'));
-    }
-
-    /**
-     * Publish the draft timetable after its conflicts have been checked.
-     */
-    public function publish(Request $request, Timetable $timetable): RedirectResponse
-    {
-        $this->authorize('publish', $timetable);
-        $this->publishTimetable->publish($timetable, $request->user());
-
-        return back()->with('success', 'Timetable published successfully');
-    }
-
-    /**
-     * Start a new editable revision from a published timetable.
-     */
-    public function revise(Request $request, Timetable $timetable): RedirectResponse
-    {
-        $this->authorize('revise', $timetable);
-        $draft = $this->reviseTimetable->revise($timetable, $request->user());
-
-        return to_route('timetables.manage', $draft)->with('success', 'New timetable revision created');
     }
 
     public function createSectionOverride(CreateSectionTimetableOverrideRequest $request, Timetable $timetable): RedirectResponse

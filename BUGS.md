@@ -979,3 +979,10 @@
 - **Problem:** The account "Manage" menu was a 28px button holding one POST form per action. "Suspend account" and "Archive account" ran on the first click with no confirmation. The profile below it stacked two cards of uppercase labels, with sentences like "No pending invitation." and "Not recorded" where a value was missing.
 - **Fix:** The menu is now the Livewire component `ManageAccountAccess`, behind a 44px ⋯ button. It sends, resends or revokes an invitation and suspends, archives or reinstates the account. Suspend, archive and revoke ask first. The profile shows one flat facts row: account, membership, joined, roles, invitation, and primary school. A missing value reads "—". The account status and invitation POST and DELETE routes, `AccountStatusController`, `ChangeAccountStatusRequest` and the `account-status-control` Blade component are removed.
 - **Tests:** `AccountStatusTest` and `AccountInvitationTest` drive the component, and `AdminTest` checks the flat profile.
+
+## Timetable publish and revise sent full page posts, and "New revision" ran unasked
+
+- **Where:** `/dashboard/timetables/{id}` and `/dashboard/timetables/{id}/manage`
+- **Problem:** Publish and New revision were small POST forms. Publish asked through a browser `onsubmit` confirm, and a clash sent the page back with the whole conflict list in a flash. The status was a badge beside the buttons. Neither route had a test.
+- **Fix:** The control is now the Livewire component `TimetableStatusControl`, with 44px buttons. Publish asks with `wire:confirm`. A clash leaves the timetable a draft and shows why in a danger toast, without leaving the page. New revision opens the new draft. The status reads as plain text, with "Period closed" when the period is closed. The two POST routes and their controller methods are removed.
+- **Tests:** `TimetableRevisionTest` covers publishing from the screen, a clash, a revision, and a user without update access.
