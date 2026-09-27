@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreNoticeRequest;
 use App\Http\Requests\UpdateNoticeRequest;
 use App\Models\Notice;
 use App\Services\Notice\NoticeService;
@@ -31,16 +30,6 @@ class NoticeController extends Controller
     public function create(): View
     {
         return view('pages.notice.create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreNoticeRequest $request): RedirectResponse
-    {
-        $this->notice->storeNotice($request->validated());
-
-        return back()->with('success', 'Notice created successfully');
     }
 
     /**

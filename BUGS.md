@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A notice without an end date could not be saved, and an empty message passed
+
+- Status: Fixed
+- Area: Notices
+- Observed: The form marked "Ends on" as optional, but the check refused an empty end date and the column cannot be empty, so the form only failed. A message that held only an empty paragraph from the editor was accepted. After saving, the form went back to an empty page instead of the draft that still had to be published. Classes chosen before switching the audience to the whole school were kept in the saved audience.
+- Impact: Staff lost the message they had written, and some saved notices had no words.
+- Reproduction: Write a notice, leave "Ends on" empty, and save. Or save a notice whose editor holds only a blank line.
+- Resolution: The notice form runs through Livewire. The end date is required and starts two weeks after the start date. A message with no words is refused. Only the ids of the chosen audience scope are saved. A saved draft opens on its own page so it can be read and published. The store route and its request class were removed.
+
 ## An exam could hold two papers with one name, and a paper opened under any exam
 
 - Status: Fixed

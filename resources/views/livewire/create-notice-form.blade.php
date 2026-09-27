@@ -1,198 +1,131 @@
-@php
-    $selectedAcademicLevelIds = collect(old('audience.academic_level_ids', []))
-        ->map(fn ($levelId): string => (string) $levelId)
-        ->all();
-    $selectedSectionIds = collect(old('audience.academic_cycle_section_ids', []))
-        ->map(fn ($sectionId): string => (string) $sectionId)
-        ->all();
-    $audienceScope = old('audience.scope')
-        ?? ($selectedAcademicLevelIds !== [] ? 'class' : ($selectedSectionIds !== [] ? 'section' : 'school'));
-    $includeGuardians = filter_var(old('audience.include_guardians', false), FILTER_VALIDATE_BOOLEAN);
-@endphp
+<form wire:submit="save" class="grid w-full gap-8 xl:grid-cols-[minmax(0,1fr)_22rem]" aria-label="Write a notice">
+    @php
+        $controlClasses = 'mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+    @endphp
 
-<div class="w-full">
-    <form action="{{ route('notices.store') }}" method="POST" enctype="multipart/form-data" class="grid w-full gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
-        @csrf
-
-        <div class="flex min-w-0 flex-col gap-6">
-            <april:card>
-                <slot:title class="flex items-center gap-2">
-                    <span>Write your notice</span>
-                    <x-help-tooltip label="Notice writing help">Keep the title short and make the first sentence tell people what they need to know.</x-help-tooltip>
-                </slot:title>
-                <slot:description>Share an update with your school community.</slot:description>
-                <slot:content class="space-y-6">
-                    <x-display-validation-errors />
-
-                    <div class="flex flex-col gap-2">
-                        <april:label for="title">Notice title</april:label>
-                        <april:input id="title" name="title" value="{{ old('title') }}" required maxlength="255" placeholder="e.g. Parent meeting next Thursday" />
-                        <x-field-error name="title" />
-                    </div>
-
-                    <div class="flex flex-col gap-2">
-                        <div class="flex items-center gap-2">
-                            <april:label for="content">Message</april:label>
-                            <span class="text-xs text-muted-foreground">Use the toolbar to format your message.</span>
-                        </div>
-                        <april:editor
-                            id="content"
-                            name="content"
-                            :value="old('content', '')"
-                            placeholder="Write the announcement..."
-                            bold
-                            italic
-                            heading
-                            bullet-list
-                            ordered-list
-                            blockquote
-                            link
-                            undo
-                            redo
-                        />
-                        <x-field-error name="content" />
-                    </div>
-                </slot:content>
-            </april:card>
-
-            <april:card>
-                <slot:title>Attachment</slot:title>
-                <slot:description>Add a document or image when the message needs supporting information.</slot:description>
-                <slot:content>
-                    <div class="flex flex-col gap-2">
-                        <april:label for="attachment">File <span class="font-normal text-muted-foreground">(optional)</span></april:label>
-                        <input id="attachment" type="file" name="attachment" accept=".gif,.jpg,.jpeg,.png,.doc,.docx,.pdf"
-                            class="flex min-h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground file:mr-4 file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" {{ field_error_bindings('attachment') }}>
-                        <p class="text-xs text-muted-foreground">PDF, Word, GIF, JPG, or PNG up to 10 MB.</p>
-                        <x-field-error name="attachment" />
-                    </div>
-                </slot:content>
-            </april:card>
+    <div class="flex min-w-0 flex-col gap-4">
+        <div>
+            <label for="title" class="text-sm text-muted-foreground">Title</label>
+            <input id="title" wire:model="title" required maxlength="255" placeholder="Parent meeting next Thursday" class="{{ $controlClasses }}" {{ field_error_bindings('title') }}>
+            <x-field-error name="title" class="mt-1" />
         </div>
 
-        <aside class="flex min-w-0 flex-col gap-6">
-            <april:card>
-                <slot:title>Publishing dates</slot:title>
-                <slot:description>Choose when people can see this notice.</slot:description>
-                <slot:content class="space-y-5">
-                    <div class="flex flex-col gap-2">
-                        <april:label for="start_date">Starts on</april:label>
-                        <april:input id="start_date" name="start_date" type="date" value="{{ old('start_date', now()->toDateString()) }}" required />
-                        <x-field-error name="start_date" />
-                    </div>
+        <div>
+            <label for="content" class="text-sm text-muted-foreground">Message</label>
+            <div wire:ignore class="mt-1">
+                <april:editor
+                    id="content"
+                    wire:model="content"
+                    placeholder="Say first what people need to know."
+                    bold
+                    italic
+                    heading
+                    bullet-list
+                    ordered-list
+                    blockquote
+                    link
+                    undo
+                    redo
+                />
+            </div>
+            <x-field-error name="content" class="mt-1" />
+        </div>
 
-                    <div class="flex flex-col gap-2">
-                        <april:label for="stop_date">Ends on</april:label>
-                        <april:input id="stop_date" name="stop_date" type="date" value="{{ old('stop_date') }}" />
-                        <p class="text-xs text-muted-foreground">The notice stops showing after this date.</p>
-                        <x-field-error name="stop_date" />
-                    </div>
-                </slot:content>
-            </april:card>
+        <div>
+            <label for="attachment" class="text-sm text-muted-foreground">Attachment (optional)</label>
+            <input id="attachment" type="file" wire:model="attachment" accept=".gif,.jpg,.jpeg,.png,.doc,.docx,.pdf"
+                class="{{ $controlClasses }} py-2 file:mr-3 file:border-0 file:bg-transparent file:text-sm file:font-medium" {{ field_error_bindings('attachment') }}>
+            <p class="mt-1 text-xs text-muted-foreground">PDF, Word, GIF, JPG or PNG, up to 10 MB.</p>
+            <x-field-error name="attachment" class="mt-1" />
+        </div>
+    </div>
 
-            <april:card>
-                <slot:title>Audience</slot:title>
-                <slot:description>Choose the broadest audience that fits. You can narrow it to classes or exact sections.</slot:description>
-                <slot:content class="space-y-5">
-                    <div x-data="{ audienceScope: @js($audienceScope) }" class="space-y-5">
-                        <div class="grid gap-2" role="radiogroup" aria-label="Audience scope">
-                            @foreach ($audienceScopes as $scope)
-                                <label
-                                    class="flex cursor-pointer items-start gap-3 rounded-md border p-3 transition-colors hover:bg-muted/40"
-                                    :class="{ 'border-primary bg-primary/5': audienceScope === @js($scope->value) }"
-                                >
-                                    <input
-                                        type="radio"
-                                        name="audience[scope]"
-                                        value="{{ $scope->value }}"
-                                        x-model="audienceScope"
-                                        @checked($audienceScope === $scope->value)
-                                        class="mt-0.5 size-4 shrink-0 accent-primary"
-                                    >
-                                    <span>
-                                        <span class="block font-medium">{{ $scope->label() }}</span>
-                                        <span class="mt-1 block text-xs text-muted-foreground">
-                                            @switch($scope->value)
-                                                @case('school') Everyone in this school, including staff and active learners. @break
-                                                @case('class') One or more classes or level groups, including all their current sections. @break
-                                                @case('section') One or more exact sections for the current academic cycle. @break
-                                            @endswitch
-                                        </span>
-                                    </span>
+    <aside class="flex min-w-0 flex-col gap-6">
+        <fieldset class="grid grid-cols-2 gap-3">
+            <legend class="mb-1 text-sm font-medium">When it shows</legend>
+            <div>
+                <label for="startDate" class="text-sm text-muted-foreground">From</label>
+                <input id="startDate" type="date" wire:model="startDate" required class="{{ $controlClasses }}" {{ field_error_bindings('startDate') }}>
+                <x-field-error name="startDate" class="mt-1" />
+            </div>
+            <div>
+                <label for="stopDate" class="text-sm text-muted-foreground">Until</label>
+                <input id="stopDate" type="date" wire:model="stopDate" required class="{{ $controlClasses }}" {{ field_error_bindings('stopDate') }}>
+                <x-field-error name="stopDate" class="mt-1" />
+            </div>
+        </fieldset>
+
+        <fieldset class="flex flex-col gap-2">
+            <legend class="mb-1 text-sm font-medium">Who reads it</legend>
+            @foreach ($audienceScopes as $scope)
+                <label class="flex min-h-11 cursor-pointer select-none items-start gap-3 rounded-md border p-3 text-sm has-[:checked]:border-primary">
+                    <input type="radio" wire:model.live="audienceScope" value="{{ $scope->value }}" class="mt-0.5 size-5 shrink-0 accent-primary">
+                    <span>
+                        <span class="block font-medium">{{ $scope->label() }}</span>
+                        <span class="mt-1 block text-xs text-muted-foreground">
+                            @switch($scope->value)
+                                @case('school') Everyone in this school: staff and learners who attend. @break
+                                @case('class') Every current section of the classes or groups you choose. @break
+                                @case('section') Only the sections you choose. @break
+                            @endswitch
+                        </span>
+                    </span>
+                </label>
+            @endforeach
+            <x-field-error name="audienceScope" />
+
+            @if ($audienceScope === 'class')
+                <div class="mt-2">
+                    @if ($academicLevels->isNotEmpty())
+                        <div class="max-h-64 divide-y overflow-y-auto border-y" role="group" aria-label="Classes or levels">
+                            @foreach ($academicLevels as $academicLevel)
+                                <label wire:key="level-{{ $academicLevel->id }}" class="flex min-h-11 cursor-pointer select-none items-center gap-3 text-sm">
+                                    <input type="checkbox" wire:model="academicLevelIds" value="{{ $academicLevel->id }}" class="size-5 rounded border-input">
+                                    {{ $academicLevel->name }}
+                                    @if ($academicLevel->is_group)
+                                        <span class="text-xs text-muted-foreground">group, with every class under it</span>
+                                    @endif
                                 </label>
                             @endforeach
                         </div>
-
-                        <div x-cloak x-show="audienceScope === 'school'" class="rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
-                            This notice will be sent to everyone in the school. No class or section selection is needed.
+                    @else
+                        <p class="text-sm text-muted-foreground">No active classes yet.</p>
+                    @endif
+                    <x-field-error name="academicLevelIds" class="mt-1" />
+                </div>
+            @elseif ($audienceScope === 'section')
+                <div class="mt-2">
+                    @if ($sections->isNotEmpty())
+                        <div class="max-h-64 divide-y overflow-y-auto border-y" role="group" aria-label="Sections">
+                            @foreach ($sections as $section)
+                                <label wire:key="section-{{ $section->id }}" class="flex min-h-11 cursor-pointer select-none items-center gap-3 text-sm">
+                                    <input type="checkbox" wire:model="sectionIds" value="{{ $section->id }}" class="size-5 rounded border-input">
+                                    {{ $section->academicLevel?->name ?? '—' }} · {{ $section->label ?? $section->name }}
+                                </label>
+                            @endforeach
                         </div>
+                    @else
+                        <p class="text-sm text-muted-foreground">No active sections yet.</p>
+                    @endif
+                    <x-field-error name="sectionIds" class="mt-1" />
+                </div>
+            @endif
 
-                        <div x-cloak x-show="audienceScope === 'class'" class="flex flex-col gap-2">
-                            <april:label for="academic-level-ids">Classes or levels</april:label>
-                            @if ($academicLevels->isNotEmpty())
-                                <april:select id="academic-level-ids" name="audience[academic_level_ids][]" multiple placeholder="Choose classes or levels">
-                                    @foreach ($academicLevels as $academicLevel)
-                                        <option value="{{ $academicLevel->id }}" @selected(in_array((string) $academicLevel->id, $selectedAcademicLevelIds, true))>
-                                            {{ $academicLevel->is_group ? 'Group' : 'Class' }} · {{ $academicLevel->name }}
-                                        </option>
-                                    @endforeach
-                                </april:select>
-                                <p class="text-xs text-muted-foreground">Groups include all classes nested under them.</p>
-                            @else
-                                <div class="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
-                                    No active classes or levels are available.
-                                </div>
-                            @endif
-                            <x-field-error name="audience.academic_level_ids" />
-                            <x-field-error name="audience.academic_level_ids.*" />
-                        </div>
+            <label class="mt-2 flex min-h-11 cursor-pointer select-none items-start gap-3 text-sm">
+                <input type="checkbox" wire:model="includeGuardians" class="mt-0.5 size-5 rounded border-input">
+                <span>
+                    <span class="block font-medium">Guardians too</span>
+                    <span class="mt-1 block text-xs text-muted-foreground">The guardians of the learners it reaches get it as well.</span>
+                </span>
+            </label>
+        </fieldset>
+    </aside>
 
-                        <div x-cloak x-show="audienceScope === 'section'" class="flex flex-col gap-2">
-                            <april:label for="academic-cycle-section-ids">Sections</april:label>
-                            @if ($sections->isNotEmpty())
-                                <april:select id="academic-cycle-section-ids" name="audience[academic_cycle_section_ids][]" multiple placeholder="Choose sections">
-                                    @foreach ($sections as $section)
-                                        <option value="{{ $section->id }}" @selected(in_array((string) $section->id, $selectedSectionIds, true))>
-                                            {{ $section->academicLevel?->name ?? 'Unassigned '.strtolower(school_term('class_level', 'class')) }} · {{ $section->label ?? $section->name }}
-                                        </option>
-                                    @endforeach
-                                </april:select>
-                                <p class="text-xs text-muted-foreground">Choose one or more exact sections.</p>
-                            @else
-                                <div class="rounded-md border border-dashed p-3 text-sm text-muted-foreground">
-                                    No active sections are available.
-                                </div>
-                            @endif
-                            <x-field-error name="audience.academic_cycle_section_ids" />
-                            <x-field-error name="audience.academic_cycle_section_ids.*" />
-                        </div>
-                    </div>
-
-                    <label class="flex items-start gap-3 rounded-md border p-3 text-sm transition-colors hover:bg-muted/40">
-                        <input type="hidden" name="audience[include_guardians]" value="0">
-                        <input type="checkbox" name="audience[include_guardians]" value="1" @checked($includeGuardians)
-                            class="mt-0.5 size-4 rounded border-input text-primary-foreground accent-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
-                        <span>
-                            <span class="font-medium">Include guardians</span>
-                            <span class="mt-1 block text-xs text-muted-foreground">Send this notice to the guardians of the targeted learners too.</span>
-                        </span>
-                    </label>
-                </slot:content>
-            </april:card>
-        </aside>
-
-        <div class="flex flex-col-reverse gap-3 border-t pt-6 sm:flex-row sm:items-center sm:justify-between xl:col-span-2">
-            <p class="text-sm text-muted-foreground">You can review and publish the notice after it is created.</p>
-            <div class="flex flex-col-reverse gap-3 sm:flex-row">
-                <april:button-link href="{{ route('notices.index') }}" variant="outline">Cancel</april:button-link>
-                <april:button type="submit">
-                    <x-lucide-send class="mr-2 size-4" />
-                    Create notice
-                </april:button>
-            </div>
-        </div>
-    </form>
-</div>
+    <div class="flex flex-col-reverse gap-3 border-t pt-6 sm:flex-row sm:items-center sm:justify-between xl:col-span-2">
+        <p class="text-sm text-muted-foreground">It is saved as a draft. Nobody sees it until you publish it.</p>
+        <april:button type="submit" class="h-11 select-none" wire:loading.attr="disabled" wire:target="save,attachment">Save the draft</april:button>
+    </div>
+</form>
 
 @pushOnce('scripts')
     @aprilEditorScripts

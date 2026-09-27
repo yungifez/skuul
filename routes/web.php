@@ -436,6 +436,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::resource('subjects', SubjectController::class);
 
         // notice routes
-        Route::resource('notices', NoticeController::class);
+        Route::resource('notices', NoticeController::class)->except(['store']);
     });
 });

@@ -3,13 +3,16 @@
 namespace Tests\Feature;
 
 use App\Enums\NoticeStatus;
+use App\Livewire\CreateNoticeForm;
 use App\Livewire\ShowNotice;
+use App\Models\AcademicLevel;
 use App\Models\Notice;
 use App\Models\NoticeRecipient;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -122,11 +125,82 @@ class NoticeTest extends TestCase
             ->get('dashboard/notices/create')
             ->assertSuccessful()
             ->assertSee('data-slot="editor"', false)
-            ->assertSee('data-slot="select"', false)
-            ->assertSee('name="audience[scope]"', false)
-            ->assertSee('name="audience[academic_level_ids][]"', false)
-            ->assertSee('name="audience[academic_cycle_section_ids][]"', false)
-            ->assertSee('name="content"', false);
+            ->assertSee('wire:model="content"', false)
+            ->assertSee('wire:model.live="audienceScope"', false);
+    }
+
+    public function test_a_notice_is_saved_as_a_draft_and_opens_on_its_own_page(): void
+    {
+        $this->authorized_user(['create notice']);
+
+        $component = Livewire::test(CreateNoticeForm::class)
+            ->assertSet('startDate', now()->toDateString())
+            ->assertSet('stopDate', now()->addWeeks(2)->toDateString())
+            ->set('title', 'Sports day')
+            ->set('content', '<p>Bring water.</p>')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $notice = Notice::query()->where('title', 'Sports day')->sole();
+
+        $component->assertRedirect(route('notices.show', $notice));
+        $this->assertFalse($notice->isPublished());
+        $this->assertEquals(['scope' => 'school', 'academic_level_ids' => [], 'academic_cycle_section_ids' => [], 'include_guardians' => false], $notice->audience);
+    }
+
+    public function test_a_notice_with_an_empty_message_is_refused(): void
+    {
+        $this->authorized_user(['create notice']);
+
+        Livewire::test(CreateNoticeForm::class)
+            ->set('title', 'Sports day')
+            ->set('content', '<p><br></p>')
+            ->call('save')
+            ->assertHasErrors('content');
+
+        $this->assertSame(0, Notice::query()->where('title', 'Sports day')->count());
+    }
+
+    public function test_a_notice_cannot_end_before_it_starts(): void
+    {
+        $this->authorized_user(['create notice']);
+
+        Livewire::test(CreateNoticeForm::class)
+            ->set('title', 'Sports day')
+            ->set('content', '<p>Bring water.</p>')
+            ->set('startDate', '2026-10-10')
+            ->set('stopDate', '2026-10-09')
+            ->call('save')
+            ->assertHasErrors('stopDate');
+    }
+
+    public function test_a_notice_for_chosen_classes_needs_a_class(): void
+    {
+        $this->authorized_user(['create notice']);
+
+        Livewire::test(CreateNoticeForm::class)
+            ->set('title', 'Sports day')
+            ->set('content', '<p>Bring water.</p>')
+            ->set('audienceScope', 'class')
+            ->call('save')
+            ->assertHasErrors('academicLevelIds');
+    }
+
+    public function test_classes_chosen_before_switching_to_the_whole_school_are_dropped(): void
+    {
+        $this->authorized_user(['create notice']);
+        $level = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id]);
+
+        Livewire::test(CreateNoticeForm::class)
+            ->set('title', 'Sports day')
+            ->set('content', '<p>Bring water.</p>')
+            ->set('audienceScope', 'class')
+            ->set('academicLevelIds', [(string) $level->id])
+            ->set('audienceScope', 'school')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame([], Notice::query()->where('title', 'Sports day')->sole()->audience['academic_level_ids']);
     }
 
     public function test_an_authorized_user_can_publish_a_draft_notice_from_its_screen(): void
@@ -164,12 +238,12 @@ class NoticeTest extends TestCase
     {
         $this->authorized_user(['create notice']);
 
-        $this->post('dashboard/notices', [
+        $this->writeNotice([
             'title' => 'Formatted Notice',
             'content' => '<p>Bring <strong>your planner</strong>.</p><script>alert(1)</script><a href="javascript:alert(2)">Unsafe</a>',
-            'start_date' => '2030-01-01',
-            'stop_date' => '2030-01-02',
-        ])->assertRedirect();
+            'startDate' => '2030-01-01',
+            'stopDate' => '2030-01-02',
+        ])->assertHasNoErrors();
 
         $notice = Notice::query()->where('title', 'Formatted Notice')->firstOrFail();
 
@@ -183,12 +257,12 @@ class NoticeTest extends TestCase
     {
         $this->authorized_user(['create notice']);
 
-        $this->post('dashboard/notices', [
+        $this->writeNotice([
             'title' => 'Markdown Notice',
             'content' => "# Bring your planner\n\n- Pencil\n- Notebook",
-            'start_date' => '2030-01-01',
-            'stop_date' => '2030-01-02',
-        ])->assertRedirect();
+            'startDate' => '2030-01-01',
+            'stopDate' => '2030-01-02',
+        ])->assertHasNoErrors();
 
         $notice = Notice::query()->where('title', 'Markdown Notice')->firstOrFail();
 
@@ -226,32 +300,25 @@ class NoticeTest extends TestCase
         );
     }
 
-    // assert unauthorized user can not create notice
-
     public function test_unauthorized_user_can_not_create_notice()
     {
-        $this->unauthorized_user()
-            ->post('dashboard/notices', [
-                'title' => 'test',
-                'content' => 'test',
-                'start_date' => '2019-01-01',
-                'stop_date' => '2019-01-02',
-            ])->assertForbidden();
-    }
+        $this->unauthorized_user();
 
-    // assert user can create notice
+        Livewire::test(CreateNoticeForm::class)->assertForbidden();
+    }
 
     public function test_authorized_user_can_create_notice()
     {
-        $response = $this->authorized_user(['create notice'])
-            ->post('dashboard/notices', [
-                'title' => 'Test Notice',
-                'content' => 'Test Description',
-                'start_date' => '2019-01-01',
-                'stop_date' => '2019-01-02',
-            ]);
+        $this->authorized_user(['create notice']);
 
-        $response->assertRedirect() && $this->assertDatabaseHas('notices', [
+        $this->writeNotice([
+            'title' => 'Test Notice',
+            'content' => 'Test Description',
+            'startDate' => '2019-01-01',
+            'stopDate' => '2019-01-02',
+        ])->assertHasNoErrors();
+
+        $this->assertDatabaseHas('notices', [
             'title' => 'Test Notice',
             'content' => "<p>Test Description</p>\n",
             'start_date' => '2019-01-01',
@@ -259,45 +326,31 @@ class NoticeTest extends TestCase
         ]);
     }
 
-    // assert user can not create notice with invalid data
-
     public function test_authorized_user_can_not_create_notice_with_invalid_data()
     {
-        $this->authorized_user(['create notice'])
-            ->post('dashboard/notices', [
-                'title' => '',
-                'content' => 'Test Description',
-                'start_date' => '2019-01-01',
-                'stop_date' => '2019-01-02',
-            ])
-            ->assertSessionHasErrors();
+        $this->authorized_user(['create notice']);
+
+        $this->writeNotice(['title' => '  '])->assertHasErrors('title');
+        $this->writeNotice(['content' => ''])->assertHasErrors('content');
+        $this->writeNotice(['startDate' => '2019-01-01', 'stopDate' => '2018-01-01'])->assertHasErrors('stopDate');
+        $this->writeNotice(['stopDate' => ''])->assertHasErrors('stopDate');
+
+        $this->assertSame(0, Notice::query()->where('title', 'Test Notice')->count());
     }
 
-    // assert user can not create notice with invalid data
-
-    public function test_authorized_user_can_not_create_notice_with_invalid_data_2()
+    /**
+     * Write a notice through the form.
+     *
+     * @param  array<string, string>  $values
+     */
+    private function writeNotice(array $values): Testable
     {
-        $this->authorized_user(['create notice'])
-            ->post('dashboard/notices', [
-                'title' => 'Test Notice',
-                'content' => '',
-                'start_date' => '2019-01-01',
-                'stop_date' => '2019-01-01',
-            ])
-            ->assertSessionHasErrors();
-    }
+        $component = Livewire::test(CreateNoticeForm::class);
 
-    // assert user can not create notice with invalid data
+        foreach ($values + ['title' => 'Test Notice', 'content' => 'Test Description'] as $property => $value) {
+            $component->set($property, $value);
+        }
 
-    public function test_authorized_user_can_not_create_notice_with_invalid_data_3()
-    {
-        $this->authorized_user(['create notice'])
-            ->post('dashboard/notices', [
-                'title' => 'Test Notice',
-                'content' => 'Test Description',
-                'start_date' => '2019-01-01',
-                'stop_date' => '2018-01-01',
-            ])
-            ->assertSessionHasErrors();
+        return $component->call('save');
     }
 }

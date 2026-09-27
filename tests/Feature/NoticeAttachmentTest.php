@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\Feature;
 use App\Enums\NoticeRecipientState;
 use App\Enums\NoticeStatus;
+use App\Livewire\CreateNoticeForm;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
@@ -18,6 +19,7 @@ use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class NoticeAttachmentTest extends TestCase
@@ -31,13 +33,13 @@ class NoticeAttachmentTest extends TestCase
         Storage::fake('public');
         $this->authorized_user(['create notice']);
 
-        $this->post(route('notices.store'), [
-            'title'      => 'Family guide',
-            'content'    => 'Please read the guide before the first day.',
-            'start_date' => now()->toDateString(),
-            'stop_date'  => now()->addWeek()->toDateString(),
-            'attachment' => UploadedFile::fake()->create('family-guide.pdf', 120, 'application/pdf'),
-        ])->assertRedirect();
+        Livewire::test(CreateNoticeForm::class)
+            ->set('title', 'Family guide')
+            ->set('content', 'Please read the guide before the first day.')
+            ->set('attachment', UploadedFile::fake()->create('family-guide.pdf', 120, 'application/pdf'))
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect();
 
         $notice = Notice::query()->where('title', 'Family guide')->latest('id')->firstOrFail();
 
@@ -76,9 +78,9 @@ class NoticeAttachmentTest extends TestCase
         $parentRecord->students()->attach($studentRecord->user_id);
         $notice = $this->noticeWithAttachment();
         NoticeRecipient::create([
-            'notice_id'    => $notice->id,
-            'user_id'      => $studentRecord->user_id,
-            'state'        => NoticeRecipientState::Delivered,
+            'notice_id' => $notice->id,
+            'user_id' => $studentRecord->user_id,
+            'state' => NoticeRecipientState::Delivered,
             'delivered_at' => now(),
         ]);
 
@@ -112,18 +114,20 @@ class NoticeAttachmentTest extends TestCase
             'school_id' => $otherSchool->id,
         ])->getKey());
         $otherSection = AcademicCycleSection::query()->findOrFail(AcademicCycleSection::factory()->create([
-            'school_id'         => $otherSchool->id,
-            'academic_year_id'  => $otherAcademicYear->id,
+            'school_id' => $otherSchool->id,
+            'academic_year_id' => $otherAcademicYear->id,
             'academic_level_id' => $otherAcademicLevel->id,
         ])->getKey());
 
-        $this->post(route('notices.store'), [
-            'title'      => 'Family guide',
-            'content'    => 'Please read the guide before the first day.',
-            'start_date' => now()->toDateString(),
-            'stop_date'  => now()->addWeek()->toDateString(),
-            'audience'   => ['academic_cycle_section_ids' => [$otherSection->id]],
-        ])->assertSessionHasErrors('audience.academic_cycle_section_ids.0');
+        Livewire::test(CreateNoticeForm::class)
+            ->set('title', 'Family guide')
+            ->set('content', 'Please read the guide before the first day.')
+            ->set('audienceScope', 'section')
+            ->set('sectionIds', [(string) $otherSection->id])
+            ->call('save')
+            ->assertHasErrors('sectionIds.0');
+
+        $this->assertSame(0, Notice::query()->where('title', 'Family guide')->count());
     }
 
     /** Create a current notice with a private attachment. */
@@ -133,18 +137,18 @@ class NoticeAttachmentTest extends TestCase
         Storage::disk('local')->put($path, 'Family guide content.');
 
         return Notice::create([
-            'title'                => 'Family guide',
-            'content'              => 'Please read the guide before the first day.',
-            'start_date'           => now()->toDateString(),
-            'stop_date'            => now()->addWeek()->toDateString(),
-            'school_id'            => $this->workingSchool()->id,
-            'status'               => NoticeStatus::Published,
-            'active'               => true,
-            'attachment'           => $path,
-            'attachment_disk'      => 'local',
-            'attachment_name'      => 'family-guide.pdf',
+            'title' => 'Family guide',
+            'content' => 'Please read the guide before the first day.',
+            'start_date' => now()->toDateString(),
+            'stop_date' => now()->addWeek()->toDateString(),
+            'school_id' => $this->workingSchool()->id,
+            'status' => NoticeStatus::Published,
+            'active' => true,
+            'attachment' => $path,
+            'attachment_disk' => 'local',
+            'attachment_name' => 'family-guide.pdf',
             'attachment_mime_type' => 'application/pdf',
-            'attachment_size'      => Storage::disk('local')->size($path),
+            'attachment_size' => Storage::disk('local')->size($path),
         ]);
     }
 }
