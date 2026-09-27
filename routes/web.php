@@ -318,11 +318,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::middleware(['feature:events'])->group(function () {
             Route::get('calendar-events', ['App\Http\Controllers\CalendarEventController', 'index'])->name('calendar-events.index');
             Route::get('calendar-events/create', ['App\Http\Controllers\CalendarEventController', 'create'])->name('calendar-events.create');
-            Route::post('calendar-events', ['App\Http\Controllers\CalendarEventController', 'store'])->name('calendar-events.store');
             Route::get('calendar-events/{calendarEvent}', ['App\Http\Controllers\CalendarEventController', 'edit'])->name('calendar-events.edit');
-            Route::put('calendar-events/{calendarEvent}', ['App\Http\Controllers\CalendarEventController', 'update'])->name('calendar-events.update');
-            Route::put('calendar-events/{calendarEvent}/publication', ['App\Http\Controllers\CalendarEventController', 'changePublication'])->name('calendar-events.publication.update');
-            Route::delete('calendar-events/{calendarEvent}', ['App\Http\Controllers\CalendarEventController', 'destroy'])->name('calendar-events.destroy');
         });
 
         // cohort and programme routes. A group of people is not a class, so

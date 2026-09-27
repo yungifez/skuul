@@ -2,9 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Enums\AcademicStructureStatus;
 use App\Enums\CalendarEventType;
 use App\Enums\Feature;
+use App\Enums\SchoolMembershipStatus;
 use App\Livewire\CalendarEventDirectory as CalendarEventDirectoryComponent;
+use App\Livewire\CalendarEventEditor;
 use App\Models\AcademicCycleSection;
 use App\Models\CalendarEvent;
 use App\Models\School;
@@ -53,49 +56,93 @@ class CalendarEventScreenTest extends TestCase
     public function test_a_day_is_added_as_a_draft(): void
     {
         $this->authorized_user(['read calendar event', 'create calendar event', 'update calendar event']);
+        $day = now()->addWeek();
 
-        $response = $this->post(route('calendar-events.store'), [
-            'title' => 'Mid-term break',
-            'type' => CalendarEventType::Holiday->value,
-            'is_all_day' => '1',
-            'starts_at' => now()->addWeek()->format('Y-m-d\T08:00'),
-            'ends_at' => now()->addWeek()->addDays(2)->format('Y-m-d\T15:00'),
-        ]);
+        $this->get(route('calendar-events.create', ['day' => $day->toDateString()]))->assertOk()->assertSeeLivewire(CalendarEventEditor::class);
+
+        Livewire::test(CalendarEventEditor::class, ['day' => $day->toDateString()])
+            ->assertSet('startsAt', $day->toDateString())
+            ->set('title', 'Mid-term break')
+            ->set('type', CalendarEventType::Holiday->value)
+            ->set('endsAt', $day->copy()->addDays(2)->toDateString())
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('calendar-events.edit', CalendarEvent::inSchool()->sole()));
 
         $event = CalendarEvent::inSchool()->sole();
-
-        $response->assertRedirect(route('calendar-events.edit', $event));
 
         $this->assertFalse($event->is_published);
         $this->assertSame('00:00:00', $event->starts_at->format('H:i:s'));
         $this->assertSame('23:59:59', $event->ends_at->format('H:i:s'));
+        $this->assertSame($day->copy()->addDays(2)->toDateString(), $event->ends_at->toDateString());
+    }
+
+    public function test_a_bad_day_in_the_link_falls_back_to_today(): void
+    {
+        $this->authorized_user(['read calendar event', 'create calendar event']);
+
+        Livewire::test(CalendarEventEditor::class, ['day' => 'not-a-day'])
+            ->assertSet('startsAt', now()->toDateString());
+    }
+
+    public function test_switching_times_on_keeps_the_chosen_days(): void
+    {
+        $this->authorized_user(['read calendar event', 'create calendar event']);
+
+        Livewire::test(CalendarEventEditor::class)
+            ->set('startsAt', '2026-10-05')
+            ->set('endsAt', '2026-10-05')
+            ->set('isAllDay', false)
+            ->assertSet('startsAt', '2026-10-05T08:00')
+            ->assertSet('endsAt', '2026-10-05T15:00')
+            ->set('isAllDay', true)
+            ->assertSet('startsAt', '2026-10-05');
     }
 
     public function test_a_day_cannot_end_before_it_starts(): void
     {
         $this->authorized_user(['read calendar event', 'create calendar event']);
 
-        $this->post(route('calendar-events.store'), [
-            'title' => 'Backwards',
-            'type' => CalendarEventType::Holiday->value,
-            'is_all_day' => '1',
-            'starts_at' => now()->addWeek()->format('Y-m-d\TH:i'),
-            'ends_at' => now()->format('Y-m-d\TH:i'),
-        ])->assertSessionHasErrors('ends_at');
+        Livewire::test(CalendarEventEditor::class)
+            ->set('title', 'Backwards')
+            ->set('startsAt', now()->addWeek()->toDateString())
+            ->set('endsAt', now()->toDateString())
+            ->call('save')
+            ->assertHasErrors(['endsAt' => 'after_or_equal'])
+            ->assertSee('A day on the calendar cannot end before it starts.');
+
+        $this->assertSame(0, CalendarEvent::inSchool()->count());
+    }
+
+    public function test_a_closure_cannot_run_for_years_by_a_typo(): void
+    {
+        $this->authorized_user(['read calendar event', 'create calendar event']);
+
+        Livewire::test(CalendarEventEditor::class)
+            ->set('title', 'Strike closure')
+            ->set('type', CalendarEventType::Closure->value)
+            ->set('startsAt', '2026-10-05')
+            ->set('endsAt', '2062-10-05')
+            ->assertSee('Once published, attendance and the timetable treat these days as shut.')
+            ->call('save')
+            ->assertHasErrors('endsAt')
+            ->assertSee('cannot last more than a year');
 
         $this->assertSame(0, CalendarEvent::inSchool()->count());
     }
 
     public function test_a_draft_closure_does_not_shut_the_school(): void
     {
-        $this->authorized_user(['read calendar event', 'create calendar event', 'publish calendar event']);
+        $this->authorized_user(['read calendar event', 'create calendar event', 'update calendar event', 'publish calendar event']);
         $event = $this->event(['type' => CalendarEventType::Closure, 'is_published' => false]);
 
         $this->assertTrue(app(SchoolCalendar::class)->isTeachingDay($event->starts_at));
 
-        $this->from(route('calendar-events.edit', $event))
-            ->put(route('calendar-events.publication.update', $event), ['is_published' => '1'])
-            ->assertRedirect(route('calendar-events.edit', $event));
+        Livewire::test(CalendarEventEditor::class, ['event' => $event])
+            ->assertSee('Draft')
+            ->call('publish')
+            ->assertDispatched('status-message', type: 'success', message: 'Published. The school can read it now.')
+            ->assertSee('On the calendar');
 
         $this->assertFalse(app(SchoolCalendar::class)->isTeachingDay($event->starts_at));
     }
@@ -216,20 +263,40 @@ class CalendarEventScreenTest extends TestCase
             'academic_year_id' => current_academic_year_id(),
         ]);
 
-        $this->post(route('calendar-events.store'), [
-            'title' => 'Year meeting',
-            'type' => CalendarEventType::ParentMeeting->value,
-            'is_all_day' => '1',
-            'starts_at' => now()->format('Y-m-d\TH:i'),
-            'ends_at' => now()->format('Y-m-d\TH:i'),
-            'academic_cycle_section_ids' => [$section->id],
-        ]);
+        Livewire::test(CalendarEventEditor::class)
+            ->set('title', 'Year meeting')
+            ->set('type', CalendarEventType::ParentMeeting->value)
+            ->set('sectionIds', [$section->id, $section->id])
+            ->call('save')
+            ->assertHasErrors('sectionIds.1')
+            ->set('sectionIds', [$section->id])
+            ->call('save')
+            ->assertHasNoErrors();
 
         $event = CalendarEvent::inSchool()->sole();
 
         $this->assertSame(1, $event->audiences()->count());
         $this->assertSame($section->id, $event->audiences()->sole()->academic_cycle_section_id);
         $this->assertFalse($event->isForEverybody());
+    }
+
+    public function test_only_this_years_open_sections_are_offered(): void
+    {
+        $this->authorized_user(['read calendar event', 'create calendar event']);
+        $current = AcademicCycleSection::factory()->create(['school_id' => $this->workingSchool()->id, 'academic_year_id' => current_academic_year_id(), 'name' => 'Current group']);
+        $archived = AcademicCycleSection::factory()->create(['school_id' => $this->workingSchool()->id, 'academic_year_id' => current_academic_year_id(), 'name' => 'Archived group', 'status' => AcademicStructureStatus::Archived]);
+        $foreign = AcademicCycleSection::factory()->create(['school_id' => School::factory()->create()->id, 'name' => 'Foreign group']);
+
+        Livewire::test(CalendarEventEditor::class)
+            ->assertSee('Current group')
+            ->assertDontSee('Archived group')
+            ->assertDontSee('Foreign group')
+            ->set('title', 'Sneaky')
+            ->set('sectionIds', [$foreign->id])
+            ->call('save')
+            ->assertHasErrors('sectionIds.0');
+
+        $this->assertSame(0, CalendarEvent::inSchool()->count());
     }
 
     /**
@@ -247,18 +314,12 @@ class CalendarEventScreenTest extends TestCase
         ]);
         $class = $section->academicLevel->name;
 
-        $this->get(route('calendar-events.create'))
-            ->assertOk()
-            ->assertSee($class.' · A');
-
-        $this->post(route('calendar-events.store'), [
-            'title' => 'Year meeting',
-            'type' => CalendarEventType::ParentMeeting->value,
-            'is_all_day' => '1',
-            'starts_at' => now()->format('Y-m-d\TH:i'),
-            'ends_at' => now()->format('Y-m-d\TH:i'),
-            'academic_cycle_section_ids' => [$section->id],
-        ]);
+        Livewire::test(CalendarEventEditor::class)
+            ->assertSee($class.' · A')
+            ->set('title', 'Year meeting')
+            ->set('type', CalendarEventType::ParentMeeting->value)
+            ->set('sectionIds', [$section->id])
+            ->call('save');
 
         $this->get(route('calendar-events.index'))
             ->assertOk()
@@ -274,16 +335,16 @@ class CalendarEventScreenTest extends TestCase
             'academic_year_id' => current_academic_year_id(),
         ]);
 
-        $this->from(route('calendar-events.edit', $event))
-            ->put(route('calendar-events.update', $event), [
-                'title' => 'A better title',
-                'type' => CalendarEventType::Assembly->value,
-                'is_all_day' => '1',
-                'starts_at' => $event->starts_at->format('Y-m-d\TH:i'),
-                'ends_at' => $event->ends_at->format('Y-m-d\TH:i'),
-                'academic_cycle_section_ids' => [$section->id],
-            ])
-            ->assertRedirect(route('calendar-events.edit', $event));
+        $this->get(route('calendar-events.edit', $event))->assertOk()->assertSeeLivewire(CalendarEventEditor::class);
+
+        Livewire::test(CalendarEventEditor::class, ['event' => $event])
+            ->assertSet('startsAt', $event->starts_at->toDateString())
+            ->set('title', 'A better title')
+            ->set('type', CalendarEventType::Assembly->value)
+            ->set('sectionIds', [$section->id])
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertDispatched('status-message', type: 'success', message: 'Saved.');
 
         $this->assertSame('A better title', $event->fresh()->title);
         $this->assertSame(1, $event->audiences()->count());
@@ -291,13 +352,59 @@ class CalendarEventScreenTest extends TestCase
 
     public function test_a_day_is_removed_from_the_calendar(): void
     {
-        $this->authorized_user(['read calendar event', 'create calendar event', 'delete calendar event']);
+        $this->authorized_user(['read calendar event', 'create calendar event', 'update calendar event', 'delete calendar event']);
         $event = $this->event();
 
-        $this->delete(route('calendar-events.destroy', $event))
+        Livewire::test(CalendarEventEditor::class, ['event' => $event])
+            ->call('remove')
             ->assertRedirect(route('calendar-events.index', ['month' => $event->starts_at->format('Y-m')]));
 
         $this->assertSame(0, CalendarEvent::inSchool()->count());
+    }
+
+    public function test_removing_and_publishing_need_their_own_permissions(): void
+    {
+        $this->authorized_user(['read calendar event', 'create calendar event', 'update calendar event']);
+        $event = $this->event(['is_published' => false]);
+
+        Livewire::test(CalendarEventEditor::class, ['event' => $event])
+            ->assertDontSee('Publish')
+            ->call('remove')
+            ->assertForbidden();
+
+        $this->assertSame(1, CalendarEvent::inSchool()->count());
+    }
+
+    public function test_a_person_who_may_only_read_gets_the_facts_not_the_form(): void
+    {
+        $this->authorized_user(['read calendar event']);
+        $event = $this->event(['location' => null]);
+
+        $this->get(route('calendar-events.edit', $event))
+            ->assertOk()
+            ->assertDontSeeLivewire(CalendarEventEditor::class)
+            ->assertSee('The school is shut on this day.')
+            ->assertSee('—');
+
+        Livewire::test(CalendarEventEditor::class, ['event' => $event])->assertForbidden();
+    }
+
+    public function test_another_schools_day_cannot_be_opened_in_the_editor(): void
+    {
+        $this->authorized_user(['read calendar event', 'update calendar event', 'publish calendar event', 'delete calendar event']);
+        $foreign = CalendarEvent::create([
+            'school_id' => School::factory()->create()->id,
+            'title' => 'Their sports day',
+            'type' => CalendarEventType::Holiday,
+            'is_published' => false,
+            'starts_at' => now()->startOfDay(),
+            'ends_at' => now()->endOfDay(),
+        ]);
+
+        $this->get(route('calendar-events.edit', $foreign))->assertForbidden();
+        Livewire::test(CalendarEventEditor::class, ['event' => $foreign])->assertForbidden();
+
+        $this->assertFalse($foreign->fresh()->is_published);
     }
 
     public function test_publishing_needs_its_own_permission(): void
@@ -305,8 +412,8 @@ class CalendarEventScreenTest extends TestCase
         $this->authorized_user(['read calendar event', 'create calendar event', 'update calendar event']);
         $event = $this->event(['is_published' => false]);
 
-        $this->from(route('calendar-events.edit', $event))
-            ->put(route('calendar-events.publication.update', $event), ['is_published' => '1'])
+        Livewire::test(CalendarEventEditor::class, ['event' => $event])
+            ->call('publish')
             ->assertForbidden();
 
         $this->assertFalse($event->fresh()->is_published);
@@ -330,16 +437,21 @@ class CalendarEventScreenTest extends TestCase
     public function test_a_day_can_name_the_people_it_is_for(): void
     {
         $this->authorized_user(['read calendar event', 'create calendar event', 'update calendar event']);
-        $person = $this->memberOf($this->workingSchool());
+        $person = $this->memberOf($this->workingSchool(), User::factory()->create(['name' => 'Zainab Parent']));
 
-        $this->post(route('calendar-events.store'), [
-            'title' => 'A meeting about one child',
-            'type' => CalendarEventType::Appointment->value,
-            'is_all_day' => '0',
-            'starts_at' => now()->format('Y-m-d\TH:i'),
-            'ends_at' => now()->addHour()->format('Y-m-d\TH:i'),
-            'user_ids' => [$person->id],
-        ]);
+        Livewire::test(CalendarEventEditor::class)
+            ->set('title', 'A meeting about one child')
+            ->set('type', CalendarEventType::Appointment->value)
+            ->set('isAllDay', false)
+            ->set('personSearch', 'Zai')
+            ->assertSee('Zainab Parent')
+            ->call('addPerson', $person->id)
+            ->assertSet('userIds', [$person->id])
+            ->assertSet('personSearch', '')
+            ->call('addPerson', $person->id)
+            ->assertSet('userIds', [$person->id])
+            ->call('save')
+            ->assertHasNoErrors();
 
         $event = CalendarEvent::inSchool()->sole();
 
@@ -350,16 +462,17 @@ class CalendarEventScreenTest extends TestCase
     public function test_a_day_cannot_name_somebody_from_another_school(): void
     {
         $this->authorized_user(['read calendar event', 'create calendar event']);
-        $stranger = $this->personOfAnotherSchool();
+        $stranger = $this->personOfAnotherSchool('Ben Elsewhere');
 
-        $this->post(route('calendar-events.store'), [
-            'title' => 'A meeting about one child',
-            'type' => CalendarEventType::Appointment->value,
-            'is_all_day' => '0',
-            'starts_at' => now()->format('Y-m-d\TH:i'),
-            'ends_at' => now()->addHour()->format('Y-m-d\TH:i'),
-            'user_ids' => [$stranger->id],
-        ])->assertSessionHasErrors('user_ids.0');
+        Livewire::test(CalendarEventEditor::class)
+            ->set('title', 'A meeting about one child')
+            ->set('personSearch', 'Ben')
+            ->assertDontSee('Ben Elsewhere')
+            ->call('addPerson', $stranger->id)
+            ->assertSet('userIds', [])
+            ->set('userIds', [$stranger->id])
+            ->call('save')
+            ->assertHasErrors('userIds.0');
 
         $this->assertSame(0, CalendarEvent::inSchool()->count());
     }
@@ -367,14 +480,22 @@ class CalendarEventScreenTest extends TestCase
     public function test_the_form_offers_the_people_of_this_school_only(): void
     {
         $this->authorized_user(['read calendar event', 'create calendar event']);
-        $colleague = $this->memberOf($this->workingSchool(), User::factory()->create(['name' => 'Ada Colleague']));
-        $this->personOfAnotherSchool('Ben Elsewhere');
+        $this->memberOf($this->workingSchool(), User::factory()->create(['name' => 'Ada Colleague']));
+        $this->personOfAnotherSchool('Ada Elsewhere');
+        $left = $this->memberOf($this->workingSchool(), User::factory()->create(['name' => 'Ada Leaver']));
+        $left->schoolMemberships()->update(['status' => SchoolMembershipStatus::Ended]);
 
-        $this->get(route('calendar-events.create'))
-            ->assertOk()
+        $this->get(route('calendar-events.create'))->assertOk()->assertDontSee('Ada Colleague');
+
+        Livewire::test(CalendarEventEditor::class)
+            ->set('personSearch', 'A')
+            ->assertDontSee('Ada Colleague')
+            ->set('personSearch', 'Ada')
             ->assertSee('Ada Colleague')
-            ->assertDontSee('Ben Elsewhere')
-            ->assertSee('value="'.$colleague->id.'"', escape: false);
+            ->assertDontSee('Ada Elsewhere')
+            ->assertDontSee('Ada Leaver')
+            ->set('personSearch', '100%')
+            ->assertSee('Nobody in this school matches');
     }
 
     /**
