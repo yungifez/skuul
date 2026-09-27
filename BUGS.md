@@ -910,3 +910,12 @@
 - Impact: Staff could not reach an invoice from the finance page, so they could not view, edit or take payment on it.
 - Reproduction: Open the finance page and look at the Actions column of the invoice list.
 - Resolution: The cause was a Blade trap, not April UI. The `:items="…"` attribute of `<x-table-actions>` held a PHP string in double quotes. The inner `"` ended the attribute, so Blade left `<x-table-actions>` in the HTML uncompiled, and the browser drew nothing. Both views now build the items in `@php` and pass `:items="$rowActions"`. The invoice name now links to the invoice. The invoice list filters are plain selects without the card. `BladeComponentTagTest` compiles every view and fails on any component tag left raw, and `.ai/rules/views.md` records the trap.
+
+## Finance page buried the invoice list under cards, a task panel and POST forms
+
+- Status: Fixed
+- Area: Finance overview
+- Observed: The finance page opened with an explanation line, four summary cards that each carried a description, and a collapsible "Finance tasks" panel with seven buttons. The invoice list sat in its own card below. The financial periods card showed Close and Reopen to every user and had a three-field POST form. An invoice due today counted as overdue.
+- Impact: The invoice list, the reason to open the page, sat below the fold. People without the permission saw Close and Reopen buttons that failed with 403.
+- Reproduction: Open `/dashboard/fees/fee-invoices` as a user without `manage financial period`.
+- Resolution: The page now shows the period name, one facts row (Owed, Overdue invoices, Received, Spent), the invoice list and the periods list. "Add invoice" stays the one primary action. Record expense and the other finance pages are in the ⋯ menu. Financial periods are the `ManageFinancialPeriods` Livewire component. Adding a period opens in place, and Close and Reopen confirm first and show only with `manage financial period`. The three POST routes, `FinancialPeriodController` and `StoreFinancialPeriodRequest` are removed. Overdue now means due before today. `FinancialPeriodScreenTest` covers adding, validation, closing, reopening, permission and school scope.

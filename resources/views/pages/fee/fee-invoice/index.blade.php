@@ -7,81 +7,62 @@
 @section('page_heading', 'Finance')
 
 @section('page_actions')
-    <div class="flex flex-wrap gap-2">
-        <april:button-link href="{{ route('expenses.create') }}" variant="outline">Record expense</april:button-link>
+    <div class="flex items-center gap-2">
         <x-resource-create-action :href="route('fee-invoices.create')" ability="create" :arguments="[\App\Models\FeeInvoice::class]">Add invoice</x-resource-create-action>
+        <april:dropdown-menu>
+            <slot:trigger>
+                <april:button type="button" variant="ghost" size="icon" class="size-11 select-none" aria-label="More finance pages">
+                    <x-lucide-ellipsis class="size-4" />
+                </april:button>
+            </slot:trigger>
+            <slot:content align="end" class="w-52">
+                <april:dropdown-menu-item x-on:click="window.location.href = '{{ route('expenses.create') }}'"><x-lucide-receipt class="mr-2 size-4" />Record expense</april:dropdown-menu-item>
+                <april:dropdown-menu-item x-on:click="window.location.href = '{{ route('fees.index') }}'"><x-lucide-list class="mr-2 size-4" />Fees</april:dropdown-menu-item>
+                <april:dropdown-menu-item x-on:click="window.location.href = '{{ route('fee-categories.index') }}'"><x-lucide-folder class="mr-2 size-4" />Fee categories</april:dropdown-menu-item>
+                <april:dropdown-menu-item x-on:click="window.location.href = '{{ route('expenses.index') }}'"><x-lucide-wallet class="mr-2 size-4" />Expenses</april:dropdown-menu-item>
+                <april:dropdown-menu-item x-on:click="window.location.href = '{{ route('cash-deposits.index') }}'"><x-lucide-landmark class="mr-2 size-4" />Cash deposits</april:dropdown-menu-item>
+                <april:dropdown-menu-item x-on:click="window.location.href = '{{ route('budgets.index') }}'"><x-lucide-piggy-bank class="mr-2 size-4" />Budgets</april:dropdown-menu-item>
+                <april:dropdown-menu-item x-on:click="window.location.href = '{{ route('reports.index') }}'"><x-lucide-chart-column class="mr-2 size-4" />Reports</april:dropdown-menu-item>
+            </slot:content>
+        </april:dropdown-menu>
     </div>
 @endsection
 
 @section('content')
-    <div class="space-y-6">
-        <div>
-            <p class="text-muted-foreground">A simple view of what families owe, what the school received, and what it spent.</p>
+    <div class="mx-auto flex w-full max-w-6xl flex-col gap-10">
+        <section aria-label="Finance summary" class="flex flex-col gap-4">
             @if ($period)
-                <p class="mt-1 text-sm text-muted-foreground">Showing {{ $period->name }}. Financial period: {{ $period->isClosed() ? 'closed' : 'open' }}.</p>
+                <p class="text-sm text-muted-foreground">{{ $period->name }}@if ($period->isClosed()) · Closed @endif</p>
             @else
-                <p class="mt-1 text-sm text-destructive">Create a financial period before recording invoices, payments, or expenses.</p>
+                <p class="text-sm text-destructive">Add a financial period before recording invoices, payments or expenses.</p>
             @endif
-        </div>
 
-        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <april:card><slot:title>Outstanding</slot:title><slot:description>Unpaid invoices in this period</slot:description><slot:content><p class="text-2xl font-semibold">{{ money_text($summary['outstanding']) }}</p></slot:content></april:card>
-            <april:card><slot:title>Overdue invoices</slot:title><slot:description>Invoices past their due date</slot:description><slot:content><p class="text-2xl font-semibold">{{ $summary['overdue'] }}</p></slot:content></april:card>
-            <april:card><slot:title>Received</slot:title><slot:description>Payments recorded in this period</slot:description><slot:content><p class="text-2xl font-semibold">{{ money_text($summary['received']) }}</p></slot:content></april:card>
-            <april:card><slot:title>Spent</slot:title><slot:description>Expenses recorded in this period</slot:description><slot:content><p class="text-2xl font-semibold">{{ money_text($summary['spent']) }}</p></slot:content></april:card>
-        </div>
+            <dl class="grid grid-cols-2 gap-x-6 gap-y-4 border-y py-4 sm:grid-cols-4">
+                <div>
+                    <dt class="text-sm text-muted-foreground">Owed</dt>
+                    <dd class="text-2xl font-semibold tabular-nums tracking-tight" id="finance-owed">{{ money_text($summary['outstanding']) }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm text-muted-foreground">Overdue invoices</dt>
+                    <dd @class(['text-2xl font-semibold tabular-nums tracking-tight', 'text-destructive' => $summary['overdue'] > 0, 'text-muted-foreground' => $summary['overdue'] === 0])>{{ $summary['overdue'] }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm text-muted-foreground">Received</dt>
+                    <dd class="text-2xl font-semibold tabular-nums tracking-tight">{{ money_text($summary['received']) }}</dd>
+                </div>
+                <div>
+                    <dt class="text-sm text-muted-foreground">Spent</dt>
+                    <dd @class(['text-2xl font-semibold tabular-nums tracking-tight', 'text-muted-foreground' => $summary['spent'] == 0])>{{ money_text($summary['spent']) }}</dd>
+                </div>
+            </dl>
+        </section>
 
-        <div class="flex min-w-0 flex-col gap-6">
-            <april:collapsible class="w-full rounded-lg border bg-card text-card-foreground shadow-sm">
-                <slot:trigger class="flex cursor-pointer items-center justify-between gap-4 p-4 md:p-6">
-                    <div class="min-w-0">
-                        <h2 class="font-semibold leading-none tracking-tight">Finance tasks</h2>
-                        <p class="mt-1.5 text-sm text-muted-foreground">Common office actions</p>
-                    </div>
-                    <april:button type="button" variant="ghost" size="icon" class="size-8 shrink-0" aria-label="Toggle finance tasks">
-                        <x-lucide-chevron-down class="size-4" />
-                    </april:button>
-                </slot:trigger>
-                <slot:content class="border-t p-4 md:p-6">
-                    <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
-                        <april:button-link href="{{ route('fee-invoices.create') }}" variant="outline" class="w-full justify-start">Create an invoice</april:button-link>
-                        <april:button-link href="{{ route('fees.index') }}" variant="outline" class="w-full justify-start">Manage fees</april:button-link>
-                        <april:button-link href="{{ route('fee-categories.index') }}" variant="outline" class="w-full justify-start">Manage fee categories</april:button-link>
-                        <april:button-link href="{{ route('expenses.index') }}" variant="outline" class="w-full justify-start">Review expenses</april:button-link>
-                        <april:button-link href="{{ route('cash-deposits.index') }}" variant="outline" class="w-full justify-start">Review cash deposits</april:button-link>
-                        <april:button-link href="{{ route('budgets.index') }}" variant="outline" class="w-full justify-start">Plan a budget</april:button-link>
-                        <april:button-link href="{{ route('reports.index') }}" variant="outline" class="w-full justify-start">Open reports</april:button-link>
-                    </div>
-                </slot:content>
-            </april:collapsible>
+        <section class="min-w-0">
+            @livewire('list-fee-invoices-table', ['financialPeriodId' => $period?->id])
+        </section>
 
-            <div class="min-w-0">
-                @livewire('list-fee-invoices-table', ['financialPeriodId' => $period?->id])
-            </div>
-
-            <april:card>
-                <slot:title>Financial periods</slot:title>
-                <slot:description>Posting stops when a period is closed. This does not change academic terms.</slot:description>
-                <slot:content>
-                    <div class="space-y-3">
-                        @forelse ($financialPeriods as $financialPeriod)
-                            <div class="flex items-start justify-between gap-3 rounded-lg border p-3">
-                                <div><p class="font-medium">{{ $financialPeriod->name }}</p><p class="text-xs text-muted-foreground">{{ $financialPeriod->starts_on->format('j M Y') }} – {{ $financialPeriod->ends_on->format('j M Y') }}</p></div>
-                                @if ($financialPeriod->isClosed())
-                                    <form method="POST" action="{{ route('financial-periods.reopen', $financialPeriod) }}">@csrf<input type="hidden" name="reason" value="Period reopened by finance administrator"><april:button type="submit" variant="outline" size="sm">Reopen</april:button></form>
-                                @else
-                                    <form method="POST" action="{{ route('financial-periods.close', $financialPeriod) }}">@csrf<input type="hidden" name="reason" value="Period closed by finance administrator"><april:button type="submit" variant="outline" size="sm">Close</april:button></form>
-                                @endif
-                            </div>
-                        @empty
-                            <p class="text-sm text-muted-foreground">No financial periods yet.</p>
-                        @endforelse
-                    </div>
-                    @can('manage financial period')
-                        <form method="POST" action="{{ route('financial-periods.store') }}" class="mt-5 space-y-3 border-t pt-5">@csrf<p class="text-sm font-medium">Add a period</p><div class="flex flex-col gap-2"><april:label for="financial-period-name">Period name</april:label><april:input id="financial-period-name" name="name" required placeholder="2026 financial year" value="{{ old('name') }}" /></div><div class="grid gap-3 sm:grid-cols-2"><div class="flex flex-col gap-2"><april:label for="financial-period-starts-on">Starts on</april:label><april:input id="financial-period-starts-on" name="starts_on" type="date" required value="{{ old('starts_on') }}" /></div><div class="flex flex-col gap-2"><april:label for="financial-period-ends-on">Ends on</april:label><april:input id="financial-period-ends-on" name="ends_on" type="date" required value="{{ old('ends_on') }}" /></div></div><april:button type="submit" variant="outline">Add period</april:button></form>
-                    @endcan
-                </slot:content>
-            </april:card>
-        </div>
+        <section>
+            <livewire:manage-financial-periods />
+        </section>
     </div>
 @endsection

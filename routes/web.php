@@ -23,7 +23,6 @@ use App\Http\Controllers\FeeCategoryController;
 use App\Http\Controllers\FeeController;
 use App\Http\Controllers\FeeInvoiceController;
 use App\Http\Controllers\FeeInvoiceRecordController;
-use App\Http\Controllers\FinancialPeriodController;
 use App\Http\Controllers\GradebookController;
 use App\Http\Controllers\GradingScaleController;
 use App\Http\Controllers\HealthController;
@@ -435,9 +434,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
             // Records are edited from the invoice screen, so the resource keeps only
             // the writes. The read routes existed but always answered 404.
             Route::resource('fees/fee-invoices/fee-invoice-records', FeeInvoiceRecordController::class)->only(['store', 'update', 'destroy']);
-            Route::post('fees/financial-periods', [FinancialPeriodController::class, 'store'])->name('financial-periods.store');
-            Route::post('fees/financial-periods/{financialPeriod}/close', [FinancialPeriodController::class, 'close'])->name('financial-periods.close');
-            Route::post('fees/financial-periods/{financialPeriod}/reopen', [FinancialPeriodController::class, 'reopen'])->name('financial-periods.reopen');
             Route::resource('fees/expenses', ExpenseController::class)->only(['index', 'create', 'store']);
             Route::resource('fees/cash-deposits', CashDepositController::class)->only(['index', 'create', 'store']);
             Route::get('fees/accounts/{student_record}', [StudentAccountController::class, 'show'])->name('student-accounts.show');

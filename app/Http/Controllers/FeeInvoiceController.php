@@ -44,12 +44,11 @@ class FeeInvoiceController extends Controller
                 ->with(['feeInvoiceRecords.allocations', 'allocations'])->get();
 
         $outstanding = $invoices->sum(fn (FeeInvoice $invoice): int => max($invoice->balance->getMinorAmount()->toInt(), 0));
-        $overdue = $invoices->filter(fn (FeeInvoice $invoice): bool => $invoice->balance->isPositive() && $invoice->due_date->isPast())->count();
+        $overdue = $invoices->filter(fn (FeeInvoice $invoice): bool => $invoice->balance->isPositive() && $invoice->due_date->lt(today()))->count();
         $received = $period === null ? 0 : (int) StudentPayment::query()->inSchool()->where('financial_period_id', $period->id)->sum('amount');
         $spent = $period === null ? 0 : (float) Expense::query()->inSchool()->where('financial_period_id', $period->id)->sum('amount');
 
         return view('pages.fee.fee-invoice.index', [
-            'financialPeriods' => $financialPeriods,
             'period' => $period,
             'summary' => [
                 'outstanding' => $outstanding / 100,
