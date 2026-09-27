@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StudentPromoteRequest;
 use App\Models\Promotion;
 use App\Services\Student\StudentService;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -36,18 +35,6 @@ class PromotionController extends Controller
         $this->authorize('promote', Promotion::class);
 
         return view('pages.student.promotion.promote');
-    }
-
-    /**
-     * Promote student.
-     */
-    public function promote(StudentPromoteRequest $request): RedirectResponse
-    {
-        $this->authorize('promote', Promotion::class);
-        $data = collect($request->except('_token'));
-        $this->student->promoteStudents($data);
-
-        return back()->with('success', 'Students Promoted Successfully');
     }
 
     /**

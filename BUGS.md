@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Promoting learners crashed on review and could run twice
+- Status: Fixed
+- Area: Students / promotions
+- Observed: "Review learners" failed with an SQL error (ambiguous user_id) whenever the chosen section had learners. The confirm step was a plain form post with no lock, and it kept the reviewed list after a section changed.
+- Impact: A school could not promote learners from the screen. A double submit or a stale list could move learners the page no longer showed; a failure midway left some learners moved with no promotion record.
+- Reproduction: Open Students → Promote, choose a section with learners and a destination, press Review learners.
+- Resolution: The screen is now one Livewire component. It lists only current-year sections of the school, drops the reviewed list when a section changes, and moves only learners it listed. The move runs in one transaction under a lock on the source section, so a second click writes nothing. The POST route and its request are gone.
+
 ## A teacher who is also a parent could read only their own children
 
 - Status: Fixed

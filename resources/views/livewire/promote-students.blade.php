@@ -1,58 +1,51 @@
+@php
+    $controlClasses = 'mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+    $sectionWord = strtolower(school_term('section', 'section'));
+@endphp
 <div class="space-y-6">
-    <april:card>
-        <slot:title>Move learners to a new {{ strtolower(school_term('section', 'section')) }}</slot:title>
-        <slot:description>Choose the current and destination {{ strtolower(school_terms('section', 'sections')) }}, review the learners, then confirm the move. Each move remains in placement history.</slot:description>
-        <slot:content>
-            <form wire:submit="loadStudents" class="grid gap-4 md:grid-cols-3">
-                <div class="flex flex-col gap-2">
-                    <april:label for="promotion-source">Current {{ strtolower(school_term('section', 'section')) }}</april:label>
-                    <select id="promotion-source" wire:model.live="sourceAcademicCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ field_error_bindings('sourceAcademicCycleSectionId') }}>
-                        <option value="">Choose current section</option>
-                        @foreach ($cycleSections as $cycleSection)
-                            <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['label'] }}</option>
-                        @endforeach
-                    </select>
-                    <x-field-error name="sourceAcademicCycleSectionId" />
-                </div>
-                <div class="flex flex-col gap-2">
-                    <april:label for="promotion-destination">Destination {{ strtolower(school_term('section', 'section')) }}</april:label>
-                    <select id="promotion-destination" wire:model.live="destinationAcademicCycleSectionId" class="h-10 rounded-md border border-input bg-background px-3 text-sm" {{ field_error_bindings('destinationAcademicCycleSectionId') }}>
-                        <option value="">Choose destination section</option>
-                        @foreach ($cycleSections as $cycleSection)
-                            <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['label'] }}</option>
-                        @endforeach
-                    </select>
-                    <x-field-error name="destinationAcademicCycleSectionId" />
-                </div>
-                <div class="flex items-end">
-                    <april:button type="submit" wire:loading.attr="disabled" wire:target="loadStudents">Review learners</april:button>
-                </div>
-            </form>
-        </slot:content>
-    </april:card>
+    <form wire:submit="loadStudents" class="grid gap-4 md:grid-cols-3">
+        <div>
+            <label for="promotion-source" class="text-sm text-muted-foreground">Current {{ $sectionWord }}</label>
+            <select id="promotion-source" wire:model.live="sourceAcademicCycleSectionId" class="{{ $controlClasses }}" {{ field_error_bindings('sourceAcademicCycleSectionId') }}>
+                <option value="">Choose the current {{ $sectionWord }}</option>
+                @foreach ($cycleSections as $cycleSection)
+                    <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['label'] }}</option>
+                @endforeach
+            </select>
+            <x-field-error name="sourceAcademicCycleSectionId" class="mt-1" />
+        </div>
+        <div>
+            <label for="promotion-destination" class="text-sm text-muted-foreground">Destination {{ $sectionWord }}</label>
+            <select id="promotion-destination" wire:model.live="destinationAcademicCycleSectionId" class="{{ $controlClasses }}" {{ field_error_bindings('destinationAcademicCycleSectionId') }}>
+                <option value="">Choose the destination {{ $sectionWord }}</option>
+                @foreach ($cycleSections as $cycleSection)
+                    <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['label'] }}</option>
+                @endforeach
+            </select>
+            <x-field-error name="destinationAcademicCycleSectionId" class="mt-1" />
+        </div>
+        <div class="flex items-end">
+            <april:button type="submit" variant="outline" class="h-11 w-full select-none md:w-auto" wire:loading.attr="disabled" wire:target="loadStudents">Review learners</april:button>
+        </div>
+    </form>
 
     @if ($students !== [])
-        <form action="{{ route('students.promote') }}" method="POST" class="space-y-4">
-            @csrf
-            <input type="hidden" name="source_academic_cycle_section_id" value="{{ $sourceAcademicCycleSectionId }}">
-            <input type="hidden" name="destination_academic_cycle_section_id" value="{{ $destinationAcademicCycleSectionId }}">
-            <april:card>
-                <slot:title>Confirm learner move</slot:title>
-                <slot:content>
-                    <div class="space-y-3">
-                        @foreach ($students as $student)
-                            <label class="flex items-center gap-3 rounded-md border p-3">
-                                <input type="checkbox" name="student_id[]" value="{{ $student['id'] }}" checked class="size-4 rounded border-input">
-                                <span class="font-medium">{{ $student['name'] }}</span>
-                                @if ($student['admission_number'])
-                                    <span class="text-sm text-muted-foreground">{{ $student['admission_number'] }}</span>
-                                @endif
-                            </label>
-                        @endforeach
-                    </div>
-                </slot:content>
-                <slot:footer><april:button type="submit">Move selected learners</april:button></slot:footer>
-            </april:card>
+        <form wire:submit="promote" class="space-y-4">
+            <h2 class="text-base font-semibold">Learners to move</h2>
+            <ul class="divide-y border-y">
+                @foreach ($students as $student)
+                    <li wire:key="promotion-student-{{ $student['id'] }}">
+                        <label class="flex min-h-11 select-none items-center gap-3 py-2 text-sm">
+                            <input type="checkbox" wire:model="selectedStudentIds" value="{{ $student['id'] }}" class="size-5 rounded border-input">
+                            <span class="min-w-0 flex-1 truncate font-medium">{{ $student['name'] }}</span>
+                            <span class="shrink-0 text-muted-foreground">{{ $student['admission_number'] ?? '—' }}</span>
+                        </label>
+                    </li>
+                @endforeach
+            </ul>
+            <x-field-error name="selectedStudentIds" />
+            <p class="text-sm text-muted-foreground">Each move stays in the learner's placement history.</p>
+            <april:button type="submit" class="h-11 select-none" wire:loading.attr="disabled" wire:target="promote" wire:confirm="Move the selected learners now?">Move selected learners</april:button>
         </form>
     @endif
 </div>

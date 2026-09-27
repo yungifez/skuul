@@ -5,9 +5,11 @@ namespace Tests\Feature;
 use App\Enums\AcademicStructureStatus;
 use App\Livewire\ListPromotionsTable;
 use App\Livewire\ListStudentsTable;
+use App\Livewire\PromoteStudents;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\Promotion;
+use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
@@ -294,41 +296,148 @@ class StudentTest extends TestCase
         $this->authorized_user(['promote student'])->get('/dashboard/students/promote')->assertOk();
     }
 
-    // test unauthorized user cannot promote students
-
-    public function test_unauthorized_user_cannot_promote_students()
+    public function test_unauthorized_user_cannot_promote_students(): void
     {
-        $student = StudentRecord::factory()->create();
-        $destination = $this->activeCycleSection();
+        $this->unauthorized_user();
 
-        $this->unauthorized_user()->post('/dashboard/students/promote', [
-            'student_id' => [$student->user->id],
-            'source_academic_cycle_section_id' => $student->academic_cycle_section_id,
-            'destination_academic_cycle_section_id' => $destination->id,
-        ])->assertForbidden();
+        Livewire::test(PromoteStudents::class)->assertForbidden();
     }
 
-    // test authorized user can promote students
-
-    public function test_authorized_user_can_promote_students()
+    public function test_authorized_user_can_promote_students(): void
     {
-        $student = StudentRecord::factory()->create();
-        $source = $student->academic_cycle_section_id;
+        $this->authorized_user(['promote student', 'read promotion']);
+        $source = $this->activeCycleSection();
+        $destination = $this->activeCycleSection();
+        $student = $this->learnerIn($source);
+
+        $component = Livewire::test(PromoteStudents::class)
+            ->set('sourceAcademicCycleSectionId', $source->id)
+            ->set('destinationAcademicCycleSectionId', $destination->id)
+            ->call('loadStudents')
+            ->assertSee($student->user->name)
+            ->assertSet('selectedStudentIds', [$student->user_id])
+            ->call('promote')
+            ->assertHasNoErrors();
+
+        $promotion = Promotion::query()->whereJsonContains('students', [$student->user_id])->sole();
+
+        $component->assertRedirect(route('students.promotions.show', $promotion));
+        $this->assertSame($source->id, $promotion->source_academic_cycle_section_id);
+        $this->assertSame($destination->id, $student->fresh()->academic_cycle_section_id);
+    }
+
+    public function test_a_learner_left_unticked_stays_where_they_are(): void
+    {
+        $this->authorized_user(['promote student']);
+        $source = $this->activeCycleSection();
+        $destination = $this->activeCycleSection();
+        $moving = $this->learnerIn($source);
+        $staying = $this->learnerIn($source);
+
+        Livewire::test(PromoteStudents::class)
+            ->set('sourceAcademicCycleSectionId', $source->id)
+            ->set('destinationAcademicCycleSectionId', $destination->id)
+            ->call('loadStudents')
+            ->set('selectedStudentIds', [$moving->user_id])
+            ->call('promote')
+            ->assertRedirect(route('students.promote'));
+
+        $this->assertSame($destination->id, $moving->fresh()->academic_cycle_section_id);
+        $this->assertSame($source->id, $staying->fresh()->academic_cycle_section_id);
+    }
+
+    public function test_a_second_click_on_a_page_left_open_moves_nobody_twice(): void
+    {
+        $this->authorized_user(['promote student']);
+        $source = $this->activeCycleSection();
+        $destination = $this->activeCycleSection();
+        $student = $this->learnerIn($source);
+
+        $open = fn () => Livewire::test(PromoteStudents::class)
+            ->set('sourceAcademicCycleSectionId', $source->id)
+            ->set('destinationAcademicCycleSectionId', $destination->id)
+            ->call('loadStudents');
+        $promotionsBefore = Promotion::query()->count();
+        $firstTab = $open();
+        $secondTab = $open();
+
+        $firstTab->call('promote');
+        $secondTab->call('promote')->assertNoRedirect()->assertSet('students', []);
+
+        $this->assertSame($promotionsBefore + 1, Promotion::query()->count());
+        $this->assertSame(1, $student->placements()->where('academic_cycle_section_id', $destination->id)->count());
+    }
+
+    public function test_a_learner_the_page_never_listed_cannot_be_slipped_in(): void
+    {
+        $this->authorized_user(['promote student']);
+        $source = $this->activeCycleSection();
+        $destination = $this->activeCycleSection();
+        $listed = $this->learnerIn($source);
+        $elsewhere = $this->learnerIn($this->activeCycleSection());
+        $promotionsBefore = Promotion::query()->count();
+
+        Livewire::test(PromoteStudents::class)
+            ->set('sourceAcademicCycleSectionId', $source->id)
+            ->set('destinationAcademicCycleSectionId', $destination->id)
+            ->call('loadStudents')
+            ->set('selectedStudentIds', [$listed->user_id, $elsewhere->user_id])
+            ->call('promote')
+            ->assertHasErrors('selectedStudentIds.1');
+
+        $this->assertSame($promotionsBefore, Promotion::query()->count());
+    }
+
+    public function test_another_schools_section_cannot_be_chosen(): void
+    {
+        $this->authorized_user(['promote student']);
+        $source = $this->activeCycleSection();
+        $foreign = AcademicCycleSection::factory()->create(['school_id' => School::factory()->create()->id]);
+
+        Livewire::test(PromoteStudents::class)
+            ->set('sourceAcademicCycleSectionId', $source->id)
+            ->set('destinationAcademicCycleSectionId', $foreign->id)
+            ->call('loadStudents')
+            ->assertHasErrors('destinationAcademicCycleSectionId')
+            ->set('sourceAcademicCycleSectionId', $foreign->id)
+            ->set('destinationAcademicCycleSectionId', $source->id)
+            ->call('loadStudents')
+            ->assertHasErrors('sourceAcademicCycleSectionId')
+            ->assertSet('students', []);
+    }
+
+    public function test_changing_a_section_drops_the_reviewed_list(): void
+    {
+        $this->authorized_user(['promote student']);
+        $source = $this->activeCycleSection();
+        $destination = $this->activeCycleSection();
+        $this->learnerIn($source);
+        $otherSection = $this->activeCycleSection();
+        $promotionsBefore = Promotion::query()->count();
+
+        Livewire::test(PromoteStudents::class)
+            ->set('sourceAcademicCycleSectionId', $source->id)
+            ->set('destinationAcademicCycleSectionId', $destination->id)
+            ->call('loadStudents')
+            ->set('sourceAcademicCycleSectionId', $otherSection->id)
+            ->assertSet('students', [])
+            ->call('promote')
+            ->assertHasErrors('selectedStudentIds');
+
+        $this->assertSame($promotionsBefore, Promotion::query()->count());
+    }
+
+    public function test_an_empty_section_says_so(): void
+    {
+        $this->authorized_user(['promote student']);
+        $source = $this->activeCycleSection();
         $destination = $this->activeCycleSection();
 
-        $this->authorized_user(['promote student'])->post('/dashboard/students/promote', [
-            'student_id' => [$student->user->id],
-            'source_academic_cycle_section_id' => $source,
-            'destination_academic_cycle_section_id' => $destination->id,
-        ]);
-
-        $promotion = Promotion::where([
-            'source_academic_cycle_section_id' => $source,
-            'destination_academic_cycle_section_id' => $destination->id,
-        ])->whereJsonContains('students', [$student->user->id])->first();
-
-        $this->assertModelExists($promotion);
-        $this->assertSame($destination->id, $student->fresh()->academic_cycle_section_id);
+        Livewire::test(PromoteStudents::class)
+            ->set('sourceAcademicCycleSectionId', $source->id)
+            ->set('destinationAcademicCycleSectionId', $destination->id)
+            ->call('loadStudents')
+            ->assertHasErrors(['sourceAcademicCycleSectionId' => 'No active learners are in this section.']);
     }
 
     // test unauthorized user cannot delete promotion
@@ -375,6 +484,17 @@ class StudentTest extends TestCase
     /**
      * Get an active cycle section in this year that a student can be placed in.
      */
+    /**
+     * Enroll an active learner of the working school in a section.
+     */
+    private function learnerIn(AcademicCycleSection $section): StudentRecord
+    {
+        return StudentRecord::factory()->create([
+            'school_id' => $section->school_id,
+            'academic_cycle_section_id' => $section->id,
+        ]);
+    }
+
     private function activeCycleSection(): AcademicCycleSection
     {
         $school = $this->workingSchool();

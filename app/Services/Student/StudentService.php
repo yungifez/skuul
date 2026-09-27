@@ -201,41 +201,51 @@ class StudentService
     }
 
     /**
-     * Promote students.
+     * Move the chosen learners from one section to another and keep a record of the move.
      *
-     * @param  array<mixed>  $records
-     * @return void
+     * The source section is locked, so a second click on a page left open finds the
+     * learners already moved and writes nothing.
+     *
+     * @param  array{source_academic_cycle_section_id: int, destination_academic_cycle_section_id: int, student_id: array<int, int>}  $records
+     *
+     * @throws EmptyRecordsException
+     * @throws InvalidValueException
      */
-    public function promoteStudents($records)
+    public function promoteStudents(array $records): Promotion
     {
-        $source = AcademicCycleSection::inSchool()->findOrFail($records['source_academic_cycle_section_id']);
-        $destination = AcademicCycleSection::inSchool()->findOrFail($records['destination_academic_cycle_section_id']);
+        return DB::transaction(function () use ($records): Promotion {
+            $source = AcademicCycleSection::inSchool()->whereKey($records['source_academic_cycle_section_id'])->lockForUpdate()->firstOrFail();
+            $destination = AcademicCycleSection::inSchool()->findOrFail($records['destination_academic_cycle_section_id']);
 
-        $students = $this->getAllActiveStudents()
-            ->whereIn('id', $records['student_id'])
-            ->filter(fn (User $student): bool => $student->studentRecord?->academic_cycle_section_id === $source->id);
+            if ($source->is($destination)) {
+                throw new InvalidValueException('Choose a destination other than the current section.');
+            }
 
-        // make sure there are students to promote
-        if (!$students->count()) {
-            throw new EmptyRecordsException('No students to promote', 1);
-        }
+            $students = $this->getAllActiveStudents()
+                ->whereIn('id', $records['student_id'])
+                ->filter(fn (User $student): bool => $student->studentRecord?->academic_cycle_section_id === $source->id);
 
-        foreach ($students as $student) {
-            $this->changeEnrollmentPlacementAction->place(
-                enrollment: $student->studentRecord,
-                academicCycleSection: $destination,
-                actor: auth()->user(),
-                reason: 'Promotion',
-            );
-        }
+            if ($students->isEmpty()) {
+                throw new EmptyRecordsException('None of the chosen learners are still in this section. They may have been moved already.', 1);
+            }
 
-        Promotion::create([
-            'source_academic_cycle_section_id' => $source->id,
-            'destination_academic_cycle_section_id' => $destination->id,
-            'students' => $students->pluck('id'),
-            'academic_year_id' => $destination->academic_year_id,
-            'school_id' => current_school_id(),
-        ]);
+            foreach ($students as $student) {
+                $this->changeEnrollmentPlacementAction->place(
+                    enrollment: $student->studentRecord,
+                    academicCycleSection: $destination,
+                    actor: auth()->user(),
+                    reason: 'Promotion',
+                );
+            }
+
+            return Promotion::create([
+                'source_academic_cycle_section_id' => $source->id,
+                'destination_academic_cycle_section_id' => $destination->id,
+                'students' => $students->pluck('id')->values(),
+                'academic_year_id' => $destination->academic_year_id,
+                'school_id' => current_school_id(),
+            ]);
+        });
     }
 
     /**
