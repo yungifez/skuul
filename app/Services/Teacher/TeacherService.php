@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Services\Print\PrintService;
 use App\Services\User\UserService;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 
 class TeacherService
 {
@@ -33,13 +34,18 @@ class TeacherService
     /**
      * Create a new teacher.
      *
-     * @param  Collection|array  $record
-     * @return void
+     * @param  array<string, mixed>  $record
      */
-    public function createTeacher($record)
+    public function createTeacher(array $record): User
     {
-        $teacher = $this->user->createUser($record);
-        $teacher->assignRole(Role::Teacher);
+        $this->user->failIfAlreadyHolds($record['email'], Role::Teacher);
+
+        return DB::transaction(function () use ($record): User {
+            $teacher = $this->user->createUser($record);
+            $teacher->assignRole(Role::Teacher);
+
+            return $teacher;
+        });
     }
 
     /**

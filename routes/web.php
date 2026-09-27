@@ -408,17 +408,17 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         });
 
         // student routes
-        Route::resource('students', StudentController::class);
+        Route::resource('students', StudentController::class)->except(['store', 'update']);
         Route::get('students/{student}/print', ['App\Http\Controllers\StudentController', 'printProfile'])->name('students.print-profile')->withoutMiddleware(['App\Http\Middleware\PreventGraduatedStudent']);
 
         // admin routes
-        Route::resource('admins', AdminController::class);
+        Route::resource('admins', AdminController::class)->except(['store', 'update']);
 
         // teacher routes
-        Route::resource('teachers', TeacherController::class);
+        Route::resource('teachers', TeacherController::class)->except(['store', 'update']);
 
         // parent routes
-        Route::resource('parents', ParentController::class);
+        Route::resource('parents', ParentController::class)->except(['store', 'update']);
         Route::get('parents/{parent}/assign-student-to-parent', ['App\Http\Controllers\ParentController', 'assignStudentsView'])->name('parents.assign-student');
 
         // account access routes

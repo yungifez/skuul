@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use App\Enums\AcademicStructureStatus;
 use App\Enums\EnrollmentStatus;
+use App\Livewire\CreateStudentForm;
+use App\Livewire\EditStudentForm;
 use App\Livewire\GraduateStudents;
 use App\Livewire\ListPromotionsTable;
 use App\Livewire\ListStudentsTable;
@@ -17,6 +19,7 @@ use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -85,71 +88,77 @@ class StudentTest extends TestCase
         $this->authorized_user(['create student'])
             ->get('dashboard/students/create')
             ->assertOk()
-            ->assertSee('Full name *')
-            ->assertSee('Optional profile details')
+            ->assertSee('wire:model="name"', false)
+            ->assertSee('wire:model="academicCycleSectionId"', false)
             ->assertSee('data-slot="combobox"', false)
-            ->assertSee('name="country"', false)
-            ->assertSee('name="state"', false)
             ->assertDontSee('Blood group')
             ->assertDontSee('Religion');
     }
 
     // test unauthorised users cannot create students
 
-    public function test_unauthorised_users_cannot_create_students()
+    public function test_unauthorised_users_cannot_create_students(): void
     {
-        $email = $this->faker()->freeEmail();
-        $this->unauthorized_user()->post('dashboard/students', [
-            'name' => 'Test Student cody',
-            'email' => $email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'gender' => 'Male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-            'academic_cycle_section_id' => $this->activeCycleSection()->id,
-            'admission_date' => '2004-04-22',
-        ])->assertForbidden();
+        $this->unauthorized_user();
 
-        $this->assertDatabaseMissing('users', [
-            'email' => $email,
-        ]);
+        Livewire::test(CreateStudentForm::class)->assertForbidden();
     }
 
     // test user can create student
 
-    public function test_authorized_user_can_create_student()
+    public function test_authorized_user_can_create_student(): void
     {
-        $email = $this->faker()->freeEmail();
+        $email = $this->faker()->unique()->freeEmail();
+        $this->authorized_user(['create student', 'read student']);
+        $section = $this->activeCycleSection();
 
-        $this->authorized_user(['create student'])->post('dashboard/students', [
-            'name' => 'Test Student cody',
-            'email' => $email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'gender' => 'Male',
-            'nationality' => 'nigeria',
-            'country' => 'Nigeria',
-            'state' => 'Lagos',
-            'city' => 'Lagos',
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-            'academic_cycle_section_id' => $this->activeCycleSection()->id,
-            'admission_date' => '2004-04-22', ])->assertRedirect();
+        $component = $this->admitLearner($email, $section)->assertHasNoErrors();
 
-        $this->assertDatabaseHas('users', [
-            'email' => $email,
-            'address' => 'test address',
-            'country' => 'Nigeria',
-            'state' => 'Lagos',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-        ]);
+        $student = User::query()->where('email', $email)->sole();
+
+        $component->assertRedirect(route('students.show', $student));
+        $this->assertSame('Nigeria', $student->country);
+        $this->assertSame('Lagos', $student->state);
+        $this->assertSame($section->id, $student->studentRecord->academic_cycle_section_id);
+        $this->assertNotNull($student->studentRecord->admission_number);
+    }
+
+    public function test_a_learner_already_enrolled_here_is_not_admitted_again(): void
+    {
+        $this->authorized_user(['create student']);
+        $enrolled = $this->learnerIn($this->activeCycleSection());
+        $otherSection = $this->activeCycleSection();
+
+        $this->admitLearner($enrolled->user->email, $otherSection)
+            ->assertHasErrors('email')
+            ->assertNoRedirect();
+
+        $this->assertNotSame($otherSection->id, $enrolled->fresh()->academic_cycle_section_id);
+    }
+
+    public function test_a_learner_enrolled_at_another_school_must_be_transferred(): void
+    {
+        $this->workingSchool();
+        $otherSchool = School::factory()->create();
+        $learner = $this->nonMember();
+        $learner->forceFill(['email' => $this->faker()->unique()->freeEmail()])->save();
+        $this->memberOf($otherSchool, $learner);
+        $elsewhere = StudentRecord::factory()->create(['user_id' => $learner->id, 'school_id' => $otherSchool->id]);
+        $this->authorized_user(['create student']);
+
+        $this->admitLearner($elsewhere->user->email, $this->activeCycleSection())
+            ->assertHasErrors(['email' => 'This learner is enrolled at another school. Ask that school to move or transfer them.']);
+
+        $this->assertSame(0, StudentRecord::query()->where('user_id', $elsewhere->user_id)->where('school_id', $this->workingSchool()->id)->count());
+    }
+
+    public function test_an_admission_number_is_unique_in_the_school(): void
+    {
+        $this->authorized_user(['create student']);
+        $enrolled = $this->learnerIn($this->activeCycleSection());
+
+        $this->admitLearner($this->faker()->unique()->freeEmail(), $this->activeCycleSection(), $enrolled->admission_number)
+            ->assertHasErrors('admissionNumber');
     }
 
     // test edit student cannot be accessed by unauthorised users
@@ -168,55 +177,29 @@ class StudentTest extends TestCase
         $this->authorized_user(['update student'])->get('dashboard/students/'.$student->user->id.'/edit')->assertOk();
     }
 
-    public function test_unauthorised_users_cannot_update_students()
+    public function test_unauthorised_users_cannot_update_students(): void
     {
-        $email = $this->faker()->freeEmail();
-
         $student = StudentRecord::factory()->create();
+        $this->unauthorized_user();
 
-        $this->unauthorized_user()->put('dashboard/students/'.$student->user->id, [
-            'name' => 'Test Student 2',
-            'email' => $email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'gender' => 'Male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-            'academic_cycle_section_id' => $this->activeCycleSection()->id,
-            'admission_date' => '2004-04-22', ])
-            ->assertForbidden();
-
-        $this->assertDatabaseMissing('users', [
-            'email' => $email,
-        ]);
+        Livewire::test(EditStudentForm::class, ['student' => $student->user])->assertForbidden();
     }
 
-    public function test_authorised_users_can_update_students()
+    public function test_authorised_users_can_update_students(): void
     {
         $student = StudentRecord::factory()->create();
-        $email = $this->faker()->freeEmail();
+        $email = $this->faker()->unique()->freeEmail();
+        $this->authorized_user(['update student']);
 
-        $this->authorized_user(['update student'])->put('dashboard/students/'.$student->user->id, [
-            'name' => 'Test 2 Student 2 Student',
-            'email' => $email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'gender' => 'Male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-        ]);
+        Livewire::test(EditStudentForm::class, ['student' => $student->user])
+            ->set('email', $email)
+            ->set('addressLine2', 'Flat 3')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('students.show', $student->user));
 
-        $this->assertDatabaseHas('users', [
-            'email' => $email,
-        ]);
+        $this->assertSame($email, $student->user->fresh()->email);
+        $this->assertSame('Flat 3', $student->user->fresh()->address_line_2);
     }
 
     // test unauthorised users cannot delete students
@@ -547,6 +530,29 @@ class StudentTest extends TestCase
             ->call('loadStudents')
             ->assertHasErrors('academicCycleSectionId')
             ->assertSet('students', []);
+    }
+
+    /**
+     * Fill the admission screen and press save.
+     */
+    private function admitLearner(string $email, AcademicCycleSection $section, ?string $admissionNumber = null): Testable
+    {
+        $component = Livewire::test(CreateStudentForm::class)
+            ->set('name', 'Test Student cody')
+            ->set('email', $email)
+            ->set('gender', 'Male')
+            ->set('birthday', '2004-04-22')
+            ->set('admissionDate', '2024-09-01')
+            ->set('academicCycleSectionId', (string) $section->id);
+
+        $component->dispatch('country-updated', country: 'Nigeria');
+        $component->dispatch('state-updated', state: 'Lagos');
+
+        if ($admissionNumber !== null) {
+            $component->set('admissionNumber', $admissionNumber);
+        }
+
+        return $component->call('save');
     }
 
     /**

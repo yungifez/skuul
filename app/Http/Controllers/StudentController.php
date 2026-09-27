@@ -2,13 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StudentStoreRequest;
 use App\Models\User;
 use App\Services\Student\StudentService;
 use App\Services\User\UserService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
 
@@ -48,20 +46,6 @@ class StudentController extends Controller
         $this->authorize('create', [User::class, 'student']);
 
         return view('pages.student.create');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     *
-     * @throws AuthorizationException
-     */
-    public function store(StudentStoreRequest $request): RedirectResponse
-    {
-        $this->authorize('create', [User::class, 'student']);
-        $this->student->createStudent($request->validated());
-
-        return back()->with('success', 'Student Created Successfully');
     }
 
     /**
@@ -121,22 +105,6 @@ class StudentController extends Controller
         $data['student'] = $student;
 
         return view('pages.student.edit', $data);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     *
-     * @throws AuthorizationException
-     */
-    public function update(Request $request, User $student): RedirectResponse
-    {
-        $this->userService->verifyUserIsOfRoleElseNotFound($student, 'student');
-        $this->authorize('update', [$student, 'student']);
-        $data = $request->except('_token', '_method');
-        $this->student->updateStudent($student, $data);
-
-        return back()->with('success', 'Student Updated Successfully');
     }
 
     /**

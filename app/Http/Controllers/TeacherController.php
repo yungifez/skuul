@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreUserRequest;
 use App\Models\User;
 use App\Services\Teacher\TeacherService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\View\View;
 
 class TeacherController extends Controller
@@ -40,17 +38,6 @@ class TeacherController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreUserRequest $request): RedirectResponse
-    {
-        $this->authorize('create', [User::class, 'teacher']);
-        $this->teacherService->createTeacher($request->validated());
-
-        return back()->with('success', 'Teacher Created Successfully');
-    }
-
-    /**
      * Display the specified resource.
      *
      *
@@ -74,20 +61,6 @@ class TeacherController extends Controller
         $this->authorize('update', [$teacher, 'teacher']);
 
         return view('pages.teacher.edit', compact('teacher'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     *
-     * @throws AuthorizationException
-     */
-    public function update(Request $request, User $teacher): RedirectResponse
-    {
-        $this->authorize('update', [$teacher, 'teacher']);
-        $this->teacherService->updateTeacher($teacher, $request->except('_token', '_method'));
-
-        return back()->with('success', 'Teacher Updated Successfully');
     }
 
     /**

@@ -6,6 +6,8 @@ use App\Actions\Identity\ChangeGuardianLink;
 use App\Enums\AuditAction;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\AssignStudentsToParent;
+use App\Livewire\CreateParentForm;
+use App\Livewire\EditParentForm;
 use App\Livewire\ListParentsTable;
 use App\Models\AuditEvent;
 use App\Models\School;
@@ -81,58 +83,38 @@ class ParentTest extends TestCase
             ->assertSee('10 Apr 1985');
     }
 
-    public function test_unauthorised_users_cannot_create_parents()
+    public function test_unauthorised_users_cannot_create_parents(): void
     {
-        $email = $this->faker()->freeEmail();
-        $this->unauthorized_user()->post('dashboard/parents', [
-            'name' => 'Test parent cody',
-            'email' => $email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'gender' => 'Male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-            'my_class_id' => 1,
-            'section_id' => 1,
-            'admission_date' => '2004-04-22',
-        ])->assertForbidden();
+        $this->unauthorized_user();
 
-        $this->assertDatabaseMissing('users', [
-            'email' => $email,
-        ]);
+        Livewire::test(CreateParentForm::class)->assertForbidden();
     }
 
-    public function test_authorized_user_can_create_parent()
+    public function test_authorized_user_can_create_parent(): void
     {
-        $email = $this->faker()->freeEmail();
+        $email = $this->faker()->unique()->freeEmail();
+        $this->authorized_user(['create parent', 'read parent']);
 
-        $this->authorized_user(['create parent'])->post('dashboard/parents', [
-            'name' => 'Test parent cody',
-            'email' => $email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'gender' => 'Male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-            'my_class_id' => 1,
-            'section_id' => 1,
-            'admission_date' => '2004-04-22',
-        ])->assertRedirect();
+        $component = Livewire::test(CreateParentForm::class)
+            ->set('name', 'Test parent cody')
+            ->set('email', $email)
+            ->set('gender', 'Male')
+            ->set('nationality', 'Nigerian')
+            ->set('address', 'test address')
+            ->set('addressLine2', 'Flat 3')
+            ->set('postalCode', '100001')
+            ->set('birthday', '2004-04-22')
+            ->set('phone', '08080808080')
+            ->call('save')
+            ->assertHasNoErrors();
 
-        $this->assertDatabaseHas('users', [
-            'email' => $email,
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-        ]);
+        $person = User::query()->where('email', $email)->sole();
+
+        $component->assertRedirect(route('parents.show', $person));
+        $this->assertTrue($person->hasRole('parent'));
+        $this->assertSame('Flat 3', $person->address_line_2);
+        $this->assertSame('Nigerian', $person->nationality);
+        $this->assertSame('100001', $person->postal_code);
     }
 
     public function test_edit_parent_cannot_be_accessed_to_unauthorised_users()
@@ -149,58 +131,49 @@ class ParentTest extends TestCase
         $this->authorized_user(['update parent'])->get("dashboard/parents/$parent->id/edit")->assertOk();
     }
 
-    public function test_unauthorised_users_cannot_update_parents()
+    public function test_a_guardian_added_by_two_schools_keeps_one_guardian_record(): void
     {
-        $email = $this->faker()->freeEmail();
+        $email = $this->faker()->unique()->freeEmail();
+        $firstSchool = $this->workingSchool();
+        $this->authorized_user(['create parent'], $firstSchool);
+        Livewire::test(CreateParentForm::class)->set('name', 'Ada Bell')->set('email', $email)->call('save')->assertHasNoErrors();
 
-        $parent = User::factory()->create();
-        $parent->assignRole('parent');
+        $this->authorized_user(['create parent'], School::factory()->create());
+        Livewire::test(CreateParentForm::class)->set('name', 'Ada Bell')->set('email', $email)->call('save')->assertHasNoErrors();
 
-        $this->unauthorized_user()->put('dashboard/parents/'.$parent->id, [
-            'name' => 'Test parent 2',
-            'email' => $email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'gender' => 'Male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-            'my_class_id' => 1,
-            'section_id' => 1,
-            'admission_date' => '2004-04-22',
-        ])->assertForbidden();
-
-        $this->assertDatabaseMissing('users', [
-            'email' => $email,
-        ]);
+        $guardian = User::query()->where('email', $email)->sole();
+        $this->assertSame(1, $guardian->parentRecord()->count());
     }
 
-    public function test_authorised_users_can_update_parents()
+    public function test_unauthorised_users_cannot_update_parents(): void
     {
-        $parent = User::factory()->create();
-        $parent->assignRole('parent');
-        $email = $this->faker()->freeEmail();
+        $person = User::factory()->create();
+        $person->assignRole('parent');
+        $this->unauthorized_user();
 
-        $this->authorized_user(['update parent'])->put('dashboard/parents/'.$parent->id, [
-            'name' => 'Test 2 parent 2 parent',
-            'email' => $email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'gender' => 'Male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-        ])->assertRedirect();
+        Livewire::test(EditParentForm::class, ['parent' => $person])->assertForbidden();
+    }
 
-        $this->assertDatabaseHas('users', [
-            'email' => $email,
-        ]);
+    public function test_authorised_users_can_update_parents(): void
+    {
+        $person = User::factory()->create(['nationality' => 'Nigerian', 'postal_code' => '100001']);
+        $person->assignRole('parent');
+        $email = $this->faker()->unique()->freeEmail();
+        $this->authorized_user(['update parent']);
+
+        Livewire::test(EditParentForm::class, ['parent' => $person])
+            ->assertSet('nationality', 'Nigerian')
+            ->set('name', 'Renamed parent')
+            ->set('email', $email)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('parents.show', $person));
+
+        $person->refresh();
+        $this->assertSame('Renamed parent', $person->name);
+        $this->assertSame($email, $person->email);
+        $this->assertSame('Nigerian', $person->nationality);
+        $this->assertSame('100001', $person->postal_code);
     }
 
     public function test_unauthorised_users_cannot_delete_parents()

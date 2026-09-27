@@ -19,6 +19,7 @@ use App\Services\User\UserService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class StudentService
 {
@@ -97,13 +98,29 @@ class StudentService
     /**
      * Create student.
      */
-    public function createStudent(array $record): void
+    public function createStudent(array $record): User
     {
-        DB::transaction(function () use ($record) {
+        $this->userService->failIfAlreadyHolds($record['email'], Role::Student);
+
+        $enrolledElsewhere = StudentRecord::query()
+            ->whereRelation('user', 'email', $record['email'])
+            ->where('school_id', '!=', current_school_id())
+            ->where('status', EnrollmentStatus::Active)
+            ->exists();
+
+        if ($enrolledElsewhere) {
+            throw ValidationException::withMessages([
+                'email' => 'This learner is enrolled at another school. Ask that school to move or transfer them.',
+            ]);
+        }
+
+        return DB::transaction(function () use ($record): User {
             $student = $this->userService->createUser($record);
             $student->assignRole(Role::Student);
 
             $this->createStudentRecord($student, $record);
+
+            return $student;
         });
     }
 

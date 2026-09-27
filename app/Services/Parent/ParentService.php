@@ -37,10 +37,13 @@ class ParentService
      */
     public function createParent($record)
     {
+        $this->user->failIfAlreadyHolds($record['email'], Role::Parent);
+
         $parent = DB::transaction(function () use ($record) {
             $parent = $this->user->createUser($record);
             $parent->assignRole(Role::Parent);
-            $parent->parentRecord()->create(['user_id' => $parent->id]);
+            // One guardian record per person, shared by every school they join.
+            $parent->parentRecord()->firstOrCreate(['user_id' => $parent->id]);
 
             return $parent;
         });

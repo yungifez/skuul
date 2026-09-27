@@ -3,12 +3,15 @@
 namespace Tests\Feature;
 
 use App\Enums\AccountStatus;
+use App\Livewire\CreateAdminForm;
 use App\Models\User;
 use App\Notifications\AccountInvitationNotification;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Notification;
+use Livewire\Features\SupportTesting\Testable;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -21,23 +24,20 @@ class AccountProvisioningTest extends TestCase
     use WithFaker;
 
     /**
-     * Build the fields the create-admin screen posts.
-     *
-     * @return array<string, mixed>
+     * Fill the create-admin screen and press save.
      */
-    private function adminFields(string $email): array
+    private function addAdmin(string $email): Testable
     {
-        return [
-            'name' => 'Test Admin Cody',
-            'email' => $email,
-            'gender' => 'Male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-        ];
+        return Livewire::test(CreateAdminForm::class)
+            ->set('name', 'Test Admin Cody')
+            ->set('email', $email)
+            ->set('gender', 'Male')
+            ->set('nationality', 'Nigerian')
+            ->set('city', 'lagos')
+            ->set('address', 'test address')
+            ->set('birthday', '2004-04-22')
+            ->set('phone', '08080808080')
+            ->call('save');
     }
 
     public function test_creating_an_admin_provisions_an_invited_account_with_no_password()
@@ -46,9 +46,8 @@ class AccountProvisioningTest extends TestCase
 
         $email = $this->faker()->unique()->freeEmail();
 
-        $this->authorized_user(['create admin'])
-            ->post('dashboard/admins', $this->adminFields($email))
-            ->assertRedirect();
+        $this->authorized_user(['create admin']);
+        $this->addAdmin($email)->assertHasNoErrors()->assertRedirect();
 
         $admin = User::where('email', $email)->firstOrFail();
 
@@ -66,9 +65,8 @@ class AccountProvisioningTest extends TestCase
 
         $email = $this->faker()->unique()->freeEmail();
 
-        $this->authorized_user(['create admin'])
-            ->post('dashboard/admins', $this->adminFields($email))
-            ->assertRedirect();
+        $this->authorized_user(['create admin']);
+        $this->addAdmin($email)->assertHasNoErrors();
 
         $this->post('/logout');
 
@@ -86,13 +84,9 @@ class AccountProvisioningTest extends TestCase
 
         $email = $this->faker()->unique()->freeEmail();
 
-        $this->authorized_user(['create admin'])
-            ->post('dashboard/admins', $this->adminFields($email))
-            ->assertRedirect();
-
-        $this->authorized_user(['create admin'])
-            ->post('dashboard/admins', $this->adminFields($email))
-            ->assertRedirect();
+        $this->authorized_user(['create admin']);
+        $this->addAdmin($email)->assertHasNoErrors();
+        $this->addAdmin($email)->assertHasErrors('email')->assertNoRedirect();
 
         $this->assertSame(1, User::where('email', $email)->count());
     }

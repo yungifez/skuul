@@ -2,11 +2,17 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\CreateAdminForm;
+use App\Livewire\EditAdminForm;
 use App\Livewire\ManageAccountAccess;
+use App\Models\School;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 class AdminTest extends TestCase
@@ -49,58 +55,38 @@ class AdminTest extends TestCase
         $this->authorized_user(['create admin'])->get('dashboard/admins/create')->assertOk();
     }
 
-    public function test_unauthorised_users_cannot_create_admins()
+    public function test_unauthorised_users_cannot_create_admins(): void
     {
-        $email = $this->faker()->freeEmail();
-        $this->unauthorized_user()->post('dashboard/admins', [
-            'name' => 'Test admin cody',
-            'email' => $email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'gender' => 'Male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-            'my_class_id' => 1,
-            'section_id' => 1,
-            'admission_date' => '2004-04-22',
-        ])->assertForbidden();
+        $this->unauthorized_user();
 
-        $this->assertDatabaseMissing('users', [
-            'email' => $email,
-        ]);
+        Livewire::test(CreateAdminForm::class)->assertForbidden();
     }
 
-    public function test_authorized_user_can_create_admin()
+    public function test_authorized_user_can_create_admin(): void
     {
-        $email = $this->faker()->freeEmail();
+        $email = $this->faker()->unique()->freeEmail();
+        $this->authorized_user(['create admin', 'read admin']);
 
-        $this->authorized_user(['create admin'])->post('dashboard/admins', [
-            'name' => 'Test admin cody',
-            'email' => $email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'gender' => 'Male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-            'my_class_id' => 1,
-            'section_id' => 1,
-            'admission_date' => '2004-04-22',
-        ])->assertRedirect();
+        $component = Livewire::test(CreateAdminForm::class)
+            ->set('name', 'Test admin cody')
+            ->set('email', $email)
+            ->set('gender', 'Male')
+            ->set('nationality', 'Nigerian')
+            ->set('address', 'test address')
+            ->set('addressLine2', 'Flat 3')
+            ->set('postalCode', '100001')
+            ->set('birthday', '2004-04-22')
+            ->set('phone', '08080808080')
+            ->call('save')
+            ->assertHasNoErrors();
 
-        $this->assertDatabaseHas('users', [
-            'email' => $email,
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-        ]);
+        $person = User::query()->where('email', $email)->sole();
+
+        $component->assertRedirect(route('admins.show', $person));
+        $this->assertTrue($person->hasRole('admin'));
+        $this->assertSame('Flat 3', $person->address_line_2);
+        $this->assertSame('Nigerian', $person->nationality);
+        $this->assertSame('100001', $person->postal_code);
     }
 
     public function test_edit_admin_cannot_be_accessed_to_unauthorised_users()
@@ -117,58 +103,81 @@ class AdminTest extends TestCase
         $this->authorized_user(['update admin'])->get("dashboard/admins/$admin->id/edit")->assertOk();
     }
 
-    public function test_unauthorised_users_cannot_update_admins()
+    public function test_unauthorised_users_cannot_update_admins(): void
     {
-        $email = $this->faker()->freeEmail();
+        $person = User::factory()->create();
+        $person->assignRole('admin');
+        $this->unauthorized_user();
 
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-
-        $this->unauthorized_user()->put('dashboard/admins/'.$admin->id, [
-            'name' => 'Test admin 2',
-            'email' => $email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'gender' => 'Male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-            'my_class_id' => 1,
-            'section_id' => 1,
-            'admission_date' => '2004-04-22',
-        ])->assertForbidden();
-
-        $this->assertDatabaseMissing('users', [
-            'email' => $email,
-        ]);
+        Livewire::test(EditAdminForm::class, ['admin' => $person])->assertForbidden();
     }
 
-    public function test_authorised_users_can_update_admins()
+    public function test_authorised_users_can_update_admins(): void
     {
-        $admin = User::factory()->create();
-        $admin->assignRole('admin');
-        $email = $this->faker()->freeEmail();
+        $person = User::factory()->create(['nationality' => 'Nigerian', 'postal_code' => '100001']);
+        $person->assignRole('admin');
+        $email = $this->faker()->unique()->freeEmail();
+        $this->authorized_user(['update admin']);
 
-        $this->authorized_user(['update admin'])->put('dashboard/admins/'.$admin->id, [
-            'name' => 'Test 2 admin 2 admin',
-            'email' => $email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'gender' => 'Male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-        ])->assertRedirect();
+        Livewire::test(EditAdminForm::class, ['admin' => $person])
+            ->assertSet('nationality', 'Nigerian')
+            ->set('name', 'Renamed admin')
+            ->set('email', $email)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('admins.show', $person));
 
-        $this->assertDatabaseHas('users', [
-            'email' => $email,
-        ]);
+        $person->refresh();
+        $this->assertSame('Renamed admin', $person->name);
+        $this->assertSame($email, $person->email);
+        $this->assertSame('Nigerian', $person->nationality);
+        $this->assertSame('100001', $person->postal_code);
+    }
+
+    public function test_one_school_cannot_change_the_email_of_a_person_another_school_shares(): void
+    {
+        $person = $this->memberOf(School::factory()->create());
+        $person->forceFill(['email' => $this->faker()->unique()->freeEmail()])->save();
+        $this->authorized_user(['update admin']);
+        $this->memberOf($this->workingSchool(), $person);
+        $person->assignRole('admin');
+        $originalEmail = $person->email;
+
+        Livewire::test(EditAdminForm::class, ['admin' => $person])
+            ->set('email', $this->faker()->unique()->freeEmail())
+            ->call('save')
+            ->assertHasErrors(['email' => 'This person also belongs to another school, so only they can change their email.']);
+
+        $this->assertSame($originalEmail, $person->fresh()->email);
+    }
+
+    public function test_a_profile_picture_must_be_an_image(): void
+    {
+        Storage::fake('public');
+        $person = User::factory()->create(['email' => $this->faker()->unique()->freeEmail()]);
+        $person->assignRole('admin');
+        $this->authorized_user(['update admin']);
+
+        Livewire::test(EditAdminForm::class, ['admin' => $person])
+            ->set('profilePhoto', UploadedFile::fake()->createWithContent('photo.html', '<script>alert(1)</script>'))
+            ->call('save')
+            ->assertHasErrors('profilePhoto');
+
+        $this->assertNull($person->fresh()->profile_photo_path);
+    }
+
+    public function test_the_same_person_cannot_be_added_as_an_administrator_twice(): void
+    {
+        $this->authorized_user(['create admin']);
+        $existing = User::factory()->create(['email' => $this->faker()->unique()->freeEmail()]);
+        $this->memberOf($this->workingSchool(), $existing);
+        $existing->assignRole('admin');
+
+        Livewire::test(CreateAdminForm::class)
+            ->set('name', 'Someone Else')
+            ->set('email', $existing->email)
+            ->call('save')
+            ->assertHasErrors(['email' => "{$existing->name} already holds the administrator role at this school."]);
     }
 
     public function test_unauthorised_users_cannot_delete_admins()

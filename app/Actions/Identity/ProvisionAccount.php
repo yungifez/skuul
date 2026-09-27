@@ -15,7 +15,8 @@ use Illuminate\Validation\Rule;
  * The account has no password. The person sets one from an invitation link.
  * Calling this action again with the same email returns the existing account
  * and adds the school membership, so provisioning is safe to retry and one
- * person can join a second school without a second login.
+ * person can join a second school without a second login. The second call
+ * never overwrites the profile the person already has; it only fills blanks.
  */
 class ProvisionAccount
 {
@@ -46,6 +47,7 @@ class ProvisionAccount
         ])->validate();
 
         $user = User::where('email', $data['email'])->first();
+        $isExistingPerson = $user !== null;
 
         if ($user === null) {
             $user = new User;
@@ -53,7 +55,7 @@ class ProvisionAccount
             $user->account_status = AccountStatus::Invited;
         }
 
-        $user->fill([
+        $profile = [
             'name' => $data['name'],
             'email' => $data['email'],
             'birthday' => $data['birthday'] ?? null,
@@ -66,14 +68,26 @@ class ProvisionAccount
             'postal_code' => $data['postal_code'] ?? null,
             'gender' => $data['gender'] ?? null,
             'phone' => $data['phone'] ?? null,
-        ]);
+        ];
+
+        // A person who already has an account keeps the profile they or
+        // another school wrote. Joining a school only fills what is blank.
+        if ($isExistingPerson) {
+            $profile = array_filter(
+                $profile,
+                fn (mixed $value, string $attribute): bool => $value !== null && blank($user->getAttribute($attribute)),
+                ARRAY_FILTER_USE_BOTH,
+            );
+        }
+
+        $user->fill($profile);
 
         $user->save();
 
         // School access is a membership record, never a column on the user.
         $this->grantSchoolMembership->grant($user, School::findOrFail($data['school_id']));
 
-        if (isset($data['photo'])) {
+        if (isset($data['photo']) && !($isExistingPerson && $user->profile_photo_path !== null)) {
             $user->updateProfilePhoto($data['photo']);
         }
 

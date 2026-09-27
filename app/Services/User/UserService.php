@@ -6,8 +6,10 @@ use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Actions\Identity\ChangeAccountStatus;
 use App\Actions\Identity\ProvisionAccount;
 use App\Actions\Identity\SendAccountInvitation;
+use App\Enums\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Validation\ValidationException;
 
 class UserService
 {
@@ -68,9 +70,12 @@ class UserService
             'school_id' => $record['school_id'],
             'birthday' => $record['birthday'] ?? null,
             'address' => $record['address'] ?? null,
+            'address_line_2' => $record['address_line_2'] ?? null,
             'country' => $record['country'] ?? null,
+            'nationality' => $record['nationality'] ?? null,
             'state' => $record['state'] ?? null,
             'city' => $record['city'] ?? null,
+            'postal_code' => $record['postal_code'] ?? null,
             'gender' => $record['gender'] ?? null,
             'phone' => $record['phone'] ?? null,
         ]);
@@ -110,24 +115,55 @@ class UserService
                 abort('403', "User isn't a/an $role");
             }
         }
-        // update profile photo if present
-        if (isset($record['profile_photo'])) {
-            $user->updateProfilePhoto($record['profile_photo']);
+        // A person who also belongs to another school signs in there with
+        // this email. Only they may change it, from their own profile.
+        if (isset($record['email']) && mb_strtolower((string) $record['email']) !== mb_strtolower((string) $user->email) && $this->belongsToAnotherSchool($user)) {
+            throw ValidationException::withMessages([
+                'email' => 'This person also belongs to another school, so only they can change their email.',
+            ]);
         }
 
         $user = $this->updateUserProfileInformationAction->update($user, [
             'name' => $record['name'],
             'email' => $record['email'],
+            'photo' => $record['profile_photo'] ?? null,
             'birthday' => $record['birthday'] ?? null,
             'address' => $record['address'] ?? null,
+            'address_line_2' => $record['address_line_2'] ?? null,
             'country' => $record['country'] ?? null,
+            'nationality' => $record['nationality'] ?? null,
             'state' => $record['state'] ?? null,
             'city' => $record['city'] ?? null,
+            'postal_code' => $record['postal_code'] ?? null,
             'gender' => $record['gender'] ?? null,
             'phone' => $record['phone'] ?? null,
         ]);
 
         return $user;
+    }
+
+    /**
+     * Refuse to add a person to this school in a role they already hold here.
+     *
+     * @throws ValidationException
+     */
+    public function failIfAlreadyHolds(string $email, Role $role): void
+    {
+        $person = User::query()->whereRaw('LOWER(email) = ?', [mb_strtolower($email)])->first();
+
+        if ($person !== null && $person->belongsToSchool(current_school_id()) && $person->hasRole($role->value)) {
+            throw ValidationException::withMessages([
+                'email' => "{$person->name} already holds the ".strtolower($role->label()).' role at this school.',
+            ]);
+        }
+    }
+
+    /**
+     * Whether the person holds an active membership of a school other than the working one.
+     */
+    private function belongsToAnotherSchool(User $user): bool
+    {
+        return $user->schoolMemberships()->active()->where('school_id', '!=', current_school_id())->exists();
     }
 
     /**

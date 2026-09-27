@@ -1,15 +1,8 @@
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Create Parent</h2>
-    </div>
-    <div class="card-body">
-        <form action="{{ route('parents.store') }}" method="POST" enctype="multipart/form-data" autocomplete="off" class="space-y-6" x-data="{ submitting: false }" x-on:submit="if (submitting) { $event.preventDefault(); } submitting = true">
-            <livewire:create-user-fields role="Parent" />
-            @csrf
-            <april:button type="submit" class="w-full md:w-auto" x-bind:disabled="submitting">
-                <x-lucide-key class="mr-2 size-4" />
-                Create
-            </april:button>
-        </form>
-    </div>
-</div>
+@php
+    $controlClasses = 'mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+@endphp
+<form wire:submit="save" autocomplete="off" class="max-w-3xl space-y-6">
+    @include('livewire.partials.person-fields', ['photoUrl' => asset('application-images/user-profile-image.png')])
+    <p class="text-sm text-muted-foreground">They get an email with a link to set their own password. Someone who already has an account here signs in as before.</p>
+    <april:button type="submit" class="h-11 select-none" wire:loading.attr="disabled" wire:target="save,profilePhoto">Add parent</april:button>
+</form>

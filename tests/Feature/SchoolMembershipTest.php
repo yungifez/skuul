@@ -105,10 +105,17 @@ class SchoolMembershipTest extends TestCase
         $second = School::factory()->create();
 
         // Provisioning validates the address against DNS, so use a real domain.
-        $existing = User::factory()->create(['email' => $this->faker()->unique()->freeEmail()]);
+        $existing = User::factory()->create([
+            'email' => $this->faker()->unique()->freeEmail(),
+            'name' => 'Ada Bell',
+            'phone' => '08011112222',
+            'postal_code' => null,
+        ]);
 
         app(ProvisionAccount::class)->provision([
-            'name' => $existing->name,
+            'name' => 'Somebody Else',
+            'phone' => '09099990000',
+            'postal_code' => '100001',
             'email' => $existing->email,
             'school_id' => $second->id,
             'birthday' => '2000-01-01',
@@ -121,6 +128,10 @@ class SchoolMembershipTest extends TestCase
 
         $this->assertSame(1, User::where('email', $existing->email)->count());
         $this->assertTrue($existing->fresh()->belongsToSchool($second));
+        // The second school fills blanks and never rewrites what is there.
+        $this->assertSame('Ada Bell', $existing->fresh()->name);
+        $this->assertSame('08011112222', $existing->fresh()->phone);
+        $this->assertSame('100001', $existing->fresh()->postal_code);
     }
 
     public function test_a_person_with_no_membership_cannot_reach_the_dashboard(): void

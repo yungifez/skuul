@@ -2,7 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Livewire\CreateTeacherForm;
+use App\Livewire\EditTeacherForm;
 use App\Livewire\ListTeachersTable;
+use App\Models\School;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -61,58 +64,38 @@ class TeacherTest extends TestCase
         $this->authorized_user(['create teacher'])->get('dashboard/teachers/create')->assertOk();
     }
 
-    public function test_unauthorised_users_cannot_create_teachers()
+    public function test_unauthorised_users_cannot_create_teachers(): void
     {
-        $email = $this->faker()->freeEmail();
-        $this->unauthorized_user()->post('dashboard/teachers', [
-            'name' => 'Test teacher cody',
-            'email' => $email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'gender' => 'Male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-            'my_class_id' => 1,
-            'section_id' => 1,
-            'admission_date' => '2004-04-22',
-        ])->assertForbidden();
+        $this->unauthorized_user();
 
-        $this->assertDatabaseMissing('users', [
-            'email' => $email,
-        ]);
+        Livewire::test(CreateTeacherForm::class)->assertForbidden();
     }
 
-    public function test_authorized_user_can_create_teacher()
+    public function test_authorized_user_can_create_teacher(): void
     {
-        $email = $this->faker()->freeEmail();
+        $email = $this->faker()->unique()->freeEmail();
+        $this->authorized_user(['create teacher', 'read teacher']);
 
-        $this->authorized_user(['create teacher'])->post('dashboard/teachers', [
-            'name' => 'Test teacher cody',
-            'email' => $email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'gender' => 'Male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-            'my_class_id' => 1,
-            'section_id' => 1,
-            'admission_date' => '2004-04-22',
-        ])->assertRedirect();
+        $component = Livewire::test(CreateTeacherForm::class)
+            ->set('name', 'Test teacher cody')
+            ->set('email', $email)
+            ->set('gender', 'Male')
+            ->set('nationality', 'Nigerian')
+            ->set('address', 'test address')
+            ->set('addressLine2', 'Flat 3')
+            ->set('postalCode', '100001')
+            ->set('birthday', '2004-04-22')
+            ->set('phone', '08080808080')
+            ->call('save')
+            ->assertHasNoErrors();
 
-        $this->assertDatabaseHas('users', [
-            'email' => $email,
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-        ]);
+        $person = User::query()->where('email', $email)->sole();
+
+        $component->assertRedirect(route('teachers.show', $person));
+        $this->assertTrue($person->hasRole('teacher'));
+        $this->assertSame('Flat 3', $person->address_line_2);
+        $this->assertSame('Nigerian', $person->nationality);
+        $this->assertSame('100001', $person->postal_code);
     }
 
     public function test_edit_teacher_cannot_be_accessed_to_unauthorised_users()
@@ -129,58 +112,47 @@ class TeacherTest extends TestCase
         $this->authorized_user(['update teacher'])->get("dashboard/teachers/$teacher->id/edit")->assertOk();
     }
 
-    public function test_unauthorised_users_cannot_update_teachers()
+    public function test_a_teacher_of_another_school_cannot_be_edited_here(): void
     {
-        $email = $this->faker()->freeEmail();
-
-        $teacher = User::factory()->create();
+        $this->workingSchool();
+        $otherSchool = School::factory()->create();
+        $teacher = $this->nonMember();
+        $this->memberOf($otherSchool, $teacher);
         $teacher->assignRole('teacher');
+        $this->authorized_user(['update teacher']);
 
-        $this->unauthorized_user()->put('dashboard/teachers/'.$teacher->id, [
-            'name' => 'Test teacher 2',
-            'email' => $email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'gender' => 'Male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-            'my_class_id' => 1,
-            'section_id' => 1,
-            'admission_date' => '2004-04-22',
-        ])->assertForbidden();
-
-        $this->assertDatabaseMissing('users', [
-            'email' => $email,
-        ]);
+        Livewire::test(EditTeacherForm::class, ['teacher' => $teacher])->assertForbidden();
     }
 
-    public function test_authorised_users_can_update_teachers()
+    public function test_unauthorised_users_cannot_update_teachers(): void
     {
-        $teacher = User::factory()->create();
-        $teacher->assignRole('teacher');
-        $email = $this->faker()->freeEmail();
+        $person = User::factory()->create();
+        $person->assignRole('teacher');
+        $this->unauthorized_user();
 
-        $this->authorized_user(['update teacher'])->put('dashboard/teachers/'.$teacher->id, [
-            'name' => 'Test 2 teacher 2 teacher',
-            'email' => $email,
-            'password' => 'password',
-            'password_confirmation' => 'password',
-            'gender' => 'Male',
-            'nationality' => 'nigeria',
-            'state' => 'lagos',
-            'city' => 'lagos',
-            'address' => 'test address',
-            'birthday' => '2004-04-22',
-            'phone' => '08080808080',
-        ])->assertRedirect();
+        Livewire::test(EditTeacherForm::class, ['teacher' => $person])->assertForbidden();
+    }
 
-        $this->assertDatabaseHas('users', [
-            'email' => $email,
-        ]);
+    public function test_authorised_users_can_update_teachers(): void
+    {
+        $person = User::factory()->create(['nationality' => 'Nigerian', 'postal_code' => '100001']);
+        $person->assignRole('teacher');
+        $email = $this->faker()->unique()->freeEmail();
+        $this->authorized_user(['update teacher']);
+
+        Livewire::test(EditTeacherForm::class, ['teacher' => $person])
+            ->assertSet('nationality', 'Nigerian')
+            ->set('name', 'Renamed teacher')
+            ->set('email', $email)
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('teachers.show', $person));
+
+        $person->refresh();
+        $this->assertSame('Renamed teacher', $person->name);
+        $this->assertSame($email, $person->email);
+        $this->assertSame('Nigerian', $person->nationality);
+        $this->assertSame('100001', $person->postal_code);
     }
 
     public function test_unauthorised_users_cannot_delete_teachers()

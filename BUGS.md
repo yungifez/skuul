@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A second school could rewrite or take over a shared person, and person forms lost details
+- Status: Fixed
+- Area: People (admins, teachers, parents, students)
+- Observed: Adding a person whose email already had an account overwrote their name, phone, address, and photo with the new school's input. An edit from one school could change the email of a person who also belongs to another school. Edits stored the uploaded profile picture before any check, so any file type was saved. Create forms dropped nationality, address line 2, and postal code; every edit cleared nationality. Adding a guardian at a second school made a second guardian record. "Create student" with the email of a learner enrolled here moved that learner to another section, and it enrolled a learner still active at another school. A person with a legacy lowercase gender could not be saved.
+- Impact: One school could deface or hijack the account another school relies on: after an email change, a password reset goes to the new address. Details typed on the forms were lost. Learners were moved or double-enrolled without a transfer.
+- Reproduction: At school B, add a teacher with the email of a school A teacher and a different name. Their name changes at school A too.
+- Resolution: Provisioning an existing person now fills only blank profile fields and keeps their photo. Only the person can change an email another school shares. The eight person forms are Livewire components on one shared field set that validates the picture first and saves every field. Adding a person in a role they already hold here is refused, one guardian record is kept per person, and a learner enrolled here or active elsewhere is refused with a pointer to the transfer flow. The store and update routes and their requests are gone.
+
 ## Graduating learners crashed on review and could graduate a learner of another section
 - Status: Fixed
 - Area: Students / graduations

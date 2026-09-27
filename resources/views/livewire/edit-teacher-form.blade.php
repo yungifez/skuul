@@ -1,19 +1,7 @@
-<div class="card">
-    <div class="card-header">
-        <h3 class="card-title">Edit teacher form</h3>
-    </div>
-    <div class="card-body">
-        <form action="{{route('teachers.update', $teacher->id)}}" method="POST" enctype="multipart/form-data">
-            @livewire('edit-user-fields', ['role' => 'Teacher', 'user'=> $teacher]
-            )
-                @csrf
-                @method('PUT')
-                <div class='col-12 my-2'>
-                    <april:button type="submit" class="w-full md:w-3/12">
-                        <x-lucide-pencil class="mr-2 size-4" />
-                        Edit
-                    </april:button>
-                </div>
-        </form>
-    </div>
-</div>
+@php
+    $controlClasses = 'mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
+@endphp
+<form wire:submit="save" autocomplete="off" class="max-w-3xl space-y-6">
+    @include('livewire.partials.person-fields', ['photoUrl' => $teacher->profile_photo_url])
+    <april:button type="submit" class="h-11 select-none" wire:loading.attr="disabled" wire:target="save,profilePhoto">Save changes</april:button>
+</form>
