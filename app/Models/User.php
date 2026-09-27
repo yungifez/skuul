@@ -260,6 +260,26 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Check whether this person reads learners only as their guardian.
+     *
+     * A teacher who is also a parent at the school keeps reading every learner
+     * their staff role allows. Only a person with no staff role is narrowed to
+     * their own children.
+     */
+    public function readsLearnersOnlyAsGuardian(): bool
+    {
+        return $this->hasRole(Role::Parent) && $this->isPortalOnly();
+    }
+
+    /**
+     * Check whether this person reads learners only as that learner.
+     */
+    public function readsLearnersOnlyAsThemself(): bool
+    {
+        return $this->hasRole(Role::Student) && !$this->hasRole(Role::Parent) && $this->isPortalOnly();
+    }
+
+    /**
      * Check whether this person is a guardian without a learner workspace.
      */
     public function isParentPortalOnly(): bool

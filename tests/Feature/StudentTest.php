@@ -4,10 +4,12 @@ namespace Tests\Feature;
 
 use App\Enums\AcademicStructureStatus;
 use App\Livewire\ListPromotionsTable;
+use App\Livewire\ListStudentsTable;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\Promotion;
 use App\Models\StudentRecord;
+use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -385,5 +387,53 @@ class StudentTest extends TestCase
             'academic_level_id' => $academicLevel->id,
             'status' => AcademicStructureStatus::Active,
         ]);
+    }
+
+    public function test_a_teacher_who_is_also_a_parent_still_reads_every_learner(): void
+    {
+        $ownChild = StudentRecord::factory()->create();
+        $otherLearner = StudentRecord::factory()->create();
+        $teacher = $this->personWithRoles(['teacher', 'parent']);
+        $teacher->parentRecord()->create(['user_id' => $teacher->id]);
+        $teacher->parentRecord->students()->attach($ownChild->user_id);
+
+        $this->get(route('students.show', $otherLearner->user))->assertOk();
+
+        Livewire::test(ListStudentsTable::class)
+            ->set('search', $otherLearner->user->name)
+            ->assertSee($otherLearner->user->email);
+    }
+
+    public function test_a_parent_only_reads_their_own_children(): void
+    {
+        $ownChild = StudentRecord::factory()->create();
+        $otherLearner = StudentRecord::factory()->create();
+        $parent = $this->personWithRoles(['parent']);
+        $parent->parentRecord()->create(['user_id' => $parent->id]);
+        $parent->parentRecord->students()->attach($ownChild->user_id);
+
+        $this->get(route('students.show', $ownChild->user))->assertOk();
+        $this->get(route('students.show', $otherLearner->user))->assertNotFound();
+
+        Livewire::test(ListStudentsTable::class)
+            ->assertSee($ownChild->user->email)
+            ->set('search', $otherLearner->user->name)
+            ->assertDontSee($otherLearner->user->email);
+    }
+
+    /**
+     * Sign in as a member of the working school who holds these roles there.
+     *
+     * @param  array<int, string>  $roles
+     */
+    private function personWithRoles(array $roles): User
+    {
+        $school = $this->workingSchool();
+        $person = $this->memberOf($school);
+        school_context()->set($school, remember: false);
+        $person->assignRole($roles);
+        $this->actingAsMemberOf($school, $person);
+
+        return $person->refresh();
     }
 }

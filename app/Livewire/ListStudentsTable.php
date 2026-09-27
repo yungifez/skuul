@@ -2,7 +2,6 @@
 
 namespace App\Livewire;
 
-use App\Enums\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -28,7 +27,7 @@ class ListStudentsTable extends DataTableComponent
             ->activeStudents()
             ->with('studentRecord.academicCycleSection.academicLevel');
 
-        if (auth()->user()->hasRole(Role::Parent)) {
+        if (auth()->user()->readsLearnersOnlyAsGuardian()) {
             $query->whereRelation('parents', 'parent_records.user_id', auth()->id());
         }
 

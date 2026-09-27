@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Enums\Role;
 use App\Http\Requests\StudentStoreRequest;
 use App\Models\User;
 use App\Services\Student\StudentService;
@@ -74,7 +73,7 @@ class StudentController extends Controller
         $this->authorize('view', [$student, 'student']);
 
         // restrict parents from seeing other students profiles
-        if (auth()->user()->hasRole(Role::Parent) && $student->parents()->where('parent_records.user_id', auth()->user()->id)->count() <= 0) {
+        if (auth()->user()->readsLearnersOnlyAsGuardian() && $student->parents()->where('parent_records.user_id', auth()->user()->id)->count() <= 0) {
             abort(404);
         }
 
@@ -91,7 +90,7 @@ class StudentController extends Controller
         $data['student'] = $student;
 
         // restrict parents from seeing other students profiles
-        if (auth()->user()->hasRole(Role::Parent) && $student->parents()->where('parent_records.user_id', auth()->user()->id)->count() <= 0) {
+        if (auth()->user()->readsLearnersOnlyAsGuardian() && $student->parents()->where('parent_records.user_id', auth()->user()->id)->count() <= 0) {
             abort(404);
         }
 

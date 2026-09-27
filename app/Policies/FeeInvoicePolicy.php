@@ -26,11 +26,11 @@ class FeeInvoicePolicy
             return false;
         }
 
-        if ($user->hasRole('student')) {
+        if ($user->readsLearnersOnlyAsThemself()) {
             return $feeInvoice->student_record_id === $user->studentRecord?->id;
         }
 
-        if ($user->hasRole('parent')) {
+        if ($user->readsLearnersOnlyAsGuardian()) {
             return $feeInvoice->studentRecord?->user?->parents()
                 ->where('parent_records.user_id', $user->id)
                 ->exists() === true;

@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A teacher who is also a parent could read only their own children
+
+- Status: Fixed
+- Area: Students, fee invoices
+- Observed: Staff with the parent role at their own school were treated as guardians only. The student list showed only their children, other learners' profiles returned 404, and the fee invoice list and policy narrowed them the same way. A staff member who was also enrolled as a learner was narrowed to their own invoices.
+- Impact: A teacher lost access to the learners they teach once their own child enrolled at the school.
+- Reproduction: Give a teacher the parent role at the same school and link them to one learner. Open another learner's profile.
+- Resolution: `User::readsLearnersOnlyAsGuardian()` and `readsLearnersOnlyAsThemself()` narrow a person only when they hold no staff role (`isPortalOnly()`). The student profile, student list, fee invoice list and fee invoice policy use them.
+
 ## A parent's page showed their children at other schools
 
 - Status: Fixed

@@ -55,9 +55,9 @@ class ListFeeInvoicesTable extends DataTableComponent
             ->orderByDesc('due_date')
             ->with(['user', 'studentRecord.academicCycleSection.academicLevel']);
 
-        if ($user->hasRole('parent')) {
+        if ($user->readsLearnersOnlyAsGuardian()) {
             $query->whereRelation('studentRecord.user.parents', 'parent_records.user_id', $user->id);
-        } elseif ($user->hasRole('student')) {
+        } elseif ($user->readsLearnersOnlyAsThemself()) {
             $query->where('student_record_id', $user->studentRecord?->id);
         }
 
