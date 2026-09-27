@@ -434,7 +434,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
                     Route::get('library/desk', [LibraryLoanController::class, 'index'])->name('library-loans.index');
                     Route::get('library/queue', [LibraryReservationController::class, 'index'])->name('library-reservations.index');
                     Route::get('library/rules', [LibraryLendingRulesController::class, 'edit'])->name('library-rules.edit');
-                    Route::put('library/rules', [LibraryLendingRulesController::class, 'update'])->name('library-rules.update');
                 });
 
                 Route::get('syllabi/coverage', [SyllabusController::class, 'coverage'])->name('syllabi.coverage');

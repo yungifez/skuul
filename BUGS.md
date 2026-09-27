@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A library fine with three decimals crashed the rules page
+
+- Status: Fixed
+- Area: Library lending rules (`LibraryLendingRulesForm`)
+- Observed: Typing a late fine such as 10.005 gave a server error, because the money library cannot round it into kobo. Two first saves at the same moment could also collide on the one-row-per-campus rule.
+- Impact: The librarian saw an error page and lost what they typed.
+- Reproduction: Open Library, Lending rules. Type 10.005 in "What one late day costs". Save.
+- Resolution: The fine allows two decimals at most and says so on the field. The rules save with one upsert per campus. The page now works through Livewire, and the PUT route is gone.
+
 ## A library hold was lost to a stale screen, the nightly run, or a withdrawn copy
 
 - Status: Fixed

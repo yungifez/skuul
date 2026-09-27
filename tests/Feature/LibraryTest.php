@@ -15,6 +15,7 @@ use App\Enums\LibraryReservationStatus;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\LibraryCopyCatalog as LibraryCopyCatalogComponent;
 use App\Livewire\LibraryLendingDesk;
+use App\Livewire\LibraryLendingRulesForm;
 use App\Livewire\LibraryReservationQueue;
 use App\Models\AcademicCycleSection;
 use App\Models\AuditEvent;
@@ -722,19 +723,60 @@ class LibraryTest extends TestCase
         $actor = $this->authorized_user(['read library', 'manage library']);
         app(FeatureManager::class)->enable(Feature::Library);
 
-        $actor->put(route('library-rules.update'), [
-            'loan_days' => 7,
-            'learner_limit' => 2,
-            'staff_limit' => 20,
-            'renewals_allowed' => 0,
-            'hold_days' => 5,
-            'fine_per_day' => 25.50,
-        ])->assertRedirect();
+        $actor->get(route('library-rules.edit'))->assertOk()->assertSeeLivewire(LibraryLendingRulesForm::class);
+
+        Livewire::test(LibraryLendingRulesForm::class)
+            ->assertSet('loanDays', '14')
+            ->set('loanDays', '7')
+            ->set('learnerLimit', '2')
+            ->set('staffLimit', '20')
+            ->set('renewalsAllowed', '0')
+            ->set('holdDays', '5')
+            ->set('finePerDay', '25.50')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertDispatched('status-message', type: 'success');
 
         $rules = LibraryLendingRules::forSchool();
         $this->assertSame(7, $rules->loan_days);
         $this->assertSame(2_550, $rules->fine_per_day);
         $this->assertSame(5, $rules->hold_days);
+
+        Livewire::test(LibraryLendingRulesForm::class)
+            ->assertSet('loanDays', '7')
+            ->assertSet('finePerDay', '25.50')
+            ->set('holdDays', '6')
+            ->call('save');
+
+        $this->assertSame(1, LibraryLendingRules::query()->count());
+        $this->assertSame(6, LibraryLendingRules::forSchool()->hold_days);
+    }
+
+    public function test_a_fine_smaller_than_the_currency_allows_is_refused_not_crashed(): void
+    {
+        $this->authorized_user(['read library', 'manage library']);
+        app(FeatureManager::class)->enable(Feature::Library);
+
+        Livewire::test(LibraryLendingRulesForm::class)
+            ->set('finePerDay', '10.005')
+            ->call('save')
+            ->assertHasErrors(['finePerDay' => 'decimal'])
+            ->set('finePerDay', '-1')
+            ->call('save')
+            ->assertHasErrors(['finePerDay' => 'min'])
+            ->set('loanDays', '0')
+            ->call('save')
+            ->assertHasErrors(['loanDays' => 'min']);
+
+        $this->assertSame(0, LibraryLendingRules::query()->count());
+    }
+
+    public function test_a_reader_cannot_change_the_lending_rules(): void
+    {
+        $this->authorized_user(['read library', 'lend library item']);
+        app(FeatureManager::class)->enable(Feature::Library);
+
+        Livewire::test(LibraryLendingRulesForm::class)->assertForbidden();
     }
 
     /**
