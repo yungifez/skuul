@@ -781,3 +781,11 @@
 - Impact: Leaders had to open four separate screens to judge the term.
 - Reproduction: Open `/dashboard` as an admin with attendance, fee, incident and student permissions.
 - Resolution: A deferred "Trends" section draws four charts with April UI's `chart` component: weekly attendance rate (last 4 weeks against the 4 before), fees billed and collected by month, enrolment by class against section seats, and incidents per week. `App\Services\Dashboard\SchoolTrends` groups the rows in MySQL. Each chart needs its own permission and hides without data. Reversed payments, unrecorded register days, restricted incidents and other schools' rows stay out. Test: `DashboardTrendsTest`.
+
+## The school-year page stacked cards inside cards
+- Status: Fixed
+- Area: School year overview (`academic-years.show`)
+- Observed: The page showed a card with four boxed facts, a second copy of the working-term picker, a five-card "How a school year moves" panel with a tooltip, a card per reporting period with three buttons each, and accent-coloured "Open" badges.
+- Impact: Fifteen periods filled four screens. The accent colour marked a state, not an action.
+- Reproduction: Open `/dashboard/academic-years/1`.
+- Resolution: A one-line status stepper replaces the lifecycle cards. Dates, period count and teaching setup sit in one row with the year's actions. Periods are one row each, with Edit dates and Start closing in a single row menu. The duplicate term picker is removed (the top bar has it). Status badges use quiet variants. Tests: `AcademicYearTest::test_the_calendar_overview_lists_periods_with_their_actions_in_one_menu` and the updated lifecycle test.

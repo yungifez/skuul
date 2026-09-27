@@ -100,9 +100,35 @@ class AcademicYearTest extends TestCase
             ->get(route('academic-years.show', $academicYear))
             ->assertOk()
             ->assertSee('Continue setup')
-            ->assertSee('Next: Dates and periods')
+            ->assertSee('Dates and periods')
             ->assertSee('Continue to dates and periods')
             ->assertSee(route('academic-years.setup', [$academicYear, 'calendar']), false);
+    }
+
+    public function test_the_calendar_overview_lists_periods_with_their_actions_in_one_menu(): void
+    {
+        $academicYear = AcademicYear::factory()->create([
+            'school_id' => current_school_id(),
+            'status' => AcademicPeriodStatus::Open,
+        ]);
+        $period = AcademicPeriod::factory()->create([
+            'school_id' => current_school_id(),
+            'academic_year_id' => $academicYear->id,
+            'parent_id' => null,
+            'status' => AcademicPeriodStatus::Open,
+            'starts_on' => null,
+            'ends_on' => null,
+        ]);
+
+        $this->authorized_user(['read academic year', 'update academic period', 'close academic period', 'set academic period'])
+            ->get(route('academic-years.show', $academicYear))
+            ->assertOk()
+            ->assertSee('aria-label="Actions for '.$period->displayName.'"', false)
+            ->assertSee(route('academic-periods.edit', $period), false)
+            ->assertSee(route('academic-periods.begin-closing', $period), false)
+            ->assertSee('No dates')
+            ->assertDontSee('Reporting boundaries drive gradebooks')
+            ->assertDontSee('Working '.strtolower(school_term('period', 'academic period')).'</');
     }
 
     public function test_the_calendar_overview_sorts_its_exam_list(): void

@@ -311,7 +311,7 @@ class AcademicCalendarSetupTest extends TestCase
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::AcademicYearSetupRolledForward)->first());
     }
 
-    public function test_academic_year_screen_explains_lifecycle_and_links_exam_creation_to_that_year(): void
+    public function test_academic_year_screen_marks_its_lifecycle_step_and_links_exam_creation_to_that_year(): void
     {
         $school = $this->workingSchool();
         $academicYear = AcademicYear::factory()->create([
@@ -329,8 +329,9 @@ class AcademicCalendarSetupTest extends TestCase
         $this->authorized_user(['read academic year', 'create exam'], $school)
             ->get(route('academic-years.show', $academicYear))
             ->assertOk()
-            ->assertSee('How a school year moves')
-            ->assertSee('Finish existing work and resolve the closing checks.')
+            ->assertSee('aria-current="step"', false)
+            ->assertSee('Closing')
+            ->assertDontSee('How a school year moves')
             ->assertSee('Add exam')
             ->assertSee('academic_year_id='.$academicYear->id, false);
 

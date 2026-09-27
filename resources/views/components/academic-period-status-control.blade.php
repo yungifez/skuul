@@ -1,13 +1,13 @@
-@props(['period', 'routePrefix'])
+@props(['period', 'routePrefix', 'showStatus' => true])
 
 @php
     use App\Enums\AcademicPeriodStatus;
 
     $status = $period->status;
     $variant = match ($status) {
-        AcademicPeriodStatus::Draft => 'secondary',
-        AcademicPeriodStatus::Scheduled => 'secondary',
-        AcademicPeriodStatus::Open => 'default',
+        AcademicPeriodStatus::Draft => 'outline',
+        AcademicPeriodStatus::Scheduled => 'outline',
+        AcademicPeriodStatus::Open => 'secondary',
         AcademicPeriodStatus::Closing => 'outline',
         AcademicPeriodStatus::Closed => 'outline',
         AcademicPeriodStatus::Archived => 'outline',
@@ -17,13 +17,15 @@
 @endphp
 
 <div class="flex flex-wrap items-center gap-2">
-    <april:badge variant="{{ $variant }}">{{ $status->label() }}</april:badge>
+    @if ($showStatus)
+        <april:badge variant="{{ $variant }}">{{ $status->label() }}</april:badge>
+    @endif
 
     @if ($status === AcademicPeriodStatus::Open && $canClose)
         <form action="{{ route($routePrefix.'.begin-closing', $period) }}" method="POST">
             @csrf
-            <april:button type="submit" variant="outline" size="sm">
-                <x-lucide-lock class="mr-1.5 size-3.5" />
+            <april:button type="submit" variant="outline">
+                <x-lucide-lock class="mr-1.5 size-4" />
                 Start closing
             </april:button>
         </form>

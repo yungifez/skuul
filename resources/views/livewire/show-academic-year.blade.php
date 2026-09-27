@@ -1,152 +1,182 @@
-<div class="space-y-6">
-    <april:card>
-        <slot:title class="flex flex-wrap items-center gap-3">
-            <span>{{ $academicYear->name }}</span>
-            <april:badge variant="{{ $isDraft ? 'secondary' : 'default' }}">{{ $academicYear->statusLabel() }}</april:badge>
-        </slot:title>
-        <slot:description>Dates, reporting periods, and readiness for this school calendar.</slot:description>
-        <slot:content>
-            <div class="grid gap-4 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                <div class="rounded-lg border p-4"><p class="text-muted-foreground">Calendar starts</p><p class="mt-1 font-semibold">{{ $academicYear->starts_on?->format('M j, Y') ?? 'Not scheduled' }}</p></div>
-                <div class="rounded-lg border p-4"><p class="text-muted-foreground">Calendar ends</p><p class="mt-1 font-semibold">{{ $academicYear->ends_on?->format('M j, Y') ?? 'Not scheduled' }}</p></div>
-                <div class="rounded-lg border p-4"><p class="text-muted-foreground">{{ school_terms('period', 'Reporting periods') }}</p><p class="mt-1 font-semibold">{{ $topLevelPeriods->count() }}</p></div>
-                <div class="rounded-lg border p-4"><p class="text-muted-foreground">Teaching setup</p><a href="{{ route('academic-years.instructional-model.edit', $academicYear) }}" class="mt-1 inline-flex font-semibold text-primary-foreground hover:underline">Manage setup</a></div>
-            </div>
+<div class="space-y-10">
+    @php
+        $dateRange = static fn ($startsOn, $endsOn): string => $startsOn === null && $endsOn === null
+            ? 'No dates'
+            : ($startsOn?->format('M j, Y') ?? '—').' – '.($endsOn?->format('M j, Y') ?? '—');
+        $currentStepIndex = collect($lifecycleSteps)->search(fn (array $step): bool => $step['status'] === $academicYear->status);
+    @endphp
 
-            <div class="mt-6 flex flex-wrap items-center gap-3">
+    <section class="space-y-6" aria-labelledby="academic-year-heading">
+        <h2 id="academic-year-heading" class="sr-only">{{ $academicYear->name }}</h2>
+
+        <ol class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm" aria-label="{{ school_term('academic_year', 'School year') }} status">
+            @foreach ($lifecycleSteps as $step)
+                <li @class([
+                    'flex items-center gap-2',
+                    'font-semibold text-foreground' => $loop->index === $currentStepIndex,
+                    'text-foreground/70' => $currentStepIndex !== false && $loop->index < $currentStepIndex,
+                    'text-muted-foreground/60' => $currentStepIndex === false || $loop->index > $currentStepIndex,
+                ]) @if ($loop->index === $currentStepIndex) aria-current="step" @endif>
+                    @if ($currentStepIndex !== false && $loop->index < $currentStepIndex)
+                        <x-lucide-check class="size-3.5" />
+                    @elseif ($loop->index === $currentStepIndex)
+                        <span class="size-2 rounded-full bg-foreground"></span>
+                    @endif
+                    {{ $step['title'] }}
+                    @unless ($loop->last)
+                        <x-lucide-chevron-right class="size-3.5 text-muted-foreground/50" aria-hidden="true" />
+                    @endunless
+                </li>
+            @endforeach
+        </ol>
+
+        <div class="flex flex-col gap-4 border-y py-4 lg:flex-row lg:items-center lg:justify-between">
+            <dl class="grid grid-cols-2 gap-x-8 gap-y-3 text-sm sm:flex sm:flex-wrap">
+                <div>
+                    <dt class="text-muted-foreground">Dates</dt>
+                    <dd @class(['font-medium tabular-nums', 'text-muted-foreground' => $academicYear->starts_on === null && $academicYear->ends_on === null])>{{ $dateRange($academicYear->starts_on, $academicYear->ends_on) }}</dd>
+                </div>
+                <div>
+                    <dt class="text-muted-foreground">{{ school_terms('period', 'Terms') }}</dt>
+                    <dd class="font-medium tabular-nums">{{ $topLevelPeriods->count() }}</dd>
+                </div>
+                <div>
+                    <dt class="text-muted-foreground">Teaching setup</dt>
+                    <dd><a href="{{ route('academic-years.instructional-model.edit', $academicYear) }}" class="font-medium underline-offset-4 hover:underline">Edit</a></dd>
+                </div>
+            </dl>
+
+            <div class="flex flex-wrap items-center gap-2">
+                @if ($canRollForwardSetup)
+                    <april:button type="button" variant="ghost" wire:click="openSetupRolloverDialog" wire:loading.attr="disabled">
+                        <x-lucide-copy-plus class="mr-2 size-4" />
+                        Copy setup from {{ $previousAcademicYear->name }}
+                    </april:button>
+                @endif
                 @if ($isDraft && $canEditCalendar)
                     <april:button-link href="{{ route('academic-years.edit', $academicYear) }}" variant="outline">Edit draft</april:button-link>
-                    <button type="button" wire:click="publishCalendar" wire:loading.attr="disabled" class="inline-flex h-10 items-center justify-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50">
+                    <button type="button" wire:click="publishCalendar" wire:loading.attr="disabled" @class([
+                        'inline-flex h-10 select-none items-center justify-center rounded-md px-4 text-sm font-medium disabled:opacity-50',
+                        'border border-input bg-background hover:bg-accent' => $canContinueSetup,
+                        'bg-primary text-primary-foreground hover:bg-primary/90' => !$canContinueSetup,
+                    ])>
                         <span wire:loading.remove wire:target="publishCalendar">Publish calendar</span>
                         <span wire:loading wire:target="publishCalendar">Publishing…</span>
                     </button>
                 @endif
-                <x-academic-period-status-control :period="$academicYear" route-prefix="academic-years" />
-            </div>
-            <x-field-error name="calendar" class="mt-3" />
-
-            @if ($canContinueSetup)
-                <div class="mt-6 flex flex-col gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                        <p class="text-sm font-semibold">Continue setup</p>
-                        <p class="mt-1 text-sm text-muted-foreground">Next: {{ $nextSetupStep->label() }}. {{ $nextSetupStep->description() }}</p>
-                    </div>
-                    <april:button-link href="{{ route('academic-years.setup', [$academicYear, $nextSetupStep->value]) }}" class="shrink-0">
-                        Continue to {{ strtolower($nextSetupStep->label()) }}
-                    </april:button-link>
-                </div>
-            @endif
-        </slot:content>
-    </april:card>
-
-    @if (current_academic_year_id() === $academicYear->id && auth()->user()->can('set academic period'))
-        <april:card>
-            <slot:title>Working {{ strtolower(school_term('period', 'academic period')) }}</slot:title>
-            <slot:content>@livewire('set-academic-period')</slot:content>
-        </april:card>
-    @endif
-
-    <section class="rounded-xl border bg-muted/30 p-5 md:p-6" aria-labelledby="academic-year-flow-heading">
-        <div class="flex items-start gap-3">
-            <span class="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary-foreground">
-                <x-lucide-route class="size-5" />
-            </span>
-            <div>
-                <div class="flex items-center gap-2">
-                    <h2 id="academic-year-flow-heading" class="text-lg font-semibold">How a school year moves</h2>
-                    <x-help-tooltip label="School year lifecycle help">Build the year while it is a draft, schedule it when the dates are agreed, open it for daily work, then close it when the year is complete. Closing protects the year’s history.</x-help-tooltip>
-                </div>
-                <p class="mt-1 text-sm text-muted-foreground">The status tells you what can still be changed and whether staff can record new work.</p>
+                <x-academic-period-status-control :period="$academicYear" route-prefix="academic-years" :show-status="false" />
             </div>
         </div>
+        <x-field-error name="calendar" />
+        <x-field-error name="rollover" />
 
-        <div class="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-            @foreach ($lifecycleSteps as $step)
-                @php($isCurrentStep = $academicYear->status === $step['status'])
-                <div class="rounded-lg border p-4 {{ $isCurrentStep ? 'border-primary bg-primary/5' : 'bg-background' }}">
-                    <div class="flex items-center justify-between gap-2">
-                        <span class="text-sm font-semibold">{{ $step['title'] }}</span>
-                        @if ($isCurrentStep)
-                            <april:badge variant="default">Now</april:badge>
-                        @endif
-                    </div>
-                    <p class="mt-2 text-xs leading-5 text-muted-foreground">{{ $step['description'] }}</p>
-                </div>
-            @endforeach
-        </div>
-
-        @if ($canRollForwardSetup)
-            <div class="mt-5 flex flex-col justify-between gap-4 rounded-lg border bg-background p-4 sm:flex-row sm:items-center">
-                <div>
-                    <p class="font-medium">Starting this {{ strtolower(school_term('academic_year', 'school year')) }} from {{ $previousAcademicYear->name }}?</p>
-                    <p class="mt-1 text-sm text-muted-foreground">Review the teaching approach and reporting periods that can be created from the previous {{ strtolower(school_term('academic_year', 'school year')) }}.</p>
-                </div>
-                <april:button type="button" variant="outline" wire:click="openSetupRolloverDialog" wire:loading.attr="disabled" class="shrink-0">
-                    <x-lucide-copy-plus class="mr-2 size-4" />
-                    Copy setup from previous {{ strtolower(school_term('academic_year', 'school year')) }}
-                </april:button>
+        @if ($canContinueSetup)
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <p class="text-sm"><span class="text-muted-foreground">Continue setup · Next:</span> <span class="font-medium">{{ $nextSetupStep->label() }}</span></p>
+                <april:button-link href="{{ route('academic-years.setup', [$academicYear, $nextSetupStep->value]) }}">
+                    Continue to {{ strtolower($nextSetupStep->label()) }}
+                    <x-lucide-arrow-right class="ml-1.5 size-4" />
+                </april:button-link>
             </div>
         @endif
-        <x-field-error name="rollover" class="mt-3" />
     </section>
 
-    <april:card>
-        <slot:title class="flex flex-wrap items-center justify-between gap-3">
-            <span>Reporting timeline</span>
+    <section class="space-y-2" aria-labelledby="reporting-periods-heading">
+        <div class="flex min-h-10 flex-wrap items-center justify-between gap-2">
+            <h2 id="reporting-periods-heading" class="font-semibold">{{ school_terms('period', 'Reporting periods') }}</h2>
             @if ($canCreatePeriods)
-                <april:button-link href="{{ route('academic-periods.create') }}" variant="outline" size="sm">Add period</april:button-link>
+                <april:button-link href="{{ route('academic-periods.create') }}" variant="outline" size="sm">
+                    <x-lucide-plus class="mr-1.5 size-4" />
+                    Add {{ strtolower(school_term('period', 'period')) }}
+                </april:button-link>
             @endif
-        </slot:title>
-        <slot:description>Reporting boundaries drive gradebooks, results, timetables, and reports.</slot:description>
-        <slot:content>
-            <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-                @forelse ($topLevelPeriods as $period)
-                    <article class="rounded-lg border p-4">
-                        <div class="flex items-start justify-between gap-3"><h3 class="font-semibold">{{ $period->displayName }}</h3><span class="rounded-md bg-muted px-2 py-1 text-xs font-medium">{{ $period->typeLabel }}</span></div>
-                        <p class="mt-3 text-sm text-muted-foreground">{{ $period->starts_on?->format('M j, Y') ?? 'No start date' }} – {{ $period->ends_on?->format('M j, Y') ?? 'No end date' }}</p>
-                        <p class="mt-1 text-xs text-muted-foreground">{{ $period->lengthInDays() ? $period->lengthInDays().' calendar days' : 'Dates not set' }}</p>
-                        <div class="mt-4 flex flex-wrap items-center gap-3">
-                            @if (auth()->user()->can('update', $period))
-                                <april:button-link href="{{ route('academic-periods.edit', $period) }}" variant="outline" size="sm">Edit dates</april:button-link>
-                            @endif
-                            <x-academic-period-status-control :period="$period" route-prefix="academic-periods" />
-                        </div>
-                    </article>
-                @empty
-                    <p class="text-sm text-muted-foreground">No reporting periods have been configured.</p>
-                @endforelse
-            </div>
-        </slot:content>
-    </april:card>
+        </div>
 
-    <april:card>
-        <slot:title class="flex flex-wrap items-center justify-between gap-3">
-            <span>Exams in this calendar</span>
+        @if ($topLevelPeriods->isEmpty())
+            <p class="border-y py-4 text-sm text-muted-foreground">No {{ strtolower(school_terms('period', 'periods')) }} yet.</p>
+        @else
+            <ul class="divide-y border-y">
+                @foreach ($topLevelPeriods as $period)
+                    @php
+                        $canUpdatePeriod = auth()->user()->can('update', $period);
+                        $canClosePeriod = $period->status === \App\Enums\AcademicPeriodStatus::Open && auth()->user()->can('close', $period);
+                        $needsInlineControl = in_array($period->status, [\App\Enums\AcademicPeriodStatus::Closing, \App\Enums\AcademicPeriodStatus::Closed], true);
+                    @endphp
+                    <li wire:key="period-row-{{ $period->id }}" class="grid min-h-12 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1 py-2 sm:grid-cols-[minmax(0,1fr)_7rem_minmax(0,16rem)_auto_2.75rem]">
+                        <span class="min-w-0 truncate font-medium">{{ $period->displayName }}</span>
+                        <span class="hidden text-sm text-muted-foreground sm:block">{{ $period->typeLabel }}</span>
+                        <span @class(['col-start-1 row-start-2 text-sm tabular-nums sm:col-start-auto sm:row-start-auto', 'text-muted-foreground' => $period->starts_on === null && $period->ends_on === null])>{{ $dateRange($period->starts_on, $period->ends_on) }}</span>
+                        <span class="hidden sm:block">
+                            @if ($needsInlineControl)
+                                <x-academic-period-status-control :period="$period" route-prefix="academic-periods" />
+                            @elseif ($period->status !== $academicYear->status)
+                                <span class="text-sm text-muted-foreground">{{ $period->status->label() }}</span>
+                            @endif
+                        </span>
+                        <span class="col-start-2 row-span-2 row-start-1 flex justify-end sm:col-start-auto sm:row-span-1 sm:row-start-auto">
+                            @if ($canUpdatePeriod || $canClosePeriod)
+                                <april:dropdown-menu>
+                                    <slot:trigger>
+                                        <april:button type="button" variant="ghost" size="icon" class="size-11 select-none" aria-label="Actions for {{ $period->displayName }}">
+                                            <x-lucide-ellipsis class="size-4" />
+                                        </april:button>
+                                    </slot:trigger>
+                                    <slot:content>
+                                        @if ($canUpdatePeriod)
+                                            <april:dropdown-menu-item x-on:click="window.location.href = '{{ route('academic-periods.edit', $period) }}'">
+                                                <x-lucide-calendar-cog class="mr-2 size-4" />Edit dates
+                                            </april:dropdown-menu-item>
+                                        @endif
+                                        @if ($canClosePeriod)
+                                            <form action="{{ route('academic-periods.begin-closing', $period) }}" method="POST">
+                                                @csrf
+                                                <april:dropdown-menu-item type="submit">
+                                                    <x-lucide-lock class="mr-2 size-4" />Start closing
+                                                </april:dropdown-menu-item>
+                                            </form>
+                                        @endif
+                                    </slot:content>
+                                </april:dropdown-menu>
+                            @endif
+                        </span>
+                        @if ($needsInlineControl)
+                            <span class="col-span-2 sm:hidden">
+                                <x-academic-period-status-control :period="$period" route-prefix="academic-periods" />
+                            </span>
+                        @elseif ($period->status !== $academicYear->status)
+                            <span class="col-span-2 text-sm text-muted-foreground sm:hidden">{{ $period->status->label() }}</span>
+                        @endif
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+    </section>
+
+    <section class="space-y-2" aria-labelledby="calendar-exams-heading">
+        <div class="flex min-h-10 flex-wrap items-center justify-between gap-2">
+            <h2 id="calendar-exams-heading" class="font-semibold">Exams</h2>
             @if ($canCreateExams)
                 <april:button-link href="{{ route('exams.create', ['academic_year_id' => $academicYear->id]) }}" variant="outline" size="sm">
-                    <x-lucide-plus class="mr-2 size-4" />
+                    <x-lucide-plus class="mr-1.5 size-4" />
                     Add exam
                 </april:button-link>
             @endif
-        </slot:title>
-        <slot:description>Exams appear here once they are assigned to one of the reporting periods.</slot:description>
-        <slot:content>
-            <div wire:key="{{ $id }}-{{ $this->tableRevision }}">
-                <april:data-table id="{{ $id }}" :data="$data" :columns="$columns" :pagination="$pagination" :per-page-options="$perPageOptions" row-key="{{ $rowKey }}" :searchable="$searchable" @query-change="$wire.updateTable($event.detail)">
-                    <slot:empty>
-                        <div class="space-y-1"><p class="font-medium text-foreground">No exams in this calendar</p><p>Exams will appear here once they are created.</p></div>
-                    </slot:empty>
-                    <slot:actions>
-                        <x-table-actions :items="array_filter([
-                            $canEditExams ? ['label' => 'Edit exam', 'icon' => 'settings', 'url' => 'edit_url'] : null,
-                            ['label' => 'View exam', 'icon' => 'eye', 'url' => 'view_url'],
-                            $canDeleteExams ? ['label' => 'Delete exam', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete :name?', 'names' => 'row.name'] : null,
-                        ])" />
-                    </slot:actions>
-                </april:data-table>
-            </div>
-        </slot:content>
-    </april:card>
+        </div>
+        <div wire:key="{{ $id }}-{{ $this->tableRevision }}">
+            <april:data-table id="{{ $id }}" :data="$data" :columns="$columns" :pagination="$pagination" :per-page-options="$perPageOptions" row-key="{{ $rowKey }}" :searchable="$searchable" @query-change="$wire.updateTable($event.detail)">
+                <slot:empty>
+                    <p>No exams yet.</p>
+                </slot:empty>
+                <slot:actions>
+                    <x-table-actions :items="array_filter([
+                        $canEditExams ? ['label' => 'Edit exam', 'icon' => 'settings', 'url' => 'edit_url'] : null,
+                        ['label' => 'View exam', 'icon' => 'eye', 'url' => 'view_url'],
+                        $canDeleteExams ? ['label' => 'Delete exam', 'icon' => 'trash-2', 'url' => 'delete_url', 'type' => 'delete', 'confirm' => 'Delete :name?', 'names' => 'row.name'] : null,
+                    ])" />
+                </slot:actions>
+            </april:data-table>
+        </div>
+    </section>
 
     <april:dialog dismissable x-effect="open = $wire.showSetupRolloverDialog">
         <slot:content class="sm:max-w-2xl">
@@ -156,9 +186,9 @@
             </april:dialog-header>
 
             @if ($setupRolloverPreview !== null)
-                <div class="space-y-3">
+                <div class="divide-y border-y">
                     @foreach ($setupRolloverPreview['items'] as $item)
-                        <div wire:key="rollover-item-{{ $item['key'] }}" class="rounded-lg border p-4">
+                        <div wire:key="rollover-item-{{ $item['key'] }}" class="py-3">
                             <div class="flex items-start justify-between gap-4">
                                 <div>
                                     <h3 class="font-medium">{{ $item['title'] }}</h3>
@@ -179,8 +209,8 @@
                     @endforeach
                 </div>
 
-                <div class="mt-4 rounded-lg border border-amber-500/30 bg-amber-500/10 p-4 text-sm">
-                    <p class="font-semibold">These records are never copied:</p>
+                <div class="mt-4 text-sm">
+                    <p class="font-medium">Never copied</p>
                     <p class="mt-1 text-muted-foreground">Learners, placements, teacher assignments, {{ strtolower(school_terms('class_level', 'classes')) }}, subjects, exams, timetables, attendance and results. Set those up for this year when you are ready.</p>
                 </div>
             @endif

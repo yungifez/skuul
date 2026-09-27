@@ -166,27 +166,22 @@ class ShowAcademicYear extends DataTableComponent
                 [
                     'status' => AcademicPeriodStatus::Draft,
                     'title' => 'Draft',
-                    'description' => 'Build dates, periods and setup. Daily records are not ready yet.',
                 ],
                 [
                     'status' => AcademicPeriodStatus::Scheduled,
                     'title' => 'Scheduled',
-                    'description' => 'The calendar is agreed and starts on a future date.',
                 ],
                 [
                     'status' => AcademicPeriodStatus::Open,
                     'title' => 'Open',
-                    'description' => 'Staff can record the new work that belongs to this year.',
                 ],
                 [
                     'status' => AcademicPeriodStatus::Closing,
                     'title' => 'Closing',
-                    'description' => 'Finish existing work and resolve the closing checks.',
                 ],
                 [
                     'status' => AcademicPeriodStatus::Closed,
                     'title' => 'Closed',
-                    'description' => 'The year is protected as history. Reopen only with a reason.',
                 ],
             ],
             'topLevelPeriods' => $topLevelPeriods,
