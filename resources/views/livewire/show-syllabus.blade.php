@@ -98,7 +98,7 @@
                     <h3 class="mb-2 text-sm font-semibold">
                         {{ $week === 'Unscheduled' ? 'Unscheduled' : 'Week '.$week }}
                         @if ($isCurrentWeek)
-                            <span class="ml-1 text-xs font-medium text-primary">This week</span>
+                            <span class="ml-1 text-xs font-medium text-primary-foreground">This week</span>
                         @endif
                     </h3>
                     <ul class="space-y-3">

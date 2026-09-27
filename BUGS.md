@@ -1,5 +1,23 @@
 # Known Bugs
 
+## A five-digit year crashed any form with a date
+
+- Status: Fixed
+- Area: Every form with a date field
+- Observed: PHP reads `20266-09-02` as a real date (2006 at 20:26), so the `date` rule passed it. MySQL then refused the value and the request failed with a 500.
+- Impact: One extra key press in a date box broke the save with no message. This is easy on a phone keyboard or a pasted value.
+- Reproduction: Type `20266-09-02` as the start of a calendar day, or as the due date of an assessment, and save.
+- Resolution: The `date` rule now also requires a year from 1000 to 9999, the range MySQL holds. The check reads the year as typed, so it applies to every form that uses the rule. `DateYearValidationTest` covers ordinary, day-first, written and broken dates.
+
+## An assessment's maximum could drop below a mark already given
+
+- Status: Fixed
+- Area: Gradebook setup
+- Observed: Changing an assessment from 20 to 10 points was accepted after a learner had 18. Their result then went above 100%. Setup was also a set of plain forms that reloaded the page on each change.
+- Impact: Results were wrong without any warning, and could be sent for approval in that state.
+- Reproduction: Give a learner 18 out of 20, then change the assessment's maximum to 10.
+- Resolution: The Livewire `GradebookSetup` refuses a maximum below the highest mark and names that mark. It also keeps an assessment's kind fixed, refuses a category or scale from elsewhere, and refuses a category or template name already in use. The mark sheet follows new and removed assessments at once. The setup POST routes and requests are gone. `GradebookSetupTest` covers these paths.
+
 ## Two teachers could overwrite each other's marks, and a result could be sent twice
 
 - Status: Fixed

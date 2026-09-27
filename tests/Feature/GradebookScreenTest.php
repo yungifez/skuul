@@ -7,6 +7,7 @@ use App\Enums\GradeAggregation;
 use App\Enums\GradeItemType;
 use App\Enums\ResultApprovalStatus;
 use App\Livewire\GradebookMarkSheet;
+use App\Livewire\GradebookSetup;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
@@ -35,34 +36,35 @@ class GradebookScreenTest extends TestCase
         $this->authorized_user(['read gradebook', 'manage gradebook', 'update subject']);
         [$courseOffering] = $this->offeringAndEnrollment();
 
-        $this->post(route('course-offerings.gradebook.categories.store', $courseOffering), [
-            'name' => 'Exams',
-            'aggregation' => GradeAggregation::WeightedMean->value,
-            'weight' => 2,
-        ])->assertSessionHas('success');
+        $setup = Livewire::test(GradebookSetup::class, ['courseOffering' => $courseOffering])
+            ->set('isAddingCategory', true)
+            ->set('categoryName', 'Exams')
+            ->set('categoryAggregation', GradeAggregation::WeightedMean->value)
+            ->set('categoryWeight', '2')
+            ->call('addCategory')
+            ->assertHasNoErrors();
 
         $category = GradeCategory::query()->whereBelongsTo($courseOffering)->sole();
 
-        $this->post(route('course-offerings.gradebook.items.store', $courseOffering), [
-            'name' => 'Mathematics paper',
-            'type' => GradeItemType::Numeric->value,
-            'max_points' => 60,
-            'grade_category_id' => $category->id,
-            'weight' => 1,
-        ])->assertSessionHas('success');
+        $setup->set('itemName', 'Mathematics paper')
+            ->set('itemType', GradeItemType::Numeric->value)
+            ->set('itemMaxPoints', '60')
+            ->set('itemCategoryId', (string) $category->id)
+            ->call('saveItem')
+            ->assertHasNoErrors();
 
         $item = GradeItem::query()->whereBelongsTo($courseOffering)->sole();
         $this->assertNull($item->exam_slot_id);
         $this->assertSame(60.0, $item->max_points);
         $this->assertSame($category->id, $item->grade_category_id);
 
-        $this->put(route('course-offerings.gradebook.items.update', [$courseOffering, $item]), [
-            'name' => 'Mathematics paper revised',
-            'grade_category_id' => null,
-            'max_points' => 60,
-            'weight' => 3,
-            'due_on' => '2026-09-02',
-        ])->assertSessionHas('success');
+        $setup->call('editItem', $item->id)
+            ->set('itemName', 'Mathematics paper revised')
+            ->set('itemCategoryId', '')
+            ->set('itemWeight', '3')
+            ->set('itemDueOn', '2026-09-02')
+            ->call('saveItem')
+            ->assertHasNoErrors();
 
         $this->assertSame('Mathematics paper revised', $item->fresh()->name);
         $this->assertSame(3.0, $item->fresh()->weight);
@@ -76,17 +78,16 @@ class GradebookScreenTest extends TestCase
 
         $this->get(route('course-offerings.gradebook.show', $courseOffering))
             ->assertOk()
-            ->assertSee('Assessment setup')
-            ->assertSee('Add category')
+            ->assertSeeLivewire(GradebookSetup::class)
+            ->assertSee('Add assessment')
             ->assertSee('Editing open')
             ->assertSeeLivewire(GradebookMarkSheet::class);
 
-        $this->post(route('course-offerings.gradebook.items.store', $courseOffering), [
-            'name' => 'Term project',
-            'type' => GradeItemType::Numeric->value,
-            'max_points' => 20,
-            'weight' => 1,
-        ])->assertSessionHas('success');
+        $setup = Livewire::test(GradebookSetup::class, ['courseOffering' => $courseOffering])
+            ->set('itemName', 'Term project')
+            ->set('itemMaxPoints', '20')
+            ->call('saveItem')
+            ->assertHasNoErrors();
 
         $item = GradeItem::query()->whereBelongsTo($courseOffering)->firstOrFail();
 
@@ -97,11 +98,11 @@ class GradebookScreenTest extends TestCase
 
         $this->assertSame(16.0, GradeEntry::query()->firstOrFail()->points);
 
-        $this->post(route('course-offerings.gradebook.items.store', $courseOffering), [
-            'name' => 'Learning reflection',
-            'type' => GradeItemType::Text->value,
-            'weight' => 1,
-        ])->assertSessionHas('success');
+        $setup->call('startAddingItem')
+            ->set('itemName', 'Learning reflection')
+            ->set('itemType', GradeItemType::Text->value)
+            ->call('saveItem')
+            ->assertHasNoErrors();
 
         $commentItem = GradeItem::query()->whereBelongsTo($courseOffering)->latest('id')->firstOrFail();
 
@@ -137,9 +138,8 @@ class GradebookScreenTest extends TestCase
             ->assertSee('Read-only')
             ->assertSee('No assessments yet')
             ->assertSee('assessment setup and mark entry are locked.')
-            ->assertDontSee('Add category')
-            ->assertDontSee('Add an assessment')
-            ->assertDontSee('Open Assessment setup above');
+            ->assertDontSeeLivewire(GradebookSetup::class)
+            ->assertDontSee('Add an assessment');
     }
 
     public function test_a_closing_gradebook_allows_corrections_but_not_new_assessments(): void
@@ -159,7 +159,7 @@ class GradebookScreenTest extends TestCase
             ->assertOk()
             ->assertSee('Corrections open')
             ->assertSee('Save marks')
-            ->assertDontSee('Assessment setup')
+            ->assertDontSeeLivewire(GradebookSetup::class)
             ->assertDontSee('Add an assessment')
             ->assertDontSee('This gradebook is read-only.');
     }
@@ -176,22 +176,22 @@ class GradebookScreenTest extends TestCase
             'max_points' => 20,
         ]);
 
-        $this->post(route('course-offerings.gradebook.templates.store', $source), [
-            'template_name' => 'Common term assessment',
-            'description' => 'Use for all term-based courses.',
-        ])->assertSessionHasNoErrors()->assertSessionHas('success');
+        Livewire::test(GradebookSetup::class, ['courseOffering' => $source])
+            ->set('isSavingTemplate', true)
+            ->set('templateName', 'Common term assessment')
+            ->set('templateDescription', 'Use for all term-based courses.')
+            ->call('saveTemplate')
+            ->assertHasNoErrors();
 
         $template = AssessmentTemplate::query()->sole();
         [$target] = $this->offeringAndEnrollment();
 
-        $this->get(route('course-offerings.gradebook.show', $target))
-            ->assertOk()
+        Livewire::test(GradebookSetup::class, ['courseOffering' => $target])
             ->assertSee('Start from a school template')
-            ->assertSee('Common term assessment');
-
-        $this->post(route('course-offerings.gradebook.templates.apply', $target), [
-            'assessment_template_id' => $template->id,
-        ])->assertSessionHasNoErrors()->assertSessionHas('success');
+            ->assertSee('Common term assessment')
+            ->set('templateId', (string) $template->id)
+            ->call('applyTemplate')
+            ->assertHasNoErrors();
 
         $this->assertSame('Classwork', $target->gradeItems()->sole()->name);
     }

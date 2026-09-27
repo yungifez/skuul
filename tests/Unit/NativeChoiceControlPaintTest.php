@@ -15,7 +15,7 @@ class NativeChoiceControlPaintTest extends TestCase
     public function test_the_application_repaints_the_controls_the_browser_draws(): void
     {
         $css = $this->css();
-        $selector = 'input[type="checkbox"],'."\n".'input[type="radio"] {';
+        $selector = 'input[type="checkbox"]:not([role="switch"]),'."\n".'input[type="radio"] {';
 
         $this->assertStringContainsString($selector, $css, 'The repaint rule is missing.');
 
@@ -32,7 +32,11 @@ class NativeChoiceControlPaintTest extends TestCase
         // A rule inside @layer loses to the Tailwind utility of the same name,
         // whatever its specificity.
         $css = $this->css();
-        $before = substr($css, 0, strpos($css, 'input[type="checkbox"],'));
+        $position = strpos($css, 'input[type="checkbox"]:not([role="switch"]),');
+
+        $this->assertNotFalse($position, 'The repaint rule is missing.');
+
+        $before = substr($css, 0, $position);
 
         $this->assertSame(
             substr_count($before, '{'),

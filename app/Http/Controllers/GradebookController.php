@@ -2,33 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Gradebook\ApplyAssessmentTemplate;
-use App\Actions\Gradebook\CreateAssessmentTemplateFromGradebook;
-use App\Enums\GradeItemType;
-use App\Exceptions\ClosedPeriodException;
-use App\Exceptions\InvalidValueException;
-use App\Http\Requests\ApplyAssessmentTemplateRequest;
-use App\Http\Requests\StoreAssessmentTemplateRequest;
-use App\Http\Requests\StoreGradebookCategoryRequest;
-use App\Http\Requests\StoreGradebookItemRequest;
-use App\Http\Requests\UpdateGradebookItemRequest;
-use App\Models\AssessmentTemplate;
 use App\Models\CourseOffering;
-use App\Models\GradeCategory;
-use App\Models\GradeItem;
-use App\Models\GradingScale;
-use App\Models\ResultSnapshot;
 use App\Services\Gradebook\CourseOfferingRoster;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
 class GradebookController extends Controller
 {
-    public function __construct(
-        private CourseOfferingRoster $roster,
-        private ApplyAssessmentTemplate $applyAssessmentTemplate,
-        private CreateAssessmentTemplateFromGradebook $createAssessmentTemplate,
-    ) {}
+    public function __construct(private CourseOfferingRoster $roster) {}
 
     /**
      * Show gradebooks for the selected year and period.
@@ -52,182 +32,11 @@ class GradebookController extends Controller
             'academicPeriod:id,name,label,status',
             'academicYear:id,start_year,stop_year',
             'subject:id,name,short_name',
-            'gradeCategories:id,course_offering_id,name,aggregation,weight,position',
         ]);
-        $students = $this->roster->students($courseOffering);
-        $studentIds = $students->pluck('id')->all();
-        $gradeItems = $courseOffering->gradeItems()
-            ->with([
-                'category:id,name',
-                'gradingScale:id,name',
-            ])
-            ->orderBy('position')
-            ->orderBy('id')
-            ->get();
-        $publishedResults = ResultSnapshot::query()
-            ->whereBelongsTo($courseOffering)
-            ->whereIn('student_record_id', $studentIds)
-            ->approved()
-            ->latestRevision()
-            ->get()
-            ->unique('student_record_id')
-            ->keyBy('student_record_id');
 
-        $gradingScales = GradingScale::query()
-            ->inSchool()
-            ->where('is_active', true)
-            ->with('options')
-            ->orderBy('name')
-            ->get();
-        $assessmentTemplates = AssessmentTemplate::query()
-            ->inSchool()
-            ->where('is_active', true)
-            ->withCount(['categories', 'items'])
-            ->orderBy('name')
-            ->get();
-        $gradeCategories = $courseOffering->gradeCategories;
-
-        return view('pages.course-offering.gradebook', compact('assessmentTemplates', 'courseOffering', 'gradeCategories', 'gradeItems', 'gradingScales', 'publishedResults', 'students'));
-    }
-
-    /**
-     * Add an assessment item to the offering's gradebook.
-     */
-    public function storeItem(StoreGradebookItemRequest $request, CourseOffering $courseOffering): RedirectResponse
-    {
-        $this->authorize('manageGradebook', $courseOffering);
-
-        try {
-            $this->ensureGradebookAcceptsNewWork($courseOffering);
-            $attributes = $request->validated();
-
-            if ($attributes['type'] === GradeItemType::Scale->value) {
-                $scale = GradingScale::query()
-                    ->inSchool()
-                    ->findOrFail($attributes['grading_scale_id']);
-                $maximumPoints = $scale->options()->max('points');
-                $attributes['max_points'] = $maximumPoints === null ? null : (float) $maximumPoints;
-            }
-
-            if ($attributes['type'] === GradeItemType::Text->value) {
-                $attributes['max_points'] = null;
-                $attributes['grading_scale_id'] = null;
-            }
-
-            if ($attributes['type'] === GradeItemType::Numeric->value) {
-                $attributes['grading_scale_id'] = null;
-            }
-
-            GradeItem::create($attributes + [
-                'school_id' => $courseOffering->school_id,
-                'course_offering_id' => $courseOffering->id,
-                'created_by' => $request->user()->id,
-            ]);
-        } catch (ClosedPeriodException $exception) {
-            return back()->withErrors(['gradebook' => $exception->getMessage()]);
-        }
-
-        return back()->with('success', 'Assessment added to the gradebook.');
-    }
-
-    /**
-     * Add a category that groups assessments in this offering.
-     */
-    public function storeCategory(StoreGradebookCategoryRequest $request, CourseOffering $courseOffering): RedirectResponse
-    {
-        try {
-            $this->ensureGradebookAcceptsNewWork($courseOffering);
-            GradeCategory::create($request->validated() + [
-                'school_id' => $courseOffering->school_id,
-                'course_offering_id' => $courseOffering->id,
-                'position' => (int) $courseOffering->gradeCategories()->max('position') + 1,
-            ]);
-        } catch (ClosedPeriodException $exception) {
-            return back()->withErrors(['gradebook' => $exception->getMessage()]);
-        }
-
-        return back()->with('success', 'Assessment category added.');
-    }
-
-    /**
-     * Update the structure of one assessment without changing its marks.
-     */
-    public function updateItem(UpdateGradebookItemRequest $request, CourseOffering $courseOffering, GradeItem $gradeItem): RedirectResponse
-    {
-        $this->authorize('manageGradebook', $courseOffering);
-        $item = $courseOffering->gradeItems()->findOrFail($gradeItem->id);
-
-        try {
-            $this->ensureGradebookAcceptsNewWork($courseOffering);
-            $item->update($request->validated());
-        } catch (ClosedPeriodException $exception) {
-            return back()->withErrors(['gradebook' => $exception->getMessage()]);
-        }
-
-        return back()->with('success', 'Assessment updated.');
-    }
-
-    /**
-     * Remove an assessment that has not received learner marks.
-     */
-    public function destroyItem(CourseOffering $courseOffering, GradeItem $gradeItem): RedirectResponse
-    {
-        $this->authorize('manageGradebook', $courseOffering);
-        $item = $courseOffering->gradeItems()->findOrFail($gradeItem->id);
-
-        try {
-            $this->ensureGradebookAcceptsNewWork($courseOffering);
-
-            if ($item->entries()->exists()) {
-                return back()->withErrors(['gradebook' => 'An assessment with learner marks cannot be deleted.']);
-            }
-
-            $item->delete();
-        } catch (ClosedPeriodException $exception) {
-            return back()->withErrors(['gradebook' => $exception->getMessage()]);
-        }
-
-        return back()->with('success', 'Assessment deleted.');
-    }
-
-    /** Save this offering's configured structure as a reusable school template. */
-    public function storeAssessmentTemplate(StoreAssessmentTemplateRequest $request, CourseOffering $courseOffering): RedirectResponse
-    {
-        try {
-            $this->createAssessmentTemplate->create($courseOffering, $request->validated('template_name'), $request->validated('description'), $request->user());
-        } catch (InvalidValueException $exception) {
-            return back()->withErrors(['gradebook' => $exception->getMessage()]);
-        }
-
-        return back()->with('success', 'Assessment template saved for your school.');
-    }
-
-    /** Apply a school template before this offering receives working marks. */
-    public function applyAssessmentTemplate(ApplyAssessmentTemplateRequest $request, CourseOffering $courseOffering): RedirectResponse
-    {
-        $template = AssessmentTemplate::query()->inSchool()->findOrFail($request->validated('assessment_template_id'));
-
-        try {
-            $this->applyAssessmentTemplate->apply($template, $courseOffering, $request->user());
-        } catch (ClosedPeriodException|InvalidValueException $exception) {
-            return back()->withErrors(['gradebook' => $exception->getMessage()]);
-        }
-
-        return back()->with('success', 'Assessment template applied.');
-    }
-
-    /**
-     * Ensure gradebook structure can still be changed for this period.
-     *
-     * @throws ClosedPeriodException
-     */
-    private function ensureGradebookAcceptsNewWork(CourseOffering $courseOffering): void
-    {
-        $courseOffering->loadMissing(['academicPeriod', 'academicYear']);
-        $period = $courseOffering->academicPeriod ?? $courseOffering->academicYear;
-
-        if ($period !== null && !$period->status->acceptsNewWork()) {
-            throw new ClosedPeriodException('You cannot change gradebook structure while the academic period is closing or closed.');
-        }
+        return view('pages.course-offering.gradebook', [
+            'courseOffering' => $courseOffering,
+            'learnerCount' => $this->roster->students($courseOffering)->count(),
+        ]);
     }
 }

@@ -20,16 +20,20 @@ use App\Services\Curriculum\InstructionalModelResolver;
 use App\Services\Feature\FeatureManager;
 use App\Services\School\DomainContext;
 use App\Services\School\SchoolContext;
+use DateTimeInterface;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
 use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Encryption\Encrypter;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Validation\Validator as BaseValidator;
 use Laravel\Fortify\Fortify;
 use Laravel\Jetstream\Jetstream;
 use Livewire\Component;
@@ -114,6 +118,43 @@ class AppServiceProvider extends ServiceProvider
         Jetstream::deleteUsersUsing(DeleteUser::class);
 
         $this->keepLivewireInsideItsSchool();
+        $this->keepDatesInsideTheDatabase();
+    }
+
+    /**
+     * Refuse a date whose year the database cannot hold.
+     *
+     * PHP reads a slip such as 20266-09-02 as a real date, so the `date` rule
+     * passes it and MySQL then fails the whole request. Every form gets the
+     * check through the one rule it already uses.
+     */
+    private function keepDatesInsideTheDatabase(): void
+    {
+        Validator::resolver(fn (Translator $translator, array $data, array $rules, array $messages, array $attributes): BaseValidator => new class($translator, $data, $rules, $messages, $attributes) extends BaseValidator
+        {
+            /**
+             * @param  string  $attribute
+             * @param  mixed  $value
+             */
+            public function validateDate($attribute, $value): bool
+            {
+                if (!parent::validateDate($attribute, $value)) {
+                    return false;
+                }
+
+                if ($value instanceof DateTimeInterface) {
+                    $year = (int) $value->format('Y');
+                } elseif (preg_match('/^\s*(\d+)-\d{1,2}-\d{1,2}(?!\d)/', (string) $value, $matches) === 1) {
+                    // date_parse() reads 20266-09-02 as 2006 at 20:26, so the
+                    // year the person typed is read directly.
+                    $year = (int) $matches[1];
+                } else {
+                    $year = date_parse((string) $value)['year'];
+                }
+
+                return is_int($year) && $year >= 1000 && $year <= 9999;
+            }
+        });
     }
 
     /**

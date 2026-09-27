@@ -19,6 +19,7 @@ use App\Enums\TeachingRole;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\GradebookDirectory as GradebookDirectoryComponent;
+use App\Livewire\GradebookSetup;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
@@ -112,14 +113,13 @@ class GradebookTest extends TestCase
         $courseOffering = $this->courseOffering();
         $courseOffering->academicPeriod()->update(['status' => AcademicPeriodStatus::Closed->value]);
 
-        $response = $this->post("dashboard/course-offerings/{$courseOffering->id}/gradebook/items", [
-            'name' => 'Late assessment',
-            'type' => GradeItemType::Numeric->value,
-            'max_points' => 20,
-            'weight' => 1,
-        ]);
+        $this->get(route('course-offerings.gradebook.show', $courseOffering))->assertOk()->assertDontSeeLivewire(GradebookSetup::class);
 
-        $response->assertRedirect()->assertSessionHasErrors('gradebook');
+        Livewire::test(GradebookSetup::class, ['courseOffering' => $courseOffering])
+            ->set('itemName', 'Late assessment')
+            ->set('itemMaxPoints', '20')
+            ->call('saveItem')
+            ->assertForbidden();
         $this->assertDatabaseMissing('grade_items', [
             'course_offering_id' => $courseOffering->id,
             'name' => 'Late assessment',

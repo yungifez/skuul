@@ -25,6 +25,7 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 use Illuminate\View\View;
 use Livewire\Attributes\Locked;
+use Livewire\Attributes\On;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
@@ -93,6 +94,23 @@ class GradebookMarkSheet extends Component
         }
 
         $this->resetValidation();
+        $this->readMarks();
+    }
+
+    /**
+     * Follow the setup when it adds or removes an assessment.
+     */
+    #[On('gradebook-changed')]
+    public function followSetup(): void
+    {
+        if ($this->selectedItem() !== null && $this->changedStudentIds() !== []) {
+            return;
+        }
+
+        if ($this->selectedItem() === null) {
+            $this->gradeItemId = (string) ($this->items()->first()->id ?? '');
+        }
+
         $this->readMarks();
     }
 

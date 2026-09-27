@@ -6,9 +6,9 @@ use App\Actions\Boarding\AssignBoardingPlace;
 use App\Actions\Boarding\StartBoardingRoll;
 use App\Enums\BoardingRollType;
 use App\Enums\Feature;
-use App\Enums\GradeItemType;
 use App\Livewire\CreateFeeInvoiceForm;
 use App\Livewire\GradebookMarkSheet;
+use App\Livewire\GradebookSetup;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
@@ -70,12 +70,10 @@ class ControlNameTest extends TestCase
         $this->authorized_user(['read gradebook', 'manage gradebook', 'publish result', 'approve result', 'update subject']);
         [$courseOffering, $enrollment] = $this->offeringAndEnrollment();
 
-        $this->post(route('course-offerings.gradebook.items.store', $courseOffering), [
-            'name' => 'Spelling test',
-            'type' => GradeItemType::Numeric->value,
-            'max_points' => 20,
-            'weight' => 1,
-        ])->assertSessionHas('success');
+        Livewire::test(GradebookSetup::class, ['courseOffering' => $courseOffering])
+            ->set('itemName', 'Spelling test')
+            ->set('itemMaxPoints', '20')
+            ->call('saveItem');
 
         Livewire::test(GradebookMarkSheet::class, ['courseOffering' => $courseOffering])
             ->set("marks.$enrollment->id.points", '16')

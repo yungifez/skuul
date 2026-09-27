@@ -42,7 +42,7 @@
                                     <span class="text-muted-foreground">{{ $topic->week ? 'Week '.$topic->week : 'Unscheduled' }} ·</span>
                                     <span class="font-medium">{{ $topic->title }}</span>
                                     @if ($state['currentWeek'] !== null && $topic->week === $state['currentWeek'])
-                                        <span class="text-xs font-medium text-primary">This week</span>
+                                        <span class="text-xs font-medium text-primary-foreground">This week</span>
                                     @endif
                                     @if ($topic->objectives)
                                         <span class="block text-muted-foreground">{{ $topic->objectives }}</span>
