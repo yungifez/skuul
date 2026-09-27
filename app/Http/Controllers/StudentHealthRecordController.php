@@ -2,12 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Wellbeing\RecordHealthInformation;
-use App\Http\Requests\UpdateStudentHealthRecordRequest;
 use App\Models\StudentHealthRecord;
 use App\Models\StudentRecord;
 use Illuminate\Contracts\View\View;
-use Illuminate\Http\RedirectResponse;
 
 /**
  * Keep the health facts the school needs in an emergency.
@@ -17,8 +14,6 @@ use Illuminate\Http\RedirectResponse;
  */
 class StudentHealthRecordController extends Controller
 {
-    public function __construct(private RecordHealthInformation $recordHealthInformation) {}
-
     /**
      * Show every learner, and whether the school holds their health facts.
      */
@@ -38,25 +33,8 @@ class StudentHealthRecordController extends Controller
 
         abort_unless($studentRecord->school_id === current_school_id(), 404);
 
-        $studentRecord->load(['user:id,name', 'healthRecord.updatedBy:id,name']);
+        $studentRecord->load('user:id,name');
 
-        return view('pages.health-record.edit', [
-            'enrollment' => $studentRecord,
-            'record' => $studentRecord->healthRecord,
-        ]);
-    }
-
-    /**
-     * Write the health record of one learner.
-     */
-    public function update(UpdateStudentHealthRecordRequest $request, StudentRecord $studentRecord): RedirectResponse
-    {
-        abort_unless($studentRecord->school_id === current_school_id(), 404);
-
-        $this->recordHealthInformation->record($studentRecord, $request->validated(), $request->user());
-
-        return redirect()
-            ->route('health-records.edit', $studentRecord)
-            ->with('success', 'The health record was saved.');
+        return view('pages.health-record.edit', ['enrollment' => $studentRecord]);
     }
 }

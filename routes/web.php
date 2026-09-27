@@ -255,7 +255,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
 
             Route::get('health-records', ['App\Http\Controllers\StudentHealthRecordController', 'index'])->name('health-records.index');
             Route::get('health-records/{studentRecord}', ['App\Http\Controllers\StudentHealthRecordController', 'edit'])->name('health-records.edit');
-            Route::put('health-records/{studentRecord}', ['App\Http\Controllers\StudentHealthRecordController', 'update'])->name('health-records.update');
         });
 
         // staff routes. Employment is not teaching, so these routes do not need

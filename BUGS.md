@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Two nurses saving one health record could silently replace an allergy
+
+- Status: Fixed
+- Area: Wellbeing, health records
+- Observed: The health form posted every field. A nurse who opened the record before a colleague saved it wrote the old wording back over the colleague's change. Two first saves at once could also both try to create the record. A field emptied with spaces was kept as blank text.
+- Impact: A first aider could act on an out-of-date allergy or medication.
+- Reproduction: Open one child's health record in two tabs. Change the allergy in the first tab and save. Change the blood group in the second tab and save. The allergy went back to the old text.
+- Resolution: The form is now the Livewire component HealthRecordForm. It sends only the fields the nurse changed, with the values as read. RecordHealthInformation locks the learner, refuses a field somebody else changed meanwhile, and shows its new wording under the field. A second save keeps the nurse's text by choice. Blank text is stored as empty. The PUT route and its request were removed.
+
 ## Opening notice delivery wrote a row, and a double tap could fail
 
 - Status: Fixed

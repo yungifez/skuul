@@ -8,9 +8,11 @@ use App\Enums\Feature;
 use App\Enums\SupportCategory;
 use App\Enums\SupportPlanStatus;
 use App\Livewire\CreateSupportPlan;
+use App\Livewire\HealthRecordForm;
 use App\Livewire\ShowSupportPlan;
 use App\Livewire\StudentHealthRecordDirectory as StudentHealthRecordDirectoryComponent;
 use App\Livewire\SupportPlanDirectory as SupportPlanDirectoryComponent;
+use App\Models\School;
 use App\Models\StudentHealthRecord;
 use App\Models\StudentRecord;
 use App\Models\SupportPlan;
@@ -331,21 +333,94 @@ class WellbeingScreenTest extends TestCase
         $this->authorized_user(['read health record', 'update health record']);
         $enrollment = $this->enrollment();
 
-        $this->put(route('health-records.update', $enrollment), [
-            'blood_group' => 'O+',
-            'allergies' => 'Peanuts. Carry the pen.',
-            'emergency_contact_name' => 'Ada Bell',
-            'emergency_contact_phone' => '08000000000',
-        ])->assertRedirect(route('health-records.edit', $enrollment));
+        $this->get(route('health-records.edit', $enrollment))->assertOk()->assertSeeLivewire(HealthRecordForm::class);
+
+        Livewire::test(HealthRecordForm::class, ['enrollment' => $enrollment])
+            ->set('values.blood_group', 'O+')
+            ->set('values.allergies', 'Peanuts. Carry the pen.')
+            ->set('values.emergency_contact_name', 'Ada Bell')
+            ->set('values.emergency_contact_phone', '08000000000')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertDispatched('status-message', type: 'success');
 
         $record = StudentHealthRecord::inSchool()->sole();
 
         $this->assertSame('O+', $record->blood_group);
         $this->assertSame('Peanuts. Carry the pen.', $record->allergies);
+        $this->assertNull($record->medications);
 
         $this->get(route('health-records.edit', $enrollment))
             ->assertOk()
             ->assertSee('Peanuts. Carry the pen.');
+    }
+
+    public function test_emptying_a_field_forgets_it(): void
+    {
+        $this->authorized_user(['read health record', 'update health record']);
+        $enrollment = $this->enrollment();
+        app(RecordHealthInformation::class)->record($enrollment, ['blood_group' => 'O+', 'allergies' => 'Peanuts']);
+
+        Livewire::test(HealthRecordForm::class, ['enrollment' => $enrollment])
+            ->set('values.allergies', '   ')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $record = StudentHealthRecord::inSchool()->sole();
+        $this->assertNull($record->allergies);
+        $this->assertSame('O+', $record->blood_group);
+    }
+
+    public function test_a_second_nurse_never_silently_overwrites_an_allergy(): void
+    {
+        $this->authorized_user(['read health record', 'update health record']);
+        $enrollment = $this->enrollment();
+        app(RecordHealthInformation::class)->record($enrollment, ['allergies' => 'Peanuts']);
+
+        $late = Livewire::test(HealthRecordForm::class, ['enrollment' => $enrollment]);
+
+        Livewire::test(HealthRecordForm::class, ['enrollment' => $enrollment])
+            ->set('values.allergies', 'Peanuts and bee stings. Carry the pen.')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        // The late nurse changed a different field too. That one is kept;
+        // the allergy they never saw change is not written over.
+        $late->set('values.allergies', 'Peanuts, mild')
+            ->set('values.blood_group', 'A-')
+            ->call('save')
+            ->assertHasErrors('values.allergies')
+            ->assertSee('Peanuts and bee stings. Carry the pen.');
+
+        $record = StudentHealthRecord::inSchool()->sole();
+        $this->assertSame('Peanuts and bee stings. Carry the pen.', $record->allergies);
+        $this->assertNull($record->blood_group);
+
+        // Having read the new wording, a second save is their choice to make.
+        $late->call('save')->assertHasNoErrors();
+
+        $record->refresh();
+        $this->assertSame('Peanuts, mild', $record->allergies);
+        $this->assertSame('A-', $record->blood_group);
+    }
+
+    public function test_two_nurses_who_change_different_fields_both_keep_their_work(): void
+    {
+        $this->authorized_user(['read health record', 'update health record']);
+        $enrollment = $this->enrollment();
+
+        $late = Livewire::test(HealthRecordForm::class, ['enrollment' => $enrollment]);
+
+        Livewire::test(HealthRecordForm::class, ['enrollment' => $enrollment])
+            ->set('values.medications', 'Inhaler at lunch')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $late->set('values.dietary_needs', 'No pork')->call('save')->assertHasNoErrors();
+
+        $record = StudentHealthRecord::inSchool()->sole();
+        $this->assertSame('Inhaler at lunch', $record->medications);
+        $this->assertSame('No pork', $record->dietary_needs);
     }
 
     public function test_the_emergency_number_asks_for_the_dial_pad(): void
@@ -366,24 +441,14 @@ class WellbeingScreenTest extends TestCase
     {
         $this->authorized_user(['read health record', 'update health record']);
         $enrollment = $this->enrollment();
+        app(RecordHealthInformation::class)->record($enrollment, ['notes' => 'Keep the inhaler in the front office.']);
 
-        $this->put(route('health-records.update', $enrollment), [
-            'notes' => 'Keep the inhaler in the front office.',
-        ])->assertRedirect(route('health-records.edit', $enrollment));
-
-        $response = $this->from(route('health-records.edit', $enrollment))
-            ->put(route('health-records.update', $enrollment), [
-                'notes' => str_repeat('x', 5001),
-            ]);
-
-        $response
-            ->assertSessionHasErrors('notes')
-            ->assertRedirect(route('health-records.edit', $enrollment));
-
-        $this->get(route('health-records.edit', $enrollment))
+        Livewire::test(HealthRecordForm::class, ['enrollment' => $enrollment])
+            ->set('values.notes', str_repeat('x', 5001))
+            ->call('save')
+            ->assertHasErrors('values.notes')
             ->assertSee('The health record was not saved')
-            ->assertSee('The notes must not be greater than 5000 characters.')
-            ->assertSee('Keep the inhaler in the front office.');
+            ->assertSee('The notes must not be greater than 5000 characters.');
 
         $this->assertSame(
             'Keep the inhaler in the front office.',
@@ -400,6 +465,21 @@ class WellbeingScreenTest extends TestCase
             ->assertOk()
             ->assertSee('You may read this record but not change it.')
             ->assertDontSee('Save the record');
+
+        Livewire::test(HealthRecordForm::class, ['enrollment' => $enrollment])
+            ->set('values.allergies', 'Peanuts')
+            ->call('save')
+            ->assertForbidden();
+
+        $this->assertSame(0, StudentHealthRecord::query()->count());
+    }
+
+    public function test_a_learner_from_another_school_has_no_health_form(): void
+    {
+        $this->authorized_user(['read health record', 'update health record']);
+        $outsider = StudentRecord::factory()->create(['school_id' => School::factory()->create()->id]);
+
+        Livewire::test(HealthRecordForm::class, ['enrollment' => $outsider])->assertNotFound();
     }
 
     public function test_reading_a_student_never_opens_the_health_record(): void
