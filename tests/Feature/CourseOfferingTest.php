@@ -16,6 +16,7 @@ use App\Enums\TeachingRole;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\CourseOfferingDirectory;
 use App\Livewire\CreateCourseOffering as CreateCourseOfferingForm;
+use App\Livewire\EditCourseOfferingRoster;
 use App\Livewire\SetUpSubjectAcrossLevels;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
@@ -508,6 +509,84 @@ class CourseOfferingTest extends TestCase
         school_context()->set($this->workingSchool(), remember: false);
 
         $this->assertFalse(app(CourseOfferingPolicy::class)->update(auth()->user(), $courseOffering));
+    }
+
+    public function test_the_roster_can_name_learners_and_return_to_the_year_setup(): void
+    {
+        $this->authorized_user(['update subject']);
+        [$courseOffering, $studentRecord] = $this->namedLearnerOffering();
+
+        Livewire::test(EditCourseOfferingRoster::class, ['courseOffering' => $courseOffering, 'setup' => true])
+            ->assertSet('rosterMode', RosterMode::IndividualRoster->value)
+            ->assertSee($studentRecord->user->name)
+            ->set('studentRecordIds', [(string) $studentRecord->id])
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('academic-years.setup', [$courseOffering->academic_year_id, 'subjects']));
+
+        $this->assertSame([$studentRecord->id], $courseOffering->fresh()->studentRecords->modelKeys());
+    }
+
+    public function test_the_roster_refuses_a_learner_of_another_class(): void
+    {
+        $this->authorized_user(['update subject']);
+        [$courseOffering] = $this->namedLearnerOffering();
+        [, , , , $otherSection] = $this->courseContext();
+        $outsider = StudentRecord::create([
+            'user_id' => User::factory()->create()->id,
+            'school_id' => $this->workingSchool()->id,
+            'academic_cycle_section_id' => $otherSection->id,
+            'admission_number' => fake()->unique()->bothify('####????'),
+            'admission_date' => now()->toDateString(),
+        ]);
+
+        Livewire::test(EditCourseOfferingRoster::class, ['courseOffering' => $courseOffering])
+            ->set('studentRecordIds', [(string) $outsider->id])
+            ->call('save')
+            ->assertHasErrors('studentRecordIds.0');
+
+        $this->assertSame([], $courseOffering->fresh()->studentRecords->modelKeys());
+    }
+
+    public function test_a_reader_cannot_open_the_roster_editor(): void
+    {
+        $this->authorized_user(['read subject']);
+        [$courseOffering] = $this->namedLearnerOffering();
+
+        Livewire::test(EditCourseOfferingRoster::class, ['courseOffering' => $courseOffering])->assertForbidden();
+    }
+
+    /**
+     * Make an offering that names its learners, with one learner in its class who is not named yet.
+     *
+     * @return array{CourseOffering, StudentRecord}
+     */
+    private function namedLearnerOffering(): array
+    {
+        [$subject, $academicYear, $academicPeriod, $academicLevel, $cycleSection] = $this->courseContext();
+        InstructionalModelSetting::create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => $academicYear->id,
+            'model' => InstructionalModel::SubjectBasedSchedule,
+        ]);
+        $studentRecord = StudentRecord::create([
+            'user_id' => User::factory()->create()->id,
+            'school_id' => $this->workingSchool()->id,
+            'academic_cycle_section_id' => $cycleSection->id,
+            'admission_number' => fake()->unique()->bothify('####????'),
+            'admission_date' => now()->toDateString(),
+        ]);
+        $courseOffering = app(CreateCourseOffering::class)->create(
+            $subject,
+            $academicYear,
+            $academicPeriod,
+            $academicLevel,
+            [],
+            RosterMode::IndividualRoster,
+            [],
+        );
+
+        return [$courseOffering, $studentRecord];
     }
 
     /**

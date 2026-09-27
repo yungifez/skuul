@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Saving a roster from the year setup lost the way back to setup
+- Status: Fixed
+- Area: Course offerings / rosters
+- Observed: The year setup links to the roster editor with setup=1, but the editor's form never sent that flag, so saving always landed on the course offering list. The editor offered sections and learners of child levels that the save then refused with a general message.
+- Impact: Setting up a year meant finding the setup screen again after every roster. A choice the screen offered failed with no field named.
+- Reproduction: Open a year's setup, subjects step, open a period's roster, save.
+- Resolution: The roster editor is a Livewire component. It keeps the setup flag, offers only sections and learners the save accepts, and shows refusals under the field. The PUT route and its request are gone.
+
 ## Editing a timetable published in another tab ended in a bare 403
 - Status: Fixed
 - Area: Timetables
