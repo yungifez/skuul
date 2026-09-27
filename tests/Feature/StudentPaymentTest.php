@@ -120,6 +120,68 @@ class StudentPaymentTest extends TestCase
         app(ReceivePayment::class)->receive($enrollment, 10_000, allocations: [$line->id => 10_000]);
     }
 
+    /**
+     * An invoice that still owes money asks for it. Printing it gives an
+     * invoice with the amount due, not a receipt.
+     */
+    public function test_an_unpaid_invoice_offers_to_take_payment_and_prints_as_an_invoice(): void
+    {
+        $this->authorized_user(['read fee invoice', 'update fee invoice']);
+        $enrollment = $this->enrollment();
+        $invoice = $this->invoiceFor($enrollment, [['amount' => 100]], now()->subWeek());
+
+        $this->get(route('fee-invoices.show', $invoice))
+            ->assertSuccessful()
+            ->assertSee('Overdue')
+            ->assertSee('Take payment')
+            ->assertDontSee('Print receipt');
+
+        $this->get(route('fee-invoices.print', $invoice))
+            ->assertSuccessful()
+            ->assertSee('Amount due')
+            ->assertDontSee('Paid in full');
+    }
+
+    /**
+     * Once the allocations cover every fee, the invoice has done its job.
+     * The page offers the receipt, and the print becomes one.
+     */
+    public function test_a_paid_invoice_offers_and_prints_a_receipt(): void
+    {
+        $this->authorized_user(['read fee invoice', 'update fee invoice']);
+        $enrollment = $this->enrollment();
+        $invoice = $this->invoiceFor($enrollment, [['amount' => 100]]);
+        $payment = app(ReceivePayment::class)->receive($enrollment, 10_000, reference: 'BANK-777');
+
+        $this->get(route('fee-invoices.show', $invoice))
+            ->assertSuccessful()
+            ->assertDontSee('Not paid')
+            ->assertSee('Print receipt')
+            ->assertDontSee('Take payment')
+            ->assertSee(route('student-payments.receipt', $payment), false);
+
+        $this->get(route('fee-invoices.print', $invoice))
+            ->assertSuccessful()
+            ->assertSee('Receipt')
+            ->assertSee('Paid in full')
+            ->assertSee('BANK-777')
+            ->assertDontSee('Amount due');
+    }
+
+    /**
+     * An invoice due today is not late yet.
+     */
+    public function test_an_invoice_due_today_is_not_overdue(): void
+    {
+        $this->authorized_user(['read fee invoice']);
+        $invoice = $this->invoiceFor($this->enrollment(), [['amount' => 100]], now());
+
+        $this->get(route('fee-invoices.show', $invoice))
+            ->assertSuccessful()
+            ->assertSee('Not paid')
+            ->assertDontSee('Overdue');
+    }
+
     public function test_an_invoice_is_due_until_its_allocations_cover_it(): void
     {
         $this->authorized_user([]);

@@ -87,11 +87,19 @@ class FeeInvoiceController extends Controller
     }
 
     /**
-     * Display the specified resource.
+     * Print the invoice, or its receipt once it is paid in full.
      */
     public function print(FeeInvoice $feeInvoice): Response
     {
         $this->authorize('view', $feeInvoice);
+
+        $feeInvoice->loadMissing([
+            'user',
+            'studentRecord.academicCycleSection.academicLevel',
+            'feeInvoiceRecords.fee',
+            'feeInvoiceRecords.allocations',
+            'allocations.studentPayment',
+        ]);
 
         return $this->feeInvoiceService->printFeeInvoice($feeInvoice->name, 'pages.fee.fee-invoice.print', compact('feeInvoice'));
     }

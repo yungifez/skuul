@@ -89,12 +89,12 @@
                     <div class="flex flex-col gap-3 p-6">
                         <div class="flex flex-wrap items-start justify-between gap-3">
                             <div>
-                                <p class="font-medium">
+                                <div class="flex flex-wrap items-center gap-2 font-medium">
                                     {{ $domain->host }}
                                     @if ($domain->is_primary)
-                                        <april:badge variant="secondary" class="ml-2">Main</april:badge>
+                                        <april:badge variant="secondary">Main</april:badge>
                                     @endif
-                                </p>
+                                </div>
                                 <p class="text-sm text-muted-foreground">
                                     Opens {{ $domain->school?->name ?? 'the organization, with no campus chosen' }}.
                                 </p>

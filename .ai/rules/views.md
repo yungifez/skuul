@@ -211,3 +211,7 @@ wrapper that is not positioned, the hidden text is placed against the nearest
 positioned ancestor instead, often `main`. It then sits past the scroll box and
 widens the whole page at phone width. Give the wrapper `relative`:
 `<div class="relative overflow-x-auto">`.
+
+## An April badge never goes inside a `<p>`
+
+`<april:badge>` renders a `<div>`. Inside a `<p>`, the browser closes the paragraph at the badge, so the badge falls out of the flex row and floats away from its text. Wrap a line that holds a badge in a `<div>`.
