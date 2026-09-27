@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A shared residence could hold a house whose campus no longer used it
+
+- Status: Fixed
+- Area: Boarding, shared residences
+- Observed: Linking, unlinking and adding a house checked their rules outside any lock. One manager could unlink a campus while another added one of its houses, which left a house in a residence its campus did not use. A campus that moved to another organization kept its links and houses in the old organization's residences. Two residences could have names differing only in case.
+- Impact: The old organization kept seeing and managing a campus that had left, and room counts for a site were wrong.
+- Reproduction: Open the shared residences page in two tabs. In the first, stop a campus using a residence. In the second, add that campus's house to it. The house went in.
+- Resolution: The residence and house rows are locked and the rules checked again inside the transaction. AssignSchoolToOrganization takes the campus and its houses out of the old organization's residences. Names are compared without case. The page is now the Livewire component OrganizationBoardingResidences, and its five write routes and three requests were removed.
+
 ## A campus that changed organization kept billing with its old sister campuses
 
 - Status: Fixed

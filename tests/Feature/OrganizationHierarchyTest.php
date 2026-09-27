@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Actions\Organization\AssignSchoolToOrganization;
 use App\Actions\Organization\GrantOrganizationMembership;
 use App\Models\BillingGroup;
+use App\Models\BoardingResidence;
 use App\Models\CalendarTemplate;
+use App\Models\Dormitory;
 use App\Models\Organization;
 use App\Models\School;
 use App\Models\User;
@@ -77,7 +79,7 @@ class OrganizationHierarchyTest extends TestCase
         $this->assertTrue($user->fresh()->belongsToSchool($school));
     }
 
-    public function test_a_campus_that_changes_organization_leaves_the_old_purse_and_calendar(): void
+    public function test_a_campus_that_changes_organization_leaves_the_old_purse_calendar_and_residence(): void
     {
         $previous = Organization::factory()->create();
         $group = BillingGroup::factory()->create(['organization_id' => $previous->id]);
@@ -88,6 +90,9 @@ class OrganizationHierarchyTest extends TestCase
             'calendar_template_id' => $template->id,
         ]);
         $sister = School::factory()->create(['organization_id' => $previous->id, 'billing_group_id' => $group->id]);
+        $residence = BoardingResidence::factory()->create(['organization_id' => $previous->id]);
+        $residence->schools()->attach($school->id);
+        $house = Dormitory::factory()->create(['school_id' => $school->id, 'boarding_residence_id' => $residence->id]);
 
         app(AssignSchoolToOrganization::class)->assign($school, Organization::factory()->create());
 
@@ -96,6 +101,8 @@ class OrganizationHierarchyTest extends TestCase
         $this->assertNull($school->calendar_template_id);
         $this->assertFalse($school->billsWith($sister->fresh()));
         $this->assertFalse($group->schools()->whereKey($school->id)->exists());
+        $this->assertFalse($residence->schools()->whereKey($school->id)->exists());
+        $this->assertNull($house->fresh()->boarding_residence_id);
     }
 
     public function test_a_platform_administrator_can_manage_any_organization(): void

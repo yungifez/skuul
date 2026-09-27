@@ -4,6 +4,7 @@ namespace App\Actions\Organization;
 
 use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AuditAction;
+use App\Models\Dormitory;
 use App\Models\Organization;
 use App\Models\School;
 use App\Models\User;
@@ -16,9 +17,10 @@ class AssignSchoolToOrganization
     /**
      * Assign a campus to an organization without changing school memberships.
      *
-     * The billing group and calendar template belong to the organization the
-     * campus leaves, so the campus stops using them. It then bills on its own
-     * and follows the new organization's default calendar.
+     * The billing group, calendar template and shared residences belong to the
+     * organization the campus leaves, so the campus stops using them. It then
+     * bills on its own, follows the new organization's default calendar, and
+     * keeps its houses as houses of its own.
      */
     public function assign(School $school, Organization $organization, ?User $actor = null): School
     {
@@ -34,6 +36,12 @@ class AssignSchoolToOrganization
             $school->billing_group_id = null;
             $school->calendar_template_id = null;
             $school->save();
+
+            Dormitory::query()
+                ->where('school_id', $school->id)
+                ->whereNotNull('boarding_residence_id')
+                ->update(['boarding_residence_id' => null]);
+            $school->boardingResidences()->detach();
 
             $this->recordAuditEvent->record(
                 AuditAction::SchoolOrganizationAssigned,

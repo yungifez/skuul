@@ -26,6 +26,8 @@ class LinkSchoolToBoardingResidence
         }
 
         DB::transaction(function () use ($residence, $school, $actor): void {
+            $residence = BoardingResidence::query()->lockForUpdate()->findOrFail($residence->id);
+
             if ($residence->schools()->whereKey($school->id)->exists()) {
                 return;
             }
@@ -52,12 +54,18 @@ class LinkSchoolToBoardingResidence
             throw new InvalidValueException('That campus belongs to another organization.');
         }
 
-        if ($residence->dormitories()->where('school_id', $school->id)->exists()) {
-            throw new InvalidValueException('Move this campus’s houses to another residence first.');
-        }
-
         DB::transaction(function () use ($residence, $school, $actor): void {
-            $residence->schools()->detach($school->id);
+            // The lock waits for a house of this campus being added, so the
+            // check below sees it.
+            $residence = BoardingResidence::query()->lockForUpdate()->findOrFail($residence->id);
+
+            if ($residence->dormitories()->where('school_id', $school->id)->exists()) {
+                throw new InvalidValueException('Move this campus’s houses to another residence first.');
+            }
+
+            if ($residence->schools()->detach($school->id) === 0) {
+                return;
+            }
 
             $this->auditor->record(
                 AuditAction::BoardingResidenceChanged,

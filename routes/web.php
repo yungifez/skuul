@@ -142,11 +142,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::delete('organizations/{organization}/domains/{domain}', ['App\Http\Controllers\OrganizationDomainController', 'destroy'])->name('organizations.domains.destroy');
     Route::get('organizations/{organization}/billing-groups', ['App\Http\Controllers\OrganizationBillingGroupController', 'index'])->name('organizations.billing-groups.index');
     Route::get('organizations/{organization}/boarding-residences', [OrganizationBoardingResidenceController::class, 'index'])->name('organizations.boarding-residences.index');
-    Route::post('organizations/{organization}/boarding-residences', [OrganizationBoardingResidenceController::class, 'store'])->name('organizations.boarding-residences.store');
-    Route::post('organizations/{organization}/boarding-residences/{boardingResidence}/schools', [OrganizationBoardingResidenceController::class, 'linkSchool'])->name('organizations.boarding-residences.schools.store');
-    Route::delete('organizations/{organization}/boarding-residences/{boardingResidence}/schools/{school}', [OrganizationBoardingResidenceController::class, 'unlinkSchool'])->name('organizations.boarding-residences.schools.destroy');
-    Route::post('organizations/{organization}/boarding-residences/{boardingResidence}/houses', [OrganizationBoardingResidenceController::class, 'attachHouse'])->name('organizations.boarding-residences.houses.store');
-    Route::delete('organizations/{organization}/boarding-residences/{boardingResidence}/houses/{dormitory}', [OrganizationBoardingResidenceController::class, 'detachHouse'])->name('organizations.boarding-residences.houses.destroy');
     Route::resource('organizations', OrganizationController::class)->except('destroy');
     Route::get('organizations/{organization}/dashboard', OrganizationDashboardController::class)->name('organizations.dashboard');
     Route::resource('organizations.calendar-templates', CalendarTemplateController::class)
