@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Table row buttons were 32px and deleted through a page reload
+
+- Status: Fixed
+- Area: Shared table actions (`components/table-actions`), custom timetable items
+- Observed: Each row's action buttons were 32px high, under the 44px touch target. A delete posted a classic form, reloaded the whole page, and lost the table's search and page.
+- Impact: On a phone, the row buttons were easy to miss. After a delete, the person had to find their place again.
+- Reproduction: Open custom timetable items on a phone, search, then delete an item.
+- Resolution: Row buttons are now 44px. The table-actions component takes an `action` item that calls a Livewire method on the row after the confirm. Custom timetable items delete this way, through `InteractsWithAprilTable::changeRow`, which shows a refusal as a message and steps back from an emptied last page. The old delete route is removed.
+
 ## A school could share records it no longer held, and guess another school's roll
 
 - Status: Fixed

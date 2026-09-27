@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\TimetableStatus;
 use App\Livewire\CreateCustomTimetableItemForm;
 use App\Livewire\EditCustomTimetableItemForm;
+use App\Livewire\ListCustomTimetableItemsTable;
 use App\Models\CustomTimetableItem;
 use App\Models\School;
 use App\Models\Timetable;
@@ -12,8 +13,10 @@ use App\Models\TimetableRecord;
 use App\Models\TimetableTimeSlot;
 use App\Models\Weekday;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use Illuminate\Support\Facades\Route;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -146,10 +149,9 @@ class CustomTimetableItemTest extends TestCase
         $this->placeOn($customItem, TimetableStatus::Published);
         $this->authorized_user(['delete custom timetable item']);
 
-        $this->from(route('custom-timetable-items.index'))
-            ->delete(route('custom-timetable-items.destroy', $customItem))
-            ->assertRedirect(route('custom-timetable-items.index'))
-            ->assertSessionHas('danger');
+        Livewire::test(ListCustomTimetableItemsTable::class)
+            ->call('deleteItem', $customItem->id)
+            ->assertDispatched('status-message', type: 'danger');
 
         $this->assertModelExists($customItem);
         $this->assertSame(1, $this->cellsHolding($customItem));
@@ -163,7 +165,9 @@ class CustomTimetableItemTest extends TestCase
         $this->assertSame(2, $this->cellsHolding($customItem));
         $this->authorized_user(['delete custom timetable item']);
 
-        $this->delete(route('custom-timetable-items.destroy', $customItem))->assertSessionHas('success');
+        Livewire::test(ListCustomTimetableItemsTable::class)
+            ->call('deleteItem', $customItem->id)
+            ->assertDispatched('status-message', type: 'success');
 
         $this->assertModelMissing($customItem);
         $this->assertSame(0, $this->cellsHolding($customItem));
@@ -171,24 +175,42 @@ class CustomTimetableItemTest extends TestCase
 
     public function test_unauthorized_users_cannot_delete_custom_items(): void
     {
-        $customItem = CustomTimetableItem::factory()->create();
-        $response = $this->unauthorized_user()
-            ->delete("/dashboard/custom-timetable-items/$customItem->id");
+        $customItem = CustomTimetableItem::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read custom timetable item']);
 
-        $response->assertForbidden();
+        Livewire::test(ListCustomTimetableItemsTable::class)
+            ->call('deleteItem', $customItem->id)
+            ->assertForbidden();
 
         $this->assertModelExists($customItem);
     }
 
-    public function test_authorized_users_can_delete_custom_items(): void
+    public function test_another_schools_item_cannot_be_deleted(): void
     {
-        $customItem = CustomTimetableItem::factory()->create();
-        $response = $this->authorized_user(['delete custom timetable item'])
-            ->delete("/dashboard/custom-timetable-items/$customItem->id");
+        $theirs = CustomTimetableItem::factory()->create(['school_id' => School::factory()->create()->id]);
+        $this->authorized_user(['read custom timetable item', 'delete custom timetable item']);
 
-        $response->assertRedirect();
+        try {
+            Livewire::test(ListCustomTimetableItemsTable::class)->call('deleteItem', $theirs->id);
+            $this->fail('Another school\'s item was reached.');
+        } catch (ModelNotFoundException) {
+        }
 
-        $this->assertModelMissing($customItem);
+        $this->assertModelExists($theirs);
+    }
+
+    public function test_the_table_deletes_through_livewire_not_a_form(): void
+    {
+        $customItem = CustomTimetableItem::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read custom timetable item', 'delete custom timetable item']);
+
+        Livewire::test(ListCustomTimetableItemsTable::class)
+            ->assertSeeHtml('$wire.call(&quot;deleteItem&quot;, row.id)')
+            ->assertDontSeeHtml('name="_method"');
+
+        $this->assertFalse(Route::has('custom-timetable-items.destroy'));
+        $this->delete("/dashboard/custom-timetable-items/{$customItem->id}")->assertStatus(405);
+        $this->assertModelExists($customItem);
     }
 
     /**

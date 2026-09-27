@@ -8,7 +8,6 @@ use App\Actions\Academic\RollForwardAcademicYearSetup;
 use App\Enums\AcademicPeriodStatus;
 use App\Enums\AcademicYearSetupStep;
 use App\Exceptions\InvalidValueException;
-use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Livewire\Concerns\InteractsWithAprilTable;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
@@ -24,7 +23,6 @@ use Yungifez\AprilUI\Livewire\DataTableComponent;
 
 class ShowAcademicYear extends DataTableComponent
 {
-    use DispatchesStatusNotifications;
     use InteractsWithAprilTable;
 
     public AcademicYear $academicYear;

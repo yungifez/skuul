@@ -2,11 +2,14 @@
 
 namespace App\Livewire\Concerns;
 
+use App\Exceptions\ApplicationException;
 use Illuminate\Support\Collection;
 use Yungifez\AprilUI\Livewire\Columns\Column;
 
 trait InteractsWithAprilTable
 {
+    use DispatchesStatusNotifications;
+
     /**
      * @return array<string, mixed>
      */
@@ -31,6 +34,30 @@ trait InteractsWithAprilTable
             'rowKey' => $this->primaryKey(),
             'searchable' => collect($columns)->contains(fn (Column $column): bool => $column->isSearchable()),
         ];
+    }
+
+    /**
+     * Run a change to one row, then redraw the table.
+     *
+     * A refused change shows its reason. When the change empties the last
+     * page, the table steps back one page so it never shows an empty page.
+     */
+    protected function changeRow(callable $change, string $success): void
+    {
+        try {
+            $change();
+        } catch (ApplicationException $exception) {
+            $this->notify($exception->getMessage(), 'danger');
+
+            return;
+        }
+
+        if ($this->getPage() > 1 && $this->rows()->isEmpty()) {
+            $this->previousPage();
+        }
+
+        $this->tableRevision++;
+        $this->notify($success);
     }
 
     /**

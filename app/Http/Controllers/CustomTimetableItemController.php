@@ -2,11 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Timetable\SaveCustomTimetableItem;
-use App\Exceptions\InvalidValueException;
 use App\Models\CustomTimetableItem;
 use App\Services\Timetable\TimetableService;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
 
@@ -53,19 +50,5 @@ class CustomTimetableItemController extends Controller
     public function edit(CustomTimetableItem $customTimetableItem)
     {
         return view('pages.timetable.custom-timetable-item.edit', compact('customTimetableItem'));
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(CustomTimetableItem $customTimetableItem, SaveCustomTimetableItem $saveCustomTimetableItem): RedirectResponse
-    {
-        try {
-            $saveCustomTimetableItem->delete($customTimetableItem);
-        } catch (InvalidValueException $exception) {
-            return back()->with('danger', $exception->getMessage());
-        }
-
-        return back()->with('success', "{$customTimetableItem->name} was deleted.");
     }
 }

@@ -2,10 +2,12 @@
 
 namespace App\Livewire;
 
+use App\Actions\Timetable\SaveCustomTimetableItem;
 use App\Livewire\Concerns\InteractsWithAprilTable;
 use App\Models\CustomTimetableItem;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Yungifez\AprilUI\Livewire\Columns\Column;
 use Yungifez\AprilUI\Livewire\DataTableComponent;
@@ -37,10 +39,20 @@ class ListCustomTimetableItemsTable extends DataTableComponent
         return $rows->map(function (CustomTimetableItem $item): array {
             $row = $item->toArray();
             $row['edit_url'] = route('custom-timetable-items.edit', $item);
-            $row['delete_url'] = route('custom-timetable-items.destroy', $item);
 
             return $row;
         })->values()->all();
+    }
+
+    /**
+     * Delete one item, and empty the timetable cells that held it.
+     */
+    public function deleteItem(int $itemId, SaveCustomTimetableItem $saveCustomTimetableItem): void
+    {
+        $item = CustomTimetableItem::query()->inSchool()->findOrFail($itemId);
+        Gate::authorize('delete', $item);
+
+        $this->changeRow(fn () => $saveCustomTimetableItem->delete($item), "{$item->name} was deleted.");
     }
 
     public function render(): View
