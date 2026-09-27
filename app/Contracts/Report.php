@@ -18,6 +18,14 @@ interface Report
     public function key(): string;
 
     /**
+     * Get the permission a person needs to ask for and read this report.
+     *
+     * A report copies a whole domain out of the school, so it asks for the
+     * same permission as the screens that show that domain.
+     */
+    public function permission(): string;
+
+    /**
      * Get the title to print at the top.
      */
     public function title(): string;
@@ -32,8 +40,7 @@ interface Report
     /**
      * Build the rows of the report.
      *
-     * @param array<string, mixed> $parameters
-     *
+     * @param  array<string, mixed>  $parameters
      * @return Collection<int, array<int, mixed>>
      */
     public function rows(array $parameters = []): Collection;

@@ -21,6 +21,14 @@ class ClassListReport implements Report
     }
 
     /**
+     * Get the permission a person needs to ask for and read this report.
+     */
+    public function permission(): string
+    {
+        return 'read student';
+    }
+
+    /**
      * Get the title to print at the top.
      */
     public function title(): string
@@ -41,8 +49,7 @@ class ClassListReport implements Report
     /**
      * Build the rows of the report.
      *
-     * @param array<string, mixed> $parameters
-     *
+     * @param  array<string, mixed>  $parameters
      * @return Collection<int, array<int, mixed>>
      */
     public function rows(array $parameters = []): Collection

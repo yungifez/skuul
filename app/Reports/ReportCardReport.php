@@ -16,6 +16,14 @@ class ReportCardReport implements Report
         return 'report-cards';
     }
 
+    /**
+     * Get the permission a person needs to ask for and read this report.
+     */
+    public function permission(): string
+    {
+        return 'read report';
+    }
+
     public function title(): string
     {
         return 'Report cards';

@@ -4,6 +4,7 @@ namespace App\Policies;
 
 use App\Models\ReportRun;
 use App\Models\User;
+use App\Services\Report\ReportRegistry;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 /**
@@ -24,11 +25,14 @@ class ReportRunPolicy
     /**
      * Determine whether the user can read one report.
      *
-     * A report holds whole-school data, so it never leaves its school.
+     * A report holds whole-school data, so it never leaves its school, and
+     * only somebody who may read that data on screen may read the report.
      */
     public function view(User $user, ReportRun $reportRun): bool
     {
-        return $user->can('read report') && $reportRun->school_id === current_school_id();
+        return $user->can('read report')
+            && $reportRun->school_id === current_school_id()
+            && app(ReportRegistry::class)->mayRead($user, $reportRun->type);
     }
 
     /**

@@ -27,6 +27,14 @@ class BudgetVarianceReport implements Report
     }
 
     /**
+     * Get the permission a person needs to ask for and read this report.
+     */
+    public function permission(): string
+    {
+        return 'read budget';
+    }
+
+    /**
      * Get the title to print at the top.
      */
     public function title(): string

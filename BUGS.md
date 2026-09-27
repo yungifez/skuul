@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Anybody who could read reports could download the general ledger and every learner's results
+- Status: Fixed
+- Area: Reports (`ReportRegistry`, `RequestReport`, `ReportRunPolicy`, reports screen)
+- Observed: A person with "read report" could download every finished report at the campus. This included the general ledger, the balance sheet and the student balances, even without any finance permission. A person with "create report" could ask for any of them. A double click queued the same report twice. The list never updated until the page was reloaded.
+- Impact: A librarian or teacher given report access could export the school's accounts and every family's balance.
+- Reproduction: Give a person "read report" and "read student" only. Ask for the general ledger as an administrator. As that person, open the report's download link. The file downloads.
+- Resolution: Each report names the permission of the data it copies. Finance statements need "read financial period", balances and income need "read fee invoice", expenses need "read expense", cash needs "read cash deposit", budgets need "read budget", and the class list needs "read student". Report cards and transcripts keep "read report". A person only sees, asks for and downloads reports they may read. The same report asked for again while it builds returns the run already queued. The screen runs through Livewire (`ReportDesk`) and checks again every five seconds while a report is building. The store route and form request are removed.
+
 ## One teacher could cover two lessons at once, and cover recorded by mistake could not be withdrawn
 - Status: Fixed
 - Area: Timetable cover and section versions (`CreateTimetableSubstitution`, `CreateSectionTimetableOverride`, timetable screen)

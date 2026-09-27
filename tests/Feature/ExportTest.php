@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\Finance\ChargeStudent;
 use App\Actions\Report\RequestReport;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\ReportDesk;
 use App\Models\StudentRecord;
 use App\Services\Print\DocumentRendererRegistry;
 use App\Services\Print\PrintService;
@@ -15,6 +16,7 @@ use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
+use Livewire\Livewire;
 use Tests\TestCase;
 use ZipArchive;
 
@@ -112,7 +114,7 @@ class ExportTest extends TestCase
     public function test_a_report_can_be_asked_for_as_a_spreadsheet(): void
     {
         Storage::fake('local');
-        $this->authorized_user(['create report']);
+        $this->authorized_user(['create report', 'read report', 'read fee invoice', 'read student']);
         $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
         app(ChargeStudent::class)->charge($enrollment, 500, 'Term one fees');
 
@@ -126,7 +128,7 @@ class ExportTest extends TestCase
     public function test_a_spreadsheet_is_downloaded_as_a_spreadsheet(): void
     {
         Storage::fake('local');
-        $actor = $this->authorized_user(['create report', 'read report']);
+        $actor = $this->authorized_user(['create report', 'read report', 'read fee invoice', 'read student']);
         $run = app(RequestReport::class)->request('class-list', format: 'xlsx')->fresh();
 
         $actor->get("/dashboard/reports/$run->id/download")
@@ -136,15 +138,19 @@ class ExportTest extends TestCase
 
     public function test_an_unknown_shape_is_refused_by_the_form(): void
     {
-        $this->authorized_user(['create report'])
-            ->post('/dashboard/reports', ['type' => 'class-list', 'format' => 'papyrus'])
-            ->assertSessionHasErrors('format');
+        $this->authorized_user(['create report', 'read report', 'read student']);
+
+        Livewire::test(ReportDesk::class)
+            ->set('type', 'class-list')
+            ->set('format', 'papyrus')
+            ->call('build')
+            ->assertHasErrors('format');
     }
 
     public function test_a_report_asked_for_as_a_document_is_printed(): void
     {
         Storage::fake('local');
-        $this->authorized_user(['create report']);
+        $this->authorized_user(['create report', 'read report', 'read fee invoice', 'read student']);
 
         $run = app(RequestReport::class)->request('class-list', format: 'pdf')->fresh();
 
@@ -205,13 +211,13 @@ class ExportTest extends TestCase
     public function test_the_reports_workspace_lists_what_was_asked_for(): void
     {
         Storage::fake('local');
-        $actor = $this->authorized_user(['create report', 'read report']);
+        $actor = $this->authorized_user(['create report', 'read report', 'read fee invoice', 'read student']);
         $run = app(RequestReport::class)->request('class-list')->fresh();
 
         $actor->get('/dashboard/reports')
             ->assertSuccessful()
-            ->assertSee('Reports and exports')
-            ->assertSee((string) $run->id);
+            ->assertSee('What has been asked for')
+            ->assertSee('Download number '.$run->id);
     }
 
     public function test_the_reports_workspace_is_closed_to_others(): void

@@ -4,6 +4,7 @@ namespace App\Services\Report;
 
 use App\Contracts\Report;
 use App\Exceptions\InvalidValueException;
+use App\Models\User;
 use App\Reports\BalanceSheetReport;
 use App\Reports\BudgetVarianceReport;
 use App\Reports\CashAndBankSummaryReport;
@@ -82,5 +83,31 @@ class ReportRegistry
         }
 
         return $reports;
+    }
+
+    /**
+     * Get the reports one person may ask for and read, by name.
+     *
+     * @return array<string, string>
+     */
+    public function availableTo(User $user): array
+    {
+        return array_filter(
+            $this->all(),
+            fn (string $key): bool => $this->mayRead($user, $key),
+            ARRAY_FILTER_USE_KEY,
+        );
+    }
+
+    /**
+     * Check whether a person may read a report of this kind.
+     */
+    public function mayRead(User $user, string $key): bool
+    {
+        try {
+            return $user->can($this->get($key)->permission());
+        } catch (InvalidValueException) {
+            return false;
+        }
     }
 }
