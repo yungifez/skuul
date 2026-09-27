@@ -19,6 +19,7 @@ use App\Models\User;
 use App\Services\Portal\PortalAccess;
 use App\Services\School\SchoolService;
 use Illuminate\Database\Eloquent\Collection;
+use Livewire\Attributes\On;
 use Livewire\Component;
 
 class Menu extends Component
@@ -429,6 +430,15 @@ class Menu extends Component
 
         $this->menu = $this->withVisibility($this->menu);
         $this->commandItems = $this->buildCommandPaletteItems($this->menu);
+    }
+
+    /**
+     * Rebuild the sidebar after the school turns a tool on or off.
+     */
+    #[On('school-features-changed')]
+    public function rebuild(SchoolService $schoolService): void
+    {
+        $this->mount($schoolService);
     }
 
     public function render()

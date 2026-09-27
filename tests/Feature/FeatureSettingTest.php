@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Enums\AuditAction;
 use App\Enums\Feature;
 use App\Livewire\Layouts\Menu;
+use App\Livewire\ManageSchoolFeatures;
 use App\Models\AuditEvent;
 use App\Models\GraduationPlan;
 use App\Models\Program;
@@ -147,26 +148,39 @@ class FeatureSettingTest extends TestCase
 
         $actor->get(route('schools.features.edit'))
             ->assertOk()
-            ->assertSee('Choose the tools your school uses');
+            ->assertSee('Choose the tools your school uses')
+            ->assertSeeLivewire(ManageSchoolFeatures::class);
 
-        $actor->put(route('schools.features.update'), [
-            'features' => [
-                'attendance' => '0',
-                'portal' => '1',
-                'discipline' => '1',
-                'wellbeing' => '1',
-                'staff_operations' => '1',
-                'events' => '1',
-                'ranking' => '0',
-                'imports' => '1',
-                'boarding' => '0',
-                'library' => '0',
-                'graduation_plans' => '1',
-                'programmes' => '1',
-            ],
-        ])->assertRedirect(route('schools.features.edit'));
+        Livewire::test(ManageSchoolFeatures::class)
+            ->set('enabled.attendance', false)
+            ->assertDispatched('school-features-changed')
+            ->assertDispatched('status-message', type: 'success', message: 'Attendance turned off.');
 
         $this->assertFalse(app(FeatureManager::class)->enabled(Feature::Attendance));
+        $this->assertNotNull(AuditEvent::ofAction(AuditAction::FeatureDisabled)->first());
+        $this->assertDatabaseHas('feature_settings', ['school_id' => $this->workingSchool()->id, 'feature' => 'attendance', 'enabled' => false, 'updated_by' => auth()->id()]);
+    }
+
+    public function test_a_school_turns_boarding_on_and_the_sidebar_follows(): void
+    {
+        $this->authorized_user(['manage school settings', 'read boarding']);
+
+        Livewire::test(Menu::class)->assertDontSee(route('dormitories.index'));
+
+        Livewire::test(ManageSchoolFeatures::class)->set('enabled.boarding', true);
+
+        $this->assertTrue(app(FeatureManager::class)->enabled(Feature::Boarding));
+        app()->forgetInstance(FeatureManager::class);
+        Livewire::test(Menu::class)->dispatch('school-features-changed')->assertSee(route('dormitories.index'));
+    }
+
+    public function test_an_unknown_tool_is_ignored(): void
+    {
+        $this->authorized_user(['manage school settings']);
+
+        Livewire::test(ManageSchoolFeatures::class)
+            ->set('enabled.not-a-feature', true)
+            ->assertSet('enabled', app(FeatureManager::class)->all());
     }
 
     public function test_the_feature_screen_groups_the_tools_and_says_what_each_one_does(): void
@@ -182,7 +196,6 @@ class FeatureSettingTest extends TestCase
 
         $response->assertSee(Feature::Wellbeing->description())
             ->assertSee('8 of 12 tools are on')
-            ->assertSee('School tools')
             ->assertDontSee('What this screen changes')
             ->assertDontSee('This tool starts off');
     }
@@ -213,23 +226,14 @@ class FeatureSettingTest extends TestCase
         $this->assertModelExists($program);
     }
 
-    public function test_feature_settings_require_an_explicit_choice_for_every_tool(): void
+    public function test_an_unauthorized_user_cannot_open_or_change_school_tools(): void
     {
-        $actor = $this->authorized_user(['manage school settings']);
+        $this->unauthorized_user()
+            ->get(route('schools.features.edit'))
+            ->assertForbidden();
 
-        $actor->put(route('schools.features.update'), [
-            'features' => ['attendance' => '0'],
-        ])->assertSessionHasErrors(['features.portal']);
+        Livewire::test(ManageSchoolFeatures::class)->assertForbidden();
 
         $this->assertTrue(app(FeatureManager::class)->enabled(Feature::Attendance));
-    }
-
-    public function test_an_unauthorized_user_is_forbidden_before_feature_validation(): void
-    {
-        $actor = $this->unauthorized_user();
-
-        $actor->put(route('schools.features.update'), [
-            'features' => ['not-a-feature' => 'invalid'],
-        ])->assertForbidden();
     }
 }

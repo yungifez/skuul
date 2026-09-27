@@ -958,3 +958,10 @@
 - **Problem:** The settings of each chosen class printed raw `<april:input-group>` tags instead of inputs. Their `value` attributes held `old("...")` with double quotes, which Blade does not compile inside a component tag. The page was also a card holding a POST form, with long explanations and a read-only "School year" box. The roster list offered "Named learners", but the form had no way to pick learners. The store route had no tests.
 - **Fix:** The page is now the Livewire component `SetUpSubjectAcrossLevels`. Classes and groups are chips. Each chosen one gets a flat row with its roster, section chips, periods a week and capacity. Groups are always taught to everyone in them. Named learners is no longer offered here. The POST route and `StoreCourseOfferingsForLevelsRequest` are removed.
 - **Tests:** `CourseOfferingTest` covers the page, access, a mixed class and group save, missing choices, a period of another year and a year of another school.
+
+## School features page needed a full form save and left the sidebar stale
+
+- **Where:** `/dashboard/schools/features`
+- **Problem:** The page to turn school tools such as Boarding on or off was a stack of cards around one POST form. A change took effect only after "Save feature choices", and the sidebar kept the old links until the next page load. The checkboxes were plain 16px boxes in a label, with On and Off badges that repeated the checkbox state.
+- **Fix:** The page is now the Livewire component `ManageSchoolFeatures`. Each tool is a switch in a flat, grouped list, and a switch saves straight away with a toast. The sidebar listens for `school-features-changed` and rebuilds itself. Tools that are off read muted. The PUT route, `FeatureSettingsController` and `UpdateFeatureSettingsRequest` are removed. The global 1rem checkbox size in `app.css` now skips `role="switch"`.
+- **Tests:** `FeatureSettingTest` covers turning a tool off, turning Boarding on with the sidebar following, an unknown tool, and a user without access.

@@ -164,8 +164,9 @@
    hand-painted ones set appearance to none, and a browser ignores accent-color
    once it does, so they are untouched. Every sized checkbox in the app is 1rem
    already, so the size rule only grows the unstyled ones to match. Both rules
-   sit outside every layer so they beat the Tailwind utility. */
-input[type="checkbox"],
+   sit outside every layer so they beat the Tailwind utility. A switch draws
+   its own track, so it keeps the size its classes give it. */
+input[type="checkbox"]:not([role="switch"]),
 input[type="radio"] {
     accent-color: hsl(var(--primary-foreground));
     width: 1rem;

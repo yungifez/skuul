@@ -219,3 +219,7 @@ widens the whole page at phone width. Give the wrapper `relative`:
 ## Never put a double quote inside a component attribute
 
 `<x-table-actions :items="[... 'names' => "row.name + ' for ' + row.student_name"]" />` looks fine, but the inner `"` ends the attribute. Blade then leaves the whole tag as raw HTML, and the browser silently shows nothing. Build the array in `@php` and pass the variable (`:items="$rowActions"`). `BladeComponentTagTest` fails on any tag left uncompiled.
+
+## Paint a Livewire switch from server state, not `:checked`
+
+An `appearance-none` checkbox bound with `wire:model` can stay drawn as off after Livewire sets it on, so `checked:` utilities are unreliable there. Give the track and knob classes with `@class` from the component's value, as `manage-school-features.blade.php` does. Give it `role="switch"`: the global 1rem checkbox size in `app.css` skips switches.
