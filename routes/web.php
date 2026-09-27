@@ -304,10 +304,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         // off closes the way in without losing what it already imported.
         Route::middleware(['feature:imports'])->group(function () {
             Route::get('imports', ['App\Http\Controllers\ImportController', 'index'])->name('imports.index');
-            Route::post('imports', ['App\Http\Controllers\ImportController', 'store'])->name('imports.store');
             Route::get('imports/{importBatch}', ['App\Http\Controllers\ImportController', 'show'])->name('imports.show');
-            Route::post('imports/{importBatch}/apply', ['App\Http\Controllers\ImportController', 'apply'])->name('imports.apply');
-            Route::post('imports/{importBatch}/cancel', ['App\Http\Controllers\ImportController', 'cancel'])->name('imports.cancel');
         });
 
         // Exam planning names its own calendar, so it can be prepared for a

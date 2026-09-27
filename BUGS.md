@@ -1,5 +1,14 @@
 # Known Bugs
 
+## An import could be written twice, and Excel files lost their first column
+
+- Status: Fixed
+- Area: Imports
+- Observed: Writing an import read its status without a lock. A double click, or two people on the same page, both wrote every row. A file that named one source id on two lines wrote the same record twice, so the second line silently undid the first. A CSV saved by Excel starts with a byte order mark, so the first column name did not match and the file was refused as missing a column.
+- Impact: Rows without a source id became duplicate people. Schools that export from Excel could not import at all when the first column was required.
+- Reproduction: Open one checked import in two tabs and press Write in both. Or import a staff file whose first column is `name`, saved by Excel as "CSV UTF-8".
+- Resolution: Writing or dropping an import now claims it in one conditional update, so only the first request goes ahead and the other is told the import is finished. A source id named twice in one file marks the later line as an error. The CSV reader strips the byte order mark. The upload form and the write and drop buttons now run through Livewire, and the three POST routes and their request class were removed.
+
 ## Anybody who could read reports could download the general ledger and every learner's results
 - Status: Fixed
 - Area: Reports (`ReportRegistry`, `RequestReport`, `ReportRunPolicy`, reports screen)

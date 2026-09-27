@@ -5,7 +5,9 @@ namespace Tests\Feature;
 use App\Enums\Feature;
 use App\Enums\ImportRowState;
 use App\Enums\ImportStatus;
+use App\Livewire\ImportBatchActions as ImportBatchActionsComponent;
 use App\Livewire\ImportBatchDirectory as ImportBatchDirectoryComponent;
+use App\Livewire\ImportFileForm as ImportFileFormComponent;
 use App\Livewire\ImportRowDirectory as ImportRowDirectoryComponent;
 use App\Models\ImportBatch;
 use App\Models\School;
@@ -44,14 +46,16 @@ class ImportScreenTest extends TestCase
     {
         $this->authorized_user(['read import', 'create import']);
 
-        $response = $this->post(route('imports.store'), [
-            'type' => 'staff',
-            'file' => $this->staffFile(),
-        ]);
+        $component = Livewire::test(ImportFileFormComponent::class)
+            ->set('type', 'staff')
+            ->set('file', $this->staffFile())
+            ->call('save');
 
         $batch = ImportBatch::inSchool()->sole();
 
-        $response->assertRedirect(route('imports.show', $batch));
+        $component->assertRedirect(route('imports.show', $batch));
+        $this->assertSame(1, $batch->valid_count);
+        $this->assertSame(1, $batch->invalid_count);
 
         $this->get(route('imports.show', $batch))
             ->assertOk()
@@ -116,12 +120,82 @@ class ImportScreenTest extends TestCase
             $this->staffRow(['email' => 'ada.bell@gmail.com']),
         ], 'staff.csv');
 
-        $this->from(route('imports.show', $batch))
-            ->post(route('imports.apply', $batch))
+        Livewire::test(ImportBatchActionsComponent::class, ['batch' => $batch])
+            ->call('apply')
             ->assertRedirect(route('imports.show', $batch));
 
         $this->assertSame(1, StaffProfile::inSchool()->count());
         $this->assertSame(1, $batch->fresh()->applied_count);
+    }
+
+    public function test_a_second_click_on_a_page_left_open_writes_nothing_more(): void
+    {
+        $this->authorized_user(['read import', 'create import', 'apply import']);
+        $batch = app(ImportRunner::class)->stage('staff', [
+            $this->staffRow(['email' => 'ada.bell@gmail.com']),
+        ], 'staff.csv');
+
+        $firstTab = Livewire::test(ImportBatchActionsComponent::class, ['batch' => $batch]);
+        $secondTab = Livewire::test(ImportBatchActionsComponent::class, ['batch' => $batch]);
+
+        $firstTab->call('apply');
+        $secondTab->call('apply')->assertNoRedirect();
+        $secondTab->call('cancel')->assertNoRedirect();
+
+        $this->assertSame(1, StaffProfile::inSchool()->count());
+        $this->assertSame(ImportStatus::Applied, $batch->fresh()->status);
+    }
+
+    public function test_dropping_the_import_from_the_screen_writes_nothing(): void
+    {
+        $this->authorized_user(['read import', 'create import', 'apply import']);
+        $batch = app(ImportRunner::class)->stage('staff', [$this->staffRow()], 'staff.csv');
+
+        Livewire::test(ImportBatchActionsComponent::class, ['batch' => $batch])
+            ->call('cancel')
+            ->assertRedirect(route('imports.show', $batch));
+
+        $this->assertSame(0, StaffProfile::inSchool()->count());
+        $this->assertSame(ImportStatus::Cancelled, $batch->fresh()->status);
+    }
+
+    public function test_a_person_who_may_not_write_cannot_call_the_action(): void
+    {
+        $this->authorized_user(['read import', 'create import']);
+        $batch = app(ImportRunner::class)->stage('staff', [$this->staffRow()], 'staff.csv');
+
+        Livewire::test(ImportBatchActionsComponent::class, ['batch' => $batch])
+            ->call('apply')
+            ->assertForbidden();
+
+        $this->assertSame(ImportStatus::Checked, $batch->fresh()->status);
+    }
+
+    public function test_a_file_missing_a_column_says_so_under_the_file(): void
+    {
+        $this->authorized_user(['read import', 'create import']);
+
+        Livewire::test(ImportFileFormComponent::class)
+            ->set('type', 'staff')
+            ->set('file', UploadedFile::fake()->createWithContent('staff.csv', "name,job_title\nAda Bell,Teacher\n"))
+            ->call('save')
+            ->assertHasErrors('file')
+            ->assertNoRedirect();
+
+        $this->assertSame(0, ImportBatch::inSchool()->count());
+    }
+
+    public function test_an_unknown_import_is_refused_by_the_form(): void
+    {
+        $this->authorized_user(['read import', 'create import']);
+
+        Livewire::test(ImportFileFormComponent::class)
+            ->set('type', 'invoices')
+            ->set('file', $this->staffFile())
+            ->call('save')
+            ->assertHasErrors('type');
+
+        $this->assertSame(0, ImportBatch::inSchool()->count());
     }
 
     public function test_a_person_who_may_not_write_never_sees_the_button(): void
@@ -205,13 +279,13 @@ class ImportScreenTest extends TestCase
     }
 
     /**
-     * Build a staff file with one good row and one bad row.
+     * Build a staff file, saved by Excel, with one good row and one bad row.
      */
     private function staffFile(): UploadedFile
     {
-        $csv = "source_id,name,email,birthday,gender,staff_number,job_title,department,employment_type,joined_on\n"
-            ."HR-1,Ada Bell,ada.bell@gmail.com,1990-04-01,female,,Teacher,Science,full_time,2024-09-01\n"
-            ."HR-2,Grace Ola,not-an-email,1991-04-01,female,,Teacher,Science,full_time,2024-09-01\n";
+        $csv = "\xEF\xBB\xBFsource_id,name,email,birthday,gender,staff_number,job_title,department,employment_type,joined_on\n"
+            ."HR-1,Ada Bell,ada.bell@gmail.com,1990-04-01,Female,,Teacher,Science,full_time,2024-09-01\n"
+            ."HR-2,Grace Ola,not-an-email,1991-04-01,Female,,Teacher,Science,full_time,2024-09-01\n";
 
         return UploadedFile::fake()->createWithContent('staff.csv', $csv);
     }

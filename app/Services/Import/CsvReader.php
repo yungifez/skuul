@@ -16,9 +16,10 @@ class CsvReader
     /**
      * Read a file on the given disk.
      *
-     * @throws InvalidValueException when the file is missing or has no heading row
      *
      * @return array<int, array<string, string|null>>
+     *
+     * @throws InvalidValueException when the file is missing or has no heading row
      */
     public function read(string $path, string $disk = 'local'): array
     {
@@ -32,12 +33,16 @@ class CsvReader
     /**
      * Read CSV text.
      *
-     * @throws InvalidValueException when the text has no heading row
      *
      * @return array<int, array<string, string|null>>
+     *
+     * @throws InvalidValueException when the text has no heading row
      */
     public function parse(string $contents): array
     {
+        // Excel starts a UTF-8 file with a byte order mark, which would
+        // otherwise hide the first column name.
+        $contents = preg_replace('/^\xEF\xBB\xBF/', '', $contents) ?? $contents;
         $lines = preg_split('/\r\n|\r|\n/', trim($contents)) ?: [];
 
         if ($lines === [] || $lines[0] === '') {

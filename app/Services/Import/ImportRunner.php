@@ -24,14 +24,12 @@ use Throwable;
  */
 class ImportRunner
 {
-    public function __construct(private ImportRegistry $registry)
-    {
-    }
+    public function __construct(private ImportRegistry $registry) {}
 
     /**
      * Start an import and check every row.
      *
-     * @param array<int, array<string, mixed>> $rows
+     * @param  array<int, array<string, mixed>>  $rows
      *
      * @throws InvalidValueException when the file is missing a required column
      */
@@ -43,17 +41,28 @@ class ImportRunner
 
         return DB::transaction(function () use ($importer, $type, $rows, $sourceName, $actor): ImportBatch {
             $batch = ImportBatch::create([
-                'school_id'   => current_school_id(),
-                'type'        => $type,
+                'school_id' => current_school_id(),
+                'type' => $type,
                 'source_name' => $sourceName,
-                'created_by'  => $actor === null ? auth()->id() : $actor->id,
+                'created_by' => $actor === null ? auth()->id() : $actor->id,
             ]);
 
             $valid = 0;
             $invalid = 0;
+            $linesBySourceId = [];
 
             foreach ($rows as $index => $row) {
                 $errors = $this->check($importer, $row);
+                $sourceId = $this->sourceIdOf($row);
+
+                // Two rows with one source id would write the same record twice,
+                // and the second would silently undo the first.
+                if ($sourceId !== null && isset($linesBySourceId[$sourceId])) {
+                    $errors[] = "Line {$linesBySourceId[$sourceId]} already names this source id.";
+                } elseif ($sourceId !== null) {
+                    $linesBySourceId[$sourceId] = $index + 2;
+                }
+
                 $isValid = $errors === [];
                 $isValid ? $valid++ : $invalid++;
 
@@ -61,17 +70,17 @@ class ImportRunner
                     'import_batch_id' => $batch->id,
                     // Line one is the heading, so the first row of data is line two.
                     'line_number' => $index + 2,
-                    'source_id'   => $this->sourceIdOf($row),
-                    'payload'     => $row,
-                    'state'       => $isValid ? ImportRowState::Valid : ImportRowState::Invalid,
-                    'errors'      => $errors === [] ? null : $errors,
+                    'source_id' => $sourceId,
+                    'payload' => $row,
+                    'state' => $isValid ? ImportRowState::Valid : ImportRowState::Invalid,
+                    'errors' => $errors === [] ? null : $errors,
                 ]);
             }
 
             $batch->forceFill([
-                'status'        => ImportStatus::Checked,
-                'row_count'     => count($rows),
-                'valid_count'   => $valid,
+                'status' => ImportStatus::Checked,
+                'row_count' => count($rows),
+                'valid_count' => $valid,
                 'invalid_count' => $invalid,
             ])->save();
 
@@ -86,9 +95,7 @@ class ImportRunner
      */
     public function apply(ImportBatch $batch): ImportBatch
     {
-        if (!$batch->status->canBeApplied()) {
-            throw new InvalidValueException('This import was already finished.');
-        }
+        $this->claim($batch, ImportStatus::Applied, ['applied_at' => now()]);
 
         $importer = $this->registry->get($batch->type);
         $applied = 0;
@@ -98,7 +105,7 @@ class ImportRunner
                 $subject = DB::transaction(fn (): Model => $this->write($importer, $batch, $row));
             } catch (Throwable $exception) {
                 $row->forceFill([
-                    'state'  => ImportRowState::Invalid,
+                    'state' => ImportRowState::Invalid,
                     'errors' => [$exception->getMessage()],
                 ])->save();
 
@@ -106,19 +113,19 @@ class ImportRunner
             }
 
             $row->forceFill([
-                'state'        => ImportRowState::Applied,
+                'state' => ImportRowState::Applied,
                 'subject_type' => $subject->getMorphClass(),
-                'subject_id'   => $subject->getKey(),
+                'subject_id' => $subject->getKey(),
             ])->save();
 
             $applied++;
         }
 
         $batch->forceFill([
-            'status'        => ImportStatus::Applied,
+            'status' => ImportStatus::Applied,
             'applied_count' => $applied,
             'invalid_count' => $batch->rows()->broken()->count(),
-            'applied_at'    => now(),
+            'applied_at' => now(),
         ])->save();
 
         return $batch;
@@ -129,13 +136,37 @@ class ImportRunner
      */
     public function cancel(ImportBatch $batch): ImportBatch
     {
-        if (!$batch->status->canBeApplied()) {
+        $this->claim($batch, ImportStatus::Cancelled);
+
+        return $batch;
+    }
+
+    /**
+     * Move a checked import on in one statement, so only one request wins.
+     *
+     * Two people, or one double click, can both read a checked import. Only the
+     * first update finds it still checked, and the other is refused before it
+     * writes a row.
+     *
+     * @param  array<string, mixed>  $values
+     *
+     * @throws InvalidValueException when the import was already written or dropped
+     */
+    private function claim(ImportBatch $batch, ImportStatus $status, array $values = []): void
+    {
+        $claimed = ImportBatch::query()
+            ->whereKey($batch->getKey())
+            ->whereIn('status', array_map(
+                fn (ImportStatus $open): string => $open->value,
+                array_filter(ImportStatus::cases(), fn (ImportStatus $open): bool => $open->canBeApplied()),
+            ))
+            ->update(['status' => $status->value, ...$values]);
+
+        if ($claimed === 0) {
             throw new InvalidValueException('This import was already finished.');
         }
 
-        $batch->forceFill(['status' => ImportStatus::Cancelled])->save();
-
-        return $batch;
+        $batch->refresh();
     }
 
     /**
@@ -169,8 +200,7 @@ class ImportRunner
     /**
      * Get what one row got wrong.
      *
-     * @param array<string, mixed> $row
-     *
+     * @param  array<string, mixed>  $row
      * @return array<int, string>
      */
     private function check(Importer $importer, array $row): array
@@ -183,7 +213,7 @@ class ImportRunner
     /**
      * Get the outside identifier a row names, when it names one.
      *
-     * @param array<string, mixed> $row
+     * @param  array<string, mixed>  $row
      */
     private function sourceIdOf(array $row): ?string
     {
@@ -195,7 +225,7 @@ class ImportRunner
     /**
      * Refuse a file that is missing a column the import needs.
      *
-     * @param array<int, array<string, mixed>> $rows
+     * @param  array<int, array<string, mixed>>  $rows
      *
      * @throws InvalidValueException when a required column is missing
      */

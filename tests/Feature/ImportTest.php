@@ -229,6 +229,42 @@ class ImportTest extends TestCase
         $runner->apply($batch);
     }
 
+    public function test_a_stale_copy_of_a_written_import_is_refused(): void
+    {
+        $this->authorized_user(['create import', 'apply import']);
+        $runner = app(ImportRunner::class);
+        $batch = $runner->stage('staff', [$this->staffRow(['email' => 'ada.bell@gmail.com'])]);
+        $staleCopy = ImportBatch::findOrFail($batch->id);
+
+        $runner->apply($batch);
+
+        $this->assertThrows(fn () => $runner->apply($staleCopy), InvalidValueException::class);
+        $this->assertThrows(fn () => $runner->cancel($staleCopy), InvalidValueException::class);
+        $this->assertSame(1, StaffProfile::inSchool()->count());
+        $this->assertSame(ImportStatus::Applied, $batch->fresh()->status);
+    }
+
+    public function test_a_source_id_named_twice_in_one_file_is_an_error(): void
+    {
+        $this->authorized_user(['create import']);
+
+        $batch = app(ImportRunner::class)->stage('staff', [
+            $this->staffRow(['source_id' => 'HR-1', 'email' => 'ada.bell@gmail.com']),
+            $this->staffRow(['source_id' => 'HR-1', 'email' => 'grace.ola@gmail.com']),
+        ]);
+
+        $this->assertSame(1, $batch->valid_count);
+        $this->assertSame(1, $batch->invalid_count);
+        $this->assertSame(['Line 2 already names this source id.'], $batch->rows()->where('line_number', 3)->sole()->errors);
+    }
+
+    public function test_a_file_saved_by_excel_reads_its_first_column(): void
+    {
+        $rows = app(CsvReader::class)->parse("\xEF\xBB\xBFsource_id,name\nHR-1,Ada Bell\n");
+
+        $this->assertSame([['source_id' => 'HR-1', 'name' => 'Ada Bell']], $rows);
+    }
+
     public function test_a_dropped_import_writes_nothing(): void
     {
         $this->authorized_user(['create import', 'apply import']);
