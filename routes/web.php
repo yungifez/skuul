@@ -262,7 +262,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::middleware(['feature:wellbeing'])->group(function () {
             Route::get('support-plans', ['App\Http\Controllers\SupportPlanController', 'index'])->name('support-plans.index');
             Route::get('support-plans/create', ['App\Http\Controllers\SupportPlanController', 'create'])->name('support-plans.create');
-            Route::post('support-plans', ['App\Http\Controllers\SupportPlanController', 'store'])->name('support-plans.store');
             Route::get('support-plans/{supportPlan}', ['App\Http\Controllers\SupportPlanController', 'show'])->name('support-plans.show');
 
             Route::get('health-records', ['App\Http\Controllers\StudentHealthRecordController', 'index'])->name('health-records.index');

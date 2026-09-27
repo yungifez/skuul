@@ -7,6 +7,7 @@ use App\Actions\Wellbeing\RecordHealthInformation;
 use App\Enums\Feature;
 use App\Enums\SupportCategory;
 use App\Enums\SupportPlanStatus;
+use App\Livewire\CreateSupportPlan;
 use App\Livewire\ShowSupportPlan;
 use App\Livewire\StudentHealthRecordDirectory as StudentHealthRecordDirectoryComponent;
 use App\Livewire\SupportPlanDirectory as SupportPlanDirectoryComponent;
@@ -44,22 +45,36 @@ class WellbeingScreenTest extends TestCase
         $this->authorized_user(['read support plan', 'create support plan']);
         $enrollment = $this->enrollment();
 
-        $response = $this->post(route('support-plans.store'), [
-            'student_record_id' => $enrollment->id,
-            'title' => 'Extra reading, four mornings a week',
-            'category' => SupportCategory::Intervention->value,
-            'summary' => 'The child reads two years below the class.',
-            'starts_on' => now()->toDateString(),
-            'review_on' => now()->addMonth()->toDateString(),
-        ]);
+        $this->get(route('support-plans.create'))->assertOk()->assertSeeLivewire(CreateSupportPlan::class);
+
+        $component = Livewire::test(CreateSupportPlan::class)
+            ->set('studentRecordId', $enrollment->id)
+            ->set('title', 'Extra reading, four mornings a week')
+            ->set('category', SupportCategory::Intervention->value)
+            ->assertDontSee('Confidential')
+            ->set('summary', 'The child reads two years below the class.')
+            ->set('reviewOn', now()->addMonth()->toDateString())
+            ->call('save')
+            ->assertHasNoErrors();
 
         $plan = SupportPlan::inSchool()->sole();
 
-        $response->assertRedirect(route('support-plans.show', $plan));
+        $component->assertRedirect(route('support-plans.show', $plan));
 
         $this->assertSame('Extra reading, four mornings a week', $plan->title);
         $this->assertSame(SupportPlanStatus::Draft, $plan->status);
         $this->assertFalse($plan->is_confidential);
+    }
+
+    public function test_a_counselling_plan_is_marked_confidential_before_it_is_saved(): void
+    {
+        $this->authorized_user(['read support plan', 'create support plan']);
+
+        Livewire::test(CreateSupportPlan::class)
+            ->set('category', SupportCategory::Counselling->value)
+            ->assertSeeHtml('id="confidential-mark"')
+            ->call('save')
+            ->assertHasErrors(['studentRecordId' => 'required', 'title' => 'required']);
     }
 
     public function test_a_plan_cannot_be_reviewed_before_it_starts(): void
@@ -67,13 +82,12 @@ class WellbeingScreenTest extends TestCase
         $this->authorized_user(['read support plan', 'create support plan']);
         $enrollment = $this->enrollment();
 
-        $this->post(route('support-plans.store'), [
-            'student_record_id' => $enrollment->id,
-            'title' => 'Extra reading',
-            'category' => SupportCategory::Intervention->value,
-            'starts_on' => now()->toDateString(),
-            'review_on' => now()->subWeek()->toDateString(),
-        ])->assertSessionHasErrors('review_on');
+        Livewire::test(CreateSupportPlan::class)
+            ->set('studentRecordId', $enrollment->id)
+            ->set('title', 'Extra reading')
+            ->set('reviewOn', now()->subWeek()->toDateString())
+            ->call('save')
+            ->assertHasErrors(['reviewOn' => 'after_or_equal']);
 
         $this->assertSame(0, SupportPlan::inSchool()->count());
     }

@@ -865,3 +865,12 @@
 - Impact: The plan's steps sat below a screen of text, and each change lost the reader's place.
 - Reproduction: Open `/dashboard/support-plans/{id}` as someone who runs the plan.
 - Resolution: The page is now the `ShowSupportPlan` Livewire component, laid out like the case page: a summary line (with a "Confidential" mark), a facts row where an overdue review reads "· due" in red, the move form, and then Steps, Notes and History as plain lists. Four routes and three form requests are removed. New tests cover read-only viewers and a finished plan refusing steps.
+
+## Opening a support plan uses two explained cards and a POST form
+
+- Status: Fixed
+- Area: Wellbeing, open a support plan
+- Observed: The form was split into two cards, each with a description, plus hint lines under the category and review fields. An error from the action showed as a separate alert at the top of the page.
+- Impact: The form read as instructions instead of a form, and the error sat far from the field it was about.
+- Reproduction: Open `/dashboard/support-plans/create`.
+- Resolution: The form is now the `CreateSupportPlan` Livewire component: one plain grid of fields with a Cancel and an "Open the plan" button. Choosing a health or counselling category shows a small "Confidential" mark. Errors show under their fields. The POST route, the `store` action and `StoreSupportPlanRequest` are removed.
