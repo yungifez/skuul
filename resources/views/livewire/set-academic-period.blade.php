@@ -21,8 +21,8 @@
             @php
                 $selectClasses = [
                     'rounded-md border border-input bg-background px-2 font-medium disabled:opacity-60',
-                    'h-8 text-xs' => $compact,
-                    'h-10 text-sm' => !$compact,
+                    'h-11 text-xs sm:h-8' => $compact,
+                    'h-11 text-sm' => !$compact,
                 ];
                 $yearOptions = $academicYears->contains('id', $academicYear->id) ? $academicYears : $academicYears->prepend($academicYear);
             @endphp

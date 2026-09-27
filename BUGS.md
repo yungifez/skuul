@@ -1,5 +1,13 @@
 # Known Bugs
 
+## The menu button, year switcher, and create buttons were too small to tap on a phone
+- Status: Fixed
+- Area: Layout, shared controls
+- Observed: At 390px the sidebar trigger was 28px, the working year and term selects 32px, the theme and profile buttons 40px, every "Add …" page action 40px, and each help "?" 28px. The section list filters were 34px.
+- Impact: The sidebar trigger is the only way to reach the menu on a phone. Staff on phones missed taps on controls that sit on every page.
+- Reproduction: Open any dashboard page at 390px wide and measure the header controls.
+- Resolution: Each shared control is now at least 44px on a phone. The help button keeps its look and gets a 44px hit area. A unit test guards the shared controls. The april-ui data table (search, sort, page size, pagination) is still 32 to 36px and needs a fix in the package.
+
 ## Rolling sections into a new year brought back archived sections and retired classes
 - Status: Fixed
 - Area: Academic structure, section roll forward

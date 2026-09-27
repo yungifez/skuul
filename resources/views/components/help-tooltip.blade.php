@@ -4,7 +4,7 @@
 
 <april:tooltip x-teleport="body">
     <slot:trigger>
-        <button type="button" aria-label="{{ $label }}" class="inline-flex size-7 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
+        <button type="button" aria-label="{{ $label }}" class="relative inline-flex size-7 select-none items-center justify-center rounded-full text-muted-foreground before:absolute before:-inset-2 before:content-[''] transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring">
             <x-lucide-circle-help class="size-4" />
         </button>
     </slot:trigger>

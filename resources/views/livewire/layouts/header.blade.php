@@ -4,7 +4,7 @@
         {{-- The row is a flex line with min-w-0 beside it, so on a narrow
         screen the trigger was squeezed to 18px wide. It is the only way to
         reach the menu on a phone. --}}
-        <april:sidebar-trigger class="shrink-0" />
+        <april:sidebar-trigger class="size-11 shrink-0 select-none" />
         <a href="{{route('home')}}" class="flex shrink-0 items-center gap-3" aria-label="Home">
             {{-- The product name is branding, not the heading of the page.
             layouts/app.blade.php draws the one h1 each screen has. The link
@@ -30,7 +30,7 @@
         {{--Dark mode toggle--}}
         <april:dropdown-menu>
             <slot:trigger>
-                <april:button aria-label="open theme selection" class="justify-center" size="icon" variant="ghost"
+                <april:button aria-label="open theme selection" class="size-11 select-none justify-center" size="icon" variant="ghost"
                     type="button">
                     <x-lucide-sun class="h-4 w-4 dark:hidden" />
                     <x-lucide-moon class="hidden h-4 w-4 dark:block" />
@@ -57,7 +57,7 @@
         {{--Click to open profile card--}}
         <april:dropdown-menu x-teleport="body">
             <slot:trigger>
-                <april:button variant="ghost" size="none" class="ml-1 flex h-10 items-center gap-2 rounded-md px-2">
+                <april:button variant="ghost" size="none" class="ml-1 flex h-11 select-none items-center gap-2 rounded-md px-2">
                     <april:avatar size="sm">
                         <slot:image src="{{auth()->user()->profile_photo_url}}" alt="{{auth()->user()->name}}" />
                         <slot:fallback>{{strtoupper(substr(auth()->user()->name, 0, 1))}}</slot:fallback>

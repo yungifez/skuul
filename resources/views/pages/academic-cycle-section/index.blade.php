@@ -37,7 +37,7 @@
             <form method="GET" action="{{ route('academic-cycle-sections.index') }}" class="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
                 <div class="flex flex-col gap-1.5">
                     <april:label for="filter-cycle">{{ school_term('academic_year', 'School year') }}</april:label>
-                    <select id="filter-cycle" name="academic_year_id" class="rounded-md border border-input bg-background px-3 py-2 text-sm" onchange="this.form.submit()">
+                    <select id="filter-cycle" name="academic_year_id" class="h-11 rounded-md border border-input bg-background px-3 text-sm" onchange="this.form.submit()">
                         <option value="">Every {{ strtolower(school_term('academic_year', 'school year')) }}</option>
                         @foreach ($academicYears as $academicYear)
                             <option value="{{ $academicYear->id }}" {{ $selectedAcademicYearId === $academicYear->id ? 'selected' : '' }}>{{ $academicYear->name }}</option>
@@ -46,7 +46,7 @@
                 </div>
                 <div class="flex flex-col gap-1.5">
                     <april:label for="filter-level">{{ school_term('class_level', 'Class') }}</april:label>
-                    <select id="filter-level" name="academic_level_id" class="rounded-md border border-input bg-background px-3 py-2 text-sm" onchange="this.form.submit()">
+                    <select id="filter-level" name="academic_level_id" class="h-11 rounded-md border border-input bg-background px-3 text-sm" onchange="this.form.submit()">
                         <option value="">Every {{ strtolower(school_terms('class_level', 'class')) }}</option>
                         @foreach ($academicLevels as $academicLevel)
                             <option value="{{ $academicLevel->id }}" {{ $selectedAcademicLevelId === $academicLevel->id ? 'selected' : '' }}>{{ $academicLevel->name }}</option>
@@ -55,7 +55,7 @@
                 </div>
                 <div class="flex flex-col gap-1.5">
                     <april:label for="filter-status">Status</april:label>
-                    <select id="filter-status" name="status" class="rounded-md border border-input bg-background px-3 py-2 text-sm" onchange="this.form.submit()">
+                    <select id="filter-status" name="status" class="h-11 rounded-md border border-input bg-background px-3 text-sm" onchange="this.form.submit()">
                         <option value="">Every status</option>
                         @foreach (AcademicStructureStatus::cases() as $case)
                             <option value="{{ $case->value }}" {{ $selectedStatus === $case ? 'selected' : '' }}>{{ $case->label() }}</option>
@@ -63,7 +63,7 @@
                     </select>
                 </div>
                 <div class="flex flex-wrap items-center gap-2">
-                    <april:button type="submit" variant="outline">Apply</april:button>
+                    <april:button type="submit" variant="outline" class="h-11 select-none">Apply</april:button>
                     @if ($filtered)
                         <april:button-link href="{{ route('academic-cycle-sections.index', ['academic_year_id' => '']) }}" variant="ghost">Clear</april:button-link>
                     @endif
