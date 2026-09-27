@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A proved web address kept opening a campus that had left the organization
+
+- Status: Fixed
+- Area: Organizations, web addresses
+- Observed: An address one organization proved still named a campus after that campus joined another organization, so visitors to the old organization's address landed on the new owner's campus. Any number of addresses could be the main one. Two organizations claiming one address at the same moment made the second see a database error.
+- Impact: The old organization's address sent staff and families to a campus it no longer ran.
+- Reproduction: Claim and prove an address that opens campus A. Assign campus A to another organization. Open the address. It still chose campus A.
+- Resolution: DomainContext only opens a campus of the address's own organization. AssignSchoolToOrganization clears the campus from the old organization's addresses. A new main address replaces the old one, and a claim that loses the race is refused as already claimed. The page is now the Livewire component OrganizationDomains, and its three write routes and request were removed.
+
 ## A shared residence could hold a house whose campus no longer used it
 
 - Status: Fixed

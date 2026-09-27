@@ -7,6 +7,7 @@ use App\Enums\AuditAction;
 use App\Models\Dormitory;
 use App\Models\Organization;
 use App\Models\School;
+use App\Models\SchoolDomain;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
@@ -20,7 +21,8 @@ class AssignSchoolToOrganization
      * The billing group, calendar template and shared residences belong to the
      * organization the campus leaves, so the campus stops using them. It then
      * bills on its own, follows the new organization's default calendar, and
-     * keeps its houses as houses of its own.
+     * keeps its houses as houses of its own. An address the old organization
+     * proved no longer opens it.
      */
     public function assign(School $school, Organization $organization, ?User $actor = null): School
     {
@@ -42,6 +44,10 @@ class AssignSchoolToOrganization
                 ->whereNotNull('boarding_residence_id')
                 ->update(['boarding_residence_id' => null]);
             $school->boardingResidences()->detach();
+            SchoolDomain::query()
+                ->where('school_id', $school->id)
+                ->where('organization_id', '!=', $organization->id)
+                ->update(['school_id' => null]);
 
             $this->recordAuditEvent->record(
                 AuditAction::SchoolOrganizationAssigned,

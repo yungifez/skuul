@@ -66,10 +66,19 @@ class DomainContext
 
     /**
      * Get the campus this address opens, when it names one.
+     *
+     * A campus that has since joined another organization is not opened by
+     * an address its old organization proved.
      */
     public function school(): ?School
     {
-        return $this->domain?->school;
+        $school = $this->domain?->school;
+
+        if ($school === null || $school->organization_id !== $this->domain->organization_id) {
+            return null;
+        }
+
+        return $school;
     }
 
     /**

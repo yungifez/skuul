@@ -9,6 +9,8 @@ use App\Models\Organization;
 use App\Models\School;
 use App\Models\SchoolDomain;
 use App\Models\User;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -24,6 +26,8 @@ class AddSchoolDomain
 
     /**
      * Claim the address.
+     *
+     * A main address replaces the one the organization had before.
      *
      * @throws InvalidValueException when the address is malformed, already
      *                               claimed, or names a campus of another organization
@@ -41,12 +45,32 @@ class AddSchoolDomain
             throw new InvalidValueException("[$host] is not a web address this application can answer on.");
         }
 
-        if (SchoolDomain::where('host', $host)->exists()) {
+        if ($school !== null && $school->organization_id !== $organization->id) {
+            throw new InvalidValueException('That campus belongs to another organization.');
+        }
+
+        try {
+            return DB::transaction(fn (): SchoolDomain => $this->claim($organization, $host, $school, $isPrimary, $actor));
+        } catch (UniqueConstraintViolationException) {
+            // Another organization claimed the same address a moment earlier.
+            throw new InvalidValueException("[$host] is already claimed.");
+        }
+    }
+
+    /**
+     * Write the claim down, with the organization locked so its main address
+     * changes one claim at a time.
+     */
+    private function claim(Organization $organization, string $host, ?School $school, bool $isPrimary, ?User $actor): SchoolDomain
+    {
+        Organization::query()->lockForUpdate()->findOrFail($organization->id);
+
+        if (SchoolDomain::query()->where('host', $host)->exists()) {
             throw new InvalidValueException("[$host] is already claimed.");
         }
 
-        if ($school !== null && $school->organization_id !== $organization->id) {
-            throw new InvalidValueException('That campus belongs to another organization.');
+        if ($isPrimary) {
+            $organization->domains()->where('is_primary', true)->update(['is_primary' => false]);
         }
 
         $domain = SchoolDomain::create([

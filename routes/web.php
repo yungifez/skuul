@@ -137,9 +137,6 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     // Organization administration is separate from working-school access.
     Route::get('organizations/{organization}/members', ['App\Http\Controllers\OrganizationMemberController', 'index'])->name('organizations.members.index');
     Route::get('organizations/{organization}/domains', ['App\Http\Controllers\OrganizationDomainController', 'index'])->name('organizations.domains.index');
-    Route::post('organizations/{organization}/domains', ['App\Http\Controllers\OrganizationDomainController', 'store'])->name('organizations.domains.store');
-    Route::post('organizations/{organization}/domains/{domain}/verify', ['App\Http\Controllers\OrganizationDomainController', 'verify'])->name('organizations.domains.verify');
-    Route::delete('organizations/{organization}/domains/{domain}', ['App\Http\Controllers\OrganizationDomainController', 'destroy'])->name('organizations.domains.destroy');
     Route::get('organizations/{organization}/billing-groups', ['App\Http\Controllers\OrganizationBillingGroupController', 'index'])->name('organizations.billing-groups.index');
     Route::get('organizations/{organization}/boarding-residences', [OrganizationBoardingResidenceController::class, 'index'])->name('organizations.boarding-residences.index');
     Route::resource('organizations', OrganizationController::class)->except('destroy');

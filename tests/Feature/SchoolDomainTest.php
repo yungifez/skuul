@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\Organization\AddSchoolDomain;
+use App\Actions\Organization\AssignSchoolToOrganization;
 use App\Actions\Organization\GrantOrganizationMembership;
 use App\Actions\Organization\SetOrganizationMemberPermissions;
 use App\Actions\Organization\VerifySchoolDomain;
@@ -10,6 +11,7 @@ use App\Actions\School\GrantSchoolMembership;
 use App\Enums\AuditAction;
 use App\Enums\OrganizationPermission;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\OrganizationDomains;
 use App\Models\AuditEvent;
 use App\Models\Organization;
 use App\Models\School;
@@ -19,8 +21,10 @@ use App\Services\School\DnsTextRecords;
 use App\Services\School\DomainContext;
 use App\Services\School\SchoolContext;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
+use Livewire\Livewire;
 use Tests\TestCase;
 
 /**
@@ -202,22 +206,92 @@ class SchoolDomainTest extends TestCase
     public function test_an_organization_manager_can_claim_and_prove_an_address(): void
     {
         $organization = Organization::factory()->create();
+        $campus = School::factory()->create(['organization_id' => $organization->id]);
         $manager = $this->organizationManager($organization);
 
         $this->actingAs($manager)
-            ->post(route('organizations.domains.store', $organization), ['host' => 'lagos.example.school'])
-            ->assertRedirect();
+            ->get(route('organizations.domains.index', $organization))
+            ->assertOk()
+            ->assertSeeLivewire(OrganizationDomains::class);
+
+        $component = Livewire::actingAs($manager)
+            ->test(OrganizationDomains::class, ['organization' => $organization])
+            ->set('host', ' LAGOS.example.school ')
+            ->set('schoolId', (string) $campus->id)
+            ->call('claim')
+            ->assertHasNoErrors()
+            ->assertSet('host', '');
 
         $domain = SchoolDomain::firstWhere('host', 'lagos.example.school');
         $this->assertNotNull($domain);
+        $this->assertSame($campus->id, $domain->school_id);
+
+        $component->assertSee($domain->verification_token)
+            ->call('verify', $domain->id)
+            ->assertDispatched('status-message', type: 'danger');
+
+        $this->assertFalse($domain->fresh()->isVerified());
 
         $this->dnsAnswers([$domain->verificationRecord() => [$domain->verification_token]]);
 
-        $this->actingAs($manager)
-            ->post(route('organizations.domains.verify', [$organization, $domain]))
-            ->assertRedirect();
+        $component->call('verify', $domain->id)
+            ->assertDispatched('status-message', type: 'success')
+            ->assertDontSee($domain->verification_token);
 
         $this->assertTrue($domain->fresh()->isVerified());
+    }
+
+    public function test_a_claim_that_is_not_an_address_or_already_taken_is_shown_on_the_field(): void
+    {
+        $organization = Organization::factory()->create();
+        $manager = $this->organizationManager($organization);
+        SchoolDomain::factory()->create(['host' => 'taken.example.school']);
+
+        Livewire::actingAs($manager)
+            ->test(OrganizationDomains::class, ['organization' => $organization])
+            ->set('host', 'https://not an address')
+            ->call('claim')
+            ->assertHasErrors('host')
+            ->set('host', 'Taken.example.school')
+            ->call('claim')
+            ->assertHasErrors('host')
+            ->assertSee('[taken.example.school] is already claimed.');
+
+        $this->assertSame(0, $organization->domains()->count());
+    }
+
+    public function test_only_one_address_is_the_main_one(): void
+    {
+        $organization = Organization::factory()->create();
+        $first = app(AddSchoolDomain::class)->add($organization, 'one.example.school', isPrimary: true);
+        $second = app(AddSchoolDomain::class)->add($organization, 'two.example.school', isPrimary: true);
+        $elsewhere = app(AddSchoolDomain::class)->add(Organization::factory()->create(), 'three.example.school', isPrimary: true);
+
+        $this->assertFalse($first->fresh()->is_primary);
+        $this->assertTrue($second->fresh()->is_primary);
+        $this->assertTrue($elsewhere->fresh()->is_primary);
+    }
+
+    public function test_an_address_never_opens_a_campus_that_joined_another_organization(): void
+    {
+        [$organization, $campus] = $this->twoCampuses();
+        $domain = SchoolDomain::factory()->verified()->create([
+            'organization_id' => $organization->id,
+            'school_id' => $campus->id,
+            'host' => 'lagos.example.school',
+        ]);
+
+        // A campus moved by hand, without the action, is still not opened.
+        $campus->organization_id = Organization::factory()->create()->id;
+        $campus->save();
+        $this->onHost('lagos.example.school');
+        $this->assertNull(app(DomainContext::class)->school());
+
+        $campus->organization_id = $organization->id;
+        $campus->save();
+        app(AssignSchoolToOrganization::class)->assign($campus, Organization::factory()->create());
+
+        $this->assertNull($domain->fresh()->school_id);
     }
 
     public function test_a_member_without_organization_management_cannot_claim_an_address(): void
@@ -237,22 +311,29 @@ class SchoolDomainTest extends TestCase
         $organization = Organization::factory()->create();
         $outsider = $this->organizationManager(Organization::factory()->create());
 
-        $this->actingAs($outsider)
-            ->post(route('organizations.domains.store', $organization), ['host' => 'lagos.example.school'])
-            ->assertForbidden();
+        Livewire::actingAs($outsider)->test(OrganizationDomains::class, ['organization' => $organization])->assertForbidden();
     }
 
-    public function test_an_address_of_another_organization_cannot_be_given_up(): void
+    public function test_an_address_or_campus_of_another_organization_is_out_of_reach(): void
     {
         $organization = Organization::factory()->create();
         $manager = $this->organizationManager($organization);
         $elsewhere = SchoolDomain::factory()->create();
+        $theirCampus = School::factory()->create(['organization_id' => Organization::factory()->create()->id]);
 
-        $this->actingAs($manager)
-            ->delete(route('organizations.domains.destroy', [$organization, $elsewhere]))
-            ->assertNotFound();
+        $component = Livewire::actingAs($manager)->test(OrganizationDomains::class, ['organization' => $organization])
+            ->assertDontSee($elsewhere->host)
+            ->assertDontSee($theirCampus->name);
+
+        $this->assertThrows(fn () => $component->call('giveUp', $elsewhere->id), ModelNotFoundException::class);
+        $this->assertThrows(fn () => $component->call('verify', $elsewhere->id), ModelNotFoundException::class);
+        $this->assertThrows(
+            fn () => $component->set('host', 'mine.example.school')->set('schoolId', (string) $theirCampus->id)->call('claim'),
+            ModelNotFoundException::class,
+        );
 
         $this->assertNotNull($elsewhere->fresh());
+        $this->assertNull(SchoolDomain::firstWhere('host', 'mine.example.school'));
     }
 
     public function test_giving_up_an_address_stops_it_being_answered(): void
@@ -264,9 +345,10 @@ class SchoolDomainTest extends TestCase
             'host' => 'lagos.example.school',
         ]);
 
-        $this->actingAs($manager)
-            ->delete(route('organizations.domains.destroy', [$organization, $domain]))
-            ->assertRedirect();
+        Livewire::actingAs($manager)
+            ->test(OrganizationDomains::class, ['organization' => $organization])
+            ->call('giveUp', $domain->id)
+            ->assertDispatched('status-message', type: 'success');
 
         $this->assertNull(SchoolDomain::forHost('lagos.example.school'));
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::SchoolDomainRemoved)->first());
