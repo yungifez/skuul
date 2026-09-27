@@ -1,5 +1,14 @@
 # Known Bugs
 
+## An exam could hold two papers with one name, and a paper opened under any exam
+
+- Status: Fixed
+- Area: Exams
+- Observed: One exam could hold "Mathematics paper 1" twice, and the highest mark had no upper limit, so a typo such as 1000000 was saved. The edit and delete addresses did not check that the paper belonged to the exam in the address, so a paper opened under a different exam's breadcrumbs and could be deleted from there.
+- Impact: Mark sheets and timetables could not tell two papers apart, and a wrong highest mark made every percentage near zero.
+- Reproduction: Add a paper named "Mathematics paper 1" to an exam twice. Or open `exams/{another exam}/manage/exam-slots/{paper}/edit`.
+- Resolution: `SaveExamSlot` locks the exam and refuses a paper name the exam already uses, case-blind. The highest mark must be a whole number from 1 to 1000. Edit and delete return 404 when the paper is not part of the exam in the address. The add and change forms run through Livewire, and the store and update routes and their request classes were removed.
+
 ## An exam could fall outside its term, share a name, and lost its dates when edited
 
 - Status: Fixed

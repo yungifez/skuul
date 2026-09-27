@@ -312,7 +312,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
         Route::post('exams/{exam}/set--active-status', ['App\Http\Controllers\ExamController', 'setExamActiveStatus'])->name('exams.set-active-status');
         Route::resource('exams', ExamController::class)->except(['store', 'update']);
         Route::scopeBindings()->group(function () {
-            Route::resource('exams/{exam}/manage/exam-slots', ExamSlotController::class);
+            Route::resource('exams/{exam}/manage/exam-slots', ExamSlotController::class)->except(['store', 'update']);
         });
 
         Route::middleware(['App\Http\Middleware\EnsureAcademicYearIsSet', 'App\Http\Middleware\CreateCurrentAcademicYearRecord'])->group(function () {

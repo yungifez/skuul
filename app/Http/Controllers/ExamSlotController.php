@@ -2,8 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreExamSlotRequest;
-use App\Http\Requests\UpdateExamSlotRequest;
 use App\Models\Exam;
 use App\Models\ExamSlot;
 use App\Services\Exam\ExamSlotService;
@@ -40,19 +38,6 @@ class ExamSlotController extends Controller
     }
 
     /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreExamSlotRequest $request, Exam $exam): RedirectResponse
-    {
-        $this->authorize('createForExam', [ExamSlot::class, $exam]);
-
-        $data = $request->except('_token');
-        $this->examSlot->createExamSlot($exam, $data);
-
-        return back()->with('success', 'Exam Slot Created Successfully');
-    }
-
-    /**
      * Display the specified resource.
      */
     public function show(Exam $exam, ExamSlot $examSlot): Response
@@ -65,18 +50,9 @@ class ExamSlotController extends Controller
      */
     public function edit(Exam $exam, ExamSlot $examSlot): View
     {
+        abort_unless($examSlot->exam_id === $exam->id, 404);
+
         return view('pages.exam.exam-slot.edit', compact('examSlot', 'exam'));
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateExamSlotRequest $request, Exam $exam, ExamSlot $examSlot): RedirectResponse
-    {
-        $data = $request->except('_token', '_method');
-        $this->examSlot->updateExamSlot($examSlot, $data);
-
-        return back()->with('success', 'Exam Slot Updated Successfully');
     }
 
     /**
@@ -84,6 +60,8 @@ class ExamSlotController extends Controller
      */
     public function destroy(Exam $exam, ExamSlot $examSlot): RedirectResponse
     {
+        abort_unless($examSlot->exam_id === $exam->id, 404);
+
         $this->examSlot->deleteExamSlot($examSlot);
 
         return back()->with('success', 'Exam Slot Deleted Successfully');
