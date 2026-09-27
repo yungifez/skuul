@@ -5,13 +5,16 @@ namespace App\Livewire;
 use App\Enums\SyllabusStatus;
 use App\Models\AcademicPeriod;
 use App\Models\Syllabus;
+use App\Services\Report\Formats\CsvFormat;
 use App\Services\Syllabus\SyllabusCoverageService;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Attributes\Url;
 use Livewire\Component;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
  * Show every class's progress through its published syllabus, most behind first.
@@ -37,6 +40,36 @@ class SyllabusCoverageReport extends Component
     {
         Gate::authorize('viewCoverage', Syllabus::class);
 
+        return view('livewire.syllabus-coverage-report', [
+            'rows' => collect($this->rows($coverage)),
+            'periods' => $this->periods(),
+        ]);
+    }
+
+    /**
+     * Download the rows on screen as a spreadsheet file.
+     */
+    public function export(SyllabusCoverageService $coverage, CsvFormat $csv): StreamedResponse
+    {
+        Gate::authorize('viewCoverage', Syllabus::class);
+
+        $period = $this->periods()->firstWhere('id', (int) $this->academicPeriodId);
+        $rows = collect($this->rows($coverage))->map($this->csvRow(...));
+        $content = $csv->render('Syllabus coverage', ['Subject', 'Class', 'Syllabus', 'Revision', 'Topics', 'Covered', 'Partly covered', 'Skipped', 'Behind plan', 'Percent covered'], $rows);
+        $name = 'syllabus-coverage-'.Str::slug($period === null ? 'period' : ($period->label ?? $period->name)).'.csv';
+
+        return response()->streamDownload(function () use ($content): void {
+            echo $content;
+        }, $name, ['Content-Type' => $csv->mimeType()]);
+    }
+
+    /**
+     * Get one row for each class of each published syllabus, most behind first.
+     *
+     * @return list<array{id: int|null, label: string, total: int, covered: int, partial: int, skipped: int, expected: int, behind: int, percent: int, syllabus: Syllabus, class: string}>
+     */
+    private function rows(SyllabusCoverageService $coverage): array
+    {
         $rows = [];
 
         foreach ($this->publishedSyllabi() as $syllabus) {
@@ -55,10 +88,37 @@ class SyllabusCoverageReport extends Component
 
         usort($rows, fn (array $first, array $second): int => [$second['behind'], $first['percent']] <=> [$first['behind'], $second['percent']]);
 
-        return view('livewire.syllabus-coverage-report', [
-            'rows' => collect($rows),
-            'periods' => $this->periods(),
+        return $rows;
+    }
+
+    /**
+     * Turn one report row into the cells of the spreadsheet.
+     *
+     * @param  array{total: int, covered: int, partial: int, skipped: int, behind: int, percent: int, syllabus: Syllabus, class: string}  $row
+     * @return array<int, mixed>
+     */
+    private function csvRow(array $row): array
+    {
+        return array_map($this->plainCell(...), [
+            $row['syllabus']->courseOffering->subject->name,
+            $row['class'],
+            $row['syllabus']->name,
+            $row['syllabus']->revision,
+            $row['total'],
+            $row['covered'],
+            $row['partial'],
+            $row['skipped'],
+            $row['behind'],
+            $row['percent'],
         ]);
+    }
+
+    /**
+     * Keep a spreadsheet from reading a name as a formula.
+     */
+    private function plainCell(int|string $value): int|string
+    {
+        return is_string($value) && preg_match('/^[=+\-@\t\r]/', $value) === 1 ? "'".$value : $value;
     }
 
     /**

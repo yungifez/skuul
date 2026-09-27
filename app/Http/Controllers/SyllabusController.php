@@ -9,9 +9,11 @@ use App\Http\Requests\UpdateSyllabusRequest;
 use App\Models\CurriculumOutline;
 use App\Models\LessonNote;
 use App\Models\Syllabus;
+use App\Services\Print\PrintService;
 use App\Services\Syllabus\SyllabusService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Response;
 use Illuminate\View\View;
 
 class SyllabusController extends Controller
@@ -66,6 +68,17 @@ class SyllabusController extends Controller
         $syllabus->load('courseOffering.subject', 'courseOffering.academicPeriod', 'courseOffering.academicLevel', 'topics', 'revisionOf', 'publishedBy', 'submittedBy');
 
         return view('pages.syllabus.show', compact('syllabus'));
+    }
+
+    /**
+     * Show the syllabus as a scheme of work to print.
+     */
+    public function print(Syllabus $syllabus): Response
+    {
+        $this->authorize('view', $syllabus);
+        $syllabus->load('courseOffering.subject', 'courseOffering.academicPeriod.academicYear', 'courseOffering.academicLevel', 'topics', 'publishedBy');
+
+        return PrintService::page('pages.syllabus.print', compact('syllabus'));
     }
 
     /**

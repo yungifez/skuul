@@ -55,6 +55,8 @@
                     </april:button>
                 @endif
 
+                <april:button-link href="{{ route('syllabi.print', $syllabus) }}" variant="outline">Print scheme of work</april:button-link>
+
                 @can('viewAny', [\App\Models\LessonNote::class, $syllabus])
                     <april:button-link href="{{ route('syllabi.lesson-notes', $syllabus) }}" variant="outline">Lesson notes</april:button-link>
                 @endcan

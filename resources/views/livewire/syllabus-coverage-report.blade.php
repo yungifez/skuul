@@ -16,6 +16,7 @@
                     <input type="checkbox" wire:model.live="onlyBehind" class="rounded border-input">
                     Only classes behind plan
                 </label>
+                <april:button type="button" variant="outline" wire:click="export" class="ml-auto">Download CSV</april:button>
             </div>
 
             @if ($rows->isEmpty())
