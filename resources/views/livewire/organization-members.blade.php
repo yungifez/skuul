@@ -62,20 +62,20 @@
                     </div>
 
                     <div class="mt-4 flex flex-wrap gap-2">
-                        <april:button type="button" variant="outline" size="sm" wire:click="edit({{ $membership->user_id }})">
+                        <april:button type="button" variant="outline" class="h-11 select-none" wire:click="edit({{ $membership->user_id }})">
                             <x-lucide-sliders-horizontal class="mr-2 size-3.5" />
                             Permissions
                         </april:button>
 
                         @if ($confirmingRemovalUserId === $membership->user_id)
-                            <april:button type="button" variant="destructive" size="sm" wire:click="revoke({{ $membership->user_id }})">
+                            <april:button type="button" variant="destructive" class="h-11 select-none" wire:click="revoke({{ $membership->user_id }})">
                                 Confirm removal
                             </april:button>
-                            <april:button type="button" variant="ghost" size="sm" wire:click="cancelRemoval">
+                            <april:button type="button" variant="ghost" class="h-11 select-none" wire:click="cancelRemoval">
                                 Cancel
                             </april:button>
                         @else
-                            <april:button type="button" variant="outline" size="sm" wire:click="confirmRemoval({{ $membership->user_id }})">
+                            <april:button type="button" variant="outline" class="h-11 select-none" wire:click="confirmRemoval({{ $membership->user_id }})">
                                 <x-lucide-user-minus class="mr-2 size-3.5" />
                                 Remove scope
                             </april:button>
@@ -92,6 +92,7 @@
                                     wire:model.live="fullAuthority"
                                     id="full-authority-{{ $membership->id }}"
                                     @checked($fullAuthority)
+                                    @disabled(!$this->holdsFullAuthority)
                                     class="mt-0.5 size-4 shrink-0 cursor-pointer accent-primary" />
                                 <span>
                                     <span class="font-medium">Full authority</span>
@@ -108,6 +109,7 @@
                                                 wire:model="draftPermissions"
                                                 value="{{ $permission->value }}"
                                                 @checked(in_array($permission->value, $draftPermissions, true))
+                                                @disabled(!in_array($permission, $this->heldPermissions, true))
                                                 class="mt-0.5 size-4 shrink-0 cursor-pointer accent-primary"  {{ field_error_bindings('draftPermissions') }}/>
                                             <span>
                                                 <span class="font-medium">{{ $permission->label() }}</span>
@@ -124,8 +126,8 @@
                             <x-field-error name="draftPermissions" />
 
                             <div class="flex flex-wrap gap-2">
-                                <april:button type="button" size="sm" wire:click="savePermissions">Save permissions</april:button>
-                                <april:button type="button" variant="ghost" size="sm" wire:click="stopEditing">Cancel</april:button>
+                                <april:button type="button" class="h-11 select-none" wire:click="savePermissions">Save permissions</april:button>
+                                <april:button type="button" variant="ghost" class="h-11 select-none" wire:click="stopEditing">Cancel</april:button>
                             </div>
                         </div>
                     @endif

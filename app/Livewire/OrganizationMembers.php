@@ -13,6 +13,7 @@ use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Models\Organization;
 use App\Models\OrganizationMembership;
 use App\Models\User;
+use App\Services\Authorization\OrganizationPermissionScope;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Gate;
@@ -226,6 +227,24 @@ class OrganizationMembers extends Component
     public function getDelegablePermissionsProperty(): array
     {
         return OrganizationPermission::delegable();
+    }
+
+    /**
+     * Get the permissions the signed-in administrator may give or take away.
+     *
+     * @return list<OrganizationPermission>
+     */
+    public function getHeldPermissionsProperty(): array
+    {
+        return app(OrganizationPermissionScope::class)->permissionsFor(auth()->user(), $this->organization);
+    }
+
+    /**
+     * Whether the signed-in administrator may hand out full authority.
+     */
+    public function getHoldsFullAuthorityProperty(): bool
+    {
+        return count($this->getHeldPermissionsProperty()) === count(OrganizationPermission::all());
     }
 
     public function render()

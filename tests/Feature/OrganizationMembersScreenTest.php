@@ -208,6 +208,95 @@ class OrganizationMembersScreenTest extends TestCase
         $this->assertFalse($member->fresh()->administersOrganization($organization));
     }
 
+    public function test_a_members_only_administrator_cannot_give_themself_more(): void
+    {
+        $organization = Organization::factory()->create();
+        $this->grantedMember($organization);
+        $membersOnly = $this->grantedMember($organization, [OrganizationPermission::ManageMembers]);
+
+        Livewire::actingAs($membersOnly)
+            ->test(OrganizationMembers::class, ['organization' => $organization])
+            ->call('edit', $membersOnly->id)
+            ->set('fullAuthority', true)
+            ->call('savePermissions')
+            ->assertHasErrors('draftPermissions')
+            ->set('fullAuthority', false)
+            ->set('draftPermissions', [OrganizationPermission::ManageMembers->value, OrganizationPermission::MoveStudents->value])
+            ->call('savePermissions')
+            ->assertHasErrors('draftPermissions');
+
+        $this->assertFalse($membersOnly->fresh()->can('update', $organization));
+        $this->assertFalse($membersOnly->fresh()->can('manageCampuses', $organization));
+    }
+
+    public function test_an_administrator_cannot_take_away_a_permission_they_lack(): void
+    {
+        $organization = Organization::factory()->create();
+        $membersOnly = $this->grantedMember($organization, [OrganizationPermission::ManageMembers]);
+        $member = $this->grantedMember($organization, [OrganizationPermission::ManageCampuses]);
+
+        Livewire::actingAs($membersOnly)
+            ->test(OrganizationMembers::class, ['organization' => $organization])
+            ->call('edit', $member->id)
+            ->set('draftPermissions', [])
+            ->call('savePermissions')
+            ->assertHasErrors('draftPermissions');
+
+        $this->assertTrue($member->fresh()->can('manageCampuses', $organization));
+    }
+
+    public function test_an_administrator_can_change_the_permissions_they_hold(): void
+    {
+        $organization = Organization::factory()->create();
+        $delegator = $this->grantedMember($organization, [OrganizationPermission::ManageMembers, OrganizationPermission::ReadReports]);
+        $member = $this->grantedMember($organization, [OrganizationPermission::ManageCampuses]);
+
+        Livewire::actingAs($delegator)
+            ->test(OrganizationMembers::class, ['organization' => $organization])
+            ->call('edit', $member->id)
+            ->assertSeeHtml('value="'.OrganizationPermission::ReadReports->value.'"')
+            ->set('draftPermissions', [OrganizationPermission::ManageCampuses->value, OrganizationPermission::ReadReports->value])
+            ->call('savePermissions')
+            ->assertHasNoErrors();
+
+        $this->assertTrue($member->fresh()->can('viewReports', $organization));
+        $this->assertTrue($member->fresh()->can('manageCampuses', $organization));
+    }
+
+    public function test_a_new_member_gets_only_what_the_granting_administrator_holds(): void
+    {
+        $organization = Organization::factory()->create();
+        $this->grantedMember($organization);
+        $membersOnly = $this->grantedMember($organization, [OrganizationPermission::ManageMembers]);
+        $newcomer = User::factory()->create();
+
+        Livewire::actingAs($membersOnly)
+            ->test(OrganizationMembers::class, ['organization' => $organization])
+            ->set('email', $newcomer->email)
+            ->call('grant')
+            ->assertHasNoErrors();
+
+        $newcomer = $newcomer->fresh();
+
+        $this->assertTrue($newcomer->can('manageMembers', $organization));
+        $this->assertFalse($newcomer->can('update', $organization));
+        $this->assertFalse($newcomer->can('manageCampuses', $organization));
+    }
+
+    public function test_a_full_administrator_still_grants_full_authority(): void
+    {
+        $organization = Organization::factory()->create();
+        $manager = $this->grantedMember($organization);
+        $newcomer = User::factory()->create();
+
+        Livewire::actingAs($manager)
+            ->test(OrganizationMembers::class, ['organization' => $organization])
+            ->set('email', $newcomer->email)
+            ->call('grant');
+
+        $this->assertTrue($newcomer->organizationMemberships()->firstOrFail()->hasFullAuthority());
+    }
+
     /**
      * Give a person organization scope, delegated to the named permissions.
      *

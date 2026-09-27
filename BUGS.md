@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A members-only organization administrator could give themself full authority
+
+- Status: Fixed
+- Area: Organization members (`OrganizationMembers`, `SetOrganizationMemberPermissions`, `GrantOrganizationMembership`)
+- Observed: A member trusted only to manage members could open their own row, tick "Full authority", and save. They could also grant a new member, who always started with every permission.
+- Impact: One delegated administrator could take over campus setup, organization settings, and student moves between campuses.
+- Reproduction: Delegate only "Manage organization members" to a member. As that member, edit your own row, tick "Full authority", and save.
+- Resolution: A person can now only give or take away the permissions they hold. A new or returning member gets no permission the granting administrator lacks. The editor disables the permissions the administrator cannot give. The row buttons are now 44px high.
+
 ## A timetable cell took another school's subject, item, or room
 
 - Status: Fixed

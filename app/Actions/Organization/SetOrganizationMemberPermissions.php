@@ -28,13 +28,12 @@ class SetOrganizationMemberPermissions
     public function __construct(
         private RecordAuditEvent $recordAuditEvent,
         private OrganizationPermissionScope $organizationPermissionScope,
-    ) {
-    }
+    ) {}
 
     /**
      * Store the delegated permissions, or full authority when given null.
      *
-     * @param list<OrganizationPermission>|null $permissions null gives every permission
+     * @param  list<OrganizationPermission>|null  $permissions  null gives every permission
      */
     public function set(
         User $user,
@@ -55,6 +54,8 @@ class SetOrganizationMemberPermissions
             $previous = $membership->permissions;
             $next = $permissions === null ? null : $this->normalize($permissions);
 
+            $this->failIfActorLacksAChangedPermission($membership, $next, $organization, $actor);
+
             $keepsMemberManagement = $next === null
                 || in_array(OrganizationPermission::ManageMembers->value, $next, true);
 
@@ -73,10 +74,10 @@ class SetOrganizationMemberPermissions
                 AuditAction::OrganizationMembershipPermissionsChanged,
                 $membership,
                 [
-                    'organization_id'      => $organization->id,
-                    'user_id'              => $user->id,
+                    'organization_id' => $organization->id,
+                    'user_id' => $user->id,
                     'previous_permissions' => $previous,
-                    'permissions'          => $membership->permissions,
+                    'permissions' => $membership->permissions,
                 ],
                 $actor,
             );
@@ -90,10 +91,45 @@ class SetOrganizationMemberPermissions
     }
 
     /**
+     * Refuse to give or take away a permission the actor does not hold.
+     *
+     * Without this, a person trusted only with members could hand themself,
+     * or anybody else, the rest of the organization.
+     *
+     * @param  list<string>|null  $next
+     *
+     * @throws InvalidValueException
+     */
+    private function failIfActorLacksAChangedPermission(
+        OrganizationMembership $membership,
+        ?array $next,
+        Organization $organization,
+        ?User $actor,
+    ): void {
+        if ($actor === null) {
+            return;
+        }
+
+        $values = fn (array $permissions): array => array_map(
+            fn (OrganizationPermission $permission): string => $permission->value,
+            $permissions,
+        );
+
+        $before = $values($membership->grantedPermissions());
+        $after = $next ?? $values(OrganizationPermission::all());
+        $held = $values($this->organizationPermissionScope->permissionsFor($actor, $organization));
+
+        $changed = array_merge(array_diff($before, $after), array_diff($after, $before));
+
+        if (array_diff($changed, $held) !== []) {
+            throw new InvalidValueException('You can only give or take away permissions you hold yourself.');
+        }
+    }
+
+    /**
      * Keep the read permission, drop repeats, and store plain strings.
      *
-     * @param list<OrganizationPermission> $permissions
-     *
+     * @param  list<OrganizationPermission>  $permissions
      * @return list<string>
      */
     private function normalize(array $permissions): array
