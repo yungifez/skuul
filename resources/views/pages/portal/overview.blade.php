@@ -55,6 +55,7 @@
                                         \App\Enums\PortalArea::Requests => route('portal.requests.index', $enrollment),
                                         \App\Enums\PortalArea::Graduation => route('portal.graduation.show', $enrollment),
                                         \App\Enums\PortalArea::Programmes => route('portal.programmes.index', $enrollment),
+                                        \App\Enums\PortalArea::Syllabi => route('portal.syllabi.index', $enrollment),
                                         default => null,
                                     })
                                     @if ($route !== null)

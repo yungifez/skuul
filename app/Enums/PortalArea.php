@@ -30,6 +30,11 @@ enum PortalArea: string
     case Programmes = 'programmes';
 
     /**
+     * The published syllabi of the learner's courses, and how far the class is.
+     */
+    case Syllabi = 'syllabi';
+
+    /**
      * Get the label to show in the interface.
      */
     public function label(): string
@@ -47,6 +52,7 @@ enum PortalArea: string
             self::Requests => 'Requests',
             self::Graduation => 'Graduation progress',
             self::Programmes => 'Programmes',
+            self::Syllabi => 'Syllabi',
         };
     }
 

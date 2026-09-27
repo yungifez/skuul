@@ -132,6 +132,7 @@ Route::middleware('auth', 'verified', 'App\Http\Middleware\EnsureAccountIsActive
     Route::get('portal/enrollments/{studentRecord}/requests', ['App\Http\Controllers\PortalRequestController', 'index'])->name('portal.requests.index');
     Route::get('portal/enrollments/{studentRecord}/graduation', [PortalGraduationController::class, 'show'])->name('portal.graduation.show');
     Route::get('portal/enrollments/{studentRecord}/programmes', [PortalProgramController::class, 'index'])->name('portal.programmes.index');
+    Route::get('portal/enrollments/{studentRecord}/syllabi', ['App\Http\Controllers\PortalSyllabusController', 'index'])->name('portal.syllabi.index');
     Route::get('notices/{notice}/attachment', NoticeAttachmentController::class)->name('notices.attachments.download');
     Route::get('notice-preferences', [NoticeNotificationPreferenceController::class, 'edit'])->middleware('App\Http\Middleware\RequireActiveSchool')->name('notice-preferences.edit');
     Route::put('notice-preferences', [NoticeNotificationPreferenceController::class, 'update'])->middleware('App\Http\Middleware\RequireActiveSchool')->name('notice-preferences.update');
