@@ -150,6 +150,28 @@ class CampusMoveScreenTest extends TestCase
         $this->assertSame($this->workingSchool()->id, $enrollment->fresh()->school_id);
     }
 
+    public function test_a_closed_or_past_year_section_of_a_sibling_is_refused(): void
+    {
+        $sibling = $this->siblingCampus();
+        $current = $this->cycleSection($sibling);
+        $draft = $this->cycleSection($sibling, AcademicStructureStatus::Draft, isCurrentYear: false);
+        $draft->update(['academic_year_id' => $current->academic_year_id]);
+        $pastYear = $this->cycleSection($sibling, isCurrentYear: false);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read student', 'update student']);
+
+        $screen = Livewire::test(ShowStudentProfile::class, ['student' => $enrollment->user])
+            ->assertSet('campusCycleSections', fn (array $sections): bool => array_column($sections, 'id') === [$current->id]);
+
+        foreach ([$draft, $pastYear] as $section) {
+            $screen->set('campusCycleSectionId', $section->id)
+                ->call('moveCampus')
+                ->assertHasErrors('campusCycleSectionId');
+        }
+
+        $this->assertSame($this->workingSchool()->id, $enrollment->fresh()->school_id);
+    }
+
     /**
      * Make a second campus inside the working school's organization.
      */
@@ -160,16 +182,23 @@ class CampusMoveScreenTest extends TestCase
         ]);
     }
 
-    private function cycleSection(School $school): AcademicCycleSection
+    /**
+     * Make an open section in the campus's current school year.
+     */
+    private function cycleSection(School $school, AcademicStructureStatus $status = AcademicStructureStatus::Active, bool $isCurrentYear = true): AcademicCycleSection
     {
         $academicYear = AcademicYear::factory()->create(['school_id' => $school->id]);
         $academicLevel = AcademicLevel::factory()->create(['school_id' => $school->id]);
+
+        if ($isCurrentYear) {
+            $school->forceFill(['academic_year_id' => $academicYear->id])->save();
+        }
 
         return AcademicCycleSection::factory()->create([
             'school_id' => $school->id,
             'academic_year_id' => $academicYear->id,
             'academic_level_id' => $academicLevel->id,
-            'status' => AcademicStructureStatus::Active,
+            'status' => $status,
         ]);
     }
 }

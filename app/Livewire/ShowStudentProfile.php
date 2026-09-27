@@ -17,6 +17,7 @@ use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Authorization\CampusMoveAuthority;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -49,6 +50,7 @@ class ShowStudentProfile extends Component
     public string $placementEffectiveOn = '';
 
     /** @var array<int, array{id: int, name: string, level: string, campus: string}> */
+    #[Locked]
     public array $campusCycleSections = [];
 
     public ?int $campusCycleSectionId = null;
@@ -198,10 +200,9 @@ class ShowStudentProfile extends Component
 
         // Only a section of a sibling campus may be chosen, so read it from
         // the organization rather than the working school.
-        $academicCycleSection = AcademicCycleSection::query()
+        $academicCycleSection = $this->openSiblingCycleSections($this->siblingCampusIds())
             ->with('school')
             ->whereKey($this->campusCycleSectionId)
-            ->whereIn('school_id', $this->siblingCampusIds())
             ->first();
 
         if ($academicCycleSection === null) {
@@ -356,10 +357,8 @@ class ShowStudentProfile extends Component
             return;
         }
 
-        $this->campusCycleSections = AcademicCycleSection::query()
+        $this->campusCycleSections = $this->openSiblingCycleSections($campusIds)
             ->with(['academicLevel', 'school'])
-            ->whereIn('school_id', $campusIds)
-            ->where('status', AcademicStructureStatus::Active)
             ->orderBy('school_id')
             ->orderBy('position')
             ->orderBy('name')
@@ -371,6 +370,22 @@ class ShowStudentProfile extends Component
                 'campus' => $cycleSection->school->name,
             ])
             ->all();
+    }
+
+    /**
+     * Read the open sections of each campus's current school year.
+     *
+     * A section of a past year, or one being set up, cannot take a student.
+     *
+     * @param  list<int>  $campusIds
+     * @return Builder<AcademicCycleSection>
+     */
+    private function openSiblingCycleSections(array $campusIds): Builder
+    {
+        return AcademicCycleSection::query()
+            ->whereIn('school_id', $campusIds)
+            ->where('status', AcademicStructureStatus::Active)
+            ->whereIn('academic_year_id', School::query()->whereKey($campusIds)->whereNotNull('academic_year_id')->select('academic_year_id'));
     }
 
     private function loadCycleSections(): void

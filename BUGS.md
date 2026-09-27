@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A campus move could place a student in a draft, archived, or past-year section
+
+- Status: Fixed
+- Area: Student profile campus move (`ShowStudentProfile::moveCampus`)
+- Observed: The form listed only open sections of the sibling campuses. The move checked only that the section's campus was a sibling, so any section id from the browser passed.
+- Impact: A student could land in an archived section or in last year's class at the other campus, and drop out of that campus's current lists.
+- Reproduction: Open a student's profile, set `campusCycleSectionId` to an archived or past-year section of a sibling campus, and move.
+- Resolution: The list and the move now read the same query: open sections in each campus's current school year. The offered list is locked.
+
 ## A stale campus move request pulled a student out of a campus that never agreed
 
 - Status: Fixed
