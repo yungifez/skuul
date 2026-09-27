@@ -3,6 +3,8 @@
 namespace Tests\Feature;
 
 use App\Enums\AcademicStructureStatus;
+use App\Enums\EnrollmentStatus;
+use App\Livewire\GraduateStudents;
 use App\Livewire\ListPromotionsTable;
 use App\Livewire\ListStudentsTable;
 use App\Livewire\PromoteStudents;
@@ -471,19 +473,82 @@ class StudentTest extends TestCase
         $this->authorized_user(['view graduations'])->get('dashboard/students/graduations')->assertOk();
     }
 
-    // test unauthorized user cannot graduate student
-
-    public function test_unauthorized_user_cannot_graduate_student()
+    public function test_unauthorized_user_cannot_graduate_student(): void
     {
-        $student = StudentRecord::factory()->create();
-        $this->unauthorized_user()->post('/dashboard/students/graduate', [
-            'student_id' => [$student->user->id],
-        ])->assertForbidden();
+        $this->unauthorized_user();
+
+        Livewire::test(GraduateStudents::class)->assertForbidden();
     }
 
-    /**
-     * Get an active cycle section in this year that a student can be placed in.
-     */
+    public function test_a_learner_left_unticked_does_not_graduate(): void
+    {
+        $this->authorized_user(['graduate student', 'view graduations']);
+        $section = $this->activeCycleSection();
+        $leaving = $this->learnerIn($section);
+        $staying = $this->learnerIn($section);
+
+        Livewire::test(GraduateStudents::class)
+            ->set('academicCycleSectionId', $section->id)
+            ->call('loadStudents')
+            ->assertSee($leaving->user->name)
+            ->set('selectedStudentIds', [$leaving->user_id])
+            ->set('reason', 'Completed the final year')
+            ->call('graduate')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('students.graduations'));
+
+        $this->assertSame(EnrollmentStatus::Graduated, $leaving->fresh()->status);
+        $this->assertSame(EnrollmentStatus::Active, $staying->fresh()->status);
+    }
+
+    public function test_a_learner_of_another_section_cannot_be_slipped_into_a_graduation(): void
+    {
+        $this->authorized_user(['graduate student']);
+        $section = $this->activeCycleSection();
+        $listed = $this->learnerIn($section);
+        $elsewhere = $this->learnerIn($this->activeCycleSection());
+
+        Livewire::test(GraduateStudents::class)
+            ->set('academicCycleSectionId', $section->id)
+            ->call('loadStudents')
+            ->set('selectedStudentIds', [$listed->user_id, $elsewhere->user_id])
+            ->call('graduate')
+            ->assertHasErrors('selectedStudentIds.1');
+
+        $this->assertSame(EnrollmentStatus::Active, $listed->fresh()->status);
+        $this->assertSame(EnrollmentStatus::Active, $elsewhere->fresh()->status);
+    }
+
+    public function test_a_second_click_on_a_page_left_open_explains_nothing_is_left(): void
+    {
+        $this->authorized_user(['graduate student']);
+        $section = $this->activeCycleSection();
+        $student = $this->learnerIn($section);
+
+        $open = fn () => Livewire::test(GraduateStudents::class)
+            ->set('academicCycleSectionId', $section->id)
+            ->call('loadStudents');
+        $firstTab = $open();
+        $secondTab = $open();
+
+        $firstTab->call('graduate')->assertRedirect(route('students.graduate'));
+        $secondTab->call('graduate')->assertNoRedirect()->assertSet('students', []);
+
+        $this->assertSame(EnrollmentStatus::Graduated, $student->fresh()->status);
+    }
+
+    public function test_another_schools_section_cannot_be_chosen_for_graduation(): void
+    {
+        $this->authorized_user(['graduate student']);
+        $foreign = AcademicCycleSection::factory()->create(['school_id' => School::factory()->create()->id]);
+
+        Livewire::test(GraduateStudents::class)
+            ->set('academicCycleSectionId', $foreign->id)
+            ->call('loadStudents')
+            ->assertHasErrors('academicCycleSectionId')
+            ->assertSet('students', []);
+    }
+
     /**
      * Enroll an active learner of the working school in a section.
      */
@@ -495,6 +560,9 @@ class StudentTest extends TestCase
         ]);
     }
 
+    /**
+     * Get an active cycle section in this year that a student can be placed in.
+     */
     private function activeCycleSection(): AcademicCycleSection
     {
         $school = $this->workingSchool();

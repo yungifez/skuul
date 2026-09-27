@@ -300,31 +300,39 @@ class StudentService
     }
 
     /**
-     * Graduate students.
+     * Graduate the chosen learners of one section.
      *
-     * @param  mixed  $records
-     * @return void
+     * The section is locked and every learner graduates or none does. Learners
+     * who left the section or already graduated are skipped.
+     *
+     * @param  array{academic_cycle_section_id: int, student_id: array<int, int>, reason?: string|null}  $records
+     * @return int The number of learners who graduated.
      *
      * @throws InvalidValueException
      */
-    public function graduateStudents($records)
+    public function graduateStudents(array $records): int
     {
-        // get all students for graduation
-        $students = $this->getAllActiveStudents()->whereIn('id', $records['student_id']);
+        return DB::transaction(function () use ($records): int {
+            $section = AcademicCycleSection::inSchool()->whereKey($records['academic_cycle_section_id'])->lockForUpdate()->firstOrFail();
 
-        // make sure there are students to graduate
-        if (!$students->count()) {
-            throw new InvalidValueException('No students to graduate');
-        }
+            $students = $this->getAllActiveStudents()
+                ->whereIn('id', $records['student_id'])
+                ->filter(fn (User $student): bool => $student->studentRecord?->academic_cycle_section_id === $section->id);
 
-        // record the graduation of each student, with its reason and actor
-        foreach ($students as $student) {
-            $this->changeEnrollmentStatusAction->graduate(
-                $student->studentRecord,
-                auth()->user(),
-                $records['reason'] ?? null,
-            );
-        }
+            if ($students->isEmpty()) {
+                throw new InvalidValueException('None of the chosen learners are still active in this section. They may have graduated already.');
+            }
+
+            foreach ($students as $student) {
+                $this->changeEnrollmentStatusAction->graduate(
+                    $student->studentRecord,
+                    auth()->user(),
+                    $records['reason'] ?? null,
+                );
+            }
+
+            return $students->count();
+        });
     }
 
     /**

@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Graduating learners crashed on review and could graduate a learner of another section
+- Status: Fixed
+- Area: Students / graduations
+- Observed: "Review learners" failed with an SQL error (ambiguous user_id) whenever the section had learners. The confirm post accepted any active learner id of the school, whatever section was chosen, and graduated them one by one outside a transaction.
+- Impact: A school could not graduate learners from the screen. A tampered or stale form could graduate the wrong learners; a failure midway left the class half graduated.
+- Reproduction: Open Students → Graduate, choose a section with learners, press Review learners.
+- Resolution: The screen is now one Livewire component with an optional note for the record. It lists only current-year sections of the school, graduates only learners it listed who are still in that section, and runs in one transaction under a section lock. The POST route and its request are gone.
+
 ## Promoting learners crashed on review and could run twice
 - Status: Fixed
 - Area: Students / promotions

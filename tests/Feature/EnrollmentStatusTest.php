@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\Enrollment\ChangeEnrollmentStatus;
 use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\GraduateStudents;
 use App\Livewire\ShowStudentProfile;
 use App\Models\EnrollmentStatusChange;
 use App\Models\StudentRecord;
@@ -146,9 +147,12 @@ class EnrollmentStatusTest extends TestCase
     public function test_authorized_user_can_graduate_a_student(): void
     {
         $enrollment = StudentRecord::factory()->create();
+        $this->authorized_user(['graduate student']);
 
-        $this->authorized_user(['graduate student'])
-            ->post('dashboard/students/graduate', ['student_id' => [$enrollment->user_id]])
+        Livewire::test(GraduateStudents::class)
+            ->set('academicCycleSectionId', $enrollment->academic_cycle_section_id)
+            ->call('loadStudents')
+            ->call('graduate')
             ->assertRedirect();
 
         $this->assertSame(EnrollmentStatus::Graduated, $enrollment->fresh()->status);

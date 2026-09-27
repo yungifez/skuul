@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StudentGraduateRequest;
 use App\Models\Graduation;
 use App\Models\User;
 use App\Services\Student\StudentService;
@@ -40,17 +39,6 @@ class GraduationController extends Controller
         $this->authorize('graduate', Graduation::class);
 
         return view('pages.student.graduation.graduate');
-    }
-
-    /**
-     * Graduate student.
-     */
-    public function graduate(StudentGraduateRequest $request): RedirectResponse
-    {
-        $this->authorize('graduate', Graduation::class);
-        $this->studentService->graduateStudents($request->except('_token'));
-
-        return back()->with('success', 'Students graduated Successfully');
     }
 
     /**
