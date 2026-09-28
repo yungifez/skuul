@@ -16,6 +16,7 @@ use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\AttendanceRecord;
+use App\Models\EnrollmentPlacement;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\Subject;
@@ -427,6 +428,102 @@ class AttendanceTest extends TestCase
             ->assertOk()
             ->assertSee('Nobody attends this')
             ->assertDontSee('Save register');
+    }
+
+    public function test_a_learner_who_moved_in_is_not_marked_on_a_day_at_the_old_campus(): void
+    {
+        $this->authorized_user([]);
+        [$enrollment, $oldCampus] = $this->movedIn(daysAgo: 3);
+
+        try {
+            app(RecordAttendance::class)->record($enrollment, AttendanceStatus::Absent, now()->subDays(5));
+            $this->fail('A day at the old campus was taken into this register.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString("was at {$oldCampus->name}", $exception->getMessage());
+        }
+
+        $record = app(RecordAttendance::class)->record($enrollment, AttendanceStatus::Present, now()->subDay());
+
+        $this->assertSame($enrollment->academic_cycle_section_id, $record->academic_cycle_section_id);
+        $this->assertSame($enrollment->school_id, $record->school_id);
+    }
+
+    public function test_the_old_campus_record_of_a_day_is_not_overwritten(): void
+    {
+        $this->authorized_user([]);
+        $enrollment = $this->enrollment();
+        $oldCampus = School::factory()->create();
+        $theirs = AttendanceRecord::query()->create([
+            'school_id' => $oldCampus->id,
+            'academic_year_id' => AcademicYear::factory()->create(['school_id' => $oldCampus->id])->id,
+            'student_record_id' => $enrollment->id,
+            'attended_on' => now()->subDays(2)->toDateString(),
+            'kind' => AttendanceKind::Daily,
+            'status' => AttendanceStatus::Present,
+            'source' => 'teacher',
+            'recorded_at' => now(),
+        ]);
+
+        try {
+            app(RecordAttendance::class)->record($enrollment, AttendanceStatus::Absent, now()->subDays(2));
+            $this->fail('The old campus record was overwritten.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString("register of {$oldCampus->name}", $exception->getMessage());
+        }
+
+        $this->assertSame($oldCampus->id, $theirs->fresh()->school_id);
+        $this->assertSame(AttendanceStatus::Present, $theirs->fresh()->status);
+    }
+
+    public function test_a_late_register_leaves_off_a_learner_who_was_at_another_campus(): void
+    {
+        $this->authorized_user(['read attendance', 'take attendance']);
+        [$movedIn] = $this->movedIn(daysAgo: 3);
+        $stayed = $this->enrollment();
+        $stayed->update(['academic_cycle_section_id' => $movedIn->academic_cycle_section_id]);
+
+        Livewire::test(AttendanceRegisterComponent::class, [
+            'academicCycleSectionId' => (string) $movedIn->academic_cycle_section_id,
+            'attendedOn' => now()->subDays(5)->toDateString(),
+        ])
+            ->assertSee($stayed->user->name)
+            ->assertDontSee($movedIn->user->name)
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame(1, AttendanceRecord::query()->onDate(now()->subDays(5))->count());
+
+        Livewire::test(AttendanceRegisterComponent::class, [
+            'academicCycleSectionId' => (string) $movedIn->academic_cycle_section_id,
+            'attendedOn' => now()->toDateString(),
+        ])->assertSee($movedIn->user->name);
+    }
+
+    /**
+     * Make a learner who sat at another campus until some days ago.
+     *
+     * @return array{0: StudentRecord, 1: School}
+     */
+    private function movedIn(int $daysAgo): array
+    {
+        $enrollment = $this->enrollment();
+        $oldCampus = School::factory()->create();
+        $oldSection = AcademicCycleSection::factory()->create([
+            'school_id' => $oldCampus->id,
+            'academic_year_id' => AcademicYear::factory()->create(['school_id' => $oldCampus->id])->id,
+            'academic_level_id' => AcademicLevel::factory()->create(['school_id' => $oldCampus->id])->id,
+        ]);
+
+        foreach ([[$oldSection, 60], [$enrollment->academicCycleSection, $daysAgo]] as [$section, $since]) {
+            EnrollmentPlacement::query()->create([
+                'student_record_id' => $enrollment->id,
+                'academic_year_id' => $section->academic_year_id,
+                'academic_cycle_section_id' => $section->id,
+                'effective_on' => now()->subDays($since),
+            ]);
+        }
+
+        return [$enrollment, $oldCampus];
     }
 
     private function pastTerm(): AcademicPeriod

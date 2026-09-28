@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A campus could overwrite the old campus's attendance of a learner who moved
+- Status: Fixed
+- Area: Attendance, campus moves
+- Observed: A move keeps the learner's one enrollment. The new campus could take a late register for a day the learner spent at the old campus. The record for that day was found by learner and day only, so the old campus's record was rewritten with the new campus, its section and the new answer. A late register also filed every day under the learner's section of today.
+- Impact: The old campus lost its own attendance history without a trace, and a back-dated register showed learners who were not there yet. One refused learner could leave a register half saved.
+- Reproduction: Move a learner between campuses. At the new campus, open the register for a day before the move and save it.
+- Resolution: Each record is filed under the section the learner sat in on that day, from the placement history. A day at another campus is refused, and a record held by another campus is never changed. A late register leaves off learners who were at another campus that day. A whole register now saves in one transaction.
+
 ## An offer held its seat after the learner was placed another way
 - Status: Fixed
 - Area: Admissions waitlist, enrollment placement

@@ -116,7 +116,7 @@ class AttendanceRegister extends Component
             return;
         }
 
-        $this->statusesByStudent = array_fill_keys($this->register->students($section)->modelKeys(), $status);
+        $this->statusesByStudent = array_fill_keys($this->register->students($section, $this->day())->modelKeys(), $status);
     }
 
     public function save(): void
@@ -137,7 +137,7 @@ class AttendanceRegister extends Component
             return;
         }
 
-        $students = $this->register->students($section);
+        $students = $this->register->students($section, Carbon::parse($validated['attendedOn']));
 
         if ($students->isEmpty()) {
             $this->addError('register', 'There are no learners in this section to mark.');
@@ -172,7 +172,7 @@ class AttendanceRegister extends Component
     public function render(): View
     {
         $section = $this->selectedSection();
-        $students = $section === null ? new EloquentCollection : $this->register->students($section);
+        $students = $section === null ? new EloquentCollection : $this->register->students($section, $this->day());
         $recordedStatuses = $section === null || !$this->isValidDate($this->attendedOn)
             ? []
             : $this->register->statuses($section, $students, Carbon::parse($this->attendedOn));
@@ -203,7 +203,7 @@ class AttendanceRegister extends Component
 
     private function loadStatuses(AcademicCycleSection $section): void
     {
-        $students = $this->register->students($section);
+        $students = $this->register->students($section, $this->day());
         $recordedStatuses = $this->register->statuses($section, $students, Carbon::parse($this->attendedOn));
         $this->statusesByStudent = [];
 
@@ -212,6 +212,14 @@ class AttendanceRegister extends Component
                 ? $recordedStatuses[$student->id]->value
                 : AttendanceStatus::Present->value;
         }
+    }
+
+    /**
+     * Get the day the register is open for, or null while it is not a date.
+     */
+    private function day(): ?Carbon
+    {
+        return $this->isValidDate($this->attendedOn) ? Carbon::parse($this->attendedOn) : null;
     }
 
     private function isValidDate(string $date): bool

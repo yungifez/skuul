@@ -7,6 +7,7 @@ use App\Enums\AttendanceStatus;
 use App\Enums\Feature;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
 use App\Models\AcademicPeriod;
 use App\Models\AttendanceChange;
 use App\Models\AttendanceRecord;
@@ -45,14 +46,25 @@ class RecordAttendance
 
         $term = $this->termOf($enrollment, $day);
         $this->failIfRecordsDoNotFit($enrollment, $day, $kind, $subject, $term);
+        $section = $this->sectionOn($enrollment, $day);
 
-        return DB::transaction(function () use ($enrollment, $status, $day, $kind, $subject, $actor, $reason, $source, $term): AttendanceRecord {
-            $record = AttendanceRecord::firstOrNew([
-                'student_record_id' => $enrollment->id,
-                'attended_on' => $day->toDateString(),
-                'kind' => $kind->value,
-                'subject_id' => $subject?->id,
-            ]);
+        return DB::transaction(function () use ($enrollment, $status, $day, $kind, $subject, $actor, $reason, $source, $term, $section): AttendanceRecord {
+            $record = AttendanceRecord::query()
+                ->lockForUpdate()
+                ->firstOrNew([
+                    'student_record_id' => $enrollment->id,
+                    'attended_on' => $day->toDateString(),
+                    'kind' => $kind->value,
+                    'subject_id' => $subject?->id,
+                ]);
+
+            // A learner who moved keeps one enrollment. The day they spent at
+            // the old campus stays in that campus's register.
+            if ($record->exists && $enrollment->school_id !== null && $record->school_id !== $enrollment->school_id) {
+                $record->loadMissing('school:id,name');
+
+                throw new InvalidValueException("{$day->format('j M Y')} is in the register of {$record->school?->name}. Only that campus can change it.");
+            }
 
             $previous = $record->exists ? $record->status : null;
 
@@ -60,7 +72,7 @@ class RecordAttendance
                 'school_id' => $enrollment->school_id ?? current_school_id(),
                 'academic_year_id' => $term->academic_year_id ?? current_academic_year_id(),
                 'academic_period_id' => $term->id ?? current_academic_period_id(),
-                'academic_cycle_section_id' => $enrollment->academic_cycle_section_id,
+                'academic_cycle_section_id' => $section->id,
                 'status' => $status,
                 'reason' => $reason,
                 'source' => $source,
@@ -98,21 +110,24 @@ class RecordAttendance
         ?Subject $subject = null,
         ?User $actor = null,
     ): array {
-        $records = [];
+        // One register is saved whole or not at all.
+        return DB::transaction(function () use ($entries, $date, $kind, $subject, $actor): array {
+            $records = [];
 
-        foreach ($entries as $entry) {
-            $records[] = $this->record(
-                enrollment: $entry['enrollment'],
-                status: $entry['status'],
-                date: $date,
-                kind: $kind,
-                subject: $subject,
-                actor: $actor,
-                reason: $entry['reason'] ?? null,
-            );
-        }
+            foreach ($entries as $entry) {
+                $records[] = $this->record(
+                    enrollment: $entry['enrollment'],
+                    status: $entry['status'],
+                    date: $date,
+                    kind: $kind,
+                    subject: $subject,
+                    actor: $actor,
+                    reason: $entry['reason'] ?? null,
+                );
+            }
 
-        return $records;
+            return $records;
+        });
     }
 
     /**
@@ -164,6 +179,28 @@ class RecordAttendance
         if ($period !== null && $period->isClosed()) {
             throw new ClosedPeriodException('You cannot take attendance in a closed academic period.');
         }
+    }
+
+    /**
+     * Get the section the learner sat in on the day, at this campus.
+     *
+     * @throws InvalidValueException when they were at another campus that day
+     */
+    private function sectionOn(StudentRecord $enrollment, Carbon $day): AcademicCycleSection
+    {
+        $section = $enrollment->sectionOn($day) ?? $enrollment->academicCycleSection;
+
+        if ($section === null) {
+            throw new InvalidValueException('Place the student in a '.strtolower(school_term('section', 'section')).' before taking attendance.');
+        }
+
+        if ($enrollment->school_id !== null && $section->school_id !== $enrollment->school_id) {
+            $section->loadMissing('school:id,name');
+
+            throw new InvalidValueException("{$enrollment->user?->name} was at {$section->school?->name} on {$day->format('j M Y')}. Only that campus can take its register.");
+        }
+
+        return $section;
     }
 
     /**

@@ -31,14 +31,29 @@ class AttendanceRegister
         return AcademicCycleSection::query()->inSchool()->with('academicLevel:id,name')->find($sectionId);
     }
 
-    /** @return Collection<int, StudentRecord> */
-    public function students(AcademicCycleSection $section): Collection
+    /**
+     * Get the learners who take this register on the day.
+     *
+     * A learner who came from another campus after the day was on that
+     * campus's register then, so they are left off this one.
+     *
+     * @return Collection<int, StudentRecord>
+     */
+    public function students(AcademicCycleSection $section, ?Carbon $date = null): Collection
     {
-        return $section->currentEnrollments()
+        $students = $section->currentEnrollments()
             ->attending()
             ->with('user:id,name')
             ->orderBy('admission_number')
             ->get();
+
+        if ($date === null || $date->isToday()) {
+            return $students;
+        }
+
+        return $students
+            ->filter(fn (StudentRecord $student): bool => ($student->sectionOn($date)->school_id ?? $section->school_id) === $section->school_id)
+            ->values();
     }
 
     /** @return array<int, AttendanceStatus> */

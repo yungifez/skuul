@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\EnrollmentStatus;
 use App\Traits\InSchool;
 use Carbon\Carbon;
+use DateTimeInterface;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -220,6 +221,26 @@ class StudentRecord extends Model
     public function currentPlacement(): HasOne
     {
         return $this->hasOne(EnrollmentPlacement::class)->ofMany(['effective_on' => 'max', 'id' => 'max']);
+    }
+
+    /**
+     * Get the section the student sat in on one day.
+     *
+     * The placement history answers this. An enrollment with no history yet
+     * sits where its pointer says. A day before the first placement is
+     * answered with that first placement, since nothing earlier is known.
+     */
+    public function sectionOn(DateTimeInterface $day): ?AcademicCycleSection
+    {
+        $sectionId = $this->placements()
+            ->reorder('effective_on', 'desc')
+            ->orderByDesc('id')
+            ->whereDate('effective_on', '<=', $day->format('Y-m-d'))
+            ->value('academic_cycle_section_id')
+            ?? $this->placements()->value('academic_cycle_section_id')
+            ?? $this->academic_cycle_section_id;
+
+        return $sectionId === null ? null : AcademicCycleSection::query()->find($sectionId);
     }
 
     /**
