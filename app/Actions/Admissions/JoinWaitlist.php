@@ -6,7 +6,6 @@ use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\AdmissionWaitlistStatus;
 use App\Enums\AuditAction;
-use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicCycleSection;
 use App\Models\AdmissionWaitlistEntry;
@@ -100,7 +99,7 @@ class JoinWaitlist
         if (StudentRecord::query()
             ->where('school_id', $section->school_id)
             ->where('user_id', $candidate->id)
-            ->where('status', EnrollmentStatus::Active)
+            ->enrolled()
             ->exists()) {
             throw new InvalidValueException('This candidate is already enrolled in the school.');
         }
@@ -108,7 +107,7 @@ class JoinWaitlist
         $occupied = StudentRecord::query()
             ->where('school_id', $section->school_id)
             ->where('academic_cycle_section_id', $section->id)
-            ->where('status', EnrollmentStatus::Active)
+            ->enrolled()
             ->count();
 
         if ($occupied < $section->capacity) {

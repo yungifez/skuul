@@ -45,6 +45,22 @@ class AdmissionsTest extends TestCase
         app(ChangeEnrollmentPlacement::class)->place($second, $section);
     }
 
+    public function test_a_suspended_learner_keeps_their_seat(): void
+    {
+        $section = $this->section(1);
+        $suspended = $this->unplacedStudent();
+        app(ChangeEnrollmentPlacement::class)->place($suspended, $section);
+        $suspended->update(['status' => EnrollmentStatus::Suspended]);
+        app(JoinWaitlist::class)->join($section, User::factory()->create());
+
+        $this->assertNull(app(OfferNextWaitlistEntry::class)->offer($section));
+
+        $this->expectException(InvalidValueException::class);
+        $this->expectExceptionMessage('Add the candidate to its admission waitlist instead.');
+
+        app(ChangeEnrollmentPlacement::class)->place($this->unplacedStudent(), $section);
+    }
+
     public function test_a_full_section_keeps_one_idempotent_waitlist_entry(): void
     {
         $section = $this->section(1);

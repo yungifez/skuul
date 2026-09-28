@@ -105,7 +105,7 @@ class StudentService
         $enrolledElsewhere = StudentRecord::query()
             ->whereRelation('user', 'email', $record['email'])
             ->where('school_id', '!=', current_school_id())
-            ->where('status', EnrollmentStatus::Active)
+            ->enrolled()
             ->exists();
 
         if ($enrolledElsewhere) {

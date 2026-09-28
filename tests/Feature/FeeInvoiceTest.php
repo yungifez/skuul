@@ -237,6 +237,19 @@ class FeeInvoiceTest extends TestCase
             ->assertSet('studentRecordIds', [$first->id]);
     }
 
+    public function test_a_suspended_student_is_still_billed(): void
+    {
+        $this->authorized_user(['create fee invoice']);
+        [$section, $first, $second] = $this->sectionWithTwoStudents();
+        $second->update(['status' => EnrollmentStatus::Suspended]);
+
+        Livewire::test(CreateFeeInvoiceForm::class)
+            ->set('academicLevelId', (string) $section->academic_level_id)
+            ->set('cycleSectionId', (string) $section->id)
+            ->call('addStudents')
+            ->assertSet('studentRecordIds', [$first->id, $second->id]);
+    }
+
     public function test_pressing_create_twice_makes_the_invoices_once(): void
     {
         $this->authorized_user(['create fee invoice']);

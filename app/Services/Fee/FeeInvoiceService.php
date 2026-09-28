@@ -3,7 +3,6 @@
 namespace App\Services\Fee;
 
 use App\Actions\Finance\ChargeStudent;
-use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\Fee;
 use App\Models\FeeInvoice;
@@ -64,13 +63,13 @@ class FeeInvoiceService
             $enrollments = StudentRecord::query()
                 ->inSchool()
                 ->whereIn('id', $enrollmentIds)
-                ->where('status', EnrollmentStatus::Active)
+                ->enrolled()
                 ->with('user')
                 ->get()
                 ->keyBy('id');
 
             if ($enrollments->count() !== $enrollmentIds->count()) {
-                throw new InvalidValueException('Some selected students are not active in this school.');
+                throw new InvalidValueException('Some selected students are not enrolled in this school.');
             }
 
             $period = $this->periods->openFor($schoolId, $records['issue_date']);

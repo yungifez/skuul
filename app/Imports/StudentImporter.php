@@ -5,7 +5,6 @@ namespace App\Imports;
 use App\Actions\Enrollment\ChangeEnrollmentPlacement;
 use App\Actions\Identity\ProvisionAccount;
 use App\Contracts\Importer;
-use App\Enums\EnrollmentStatus;
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicCycleSection;
@@ -161,7 +160,7 @@ class StudentImporter implements Importer
         $elsewhere = StudentRecord::query()
             ->whereRelation('user', 'email', $email)
             ->where('school_id', '!=', current_school_id())
-            ->where('status', EnrollmentStatus::Active)
+            ->enrolled()
             ->with('school:id,name')
             ->first();
 

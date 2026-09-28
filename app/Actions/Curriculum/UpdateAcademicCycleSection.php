@@ -5,7 +5,6 @@ namespace App\Actions\Curriculum;
 use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
-use App\Enums\EnrollmentStatus;
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicCycleSection;
@@ -121,7 +120,7 @@ class UpdateAcademicCycleSection
         $placed = StudentRecord::query()
             ->where('school_id', $section->school_id)
             ->where('academic_cycle_section_id', $section->id)
-            ->where('status', EnrollmentStatus::Active)
+            ->enrolled()
             ->count();
 
         if ($capacity < $placed) {

@@ -27,7 +27,7 @@ class OfferNextWaitlistEntry
             $occupied = StudentRecord::query()
                 ->where('school_id', $section->school_id)
                 ->where('academic_cycle_section_id', $section->id)
-                ->where('status', 'active')
+                ->enrolled()
                 ->count();
 
             if ($occupied >= $section->capacity) {

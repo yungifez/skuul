@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A suspended learner's seat and fees were treated as free
+
+- Status: Fixed
+- Area: Enrollment, admissions, fees
+- Observed: Seat counts, waitlist offers, bulk invoicing and "attends elsewhere" checks counted only Active enrollments. A Suspended learner was ignored.
+- Impact: A full section could take one more learner than its capacity while a learner was suspended, and the waitlist offered that seat. Bulk invoicing skipped suspended learners, so they were never billed. Another campus could enrol a learner who was only suspended at their school.
+- Reproduction: Place a learner in a section with capacity 1 and suspend them. Place another learner in the same section. Or invoice the section and see the suspended learner missing.
+- Resolution: These checks now use the `enrolled()` scope (Active or Suspended). Attendance registers stay Active only.
+
 ## A suspended learner vanished from mark sheets and school notices
 - Status: Fixed
 - Area: Gradebook and notices

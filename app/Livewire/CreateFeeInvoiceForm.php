@@ -145,7 +145,7 @@ class CreateFeeInvoiceForm extends Component
             'dueDate' => ['required', 'date', 'after_or_equal:issueDate'],
             'note' => ['nullable', 'string', 'max:10000'],
             'studentRecordIds' => ['required', 'array', 'min:1'],
-            'studentRecordIds.*' => ['integer', Rule::exists('student_records', 'id')->where('school_id', current_school_id())->where('status', EnrollmentStatus::Active->value)],
+            'studentRecordIds.*' => ['integer', Rule::exists('student_records', 'id')->where('school_id', current_school_id())->whereIn('status', [EnrollmentStatus::Active->value, EnrollmentStatus::Suspended->value])],
             'lines' => ['required', 'array', 'min:1'],
             'lines.*.amount' => ['required', 'integer', 'min:1'],
             'lines.*.waiver' => ['nullable', 'integer', 'min:0'],
@@ -256,7 +256,7 @@ class CreateFeeInvoiceForm extends Component
     private function activeEnrollments(Collection $sectionIds): Builder
     {
         return StudentRecord::inSchool()
-            ->where('status', EnrollmentStatus::Active)
+            ->enrolled()
             ->whereIn('academic_cycle_section_id', $sectionIds);
     }
 

@@ -6,7 +6,6 @@ use App\Actions\Audit\RecordAuditEvent;
 use App\Actions\Enrollment\ChangeEnrollmentPlacement;
 use App\Enums\AdmissionWaitlistStatus;
 use App\Enums\AuditAction;
-use App\Enums\EnrollmentStatus;
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Models\AdmissionWaitlistEntry;
@@ -52,7 +51,7 @@ class AcceptWaitlistEntry
             $attendingElsewhere = StudentRecord::query()
                 ->where('user_id', $entry->user_id)
                 ->where('school_id', '!=', $entry->school_id)
-                ->where('status', EnrollmentStatus::Active)
+                ->enrolled()
                 ->with('school:id,name')
                 ->first();
 
