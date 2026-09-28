@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Setting a password lifted an account suspension
+- Status: Fixed
+- Area: Account access
+- Observed: Setting a password from the account screen always made the account Active. A suspended or archived account was reactivated, with no status change recorded.
+- Impact: One school could undo another school's suspension of a shared account by setting a password, and the audit showed only a password change.
+- Reproduction: Suspend an account. Set a new password for it from the account screen. The account becomes Active.
+- Resolution: Setting a password makes only an invited account Active. A suspended or archived account keeps its state, and it must be reactivated through the account status action.
+
 ## A parent removed from one school still read that school's children
 - Status: Fixed
 - Area: Parents, portal access

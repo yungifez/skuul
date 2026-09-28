@@ -46,6 +46,24 @@ class AccountPasswordTest extends TestCase
             ->first());
     }
 
+    public function test_setting_a_password_does_not_lift_a_suspension_or_an_archive(): void
+    {
+        $this->authorized_user(['manage account access']);
+
+        foreach ([User::factory()->suspended()->create(), User::factory()->archived()->create()] as $target) {
+            $status = $target->account_status;
+
+            Livewire::test(ManageAccountPassword::class, ['user' => $target])
+                ->set('password', 'New-Password-123!')
+                ->set('password_confirmation', 'New-Password-123!')
+                ->call('save')
+                ->assertHasNoErrors();
+
+            $this->assertSame($status, $target->fresh()->account_status);
+            $this->assertTrue(Hash::check('New-Password-123!', $target->fresh()->password));
+        }
+    }
+
     public function test_an_authorized_user_can_require_a_password_change_at_next_sign_in(): void
     {
         $school = $this->workingSchool();

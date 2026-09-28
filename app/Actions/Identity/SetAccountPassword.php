@@ -31,7 +31,9 @@ class SetAccountPassword
             $user->forceFill([
                 'password' => Hash::make($password),
                 'password_change_required_at' => $forceReset ? now() : null,
-                'account_status' => AccountStatus::Active,
+                // A password finishes an invitation. It never lifts a suspension
+                // or an archive; changing the account state records why.
+                'account_status' => $user->account_status === AccountStatus::Invited ? AccountStatus::Active : $user->account_status,
                 'email_verified_at' => $user->email_verified_at ?? now(),
                 'remember_token' => null,
             ])->save();
