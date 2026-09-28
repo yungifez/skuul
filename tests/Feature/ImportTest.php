@@ -237,6 +237,24 @@ class ImportTest extends TestCase
         $this->assertStringContainsString('Hill Campus', $batch->rows()->broken()->firstOrFail()->errors[0]);
     }
 
+    public function test_a_student_import_refuses_an_admission_number_the_school_uses(): void
+    {
+        $this->authorized_user(['create import', 'apply import']);
+        [$academicLevel, $cycleSection] = $this->levelAndSection();
+        StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id, 'admission_number' => 'ADM/001']);
+        $runner = app(ImportRunner::class);
+
+        $batch = $runner->stage('students', [
+            $this->studentRow(['email' => 'ada.bell@gmail.com', 'level' => $academicLevel->name, 'section' => $cycleSection->name, 'admission_number' => 'ADM/001']),
+            $this->studentRow(['email' => 'grace.ola@gmail.com', 'level' => $academicLevel->name, 'section' => $cycleSection->name, 'admission_number' => '']),
+        ]);
+        $runner->apply($batch);
+
+        $this->assertSame(1, $batch->fresh()->applied_count);
+        $this->assertSame('Admission number ADM/001 is already used in this school.', $batch->rows()->broken()->firstOrFail()->errors[0]);
+        $this->assertNotNull($this->enrollmentOf('grace.ola@gmail.com')->admission_number);
+    }
+
     public function test_an_import_is_written_once(): void
     {
         $this->authorized_user(['create import', 'apply import']);

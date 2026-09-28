@@ -11,6 +11,7 @@ use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\StudentRecord;
 use App\Models\User;
+use App\Services\Student\StudentService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
@@ -27,6 +28,7 @@ class StudentImporter implements Importer
     public function __construct(
         private ProvisionAccount $provisionAccount,
         private ChangeEnrollmentPlacement $changePlacement,
+        private StudentService $students,
     ) {}
 
     /**
@@ -130,13 +132,16 @@ class StudentImporter implements Importer
             $student->assignRole(Role::Student);
         }
 
-        $enrollment = StudentRecord::firstOrCreate(
-            ['user_id' => $student->id, 'school_id' => current_school_id()],
-            [
-                'admission_number' => $row['admission_number'] ?? null,
+        $enrollment = StudentRecord::query()
+            ->where('user_id', $student->id)
+            ->where('school_id', current_school_id())
+            ->first()
+            ?? StudentRecord::create([
+                'user_id' => $student->id,
+                'school_id' => current_school_id(),
+                'admission_number' => $this->freeAdmissionNumber($row['admission_number'] ?? null),
                 'admission_date' => Carbon::parse($row['admission_date'] ?? now()),
-            ],
-        );
+            ]);
 
         $this->changePlacement->place(
             enrollment: $enrollment,
@@ -192,5 +197,26 @@ class StudentImporter implements Importer
             'city' => $row['city'] ?? null,
             'phone' => $row['phone'] ?? null,
         ]);
+    }
+
+    /**
+     * Get the admission number for a new learner.
+     *
+     * A blank number is made the way the admission form makes it. A number
+     * the school already uses is refused in words the reader can act on.
+     *
+     * @throws InvalidValueException when the school already uses the number
+     */
+    private function freeAdmissionNumber(?string $admissionNumber): string
+    {
+        if (blank($admissionNumber)) {
+            return $this->students->generateAdmissionNumber(current_school_id());
+        }
+
+        if (StudentRecord::inSchool()->where('admission_number', $admissionNumber)->exists()) {
+            throw new InvalidValueException("Admission number {$admissionNumber} is already used in this school.");
+        }
+
+        return $admissionNumber;
     }
 }

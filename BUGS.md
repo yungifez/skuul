@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A student import showed a raw database error for a taken admission number
+
+- Status: Fixed
+- Area: Imports
+- Observed: A row whose admission number the school already used failed on the database unique index. The row showed the SQL error text. A row with no admission number created a learner without one, unlike the admission form.
+- Impact: The person importing could not tell what to fix, and the error exposed database details. Learners imported without a number had no admission number on report cards or in searches.
+- Reproduction: Import a student with an admission number that another learner at the school has. Or import one with the number left blank.
+- Resolution: The row is refused with "Admission number … is already used in this school." A blank number is generated the same way as on the admission form.
+
 ## A campus move crashed when the admission number was taken there
 
 - Status: Fixed
