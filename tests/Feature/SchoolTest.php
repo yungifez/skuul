@@ -175,6 +175,17 @@ class SchoolTest extends TestCase
             ->assertDontSee('School calendar help');
     }
 
+    public function test_the_setup_page_links_only_to_areas_the_person_can_open(): void
+    {
+        $this->authorized_user(['manage school settings', 'read student'])
+            ->get(route('schools.settings'))
+            ->assertSuccessful()
+            ->assertSee(route('students.index'), false)
+            ->assertDontSee('href="'.route('admins.index').'"', false)
+            ->assertDontSee('href="'.route('fee-invoices.index').'"', false)
+            ->assertSee('href="'.route('teachers.index').'"', false);
+    }
+
     public function test_a_long_school_name_can_wrap_in_the_page_heading(): void
     {
         $school = $this->workingSchool();

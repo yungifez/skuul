@@ -9,15 +9,17 @@
 @section('content')
     @php
         $dayToDay = [
-            ['label' => 'Students', 'icon' => 'lucide-user-round-plus', 'href' => route('students.index')],
-            ['label' => 'Parents and guardians', 'icon' => 'lucide-heart-handshake', 'href' => route('parents.index')],
-            ['label' => 'Fees and payments', 'icon' => 'lucide-wallet-cards', 'href' => route('fee-invoices.index')],
-            ['label' => 'Notices', 'icon' => 'lucide-megaphone', 'href' => route('notices.index')],
-            ['label' => 'Staff access', 'icon' => 'lucide-shield-check', 'href' => route('admins.index')],
-            ['label' => 'Timetables', 'icon' => 'lucide-clock-3', 'href' => route('timetables.index')],
+            ['label' => 'Students', 'icon' => 'lucide-user-round-plus', 'href' => route('students.index'), 'can' => 'read student'],
+            ['label' => 'Parents and guardians', 'icon' => 'lucide-heart-handshake', 'href' => route('parents.index'), 'can' => 'read parent'],
+            ['label' => 'Fees and payments', 'icon' => 'lucide-wallet-cards', 'href' => route('fee-invoices.index'), 'can' => 'read fee invoice'],
+            ['label' => 'Notices', 'icon' => 'lucide-megaphone', 'href' => route('notices.index'), 'can' => 'read notice'],
+            ['label' => 'Staff access', 'icon' => 'lucide-shield-check', 'href' => route('admins.index'), 'can' => 'read admin'],
+            ['label' => 'Timetables', 'icon' => 'lucide-clock-3', 'href' => route('timetables.index'), 'can' => 'read timetable'],
             ['label' => 'School language', 'icon' => 'lucide-languages', 'href' => route('schools.operating-profile.edit')],
             ['label' => 'School tools', 'icon' => 'lucide-sliders-horizontal', 'href' => route('schools.features.edit')],
         ];
+        // Only offer the areas this person can open.
+        $dayToDay = array_filter($dayToDay, fn (array $area): bool => !isset($area['can']) || auth()->user()->can($area['can']));
     @endphp
     <div class="mx-auto flex w-full max-w-4xl flex-col gap-10">
         <div class="flex flex-col gap-3 border-b pb-6 sm:flex-row sm:items-center sm:justify-between">

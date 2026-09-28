@@ -166,7 +166,7 @@ class SchoolSetupChecklist
                 complete: $teachers > 0,
                 required: false,
                 group: 'Recommended next steps',
-                url: route('admins.index'),
+                url: auth()->user()?->can('read admin') === true ? route('admins.index') : route('teachers.index'),
                 action: 'Manage staff access',
             ),
             $this->item(

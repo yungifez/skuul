@@ -1,5 +1,14 @@
 # Known Bugs
 
+## The setup page links to areas the person cannot open
+
+- Status: Fixed
+- Area: School setup page
+- Observed: The "Day to day" list and the staff access step linked every person to Staff access, Fees and other areas. A school administrator without the admin permission got "Forbidden".
+- Impact: The setup page sent people to dead ends.
+- Reproduction: Sign in as a person who manages school settings but cannot read administrators. Open School setup and select "Staff access".
+- Resolution: The list shows only the areas the person can open. The staff access step goes to the teachers list when the person cannot open administrators.
+
 ## The dashboard's campus count opens a forbidden page
 
 - Status: Fixed
