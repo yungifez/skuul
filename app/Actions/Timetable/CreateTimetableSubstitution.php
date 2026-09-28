@@ -12,13 +12,17 @@ use App\Models\TimetableSubstitution;
 use App\Models\TimetableTimeSlot;
 use App\Models\User;
 use App\Models\Weekday;
+use App\Services\Timetable\TimetableConflictChecker;
 use Carbon\CarbonInterface;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
 
 class CreateTimetableSubstitution
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(
+        private RecordAuditEvent $auditor,
+        private TimetableConflictChecker $conflictChecker,
+    ) {}
 
     public function create(Timetable $timetable, TimetableTimeSlot $slot, int $weekdayId, User $replacementTeacher, CarbonInterface $date, string $reason, User $actor): TimetableSubstitution
     {
@@ -42,6 +46,7 @@ class CreateTimetableSubstitution
                 }
 
                 $this->failIfTheTeacherIsAlreadyCovering($replacementTeacher, $slot, $date);
+                $this->failIfTheTeacherHasTheirOwnLesson($replacementTeacher, $timetable, $slot, $date);
 
                 $substitution = TimetableSubstitution::create(['timetable_id' => $timetable->id, 'timetable_time_slot_id' => $slot->id, 'weekday_id' => $weekdayId, 'replacement_teacher_id' => $replacementTeacher->id, 'substituted_on' => $date->toDateString(), 'reason' => $reason, 'approved_by' => $actor->id]);
 
@@ -78,6 +83,35 @@ class CreateTimetableSubstitution
 
             $substitution->delete();
         });
+    }
+
+    /**
+     * Refuse a teacher who is timetabled to teach at that time, at this campus
+     * or another campus of the organization.
+     *
+     * A teacher whose own lesson somebody else already covers that day is free.
+     */
+    private function failIfTheTeacherHasTheirOwnLesson(User $replacementTeacher, Timetable $timetable, TimetableTimeSlot $slot, CarbonInterface $date): void
+    {
+        $school = $timetable->academicCycleSection->school;
+        $lessons = $this->conflictChecker->lessonsTaughtBy($replacementTeacher, $date, $school);
+
+        foreach ($lessons as $lesson) {
+            if ($lesson['start_time'] >= $slot->stop_time || $lesson['stop_time'] <= $slot->start_time) {
+                continue;
+            }
+
+            $coveredBySomeoneElse = TimetableSubstitution::query()
+                ->where('timetable_time_slot_id', $lesson['time_slot_id'])
+                ->where('weekday_id', $lesson['weekday_id'])
+                ->whereDate('substituted_on', $date)
+                ->where('replacement_teacher_id', '!=', $replacementTeacher->id)
+                ->exists();
+
+            if (!$coveredBySomeoneElse) {
+                throw new InvalidValueException("$replacementTeacher->name teaches {$lesson['timetable']->name} at that time on that day.");
+            }
+        }
     }
 
     /**

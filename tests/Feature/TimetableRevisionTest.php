@@ -175,7 +175,7 @@ class TimetableRevisionTest extends TestCase
     {
         $this->authorized_user([]);
         $replacementTeacher = $this->teacher();
-        $timetable = $this->timetableWithLesson($replacementTeacher, '08:00', '09:00');
+        $timetable = $this->timetableWithLesson($this->teacher(), '08:00', '09:00');
         $slot = $timetable->timeSlots()->firstOrFail();
         $weekday = Weekday::firstOrFail();
         $date = Carbon::parse('next '.$weekday->name);
@@ -212,7 +212,7 @@ class TimetableRevisionTest extends TestCase
     {
         $this->authorized_user(['read timetable', 'update timetable']);
         $replacementTeacher = $this->teacher();
-        $timetable = $this->timetableWithLesson($replacementTeacher, '08:00', '09:00');
+        $timetable = $this->timetableWithLesson($this->teacher(), '08:00', '09:00');
         $slot = $timetable->timeSlots()->firstOrFail();
         $weekday = Weekday::firstOrFail();
         $date = Carbon::parse('next '.$weekday->name);
@@ -255,6 +255,63 @@ class TimetableRevisionTest extends TestCase
         app(CreateTimetableSubstitution::class)->create($second->fresh(), $second->timeSlots()->firstOrFail(), $weekday->id, $teacher, $date, 'Absence', auth()->user());
     }
 
+    public function test_a_teacher_cannot_cover_during_their_own_lesson(): void
+    {
+        $this->authorized_user([]);
+        $teacher = $this->teacher();
+        $own = $this->timetableWithLesson($teacher, '08:00', '09:00');
+        $absent = $this->timetableWithLesson($this->teacher(), '08:30', '09:30');
+        app(PublishTimetable::class)->publish($own);
+        app(PublishTimetable::class)->publish($absent);
+        $weekday = Weekday::firstOrFail();
+
+        $this->expectExceptionMessage("$teacher->name teaches");
+
+        app(CreateTimetableSubstitution::class)->create($absent->fresh(), $absent->timeSlots()->firstOrFail(), $weekday->id, $teacher, Carbon::parse('next '.$weekday->name), 'Absence', auth()->user());
+    }
+
+    public function test_a_teacher_whose_own_lesson_is_covered_is_free_to_cover(): void
+    {
+        $this->authorized_user([]);
+        $teacher = $this->teacher();
+        $own = $this->timetableWithLesson($teacher, '08:00', '09:00');
+        $absent = $this->timetableWithLesson($this->teacher(), '08:30', '09:30');
+        app(PublishTimetable::class)->publish($own);
+        app(PublishTimetable::class)->publish($absent);
+        $weekday = Weekday::firstOrFail();
+        $date = Carbon::parse('next '.$weekday->name);
+        app(CreateTimetableSubstitution::class)->create($own->fresh(), $own->timeSlots()->firstOrFail(), $weekday->id, $this->teacher(), $date, 'Moved to cover', auth()->user());
+
+        $cover = app(CreateTimetableSubstitution::class)->create($absent->fresh(), $absent->timeSlots()->firstOrFail(), $weekday->id, $teacher, $date, 'Absence', auth()->user());
+
+        $this->assertSame($teacher->id, $cover->replacement_teacher_id);
+    }
+
+    public function test_a_teacher_cannot_cover_during_their_lesson_at_another_campus(): void
+    {
+        $this->authorized_user([]);
+        $teacher = $this->teacher();
+        $weekday = Weekday::firstOrFail();
+        $date = Carbon::parse('next '.$weekday->name);
+        $here = AcademicPeriod::query()->findOrFail(current_academic_period_id());
+        $here->forceFill(['starts_on' => $date->copy()->subMonth(), 'ends_on' => $date->copy()->addMonth()])->save();
+        $otherCampus = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id]);
+        $otherPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $otherCampus->id,
+            'academic_year_id' => AcademicYear::factory()->create(['school_id' => $otherCampus->id])->id,
+            'starts_on' => $here->starts_on,
+            'ends_on' => $here->ends_on,
+        ]);
+        app(GrantSchoolMembership::class)->grant($teacher, $otherCampus);
+        app(PublishTimetable::class)->publish($this->timetableWithLesson($teacher, '08:00', '09:00', $otherPeriod));
+        $absent = $this->timetableWithLesson($this->teacher(), '08:30', '09:30');
+        app(PublishTimetable::class)->publish($absent);
+
+        $this->expectExceptionMessage("$teacher->name teaches");
+
+        app(CreateTimetableSubstitution::class)->create($absent->fresh(), $absent->timeSlots()->firstOrFail(), $weekday->id, $teacher, $date, 'Absence', auth()->user());
+    }
+
     public function test_cover_outside_the_timetables_dates_is_refused(): void
     {
         $this->authorized_user([]);
@@ -274,7 +331,7 @@ class TimetableRevisionTest extends TestCase
     {
         $this->authorized_user(['read timetable', 'update timetable']);
         $teacher = $this->teacher();
-        $timetable = $this->timetableWithLesson($teacher, '08:00', '09:00');
+        $timetable = $this->timetableWithLesson($this->teacher(), '08:00', '09:00');
         $weekday = Weekday::firstOrFail();
         app(PublishTimetable::class)->publish($timetable);
         $coming = app(CreateTimetableSubstitution::class)->create($timetable->fresh(), $timetable->timeSlots()->firstOrFail(), $weekday->id, $teacher, Carbon::parse('next '.$weekday->name), 'Absence', auth()->user());

@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A teacher could be sent to cover a lesson while timetabled to teach their own class
+- Status: Fixed
+- Area: Timetable cover
+- Observed: Cover only checked other cover on the same date. A teacher with their own published lesson at that hour, at this campus or a sibling campus, could still be chosen.
+- Impact: Two classes expect the same teacher at the same time. One class is left without a teacher.
+- Reproduction: Publish two timetables with overlapping 08:00 lessons for teachers A and B. Record cover for B's lesson with teacher A.
+- Resolution: `CreateTimetableSubstitution` reads the teacher's own lessons on that date across the organization's campuses. It refuses the cover unless someone else already covers that lesson.
+
 ## A teacher could be timetabled at two campuses at the same hour
 
 - Status: Fixed

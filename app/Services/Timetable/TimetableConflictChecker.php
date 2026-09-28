@@ -11,6 +11,8 @@ use App\Models\TeachingAssignment;
 use App\Models\Timetable;
 use App\Models\TimetableRecord;
 use App\Models\TimetableTimeSlot;
+use App\Models\User;
+use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
@@ -99,6 +101,43 @@ class TimetableConflictChecker
         }
 
         return array_values(array_unique($conflicts));
+    }
+
+    /**
+     * Get the lessons a teacher takes on one date at any campus of the school's organization.
+     *
+     * @return Collection<int, array{timetable: Timetable, time_slot_id: int, weekday_id: int, start_time: string, stop_time: string}>
+     */
+    public function lessonsTaughtBy(User $teacher, CarbonInterface $date, School $school): Collection
+    {
+        $day = Carbon::parse($date->toDateString());
+        $campusIds = School::query()->where('organization_id', $school->organization_id)->pluck('id')->all();
+
+        $timetables = Timetable::query()
+            ->published()
+            ->whereHas('academicPeriod', fn ($periods) => $periods
+                ->whereIn('school_id', $campusIds)
+                ->where(fn ($dated) => $dated->whereNull('starts_on')->orWhereDate('starts_on', '<=', $day))
+                ->where(fn ($dated) => $dated->whereNull('ends_on')->orWhereDate('ends_on', '>=', $day)))
+            ->get();
+
+        $lessons = collect();
+
+        foreach ($timetables as $timetable) {
+            foreach ($this->entriesOf($timetable) as $entry) {
+                if (in_array($teacher->id, $entry['teacher_ids'], true) && $this->entryOccursOn($entry, $day)) {
+                    $lessons->push([
+                        'timetable' => $timetable,
+                        'time_slot_id' => $entry['time_slot_id'],
+                        'weekday_id' => $entry['weekday_id'],
+                        'start_time' => $entry['start_time'],
+                        'stop_time' => $entry['stop_time'],
+                    ]);
+                }
+            }
+        }
+
+        return $lessons;
     }
 
     /**
@@ -245,7 +284,7 @@ class TimetableConflictChecker
                 ->get()
                 ->groupBy('subject_id');
 
-        /** @var Collection<int, array{weekday_id: int, start_time: string, stop_time: string, recurrence: string, occurs_on: string|null, starts_on: string|null, recurrence_interval: int, recurrence_weekdays: array<int, int>, room: string|null, teacher_ids: array<int, int>, teacher_names: array<int|string, string>}> $entries */
+        /** @var Collection<int, array{time_slot_id: int, weekday_id: int, start_time: string, stop_time: string, recurrence: string, occurs_on: string|null, starts_on: string|null, recurrence_interval: int, recurrence_weekdays: array<int, int>, room: string|null, teacher_ids: array<int, int>, teacher_names: array<int|string, string>}> $entries */
         $entries = $records->map(function (TimetableRecord $record) use ($assignmentsBySubject, $facilityNames, $slots, $subjectMorphClass, $subjects, $timetable): ?array {
             $slot = $slots->get($record->timetable_time_slot_id);
             $subject = $record->timetable_time_slot_weekdayable_type === $subjectMorphClass
@@ -261,6 +300,7 @@ class TimetableConflictChecker
                 ->filter();
 
             return [
+                'time_slot_id' => (int) $slot->id,
                 'weekday_id' => (int) $record->weekday_id,
                 'start_time' => (string) $slot->start_time,
                 'stop_time' => (string) $slot->stop_time,
