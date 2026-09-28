@@ -11,6 +11,7 @@ use App\Actions\Timetable\CreateTimetableSubstitution;
 use App\Actions\Timetable\PublishTimetable;
 use App\Actions\Timetable\ReviseTimetable;
 use App\Enums\AuditAction;
+use App\Enums\LeaveStatus;
 use App\Enums\LeaveType;
 use App\Enums\Role;
 use App\Enums\TimetableStatus;
@@ -273,6 +274,59 @@ class TimetableRevisionTest extends TestCase
         $this->expectExceptionMessage("$teacher->name is on leave that day.");
 
         app(CreateTimetableSubstitution::class)->create($absent->fresh(), $absent->timeSlots()->firstOrFail(), $weekday->id, $teacher, $date, 'Absence', auth()->user());
+    }
+
+    public function test_leave_is_not_approved_over_cover_the_teacher_still_holds(): void
+    {
+        $this->authorized_user([]);
+        $teacher = $this->teacher();
+        $absent = $this->timetableWithLesson($this->teacher(), '08:00', '09:00');
+        app(PublishTimetable::class)->publish($absent);
+        $weekday = Weekday::firstOrFail();
+        $date = Carbon::parse('next '.$weekday->name);
+        $cover = app(CreateTimetableSubstitution::class)->create($absent->fresh(), $absent->timeSlots()->firstOrFail(), $weekday->id, $teacher, $date, 'Absence', auth()->user());
+        // The leave is asked for at another campus. The teacher is away everywhere.
+        $profile = StaffProfile::factory()->create(['user_id' => $teacher->id, 'school_id' => School::factory()->create()->id]);
+        $leave = app(ManageStaffLeave::class)->request($profile, $date, $date, LeaveType::Sick, 'Flu');
+
+        try {
+            app(ManageStaffLeave::class)->approve($leave);
+            $this->fail('Leave was approved over cover the teacher still holds.');
+        } catch (InvalidValueException $exception) {
+            $this->assertSame("$teacher->name still covers 1 lesson in these days. Withdraw that cover first.", $exception->getMessage());
+        }
+
+        $this->assertSame(LeaveStatus::Requested, $leave->fresh()->status);
+
+        $cover->delete();
+        app(ManageStaffLeave::class)->approve($leave->fresh());
+
+        $this->assertSame(LeaveStatus::Approved, $leave->fresh()->status);
+    }
+
+    public function test_cover_already_given_does_not_block_leave_approved_afterwards(): void
+    {
+        $this->authorized_user([]);
+        $teacher = $this->teacher();
+        $absent = $this->timetableWithLesson($this->teacher(), '08:00', '09:00');
+        app(PublishTimetable::class)->publish($absent);
+        $weekday = Weekday::firstOrFail();
+        $past = Carbon::parse('last '.$weekday->name);
+        TimetableSubstitution::create([
+            'timetable_id' => $absent->id,
+            'timetable_time_slot_id' => $absent->timeSlots()->firstOrFail()->id,
+            'weekday_id' => $weekday->id,
+            'replacement_teacher_id' => $teacher->id,
+            'substituted_on' => $past,
+            'reason' => 'Absence',
+            'approved_by' => auth()->id(),
+        ]);
+        $profile = StaffProfile::factory()->create(['user_id' => $teacher->id, 'school_id' => $absent->academicCycleSection->school_id]);
+        $leave = app(ManageStaffLeave::class)->request($profile, $past, $past->copy()->addDays(8), LeaveType::Sick, 'Flu');
+
+        app(ManageStaffLeave::class)->approve($leave);
+
+        $this->assertSame(LeaveStatus::Approved, $leave->fresh()->status);
     }
 
     public function test_a_teacher_cannot_cover_during_their_own_lesson(): void

@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Leave was approved while the teacher still had cover booked
+- Status: Fixed
+- Area: Staff leave and timetable cover
+- Observed: A teacher was booked to cover a lesson. Their leave for that day was then approved. The cover stayed booked to a teacher who would not come.
+- Impact: The class was left without a teacher, and the cover list said it was covered. Leave at another campus had the same effect.
+- Reproduction: Book a teacher as cover next Monday. Ask for their leave on that Monday at any campus. Approve it.
+- Resolution: Approval is refused while the teacher still covers a lesson on or after today in the leave days. The message gives the number of lessons and asks to withdraw that cover first.
+
 ## A learner who left could still join a group
 - Status: Fixed
 - Area: Groups, programmes, boarding and support plans

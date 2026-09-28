@@ -11,10 +11,12 @@ use App\Exceptions\InvalidValueException;
 use App\Models\StaffLeaveRequest;
 use App\Models\StaffLeaveStatusChange;
 use App\Models\StaffProfile;
+use App\Models\TimetableSubstitution;
 use App\Models\User;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 /**
  * Ask for leave, answer the request, and keep the history.
@@ -110,6 +112,10 @@ class ManageStaffLeave
                 $this->refuseAClash($request->staffProfile, $request->starts_on, $request->ends_on, except: $request->id);
             }
 
+            if ($status === LeaveStatus::Approved) {
+                $this->refuseCoverStillHeld($request);
+            }
+
             $request->status = $status;
 
             if (in_array($status, [LeaveStatus::Approved, LeaveStatus::Declined], true)) {
@@ -168,6 +174,30 @@ class ManageStaffLeave
      *
      * @throws InvalidValueException when the days overlap leave still held
      */
+    /**
+     * Refuse leave while the person is still booked to cover lessons in it.
+     *
+     * Cover is booked at any campus, and leave at one campus keeps a teacher
+     * away from all of them. Cover already given is history and never counts.
+     *
+     * @throws InvalidValueException
+     */
+    private function refuseCoverStillHeld(StaffLeaveRequest $request): void
+    {
+        $teacher = $request->staffProfile()->with('user:id,name')->firstOrFail()->user;
+        $from = $request->starts_on->max(today());
+
+        $lessons = TimetableSubstitution::query()
+            ->where('replacement_teacher_id', $teacher->id)
+            ->whereDate('substituted_on', '>=', $from)
+            ->whereDate('substituted_on', '<=', $request->ends_on)
+            ->count();
+
+        if ($lessons > 0) {
+            throw new InvalidValueException("{$teacher->name} still covers {$lessons} ".Str::plural('lesson', $lessons).' in these days. Withdraw that cover first.');
+        }
+    }
+
     private function refuseAClash(StaffProfile $profile, CarbonInterface $start, CarbonInterface $end, ?int $except = null): void
     {
         $clash = StaffLeaveRequest::query()
