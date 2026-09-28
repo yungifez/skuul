@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Cover could be booked for a lesson on a holiday
+- Status: Fixed
+- Area: Timetable cover, calendar
+- Observed: The cover screen took a lesson on a published holiday or closure. A teacher was booked to cover a class that would not meet.
+- Impact: The booked teacher showed as busy that day, which blocked real cover elsewhere, and the cover record claimed a lesson that never happened.
+- Reproduction: Publish a holiday for next Monday. Book cover for a Monday lesson on that day.
+- Resolution: Cover is refused on a day the calendar shuts the campus or the lesson's home group, with the holiday named.
+
 ## A register could be taken on a day the school was shut
 - Status: Fixed
 - Area: Attendance, calendar

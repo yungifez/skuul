@@ -13,6 +13,7 @@ use App\Models\TimetableSubstitution;
 use App\Models\TimetableTimeSlot;
 use App\Models\User;
 use App\Models\Weekday;
+use App\Services\Calendar\SchoolCalendar;
 use App\Services\Staff\StaffAvailability;
 use App\Services\Timetable\TimetableConflictChecker;
 use Carbon\CarbonInterface;
@@ -25,6 +26,7 @@ class CreateTimetableSubstitution
         private RecordAuditEvent $auditor,
         private TimetableConflictChecker $conflictChecker,
         private StaffAvailability $availability,
+        private SchoolCalendar $calendar,
     ) {}
 
     public function create(Timetable $timetable, TimetableTimeSlot $slot, int $weekdayId, User $replacementTeacher, CarbonInterface $date, string $reason, User $actor): TimetableSubstitution
@@ -181,6 +183,12 @@ class CreateTimetableSubstitution
 
         if (strcasecmp($weekday->name, $date->format('l')) !== 0) {
             throw new InvalidValueException('The selected date does not fall on the scheduled weekday.');
+        }
+
+        $closure = $this->calendar->closureOn($schoolId, $timetable->academic_cycle_section_id, $date);
+
+        if ($closure !== null) {
+            throw new InvalidValueException("The school is shut on {$date->format('j M Y')} for {$closure->title}, so the lesson needs no cover.");
         }
 
         if (!$replacementTeacher->belongsToSchool($schoolId) || !$replacementTeacher->hasRole(Role::Teacher->value)) {

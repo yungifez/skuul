@@ -12,6 +12,7 @@ use App\Actions\Timetable\CreateTimetableSubstitution;
 use App\Actions\Timetable\PublishTimetable;
 use App\Actions\Timetable\ReviseTimetable;
 use App\Enums\AuditAction;
+use App\Enums\CalendarEventType;
 use App\Enums\LeaveStatus;
 use App\Enums\LeaveType;
 use App\Enums\Role;
@@ -26,6 +27,7 @@ use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
+use App\Models\CalendarEvent;
 use App\Models\CourseOffering;
 use App\Models\Organization;
 use App\Models\School;
@@ -178,6 +180,37 @@ class TimetableRevisionTest extends TestCase
         $this->assertSame($template->id, $override->template_timetable_id);
         $this->assertSame($section->id, $override->academic_cycle_section_id);
         $this->assertSame(1, $override->timeSlots()->count());
+    }
+
+    public function test_a_lesson_on_a_holiday_takes_no_cover(): void
+    {
+        $this->authorized_user([]);
+        $timetable = $this->timetableWithLesson($this->teacher(), '08:00', '09:00');
+        $weekday = Weekday::firstOrFail();
+        $date = Carbon::parse('next '.$weekday->name);
+        app(PublishTimetable::class)->publish($timetable);
+        CalendarEvent::query()->create([
+            'school_id' => $timetable->academicCycleSection->school_id,
+            'title' => 'Founders Day',
+            'type' => CalendarEventType::Holiday,
+            'is_all_day' => true,
+            'is_published' => true,
+            'starts_at' => $date->copy()->startOfDay(),
+            'ends_at' => $date->copy()->endOfDay(),
+        ]);
+
+        $this->expectException(InvalidValueException::class);
+        $this->expectExceptionMessage('for Founders Day, so the lesson needs no cover.');
+
+        app(CreateTimetableSubstitution::class)->create(
+            $timetable->fresh(),
+            $timetable->timeSlots()->firstOrFail(),
+            $weekday->id,
+            $this->teacher(),
+            $date,
+            'Teacher is away.',
+            auth()->user(),
+        );
     }
 
     public function test_a_published_timetable_can_record_dated_cover_without_changing_the_weekly_schedule(): void
