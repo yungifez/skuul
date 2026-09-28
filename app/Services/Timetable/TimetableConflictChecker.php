@@ -39,7 +39,34 @@ class TimetableConflictChecker
             $this->teacherClashes($timetable),
             $this->roomClashes($timetable),
             $this->bookingClashes($timetable),
+            $this->roomsOutOfUse($timetable),
         );
+    }
+
+    /**
+     * Find lessons placed in a room taken out of use after they were placed.
+     *
+     * @return array<int, string>
+     */
+    private function roomsOutOfUse(Timetable $timetable): array
+    {
+        $facilityIds = TimetableRecord::query()
+            ->whereIn('timetable_time_slot_id', $timetable->timeSlots()->select('id'))
+            ->whereNotNull('facility_id')
+            ->distinct()
+            ->pluck('facility_id');
+
+        if ($facilityIds->isEmpty()) {
+            return [];
+        }
+
+        return Facility::query()
+            ->whereKey($facilityIds)
+            ->where('is_active', false)
+            ->orderBy('name')
+            ->pluck('name')
+            ->map(fn (string $name): string => "$name is out of use. Move its lessons to another room.")
+            ->all();
     }
 
     /**

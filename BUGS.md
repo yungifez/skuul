@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Lessons stay in a room taken out of use
+
+- Status: Fixed
+- Area: Facilities and timetables
+- Observed: Taking a room out of use gave up its bookings but said nothing about its timetabled lessons. A draft timetable with a lesson in that room still published without a conflict.
+- Impact: Classes were sent to a room the campus had closed.
+- Reproduction: Place a lesson in Lab 2. Take Lab 2 out of use. Publish the timetable.
+- Resolution: The conflict check now names each room out of use. Taking a room out of use says how many published lessons still use it.
+
 ## A course roster naming a learner who left cannot be saved
 
 - Status: Fixed

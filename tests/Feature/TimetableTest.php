@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Facility\ManageFacility;
 use App\Enums\AcademicPeriodStatus;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\FacilityKind;
@@ -25,6 +26,8 @@ use App\Models\TimetableRecord;
 use App\Models\TimetableTimeSlot;
 use App\Models\User;
 use App\Models\Weekday;
+use App\Services\Timetable\TimeSlotService;
+use App\Services\Timetable\TimetableConflictChecker;
 use App\Services\Timetable\TimetableGrid;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -899,6 +902,21 @@ class TimetableTest extends TestCase
             ->assertHasErrors('timetable');
 
         $this->assertDatabaseMissing('timetable_time_slot_weekday', ['timetable_time_slot_id' => $slot->id]);
+    }
+
+    public function test_a_lesson_in_a_room_taken_out_of_use_is_a_conflict(): void
+    {
+        [$timetable, $slot, $weekday] = $this->timetableWithOneSlot();
+        $schoolId = $timetable->academicPeriod->school_id;
+        $subject = Subject::factory()->create(['school_id' => $schoolId]);
+        $room = Facility::factory()->create(['school_id' => $schoolId, 'kind' => FacilityKind::Classroom, 'name' => 'Lab 2']);
+        app(TimeSlotService::class)->placeRecord($slot, $weekday->id, 'subject', $subject->id, $room->id);
+
+        $this->assertNotContains('Lab 2 is out of use. Move its lessons to another room.', app(TimetableConflictChecker::class)->conflicts($timetable));
+
+        app(ManageFacility::class)->retire($room);
+
+        $this->assertContains('Lab 2 is out of use. Move its lessons to another room.', app(TimetableConflictChecker::class)->conflicts($timetable));
     }
 
     public function test_the_old_record_route_is_gone(): void

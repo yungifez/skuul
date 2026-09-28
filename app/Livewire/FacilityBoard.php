@@ -9,6 +9,9 @@ use App\Exceptions\InvalidValueException;
 use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Models\Facility;
 use App\Models\FacilityBooking;
+use App\Models\Timetable;
+use App\Models\TimetableRecord;
+use App\Models\TimetableTimeSlot;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
@@ -128,10 +131,16 @@ class FacilityBoard extends Component
         Gate::authorize('delete', $facility);
 
         $givenUp = $manageFacility->retire($facility, auth()->user());
+        $lessons = TimetableRecord::query()
+            ->where('facility_id', $facility->id)
+            ->whereIn('timetable_time_slot_id', TimetableTimeSlot::query()->whereIn('timetable_id', Timetable::query()->published()->select('id'))->select('id'))
+            ->count();
 
-        $this->notify($givenUp === 0
-            ? "{$facility->name} is out of use."
-            : "{$facility->name} is out of use. {$givenUp} ".str('booking')->plural($givenUp).' ahead '.($givenUp === 1 ? 'was' : 'were').' given up.');
+        $this->notify(collect([
+            "{$facility->name} is out of use.",
+            $givenUp === 0 ? null : "{$givenUp} ".str('booking')->plural($givenUp).' ahead '.($givenUp === 1 ? 'was' : 'were').' given up.',
+            $lessons === 0 ? null : "{$lessons} published ".str('lesson')->plural($lessons).' still '.($lessons === 1 ? 'uses' : 'use').' it. Move '.($lessons === 1 ? 'it' : 'them').' in the timetable.',
+        ])->filter()->implode(' '), $lessons === 0 ? 'success' : 'info');
     }
 
     public function restore(int $facilityId, ManageFacility $manageFacility): void

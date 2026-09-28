@@ -350,6 +350,19 @@ class FacilityTest extends TestCase
         );
     }
 
+    public function test_taking_a_room_with_published_lessons_out_of_use_warns(): void
+    {
+        $this->authorized_user(['read facility', 'manage facility']);
+        $hall = $this->facility();
+        $this->publishLessonIn($hall, 'monday', '09:00', '10:00');
+
+        Livewire::test(FacilityBoard::class)
+            ->call('retire', $hall->id)
+            ->assertDispatched('status-message', type: 'info', message: "{$hall->name} is out of use. 1 published lesson still uses it. Move it in the timetable.");
+
+        $this->assertFalse($hall->fresh()->is_active);
+    }
+
     public function test_a_booking_on_another_day_is_left_alone(): void
     {
         $this->authorized_user([]);
