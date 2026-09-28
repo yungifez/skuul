@@ -6,6 +6,7 @@ use App\Actions\Finance\ApplyStudentCredit;
 use App\Actions\Finance\ReceivePayment;
 use App\Actions\Finance\RecordStudentPayment;
 use App\Actions\Finance\RefundStudent;
+use App\Actions\Finance\RelieveStudentFees;
 use App\Actions\Finance\ReversePayment;
 use App\Enums\AuditAction;
 use App\Exceptions\InvalidValueException;
@@ -21,6 +22,7 @@ use App\Models\School;
 use App\Models\StudentPayment;
 use App\Models\StudentRecord;
 use App\Services\Fee\FeeInvoiceService;
+use App\Services\Finance\ChartOfAccounts;
 use App\Services\Finance\PaymentChannelRegistry;
 use App\Services\Finance\StudentLedger;
 use App\Traits\FeatureTestTrait;
@@ -717,6 +719,121 @@ class StudentPaymentTest extends TestCase
         $this->expectException(RuntimeException::class);
 
         PaymentAllocation::first()->delete();
+    }
+
+    public function test_the_account_screen_waives_part_of_a_billed_fee(): void
+    {
+        $this->authorized_user(['read fee invoice', 'refund student payment']);
+        $enrollment = $this->enrollment();
+        $invoice = $this->invoiceFor($enrollment, [['amount' => 100]]);
+        app(ReceivePayment::class)->receive($enrollment, 3_000);
+        $line = $invoice->feeInvoiceRecords()->sole();
+
+        Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment])
+            ->assertSeeHtml("startRelieving({$invoice->id})")
+            ->call('startRelieving', $invoice->id)
+            ->assertSet('reliefLineId', (string) $line->id)
+            ->set('reliefAmount', '70.01')
+            ->set('reliefReason', 'Staff child discount')
+            ->call('relieve')
+            ->assertHasErrors('reliefAmount')
+            ->set('reliefAmount', '50')
+            ->set('reliefReason', 'x')
+            ->call('relieve')
+            ->assertHasErrors(['reliefReason' => 'min'])
+            ->set('reliefReason', 'Staff child discount')
+            ->call('relieve')
+            ->assertHasNoErrors()
+            ->assertSet('relievingInvoiceId', null);
+
+        $this->assertSame(5_000, $line->fresh()->waiver->getMinorAmount()->toInt());
+        $this->assertSame(2_000, $invoice->fresh()->balance->getMinorAmount()->toInt());
+        $this->assertSame(20.0, app(StudentLedger::class)->balance($enrollment->fresh()));
+        $this->assertSame(50.0, app(ChartOfAccounts::class)->account('scholarships')->balance());
+        $event = AuditEvent::ofAction(AuditAction::FeesRelieved)->forSubject($invoice)->sole();
+        $this->assertSame(5_000, $event->context['amount']);
+    }
+
+    public function test_a_write_off_goes_to_bad_debt_and_settles_the_invoice(): void
+    {
+        $this->authorized_user(['read fee invoice', 'refund student payment']);
+        $enrollment = $this->enrollment();
+        $invoice = $this->invoiceFor($enrollment, [['amount' => 100]]);
+
+        app(RelieveStudentFees::class)->relieveLine($invoice->feeInvoiceRecords()->sole(), 10_000, writeOff: true, reason: 'The family cannot be reached');
+
+        $chart = app(ChartOfAccounts::class);
+        $this->assertTrue($invoice->fresh()->isSettled());
+        $this->assertSame(0.0, app(StudentLedger::class)->balance($enrollment->fresh()));
+        $this->assertSame(100.0, $chart->account('bad_debt')->balance());
+        $this->assertSame(0.0, $chart->account('scholarships')->balance());
+
+        $this->expectException(InvalidValueException::class);
+        app(RelieveStudentFees::class)->relieveLine($invoice->feeInvoiceRecords()->sole(), 1, writeOff: true, reason: 'Again');
+    }
+
+    public function test_a_relief_sent_again_takes_the_fee_off_once(): void
+    {
+        $this->authorized_user(['read fee invoice', 'refund student payment']);
+        $enrollment = $this->enrollment();
+        $invoice = $this->invoiceFor($enrollment, [['amount' => 100]]);
+
+        $screen = Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment])
+            ->call('startRelieving', $invoice->id)
+            ->set('reliefAmount', '10')
+            ->set('reliefReason', 'Sibling discount');
+        $key = $screen->get('recordKey');
+        $screen->call('relieve')->assertHasNoErrors();
+
+        $screen->set('relievingInvoiceId', $invoice->id)
+            ->set('reliefLineId', (string) $invoice->feeInvoiceRecords()->sole()->id)
+            ->set('reliefAmount', '10')
+            ->set('reliefReason', 'Sibling discount');
+        Cache::put("recorded:fee-relief:{$this->workingSchool()->id}:{$screen->get('recordKey')}", true);
+        $screen->call('relieve');
+
+        $this->assertNotSame($key, $screen->get('recordKey'));
+        $this->assertSame(1_000, $invoice->feeInvoiceRecords()->sole()->waiver->getMinorAmount()->toInt());
+    }
+
+    public function test_only_a_named_person_can_waive_a_fee(): void
+    {
+        $this->authorized_user(['read fee invoice', 'update fee invoice']);
+        $enrollment = $this->enrollment();
+        $invoice = $this->invoiceFor($enrollment, [['amount' => 100]]);
+
+        Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment])
+            ->assertDontSeeHtml("startRelieving({$invoice->id})")
+            ->call('startRelieving', $invoice->id)
+            ->assertForbidden();
+
+        $this->assertTrue($invoice->feeInvoiceRecords()->sole()->waiver->isZero());
+    }
+
+    public function test_a_campus_cannot_waive_an_invoice_another_campus_raised(): void
+    {
+        $this->authorized_user(['read fee invoice', 'refund student payment']);
+        $enrollment = $this->enrollment();
+        $invoice = $this->invoiceFor($enrollment, [['amount' => 100]]);
+        FeeInvoice::query()->whereKey($invoice->id)->toBase()->update(['school_id' => School::factory()->create()->id]);
+        $this->invoiceFor($enrollment, [['amount' => 50]]);
+
+        $screen = Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment])
+            ->assertDontSeeHtml("startRelieving({$invoice->id})");
+
+        $this->expectException(ModelNotFoundException::class);
+        $screen->call('startRelieving', $invoice->id);
+    }
+
+    public function test_a_fee_cannot_be_waived_below_what_the_campus_books_still_hold(): void
+    {
+        $this->authorized_user(['read fee invoice', 'refund student payment']);
+        $enrollment = $this->enrollment();
+        $invoice = $this->invoiceFor($enrollment, [['amount' => 100]]);
+        app(RelieveStudentFees::class)->waive($enrollment, 80, 'Waived off the invoice by hand');
+
+        $this->expectExceptionMessage('That is more than is still owed on this fee.');
+        app(RelieveStudentFees::class)->relieveLine($invoice->feeInvoiceRecords()->sole(), 3_000, writeOff: false, reason: 'Second waiver');
     }
 
     /**

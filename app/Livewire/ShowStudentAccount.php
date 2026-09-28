@@ -4,11 +4,13 @@ namespace App\Livewire;
 
 use App\Actions\Finance\ApplyStudentCredit;
 use App\Actions\Finance\RefundStudent;
+use App\Actions\Finance\RelieveStudentFees;
 use App\Actions\Finance\ReversePayment;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Livewire\Concerns\RecordsOnce;
 use App\Models\FeeInvoice;
+use App\Models\FeeInvoiceRecord;
 use App\Models\StudentPayment;
 use App\Models\StudentRecord;
 use App\Services\Finance\PaymentChannelRegistry;
@@ -52,6 +54,16 @@ class ShowStudentAccount extends Component
     public string $refundReason = '';
 
     public string $refundReference = '';
+
+    public ?int $relievingInvoiceId = null;
+
+    public string $reliefLineId = '';
+
+    public string $reliefAmount = '';
+
+    public string $reliefKind = 'waiver';
+
+    public string $reliefReason = '';
 
     public function mount(StudentRecord $enrollment): void
     {
@@ -150,9 +162,67 @@ class ShowStudentAccount extends Component
         $this->notify('The refund was recorded.');
     }
 
+    public function startRelieving(int $invoiceId): void
+    {
+        $this->mustBeAllowedTo('refund student payment', $this->enrollment);
+
+        $invoice = $this->invoice($invoiceId);
+        $lines = $invoice->feeInvoiceRecords->filter(fn (FeeInvoiceRecord $line): bool => $line->outstanding->isPositive());
+
+        $this->relievingInvoiceId = $invoice->id;
+        $this->reliefLineId = $lines->count() === 1 ? (string) $lines->first()->id : '';
+        $this->reset('reliefAmount', 'reliefKind', 'reliefReason');
+        $this->resetValidation();
+    }
+
+    /**
+     * Waive or write off part of a fee the family was billed.
+     */
+    public function relieve(RelieveStudentFees $relief): void
+    {
+        $this->mustBeAllowedTo('refund student payment', $this->enrollment);
+
+        $this->validate([
+            'reliefLineId' => ['required', 'integer'],
+            'reliefAmount' => ['required', 'decimal:0,2', 'min:0.01', 'max:100000000'],
+            'reliefKind' => ['required', Rule::in(['waiver', 'write_off'])],
+            'reliefReason' => ['required', 'string', 'min:5', 'max:500'],
+        ], [
+            'reliefLineId.required' => 'Choose the fee to take off.',
+            'reliefReason.required' => 'Say why the fee is being taken off.',
+            'reliefReason.min' => 'Give a reason somebody can understand later.',
+        ], ['reliefAmount' => 'amount']);
+
+        $line = $this->invoice((int) $this->relievingInvoiceId)->feeInvoiceRecords->firstWhere('id', (int) $this->reliefLineId);
+
+        if ($line === null) {
+            $this->addError('reliefLineId', 'Choose a fee on this invoice.');
+
+            return;
+        }
+
+        try {
+            $this->recordOnce('fee-relief', fn () => $relief->relieveLine(
+                line: $line,
+                amount: BrickMoney::of($this->reliefAmount, config('app.currency'))->getMinorAmount()->toInt(),
+                writeOff: $this->reliefKind === 'write_off',
+                reason: $this->reliefReason,
+                actor: auth()->user(),
+            ));
+        } catch (InvalidValueException $exception) {
+            $this->addError('reliefAmount', $exception->getMessage());
+
+            return;
+        }
+
+        $this->reset('relievingInvoiceId', 'reliefLineId', 'reliefAmount', 'reliefKind', 'reliefReason');
+        $this->startNextRecord();
+        $this->notify('The fee was taken off.');
+    }
+
     public function cancel(): void
     {
-        $this->reset('reversingPaymentId', 'reverseReason', 'isRefunding');
+        $this->reset('reversingPaymentId', 'reverseReason', 'isRefunding', 'relievingInvoiceId');
         $this->resetValidation();
     }
 
@@ -181,6 +251,18 @@ class ShowStudentAccount extends Component
             'canTakeMoney' => auth()->user()?->can('update fee invoice') === true,
             'canRefund' => auth()->user()?->can('refund student payment') === true,
         ]);
+    }
+
+    /**
+     * Find an invoice this campus raised for the learner.
+     */
+    private function invoice(int $invoiceId): FeeInvoice
+    {
+        return FeeInvoice::query()
+            ->ofSchool($this->campusId)
+            ->where('student_record_id', $this->enrollment->id)
+            ->with(['feeInvoiceRecords.fee', 'feeInvoiceRecords.allocations'])
+            ->findOrFail($invoiceId);
     }
 
     private function payment(int $paymentId): StudentPayment

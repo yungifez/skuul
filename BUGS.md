@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A billed fee cannot be waived or written off
+
+- Status: Fixed
+- Area: Student accounts, `RelieveStudentFees`
+- Observed: A posted invoice locks its lines, and a correcting invoice cannot be negative. `RelieveStudentFees` had no caller. No screen could take a scholarship or a bad debt off a fee after billing.
+- Impact: The office could not record a late scholarship or give up on a debt. Families showed as owing money the school had already forgiven, or staff edited records outside the books.
+- Reproduction: Raise an invoice for a learner. Try to waive part of one fee from the student account or the invoice screens. No control does it.
+- Resolution: `RelieveStudentFees::relieveLine()` locks the learner and the line, and takes part of one fee off a posted invoice. It raises the line's waiver and posts the cost to scholarships or bad debt in the books of the campus that billed it. It refuses more than the line still owes or the campus books still hold, and records a `FeesRelieved` audit event. The student account screen offers "Waive or write off" in each unpaid invoice's ⋯ menu, to people who can refund student payments. A save sent again takes the fee off once.
 ## A move closes a support plan and nobody who runs it hears
 
 - Status: Fixed

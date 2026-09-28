@@ -193,6 +193,11 @@ enum AuditAction: string
     case StudentRefunded = 'payment.refunded';
 
     /**
+     * Part of a posted invoice was waived or written off.
+     */
+    case FeesRelieved = 'fee_invoice.relieved';
+
+    /**
      * A learner's balance followed them to another campus of the same purse.
      */
     case BalanceCarriedToCampus = 'student.balance_carried_to_campus';
@@ -744,6 +749,7 @@ enum AuditAction: string
             self::PaymentReversed => 'Payment taken back',
             self::StudentCreditApplied => 'Credit used against fees',
             self::StudentRefunded => 'Money given back',
+            self::FeesRelieved => 'Fees waived or written off',
             self::BalanceCarriedToCampus => 'Balance carried to another campus',
             self::BillingGroupChanged => 'Billing group changed',
             self::BudgetSet => 'Budget set',
