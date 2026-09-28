@@ -6,12 +6,14 @@ use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AuditAction;
 use App\Exceptions\InvalidValueException;
 use App\Models\PaymentAllocation;
+use App\Models\School;
 use App\Models\StudentPayment;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Finance\AllocationPlanner;
 use App\Services\Finance\ChartOfAccounts;
 use Brick\Money\Money as BrickMoney;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -105,6 +107,7 @@ class ApplyStudentCredit
     {
         return StudentPayment::query()
             ->where('student_record_id', $enrollment->id)
+            ->whereIn('school_id', $this->campusesSharingBooks($enrollment))
             ->stillStanding()
             ->get()
             ->sum(fn (StudentPayment $payment): int => $payment->unallocated()->getMinorAmount()->toInt());
@@ -156,10 +159,33 @@ class ApplyStudentCredit
     {
         return StudentPayment::query()
             ->where('student_record_id', $enrollment->id)
+            ->whereIn('school_id', $this->campusesSharingBooks($enrollment))
             ->withCreditLeft()
             ->orderBy('received_on')
             ->orderBy('id')
             ->get()
             ->toBase();
+    }
+
+    /**
+     * Get the campuses whose held money this learner's campus may use.
+     *
+     * A campus with its own books never spends or gives back money another
+     * campus holds. Campuses of one billing group keep one purse, and the
+     * move between them already carried the credit in the books.
+     *
+     * @return Builder<School>|array<int, int>
+     */
+    private function campusesSharingBooks(StudentRecord $enrollment): Builder|array
+    {
+        $campus = School::query()->find($enrollment->school_id);
+
+        if ($campus?->billing_group_id === null) {
+            return [$enrollment->school_id];
+        }
+
+        return School::query()
+            ->where('billing_group_id', $campus->billing_group_id)
+            ->select('id');
     }
 }

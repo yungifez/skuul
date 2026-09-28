@@ -23,6 +23,7 @@ use App\Services\Fee\FeeInvoiceService;
 use App\Services\Finance\PaymentChannelRegistry;
 use App\Services\Finance\StudentLedger;
 use App\Traits\FeatureTestTrait;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use RuntimeException;
@@ -485,6 +486,25 @@ class StudentPaymentTest extends TestCase
 
         $this->assertTrue($payment->fresh()->isReversed());
         $this->assertSame(0, $invoice->fresh()->paid->getMinorAmount()->toInt());
+    }
+
+    public function test_a_campus_cannot_take_back_a_payment_another_campus_took(): void
+    {
+        $this->authorized_user(['read fee invoice', 'refund student payment']);
+        $enrollment = $this->enrollment();
+        $payment = app(ReceivePayment::class)->receive($enrollment, 4_000);
+        StudentPayment::query()->whereKey($payment->id)->toBase()->update(['school_id' => School::factory()->create()->id]);
+
+        $screen = Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment])
+            ->assertDontSeeHtml("startReversing({$payment->id})");
+
+        try {
+            $screen->call('startReversing', $payment->id);
+            $this->fail('A campus opened the reversal of another campus\'s payment.');
+        } catch (ModelNotFoundException) {
+        }
+
+        $this->assertFalse($payment->fresh()->isReversed());
     }
 
     public function test_the_account_screen_uses_held_credit_against_what_is_owed(): void

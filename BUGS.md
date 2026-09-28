@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A new campus could spend or give back money its old campus held
+
+- Status: Fixed
+- Area: Student accounts, credits, refunds, campus moves
+- Observed: A learner paid ahead at campus A, then moved to campus B, which keeps separate books. Campus B's account screen counted campus A's credit as its own. B could spend that credit against its own invoices, refund it from its own books, and take back payments campus A had recorded.
+- Impact: Money crossed between campuses that keep separate books. Campus B's books went negative, and campus A still showed the credit.
+- Reproduction: Take 200.00 from a learner at campus A. Move them to campus B (no shared billing group). Open their account at campus B and refund 50.00.
+- Resolution: Held credit now counts only payments at the learner's campus or a campus of the same billing group. A campus takes back only payments it recorded, and the reverse action is hidden on the others. `BillingGroupTest` and `StudentPaymentTest` cover both paths.
+
 ## A family could not see what a campus they left was still owed
 
 - Status: Fixed

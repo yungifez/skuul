@@ -134,7 +134,7 @@
             <ul class="divide-y border-y">
                 @foreach ($payments as $payment)
                     @php
-                        $canReverse = $canRefund && !$payment->isReversal() && !$payment->isReversed() && $payment->amount->isPositive();
+                        $canReverse = $canRefund && $payment->school_id === $enrollment->school_id && !$payment->isReversal() && !$payment->isReversed() && $payment->amount->isPositive();
                     @endphp
                     <li wire:key="payment-{{ $payment->id }}" class="flex flex-col gap-3 py-3">
                         <div class="flex items-start justify-between gap-4">

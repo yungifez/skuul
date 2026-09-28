@@ -170,8 +170,11 @@ class ShowStudentAccount extends Component
 
     private function payment(int $paymentId): StudentPayment
     {
+        // A campus only takes back money it took itself. A payment made at a
+        // campus the learner has left stays in that campus's books.
         return StudentPayment::query()
             ->where('student_record_id', $this->enrollment->id)
+            ->where('school_id', $this->enrollment->school_id)
             ->findOrFail($paymentId);
     }
 

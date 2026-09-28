@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Actions\Enrollment\MoveEnrollmentBetweenCampuses;
+use App\Actions\Finance\ApplyStudentCredit;
 use App\Actions\Finance\CarryBalanceToCampus;
 use App\Actions\Finance\ChargeStudent;
 use App\Actions\Finance\ReceivePayment;
+use App\Actions\Finance\RefundStudent;
 use App\Actions\Organization\GrantOrganizationMembership;
 use App\Actions\Organization\SetOrganizationMemberPermissions;
 use App\Enums\AcademicStructureStatus;
@@ -139,6 +141,37 @@ class BillingGroupTest extends TestCase
         $this->expectException(InvalidValueException::class);
 
         app(CarryBalanceToCampus::class)->carry($enrollment, $source, $destination);
+    }
+
+    public function test_credit_held_at_a_campus_with_separate_books_stays_there(): void
+    {
+        [$source, $destination] = $this->twoCampuses();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        app(ReceivePayment::class)->receive($enrollment, 20000);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+        $moved = $enrollment->fresh();
+
+        $this->assertSame(0, app(ApplyStudentCredit::class)->creditHeld($moved));
+
+        try {
+            app(RefundStudent::class)->refund($moved, 5000, 'Family asked for it back');
+            $this->fail('The new campus gave back money another campus holds.');
+        } catch (InvalidValueException) {
+        }
+
+        $this->assertSame(200.0, round(app(ChartOfAccounts::class)->account('unapplied_credits', $source->id)->balance(), 2));
+    }
+
+    public function test_credit_carried_inside_a_group_can_still_be_spent(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        app(ReceivePayment::class)->receive($enrollment, 20000);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+
+        $this->assertSame(20000, app(ApplyStudentCredit::class)->creditHeld($enrollment->fresh()));
     }
 
     public function test_a_learner_who_owes_nothing_carries_nothing(): void
