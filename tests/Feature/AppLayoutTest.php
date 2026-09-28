@@ -57,8 +57,9 @@ class AppLayoutTest extends TestCase
 
         // The 3rem rail held 15px for a 32px button while april padded both
         // the content and the group, and it could not scroll to later items.
-        $this->assertStringContainsString('group-data-[collapsible=icon]:px-0!', $html);
-        $this->assertStringContainsString('group-data-[collapsible=icon]:overflow-y-auto!', $html);
+        // april-ui 1.3.5 pads only the group and lets the rail scroll.
+        $this->assertStringContainsString('flex h-full min-h-0 flex-1 flex-col gap-2 overflow-auto group-data-[collapsible=icon]:[scrollbar-width:none]', $html);
+        $this->assertStringNotContainsString('group-data-[collapsible=icon]:overflow-hidden', $html);
     }
 
     public function test_a_dashboard_screen_holds_one_top_level_heading(): void

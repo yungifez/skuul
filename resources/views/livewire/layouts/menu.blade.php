@@ -74,13 +74,8 @@ element, so wrap them. `contents` keeps the wrapper out of the box tree. --}}
 
         {{-- april merges these attributes onto the wrapper it draws for the
         slot, so the sidebar becomes a landmark without a new element. The
-        label separates it from the breadcrumb trail.
-        Collapsed, the rail is 3rem wide. april pads both the content and each
-        group, which leaves 15px for a 32px button, so the icons spilled into
-        the border. It also stops the rail scrolling, which hid every item
-        below the fold. The rail keeps the group padding only, and scrolls
-        without a bar. --}}
-        <slot:content class="beautify-scrollbar group-data-[collapsible=icon]:px-0! group-data-[collapsible=icon]:overflow-y-auto! group-data-[collapsible=icon]:[scrollbar-width:none]" wire:navigate:scroll role="navigation"
+        label separates it from the breadcrumb trail. --}}
+        <slot:content class="beautify-scrollbar" wire:navigate:scroll role="navigation"
             aria-label="Main">
             @foreach ($menuGroups as $group)
             @if (collect($group['items'])->contains(fn (array $menuItem): bool => $menuItem['visible'] ?? true))
