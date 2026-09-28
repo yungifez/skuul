@@ -11,6 +11,7 @@ use App\Models\AcademicPeriod;
 use App\Models\EnrollmentPlacement;
 use App\Models\StudentRecord;
 use App\Models\User;
+use App\Services\Academic\SectionSeats;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 
@@ -25,7 +26,10 @@ use Illuminate\Support\Facades\DB;
  */
 class ChangeEnrollmentPlacement
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(
+        private RecordAuditEvent $auditor,
+        private SectionSeats $seats,
+    ) {}
 
     /**
      * Place the enrollment in an exact academic-cycle section.
@@ -61,18 +65,12 @@ class ChangeEnrollmentPlacement
                 return $enrollment;
             }
 
-            if ($academicCycleSection->capacity !== null) {
-                $occupied = StudentRecord::query()
-                    ->where('school_id', $academicCycleSection->school_id)
-                    ->where('academic_cycle_section_id', $academicCycleSection->id)
-                    ->enrolled()
-                    ->count();
-
-                if ($occupied >= $academicCycleSection->capacity) {
-                    throw new InvalidValueException(
-                        "The cycle section is full at {$academicCycleSection->capacity} learners. Add the candidate to its admission waitlist instead."
-                    );
-                }
+            // A seat offered to a waiting family is taken, so a learner placed
+            // another way cannot fill it before the family answers.
+            if ($this->seats->isFull($academicCycleSection)) {
+                throw new InvalidValueException(
+                    "The cycle section is full at {$academicCycleSection->capacity} seats, counting open waitlist offers. Add the candidate to its admission waitlist instead."
+                );
             }
 
             EnrollmentPlacement::create([

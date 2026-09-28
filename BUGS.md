@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A seat offered to a waiting family could be filled another way
+
+- Status: Fixed
+- Area: Admissions waitlist, placement
+- Observed: Direct placement, re-admission and the section form counted only enrolled learners. Staff could place a new learner into a seat already offered to a waitlisted family.
+- Impact: The family accepted the offer and found the section full.
+- Reproduction: Offer the last seat of a section to a waitlisted family. Before they answer, place another learner in that section. The placement succeeds.
+- Resolution: A new SectionSeats service counts enrolled learners and open offers. Placement, re-admission, the waitlist and the section's capacity check all use it. Accepting an offer closes it first, so the family fills the seat that was held for them.
+
 ## A deleted student kept their seat and their place on registers
 
 - Status: Fixed

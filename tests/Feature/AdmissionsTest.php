@@ -155,6 +155,27 @@ class AdmissionsTest extends TestCase
         $this->assertSame(AdmissionWaitlistStatus::Pending, $late->status);
     }
 
+    public function test_a_seat_held_by_an_offer_cannot_be_filled_another_way(): void
+    {
+        $section = $this->section(1);
+        $occupied = $this->unplacedStudent();
+        app(ChangeEnrollmentPlacement::class)->place($occupied, $section);
+        app(JoinWaitlist::class)->join($section, User::factory()->create());
+        app(ChangeEnrollmentStatus::class)->graduate($occupied);
+        $offer = app(OfferNextWaitlistEntry::class)->offer($section);
+
+        try {
+            app(ChangeEnrollmentPlacement::class)->place($this->unplacedStudent(), $section);
+            $this->fail('A learner took the seat a waiting family was offered.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString('open waitlist offers', $exception->getMessage());
+        }
+
+        $enrollment = app(AcceptWaitlistEntry::class)->accept($offer);
+
+        $this->assertSame($section->id, $enrollment->fresh()->academic_cycle_section_id);
+    }
+
     public function test_a_learner_attending_another_campus_cannot_take_a_place(): void
     {
         $section = $this->section(1);

@@ -8,14 +8,17 @@ use App\Enums\AuditAction;
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicCycleSection;
-use App\Models\StudentRecord;
 use App\Models\User;
+use App\Services\Academic\SectionSeats;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class UpdateAcademicCycleSection
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(
+        private RecordAuditEvent $auditor,
+        private SectionSeats $seats,
+    ) {}
 
     /**
      * Change the setup of one cycle section.
@@ -117,15 +120,11 @@ class UpdateAcademicCycleSection
             return;
         }
 
-        $placed = StudentRecord::query()
-            ->where('school_id', $section->school_id)
-            ->where('academic_cycle_section_id', $section->id)
-            ->enrolled()
-            ->count();
+        $taken = $this->seats->taken($section);
 
-        if ($capacity < $placed) {
+        if ($capacity < $taken) {
             throw ValidationException::withMessages([
-                'capacity' => "$placed learners are placed in this section now. Set a capacity of at least $placed.",
+                'capacity' => "$taken seats are taken in this section now, counting open waitlist offers. Set a capacity of at least $taken.",
             ]);
         }
     }

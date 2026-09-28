@@ -9,35 +9,24 @@ use App\Models\AcademicCycleSection;
 use App\Models\AdmissionWaitlistEntry;
 use App\Models\StudentRecord;
 use App\Models\User;
+use App\Services\Academic\SectionSeats;
 use Illuminate\Support\Facades\DB;
 
 class OfferNextWaitlistEntry
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(
+        private RecordAuditEvent $auditor,
+        private SectionSeats $seats,
+    ) {}
 
     public function offer(AcademicCycleSection $academicCycleSection, ?User $actor = null): ?AdmissionWaitlistEntry
     {
         return DB::transaction(function () use ($academicCycleSection, $actor): ?AdmissionWaitlistEntry {
             $section = AcademicCycleSection::query()->lockForUpdate()->findOrFail($academicCycleSection->getKey());
 
-            if ($section->capacity === null) {
-                return null;
-            }
-
-            $occupied = StudentRecord::query()
-                ->where('school_id', $section->school_id)
-                ->where('academic_cycle_section_id', $section->id)
-                ->enrolled()
-                ->count();
-
-            // A family that was offered a seat holds it until they answer, so
-            // one free seat is never offered to two families.
-            $held = AdmissionWaitlistEntry::query()
-                ->where('academic_cycle_section_id', $section->id)
-                ->where('status', AdmissionWaitlistStatus::Offered)
-                ->count();
-
-            if ($occupied + $held >= $section->capacity) {
+            // An open offer holds its seat, so one free seat is never offered
+            // to two families.
+            if ($section->capacity === null || $this->seats->isFull($section)) {
                 return null;
             }
 

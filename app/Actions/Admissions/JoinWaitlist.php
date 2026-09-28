@@ -11,11 +11,15 @@ use App\Models\AcademicCycleSection;
 use App\Models\AdmissionWaitlistEntry;
 use App\Models\StudentRecord;
 use App\Models\User;
+use App\Services\Academic\SectionSeats;
 use Illuminate\Support\Facades\DB;
 
 class JoinWaitlist
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(
+        private RecordAuditEvent $auditor,
+        private SectionSeats $seats,
+    ) {}
 
     /**
      * Add a person to a full section's queue.
@@ -104,19 +108,8 @@ class JoinWaitlist
             throw new InvalidValueException('This candidate is already enrolled in the school.');
         }
 
-        $occupied = StudentRecord::query()
-            ->where('school_id', $section->school_id)
-            ->where('academic_cycle_section_id', $section->id)
-            ->enrolled()
-            ->count();
-
-        $held = AdmissionWaitlistEntry::query()
-            ->where('academic_cycle_section_id', $section->id)
-            ->where('status', AdmissionWaitlistStatus::Offered)
-            ->count();
-
         // A seat offered to a waiting family is not free to somebody new.
-        if ($occupied + $held < $section->capacity) {
+        if (!$this->seats->isFull($section)) {
             throw new InvalidValueException('This section still has a place. Enrol the candidate instead of waitlisting them.');
         }
     }

@@ -14,6 +14,7 @@ use App\Models\AcademicCycleSection;
 use App\Models\EnrollmentStatusChange;
 use App\Models\StudentRecord;
 use App\Models\User;
+use App\Services\Academic\SectionSeats;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Facades\DB;
 
@@ -34,6 +35,7 @@ class ChangeEnrollmentStatus
         private ChangeCohortMembership $cohorts,
         private RequestCampusMove $campusMoves,
         private CloseReservation $reservations,
+        private SectionSeats $seats,
     ) {}
 
     /**
@@ -158,17 +160,7 @@ class ChangeEnrollmentStatus
             ->lockForUpdate()
             ->find($enrollment->academic_cycle_section_id);
 
-        if ($section?->capacity === null) {
-            return;
-        }
-
-        $occupied = StudentRecord::query()
-            ->where('academic_cycle_section_id', $section->id)
-            ->whereKeyNot($enrollment->getKey())
-            ->enrolled()
-            ->count();
-
-        if ($occupied >= $section->capacity) {
+        if ($section !== null && $this->seats->isFull($section, except: $enrollment)) {
             throw new InvalidValueException("Their section is full at {$section->capacity} learners. Free a seat or raise its size first.");
         }
     }

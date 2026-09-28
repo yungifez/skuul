@@ -69,18 +69,20 @@ class AcceptWaitlistEntry
                 'admission_date' => now(),
             ]);
 
+            // The offer becomes the placement. Closing it first lets its own
+            // seat take the learner; the transaction undoes both if placing fails.
+            $entry->update([
+                'status' => AdmissionWaitlistStatus::Placed,
+                'decided_at' => now(),
+                'decided_by' => $actor?->id,
+            ]);
+
             $enrollment = $this->place->place(
                 enrollment: $enrollment,
                 academicCycleSection: $entry->academicCycleSection,
                 actor: $actor,
                 reason: 'Admission waitlist accepted',
             );
-
-            $entry->update([
-                'status' => AdmissionWaitlistStatus::Placed,
-                'decided_at' => now(),
-                'decided_by' => $actor?->id,
-            ]);
 
             $this->auditor->record(
                 AuditAction::AdmissionWaitlistPlaced,
