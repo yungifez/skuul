@@ -77,6 +77,12 @@ class ChangeEnrollmentStatus
                 );
             }
 
+            // The state changes now. A leaver whose last day is ahead stays
+            // active until that day, so the register and the bed stay theirs.
+            if ($effectiveOn !== null && $effectiveOn->isAfter(today()->endOfDay())) {
+                throw new InvalidValueException('A change of state starts when it is made. Make it on '.$effectiveOn->format('j M Y').' or choose an earlier day.');
+            }
+
             if ($into !== null && !$current->isClosed()) {
                 throw new InvalidValueException('Only a learner who left can be taken back into a section.');
             }

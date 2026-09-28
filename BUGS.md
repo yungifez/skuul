@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A leaver was closed before their last day
+- Status: Fixed
+- Area: Enrollment status
+- Observed: The profile took a later effective day for a change of state, such as a withdrawal from next Friday. The state changed at once. The history said it started on the later day.
+- Impact: The learner lost their register, bed, programmes and support plans days early, while the record claimed they were still active.
+- Reproduction: On a learner's profile, withdraw them with an effective day next week. Take their register today.
+- Resolution: A change of state cannot start after the day it is made. The profile refuses a later day, so staff make the change on the day itself.
+
 ## A placement could start on a later day while the learner already sat there
 - Status: Fixed
 - Area: Enrollment placement, campus moves

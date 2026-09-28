@@ -97,7 +97,7 @@ class ShowStudentProfile extends Component
         $this->validate([
             'statusSelection' => ['required', 'in:'.implode(',', array_column($this->statusOptions, 'value'))],
             'statusReason' => ['nullable', 'string', 'max:1000'],
-            'statusEffectiveOn' => ['required', 'date'],
+            'statusEffectiveOn' => ['required', 'date', 'before_or_equal:today'],
         ]);
 
         try {

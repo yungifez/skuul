@@ -270,6 +270,20 @@ class EnrollmentStatusTest extends TestCase
      *
      * @return Collection<int, int>
      */
+    public function test_a_change_of_state_cannot_start_on_a_later_day(): void
+    {
+        $enrollment = StudentRecord::factory()->create(['status' => EnrollmentStatus::Active]);
+
+        try {
+            app(ChangeEnrollmentStatus::class)->change($enrollment, EnrollmentStatus::Withdrawn, effectiveOn: now()->addWeek());
+            $this->fail('A leaver was closed before their last day.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString('starts when it is made', $exception->getMessage());
+        }
+
+        $this->assertSame(EnrollmentStatus::Active, $enrollment->fresh()->status);
+    }
+
     private function attendingLevelIds(int $academicLevelId): Collection
     {
         return User::activeStudents()
