@@ -1,5 +1,12 @@
 # Known Bugs
 
+## Scheduled jobs ran once per app server
+- Status: Fixed
+- Area: Scheduler
+- Observed: No scheduled job used onOneServer. withoutOverlapping only stops a job overlapping itself on one server.
+- Impact: With two app servers, reminders and notices went out twice and two backups ran at the same time.
+- Reproduction: Run `schedule:run` on two servers that share a database and cache at 07:15. Both send the calendar reminders.
+- Resolution: Every job except the scheduler heartbeat runs on one server. The heartbeat still runs on each server, so each one reports its own scheduler. The lock needs a cache shared by all servers, such as Redis or the database.
 ## Delegated organization scope opened every campus for editing
 - Status: Fixed
 - Area: Organizations, campuses

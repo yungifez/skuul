@@ -21,11 +21,11 @@ class ScheduledMaintenanceTest extends TestCase
         $user = $this->memberOf($this->workingSchool());
 
         $expired = AccountInvitation::factory()->create([
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
             'expires_at' => now()->subDay(),
         ]);
         $pending = AccountInvitation::factory()->create([
-            'user_id'    => $user->id,
+            'user_id' => $user->id,
             'expires_at' => now()->addDay(),
         ]);
 
@@ -40,8 +40,8 @@ class ScheduledMaintenanceTest extends TestCase
         $user = $this->memberOf($this->workingSchool());
 
         $accepted = AccountInvitation::factory()->create([
-            'user_id'     => $user->id,
-            'expires_at'  => now()->subDay(),
+            'user_id' => $user->id,
+            'expires_at' => now()->subDay(),
             'accepted_at' => now()->subDays(2),
         ]);
 
@@ -56,5 +56,16 @@ class ScheduledMaintenanceTest extends TestCase
 
         $this->assertTrue($commands->contains(fn (string $command): bool => str_contains($command, 'skuul:prune-expired-invitations')));
         $this->assertTrue($commands->contains(fn (string $command): bool => str_contains($command, 'queue:prune-failed')));
+    }
+
+    public function test_every_job_but_the_heartbeat_runs_on_one_server(): void
+    {
+        $events = collect(Schedule::events());
+        $heartbeat = $events->filter(fn ($event): bool => $event->description === 'scheduler-heartbeat');
+
+        $this->assertCount(1, $heartbeat);
+        $this->assertFalse($heartbeat->first()->onOneServer, 'Each server reports its own scheduler.');
+        $events->reject(fn ($event): bool => $event->description === 'scheduler-heartbeat')
+            ->each(fn ($event) => $this->assertTrue($event->onOneServer, "$event->command runs on every server."));
     }
 }
