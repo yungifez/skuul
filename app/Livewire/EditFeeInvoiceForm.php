@@ -95,9 +95,9 @@ class EditFeeInvoiceForm extends Component
         Gate::authorize('update', $line);
 
         $this->validate([
-            'lineAmount' => ['required', 'integer', 'min:1'],
+            'lineAmount' => ['required', 'integer', 'min:1', 'max:100000000'],
             'lineWaiver' => ['nullable', 'integer', 'min:0', 'lte:lineAmount'],
-            'lineFine' => ['nullable', 'integer', 'min:0'],
+            'lineFine' => ['nullable', 'integer', 'min:0', 'max:100000000'],
         ], attributes: ['lineAmount' => 'amount', 'lineWaiver' => 'waiver', 'lineFine' => 'fine']);
 
         try {
@@ -134,9 +134,9 @@ class EditFeeInvoiceForm extends Component
 
         $this->validate([
             'feeId' => ['required', 'integer', Rule::exists('fees', 'id')],
-            'newAmount' => ['required', 'integer', 'min:1'],
+            'newAmount' => ['required', 'integer', 'min:1', 'max:100000000'],
             'newWaiver' => ['nullable', 'integer', 'min:0', 'lte:newAmount'],
-            'newFine' => ['nullable', 'integer', 'min:0'],
+            'newFine' => ['nullable', 'integer', 'min:0', 'max:100000000'],
         ], ['feeId.required' => 'Choose a fee.'], ['newAmount' => 'amount', 'newWaiver' => 'waiver', 'newFine' => 'fine']);
 
         try {

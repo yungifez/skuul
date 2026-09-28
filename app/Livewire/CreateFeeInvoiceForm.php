@@ -147,9 +147,9 @@ class CreateFeeInvoiceForm extends Component
             'studentRecordIds' => ['required', 'array', 'min:1'],
             'studentRecordIds.*' => ['integer', Rule::exists('student_records', 'id')->where('school_id', current_school_id())->whereIn('status', [EnrollmentStatus::Active->value, EnrollmentStatus::Suspended->value])],
             'lines' => ['required', 'array', 'min:1'],
-            'lines.*.amount' => ['required', 'integer', 'min:1'],
-            'lines.*.waiver' => ['nullable', 'integer', 'min:0'],
-            'lines.*.fine' => ['nullable', 'integer', 'min:0'],
+            'lines.*.amount' => ['required', 'integer', 'min:1', 'max:100000000'],
+            'lines.*.waiver' => ['nullable', 'integer', 'min:0', 'max:100000000'],
+            'lines.*.fine' => ['nullable', 'integer', 'min:0', 'max:100000000'],
         ], [
             'dueDate.after_or_equal' => 'The due date cannot be before the issue date.',
             'studentRecordIds.required' => 'Add at least one student.',

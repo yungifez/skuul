@@ -176,6 +176,30 @@ class FeeInvoiceTest extends TestCase
         $this->assertSame($before, FeeInvoice::query()->count());
     }
 
+    public function test_a_fee_above_the_old_integer_limit_is_kept_whole(): void
+    {
+        $this->authorized_user(['create fee invoice']);
+        [$section, $first] = $this->sectionWithTwoStudents();
+        [$category, $tuition] = $this->categoryWithTwoFees();
+
+        Livewire::test(CreateFeeInvoiceForm::class)
+            ->set('studentRecordIds', [$first->id])
+            ->set('lines', [$tuition->id => ['amount' => 25_000_000, 'waiver' => null, 'fine' => null]])
+            ->set('dueDate', now()->toDateString())
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $line = FeeInvoice::query()->where('student_record_id', $first->id)->sole()->feeInvoiceRecords()->sole();
+        $this->assertSame(2_500_000_000, $line->fresh()->amount->getMinorAmount()->toInt());
+
+        Livewire::test(CreateFeeInvoiceForm::class)
+            ->set('studentRecordIds', [$first->id])
+            ->set('lines', [$tuition->id => ['amount' => 100_000_001, 'waiver' => null, 'fine' => null]])
+            ->set('dueDate', now()->toDateString())
+            ->call('save')
+            ->assertHasErrors("lines.{$tuition->id}.amount");
+    }
+
     public function test_a_waiver_cannot_be_more_than_the_fee(): void
     {
         $this->authorized_user(['create fee invoice']);

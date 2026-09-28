@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A fee above about 21 million cannot be invoiced
+- Status: Fixed
+- Area: Fee invoices
+- Observed: Invoice lines were kept in a plain integer column of minor units. A line of 25,000,000 overflowed it and the save failed with a server error.
+- Impact: A school with large annual fees could not bill them, while the payment desk took up to 100,000,000.
+- Reproduction: Create an invoice with one fee of 25,000,000.
+- Resolution: Amount, waiver and fine are now big integers, like payments. Invoice line fields take at most 100,000,000, the same limit as payments.
+
 ## A budget in fractions of a cent is rounded without a word
 - Status: Fixed
 - Area: Budget planner
