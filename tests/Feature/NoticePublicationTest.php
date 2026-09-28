@@ -7,6 +7,7 @@ use App\Actions\Notice\ReviseNotice;
 use App\Actions\School\GrantSchoolMembership;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
+use App\Enums\EnrollmentStatus;
 use App\Enums\NoticeRecipientState;
 use App\Enums\NoticeStatus;
 use App\Enums\Role;
@@ -162,6 +163,25 @@ class NoticePublicationTest extends TestCase
         app(PublishNotice::class)->publish($notice);
 
         $this->assertFalse($notice->recipients()->where('user_id', $stranger->id)->exists());
+    }
+
+    public function test_a_school_notice_skips_a_learner_who_moved_to_another_campus(): void
+    {
+        $this->authorized_user([]);
+        $sibling = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id]);
+        $movedOn = $this->personWithRole(Role::Student);
+        StudentRecord::factory()->create(['user_id' => $movedOn->id, 'school_id' => $sibling->id]);
+        $pupil = $this->personWithRole(Role::Student);
+        StudentRecord::factory()->create(['user_id' => $pupil->id, 'school_id' => $this->workingSchool()->id]);
+        $alumnusTeacher = $this->personWithRole(Role::Teacher);
+        StudentRecord::factory()->create(['user_id' => $alumnusTeacher->id, 'school_id' => $this->workingSchool()->id, 'status' => EnrollmentStatus::Graduated]);
+        $notice = $this->notice();
+
+        app(PublishNotice::class)->publish($notice);
+
+        $this->assertFalse($notice->recipients()->where('user_id', $movedOn->id)->exists());
+        $this->assertTrue($notice->recipients()->where('user_id', $pupil->id)->exists());
+        $this->assertTrue($notice->recipients()->where('user_id', $alumnusTeacher->id)->exists());
     }
 
     public function test_publishing_twice_does_not_send_it_again(): void

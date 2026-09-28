@@ -3,6 +3,7 @@
 namespace App\Services\Notice;
 
 use App\Enums\NoticeAudienceScope;
+use App\Enums\Role;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\Notice;
@@ -11,6 +12,8 @@ use App\Models\StudentRecord;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Work out who a notice is for.
@@ -58,7 +61,11 @@ class NoticeAudience
             ->pluck('user_id')
             ->map(fn (mixed $id): int => (int) $id)
             ->all();
-        $staffIds = User::query()->ofSchool($schoolId)->pluck('id')->all();
+        $staffIds = User::query()
+            ->ofSchool($schoolId)
+            ->whereNotIn('id', $this->learnersWhoLeft($schoolId, $allStudentIds))
+            ->pluck('id')
+            ->all();
         $namedIds = array_map('intval', (array) ($audience['user_ids'] ?? []));
         $hasScopedLearnerTarget = in_array($audience['scope'] ?? null, [
             NoticeAudienceScope::Classes->value,
@@ -91,6 +98,31 @@ class NoticeAudience
      * @param  array<string, mixed>  $audience
      * @return array<int, int>
      */
+    /**
+     * Get the learners who keep access to the campus but no longer attend it.
+     *
+     * A learner who moved campus, graduated, or left keeps their membership,
+     * so the campus can still read what they did there. They are not its
+     * audience any more, unless they also work there.
+     *
+     * @param  array<int, int>  $attendingIds
+     */
+    private function learnersWhoLeft(?int $schoolId, array $attendingIds): QueryBuilder
+    {
+        $staffHere = DB::table('model_has_roles')
+            ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+            ->where('model_has_roles.school_id', $schoolId)
+            ->where('model_has_roles.model_type', (new User)->getMorphClass())
+            ->whereNotIn('roles.name', [Role::Student->value, Role::Parent->value])
+            ->select('model_has_roles.model_id');
+
+        return DB::table((new StudentRecord)->getTable())
+            ->whereNotNull('user_id')
+            ->whereNotIn('user_id', $attendingIds)
+            ->whereNotIn('user_id', $staffHere)
+            ->select('user_id');
+    }
+
     private function studentUserIds(array $audience, ?int $schoolId): array
     {
         $levelIds = $this->audienceLevelIds($audience);

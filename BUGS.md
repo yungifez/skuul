@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A school notice still reached learners who had moved on
+- Status: Fixed
+- Area: Notices
+- Observed: A whole-school notice went to every person with an active membership at the campus. A learner who moved campus, graduated, or left keeps that membership, so they kept receiving the old campus's notices. A notice to the student role reached them too.
+- Impact: Families got another campus's sports days, closures, and fee reminders, and could act on them.
+- Reproduction: Move a learner to a sibling campus. Publish a notice to the whole old campus.
+- Resolution: `NoticeAudience` leaves out members who hold a learner record but do not attend the campus, unless they hold a staff role there.
+
 ## A campus move waited forever for a learner who had left
 - Status: Fixed
 - Area: Campus moves
