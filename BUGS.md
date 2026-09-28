@@ -1,5 +1,14 @@
 # Known Bugs
 
+## One notice that cannot go out stops the notice scheduler
+
+- Status: Fixed
+- Area: Notices, scheduled publishing
+- Observed: The scheduler stopped at the first notice that failed to publish. A scheduled revision whose original was replaced by another revision failed on every run.
+- Impact: Every later scheduled notice stayed unpublished, and no notice expired, until somebody found the cause.
+- Reproduction: Revise a published notice twice. Schedule the first revision. Publish the second. Schedule another notice. Run the scheduler.
+- Resolution: The scheduler now returns a notice that cannot go out to draft, reports other errors, and carries on.
+
 ## A replaced timetable goes live again from an old copy
 
 - Status: Fixed

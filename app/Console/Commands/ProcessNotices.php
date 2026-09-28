@@ -4,8 +4,10 @@ namespace App\Console\Commands;
 
 use App\Actions\Notice\PublishNotice;
 use App\Enums\NoticeStatus;
+use App\Exceptions\InvalidValueException;
 use App\Models\Notice;
 use Illuminate\Console\Command;
+use Throwable;
 
 /**
  * Publish notices whose day has come and retire the ones that ran out.
@@ -43,8 +45,17 @@ class ProcessNotices extends Command
             ->get();
 
         foreach ($due as $notice) {
-            $publisher->publish($notice);
-            $published++;
+            // One notice that cannot go out must not hold back the others,
+            // or the ones that ran out, on every run from now on.
+            try {
+                $publisher->publish($notice);
+                $published++;
+            } catch (InvalidValueException $exception) {
+                $notice->forceFill(['status' => NoticeStatus::Draft, 'scheduled_for' => null])->save();
+                $this->warn("Notice {$notice->id} went back to draft. {$exception->getMessage()}");
+            } catch (Throwable $exception) {
+                report($exception);
+            }
         }
 
         $expired = 0;
