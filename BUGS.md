@@ -1,5 +1,14 @@
 # Known Bugs
 
+## The upgrade hides learners who had no class
+
+- Status: Fixed
+- Area: Upgrade from the single-school release
+- Observed: The upgrade read each enrollment's campus from its class. An enrollment with no class was left with no campus. Every staff list filters by campus, so nobody could see or place that learner.
+- Impact: Learners who were between classes at upgrade time disappeared from the school.
+- Reproduction: Upgrade an install with a learner who has no class. Open Students.
+- Resolution: A new migration places such an enrollment at the learner's only campus. Unclear cases and admission numbers the campus already uses are left for staff.
+
 ## An enrollment with no campus crashes the family portal
 
 - Status: Fixed
