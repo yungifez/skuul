@@ -10,6 +10,7 @@ use App\Actions\School\EndSchoolMembership;
 use App\Enums\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class UserService
@@ -169,13 +170,15 @@ class UserService
      */
     public function deleteUser(User $user): void
     {
-        if ($user->belongsToAnotherSchool()) {
+        DB::transaction(function () use ($user): void {
+            // Ending the membership first ends what the person still does
+            // here, so a deleted teacher leaves no lesson or cover behind.
             $this->endSchoolMembershipAction->end($user, current_school());
 
-            return;
-        }
-
-        $user->delete();
+            if (!$user->belongsToAnotherSchool()) {
+                $user->delete();
+            }
+        });
     }
 
     /**

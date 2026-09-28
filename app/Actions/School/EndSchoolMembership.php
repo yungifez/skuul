@@ -9,6 +9,7 @@ use App\Models\BoardingSupervision;
 use App\Models\School;
 use App\Models\SchoolMembership;
 use App\Models\TeachingAssignment;
+use App\Models\TimetableSubstitution;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -19,7 +20,8 @@ use RuntimeException;
  * The membership record stays so the history remains readable. The person, and
  * their records in that school, are not deleted. The subjects they still teach
  * and the boarding houses they still supervise there end, so each shows it
- * needs somebody.
+ * needs somebody. Cover they were booked for from today on is given up, so the
+ * lesson shows it needs cover again; cover already given stays in the record.
  */
 class EndSchoolMembership
 {
@@ -63,6 +65,12 @@ class EndSchoolMembership
                 ->whereDate('starts_on', '<=', today())
                 ->get()
                 ->each(fn (BoardingSupervision $duty) => $this->boardingDuty->end($duty, today()));
+
+            TimetableSubstitution::query()
+                ->where('replacement_teacher_id', $user->id)
+                ->whereDate('substituted_on', '>=', today())
+                ->whereHas('timetable.academicCycleSection', fn ($sections) => $sections->where('school_id', $school->id))
+                ->delete();
 
             $this->promoteAnotherPrimary($user);
 

@@ -78,11 +78,16 @@ class NoticePublicationTest extends TestCase
     public function test_a_notice_can_go_to_a_current_home_section_and_its_guardians(): void
     {
         $this->authorized_user([]);
+        // A section of its own, so no seeded learner shares it.
+        $section = AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
         $student = StudentRecord::query()->findOrFail(StudentRecord::factory()->create([
             'school_id' => $this->workingSchool()->id,
+            'academic_cycle_section_id' => $section->id,
         ])->getKey());
         $this->assertNotNull($student->user_id);
-        $this->assertNotNull($student->academic_cycle_section_id);
         $guardian = $this->memberOf($this->workingSchool());
         $parentRecord = $guardian->parentRecord()->create(['user_id' => $guardian->id]);
         $parentRecord = ParentRecord::query()->findOrFail($parentRecord->getKey());

@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A deleted or departed teacher kept their lessons and cover
+- Status: Fixed
+- Area: Staff removal, teaching and timetable cover
+- Observed: Deleting a teacher who worked at one campus only removed the account. Their teaching assignments kept running, and cover booked for them stayed. A teacher who left one of several campuses gave up their subjects there, but kept the cover booked there.
+- Impact: Lessons and cover were assigned to somebody who no longer worked there. Nothing showed that the class needed a teacher.
+- Reproduction: Book a teacher as cover next Monday. Delete the teacher from the teacher list. Open the cover list.
+- Resolution: Deleting a person now ends their membership first, which ends their teaching and boarding duty. Ending a membership also gives up cover booked from today on at that campus. Cover already given stays in the record. A notice test that shared a section with seeded learners now uses its own section.
+
 ## A lesson could be published into a hall somebody had booked
 - Status: Fixed
 - Area: Timetable and facility bookings

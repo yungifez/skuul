@@ -29,12 +29,14 @@ use App\Models\Organization;
 use App\Models\School;
 use App\Models\StaffProfile;
 use App\Models\Subject;
+use App\Models\TeachingAssignment;
 use App\Models\Timetable;
 use App\Models\TimetableRecord;
 use App\Models\TimetableSubstitution;
 use App\Models\TimetableTimeSlot;
 use App\Models\User;
 use App\Models\Weekday;
+use App\Services\Teacher\TeacherService;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
@@ -327,6 +329,50 @@ class TimetableRevisionTest extends TestCase
         app(ManageStaffLeave::class)->approve($leave);
 
         $this->assertSame(LeaveStatus::Approved, $leave->fresh()->status);
+    }
+
+    public function test_a_teacher_who_leaves_the_campus_gives_up_the_cover_still_ahead(): void
+    {
+        $this->authorized_user([]);
+        $teacher = $this->teacher();
+        $this->memberOf(School::factory()->create(), $teacher);
+        $absent = $this->timetableWithLesson($this->teacher(), '08:00', '09:00');
+        app(PublishTimetable::class)->publish($absent);
+        $weekday = Weekday::firstOrFail();
+        $ahead = app(CreateTimetableSubstitution::class)->create($absent->fresh(), $absent->timeSlots()->firstOrFail(), $weekday->id, $teacher, Carbon::parse('next '.$weekday->name), 'Absence', auth()->user());
+        $given = TimetableSubstitution::create([
+            'timetable_id' => $absent->id,
+            'timetable_time_slot_id' => $absent->timeSlots()->firstOrFail()->id,
+            'weekday_id' => $weekday->id,
+            'replacement_teacher_id' => $teacher->id,
+            'substituted_on' => Carbon::parse('last '.$weekday->name),
+            'reason' => 'Absence',
+            'approved_by' => auth()->id(),
+        ]);
+
+        app(EndSchoolMembership::class)->end($teacher, $this->workingSchool());
+
+        $this->assertNull($ahead->fresh());
+        $this->assertNotNull($given->fresh());
+    }
+
+    public function test_deleting_a_teacher_of_one_campus_ends_their_teaching_and_cover(): void
+    {
+        $this->authorized_user([]);
+        $teacher = $this->teacher();
+        $own = $this->timetableWithLesson($teacher, '10:00', '11:00');
+        $absent = $this->timetableWithLesson($this->teacher(), '08:00', '09:00');
+        app(PublishTimetable::class)->publish($absent);
+        $weekday = Weekday::firstOrFail();
+        $cover = app(CreateTimetableSubstitution::class)->create($absent->fresh(), $absent->timeSlots()->firstOrFail(), $weekday->id, $teacher, Carbon::parse('next '.$weekday->name), 'Absence', auth()->user());
+        $assignment = TeachingAssignment::query()->forTeacher($teacher)->sole();
+
+        app(TeacherService::class)->deleteTeacher($teacher);
+
+        $this->assertSoftDeleted($teacher);
+        $this->assertNull($cover->fresh());
+        $this->assertTrue($assignment->fresh()->ends_on->lte(today()));
+        $this->assertNotNull($own->fresh());
     }
 
     public function test_a_teacher_cannot_cover_during_their_own_lesson(): void
