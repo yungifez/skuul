@@ -2,15 +2,19 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Organization\GrantOrganizationMembership;
 use App\Enums\AccountStatus;
 use App\Enums\AuditAction;
+use App\Enums\Role;
 use App\Livewire\ManageAccountPassword;
 use App\Models\AccountInvitation;
 use App\Models\AuditEvent;
+use App\Models\School;
 use App\Models\User;
 use App\Services\School\SchoolContext;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Jetstream\Http\Livewire\UpdatePasswordForm;
 use Livewire\Livewire;
@@ -115,6 +119,33 @@ class AccountPasswordTest extends TestCase
 
         $this->assertTrue(Hash::check('New-Password-456!', $target->password));
         $this->assertNull($target->password_change_required_at);
+    }
+
+    public function test_an_account_with_power_at_another_school_is_managed_only_there(): void
+    {
+        $this->authorized_user(['manage account access']);
+        $here = $this->workingSchool();
+        $sibling = School::factory()->create(['organization_id' => $here->organization_id]);
+        $elsewhere = School::factory()->create();
+
+        $movedLearner = $this->memberOf($sibling, $this->memberOf($here));
+        $movedLearner->syncRoles([Role::Student]);
+        $this->assertTrue(Gate::allows('manageAccountAccess', $movedLearner), 'A learner of a sibling campus stays manageable.');
+
+        $teacherElsewhere = $this->memberOf($elsewhere, $this->memberOf($here));
+        setPermissionsTeamId($elsewhere->id);
+        $teacherElsewhere->assignRole(Role::Teacher);
+        setPermissionsTeamId($here->id);
+        $this->assertTrue(Gate::denies('manageAccountAccess', $teacherElsewhere->refresh()));
+
+        $familyElsewhere = $this->memberOf($elsewhere, $this->memberOf($here));
+        $this->assertTrue(Gate::denies('manageAccountAccess', $familyElsewhere), 'A family of another organization is not ours to take over.');
+
+        $organizationAdmin = $this->memberOf($here);
+        app(GrantOrganizationMembership::class)->grant($organizationAdmin, $here->organization);
+        $this->assertTrue(Gate::denies('manageAccountAccess', $organizationAdmin->refresh()));
+
+        Livewire::test(ManageAccountPassword::class, ['user' => $teacherElsewhere])->assertForbidden();
     }
 
     public function test_a_password_must_be_confirmed(): void

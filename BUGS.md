@@ -1,5 +1,13 @@
 # Known Bugs
 
+## One school could take over an account that holds power at another school
+- Status: Fixed
+- Area: Account access, user policy
+- Observed: The account screen let any member with "manage account access" set the password, suspend, archive or re-invite anyone who belongs to the working school. It did not look at what the account can do elsewhere.
+- Impact: An administrator at one school could set the password of a person who is a teacher or administrator at another school, or an organization or platform administrator, and sign in as them. They could also lock that person out everywhere. A family account shared with another organization's school exposed that school's children.
+- Reproduction: Make a person a teacher at school A and a parent at school B. As an administrator of school B, set their password.
+- Resolution: `User::holdsPowerBeyond()` detects system roles, organization membership, staff roles or permissions at other campuses, and membership at a school of another organization. The account-access policy refuses such accounts, and the account menu and password form are hidden for them. Learners and families of sibling campuses stay manageable.
+
 ## Setting a password lifted an account suspension
 - Status: Fixed
 - Area: Account access

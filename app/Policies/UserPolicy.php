@@ -113,7 +113,7 @@ class UserPolicy
             return false;
         }
 
-        if ($user->can('manage account access') && $model->belongsToCurrentSchool()) {
+        if ($user->can('manage account access') && $model->belongsToCurrentSchool() && !$model->holdsPowerBeyond(current_school_id())) {
             return true;
         }
 

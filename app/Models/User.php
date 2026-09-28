@@ -7,6 +7,7 @@ use App\Enums\EnrollmentStatus;
 use App\Enums\OrganizationMembershipStatus;
 use App\Enums\Role;
 use App\Enums\SchoolMembershipStatus;
+use App\Services\Authorization\SystemPermissionScope;
 use Carbon\Carbon;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Builder;
@@ -309,6 +310,49 @@ class User extends Authenticatable implements MustVerifyEmail
             ->whereNotIn('roles.name', [Role::Student->value, Role::Parent->value])
             ->whereIn('model_has_roles.school_id', $this->schoolMemberships()->active()->select('school_id'))
             ->exists();
+    }
+
+    /**
+     * Check whether the account carries power this campus does not own.
+     *
+     * One account signs in everywhere. Whoever controls its password or its
+     * state also controls its roles at other schools, its platform or
+     * organization authority, and its children at schools of another
+     * organization. Learners and families of sibling campuses stay inside
+     * the organization, so their accounts stay manageable here.
+     */
+    public function holdsPowerBeyond(School|int $school): bool
+    {
+        $school = $school instanceof School ? $school : School::query()->findOrFail($school);
+        $user = $this->getMorphClass();
+        $otherMemberships = $this->schoolMemberships()->active()->where('school_id', '!=', $school->id)->select('school_id');
+
+        $holdsAnotherSchoolsRole = DB::table(config('permission.table_names.model_has_roles'))
+            ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+            ->where('model_has_roles.model_type', $user)
+            ->where('model_has_roles.model_id', $this->id)
+            ->where(fn ($roles) => $roles
+                ->where('model_has_roles.school_id', SystemPermissionScope::SystemTeamId)
+                ->orWhere(fn ($elsewhere) => $elsewhere
+                    ->whereIn('model_has_roles.school_id', $otherMemberships)
+                    ->whereNotIn('roles.name', [Role::Student->value, Role::Parent->value])))
+            ->exists();
+
+        $holdsAnotherSchoolsPermission = DB::table(config('permission.table_names.model_has_permissions'))
+            ->where('model_type', $user)
+            ->where('model_id', $this->id)
+            ->where(fn ($permissions) => $permissions
+                ->where('school_id', SystemPermissionScope::SystemTeamId)
+                ->orWhereIn('school_id', $otherMemberships))
+            ->exists();
+
+        return $holdsAnotherSchoolsRole
+            || $holdsAnotherSchoolsPermission
+            || $this->organizationMemberships()->active()->exists()
+            || School::query()
+                ->whereIn('id', $otherMemberships)
+                ->where(fn ($schools) => $schools->whereNull('organization_id')->orWhere('organization_id', '!=', $school->organization_id))
+                ->exists();
     }
 
     /**
