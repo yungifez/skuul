@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\Curriculum\AssignTeacher;
+use App\Actions\School\GrantSchoolMembership;
 use App\Actions\Timetable\CreateSectionTimetableOverride;
 use App\Actions\Timetable\CreateTimetableSubstitution;
 use App\Actions\Timetable\PublishTimetable;
@@ -16,9 +17,11 @@ use App\Livewire\TimetableCoverPanel;
 use App\Livewire\TimetableStatusControl;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
+use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
 use App\Models\CourseOffering;
+use App\Models\Organization;
 use App\Models\School;
 use App\Models\Subject;
 use App\Models\Timetable;
@@ -343,6 +346,52 @@ class TimetableRevisionTest extends TestCase
         $this->assertSame(0, Timetable::query()->where('academic_cycle_section_id', $elsewhere->id)->count());
     }
 
+    public function test_a_teacher_cannot_be_timetabled_at_two_campuses_at_once(): void
+    {
+        $this->authorized_user([]);
+        $teacher = $this->teacher();
+        app(PublishTimetable::class)->publish($this->timetableWithLesson($teacher, '08:00', '09:00'));
+
+        $here = AcademicPeriod::query()->findOrFail(current_academic_period_id());
+        $here->forceFill(['starts_on' => now()->startOfMonth(), 'ends_on' => now()->addMonths(2)])->save();
+        $otherCampus = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id]);
+        $otherYear = AcademicYear::factory()->create(['school_id' => $otherCampus->id]);
+        $otherPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $otherCampus->id,
+            'academic_year_id' => $otherYear->id,
+            'starts_on' => $here->starts_on,
+            'ends_on' => $here->ends_on,
+        ]);
+        app(GrantSchoolMembership::class)->grant($teacher, $otherCampus);
+        $there = $this->timetableWithLesson($teacher, '08:30', '09:30', $otherPeriod);
+
+        $this->expectException(TimetableConflictException::class);
+
+        app(PublishTimetable::class)->publish($there);
+    }
+
+    public function test_another_organization_s_timetable_does_not_block_publishing(): void
+    {
+        $this->authorized_user([]);
+        $teacher = $this->teacher();
+        app(PublishTimetable::class)->publish($this->timetableWithLesson($teacher, '08:00', '09:00'));
+
+        $here = AcademicPeriod::query()->findOrFail(current_academic_period_id());
+        $here->forceFill(['starts_on' => now()->startOfMonth(), 'ends_on' => now()->addMonths(2)])->save();
+        $elsewhere = School::factory()->create(['organization_id' => Organization::factory()->create()->id]);
+        $elsewherePeriod = AcademicPeriod::factory()->create([
+            'school_id' => $elsewhere->id,
+            'academic_year_id' => AcademicYear::factory()->create(['school_id' => $elsewhere->id])->id,
+            'starts_on' => $here->starts_on,
+            'ends_on' => $here->ends_on,
+        ]);
+
+        app(GrantSchoolMembership::class)->grant($teacher, $elsewhere);
+        $published = app(PublishTimetable::class)->publish($this->timetableWithLesson($teacher, '08:30', '09:30', $elsewherePeriod));
+
+        $this->assertSame(TimetableStatus::Published, $published->status);
+    }
+
     public function test_an_archived_timetable_cannot_be_published_again(): void
     {
         $this->authorized_user([]);
@@ -484,13 +533,15 @@ class TimetableRevisionTest extends TestCase
     /**
      * Create a draft timetable for a new class in the working school.
      */
-    private function timetable(): Timetable
+    private function timetable(?AcademicPeriod $period = null): Timetable
     {
-        $academicYear = AcademicYear::query()->where('school_id', $this->workingSchool()->id)->firstOrFail();
-        $academicLevel = AcademicLevel::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $schoolId = $period->school_id ?? $this->workingSchool()->id;
+        $academicYearId = $period->academic_year_id
+            ?? AcademicYear::query()->where('school_id', $schoolId)->firstOrFail()->id;
+        $academicLevel = AcademicLevel::factory()->create(['school_id' => $schoolId]);
         $cycleSection = AcademicCycleSection::factory()->create([
-            'school_id' => $this->workingSchool()->id,
-            'academic_year_id' => $academicYear->id,
+            'school_id' => $schoolId,
+            'academic_year_id' => $academicYearId,
             'academic_level_id' => $academicLevel->id,
         ]);
 
@@ -498,20 +549,21 @@ class TimetableRevisionTest extends TestCase
             'name' => 'Week plan',
             'description' => 'The normal week',
             'academic_cycle_section_id' => $cycleSection->id,
-            'academic_period_id' => current_academic_period_id(),
+            'academic_period_id' => $period->id ?? current_academic_period_id(),
         ]);
     }
 
     /**
      * Create a draft timetable holding one lesson taught by the teacher.
      */
-    private function timetableWithLesson(User $teacher, string $start, string $stop): Timetable
+    private function timetableWithLesson(User $teacher, string $start, string $stop, ?AcademicPeriod $period = null): Timetable
     {
-        $timetable = $this->timetable();
-        $subject = $this->subject();
+        $timetable = $this->timetable($period);
+        $schoolId = $timetable->academicCycleSection->school_id;
+        $subject = Subject::factory()->create(['school_id' => $schoolId]);
         $cycleSection = $timetable->academicCycleSection;
         $courseOffering = CourseOffering::factory()->create([
-            'school_id' => $this->workingSchool()->id,
+            'school_id' => $schoolId,
             'academic_year_id' => $cycleSection->academic_year_id,
             'academic_period_id' => $timetable->academic_period_id,
             'academic_level_id' => $cycleSection->academic_level_id,

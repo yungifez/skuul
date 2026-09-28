@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A teacher could be timetabled at two campuses at the same hour
+
+- Status: Fixed
+- Area: Timetables, campuses
+- Observed: Publishing a timetable checked teacher clashes only against timetables of the same academic period. Each campus keeps its own periods, so a teacher who works at two campuses could teach at both at 08:00 on Monday, and nothing warned.
+- Impact: Organizations that share teachers between campuses published impossible timetables. The clash showed up only when a class had no teacher.
+- Reproduction: Give a teacher a Monday 08:00 lesson at campus A and publish it. At campus B, whose term covers the same dates, give them a Monday 08:30 lesson and publish.
+- Resolution: The clash check also reads published timetables at the other campuses of the organization whose periods share dates, and compares only the shared dates. Another organization's timetables stay private. `TimetableRevisionTest` covers both cases.
+
 ## A family lost the old school's records after a transfer
 
 - Status: Fixed

@@ -5,6 +5,7 @@ namespace App\Services\Timetable;
 use App\Enums\RosterMode;
 use App\Models\AcademicPeriod;
 use App\Models\Facility;
+use App\Models\School;
 use App\Models\Subject;
 use App\Models\TeachingAssignment;
 use App\Models\Timetable;
@@ -72,18 +73,14 @@ class TimetableConflictChecker
             return [];
         }
 
-        $published = Timetable::query()
-            ->published()
-            ->where('academic_period_id', $timetable->academic_period_id)
-            ->whereKeyNot($timetable->getKey())
-            ->get();
-
         $conflicts = [];
 
-        foreach ($published as $other) {
+        foreach ($this->publishedAlongside($timetable) as $other) {
+            $window = $this->sharedDates($timetable->academicPeriod, $other->academicPeriod);
+
             foreach ($this->entriesOf($other) as $otherEntry) {
                 foreach ($entries as $entry) {
-                    if (!$this->sameEntryOccurrence($entry, $otherEntry, $timetable->academicPeriod)) {
+                    if (!$this->sameEntryOccurrence($entry, $otherEntry, $window)) {
                         continue;
                     }
 
@@ -102,6 +99,62 @@ class TimetableConflictChecker
         }
 
         return array_values(array_unique($conflicts));
+    }
+
+    /**
+     * Get the published timetables a teacher could also be standing in.
+     *
+     * A teacher can work at several campuses of one organization. Each campus
+     * keeps its own periods, so another campus's timetable counts when its
+     * period shares dates with this one. Another organization's timetables
+     * stay private.
+     *
+     * @return Collection<int, Timetable>
+     */
+    private function publishedAlongside(Timetable $timetable): Collection
+    {
+        $period = $timetable->academicPeriod;
+        $organizationId = $period->school->organization_id;
+
+        return Timetable::query()
+            ->published()
+            ->whereKeyNot($timetable->getKey())
+            ->where(function ($query) use ($timetable, $period, $organizationId): void {
+                $query->where('academic_period_id', $timetable->academic_period_id);
+
+                if ($period->starts_on === null || $period->ends_on === null) {
+                    return;
+                }
+
+                $query->orWhereIn('academic_period_id', AcademicPeriod::query()
+                    ->whereKeyNot($period->id)
+                    ->whereIn('school_id', School::query()->where('organization_id', $organizationId)->select('id'))
+                    ->whereDate('starts_on', '<=', $period->ends_on)
+                    ->whereDate('ends_on', '>=', $period->starts_on)
+                    ->select('id'));
+            })
+            ->with('academicPeriod')
+            ->get();
+    }
+
+    /**
+     * Get the dates two periods share, as a period to walk through.
+     *
+     * Two timetables of one period share all of it.
+     */
+    private function sharedDates(?AcademicPeriod $period, ?AcademicPeriod $other): ?AcademicPeriod
+    {
+        if ($period === null || $other === null || $period->is($other)
+            || $other->starts_on === null || $other->ends_on === null
+            || $period->starts_on === null || $period->ends_on === null) {
+            return $period;
+        }
+
+        $window = new AcademicPeriod;
+        $window->starts_on = $period->starts_on->max($other->starts_on);
+        $window->ends_on = $period->ends_on->min($other->ends_on);
+
+        return $window;
     }
 
     /**
