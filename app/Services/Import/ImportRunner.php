@@ -5,6 +5,7 @@ namespace App\Services\Import;
 use App\Contracts\Importer;
 use App\Enums\ImportRowState;
 use App\Enums\ImportStatus;
+use App\Exceptions\ApplicationException;
 use App\Exceptions\InvalidValueException;
 use App\Models\ImportBatch;
 use App\Models\ImportedRecord;
@@ -13,6 +14,7 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Validation\ValidationException;
 use Throwable;
 
 /**
@@ -106,7 +108,7 @@ class ImportRunner
             } catch (Throwable $exception) {
                 $row->forceFill([
                     'state' => ImportRowState::Invalid,
-                    'errors' => [$exception->getMessage()],
+                    'errors' => [$this->reasonTheRowFailed($exception)],
                 ])->save();
 
                 continue;
@@ -241,5 +243,22 @@ class ImportRunner
         if ($missing !== []) {
             throw new InvalidValueException('The file is missing these columns: '.implode(', ', $missing).'.');
         }
+    }
+
+    /**
+     * Say why a row could not be written, in words meant for the reader.
+     *
+     * A refusal the application made explains itself. Anything else is a
+     * fault: it is reported, and the reader is not shown its inner details.
+     */
+    private function reasonTheRowFailed(Throwable $exception): string
+    {
+        if ($exception instanceof ApplicationException || $exception instanceof ValidationException) {
+            return $exception->getMessage();
+        }
+
+        report($exception);
+
+        return 'This row could not be written. Nothing from it was saved.';
     }
 }

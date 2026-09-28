@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Enrollment\ChangeEnrollmentPlacement;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\EnrollmentStatus;
 use App\Enums\ImportRowState;
@@ -21,6 +22,7 @@ use App\Services\Import\ImportRunner;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
+use RuntimeException;
 use Tests\TestCase;
 
 /**
@@ -253,6 +255,24 @@ class ImportTest extends TestCase
         $this->assertSame(1, $batch->fresh()->applied_count);
         $this->assertSame('Admission number ADM/001 is already used in this school.', $batch->rows()->broken()->firstOrFail()->errors[0]);
         $this->assertNotNull($this->enrollmentOf('grace.ola@gmail.com')->admission_number);
+    }
+
+    public function test_a_fault_while_writing_a_row_does_not_show_its_details(): void
+    {
+        $this->authorized_user(['create import', 'apply import']);
+        [$academicLevel, $cycleSection] = $this->levelAndSection();
+        $this->mock(ChangeEnrollmentPlacement::class)
+            ->shouldReceive('place')
+            ->andThrow(new RuntimeException('SQLSTATE[HY000]: secret table detail'));
+        $runner = app(ImportRunner::class);
+
+        $batch = $runner->stage('students', [
+            $this->studentRow(['email' => 'ada.bell@gmail.com', 'level' => $academicLevel->name, 'section' => $cycleSection->name]),
+        ]);
+        $runner->apply($batch);
+
+        $this->assertSame('This row could not be written. Nothing from it was saved.', $batch->rows()->broken()->firstOrFail()->errors[0]);
+        $this->assertSame(0, $this->enrollmentsOf('ada.bell@gmail.com'));
     }
 
     public function test_an_import_is_written_once(): void

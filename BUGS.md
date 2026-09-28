@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A failed import row showed the fault's inner details
+
+- Status: Fixed
+- Area: Imports
+- Observed: The import runner wrote the message of any exception onto a failed row, including database and framework errors.
+- Impact: People who import could read SQL text and table names. The fault itself was never reported, so nobody saw it in the logs.
+- Reproduction: Make a row fail with an unexpected error, for example a database constraint. The row shows the raw message.
+- Resolution: Refusals the application makes, and validation messages, are still shown. Any other fault is reported, and the row says it could not be written.
+
 ## A student import showed a raw database error for a taken admission number
 
 - Status: Fixed
