@@ -64,9 +64,16 @@ class AcceptAccountInvitation
                 ]);
             }
 
-            $invitation->load('user');
-            $user = $invitation->user;
+            // A suspension sent at the same moment holds this row too, so an
+            // account that was just blocked is never opened again here.
+            $user = User::query()->lockForUpdate()->findOrFail($invitation->user_id);
             $previousStatus = $user->account_status;
+
+            if (!in_array($previousStatus, [AccountStatus::Invited, AccountStatus::Active], true)) {
+                throw ValidationException::withMessages([
+                    'token' => 'This invitation link is not valid, or it expired. Ask your administrator to send a new one.',
+                ]);
+            }
 
             $user->forceFill([
                 'password' => Hash::make($input['password']),

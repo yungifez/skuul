@@ -7,6 +7,7 @@ use App\Enums\PlatformPermission;
 use App\Events\AccountStatusChanged;
 use App\Models\User;
 use App\Services\Authorization\SystemPermissionScope;
+use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
 /**
@@ -19,8 +20,7 @@ class ChangeAccountStatus
     public function __construct(
         private RevokeAccountInvitation $revokeAccountInvitation,
         private SystemPermissionScope $systemPermissionScope,
-    ) {
-    }
+    ) {}
 
     /**
      * Stop access without deleting anything.
@@ -61,21 +61,25 @@ class ChangeAccountStatus
             throw new RuntimeException('A platform administrator account cannot be suspended or archived.');
         }
 
-        $from = $user->account_status;
+        return DB::transaction(function () use ($user, $status, $actor, $reason): User {
+            // Held with the invitation it may revoke, so an invitation being
+            // accepted at the same moment cannot open the account again.
+            $from = User::query()->lockForUpdate()->findOrFail($user->getKey())->account_status;
 
-        if ($from === $status) {
+            if ($from === $status) {
+                return $user;
+            }
+
+            $user->account_status = $status;
+            $user->save();
+
+            if (!$status->canAccessApplication()) {
+                $this->revokeAccountInvitation->revoke($user);
+            }
+
+            AccountStatusChanged::dispatch($user, $from, $status, $actor, $reason);
+
             return $user;
-        }
-
-        $user->account_status = $status;
-        $user->save();
-
-        if (!$status->canAccessApplication()) {
-            $this->revokeAccountInvitation->revoke($user);
-        }
-
-        AccountStatusChanged::dispatch($user, $from, $status, $actor, $reason);
-
-        return $user;
+        });
     }
 }

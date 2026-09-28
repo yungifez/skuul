@@ -1,5 +1,13 @@
 # Known Bugs
 
+## An invitation accepted during a suspension opened the account again
+- Status: Fixed
+- Area: Accounts, invitations
+- Observed: Accepting an invitation always made the account Active. A suspension saved the new status first and revoked open invitations after, outside a transaction.
+- Impact: A person accepting at the moment an administrator suspended them ended up with an active account and a password.
+- Reproduction: Send an invitation. Suspend the account while the person submits the invitation form.
+- Resolution: A status change and an acceptance both lock the person's row. Acceptance refuses an account that is suspended or archived.
+
 ## A learner who left could still borrow from the old campus library
 - Status: Fixed
 - Area: Library, lending and reservations

@@ -122,6 +122,20 @@ class AccountInvitationTest extends TestCase
         $this->assertSame(AccountStatus::Invited, $user->fresh()->account_status);
     }
 
+    public function test_an_account_suspended_while_its_invitation_was_open_stays_suspended(): void
+    {
+        [$user, $token] = $this->invitedUserWithToken();
+        $user->forceFill(['account_status' => AccountStatus::Suspended])->save();
+
+        $this->post("/invitations/$token", [
+            'password' => 'Str0ng-Passw0rd!',
+            'password_confirmation' => 'Str0ng-Passw0rd!',
+        ])->assertSessionHasErrors('token');
+
+        $this->assertGuest();
+        $this->assertSame(AccountStatus::Suspended, $user->fresh()->account_status);
+    }
+
     public function test_a_weak_password_is_rejected()
     {
         [$user, $token] = $this->invitedUserWithToken();
