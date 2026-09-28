@@ -21,6 +21,7 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Facades\Storage;
 use Livewire\Livewire;
+use RuntimeException;
 use Tests\TestCase;
 
 /**
@@ -128,6 +129,27 @@ class ReportTest extends TestCase
 
         $this->assertSame(ReportStatus::Failed, $run->status);
         $this->assertStringContainsString('made-up-report', (string) $run->error);
+    }
+
+    public function test_a_fault_while_building_a_report_does_not_show_its_details(): void
+    {
+        $this->authorized_user(['create report', 'read report']);
+        $run = ReportRun::create([
+            'school_id' => $this->workingSchool()->id,
+            'type' => 'made-up-report',
+        ]);
+        $this->mock(ReportRegistry::class)
+            ->shouldReceive('get')
+            ->andThrow(new RuntimeException('SQLSTATE[HY000]: secret table detail'));
+
+        try {
+            app(BuildReport::class, ['reportRunId' => $run->id])->handle(app(ReportRegistry::class), app(ExportFormatRegistry::class));
+        } catch (RuntimeException) {
+            // The job records the failure before it gives up.
+        }
+
+        $this->assertStringNotContainsString('SQLSTATE', (string) $run->fresh()->error);
+        $this->assertStringContainsString('could not be built', (string) $run->fresh()->error);
     }
 
     public function test_an_authorized_user_can_ask_for_a_report(): void

@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Enums\ReportStatus;
+use App\Exceptions\ApplicationException;
 use App\Models\ReportRun;
 use App\Services\Report\ExportFormatRegistry;
 use App\Services\Report\ReportRegistry;
@@ -63,7 +64,11 @@ class BuildReport implements ShouldQueue
             $run->save();
         } catch (Throwable $exception) {
             $run->status = ReportStatus::Failed;
-            $run->error = $exception->getMessage();
+            // A refusal explains itself. Any other fault keeps its details in
+            // the failed job, away from the people reading the report desk.
+            $run->error = $exception instanceof ApplicationException
+                ? $exception->getMessage()
+                : 'The report could not be built. Ask for it again, or tell your administrator if it keeps failing.';
             $run->completed_at = now();
             $run->save();
 

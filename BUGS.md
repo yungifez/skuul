@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A failed report showed the fault's inner details
+
+- Status: Fixed
+- Area: Reports
+- Observed: When building a report failed, the report desk showed the raw exception message on the run.
+- Impact: Staff could read SQL text, file paths or class names meant for developers.
+- Reproduction: Make a report build fail with an unexpected error. The run on the report desk shows the raw message.
+- Resolution: Refusals the application makes still show their message. Any other fault shows a plain sentence. Its details stay in the failed job.
+
 ## A failed import row showed the fault's inner details
 
 - Status: Fixed
