@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Actions\Finance\RecordExpense;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\Concerns\RecordsOnce;
 use App\Models\Expense;
 use App\Models\LedgerAccount;
 use App\Models\Program;
@@ -11,9 +12,7 @@ use App\Services\Finance\ChartOfAccounts;
 use App\Services\Finance\PaymentChannelRegistry;
 use Carbon\Carbon;
 use Illuminate\Contracts\Database\Query\Builder;
-use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Livewire\Component;
@@ -28,6 +27,8 @@ use Livewire\Component;
  */
 class RecordExpenseForm extends Component
 {
+    use RecordsOnce;
+
     public string $description = '';
 
     public string $amount = '';
@@ -52,14 +53,11 @@ class RecordExpenseForm extends Component
 
     public bool $isAboveBalance = false;
 
-    public string $idempotencyKey = '';
-
     public function mount(): void
     {
         Gate::authorize('create', Expense::class);
 
         $this->expenseDate = now()->toDateString();
-        $this->idempotencyKey = (string) Str::uuid();
     }
 
     public function updatedAmount(): void
@@ -113,29 +111,24 @@ class RecordExpenseForm extends Component
             return;
         }
 
-        $recordedKey = 'expense-recorded:'.current_school_id().':'.$this->idempotencyKey;
+        try {
+            // A save sent again writes nothing and goes back to the list.
+            $this->recordOnce('expense', fn () => $recordExpense->record(
+                account: LedgerAccount::query()->inSchool()->findOrFail((int) $this->ledgerAccountId),
+                amount: $amount,
+                description: trim($this->description),
+                method: $this->method,
+                date: Carbon::parse($this->expenseDate),
+                vendor: $this->filled($this->vendor),
+                reference: $this->filled($this->reference),
+                note: $this->filled($this->note),
+                program: $this->programId === '' ? null : Program::query()->inSchool()->findOrFail((int) $this->programId),
+                fund: $this->filled($this->fund),
+            ));
+        } catch (InvalidValueException $exception) {
+            $this->addError('expenseDate', $exception->getMessage());
 
-        if (!Cache::has($recordedKey)) {
-            try {
-                $recordExpense->record(
-                    account: LedgerAccount::query()->inSchool()->findOrFail((int) $this->ledgerAccountId),
-                    amount: $amount,
-                    description: trim($this->description),
-                    method: $this->method,
-                    date: Carbon::parse($this->expenseDate),
-                    vendor: $this->filled($this->vendor),
-                    reference: $this->filled($this->reference),
-                    note: $this->filled($this->note),
-                    program: $this->programId === '' ? null : Program::query()->inSchool()->findOrFail((int) $this->programId),
-                    fund: $this->filled($this->fund),
-                );
-            } catch (InvalidValueException $exception) {
-                $this->addError('expenseDate', $exception->getMessage());
-
-                return;
-            }
-
-            Cache::put($recordedKey, true, now()->addHour());
+            return;
         }
 
         session()->flash('success', 'Expense recorded.');

@@ -567,17 +567,17 @@ class StudentPaymentTest extends TestCase
         app(ReceivePayment::class)->receive($enrollment, 10_000);
 
         $screen = Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment]);
-        $firstKey = $screen->get('refundKey');
+        $firstKey = $screen->get('recordKey');
 
         $screen->set('refundAmount', '20')
             ->set('refundReason', 'The family asked for it back')
             ->call('refund')
             ->assertHasNoErrors();
 
-        $this->assertNotSame($firstKey, $screen->get('refundKey'));
+        $this->assertNotSame($firstKey, $screen->get('recordKey'));
 
         // A resent request carries the old key and the old form.
-        Cache::add('student-refund-paid:'.current_school_id().':'.$screen->get('refundKey'), true);
+        Cache::add('recorded:student-refund:'.current_school_id().':'.$screen->get('recordKey'), true);
         $screen->set('refundAmount', '20')
             ->set('refundReason', 'The family asked for it back')
             ->call('refund');

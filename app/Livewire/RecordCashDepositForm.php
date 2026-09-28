@@ -4,10 +4,9 @@ namespace App\Livewire;
 
 use App\Actions\Finance\RecordCashDeposit;
 use App\Exceptions\InvalidValueException;
+use App\Livewire\Concerns\RecordsOnce;
 use App\Services\Finance\ChartOfAccounts;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
 use Illuminate\View\View;
 use Livewire\Component;
 
@@ -21,6 +20,8 @@ use Livewire\Component;
  */
 class RecordCashDepositForm extends Component
 {
+    use RecordsOnce;
+
     public string $amount = '';
 
     public string $depositDate = '';
@@ -33,14 +34,11 @@ class RecordCashDepositForm extends Component
 
     public bool $isAboveCashBox = false;
 
-    public string $idempotencyKey = '';
-
     public function mount(): void
     {
         $this->ensureAllowed();
 
         $this->depositDate = now()->toDateString();
-        $this->idempotencyKey = (string) Str::uuid();
     }
 
     public function updatedAmount(): void
@@ -75,23 +73,18 @@ class RecordCashDepositForm extends Component
             return;
         }
 
-        $recordedKey = 'cash-deposit-recorded:'.current_school_id().':'.$this->idempotencyKey;
+        try {
+            // A save sent again writes nothing and goes back to the list.
+            $this->recordOnce('cash-deposit', fn () => $recordCashDeposit->record(
+                amount: $amount,
+                date: Carbon::parse($this->depositDate),
+                bankReference: trim($this->bankReference) === '' ? null : trim($this->bankReference),
+                note: trim($this->note) === '' ? null : trim($this->note),
+            ));
+        } catch (InvalidValueException $exception) {
+            $this->addError('depositDate', $exception->getMessage());
 
-        if (!Cache::has($recordedKey)) {
-            try {
-                $recordCashDeposit->record(
-                    amount: $amount,
-                    date: Carbon::parse($this->depositDate),
-                    bankReference: trim($this->bankReference) === '' ? null : trim($this->bankReference),
-                    note: trim($this->note) === '' ? null : trim($this->note),
-                );
-            } catch (InvalidValueException $exception) {
-                $this->addError('depositDate', $exception->getMessage());
-
-                return;
-            }
-
-            Cache::put($recordedKey, true, now()->addHour());
+            return;
         }
 
         session()->flash('success', 'Cash deposit recorded.');
