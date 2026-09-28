@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\TimetableStatus;
 use App\Livewire\CreateSubjectForm;
 use App\Livewire\EditSubjectForm;
 use App\Livewire\ListSubjectsTable;
@@ -9,7 +10,11 @@ use App\Models\AcademicYear;
 use App\Models\CourseOffering;
 use App\Models\School;
 use App\Models\Subject;
+use App\Models\Timetable;
+use App\Models\TimetableRecord;
+use App\Models\TimetableTimeSlot;
 use App\Models\User;
+use App\Models\Weekday;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -207,6 +212,28 @@ class SubjectTest extends TestCase
         $this->assertNotSoftDeleted($subject);
 
         $registrar->get(route('course-offerings.index'))->assertOk();
+    }
+
+    public function test_a_subject_on_a_published_timetable_cannot_be_deleted(): void
+    {
+        $subject = Subject::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $timetable = Timetable::factory()->create(['status' => TimetableStatus::Draft]);
+        $slot = TimetableTimeSlot::create(['timetable_id' => $timetable->id, 'start_time' => '10:00', 'stop_time' => '10:30']);
+        TimetableRecord::create([
+            'timetable_time_slot_id' => $slot->id,
+            'weekday_id' => Weekday::firstOrFail()->id,
+            'timetable_time_slot_weekdayable_id' => $subject->id,
+            'timetable_time_slot_weekdayable_type' => $subject->getMorphClass(),
+        ]);
+        Timetable::query()->whereKey($timetable->id)->update(['status' => TimetableStatus::Published->value]);
+        $this->authorized_user(['read subject', 'delete subject']);
+
+        Livewire::test(ListSubjectsTable::class)
+            ->call('deleteSubject', $subject->id)
+            ->assertDispatched('status-message', type: 'danger');
+
+        $this->assertNotSoftDeleted($subject);
+        $this->assertSame(1, TimetableRecord::query()->where('timetable_time_slot_weekdayable_id', $subject->id)->count());
     }
 
     public function test_unathorized_user_cannot_view_subject()

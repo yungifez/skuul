@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Deleting a subject takes its lessons off published timetables
+- Status: Fixed
+- Area: Subjects
+- Observed: A subject with no course offering could be deleted while a published or archived timetable showed it. The delete removed its lessons from every timetable.
+- Impact: Classes lost lessons from the timetable they follow, with no revision and no audit record. Custom timetable items already refused this.
+- Reproduction: Place a subject on a timetable and publish it. Delete the subject from the subject list.
+- Resolution: A subject shown on a published or archived timetable cannot be deleted. Lessons on draft timetables still go with it.
+
 ## Deleting an archived timetable erases the cover given against it
 - Status: Fixed
 - Area: Timetables

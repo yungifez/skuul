@@ -2,8 +2,10 @@
 
 namespace App\Services\Subject;
 
+use App\Enums\TimetableStatus;
 use App\Exceptions\ResourceNotEmptyException;
 use App\Models\Subject;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 
 class SubjectService
@@ -63,7 +65,8 @@ class SubjectService
      *
      * A subject that is taught cannot go. The delete is a soft delete, so the
      * row stays but the relation reads null, and every screen that names the
-     * subject of a course offering throws on it.
+     * subject of a course offering throws on it. A published or archived
+     * timetable keeps its lessons, so a subject it shows stays too.
      *
      * @return void
      */
@@ -71,6 +74,14 @@ class SubjectService
     {
         if ($subject->courseOfferings()->exists()) {
             throw new ResourceNotEmptyException('This subject is taught, so it cannot be deleted. Close its course offerings first.');
+        }
+
+        $isOnAFixedTimetable = $subject->timetableRecord()
+            ->whereHas('timeSlot.timetable', fn (Builder $query) => $query->where('status', '!=', TimetableStatus::Draft->value))
+            ->exists();
+
+        if ($isOnAFixedTimetable) {
+            throw new ResourceNotEmptyException('This subject is on a published timetable, so it cannot be deleted. Take it off the timetable in a new revision first.');
         }
 
         $subject->timetableRecord()->delete();
