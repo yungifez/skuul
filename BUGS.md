@@ -1,5 +1,21 @@
 # Known Bugs
 
+## A limited remover can delete a person who holds more
+- Status: Fixed
+- Area: People removal
+- Observed: Someone with only "delete teacher", "delete admin" or "delete parent" could remove a person who also holds more power at the campus, such as a parent who is also an administrator.
+- Impact: A lesser role could lock out the people above it and end their membership or account.
+- Reproduction: Give a user only "read parent" and "delete parent". Delete a parent who also holds the admin role.
+- Resolution: The delete policy refuses a person who holds more at the campus than the remover could give.
+
+## A limited editor can take over an account that holds more
+- Status: Fixed
+- Area: People editing
+- Observed: Someone with only "update teacher" or "update admin" could change the email of a person who holds more power at the campus.
+- Impact: The new email receives the password reset, and with it every power of that person.
+- Reproduction: Give a user only "update teacher". Edit a teacher who also holds the admin role. Change the email and save.
+- Resolution: Only someone who holds at least as much at the campus can change a person's email. Other details stay editable.
+
 ## A custom role with account access can lock out the principal
 - Status: Fixed
 - Area: Account access

@@ -161,6 +161,7 @@ class TeacherTest extends TestCase
         $person->assignRole('teacher');
         $email = $this->faker()->unique()->freeEmail();
         $this->authorized_user(['update teacher']);
+        auth()->user()->assignRole('teacher');
 
         Livewire::test(EditTeacherForm::class, ['teacher' => $person])
             ->assertSet('nationality', 'Nigerian')
@@ -175,6 +176,28 @@ class TeacherTest extends TestCase
         $this->assertSame($email, $person->email);
         $this->assertSame('Nigerian', $person->nationality);
         $this->assertSame('100001', $person->postal_code);
+    }
+
+    public function test_an_editor_holding_less_cannot_change_a_teachers_email(): void
+    {
+        $person = User::factory()->create(['email' => $this->faker()->unique()->freeEmail()]);
+        $person->assignRole('teacher');
+        $originalEmail = $person->email;
+        $this->authorized_user(['update teacher']);
+
+        Livewire::test(EditTeacherForm::class, ['teacher' => $person])
+            ->set('email', $this->faker()->unique()->freeEmail())
+            ->call('save')
+            ->assertHasErrors(['email' => 'This person holds more at this school than you do, so only they can change their email.']);
+
+        $this->assertSame($originalEmail, $person->fresh()->email);
+
+        Livewire::test(EditTeacherForm::class, ['teacher' => $person->fresh()])
+            ->set('name', 'Renamed teacher')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame('Renamed teacher', $person->fresh()->name);
     }
 
     public function test_unauthorised_users_cannot_delete_teachers()
@@ -195,6 +218,7 @@ class TeacherTest extends TestCase
         $teacher = User::factory()->create();
         $teacher->assignRole('teacher');
         $this->authorized_user(['read teacher', 'delete teacher']);
+        auth()->user()->assignRole('teacher');
 
         Livewire::test(ListTeachersTable::class)
             ->assertSeeHtml('$wire.call(&quot;deleteTeacher&quot;, row.id)')
@@ -204,11 +228,26 @@ class TeacherTest extends TestCase
         $this->assertSoftDeleted($teacher);
     }
 
+    public function test_a_remover_holding_less_cannot_delete_a_teacher(): void
+    {
+        $teacher = User::factory()->create();
+        $teacher->assignRole('teacher');
+        $this->authorized_user(['read teacher', 'delete teacher']);
+
+        Livewire::test(ListTeachersTable::class)
+            ->call('deleteTeacher', $teacher->id)
+            ->assertForbidden();
+
+        $this->assertNotSoftDeleted($teacher);
+        $this->assertTrue($teacher->belongsToSchool($this->workingSchool()));
+    }
+
     public function test_a_teacher_shared_with_a_sibling_campus_is_only_removed_from_this_one(): void
     {
         $teacher = User::factory()->create();
         $teacher->assignRole('teacher');
         $this->authorized_user(['read teacher', 'delete teacher']);
+        auth()->user()->assignRole('teacher');
         $sibling = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id]);
         $this->memberOf($sibling, $teacher);
 
@@ -226,6 +265,7 @@ class TeacherTest extends TestCase
         $teacher = User::factory()->create();
         $teacher->assignRole('teacher');
         $this->authorized_user(['read teacher', 'delete teacher']);
+        auth()->user()->assignRole('teacher');
         app(GrantOrganizationMembership::class)->grant($teacher, $this->workingSchool()->organization);
 
         Livewire::test(ListTeachersTable::class)
@@ -243,6 +283,7 @@ class TeacherTest extends TestCase
         $teacher->schoolMemberships()->delete();
         $this->memberOf(School::factory()->create(), $teacher->refresh());
         $this->authorized_user(['read teacher', 'delete teacher']);
+        auth()->user()->assignRole('teacher');
 
         try {
             Livewire::test(ListTeachersTable::class)->call('deleteTeacher', $teacher->id);

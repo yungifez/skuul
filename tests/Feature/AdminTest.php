@@ -121,6 +121,7 @@ class AdminTest extends TestCase
         $person->assignRole('admin');
         $email = $this->faker()->unique()->freeEmail();
         $this->authorized_user(['update admin']);
+        auth()->user()->assignRole('admin');
 
         Livewire::test(EditAdminForm::class, ['admin' => $person])
             ->assertSet('nationality', 'Nigerian')
@@ -218,6 +219,7 @@ class AdminTest extends TestCase
         $admin = User::factory()->create();
         $admin->assignRole('admin');
         $this->authorized_user(['read admin', 'delete admin']);
+        auth()->user()->assignRole('admin');
 
         Livewire::test(ListAdminsTable::class)
             ->assertSeeHtml('$wire.call(&quot;deleteAdmin&quot;, row.id)')

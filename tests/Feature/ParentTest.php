@@ -208,6 +208,20 @@ class ParentTest extends TestCase
         $this->assertSoftDeleted($parent);
     }
 
+    public function test_a_parent_who_also_runs_the_campus_is_out_of_reach_of_a_parent_manager(): void
+    {
+        $parent = User::factory()->create();
+        $parent->assignRole('parent');
+        $parent->assignRole('admin');
+        $this->authorized_user(['read parent', 'delete parent']);
+
+        Livewire::test(ListParentsTable::class)
+            ->call('deleteParent', $parent->id)
+            ->assertForbidden();
+
+        $this->assertNotSoftDeleted($parent);
+    }
+
     public function test_a_parent_shared_with_a_sibling_campus_is_only_removed_from_this_one(): void
     {
         $parent = User::factory()->create();

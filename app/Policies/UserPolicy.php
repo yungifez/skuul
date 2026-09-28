@@ -71,10 +71,17 @@ class UserPolicy
 
     /**
      * Determine whether the user can delete the model.
+     *
+     * Removing somebody who holds more here than the remover could give
+     * would lock out the people above them, so that person is out of reach.
      */
     public function delete(User $user, User $model, $role)
     {
         if (!$model->belongsToCurrentSchool()) {
+            return false;
+        }
+
+        if ($user->id !== $model->id && app(RoleAuthority::class)->holdsMoreThan($model, $user, current_school())) {
             return false;
         }
 

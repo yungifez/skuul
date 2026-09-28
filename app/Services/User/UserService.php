@@ -9,6 +9,7 @@ use App\Actions\Identity\SendAccountInvitation;
 use App\Actions\School\EndSchoolMembership;
 use App\Enums\Role;
 use App\Models\User;
+use App\Services\Authorization\RoleAuthority;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -21,6 +22,7 @@ class UserService
         public ChangeAccountStatus $changeAccountStatusAction,
         public UpdateUserProfileInformation $updateUserProfileInformationAction,
         public EndSchoolMembership $endSchoolMembershipAction,
+        public RoleAuthority $roleAuthority,
     ) {}
 
     /**
@@ -120,7 +122,8 @@ class UserService
         }
         // A person who also belongs to another school, or holds authority
         // beyond this one, signs in there with this email. A new email is a
-        // new way to reset their password, so only they may change it.
+        // new way to reset their password, so only they may change it. The
+        // same holds for somebody who holds more here than the editor does.
         if (isset($record['email']) && mb_strtolower((string) $record['email']) !== mb_strtolower((string) $user->email)) {
             if ($user->belongsToAnotherSchool()) {
                 throw ValidationException::withMessages([
@@ -131,6 +134,15 @@ class UserService
             if ($user->holdsPowerBeyond(current_school_id())) {
                 throw ValidationException::withMessages([
                     'email' => 'This person has authority beyond this school, so only they can change their email.',
+                ]);
+            }
+
+            $actor = auth()->user();
+            $school = current_school();
+
+            if ($actor instanceof User && $actor->id !== $user->id && $school !== null && $this->roleAuthority->holdsMoreThan($user, $actor, $school)) {
+                throw ValidationException::withMessages([
+                    'email' => 'This person holds more at this school than you do, so only they can change their email.',
                 ]);
             }
         }
