@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A campus could change the email of an organization administrator
+- Status: Fixed
+- Area: User profiles
+- Observed: The email of a person at two schools was protected. The email of a person at one campus who holds organization or platform authority was not.
+- Impact: A campus administrator could change that email to their own, then reset the password and sign in with organization authority.
+- Reproduction: Give a campus admin organization membership. As another admin of that campus, change their email in the admin form.
+- Resolution: The profile update refuses an email change for a person who holds power beyond the working school ("This person has authority beyond this school, so only they can change their email.").
+
 ## Removing a person from one campus deleted an organization administrator's account
 - Status: Fixed
 - Area: Teachers, parents, students, user removal

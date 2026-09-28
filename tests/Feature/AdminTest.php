@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Organization\GrantOrganizationMembership;
 use App\Livewire\CreateAdminForm;
 use App\Livewire\EditAdminForm;
 use App\Livewire\ListAdminsTable;
@@ -149,6 +150,23 @@ class AdminTest extends TestCase
             ->set('email', $this->faker()->unique()->freeEmail())
             ->call('save')
             ->assertHasErrors(['email' => 'This person also belongs to another school, so only they can change their email.']);
+
+        $this->assertSame($originalEmail, $person->fresh()->email);
+    }
+
+    public function test_one_school_cannot_change_the_email_of_an_organization_administrator(): void
+    {
+        $this->authorized_user(['update admin']);
+        $person = $this->memberOf($this->workingSchool());
+        $person->forceFill(['email' => $this->faker()->unique()->freeEmail()])->save();
+        $person->assignRole('admin');
+        app(GrantOrganizationMembership::class)->grant($person, $this->workingSchool()->organization);
+        $originalEmail = $person->email;
+
+        Livewire::test(EditAdminForm::class, ['admin' => $person->refresh()])
+            ->set('email', $this->faker()->unique()->freeEmail())
+            ->call('save')
+            ->assertHasErrors(['email' => 'This person has authority beyond this school, so only they can change their email.']);
 
         $this->assertSame($originalEmail, $person->fresh()->email);
     }

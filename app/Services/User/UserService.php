@@ -118,12 +118,21 @@ class UserService
                 abort('403', "User isn't a/an $role");
             }
         }
-        // A person who also belongs to another school signs in there with
-        // this email. Only they may change it, from their own profile.
-        if (isset($record['email']) && mb_strtolower((string) $record['email']) !== mb_strtolower((string) $user->email) && $user->belongsToAnotherSchool()) {
-            throw ValidationException::withMessages([
-                'email' => 'This person also belongs to another school, so only they can change their email.',
-            ]);
+        // A person who also belongs to another school, or holds authority
+        // beyond this one, signs in there with this email. A new email is a
+        // new way to reset their password, so only they may change it.
+        if (isset($record['email']) && mb_strtolower((string) $record['email']) !== mb_strtolower((string) $user->email)) {
+            if ($user->belongsToAnotherSchool()) {
+                throw ValidationException::withMessages([
+                    'email' => 'This person also belongs to another school, so only they can change their email.',
+                ]);
+            }
+
+            if ($user->holdsPowerBeyond(current_school_id())) {
+                throw ValidationException::withMessages([
+                    'email' => 'This person has authority beyond this school, so only they can change their email.',
+                ]);
+            }
         }
 
         $user = $this->updateUserProfileInformationAction->update($user, [
