@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A deleted student kept their seat and their place on registers
+
+- Status: Fixed
+- Area: Students, deletion
+- Observed: Deleting a student removed the account, or ended this school's access, but left the enrollment active.
+- Impact: The learner still held a seat in the section, still showed on attendance registers as "Unnamed learner", and could still be billed. A waitlisted family could not get that seat.
+- Reproduction: Put a learner in a section of 1. Delete the learner from the students list. The section is still full.
+- Resolution: Deleting a student now withdraws their enrollment at this school first, with the reason "Removed from the school". The withdrawal releases the bed, reservations and groups, as any withdrawal does. Invoices and results stay.
+
 ## A teacher on leave could be booked to cover a lesson
 
 - Status: Fixed

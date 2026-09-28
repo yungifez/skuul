@@ -175,10 +175,31 @@ class StudentService
 
     /**
      * Delete student.
+     *
+     * The learner leaves this school first. An enrollment left active would
+     * keep their seat, their place on registers, and the bills of a learner
+     * nobody can open any more.
      */
     public function deleteStudent(User $student): void
     {
-        $this->userService->deleteUser($student);
+        DB::transaction(function () use ($student): void {
+            $enrollment = StudentRecord::query()
+                ->inSchool()
+                ->where('user_id', $student->id)
+                ->enrolled()
+                ->first();
+
+            if ($enrollment !== null) {
+                $this->changeEnrollmentStatusAction->change(
+                    enrollment: $enrollment,
+                    status: EnrollmentStatus::Withdrawn,
+                    actor: auth()->user(),
+                    reason: 'Removed from the school',
+                );
+            }
+
+            $this->userService->deleteUser($student);
+        });
     }
 
     /**

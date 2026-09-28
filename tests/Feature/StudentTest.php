@@ -230,6 +230,28 @@ class StudentTest extends TestCase
         $this->assertSoftDeleted($student);
     }
 
+    public function test_a_deleted_student_gives_up_their_seat(): void
+    {
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read student', 'delete student']);
+
+        Livewire::test(ListStudentsTable::class)->call('deleteStudent', $enrollment->user_id);
+
+        $this->assertTrue($enrollment->fresh()->status->isClosed());
+    }
+
+    public function test_a_student_removed_from_one_of_two_schools_leaves_this_one(): void
+    {
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->memberOf(School::factory()->create(), $enrollment->user);
+        $this->authorized_user(['read student', 'delete student']);
+
+        Livewire::test(ListStudentsTable::class)->call('deleteStudent', $enrollment->user_id);
+
+        $this->assertNotSoftDeleted($enrollment->user);
+        $this->assertTrue($enrollment->fresh()->status->isClosed());
+    }
+
     public function test_a_student_of_another_school_cannot_be_deleted()
     {
         $student = StudentRecord::factory()->create()->user;
