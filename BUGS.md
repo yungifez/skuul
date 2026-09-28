@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A seat was offered to a candidate the school had already enrolled
+
+- Status: Fixed
+- Area: Admissions waitlist
+- Observed: The next offer went to the top waiting entry even when the school had meanwhile enrolled that candidate another way, for example straight into another section.
+- Impact: The freed seat was held for a family who already had a place. The next family waited until somebody noticed.
+- Reproduction: Waitlist a candidate for a full section. Enrol them directly in another section. Free a seat and offer it. The offer goes to them.
+- Resolution: The offer skips candidates enrolled at the school, withdraws their entry with a reason, and offers the seat to the next one. A candidate enrolled at another school keeps waiting, because they join through a move or a transfer.
+
 ## A night away stayed open after the learner left the house
 
 - Status: Fixed

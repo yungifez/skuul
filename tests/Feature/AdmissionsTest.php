@@ -61,6 +61,28 @@ class AdmissionsTest extends TestCase
         app(ChangeEnrollmentPlacement::class)->place($this->unplacedStudent(), $section);
     }
 
+    public function test_a_candidate_the_school_enrolled_while_waiting_is_passed_over(): void
+    {
+        $section = $this->section(1);
+        $occupied = $this->unplacedStudent();
+        app(ChangeEnrollmentPlacement::class)->place($occupied, $section);
+        $enrolledMeanwhile = User::factory()->create();
+        $stillLooking = User::factory()->create();
+        $first = app(JoinWaitlist::class)->join($section, $enrolledMeanwhile, priority: 10);
+        $second = app(JoinWaitlist::class)->join($section, $stillLooking, priority: 1);
+        StudentRecord::factory()->create([
+            'user_id' => $enrolledMeanwhile->id,
+            'school_id' => $section->school_id,
+        ]);
+
+        app(ChangeEnrollmentStatus::class)->graduate($occupied);
+        $offered = app(OfferNextWaitlistEntry::class)->offer($section);
+
+        $this->assertSame($second->id, $offered?->id);
+        $this->assertSame(AdmissionWaitlistStatus::Withdrawn, $first->fresh()->status);
+        $this->assertStringContainsString('while waiting', $first->fresh()->decision_reason);
+    }
+
     public function test_a_full_section_keeps_one_idempotent_waitlist_entry(): void
     {
         $section = $this->section(1);

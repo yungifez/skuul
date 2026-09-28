@@ -34,14 +34,7 @@ class OfferNextWaitlistEntry
                 return null;
             }
 
-            $entry = AdmissionWaitlistEntry::query()
-                ->where('school_id', $section->school_id)
-                ->where('academic_cycle_section_id', $section->id)
-                ->where('status', AdmissionWaitlistStatus::Pending)
-                ->orderByDesc('priority')
-                ->orderBy('position')
-                ->lockForUpdate()
-                ->first();
+            $entry = $this->nextCandidateNotEnrolledHere($section, $actor);
 
             if ($entry === null) {
                 return null;
@@ -63,5 +56,57 @@ class OfferNextWaitlistEntry
 
             return $entry->refresh();
         });
+    }
+
+    /**
+     * Get the first waiting candidate who is not enrolled here yet.
+     *
+     * A candidate the school enrolled another way while they waited, say
+     * straight into another section, already has their place. Their entry is
+     * withdrawn, so the offer goes to the next family. A candidate enrolled at
+     * another school keeps waiting, because they join through a move or a
+     * transfer.
+     */
+    private function nextCandidateNotEnrolledHere(AcademicCycleSection $section, ?User $actor): ?AdmissionWaitlistEntry
+    {
+        $waiting = AdmissionWaitlistEntry::query()
+            ->where('school_id', $section->school_id)
+            ->where('academic_cycle_section_id', $section->id)
+            ->where('status', AdmissionWaitlistStatus::Pending)
+            ->orderByDesc('priority')
+            ->orderBy('position')
+            ->lockForUpdate()
+            ->get();
+
+        foreach ($waiting as $entry) {
+            $enrolledHere = StudentRecord::query()
+                ->where('user_id', $entry->user_id)
+                ->where('school_id', $section->school_id)
+                ->enrolled()
+                ->exists();
+
+            if (!$enrolledHere) {
+                return $entry;
+            }
+
+            $reason = 'Enrolled in this school while waiting.';
+
+            $entry->update([
+                'status' => AdmissionWaitlistStatus::Withdrawn,
+                'decided_at' => now(),
+                'decided_by' => $actor?->id,
+                'decision_reason' => $reason,
+            ]);
+
+            $this->auditor->record(
+                AuditAction::AdmissionWaitlistDeclined,
+                $entry,
+                ['reason' => $reason],
+                $actor,
+                $section->school_id,
+            );
+        }
+
+        return null;
     }
 }
