@@ -140,6 +140,10 @@ class PortalSummary
     /**
      * Get the learner's current loans and library queue entries.
      *
+     * A learner who moved campus may still hold a book from the library they
+     * left, and that library still fines it, so loans from every campus of
+     * the organization are listed.
+     *
      * @return array{loans: Collection<int, LibraryLoan>, reservations: Collection<int, LibraryReservation>}|null
      */
     public function library(StudentRecord $enrollment): ?array
@@ -150,10 +154,10 @@ class PortalSummary
 
         return [
             'loans' => LibraryLoan::query()
-                ->where('school_id', $enrollment->school_id)
+                ->whereIn('school_id', $this->campusIdsOf($enrollment))
                 ->where('user_id', $enrollment->user_id)
                 ->open()
-                ->with('copy.title')
+                ->with(['copy.title', 'school:id,name'])
                 ->orderBy('due_on')
                 ->get(),
             'reservations' => LibraryReservation::query()
@@ -235,5 +239,17 @@ class PortalSummary
                 'taken_on' => $latestRollEntry->roll->taken_on->format('j M Y'),
             ],
         ];
+    }
+
+    /**
+     * Get the campuses of the organization the learner attends.
+     *
+     * @return array<int, int>
+     */
+    private function campusIdsOf(StudentRecord $enrollment): array
+    {
+        $organizationId = School::query()->whereKey($enrollment->school_id)->value('organization_id');
+
+        return School::query()->where('organization_id', $organizationId)->pluck('id')->all();
     }
 }

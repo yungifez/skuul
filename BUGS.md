@@ -1,5 +1,13 @@
 # Known Bugs
 
+## The portal hid a book still out from a campus the learner left
+- Status: Fixed
+- Area: Portal library
+- Observed: The portal listed loans only at the learner's current campus. After a campus move, a book still out from the old campus's library vanished from the list.
+- Impact: The old library still fines the late book, but the family cannot see which book to return or where.
+- Reproduction: Issue a book at campus A. Move the learner to campus B in the same organization. Open the portal library.
+- Resolution: `PortalSummary::library` lists open loans from every campus of the organization. A loan from another campus shows "Return to <campus>".
+
 ## A teacher could be sent to cover a lesson while timetabled to teach their own class
 - Status: Fixed
 - Area: Timetable cover

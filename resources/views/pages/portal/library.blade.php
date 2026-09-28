@@ -17,7 +17,12 @@
                             <div class="flex flex-col gap-1 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
                                 <div>
                                     <p class="font-medium">{{ $loan->copy?->title?->title }}</p>
-                                    <p class="text-sm text-muted-foreground">Copy {{ $loan->copy?->barcode }}</p>
+                                    <p class="text-sm text-muted-foreground">
+                                        Copy {{ $loan->copy?->barcode }}
+                                        @if ($loan->school_id !== $studentRecord->school_id)
+                                            · Return to {{ $loan->school?->name }}
+                                        @endif
+                                    </p>
                                 </div>
                                 <p class="text-sm {{ $loan->daysLate() > 0 ? 'text-destructive' : 'text-muted-foreground' }}">
                                     Due {{ $loan->due_on?->format('j M Y') }}

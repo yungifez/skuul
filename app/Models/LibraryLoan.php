@@ -49,6 +49,16 @@ class LibraryLoan extends Model
     ];
 
     /**
+     * Get the campus whose library lent the copy.
+     *
+     * @return BelongsTo<School, $this>
+     */
+    public function school(): BelongsTo
+    {
+        return $this->belongsTo(School::class);
+    }
+
+    /**
      * Get the copy that went out.
      *
      * @return BelongsTo<LibraryCopy, $this>

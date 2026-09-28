@@ -31,6 +31,7 @@ use App\Models\Dormitory;
 use App\Models\DormitoryBed;
 use App\Models\DormitoryRoom;
 use App\Models\LibraryCopy;
+use App\Models\LibraryLoan;
 use App\Models\LibraryTitle;
 use App\Models\Notice;
 use App\Models\NoticeRecipient;
@@ -323,6 +324,36 @@ class PortalTest extends TestCase
             ->assertOk()
             ->assertSee($title->title)
             ->assertSee($queuedTitle->title);
+    }
+
+    public function test_a_family_still_sees_a_book_from_a_campus_they_left(): void
+    {
+        $this->unauthorized_user();
+        $source = $this->workingSchool();
+        $source->forceFill(['name' => 'North Campus'])->save();
+        $destination = School::factory()->create(['organization_id' => $source->organization_id]);
+        $elsewhere = School::factory()->create(['organization_id' => Organization::factory()->create()->id]);
+        features()->enable(Feature::Library, $destination->id);
+        features()->enable(Feature::Portal, $destination->id, config: [PortalArea::Library->value => true]);
+        features()->enable(Feature::Library);
+        $enrollment = $this->enrollment();
+        $student = $this->memberOf($source, $enrollment->user);
+        $title = LibraryTitle::factory()->create();
+        app(IssueLoan::class)->issue(LibraryCopy::factory()->create(['school_id' => $source->id, 'library_title_id' => $title->id]), $student);
+        $unrelated = LibraryTitle::factory()->create();
+        LibraryLoan::factory()->create([
+            'school_id' => $elsewhere->id,
+            'user_id' => $student->id,
+            'library_copy_id' => LibraryCopy::factory()->create(['school_id' => $elsewhere->id, 'library_title_id' => $unrelated->id])->id,
+        ]);
+        $enrollment->forceFill(['school_id' => $destination->id])->save();
+
+        $this->actingAs($student)
+            ->get(route('portal.library.index', $enrollment))
+            ->assertOk()
+            ->assertSee($title->title)
+            ->assertSee('Return to North Campus')
+            ->assertDontSee($unrelated->title);
     }
 
     public function test_a_closed_library_portal_area_shows_nothing(): void
