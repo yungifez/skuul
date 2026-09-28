@@ -5,11 +5,13 @@ namespace Tests\Feature;
 use App\Actions\Curriculum\AssignTeacher;
 use App\Actions\School\EndSchoolMembership;
 use App\Actions\School\GrantSchoolMembership;
+use App\Actions\Staff\ManageStaffLeave;
 use App\Actions\Timetable\CreateSectionTimetableOverride;
 use App\Actions\Timetable\CreateTimetableSubstitution;
 use App\Actions\Timetable\PublishTimetable;
 use App\Actions\Timetable\ReviseTimetable;
 use App\Enums\AuditAction;
+use App\Enums\LeaveType;
 use App\Enums\Role;
 use App\Enums\TimetableStatus;
 use App\Exceptions\InvalidValueException;
@@ -24,6 +26,7 @@ use App\Models\AuditEvent;
 use App\Models\CourseOffering;
 use App\Models\Organization;
 use App\Models\School;
+use App\Models\StaffProfile;
 use App\Models\Subject;
 use App\Models\Timetable;
 use App\Models\TimetableRecord;
@@ -254,6 +257,22 @@ class TimetableRevisionTest extends TestCase
         $this->expectException(InvalidValueException::class);
 
         app(CreateTimetableSubstitution::class)->create($second->fresh(), $second->timeSlots()->firstOrFail(), $weekday->id, $teacher, $date, 'Absence', auth()->user());
+    }
+
+    public function test_a_teacher_on_leave_cannot_cover(): void
+    {
+        $this->authorized_user([]);
+        $teacher = $this->teacher();
+        $absent = $this->timetableWithLesson($this->teacher(), '08:00', '09:00');
+        app(PublishTimetable::class)->publish($absent);
+        $weekday = Weekday::firstOrFail();
+        $date = Carbon::parse('next '.$weekday->name);
+        $profile = StaffProfile::factory()->create(['user_id' => $teacher->id, 'school_id' => $absent->academicCycleSection->school_id]);
+        app(ManageStaffLeave::class)->request($profile, $date, $date, LeaveType::Sick, 'Flu');
+
+        $this->expectExceptionMessage("$teacher->name is on leave that day.");
+
+        app(CreateTimetableSubstitution::class)->create($absent->fresh(), $absent->timeSlots()->firstOrFail(), $weekday->id, $teacher, $date, 'Absence', auth()->user());
     }
 
     public function test_a_teacher_cannot_cover_during_their_own_lesson(): void

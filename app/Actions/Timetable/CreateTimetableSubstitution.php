@@ -6,12 +6,14 @@ use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AuditAction;
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
+use App\Models\StaffProfile;
 use App\Models\Timetable;
 use App\Models\TimetableRecord;
 use App\Models\TimetableSubstitution;
 use App\Models\TimetableTimeSlot;
 use App\Models\User;
 use App\Models\Weekday;
+use App\Services\Staff\StaffAvailability;
 use App\Services\Timetable\TimetableConflictChecker;
 use Carbon\CarbonInterface;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -22,6 +24,7 @@ class CreateTimetableSubstitution
     public function __construct(
         private RecordAuditEvent $auditor,
         private TimetableConflictChecker $conflictChecker,
+        private StaffAvailability $availability,
     ) {}
 
     public function create(Timetable $timetable, TimetableTimeSlot $slot, int $weekdayId, User $replacementTeacher, CarbonInterface $date, string $reason, User $actor): TimetableSubstitution
@@ -45,6 +48,7 @@ class CreateTimetableSubstitution
                     throw new InvalidValueException('That timetable entry already has a substitution for this date.');
                 }
 
+                $this->failIfTheTeacherIsAway($replacementTeacher, $date);
                 $this->failIfTheTeacherIsAlreadyCovering($replacementTeacher, $slot, $date);
                 $this->failIfTheTeacherHasTheirOwnLesson($replacementTeacher, $timetable, $slot, $date);
 
@@ -111,6 +115,21 @@ class CreateTimetableSubstitution
             if (!$coveredBySomeoneElse) {
                 throw new InvalidValueException("$replacementTeacher->name teaches {$lesson['timetable']->name} at that time on that day.");
             }
+        }
+    }
+
+    /**
+     * Refuse a teacher who is on leave that day, at this campus or another.
+     */
+    private function failIfTheTeacherIsAway(User $replacementTeacher, CarbonInterface $date): void
+    {
+        $isAway = StaffProfile::query()
+            ->where('user_id', $replacementTeacher->id)
+            ->get()
+            ->contains(fn (StaffProfile $profile): bool => $this->availability->isAway($profile, $date));
+
+        if ($isAway) {
+            throw new InvalidValueException("$replacementTeacher->name is on leave that day.");
         }
     }
 

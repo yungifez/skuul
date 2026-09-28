@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A teacher on leave could be booked to cover a lesson
+
+- Status: Fixed
+- Area: Timetable cover, staff leave
+- Observed: Recording cover checked the teacher's lessons and other cover, but not their leave. A teacher off sick, or on leave at another campus, could be named as the cover.
+- Impact: The lesson went uncovered while the timetable said a teacher was there.
+- Reproduction: Record sick leave for a teacher on Monday. Record cover for a Monday lesson and choose that teacher. The cover is saved.
+- Resolution: Cover now refuses a teacher whose leave at any campus touches that day, and says they are on leave.
+
 ## Carried bills were missing from the new campus's invoice list
 
 - Status: Fixed
