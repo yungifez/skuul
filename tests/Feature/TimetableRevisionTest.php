@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\Curriculum\AssignTeacher;
+use App\Actions\School\EndSchoolMembership;
 use App\Actions\School\GrantSchoolMembership;
 use App\Actions\Timetable\CreateSectionTimetableOverride;
 use App\Actions\Timetable\CreateTimetableSubstitution;
@@ -310,6 +311,32 @@ class TimetableRevisionTest extends TestCase
         $this->expectExceptionMessage("$teacher->name teaches");
 
         app(CreateTimetableSubstitution::class)->create($absent->fresh(), $absent->timeSlots()->firstOrFail(), $weekday->id, $teacher, $date, 'Absence', auth()->user());
+    }
+
+    public function test_a_lesson_left_behind_at_a_campus_the_teacher_left_does_not_block_cover(): void
+    {
+        $this->authorized_user([]);
+        $teacher = $this->teacher();
+        $weekday = Weekday::firstOrFail();
+        $date = Carbon::parse('next '.$weekday->name);
+        $here = AcademicPeriod::query()->findOrFail(current_academic_period_id());
+        $here->forceFill(['starts_on' => $date->copy()->subMonth(), 'ends_on' => $date->copy()->addMonth()])->save();
+        $otherCampus = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id]);
+        $otherPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $otherCampus->id,
+            'academic_year_id' => AcademicYear::factory()->create(['school_id' => $otherCampus->id])->id,
+            'starts_on' => $here->starts_on,
+            'ends_on' => $here->ends_on,
+        ]);
+        app(GrantSchoolMembership::class)->grant($teacher, $otherCampus);
+        app(PublishTimetable::class)->publish($this->timetableWithLesson($teacher, '08:00', '09:00', $otherPeriod));
+        app(EndSchoolMembership::class)->end($teacher, $otherCampus);
+        $absent = $this->timetableWithLesson($this->teacher(), '08:30', '09:30');
+        app(PublishTimetable::class)->publish($absent);
+
+        $cover = app(CreateTimetableSubstitution::class)->create($absent->fresh(), $absent->timeSlots()->firstOrFail(), $weekday->id, $teacher, $date, 'Absence', auth()->user());
+
+        $this->assertSame($teacher->id, $cover->replacement_teacher_id);
     }
 
     public function test_cover_outside_the_timetables_dates_is_refused(): void

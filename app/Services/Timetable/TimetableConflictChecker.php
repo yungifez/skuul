@@ -106,12 +106,19 @@ class TimetableConflictChecker
     /**
      * Get the lessons a teacher takes on one date at any campus of the school's organization.
      *
+     * A campus the teacher has left may still name them on its timetable,
+     * but they no longer teach there, so it does not hold their time.
+     *
      * @return Collection<int, array{timetable: Timetable, time_slot_id: int, weekday_id: int, start_time: string, stop_time: string}>
      */
     public function lessonsTaughtBy(User $teacher, CarbonInterface $date, School $school): Collection
     {
         $day = Carbon::parse($date->toDateString());
-        $campusIds = School::query()->where('organization_id', $school->organization_id)->pluck('id')->all();
+        $campusIds = School::query()
+            ->where('organization_id', $school->organization_id)
+            ->whereIn('id', $teacher->schoolMemberships()->active()->select('school_id'))
+            ->pluck('id')
+            ->all();
 
         $timetables = Timetable::query()
             ->published()

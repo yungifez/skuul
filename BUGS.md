@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A campus a teacher left still blocked their cover elsewhere
+
+- Status: Fixed
+- Area: Timetable cover
+- Observed: The cover check read lessons at every campus of the organization, including campuses the teacher no longer belongs to.
+- Impact: A teacher who left a campus, while its timetable still named them, could not cover a lesson at their current campus at that time.
+- Reproduction: Timetable a teacher at a sibling campus, then end their membership there. Try to book them as cover at the same time at the working campus. It is refused.
+- Resolution: The check reads only campuses where the teacher still holds an active membership.
+
 ## A suspended learner vanished from the student list
 
 - Status: Fixed
