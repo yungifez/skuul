@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Suspended staff still get calendar reminders
+- Status: Fixed
+- Area: Academic calendar reminders
+- Observed: The daily reminder emailed every campus member who may close a term, including suspended accounts.
+- Impact: A person the school locked out kept getting school mail about term dates.
+- Reproduction: Suspend a staff member who may close academic periods. Run skuul:send-academic-calendar-reminders before a term starts.
+- Resolution: Reminders go only to accounts that can still sign in.
+
 ## Parents are told to add student records
 - Status: Fixed
 - Area: Students list

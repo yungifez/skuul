@@ -37,7 +37,7 @@ class SendAcademicCalendarReminders extends Command
             school_context()->set($school, remember: false);
 
             foreach ($this->dueReminders($school, (int) $template->remind_days_before) as $reminder) {
-                $recipients = $school->users->filter(fn (User $user): bool => $user->can('close academic period') || $user->can('update academic year'));
+                $recipients = $school->users->filter(fn (User $user): bool => $user->hasActiveAccount() && ($user->can('close academic period') || $user->can('update academic year')));
 
                 if ($recipients->isEmpty()) {
                     continue;

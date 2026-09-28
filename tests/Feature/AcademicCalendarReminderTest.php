@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\AcademicPeriodStatus;
+use App\Enums\AccountStatus;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\CalendarTemplate;
@@ -35,28 +36,31 @@ class AcademicCalendarReminderTest extends TestCase
         $organization = Organization::factory()->create();
         $school = School::factory()->create(['organization_id' => $organization->id]);
         $template = CalendarTemplate::factory()->create([
-            'organization_id'    => $organization->id,
+            'organization_id' => $organization->id,
             'remind_days_before' => 14,
         ]);
         $school->calendar_template_id = $template->id;
         $school->save();
         $year = AcademicYear::factory()->create([
-            'school_id'  => $school->id,
+            'school_id' => $school->id,
             'start_year' => 2030,
-            'stop_year'  => 2031,
+            'stop_year' => 2031,
         ]);
         AcademicPeriod::factory()->create([
-            'school_id'        => $school->id,
+            'school_id' => $school->id,
             'academic_year_id' => $year->id,
-            'name'             => 'Term 1',
-            'status'           => AcademicPeriodStatus::Scheduled,
-            'starts_on'        => '2030-09-01',
-            'ends_on'          => '2030-11-23',
+            'name' => 'Term 1',
+            'status' => AcademicPeriodStatus::Scheduled,
+            'starts_on' => '2030-09-01',
+            'ends_on' => '2030-11-23',
         ]);
         $staffMember = User::factory()->create();
         $this->memberOf($school, $staffMember);
         school_context()->set($school, remember: false);
         $staffMember->givePermissionTo('close academic period');
+        $suspendedStaffMember = User::factory()->create(['account_status' => AccountStatus::Suspended]);
+        $this->memberOf($school, $suspendedStaffMember);
+        $suspendedStaffMember->givePermissionTo('close academic period');
 
         Notification::fake();
 
@@ -65,5 +69,6 @@ class AcademicCalendarReminderTest extends TestCase
             ->assertSuccessful();
 
         Notification::assertSentTo($staffMember, AcademicCalendarReminder::class);
+        Notification::assertNotSentTo($suspendedStaffMember, AcademicCalendarReminder::class);
     }
 }
