@@ -118,6 +118,10 @@ class IssueLoan
             throw new InvalidValueException('This person does not belong to the campus that owns the copy.');
         }
 
+        if ($borrower->isLearnerWhoNoLongerAttends($copy->school_id)) {
+            throw new InvalidValueException('This learner no longer attends this campus.');
+        }
+
         if (!$copy->status->canBeLent()) {
             throw new InvalidValueException("This copy is not on the shelf: {$copy->status->label()}.");
         }

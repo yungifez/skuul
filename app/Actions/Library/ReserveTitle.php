@@ -83,6 +83,10 @@ class ReserveTitle
             throw new InvalidValueException('This person does not belong to the campus that owns the title.');
         }
 
+        if ($borrower->isLearnerWhoNoLongerAttends($schoolId)) {
+            throw new InvalidValueException('This learner no longer attends this campus.');
+        }
+
         $already = LibraryReservation::query()
             ->where('school_id', $schoolId)
             ->where('library_title_id', $title->id)

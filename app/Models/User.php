@@ -253,6 +253,29 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Check if this person is a learner who no longer attends the given school.
+     *
+     * A learner keeps their membership of a campus they moved away from, so
+     * its staff can still read what they did there. That membership does not
+     * make them a learner of the campus any more. A person with a staff role
+     * is not judged by their enrollments.
+     */
+    public function isLearnerWhoNoLongerAttends(School|int $school): bool
+    {
+        $schoolId = $school instanceof School ? $school->id : $school;
+
+        if (!$this->isPortalOnly() || !StudentRecord::query()->where('user_id', $this->id)->exists()) {
+            return false;
+        }
+
+        return !StudentRecord::query()
+            ->where('user_id', $this->id)
+            ->where('school_id', $schoolId)
+            ->enrolled()
+            ->exists();
+    }
+
+    /**
      * Check if this person also works or studies at a school other than the working one.
      */
     public function belongsToAnotherSchool(): bool

@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A learner who left could still borrow from the old campus library
+- Status: Fixed
+- Area: Library, lending and reservations
+- Observed: The lending desk and the queue checked only that the borrower was a member of the campus. A learner keeps that membership after a campus move or a withdrawal.
+- Impact: A book could go home with a learner who no longer attends. The move cancelled their queue places, but the desk let them queue again. They also got the larger staff limit.
+- Reproduction: Withdraw a learner, or move them to another campus. At the old campus, lend them a copy or put them in a title's queue.
+- Resolution: Lending and reserving refuse a learner with no open enrollment at the campus. People with a staff role are not affected.
+
 ## Two managers could remove each other and lock the organization out
 - Status: Fixed
 - Area: Organization, members

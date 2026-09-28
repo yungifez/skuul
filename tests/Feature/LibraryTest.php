@@ -205,6 +205,30 @@ class LibraryTest extends TestCase
         $this->assertSame(LibraryReservationStatus::Cancelled, $reservation->fresh()->status);
     }
 
+    public function test_a_learner_who_left_cannot_borrow_or_reserve_again(): void
+    {
+        $this->authorized_user([]);
+        $copy = $this->copy();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $learner = $this->memberOf($this->workingSchool(), $enrollment->user);
+        $learner->assignRole('student');
+        app(ChangeEnrollmentStatus::class)->change($enrollment, EnrollmentStatus::Withdrawn);
+
+        foreach ([
+            fn () => app(IssueLoan::class)->issue($copy, $learner),
+            fn () => app(ReserveTitle::class)->reserve($copy->title, $learner),
+        ] as $attempt) {
+            try {
+                $attempt();
+                $this->fail('A learner who left was served by the library.');
+            } catch (InvalidValueException $exception) {
+                $this->assertSame('This learner no longer attends this campus.', $exception->getMessage());
+            }
+        }
+
+        $this->assertFalse($copy->fresh()->isOut());
+    }
+
     public function test_a_copy_held_for_a_learner_who_left_goes_to_the_next_person(): void
     {
         $this->authorized_user([]);
