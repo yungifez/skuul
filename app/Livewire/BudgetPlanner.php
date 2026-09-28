@@ -83,7 +83,7 @@ class BudgetPlanner extends Component
 
         $this->validate([
             'ledgerAccountId' => ['required', 'integer', Rule::exists((new LedgerAccount)->getTable(), 'id')->where('school_id', current_school_id())],
-            'amount' => ['required', 'numeric', 'min:0', 'max:1000000000'],
+            'amount' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:1000000000'],
             'academicPeriodId' => ['nullable', 'integer', Rule::exists((new AcademicPeriod)->getTable(), 'id')->where('school_id', current_school_id())->where('academic_year_id', $academicYear->id)],
             'programId' => ['nullable', 'integer', Rule::exists((new Program)->getTable(), 'id')->where('school_id', current_school_id())],
             'fund' => ['nullable', 'string', 'max:60'],

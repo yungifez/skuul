@@ -238,6 +238,20 @@ class BudgetTest extends TestCase
         $this->assertSame(100.0, $budget->fresh()->amount);
     }
 
+    public function test_a_plan_in_fractions_of_a_cent_is_refused(): void
+    {
+        $this->authorized_user(['read budget', 'manage budget']);
+        $this->cycle();
+
+        Livewire::test(BudgetPlanner::class)
+            ->set('ledgerAccountId', (string) app(ChartOfAccounts::class)->account('operating_expenses')->id)
+            ->set('amount', '10.555')
+            ->call('save')
+            ->assertHasErrors(['amount' => 'decimal']);
+
+        $this->assertSame(0, Budget::count());
+    }
+
     public function test_a_fund_in_other_capitals_revises_the_same_plan(): void
     {
         $this->authorized_user([]);

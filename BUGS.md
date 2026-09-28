@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A budget in fractions of a cent is rounded without a word
+- Status: Fixed
+- Area: Budget planner
+- Observed: The planner took 10.555 and the database stored 10.56.
+- Impact: The saved plan differed from what the person typed, and nothing told them.
+- Reproduction: Open the budget planner. Enter 10.555 for an account. Save.
+- Resolution: The amount now takes at most two decimal places, like every other money field.
+
 ## Lifting a section's limit strands its admission queue
 - Status: Fixed
 - Area: Admissions waitlist
