@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A course roster naming a learner who left cannot be saved
+
+- Status: Fixed
+- Area: Curriculum, course offering roster editor
+- Observed: The roster editor chose every learner still on the offering, including one who had left or moved class. The form showed no box for that learner, so nobody could untick them. Every save failed with "Choose learners who attend this class this year."
+- Impact: After one learner moved campus, staff could not change a named-learner roster at all.
+- Reproduction: Name two learners on an offering. Move one to another campus. Open the roster editor and save.
+- Resolution: The editor now keeps only the learners and sections it still offers. A save drops the learner who left.
+
 ## A class teacher who left stayed on the class
 - Status: Fixed
 - Area: Staff and academic structure

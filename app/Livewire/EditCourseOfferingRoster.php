@@ -43,8 +43,23 @@ class EditCourseOfferingRoster extends Component
         $this->setup = $setup;
         $this->courseOffering->loadMissing(['academicLevel', 'academicPeriod', 'academicYear', 'subject', 'cycleSections', 'studentRecords']);
         $this->rosterMode = $this->courseOffering->roster_mode->value;
-        $this->academicCycleSectionIds = $this->courseOffering->cycleSections->modelKeys();
-        $this->studentRecordIds = $this->courseOffering->studentRecords->modelKeys();
+        $this->academicCycleSectionIds = $this->stillChoosable($this->courseOffering->cycleSections->modelKeys(), $this->sections()->modelKeys());
+        $this->studentRecordIds = $this->stillChoosable($this->courseOffering->studentRecords->modelKeys(), $this->learners()->modelKeys());
+    }
+
+    /**
+     * Keep only the choices the form still offers.
+     *
+     * A learner who left or moved class has no box to untick, so keeping
+     * them chosen would make every save fail.
+     *
+     * @param  array<int, int>  $chosen
+     * @param  array<int, int>  $offered
+     * @return array<int, int>
+     */
+    private function stillChoosable(array $chosen, array $offered): array
+    {
+        return array_values(array_intersect($chosen, $offered));
     }
 
     public function save(UpdateCourseOfferingRoster $updateCourseOfferingRoster): void

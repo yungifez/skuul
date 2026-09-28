@@ -550,6 +550,28 @@ class CourseOfferingTest extends TestCase
         $this->assertSame([], $courseOffering->fresh()->studentRecords->modelKeys());
     }
 
+    public function test_the_roster_drops_a_named_learner_who_left_when_it_is_saved(): void
+    {
+        $this->authorized_user(['update subject']);
+        [$courseOffering, $studentRecord] = $this->namedLearnerOffering();
+        $stayer = StudentRecord::create([
+            'user_id' => User::factory()->create()->id,
+            'school_id' => $this->workingSchool()->id,
+            'academic_cycle_section_id' => $studentRecord->academic_cycle_section_id,
+            'admission_number' => fake()->unique()->bothify('####????'),
+            'admission_date' => now()->toDateString(),
+        ]);
+        $courseOffering->studentRecords()->sync([$studentRecord->id, $stayer->id]);
+        $studentRecord->forceFill(['school_id' => School::factory()->create()->id])->save();
+
+        Livewire::test(EditCourseOfferingRoster::class, ['courseOffering' => $courseOffering->fresh()])
+            ->assertSet('studentRecordIds', [$stayer->id])
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame([$stayer->id], $courseOffering->fresh()->studentRecords->modelKeys());
+    }
+
     public function test_a_reader_cannot_open_the_roster_editor(): void
     {
         $this->authorized_user(['read subject']);
