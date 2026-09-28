@@ -3,8 +3,10 @@
 namespace App\Actions\Identity;
 
 use App\Enums\AccountStatus;
+use App\Enums\OrganizationPermission;
 use App\Enums\PlatformPermission;
 use App\Events\AccountStatusChanged;
+use App\Exceptions\InvalidValueException;
 use App\Models\School;
 use App\Models\User;
 use App\Services\Authorization\RoleAuthority;
@@ -81,6 +83,8 @@ class ChangeAccountStatus
             // A blocked account cannot manage roles, so no campus may be left
             // with only blocked role managers.
             if (!$status->canAccessApplication()) {
+                $this->failIfTheLastMemberManagerOfAnOrganization($user);
+
                 $schools = School::query()->whereIn('id', $user->schoolMemberships()->active()->select('school_id'))->get();
 
                 foreach ($schools as $school) {
@@ -99,5 +103,24 @@ class ChangeAccountStatus
 
             return $user;
         });
+    }
+
+    /**
+     * Refuse to block the last person who can manage an organization's members.
+     *
+     * @throws InvalidValueException
+     */
+    private function failIfTheLastMemberManagerOfAnOrganization(User $user): void
+    {
+        $memberships = $user->organizationMemberships()->active()->with('organization')->get();
+
+        foreach ($memberships as $membership) {
+            if ($membership->grants(OrganizationPermission::ManageMembers)
+                && $membership->organization?->hasAnotherMemberManager($user) === false) {
+                throw new InvalidValueException(
+                    "{$membership->organization->name} would be left with nobody who can manage its members. Grant a replacement first."
+                );
+            }
+        }
     }
 }

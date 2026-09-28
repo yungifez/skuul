@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\AccountStatus;
 use App\Enums\OrganizationMembershipStatus;
 use App\Enums\OrganizationPermission;
 use Database\Factories\OrganizationFactory;
@@ -93,13 +94,15 @@ class Organization extends Model
      *
      * The last person who can manage members must not be removed, and must not
      * delegate that permission away, or nobody inside the organization could
-     * grant it back.
+     * grant it back. A suspended or archived account cannot sign in, so it
+     * does not count.
      */
     public function hasAnotherMemberManager(User $except): bool
     {
         return $this->memberships()
             ->active()
             ->where('user_id', '!=', $except->id)
+            ->whereIn('user_id', User::query()->whereNotIn('account_status', [AccountStatus::Suspended, AccountStatus::Archived])->select('id'))
             ->get()
             ->contains(fn (OrganizationMembership $membership): bool => $membership->grants(OrganizationPermission::ManageMembers));
     }

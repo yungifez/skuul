@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A blocked account still counted as the organization member manager
+- Status: Fixed
+- Area: Organization access
+- Observed: A suspended or archived account still counted as somebody who can manage an organization's members. The last such manager could be suspended.
+- Impact: An organization could be left with nobody able to sign in and grant access to its campuses.
+- Reproduction: An organization has two member managers. Suspend both, or suspend one and revoke the other.
+- Resolution: `Organization::hasAnotherMemberManager` skips suspended and archived accounts. `ChangeAccountStatus` refuses to block the last member manager of an organization.
+
 ## A blocked account still counted as the campus role manager
 - Status: Fixed
 - Area: Roles and account access

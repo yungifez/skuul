@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Identity\ChangeAccountStatus;
 use App\Actions\Organization\GrantOrganizationMembership;
 use App\Actions\Organization\RevokeOrganizationMembership;
 use App\Actions\Organization\SetOrganizationMemberPermissions;
@@ -80,8 +81,8 @@ class OrganizationAccessTest extends TestCase
         $this->assertNotNull($membership->ended_at);
         $this->assertDatabaseHas('organization_memberships', [
             'organization_id' => $organization->id,
-            'user_id'         => $user->id,
-            'status'          => OrganizationMembershipStatus::Ended->value,
+            'user_id' => $user->id,
+            'status' => OrganizationMembershipStatus::Ended->value,
         ]);
     }
 
@@ -105,6 +106,27 @@ class OrganizationAccessTest extends TestCase
 
         $this->assertFalse($first->fresh()->administersOrganization($organization));
         $this->assertTrue($second->fresh()->administersOrganization($organization));
+    }
+
+    public function test_a_suspended_manager_does_not_count_as_a_replacement(): void
+    {
+        $organization = Organization::factory()->create();
+        $first = $this->grantedMember($organization);
+        $second = $this->grantedMember($organization);
+        $changeAccountStatus = app(ChangeAccountStatus::class);
+
+        $changeAccountStatus->suspend($first);
+
+        try {
+            $changeAccountStatus->suspend($second);
+            $this->fail('The organization was left with nobody who can manage its members.');
+        } catch (InvalidValueException $exception) {
+            $this->assertSame("{$organization->name} would be left with nobody who can manage its members. Grant a replacement first.", $exception->getMessage());
+        }
+
+        $this->expectException(InvalidValueException::class);
+
+        app(RevokeOrganizationMembership::class)->revoke($second, $organization);
     }
 
     public function test_a_delegated_member_only_holds_the_permissions_given(): void
@@ -191,7 +213,7 @@ class OrganizationAccessTest extends TestCase
     /**
      * Give a person organization scope, delegated to the named permissions.
      *
-     * @param list<OrganizationPermission>|null $permissions null gives every permission
+     * @param  list<OrganizationPermission>|null  $permissions  null gives every permission
      */
     private function grantedMember(Organization $organization, ?array $permissions = null): User
     {
