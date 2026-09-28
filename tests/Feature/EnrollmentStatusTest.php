@@ -181,6 +181,21 @@ class EnrollmentStatusTest extends TestCase
         $this->assertSame(EnrollmentStatus::Suspended, $enrollment->fresh()->status);
     }
 
+    public function test_the_profile_refuses_a_change_of_state_from_a_later_day(): void
+    {
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read student', 'update student']);
+
+        Livewire::test(ShowStudentProfile::class, ['student' => $enrollment->user])
+            ->set('statusSelection', EnrollmentStatus::Withdrawn->value)
+            ->set('statusReason', 'Leaving at the end of the month')
+            ->set('statusEffectiveOn', now()->addWeek()->toDateString())
+            ->call('changeStatus')
+            ->assertHasErrors('statusEffectiveOn');
+
+        $this->assertSame(EnrollmentStatus::Active, $enrollment->fresh()->status);
+    }
+
     public function test_authorized_user_can_graduate_a_student(): void
     {
         $enrollment = StudentRecord::factory()->create();
