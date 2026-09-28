@@ -4,12 +4,18 @@ namespace Tests\Feature;
 
 use App\Actions\Cohort\ChangeCohortMembership;
 use App\Actions\Cohort\ChangeProgramParticipation;
+use App\Actions\Enrollment\ChangeEnrollmentStatus;
+use App\Actions\Enrollment\MoveEnrollmentBetweenCampuses;
+use App\Enums\AcademicStructureStatus;
 use App\Enums\CohortType;
 use App\Enums\EnrollmentStatus;
 use App\Enums\Feature;
 use App\Enums\ParticipationStatus;
 use App\Enums\ProgramType;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
+use App\Models\AcademicYear;
 use App\Models\Cohort;
 use App\Models\CourseOffering;
 use App\Models\GraduationExemption;
@@ -173,6 +179,72 @@ class CohortTest extends TestCase
 
         $this->assertSame($first->id, $second->id);
         $this->assertSame(1, $program->participations()->count());
+    }
+
+    public function test_a_learner_who_moves_campus_leaves_the_old_campus_clubs(): void
+    {
+        $this->authorized_user(['create program']);
+        $source = $this->workingSchool();
+        $destination = School::factory()->create(['organization_id' => $source->organization_id]);
+        $enrollment = $this->enrollment();
+        $action = app(ChangeProgramParticipation::class);
+        $active = $action->join($this->program(), $enrollment);
+        $action->changeStatus($active, ParticipationStatus::Active);
+        $requested = $action->join($this->program(), $enrollment);
+        $member = app(ChangeCohortMembership::class)->addStudent($this->cohort(), $enrollment);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, AcademicCycleSection::factory()->create([
+            'school_id' => $destination->id,
+            'academic_year_id' => AcademicYear::factory()->create(['school_id' => $destination->id])->id,
+            'academic_level_id' => AcademicLevel::factory()->create(['school_id' => $destination->id])->id,
+            'status' => AcademicStructureStatus::Active,
+        ]));
+
+        $this->assertSame(ParticipationStatus::Withdrawn, $active->fresh()->status);
+        $this->assertSame(ParticipationStatus::Withdrawn, $requested->fresh()->status);
+        $this->assertStringContainsString('Moved to', $active->fresh()->note);
+        $this->assertNotNull($member->fresh()->left_on);
+
+        $this->expectExceptionMessage('A student can only join a programme in their own school.');
+
+        $action->changeStatus($active->fresh(), ParticipationStatus::Active);
+    }
+
+    public function test_a_learner_who_leaves_the_school_leaves_its_clubs(): void
+    {
+        $this->authorized_user(['create program']);
+        $enrollment = $this->enrollment();
+        $action = app(ChangeProgramParticipation::class);
+        $place = $action->join($this->program(), $enrollment);
+        $action->changeStatus($place, ParticipationStatus::Active);
+        $finished = $action->join($this->program(), $enrollment);
+        $action->changeStatus($finished, ParticipationStatus::Active);
+        $action->changeStatus($finished, ParticipationStatus::Completed);
+
+        $member = app(ChangeCohortMembership::class)->addStudent($this->cohort(), $enrollment);
+
+        app(ChangeEnrollmentStatus::class)->change($enrollment, EnrollmentStatus::Withdrawn);
+
+        $this->assertSame(ParticipationStatus::Withdrawn, $place->fresh()->status);
+        $this->assertSame(ParticipationStatus::Completed, $finished->fresh()->status);
+        $this->assertNotNull($member->fresh()->left_on);
+    }
+
+    public function test_a_graduate_finishes_their_clubs_and_keeps_their_class(): void
+    {
+        $this->authorized_user(['create program']);
+        $enrollment = $this->enrollment();
+        $action = app(ChangeProgramParticipation::class);
+        $active = $action->join($this->program(), $enrollment);
+        $action->changeStatus($active, ParticipationStatus::Active);
+        $requested = $action->join($this->program(), $enrollment);
+        $member = app(ChangeCohortMembership::class)->addStudent($this->cohort(), $enrollment);
+
+        app(ChangeEnrollmentStatus::class)->graduate($enrollment);
+
+        $this->assertSame(ParticipationStatus::Completed, $active->fresh()->status);
+        $this->assertSame(ParticipationStatus::Withdrawn, $requested->fresh()->status);
+        $this->assertNull($member->fresh()->left_on);
     }
 
     public function test_a_plan_is_finished_when_every_requirement_is_met(): void

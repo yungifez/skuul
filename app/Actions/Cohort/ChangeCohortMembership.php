@@ -86,6 +86,26 @@ class ChangeCohortMembership
     }
 
     /**
+     * Take the learner out of every group they are still in at one campus.
+     *
+     * @return int the number of groups left
+     */
+    public function leaveSchool(StudentRecord $enrollment, int $schoolId, ?CarbonInterface $leftOn = null, ?User $actor = null): int
+    {
+        $places = CohortMember::query()
+            ->where('student_record_id', $enrollment->id)
+            ->whereNull('left_on')
+            ->whereHas('cohort', fn ($cohorts) => $cohorts->where('school_id', $schoolId))
+            ->get();
+
+        foreach ($places as $place) {
+            $this->remove($place, $leftOn, $actor);
+        }
+
+        return $places->count();
+    }
+
+    /**
      * Give the person a place, or open the place they held before again.
      *
      * @param  array{student_record_id: int}|array{user_id: int}  $holder

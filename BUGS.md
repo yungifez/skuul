@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A learner who moved campus or left stayed in the old campus's clubs and groups
+- Status: Fixed
+- Area: Programmes and cohorts
+- Observed: A campus move or a closed enrollment left programme places running and cohort memberships open at the old campus. The old campus could also reactivate a place for a learner who now attends another campus.
+- Impact: Clubs and groups listed learners who no longer attend. Their counts were wrong.
+- Reproduction: Give a learner a club place and a cohort membership. Move them to a sibling campus, or withdraw them.
+- Resolution: A move or a closed enrollment withdraws the old campus's places and closes its cohort memberships. A graduate completes active places and keeps their class. A place can only run for a learner at the programme's campus.
+
 ## The organization dashboard counted a person once per campus
 - Status: Fixed
 - Area: Organization dashboard

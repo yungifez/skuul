@@ -138,10 +138,45 @@ class ChangeProgramParticipation
     }
 
     /**
+     * Withdraw the learner from every place they still hold at one campus.
+     *
+     * A learner who leaves the campus no longer attends its clubs, so their
+     * places stop counting there. A learner who graduates finishes the places
+     * they were taking part in instead.
+     *
+     * @return int the number of places ended
+     */
+    public function withdrawFromSchool(
+        StudentRecord $enrollment,
+        int $schoolId,
+        string $note,
+        ?User $actor = null,
+        bool $finished = false,
+    ): int {
+        $places = ProgramParticipation::query()
+            ->inSchool($schoolId)
+            ->where('student_record_id', $enrollment->id)
+            ->running()
+            ->get();
+
+        foreach ($places as $place) {
+            $ending = $finished && $place->status === ParticipationStatus::Active ? ParticipationStatus::Completed : ParticipationStatus::Withdrawn;
+
+            $this->changeStatus($place, $ending, $note, actor: $actor);
+        }
+
+        return $places->count();
+    }
+
+    /**
      * @throws InvalidValueException
      */
     private function refuseAClosedDoor(Program $program, StudentRecord $enrollment): void
     {
+        if ($program->school_id !== $enrollment->school_id) {
+            throw new InvalidValueException('A student can only join a programme in their own school.');
+        }
+
         if (!$program->is_active) {
             throw new InvalidValueException('This programme is closed.');
         }

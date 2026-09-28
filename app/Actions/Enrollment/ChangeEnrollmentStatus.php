@@ -4,6 +4,8 @@ namespace App\Actions\Enrollment;
 
 use App\Actions\Audit\RecordAuditEvent;
 use App\Actions\Boarding\AssignBoardingPlace;
+use App\Actions\Cohort\ChangeCohortMembership;
+use App\Actions\Cohort\ChangeProgramParticipation;
 use App\Enums\AuditAction;
 use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
@@ -23,7 +25,12 @@ use Illuminate\Support\Facades\DB;
  */
 class ChangeEnrollmentStatus
 {
-    public function __construct(private RecordAuditEvent $auditor, private AssignBoardingPlace $boarding) {}
+    public function __construct(
+        private RecordAuditEvent $auditor,
+        private AssignBoardingPlace $boarding,
+        private ChangeProgramParticipation $programmes,
+        private ChangeCohortMembership $cohorts,
+    ) {}
 
     /**
      * Move the enrollment to the given state.
@@ -70,6 +77,12 @@ class ChangeEnrollmentStatus
 
             if ($status->isClosed()) {
                 $this->boarding->release($enrollment, "Enrollment closed: {$status->label()}", $actor, $effectiveOn);
+                $this->programmes->withdrawFromSchool($enrollment, $enrollment->school_id, "Enrollment closed: {$status->label()}", $actor, finished: $status === EnrollmentStatus::Graduated);
+
+                // A graduate stays in the class they graduated with.
+                if ($status !== EnrollmentStatus::Graduated) {
+                    $this->cohorts->leaveSchool($enrollment, $enrollment->school_id, $effectiveOn, $actor);
+                }
             }
 
             $this->auditor->record(
