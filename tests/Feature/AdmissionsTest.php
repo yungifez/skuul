@@ -18,6 +18,7 @@ use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
 use App\Models\AdmissionWaitlistEntry;
 use App\Models\AuditEvent;
+use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
@@ -83,6 +84,29 @@ class AdmissionsTest extends TestCase
         $this->assertSame($section->id, $enrollment->fresh()->academic_cycle_section_id);
         $this->assertSame(AdmissionWaitlistStatus::Placed, $offered->fresh()->status);
         $this->assertSame(EnrollmentStatus::Active, $enrollment->fresh()->status);
+    }
+
+    public function test_a_learner_attending_another_campus_cannot_take_a_place(): void
+    {
+        $section = $this->section(1);
+        $occupied = $this->unplacedStudent();
+        app(ChangeEnrollmentPlacement::class)->place($occupied, $section);
+        $candidate = User::factory()->create();
+        $sibling = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id, 'name' => 'Hill Campus']);
+        StudentRecord::factory()->create(['user_id' => $candidate->id, 'school_id' => $sibling->id, 'status' => EnrollmentStatus::Active]);
+        app(JoinWaitlist::class)->join($section, $candidate);
+        app(ChangeEnrollmentStatus::class)->graduate($occupied);
+        $offered = app(OfferNextWaitlistEntry::class)->offer($section);
+
+        try {
+            app(AcceptWaitlistEntry::class)->accept($offered);
+            $this->fail('A learner attending another campus was admitted again.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString('Hill Campus', $exception->getMessage());
+        }
+
+        $this->assertSame(1, StudentRecord::query()->where('user_id', $candidate->id)->count());
+        $this->assertSame(AdmissionWaitlistStatus::Offered, $offered->fresh()->status);
     }
 
     public function test_staff_can_read_the_waitlist_screen(): void

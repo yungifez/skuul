@@ -6,6 +6,7 @@ use App\Actions\Audit\RecordAuditEvent;
 use App\Actions\Enrollment\ChangeEnrollmentPlacement;
 use App\Enums\AdmissionWaitlistStatus;
 use App\Enums\AuditAction;
+use App\Enums\EnrollmentStatus;
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Models\AdmissionWaitlistEntry;
@@ -44,6 +45,19 @@ class AcceptWaitlistEntry
                 ->where('user_id', $entry->user_id)
                 ->exists()) {
                 throw new InvalidValueException('This candidate already has an enrollment in the school.');
+            }
+
+            // The admission form refuses the same thing. Accepting a place
+            // must not give one learner two schools to attend and pay.
+            $attendingElsewhere = StudentRecord::query()
+                ->where('user_id', $entry->user_id)
+                ->where('school_id', '!=', $entry->school_id)
+                ->where('status', EnrollmentStatus::Active)
+                ->with('school:id,name')
+                ->first();
+
+            if ($attendingElsewhere !== null) {
+                throw new InvalidValueException("This candidate attends {$attendingElsewhere->school?->name}. Ask that school to move or transfer them.");
             }
 
             $candidate = $entry->candidate()->firstOrFail();

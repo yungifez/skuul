@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A waitlist place could enrol a learner who already attends another school
+- Status: Fixed
+- Area: Admissions
+- Observed: Accepting a waitlist offer checked only for an enrollment at the same campus. A learner attending a sibling campus, or another school, got a second active enrollment.
+- Impact: One learner attended and was billed at two campuses at once. This bypassed the campus move and the transfer, which carry history and balances.
+- Reproduction: Enrol a learner at campus A. Put them on a full section's waitlist at campus B. Offer and accept the place.
+- Resolution: `AcceptWaitlistEntry` refuses a candidate with an active enrollment at another school, as the admission form already does. The offer stays open.
+
 ## A school notice still reached learners who had moved on
 - Status: Fixed
 - Area: Notices
