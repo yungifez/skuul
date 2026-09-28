@@ -26,10 +26,12 @@ class PortalAccess
      *
      * A learner who graduated or transferred still has report cards,
      * transcripts, and perhaps a debt at that school. The family needs them
-     * to enrol elsewhere and to settle up.
+     * to enrol elsewhere and to settle up. A suspended learner is still
+     * enrolled, and the family needs the school's notices most then.
      */
     private const ReadableStatuses = [
         EnrollmentStatus::Active,
+        EnrollmentStatus::Suspended,
         EnrollmentStatus::Graduated,
         EnrollmentStatus::Transferred,
     ];

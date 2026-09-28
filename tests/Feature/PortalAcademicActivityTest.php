@@ -125,6 +125,16 @@ class PortalAcademicActivityTest extends TestCase
             ->assertForbidden();
     }
 
+    public function test_a_suspended_learner_still_reads_their_enrollment(): void
+    {
+        $enrollment = $this->enrollment();
+        $enrollment->update(['status' => EnrollmentStatus::Suspended]);
+
+        $this->actingAsMemberOf($this->workingSchool(), $enrollment->user)
+            ->get(route('portal.programmes.index', $enrollment))
+            ->assertOk();
+    }
+
     public function test_the_school_can_close_each_activity_portal_area_and_module(): void
     {
         $school = $this->workingSchool();

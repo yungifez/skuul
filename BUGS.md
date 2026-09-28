@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A suspended learner's family was locked out of the portal
+- Status: Fixed
+- Area: Portal
+- Observed: The portal read only active, graduated, and transferred enrollments. Suspending a learner made every portal page for them refuse the family.
+- Impact: During a suspension the family could not see the school's notices, invoices, or requests, when they needed them most.
+- Reproduction: Suspend an enrollment. Open any portal page for it as the learner or a guardian.
+- Resolution: `PortalAccess` reads suspended enrollments. Withdrawn and archived enrollments stay closed.
+
 ## A student import could enrol a learner who already attends another school
 - Status: Fixed
 - Area: Imports
