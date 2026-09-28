@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Resetting an old promotion pulled learners back from where they had moved
+- Status: Fixed
+- Area: Students, promotions
+- Observed: A reset put every learner of the promotion back in the old section. It did not check where each learner was now. A graduated learner made the reset stop part-way.
+- Impact: Learners moved to a later section were pulled back without a word. A stopped reset left some learners moved and some not, with the promotion still listed.
+- Reproduction: Promote two learners. Move one to another section and graduate the other. Reset the promotion.
+- Resolution: Only learners still in the section they were promoted to go back. Closed enrollments are left alone. The reset runs in one transaction.
+
 ## Two tabs could spend the same credit or take a payment back twice
 - Status: Fixed
 - Area: Finance, payments

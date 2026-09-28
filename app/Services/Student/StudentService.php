@@ -284,33 +284,38 @@ class StudentService
     }
 
     /**
-     * Reset promotion.
+     * Put the learners of a promotion back in their old section.
      *
-     * @param  Promotion  $promotion  instance of promotion to reset
-     * @return void
+     * Only learners still sitting in the section they were promoted to go
+     * back. A learner who moved on since, graduated, or left stays where they
+     * are. Every learner goes back, or none does.
      */
-    public function resetPromotion(Promotion $promotion)
+    public function resetPromotion(Promotion $promotion): void
     {
-        $students = $this->getStudentById($promotion->students);
-        $sourceAcademicCycleSection = AcademicCycleSection::inSchool()
-            ->findOrFail($promotion->source_academic_cycle_section_id);
+        DB::transaction(function () use ($promotion): void {
+            $students = $this->getStudentById($promotion->students);
+            $sourceAcademicCycleSection = AcademicCycleSection::inSchool()
+                ->findOrFail($promotion->source_academic_cycle_section_id);
 
-        foreach ($students as $student) {
-            // A person listed in an old promotion may no longer hold an
-            // enrollment in this school. Leave them out.
-            if ($student->allStudentRecords === null) {
-                continue;
+            foreach ($students as $student) {
+                $enrollment = $student->allStudentRecords;
+
+                if ($enrollment === null
+                    || $enrollment->status->isClosed()
+                    || $enrollment->academic_cycle_section_id !== $promotion->destination_academic_cycle_section_id) {
+                    continue;
+                }
+
+                $this->changeEnrollmentPlacementAction->place(
+                    enrollment: $enrollment,
+                    academicCycleSection: $sourceAcademicCycleSection,
+                    actor: auth()->user(),
+                    reason: 'Promotion reset',
+                );
             }
 
-            $this->changeEnrollmentPlacementAction->place(
-                enrollment: $student->allStudentRecords,
-                academicCycleSection: $sourceAcademicCycleSection,
-                actor: auth()->user(),
-                reason: 'Promotion reset',
-            );
-        }
-
-        $promotion->delete();
+            $promotion->delete();
+        });
     }
 
     /**

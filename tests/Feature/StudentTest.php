@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Enrollment\ChangeEnrollmentStatus;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\EnrollmentStatus;
 use App\Livewire\CreateStudentForm;
@@ -469,6 +470,33 @@ class StudentTest extends TestCase
 
         $this->assertModelMissing($promotion);
         $this->assertFalse(Route::has('students.promotions.reset'));
+    }
+
+    public function test_resetting_a_promotion_leaves_learners_who_moved_on_where_they_are(): void
+    {
+        $this->authorized_user(['read promotion', 'reset promotion']);
+        $source = $this->activeCycleSection();
+        $destination = $this->activeCycleSection();
+        $later = $this->activeCycleSection();
+        $stayed = $this->learnerIn($destination);
+        $movedOn = $this->learnerIn($later);
+        $graduated = $this->learnerIn($destination);
+        app(ChangeEnrollmentStatus::class)->graduate($graduated);
+        $promotion = Promotion::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'source_academic_cycle_section_id' => $source->id,
+            'destination_academic_cycle_section_id' => $destination->id,
+            'students' => [$stayed->user_id, $movedOn->user_id, $graduated->user_id],
+        ]);
+
+        Livewire::test(ListPromotionsTable::class)
+            ->call('resetPromotion', $promotion->id)
+            ->assertDispatched('status-message', type: 'success');
+
+        $this->assertSame($source->id, $stayed->fresh()->academic_cycle_section_id);
+        $this->assertSame($later->id, $movedOn->fresh()->academic_cycle_section_id);
+        $this->assertSame(EnrollmentStatus::Graduated, $graduated->fresh()->status);
+        $this->assertModelMissing($promotion);
     }
 
     public function test_another_schools_promotion_cannot_be_reset()
