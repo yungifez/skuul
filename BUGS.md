@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A campus a teacher left still blocked publishing a timetable
+
+- Status: Fixed
+- Area: Timetable publishing
+- Observed: The teacher clash check at publish time read every campus of the organization, including campuses the teacher no longer belongs to.
+- Impact: A campus could not publish a timetable for a new teacher when a campus the teacher had left still named them at that time.
+- Reproduction: Publish a lesson for a teacher at campus A. End their membership at A. Timetable them at campus B at the same time and publish. It is refused.
+- Resolution: A clash with another campus counts only for teachers who still hold an active membership there.
+
 ## A campus a teacher left still blocked their cover elsewhere
 
 - Status: Fixed

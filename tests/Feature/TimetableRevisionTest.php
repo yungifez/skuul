@@ -454,6 +454,30 @@ class TimetableRevisionTest extends TestCase
         app(PublishTimetable::class)->publish($there);
     }
 
+    public function test_a_campus_the_teacher_left_does_not_block_publishing(): void
+    {
+        $this->authorized_user([]);
+        $teacher = $this->teacher();
+        app(PublishTimetable::class)->publish($this->timetableWithLesson($teacher, '08:00', '09:00'));
+
+        $here = AcademicPeriod::query()->findOrFail(current_academic_period_id());
+        $here->forceFill(['starts_on' => now()->startOfMonth(), 'ends_on' => now()->addMonths(2)])->save();
+        $otherCampus = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id]);
+        $otherPeriod = AcademicPeriod::factory()->create([
+            'school_id' => $otherCampus->id,
+            'academic_year_id' => AcademicYear::factory()->create(['school_id' => $otherCampus->id])->id,
+            'starts_on' => $here->starts_on,
+            'ends_on' => $here->ends_on,
+        ]);
+        app(GrantSchoolMembership::class)->grant($teacher, $otherCampus);
+        app(EndSchoolMembership::class)->end($teacher, $this->workingSchool());
+        $there = $this->timetableWithLesson($teacher, '08:30', '09:30', $otherPeriod);
+
+        app(PublishTimetable::class)->publish($there);
+
+        $this->assertTrue($there->fresh()->isPublished());
+    }
+
     public function test_another_organization_s_timetable_does_not_block_publishing(): void
     {
         $this->authorized_user([]);

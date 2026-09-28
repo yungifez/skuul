@@ -6,6 +6,7 @@ use App\Enums\RosterMode;
 use App\Models\AcademicPeriod;
 use App\Models\Facility;
 use App\Models\School;
+use App\Models\SchoolMembership;
 use App\Models\Subject;
 use App\Models\TeachingAssignment;
 use App\Models\Timetable;
@@ -90,7 +91,7 @@ class TimetableConflictChecker
                         continue;
                     }
 
-                    $shared = array_intersect($entry['teacher_ids'], $otherEntry['teacher_ids']);
+                    $shared = array_intersect($entry['teacher_ids'], $otherEntry['teacher_ids'], $this->teachersStillAt($other, $otherEntry['teacher_ids']));
 
                     foreach ($shared as $teacherId) {
                         $name = $entry['teacher_names'][$teacherId] ?? "Teacher $teacherId";
@@ -145,6 +146,25 @@ class TimetableConflictChecker
         }
 
         return $lessons;
+    }
+
+    /**
+     * Get the teachers of another timetable who still work at its campus.
+     *
+     * A campus a teacher has left may still name them, but it no longer
+     * holds their time.
+     *
+     * @param  array<int, int>  $teacherIds
+     * @return array<int, int>
+     */
+    private function teachersStillAt(Timetable $timetable, array $teacherIds): array
+    {
+        return SchoolMembership::query()
+            ->active()
+            ->where('school_id', $timetable->academicPeriod->school_id)
+            ->whereIn('user_id', $teacherIds)
+            ->pluck('user_id')
+            ->all();
     }
 
     /**
