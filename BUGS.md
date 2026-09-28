@@ -1,5 +1,14 @@
 # Known Bugs
 
+## An answer overwrites a request the family took back
+
+- Status: Fixed
+- Area: Family portal requests
+- Observed: Staff answered from the status they loaded earlier. If the family took the request back meanwhile, the answer turned the cancelled request into an answered one.
+- Impact: The family saw an answer to a request they had withdrawn. The record no longer showed that they withdrew it.
+- Reproduction: Open a request in the staff inbox. Withdraw it in the portal. Answer it in the inbox.
+- Resolution: Withdraw and every status change now re-read the request under a lock. A change to a closed request is refused.
+
 ## Lessons stay in a room taken out of use
 
 - Status: Fixed

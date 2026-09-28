@@ -10,6 +10,7 @@ use App\Models\PortalRequest;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Portal\PortalAccess;
+use Illuminate\Support\Facades\DB;
 
 /**
  * Let a family ask the school for something.
@@ -80,18 +81,24 @@ class SubmitPortalRequest
      */
     public function withdraw(PortalRequest $request, User $person): PortalRequest
     {
-        if ($request->requested_by !== $person->id) {
-            throw new InvalidValueException('Only the person who asked can take this request back.');
-        }
+        return DB::transaction(function () use ($request, $person): PortalRequest {
+            // Read under a lock, so an answer given at the same moment is
+            // never overwritten by the family taking the request back.
+            $request = PortalRequest::query()->lockForUpdate()->findOrFail($request->getKey());
 
-        if (!$request->status->isOpen()) {
-            throw new InvalidValueException('The school has already closed this request.');
-        }
+            if ($request->requested_by !== $person->id) {
+                throw new InvalidValueException('Only the person who asked can take this request back.');
+            }
 
-        $request->status = PortalRequestStatus::Cancelled;
-        $request->save();
+            if (!$request->status->isOpen()) {
+                throw new InvalidValueException('The school has already closed this request.');
+            }
 
-        return $request;
+            $request->status = PortalRequestStatus::Cancelled;
+            $request->save();
+
+            return $request;
+        });
     }
 
     /**
@@ -115,26 +122,31 @@ class SubmitPortalRequest
         ?User $actor = null,
         ?string $response = null,
     ): PortalRequest {
-        $current = $request->status;
+        return DB::transaction(function () use ($request, $status, $actor, $response): PortalRequest {
+            // The family may take the request back while it is being
+            // answered. Only the state read under the lock decides.
+            $request = PortalRequest::query()->lockForUpdate()->findOrFail($request->getKey());
+            $current = $request->status;
 
-        if ($current === $status) {
+            if ($current === $status) {
+                return $request;
+            }
+
+            if (!$current->canMoveTo($status)) {
+                throw new InvalidValueException("A request cannot move from {$current->value} to {$status->value}.");
+            }
+
+            $request->status = $status;
+
+            if (!$status->isOpen()) {
+                $request->response = $response ?? $request->response;
+                $request->answered_by = $actor === null ? auth()->id() : $actor->id;
+                $request->answered_at = now();
+            }
+
+            $request->save();
+
             return $request;
-        }
-
-        if (!$current->canMoveTo($status)) {
-            throw new InvalidValueException("A request cannot move from {$current->value} to {$status->value}.");
-        }
-
-        $request->status = $status;
-
-        if (!$status->isOpen()) {
-            $request->response = $response ?? $request->response;
-            $request->answered_by = $actor === null ? auth()->id() : $actor->id;
-            $request->answered_at = now();
-        }
-
-        $request->save();
-
-        return $request;
+        });
     }
 }

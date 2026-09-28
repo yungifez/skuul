@@ -694,6 +694,25 @@ class PortalTest extends TestCase
         $action->changeStatus($request, PortalRequestStatus::InReview);
     }
 
+    public function test_an_answer_does_not_overwrite_a_request_taken_back_meanwhile(): void
+    {
+        $this->authorized_user(['answer portal request']);
+        $enrollment = $this->enrollment();
+        $action = app(SubmitPortalRequest::class);
+        $request = $action->submit($enrollment, 'A copy of the result slip', person: $enrollment->user);
+        $seenByStaff = $request->fresh();
+
+        $action->withdraw($request, $enrollment->user);
+
+        try {
+            $action->answer($seenByStaff, 'The slip is ready at the office.');
+            $this->fail('The answer overwrote a request the family took back.');
+        } catch (InvalidValueException) {
+            $this->assertSame(PortalRequestStatus::Cancelled, $request->fresh()->status);
+            $this->assertNull($request->fresh()->response);
+        }
+    }
+
     public function test_a_family_never_answers_its_own_request(): void
     {
         $this->unauthorized_user();
