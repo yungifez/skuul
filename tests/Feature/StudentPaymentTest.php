@@ -236,6 +236,27 @@ class StudentPaymentTest extends TestCase
         app(ReversePayment::class)->reverse($payment->fresh(), 'Wrong again');
     }
 
+    public function test_one_bank_reference_is_recorded_once_for_a_learner(): void
+    {
+        $this->authorized_user([]);
+        $enrollment = $this->enrollment();
+        $sibling = $this->enrollment();
+        $first = app(ReceivePayment::class)->receive($enrollment, 5_000, reference: 'TRF-1');
+
+        try {
+            app(ReceivePayment::class)->receive($enrollment, 5_000, reference: ' trf-1 ');
+            $this->fail('The same transfer was recorded twice.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString('TRF-1', $exception->getMessage());
+        }
+
+        app(ReceivePayment::class)->receive($sibling, 5_000, reference: 'TRF-1');
+        app(ReversePayment::class)->reverse($first, 'Keyed against the wrong fee');
+        app(ReceivePayment::class)->receive($enrollment, 5_000, reference: 'TRF-1');
+
+        $this->assertSame(4, StudentPayment::query()->count());
+    }
+
     public function test_taking_a_payment_back_takes_its_credit_away(): void
     {
         $this->authorized_user([]);

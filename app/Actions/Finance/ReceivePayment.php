@@ -73,7 +73,11 @@ class ReceivePayment
             ? $this->planner->spread($enrollment, $amount, $onlyInvoice, $schoolId)
             : $this->planner->check($enrollment, $amount, $allocations, $schoolId);
 
+        $reference = $reference === null || trim($reference) === '' ? null : trim($reference);
+
         return DB::transaction(function () use ($enrollment, $amount, $channel, $method, $plan, $reference, $note, $receivedOn, $actor, $source, $schoolId): StudentPayment {
+            $this->refuseAReferenceAlreadyRecorded($enrollment, $reference, $schoolId);
+
             $applied = array_sum($plan);
 
             // The books are written first, so the payment record can name the
@@ -146,6 +150,36 @@ class ReceivePayment
                 'fee_invoice_record_id' => $lineId,
                 'amount' => BrickMoney::ofMinor($share, config('app.currency')),
             ]);
+        }
+    }
+
+    /**
+     * Refuse money that was already recorded under the same reference.
+     *
+     * A bank or card reference names one payment. Two cashiers, or one person
+     * in two tabs, would otherwise count the same money twice. The learner's
+     * record is locked, so two such payments cannot slip past each other.
+     * One reference can still pay for two children, one payment each.
+     *
+     * @throws InvalidValueException when the learner already paid with that reference
+     */
+    private function refuseAReferenceAlreadyRecorded(StudentRecord $enrollment, ?string $reference, int $schoolId): void
+    {
+        StudentRecord::query()->whereKey($enrollment->getKey())->lockForUpdate()->first();
+
+        if ($reference === null) {
+            return;
+        }
+
+        $recorded = StudentPayment::query()
+            ->where('school_id', $schoolId)
+            ->where('student_record_id', $enrollment->id)
+            ->whereRaw('lower(reference) = ?', [mb_strtolower($reference)])
+            ->stillStanding()
+            ->first();
+
+        if ($recorded !== null) {
+            throw new InvalidValueException("A payment with reference {$recorded->reference} was already recorded on {$recorded->received_on->format('j M Y')}. Reverse that one first if it was wrong.");
         }
     }
 }

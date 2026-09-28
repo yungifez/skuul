@@ -1,5 +1,13 @@
 # Known Bugs
 
+## The same payment could be recorded twice under one reference
+- Status: Fixed
+- Area: Finance, payments
+- Observed: A cashier could record a bank transfer, then record it again with the same reference. A double click or a second tab did the same.
+- Impact: The learner's account showed money the school never received twice. Fees looked paid, and credit could be refunded in cash.
+- Reproduction: Take a payment with reference TRF-1 for a learner. Take another with reference trf-1 for the same learner.
+- Resolution: A payment is refused when the learner already has a standing payment with that reference, in any letter case. The learner's record is locked while the payment is written. The same reference can still pay for a sibling. A reversed payment frees its reference.
+
 ## A case recorded late was filed under the wrong term
 
 - Status: Fixed
