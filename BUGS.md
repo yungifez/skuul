@@ -1,5 +1,13 @@
 # Known Bugs
 
+## The collapsed sidebar pushed its icons into the border and hid later items
+- Status: Fixed
+- Area: Layout sidebar
+- Observed: Collapsed, the 3rem rail left 15px for each 32px button. The icons sat off-centre against the right border, out of line with the logo. The rail could not scroll, so items below the fold could not be reached.
+- Impact: The collapsed sidebar looked broken, and most of the menu could not be used in it.
+- Reproduction: Collapse the sidebar on a desktop screen.
+- Resolution: april-ui v1.3.0 pads the sidebar content (`p-2`) as well as each group; shadcn pads only the group. It also copies shadcn's `overflow-hidden` for the collapsed rail. The menu drops the content padding and lets the rail scroll without a bar when collapsed.
+
 ## A learner who moved campus or left stayed in the old campus's clubs and groups
 - Status: Fixed
 - Area: Programmes and cohorts

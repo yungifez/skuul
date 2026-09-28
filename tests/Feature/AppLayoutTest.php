@@ -51,6 +51,16 @@ class AppLayoutTest extends TestCase
         $this->assertSame(2, substr_count($html, 'role="navigation" aria-label="Main"'));
     }
 
+    public function test_the_collapsed_rail_fits_its_icons_and_still_scrolls(): void
+    {
+        $html = $this->dashboardHtml();
+
+        // The 3rem rail held 15px for a 32px button while april padded both
+        // the content and the group, and it could not scroll to later items.
+        $this->assertStringContainsString('group-data-[collapsible=icon]:px-0!', $html);
+        $this->assertStringContainsString('group-data-[collapsible=icon]:overflow-y-auto!', $html);
+    }
+
     public function test_a_dashboard_screen_holds_one_top_level_heading(): void
     {
         $html = $this->dashboardHtml();
