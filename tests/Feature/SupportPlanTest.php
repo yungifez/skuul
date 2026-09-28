@@ -2,13 +2,19 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Enrollment\ChangeEnrollmentStatus;
+use App\Actions\Enrollment\MoveEnrollmentBetweenCampuses;
 use App\Actions\Wellbeing\ManageSupportPlan;
 use App\Actions\Wellbeing\RecordHealthInformation;
+use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
 use App\Enums\EnrollmentStatus;
 use App\Enums\SupportCategory;
 use App\Enums\SupportPlanStatus;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
+use App\Models\AcademicYear;
 use App\Models\AuditEvent;
 use App\Models\School;
 use App\Models\StudentHealthRecord;
@@ -275,6 +281,49 @@ class SupportPlanTest extends TestCase
     /**
      * Create an enrollment in the working school.
      */
+    public function test_a_learner_who_leaves_ends_the_plans_the_school_runs_for_them(): void
+    {
+        $this->authorized_user(['create support plan']);
+        $enrollment = $this->enrollment();
+        $plans = app(ManageSupportPlan::class);
+        $running = $plans->open($enrollment, 'Extra reading', startsOn: now());
+        $plans->changeStatus($running, SupportPlanStatus::Active);
+        $draft = $plans->open($enrollment, 'Speech therapy', startsOn: now());
+        $finished = $plans->open($enrollment, 'Settling in', startsOn: now());
+        $plans->changeStatus($finished, SupportPlanStatus::Active);
+        $plans->changeStatus($finished, SupportPlanStatus::Completed);
+
+        app(ChangeEnrollmentStatus::class)->change($enrollment, EnrollmentStatus::Withdrawn);
+
+        $this->assertSame(SupportPlanStatus::Cancelled, $running->fresh()->status);
+        $this->assertSame(SupportPlanStatus::Cancelled, $draft->fresh()->status);
+        $this->assertSame(SupportPlanStatus::Completed, $finished->fresh()->status);
+        $this->assertSame('Enrollment closed: Withdrawn', $running->fresh()->statusChanges()->reorder('id', 'desc')->firstOrFail()->reason);
+
+        $this->expectExceptionMessage('This plan is finished.');
+        $plans->addNote($running->fresh(), 'Called home.');
+    }
+
+    public function test_a_learner_who_moves_campus_ends_the_old_campus_plans(): void
+    {
+        $this->authorized_user(['create support plan']);
+        $source = $this->workingSchool();
+        $destination = School::factory()->create(['organization_id' => $source->organization_id]);
+        $enrollment = $this->enrollment();
+        $plan = app(ManageSupportPlan::class)->open($enrollment, 'Extra reading', startsOn: now());
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, AcademicCycleSection::factory()->create([
+            'school_id' => $destination->id,
+            'academic_year_id' => AcademicYear::factory()->create(['school_id' => $destination->id])->id,
+            'academic_level_id' => AcademicLevel::factory()->create(['school_id' => $destination->id])->id,
+            'status' => AcademicStructureStatus::Active,
+        ]));
+
+        $this->assertSame(SupportPlanStatus::Cancelled, $plan->fresh()->status);
+        $this->assertSame($source->id, $plan->fresh()->school_id);
+        $this->assertSame("Moved to $destination->name", $plan->fresh()->statusChanges()->reorder('id', 'desc')->firstOrFail()->reason);
+    }
+
     private function enrollment(): StudentRecord
     {
         return StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);

@@ -9,6 +9,7 @@ use App\Actions\Cohort\ChangeProgramParticipation;
 use App\Actions\Finance\CarryBalanceToCampus;
 use App\Actions\Library\CloseReservation;
 use App\Actions\School\GrantSchoolMembership;
+use App\Actions\Wellbeing\ManageSupportPlan;
 use App\Enums\AuditAction;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicCycleSection;
@@ -38,6 +39,7 @@ class MoveEnrollmentBetweenCampuses
         private ChangeProgramParticipation $programmes,
         private ChangeCohortMembership $cohorts,
         private CloseReservation $reservations,
+        private ManageSupportPlan $supportPlans,
     ) {}
 
     /**
@@ -82,6 +84,7 @@ class MoveEnrollmentBetweenCampuses
             $this->programmes->withdrawFromSchool($enrollment, $source->id, "Moved to {$destination->name}", $actor);
             $this->cohorts->leaveSchool($enrollment, $source->id, $effectiveOn, $actor);
             $this->reservations->cancelEveryReservation($enrollment->user, $source->id, $actor);
+            $this->supportPlans->closeAtSchool($enrollment, $source->id, "Moved to {$destination->name}", $actor);
 
             $enrollment->school_id = $destination->id;
             $enrollment->save();

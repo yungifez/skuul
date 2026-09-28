@@ -7,6 +7,7 @@ use App\Actions\Boarding\AssignBoardingPlace;
 use App\Actions\Cohort\ChangeCohortMembership;
 use App\Actions\Cohort\ChangeProgramParticipation;
 use App\Actions\Library\CloseReservation;
+use App\Actions\Wellbeing\ManageSupportPlan;
 use App\Enums\AuditAction;
 use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
@@ -35,6 +36,7 @@ class ChangeEnrollmentStatus
         private ChangeCohortMembership $cohorts,
         private RequestCampusMove $campusMoves,
         private CloseReservation $reservations,
+        private ManageSupportPlan $supportPlans,
         private SectionSeats $seats,
     ) {}
 
@@ -89,6 +91,7 @@ class ChangeEnrollmentStatus
             if ($status->isClosed()) {
                 $this->boarding->release($enrollment, "Enrollment closed: {$status->label()}", $actor, $effectiveOn);
                 $this->programmes->withdrawFromSchool($enrollment, $enrollment->school_id, "Enrollment closed: {$status->label()}", $actor, finished: $status === EnrollmentStatus::Graduated);
+                $this->supportPlans->closeAtSchool($enrollment, $enrollment->school_id, "Enrollment closed: {$status->label()}", $actor);
 
                 if ($enrollment->user !== null) {
                     $this->reservations->cancelEveryReservation($enrollment->user, $enrollment->school_id, $actor);

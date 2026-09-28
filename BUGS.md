@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Support plans stayed open for a learner who left or moved
+- Status: Fixed
+- Area: Wellbeing support plans
+- Observed: A learner was withdrawn, or moved to another campus. Their support plans at the old campus stayed open. Staff there could still add steps and notes, and the plans stayed on the review list.
+- Impact: A campus kept working on, and being reminded about, a learner it no longer teaches. The old campus could keep writing about a learner who now attends elsewhere.
+- Reproduction: Open a support plan for a learner. Move the learner to another campus. Open the plan at the old campus and add a note.
+- Resolution: Closing an enrollment, or moving the learner, now cancels the open plans at the campus they left, with the reason in the plan history. Finished plans are left as they were. The plans stay at that campus as history.
+
 ## A teacher marked as left kept teaching and covering
 - Status: Fixed
 - Area: Staff records, teaching and timetable cover
