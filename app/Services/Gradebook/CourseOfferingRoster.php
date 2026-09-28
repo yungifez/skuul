@@ -5,7 +5,10 @@ namespace App\Services\Gradebook;
 use App\Enums\RosterMode;
 use App\Exceptions\InvalidValueException;
 use App\Models\CourseOffering;
+use App\Models\GradeEntry;
+use App\Models\GradeItem;
 use App\Models\StudentRecord;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 
 class CourseOfferingRoster
@@ -15,20 +18,33 @@ class CourseOfferingRoster
      */
     public function ensureIncludes(CourseOffering $courseOffering, StudentRecord $enrollment): void
     {
+        if ($this->includes($courseOffering, $enrollment)) {
+            return;
+        }
+
         if ($enrollment->school_id !== null && $enrollment->school_id !== $courseOffering->school_id) {
             throw new InvalidValueException('This student is enrolled in another school.');
         }
 
-        if (!$this->includes($courseOffering, $enrollment)) {
-            throw new InvalidValueException('This student is not enrolled in the course offering.');
-        }
+        throw new InvalidValueException('This student is not enrolled in the course offering.');
     }
 
     /**
      * Decide eligibility from the offering's declared roster mode.
+     *
+     * A learner the offering already marked stays on it after moving section
+     * or campus, so the teacher can finish and publish the term they taught.
      */
     public function includes(CourseOffering $courseOffering, StudentRecord $enrollment): bool
     {
+        if ($this->wasMarkedIn($courseOffering)->where('student_record_id', $enrollment->id)->exists()) {
+            return true;
+        }
+
+        if ($enrollment->school_id !== $courseOffering->school_id) {
+            return false;
+        }
+
         $courseOffering->loadMissing(['academicLevel', 'cycleSections', 'studentRecords']);
         $enrollment->loadMissing('academicCycleSection');
 
@@ -53,21 +69,42 @@ class CourseOfferingRoster
     {
         $courseOffering->loadMissing(['academicLevel', 'cycleSections', 'studentRecords']);
 
-        $students = match ($courseOffering->roster_mode) {
-            RosterMode::HomeSection, RosterMode::CombinedHomeSections => StudentRecord::query()
-                ->inSchool($courseOffering->school_id)
-                ->attending()
-                ->whereIn('academic_cycle_section_id', $courseOffering->cycleSections->modelKeys()),
-            RosterMode::AcademicLevel => StudentRecord::query()
-                ->inSchool($courseOffering->school_id)
-                ->attending()
-                ->whereHas('academicCycleSection', fn ($query) => $query->whereIn('academic_level_id', $courseOffering->academicLevel->teachingScopeIds())),
-            RosterMode::IndividualRoster => $courseOffering->studentRecords()->attending(),
-        };
-
-        return $students
+        return StudentRecord::query()
+            ->attending()
+            ->where(fn (Builder $roster) => $roster
+                ->where(fn (Builder $current) => $this->currentRoster($current->inSchool($courseOffering->school_id), $courseOffering))
+                ->orWhereIn('id', $this->wasMarkedIn($courseOffering)->select('student_record_id')))
             ->with('user:id,name')
             ->orderBy('admission_number')
             ->get();
+    }
+
+    /**
+     * Limit a query to the learners the roster mode names today.
+     *
+     * @param  Builder<StudentRecord>  $query
+     * @return Builder<StudentRecord>
+     */
+    private function currentRoster(Builder $query, CourseOffering $courseOffering): Builder
+    {
+        return match ($courseOffering->roster_mode) {
+            RosterMode::HomeSection, RosterMode::CombinedHomeSections => $query
+                ->whereIn('academic_cycle_section_id', $courseOffering->cycleSections->modelKeys()),
+            RosterMode::AcademicLevel => $query
+                ->whereHas('academicCycleSection', fn ($sections) => $sections->whereIn('academic_level_id', $courseOffering->academicLevel->teachingScopeIds())),
+            RosterMode::IndividualRoster => $query
+                ->whereIn('id', $courseOffering->studentRecords->modelKeys()),
+        };
+    }
+
+    /**
+     * Get the grades recorded in the offering.
+     *
+     * @return Builder<GradeEntry>
+     */
+    private function wasMarkedIn(CourseOffering $courseOffering): Builder
+    {
+        return GradeEntry::query()
+            ->whereIn('grade_item_id', GradeItem::query()->forCourseOffering($courseOffering)->select('id'));
     }
 }

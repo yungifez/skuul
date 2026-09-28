@@ -35,6 +35,7 @@ use App\Models\ResultSnapshot;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\Subject;
+use App\Services\Gradebook\CourseOfferingRoster;
 use App\Services\Gradebook\GradebookCalculator;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -465,6 +466,29 @@ class GradebookTest extends TestCase
         $this->expectException(InvalidValueException::class);
 
         app(PublishResult::class)->publish($courseOffering, $outsideEnrollment);
+    }
+
+    public function test_a_learner_marked_before_moving_campus_can_still_be_finished_and_published(): void
+    {
+        $this->authorized_user([]);
+        $courseOffering = $this->courseOffering();
+        $enrollment = $this->enrollment();
+        $unmarked = $this->enrollment();
+        app(RecordGrade::class)->record($this->item(['max_points' => 10], $courseOffering), $enrollment, points: 8);
+        $sibling = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id]);
+        $enrollment->forceFill(['school_id' => $sibling->id, 'academic_cycle_section_id' => null])->save();
+        $unmarked->forceFill(['school_id' => $sibling->id, 'academic_cycle_section_id' => null])->save();
+
+        app(RecordGrade::class)->record($this->item(['max_points' => 10], $courseOffering), $enrollment->fresh(), points: 6);
+        $snapshot = app(PublishResult::class)->publish($courseOffering, $enrollment->fresh());
+
+        $this->assertSame(70.0, $snapshot->percentage);
+        $this->assertSame($courseOffering->school_id, $snapshot->school_id);
+        $this->assertSame([$enrollment->id], app(CourseOfferingRoster::class)->students($courseOffering->fresh())->modelKeys());
+
+        $this->expectExceptionMessage('This student is enrolled in another school.');
+
+        app(PublishResult::class)->publish($courseOffering, $unmarked->fresh());
     }
 
     public function test_a_published_result_does_not_follow_later_marks(): void

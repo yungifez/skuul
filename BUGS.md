@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A learner who moved mid-term lost the term's marks at the old campus
+- Status: Fixed
+- Area: Gradebook
+- Observed: The roster read only the learner's current section and campus. After a campus or section move, the old offering dropped the learner. Its teacher could not finish their marks or publish their result.
+- Impact: The term the learner studied at the old campus never reached a result, a report card, or a transcript.
+- Reproduction: Record a mark for a learner. Move them to a sibling campus. Record another mark, or publish their result, at the old offering.
+- Resolution: `CourseOfferingRoster` keeps a learner who already holds a mark in the offering. A learner with no mark there is still refused.
+
 ## A bed stayed taken after its learner moved campus or left
 - Status: Fixed
 - Area: Boarding
