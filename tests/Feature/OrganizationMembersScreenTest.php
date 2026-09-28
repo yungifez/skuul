@@ -245,6 +245,25 @@ class OrganizationMembersScreenTest extends TestCase
         $this->assertTrue($member->fresh()->can('manageCampuses', $organization));
     }
 
+    public function test_a_members_only_administrator_cannot_remove_somebody_holding_more(): void
+    {
+        $organization = Organization::factory()->create();
+        $owner = $this->grantedMember($organization);
+        $membersOnly = $this->grantedMember($organization, [OrganizationPermission::ManageMembers]);
+        $peer = $this->grantedMember($organization, [OrganizationPermission::ManageMembers]);
+
+        $screen = Livewire::actingAs($membersOnly)
+            ->test(OrganizationMembers::class, ['organization' => $organization])
+            ->call('revoke', $owner->id)
+            ->assertHasErrors(['members' => 'This person holds more of the organization than you do, so only somebody holding as much can remove them.']);
+
+        $this->assertTrue($owner->fresh()->administersOrganization($organization));
+
+        $screen->call('revoke', $peer->id)->assertHasNoErrors(['members']);
+
+        $this->assertFalse($peer->fresh()->administersOrganization($organization));
+    }
+
     public function test_an_administrator_can_change_the_permissions_they_hold(): void
     {
         $organization = Organization::factory()->create();

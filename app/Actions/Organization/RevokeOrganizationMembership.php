@@ -53,6 +53,8 @@ class RevokeOrganizationMembership
                 return $membership;
             }
 
+            $this->failIfTheMemberHoldsMore($membership, $organization, $actor);
+
             if ($membership->grants(OrganizationPermission::ManageMembers)
                 && !$organization->hasAnotherMemberManager($user)) {
                 throw new InvalidValueException(
@@ -87,5 +89,32 @@ class RevokeOrganizationMembership
         $this->organizationPermissionScope->forget($user);
 
         return $membership;
+    }
+
+    /**
+     * Refuse to end the scope of somebody who holds more than the actor.
+     *
+     * Otherwise a person trusted only with members could remove everybody
+     * above them and be left running the organization. Anybody may still
+     * give up their own scope.
+     *
+     * @throws InvalidValueException
+     */
+    private function failIfTheMemberHoldsMore(OrganizationMembership $membership, Organization $organization, ?User $actor): void
+    {
+        if ($actor === null || $actor->id === $membership->user_id) {
+            return;
+        }
+
+        $values = fn (array $permissions): array => array_map(
+            fn (OrganizationPermission $permission): string => $permission->value,
+            $permissions,
+        );
+
+        $held = $values($this->organizationPermissionScope->permissionsFor($actor, $organization));
+
+        if (array_diff($values($membership->grantedPermissions()), $held) !== []) {
+            throw new InvalidValueException('This person holds more of the organization than you do, so only somebody holding as much can remove them.');
+        }
     }
 }

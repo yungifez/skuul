@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A members-only organization administrator can remove the owner
+- Status: Fixed
+- Area: Organization members
+- Observed: A member trusted only with "manage members" could end the scope of a member with full authority. The permission editor refused the same change, but removal did not.
+- Impact: A delegated member could remove everybody above them and be left running the organization.
+- Reproduction: Give a member only "manage members". On the organization members screen, remove the member who has full authority.
+- Resolution: Removal needs the actor to hold every permission the member holds. Anybody can still give up their own scope.
+
 ## A limited HR editor can end the access of the people above them
 - Status: Fixed
 - Area: Staff records
