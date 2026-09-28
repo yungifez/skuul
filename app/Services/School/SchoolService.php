@@ -101,16 +101,24 @@ class SchoolService
         $school->state = $record['state'];
         $school->city = $record['city'];
         $school->postal_code = $record['postal_code'];
-        $school->initials = $record['initials'];
-        $school->phone = $record['phone'];
-        $school->email = $record['email'];
+        $school->initials = $record['initials'] ?? null;
+        $school->phone = $record['phone'] ?? null;
+        $school->email = $record['email'] ?? null;
         $school->setup_details_completed_at = now();
 
+        $replacedLogo = null;
+
         if (isset($record['logo'])) {
+            $replacedLogo = $school->logo_path;
             $school->logo_path = Storage::disk('public')->put('schools', $record['logo']);
         }
 
         $school->save();
+
+        // The old logo has no other reader, so it goes once the new one is in use.
+        if ($replacedLogo !== null && $replacedLogo !== $school->logo_path) {
+            Storage::disk('public')->delete($replacedLogo);
+        }
 
         return $school;
     }

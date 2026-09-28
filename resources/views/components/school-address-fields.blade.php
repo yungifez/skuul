@@ -6,6 +6,7 @@
     'country' => null,
     'state' => null,
     'postalCode' => null,
+    'wire' => false,
 ])
 
 @php
@@ -16,32 +17,53 @@
     $stateField = $field('state');
     $postalCodeField = $field('postal_code');
     $countryValue = old($countryField, $country);
+    // Inside a Livewire form the fields bind to properties named in camel case,
+    // and the messages are filed under those names.
+    $errorKey = static fn (string $name): string => $wire ? \Illuminate\Support\Str::camel($name) : $name;
 @endphp
 
 <div
     class="grid gap-4 sm:grid-cols-2"
-    x-data="locationFields({
-        country: @js($countryValue),
-        state: @js(old($stateField, $state)),
-        city: @js(old($cityField, $city)),
-        statesUrl: @js(route('locations.states')),
-        citiesUrl: @js(route('locations.cities')),
-    })"
+    @if ($wire)
+        x-data="{
+            ...locationFields({
+                statesUrl: @js(route('locations.states')),
+                citiesUrl: @js(route('locations.cities')),
+            }),
+            country: $wire.entangle('{{ $errorKey($countryField) }}'),
+            state: $wire.entangle('{{ $errorKey($stateField) }}'),
+            city: $wire.entangle('{{ $errorKey($cityField) }}'),
+        }"
+    @else
+        x-data="locationFields({
+            country: @js($countryValue),
+            state: @js(old($stateField, $state)),
+            city: @js(old($cityField, $city)),
+            statesUrl: @js(route('locations.states')),
+            citiesUrl: @js(route('locations.cities')),
+        })"
+    @endif
     x-init="loadCountry()"
 >
     <div class="sm:col-span-2">
-        <april:input-group
-            id="{{ $addressField }}"
-            name="{{ $addressField }}"
-            type="text"
-            placeholder="Enter street address"
-            label="Address *"
-            value="{{ old($addressField, $address) }}"
-            autocomplete="address-line1"
-            required
-        />
-        @if ($errors->has($addressField))
-            <p class="mt-1 text-sm text-destructive">{{ $errors->first($addressField) }}</p>
+        @if ($wire)
+            <label for="{{ $addressField }}" class="text-sm font-medium">Address *</label>
+            <input id="{{ $addressField }}" type="text" wire:model="{{ $errorKey($addressField) }}" placeholder="Enter street address" autocomplete="address-line1" required class="mt-2 h-11 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" {{ field_error_bindings($errorKey($addressField)) }}>
+            <x-field-error :name="$errorKey($addressField)" class="mt-1" />
+        @else
+            <april:input-group
+                id="{{ $addressField }}"
+                name="{{ $addressField }}"
+                type="text"
+                placeholder="Enter street address"
+                label="Address *"
+                value="{{ old($addressField, $address) }}"
+                autocomplete="address-line1"
+                required
+            />
+            @if ($errors->has($addressField))
+                <p class="mt-1 text-sm text-destructive">{{ $errors->first($addressField) }}</p>
+            @endif
         @endif
     </div>
 
@@ -75,8 +97,8 @@
                 <april:combobox-option value="{{ $countryName }}">{{ $countryName }}</april:combobox-option>
             @endforeach
         </april:combobox>
-        @if ($errors->has($countryField))
-            <p class="text-sm text-destructive">{{ $errors->first($countryField) }}</p>
+        @if ($errors->has($errorKey($countryField)))
+            <p class="text-sm text-destructive" id="{{ field_error_id($errorKey($countryField)) }}">{{ $errors->first($errorKey($countryField)) }}</p>
         @endif
     </div>
 
@@ -120,8 +142,8 @@
                 </div>
             </template>
         </april:combobox>
-        @if ($errors->has($stateField))
-            <p class="text-sm text-destructive">{{ $errors->first($stateField) }}</p>
+        @if ($errors->has($errorKey($stateField)))
+            <p class="text-sm text-destructive" id="{{ field_error_id($errorKey($stateField)) }}">{{ $errors->first($errorKey($stateField)) }}</p>
         @endif
     </div>
 
@@ -180,22 +202,30 @@
                 </div>
             </template>
         </april:combobox>
-        @if ($errors->has($cityField))
-            <p class="text-sm text-destructive">{{ $errors->first($cityField) }}</p>
+        @if ($errors->has($errorKey($cityField)))
+            <p class="text-sm text-destructive" id="{{ field_error_id($errorKey($cityField)) }}">{{ $errors->first($errorKey($cityField)) }}</p>
         @endif
     </div>
 
-    <april:input-group
-        id="{{ $postalCodeField }}"
-        name="{{ $postalCodeField }}"
-        type="text"
-        placeholder="Enter postal or ZIP code"
-        label="Postal / ZIP code *"
-        value="{{ old($postalCodeField, $postalCode) }}"
-        autocomplete="postal-code"
-        required
-    />
-    @if ($errors->has($postalCodeField))
-        <p class="text-sm text-destructive">{{ $errors->first($postalCodeField) }}</p>
+    @if ($wire)
+        <div>
+            <label for="{{ $postalCodeField }}" class="text-sm font-medium">Postal / ZIP code *</label>
+            <input id="{{ $postalCodeField }}" type="text" wire:model="{{ $errorKey($postalCodeField) }}" placeholder="Enter postal or ZIP code" autocomplete="postal-code" required class="mt-2 h-11 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" {{ field_error_bindings($errorKey($postalCodeField)) }}>
+            <x-field-error :name="$errorKey($postalCodeField)" class="mt-1" />
+        </div>
+    @else
+        <april:input-group
+            id="{{ $postalCodeField }}"
+            name="{{ $postalCodeField }}"
+            type="text"
+            placeholder="Enter postal or ZIP code"
+            label="Postal / ZIP code *"
+            value="{{ old($postalCodeField, $postalCode) }}"
+            autocomplete="postal-code"
+            required
+        />
+        @if ($errors->has($postalCodeField))
+            <p class="text-sm text-destructive">{{ $errors->first($postalCodeField) }}</p>
+        @endif
     @endif
 </div>

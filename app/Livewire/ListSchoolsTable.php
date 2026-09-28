@@ -44,6 +44,9 @@ class ListSchoolsTable extends DataTableComponent
             $row['edit_url'] = route('schools.edit', $school);
             $row['view_url'] = route('schools.show', $school);
             $row['delete_url'] = route('schools.destroy', $school);
+            // Changing a campus depends on the campus, so each row says what it allows.
+            $row['can_edit'] = auth()->user()->can('update', $school);
+            $row['can_delete'] = auth()->user()->can('delete', $school);
 
             return $row;
         })->values()->all();
@@ -51,12 +54,6 @@ class ListSchoolsTable extends DataTableComponent
 
     public function render(): View
     {
-        return view('livewire.list-schools-table', array_merge(
-            $this->aprilTablePayload(),
-            [
-                'canEditSchools' => auth()->user()->can('update school'),
-                'canDeleteSchools' => auth()->user()->can('delete school'),
-            ],
-        ));
+        return view('livewire.list-schools-table', $this->aprilTablePayload());
     }
 }

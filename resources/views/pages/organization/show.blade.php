@@ -42,16 +42,23 @@
             </div>
             <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 @forelse ($organization->schools as $school)
-                    <a href="{{ route('schools.edit', $school) }}" class="rounded-lg border p-5 transition hover:bg-muted/50">
-                        <p class="font-semibold">{{ $school->name }}</p>
-                        <p class="text-sm text-muted-foreground">{{ $school->address }}</p>
-                    </a>
+                    @can('update', $school)
+                        <a href="{{ route('schools.edit', $school) }}" class="rounded-lg border p-5 transition hover:bg-muted/50">
+                            <p class="font-semibold">{{ $school->name }}</p>
+                            <p class="text-sm text-muted-foreground">{{ $school->address ?: '—' }}</p>
+                        </a>
+                    @else
+                        <div class="rounded-lg border p-5">
+                            <p class="font-semibold">{{ $school->name }}</p>
+                            <p class="text-sm text-muted-foreground">{{ $school->address ?: '—' }}</p>
+                        </div>
+                    @endcan
                 @empty
                     <p class="text-muted-foreground">No campuses have been added.</p>
                 @endforelse
             </div>
-            @can('create', \App\Models\School::class)
-                <april:button-link href="{{ route('schools.create') }}">Add campus</april:button-link>
+            @can('createForOrganization', [\App\Models\School::class, $organization])
+                <april:button-link href="{{ route('schools.create') }}" class="h-11 select-none">Add campus</april:button-link>
             @endcan
         </slot:content>
     </april:card>

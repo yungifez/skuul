@@ -1,36 +1,33 @@
-<div class="card">
-    <div class="card-header">
-        <h2 class="card-title">Create School</h2>
-    </div>
-    <div class="card-body">
-        <form action="{{route('schools.store')}}" method="POST" class="md:w-6/12" enctype="multipart/form-data">
-            <x-display-validation-errors />
-            <p class="">
-                {{__('All fields marked * are required')}}
-            </p>
-            <div class="flex w-full flex-col gap-2">
-                <april:label for="organization_id">Organization *</april:label>
-                <april:select name="organization_id" id="organization_id" required>
-                    <option value="">Select organization</option>
-                    @foreach ($organizations as $organization)
-                        <option value="{{ $organization->id }}" @selected(old('organization_id') == $organization->id)>{{ $organization->name }}</option>
-                    @endforeach
-                </april:select>
+<div class="max-w-3xl">
+    @if ($this->organizations->isEmpty())
+        <p class="text-sm text-muted-foreground">You cannot add a campus to any organization. Ask an organization administrator for campus management.</p>
+    @else
+        <form wire:submit="save" class="flex flex-col gap-6" aria-label="Create a school">
+            <section class="space-y-4" aria-labelledby="school-organization-heading">
+                <h2 id="school-organization-heading" class="text-base font-semibold">Organization</h2>
+                @if ($this->organizations->count() === 1)
+                    <p class="text-sm">{{ $this->organizations->first()->name }}</p>
+                @else
+                    <div>
+                        <label for="organization_id" class="text-sm font-medium">Organization *</label>
+                        <select id="organization_id" wire:model="organizationId" required class="mt-2 h-11 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring" {{ field_error_bindings('organizationId') }}>
+                            <option value="">Choose an organization</option>
+                            @foreach ($this->organizations as $organization)
+                                <option value="{{ $organization->id }}">{{ $organization->name }}</option>
+                            @endforeach
+                        </select>
+                        <x-field-error name="organizationId" class="mt-1" />
+                    </div>
+                @endif
+            </section>
+
+            <div class="flex flex-col gap-6 border-t pt-6">
+                <x-school-detail-fields :countries="$countries" :upload="$logo" :initials-fallback="str($name)->substr(0, 2)->upper()->toString()" />
             </div>
-            <april:input-group name="name" id="name" type="text" placeholder="Enter name of school" label="School Name *" />
-            <x-school-address-fields :countries="$countries" />
-            <april:input-group name="initials" id="initials" type="text" placeholder="Enter school initials" label="School initials" />
-            <april:input-group name="phone" id="phone" placeholder="Enter school phone number" label="School Phone Number" type="tel" />
-            <april:input-group name="email" id="email" placeholder="Enter school Email" label="School Email address" type="email" />
-            <april:input-group name="logo" id="logo" type="file" label="Logo" accept="image/*" />
-            <p class="text-xs text-muted-foreground">PNG, JPG, or another image up to 5 MB.</p>
-            @csrf
-            <div class="w-full flex ">
-                <april:button type="submit" class="w-full md:w-6/12">
-<x-lucide-key class="mr-2 size-4" />
-                    Create
-                </april:button>
+
+            <div class="flex justify-end border-t pt-6">
+                <april:button type="submit" class="h-11 w-full select-none sm:w-auto" wire:loading.attr="disabled" wire:target="save, logo">Create school</april:button>
             </div>
         </form>
-    </div>
+    @endif
 </div>

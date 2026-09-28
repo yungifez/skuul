@@ -1,5 +1,20 @@
 # Known Bugs
 
+## Delegated organization scope opened every campus for editing
+- Status: Fixed
+- Area: Organizations, campuses
+- Observed: The school policy asked only whether a person administers the organization. An administrator whose scope was cut to reading could still open and change every campus.
+- Impact: Narrowing an administrator's organization permissions did not narrow what they could do to its campuses.
+- Reproduction: Give an organization administrator only "read organization". They can still open a campus's edit page and save it.
+- Resolution: Viewing a campus through organization scope needs "read organization". Editing one needs "manage organization campuses". The organization page links a campus to its edit page only for somebody who may edit it, and offers "Add campus" only to somebody who may add one.
+
+## School forms offered choices and links the person could not use
+- Status: Fixed
+- Area: School create and edit
+- Observed: The create form listed every organization the person belonged to, and saving to one without campus management returned 403. The edit page linked to the school list and the school page for people who could open neither. The school list offered Edit and Delete on campuses the person could not change. A replaced logo stayed on disk.
+- Impact: People met forbidden pages in the middle of routine work, and old logos piled up in storage.
+- Reproduction: As a campus admin with "update school" only, open the edit page and follow the "Schools" breadcrumb.
+- Resolution: Both forms are Livewire forms now. The create form lists only organizations the person may add a campus to, and says so when there are none. Links and row actions appear only where the policy allows them. Replacing a logo deletes the old file.
 ## A teacher could approve the result they sent
 - Status: Fixed
 - Area: Gradebook

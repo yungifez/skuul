@@ -3,8 +3,12 @@
 namespace Tests\Feature;
 
 use App\Actions\Organization\GrantOrganizationMembership;
+use App\Actions\Organization\SetOrganizationMemberPermissions;
 use App\Actions\School\EndSchoolMembership;
+use App\Enums\OrganizationPermission;
 use App\Http\Middleware\SetActiveAcademicPeriod;
+use App\Livewire\CreateSchoolForm;
+use App\Livewire\EditSchoolForm;
 use App\Livewire\EditSchoolLanguage;
 use App\Livewire\Layouts\Menu;
 use App\Models\AcademicYear;
@@ -15,6 +19,7 @@ use App\Models\User;
 use App\Services\School\SchoolContext;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Storage;
@@ -47,8 +52,10 @@ class SchoolTest extends TestCase
 
     public function test_create_schools_can_be_rendered_to_authorized_user()
     {
-        $this->authorized_user(['create school'])
-            ->get('/dashboard/schools/create')
+        $this->authorized_user(['create school']);
+        app(GrantOrganizationMembership::class)->grant(auth()->user(), Organization::factory()->create());
+
+        $this->get('/dashboard/schools/create')
             ->assertSuccessful()
             ->assertSee('Address *')
             ->assertDontSee('Address line 2')
@@ -98,6 +105,168 @@ class SchoolTest extends TestCase
         ]);
     }
 
+    public function test_a_school_is_created_from_the_form_and_setup_begins(): void
+    {
+        $organization = Organization::factory()->create(['name' => 'Harbor Trust']);
+        $this->authorized_user(['create school']);
+        app(GrantOrganizationMembership::class)->grant(auth()->user(), $organization);
+
+        $form = Livewire::test(CreateSchoolForm::class)
+            ->assertSet('organizationId', (string) $organization->id)
+            ->assertSee('Harbor Trust')
+            ->set('name', 'Harbor Primary')
+            ->set('address', '12 Wharf Road')
+            ->set('country', 'Canada')
+            ->set('state', 'British Columbia')
+            ->set('city', 'Vancouver')
+            ->set('postalCode', 'V6B 1A1')
+            ->set('initials', 'HP')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $school = School::query()->where('name', 'Harbor Primary')->sole();
+        $form->assertRedirect(route('schools.setup', [$school, 'details']));
+        $this->assertSame($organization->id, $school->organization_id);
+        $this->assertSame('V6B 1A1', $school->postal_code);
+        $this->assertNull($school->phone);
+        $this->assertNotNull($school->operatingProfile);
+        $this->assertTrue(auth()->user()->belongsToSchool($school));
+    }
+
+    public function test_the_create_form_names_the_missing_fields(): void
+    {
+        $this->authorized_user(['create school']);
+        app(GrantOrganizationMembership::class)->grant(auth()->user(), Organization::factory()->create());
+
+        Livewire::test(CreateSchoolForm::class)
+            ->set('name', 'Harbor Primary')
+            ->set('phone', 'call us')
+            ->call('save')
+            ->assertHasErrors(['address', 'country', 'state', 'city', 'postalCode', 'phone'])
+            ->assertSee('The postal code field is required.')
+            ->assertSeeHtml('aria-describedby="address-error"');
+
+        $this->assertDatabaseMissing('schools', ['name' => 'Harbor Primary']);
+    }
+
+    public function test_the_create_form_offers_only_organizations_the_person_can_grow(): void
+    {
+        $growable = Organization::factory()->create(['name' => 'Harbor Trust']);
+        $readOnly = Organization::factory()->create(['name' => 'Summit Group']);
+        $this->authorized_user(['create school']);
+        app(GrantOrganizationMembership::class)->grant(auth()->user(), $growable);
+        app(GrantOrganizationMembership::class)->grant(auth()->user(), $readOnly);
+        app(SetOrganizationMemberPermissions::class)->set(auth()->user(), $readOnly, [OrganizationPermission::ManageMembers]);
+
+        Livewire::test(CreateSchoolForm::class)
+            ->assertSet('organizationId', (string) $growable->id)
+            ->assertDontSee('Summit Group')
+            ->set('organizationId', (string) $readOnly->id)
+            ->set('name', 'Summit Primary')
+            ->set('address', '12 Wharf Road')
+            ->set('country', 'Canada')
+            ->set('state', 'British Columbia')
+            ->set('city', 'Vancouver')
+            ->set('postalCode', 'V6B 1A1')
+            ->call('save')
+            ->assertHasErrors(['organizationId' => 'Choose an organization you can add a campus to.']);
+
+        $this->assertDatabaseMissing('schools', ['name' => 'Summit Primary']);
+    }
+
+    public function test_the_create_form_says_when_no_organization_can_be_grown(): void
+    {
+        $organization = Organization::factory()->create();
+        $this->authorized_user(['create school']);
+        app(GrantOrganizationMembership::class)->grant(auth()->user(), $organization);
+        app(SetOrganizationMemberPermissions::class)->set(auth()->user(), $organization, [OrganizationPermission::ManageMembers]);
+
+        Livewire::test(CreateSchoolForm::class)
+            ->assertSee('You cannot add a campus to any organization.')
+            ->assertDontSee('Create school');
+    }
+
+    public function test_school_details_are_saved_from_the_edit_form(): void
+    {
+        Storage::fake('public');
+        $school = $this->workingSchool();
+        $school->update(['logo_path' => UploadedFile::fake()->image('old.png')->store('schools', 'public')]);
+        $oldLogo = $school->logo_path;
+        $school->update(['address' => '12 Wharf Road', 'country' => 'Canada', 'state' => 'Ontario', 'city' => 'Toronto', 'postal_code' => 'M5V 2T6']);
+        $this->authorized_user(['update school'], $school);
+
+        Livewire::test(EditSchoolForm::class, ['school' => $school])
+            ->assertSet('name', $school->name)
+            ->set('name', 'Renamed school')
+            ->set('phone', '')
+            ->set('logo', UploadedFile::fake()->image('new.png'))
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertDispatched('status-message', type: 'success', message: 'The changes were saved.')
+            ->assertSet('logo', null);
+
+        $school->refresh();
+        $this->assertSame('Renamed school', $school->name);
+        $this->assertNull($school->phone);
+        $this->assertNotSame($oldLogo, $school->logo_path);
+        Storage::disk('public')->assertExists($school->logo_path);
+        Storage::disk('public')->assertMissing($oldLogo);
+    }
+
+    public function test_saving_details_during_setup_moves_to_the_next_step(): void
+    {
+        $school = $this->workingSchool();
+        $school->update(['address' => '12 Wharf Road', 'country' => 'Canada', 'state' => 'Ontario', 'city' => 'Toronto', 'postal_code' => 'M5V 2T6']);
+        $this->authorized_user(['update school'], $school);
+
+        Livewire::test(EditSchoolForm::class, ['school' => $school, 'setup' => true])
+            ->assertSee('Save and continue')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('schools.setup', [$school, 'language']));
+    }
+
+    public function test_the_edit_form_refuses_another_school(): void
+    {
+        $other = School::factory()->create(['name' => 'Other school']);
+        $this->authorized_user(['update school']);
+
+        Livewire::test(EditSchoolForm::class, ['school' => $other])->assertForbidden();
+    }
+
+    public function test_the_edit_page_links_only_to_pages_the_person_can_open(): void
+    {
+        $school = $this->workingSchool();
+        $this->authorized_user(['update school'], $school);
+
+        $this->get(route('schools.edit', $school))
+            ->assertOk()
+            ->assertDontSee('href="'.route('schools.index').'"', false)
+            ->assertDontSee('href="'.route('schools.show', $school).'"', false);
+    }
+
+    public function test_the_organization_page_links_campuses_only_for_people_who_can_edit_them(): void
+    {
+        $organization = Organization::factory()->create();
+        $campus = School::factory()->create(['organization_id' => $organization->id, 'name' => 'Harbor Primary']);
+        app(GrantOrganizationMembership::class)->grant(User::factory()->create(), $organization);
+        $reader = $this->memberOf($campus);
+        app(GrantOrganizationMembership::class)->grant($reader, $organization);
+        app(SetOrganizationMemberPermissions::class)->set($reader, $organization, [OrganizationPermission::Read]);
+
+        $this->actingAs($reader)
+            ->get(route('organizations.show', $organization))
+            ->assertOk()
+            ->assertSee('Harbor Primary')
+            ->assertDontSee('href="'.route('schools.edit', $campus).'"', false)
+            ->assertDontSee('Add campus');
+
+        // Scope delegated as reading only reads: the campus opens but does not change.
+        $this->assertTrue($reader->can('view', $campus));
+        $this->assertFalse($reader->can('update', $campus));
+        $this->actingAs($reader)->get(route('schools.edit', $campus))->assertForbidden();
+    }
+
     public function test_unauthorized_user_can_not_create_school()
     {
         $this->unauthorized_user()
@@ -128,8 +297,8 @@ class SchoolTest extends TestCase
             ->get('/dashboard/schools/1/edit')
             ->assertSuccessful()
             ->assertSee('Edit school details')
-            ->assertSee('Basic details')
-            ->assertSee('School logo')
+            ->assertSee('Details')
+            ->assertSee('Upload a logo')
             ->assertSee('Address *')
             ->assertDontSee('Address line 2')
             ->assertSee('data-slot="combobox"', false)

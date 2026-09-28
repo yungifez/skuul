@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\School\GrantSchoolMembership;
+use App\Actions\School\OpenCampus;
 use App\Http\Requests\SchoolStoreRequest;
 use App\Http\Requests\SchoolUpdateRequest;
 use App\Models\Organization;
 use App\Models\School;
-use App\Models\SchoolOperatingProfile;
 use App\Services\School\SchoolService;
 use App\Services\School\SchoolSetupChecklist;
 use Illuminate\Http\RedirectResponse;
@@ -26,7 +25,7 @@ class SchoolController extends Controller
     public function __construct(
         SchoolService $schoolService,
         private SchoolSetupChecklist $schoolSetupChecklist,
-        private GrantSchoolMembership $grantSchoolMembership,
+        private OpenCampus $openCampus,
     ) {
         $this->schoolService = $schoolService;
         $this->authorizeResource(School::class, 'school');
@@ -57,12 +56,8 @@ class SchoolController extends Controller
         $organization = Organization::findOrFail($attributes['organization_id']);
 
         $this->authorize('createForOrganization', [School::class, $organization]);
-        $school = $this->schoolService->createSchool($attributes);
-        $school->operatingProfile()->firstOrCreate([], [
-            'preset' => SchoolOperatingProfile::DEFAULT_PRESET,
-            'labels' => SchoolOperatingProfile::labelsFor(SchoolOperatingProfile::DEFAULT_PRESET),
-        ]);
-        $this->grantSchoolMembership->grant($request->user(), $school, primary: false);
+        unset($attributes['organization_id']);
+        $school = $this->openCampus->open($organization, $attributes, $request->user());
         school_context()->set($school, remember: false);
 
         return to_route('schools.setup', [$school, 'details'])

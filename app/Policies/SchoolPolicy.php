@@ -18,8 +18,7 @@ class SchoolPolicy
     public function __construct(
         private SystemPermissionScope $systemPermissionScope,
         private OrganizationPermissionScope $organizationPermissionScope,
-    ) {
-    }
+    ) {}
 
     /**
      * Determine whether the user can view any models.
@@ -36,7 +35,7 @@ class SchoolPolicy
      */
     public function view(User $user, School $school)
     {
-        if ($this->canManageOrganization($user, $school->organization)) {
+        if ($this->organizationAllows($user, $school->organization, OrganizationPermission::Read)) {
             return true;
         }
 
@@ -69,7 +68,7 @@ class SchoolPolicy
      */
     public function update(User $user, School $school)
     {
-        if ($this->canManageOrganization($user, $school->organization)) {
+        if ($this->organizationAllows($user, $school->organization, OrganizationPermission::ManageCampuses)) {
             return true;
         }
 
@@ -137,10 +136,15 @@ class SchoolPolicy
             || $this->organizationPermissionScope->allows($user, $organization, OrganizationPermission::ManageCampuses);
     }
 
-    private function canManageOrganization(User $user, Organization $organization): bool
+    /**
+     * Check what the person's organization scope lets them do with its campuses.
+     *
+     * Scope can be delegated, so an administrator holding only some of the
+     * organization's permissions gets only what those permissions allow.
+     */
+    private function organizationAllows(User $user, Organization $organization, OrganizationPermission $permission): bool
     {
         return $this->systemPermissionScope->allows($user, PlatformPermission::AccessAllSchools)
-            || ($this->systemPermissionScope->allows($user, OrganizationPermission::Manage)
-                && $user->administersOrganization($organization));
+            || $this->organizationPermissionScope->allows($user, $organization, $permission);
     }
 }
