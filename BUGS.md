@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Deleting an emptied school destroys its books
+- Status: Fixed
+- Area: School deletion
+- Observed: A school could be deleted once it had no active members. People who left or transferred out do not count as active, so a closed campus could be deleted with its history.
+- Impact: Schools are removed for good, and the ledger and payment tables delete their rows with the school. A closed campus lost every record of the money it took.
+- Reproduction: End every membership at a school that recorded payments. Delete the school as a platform administrator.
+- Resolution: A school that ever had a member, an enrollment or a ledger entry cannot be deleted. Only a school that was never used can go.
+
 ## A leaver can be booked to cover after their last day
 - Status: Fixed
 - Area: Timetable cover

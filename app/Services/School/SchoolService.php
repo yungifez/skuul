@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Services\Authorization\SystemPermissionScope;
 use App\Services\User\UserService;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 use Storage;
 
@@ -143,6 +144,9 @@ class SchoolService
     /**
      * Delete school.
      *
+     * Deleting a school removes its books and payments with it. Only a school
+     * that never held anybody, any learner or any money may go. One whose
+     * people all left still keeps their records.
      *
      * @return void
      */
@@ -150,9 +154,15 @@ class SchoolService
     {
         if ($school->users->isNotEmpty()) {
             throw new ResourceNotEmptyException('Remove all users from this school and make sure school is not set for any super admin');
-
-            return;
         }
+
+        $hasHistory = collect(['school_memberships', 'student_records', 'ledger_transactions'])
+            ->contains(fn (string $table): bool => DB::table($table)->where('school_id', $school->id)->exists());
+
+        if ($hasHistory) {
+            throw new ResourceNotEmptyException('This school keeps the records of people and money it once held, so it cannot be deleted.');
+        }
+
         $school->delete();
     }
 }

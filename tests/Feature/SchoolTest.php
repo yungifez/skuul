@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\Organization\GrantOrganizationMembership;
+use App\Actions\School\EndSchoolMembership;
 use App\Http\Middleware\SetActiveAcademicPeriod;
 use App\Livewire\EditSchoolLanguage;
 use App\Livewire\Layouts\Menu;
@@ -454,6 +455,19 @@ class SchoolTest extends TestCase
             ->delete("/dashboard/schools/$school->id");
 
         $this->assertModelMissing($school);
+    }
+
+    public function test_a_school_whose_people_all_left_is_not_deleted(): void
+    {
+        $school = School::factory()->create();
+        $leaver = User::factory()->create();
+        $this->memberOf($school, $leaver);
+        app(EndSchoolMembership::class)->end($leaver, $school);
+
+        $this->platform_admin()
+            ->delete("/dashboard/schools/$school->id");
+
+        $this->assertModelExists($school);
     }
 
     public function test_a_school_member_cannot_delete_another_school()
