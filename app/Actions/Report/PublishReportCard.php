@@ -16,14 +16,18 @@ use Illuminate\Support\Facades\DB;
 
 class PublishReportCard
 {
-    public function __construct(private RecordAuditEvent $audit)
-    {
-    }
+    public function __construct(private RecordAuditEvent $audit) {}
 
     /** @throws InvalidValueException */
     public function publish(StudentRecord $studentRecord, AcademicPeriod $academicPeriod, User $actor, ?string $reason = null): ReportCardSnapshot
     {
-        if ($studentRecord->school_id !== $academicPeriod->school_id || $academicPeriod->academic_year_id === null) {
+        if ($academicPeriod->academic_year_id === null) {
+            throw new InvalidValueException('Choose a student and academic period from the same school.');
+        }
+
+        // A learner who moved campus is still reported by the campus that
+        // taught the period. Their results there prove they studied it.
+        if ($studentRecord->school_id !== $academicPeriod->school_id && $this->latestResults($studentRecord, $academicPeriod)->isEmpty()) {
             throw new InvalidValueException('Choose a student and academic period from the same school.');
         }
 
@@ -46,16 +50,16 @@ class PublishReportCard
                 ->first();
             $payload = $this->payload($studentRecord, $academicPeriod, $results);
             $reportCard = ReportCardSnapshot::create([
-                'school_id'          => $studentRecord->school_id,
-                'student_record_id'  => $studentRecord->id,
-                'academic_year_id'   => $academicPeriod->academic_year_id,
+                'school_id' => $academicPeriod->school_id,
+                'student_record_id' => $studentRecord->id,
+                'academic_year_id' => $academicPeriod->academic_year_id,
                 'academic_period_id' => $academicPeriod->id,
-                'revision'           => $previous === null ? 1 : $previous->revision + 1,
+                'revision' => $previous === null ? 1 : $previous->revision + 1,
                 'average_percentage' => $payload['summary']['average_percentage'],
-                'payload'            => $payload,
-                'reason'             => $reason,
-                'published_at'       => now(),
-                'published_by'       => $actor->id,
+                'payload' => $payload,
+                'reason' => $reason,
+                'published_at' => now(),
+                'published_by' => $actor->id,
             ]);
             $this->audit->record($previous === null ? AuditAction::ReportCardPublished : AuditAction::ReportCardRevised, $reportCard, ['student_record_id' => $studentRecord->id, 'academic_period_id' => $academicPeriod->id, 'revision' => $reportCard->revision], $actor);
 

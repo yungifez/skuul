@@ -16,7 +16,7 @@ class ReportCardDirectory
     public function students(): Collection
     {
         return StudentRecord::query()
-            ->inSchool()
+            ->studiedInSchool()
             ->with('user:id,name')
             ->orderBy('admission_number')
             ->get(['id', 'user_id', 'admission_number']);

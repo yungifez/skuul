@@ -40,7 +40,7 @@ class ResourceIndexActionTest extends TestCase
         $this->authorized_user(['read student', 'delete student'])
             ->get(route('students.index'))
             ->assertOk()
-            ->assertSee('x-bind:data-confirm=', false)
+            ->assertSee('window.confirm(', false)
             ->assertSee('(row.name)', false)
             ->assertDontSee('Delete this student?');
     }

@@ -86,7 +86,7 @@ class ReportCardDirectory extends Component
         Gate::authorize('create', ReportCardSnapshot::class);
 
         $validated = $this->validate(StoreReportCardRequest::reportCardRules());
-        $student = StudentRecord::inSchool()->findOrFail($validated['student_record_id']);
+        $student = StudentRecord::studiedInSchool()->findOrFail($validated['student_record_id']);
         $period = AcademicPeriod::inSchool()->findOrFail($validated['academic_period_id']);
 
         try {

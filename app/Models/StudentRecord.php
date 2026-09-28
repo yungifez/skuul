@@ -80,6 +80,24 @@ class StudentRecord extends Model
     ];
 
     /**
+     * Limit the query to learners who attend the campus or were taught there.
+     *
+     * A learner who moved on keeps the results the old campus published, so
+     * that campus can still issue the report card for the term they studied.
+     *
+     * @param  Builder<StudentRecord>  $query
+     * @return Builder<StudentRecord>
+     */
+    public function scopeStudiedInSchool(Builder $query, ?int $schoolId = null): Builder
+    {
+        $schoolId ??= current_school_id();
+
+        return $query->where(fn (Builder $studied) => $studied
+            ->where($this->qualifyColumn('school_id'), $schoolId)
+            ->orWhereIn($this->qualifyColumn('id'), ResultSnapshot::query()->inSchool($schoolId)->select('student_record_id')));
+    }
+
+    /**
      * Limit the query to enrollments the student still attends.
      *
      * @param  Builder  $query

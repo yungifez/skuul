@@ -11,6 +11,7 @@ use App\Models\AcademicYear;
 use App\Models\CourseOffering;
 use App\Models\ReportCardSnapshot;
 use App\Models\ResultSnapshot;
+use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\Subject;
 use App\Traits\FeatureTestTrait;
@@ -117,6 +118,37 @@ class ReportCardSnapshotTest extends TestCase
             'student_record_id' => $student->id,
             'academic_period_id' => $period->id,
         ]);
+    }
+
+    public function test_the_campus_that_taught_the_term_reports_a_learner_who_moved_on(): void
+    {
+        $this->authorized_user(['read report', 'create report']);
+        [$student, $period] = $this->reportableStudent();
+        $stranger = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $sibling = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id]);
+        $student->forceFill(['school_id' => $sibling->id])->save();
+        $stranger->forceFill(['school_id' => $sibling->id])->save();
+
+        Livewire::test(ReportCardDirectory::class)
+            ->assertSee($student->admission_number)
+            ->assertDontSee($stranger->admission_number)
+            ->set('student_record_id', $student->id)
+            ->set('academic_period_id', $period->id)
+            ->call('publishReportCard')
+            ->assertHasNoErrors();
+
+        $reportCard = ReportCardSnapshot::query()->sole();
+        $this->assertSame($period->school_id, $reportCard->school_id);
+
+        Livewire::test(ReportCardDirectory::class)
+            ->set('student_record_id', $stranger->id)
+            ->set('academic_period_id', $period->id)
+            ->call('publishReportCard')
+            ->assertHasErrors('student_record_id');
+
+        $this->expectExceptionMessage('Choose a student and academic period from the same school.');
+
+        app(PublishReportCard::class)->publish($stranger->fresh(), $period, auth()->user());
     }
 
     /** @return array{StudentRecord, AcademicPeriod} */

@@ -1,5 +1,13 @@
 # Known Bugs
 
+## The campus that taught a term could not issue its report card after the learner moved
+- Status: Fixed
+- Area: Report cards
+- Observed: The report card screen listed only learners who attend the working campus. `PublishReportCard` refused a period from a campus other than the learner's current one.
+- Impact: A learner who moved after a term had approved results and no report card for it. The new campus could not issue it, because the period was not its own.
+- Reproduction: Approve a result for a learner in a closing period. Move them to a sibling campus. Publish their report card for that period at the old campus.
+- Resolution: `StudentRecord::studiedInSchool()` also finds learners who hold results at the campus. The report card is issued by, and filed at, the campus that owns the period. A learner with no results there is still refused.
+
 ## A learner who moved mid-term lost the term's marks at the old campus
 - Status: Fixed
 - Area: Gradebook
