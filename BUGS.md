@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A learner could be given a staff role
+- Status: Fixed
+- Area: Campus roles
+- Observed: The role screen offered every member of the campus, learners included. A learner could be given a role such as Registrar and gain its permissions. A learner who moved to another campus kept their membership at the old one, so the old campus could still give them a role.
+- Impact: A learner could read or change other learners' records, or money, with staff permissions.
+- Reproduction: Open a campus role. Pick a learner from the list and give the role.
+- Resolution: A person enrolled as a learner at any campus cannot be given a campus role, and the picker leaves them out. A former learner, for example a graduate, can still join the staff.
+
 ## Leave was approved while the teacher still had cover booked
 - Status: Fixed
 - Area: Staff leave and timetable cover

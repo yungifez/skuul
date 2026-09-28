@@ -201,6 +201,7 @@ class CampusRoleRecord extends Component
             'holders' => $holders,
             'people' => User::ofSchool()
                 ->whereNotIn('users.id', $holders->pluck('id'))
+                ->whereDoesntHave('studentRecords', fn ($enrollments) => $enrollments->enrolled())
                 ->orderBy('name')
                 ->get(['users.id', 'users.name', 'users.email']),
         ]);

@@ -15,7 +15,8 @@ use Spatie\Permission\PermissionRegistrar;
  * Give and take away a campus role.
  *
  * A role can only be given to somebody who works at that campus, and only a
- * role the campus still offers. Both directions are written to the audit log,
+ * role the campus still offers. A learner never holds one, wherever they are
+ * enrolled: a learner who moved keeps a membership at the campus they left. Both directions are written to the audit log,
  * because a role is how a person got whatever they were able to do.
  *
  * Giving a role somebody already holds, or taking one they do not, changes
@@ -46,6 +47,10 @@ class AssignCampusRole
 
         if (!$person->belongsToSchool($school->id)) {
             throw new InvalidValueException('That person does not work at this campus.');
+        }
+
+        if ($person->studentRecords()->enrolled()->exists()) {
+            throw new InvalidValueException("$person->name is a learner. A learner cannot hold a campus role.");
         }
 
         if ($role->isArchived()) {

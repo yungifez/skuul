@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\Authorization\AssignCampusRole;
 use App\Actions\Authorization\WriteCampusRole;
 use App\Enums\AuditAction;
+use App\Enums\EnrollmentStatus;
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\CampusRoleRecord;
@@ -12,6 +13,7 @@ use App\Livewire\CreateCampusRoleForm;
 use App\Models\AuditEvent;
 use App\Models\CampusRole;
 use App\Models\School;
+use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Authorization\RoleAuthority;
 use App\Traits\FeatureTestTrait;
@@ -287,6 +289,52 @@ class CampusRoleTest extends TestCase
         $this->expectException(InvalidValueException::class);
 
         app(AssignCampusRole::class)->give($this->nonMember(), $role, $this->workingSchool(), $actor);
+    }
+
+    public function test_a_learner_never_holds_a_campus_role(): void
+    {
+        $actor = $this->roleManager(['read student']);
+        $role = app(WriteCampusRole::class)->create($this->workingSchool(), 'Registrar', ['read student'], null, $actor);
+        $learner = $this->memberOf($this->workingSchool());
+        StudentRecord::factory()->create(['user_id' => $learner->id, 'school_id' => $this->workingSchool()->id]);
+
+        try {
+            app(AssignCampusRole::class)->give($learner, $role, $this->workingSchool(), $actor);
+            $this->fail('A learner was given a campus role.');
+        } catch (InvalidValueException $exception) {
+            $this->assertSame("$learner->name is a learner. A learner cannot hold a campus role.", $exception->getMessage());
+        }
+
+        $this->assertFalse($learner->fresh()->can('read student'));
+    }
+
+    public function test_a_learner_who_moved_away_gets_no_role_at_the_campus_they_left(): void
+    {
+        $actor = $this->roleManager(['read student']);
+        $role = app(WriteCampusRole::class)->create($this->workingSchool(), 'Registrar', ['read student'], null, $actor);
+        // The membership here stays after a move. The enrollment went with them.
+        $learner = $this->memberOf($this->workingSchool());
+        StudentRecord::factory()->create(['user_id' => $learner->id, 'school_id' => School::factory()->create()->id]);
+
+        Livewire::test(CampusRoleRecord::class, ['role' => $role])
+            ->assertDontSee($learner->email)
+            ->set('personId', (string) $learner->id)
+            ->call('give')
+            ->assertHasErrors('personId');
+
+        $this->assertFalse(app(RoleAuthority::class)->holdersAt($role, $this->workingSchool())->whereKey($learner->id)->exists());
+    }
+
+    public function test_a_former_learner_may_come_back_as_staff(): void
+    {
+        $actor = $this->roleManager(['read student']);
+        $role = app(WriteCampusRole::class)->create($this->workingSchool(), 'Registrar', ['read student'], null, $actor);
+        $alumnus = $this->memberOf($this->workingSchool());
+        StudentRecord::factory()->create(['user_id' => $alumnus->id, 'school_id' => $this->workingSchool()->id, 'status' => EnrollmentStatus::Graduated]);
+
+        app(AssignCampusRole::class)->give($alumnus, $role, $this->workingSchool(), $actor);
+
+        $this->assertTrue($alumnus->fresh()->can('read student'));
     }
 
     public function test_the_role_gives_its_holder_what_it_holds(): void
