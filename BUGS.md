@@ -1,5 +1,12 @@
 # Known Bugs
 
+## Pages holding school records sent no browser protections
+- Status: Fixed
+- Area: HTTP, sessions
+- Observed: Responses carried no frame, content-type or referrer headers, and no HSTS over HTTPS. Session data was stored in clear text, and the session cookie was not marked secure in production unless an environment value said so.
+- Impact: Another site could frame a page and trick a click. Full addresses with record ids leaked in the Referer header. Anybody who could read the sessions table could read names and messages about people.
+- Reproduction: Request any page and read the response headers.
+- Resolution: Every response now carries X-Frame-Options, X-Content-Type-Options, Referrer-Policy and Permissions-Policy, plus HSTS over HTTPS. Sessions are encrypted by default, and the cookie is secure-only by default in production. Turning on encryption signs everyone out once.
 ## Scheduled jobs ran once per app server
 - Status: Fixed
 - Area: Scheduler
