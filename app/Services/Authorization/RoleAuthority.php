@@ -136,9 +136,10 @@ class RoleAuthority
      * Check whether anybody at the campus can still manage its roles.
      *
      * Read straight from the tables, so a change made inside the same
-     * transaction counts before any cache catches up.
+     * transaction counts before any cache catches up. Pass $besides to ask
+     * whether somebody other than that person could.
      */
-    public function campusHasARoleManager(School $school): bool
+    public function campusHasARoleManager(School $school, ?User $besides = null): bool
     {
         $user = (new User)->getMorphClass();
         // A role outlives the membership, so somebody who left still holds it.
@@ -147,6 +148,7 @@ class RoleAuthority
             ->active()
             ->where('school_id', $school->id)
             ->whereIn('user_id', User::query()->whereNotIn('account_status', [AccountStatus::Suspended, AccountStatus::Archived])->select('id'))
+            ->when($besides !== null, fn ($query) => $query->where('user_id', '!=', $besides->id))
             ->select('user_id');
 
         $throughARole = DB::table('model_has_roles')

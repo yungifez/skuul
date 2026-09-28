@@ -1,5 +1,12 @@
 # Known Bugs
 
+## The last role manager could be recorded as leaving and keep access
+- Status: Fixed
+- Area: Staff records
+- Observed: Recording a future leaving date for the only person who can manage roles succeeded. After that date the daily run could not end their membership, so it warned and left their access in place.
+- Impact: A person who left kept access to the campus with no end date.
+- Reproduction: At a campus with one role manager, record that they leave in three days. Four days later they can still sign in.
+- Resolution: Recording a leaving for the last person who can manage roles is refused until somebody else can manage roles. The daily run keeps its warning as a backstop.
 ## Any organization could attach another organization's person by email
 - Status: Fixed
 - Area: Accounts, organization members

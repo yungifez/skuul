@@ -269,6 +269,33 @@ class StaffScreenTest extends TestCase
         $this->assertSame('Principal', $profile->fresh()->job_title);
     }
 
+    public function test_the_last_person_who_can_manage_roles_cannot_be_recorded_as_leaving(): void
+    {
+        $campus = School::factory()->create();
+        $this->authorized_user(['read staff profile', 'update staff profile', 'manage role'], $campus);
+        $profile = StaffProfile::factory()->create(['school_id' => $campus->id, 'user_id' => auth()->id()]);
+
+        Livewire::test(StaffProfileRecord::class, ['profile' => $profile])
+            ->call('startEditingJob')
+            ->set('status', StaffStatus::Left->value)
+            ->set('leftOn', now()->addDays(3)->toDateString())
+            ->call('saveJob')
+            ->assertHasErrors(['status' => 'Nobody else at this campus can manage roles. Give somebody else role management before recording that this person left.']);
+
+        $this->assertNotSame(StaffStatus::Left, $profile->fresh()->status);
+
+        $this->memberOf($campus)->givePermissionTo('manage role');
+
+        Livewire::test(StaffProfileRecord::class, ['profile' => $profile->fresh()])
+            ->call('startEditingJob')
+            ->set('status', StaffStatus::Left->value)
+            ->set('leftOn', now()->addDays(3)->toDateString())
+            ->call('saveJob')
+            ->assertHasNoErrors();
+
+        $this->assertSame(StaffStatus::Left, $profile->fresh()->status);
+    }
+
     public function test_a_leaver_taken_back_can_sign_in_to_the_campus_again(): void
     {
         $this->authorized_user(['read staff profile', 'update staff profile']);

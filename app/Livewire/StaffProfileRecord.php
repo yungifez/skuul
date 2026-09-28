@@ -114,7 +114,7 @@ class StaffProfileRecord extends Component
         } catch (InvalidValueException $exception) {
             $field = match (true) {
                 str_contains($exception->getMessage(), 'staff number') => 'staffNumber',
-                str_contains($exception->getMessage(), 'learner'), str_contains($exception->getMessage(), 'holds more') => 'status',
+                str_contains($exception->getMessage(), 'learner'), str_contains($exception->getMessage(), 'holds more'), str_contains($exception->getMessage(), 'manage roles') => 'status',
                 default => 'leftOn',
             };
 

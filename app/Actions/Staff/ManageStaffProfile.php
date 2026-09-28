@@ -102,6 +102,10 @@ class ManageStaffProfile
                     throw new InvalidValueException('This person holds more at this school than you do, so you cannot record that they left.');
                 }
 
+                if ($isLeaving && $profile->status !== StaffStatus::Left) {
+                    $this->failIfTheLastRoleManagerLeaves($profile);
+                }
+
                 $leftOn = $isLeaving ? Carbon::parse($attributes['left_on'] ?? now())->startOfDay() : null;
 
                 if ($leftOn !== null && $profile->joined_on !== null && $leftOn->lt($profile->joined_on)) {
@@ -134,6 +138,25 @@ class ManageStaffProfile
             });
         } catch (UniqueConstraintViolationException) {
             throw new InvalidValueException('Another person was just given this staff number.');
+        }
+    }
+
+    /**
+     * Refuse the leaving of the last person who can manage the campus's roles.
+     *
+     * Their access must end on their last day. Nobody else could then give
+     * or take roles here, so somebody else takes that over first.
+     *
+     * @throws InvalidValueException when nobody else can manage roles
+     */
+    private function failIfTheLastRoleManagerLeaves(StaffProfile $profile): void
+    {
+        $school = School::query()->findOrFail($profile->school_id);
+        $leaver = $profile->user()->firstOrFail();
+
+        if ($this->roleAuthority->campusHasARoleManager($school)
+            && !$this->roleAuthority->campusHasARoleManager($school, $leaver)) {
+            throw new InvalidValueException('Nobody else at this campus can manage roles. Give somebody else role management before recording that this person left.');
         }
     }
 
