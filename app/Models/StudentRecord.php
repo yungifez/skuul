@@ -121,8 +121,9 @@ class StudentRecord extends Model
      * Check whether the working school keeps a money account for this enrollment.
      *
      * The campus the learner attends always does. A campus with its own books
-     * keeps the account after the learner moves on, while it billed them or
-     * took money from them, so it can still collect and give money back.
+     * keeps the account after the learner moves on, while it billed them,
+     * took money from them, or charged them in its books, so it can still
+     * collect and give money back.
      */
     public function hasAccountInSchool(): bool
     {
@@ -131,7 +132,11 @@ class StudentRecord extends Model
         }
 
         return FeeInvoice::inSchool()->where('student_record_id', $this->id)->exists()
-            || StudentPayment::inSchool()->where('student_record_id', $this->id)->exists();
+            || StudentPayment::inSchool()->where('student_record_id', $this->id)->exists()
+            || LedgerLine::query()
+                ->where('student_record_id', $this->id)
+                ->whereIn('ledger_account_id', LedgerAccount::inSchool()->select('id'))
+                ->exists();
     }
 
     /**

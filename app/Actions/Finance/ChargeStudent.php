@@ -27,6 +27,9 @@ class ChargeStudent
     /**
      * Charge the student.
      *
+     * @param  int|null  $schoolId  the campus that is owed; the one the learner
+     *                              attends when nobody says
+     *
      * @throws InvalidValueException when the amount is not positive
      */
     public function charge(
@@ -38,12 +41,13 @@ class ChargeStudent
         ?CarbonInterface $date = null,
         string $incomePurpose = 'tuition_income',
         ?FinancialPeriod $period = null,
+        ?int $schoolId = null,
     ): LedgerTransaction {
         if ($amount <= 0) {
             throw new InvalidValueException('A charge must be more than nothing.');
         }
 
-        $schoolId = $enrollment->school_id;
+        $schoolId ??= $enrollment->school_id;
 
         return $this->post->post(
             description: $description,

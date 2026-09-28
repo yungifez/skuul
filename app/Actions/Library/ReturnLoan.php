@@ -8,6 +8,8 @@ use App\Enums\AuditAction;
 use App\Exceptions\InvalidValueException;
 use App\Models\LibraryLendingRules;
 use App\Models\LibraryLoan;
+use App\Models\School;
+use App\Models\StudentRecord;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -108,10 +110,13 @@ class ReturnLoan
      *
      * Only a learner has a fee account. A member of staff who keeps a book
      * too long is a conversation, not a charge.
+     *
+     * The library that lent the book is owed the fine, even when the learner
+     * has since moved to another campus of the organization.
      */
     private function chargeTheFine(LibraryLoan $loan, int $fine, ?User $actor): void
     {
-        $enrollment = $loan->borrower?->studentRecord;
+        $enrollment = $this->enrollmentOwingTheLibrary($loan);
 
         if ($enrollment === null) {
             return;
@@ -124,6 +129,28 @@ class ReturnLoan
             source: $loan,
             actor: $actor,
             incomePurpose: 'other_income',
+            schoolId: $loan->school_id,
         );
+    }
+
+    /**
+     * Find the borrower's enrollment at the lending campus, or the one they
+     * took with them to another campus of the same organization.
+     */
+    private function enrollmentOwingTheLibrary(LibraryLoan $loan): ?StudentRecord
+    {
+        $organizationId = School::query()->whereKey($loan->school_id)->value('organization_id');
+
+        return StudentRecord::query()
+            ->where('user_id', $loan->user_id)
+            ->where(fn ($query) => $query
+                ->where('school_id', $loan->school_id)
+                ->when($organizationId !== null, fn ($query) => $query->orWhereIn(
+                    'school_id',
+                    School::query()->where('organization_id', $organizationId)->select('id'),
+                )))
+            ->orderByRaw('case when school_id = ? then 0 else 1 end', [$loan->school_id])
+            ->orderBy('id')
+            ->first();
     }
 }

@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A library fine vanished when the learner had moved campus
+
+- Status: Fixed
+- Area: Library, fines, campus moves
+- Observed: A learner borrowed a book at campus A, moved to campus B, then returned it late at A. The loan recorded the fine, but no books showed it owed. The fine looked up the learner's enrollment at the working school only, found none, and charged nothing.
+- Impact: The lending library lost every fine from a learner who had moved. Had the lookup found an enrollment, the fine would have gone into campus B's books.
+- Reproduction: Lend a book at campus A with a daily fine. Move the learner to campus B. Take the book back late at A.
+- Resolution: `ReturnLoan` finds the borrower's enrollment at the lending campus or another campus of its organization and charges the fine to the lending campus. `ChargeStudent` takes the campus that is owed. The account screen also opens where the learner has charges in the books, so the library campus can collect.
+
 ## Changing a billing group after a move put credit at the wrong campus
 
 - Status: Fixed

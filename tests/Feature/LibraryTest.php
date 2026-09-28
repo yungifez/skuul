@@ -442,6 +442,32 @@ class LibraryTest extends TestCase
         $this->assertSame(300.0, app(StudentLedger::class)->balance($enrollment->fresh()));
     }
 
+    public function test_a_late_book_is_fined_by_the_library_that_lent_it_after_the_learner_moves(): void
+    {
+        $this->authorized_user([]);
+        $library = $this->workingSchool();
+        FinancialPeriod::query()->firstOrCreate(
+            ['school_id' => $library->id, 'name' => 'Current finance period'],
+            ['starts_on' => now()->startOfYear()->toDateString(), 'ends_on' => now()->endOfYear()->toDateString()],
+        );
+        LibraryLendingRules::create(['school_id' => $library->id, 'fine_per_day' => 5_000]);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $library->id]);
+        $borrower = $this->memberOf($library, $enrollment->user);
+        $loan = app(IssueLoan::class)->issue($this->copy(), $borrower, issuedOn: now()->subDays(20));
+        $newCampus = School::factory()->create(['organization_id' => $library->organization_id]);
+        $enrollment->forceFill(['school_id' => $newCampus->id])->save();
+
+        $returned = app(ReturnLoan::class)->receive($loan);
+
+        $this->assertSame(30_000, $returned->fine_charged);
+        $moved = $enrollment->fresh();
+        $this->assertSame(300.0, app(StudentLedger::class)->balance($moved, $library->id));
+        $this->assertSame(0.0, app(StudentLedger::class)->balance($moved));
+
+        $this->authorized_user(['read fee invoice']);
+        $this->get(route('student-accounts.show', $moved->id))->assertOk();
+    }
+
     public function test_a_late_book_costs_nothing_when_the_campus_charges_nothing(): void
     {
         $this->authorized_user([]);
