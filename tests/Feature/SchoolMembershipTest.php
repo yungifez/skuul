@@ -26,6 +26,7 @@ use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 use Tests\TestCase;
 
 /**
@@ -206,15 +207,16 @@ class SchoolMembershipTest extends TestCase
 
     public function test_provisioning_a_person_into_a_second_school_reuses_one_login(): void
     {
-        $second = School::factory()->create();
+        $first = School::factory()->create();
+        $second = School::factory()->create(['organization_id' => $first->organization_id]);
 
         // Provisioning validates the address against DNS, so use a real domain.
-        $existing = User::factory()->create([
+        $existing = $this->memberOf($first, User::factory()->create([
             'email' => $this->faker()->unique()->freeEmail(),
             'name' => 'Ada Bell',
             'phone' => '08011112222',
             'postal_code' => null,
-        ]);
+        ]));
 
         app(ProvisionAccount::class)->provision([
             'name' => 'Somebody Else',
@@ -236,6 +238,30 @@ class SchoolMembershipTest extends TestCase
         $this->assertSame('Ada Bell', $existing->fresh()->name);
         $this->assertSame('08011112222', $existing->fresh()->phone);
         $this->assertSame('100001', $existing->fresh()->postal_code);
+    }
+
+    public function test_provisioning_never_attaches_another_organizations_person(): void
+    {
+        $theirs = School::factory()->create();
+        $ours = School::factory()->create();
+        $existing = $this->memberOf($theirs, User::factory()->create([
+            'email' => $this->faker()->unique()->freeEmail(),
+            'name' => 'Ada Bell',
+        ]));
+
+        try {
+            app(ProvisionAccount::class)->provision([
+                'name' => 'Somebody Else',
+                'email' => $existing->email,
+                'school_id' => $ours->id,
+            ]);
+            $this->fail('Another organization\'s person was attached.');
+        } catch (ValidationException $exception) {
+            $this->assertStringContainsString('outside your organization', $exception->errors()['email'][0]);
+        }
+
+        $this->assertFalse($existing->fresh()->belongsToSchool($ours));
+        $this->assertSame('Ada Bell', $existing->fresh()->name);
     }
 
     public function test_a_person_with_no_membership_cannot_reach_the_dashboard(): void

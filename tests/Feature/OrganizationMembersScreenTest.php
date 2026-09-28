@@ -60,7 +60,7 @@ class OrganizationMembersScreenTest extends TestCase
     {
         $organization = Organization::factory()->create();
         $manager = $this->grantedMember($organization);
-        $newcomer = User::factory()->create();
+        $newcomer = $this->campusMemberOf($organization);
 
         Livewire::actingAs($manager)
             ->test(OrganizationMembers::class, ['organization' => $organization])
@@ -81,6 +81,22 @@ class OrganizationMembersScreenTest extends TestCase
             ->set('email', 'nobody@gmail.com')
             ->call('grant')
             ->assertHasErrors('email');
+    }
+
+    public function test_granting_the_email_of_another_organizations_person_reads_as_unknown(): void
+    {
+        $organization = Organization::factory()->create();
+        $manager = $this->grantedMember($organization);
+        $stranger = $this->campusMemberOf(Organization::factory()->create());
+
+        Livewire::actingAs($manager)
+            ->test(OrganizationMembers::class, ['organization' => $organization])
+            ->set('email', $stranger->email)
+            ->call('grant')
+            ->assertHasErrors(['email' => 'Nobody at this organization uses that email address.'])
+            ->assertDontSee($stranger->name);
+
+        $this->assertFalse($stranger->fresh()->isKnownToOrganization($organization));
     }
 
     public function test_revoking_from_the_screen_keeps_campus_access(): void
@@ -287,7 +303,7 @@ class OrganizationMembersScreenTest extends TestCase
         $organization = Organization::factory()->create();
         $this->grantedMember($organization);
         $membersOnly = $this->grantedMember($organization, [OrganizationPermission::ManageMembers]);
-        $newcomer = User::factory()->create();
+        $newcomer = $this->campusMemberOf($organization);
 
         Livewire::actingAs($membersOnly)
             ->test(OrganizationMembers::class, ['organization' => $organization])
@@ -306,7 +322,7 @@ class OrganizationMembersScreenTest extends TestCase
     {
         $organization = Organization::factory()->create();
         $manager = $this->grantedMember($organization);
-        $newcomer = User::factory()->create();
+        $newcomer = $this->campusMemberOf($organization);
 
         Livewire::actingAs($manager)
             ->test(OrganizationMembers::class, ['organization' => $organization])
@@ -314,6 +330,14 @@ class OrganizationMembersScreenTest extends TestCase
             ->call('grant');
 
         $this->assertTrue($newcomer->organizationMemberships()->firstOrFail()->hasFullAuthority());
+    }
+
+    /**
+     * Create a person who works at a campus of the organization.
+     */
+    private function campusMemberOf(Organization $organization): User
+    {
+        return $this->memberOf(School::factory()->create(['organization_id' => $organization->id]));
     }
 
     /**

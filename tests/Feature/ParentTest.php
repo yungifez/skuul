@@ -136,18 +136,32 @@ class ParentTest extends TestCase
         $this->authorized_user(['update parent'])->get("dashboard/parents/$parent->id/edit")->assertOk();
     }
 
-    public function test_a_guardian_added_by_two_schools_keeps_one_guardian_record(): void
+    public function test_a_guardian_added_by_two_campuses_keeps_one_guardian_record(): void
     {
         $email = $this->faker()->unique()->freeEmail();
         $firstSchool = $this->workingSchool();
         $this->authorized_user(['create parent'], $firstSchool);
         Livewire::test(CreateParentForm::class)->set('name', 'Ada Bell')->set('email', $email)->call('save')->assertHasNoErrors();
 
-        $this->authorized_user(['create parent'], School::factory()->create());
+        $this->authorized_user(['create parent'], School::factory()->create(['organization_id' => $firstSchool->organization_id]));
         Livewire::test(CreateParentForm::class)->set('name', 'Ada Bell')->set('email', $email)->call('save')->assertHasNoErrors();
 
         $guardian = User::query()->where('email', $email)->sole();
         $this->assertSame(1, $guardian->parentRecord()->count());
+    }
+
+    public function test_another_organization_cannot_take_on_a_guardian_by_email(): void
+    {
+        $email = $this->faker()->unique()->freeEmail();
+        $this->authorized_user(['create parent'], $this->workingSchool());
+        Livewire::test(CreateParentForm::class)->set('name', 'Ada Bell')->set('email', $email)->call('save')->assertHasNoErrors();
+
+        $otherSchool = School::factory()->create();
+        $this->authorized_user(['create parent'], $otherSchool);
+        Livewire::test(CreateParentForm::class)->set('name', 'Ada Bell')->set('email', $email)->call('save')
+            ->assertHasErrors(['email' => 'This email belongs to a person outside your organization, so it cannot be used here.']);
+
+        $this->assertFalse(User::query()->where('email', $email)->sole()->belongsToSchool($otherSchool));
     }
 
     public function test_unauthorised_users_cannot_update_parents(): void

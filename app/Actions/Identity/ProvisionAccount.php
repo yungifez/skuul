@@ -8,6 +8,7 @@ use App\Models\School;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\ValidationException;
 
 /**
  * Create the person profile and a pending account for a new member of a school.
@@ -15,8 +16,9 @@ use Illuminate\Validation\Rule;
  * The account has no password. The person sets one from an invitation link.
  * Calling this action again with the same email returns the existing account
  * and adds the school membership, so provisioning is safe to retry and one
- * person can join a second school without a second login. The second call
- * never overwrites the profile the person already has; it only fills blanks.
+ * person can join a second campus of the organization without a second login.
+ * The second call never overwrites the profile the person already has; it only
+ * fills blanks. An account the organization has never held is refused.
  */
 class ProvisionAccount
 {
@@ -46,8 +48,18 @@ class ProvisionAccount
             'phone' => ['nullable', 'string', 'max:100'],
         ])->validate();
 
+        $school = School::findOrFail($data['school_id']);
         $user = User::where('email', $data['email'])->first();
         $isExistingPerson = $user !== null;
+
+        // Another organization's person is not this one's to attach. Their
+        // profile holds what that organization recorded, and they never
+        // agreed to share it here.
+        if ($isExistingPerson && !$user->isKnownToOrganization($school->organization_id)) {
+            throw ValidationException::withMessages([
+                'email' => 'This email belongs to a person outside your organization, so it cannot be used here.',
+            ]);
+        }
 
         if ($user === null) {
             $user = new User;
@@ -85,7 +97,7 @@ class ProvisionAccount
         $user->save();
 
         // School access is a membership record, never a column on the user.
-        $this->grantSchoolMembership->grant($user, School::findOrFail($data['school_id']));
+        $this->grantSchoolMembership->grant($user, $school);
 
         if (isset($data['photo']) && !($isExistingPerson && $user->profile_photo_path !== null)) {
             $user->updateProfilePhoto($data['photo']);

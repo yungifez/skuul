@@ -224,6 +224,23 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Check whether the organization already holds this person's record.
+     *
+     * A past or present place at one of its campuses, or past or present
+     * organization scope, counts. Anybody else is a stranger to it, and their
+     * profile is not the organization's to read or reuse.
+     */
+    public function isKnownToOrganization(Organization|int $organization): bool
+    {
+        $organizationId = $organization instanceof Organization ? $organization->id : $organization;
+
+        return $this->organizationMemberships()->where('organization_id', $organizationId)->exists()
+            || $this->schoolMemberships()
+                ->whereHas('school', fn ($school) => $school->where('organization_id', $organizationId))
+                ->exists();
+    }
+
+    /**
      * Get the schools this person can work in.
      *
      * @return BelongsToMany<School, $this>

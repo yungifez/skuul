@@ -1,5 +1,12 @@
 # Known Bugs
 
+## Any organization could attach another organization's person by email
+- Status: Fixed
+- Area: Accounts, organization members
+- Observed: Creating a teacher, parent, student or admin with an email already used in another organization attached that account. The organization members screen granted organization scope to any account on the platform and said whether an email existed.
+- Impact: One organization could read the profile another organization recorded, without the person's consent, and could learn which emails use the platform.
+- Reproduction: At a campus of organization A, create a parent with the email of a parent at organization B. The form succeeds and the parent joins campus A with B's profile.
+- Resolution: An existing account is attached only when the organization already holds its record: a past or present place at one of its campuses, or past or present organization scope. Otherwise provisioning refuses the email, and the members screen answers as it does for an unknown email.
 ## Deleting a subject takes its lessons off published timetables
 - Status: Fixed
 - Area: Subjects

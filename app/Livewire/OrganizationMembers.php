@@ -82,8 +82,10 @@ class OrganizationMembers extends Component
 
         $user = User::query()->where('email', $this->email)->first();
 
-        if ($user === null) {
-            $this->addError('email', 'No account uses that email address.');
+        // A stranger's account is neither named nor granted, so the form
+        // cannot tell anyone which emails exist elsewhere on the platform.
+        if ($user === null || !$user->isKnownToOrganization($this->organization)) {
+            $this->addError('email', 'Nobody at this organization uses that email address.');
 
             return;
         }
