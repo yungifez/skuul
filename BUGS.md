@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Two managers could remove each other and lock the organization out
+- Status: Fixed
+- Area: Organization, members
+- Observed: Removing a manager, or taking away their right to manage members, checked that someone else could still manage. The check ran without a lock.
+- Impact: Two managers who removed each other at the same moment each saw the other as the backup. The organization was left with nobody who could manage its members.
+- Reproduction: Give two people the right to manage members. In two browsers, have each remove the other at the same moment.
+- Resolution: Both actions lock the organization row before they count its managers. The second change waits and then sees the first.
+- Note: A single-connection test cannot run the two requests at once. The existing tests cover the rule itself.
+
 ## A teacher kept changing marks after their assignment ended
 - Status: Fixed
 - Area: Gradebook, access

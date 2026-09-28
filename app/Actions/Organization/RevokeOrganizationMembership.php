@@ -41,6 +41,10 @@ class RevokeOrganizationMembership
         ?User $actor = null,
     ): ?OrganizationMembership {
         $membership = DB::transaction(function () use ($user, $organization, $actor): ?OrganizationMembership {
+            // Two managers taking each other's access at the same moment
+            // would each count the other. The lock makes the second wait.
+            Organization::query()->whereKey($organization->getKey())->lockForUpdate()->first();
+
             $membership = $user->organizationMemberships()
                 ->where('organization_id', $organization->id)
                 ->first();
