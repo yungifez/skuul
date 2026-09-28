@@ -262,7 +262,7 @@ class ShowDormitory extends Component
             'onDuty' => $this->dormitory->supervisions()->onDuty()->with('user')->get(),
             'canManage' => $canManage,
             'assignableBeds' => $assignableBeds,
-            'learners' => $canManage && $this->dormitory->is_active && $assignableBeds->isNotEmpty() ? $this->schoolLearners() : collect(),
+            'learners' => $canManage && $this->dormitory->is_active && $assignableBeds->isNotEmpty() ? $this->attendingLearners() : collect(),
         ]);
     }
 

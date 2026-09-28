@@ -17,7 +17,7 @@ use Illuminate\Database\Eloquent\Collection;
 trait ListsSchoolPeople
 {
     /**
-     * Get the learners enrolled in the working school.
+     * Get every learner the working school has enrolled, past ones included.
      *
      * @return Collection<int, StudentRecord>
      */
@@ -25,6 +25,21 @@ trait ListsSchoolPeople
     {
         return StudentRecord::query()
             ->inSchool()
+            ->with('user:id,name')
+            ->orderBy('admission_number')
+            ->get(['id', 'user_id', 'admission_number']);
+    }
+
+    /**
+     * Get the learners who still attend the working school, suspended ones included.
+     *
+     * @return Collection<int, StudentRecord>
+     */
+    protected function attendingLearners(): Collection
+    {
+        return StudentRecord::query()
+            ->inSchool()
+            ->enrolled()
             ->with('user:id,name')
             ->orderBy('admission_number')
             ->get(['id', 'user_id', 'admission_number']);

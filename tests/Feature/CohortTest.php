@@ -68,6 +68,35 @@ class CohortTest extends TestCase
         app(ChangeCohortMembership::class)->addStudent($cohort, $stranger);
     }
 
+    public function test_a_learner_who_left_the_school_cannot_join_a_group(): void
+    {
+        $this->authorized_user(['create cohort']);
+        $cohort = $this->cohort();
+        $enrollment = $this->enrollment();
+        app(ChangeEnrollmentStatus::class)->change($enrollment, EnrollmentStatus::Withdrawn);
+
+        try {
+            app(ChangeCohortMembership::class)->addStudent($cohort, $enrollment->fresh());
+            $this->fail('A withdrawn learner joined a group.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString('no longer attends', $exception->getMessage());
+        }
+
+        $this->assertSame(0, $cohort->members()->count());
+    }
+
+    public function test_a_suspended_learner_stays_eligible_for_a_group(): void
+    {
+        $this->authorized_user(['create cohort']);
+        $cohort = $this->cohort();
+        $enrollment = $this->enrollment();
+        app(ChangeEnrollmentStatus::class)->change($enrollment, EnrollmentStatus::Suspended);
+
+        app(ChangeCohortMembership::class)->addStudent($cohort, $enrollment->fresh());
+
+        $this->assertSame(1, $cohort->members()->count());
+    }
+
     public function test_a_student_is_added_once(): void
     {
         $this->authorized_user(['create cohort']);

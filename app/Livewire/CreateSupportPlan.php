@@ -88,7 +88,7 @@ class CreateSupportPlan extends Component
         return view('livewire.create-support-plan', [
             'categories' => SupportCategory::cases(),
             'isConfidential' => SupportCategory::tryFrom($this->category)?->isConfidential() ?? false,
-            'students' => $this->schoolLearners(),
+            'students' => $this->attendingLearners(),
             'staff' => $this->schoolStaff(),
         ]);
     }

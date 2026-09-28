@@ -6,6 +6,7 @@ use App\Actions\Cohort\ChangeCohortMembership;
 use App\Actions\Cohort\ChangeProgramParticipation;
 use App\Enums\AuditAction;
 use App\Enums\CohortType;
+use App\Enums\EnrollmentStatus;
 use App\Enums\ParticipationStatus;
 use App\Enums\ProgramType;
 use App\Livewire\CohortDirectory as CohortDirectoryComponent;
@@ -410,6 +411,24 @@ class CohortScreenTest extends TestCase
         );
 
         $this->assertSame(ParticipationStatus::Requested, $theirPlace->fresh()->status);
+    }
+
+    public function test_a_learner_who_left_is_neither_offered_nor_added(): void
+    {
+        $this->authorized_user(['read cohort', 'update cohort']);
+        $cohort = $this->cohort();
+        $this->enrollment(User::factory()->create(['name' => 'Ada Bell']));
+        $leaver = $this->enrollment(User::factory()->create(['name' => 'Ben Gone']));
+        $leaver->update(['status' => EnrollmentStatus::Withdrawn]);
+
+        Livewire::test(CohortRecord::class, ['cohort' => $cohort])
+            ->assertSee('Ada Bell')
+            ->assertDontSee('Ben Gone')
+            ->set('studentRecordId', (string) $leaver->id)
+            ->call('addMember')
+            ->assertHasErrors('studentRecordId');
+
+        $this->assertSame(0, $cohort->members()->count());
     }
 
     public function test_a_learner_of_another_school_never_joins_the_group(): void

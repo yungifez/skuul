@@ -151,7 +151,7 @@ class CohortRecord extends Component
             'past' => $this->cohort->members->whereNotNull('left_on'),
             'canWrite' => $canWrite,
             'students' => $canWrite && $this->cohort->is_active
-                ? $this->schoolLearners()->reject(fn (StudentRecord $student): bool => in_array($student->id, $heldIds, true))
+                ? $this->attendingLearners()->reject(fn (StudentRecord $student): bool => in_array($student->id, $heldIds, true))
                 : collect(),
         ]);
     }

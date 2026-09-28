@@ -173,7 +173,7 @@ class ProgramRecord extends Component
         return view('livewire.program-record', [
             'running' => $this->program->participations->filter(fn ($place): bool => $place->status->isRunning()),
             'canWrite' => $canWrite,
-            'students' => $canWrite && $this->program->is_active ? $this->schoolLearners() : collect(),
+            'students' => $canWrite && $this->program->is_active ? $this->attendingLearners() : collect(),
             'staff' => $canWrite && $this->program->is_active ? $this->schoolStaff() : collect(),
         ]);
     }

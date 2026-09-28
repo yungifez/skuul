@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A learner who left could still join a group
+- Status: Fixed
+- Area: Groups, programmes, boarding and support plans
+- Observed: The group screen offered withdrawn, transferred and graduated learners. Adding one gave them a new group place. The programme, dormitory and support plan pickers also listed learners who had left.
+- Impact: Former learners came back into class groups and watchlists. Staff chose from lists padded with people who no longer attend.
+- Reproduction: Withdraw a learner. Open a group. Pick the learner and add them.
+- Resolution: A group now takes only a learner who still attends, suspended ones included. The four pickers list only attending learners.
+
 ## The sidebar listed Subjects twice
 - Status: Fixed
 - Area: Sidebar and command palette

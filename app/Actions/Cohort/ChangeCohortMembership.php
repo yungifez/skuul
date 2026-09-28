@@ -4,6 +4,7 @@ namespace App\Actions\Cohort;
 
 use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AuditAction;
+use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\Cohort;
 use App\Models\CohortMember;
@@ -27,7 +28,10 @@ class ChangeCohortMembership
     /**
      * Add an enrollment to the group.
      *
-     * @throws InvalidValueException when the enrollment is in another school, the group is closed or the day has not come
+     * A suspended learner still attends and may join. A learner who left,
+     * moved on or graduated may not.
+     *
+     * @throws InvalidValueException when the enrollment is in another school or closed, the group is closed or the day has not come
      */
     public function addStudent(
         Cohort $cohort,
@@ -37,6 +41,10 @@ class ChangeCohortMembership
     ): CohortMember {
         if ($cohort->school_id !== $enrollment->school_id) {
             throw new InvalidValueException('A student can only join a group in their own school.');
+        }
+
+        if (!in_array($enrollment->status, EnrollmentStatus::enrolled(), true)) {
+            throw new InvalidValueException("This learner no longer attends the school ({$enrollment->status->label()}).");
         }
 
         return $this->add($cohort, ['student_record_id' => $enrollment->id], $joinedOn, $actor);
