@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A payment to the old campus reads the new campus's balance
+- Status: Fixed
+- Area: Finance, student payments
+- Observed: RecordStudentPayment booked money to the campus it was given, but worked out what was owed from the campus the learner now attends.
+- Impact: Money paid to the old campus could go to held credit while the old debt stayed open, or settle a debt the old campus was not owed.
+- Reproduction: Invoice a learner at campus A. Move them to campus B. Record a payment for campus A without saying how much it settles.
+- Resolution: The amount owed is now read from the campus that takes the money. The payment desk already passed the amount, so no stored money was affected.
+
 ## Balance reports drop a learner who moved to another campus
 - Status: Fixed
 - Area: Finance reports

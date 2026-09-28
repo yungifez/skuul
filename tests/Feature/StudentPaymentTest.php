@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Actions\Finance\ApplyStudentCredit;
 use App\Actions\Finance\ReceivePayment;
+use App\Actions\Finance\RecordStudentPayment;
 use App\Actions\Finance\RefundStudent;
 use App\Actions\Finance\ReversePayment;
 use App\Enums\AuditAction;
@@ -399,6 +400,21 @@ class StudentPaymentTest extends TestCase
         $this->assertSame($this->workingSchool()->id, $owed['school']->id);
         $this->assertSame(40.0, $owed['balance']);
         $this->assertSame(0.0, app(StudentLedger::class)->unappliedCredit($enrollment->fresh()));
+    }
+
+    public function test_a_payment_to_the_old_campus_settles_what_is_owed_there(): void
+    {
+        $this->authorized_user(['read fee invoice', 'update fee invoice']);
+        $enrollment = $this->enrollment();
+        $this->invoiceFor($enrollment, [['amount' => 100]]);
+        $newCampus = School::factory()->create();
+        $enrollment->forceFill(['school_id' => $newCampus->id])->save();
+
+        app(RecordStudentPayment::class)->record($enrollment->fresh(), 60, schoolId: $this->workingSchool()->id);
+
+        $ledger = app(StudentLedger::class);
+        $this->assertSame(40.0, $ledger->balance($enrollment->fresh(), $this->workingSchool()->id));
+        $this->assertSame(0.0, $ledger->unappliedCredit($enrollment->fresh(), $this->workingSchool()->id));
     }
 
     public function test_the_office_can_name_the_fee_a_payment_settles(): void

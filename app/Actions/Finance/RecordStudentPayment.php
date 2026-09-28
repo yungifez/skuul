@@ -58,7 +58,7 @@ class RecordStudentPayment
         $schoolId ??= $enrollment->school_id;
 
         if ($applied === null) {
-            $owed = max($this->ledger->balance($enrollment), 0.0);
+            $owed = max($this->ledger->balance($enrollment, $schoolId), 0.0);
             $applied = min($amount, $owed);
         }
 
