@@ -5,6 +5,7 @@ namespace App\Livewire;
 use App\Enums\AcademicPeriodStatus;
 use App\Models\Organization;
 use App\Models\School;
+use App\Models\SchoolMembership;
 use App\Models\StudentRecord;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\Gate;
@@ -31,7 +32,7 @@ class OrganizationDashboard extends Component
     public function mount(Organization $organization): void
     {
         $this->organization = $organization;
-        $this->campuses = new Collection();
+        $this->campuses = new Collection;
 
         $this->authorizeOrganization();
     }
@@ -43,8 +44,8 @@ class OrganizationDashboard extends Component
     {
         $this->authorizeOrganization();
 
-        $studentRecords = new StudentRecord();
-        $schools = new School();
+        $studentRecords = new StudentRecord;
+        $schools = new School;
 
         $this->campuses = $this->organization->schools()
             ->select([
@@ -75,7 +76,11 @@ class OrganizationDashboard extends Component
 
         $this->campusCount = $this->campuses->count();
         $this->activeStudents = (int) $this->campuses->sum('active_students_count');
-        $this->campusAccessHolders = (int) $this->campuses->sum('campus_access_count');
+        $this->campusAccessHolders = SchoolMembership::query()
+            ->active()
+            ->whereIn('school_id', $this->campuses->modelKeys())
+            ->distinct()
+            ->count('user_id');
         $this->campusesMissingAcademicSetup = $this->campuses
             ->filter(fn (School $campus): bool => !$this->hasRequiredAcademicSetup($campus))
             ->count();

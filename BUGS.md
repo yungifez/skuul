@@ -1,5 +1,13 @@
 # Known Bugs
 
+## The organization dashboard counted a person once per campus
+- Status: Fixed
+- Area: Organization dashboard
+- Observed: "Campus access" added up each campus's member count. A person with access to two campuses counted twice. Every learner who moved campus keeps both memberships, so each move raised the total. The campus row also showed the raw label "AcademicPeriod".
+- Impact: The organization overstated how many people can work in its campuses.
+- Reproduction: Give one person active memberships at two campuses of an organization. Open the organization dashboard.
+- Resolution: The total counts distinct people with an active membership at any campus. The row uses the school's own name for a period.
+
 ## The campus that taught a term could not issue its report card after the learner moved
 - Status: Fixed
 - Area: Report cards
