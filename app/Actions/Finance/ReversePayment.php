@@ -24,6 +24,7 @@ class ReversePayment
         private ReverseLedgerTransaction $reverseEntry,
         private RecordAuditEvent $auditor,
         private FinancialPeriodResolver $periods,
+        private CarryBalanceToCampus $carry,
     ) {}
 
     /**
@@ -92,6 +93,10 @@ class ReversePayment
                 $actor,
                 $payment->school_id,
             );
+
+            // A campus of the group can take back a payment after the learner
+            // moved on. What it takes back follows the learner's account.
+            $this->carry->carryToWhereTheyAttend($payment->studentRecord, $payment->school_id, $actor);
 
             return $reversal;
         });

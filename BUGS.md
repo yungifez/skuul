@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A bounced payment left spendable credit at the new campus
+
+- Status: Fixed
+- Area: Finance, campus moves inside a billing group
+- Observed: A learner paid 200 at one campus and moved to another campus of the same billing group. The 200 of credit was carried. The first campus then took the payment back because the cheque bounced. The new campus still held 200 of credit.
+- Impact: The family could spend money the school never received. A payment taken back after a move also left the debt at the old campus while its bill sat at the new one, and money taken at the old campus after a move stayed there as credit the new campus could not use.
+- Reproduction: Put two campuses in one billing group. Take a 200 payment at the first. Move the learner to the second. Take the payment back at the first. The second campus shows 200 of credit.
+- Resolution: A payment taken or taken back at a campus the learner left now carries the change on to the campus they attend, when the two keep one purse. A carry can now move a balance below nothing. Campuses with separate books keep their own money, as before.
+
 ## A carried debt could not be paid at the new campus
 
 - Status: Fixed

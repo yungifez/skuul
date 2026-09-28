@@ -62,6 +62,31 @@ class CarryBalanceToCampus
     }
 
     /**
+     * Carry what a campus of the group wrote about a learner who left it.
+     *
+     * A payment taken or taken back at the old campus after a move lands in
+     * the old campus's books. Carried on to the campus the learner attends,
+     * it counts where the learner's account is kept.
+     *
+     * @return array<string, float>
+     */
+    public function carryToWhereTheyAttend(StudentRecord $enrollment, int $fromSchoolId, ?User $actor = null): array
+    {
+        $attending = StudentRecord::query()->whereKey($enrollment->id)->value('school_id');
+
+        if ($attending === null || (int) $attending === $fromSchoolId) {
+            return [];
+        }
+
+        return $this->carryIfTheyBillTogether(
+            $enrollment,
+            School::query()->findOrFail($fromSchoolId),
+            School::query()->findOrFail($attending),
+            $actor,
+        );
+    }
+
+    /**
      * Carry the balances from one campus to the other.
      *
      * @return array<string, float>
@@ -123,7 +148,10 @@ class CarryBalanceToCampus
     ): void {
         $leaving = $this->chart->account($purpose, $from->id);
         $joining = $this->chart->account($purpose, $to->id);
-        $isDebitBalance = $leaving->type->normalBalance() === 'debit';
+        // A balance below nothing, such as credit taken back after it was
+        // carried, moves the other way round.
+        $isDebitBalance = ($leaving->type->normalBalance() === 'debit') === ($amount > 0);
+        $amount = abs($amount);
         $memo = "Carried to $to->name";
 
         // Clearing a debit balance is a credit, and the campus is then owed by

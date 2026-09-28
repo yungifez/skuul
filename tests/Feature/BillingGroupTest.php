@@ -8,6 +8,7 @@ use App\Actions\Finance\CarryBalanceToCampus;
 use App\Actions\Finance\ChargeStudent;
 use App\Actions\Finance\ReceivePayment;
 use App\Actions\Finance\RefundStudent;
+use App\Actions\Finance\ReversePayment;
 use App\Actions\Organization\GrantOrganizationMembership;
 use App\Actions\Organization\SetOrganizationMemberPermissions;
 use App\Enums\AcademicStructureStatus;
@@ -239,6 +240,53 @@ class BillingGroupTest extends TestCase
         $this->assertSame($source->id, $invoice->fresh()->school_id);
         app(ReceivePayment::class)->receive($enrollment->fresh(), 10_000, schoolId: $source->id);
         $this->assertSame(10_000, $invoice->fresh()->paid->getMinorAmount()->toInt());
+    }
+
+    public function test_a_bounced_payment_taken_back_at_the_old_campus_takes_back_the_carried_credit(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        $payment = app(ReceivePayment::class)->receive($enrollment, 20_000, schoolId: $source->id);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+        $moved = $enrollment->fresh();
+        $this->assertSame(200.0, app(StudentLedger::class)->unappliedCredit($moved));
+
+        app(ReversePayment::class)->reverse($payment, 'The cheque bounced');
+
+        $chart = app(ChartOfAccounts::class);
+        $this->assertSame(0.0, app(StudentLedger::class)->unappliedCredit($moved));
+        $this->assertSame(0.0, app(StudentLedger::class)->unappliedCredit($moved, $source->id));
+        $this->assertSame(0.0, round($chart->account('due_from_campus', $source->id)->balance() - $chart->account('due_to_campus', $source->id)->balance(), 2));
+    }
+
+    public function test_a_payment_taken_back_after_a_carry_opens_the_debt_at_the_new_campus(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        $invoice = $this->invoiceAt($source, $enrollment, 100);
+        $payment = app(ReceivePayment::class)->receive($enrollment, 4_000, schoolId: $source->id);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+        app(ReversePayment::class)->reverse($payment, 'Recorded against the wrong child');
+        $moved = $enrollment->fresh();
+
+        $this->assertSame(100.0, app(StudentLedger::class)->balance($moved));
+        $this->assertSame(0.0, app(StudentLedger::class)->balance($moved, $source->id));
+        $this->assertSame(0, $invoice->fresh()->paid->getMinorAmount()->toInt());
+    }
+
+    public function test_money_taken_at_the_old_campus_after_a_move_is_credit_at_the_new_one(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+        $moved = $enrollment->fresh();
+        app(ReceivePayment::class)->receive($moved, 5_000, schoolId: $source->id);
+
+        $this->assertSame(50.0, app(StudentLedger::class)->unappliedCredit($moved));
+        $this->assertSame(0.0, app(StudentLedger::class)->unappliedCredit($moved, $source->id));
     }
 
     public function test_a_learner_who_owes_nothing_carries_nothing(): void

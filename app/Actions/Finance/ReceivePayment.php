@@ -31,6 +31,7 @@ class ReceivePayment
         private AllocationPlanner $planner,
         private PaymentChannelRegistry $channels,
         private RecordAuditEvent $auditor,
+        private CarryBalanceToCampus $carry,
     ) {}
 
     /**
@@ -125,6 +126,10 @@ class ReceivePayment
                 $actor,
                 $schoolId,
             );
+
+            // Money a campus of the group takes for a learner who moved on
+            // is theirs to spend where they now attend.
+            $this->carry->carryToWhereTheyAttend($enrollment, $schoolId, $actor);
 
             return $payment;
         });
