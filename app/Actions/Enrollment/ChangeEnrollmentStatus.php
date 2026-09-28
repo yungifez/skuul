@@ -38,10 +38,13 @@ class ChangeEnrollmentStatus
         private CloseReservation $reservations,
         private ManageSupportPlan $supportPlans,
         private SectionSeats $seats,
+        private ChangeEnrollmentPlacement $placement,
     ) {}
 
     /**
      * Move the enrollment to the given state.
+     *
+     * @param  AcademicCycleSection|null  $into  for a learner taken back, the section they join; their old section's seats then do not count
      *
      * @throws InvalidValueException when the state cannot follow the current one
      */
@@ -51,8 +54,9 @@ class ChangeEnrollmentStatus
         ?User $actor = null,
         ?string $reason = null,
         ?CarbonInterface $effectiveOn = null,
+        ?AcademicCycleSection $into = null,
     ): StudentRecord {
-        return DB::transaction(function () use ($enrollment, $status, $actor, $reason, $effectiveOn): StudentRecord {
+        return DB::transaction(function () use ($enrollment, $status, $actor, $reason, $effectiveOn, $into): StudentRecord {
             // Re-read the row under a lock. This makes retries idempotent even
             // when two requests attempt to change the same enrollment at once.
             $enrollment = StudentRecord::query()
@@ -71,9 +75,16 @@ class ChangeEnrollmentStatus
                 );
             }
 
+            if ($into !== null && !$current->isClosed()) {
+                throw new InvalidValueException('Only a learner who left can be taken back into a section.');
+            }
+
             if ($current->isClosed()) {
                 $this->refuseALearnerWhoNowAttendsElsewhere($enrollment);
-                $this->refuseASeatThatIsNoLongerFree($enrollment);
+
+                if ($into === null) {
+                    $this->refuseASeatThatIsNoLongerFree($enrollment);
+                }
             }
 
             $enrollment->status = $status;
@@ -87,6 +98,17 @@ class ChangeEnrollmentStatus
                 'changed_by' => $actor?->id,
                 'reason' => $reason,
             ]);
+
+            // Placing checks the new section's seats, under its lock.
+            if ($into !== null) {
+                $enrollment = $this->placement->place(
+                    enrollment: $enrollment,
+                    academicCycleSection: $into,
+                    actor: $actor,
+                    reason: $reason,
+                    effectiveOn: $effectiveOn,
+                );
+            }
 
             if ($status->isClosed()) {
                 $this->boarding->release($enrollment, "Enrollment closed: {$status->label()}", $actor, $effectiveOn);

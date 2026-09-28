@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A returning learner could never take a waitlist offer
+- Status: Fixed
+- Area: Admissions waitlist, enrollment status
+- Observed: A learner who had left the school (withdrawn or graduated) could join a full section's waitlist and receive an offer. Accepting the offer failed with "This candidate already has an enrollment in the school." Re-admitting them from the profile also failed while their old section was full.
+- Impact: The seat stayed held by an offer nobody could take. The family was stuck until staff declined the offer by hand.
+- Reproduction: Withdraw a learner. Add them to a full section's waitlist. Free a seat and offer it. Accept the offer.
+- Resolution: Accepting now opens the learner's one enrollment at the school again, with its history and admission number, and places it in the offered section. Only the offered section's seats count. An enrollment that cannot reopen (transferred or archived) gets a clear refusal, and the offer stays open.
+
 ## Support plans stayed open for a learner who left or moved
 - Status: Fixed
 - Area: Wellbeing support plans

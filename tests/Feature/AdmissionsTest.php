@@ -124,6 +124,68 @@ class AdmissionsTest extends TestCase
         $this->assertSame(EnrollmentStatus::Active, $enrollment->fresh()->status);
     }
 
+    public function test_a_learner_who_left_takes_an_offer_back_into_their_own_enrollment(): void
+    {
+        $oldSection = $this->section(1);
+        $returning = $this->unplacedStudent();
+        app(ChangeEnrollmentPlacement::class)->place($returning, $oldSection);
+        app(ChangeEnrollmentStatus::class)->change($returning, EnrollmentStatus::Withdrawn);
+        app(ChangeEnrollmentPlacement::class)->place($this->unplacedStudent(), $oldSection);
+
+        $section = $this->section(1);
+        $occupied = $this->unplacedStudent();
+        app(ChangeEnrollmentPlacement::class)->place($occupied, $section);
+        app(JoinWaitlist::class)->join($section, $returning->user);
+        app(ChangeEnrollmentStatus::class)->graduate($occupied);
+        $offered = app(OfferNextWaitlistEntry::class)->offer($section);
+
+        $this->assertNotNull($offered);
+
+        $enrollment = app(AcceptWaitlistEntry::class)->accept($offered);
+
+        $this->assertSame($returning->id, $enrollment->id);
+        $this->assertSame($returning->admission_number, $enrollment->fresh()->admission_number);
+        $this->assertSame(EnrollmentStatus::Active, $enrollment->fresh()->status);
+        $this->assertSame($section->id, $enrollment->fresh()->academic_cycle_section_id);
+        $this->assertSame(AdmissionWaitlistStatus::Placed, $offered->fresh()->status);
+        $this->assertSame(1, StudentRecord::query()->where('user_id', $returning->user_id)->count());
+    }
+
+    public function test_an_offer_to_a_learner_whose_enrollment_cannot_reopen_is_refused(): void
+    {
+        $transferred = $this->unplacedStudent();
+        $section = $this->section(1);
+        $occupied = $this->unplacedStudent();
+        app(ChangeEnrollmentPlacement::class)->place($occupied, $section);
+        app(ChangeEnrollmentStatus::class)->change($transferred, EnrollmentStatus::Transferred);
+        app(JoinWaitlist::class)->join($section, $transferred->user);
+        app(ChangeEnrollmentStatus::class)->graduate($occupied);
+        $offered = app(OfferNextWaitlistEntry::class)->offer($section);
+
+        $this->assertNotNull($offered);
+
+        try {
+            app(AcceptWaitlistEntry::class)->accept($offered);
+            $this->fail('A transferred enrollment was opened again.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString('cannot be opened again', $exception->getMessage());
+        }
+
+        $this->assertSame(AdmissionWaitlistStatus::Offered, $offered->fresh()->status);
+        $this->assertSame(EnrollmentStatus::Transferred, $transferred->fresh()->status);
+    }
+
+    public function test_only_a_learner_who_left_can_be_taken_back_into_a_section(): void
+    {
+        $attending = $this->unplacedStudent();
+        app(ChangeEnrollmentPlacement::class)->place($attending, $this->section(2));
+
+        $this->expectException(InvalidValueException::class);
+        $this->expectExceptionMessage('Only a learner who left can be taken back into a section.');
+
+        app(ChangeEnrollmentStatus::class)->change($attending, EnrollmentStatus::Suspended, into: $this->section(2));
+    }
+
     public function test_one_free_seat_is_offered_to_one_family(): void
     {
         $section = $this->section(1);

@@ -4,8 +4,10 @@ namespace App\Actions\Admissions;
 
 use App\Actions\Audit\RecordAuditEvent;
 use App\Actions\Enrollment\ChangeEnrollmentPlacement;
+use App\Actions\Enrollment\ChangeEnrollmentStatus;
 use App\Enums\AdmissionWaitlistStatus;
 use App\Enums\AuditAction;
+use App\Enums\EnrollmentStatus;
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Models\AdmissionWaitlistEntry;
@@ -20,6 +22,7 @@ class AcceptWaitlistEntry
         private ChangeEnrollmentPlacement $place,
         private StudentService $students,
         private RecordAuditEvent $auditor,
+        private ChangeEnrollmentStatus $status,
     ) {}
 
     /**
@@ -39,11 +42,17 @@ class AcceptWaitlistEntry
                 throw new InvalidValueException('Only an offered admission place can be accepted.');
             }
 
-            if (StudentRecord::query()
+            $earlier = StudentRecord::query()
                 ->where('school_id', $entry->school_id)
                 ->where('user_id', $entry->user_id)
-                ->exists()) {
-                throw new InvalidValueException('This candidate already has an enrollment in the school.');
+                ->first();
+
+            if ($earlier !== null && !$earlier->status->isClosed()) {
+                throw new InvalidValueException('This candidate already attends the school.');
+            }
+
+            if ($earlier !== null && !$earlier->status->canMoveTo(EnrollmentStatus::Active)) {
+                throw new InvalidValueException("This candidate's earlier enrollment here is {$earlier->status->label()}, so it cannot be opened again.");
             }
 
             // The admission form refuses the same thing. Accepting a place
@@ -62,13 +71,6 @@ class AcceptWaitlistEntry
             $candidate = $entry->candidate()->firstOrFail();
             $candidate->assignRole(Role::Student);
 
-            $enrollment = StudentRecord::create([
-                'school_id' => $entry->school_id,
-                'user_id' => $entry->user_id,
-                'admission_number' => $this->students->generateAdmissionNumber($entry->school_id),
-                'admission_date' => now(),
-            ]);
-
             // The offer becomes the placement. Closing it first lets its own
             // seat take the learner; the transaction undoes both if placing fails.
             $entry->update([
@@ -77,12 +79,17 @@ class AcceptWaitlistEntry
                 'decided_by' => $actor?->id,
             ]);
 
-            $enrollment = $this->place->place(
-                enrollment: $enrollment,
-                academicCycleSection: $entry->academicCycleSection,
-                actor: $actor,
-                reason: 'Admission waitlist accepted',
-            );
+            // A learner who left and comes back keeps their one enrollment
+            // here, with its history and admission number.
+            $enrollment = $earlier === null
+                ? $this->placeANewLearner($entry, $actor)
+                : $this->status->change(
+                    enrollment: $earlier,
+                    status: EnrollmentStatus::Active,
+                    actor: $actor,
+                    reason: 'Admission waitlist accepted',
+                    into: $entry->academicCycleSection,
+                );
 
             $this->auditor->record(
                 AuditAction::AdmissionWaitlistPlaced,
@@ -94,5 +101,25 @@ class AcceptWaitlistEntry
 
             return $enrollment;
         });
+    }
+
+    /**
+     * Create the enrollment of a learner new to the school and seat them.
+     */
+    private function placeANewLearner(AdmissionWaitlistEntry $entry, ?User $actor): StudentRecord
+    {
+        $enrollment = StudentRecord::create([
+            'school_id' => $entry->school_id,
+            'user_id' => $entry->user_id,
+            'admission_number' => $this->students->generateAdmissionNumber($entry->school_id),
+            'admission_date' => now(),
+        ]);
+
+        return $this->place->place(
+            enrollment: $enrollment,
+            academicCycleSection: $entry->academicCycleSection,
+            actor: $actor,
+            reason: 'Admission waitlist accepted',
+        );
     }
 }
