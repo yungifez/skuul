@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A CSV cell on two lines broke the import, and Windows files lost accents
+- Status: Fixed
+- Area: Imports, CSV reading
+- Observed: The reader split the file into lines before it read the cells. A quoted cell with a line break became two broken rows. A CSV saved in the Windows character set was read as UTF-8.
+- Impact: An address typed on two lines in Excel shifted every later column of that learner, or split them into two bad rows. Accented names were garbled, or the database refused the row.
+- Reproduction: Import a CSV with an address cell that holds a line break. Or save a CSV with a name such as Renée from older Excel as plain CSV, and import it.
+- Resolution: The reader now reads whole CSV records, so quoted line breaks stay in their cell. A file that is not valid UTF-8 is read as Windows-1252.
+
 ## A suspended person kept working in a tab they had open
 - Status: Fixed
 - Area: Accounts, Livewire screens

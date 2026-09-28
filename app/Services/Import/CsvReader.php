@@ -43,25 +43,35 @@ class CsvReader
         // Excel starts a UTF-8 file with a byte order mark, which would
         // otherwise hide the first column name.
         $contents = preg_replace('/^\xEF\xBB\xBF/', '', $contents) ?? $contents;
-        $lines = preg_split('/\r\n|\r|\n/', trim($contents)) ?: [];
 
-        if ($lines === [] || $lines[0] === '') {
+        // Older Excel saves a plain CSV in the Windows character set. Read as
+        // UTF-8, an accented name would be garbled or refused by the database.
+        if (!mb_check_encoding($contents, 'UTF-8')) {
+            $contents = mb_convert_encoding($contents, 'UTF-8', 'Windows-1252');
+        }
+
+        // Read record by record, not line by line: a quoted cell can hold a
+        // line break, such as an address typed on two lines.
+        $stream = fopen('php://temp', 'r+');
+        fwrite($stream, trim($contents));
+        rewind($stream);
+
+        $headingRow = fgetcsv($stream, escape: '\\');
+
+        if ($headingRow === false || $this->isBlank($headingRow)) {
+            fclose($stream);
+
             throw new InvalidValueException('The file has no heading row.');
         }
 
-        $headings = array_map(
-            fn (string $heading): string => strtolower(trim($heading)),
-            str_getcsv(array_shift($lines), escape: '\\')
-        );
-
+        $headings = array_map(fn (?string $heading): string => strtolower(trim((string) $heading)), $headingRow);
         $rows = [];
 
-        foreach ($lines as $line) {
-            if (trim($line) === '') {
+        while (($values = fgetcsv($stream, escape: '\\')) !== false) {
+            if ($this->isBlank($values)) {
                 continue;
             }
 
-            $values = str_getcsv($line, escape: '\\');
             $row = [];
 
             foreach ($headings as $index => $heading) {
@@ -73,6 +83,18 @@ class CsvReader
             $rows[] = $row;
         }
 
+        fclose($stream);
+
         return $rows;
+    }
+
+    /**
+     * Check whether a record holds nothing but spaces.
+     *
+     * @param  array<int, string|null>  $values
+     */
+    private function isBlank(array $values): bool
+    {
+        return trim(implode('', array_map(fn (?string $value): string => (string) $value, $values))) === '';
     }
 }

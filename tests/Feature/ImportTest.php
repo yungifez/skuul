@@ -323,6 +323,23 @@ class ImportTest extends TestCase
         $this->assertSame([['source_id' => 'HR-1', 'name' => 'Ada Bell']], $rows);
     }
 
+    public function test_a_cell_typed_on_two_lines_stays_in_its_row(): void
+    {
+        $rows = app(CsvReader::class)->parse("name,address,email\r\nAda Bell,\"12 Marina Road\r\nLagos\",ada.bell@gmail.com\r\nGrace Ola,Abuja,grace.ola@gmail.com\r\n");
+
+        $this->assertCount(2, $rows);
+        $this->assertSame("12 Marina Road\r\nLagos", $rows[0]['address']);
+        $this->assertSame('ada.bell@gmail.com', $rows[0]['email']);
+        $this->assertSame('Grace Ola', $rows[1]['name']);
+    }
+
+    public function test_a_file_saved_in_the_windows_character_set_keeps_its_accents(): void
+    {
+        $rows = app(CsvReader::class)->parse(mb_convert_encoding("name\nRenée Adébáyò\n", 'Windows-1252', 'UTF-8'));
+
+        $this->assertSame([['name' => 'Renée Adébáyò']], $rows);
+    }
+
     public function test_a_dropped_import_writes_nothing(): void
     {
         $this->authorized_user(['create import', 'apply import']);
