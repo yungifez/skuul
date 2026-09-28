@@ -90,14 +90,22 @@ class StudentAgingReport implements Report
             ->with(['user', 'academicCycleSection.academicLevel'])
             ->get();
 
+        // A learner who moved on can still owe this campus for its own bills.
+        $movedAway = StudentRecord::query()
+            ->where(fn ($elsewhere) => $elsewhere->whereNull('school_id')->orWhere('school_id', '!=', $schoolId))
+            ->whereIn('id', FeeInvoice::query()->ofSchool($schoolId)->select('student_record_id'))
+            ->with('user')
+            ->get();
+
         $rows = [];
 
-        foreach ($enrollments as $enrollment) {
+        foreach ($enrollments->concat($movedAway) as $enrollment) {
+            $isHere = $enrollment->school_id === $schoolId;
             $buckets = array_fill(0, count(self::BUCKETS), 0.0);
             $total = 0.0;
 
             $invoices = FeeInvoice::query()
-                ->ofSchool($enrollment->school_id)
+                ->ofSchool($schoolId)
                 ->where('student_record_id', $enrollment->id)
                 ->with(['feeInvoiceRecords.allocations', 'allocations'])
                 ->get();
@@ -121,8 +129,8 @@ class StudentAgingReport implements Report
                 [
                     $enrollment->admission_number,
                     $enrollment->user?->name,
-                    $enrollment->academicCycleSection?->academicLevel?->name,
-                    $enrollment->academicCycleSection?->name,
+                    $isHere ? $enrollment->academicCycleSection?->academicLevel?->name : null,
+                    $isHere ? $enrollment->academicCycleSection?->name : null,
                 ],
                 array_map(fn (float $amount): float => round($amount, 2), $buckets),
                 [round($total, 2)],

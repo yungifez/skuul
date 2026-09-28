@@ -134,6 +134,30 @@ class FinanceReportTest extends TestCase
         $this->assertNull($rows->firstWhere(0, $enrollment->admission_number));
     }
 
+    public function test_a_campus_still_reports_what_a_learner_who_moved_on_owes_it(): void
+    {
+        $this->authorized_user([]);
+        $this->cycle();
+        $enrollment = $this->enrollment();
+        $this->invoiceFor($enrollment, 300, now()->subDays(45));
+        $newCampus = School::factory()->create(['name' => 'Hilltop']);
+        $enrollment->forceFill(['school_id' => $newCampus->id])->save();
+
+        $balance = app(ReportRegistry::class)->get('student-balances')->rows($this->parameters())
+            ->firstWhere(0, $enrollment->admission_number);
+        $aging = app(ReportRegistry::class)->get('student-aging')->rows($this->parameters())
+            ->firstWhere(0, $enrollment->admission_number);
+        $atTheNewCampus = app(ReportRegistry::class)->get('student-aging')->rows(['school_id' => $newCampus->id] + $this->parameters())
+            ->firstWhere(0, $enrollment->admission_number);
+
+        $this->assertNotNull($balance, 'The learner who moved on is missing from the balances.');
+        $this->assertSame('Moved to Hilltop', $balance[4]);
+        $this->assertSame(300.0, $balance[5]);
+        $this->assertNotNull($aging, 'The learner who moved on is missing from the aging report.');
+        $this->assertSame(300.0, $aging[9]);
+        $this->assertNull($atTheNewCampus, 'The new campus was shown a bill it did not raise.');
+    }
+
     public function test_income_by_fee_type_says_what_each_fee_raised(): void
     {
         $this->authorized_user([]);

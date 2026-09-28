@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Balance reports drop a learner who moved to another campus
+- Status: Fixed
+- Area: Finance reports
+- Observed: Student balances and Student balances by age listed only learners now enrolled at the campus. A learner who moved on while owing the old campus vanished from its reports.
+- Impact: The old campus could not see or chase a debt its own books still carried. The reports did not agree with the receivables account.
+- Reproduction: Invoice a learner at campus A. Move them to campus B. Ask campus A for Student balances or the aging report.
+- Resolution: Both reports now add learners enrolled elsewhere who still owe, or hold credit at, the campus. They show "Moved to" and the new campus. The aging report reads only the asking campus's invoices.
+
 ## Suspended staff still get calendar reminders
 - Status: Fixed
 - Area: Academic calendar reminders
