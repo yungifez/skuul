@@ -30,7 +30,14 @@ class OfferNextWaitlistEntry
                 ->enrolled()
                 ->count();
 
-            if ($occupied >= $section->capacity) {
+            // A family that was offered a seat holds it until they answer, so
+            // one free seat is never offered to two families.
+            $held = AdmissionWaitlistEntry::query()
+                ->where('academic_cycle_section_id', $section->id)
+                ->where('status', AdmissionWaitlistStatus::Offered)
+                ->count();
+
+            if ($occupied + $held >= $section->capacity) {
                 return null;
             }
 

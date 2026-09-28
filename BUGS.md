@@ -1,5 +1,14 @@
 # Known Bugs
 
+## One free seat was offered to two families
+
+- Status: Fixed
+- Area: Admissions waitlist
+- Observed: "Offer next" counted only enrolled learners. Pressed twice for one free seat, it offered the seat to two families. A new candidate was also refused a waitlist place because the offered seat looked free.
+- Impact: Two families were told they had a place. The second to accept found the section full.
+- Reproduction: Fill a section of 1. Waitlist two candidates. Graduate the learner. Press "Offer next" twice. Both candidates hold an offer.
+- Resolution: An open offer now holds its seat. "Offer next" and joining the waitlist count offered seats with enrolled learners.
+
 ## A bounced payment left spendable credit at the new campus
 
 - Status: Fixed

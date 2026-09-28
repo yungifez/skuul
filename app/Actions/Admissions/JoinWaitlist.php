@@ -110,7 +110,13 @@ class JoinWaitlist
             ->enrolled()
             ->count();
 
-        if ($occupied < $section->capacity) {
+        $held = AdmissionWaitlistEntry::query()
+            ->where('academic_cycle_section_id', $section->id)
+            ->where('status', AdmissionWaitlistStatus::Offered)
+            ->count();
+
+        // A seat offered to a waiting family is not free to somebody new.
+        if ($occupied + $held < $section->capacity) {
             throw new InvalidValueException('This section still has a place. Enrol the candidate instead of waitlisting them.');
         }
     }

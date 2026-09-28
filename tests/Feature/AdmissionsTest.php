@@ -124,6 +124,37 @@ class AdmissionsTest extends TestCase
         $this->assertSame(EnrollmentStatus::Active, $enrollment->fresh()->status);
     }
 
+    public function test_one_free_seat_is_offered_to_one_family(): void
+    {
+        $section = $this->section(1);
+        $occupied = $this->unplacedStudent();
+        app(ChangeEnrollmentPlacement::class)->place($occupied, $section);
+        app(JoinWaitlist::class)->join($section, User::factory()->create(), priority: 10);
+        app(JoinWaitlist::class)->join($section, User::factory()->create(), priority: 1);
+
+        app(ChangeEnrollmentStatus::class)->graduate($occupied);
+        $first = app(OfferNextWaitlistEntry::class)->offer($section);
+        $second = app(OfferNextWaitlistEntry::class)->offer($section);
+
+        $this->assertNotNull($first);
+        $this->assertNull($second);
+        $this->assertSame(1, AdmissionWaitlistEntry::where('academic_cycle_section_id', $section->id)->where('status', AdmissionWaitlistStatus::Offered)->count());
+    }
+
+    public function test_a_seat_held_by_an_offer_is_not_free_to_join(): void
+    {
+        $section = $this->section(1);
+        $occupied = $this->unplacedStudent();
+        app(ChangeEnrollmentPlacement::class)->place($occupied, $section);
+        app(JoinWaitlist::class)->join($section, User::factory()->create());
+
+        app(ChangeEnrollmentStatus::class)->graduate($occupied);
+        app(OfferNextWaitlistEntry::class)->offer($section);
+        $late = app(JoinWaitlist::class)->join($section, User::factory()->create());
+
+        $this->assertSame(AdmissionWaitlistStatus::Pending, $late->status);
+    }
+
     public function test_a_learner_attending_another_campus_cannot_take_a_place(): void
     {
         $section = $this->section(1);
