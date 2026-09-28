@@ -9,6 +9,7 @@ use App\Actions\Jetstream\DeleteUser;
 use App\Enums\OrganizationPermission;
 use App\Enums\PlatformPermission;
 use App\Events\AccountStatusChanged;
+use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\EnsureFeatureIsEnabled;
 use App\Http\Middleware\RequireActiveSchool;
 use App\Listeners\RecordAccountStatusChange;
@@ -161,12 +162,14 @@ class AppServiceProvider extends ServiceProvider
      * Hold every Livewire request to the rules of the page it came from.
      *
      * A screen left open in a tab keeps talking to the server. It must stop
-     * when the school turns its feature off, and it must never write into
-     * another school after the person switched school in another tab.
+     * when the person's account is suspended or the school turns its feature
+     * off, and it must never write into another school after the person
+     * switched school in another tab.
      */
     private function keepLivewireInsideItsSchool(): void
     {
         Livewire::addPersistentMiddleware([
+            EnsureAccountIsActive::class,
             EnsureFeatureIsEnabled::class,
             RequireActiveSchool::class,
         ]);

@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A suspended person kept working in a tab they had open
+- Status: Fixed
+- Area: Accounts, Livewire screens
+- Observed: The active-account check ran on page loads only. Screen actions go to Livewire's own address, which skipped that check. Suspending an account did not end its sessions.
+- Impact: A suspended bursar with an open payment screen could still take payments, refunds and other actions until the session ran out.
+- Reproduction: Open a form. In another browser, suspend that account. Press save on the open form.
+- Resolution: The active-account check now runs on every Livewire request. The person is signed out on the next action and it is refused.
+
 ## An invitation accepted during a suspension opened the account again
 - Status: Fixed
 - Area: Accounts, invitations

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Identity\ChangeAccountStatus;
 use App\Enums\Feature;
 use App\Models\CalendarEvent;
 use App\Models\School;
@@ -40,6 +41,17 @@ class StaleLivewireTabTest extends TestCase
 
         $this->saveTitled($snapshot, 'Sports day')->assertOk();
         $this->assertSame('Sports day', CalendarEvent::sole()->title);
+    }
+
+    public function test_an_open_screen_cannot_save_after_the_account_is_suspended(): void
+    {
+        $this->authorized_user(['create calendar event', 'read calendar event']);
+        $snapshot = $this->snapshotFrom(route('calendar-events.create'));
+
+        app(ChangeAccountStatus::class)->suspend(auth()->user());
+
+        $this->saveTitled($snapshot, 'Sports day')->assertForbidden();
+        $this->assertSame(0, CalendarEvent::query()->count());
     }
 
     public function test_a_tab_opened_in_one_school_cannot_save_into_another(): void
