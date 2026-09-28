@@ -60,16 +60,18 @@ class RefundStudent
             throw new InvalidValueException('Say why the money is being given back.');
         }
 
-        $held = $this->credit->creditHeld($enrollment, $schoolId);
-
-        if ($amount > $held) {
-            throw new InvalidValueException('The school is not holding that much for this student.');
-        }
-
         $channel = $this->channels->get($method);
         $major = round($amount / 100, 2);
 
         return DB::transaction(function () use ($enrollment, $amount, $major, $reason, $method, $channel, $reference, $refundedOn, $actor, $schoolId): StudentPayment {
+            // Every change to a learner's money locks their record first, so
+            // two refunds cannot both spend the same credit.
+            StudentRecord::query()->whereKey($enrollment->getKey())->lockForUpdate()->first();
+
+            if ($amount > $this->credit->creditHeld($enrollment, $schoolId)) {
+                throw new InvalidValueException('The school is not holding that much for this student.');
+            }
+
             $transaction = $this->post->post(
                 description: "Refund: $reason",
                 lines: [

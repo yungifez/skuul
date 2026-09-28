@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Two tabs could spend the same credit or take a payment back twice
+- Status: Fixed
+- Area: Finance, payments
+- Observed: A refund, a credit use, and a payment reversal each checked the learner's money, then wrote later without a lock. A payment worked out its split before its lock.
+- Impact: Two cashiers, or one person in two tabs, could refund the same credit twice in cash, reverse one payment twice, or settle one fee twice.
+- Reproduction: Open the same learner in two tabs. Refund the full credit in both at the same moment.
+- Resolution: Each of these actions now locks the learner's record, or the payment, first. It checks and writes inside that lock. A refund no longer keeps its bank reference from a later payment.
+
 ## The same payment could be recorded twice under one reference
 - Status: Fixed
 - Area: Finance, payments

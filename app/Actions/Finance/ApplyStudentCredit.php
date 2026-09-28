@@ -51,26 +51,31 @@ class ApplyStudentCredit
         ?int $schoolId = null,
     ): int {
         $schoolId ??= $enrollment->school_id;
-        $credit = $this->creditHeld($enrollment, $schoolId);
 
-        if ($credit <= 0) {
-            throw new InvalidValueException('This student has no credit to use.');
-        }
+        return DB::transaction(function () use ($enrollment, $limit, $onlyInvoice, $actor, $schoolId): int {
+            // Every change to a learner's money locks their record first, so
+            // the same credit cannot be spent twice at the same moment.
+            StudentRecord::query()->whereKey($enrollment->getKey())->lockForUpdate()->first();
 
-        $usable = $limit === null ? $credit : min($credit, $limit);
+            $credit = $this->creditHeld($enrollment, $schoolId);
 
-        if ($usable <= 0) {
-            throw new InvalidValueException('There is nothing to apply.');
-        }
+            if ($credit <= 0) {
+                throw new InvalidValueException('This student has no credit to use.');
+            }
 
-        $plan = $this->planner->spread($enrollment, $usable, $onlyInvoice, $schoolId);
-        $applied = array_sum($plan);
+            $usable = $limit === null ? $credit : min($credit, $limit);
 
-        if ($applied <= 0) {
-            throw new InvalidValueException('This student owes nothing, so the credit stays where it is.');
-        }
+            if ($usable <= 0) {
+                throw new InvalidValueException('There is nothing to apply.');
+            }
 
-        return DB::transaction(function () use ($enrollment, $plan, $applied, $actor, $schoolId): int {
+            $plan = $this->planner->spread($enrollment, $usable, $onlyInvoice, $schoolId);
+            $applied = array_sum($plan);
+
+            if ($applied <= 0) {
+                throw new InvalidValueException('This student owes nothing, so the credit stays where it is.');
+            }
+
             $this->spendCredit($enrollment, $plan, $schoolId);
 
             $this->post->post(

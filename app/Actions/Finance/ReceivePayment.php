@@ -69,14 +69,16 @@ class ReceivePayment
         $channel = $this->channels->get($method);
         $schoolId ??= $enrollment->school_id;
 
-        $plan = $allocations === null
-            ? $this->planner->spread($enrollment, $amount, $onlyInvoice, $schoolId)
-            : $this->planner->check($enrollment, $amount, $allocations, $schoolId);
-
         $reference = $reference === null || trim($reference) === '' ? null : trim($reference);
 
-        return DB::transaction(function () use ($enrollment, $amount, $channel, $method, $plan, $reference, $note, $receivedOn, $actor, $source, $schoolId): StudentPayment {
+        return DB::transaction(function () use ($enrollment, $amount, $channel, $method, $allocations, $onlyInvoice, $reference, $note, $receivedOn, $actor, $source, $schoolId): StudentPayment {
             $this->refuseAReferenceAlreadyRecorded($enrollment, $reference, $schoolId);
+
+            // The split is worked out under the lock, so two payments at the
+            // same moment cannot both settle the same fee.
+            $plan = $allocations === null
+                ? $this->planner->spread($enrollment, $amount, $onlyInvoice, $schoolId)
+                : $this->planner->check($enrollment, $amount, $allocations, $schoolId);
 
             $applied = array_sum($plan);
 
@@ -174,6 +176,7 @@ class ReceivePayment
         $recorded = StudentPayment::query()
             ->where('school_id', $schoolId)
             ->where('student_record_id', $enrollment->id)
+            ->where('amount', '>', 0)
             ->whereRaw('lower(reference) = ?', [mb_strtolower($reference)])
             ->stillStanding()
             ->first();

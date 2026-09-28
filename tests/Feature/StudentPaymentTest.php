@@ -257,6 +257,18 @@ class StudentPaymentTest extends TestCase
         $this->assertSame(4, StudentPayment::query()->count());
     }
 
+    public function test_a_refund_does_not_hold_on_to_its_bank_reference(): void
+    {
+        $this->authorized_user([]);
+        $enrollment = $this->enrollment();
+        app(ReceivePayment::class)->receive($enrollment, 5_000);
+        app(RefundStudent::class)->refund($enrollment, 5_000, 'Overpaid', reference: 'TRF-9');
+
+        $payment = app(ReceivePayment::class)->receive($enrollment, 5_000, reference: 'TRF-9');
+
+        $this->assertSame('TRF-9', $payment->reference);
+    }
+
     public function test_taking_a_payment_back_takes_its_credit_away(): void
     {
         $this->authorized_user([]);

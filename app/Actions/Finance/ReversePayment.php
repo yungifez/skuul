@@ -37,15 +37,19 @@ class ReversePayment
             throw new InvalidValueException('A reversal cannot be reversed. Record the payment again instead.');
         }
 
-        if ($payment->isReversed()) {
-            throw new InvalidValueException('This payment was already taken back.');
-        }
-
         if (trim($reason) === '') {
             throw new InvalidValueException('Say why the payment is being taken back.');
         }
 
         return DB::transaction(function () use ($payment, $reason, $actor): StudentPayment {
+            // The lock makes a second reversal, sent from another tab at the
+            // same moment, wait here and then see the first one.
+            StudentPayment::query()->whereKey($payment->getKey())->lockForUpdate()->first();
+
+            if ($payment->isReversed()) {
+                throw new InvalidValueException('This payment was already taken back.');
+            }
+
             $transaction = $payment->ledgerTransaction === null
                 ? null
                 : $this->reverseEntry->reverse($payment->ledgerTransaction, $reason, $actor);
