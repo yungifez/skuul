@@ -41,9 +41,7 @@ trait ListsSchoolPeople
     protected function schoolStaff(): Collection
     {
         return User::query()
-            ->whereHas('schoolMemberships', function (Builder $query): void {
-                $query->where('school_id', current_school_id());
-            })
+            ->ofSchool()
             ->whereDoesntHave('studentRecords', function (Builder $query): void {
                 $query->where('school_id', current_school_id());
             })

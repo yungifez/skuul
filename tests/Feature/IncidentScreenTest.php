@@ -100,6 +100,7 @@ class IncidentScreenTest extends TestCase
         app(EndSchoolMembership::class)->end($leaver, $this->workingSchool());
 
         Livewire::test(CreateIncident::class)
+            ->assertViewHas('staff', fn ($staff): bool => !$staff->contains('id', $leaver->id))
             ->set('summary', 'Broke a window')
             ->set('category', IncidentCategory::Behaviour->value)
             ->set('occurredAt', now()->subHour()->format('Y-m-d\TH:i'))
