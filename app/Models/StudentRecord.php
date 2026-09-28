@@ -118,6 +118,23 @@ class StudentRecord extends Model
     }
 
     /**
+     * Check whether the working school keeps a money account for this enrollment.
+     *
+     * The campus the learner attends always does. A campus with its own books
+     * keeps the account after the learner moves on, while it billed them or
+     * took money from them, so it can still collect and give money back.
+     */
+    public function hasAccountInSchool(): bool
+    {
+        if ($this->school_id === current_school_id()) {
+            return true;
+        }
+
+        return FeeInvoice::inSchool()->where('student_record_id', $this->id)->exists()
+            || StudentPayment::inSchool()->where('student_record_id', $this->id)->exists();
+    }
+
+    /**
      * Get the exact cycle section the student is currently placed in.
      *
      * @return BelongsTo<AcademicCycleSection, $this>

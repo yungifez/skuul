@@ -507,6 +507,36 @@ class StudentPaymentTest extends TestCase
         $this->assertFalse($payment->fresh()->isReversed());
     }
 
+    public function test_a_campus_gives_back_what_it_holds_after_the_learner_moves_on(): void
+    {
+        $this->authorized_user(['read fee invoice', 'refund student payment']);
+        $enrollment = $this->enrollment();
+        app(ReceivePayment::class)->receive($enrollment, 20_000);
+        $enrollment->forceFill(['school_id' => School::factory()->create()->id])->save();
+
+        $this->get(route('student-accounts.show', $enrollment->id))->assertOk();
+
+        Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment])
+            ->assertSee(money_text(200.0))
+            ->set('isRefunding', true)
+            ->set('refundAmount', '50')
+            ->set('refundReason', 'Family moved to the other campus')
+            ->call('refund')
+            ->assertHasNoErrors();
+
+        $refund = StudentPayment::query()->where('amount', '<', 0)->sole();
+        $this->assertSame($this->workingSchool()->id, $refund->school_id);
+        $this->assertSame(15_000, app(ApplyStudentCredit::class)->creditHeld($enrollment, $this->workingSchool()->id));
+    }
+
+    public function test_a_school_that_never_billed_the_learner_sees_no_account(): void
+    {
+        $this->authorized_user(['read fee invoice']);
+        $elsewhere = StudentRecord::factory()->create(['school_id' => School::factory()->create()->id]);
+
+        $this->get(route('student-accounts.show', $elsewhere->id))->assertForbidden();
+    }
+
     public function test_the_account_screen_uses_held_credit_against_what_is_owed(): void
     {
         $this->authorized_user(['read fee invoice', 'update fee invoice']);

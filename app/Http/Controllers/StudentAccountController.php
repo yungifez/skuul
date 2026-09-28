@@ -20,7 +20,7 @@ class StudentAccountController extends Controller
     {
         abort_unless(
             auth()->user()?->can('read fee invoice') === true
-                && $studentRecord->school_id === current_school_id(),
+                && $studentRecord->hasAccountInSchool(),
             403,
         );
 

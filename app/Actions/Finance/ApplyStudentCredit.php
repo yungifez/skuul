@@ -37,6 +37,8 @@ class ApplyStudentCredit
      * Put the credit the school holds against the oldest open bills.
      *
      * @param  int|null  $limit  the most to use, in minor units, or null for all of it
+     * @param  int|null  $schoolId  the campus whose credit and bills to use; the
+     *                              one the learner attends when nobody says
      * @return int the minor amount applied
      *
      * @throws InvalidValueException when the student holds no credit
@@ -46,8 +48,10 @@ class ApplyStudentCredit
         ?int $limit = null,
         ?int $onlyInvoice = null,
         ?User $actor = null,
+        ?int $schoolId = null,
     ): int {
-        $credit = $this->creditHeld($enrollment);
+        $schoolId ??= $enrollment->school_id;
+        $credit = $this->creditHeld($enrollment, $schoolId);
 
         if ($credit <= 0) {
             throw new InvalidValueException('This student has no credit to use.');
@@ -59,27 +63,27 @@ class ApplyStudentCredit
             throw new InvalidValueException('There is nothing to apply.');
         }
 
-        $plan = $this->planner->spread($enrollment, $usable, $onlyInvoice);
+        $plan = $this->planner->spread($enrollment, $usable, $onlyInvoice, $schoolId);
         $applied = array_sum($plan);
 
         if ($applied <= 0) {
             throw new InvalidValueException('This student owes nothing, so the credit stays where it is.');
         }
 
-        return DB::transaction(function () use ($enrollment, $plan, $applied, $actor): int {
-            $this->spendCredit($enrollment, $plan);
+        return DB::transaction(function () use ($enrollment, $plan, $applied, $actor, $schoolId): int {
+            $this->spendCredit($enrollment, $plan, $schoolId);
 
             $this->post->post(
                 description: 'Credit used against fees owed',
                 lines: [
                     [
-                        'account' => $this->chart->account('unapplied_credits', $enrollment->school_id),
+                        'account' => $this->chart->account('unapplied_credits', $schoolId),
                         'debit' => round($applied / 100, 2),
                         'student_record_id' => $enrollment->id,
                         'memo' => 'Credit used',
                     ],
                     [
-                        'account' => $this->chart->account('fees_receivable', $enrollment->school_id),
+                        'account' => $this->chart->account('fees_receivable', $schoolId),
                         'credit' => round($applied / 100, 2),
                         'student_record_id' => $enrollment->id,
                         'memo' => 'Credit used',
@@ -93,7 +97,7 @@ class ApplyStudentCredit
                 $enrollment,
                 ['applied' => $applied],
                 $actor,
-                $enrollment->school_id,
+                $schoolId,
             );
 
             return $applied;
@@ -103,11 +107,11 @@ class ApplyStudentCredit
     /**
      * Get the money the school holds for this student, in minor units.
      */
-    public function creditHeld(StudentRecord $enrollment): int
+    public function creditHeld(StudentRecord $enrollment, ?int $schoolId = null): int
     {
         return StudentPayment::query()
             ->where('student_record_id', $enrollment->id)
-            ->whereIn('school_id', $this->campusesSharingBooks($enrollment))
+            ->whereIn('school_id', $this->campusesSharingBooks($schoolId ?? $enrollment->school_id))
             ->stillStanding()
             ->get()
             ->sum(fn (StudentPayment $payment): int => $payment->unallocated()->getMinorAmount()->toInt());
@@ -118,9 +122,9 @@ class ApplyStudentCredit
      *
      * @param  array<int, int>  $plan
      */
-    private function spendCredit(StudentRecord $enrollment, array $plan): void
+    private function spendCredit(StudentRecord $enrollment, array $plan, int $schoolId): void
     {
-        $payments = $this->paymentsWithCredit($enrollment)->values();
+        $payments = $this->paymentsWithCredit($enrollment, $schoolId)->values();
         $invoiceIds = DB::table('fee_invoice_records')
             ->whereIn('id', array_keys($plan))
             ->pluck('fee_invoice_id', 'id');
@@ -155,11 +159,11 @@ class ApplyStudentCredit
      *
      * @return Collection<int, StudentPayment>
      */
-    private function paymentsWithCredit(StudentRecord $enrollment): Collection
+    private function paymentsWithCredit(StudentRecord $enrollment, int $schoolId): Collection
     {
         return StudentPayment::query()
             ->where('student_record_id', $enrollment->id)
-            ->whereIn('school_id', $this->campusesSharingBooks($enrollment))
+            ->whereIn('school_id', $this->campusesSharingBooks($schoolId))
             ->withCreditLeft()
             ->orderBy('received_on')
             ->orderBy('id')
@@ -168,7 +172,7 @@ class ApplyStudentCredit
     }
 
     /**
-     * Get the campuses whose held money this learner's campus may use.
+     * Get the campuses whose held money the given campus may use.
      *
      * A campus with its own books never spends or gives back money another
      * campus holds. Campuses of one billing group keep one purse, and the
@@ -176,12 +180,12 @@ class ApplyStudentCredit
      *
      * @return Builder<School>|array<int, int>
      */
-    private function campusesSharingBooks(StudentRecord $enrollment): Builder|array
+    private function campusesSharingBooks(int $schoolId): Builder|array
     {
-        $campus = School::query()->find($enrollment->school_id);
+        $campus = School::query()->find($schoolId);
 
         if ($campus?->billing_group_id === null) {
-            return [$enrollment->school_id];
+            return [$schoolId];
         }
 
         return School::query()

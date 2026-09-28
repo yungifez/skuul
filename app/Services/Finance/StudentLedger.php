@@ -23,17 +23,17 @@ class StudentLedger
      *
      * A positive number is money due to the school.
      */
-    public function balance(StudentRecord $enrollment): float
+    public function balance(StudentRecord $enrollment, ?int $schoolId = null): float
     {
-        return $this->balanceOn('fees_receivable', $enrollment);
+        return $this->balanceOn('fees_receivable', $enrollment, $schoolId);
     }
 
     /**
      * Get the money the school holds that no invoice has used yet.
      */
-    public function unappliedCredit(StudentRecord $enrollment): float
+    public function unappliedCredit(StudentRecord $enrollment, ?int $schoolId = null): float
     {
-        return $this->balanceOn('unapplied_credits', $enrollment);
+        return $this->balanceOn('unapplied_credits', $enrollment, $schoolId);
     }
 
     /**
@@ -91,9 +91,9 @@ class StudentLedger
     /**
      * Get the balance of one account for one student.
      */
-    private function balanceOn(string $purpose, StudentRecord $enrollment): float
+    private function balanceOn(string $purpose, StudentRecord $enrollment, ?int $schoolId = null): float
     {
-        return $this->balanceOfAccount($this->chart->account($purpose, $enrollment->school_id), $enrollment);
+        return $this->balanceOfAccount($this->chart->account($purpose, $schoolId ?? $enrollment->school_id), $enrollment);
     }
 
     /**

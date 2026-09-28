@@ -15,6 +15,7 @@ use App\Services\Finance\StudentLedger;
 use Brick\Money\Money as BrickMoney;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
 
 /**
@@ -22,12 +23,19 @@ use Livewire\Component;
  *
  * Every figure is worked out from the payments and the books. Nothing on this
  * screen edits a payment; a mistake is taken back with a reversal.
+ *
+ * The screen reads the books of the campus it is opened at. A campus with its
+ * own books keeps a learner's account after they move on, so it can still
+ * collect what it is owed and give back what it holds.
  */
 class ShowStudentAccount extends Component
 {
     use DispatchesStatusNotifications;
 
     public StudentRecord $enrollment;
+
+    #[Locked]
+    public int $campusId;
 
     public ?int $reversingPaymentId = null;
 
@@ -45,6 +53,7 @@ class ShowStudentAccount extends Component
 
     public function mount(StudentRecord $enrollment): void
     {
+        $this->campusId = current_school_id();
         $this->mustBeAllowedTo('read fee invoice', $enrollment);
 
         $this->enrollment = $enrollment;
@@ -58,7 +67,7 @@ class ShowStudentAccount extends Component
         $this->mustBeAllowedTo('update fee invoice', $this->enrollment);
 
         try {
-            $applied = $credit->apply($this->enrollment);
+            $applied = $credit->apply($this->enrollment, actor: auth()->user(), schoolId: $this->campusId);
         } catch (InvalidValueException $exception) {
             $this->addError('credit', $exception->getMessage());
 
@@ -124,6 +133,7 @@ class ShowStudentAccount extends Component
                 method: $this->refundMethod,
                 reference: $this->refundReference === '' ? null : $this->refundReference,
                 actor: auth()->user(),
+                schoolId: $this->campusId,
             );
         } catch (InvalidValueException $exception) {
             $this->addError('refundAmount', $exception->getMessage());
@@ -146,10 +156,10 @@ class ShowStudentAccount extends Component
         $this->enrollment->loadMissing(['user', 'academicCycleSection.academicLevel']);
 
         return view('livewire.show-student-account', [
-            'balance' => $ledger->balance($this->enrollment),
+            'balance' => $ledger->balance($this->enrollment, $this->campusId),
             'elsewhere' => $ledger->balancesByCampus($this->enrollment)
-                ->reject(fn (array $row): bool => $row['school']->id === $this->enrollment->school_id),
-            'credit' => BrickMoney::ofMinor($credit->creditHeld($this->enrollment), config('app.currency')),
+                ->reject(fn (array $row): bool => $row['school']->id === $this->campusId),
+            'credit' => BrickMoney::ofMinor($credit->creditHeld($this->enrollment, $this->campusId), config('app.currency')),
             'payments' => StudentPayment::query()
                 ->where('student_record_id', $this->enrollment->id)
                 ->with(['allocations.feeInvoice', 'recordedBy', 'reversals'])
@@ -157,7 +167,7 @@ class ShowStudentAccount extends Component
                 ->orderByDesc('id')
                 ->get(),
             'invoices' => FeeInvoice::query()
-                ->ofSchool($this->enrollment->school_id)
+                ->ofSchool($this->campusId)
                 ->where('student_record_id', $this->enrollment->id)
                 ->with(['feeInvoiceRecords.fee', 'feeInvoiceRecords.allocations'])
                 ->orderByDesc('due_date')
@@ -174,17 +184,22 @@ class ShowStudentAccount extends Component
         // campus the learner has left stays in that campus's books.
         return StudentPayment::query()
             ->where('student_record_id', $this->enrollment->id)
-            ->where('school_id', $this->enrollment->school_id)
+            ->where('school_id', $this->campusId)
             ->findOrFail($paymentId);
     }
 
     /**
-     * Refuse anybody without the permission, or from another school.
+     * Refuse anybody without the permission, or from a school with no account.
+     *
+     * A campus the learner left still holds their account when it billed or
+     * took money from them. Any other school sees nothing.
      */
     private function mustBeAllowedTo(string $permission, StudentRecord $enrollment): void
     {
         abort_unless(
-            auth()->user()?->can($permission) === true && $enrollment->school_id === current_school_id(),
+            auth()->user()?->can($permission) === true
+                && $this->campusId === current_school_id()
+                && $enrollment->hasAccountInSchool(),
             403,
         );
     }

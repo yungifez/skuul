@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A campus could not reach the account of a learner who moved on
+
+- Status: Fixed
+- Area: Student accounts, refunds, campus moves
+- Observed: After a learner moved to a campus with separate books, the old campus got 403 on their account, including from the "Student account" link on its own invoice. Money it still held for the family could not be given back or used.
+- Impact: Credit stayed stuck at the old campus, and the family could not get it back.
+- Reproduction: Take 200.00 from a learner at campus A. Move them to campus B (no shared billing group). At campus A, open the learner's account from one of A's invoices.
+- Resolution: The account screen opens at any campus that billed the learner or took money from them, and reads that campus's books. Balance, credit, invoices, refunds, credit use, and reversals all use the campus the screen is open at. A school with no account for the learner still gets 403.
+
 ## A new campus could spend or give back money its old campus held
 
 - Status: Fixed

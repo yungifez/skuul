@@ -35,6 +35,8 @@ class RefundStudent
      * Hand the money back.
      *
      * @param  int  $amount  what to give back, in minor units
+     * @param  int|null  $schoolId  the campus giving the money back; the one
+     *                              the learner attends when nobody says
      *
      * @throws InvalidValueException when the school does not hold that much
      */
@@ -46,7 +48,10 @@ class RefundStudent
         ?string $reference = null,
         ?CarbonInterface $refundedOn = null,
         ?User $actor = null,
+        ?int $schoolId = null,
     ): StudentPayment {
+        $schoolId ??= $enrollment->school_id;
+
         if ($amount <= 0) {
             throw new InvalidValueException('A refund must be more than nothing.');
         }
@@ -55,7 +60,7 @@ class RefundStudent
             throw new InvalidValueException('Say why the money is being given back.');
         }
 
-        $held = $this->credit->creditHeld($enrollment);
+        $held = $this->credit->creditHeld($enrollment, $schoolId);
 
         if ($amount > $held) {
             throw new InvalidValueException('The school is not holding that much for this student.');
@@ -64,18 +69,18 @@ class RefundStudent
         $channel = $this->channels->get($method);
         $major = round($amount / 100, 2);
 
-        return DB::transaction(function () use ($enrollment, $amount, $major, $reason, $method, $channel, $reference, $refundedOn, $actor): StudentPayment {
+        return DB::transaction(function () use ($enrollment, $amount, $major, $reason, $method, $channel, $reference, $refundedOn, $actor, $schoolId): StudentPayment {
             $transaction = $this->post->post(
                 description: "Refund: $reason",
                 lines: [
                     [
-                        'account' => $this->chart->account('unapplied_credits', $enrollment->school_id),
+                        'account' => $this->chart->account('unapplied_credits', $schoolId),
                         'debit' => $major,
                         'student_record_id' => $enrollment->id,
                         'memo' => $reason,
                     ],
                     [
-                        'account' => $this->chart->account($channel->accountPurpose(), $enrollment->school_id),
+                        'account' => $this->chart->account($channel->accountPurpose(), $schoolId),
                         'credit' => $major,
                         'student_record_id' => $enrollment->id,
                         'memo' => $reason,
@@ -89,7 +94,7 @@ class RefundStudent
             // A refund is money leaving, so it is recorded as the opposite of
             // a payment. The credit the school holds falls by the same amount.
             $refund = StudentPayment::create([
-                'school_id' => $enrollment->school_id,
+                'school_id' => $schoolId,
                 'student_record_id' => $enrollment->id,
                 'financial_period_id' => $transaction->financial_period_id,
                 'amount' => BrickMoney::ofMinor(-$amount, config('app.currency')),
@@ -111,7 +116,7 @@ class RefundStudent
                     'reference' => $reference,
                 ],
                 $actor,
-                $enrollment->school_id,
+                $schoolId,
             );
 
             return $refund;
