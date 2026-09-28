@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\Academic\ChangeAcademicPeriodStatus;
 use App\Actions\Attendance\RecordAttendance;
 use App\Actions\Enrollment\ChangeEnrollmentStatus;
+use App\Enums\AcademicStructureStatus;
 use App\Enums\AttendanceKind;
 use App\Enums\AttendanceStatus;
 use App\Enums\CalendarEventType;
@@ -431,6 +432,30 @@ class AttendanceTest extends TestCase
             ->assertOk()
             ->assertSee('Nobody attends this')
             ->assertDontSee('Save register');
+    }
+
+    public function test_the_register_offers_only_the_running_sections_of_the_year(): void
+    {
+        $this->authorized_user(['read attendance']);
+        $section = fn (array $attributes): AcademicCycleSection => AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => current_academic_year_id(),
+            'status' => AcademicStructureStatus::Active,
+            ...$attributes,
+        ]);
+        $running = $section([]);
+        $draft = $section(['status' => AcademicStructureStatus::Draft]);
+        $archived = $section(['status' => AcademicStructureStatus::Archived]);
+        $lastYear = $section(['academic_year_id' => AcademicYear::factory()->create(['school_id' => $this->workingSchool()->id])->id]);
+
+        Livewire::test(AttendanceRegisterComponent::class)
+            ->assertSee($running->name)
+            ->assertDontSee($draft->name)
+            ->assertDontSee($archived->name)
+            ->assertDontSee($lastYear->name);
+
+        Livewire::test(AttendanceRegisterComponent::class, ['academicCycleSectionId' => (string) $lastYear->id])
+            ->assertSee($lastYear->name);
     }
 
     public function test_a_learner_who_moved_in_is_not_marked_on_a_day_at_the_old_campus(): void

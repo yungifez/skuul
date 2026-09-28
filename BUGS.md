@@ -1,5 +1,13 @@
 # Known Bugs
 
+## The attendance register offers draft, archived and old sections
+- Status: Fixed
+- Area: Attendance register
+- Observed: The section list on the register held every section the campus ever had, including drafts, archived ones, and sections of other years.
+- Impact: Staff scrolled past sections with no class to call, and could open a register for the wrong year's section of the same name.
+- Reproduction: Keep a draft section in the working year. Open Attendance register as a teacher.
+- Resolution: The list now holds the running sections of the working year. A section opened from a link stays in the list.
+
 ## A payment to the old campus reads the new campus's balance
 - Status: Fixed
 - Area: Finance, student payments

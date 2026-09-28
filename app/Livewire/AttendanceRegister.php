@@ -184,7 +184,7 @@ class AttendanceRegister extends Component
         }
 
         return ViewFactory::make('livewire.attendance-register', [
-            'sections' => $this->register->sections(),
+            'sections' => $this->register->sections($section?->id),
             'section' => $section,
             'students' => $students,
             'closure' => $section === null || $this->day() === null ? null : $this->register->closure($section, $this->day()),

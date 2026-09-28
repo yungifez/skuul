@@ -3,6 +3,7 @@
 namespace App\Services\Attendance;
 
 use App\Actions\Attendance\RecordAttendance;
+use App\Enums\AcademicStructureStatus;
 use App\Enums\AttendanceKind;
 use App\Enums\AttendanceStatus;
 use App\Models\AcademicCycleSection;
@@ -29,11 +30,24 @@ class AttendanceRegister
         return $this->calendar->closureOn($section->school_id, $section->id, $date);
     }
 
-    /** @return Collection<int, AcademicCycleSection> */
-    public function sections(): Collection
+    /**
+     * Get the sections a register can be opened for.
+     *
+     * These are the running sections of the working year. A draft or archived
+     * section, or one of another year, has no class to call, so it is left
+     * out unless it is the one already open.
+     *
+     * @return Collection<int, AcademicCycleSection>
+     */
+    public function sections(?int $openSectionId = null): Collection
     {
         return AcademicCycleSection::query()
             ->inSchool()
+            ->where(fn ($offered) => $offered
+                ->where(fn ($running) => $running
+                    ->where('academic_year_id', current_academic_year_id())
+                    ->where('status', AcademicStructureStatus::Active))
+                ->when($openSectionId !== null, fn ($open) => $open->orWhereKey($openSectionId)))
             ->with('academicLevel:id,name')
             ->orderBy('name')
             ->get();
