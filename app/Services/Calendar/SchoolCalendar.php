@@ -51,6 +51,25 @@ class SchoolCalendar
     }
 
     /**
+     * Get the holiday or closure that shuts one campus, or one home group, on a day.
+     *
+     * A closure with no audience shuts the whole campus. One that names a home
+     * group shuts only that group.
+     */
+    public function closureOn(int $schoolId, ?int $sectionId, DateTimeInterface $day): ?CalendarEvent
+    {
+        $query = CalendarEvent::query()
+            ->where('school_id', $schoolId)
+            ->published()
+            ->covering($day)
+            ->whereIn('type', [CalendarEventType::Holiday, CalendarEventType::Closure]);
+
+        $this->limitToAudience($query, null, $sectionId);
+
+        return $query->orderBy('starts_at')->first();
+    }
+
+    /**
      * Get the days the school is shut between two days.
      *
      * @return Collection<int, CalendarEvent>
@@ -89,8 +108,7 @@ class SchoolCalendar
     /**
      * Keep only the events a person is part of.
      *
-     * @param Builder<CalendarEvent> $query
-     *
+     * @param  Builder<CalendarEvent>  $query
      * @return Builder<CalendarEvent>
      */
     private function limitToPerson(Builder $query, User $person): Builder

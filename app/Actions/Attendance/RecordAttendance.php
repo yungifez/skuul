@@ -14,6 +14,7 @@ use App\Models\AttendanceRecord;
 use App\Models\StudentRecord;
 use App\Models\Subject;
 use App\Models\User;
+use App\Services\Calendar\SchoolCalendar;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,8 @@ use Illuminate\Support\Facades\DB;
  */
 class RecordAttendance
 {
+    public function __construct(private SchoolCalendar $calendar) {}
+
     /**
      * Record where the student was.
      *
@@ -47,6 +50,12 @@ class RecordAttendance
         $term = $this->termOf($enrollment, $day);
         $this->failIfRecordsDoNotFit($enrollment, $day, $kind, $subject, $term);
         $section = $this->sectionOn($enrollment, $day);
+
+        $closure = $this->calendar->closureOn($section->school_id, $section->id, $day);
+
+        if ($closure !== null) {
+            throw new InvalidValueException("The school was shut on {$day->format('j M Y')} for {$closure->title}. That day has no register.");
+        }
 
         return DB::transaction(function () use ($enrollment, $status, $day, $kind, $subject, $actor, $reason, $source, $term, $section): AttendanceRecord {
             $record = AttendanceRecord::query()

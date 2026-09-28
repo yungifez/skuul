@@ -7,6 +7,7 @@ use App\Actions\Attendance\RecordAttendance;
 use App\Actions\Enrollment\ChangeEnrollmentStatus;
 use App\Enums\AttendanceKind;
 use App\Enums\AttendanceStatus;
+use App\Enums\CalendarEventType;
 use App\Enums\Feature;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
@@ -16,6 +17,7 @@ use App\Models\AcademicLevel;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\AttendanceRecord;
+use App\Models\CalendarEvent;
 use App\Models\EnrollmentPlacement;
 use App\Models\School;
 use App\Models\StudentRecord;
@@ -23,6 +25,7 @@ use App\Models\Subject;
 use App\Services\Attendance\AttendanceSummary;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Carbon;
 use Livewire\Livewire;
 use RuntimeException;
 use Tests\TestCase;
@@ -524,6 +527,54 @@ class AttendanceTest extends TestCase
         }
 
         return [$enrollment, $oldCampus];
+    }
+
+    public function test_a_day_the_school_is_shut_has_no_register(): void
+    {
+        $this->authorized_user(['read attendance', 'take attendance']);
+        $enrollment = $this->enrollment();
+        $this->closure('Independence Day', now()->subDay());
+
+        try {
+            app(RecordAttendance::class)->record($enrollment, AttendanceStatus::Absent, now()->subDay());
+            $this->fail('A register was taken on a holiday.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString('for Independence Day', $exception->getMessage());
+        }
+
+        $this->assertSame(0, AttendanceRecord::query()->count());
+
+        Livewire::test(AttendanceRegisterComponent::class, [
+            'academicCycleSectionId' => (string) $enrollment->academic_cycle_section_id,
+            'attendedOn' => now()->subDay()->toDateString(),
+        ])
+            ->assertSee('Shut for Independence Day')
+            ->assertDontSee('Mark everybody present');
+    }
+
+    public function test_a_closure_for_another_group_leaves_this_register_open(): void
+    {
+        $this->authorized_user([]);
+        $enrollment = $this->enrollment();
+        $trip = $this->closure('Year trip', now()->subDay());
+        $trip->audiences()->create(['academic_cycle_section_id' => $this->enrollment()->academic_cycle_section_id]);
+
+        $record = app(RecordAttendance::class)->record($enrollment, AttendanceStatus::Present, now()->subDay());
+
+        $this->assertSame(AttendanceStatus::Present, $record->status);
+    }
+
+    private function closure(string $title, Carbon $day): CalendarEvent
+    {
+        return CalendarEvent::query()->create([
+            'school_id' => $this->workingSchool()->id,
+            'title' => $title,
+            'type' => CalendarEventType::Holiday,
+            'is_all_day' => true,
+            'is_published' => true,
+            'starts_at' => $day->copy()->startOfDay(),
+            'ends_at' => $day->copy()->endOfDay(),
+        ]);
     }
 
     private function pastTerm(): AcademicPeriod

@@ -187,6 +187,7 @@ class AttendanceRegister extends Component
             'sections' => $this->register->sections(),
             'section' => $section,
             'students' => $students,
+            'closure' => $section === null || $this->day() === null ? null : $this->register->closure($section, $this->day()),
             'statuses' => AttendanceStatus::cases(),
             'canTakeAttendance' => auth()->user()?->can('take attendance') === true,
         ]);

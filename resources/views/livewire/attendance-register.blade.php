@@ -51,6 +51,14 @@
                     description="Choose a {{ strtolower(school_term('section', 'section')) }} above to mark who attended." />
             </slot:content>
         </april:card>
+    @elseif ($closure)
+        <april:card>
+            <slot:title>{{ $section->academicLevel?->name }} · {{ $section->label ?? $section->name }}</slot:title>
+            <slot:content>
+                <x-empty-state icon="lucide-calendar-off" title="Shut for {{ $closure->title }}"
+                    description="The calendar closes the school on {{ \Illuminate\Support\Carbon::parse($attendedOn)->format('j F Y') }}, so that day has no register." />
+            </slot:content>
+        </april:card>
     @elseif ($students->isEmpty())
         <april:card>
             <slot:title>{{ $section->academicLevel?->name }} · {{ $section->label ?? $section->name }}</slot:title>

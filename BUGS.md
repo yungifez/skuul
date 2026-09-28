@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A register could be taken on a day the school was shut
+- Status: Fixed
+- Area: Attendance, calendar
+- Observed: The calendar marks holidays and closures, but the register never asked it. A teacher could open the register on a published holiday and mark learners absent.
+- Impact: Absences on days the school was shut counted against the learner's attendance rate, in reports and in the family portal.
+- Reproduction: Publish a holiday for yesterday. Open yesterday's register and mark a learner absent.
+- Resolution: A published holiday or closure now shuts the register for that day, for the whole campus or only the home group it names. The register screen says the school was shut and why, instead of listing learners.
+
 ## A family could not ask the new campus what the old one still owed
 - Status: Fixed
 - Area: Portal requests, campus moves

@@ -7,14 +7,27 @@ use App\Enums\AttendanceKind;
 use App\Enums\AttendanceStatus;
 use App\Models\AcademicCycleSection;
 use App\Models\AttendanceRecord;
+use App\Models\CalendarEvent;
 use App\Models\StudentRecord;
 use App\Models\User;
+use App\Services\Calendar\SchoolCalendar;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 
 class AttendanceRegister
 {
-    public function __construct(private RecordAttendance $recordAttendance) {}
+    public function __construct(
+        private RecordAttendance $recordAttendance,
+        private SchoolCalendar $calendar,
+    ) {}
+
+    /**
+     * Get the holiday or closure that shuts the section on the day.
+     */
+    public function closure(AcademicCycleSection $section, Carbon $date): ?CalendarEvent
+    {
+        return $this->calendar->closureOn($section->school_id, $section->id, $date);
+    }
 
     /** @return Collection<int, AcademicCycleSection> */
     public function sections(): Collection
