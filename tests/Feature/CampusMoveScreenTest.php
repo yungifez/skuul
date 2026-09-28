@@ -22,6 +22,7 @@ use App\Models\User;
 use App\Services\Authorization\CampusMoveAuthority;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Livewire;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
@@ -115,6 +116,22 @@ class CampusMoveScreenTest extends TestCase
 
         $this->assertSame(EnrollmentStatus::Active, $enrollment->fresh()->status);
         $this->assertSame($sibling->id, $enrollment->fresh()->school_id);
+    }
+
+    public function test_only_the_campus_a_learner_attends_may_change_their_enrollment(): void
+    {
+        $sibling = $this->siblingCampus();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['update student', 'update health record']);
+
+        $this->assertTrue(Gate::allows('manage', $enrollment));
+        $this->assertTrue(Gate::allows('recordHealth', $enrollment));
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($sibling));
+        $moved = $enrollment->fresh();
+
+        $this->assertSame("This learner now attends {$sibling->name}. Only that campus can change their enrollment.", Gate::inspect('manage', $moved)->message());
+        $this->assertTrue(Gate::denies('recordHealth', $moved));
     }
 
     public function test_a_health_form_left_open_at_the_old_campus_cannot_save(): void

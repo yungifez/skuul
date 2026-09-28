@@ -280,22 +280,27 @@ class ShowStudentProfile extends Component
     }
 
     /**
-     * Check that the enrollment on screen still belongs to the working campus.
+     * Check that the enrollment on screen may still be changed from here.
      *
-     * A screen left open can outlive a campus move. The enrollment it holds
-     * then belongs to the other campus, which alone may change it.
+     * A screen left open can outlive a campus move. The policy then names the
+     * campus the learner attends, which alone may change the enrollment.
      */
     private function enrollmentIsStillHere(string $errorKey): bool
     {
-        if ($this->studentRecord !== null && $this->studentRecord->school_id === current_school_id()) {
+        if ($this->studentRecord === null) {
+            $this->addError($errorKey, 'This person has no enrollment in the current school.');
+
+            return false;
+        }
+
+        $response = Gate::inspect('manage', $this->studentRecord);
+
+        if ($response->allowed()) {
             return true;
         }
 
-        $school = $this->studentRecord?->school;
         $this->refreshEnrollment();
-        $this->addError($errorKey, $school === null || $this->studentRecord !== null
-            ? 'This person has no enrollment in the current school.'
-            : "This learner now attends {$school->name}. Only that campus can change their enrollment.");
+        $this->addError($errorKey, (string) $response->message());
 
         return false;
     }
