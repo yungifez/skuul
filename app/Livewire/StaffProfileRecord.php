@@ -112,7 +112,13 @@ class StaffProfileRecord extends Component
                 'left_on' => $this->leftOn === '' ? null : $this->leftOn,
             ], auth()->user());
         } catch (InvalidValueException $exception) {
-            $this->addError(str_contains($exception->getMessage(), 'staff number') ? 'staffNumber' : 'leftOn', $exception->getMessage());
+            $field = match (true) {
+                str_contains($exception->getMessage(), 'staff number') => 'staffNumber',
+                str_contains($exception->getMessage(), 'learner') => 'status',
+                default => 'leftOn',
+            };
+
+            $this->addError($field, $exception->getMessage());
 
             return;
         }

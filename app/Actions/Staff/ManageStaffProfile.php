@@ -4,6 +4,7 @@ namespace App\Actions\Staff;
 
 use App\Actions\Audit\RecordAuditEvent;
 use App\Actions\School\EndSchoolMembership;
+use App\Actions\School\GrantSchoolMembership;
 use App\Enums\AuditAction;
 use App\Enums\LeaveStatus;
 use App\Enums\StaffStatus;
@@ -28,6 +29,7 @@ class ManageStaffProfile
         private RecordAuditEvent $auditor,
         private ManageStaffLeave $manageStaffLeave,
         private EndSchoolMembership $endSchoolMembership,
+        private GrantSchoolMembership $grantSchoolMembership,
     ) {}
 
     /**
@@ -87,6 +89,11 @@ class ManageStaffProfile
                 $this->refuseATakenStaffNumber($attributes['staff_number'] ?? null, $profile->school_id, $profile->id);
 
                 $isLeaving = $attributes['status'] === StaffStatus::Left->value;
+                $isComingBack = $profile->status === StaffStatus::Left && !$isLeaving;
+
+                if ($isComingBack && StudentRecord::query()->where('user_id', $profile->user_id)->enrolled()->exists()) {
+                    throw new InvalidValueException('This person is now a learner. A learner cannot be made staff.');
+                }
                 $leftOn = $isLeaving ? Carbon::parse($attributes['left_on'] ?? now())->startOfDay() : null;
 
                 if ($leftOn !== null && $profile->joined_on !== null && $leftOn->lt($profile->joined_on)) {
@@ -108,6 +115,11 @@ class ManageStaffProfile
                     // They still work on their last day, and nothing after it.
                     $this->endSchoolMembership->endDutiesFrom($profile->user()->firstOrFail(), $profile->school_id, $leftOn->copy()->addDay());
                     $this->endAccessOfALeaver($profile);
+                }
+
+                // A person taken back works here again, with the roles they had.
+                if ($isComingBack) {
+                    $this->grantSchoolMembership->grant($profile->user()->firstOrFail(), School::query()->findOrFail($profile->school_id));
                 }
 
                 return $profile;

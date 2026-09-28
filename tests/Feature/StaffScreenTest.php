@@ -244,6 +244,46 @@ class StaffScreenTest extends TestCase
         $this->assertFalse($profile->user->refresh()->belongsToSchool($profile->school_id));
     }
 
+    public function test_a_leaver_taken_back_can_sign_in_to_the_campus_again(): void
+    {
+        $this->authorized_user(['read staff profile', 'update staff profile']);
+        $profile = $this->profile();
+        $profile->update(['joined_on' => now()->subYear()->toDateString()]);
+        $screen = Livewire::test(StaffProfileRecord::class, ['profile' => $profile])
+            ->call('startEditingJob')
+            ->set('status', StaffStatus::Left->value)
+            ->set('leftOn', now()->subDay()->toDateString())
+            ->call('saveJob');
+
+        $screen->call('startEditingJob')
+            ->set('status', StaffStatus::Active->value)
+            ->call('saveJob')
+            ->assertHasNoErrors();
+
+        $this->assertTrue($profile->user->refresh()->belongsToSchool($profile->school_id));
+    }
+
+    public function test_a_leaver_who_became_a_learner_cannot_be_taken_back(): void
+    {
+        $this->authorized_user(['read staff profile', 'update staff profile']);
+        $profile = $this->profile();
+        $profile->update(['joined_on' => now()->subYear()->toDateString()]);
+        $screen = Livewire::test(StaffProfileRecord::class, ['profile' => $profile])
+            ->call('startEditingJob')
+            ->set('status', StaffStatus::Left->value)
+            ->set('leftOn', now()->subDay()->toDateString())
+            ->call('saveJob');
+        StudentRecord::factory()->create(['user_id' => $profile->user_id, 'school_id' => $profile->school_id]);
+
+        $screen->call('startEditingJob')
+            ->set('status', StaffStatus::Active->value)
+            ->call('saveJob')
+            ->assertHasErrors(['status' => 'This person is now a learner. A learner cannot be made staff.']);
+
+        $this->assertSame(StaffStatus::Left, $profile->fresh()->status);
+        $this->assertFalse($profile->user->refresh()->belongsToSchool($profile->school_id));
+    }
+
     public function test_a_person_leaving_later_keeps_access_until_the_day_after_their_last_day(): void
     {
         $this->authorized_user(['read staff profile', 'update staff profile']);

@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A leaver taken back could not sign in, and a learner could be taken back as staff
+- Status: Fixed
+- Area: Staff records
+- Observed: After a Left record ended the campus membership, setting the record back to Active left the membership ended. The screen said the person worked here, but they could not open the campus. Setting a Left record back to Active also did not check whether the person had since enrolled as a learner.
+- Impact: A rehired teacher was locked out with no sign of why. A former teacher who is now a learner could get their staff roles back.
+- Reproduction: Mark a teacher as Left with yesterday's date, then set them back to Active.
+- Resolution: Taking a leaver back grants the campus membership again, so their roles apply again. It is refused when the person is now an enrolled learner, and the error shows under the state field.
+
 ## Staff marked as Left kept their campus access
 - Status: Fixed
 - Area: Staff records, school membership
