@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Taking back a leaver could push a section past its size
+- Status: Fixed
+- Area: Enrollment, status changes
+- Observed: Returning a withdrawn or graduated learner to attendance put them back in their old section without counting its seats.
+- Impact: A full section went over the size the school set. Waitlisted candidates lost the seat they were promised.
+- Reproduction: Set a section's size to 1. Withdraw its learner, then place another one. Return the first learner to attendance.
+- Resolution: A closed enrollment reopens only when its section still has a free seat. The section row is locked while seats are counted.
+
 ## A graduate or leaver could be reopened while enrolled at another campus
 - Status: Fixed
 - Area: Enrollment, status changes

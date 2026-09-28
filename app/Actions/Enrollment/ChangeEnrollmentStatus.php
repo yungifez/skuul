@@ -10,6 +10,7 @@ use App\Actions\Library\CloseReservation;
 use App\Enums\AuditAction;
 use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
 use App\Models\EnrollmentStatusChange;
 use App\Models\StudentRecord;
 use App\Models\User;
@@ -68,6 +69,7 @@ class ChangeEnrollmentStatus
 
             if ($current->isClosed()) {
                 $this->refuseALearnerWhoNowAttendsElsewhere($enrollment);
+                $this->refuseASeatThatIsNoLongerFree($enrollment);
             }
 
             $enrollment->status = $status;
@@ -135,6 +137,39 @@ class ChangeEnrollmentStatus
 
         if ($open !== null) {
             throw new InvalidValueException("This learner now attends {$open->school?->name}. Ask that school to move or transfer them.");
+        }
+    }
+
+    /**
+     * Refuse to reopen an enrollment into a section that filled up since.
+     *
+     * A closed enrollment gave up its seat. Taking it back must not push the
+     * section past the size the school set.
+     *
+     * @throws InvalidValueException when the learner's section is full
+     */
+    private function refuseASeatThatIsNoLongerFree(StudentRecord $enrollment): void
+    {
+        if ($enrollment->academic_cycle_section_id === null) {
+            return;
+        }
+
+        $section = AcademicCycleSection::query()
+            ->lockForUpdate()
+            ->find($enrollment->academic_cycle_section_id);
+
+        if ($section?->capacity === null) {
+            return;
+        }
+
+        $occupied = StudentRecord::query()
+            ->where('academic_cycle_section_id', $section->id)
+            ->whereKeyNot($enrollment->getKey())
+            ->enrolled()
+            ->count();
+
+        if ($occupied >= $section->capacity) {
+            throw new InvalidValueException("Their section is full at {$section->capacity} learners. Free a seat or raise its size first.");
         }
     }
 

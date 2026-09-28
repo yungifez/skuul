@@ -8,6 +8,7 @@ use App\Exceptions\InvalidValueException;
 use App\Livewire\GraduateStudents;
 use App\Livewire\ListGraduationsTable;
 use App\Livewire\ShowStudentProfile;
+use App\Models\AcademicCycleSection;
 use App\Models\EnrollmentStatusChange;
 use App\Models\School;
 use App\Models\StudentRecord;
@@ -126,6 +127,20 @@ class EnrollmentStatusTest extends TestCase
         }
 
         $this->assertSame(EnrollmentStatus::Withdrawn, $left->fresh()->status);
+    }
+
+    public function test_a_leaver_cannot_be_taken_back_into_a_section_that_filled_up(): void
+    {
+        $section = AcademicCycleSection::factory()->create(['capacity' => 1]);
+        $left = StudentRecord::factory()->create(['school_id' => $section->school_id, 'academic_cycle_section_id' => $section->id]);
+        $action = app(ChangeEnrollmentStatus::class);
+        $action->change($left, EnrollmentStatus::Withdrawn);
+        StudentRecord::factory()->create(['school_id' => $section->school_id, 'academic_cycle_section_id' => $section->id]);
+
+        $this->expectException(InvalidValueException::class);
+        $this->expectExceptionMessage('full at 1');
+
+        $action->returnToAttendance($left->fresh());
     }
 
     public function test_history_cannot_be_changed(): void
