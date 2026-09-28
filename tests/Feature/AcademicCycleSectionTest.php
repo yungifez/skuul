@@ -138,8 +138,14 @@ class AcademicCycleSectionTest extends TestCase
     public function test_a_section_with_learners_is_not_archived(): void
     {
         $this->authorized_user(['read section', 'update section']);
-        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
-        $section = $enrollment->academicCycleSection;
+        $section = AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
+        $enrollment = StudentRecord::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_cycle_section_id' => $section->id,
+        ]);
 
         Livewire::test(AcademicStructureStatusControl::class, ['record' => $section])
             ->call('archive')
