@@ -187,6 +187,10 @@ class GraduationProgress
 
     /**
      * Get the newest published mark for the subject the requirement names.
+     *
+     * Each campus keeps its own subject list. A learner who moved campus keeps
+     * one enrollment, so a mark from their old campus's subject of the same
+     * name counts too.
      */
     private function resultFor(GraduationRequirement $requirement, StudentRecord $enrollment): ?float
     {
@@ -194,10 +198,19 @@ class GraduationProgress
             return null;
         }
 
+        $subjectName = $requirement->subject?->name;
+
         $snapshot = ResultSnapshot::query()
             ->approved()
             ->where('student_record_id', $enrollment->id)
-            ->whereHas('courseOffering', fn ($query) => $query->where('subject_id', $requirement->subject_id))
+            ->whereHas('courseOffering', fn ($offering) => $offering->where(
+                fn ($sameSubject) => $sameSubject
+                    ->where('subject_id', $requirement->subject_id)
+                    ->when($subjectName !== null, fn ($named) => $named->orWhereHas(
+                        'subject',
+                        fn ($subject) => $subject->whereRaw('LOWER(name) = ?', [mb_strtolower($subjectName)]),
+                    )),
+            ))
             ->with('courseOffering.academicYear')
             ->get()
             ->sortByDesc(fn (ResultSnapshot $snapshot): string => sprintf(

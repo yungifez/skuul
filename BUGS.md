@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A learner's passes at their old campus did not count toward graduation
+- Status: Fixed
+- Area: Graduation plans, campus moves
+- Observed: A graduation requirement matched results by the subject's own record. Each campus keeps its own subject list, so the old campus's Mathematics was a different subject.
+- Impact: After a campus move, the new campus showed "no result" for subjects the learner had already passed. The learner could not be shown as ready to graduate.
+- Reproduction: Publish a Mathematics result at campus A. Move the learner to campus B. Open B's graduation plan that asks for B's Mathematics.
+- Resolution: A requirement also counts the learner's results in a subject of the same name. Only the learner's own enrollment is read, so marks from another organization never count.
+
 ## A CSV cell on two lines broke the import, and Windows files lost accents
 - Status: Fixed
 - Area: Imports, CSV reading

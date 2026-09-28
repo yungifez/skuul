@@ -269,6 +269,34 @@ class CohortTest extends TestCase
         $this->assertTrue($progress->isComplete($plan, $enrollment));
     }
 
+    public function test_a_subject_passed_at_the_old_campus_counts_after_a_move(): void
+    {
+        $this->authorized_user(['manage graduation plan']);
+        $oldCampus = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id]);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $oldCampus->id]);
+        $passedThere = Subject::factory()->create(['school_id' => $oldCampus->id, 'name' => 'Mathematics']);
+        $this->publishedResult($enrollment, $passedThere, 68);
+        $enrollment->update(['school_id' => $this->workingSchool()->id]);
+        $plan = $this->plan();
+        GraduationRequirement::create([
+            'graduation_plan_id' => $plan->id,
+            'subject_id' => Subject::factory()->create(['school_id' => $this->workingSchool()->id, 'name' => 'mathematics'])->id,
+            'description' => 'Pass mathematics',
+            'pass_mark' => 50,
+        ]);
+        GraduationRequirement::create([
+            'graduation_plan_id' => $plan->id,
+            'subject_id' => $this->subject()->id,
+            'description' => 'Pass another subject',
+            'pass_mark' => 50,
+        ]);
+
+        $progress = app(GraduationProgress::class)->for($plan, $enrollment->fresh());
+
+        $this->assertSame('met', $progress['requirements'][0]['state']);
+        $this->assertSame('no_result', $progress['requirements'][1]['state']);
+    }
+
     public function test_a_failed_subject_leaves_the_plan_unfinished(): void
     {
         $this->authorized_user(['manage graduation plan']);
