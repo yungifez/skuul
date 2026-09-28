@@ -9,11 +9,14 @@ use App\Actions\Identity\ProvisionAccount;
 use App\Actions\School\EndSchoolMembership;
 use App\Actions\School\GrantSchoolMembership;
 use App\Actions\Wellbeing\ManageSupportPlan;
+use App\Enums\AcademicPeriodStatus;
 use App\Enums\EnrollmentStatus;
 use App\Enums\IncidentStatus;
 use App\Enums\SchoolMembershipStatus;
 use App\Enums\SupervisionRole;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicYear;
 use App\Models\CourseOffering;
 use App\Models\Dormitory;
 use App\Models\School;
@@ -132,6 +135,28 @@ class SchoolMembershipTest extends TestCase
         app(EndSchoolMembership::class)->end($teacher, $this->workingSchool());
 
         $this->assertFalse($assignment->fresh()->isRunningOn(today()->addDay()));
+    }
+
+    public function test_ending_a_membership_frees_the_classes_they_lead_this_year(): void
+    {
+        $this->authorized_user([]);
+        $teacher = $this->memberOf($this->workingSchool());
+        $teacher->assignRole('teacher');
+        $running = AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => AcademicYear::factory()->create(['school_id' => $this->workingSchool()->id])->id,
+            'homeroom_teacher_id' => $teacher->id,
+        ]);
+        $finished = AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => AcademicYear::factory()->create(['school_id' => $this->workingSchool()->id, 'status' => AcademicPeriodStatus::Closed])->id,
+            'homeroom_teacher_id' => $teacher->id,
+        ]);
+
+        app(EndSchoolMembership::class)->end($teacher, $this->workingSchool());
+
+        $this->assertNull($running->fresh()->homeroom_teacher_id);
+        $this->assertSame($teacher->id, $finished->fresh()->homeroom_teacher_id);
     }
 
     public function test_ending_a_membership_ends_the_boarding_duty_there(): void

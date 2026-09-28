@@ -4,8 +4,11 @@ namespace App\Actions\School;
 
 use App\Actions\Boarding\AssignBoardingSupervisor;
 use App\Actions\Curriculum\AssignTeacher;
+use App\Enums\AcademicStructureStatus;
 use App\Enums\SchoolMembershipStatus;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicYear;
 use App\Models\BoardingSupervision;
 use App\Models\Incident;
 use App\Models\IncidentAction;
@@ -111,6 +114,7 @@ class EndSchoolMembership
             // A leaver still at work keeps their cases until they go.
             if ($firstDayAway->lessThanOrEqualTo(today())) {
                 $this->handBackOpenCases($user, $schoolId);
+                $this->handBackTheirClasses($user, $schoolId);
             }
         });
     }
@@ -147,6 +151,22 @@ class EndSchoolMembership
             ->whereNull('completed_at')
             ->whereIn('support_plan_id', SupportPlan::query()->where('school_id', $schoolId)->open()->select('id'))
             ->update(['assigned_to' => null]);
+    }
+
+    /**
+     * Take the person off the classes they lead in years still running.
+     *
+     * The class then shows it needs a class teacher, and can be edited again.
+     * A class in a finished year or an archived one keeps its name as history.
+     */
+    private function handBackTheirClasses(User $user, int $schoolId): void
+    {
+        AcademicCycleSection::query()
+            ->where('school_id', $schoolId)
+            ->where('homeroom_teacher_id', $user->id)
+            ->where('status', '!=', AcademicStructureStatus::Archived)
+            ->whereIn('academic_year_id', AcademicYear::query()->where('school_id', $schoolId)->operational()->select('id'))
+            ->update(['homeroom_teacher_id' => null]);
     }
 
     /**

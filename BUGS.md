@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A class teacher who left stayed on the class
+- Status: Fixed
+- Area: Staff and academic structure
+- Observed: When a class teacher left the campus, the class kept them as its class teacher.
+- Impact: The setup page did not show that the class needed a teacher. Every later edit of the class was refused with "The class teacher does not work in this school".
+- Reproduction: Make a teacher the class teacher of a section. Remove them from the school, or mark them as left. Rename the section.
+- Resolution: `EndSchoolMembership` takes a leaver off the classes they lead in years still running, when their last day has passed. Classes in finished years keep the name as history.
+
 ## A family lost a notice attachment after a campus move
 - Status: Fixed
 - Area: Portal notices
