@@ -174,6 +174,36 @@ class BillingGroupTest extends TestCase
         $this->assertSame(20000, app(ApplyStudentCredit::class)->creditHeld($enrollment->fresh()));
     }
 
+    public function test_joining_a_group_later_does_not_pull_credit_across(): void
+    {
+        [$source, $destination, $organization] = $this->twoCampusesAndOrganization();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        app(ReceivePayment::class)->receive($enrollment, 20000);
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+
+        $group = BillingGroup::factory()->create(['organization_id' => $organization->id]);
+        $source->forceFill(['billing_group_id' => $group->id])->save();
+        $destination->forceFill(['billing_group_id' => $group->id])->save();
+
+        $credit = app(ApplyStudentCredit::class);
+        $this->assertSame(0, $credit->creditHeld($enrollment->fresh()));
+        $this->assertSame(20000, $credit->creditHeld($enrollment->fresh(), $source->id));
+    }
+
+    public function test_leaving_a_group_later_keeps_carried_credit_where_it_was_carried(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        app(ReceivePayment::class)->receive($enrollment, 20000);
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+
+        $source->forceFill(['billing_group_id' => null])->save();
+
+        $credit = app(ApplyStudentCredit::class);
+        $this->assertSame(20000, $credit->creditHeld($enrollment->fresh()));
+        $this->assertSame(0, $credit->creditHeld($enrollment->fresh(), $source->id));
+    }
+
     public function test_a_learner_who_owes_nothing_carries_nothing(): void
     {
         [$source, $destination] = $this->twoCampuses(sharing: true);

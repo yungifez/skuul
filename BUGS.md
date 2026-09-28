@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Changing a billing group after a move put credit at the wrong campus
+
+- Status: Fixed
+- Area: Billing groups, credits, campus moves
+- Observed: Held credit followed today's billing groups, but the books follow the groups at the time of the move. When campuses joined a group after a learner moved, the new campus could spend credit the old campus still held. When a campus left a group after a move, carried credit became unusable where it was carried, and the old campus could refund money its books no longer held.
+- Impact: One campus's books went negative while another kept money that was already spent. A family's carried credit could be stuck.
+- Reproduction: Pay ahead at campus A. Move the learner to campus B while the campuses bill separately. Put A and B in one billing group, then use credit at B.
+- Resolution: A campus's held credit is now what its own books hold, capped by the learner's unused payments. Money the campus took itself is used first. `BillingGroupTest` covers joining and leaving a group after a move.
+
 ## A campus could not reach the account of a learner who moved on
 
 - Status: Fixed

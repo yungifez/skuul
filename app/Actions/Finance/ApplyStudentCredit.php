@@ -6,14 +6,13 @@ use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AuditAction;
 use App\Exceptions\InvalidValueException;
 use App\Models\PaymentAllocation;
-use App\Models\School;
 use App\Models\StudentPayment;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Finance\AllocationPlanner;
 use App\Services\Finance\ChartOfAccounts;
+use App\Services\Finance\StudentLedger;
 use Brick\Money\Money as BrickMoney;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -31,6 +30,7 @@ class ApplyStudentCredit
         private ChartOfAccounts $chart,
         private AllocationPlanner $planner,
         private RecordAuditEvent $auditor,
+        private StudentLedger $ledger,
     ) {}
 
     /**
@@ -106,15 +106,24 @@ class ApplyStudentCredit
 
     /**
      * Get the money the school holds for this student, in minor units.
+     *
+     * The campus's own books say what it holds. A campus with separate books
+     * never counts money another campus took, and credit carried inside a
+     * billing group stays where the move carried it, even after the group
+     * changes. The learner's unused payments cap the figure, so the books
+     * and the receipts can never disagree upwards.
      */
     public function creditHeld(StudentRecord $enrollment, ?int $schoolId = null): int
     {
-        return StudentPayment::query()
+        $inTheBooks = (int) round($this->ledger->unappliedCredit($enrollment, $schoolId) * 100);
+
+        $unusedPayments = StudentPayment::query()
             ->where('student_record_id', $enrollment->id)
-            ->whereIn('school_id', $this->campusesSharingBooks($schoolId ?? $enrollment->school_id))
             ->stillStanding()
             ->get()
             ->sum(fn (StudentPayment $payment): int => $payment->unallocated()->getMinorAmount()->toInt());
+
+        return max(0, min($inTheBooks, $unusedPayments));
     }
 
     /**
@@ -155,7 +164,10 @@ class ApplyStudentCredit
     }
 
     /**
-     * Get the student's payments that still hold unused money, oldest first.
+     * Get the student's payments that still hold unused money.
+     *
+     * Money this campus took is used first, oldest first. A payment taken at
+     * another campus is only reached for credit the books carried here.
      *
      * @return Collection<int, StudentPayment>
      */
@@ -163,33 +175,11 @@ class ApplyStudentCredit
     {
         return StudentPayment::query()
             ->where('student_record_id', $enrollment->id)
-            ->whereIn('school_id', $this->campusesSharingBooks($schoolId))
             ->withCreditLeft()
+            ->orderByRaw('case when school_id = ? then 0 else 1 end', [$schoolId])
             ->orderBy('received_on')
             ->orderBy('id')
             ->get()
             ->toBase();
-    }
-
-    /**
-     * Get the campuses whose held money the given campus may use.
-     *
-     * A campus with its own books never spends or gives back money another
-     * campus holds. Campuses of one billing group keep one purse, and the
-     * move between them already carried the credit in the books.
-     *
-     * @return Builder<School>|array<int, int>
-     */
-    private function campusesSharingBooks(int $schoolId): Builder|array
-    {
-        $campus = School::query()->find($schoolId);
-
-        if ($campus?->billing_group_id === null) {
-            return [$schoolId];
-        }
-
-        return School::query()
-            ->where('billing_group_id', $campus->billing_group_id)
-            ->select('id');
     }
 }
