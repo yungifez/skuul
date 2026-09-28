@@ -253,6 +253,22 @@ class EnrollmentPlacementTest extends TestCase
         app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($stranger));
     }
 
+    public function test_a_move_to_a_campus_that_uses_the_same_admission_number_is_refused(): void
+    {
+        $sibling = $this->siblingCampusOf($this->workingSchool());
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id, 'admission_number' => 'ADM/001']);
+        StudentRecord::factory()->create(['school_id' => $sibling->id, 'admission_number' => 'ADM/001']);
+
+        try {
+            app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($sibling));
+            $this->fail('The move reached the database with a taken admission number.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString('ADM/001', $exception->getMessage());
+        }
+
+        $this->assertSame($this->workingSchool()->id, $enrollment->fresh()->school_id);
+    }
+
     public function test_a_move_to_the_same_campus_is_refused(): void
     {
         $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);

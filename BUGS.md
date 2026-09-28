@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A campus move crashed when the admission number was taken there
+
+- Status: Fixed
+- Area: Enrollment, campus moves
+- Observed: A move keeps the learner's admission number. Admission numbers are unique per campus, so a number already used at the destination hit the database unique index.
+- Impact: Approving the move failed with a server error instead of saying what to fix. Hand-entered and imported numbers make this likely between campuses.
+- Reproduction: Give a learner admission number ADM/001. Give a learner at a sibling campus the same number. Move the first learner to the sibling campus.
+- Resolution: The move is refused first with a message that names the number and the campus.
+
 ## A warden removed from a campus stayed on duty
 
 - Status: Fixed

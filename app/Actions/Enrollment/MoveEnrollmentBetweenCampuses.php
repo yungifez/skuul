@@ -142,5 +142,15 @@ class MoveEnrollmentBetweenCampuses
         if ($source->organization_id !== $destination->organization_id) {
             throw new InvalidValueException('The two campuses belong to different organizations. Transfer the enrollment instead.');
         }
+
+        $numberTaken = $enrollment->admission_number !== null && StudentRecord::query()
+            ->where('school_id', $destination->id)
+            ->where('admission_number', $enrollment->admission_number)
+            ->whereKeyNot($enrollment->getKey())
+            ->exists();
+
+        if ($numberTaken) {
+            throw new InvalidValueException("{$destination->name} already has a learner with admission number {$enrollment->admission_number}. Change one of the numbers first.");
+        }
     }
 }
