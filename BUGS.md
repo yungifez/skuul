@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A warden removed from a campus stayed on duty
+
+- Status: Fixed
+- Area: Boarding, school membership
+- Observed: Ending a membership left the person's boarding house supervision open at that campus.
+- Impact: The house listed a warden who could no longer open the school. Nobody saw that the house had no supervisor.
+- Reproduction: Make a staff member warden of a house. End their membership at that campus. The duty is still running.
+- Resolution: Ending a membership ends the duties at that campus that have already begun.
+
 ## A teacher removed from a campus still led its classes
 
 - Status: Fixed

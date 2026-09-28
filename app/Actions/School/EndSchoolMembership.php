@@ -2,8 +2,10 @@
 
 namespace App\Actions\School;
 
+use App\Actions\Boarding\AssignBoardingSupervisor;
 use App\Actions\Curriculum\AssignTeacher;
 use App\Enums\SchoolMembershipStatus;
+use App\Models\BoardingSupervision;
 use App\Models\School;
 use App\Models\SchoolMembership;
 use App\Models\TeachingAssignment;
@@ -16,11 +18,15 @@ use RuntimeException;
  *
  * The membership record stays so the history remains readable. The person, and
  * their records in that school, are not deleted. The subjects they still teach
- * there end, so each class shows it needs a teacher.
+ * and the boarding houses they still supervise there end, so each shows it
+ * needs somebody.
  */
 class EndSchoolMembership
 {
-    public function __construct(private AssignTeacher $teaching) {}
+    public function __construct(
+        private AssignTeacher $teaching,
+        private AssignBoardingSupervisor $boardingDuty,
+    ) {}
 
     /**
      * End the membership and return it, or null when there was none.
@@ -49,6 +55,14 @@ class EndSchoolMembership
                 ->where(fn ($running) => $running->whereNull('ends_on')->orWhereDate('ends_on', '>', today()))
                 ->get()
                 ->each(fn (TeachingAssignment $assignment) => $this->teaching->end($assignment, today()));
+
+            BoardingSupervision::query()
+                ->where('school_id', $school->id)
+                ->where('user_id', $user->id)
+                ->whereNull('ends_on')
+                ->whereDate('starts_on', '<=', today())
+                ->get()
+                ->each(fn (BoardingSupervision $duty) => $this->boardingDuty->end($duty, today()));
 
             $this->promoteAnotherPrimary($user);
 

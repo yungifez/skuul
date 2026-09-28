@@ -2,12 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Boarding\AssignBoardingSupervisor;
 use App\Actions\Curriculum\AssignTeacher;
 use App\Actions\Identity\ProvisionAccount;
 use App\Actions\School\EndSchoolMembership;
 use App\Actions\School\GrantSchoolMembership;
 use App\Enums\SchoolMembershipStatus;
+use App\Enums\SupervisionRole;
 use App\Models\CourseOffering;
+use App\Models\Dormitory;
 use App\Models\School;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
@@ -100,6 +103,18 @@ class SchoolMembershipTest extends TestCase
         app(EndSchoolMembership::class)->end($teacher, $this->workingSchool());
 
         $this->assertFalse($assignment->fresh()->isRunningOn(today()->addDay()));
+    }
+
+    public function test_ending_a_membership_ends_the_boarding_duty_there(): void
+    {
+        $this->authorized_user([]);
+        $warden = $this->memberOf($this->workingSchool());
+        $dormitory = Dormitory::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $duty = app(AssignBoardingSupervisor::class)->assign($dormitory, $warden, SupervisionRole::Warden);
+
+        app(EndSchoolMembership::class)->end($warden, $this->workingSchool());
+
+        $this->assertNotNull($duty->fresh()->ends_on);
     }
 
     public function test_ending_the_primary_membership_promotes_another_one(): void
