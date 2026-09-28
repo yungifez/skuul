@@ -6,8 +6,12 @@ use App\Actions\Boarding\AssignBoardingPlace;
 use App\Actions\Boarding\AssignBoardingSupervisor;
 use App\Actions\Boarding\DecideOvernightLeave;
 use App\Actions\Boarding\RequestOvernightLeave;
+use App\Actions\Enrollment\ChangeEnrollmentStatus;
+use App\Actions\Enrollment\MoveEnrollmentBetweenCampuses;
+use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
 use App\Enums\DormitoryBedStatus;
+use App\Enums\EnrollmentStatus;
 use App\Enums\Feature;
 use App\Enums\OvernightLeaveStatus;
 use App\Enums\SupervisionRole;
@@ -15,6 +19,9 @@ use App\Exceptions\InvalidValueException;
 use App\Livewire\DormitoryForm;
 use App\Livewire\OvernightLeaveDesk;
 use App\Livewire\ShowDormitory;
+use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
+use App\Models\AcademicYear;
 use App\Models\AuditEvent;
 use App\Models\BoardingPlace;
 use App\Models\Dormitory;
@@ -493,6 +500,71 @@ class BoardingTest extends TestCase
             ->assertHasNoErrors();
 
         $this->assertFalse($bed->fresh()->isTaken());
+    }
+
+    public function test_a_campus_move_frees_the_bed_at_the_old_campus(): void
+    {
+        $this->authorized_user(['read boarding', 'manage boarding']);
+        $source = $this->workingSchool();
+        $destination = School::factory()->create(['organization_id' => $source->organization_id]);
+        $bed = $this->bed();
+        $enrollment = $this->enrollment();
+        app(AssignBoardingPlace::class)->assign($enrollment, $bed);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, AcademicCycleSection::factory()->create([
+            'school_id' => $destination->id,
+            'academic_year_id' => AcademicYear::factory()->create(['school_id' => $destination->id])->id,
+            'academic_level_id' => AcademicLevel::factory()->create(['school_id' => $destination->id])->id,
+            'status' => AcademicStructureStatus::Active,
+        ]));
+
+        $this->assertFalse($bed->fresh()->isTaken());
+        $this->assertSame($source->id, BoardingPlace::currentFor($enrollment)->school_id);
+        $this->assertFalse(BoardingPlace::currentFor($enrollment)->isBoarding());
+    }
+
+    public function test_a_learner_who_leaves_the_school_gives_up_their_bed(): void
+    {
+        $this->authorized_user(['read boarding', 'manage boarding']);
+        $bed = $this->bed();
+        $enrollment = $this->enrollment();
+        app(AssignBoardingPlace::class)->assign($enrollment, $bed);
+
+        app(ChangeEnrollmentStatus::class)->graduate($enrollment);
+
+        $this->assertFalse($bed->fresh()->isTaken());
+        $this->assertStringContainsString('Enrollment closed', BoardingPlace::currentFor($enrollment)->reason);
+    }
+
+    public function test_a_learner_who_is_suspended_keeps_their_bed(): void
+    {
+        $this->authorized_user(['read boarding', 'manage boarding']);
+        $bed = $this->bed();
+        $enrollment = $this->enrollment();
+        app(AssignBoardingPlace::class)->assign($enrollment, $bed);
+
+        app(ChangeEnrollmentStatus::class)->change($enrollment, EnrollmentStatus::Suspended);
+
+        $this->assertTrue($bed->fresh()->isTaken());
+    }
+
+    public function test_the_house_frees_a_bed_whose_learner_moved_campus(): void
+    {
+        $this->authorized_user(['read boarding', 'manage boarding']);
+        app(FeatureManager::class)->enable(Feature::Boarding);
+        $bed = $this->bed();
+        $enrollment = $this->enrollment();
+        app(AssignBoardingPlace::class)->assign($enrollment, $bed);
+        $enrollment->forceFill(['school_id' => School::factory()->create(['organization_id' => $this->workingSchool()->organization_id])->id])->save();
+
+        Livewire::test(ShowDormitory::class, ['dormitory' => $bed->room->dormitory])
+            ->call('startLeaving', $bed->id)
+            ->set('leaveReason', 'Moved campus last term')
+            ->call('endPlacement')
+            ->assertHasNoErrors();
+
+        $this->assertFalse($bed->fresh()->isTaken());
+        $this->assertSame($this->workingSchool()->id, BoardingPlace::currentFor($enrollment)->school_id);
     }
 
     public function test_a_room_with_boarders_stays_in_use(): void

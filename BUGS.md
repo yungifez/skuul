@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A bed stayed taken after its learner moved campus or left
+- Status: Fixed
+- Area: Boarding
+- Observed: A campus move, a transfer, a withdrawal, or a graduation left the learner's bed taken. After a campus move, the old house could not free it: "end placement" looked the learner up at the working campus and failed.
+- Impact: Beds were lost for good at the old campus. The house showed a learner who no longer attends.
+- Reproduction: Give a learner a bed at campus A. Move them to campus B. Open the house at campus A and end the placement.
+- Resolution: `AssignBoardingPlace::release` frees the bed when a learner moves campus or an enrollment closes. The end is recorded at the house's campus. The house screen finds the learner by id, because the bed already proves the placement is its own.
+
 ## The portal hid a book still out from a campus the learner left
 - Status: Fixed
 - Area: Portal library

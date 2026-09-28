@@ -103,7 +103,7 @@ class AssignBoardingPlace
         }
 
         $place = BoardingPlace::create([
-            'school_id' => $enrollment->school_id,
+            'school_id' => $current->school_id,
             'student_record_id' => $enrollment->id,
             'dormitory_bed_id' => null,
             'academic_year_id' => current_academic_year_id(),
@@ -117,10 +117,29 @@ class AssignBoardingPlace
             $enrollment,
             ['bed' => null, 'reason' => $reason],
             $actor,
-            $enrollment->school_id,
+            $current->school_id,
         );
 
         return $place;
+    }
+
+    /**
+     * Free the learner's bed when they have one.
+     *
+     * A learner who leaves the campus or the school no longer sleeps in its
+     * house. Their bed goes back to the house instead of staying taken.
+     */
+    public function release(
+        StudentRecord $enrollment,
+        string $reason,
+        ?User $actor = null,
+        ?CarbonInterface $effectiveOn = null,
+    ): ?BoardingPlace {
+        if (!BoardingPlace::currentFor($enrollment)?->isBoarding()) {
+            return null;
+        }
+
+        return $this->end($enrollment, $reason, $actor, $effectiveOn);
     }
 
     /**

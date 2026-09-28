@@ -193,7 +193,7 @@ class ShowDormitory extends Component
         }
 
         try {
-            $assign->end(StudentRecord::inSchool()->findOrFail($place->student_record_id), $this->leaveReason);
+            $assign->end(StudentRecord::query()->findOrFail($place->student_record_id), $this->leaveReason);
         } catch (InvalidValueException $exception) {
             $this->addError('leaveReason', $exception->getMessage());
 

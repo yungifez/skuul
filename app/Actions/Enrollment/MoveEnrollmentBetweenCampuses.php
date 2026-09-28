@@ -3,6 +3,7 @@
 namespace App\Actions\Enrollment;
 
 use App\Actions\Audit\RecordAuditEvent;
+use App\Actions\Boarding\AssignBoardingPlace;
 use App\Actions\Finance\CarryBalanceToCampus;
 use App\Actions\School\GrantSchoolMembership;
 use App\Enums\AuditAction;
@@ -30,6 +31,7 @@ class MoveEnrollmentBetweenCampuses
         private GrantSchoolMembership $grantSchoolMembership,
         private CarryBalanceToCampus $carryBalance,
         private RecordAuditEvent $auditor,
+        private AssignBoardingPlace $boarding,
     ) {}
 
     /**
@@ -67,6 +69,10 @@ class MoveEnrollmentBetweenCampuses
             // the records the student made while they were there.
             $this->grantSchoolMembership->grant($enrollment->user, $destination);
             $this->grantSchoolMembership->grantStudentRole($enrollment->user, $destination);
+
+            // The bed belongs to the old campus's house. Leaving it taken
+            // strands it, because that campus no longer sees the learner.
+            $this->boarding->release($enrollment, "Moved to {$destination->name}", $actor, $effectiveOn);
 
             $enrollment->school_id = $destination->id;
             $enrollment->save();

@@ -3,6 +3,7 @@
 namespace App\Actions\Enrollment;
 
 use App\Actions\Audit\RecordAuditEvent;
+use App\Actions\Boarding\AssignBoardingPlace;
 use App\Enums\AuditAction;
 use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
@@ -22,9 +23,7 @@ use Illuminate\Support\Facades\DB;
  */
 class ChangeEnrollmentStatus
 {
-    public function __construct(private RecordAuditEvent $auditor)
-    {
-    }
+    public function __construct(private RecordAuditEvent $auditor, private AssignBoardingPlace $boarding) {}
 
     /**
      * Move the enrollment to the given state.
@@ -62,12 +61,16 @@ class ChangeEnrollmentStatus
 
             EnrollmentStatusChange::create([
                 'student_record_id' => $enrollment->id,
-                'from_status'       => $current,
-                'to_status'         => $status,
-                'effective_on'      => $effectiveOn ?? now(),
-                'changed_by'        => $actor?->id,
-                'reason'            => $reason,
+                'from_status' => $current,
+                'to_status' => $status,
+                'effective_on' => $effectiveOn ?? now(),
+                'changed_by' => $actor?->id,
+                'reason' => $reason,
             ]);
+
+            if ($status->isClosed()) {
+                $this->boarding->release($enrollment, "Enrollment closed: {$status->label()}", $actor, $effectiveOn);
+            }
 
             $this->auditor->record(
                 AuditAction::EnrollmentStatusChanged,
