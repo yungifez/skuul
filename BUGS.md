@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A campus move stayed waiting after a campus left the organization
+- Status: Fixed
+- Area: Organizations, campus moves
+- Observed: A move request between two campuses stayed "Waiting for a decision" after one campus joined another organization. Approving it could only fail, because a move needs both campuses in one organization.
+- Impact: The inbox of both campuses kept a request nobody could act on. The learner could not be asked for again, because one open request per learner is allowed.
+- Reproduction: Ask to move a learner to a sibling campus. Assign the sibling campus to another organization. Open the move inbox.
+- Resolution: Assigning a campus to another organization cancels the requests waiting between it and campuses of the old organization, with the reason in the decision note.
+
 ## A leaver was closed before their last day
 - Status: Fixed
 - Area: Enrollment status

@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\Enrollment\ChangeEnrollmentStatus;
 use App\Actions\Enrollment\MoveEnrollmentBetweenCampuses;
 use App\Actions\Enrollment\RequestCampusMove;
+use App\Actions\Organization\AssignSchoolToOrganization;
 use App\Actions\Organization\GrantOrganizationMembership;
 use App\Actions\Organization\SetOrganizationMemberPermissions;
 use App\Enums\AcademicStructureStatus;
@@ -19,6 +20,7 @@ use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
 use App\Models\CampusMoveRequest;
+use App\Models\Organization;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
@@ -106,6 +108,19 @@ class CampusMoveRequestTest extends TestCase
         $this->expectExceptionMessage('A new place starts when it is made.');
 
         app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($sibling), effectiveOn: now()->addDays(3));
+    }
+
+    public function test_a_campus_leaving_the_organization_cancels_the_moves_waiting_on_it(): void
+    {
+        $sibling = $this->siblingCampus();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $request = app(RequestCampusMove::class)->request($enrollment, $this->cycleSection($sibling));
+
+        app(AssignSchoolToOrganization::class)->assign($sibling, Organization::factory()->create());
+
+        $this->assertSame(CampusMoveStatus::Cancelled, $request->fresh()->status);
+        $this->assertStringContainsString('left the organization', (string) $request->fresh()->decision_note);
+        $this->assertSame($this->workingSchool()->id, $enrollment->fresh()->school_id);
     }
 
     public function test_rejecting_leaves_the_student_where_they_are(): void
