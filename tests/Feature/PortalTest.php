@@ -72,6 +72,20 @@ class PortalTest extends TestCase
         $this->assertTrue(app(PortalAccess::class)->canRead($enrollment->user, $enrollment));
     }
 
+    public function test_an_enrollment_the_upgrade_could_not_place_stays_out_of_the_portal(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $enrollment->forceFill(['school_id' => null])->save();
+        $this->memberOf($this->workingSchool(), $enrollment->user);
+
+        $this->assertFalse(app(PortalAccess::class)->canRead($enrollment->user, $enrollment));
+        $this->assertTrue(app(PortalAccess::class)->enrollmentsFor($enrollment->user)->isEmpty());
+
+        $this->actingAs($enrollment->user)->get(route('portal.overview'))->assertNotFound();
+        $this->actingAs($enrollment->user)->get(route('portal.notification-preferences.edit'))->assertNotFound();
+    }
+
     public function test_a_guardian_reads_the_enrollment_of_their_child(): void
     {
         $this->unauthorized_user();

@@ -1,5 +1,14 @@
 # Known Bugs
 
+## An enrollment with no campus crashes the family portal
+
+- Status: Fixed
+- Area: Family portal, upgraded data
+- Observed: The upgrade gives a campus only to enrollments that had a class. For a learner with an enrollment that had no class, "Everything of mine" failed with "Attempt to read property "name" on null". The notification settings page failed the same way.
+- Impact: The learner and their family could not open the portal. Without a campus, the portal also judged the record by whichever campus was current.
+- Reproduction: Take an enrollment whose school is empty after the upgrade. Sign in as that learner and open "Everything of mine".
+- Resolution: The portal now leaves out enrollments with no campus until staff place them.
+
 ## The new timetable calendar overflows a phone screen
 
 - Status: Fixed

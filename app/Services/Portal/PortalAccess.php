@@ -46,8 +46,11 @@ class PortalAccess
         $ids = $this->childUserIds($person);
         $ids[] = $person->id;
 
+        // An enrollment the upgrade could not place at a campus has no
+        // school to open a portal for, so it is left out until staff place it.
         return StudentRecord::query()
             ->whereIn('user_id', array_unique($ids))
+            ->whereNotNull('school_id')
             ->whereIn('status', self::ReadableStatuses)
             ->with('user')
             ->orderBy('id')
@@ -63,7 +66,7 @@ class PortalAccess
             return false;
         }
 
-        if (!$this->isOpen($enrollment->school_id)) {
+        if ($enrollment->school_id === null || !$this->isOpen($enrollment->school_id)) {
             return false;
         }
 
