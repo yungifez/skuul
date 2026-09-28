@@ -183,6 +183,23 @@ class EnrollmentPlacementTest extends TestCase
         $this->assertNotNull($transferred->admission_number);
     }
 
+    public function test_a_transfer_sent_twice_opens_one_enrollment(): void
+    {
+        $source = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $destination = School::factory()->create();
+
+        $first = app(TransferEnrollment::class)->transfer($source, $destination);
+        $second = app(TransferEnrollment::class)->transfer($source->fresh(), $destination);
+
+        $this->assertSame($first->id, $second->id);
+        $this->assertSame(1, StudentRecord::query()->where('school_id', $destination->id)->count());
+
+        $this->expectException(InvalidValueException::class);
+        $this->expectExceptionMessage('already transferred');
+
+        app(TransferEnrollment::class)->transfer($source->fresh(), School::factory()->create());
+    }
+
     public function test_a_transfer_keeps_the_history_of_the_old_enrollment(): void
     {
         $source = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);

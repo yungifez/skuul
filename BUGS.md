@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A transfer sent twice opened two enrollments
+- Status: Fixed
+- Area: Enrollment, transfers
+- Observed: Transferring an enrollment that was already transferred opened another enrollment at the destination. It could also open one at a third school.
+- Impact: A retry or a double click left the learner enrolled twice at the new school, or at two schools at once.
+- Reproduction: Transfer an enrollment to another organization's school. Transfer the same enrollment again.
+- Resolution: The transfer locks the old enrollment first. A repeat to the same school returns the enrollment it already opened. A repeat to another school is refused, and so is a transfer to a school where the learner is already enrolled.
+
 ## Taking back a leaver could push a section past its size
 - Status: Fixed
 - Area: Enrollment, status changes

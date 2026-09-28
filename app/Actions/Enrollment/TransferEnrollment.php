@@ -60,6 +60,29 @@ class TransferEnrollment
         }
 
         return DB::transaction(function () use ($enrollment, $destination, $academicCycleSection, $actor, $reason): StudentRecord {
+            // A retry, or a second click at the same moment, waits here and
+            // then finds the enrollment the first one opened.
+            $enrollment = StudentRecord::query()->lockForUpdate()->findOrFail($enrollment->getKey());
+            $successor = StudentRecord::query()->where('transferred_from_id', $enrollment->id)->with('school:id,name')->first();
+
+            if ($successor !== null && $successor->school_id === $destination->id) {
+                return $successor;
+            }
+
+            if ($successor !== null) {
+                throw new InvalidValueException("This enrollment was already transferred to {$successor->school?->name}. Ask that school to transfer the learner on.");
+            }
+
+            $alreadyThere = StudentRecord::query()
+                ->where('user_id', $enrollment->user_id)
+                ->where('school_id', $destination->id)
+                ->enrolled()
+                ->exists();
+
+            if ($alreadyThere) {
+                throw new InvalidValueException("The learner is already enrolled at {$destination->name}.");
+            }
+
             $this->changeStatus->change($enrollment, EnrollmentStatus::Transferred, $actor, $reason);
 
             // Only one enrollment leads the screens, and it is the new one.
