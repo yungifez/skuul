@@ -162,6 +162,25 @@ class TimetableRevisionTest extends TestCase
         $this->assertSame(TimetableStatus::Published, $draft->fresh()->status);
     }
 
+    public function test_an_old_copy_of_a_replaced_revision_is_not_published_again(): void
+    {
+        $this->authorized_user([]);
+        $publish = app(PublishTimetable::class);
+        $first = $this->timetable();
+        $seenEarlier = $first->fresh();
+        $publish->publish($first);
+        $draft = app(ReviseTimetable::class)->revise($first->fresh());
+        $publish->publish($draft);
+
+        try {
+            $publish->publish($seenEarlier);
+            $this->fail('A replaced revision went live again from an old copy.');
+        } catch (InvalidValueException) {
+            $this->assertSame(TimetableStatus::Archived, $first->fresh()->status);
+            $this->assertSame(TimetableStatus::Published, $draft->fresh()->status);
+        }
+    }
+
     public function test_a_section_can_start_an_override_from_a_published_template(): void
     {
         $this->authorized_user([]);

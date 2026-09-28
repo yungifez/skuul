@@ -7,6 +7,7 @@ use App\Enums\AuditAction;
 use App\Enums\TimetableStatus;
 use App\Exceptions\InvalidValueException;
 use App\Exceptions\TimetableConflictException;
+use App\Models\AcademicPeriod;
 use App\Models\Timetable;
 use App\Models\User;
 use App\Services\Timetable\TimetableConflictChecker;
@@ -37,21 +38,27 @@ class PublishTimetable
      */
     public function publish(Timetable $timetable, ?User $actor = null): Timetable
     {
-        if ($timetable->status === TimetableStatus::Published) {
-            return $timetable;
-        }
-
-        if (!$timetable->status->canMoveTo(TimetableStatus::Published)) {
-            throw new InvalidValueException('An archived timetable cannot be published again. Start a revision.');
-        }
-
-        $conflicts = $this->conflictChecker->conflicts($timetable);
-
-        if ($conflicts !== []) {
-            throw new TimetableConflictException($conflicts);
-        }
-
         return DB::transaction(function () use ($timetable, $actor): Timetable {
+            // Publishing in a period waits for any other publish there, so two
+            // revisions of one schedule, or two lessons in one room, cannot
+            // both go live. The revision is then read as it stands now.
+            AcademicPeriod::query()->whereKey($timetable->academic_period_id)->lockForUpdate()->first();
+            $timetable->setRawAttributes(Timetable::query()->lockForUpdate()->findOrFail($timetable->getKey())->getAttributes(), true);
+
+            if ($timetable->status === TimetableStatus::Published) {
+                return $timetable;
+            }
+
+            if (!$timetable->status->canMoveTo(TimetableStatus::Published)) {
+                throw new InvalidValueException('An archived timetable cannot be published again. Start a revision.');
+            }
+
+            $conflicts = $this->conflictChecker->conflicts($timetable);
+
+            if ($conflicts !== []) {
+                throw new TimetableConflictException($conflicts);
+            }
+
             // Only one revision of a schedule is in use at a time.
             $inUse = Timetable::query()
                 ->published()

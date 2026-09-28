@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A replaced timetable goes live again from an old copy
+
+- Status: Fixed
+- Area: Timetables
+- Observed: Publishing checked the status of the copy on the screen. A revision replaced since the page opened was published again and archived the newer one. Two revisions published at the same moment could both go live, and two sections could publish lessons into one room.
+- Impact: Learners and teachers saw an old week, or two weeks, for one section.
+- Reproduction: Open a published timetable's page. Publish a revision elsewhere. Press publish on the old page.
+- Resolution: Publishing now locks the period, re-reads the revision, and checks conflicts under that lock.
+
 ## A case or support plan moves again from an old copy
 
 - Status: Fixed
