@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A case recorded late was filed under the wrong term
+
+- Status: Fixed
+- Area: Discipline
+- Observed: A case was always filed under the term that is open now, even when it happened in an earlier term.
+- Impact: Term-by-term discipline counts moved cases into the wrong term, so a learner's record for a term was wrong.
+- Reproduction: In term two, record a case that happened during term one. It is filed under term two.
+- Resolution: A case is filed under the term that covers the day it happened. It falls back to the open term only when no term covers that day.
+
 ## A late register slipped into a closed term
 
 - Status: Fixed

@@ -8,6 +8,7 @@ use App\Enums\IncidentCategory;
 use App\Enums\IncidentParticipantRole;
 use App\Enums\IncidentStatus;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicPeriod;
 use App\Models\Incident;
 use App\Models\IncidentAction;
 use App\Models\IncidentParticipant;
@@ -27,14 +28,12 @@ use Illuminate\Support\Str;
  */
 class ReportIncident
 {
-    public function __construct(private RecordAuditEvent $auditor)
-    {
-    }
+    public function __construct(private RecordAuditEvent $auditor) {}
 
     /**
      * Record a new case.
      *
-     * @param array<int, array{user?: User|int|null, enrollment?: StudentRecord|int|null, role?: IncidentParticipantRole, note?: string|null}> $participants
+     * @param  array<int, array{user?: User|int|null, enrollment?: StudentRecord|int|null, role?: IncidentParticipantRole, note?: string|null}>  $participants
      *
      * @throws InvalidValueException when the case is in the future
      */
@@ -55,18 +54,24 @@ class ReportIncident
         }
 
         return DB::transaction(function () use ($summary, $category, $description, $when, $participants, $reporter, $assignee, $location): Incident {
+            $term = AcademicPeriod::query()
+                ->where('school_id', current_school_id())
+                ->topLevel()
+                ->covering($when)
+                ->first();
+
             $incident = Incident::create([
-                'school_id'          => current_school_id(),
-                'reference'          => $this->reference(),
-                'category'           => $category,
-                'summary'            => $summary,
-                'description'        => $description,
-                'location'           => $location,
-                'occurred_at'        => $when,
-                'academic_year_id'   => current_academic_year_id(),
-                'academic_period_id' => current_academic_period_id(),
-                'reported_by'        => $reporter === null ? auth()->id() : $reporter->id,
-                'assigned_to'        => $assignee?->id,
+                'school_id' => current_school_id(),
+                'reference' => $this->reference(),
+                'category' => $category,
+                'summary' => $summary,
+                'description' => $description,
+                'location' => $location,
+                'occurred_at' => $when,
+                'academic_year_id' => $term->academic_year_id ?? current_academic_year_id(),
+                'academic_period_id' => $term->id ?? current_academic_period_id(),
+                'reported_by' => $reporter === null ? auth()->id() : $reporter->id,
+                'assigned_to' => $assignee?->id,
             ]);
 
             foreach ($participants as $participant) {
@@ -74,11 +79,11 @@ class ReportIncident
                 $enrollment = $participant['enrollment'] ?? null;
 
                 IncidentParticipant::create([
-                    'incident_id'       => $incident->id,
-                    'user_id'           => $user instanceof User ? $user->id : $user,
+                    'incident_id' => $incident->id,
+                    'user_id' => $user instanceof User ? $user->id : $user,
                     'student_record_id' => $enrollment instanceof StudentRecord ? $enrollment->id : $enrollment,
-                    'role'              => $participant['role'] ?? IncidentParticipantRole::Subject,
-                    'note'              => $participant['note'] ?? null,
+                    'role' => $participant['role'] ?? IncidentParticipantRole::Subject,
+                    'note' => $participant['note'] ?? null,
                 ]);
             }
 
@@ -117,9 +122,9 @@ class ReportIncident
             IncidentStatusChange::create([
                 'incident_id' => $incident->id,
                 'from_status' => $current,
-                'to_status'   => $status,
-                'reason'      => $reason,
-                'changed_by'  => $actor === null ? auth()->id() : $actor->id,
+                'to_status' => $status,
+                'reason' => $reason,
+                'changed_by' => $actor === null ? auth()->id() : $actor->id,
             ]);
 
             $this->auditor->record(
@@ -152,11 +157,11 @@ class ReportIncident
 
         return IncidentAction::create([
             'incident_id' => $incident->id,
-            'type'        => $type,
+            'type' => $type,
             'description' => $description,
-            'due_on'      => $dueOn === null ? null : Carbon::parse($dueOn),
+            'due_on' => $dueOn === null ? null : Carbon::parse($dueOn),
             'assigned_to' => $assignee?->id,
-            'created_by'  => $actor === null ? auth()->id() : $actor->id,
+            'created_by' => $actor === null ? auth()->id() : $actor->id,
         ]);
     }
 

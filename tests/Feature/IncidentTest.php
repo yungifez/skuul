@@ -10,6 +10,7 @@ use App\Enums\IncidentParticipantRole;
 use App\Enums\IncidentStatus;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\ShowIncident;
+use App\Models\AcademicPeriod;
 use App\Models\AuditEvent;
 use App\Models\Incident;
 use App\Models\IncidentNote;
@@ -29,6 +30,22 @@ class IncidentTest extends TestCase
 {
     use FeatureTestTrait;
     use RefreshDatabase;
+
+    public function test_a_case_is_filed_under_the_term_it_happened_in(): void
+    {
+        $this->authorized_user([]);
+        $pastTerm = AcademicPeriod::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => current_academic_year_id(),
+            'parent_id' => null,
+            'starts_on' => now()->subYears(3)->startOfMonth(),
+            'ends_on' => now()->subYears(3)->startOfMonth()->addMonths(2),
+        ]);
+
+        $incident = app(ReportIncident::class)->report('Broke a window', occurredAt: $pastTerm->starts_on->copy()->addDay());
+
+        $this->assertSame($pastTerm->id, $incident->academic_period_id);
+    }
 
     public function test_a_case_is_recorded_with_the_people_in_it(): void
     {
