@@ -5,10 +5,12 @@ namespace App\Actions\Boarding;
 use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AuditAction;
 use App\Enums\DormitoryBedStatus;
+use App\Enums\OvernightLeaveStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\BoardingPlace;
 use App\Models\Dormitory;
 use App\Models\DormitoryBed;
+use App\Models\OvernightLeave;
 use App\Models\StudentRecord;
 use App\Models\User;
 use Carbon\CarbonInterface;
@@ -23,7 +25,10 @@ use Illuminate\Support\Facades\DB;
  */
 class AssignBoardingPlace
 {
-    public function __construct(private RecordAuditEvent $auditor) {}
+    public function __construct(
+        private RecordAuditEvent $auditor,
+        private DecideOvernightLeave $overnightLeave,
+    ) {}
 
     /**
      * Put the learner in a bed.
@@ -120,7 +125,33 @@ class AssignBoardingPlace
             $current->school_id,
         );
 
+        $this->cancelNightsAwayStillAhead($enrollment, $current->school_id, $reason, $actor);
+
         return $place;
+    }
+
+    /**
+     * Cancel the nights away a learner who left the house had not begun.
+     *
+     * A night away is leave from the house. Without a bed there is nothing to
+     * leave, so a request still waiting, or a night not yet begun, would only
+     * sit on the house's list.
+     */
+    private function cancelNightsAwayStillAhead(StudentRecord $enrollment, int $schoolId, string $reason, ?User $actor): void
+    {
+        $nightsAway = OvernightLeave::query()
+            ->where('school_id', $schoolId)
+            ->where('student_record_id', $enrollment->id)
+            ->where(fn ($leave) => $leave
+                ->where('status', OvernightLeaveStatus::Requested)
+                ->orWhere(fn ($approved) => $approved
+                    ->where('status', OvernightLeaveStatus::Approved)
+                    ->whereDate('leaves_on', '>', today())))
+            ->get();
+
+        foreach ($nightsAway as $nightAway) {
+            $this->overnightLeave->decide($nightAway, OvernightLeaveStatus::Cancelled, "Left the house: {$reason}", $actor);
+        }
     }
 
     /**

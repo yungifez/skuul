@@ -208,6 +208,39 @@ class BoardingTest extends TestCase
         app(DecideOvernightLeave::class)->decide($leave->fresh(), OvernightLeaveStatus::Approved);
     }
 
+    public function test_leaving_the_house_cancels_the_nights_away_not_yet_begun(): void
+    {
+        $this->authorized_user([]);
+        $enrollment = $this->boarder();
+        $waiting = app(RequestOvernightLeave::class)->request($enrollment, now()->addDays(3)->toDateString(), now()->addDays(4)->toDateString(), 'Home');
+        $approved = app(RequestOvernightLeave::class)->request($enrollment, now()->addDay()->toDateString(), now()->addDays(2)->toDateString(), 'An aunt');
+        app(DecideOvernightLeave::class)->decide($approved, OvernightLeaveStatus::Approved);
+
+        app(AssignBoardingPlace::class)->end($enrollment, 'Moved to day school');
+
+        $this->assertSame(OvernightLeaveStatus::Cancelled, $waiting->fresh()->status);
+        $this->assertSame(OvernightLeaveStatus::Cancelled, $approved->fresh()->status);
+    }
+
+    public function test_a_night_away_cannot_be_approved_for_a_learner_who_left_the_house(): void
+    {
+        $this->authorized_user([]);
+        $enrollment = $this->boarder();
+        $leave = app(RequestOvernightLeave::class)->request($enrollment, now()->toDateString(), now()->addDay()->toDateString(), 'Home');
+        $leave->forceFill(['status' => OvernightLeaveStatus::Requested])->save();
+        BoardingPlace::create([
+            'school_id' => $this->workingSchool()->id,
+            'student_record_id' => $enrollment->id,
+            'dormitory_bed_id' => null,
+            'effective_on' => now(),
+            'reason' => 'Left',
+        ]);
+
+        $this->expectExceptionMessage('no longer boards');
+
+        app(DecideOvernightLeave::class)->decide($leave->fresh(), OvernightLeaveStatus::Approved);
+    }
+
     public function test_the_house_can_say_who_is_out_tonight(): void
     {
         $this->authorized_user([]);

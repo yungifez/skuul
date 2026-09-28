@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A night away stayed open after the learner left the house
+
+- Status: Fixed
+- Area: Boarding
+- Observed: Ending a boarding place, by hand, on a campus move, or when the enrollment closed, left the learner's overnight leave requests open. Staff could still approve them.
+- Impact: The house's leave desk listed requests for learners who no longer slept there. An approval could put a former boarder on the "away tonight" list.
+- Reproduction: Ask for a night away for a boarder. End their boarding place. The request still waits, and approving it works.
+- Resolution: Ending a boarding place cancels requests still waiting and approved nights not yet begun. Approval is refused when the learner no longer has a bed at that campus.
+
 ## A library copy was held for a learner who moved on
 
 - Status: Fixed

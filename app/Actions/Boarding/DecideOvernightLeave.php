@@ -6,6 +6,7 @@ use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AuditAction;
 use App\Enums\OvernightLeaveStatus;
 use App\Exceptions\InvalidValueException;
+use App\Models\BoardingPlace;
 use App\Models\OvernightLeave;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -44,6 +45,10 @@ class DecideOvernightLeave
                 throw new InvalidValueException('The nights on this request have passed. Refuse it instead.');
             }
 
+            if ($status === OvernightLeaveStatus::Approved && !$this->stillBoardsAt($leave)) {
+                throw new InvalidValueException('This learner no longer boards in this house. Refuse the request instead.');
+            }
+
             if ($status === OvernightLeaveStatus::Returned && $leave->leaves_on->isAfter(today())) {
                 throw new InvalidValueException('This learner has not left yet. Cancel the night away instead.');
             }
@@ -77,5 +82,18 @@ class DecideOvernightLeave
 
             return $leave;
         });
+    }
+
+    /**
+     * Check if the learner still has a bed at the campus the request was made to.
+     */
+    private function stillBoardsAt(OvernightLeave $leave): bool
+    {
+        $place = BoardingPlace::query()
+            ->where('student_record_id', $leave->student_record_id)
+            ->orderByDesc('id')
+            ->first();
+
+        return $place !== null && $place->isBoarding() && $place->school_id === $leave->school_id;
     }
 }
