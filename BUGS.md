@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Work could be handed to somebody who had left the school
+
+- Status: Fixed
+- Area: Discipline, support plans, admissions, calendar, staff profiles
+- Observed: The "belongs to this school" rule checked that a membership row existed, not that it was still active. Several forms also wrote the rule out by hand.
+- Impact: A case, a support plan action, or a waitlist place could be assigned to a person whose membership had ended. They could not open the school to act on it, so the work sat unowned.
+- Reproduction: End a teacher's membership. Record a case and pass their user id as the assignee. It saves.
+- Resolution: `ValidatesSchoolMembership::memberOfWorkingSchool()` now requires an active membership. The five hand-written copies use it.
+
 ## A seat was offered to a candidate the school had already enrolled
 
 - Status: Fixed

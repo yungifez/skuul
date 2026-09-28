@@ -3,12 +3,15 @@
 namespace App\Http\Requests;
 
 use App\Models\AdmissionWaitlistEntry;
+use App\Traits\ValidatesSchoolMembership;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 class StoreAdmissionWaitlistRequest extends FormRequest
 {
+    use ValidatesSchoolMembership;
+
     /**
      * Determine if the user is authorized to make this request.
      */
@@ -36,7 +39,7 @@ class StoreAdmissionWaitlistRequest extends FormRequest
                 'integer',
                 Rule::exists('academic_cycle_sections', 'id')->where('school_id', current_school_id()),
             ],
-            'user_id' => ['required', 'integer', Rule::exists('school_memberships', 'user_id')->where('school_id', current_school_id())],
+            'user_id' => ['required', 'integer', self::memberOfWorkingSchool()],
             'priority' => ['nullable', 'integer', 'min:0', 'max:9999'],
         ];
     }

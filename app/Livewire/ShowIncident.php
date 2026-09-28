@@ -10,6 +10,7 @@ use App\Models\Incident;
 use App\Models\IncidentNote;
 use App\Models\User;
 use App\Traits\ListsSchoolPeople;
+use App\Traits\ValidatesSchoolMembership;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -24,6 +25,7 @@ use Livewire\Component;
 class ShowIncident extends Component
 {
     use ListsSchoolPeople;
+    use ValidatesSchoolMembership;
 
     public Incident $incident;
 
@@ -92,7 +94,7 @@ class ShowIncident extends Component
             'actionType' => ['required', 'string', 'max:100'],
             'actionDescription' => ['required', 'string', 'max:1000'],
             'actionDueOn' => ['nullable', 'date'],
-            'actionAssigneeId' => ['nullable', 'integer', Rule::exists('school_memberships', 'user_id')->where('school_id', current_school_id())],
+            'actionAssigneeId' => ['nullable', 'integer', $this->memberOfWorkingSchool()],
         ]);
 
         try {

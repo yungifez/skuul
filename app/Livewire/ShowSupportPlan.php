@@ -8,6 +8,7 @@ use App\Exceptions\InvalidValueException;
 use App\Models\SupportPlan;
 use App\Models\User;
 use App\Traits\ListsSchoolPeople;
+use App\Traits\ValidatesSchoolMembership;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -22,6 +23,7 @@ use Livewire\Component;
 class ShowSupportPlan extends Component
 {
     use ListsSchoolPeople;
+    use ValidatesSchoolMembership;
 
     public SupportPlan $plan;
 
@@ -85,7 +87,7 @@ class ShowSupportPlan extends Component
         $this->validate([
             'actionDescription' => ['required', 'string', 'max:1000'],
             'actionDueOn' => ['nullable', 'date'],
-            'actionAssigneeId' => ['nullable', 'integer', Rule::exists('school_memberships', 'user_id')->where('school_id', current_school_id())],
+            'actionAssigneeId' => ['nullable', 'integer', $this->memberOfWorkingSchool()],
         ]);
 
         try {

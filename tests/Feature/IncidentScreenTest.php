@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\Discipline\ReportIncident;
+use App\Actions\School\EndSchoolMembership;
 use App\Enums\Feature;
 use App\Enums\IncidentCategory;
 use App\Enums\IncidentParticipantRole;
@@ -90,6 +91,21 @@ class IncidentScreenTest extends TestCase
         $this->authorized_user(['read incident']);
 
         Livewire::test(CreateIncident::class)->assertForbidden();
+    }
+
+    public function test_a_case_cannot_be_handed_to_somebody_who_left_the_school(): void
+    {
+        $this->authorized_user(['read incident', 'create incident']);
+        $leaver = $this->memberOf($this->workingSchool());
+        app(EndSchoolMembership::class)->end($leaver, $this->workingSchool());
+
+        Livewire::test(CreateIncident::class)
+            ->set('summary', 'Broke a window')
+            ->set('category', IncidentCategory::Behaviour->value)
+            ->set('occurredAt', now()->subHour()->format('Y-m-d\TH:i'))
+            ->set('assignedTo', $leaver->id)
+            ->call('save')
+            ->assertHasErrors('assignedTo');
     }
 
     public function test_a_case_cannot_be_recorded_in_the_future(): void
