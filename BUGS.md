@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A lesson could be published into a hall somebody had booked
+- Status: Fixed
+- Area: Timetable and facility bookings
+- Observed: A hall was booked for Sports day next Monday morning. A timetable was then published with a Monday morning lesson in that hall. Publishing succeeded.
+- Impact: The class and the event both expected the hall. The booking screen refuses the same clash in the other order.
+- Reproduction: Book the hall for next Monday 09:30 to 11:00. Put a Monday 09:00 lesson in the hall and publish the timetable.
+- Resolution: Publishing now lists every booking still ahead in the timetable's period that a lesson in that place would cross. Given-up bookings and bookings on other days do not count.
+
 ## Shared records could be taken in but never read
 - Status: Fixed
 - Area: Data sharing between schools

@@ -5,6 +5,7 @@ namespace App\Services\Timetable;
 use App\Enums\RosterMode;
 use App\Models\AcademicPeriod;
 use App\Models\Facility;
+use App\Models\FacilityBooking;
 use App\Models\School;
 use App\Models\SchoolMembership;
 use App\Models\Subject;
@@ -37,6 +38,7 @@ class TimetableConflictChecker
             $this->overlappingSlots($timetable),
             $this->teacherClashes($timetable),
             $this->roomClashes($timetable),
+            $this->bookingClashes($timetable),
         );
     }
 
@@ -267,6 +269,62 @@ class TimetableConflictChecker
     }
 
     /**
+     * Find lessons placed in a shared place somebody booked for that time.
+     *
+     * A booking is made against the lessons already published, so a lesson
+     * published later must respect the bookings already made. Only bookings
+     * still ahead and inside the timetable's period count.
+     *
+     * @return array<int, string>
+     */
+    private function bookingClashes(Timetable $timetable): array
+    {
+        $entries = $this->entriesOf($timetable)->filter(fn (array $entry): bool => $entry['facility_id'] !== null);
+
+        if ($entries->isEmpty()) {
+            return [];
+        }
+
+        $period = $timetable->academicPeriod;
+        $bookings = FacilityBooking::query()
+            ->running()
+            ->whereIn('facility_id', $entries->pluck('facility_id')->unique())
+            ->where('ends_at', '>', now())
+            ->when($period?->starts_on !== null, fn ($query) => $query->where('ends_at', '>', $period->starts_on->copy()->startOfDay()))
+            ->when($period?->ends_on !== null, fn ($query) => $query->where('starts_at', '<', $period->ends_on->copy()->endOfDay()))
+            ->with('facility:id,name')
+            ->orderBy('starts_at')
+            ->get();
+        $conflicts = [];
+
+        foreach ($bookings as $booking) {
+            $day = Carbon::instance($booking->starts_at)->startOfDay();
+
+            while ($day->lessThan($booking->ends_at)) {
+                foreach ($entries->where('facility_id', $booking->facility_id) as $entry) {
+                    $lessonFrom = $day->copy()->setTimeFromTimeString($entry['start_time']);
+                    $lessonTo = $day->copy()->setTimeFromTimeString($entry['stop_time']);
+
+                    if ($this->entryOccursOn($entry, $day) && $lessonFrom->lessThan($booking->ends_at) && $lessonTo->greaterThan($booking->starts_at)) {
+                        $conflicts[] = sprintf(
+                            '%s is booked for %s on %s from %s to %s.',
+                            $booking->facility?->name,
+                            $booking->purpose,
+                            $day->format('j M Y'),
+                            $booking->starts_at->format('H:i'),
+                            $booking->ends_at->format('H:i'),
+                        );
+                    }
+                }
+
+                $day->addDay();
+            }
+        }
+
+        return array_values(array_unique($conflicts));
+    }
+
+    /**
      * Read the lessons of a timetable with the teachers who take them.
      */
     private function entriesOf(Timetable $timetable): Collection
@@ -311,7 +369,7 @@ class TimetableConflictChecker
                 ->get()
                 ->groupBy('subject_id');
 
-        /** @var Collection<int, array{time_slot_id: int, weekday_id: int, start_time: string, stop_time: string, recurrence: string, occurs_on: string|null, starts_on: string|null, recurrence_interval: int, recurrence_weekdays: array<int, int>, room: string|null, teacher_ids: array<int, int>, teacher_names: array<int|string, string>}> $entries */
+        /** @var Collection<int, array{time_slot_id: int, weekday_id: int, start_time: string, stop_time: string, recurrence: string, occurs_on: string|null, starts_on: string|null, recurrence_interval: int, recurrence_weekdays: array<int, int>, room: string|null, facility_id: int|null, teacher_ids: array<int, int>, teacher_names: array<int|string, string>}> $entries */
         $entries = $records->map(function (TimetableRecord $record) use ($assignmentsBySubject, $facilityNames, $slots, $subjectMorphClass, $subjects, $timetable): ?array {
             $slot = $slots->get($record->timetable_time_slot_id);
             $subject = $record->timetable_time_slot_weekdayable_type === $subjectMorphClass
@@ -341,6 +399,7 @@ class TimetableConflictChecker
                 'room' => $record->facility_id !== null
                     ? $facilityNames->get($record->facility_id)
                     : (filled($timetable->academicCycleSection?->room) ? $timetable->academicCycleSection->room : null),
+                'facility_id' => $record->facility_id === null ? null : (int) $record->facility_id,
                 'teacher_ids' => $teachers->pluck('id')->map(fn ($id): int => (int) $id)->all(),
                 'teacher_names' => $teachers->pluck('name', 'id')->all(),
             ];

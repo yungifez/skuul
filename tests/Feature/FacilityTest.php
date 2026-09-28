@@ -381,6 +381,38 @@ class FacilityTest extends TestCase
         app(PublishTimetable::class)->publish($second);
     }
 
+    public function test_a_lesson_cannot_be_published_over_a_booking_of_the_hall(): void
+    {
+        $this->authorized_user([]);
+        $hall = $this->facility();
+        $monday = now()->next('monday');
+        app(BookFacility::class)->book($hall, $monday->copy()->setTime(9, 30), $monday->copy()->setTime(11, 0), 'Sports day');
+        $timetable = $this->timetableIn($hall, 'monday', '09:00', '10:00');
+
+        try {
+            app(PublishTimetable::class)->publish($timetable);
+            $this->fail('A lesson was published over a booking of the hall.');
+        } catch (TimetableConflictException $exception) {
+            $this->assertStringContainsString("$hall->name is booked for Sports day on {$monday->format('j M Y')} from 09:30 to 11:00.", $exception->getMessage());
+        }
+
+        $this->assertFalse($timetable->fresh()->isPublished());
+    }
+
+    public function test_a_booking_given_up_or_on_another_day_leaves_the_lesson_alone(): void
+    {
+        $this->authorized_user([]);
+        $hall = $this->facility();
+        $monday = now()->next('monday');
+        $booking = app(BookFacility::class)->book($hall, $monday->copy()->setTime(9, 30), $monday->copy()->setTime(11, 0), 'Sports day');
+        app(BookFacility::class)->cancel($booking, 'Rain');
+        app(BookFacility::class)->book($hall, $monday->copy()->addDay()->setTime(9, 0), $monday->copy()->addDay()->setTime(10, 0), 'Assembly');
+
+        $this->publishLessonIn($hall, 'monday', '09:00', '10:00');
+
+        $this->assertTrue(Timetable::query()->published()->exists());
+    }
+
     /**
      * Publish one lesson that happens in the given place.
      */
