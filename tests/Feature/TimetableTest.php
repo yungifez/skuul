@@ -789,6 +789,17 @@ class TimetableTest extends TestCase
         ]);
     }
 
+    public function test_an_archived_timetable_is_not_deleted(): void
+    {
+        $timetable = Timetable::factory()->create(['status' => TimetableStatus::Archived]);
+
+        $this->authorized_user(['delete timetable'])
+            ->delete("/dashboard/timetables/$timetable->id")
+            ->assertForbidden();
+
+        $this->assertModelExists($timetable);
+    }
+
     // test unauthorized user can view manage timetable
 
     public function test_unauthorized_user_cant_view_manage_timetable()

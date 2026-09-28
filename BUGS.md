@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Deleting an archived timetable erases the cover given against it
+- Status: Fixed
+- Area: Timetables
+- Observed: Only a published timetable was kept from deletion. An archived timetable, one that was in use before a revision replaced it, could be deleted.
+- Impact: Cover records delete with their timetable, so the school lost who covered which lesson. Schools use that record for pay and absence reviews.
+- Reproduction: Publish a timetable, record cover against it, and publish a revision so the first is archived. Delete the archived timetable.
+- Resolution: Only a draft timetable can be deleted.
+
 ## Deleting an emptied school destroys its books
 - Status: Fixed
 - Area: School deletion

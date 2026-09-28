@@ -79,11 +79,14 @@ class TimetablePolicy
 
     /**
      * Determine whether the user can delete the model.
+     *
+     * Only a draft goes. A timetable that was once in use keeps the cover
+     * given against it, and deleting it would take that record with it.
      */
     public function delete(User $user, Timetable $timetable)
     {
         if ($user->can('delete timetable')
-            && !$timetable->isPublished()
+            && $timetable->status === TimetableStatus::Draft
             && $this->belongsToWorkingSchool($timetable)
         ) {
             return true;
