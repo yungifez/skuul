@@ -7,6 +7,7 @@ use App\Enums\PlatformPermission;
 use App\Exceptions\InvalidValueException;
 use App\Models\CampusRole;
 use App\Models\School;
+use App\Models\SchoolMembership;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
@@ -138,12 +139,15 @@ class RoleAuthority
     public function campusHasARoleManager(School $school): bool
     {
         $user = (new User)->getMorphClass();
+        // A role outlives the membership, so somebody who left still holds it.
+        $members = SchoolMembership::query()->active()->where('school_id', $school->id)->select('user_id');
 
         $throughARole = DB::table('model_has_roles')
             ->join('role_has_permissions', 'role_has_permissions.role_id', '=', 'model_has_roles.role_id')
             ->join('permissions', 'permissions.id', '=', 'role_has_permissions.permission_id')
             ->where('model_has_roles.school_id', $school->id)
             ->where('model_has_roles.model_type', $user)
+            ->whereIn('model_has_roles.model_id', $members)
             ->where('permissions.name', 'manage role')
             ->exists();
 
@@ -151,6 +155,7 @@ class RoleAuthority
             ->join('permissions', 'permissions.id', '=', 'model_has_permissions.permission_id')
             ->where('model_has_permissions.school_id', $school->id)
             ->where('model_has_permissions.model_type', $user)
+            ->whereIn('model_has_permissions.model_id', $members)
             ->where('permissions.name', 'manage role')
             ->exists();
     }

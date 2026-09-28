@@ -5,6 +5,7 @@ namespace App\Actions\School;
 use App\Actions\Boarding\AssignBoardingSupervisor;
 use App\Actions\Curriculum\AssignTeacher;
 use App\Enums\SchoolMembershipStatus;
+use App\Exceptions\InvalidValueException;
 use App\Models\BoardingSupervision;
 use App\Models\Incident;
 use App\Models\IncidentAction;
@@ -15,6 +16,7 @@ use App\Models\SupportPlanAction;
 use App\Models\TeachingAssignment;
 use App\Models\TimetableSubstitution;
 use App\Models\User;
+use App\Services\Authorization\RoleAuthority;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -34,12 +36,20 @@ class EndSchoolMembership
     public function __construct(
         private AssignTeacher $teaching,
         private AssignBoardingSupervisor $boardingDuty,
+        private RoleAuthority $roleAuthority,
     ) {}
 
     /**
      * End the membership and return it, or null when there was none.
+     *
+     * @throws InvalidValueException when nobody left at the campus could manage roles
      */
     public function end(User $user, School $school): ?SchoolMembership
+    {
+        return $this->roleAuthority->mustKeepARoleManager($school, fn (): ?SchoolMembership => $this->endMembership($user, $school));
+    }
+
+    private function endMembership(User $user, School $school): ?SchoolMembership
     {
         return DB::transaction(function () use ($user, $school): ?SchoolMembership {
             $membership = $user->schoolMemberships()

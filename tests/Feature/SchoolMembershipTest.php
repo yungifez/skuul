@@ -13,6 +13,7 @@ use App\Enums\EnrollmentStatus;
 use App\Enums\IncidentStatus;
 use App\Enums\SchoolMembershipStatus;
 use App\Enums\SupervisionRole;
+use App\Exceptions\InvalidValueException;
 use App\Models\CourseOffering;
 use App\Models\Dormitory;
 use App\Models\School;
@@ -95,6 +96,29 @@ class SchoolMembershipTest extends TestCase
         $this->assertSame(1, $user->schoolMemberships()->count());
         $this->assertSame(SchoolMembershipStatus::Ended, $user->schoolMemberships()->first()->status);
         $this->assertNotNull($user->schoolMemberships()->first()->ended_at);
+    }
+
+    public function test_the_last_person_who_can_manage_roles_keeps_their_membership(): void
+    {
+        $campus = School::factory()->create();
+        school_context()->set($campus, remember: false);
+        $first = $this->memberOf($campus);
+        $first->givePermissionTo('manage role');
+        $second = $this->memberOf($campus);
+        $second->givePermissionTo('manage role');
+        $endSchoolMembership = app(EndSchoolMembership::class);
+
+        $endSchoolMembership->end($first, $campus);
+
+        try {
+            $endSchoolMembership->end($second, $campus);
+            $this->fail('The campus was left with nobody who can manage roles.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString('Nobody at this campus could manage roles', $exception->getMessage());
+        }
+
+        $this->assertFalse($first->refresh()->belongsToSchool($campus));
+        $this->assertTrue($second->refresh()->belongsToSchool($campus));
     }
 
     public function test_ending_a_membership_ends_the_teaching_there(): void

@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A campus could lose the last person who can manage it
+- Status: Fixed
+- Area: School membership, campus roles
+- Observed: Removing a person from the school, or a Left staff record, ended the membership with no check for role management. The guard used when roles change also counted people whose membership had ended, because their roles stay.
+- Impact: A campus could be left with nobody who can give roles or permissions. Only a platform administrator could recover it.
+- Reproduction: At a campus with two role managers, remove one from the school, then remove the other. Both succeed.
+- Resolution: The role-manager check counts only people with an active membership. Ending a membership is refused when it would remove the last one ("Nobody at this campus could manage roles after that."). The daily leaver command skips such a person and warns.
+
 ## A leaver taken back could not sign in, and a learner could be taken back as staff
 - Status: Fixed
 - Area: Staff records

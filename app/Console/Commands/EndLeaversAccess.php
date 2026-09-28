@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Actions\Staff\ManageStaffProfile;
 use App\Enums\SchoolMembershipStatus;
 use App\Enums\StaffStatus;
+use App\Exceptions\InvalidValueException;
 use App\Models\SchoolMembership;
 use App\Models\StaffProfile;
 use Illuminate\Console\Command;
@@ -48,8 +49,14 @@ class EndLeaversAccess extends Command
             ->lazyById();
 
         foreach ($profiles as $profile) {
-            $staffProfiles->endAccessOfALeaver($profile);
-            $ended++;
+            // The last person who can manage the campus stays until somebody
+            // else can, or the campus could not be run at all.
+            try {
+                $staffProfiles->endAccessOfALeaver($profile);
+                $ended++;
+            } catch (InvalidValueException $exception) {
+                $this->warn("Staff record {$profile->id}: {$exception->getMessage()}");
+            }
         }
 
         $this->info("$ended leavers lost access.");
