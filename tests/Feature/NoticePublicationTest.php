@@ -184,6 +184,18 @@ class NoticePublicationTest extends TestCase
         $this->assertTrue($notice->recipients()->where('user_id', $alumnusTeacher->id)->exists());
     }
 
+    public function test_a_school_notice_still_reaches_a_suspended_learner(): void
+    {
+        $this->authorized_user([]);
+        $pupil = $this->personWithRole(Role::Student);
+        StudentRecord::factory()->create(['user_id' => $pupil->id, 'school_id' => $this->workingSchool()->id, 'status' => EnrollmentStatus::Suspended]);
+        $notice = $this->notice();
+
+        app(PublishNotice::class)->publish($notice);
+
+        $this->assertTrue($notice->recipients()->where('user_id', $pupil->id)->exists());
+    }
+
     public function test_publishing_twice_does_not_send_it_again(): void
     {
         $this->authorized_user([]);

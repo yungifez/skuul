@@ -56,7 +56,7 @@ class NoticeAudience
     {
         $allStudentIds = StudentRecord::query()
             ->inSchool($schoolId)
-            ->attending()
+            ->enrolled()
             ->whereNotNull('user_id')
             ->pluck('user_id')
             ->map(fn (mixed $id): int => (int) $id)
@@ -137,7 +137,7 @@ class NoticeAudience
 
         return StudentRecord::query()
             ->inSchool($schoolId)
-            ->attending()
+            ->enrolled()
             ->whereNotNull('user_id')
             ->where(function (Builder $query) use ($levelScopeIds, $sectionIds, $studentRecordIds): void {
                 $hasStructuredTarget = false;

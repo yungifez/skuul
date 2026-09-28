@@ -108,6 +108,20 @@ class StudentRecord extends Model
     }
 
     /**
+     * Limit the query to enrollments that are still open.
+     *
+     * A suspended learner is kept out of class for a while, but still has
+     * marks to finish and a family the school must reach.
+     *
+     * @param  Builder<StudentRecord>  $query
+     * @return Builder<StudentRecord>
+     */
+    public function scopeEnrolled(Builder $query): Builder
+    {
+        return $query->whereIn('status', [EnrollmentStatus::Active, EnrollmentStatus::Suspended]);
+    }
+
+    /**
      * Limit the query to enrollments in one state.
      *
      * @param  Builder  $query

@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A suspended learner vanished from mark sheets and school notices
+- Status: Fixed
+- Area: Gradebook and notices
+- Observed: Course rosters and notice audiences read only active enrollments. A learner suspended for a week dropped off every mark sheet and stopped getting the school's notices.
+- Impact: Teachers could not finish or publish the learner's results while they were suspended. The family missed notices during the suspension.
+- Reproduction: Suspend an enrollment. Open a mark sheet for their section, or publish a whole-school notice.
+- Resolution: `StudentRecord::enrolled()` covers active and suspended enrollments. The gradebook roster and notice audiences use it. Attendance registers still list only learners in class.
+
 ## A suspended learner's family was locked out of the portal
 - Status: Fixed
 - Area: Portal

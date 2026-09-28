@@ -70,7 +70,7 @@ class CourseOfferingRoster
         $courseOffering->loadMissing(['academicLevel', 'cycleSections', 'studentRecords']);
 
         return StudentRecord::query()
-            ->attending()
+            ->enrolled()
             ->where(fn (Builder $roster) => $roster
                 ->where(fn (Builder $current) => $this->currentRoster($current->inSchool($courseOffering->school_id), $courseOffering))
                 ->orWhereIn('id', $this->wasMarkedIn($courseOffering)->select('student_record_id')))

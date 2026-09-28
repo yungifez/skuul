@@ -10,6 +10,7 @@ use App\Actions\Gradebook\RecordGrade;
 use App\Actions\Gradebook\RejectResult;
 use App\Enums\AcademicPeriodStatus;
 use App\Enums\AuditAction;
+use App\Enums\EnrollmentStatus;
 use App\Enums\GradeAggregation;
 use App\Enums\GradeEntryState;
 use App\Enums\GradeItemType;
@@ -489,6 +490,16 @@ class GradebookTest extends TestCase
         $this->expectExceptionMessage('This student is enrolled in another school.');
 
         app(PublishResult::class)->publish($courseOffering, $unmarked->fresh());
+    }
+
+    public function test_a_suspended_learner_stays_on_the_mark_sheet(): void
+    {
+        $this->authorized_user([]);
+        $courseOffering = $this->courseOffering();
+        $enrollment = $this->enrollment();
+        $enrollment->update(['status' => EnrollmentStatus::Suspended]);
+
+        $this->assertContains($enrollment->id, app(CourseOfferingRoster::class)->students($courseOffering)->modelKeys());
     }
 
     public function test_a_published_result_does_not_follow_later_marks(): void
