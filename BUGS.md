@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A payment taken twice from the invoice screen
+
+- Status: Fixed
+- Area: Finance, taking payment at the counter
+- Observed: Pressing "Take payment" twice, or a browser retry after a lost answer, recorded the same cash payment twice.
+- Impact: The ledger showed money the school never received. The family looked paid ahead, and the cash count did not match.
+- Reproduction: Open an invoice's payment screen. Enter 40 in cash. Press save twice before the page leaves.
+- Resolution: The screen now names each payment with a locked key. A second save with the same key goes to the invoice and records nothing. A refused payment frees the key, so the cashier can correct it and save again.
+
 ## Some checkboxes lost their size, and the phone check flagged error lines
 - Status: Fixed
 - Area: Views, form controls

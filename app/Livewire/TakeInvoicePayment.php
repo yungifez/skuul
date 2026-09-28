@@ -7,10 +7,14 @@ use App\Exceptions\InvalidValueException;
 use App\Models\FeeInvoice;
 use App\Services\Finance\PaymentChannelRegistry;
 use Brick\Money\Money as BrickMoney;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
+use Livewire\Attributes\Locked;
 use Livewire\Component;
+use Throwable;
 
 /**
  * Take money at the counter against one invoice.
@@ -37,11 +41,18 @@ class TakeInvoicePayment extends Component
     /** @var array<int|string, string|null> */
     public array $lines = [];
 
+    /**
+     * Name this one payment, so a save sent twice records it once.
+     */
+    #[Locked]
+    public string $idempotencyKey = '';
+
     public function mount(): void
     {
         Gate::authorize('update', $this->feeInvoice);
 
         $this->receivedOn = now()->toDateString();
+        $this->idempotencyKey = (string) Str::uuid();
     }
 
     public function save(ReceivePayment $receive, PaymentChannelRegistry $channels): void
@@ -69,6 +80,16 @@ class TakeInvoicePayment extends Component
             return;
         }
 
+        // A second press, or a retry after a lost answer, finds the key taken
+        // and goes to the invoice instead of taking the money again.
+        $recordedKey = 'invoice-payment-recorded:'.current_school_id().':'.$this->idempotencyKey;
+
+        if (!Cache::add($recordedKey, true, now()->addHour())) {
+            $this->redirectRoute('fee-invoices.show', $this->feeInvoice);
+
+            return;
+        }
+
         try {
             $payment = $receive->receive(
                 enrollment: $enrollment,
@@ -83,9 +104,14 @@ class TakeInvoicePayment extends Component
                 schoolId: $this->feeInvoice->school_id,
             );
         } catch (InvalidValueException $exception) {
+            Cache::forget($recordedKey);
             $this->addError($this->splitByFee ? 'lines' : 'amount', $exception->getMessage());
 
             return;
+        } catch (Throwable $exception) {
+            Cache::forget($recordedKey);
+
+            throw $exception;
         }
 
         $credit = $payment->unallocated();

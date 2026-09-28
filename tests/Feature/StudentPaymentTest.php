@@ -317,6 +317,44 @@ class StudentPaymentTest extends TestCase
         app(RefundStudent::class)->refund($enrollment, 1_000, '  ');
     }
 
+    public function test_pressing_take_payment_twice_records_one_payment(): void
+    {
+        $this->authorized_user(['read fee invoice', 'update fee invoice']);
+        $enrollment = $this->enrollment();
+        $invoice = $this->invoiceFor($enrollment, [['amount' => 100]]);
+
+        Livewire::test(TakeInvoicePayment::class, ['feeInvoice' => $invoice])
+            ->set('amount', '40')
+            ->set('method', 'cash')
+            ->call('save')
+            ->call('save')
+            ->assertRedirect(route('fee-invoices.show', $invoice->id));
+
+        $this->assertSame(1, StudentPayment::where('student_record_id', $enrollment->id)->count());
+        $this->assertSame(4_000, $invoice->fresh()->paid->getMinorAmount()->toInt());
+    }
+
+    public function test_a_refused_payment_can_be_corrected_and_taken(): void
+    {
+        $this->authorized_user(['read fee invoice', 'update fee invoice']);
+        $enrollment = $this->enrollment();
+        $invoice = $this->invoiceFor($enrollment, [['amount' => 100]]);
+        app(ReceivePayment::class)->receive($enrollment, 1_000, reference: 'BANK-1');
+
+        Livewire::test(TakeInvoicePayment::class, ['feeInvoice' => $invoice])
+            ->set('amount', '40')
+            ->set('method', 'cash')
+            ->set('reference', 'bank-1')
+            ->call('save')
+            ->assertHasErrors('amount')
+            ->set('reference', 'BANK-2')
+            ->call('save')
+            ->assertHasNoErrors()
+            ->assertRedirect(route('fee-invoices.show', $invoice->id));
+
+        $this->assertSame(2, StudentPayment::where('student_record_id', $enrollment->id)->count());
+    }
+
     public function test_the_office_can_take_a_payment_from_the_invoice_screen(): void
     {
         $actor = $this->authorized_user(['read fee invoice', 'update fee invoice']);
