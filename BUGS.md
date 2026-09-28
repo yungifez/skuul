@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A campus move waited forever for a learner who had left
+- Status: Fixed
+- Area: Campus moves
+- Observed: Withdrawing, transferring, or graduating a learner left their campus move request open. Approving it then failed, because a closed enrollment cannot move.
+- Impact: Both campuses' inboxes kept a request nobody could approve. Someone had to reject it by hand.
+- Reproduction: Ask to move a learner to a sibling campus. Withdraw the learner before the other campus decides.
+- Resolution: Closing an enrollment cancels its waiting move request, with the reason as the note.
+
 ## The collapsed sidebar pushed its icons into the border and hid later items
 - Status: Fixed
 - Area: Layout sidebar

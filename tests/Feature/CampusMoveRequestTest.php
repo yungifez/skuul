@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Enrollment\ChangeEnrollmentStatus;
 use App\Actions\Enrollment\MoveEnrollmentBetweenCampuses;
 use App\Actions\Enrollment\RequestCampusMove;
 use App\Actions\Organization\GrantOrganizationMembership;
@@ -229,6 +230,21 @@ class CampusMoveRequestTest extends TestCase
         $this->expectException(InvalidValueException::class);
 
         app(RequestCampusMove::class)->request($enrollment, $this->cycleSection(School::factory()->create()));
+    }
+
+    public function test_withdrawing_the_learner_cancels_the_move_still_waiting(): void
+    {
+        $source = $this->workingSchool();
+        $sibling = $this->siblingCampus();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        $actor = $this->campusAdministratorOf($source, [CampusMoveAuthority::RequestPermission]);
+        $request = app(RequestCampusMove::class)->request($enrollment, $this->cycleSection($sibling), $actor);
+
+        app(ChangeEnrollmentStatus::class)->change($enrollment, EnrollmentStatus::Withdrawn, $actor);
+
+        $this->assertSame(CampusMoveStatus::Cancelled, $request->fresh()->status);
+        $this->assertStringContainsString('Enrollment closed', $request->fresh()->decision_note);
+        $this->assertNull(app(RequestCampusMove::class)->openRequestFor($enrollment));
     }
 
     public function test_a_closed_enrollment_cannot_be_requested(): void

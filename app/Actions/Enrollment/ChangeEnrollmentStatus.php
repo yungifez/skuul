@@ -30,6 +30,7 @@ class ChangeEnrollmentStatus
         private AssignBoardingPlace $boarding,
         private ChangeProgramParticipation $programmes,
         private ChangeCohortMembership $cohorts,
+        private RequestCampusMove $campusMoves,
     ) {}
 
     /**
@@ -78,6 +79,14 @@ class ChangeEnrollmentStatus
             if ($status->isClosed()) {
                 $this->boarding->release($enrollment, "Enrollment closed: {$status->label()}", $actor, $effectiveOn);
                 $this->programmes->withdrawFromSchool($enrollment, $enrollment->school_id, "Enrollment closed: {$status->label()}", $actor, finished: $status === EnrollmentStatus::Graduated);
+
+                // A closed enrollment can never move, so a move still
+                // waiting would only fail when somebody tried to approve it.
+                $waiting = $this->campusMoves->openRequestFor($enrollment);
+
+                if ($waiting !== null) {
+                    $this->campusMoves->cancel($waiting, $actor, "Enrollment closed: {$status->label()}");
+                }
 
                 // A graduate stays in the class they graduated with.
                 if ($status !== EnrollmentStatus::Graduated) {
