@@ -56,6 +56,13 @@ class UserPolicy
             return false;
         }
 
+        // A learner who moved keeps their membership here so this campus can
+        // still read what they did here. Their details now belong to the
+        // campus they attend.
+        if ($role === 'student' && !$model->studentRecords()->where('school_id', current_school_id())->exists()) {
+            return false;
+        }
+
         if ($user->can("update $role")) {
             return true;
         }

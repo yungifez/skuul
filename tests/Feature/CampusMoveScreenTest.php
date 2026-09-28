@@ -110,9 +110,7 @@ class CampusMoveScreenTest extends TestCase
         $screen->set('statusSelection', EnrollmentStatus::Withdrawn->value)
             ->set('statusReason', 'Left the school')
             ->call('changeStatus')
-            ->assertHasErrors('statusSelection');
-
-        $this->assertStringContainsString("now attends {$sibling->name}", $screen->errors()->first('statusSelection'));
+            ->assertForbidden();
 
         $this->assertSame(EnrollmentStatus::Active, $enrollment->fresh()->status);
         $this->assertSame($sibling->id, $enrollment->fresh()->school_id);

@@ -1,5 +1,13 @@
 # Known Bugs
 
+## The old campus could still edit a learner who moved away
+- Status: Fixed
+- Area: Student profiles, campus moves
+- Observed: A move keeps the learner's membership at the old campus, so its staff can read what the learner did there. The edit check asked only for that membership. Staff at the old campus could open the edit form and change the learner's name, address and other details.
+- Impact: A campus the learner no longer attends could rewrite details the new campus relies on, without the new campus knowing.
+- Reproduction: Move a learner to a sibling campus. At the old campus, open the learner's profile and choose Edit.
+- Resolution: Editing a learner now needs their enrollment at the campus you work in. The old campus still reads the profile.
+
 ## Cover could be booked for a lesson on a holiday
 - Status: Fixed
 - Area: Timetable cover, calendar

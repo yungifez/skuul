@@ -188,6 +188,19 @@ class StudentTest extends TestCase
         Livewire::test(EditStudentForm::class, ['student' => $student->user])->assertForbidden();
     }
 
+    public function test_a_learner_who_moved_away_is_read_but_not_edited_here(): void
+    {
+        $student = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $newCampus = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id]);
+        $student->update(['school_id' => $newCampus->id]);
+        $this->authorized_user(['read student', 'update student']);
+
+        $this->assertTrue($student->user->belongsToCurrentSchool());
+        $this->get(route('students.show', $student->user))->assertOk();
+        $this->get(route('students.edit', $student->user))->assertForbidden();
+        Livewire::test(EditStudentForm::class, ['student' => $student->user])->assertForbidden();
+    }
+
     public function test_authorised_users_can_update_students(): void
     {
         $student = StudentRecord::factory()->create();
