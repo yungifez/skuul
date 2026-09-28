@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A CSV export could run a formula typed into a name or note
+
+- Status: Fixed
+- Area: Reports, syllabus coverage export
+- Observed: CSV exports wrote cells exactly as stored. A value starting with =, +, -, @, a tab or a return opens as a formula in a spreadsheet program.
+- Impact: Anybody who can type a name, a note or a title could make a bursar's or an administrator's spreadsheet run a formula, for example a link that sends data out.
+- Reproduction: Name a learner `=HYPERLINK("http://example.test","Ada")`. Export a report that lists them as CSV and open it in a spreadsheet.
+- Resolution: `CsvFormat` puts an apostrophe before such text cells, so they show as typed. Plain numbers, including negative balances, are left alone. XLSX already writes plain text cells.
+
 ## A failed report showed the fault's inner details
 
 - Status: Fixed

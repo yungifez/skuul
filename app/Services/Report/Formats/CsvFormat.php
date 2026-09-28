@@ -51,10 +51,10 @@ class CsvFormat implements ExportFormat
     public function render(string $title, array $columns, Collection $rows): string
     {
         $handle = fopen('php://temp', 'r+');
-        fputcsv($handle, $columns);
+        fputcsv($handle, array_map($this->cell(...), $columns));
 
         foreach ($rows as $row) {
-            fputcsv($handle, $row);
+            fputcsv($handle, array_map($this->cell(...), $row));
         }
 
         rewind($handle);
@@ -62,5 +62,21 @@ class CsvFormat implements ExportFormat
         fclose($handle);
 
         return $csv;
+    }
+
+    /**
+     * Keep a cell as text when a spreadsheet would read it as a formula.
+     *
+     * A name or a note typed as "=HYPERLINK(...)" would run when the file is
+     * opened. A leading apostrophe makes the spreadsheet show it as typed.
+     * A plain number, such as a negative balance, is left alone.
+     */
+    private function cell(mixed $value): mixed
+    {
+        if (!is_string($value) || $value === '' || is_numeric($value)) {
+            return $value;
+        }
+
+        return in_array($value[0], ['=', '+', '-', '@', "\t", "\r"], true) ? "'".$value : $value;
     }
 }

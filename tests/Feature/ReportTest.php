@@ -15,6 +15,7 @@ use App\Models\ReportRun;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Services\Report\ExportFormatRegistry;
+use App\Services\Report\Formats\CsvFormat;
 use App\Services\Report\ReportRegistry;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -150,6 +151,22 @@ class ReportTest extends TestCase
 
         $this->assertStringNotContainsString('SQLSTATE', (string) $run->fresh()->error);
         $this->assertStringContainsString('could not be built', (string) $run->fresh()->error);
+    }
+
+    public function test_a_csv_cell_that_looks_like_a_formula_stays_text(): void
+    {
+        $csv = app(CsvFormat::class)->render('People', ['Name', 'Balance'], collect([
+            ['=HYPERLINK("http://example.test","Ada")', '-1200.50'],
+            ['@SUM(A1)', -3],
+            ['Grace-Ola', '+ fee'],
+        ]));
+
+        $this->assertStringContainsString("'=HYPERLINK", $csv);
+        $this->assertStringContainsString("'@SUM(A1)", $csv);
+        $this->assertStringContainsString("'+ fee", $csv);
+        $this->assertStringContainsString('-1200.50', $csv);
+        $this->assertStringNotContainsString("'-1200.50", $csv);
+        $this->assertStringContainsString('Grace-Ola', $csv);
     }
 
     public function test_an_authorized_user_can_ask_for_a_report(): void
