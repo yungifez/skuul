@@ -25,8 +25,9 @@ class OfferNextWaitlistEntry
             $section = AcademicCycleSection::query()->lockForUpdate()->findOrFail($academicCycleSection->getKey());
 
             // An open offer holds its seat, so one free seat is never offered
-            // to two families.
-            if ($section->capacity === null || $this->seats->isFull($section)) {
+            // to two families. A section whose limit was lifted has room for
+            // everybody still waiting.
+            if ($this->seats->isFull($section)) {
                 return null;
             }
 

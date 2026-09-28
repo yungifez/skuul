@@ -223,6 +223,18 @@ class AdmissionsTest extends TestCase
         $this->assertSame(1, AdmissionWaitlistEntry::where('academic_cycle_section_id', $section->id)->where('status', AdmissionWaitlistStatus::Offered)->count());
     }
 
+    public function test_the_queue_is_still_offered_after_the_limit_is_lifted(): void
+    {
+        $section = $this->section(1);
+        app(ChangeEnrollmentPlacement::class)->place($this->unplacedStudent(), $section);
+        $waiting = app(JoinWaitlist::class)->join($section, User::factory()->create());
+
+        $section->forceFill(['capacity' => null])->save();
+
+        $this->assertSame($waiting->id, app(OfferNextWaitlistEntry::class)->offer($section)?->id);
+        $this->assertSame(AdmissionWaitlistStatus::Offered, $waiting->fresh()->status);
+    }
+
     public function test_a_seat_held_by_an_offer_is_not_free_to_join(): void
     {
         $section = $this->section(1);

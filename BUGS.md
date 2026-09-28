@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Lifting a section's limit strands its admission queue
+- Status: Fixed
+- Area: Admissions waitlist
+- Observed: After staff cleared a full section's capacity, Offer said "There is no open place or pending candidate" for every waiting family.
+- Impact: Families stayed on the waitlist of a section with room for them, and no screen could move them on.
+- Reproduction: Fill a section with capacity 1. Put a family on its waitlist. Clear the capacity. Press Offer.
+- Resolution: A section with no limit is never full, so the next family is offered a place.
+
 ## The attendance register offers draft, archived and old sections
 - Status: Fixed
 - Area: Attendance register
