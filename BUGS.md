@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A late register slipped into a closed term
+
+- Status: Fixed
+- Area: Attendance
+- Observed: A register taken for an earlier day was filed under the term that is open now. Only that open term was checked for closure.
+- Impact: Once a new term opened, staff could change attendance in a term that was already closed and reported. The record counted towards the wrong term's totals.
+- Reproduction: Close term one and open term two. Take the register for a day in term one.
+- Resolution: A register is filed under the term that covers its day at the learner's campus. A day in a closed term, or a term of a closed year, is refused.
+
 ## A CSV export could run a formula typed into a name or note
 
 - Status: Fixed

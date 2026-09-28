@@ -13,6 +13,7 @@ use App\Exceptions\InvalidValueException;
 use App\Livewire\AttendanceRegister as AttendanceRegisterComponent;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
+use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\AttendanceRecord;
 use App\Models\School;
@@ -177,6 +178,29 @@ class AttendanceTest extends TestCase
         $this->expectException(ClosedPeriodException::class);
 
         app(RecordAttendance::class)->record($enrollment, AttendanceStatus::Present);
+    }
+
+    public function test_a_late_register_is_filed_under_the_term_of_its_day(): void
+    {
+        $this->authorized_user([]);
+        $enrollment = $this->enrollment();
+        $pastTerm = $this->pastTerm();
+
+        $record = app(RecordAttendance::class)->record($enrollment, AttendanceStatus::Present, $pastTerm->starts_on->copy()->addDay());
+
+        $this->assertSame($pastTerm->id, $record->academic_period_id);
+    }
+
+    public function test_a_closed_term_takes_no_late_register(): void
+    {
+        $this->authorized_user([]);
+        $enrollment = $this->enrollment();
+        $pastTerm = $this->pastTerm();
+        app(ChangeAcademicPeriodStatus::class)->close($pastTerm);
+
+        $this->expectException(ClosedPeriodException::class);
+
+        app(RecordAttendance::class)->record($enrollment, AttendanceStatus::Present, $pastTerm->starts_on->copy()->addDay());
     }
 
     public function test_a_register_can_be_taken_for_a_whole_list(): void
@@ -403,6 +427,17 @@ class AttendanceTest extends TestCase
             ->assertOk()
             ->assertSee('Nobody attends this')
             ->assertDontSee('Save register');
+    }
+
+    private function pastTerm(): AcademicPeriod
+    {
+        return AcademicPeriod::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_year_id' => current_academic_year_id(),
+            'parent_id' => null,
+            'starts_on' => now()->subYears(3)->startOfMonth(),
+            'ends_on' => now()->subYears(3)->startOfMonth()->addMonths(2),
+        ]);
     }
 
     private function enrollment(): StudentRecord

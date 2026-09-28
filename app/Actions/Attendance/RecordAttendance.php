@@ -7,6 +7,7 @@ use App\Enums\AttendanceStatus;
 use App\Enums\Feature;
 use App\Exceptions\ClosedPeriodException;
 use App\Exceptions\InvalidValueException;
+use App\Models\AcademicPeriod;
 use App\Models\AttendanceChange;
 use App\Models\AttendanceRecord;
 use App\Models\StudentRecord;
@@ -42,9 +43,10 @@ class RecordAttendance
     ): AttendanceRecord {
         $day = Carbon::parse($date ?? now())->startOfDay();
 
-        $this->failIfRecordsDoNotFit($enrollment, $day, $kind, $subject);
+        $term = $this->termOf($enrollment, $day);
+        $this->failIfRecordsDoNotFit($enrollment, $day, $kind, $subject, $term);
 
-        return DB::transaction(function () use ($enrollment, $status, $day, $kind, $subject, $actor, $reason, $source): AttendanceRecord {
+        return DB::transaction(function () use ($enrollment, $status, $day, $kind, $subject, $actor, $reason, $source, $term): AttendanceRecord {
             $record = AttendanceRecord::firstOrNew([
                 'student_record_id' => $enrollment->id,
                 'attended_on' => $day->toDateString(),
@@ -56,8 +58,8 @@ class RecordAttendance
 
             $record->fill([
                 'school_id' => $enrollment->school_id ?? current_school_id(),
-                'academic_year_id' => current_academic_year_id(),
-                'academic_period_id' => current_academic_period_id(),
+                'academic_year_id' => $term->academic_year_id ?? current_academic_year_id(),
+                'academic_period_id' => $term->id ?? current_academic_period_id(),
                 'academic_cycle_section_id' => $enrollment->academic_cycle_section_id,
                 'status' => $status,
                 'reason' => $reason,
@@ -119,7 +121,7 @@ class RecordAttendance
      * @throws InvalidValueException
      * @throws ClosedPeriodException
      */
-    private function failIfRecordsDoNotFit(StudentRecord $enrollment, Carbon $day, AttendanceKind $kind, ?Subject $subject): void
+    private function failIfRecordsDoNotFit(StudentRecord $enrollment, Carbon $day, AttendanceKind $kind, ?Subject $subject, ?AcademicPeriod $term): void
     {
         $registerKey = $kind === AttendanceKind::Daily ? 'daily_register' : 'lesson_register';
 
@@ -151,10 +153,32 @@ class RecordAttendance
             throw new InvalidValueException('The subject belongs to another school.');
         }
 
+        if ($term !== null && ($term->isClosed() || $term->academicYear?->isClosed())) {
+            $closedTerm = $term->label ?? $term->name;
+
+            throw new ClosedPeriodException("You cannot take attendance for {$day->format('j M Y')}. {$closedTerm} is closed.");
+        }
+
         $period = current_academic_period() ?? current_academic_year();
 
         if ($period !== null && $period->isClosed()) {
             throw new ClosedPeriodException('You cannot take attendance in a closed academic period.');
         }
+    }
+
+    /**
+     * Get the term the day falls in at the learner's campus.
+     *
+     * A register taken late belongs to the term of the day it records, not
+     * to the term that is open now, so a closed term stays closed.
+     */
+    private function termOf(StudentRecord $enrollment, Carbon $day): ?AcademicPeriod
+    {
+        return AcademicPeriod::query()
+            ->where('school_id', $enrollment->school_id ?? current_school_id())
+            ->topLevel()
+            ->covering($day)
+            ->with('academicYear')
+            ->first();
     }
 }
