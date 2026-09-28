@@ -186,6 +186,25 @@ class AdmissionsTest extends TestCase
         app(ChangeEnrollmentStatus::class)->change($attending, EnrollmentStatus::Suspended, into: $this->section(2));
     }
 
+    public function test_an_offer_to_a_learner_placed_another_way_frees_its_seat(): void
+    {
+        $section = $this->section(1);
+        $occupied = $this->unplacedStudent();
+        app(ChangeEnrollmentPlacement::class)->place($occupied, $section);
+        $leaver = $this->unplacedStudent();
+        app(ChangeEnrollmentStatus::class)->change($leaver, EnrollmentStatus::Withdrawn);
+        app(JoinWaitlist::class)->join($section, $leaver->user, priority: 10);
+        $next = app(JoinWaitlist::class)->join($section, User::factory()->create(), priority: 1);
+        app(ChangeEnrollmentStatus::class)->graduate($occupied);
+        $offered = app(OfferNextWaitlistEntry::class)->offer($section);
+
+        app(ChangeEnrollmentStatus::class)->returnToAttendance($leaver);
+        app(ChangeEnrollmentPlacement::class)->place($leaver, $this->section(1));
+
+        $this->assertSame(AdmissionWaitlistStatus::Withdrawn, $offered?->fresh()->status);
+        $this->assertSame($next->id, app(OfferNextWaitlistEntry::class)->offer($section)?->id);
+    }
+
     public function test_one_free_seat_is_offered_to_one_family(): void
     {
         $section = $this->section(1);

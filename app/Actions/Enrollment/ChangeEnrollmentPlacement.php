@@ -2,6 +2,7 @@
 
 namespace App\Actions\Enrollment;
 
+use App\Actions\Admissions\DeclineWaitlistEntry;
 use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
@@ -29,6 +30,7 @@ class ChangeEnrollmentPlacement
     public function __construct(
         private RecordAuditEvent $auditor,
         private SectionSeats $seats,
+        private DeclineWaitlistEntry $waitlist,
     ) {}
 
     /**
@@ -90,6 +92,8 @@ class ChangeEnrollmentPlacement
             $enrollment->academicYears()->syncWithoutDetaching([$academicYear->id => [
                 'academic_cycle_section_id' => $academicCycleSection->id,
             ]]);
+
+            $this->waitlist->withdrawForEnrolled($enrollment, $actor);
 
             $this->auditor->record(
                 AuditAction::EnrollmentPlaced,

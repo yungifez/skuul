@@ -1,5 +1,13 @@
 # Known Bugs
 
+## An offer held its seat after the learner was placed another way
+- Status: Fixed
+- Area: Admissions waitlist, enrollment placement
+- Observed: A candidate with an open offer could be taken back or placed in another section of the school, for example by a campus move. The offer stayed open. It held its seat, and accepting it could only fail.
+- Impact: The section looked full. The next family on the waitlist got no offer until staff found and declined the stale one.
+- Reproduction: Offer a seat to a former learner. Before they answer, take them back from their profile, or move them into another section. Try to offer the seat to the next family.
+- Resolution: Placing a learner, or taking a leaver back, withdraws their open waitlist entries at that school. The seat goes to the next family.
+
 ## A returning learner could never take a waitlist offer
 - Status: Fixed
 - Area: Admissions waitlist, enrollment status

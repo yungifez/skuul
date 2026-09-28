@@ -2,6 +2,7 @@
 
 namespace App\Actions\Enrollment;
 
+use App\Actions\Admissions\DeclineWaitlistEntry;
 use App\Actions\Audit\RecordAuditEvent;
 use App\Actions\Boarding\AssignBoardingPlace;
 use App\Actions\Cohort\ChangeCohortMembership;
@@ -39,6 +40,7 @@ class ChangeEnrollmentStatus
         private ManageSupportPlan $supportPlans,
         private SectionSeats $seats,
         private ChangeEnrollmentPlacement $placement,
+        private DeclineWaitlistEntry $waitlist,
     ) {}
 
     /**
@@ -108,6 +110,11 @@ class ChangeEnrollmentStatus
                     reason: $reason,
                     effectiveOn: $effectiveOn,
                 );
+            }
+
+            // A learner taken back no longer waits for a seat here.
+            if ($current->isClosed()) {
+                $this->waitlist->withdrawForEnrolled($enrollment, $actor);
             }
 
             if ($status->isClosed()) {
