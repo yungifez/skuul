@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A member of staff could be admitted as a learner
+- Status: Fixed
+- Area: Admissions, student import, admission waitlist
+- Observed: The admission form, the student import and waitlist acceptance only checked for an existing learner role and an enrollment elsewhere. A teacher or administrator of this or a sibling campus was admitted and given the learner role.
+- Impact: One account held staff powers and a learner portal. The learner could keep marking, reading records or approving results.
+- Reproduction: Give a person the teacher role at a sibling campus. Admit their email at this campus.
+- Resolution: `User::worksAsStaff()` reads staff roles at every school where the person is still a member. Admission, import and waitlist acceptance refuse such a person. A teacher whose membership ended can be admitted.
+
 ## Open cases stayed with a member of staff who left
 - Status: Fixed
 - Area: Discipline, support plans, staff leavers

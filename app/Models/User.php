@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Laravel\Jetstream\HasProfilePhoto;
@@ -291,6 +292,23 @@ class User extends Authenticatable implements MustVerifyEmail
         $schoolId = current_school_id();
 
         return $schoolId !== null && $this->belongsToSchool($schoolId);
+    }
+
+    /**
+     * Check whether the person holds a staff role at a school they still belong to.
+     *
+     * Roles are kept per school, so this reads every school, not only the one
+     * being worked in.
+     */
+    public function worksAsStaff(): bool
+    {
+        return DB::table(config('permission.table_names.model_has_roles'))
+            ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+            ->where('model_has_roles.model_type', $this->getMorphClass())
+            ->where('model_has_roles.model_id', $this->id)
+            ->whereNotIn('roles.name', [Role::Student->value, Role::Parent->value])
+            ->whereIn('model_has_roles.school_id', $this->schoolMemberships()->active()->select('school_id'))
+            ->exists();
     }
 
     /**

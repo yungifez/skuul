@@ -172,6 +172,12 @@ class StudentImporter implements Importer
         if ($elsewhere !== null) {
             throw new InvalidValueException("This learner attends {$elsewhere->school?->name}. Ask that school to move or transfer them.");
         }
+
+        $person = User::query()->whereRaw('LOWER(email) = ?', [mb_strtolower((string) $email)])->first();
+
+        if ($person?->worksAsStaff() === true) {
+            throw new InvalidValueException("{$person->name} works as staff. A member of staff cannot be admitted as a learner.");
+        }
     }
 
     /**

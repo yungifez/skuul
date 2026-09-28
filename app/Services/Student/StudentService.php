@@ -102,6 +102,14 @@ class StudentService
     {
         $this->userService->failIfAlreadyHolds($record['email'], Role::Student);
 
+        $person = User::query()->whereRaw('LOWER(email) = ?', [mb_strtolower($record['email'])])->first();
+
+        if ($person?->worksAsStaff() === true) {
+            throw ValidationException::withMessages([
+                'email' => "{$person->name} works as staff. A member of staff cannot be admitted as a learner.",
+            ]);
+        }
+
         $enrolledElsewhere = StudentRecord::query()
             ->whereRelation('user', 'email', $record['email'])
             ->where('school_id', '!=', current_school_id())

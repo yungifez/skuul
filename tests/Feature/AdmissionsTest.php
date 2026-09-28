@@ -11,6 +11,7 @@ use App\Enums\AcademicStructureStatus;
 use App\Enums\AdmissionWaitlistStatus;
 use App\Enums\AuditAction;
 use App\Enums\EnrollmentStatus;
+use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\AdmissionWaitlistBoard;
 use App\Models\AcademicCycleSection;
@@ -278,6 +279,28 @@ class AdmissionsTest extends TestCase
 
         $this->assertSame(1, StudentRecord::query()->where('user_id', $candidate->id)->count());
         $this->assertSame(AdmissionWaitlistStatus::Offered, $offered->fresh()->status);
+    }
+
+    public function test_a_member_of_staff_cannot_take_a_place(): void
+    {
+        $section = $this->section(1);
+        $occupied = $this->unplacedStudent();
+        app(ChangeEnrollmentPlacement::class)->place($occupied, $section);
+        $candidate = $this->memberOf($this->workingSchool());
+        app(JoinWaitlist::class)->join($section, $candidate);
+        $candidate->assignRole(Role::Teacher);
+        app(ChangeEnrollmentStatus::class)->graduate($occupied);
+        $offered = app(OfferNextWaitlistEntry::class)->offer($section);
+
+        try {
+            app(AcceptWaitlistEntry::class)->accept($offered);
+            $this->fail('A teacher was admitted as a learner.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString('works as staff', $exception->getMessage());
+        }
+
+        $this->assertSame(0, StudentRecord::query()->where('user_id', $candidate->id)->count());
+        $this->assertFalse($candidate->refresh()->hasRole(Role::Student->value));
     }
 
     public function test_staff_can_read_the_waitlist_screen(): void

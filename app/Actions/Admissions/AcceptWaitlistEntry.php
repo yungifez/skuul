@@ -69,6 +69,11 @@ class AcceptWaitlistEntry
             }
 
             $candidate = $entry->candidate()->firstOrFail();
+
+            if ($candidate->worksAsStaff()) {
+                throw new InvalidValueException("{$candidate->name} works as staff. A member of staff cannot be admitted as a learner.");
+            }
+
             $candidate->assignRole(Role::Student);
 
             // The offer becomes the placement. Closing it first lets its own

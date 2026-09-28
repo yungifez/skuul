@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Actions\Enrollment\ChangeEnrollmentStatus;
+use App\Actions\School\EndSchoolMembership;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\EnrollmentStatus;
+use App\Enums\Role;
 use App\Livewire\CreateStudentForm;
 use App\Livewire\EditStudentForm;
 use App\Livewire\GraduateStudents;
@@ -153,6 +155,30 @@ class StudentTest extends TestCase
             ->assertHasErrors(['email' => 'This learner is enrolled at another school. Ask that school to move or transfer them.']);
 
         $this->assertSame(0, StudentRecord::query()->where('user_id', $elsewhere->user_id)->where('school_id', $this->workingSchool()->id)->count());
+    }
+
+    public function test_a_teacher_at_a_sibling_campus_cannot_be_admitted_as_a_learner(): void
+    {
+        $sibling = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id]);
+        $teacher = $this->teacherAt($sibling);
+        $this->authorized_user(['create student']);
+
+        $this->admitLearner($teacher->email, $this->activeCycleSection())
+            ->assertHasErrors(['email' => "{$teacher->name} works as staff. A member of staff cannot be admitted as a learner."]);
+
+        $this->assertSame(0, StudentRecord::query()->where('user_id', $teacher->id)->count());
+    }
+
+    public function test_a_teacher_who_left_their_school_can_be_admitted_as_a_learner(): void
+    {
+        $sibling = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id]);
+        $teacher = $this->teacherAt($sibling);
+        app(EndSchoolMembership::class)->end($teacher, $sibling);
+        $this->authorized_user(['create student']);
+
+        $this->admitLearner($teacher->email, $this->activeCycleSection())->assertHasNoErrors();
+
+        $this->assertSame(1, StudentRecord::query()->where('user_id', $teacher->id)->where('school_id', $this->workingSchool()->id)->count());
     }
 
     public function test_an_admission_number_is_unique_in_the_school(): void
@@ -641,6 +667,20 @@ class StudentTest extends TestCase
     /**
      * Fill the admission screen and press save.
      */
+    /**
+     * Make a teacher who belongs to the given school.
+     */
+    private function teacherAt(School $school): User
+    {
+        $teacher = $this->memberOf($school);
+        $teacher->forceFill(['email' => $this->faker()->unique()->freeEmail()])->save();
+        setPermissionsTeamId($school->id);
+        $teacher->assignRole(Role::Teacher);
+        setPermissionsTeamId($this->workingSchool()->id);
+
+        return $teacher->refresh();
+    }
+
     private function admitLearner(string $email, AcademicCycleSection $section, ?string $admissionNumber = null): Testable
     {
         $component = Livewire::test(CreateStudentForm::class)
