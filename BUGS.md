@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A family could not ask the new campus what the old one still owed
+- Status: Fixed
+- Area: Portal requests, campus moves
+- Observed: A request was a duplicate when the same person had the same subject open for the learner anywhere. After a move, a family still waiting on the old campus for a transcript could not ask the new campus for one: "You already asked for this. The school has not answered yet."
+- Impact: The new campus never heard the request, and the family was told to wait for a school that may never answer.
+- Reproduction: As a family, ask for "A copy of the result slip". Move the learner to a sibling campus. Ask again.
+- Resolution: A duplicate is now the same subject open at the same campus.
+
 ## A campus move stayed waiting after a campus left the organization
 - Status: Fixed
 - Area: Organizations, campus moves

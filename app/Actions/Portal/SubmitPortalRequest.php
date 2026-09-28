@@ -47,7 +47,10 @@ class SubmitPortalRequest
             throw new InvalidValueException('This person cannot ask about this student.');
         }
 
+        // A learner who moved asks their new campus afresh, even while the
+        // old campus still owes an answer to the same question.
         $alreadyAsked = PortalRequest::query()
+            ->where('school_id', $enrollment->school_id)
             ->where('student_record_id', $enrollment->id)
             ->where('requested_by', $person->id)
             ->where('subject', $subject)

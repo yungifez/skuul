@@ -84,6 +84,20 @@ class PortalRequestScreenTest extends TestCase
         $this->assertSame(1, PortalRequest::query()->count());
     }
 
+    public function test_a_learner_who_moved_can_ask_the_new_campus_the_same_thing(): void
+    {
+        $enrollment = $this->enrollment();
+        $first = $this->request($enrollment);
+        $newCampus = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id]);
+        $enrollment->update(['school_id' => $newCampus->id]);
+
+        $second = $this->request($enrollment->fresh());
+
+        $this->assertSame($this->workingSchool()->id, $first->school_id);
+        $this->assertSame($newCampus->id, $second->school_id);
+        $this->assertSame(PortalRequestStatus::Submitted, $first->fresh()->status);
+    }
+
     public function test_a_calendar_link_fills_in_the_request(): void
     {
         $enrollment = $this->enrollment();
