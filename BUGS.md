@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Staff marked as Left kept their campus access
+- Status: Fixed
+- Area: Staff records, school membership
+- Observed: Setting a staff record to Left ended teaching, boarding duty and cover. The school membership and roles stayed, so the person could still sign in to the campus and use every permission.
+- Impact: A dismissed teacher or administrator kept access to learner records, marks and money after their last day.
+- Reproduction: Open a staff record. Set the status to Left with yesterday as the leaving date. The person still belongs to the campus.
+- Resolution: Saving a Left record whose last day has passed ends the membership. A new daily command, `skuul:end-leavers-access` (00:15), ends it the day after a leaving date that was set ahead. The person keeps access on their last day.
+
 ## A learner could be made staff through the teacher form, the staff import or a reopened enrollment
 - Status: Fixed
 - Area: Teachers, staff import, enrollment status

@@ -8,6 +8,7 @@ use App\Enums\AuditAction;
 use App\Enums\LeaveStatus;
 use App\Enums\StaffStatus;
 use App\Exceptions\InvalidValueException;
+use App\Models\School;
 use App\Models\StaffAvailability;
 use App\Models\StaffCredential;
 use App\Models\StaffLeaveRequest;
@@ -106,6 +107,7 @@ class ManageStaffProfile
                     $this->withdrawLeaveAfter($profile, $leftOn, $actor);
                     // They still work on their last day, and nothing after it.
                     $this->endSchoolMembership->endDutiesFrom($profile->user()->firstOrFail(), $profile->school_id, $leftOn->copy()->addDay());
+                    $this->endAccessOfALeaver($profile);
                 }
 
                 return $profile;
@@ -113,6 +115,22 @@ class ManageStaffProfile
         } catch (UniqueConstraintViolationException) {
             throw new InvalidValueException('Another person was just given this staff number.');
         }
+    }
+
+    /**
+     * End the campus access of a person whose last day has passed.
+     *
+     * Their roles hold only while they belong to the campus, so ending the
+     * membership stops them signing in to it. A leaver whose last day is ahead
+     * keeps access until the daily run after that day.
+     */
+    public function endAccessOfALeaver(StaffProfile $profile): void
+    {
+        if ($profile->status !== StaffStatus::Left || $profile->left_on === null || !$profile->left_on->lt(today())) {
+            return;
+        }
+
+        $this->endSchoolMembership->end($profile->user()->firstOrFail(), School::query()->findOrFail($profile->school_id));
     }
 
     /**

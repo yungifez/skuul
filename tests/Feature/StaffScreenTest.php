@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\Staff\ManageStaffLeave;
+use App\Console\Commands\EndLeaversAccess;
 use App\Enums\EmploymentType;
 use App\Enums\Feature;
 use App\Enums\LeaveStatus;
@@ -225,6 +226,46 @@ class StaffScreenTest extends TestCase
             ->call('saveJob');
 
         $this->assertNull($profile->fresh()->left_on);
+    }
+
+    public function test_a_person_whose_last_day_passed_loses_access_to_the_campus(): void
+    {
+        $this->authorized_user(['read staff profile', 'update staff profile']);
+        $profile = $this->profile();
+        $profile->update(['joined_on' => now()->subYear()->toDateString()]);
+
+        Livewire::test(StaffProfileRecord::class, ['profile' => $profile])
+            ->call('startEditingJob')
+            ->set('status', StaffStatus::Left->value)
+            ->set('leftOn', now()->subDay()->toDateString())
+            ->call('saveJob')
+            ->assertHasNoErrors();
+
+        $this->assertFalse($profile->user->refresh()->belongsToSchool($profile->school_id));
+    }
+
+    public function test_a_person_leaving_later_keeps_access_until_the_day_after_their_last_day(): void
+    {
+        $this->authorized_user(['read staff profile', 'update staff profile']);
+        $profile = $this->profile();
+
+        Livewire::test(StaffProfileRecord::class, ['profile' => $profile])
+            ->call('startEditingJob')
+            ->set('status', StaffStatus::Left->value)
+            ->set('leftOn', now()->addDays(3)->toDateString())
+            ->call('saveJob')
+            ->assertHasNoErrors();
+
+        $this->artisan(EndLeaversAccess::class)->assertSuccessful();
+        $this->assertTrue($profile->user->refresh()->belongsToSchool($profile->school_id));
+
+        $this->travel(3)->days();
+        $this->artisan(EndLeaversAccess::class)->assertSuccessful();
+        $this->assertTrue($profile->user->refresh()->belongsToSchool($profile->school_id), 'They still work on their last day.');
+
+        $this->travel(1)->days();
+        $this->artisan(EndLeaversAccess::class)->assertSuccessful();
+        $this->assertFalse($profile->user->refresh()->belongsToSchool($profile->school_id));
     }
 
     public function test_a_qualification_and_working_hours_are_added_and_removed(): void

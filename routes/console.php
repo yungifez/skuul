@@ -3,6 +3,7 @@
 use App\Console\Commands\AdvanceAcademicCalendar;
 use App\Console\Commands\CheckBackup;
 use App\Console\Commands\CreateBackup;
+use App\Console\Commands\EndLeaversAccess;
 use App\Console\Commands\GenerateUpcomingAcademicCycles;
 use App\Console\Commands\ProcessLibraryHolds;
 use App\Console\Commands\ProcessNotices;
@@ -54,6 +55,9 @@ Schedule::command(ProcessLibraryHolds::class)->dailyAt('06:00')->withoutOverlapp
 
 // Put scheduled notices on the board and take finished ones down.
 Schedule::command(ProcessNotices::class)->everyFifteenMinutes()->withoutOverlapping();
+
+// Staff whose last day has passed no longer sign in to that campus.
+Schedule::command(EndLeaversAccess::class)->dailyAt('00:15')->withoutOverlapping();
 
 // Open the periods whose first day has arrived. This never closes one:
 // closing freezes records, so a person confirms it.
