@@ -10,6 +10,7 @@ use App\Actions\Library\IssueTitleToSection;
 use App\Actions\Library\RenewLoan;
 use App\Actions\Library\ReserveTitle;
 use App\Actions\Library\ReturnLoan;
+use App\Actions\School\EndSchoolMembership;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
 use App\Enums\EnrollmentStatus;
@@ -241,6 +242,23 @@ class LibraryTest extends TestCase
         app(ReturnLoan::class)->receive($loan);
 
         app(ChangeEnrollmentStatus::class)->change($enrollment, EnrollmentStatus::Withdrawn);
+
+        $this->assertSame(LibraryReservationStatus::Cancelled, $leaving->fresh()->status);
+        $this->assertSame(LibraryReservationStatus::Ready, $next->fresh()->status);
+        $this->assertSame($copy->id, $next->fresh()->library_copy_id);
+    }
+
+    public function test_a_copy_held_for_staff_who_left_goes_to_the_next_person(): void
+    {
+        $this->authorized_user([]);
+        $copy = $this->copy();
+        $teacher = $this->memberOf($this->workingSchool());
+        $loan = app(IssueLoan::class)->issue($copy, $this->memberOf($this->workingSchool()));
+        $leaving = app(ReserveTitle::class)->reserve($copy->title, $teacher);
+        $next = app(ReserveTitle::class)->reserve($copy->title, $this->memberOf($this->workingSchool()));
+        app(ReturnLoan::class)->receive($loan);
+
+        app(EndSchoolMembership::class)->end($teacher, $this->workingSchool());
 
         $this->assertSame(LibraryReservationStatus::Cancelled, $leaving->fresh()->status);
         $this->assertSame(LibraryReservationStatus::Ready, $next->fresh()->status);

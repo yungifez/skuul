@@ -4,6 +4,7 @@ namespace App\Actions\School;
 
 use App\Actions\Boarding\AssignBoardingSupervisor;
 use App\Actions\Curriculum\AssignTeacher;
+use App\Actions\Library\CloseReservation;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\SchoolMembershipStatus;
 use App\Exceptions\InvalidValueException;
@@ -32,7 +33,8 @@ use RuntimeException;
  * their records in that school, are not deleted. The subjects they still teach
  * and the boarding houses they still supervise there end, so each shows it
  * needs somebody, and cover booked from today on is given up. Open cases
- * and support plans assigned to them are handed back to the campus.
+ * and support plans assigned to them are handed back to the campus, and
+ * their library reservations there are taken off.
  */
 class EndSchoolMembership
 {
@@ -40,6 +42,7 @@ class EndSchoolMembership
         private AssignTeacher $teaching,
         private AssignBoardingSupervisor $boardingDuty,
         private RoleAuthority $roleAuthority,
+        private CloseReservation $reservations,
     ) {}
 
     /**
@@ -71,6 +74,9 @@ class EndSchoolMembership
             $user->schoolMemberships()->where('school_id', $school->id)->update(['is_primary' => false]);
 
             $this->endDutiesFrom($user, $school->id, today());
+
+            // A copy held for somebody who no longer comes in goes to the next person.
+            $this->reservations->cancelEveryReservation($user, $school->id);
 
             $this->promoteAnotherPrimary($user);
 

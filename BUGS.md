@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A library copy waits for staff who left
+
+- Status: Fixed
+- Area: Library, staff leaving a campus
+- Observed: Learners who left lost their reservations, but staff did not. A returned copy was held for a teacher who had left the campus.
+- Impact: The next person in the queue waited until the hold ran out.
+- Reproduction: A teacher reserves a title that is out. The teacher leaves the campus. The copy comes back.
+- Resolution: Ending a campus membership now takes off the person's reservations there. A held copy goes to the next person.
+
 ## An old copy takes a published notice off the board
 
 - Status: Fixed
