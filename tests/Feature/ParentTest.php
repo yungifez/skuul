@@ -16,6 +16,7 @@ use App\Models\PortalRequest;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
+use App\Services\Portal\PortalAccess;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -222,6 +223,24 @@ class ParentTest extends TestCase
         $this->assertNotSoftDeleted($parent);
         $this->assertFalse($parent->belongsToSchool($this->workingSchool()));
         $this->assertTrue($parent->belongsToSchool($sibling));
+    }
+
+    public function test_a_parent_removed_here_no_longer_reads_this_schools_children(): void
+    {
+        $parent = $this->guardian();
+        $this->authorized_user(['read parent', 'delete parent']);
+        $sibling = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id]);
+        $this->memberOf($sibling, $parent);
+        $here = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $there = StudentRecord::factory()->create(['school_id' => $sibling->id]);
+        $parent->parentRecord->students()->attach([$here->user_id, $there->user_id]);
+
+        Livewire::test(ListParentsTable::class)
+            ->call('deleteParent', $parent->id)
+            ->assertDispatched('status-message', message: "{$parent->name} was removed from this school.");
+
+        $this->assertSame([$there->user_id], $parent->parentRecord->students()->pluck('users.id')->all());
+        $this->assertFalse(app(PortalAccess::class)->canRead($parent->refresh(), $here));
     }
 
     public function test_a_parent_of_another_school_cannot_be_deleted()

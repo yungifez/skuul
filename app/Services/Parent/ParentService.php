@@ -2,6 +2,7 @@
 
 namespace App\Services\Parent;
 
+use App\Actions\Identity\ChangeGuardianLink;
 use App\Enums\Role;
 use App\Models\User;
 use App\Services\Print\PrintService;
@@ -16,7 +17,7 @@ class ParentService
      */
     public UserService $user;
 
-    public function __construct(UserService $user)
+    public function __construct(UserService $user, private ChangeGuardianLink $changeGuardianLink)
     {
         $this->user = $user;
     }
@@ -65,14 +66,25 @@ class ParentService
     }
 
     /**
-     * Delete parent record.
+     * Delete a parent, or only remove them from the working school.
      *
-     *
-     * @return void
+     * The portal follows guardian links, not memberships. A parent who stays
+     * at another school would still read this school's children, so those
+     * links end first.
      */
-    public function deleteParent(User $parent)
+    public function deleteParent(User $parent): void
     {
-        $this->user->deleteUser($parent);
+        DB::transaction(function () use ($parent): void {
+            $learners = $parent->parentRecord?->students()
+                ->whereHas('studentRecords', fn ($enrollments) => $enrollments->inSchool())
+                ->get() ?? collect();
+
+            foreach ($learners as $learner) {
+                $this->changeGuardianLink->unlink($parent, $learner, auth()->user());
+            }
+
+            $this->user->deleteUser($parent);
+        });
     }
 
     /**

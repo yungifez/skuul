@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A parent removed from one school still read that school's children
+- Status: Fixed
+- Area: Parents, portal access
+- Observed: Removing a parent who also belongs to another school only ended this school's membership. The portal follows guardian links, not memberships, so the parent still read this school's children.
+- Impact: After a school removed a parent, for example after a custody order, that parent still saw the child's grades, invoices and attendance, and could send requests.
+- Reproduction: Link a parent to a learner here and to a learner at a sibling campus. Remove the parent from this school. The portal still opens this school's learner for them.
+- Resolution: Removing a parent first ends their guardian links to learners of this school. Each unlink is audited and cancels that parent's open requests. Links to children at other schools stay.
+
 ## A campus could lose the last person who can manage it
 - Status: Fixed
 - Area: School membership, campus roles
