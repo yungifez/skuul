@@ -114,14 +114,16 @@ class GradebookScreenTest extends TestCase
 
         $this->assertSame('Reads with confidence.', GradeEntry::query()->latest('id')->firstOrFail()->comment);
 
-        $sheet = Livewire::test(GradebookMarkSheet::class, ['courseOffering' => $courseOffering])
+        Livewire::test(GradebookMarkSheet::class, ['courseOffering' => $courseOffering])
             ->call('submitResult', $enrollment->id);
 
         $snapshot = ResultSnapshot::query()->firstOrFail();
         $this->assertSame(80.0, $snapshot->percentage);
         $this->assertSame(ResultApprovalStatus::Pending, $snapshot->approval_status);
 
-        $sheet->call('approveResult', $snapshot->id);
+        $this->authorized_user(['read gradebook', 'approve result', 'update subject']);
+        Livewire::test(GradebookMarkSheet::class, ['courseOffering' => $courseOffering])
+            ->call('approveResult', $snapshot->id);
 
         $this->assertSame(ResultApprovalStatus::Approved, $snapshot->fresh()->approval_status);
     }

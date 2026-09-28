@@ -288,11 +288,29 @@ class GradebookMarkSheetTest extends TestCase
 
         $this->assertSame(1, ResultSnapshot::query()->count());
 
-        $sheet->call('approveResult', ResultSnapshot::sole()->id)
+        $this->authorized_user(self::TEACHER);
+        Livewire::test(GradebookMarkSheet::class, ['courseOffering' => $item->courseOffering])
+            ->call('approveResult', ResultSnapshot::sole()->id)
             ->assertSee('80.00%')
             ->assertSee('approved');
 
         $this->assertSame(ResultApprovalStatus::Approved, ResultSnapshot::sole()->approval_status);
+    }
+
+    public function test_the_teacher_who_sent_a_result_cannot_approve_it(): void
+    {
+        $this->authorized_user(self::TEACHER);
+        $item = $this->item(['max_points' => 20]);
+        $ada = $this->enrollment('Ada');
+        app(RecordGrade::class)->record($item, $ada, points: 16);
+
+        Livewire::test(GradebookMarkSheet::class, ['courseOffering' => $item->courseOffering])
+            ->call('submitResult', $ada->id)
+            ->assertDontSeeHtml('wire:click="approveResult(')
+            ->call('approveResult', ResultSnapshot::sole()->id)
+            ->assertDispatched('status-message', type: 'danger', message: 'You sent this result, so somebody else approves it.');
+
+        $this->assertSame(ResultApprovalStatus::Pending, ResultSnapshot::sole()->approval_status);
     }
 
     public function test_sending_a_result_back_needs_a_reason(): void
@@ -330,7 +348,7 @@ class GradebookMarkSheetTest extends TestCase
         $this->expectException(InvalidValueException::class);
         $this->expectExceptionMessage('The teacher sent revision 2 after this one. Approve that one instead.');
 
-        app(ApproveResult::class)->approve($first, auth()->user());
+        app(ApproveResult::class)->approve($first, User::factory()->create());
     }
 
     public function test_a_result_of_another_offering_cannot_be_approved_here(): void

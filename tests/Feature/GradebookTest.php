@@ -36,6 +36,7 @@ use App\Models\ResultSnapshot;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\Subject;
+use App\Models\User;
 use App\Services\Gradebook\CourseOfferingRoster;
 use App\Services\Gradebook\GradebookCalculator;
 use App\Traits\FeatureTestTrait;
@@ -436,7 +437,7 @@ class GradebookTest extends TestCase
         $currentBeforeApproval = app(PublishResult::class)->current($courseOffering, $enrollment);
         $this->assertNull($currentBeforeApproval);
 
-        app(ApproveResult::class)->approve($snapshot, $actor);
+        app(ApproveResult::class)->approve($snapshot, User::factory()->create());
 
         $currentAfterApproval = app(PublishResult::class)->current($courseOffering, $enrollment);
         $this->assertInstanceOf(ResultSnapshot::class, $currentAfterApproval);
@@ -525,11 +526,11 @@ class GradebookTest extends TestCase
         $publish = app(PublishResult::class);
         app(RecordGrade::class)->record($item, $enrollment, points: 8);
         $first = $publish->publish($courseOffering, $enrollment);
-        app(ApproveResult::class)->approve($first, auth()->user());
+        app(ApproveResult::class)->approve($first, User::factory()->create());
 
         app(RecordGrade::class)->record($item, $enrollment, points: 9);
         $corrected = $publish->publish($courseOffering, $enrollment, reason: 'Marking mistake');
-        app(ApproveResult::class)->approve($corrected, auth()->user(), 'Correction reviewed.');
+        app(ApproveResult::class)->approve($corrected, User::factory()->create(), 'Correction reviewed.');
 
         $this->assertSame(2, $corrected->revision);
         $this->assertSame(90.0, $corrected->percentage);

@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Approve one submitted result so it becomes visible to official readers.
+ *
+ * The person who sent a result never approves it, so each official result
+ * has passed two pairs of hands.
  */
 class ApproveResult
 {
@@ -28,6 +31,11 @@ class ApproveResult
 
         if ($result->approval_status !== ResultApprovalStatus::Pending) {
             throw new InvalidValueException('Only a result awaiting approval can be approved.');
+        }
+
+        // A second person checks every result. The one who sent it cannot.
+        if ($result->published_by === $actor->id) {
+            throw new InvalidValueException('You sent this result, so somebody else approves it.');
         }
 
         return DB::transaction(function () use ($result, $actor, $reason): ResultSnapshot {

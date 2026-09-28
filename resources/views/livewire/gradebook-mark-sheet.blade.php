@@ -140,7 +140,7 @@
                             </div>
                             <p class="text-sm font-semibold tabular-nums">{{ $official?->percentage === null ? '—' : number_format($official->percentage, 2).'%' }}</p>
 
-                            @if ($isWaiting && $canApprove)
+                            @if ($isWaiting && $canApprove && $latest->published_by !== auth()->id())
                                 <april:button type="button" variant="outline" class="h-11 select-none" wire:click="approveResult({{ $latest->id }})" wire:loading.attr="disabled" wire:target="approveResult">Approve</april:button>
                             @endif
                             @if ($canSubmit || ($isWaiting && $canApprove))

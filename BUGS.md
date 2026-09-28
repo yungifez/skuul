@@ -1,5 +1,12 @@
 # Known Bugs
 
+## A teacher could approve the result they sent
+- Status: Fixed
+- Area: Gradebook
+- Observed: A person holding both "publish result" and "approve result" could send a result and approve it at once.
+- Impact: An official result could pass with one person's check only.
+- Reproduction: As a teacher with both permissions, send a result for approval, then press Approve.
+- Resolution: The person who sent a result cannot approve it. The mark sheet hides Approve on their own results, and the action refuses it.
 ## The last role manager could be recorded as leaving and keep access
 - Status: Fixed
 - Area: Staff records
