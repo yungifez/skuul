@@ -132,11 +132,27 @@ class SidebarStateTest extends TestCase
             ->assertSee('Academic cycles')
             ->assertSee(school_terms('class_level', 'Classes'))
             ->assertSee(school_terms('section', 'Sections'))
-            ->assertSee('Course offerings')
+            ->assertSee(school_terms('course', 'Course').' being taught')
             ->assertSee(route('academic-years.index'), false)
             ->assertDontSee('View Classes')
             ->assertDontSee('Class groups')
             ->assertDontSee('Create academic period');
+    }
+
+    public function test_no_two_sidebar_links_share_a_name(): void
+    {
+        // A school that calls its courses subjects must still tell its
+        // subject list apart from the subjects being taught.
+        SchoolOperatingProfile::query()->updateOrCreate(
+            ['school_id' => $this->workingSchool()->id],
+            ['preset' => 'home_sections', 'labels' => SchoolOperatingProfile::PRESETS['home_sections']],
+        );
+        $this->authorized_user(['read admin', 'read subject', 'read academic year', 'read class', 'read section']);
+
+        $labels = collect(Livewire::test(Menu::class)->get('commandItems'))->pluck('label');
+
+        $this->assertSame([], $labels->duplicates()->values()->all());
+        $this->assertContains(school_terms('course', 'Course').' being taught', $labels->all());
     }
 
     public function test_the_sidebar_preserves_its_scroll_container_during_navigation(): void

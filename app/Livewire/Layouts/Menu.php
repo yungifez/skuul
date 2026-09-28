@@ -215,7 +215,7 @@ class Menu extends Component
             ],
             [
                 'type' => 'menu-item',
-                'text' => school_terms('course', 'Course offering'),
+                'text' => school_terms('course', 'Course').' being taught',
                 'icon' => 'book-marked',
                 'route' => 'course-offerings.index',
                 'can' => 'read subject',

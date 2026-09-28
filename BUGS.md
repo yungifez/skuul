@@ -1,5 +1,13 @@
 # Known Bugs
 
+## The sidebar listed Subjects twice
+- Status: Fixed
+- Area: Sidebar and command palette
+- Observed: A school that calls its courses subjects saw two sidebar links named "Subjects". One opened the subject list. The other opened the subjects being taught this year.
+- Impact: Staff could not tell the two pages apart. The command palette showed the same name twice.
+- Reproduction: Use the home sections preset. Open the sidebar as an admin. Look under Academics.
+- Resolution: The course offerings link now reads "<course term> being taught". A test checks that no two sidebar links share a name.
+
 ## A seat offered to a waiting family could be filled another way
 
 - Status: Fixed
