@@ -1,5 +1,14 @@
 # Known Bugs
 
+## An old campus's open screen could change a learner who moved away
+
+- Status: Fixed
+- Area: Student profile, health records, campus moves
+- Observed: A student profile or health form opened before a campus move still acted after it. The old campus could withdraw, graduate or re-place the learner at their new campus, and could write their health record.
+- Impact: One campus changed another campus's enrollment and medical data. The learner could be closed out of the school they now attend.
+- Reproduction: Open a learner's profile at campus A. Move the learner to campus B. On the open screen, set the status to Withdrawn and save. The learner is withdrawn at campus B.
+- Resolution: The profile's status, placement and campus actions now check that the enrollment still belongs to the working campus. If it does not, the screen names the campus the learner now attends. The health form refuses to save for a learner who has left the campus.
+
 ## One free seat was offered to two families
 
 - Status: Fixed

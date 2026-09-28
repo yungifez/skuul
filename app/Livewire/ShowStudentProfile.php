@@ -90,9 +90,7 @@ class ShowStudentProfile extends Component
     {
         Gate::authorize('update', [$this->student, 'student']);
 
-        if ($this->studentRecord === null) {
-            $this->addError('statusSelection', 'This person has no enrollment in the current school.');
-
+        if (!$this->enrollmentIsStillHere('statusSelection')) {
             return;
         }
 
@@ -129,9 +127,7 @@ class ShowStudentProfile extends Component
     {
         Gate::authorize('update', [$this->student, 'student']);
 
-        if ($this->studentRecord === null) {
-            $this->addError('placementCycleSectionId', 'This person has no enrollment in the current school.');
-
+        if (!$this->enrollmentIsStillHere('placementCycleSectionId')) {
             return;
         }
 
@@ -186,9 +182,7 @@ class ShowStudentProfile extends Component
     ): void {
         Gate::authorize('update', [$this->student, 'student']);
 
-        if ($this->studentRecord === null) {
-            $this->addError('campusCycleSectionId', 'This person has no enrollment in the current school.');
-
+        if (!$this->enrollmentIsStillHere('campusCycleSectionId')) {
             return;
         }
 
@@ -283,6 +277,27 @@ class ShowStudentProfile extends Component
             'academicPeriod' => current_academic_period(),
             'canManageEnrollment' => $this->showManagement && auth()->user()->can('update', [$this->student, 'student']),
         ]);
+    }
+
+    /**
+     * Check that the enrollment on screen still belongs to the working campus.
+     *
+     * A screen left open can outlive a campus move. The enrollment it holds
+     * then belongs to the other campus, which alone may change it.
+     */
+    private function enrollmentIsStillHere(string $errorKey): bool
+    {
+        if ($this->studentRecord !== null && $this->studentRecord->school_id === current_school_id()) {
+            return true;
+        }
+
+        $school = $this->studentRecord?->school;
+        $this->refreshEnrollment();
+        $this->addError($errorKey, $school === null || $this->studentRecord !== null
+            ? 'This person has no enrollment in the current school.'
+            : "This learner now attends {$school->name}. Only that campus can change their enrollment.");
+
+        return false;
     }
 
     private function refreshEnrollment(): void

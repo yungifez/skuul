@@ -2,24 +2,28 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Enrollment\MoveEnrollmentBetweenCampuses;
 use App\Actions\Organization\GrantOrganizationMembership;
 use App\Actions\Organization\SetOrganizationMemberPermissions;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\CampusMoveStatus;
 use App\Enums\EnrollmentStatus;
 use App\Enums\OrganizationPermission;
+use App\Livewire\HealthRecordForm;
 use App\Livewire\ShowStudentProfile;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
 use App\Models\CampusMoveRequest;
 use App\Models\School;
+use App\Models\StudentHealthRecord;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Authorization\CampusMoveAuthority;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 use Tests\TestCase;
 
 /**
@@ -89,6 +93,47 @@ class CampusMoveScreenTest extends TestCase
         $this->assertSame($cycleSection->id, $moved->academic_cycle_section_id);
         $this->assertSame(EnrollmentStatus::Active, $moved->status);
         $this->assertSame(0, CampusMoveRequest::query()->count());
+    }
+
+    public function test_a_screen_left_open_at_the_old_campus_cannot_close_the_enrollment(): void
+    {
+        $sibling = $this->siblingCampus();
+        $cycleSection = $this->cycleSection($sibling);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read student', 'update student']);
+
+        $screen = Livewire::test(ShowStudentProfile::class, ['student' => $enrollment->user]);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $cycleSection);
+
+        $screen->set('statusSelection', EnrollmentStatus::Withdrawn->value)
+            ->set('statusReason', 'Left the school')
+            ->call('changeStatus')
+            ->assertHasErrors('statusSelection');
+
+        $this->assertStringContainsString("now attends {$sibling->name}", $screen->errors()->first('statusSelection'));
+
+        $this->assertSame(EnrollmentStatus::Active, $enrollment->fresh()->status);
+        $this->assertSame($sibling->id, $enrollment->fresh()->school_id);
+    }
+
+    public function test_a_health_form_left_open_at_the_old_campus_cannot_save(): void
+    {
+        $sibling = $this->siblingCampus();
+        $cycleSection = $this->cycleSection($sibling);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read health record', 'update health record']);
+
+        $form = Livewire::test(HealthRecordForm::class, ['enrollment' => $enrollment]);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $cycleSection);
+
+        try {
+            $form->set('values.allergies', 'Peanuts')->call('save');
+        } catch (HttpException) {
+        }
+
+        $this->assertNull(StudentHealthRecord::query()->where('student_record_id', $enrollment->id)->first());
     }
 
     public function test_somebody_without_either_right_cannot_move_or_ask(): void

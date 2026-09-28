@@ -61,6 +61,10 @@ class HealthRecordForm extends Component
     {
         Gate::authorize('create', StudentHealthRecord::class);
 
+        // A form left open can outlive a campus move. The record then belongs
+        // to the campus the child attends now.
+        abort_unless($this->enrollment->school_id === current_school_id(), 404);
+
         $this->validate([
             'values.blood_group' => ['nullable', 'string', 'max:10'],
             'values.conditions' => ['nullable', 'string', 'max:2000'],
