@@ -464,6 +464,39 @@ class LibraryTest extends TestCase
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::LibrarySectionLoansIssued)->first());
     }
 
+    public function test_lending_a_class_set_again_passes_over_learners_who_have_a_copy(): void
+    {
+        $this->authorized_user([]);
+        $school = $this->workingSchool();
+        $section = AcademicCycleSection::factory()->create(['school_id' => $school->id]);
+        $holder = StudentRecord::factory()->create([
+            'school_id' => $school->id,
+            'academic_cycle_section_id' => $section->id,
+        ]);
+        $newcomer = StudentRecord::factory()->create([
+            'school_id' => $school->id,
+            'academic_cycle_section_id' => $section->id,
+        ]);
+        $this->memberOf($school, $holder->user);
+        $this->memberOf($school, $newcomer->user);
+        $title = LibraryTitle::factory()->create();
+        $copies = LibraryCopy::factory()->count(4)->create(['school_id' => $school->id, 'library_title_id' => $title->id]);
+        app(IssueLoan::class)->issue($copies[0], $holder->user);
+
+        $loans = app(IssueTitleToSection::class)->issue($section, $title);
+
+        $this->assertSame([$newcomer->user_id], $loans->pluck('user_id')->all());
+
+        try {
+            app(IssueTitleToSection::class)->issue($section, $title);
+            $this->fail('The set was lent a second time.');
+        } catch (InvalidValueException $exception) {
+            $this->assertSame('Every attending learner in this section already has a copy of this title.', $exception->getMessage());
+        }
+
+        $this->assertSame(2, LibraryLoan::query()->open()->count());
+    }
+
     public function test_a_class_set_does_not_partially_lend_when_copies_are_missing(): void
     {
         $this->authorized_user([]);

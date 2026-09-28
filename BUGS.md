@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Lending a class set twice gives every learner a second copy
+- Status: Fixed
+- Area: Library class sets
+- Observed: Lending a title to a class did not check who already had a copy. A second lend, by a colleague or a repeated click, gave each learner another copy of the same book.
+- Impact: Copies went out twice to the same learners, so other classes found the shelf empty and the loans had to be undone by hand.
+- Reproduction: Lend a title to a class that has enough copies for two rounds. Lend the same title to the same class again.
+- Resolution: A class set passes over learners who already hold a copy of the title, read under the copy lock. When everybody has one, the lend is refused with a clear message.
+
 ## A members-only organization administrator can remove the owner
 - Status: Fixed
 - Area: Organization members

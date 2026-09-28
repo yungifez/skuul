@@ -20,7 +20,9 @@ use Illuminate\Support\Facades\DB;
  * Lend one title to every attending learner in a home section.
  *
  * The operation is all-or-nothing. A class set that cannot be completed, or
- * one learner who cannot take the loan, leaves the shelf unchanged.
+ * one learner who cannot take the loan, leaves the shelf unchanged. A learner
+ * who already has a copy of the title is passed over, so lending the set a
+ * second time never hands anybody a second copy.
  */
 class IssueTitleToSection
 {
@@ -74,6 +76,22 @@ class IssueTitleToSection
                 ->orderBy('id')
                 ->lockForUpdate()
                 ->get();
+
+            // Read after the copies are locked, and as a locking read, so a
+            // set lent a moment earlier is seen here.
+            $alreadyHolding = LibraryLoan::query()
+                ->open()
+                ->whereIn('user_id', $learners->pluck('user_id'))
+                ->whereHas('copy', fn ($query) => $query->where('library_title_id', $title->id))
+                ->sharedLock()
+                ->pluck('user_id')
+                ->all();
+
+            $learners = $learners->reject(fn (StudentRecord $learner): bool => in_array($learner->user_id, $alreadyHolding, true))->values();
+
+            if ($learners->isEmpty()) {
+                throw new InvalidValueException('Every attending learner in this section already has a copy of this title.');
+            }
 
             if ($copies->count() < $learners->count()) {
                 throw new InvalidValueException(
