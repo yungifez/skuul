@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Deleting a person at one campus deleted them at every campus
+
+- Status: Fixed
+- Area: People (teachers, parents, students)
+- Observed: The delete action in the teacher, parent and student lists soft-deleted the account. One account serves every school the person belongs to.
+- Impact: A campus that removed a shared teacher, or a parent with a child at a sibling campus, locked that person out of the other campus too. The other campus lost them from its lists, timetables and portal.
+- Reproduction: Make a teacher a member of two campuses. Delete them from the teacher list of one campus. They can no longer sign in anywhere.
+- Resolution: When another school still has the person, the delete only ends this school's membership and says "removed from this school". The account is deleted only when this was their last school.
+
 ## A suspended learner's seat and fees were treated as free
 
 - Status: Fixed

@@ -175,13 +175,10 @@ class StudentService
 
     /**
      * Delete student.
-     *
-     *
-     * @return void
      */
-    public function deleteStudent(User $student)
+    public function deleteStudent(User $student): void
     {
-        $student->delete();
+        $this->userService->deleteUser($student);
     }
 
     /**

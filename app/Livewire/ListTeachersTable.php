@@ -78,7 +78,7 @@ class ListTeachersTable extends DataTableComponent
         $teacher = $this->builder()->findOrFail($userId);
         Gate::authorize('delete', [$teacher, 'teacher']);
 
-        $this->changeRow(fn () => $teachers->deleteTeacher($teacher), "{$teacher->name} was deleted.");
+        $this->changeRow(fn () => $teachers->deleteTeacher($teacher), $teacher->belongsToAnotherSchool() ? "{$teacher->name} was removed from this school." : "{$teacher->name} was deleted.");
     }
 
     public function render(): View

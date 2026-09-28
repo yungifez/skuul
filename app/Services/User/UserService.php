@@ -6,6 +6,7 @@ use App\Actions\Fortify\UpdateUserProfileInformation;
 use App\Actions\Identity\ChangeAccountStatus;
 use App\Actions\Identity\ProvisionAccount;
 use App\Actions\Identity\SendAccountInvitation;
+use App\Actions\School\EndSchoolMembership;
 use App\Enums\Role;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Collection;
@@ -18,6 +19,7 @@ class UserService
         public SendAccountInvitation $sendAccountInvitationAction,
         public ChangeAccountStatus $changeAccountStatusAction,
         public UpdateUserProfileInformation $updateUserProfileInformationAction,
+        public EndSchoolMembership $endSchoolMembershipAction,
     ) {}
 
     /**
@@ -117,7 +119,7 @@ class UserService
         }
         // A person who also belongs to another school signs in there with
         // this email. Only they may change it, from their own profile.
-        if (isset($record['email']) && mb_strtolower((string) $record['email']) !== mb_strtolower((string) $user->email) && $this->belongsToAnotherSchool($user)) {
+        if (isset($record['email']) && mb_strtolower((string) $record['email']) !== mb_strtolower((string) $user->email) && $user->belongsToAnotherSchool()) {
             throw ValidationException::withMessages([
                 'email' => 'This person also belongs to another school, so only they can change their email.',
             ]);
@@ -159,21 +161,20 @@ class UserService
     }
 
     /**
-     * Whether the person holds an active membership of a school other than the working one.
-     */
-    private function belongsToAnotherSchool(User $user): bool
-    {
-        return $user->schoolMemberships()->active()->where('school_id', '!=', current_school_id())->exists();
-    }
-
-    /**
-     * Delete a user.
+     * Delete a user, or only remove them from the working school.
      *
-     * @param  string  $role
-     * @return void
+     * One account serves every school the person belongs to. When another
+     * school still has them, only this school's access ends, so that school
+     * keeps its teacher, parent or learner.
      */
-    public function deleteUser(User $user)
+    public function deleteUser(User $user): void
     {
+        if ($user->belongsToAnotherSchool()) {
+            $this->endSchoolMembershipAction->end($user, current_school());
+
+            return;
+        }
+
         $user->delete();
     }
 

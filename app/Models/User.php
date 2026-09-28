@@ -239,6 +239,14 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Check if this person also works or studies at a school other than the working one.
+     */
+    public function belongsToAnotherSchool(): bool
+    {
+        return $this->schoolMemberships()->active()->where('school_id', '!=', current_school_id())->exists();
+    }
+
+    /**
      * Check if this person can work in the school of the current request.
      */
     public function belongsToCurrentSchool(): bool

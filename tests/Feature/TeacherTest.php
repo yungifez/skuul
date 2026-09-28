@@ -183,6 +183,23 @@ class TeacherTest extends TestCase
         $this->assertSoftDeleted($teacher);
     }
 
+    public function test_a_teacher_shared_with_a_sibling_campus_is_only_removed_from_this_one(): void
+    {
+        $teacher = User::factory()->create();
+        $teacher->assignRole('teacher');
+        $this->authorized_user(['read teacher', 'delete teacher']);
+        $sibling = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id]);
+        $this->memberOf($sibling, $teacher);
+
+        Livewire::test(ListTeachersTable::class)
+            ->call('deleteTeacher', $teacher->id)
+            ->assertDispatched('status-message', message: "{$teacher->name} was removed from this school.");
+
+        $this->assertNotSoftDeleted($teacher);
+        $this->assertFalse($teacher->belongsToSchool($this->workingSchool()));
+        $this->assertTrue($teacher->belongsToSchool($sibling));
+    }
+
     public function test_a_teacher_of_another_school_cannot_be_deleted()
     {
         $teacher = User::factory()->create();

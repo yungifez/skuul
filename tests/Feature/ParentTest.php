@@ -204,6 +204,23 @@ class ParentTest extends TestCase
         $this->assertSoftDeleted($parent);
     }
 
+    public function test_a_parent_shared_with_a_sibling_campus_is_only_removed_from_this_one(): void
+    {
+        $parent = User::factory()->create();
+        $parent->assignRole('parent');
+        $this->authorized_user(['read parent', 'delete parent']);
+        $sibling = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id]);
+        $this->memberOf($sibling, $parent);
+
+        Livewire::test(ListParentsTable::class)
+            ->call('deleteParent', $parent->id)
+            ->assertDispatched('status-message', message: "{$parent->name} was removed from this school.");
+
+        $this->assertNotSoftDeleted($parent);
+        $this->assertFalse($parent->belongsToSchool($this->workingSchool()));
+        $this->assertTrue($parent->belongsToSchool($sibling));
+    }
+
     public function test_a_parent_of_another_school_cannot_be_deleted()
     {
         $parent = User::factory()->create();
