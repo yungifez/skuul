@@ -90,6 +90,31 @@ class NoticeAttachmentTest extends TestCase
             ->assertDownload('family-guide.pdf');
     }
 
+    public function test_a_guardian_keeps_the_attachment_of_a_notice_sent_before_a_campus_move(): void
+    {
+        Storage::fake('local');
+        $this->unauthorized_user();
+        features()->enable(Feature::Portal);
+        $studentRecord = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $guardian = User::factory()->create();
+        $guardian->parentRecord()->create(['user_id' => $guardian->id])->students()->attach($studentRecord->user_id);
+        $notice = $this->noticeWithAttachment();
+        NoticeRecipient::create([
+            'notice_id' => $notice->id,
+            'user_id' => $studentRecord->user_id,
+            'state' => NoticeRecipientState::Delivered,
+            'delivered_at' => now(),
+        ]);
+        $sibling = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id]);
+        $studentRecord->forceFill(['school_id' => $sibling->id])->save();
+
+        $this->actingAs($guardian)->get(route('portal.notices.index', $studentRecord))->assertOk()->assertSee($notice->title);
+        $this->actingAs($guardian)
+            ->get(route('notices.attachments.download', $notice))
+            ->assertOk()
+            ->assertDownload('family-guide.pdf');
+    }
+
     public function test_a_stranger_cannot_download_a_managed_notice_attachment(): void
     {
         Storage::fake('local');

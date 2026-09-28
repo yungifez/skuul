@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A family lost a notice attachment after a campus move
+- Status: Fixed
+- Area: Portal notices
+- Observed: The portal listed a notice sent to a learner before a campus move, but its attachment download gave 403.
+- Impact: Families saw a notice and could not open the permission slip or guide attached to it.
+- Reproduction: Send a notice with an attachment to a learner. Move the learner to a sibling campus. Open the attachment from the guardian's portal.
+- Resolution: `NoticeAttachmentController` follows the same rule as the portal notice list. It checks readable enrollments with the notices area open, not the campus that sent the notice.
+
 ## An entry could land in a financial period closed a moment earlier
 - Status: Fixed
 - Area: Finance ledger

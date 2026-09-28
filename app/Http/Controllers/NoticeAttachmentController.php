@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Enums\PortalArea;
 use App\Models\Notice;
+use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Portal\PortalAccess;
 use Illuminate\Http\Request;
@@ -12,9 +13,7 @@ use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class NoticeAttachmentController extends Controller
 {
-    public function __construct(private PortalAccess $portalAccess)
-    {
-    }
+    public function __construct(private PortalAccess $portalAccess) {}
 
     /** Download a private attachment when the person may read its notice. */
     public function __invoke(Request $request, Notice $notice): StreamedResponse
@@ -38,12 +37,16 @@ class NoticeAttachmentController extends Controller
             return true;
         }
 
-        if (!$notice->isPublished() || !$this->portalAccess->areaIsOpen(PortalArea::Notices, $notice->school_id)) {
+        if (!$notice->isPublished()) {
             return false;
         }
 
+        // The same rule as the portal's notice list: a notice sent to the
+        // learner stays theirs after a campus move, and is read through the
+        // campus they attend now.
         $studentUserIds = $this->portalAccess->enrollmentsFor($person)
-            ->where('school_id', $notice->school_id)
+            ->filter(fn (StudentRecord $enrollment): bool => $this->portalAccess->canRead($person, $enrollment)
+                && $this->portalAccess->areaIsOpen(PortalArea::Notices, $enrollment->school_id))
             ->pluck('user_id');
 
         return $studentUserIds->isNotEmpty()
