@@ -189,6 +189,28 @@ class NoticePublicationTest extends TestCase
         $this->assertTrue($notice->recipients()->where('user_id', $alumnusTeacher->id)->exists());
     }
 
+    public function test_a_school_notice_reaches_families_only_when_it_asks_for_guardians(): void
+    {
+        $this->authorized_user([]);
+        $teacher = $this->personWithRole(Role::Teacher);
+        $pupil = $this->personWithRole(Role::Student);
+        StudentRecord::factory()->create(['user_id' => $pupil->id, 'school_id' => $this->workingSchool()->id]);
+        $guardian = $this->personWithRole(Role::Parent);
+        ParentRecord::query()->create(['user_id' => $guardian->id])->students()->attach($pupil->id);
+
+        $staffNotice = $this->notice();
+        app(PublishNotice::class)->publish($staffNotice);
+
+        $this->assertTrue($staffNotice->recipients()->where('user_id', $teacher->id)->exists());
+        $this->assertTrue($staffNotice->recipients()->where('user_id', $pupil->id)->exists());
+        $this->assertFalse($staffNotice->recipients()->where('user_id', $guardian->id)->exists());
+
+        $familyNotice = $this->notice(['audience' => ['scope' => 'school', 'include_guardians' => true]]);
+        app(PublishNotice::class)->publish($familyNotice);
+
+        $this->assertTrue($familyNotice->recipients()->where('user_id', $guardian->id)->exists());
+    }
+
     public function test_a_school_notice_still_reaches_a_suspended_learner(): void
     {
         $this->authorized_user([]);

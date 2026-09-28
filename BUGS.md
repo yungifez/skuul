@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A whole-school notice reached every parent
+- Status: Fixed
+- Area: Notices
+- Observed: A notice for "Everyone in this school: staff and learners who attend" went to every member of the school. Parents are members, so they received it even with "include guardians" off.
+- Impact: Internal staff notices, such as meetings, inspections or disciplinary matters, reached families.
+- Reproduction: Publish a notice with the whole-school audience and guardians off. A parent of the school gets it.
+- Resolution: The whole-school audience is the people with a staff role or a current staff record, plus attending learners. Families get a notice only when it includes guardians. Named recipients still reach any member.
+
 ## A safeguarding case could be handed to a parent or a learner
 - Status: Fixed
 - Area: Discipline cases, support plans, programmes

@@ -4,10 +4,12 @@ namespace App\Services\Notice;
 
 use App\Enums\NoticeAudienceScope;
 use App\Enums\Role;
+use App\Enums\StaffStatus;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\Notice;
 use App\Models\ParentRecord;
+use App\Models\StaffProfile;
 use App\Models\StudentRecord;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -61,9 +63,19 @@ class NoticeAudience
             ->pluck('user_id')
             ->map(fn (mixed $id): int => (int) $id)
             ->all();
-        $staffIds = User::query()
+        $memberIds = User::query()
             ->ofSchool($schoolId)
             ->whereNotIn('id', $this->learnersWhoLeft($schoolId, $allStudentIds))
+            ->pluck('id')
+            ->all();
+        $staffIds = User::query()
+            ->ofSchool($schoolId)
+            ->where(fn (Builder $people) => $people
+                ->whereIn('id', $this->staffHere($schoolId))
+                ->orWhereIn('id', StaffProfile::query()
+                    ->where('school_id', $schoolId)
+                    ->where('status', '!=', StaffStatus::Left->value)
+                    ->select('user_id')))
             ->pluck('id')
             ->all();
         $namedIds = array_map('intval', (array) ($audience['user_ids'] ?? []));
@@ -79,7 +91,7 @@ class NoticeAudience
 
         if ($hasLearnerTarget || $hasNamedTarget) {
             $studentIds = $this->studentUserIds($audience, $schoolId);
-            $ids = array_merge($studentIds, array_intersect($namedIds, array_merge($staffIds, $allStudentIds)));
+            $ids = array_merge($studentIds, array_intersect($namedIds, array_merge($memberIds, $allStudentIds)));
         } else {
             $studentIds = $allStudentIds;
             $ids = array_merge($staffIds, $studentIds);
@@ -93,11 +105,22 @@ class NoticeAudience
     }
 
     /**
-     * Get learners chosen directly or through their current home group.
+     * Get the people who hold a staff role at the campus.
      *
-     * @param  array<string, mixed>  $audience
-     * @return array<int, int>
+     * Members of the campus also include families and learners who left. A
+     * staff audience is only the people who work there; families are reached
+     * only when the notice asks for guardians.
      */
+    private function staffHere(?int $schoolId): QueryBuilder
+    {
+        return DB::table('model_has_roles')
+            ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
+            ->where('model_has_roles.school_id', $schoolId)
+            ->where('model_has_roles.model_type', (new User)->getMorphClass())
+            ->whereNotIn('roles.name', [Role::Student->value, Role::Parent->value])
+            ->select('model_has_roles.model_id');
+    }
+
     /**
      * Get the learners who keep access to the campus but no longer attend it.
      *
@@ -109,20 +132,19 @@ class NoticeAudience
      */
     private function learnersWhoLeft(?int $schoolId, array $attendingIds): QueryBuilder
     {
-        $staffHere = DB::table('model_has_roles')
-            ->join('roles', 'roles.id', '=', 'model_has_roles.role_id')
-            ->where('model_has_roles.school_id', $schoolId)
-            ->where('model_has_roles.model_type', (new User)->getMorphClass())
-            ->whereNotIn('roles.name', [Role::Student->value, Role::Parent->value])
-            ->select('model_has_roles.model_id');
-
         return DB::table((new StudentRecord)->getTable())
             ->whereNotNull('user_id')
             ->whereNotIn('user_id', $attendingIds)
-            ->whereNotIn('user_id', $staffHere)
+            ->whereNotIn('user_id', $this->staffHere($schoolId))
             ->select('user_id');
     }
 
+    /**
+     * Get learners chosen directly or through their current home group.
+     *
+     * @param  array<string, mixed>  $audience
+     * @return array<int, int>
+     */
     private function studentUserIds(array $audience, ?int $schoolId): array
     {
         $levelIds = $this->audienceLevelIds($audience);
