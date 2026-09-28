@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A limited HR editor can end the access of the people above them
+- Status: Fixed
+- Area: Staff records
+- Observed: Someone with only "update staff profile" could record that the principal or an administrator left, with a past date.
+- Impact: Leaving ends campus access at once, so a lesser role could lock out the people above it.
+- Reproduction: Give a user only "read staff profile" and "update staff profile". Open an administrator's employment record, set the state to Left with yesterday's date, and save.
+- Resolution: Only somebody who holds at least as much at the campus can record that another person left. Other job details stay editable.
+
 ## A limited remover can delete a person who holds more
 - Status: Fixed
 - Area: People removal

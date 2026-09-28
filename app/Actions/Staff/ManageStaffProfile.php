@@ -16,6 +16,7 @@ use App\Models\StaffLeaveRequest;
 use App\Models\StaffProfile;
 use App\Models\StudentRecord;
 use App\Models\User;
+use App\Services\Authorization\RoleAuthority;
 use Carbon\Carbon;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -30,6 +31,7 @@ class ManageStaffProfile
         private ManageStaffLeave $manageStaffLeave,
         private EndSchoolMembership $endSchoolMembership,
         private GrantSchoolMembership $grantSchoolMembership,
+        private RoleAuthority $roleAuthority,
     ) {}
 
     /**
@@ -75,11 +77,12 @@ class ManageStaffProfile
      * A person who leaves gets a leaving date, today unless one is given. Any
      * leave they still hold after it is withdrawn, and their subjects, boarding
      * duty and cover end after it. A person who has not left has no leaving
-     * date.
+     * date. Leaving ends access to the campus, so only somebody who holds at
+     * least as much here can record it for another person.
      *
      * @param  array{staff_number?: string|null, job_title?: string|null, department?: string|null, employment_type: string, status: string, left_on?: string|null}  $attributes
      *
-     * @throws InvalidValueException when the dates or the staff number cannot stand
+     * @throws InvalidValueException when the dates or the staff number cannot stand, or the person holds more than the actor
      */
     public function update(StaffProfile $profile, array $attributes, ?User $actor = null): StaffProfile
     {
@@ -94,6 +97,11 @@ class ManageStaffProfile
                 if ($isComingBack && StudentRecord::query()->where('user_id', $profile->user_id)->enrolled()->exists()) {
                     throw new InvalidValueException('This person is now a learner. A learner cannot be made staff.');
                 }
+                if ($isLeaving && $actor !== null && $actor->id !== $profile->user_id
+                    && $this->roleAuthority->holdsMoreThan($profile->user()->firstOrFail(), $actor, School::query()->findOrFail($profile->school_id))) {
+                    throw new InvalidValueException('This person holds more at this school than you do, so you cannot record that they left.');
+                }
+
                 $leftOn = $isLeaving ? Carbon::parse($attributes['left_on'] ?? now())->startOfDay() : null;
 
                 if ($leftOn !== null && $profile->joined_on !== null && $leftOn->lt($profile->joined_on)) {

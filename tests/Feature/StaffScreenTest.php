@@ -244,6 +244,31 @@ class StaffScreenTest extends TestCase
         $this->assertFalse($profile->user->refresh()->belongsToSchool($profile->school_id));
     }
 
+    public function test_a_person_holding_more_cannot_be_recorded_as_left_by_somebody_holding_less(): void
+    {
+        $this->authorized_user(['read staff profile', 'update staff profile']);
+        $profile = $this->profile();
+        $profile->user->assignRole('admin');
+
+        Livewire::test(StaffProfileRecord::class, ['profile' => $profile])
+            ->call('startEditingJob')
+            ->set('status', StaffStatus::Left->value)
+            ->set('leftOn', now()->subDay()->toDateString())
+            ->call('saveJob')
+            ->assertHasErrors(['status' => 'This person holds more at this school than you do, so you cannot record that they left.']);
+
+        $this->assertNotSame(StaffStatus::Left, $profile->fresh()->status);
+        $this->assertTrue($profile->user->refresh()->belongsToSchool($profile->school_id));
+
+        Livewire::test(StaffProfileRecord::class, ['profile' => $profile->fresh()])
+            ->call('startEditingJob')
+            ->set('jobTitle', 'Principal')
+            ->call('saveJob')
+            ->assertHasNoErrors();
+
+        $this->assertSame('Principal', $profile->fresh()->job_title);
+    }
+
     public function test_a_leaver_taken_back_can_sign_in_to_the_campus_again(): void
     {
         $this->authorized_user(['read staff profile', 'update staff profile']);
