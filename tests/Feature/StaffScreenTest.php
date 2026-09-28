@@ -17,6 +17,7 @@ use App\Models\School;
 use App\Models\StaffAvailability;
 use App\Models\StaffLeaveRequest;
 use App\Models\StaffProfile;
+use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Feature\FeatureManager;
 use App\Traits\FeatureTestTrait;
@@ -113,6 +114,23 @@ class StaffScreenTest extends TestCase
             ->assertSee('This person already has an employment record here.');
 
         $this->assertSame(1, StaffProfile::inSchool()->count());
+    }
+
+    public function test_a_learner_who_moved_away_is_not_made_staff_at_the_campus_they_left(): void
+    {
+        $school = $this->workingSchool();
+        // The membership here stays after a move. The enrollment went with them.
+        $learner = $this->memberOf($school, User::factory()->create(['name' => 'Moved Learner']));
+        StudentRecord::factory()->create(['user_id' => $learner->id, 'school_id' => School::factory()->create()->id]);
+        $this->authorized_user(['read staff profile', 'create staff profile'], $school);
+
+        Livewire::test(CreateStaffProfileForm::class)
+            ->assertDontSee('Moved Learner')
+            ->set('userId', (string) $learner->id)
+            ->call('save')
+            ->assertHasErrors('userId');
+
+        $this->assertFalse(StaffProfile::query()->where('user_id', $learner->id)->exists());
     }
 
     public function test_a_staff_number_is_held_by_one_person_per_school(): void

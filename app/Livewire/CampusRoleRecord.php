@@ -4,11 +4,13 @@ namespace App\Livewire;
 
 use App\Actions\Authorization\AssignCampusRole;
 use App\Actions\Authorization\WriteCampusRole;
+use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Models\CampusRole;
 use App\Models\User;
 use App\Services\Authorization\RoleAuthority;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -201,7 +203,7 @@ class CampusRoleRecord extends Component
             'holders' => $holders,
             'people' => User::ofSchool()
                 ->whereNotIn('users.id', $holders->pluck('id'))
-                ->whereDoesntHave('studentRecords', fn ($enrollments) => $enrollments->enrolled())
+                ->whereDoesntHave('studentRecords', fn (Builder $enrollments): Builder => $enrollments->whereIn('status', EnrollmentStatus::enrolled()))
                 ->orderBy('name')
                 ->get(['users.id', 'users.name', 'users.email']),
         ]);

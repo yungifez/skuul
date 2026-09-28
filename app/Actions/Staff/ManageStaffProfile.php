@@ -11,6 +11,7 @@ use App\Models\StaffAvailability;
 use App\Models\StaffCredential;
 use App\Models\StaffLeaveRequest;
 use App\Models\StaffProfile;
+use App\Models\StudentRecord;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Database\UniqueConstraintViolationException;
@@ -31,11 +32,18 @@ class ManageStaffProfile
      *
      * @param  array{user_id: int, staff_number?: string|null, job_title?: string|null, department?: string|null, employment_type: string, joined_on?: string|null}  $attributes
      *
-     * @throws InvalidValueException when the person already has a record here or the staff number is taken
+     * A learner who moved keeps their membership at the campus they left, so
+     * the membership alone does not make somebody staff.
+     *
+     * @throws InvalidValueException when the person is still a learner, already has a record here or the staff number is taken
      */
     public function create(array $attributes, ?User $actor = null): StaffProfile
     {
         $schoolId = current_school_id();
+
+        if (StudentRecord::query()->where('user_id', $attributes['user_id'])->enrolled()->exists()) {
+            throw new InvalidValueException('This person is still a learner. A learner cannot be made staff.');
+        }
 
         try {
             return DB::transaction(function () use ($attributes, $schoolId, $actor): StaffProfile {

@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A learner who moved away could be made staff at the campus they left
+- Status: Fixed
+- Area: Staff records and staff pickers
+- Observed: A learner who moved keeps their membership at the old campus. The staff pickers there left out only people enrolled at that campus, so the moved learner was listed as staff. The staff record form saved an employment record for them.
+- Impact: A learner could be made a case handler, a club leader or a member of staff at the campus they left.
+- Reproduction: Move a learner to another campus. At the old campus, open New staff record. The learner is listed and can be saved.
+- Resolution: The staff pickers leave out anybody still attending any campus. Writing an employment record for a person still enrolled anywhere is refused.
+
 ## A learner could be given a staff role
 - Status: Fixed
 - Area: Campus roles

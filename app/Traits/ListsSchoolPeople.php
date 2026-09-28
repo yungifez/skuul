@@ -2,6 +2,7 @@
 
 namespace App\Traits;
 
+use App\Enums\EnrollmentStatus;
 use App\Models\StudentRecord;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
@@ -49,7 +50,8 @@ trait ListsSchoolPeople
      * Get the people who work in the working school.
      *
      * A learner never handles a case or runs a plan, so the list leaves out
-     * anybody enrolled in this school.
+     * anybody enrolled in this school, and anybody still attending another.
+     * A learner who moved keeps their membership here.
      *
      * @return Collection<int, User>
      */
@@ -58,7 +60,8 @@ trait ListsSchoolPeople
         return User::query()
             ->ofSchool()
             ->whereDoesntHave('studentRecords', function (Builder $query): void {
-                $query->where('school_id', current_school_id());
+                $query->where('school_id', current_school_id())
+                    ->orWhereIn('status', EnrollmentStatus::enrolled());
             })
             ->orderBy('name')
             ->get(['id', 'name']);
