@@ -118,7 +118,7 @@ class StudentRecord extends Model
      */
     public function scopeEnrolled(Builder $query): Builder
     {
-        return $query->whereIn('status', [EnrollmentStatus::Active, EnrollmentStatus::Suspended]);
+        return $query->whereIn('status', EnrollmentStatus::enrolled());
     }
 
     /**

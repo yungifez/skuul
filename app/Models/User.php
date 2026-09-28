@@ -139,7 +139,7 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function scopeEnrolledStudents(Builder $query): Builder
     {
-        return $query->whereHas('studentRecord', fn (Builder $enrollment) => $enrollment->enrolled());
+        return $query->whereHas('studentRecord', fn (Builder $enrollment) => $enrollment->whereIn('status', EnrollmentStatus::enrolled()));
     }
 
     public function scopeActiveStudents($query)
