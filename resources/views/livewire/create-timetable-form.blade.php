@@ -137,8 +137,9 @@
                         </div>
                     </div>
 
+                    <div class="overflow-x-auto beautify-scrollbar">
                     @if ($calendarView === 'week')
-                        <div class="grid min-w-[48rem] grid-cols-7 gap-px overflow-x-auto rounded-md border bg-border">
+                        <div class="grid min-w-[48rem] grid-cols-7 gap-px overflow-hidden rounded-md border bg-border">
                             @foreach (range(0, 6) as $dayOffset)
                                 @php
                                     $date = $weekStart->copy()->addDays($dayOffset);
@@ -161,7 +162,7 @@
                             @endforeach
                         </div>
                     @else
-                        <div class="grid min-w-[48rem] grid-cols-7 gap-px overflow-x-auto rounded-md border bg-border">
+                        <div class="grid min-w-[48rem] grid-cols-7 gap-px overflow-hidden rounded-md border bg-border">
                             @foreach (['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as $dayName)
                                 <div class="bg-muted/60 px-2 py-2 text-center text-xs font-semibold">{{ $dayName }}</div>
                             @endforeach
@@ -182,6 +183,7 @@
                             @endforeach
                         </div>
                     @endif
+                    </div>
                 </div>
             </slot:content>
         </april:card>

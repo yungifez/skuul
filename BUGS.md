@@ -1,5 +1,14 @@
 # Known Bugs
 
+## The new timetable calendar overflows a phone screen
+
+- Status: Fixed
+- Area: Timetables, create form
+- Observed: At 390px the week and month grids of the create form pushed the page to 809px. The grid scrolled itself, but its minimum width stretched the page.
+- Impact: The whole form scrolled sideways on a phone.
+- Reproduction: Open "Create timetable" at 390px width.
+- Resolution: The grid now sits in a scroll container, the same as the read-only timetable.
+
 ## The setup page links to areas the person cannot open
 
 - Status: Fixed
