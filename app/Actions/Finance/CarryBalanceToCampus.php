@@ -12,6 +12,7 @@ use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Finance\ChartOfAccounts;
+use App\Services\Finance\FinancialPeriodResolver;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -38,6 +39,7 @@ class CarryBalanceToCampus
         private ChartOfAccounts $chart,
         private PostLedgerTransaction $post,
         private RecordAuditEvent $auditor,
+        private FinancialPeriodResolver $periods,
     ) {}
 
     /**
@@ -198,14 +200,26 @@ class CarryBalanceToCampus
      */
     private function moveOpenInvoices(StudentRecord $enrollment, School $from, School $to): void
     {
-        FeeInvoice::query()
+        $invoices = FeeInvoice::query()
             ->where('student_record_id', $enrollment->id)
             ->where('school_id', $from->id)
             ->whereNotNull('ledger_transaction_id')
             ->isDue()
             ->lockForUpdate()
-            ->get()
-            ->each(fn (FeeInvoice $invoice) => $invoice->forceFill(['school_id' => $to->id])->save());
+            ->get();
+
+        if ($invoices->isEmpty()) {
+            return;
+        }
+
+        // The debt entered the new campus's books in its open period, so the
+        // bills are listed there too.
+        $period = $this->periods->openFor($to->id, now());
+
+        $invoices->each(fn (FeeInvoice $invoice) => $invoice->forceFill([
+            'school_id' => $to->id,
+            'financial_period_id' => $period->id,
+        ])->save());
     }
 
     /**

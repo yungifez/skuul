@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Carried bills were missing from the new campus's invoice list
+
+- Status: Fixed
+- Area: Finance, campus moves inside a billing group
+- Observed: Bills carried to a new campus kept the old campus's financial period. The new campus lists invoices by its own period, so the carried bills showed in neither campus's list or outstanding total.
+- Impact: The new campus under-reported what families owed it.
+- Reproduction: Put two campuses in one billing group. Bill a learner at the first. Move them to the second. Open Fee invoices at the second campus. The bill is not listed.
+- Resolution: A carried bill now joins the new campus's open financial period, the same period as the carry entry in its books.
+
 ## An old campus's open screen could change a learner who moved away
 
 - Status: Fixed

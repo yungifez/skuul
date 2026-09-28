@@ -227,6 +227,7 @@ class BillingGroupTest extends TestCase
         $this->assertSame(0.0, round($chart->account('fees_receivable', $source->id)->balance(), 2));
         $this->assertSame(0.0, round($chart->account('fees_receivable', $destination->id)->balance(), 2));
         $this->assertSame($destination->id, $invoice->fresh()->school_id);
+        $this->assertSame($destination->id, $invoice->fresh()->financialPeriod->school_id);
     }
 
     public function test_a_bill_stays_with_the_campus_that_keeps_separate_books(): void
