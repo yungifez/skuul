@@ -80,6 +80,34 @@ class CampusMoveRequestTest extends TestCase
         $this->assertTrue($moved->user->hasRole(Role::Student));
     }
 
+    public function test_approving_a_move_before_its_day_starts_it_today(): void
+    {
+        $sibling = $this->siblingCampus();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $cycleSection = $this->cycleSection($sibling);
+        $request = app(RequestCampusMove::class)->request($enrollment, $cycleSection, effectiveOn: now()->addWeeks(2));
+        $approver = $this->campusAdministratorOf($sibling, [CampusMoveAuthority::ApprovePermission]);
+
+        app(RequestCampusMove::class)->approve($request, $approver);
+
+        $placement = $enrollment->fresh()->currentPlacement;
+
+        $this->assertSame($cycleSection->id, $placement?->academic_cycle_section_id);
+        $this->assertSame(today()->toDateString(), $placement->effective_on->toDateString());
+        $this->assertSame($cycleSection->id, $enrollment->fresh()->sectionOn(today())?->id);
+    }
+
+    public function test_a_move_cannot_start_on_a_later_day(): void
+    {
+        $sibling = $this->siblingCampus();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+
+        $this->expectException(InvalidValueException::class);
+        $this->expectExceptionMessage('A new place starts when it is made.');
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($sibling), effectiveOn: now()->addDays(3));
+    }
+
     public function test_rejecting_leaves_the_student_where_they_are(): void
     {
         $source = $this->workingSchool();

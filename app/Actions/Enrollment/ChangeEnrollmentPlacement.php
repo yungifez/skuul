@@ -62,6 +62,12 @@ class ChangeEnrollmentPlacement
 
             $this->failIfRecordsDoNotFit($enrollment, $academicCycleSection, $academicPeriod);
 
+            // The pointer moves now, so the history cannot say the learner
+            // sits here only from a later day.
+            if ($effectiveOn !== null && $effectiveOn->isAfter(today()->endOfDay())) {
+                throw new InvalidValueException('A new place starts when it is made. Choose today or an earlier day.');
+            }
+
             // The same place in the same year is not a move. Record nothing.
             if ($this->alreadyPlaced($enrollment, $academicCycleSection)) {
                 return $enrollment;

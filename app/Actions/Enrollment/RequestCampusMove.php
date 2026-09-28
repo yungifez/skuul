@@ -92,7 +92,8 @@ class RequestCampusMove
                 academicCycleSection: $request->academicCycleSection,
                 actor: $actor,
                 reason: $request->reason,
-                effectiveOn: $request->effective_on,
+                // Approving early moves the learner now, so the move starts today.
+                effectiveOn: $request->effective_on?->isFuture() === true ? today() : $request->effective_on,
             );
 
             return $this->writeDecision($request, CampusMoveStatus::Approved, $actor, $note);

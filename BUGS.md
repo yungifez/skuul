@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A placement could start on a later day while the learner already sat there
+- Status: Fixed
+- Area: Enrollment placement, campus moves
+- Observed: A campus move request can name a later day. Approving it moved the learner at once but wrote the placement from that later day. The profile forms also took a later day for a section change or a move.
+- Impact: Until that day, the history said the learner sat in the old section, or at the old campus, while every screen showed the new one. The new campus's register refused the learner as belonging to the old campus.
+- Reproduction: Ask to move a learner from two weeks ahead. Approve it today. Take the new campus's register today.
+- Resolution: A placement cannot start after the day it is made. Approving an early request starts the move today. The profile forms refuse a later day.
+
 ## A campus could overwrite the old campus's attendance of a learner who moved
 - Status: Fixed
 - Area: Attendance, campus moves

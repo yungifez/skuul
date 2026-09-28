@@ -134,7 +134,7 @@ class ShowStudentProfile extends Component
         $this->validate([
             'placementCycleSectionId' => ['required', 'integer'],
             'placementReason' => ['nullable', 'string', 'max:1000'],
-            'placementEffectiveOn' => ['required', 'date'],
+            'placementEffectiveOn' => ['required', 'date', 'before_or_equal:today'],
         ]);
 
         $academicCycleSection = AcademicCycleSection::inSchool()
@@ -189,7 +189,7 @@ class ShowStudentProfile extends Component
         $this->validate([
             'campusCycleSectionId' => ['required', 'integer'],
             'campusReason' => ['nullable', 'string', 'max:1000'],
-            'campusEffectiveOn' => ['required', 'date'],
+            'campusEffectiveOn' => ['required', 'date', 'before_or_equal:today'],
         ]);
 
         // Only a section of a sibling campus may be chosen, so read it from
