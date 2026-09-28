@@ -246,6 +246,21 @@ class NoticePublicationTest extends TestCase
         $this->assertSame(0, $notice->recipients()->count());
     }
 
+    public function test_an_old_copy_does_not_take_a_published_notice_off_the_board(): void
+    {
+        $this->authorized_user([]);
+        $notice = $this->notice();
+        $seenEarlier = $notice->fresh();
+        app(PublishNotice::class)->publish($notice);
+
+        try {
+            app(PublishNotice::class)->schedule($seenEarlier, now()->addDay());
+            $this->fail('A published notice was scheduled again from an old copy.');
+        } catch (InvalidValueException) {
+            $this->assertSame(NoticeStatus::Published, $notice->fresh()->status);
+        }
+    }
+
     public function test_the_scheduler_publishes_a_notice_whose_day_arrived(): void
     {
         $this->authorized_user([]);
@@ -255,6 +270,23 @@ class NoticePublicationTest extends TestCase
         $this->artisan('skuul:process-notices')->assertSuccessful();
 
         $this->assertSame(NoticeStatus::Published, $notice->fresh()->status);
+    }
+
+    public function test_a_scheduled_revision_that_was_overtaken_does_not_hold_back_the_others(): void
+    {
+        $this->authorized_user([]);
+        $publisher = app(PublishNotice::class);
+        $original = $publisher->publish($this->notice());
+        $overtaken = $publisher->schedule(app(ReviseNotice::class)->revise($original), now()->subMinute());
+        $publisher->publish(app(ReviseNotice::class)->revise($original));
+        $other = $publisher->schedule($this->notice(), now()->subMinute());
+
+        $this->artisan('skuul:process-notices')->assertSuccessful();
+        $this->artisan('skuul:process-notices')->assertSuccessful();
+
+        $this->assertSame(NoticeStatus::Published, $other->fresh()->status);
+        $this->assertSame(NoticeStatus::Draft, $overtaken->fresh()->status);
+        $this->assertNull($overtaken->fresh()->scheduled_for);
     }
 
     public function test_the_scheduler_takes_down_a_notice_that_ran_out(): void

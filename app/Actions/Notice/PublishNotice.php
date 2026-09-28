@@ -28,8 +28,7 @@ class PublishNotice
     public function __construct(
         private NoticeAudience $audience,
         private RecordAuditEvent $auditor,
-    ) {
-    }
+    ) {}
 
     /**
      * Publish the notice now.
@@ -99,22 +98,28 @@ class PublishNotice
      */
     public function schedule(Notice $notice, CarbonInterface $when, ?User $actor = null): Notice
     {
-        if (!$notice->status->canMoveTo(NoticeStatus::Scheduled)) {
-            throw new InvalidValueException('This notice cannot be scheduled from its current state.');
-        }
+        return DB::transaction(function () use ($notice, $when, $actor): Notice {
+            // A copy read before somebody published the notice must not pull
+            // it off the board again.
+            $notice->setRawAttributes(Notice::query()->lockForUpdate()->findOrFail($notice->id)->getAttributes(), true);
 
-        $notice->status = NoticeStatus::Scheduled;
-        $notice->scheduled_for = Carbon::parse($when);
-        $notice->save();
+            if (!$notice->status->canMoveTo(NoticeStatus::Scheduled)) {
+                throw new InvalidValueException('This notice cannot be scheduled from its current state.');
+            }
 
-        $this->auditor->record(
-            AuditAction::NoticeScheduled,
-            $notice,
-            ['scheduled_for' => $notice->scheduled_for?->toIso8601String()],
-            $actor,
-        );
+            $notice->status = NoticeStatus::Scheduled;
+            $notice->scheduled_for = Carbon::parse($when);
+            $notice->save();
 
-        return $notice;
+            $this->auditor->record(
+                AuditAction::NoticeScheduled,
+                $notice,
+                ['scheduled_for' => $notice->scheduled_for?->toIso8601String()],
+                $actor,
+            );
+
+            return $notice;
+        });
     }
 
     /**
@@ -122,16 +127,20 @@ class PublishNotice
      */
     public function expire(Notice $notice, ?User $actor = null): Notice
     {
-        if (!$notice->status->canMoveTo(NoticeStatus::Expired)) {
+        return DB::transaction(function () use ($notice, $actor): Notice {
+            $notice->setRawAttributes(Notice::query()->lockForUpdate()->findOrFail($notice->id)->getAttributes(), true);
+
+            if (!$notice->status->canMoveTo(NoticeStatus::Expired)) {
+                return $notice;
+            }
+
+            $notice->status = NoticeStatus::Expired;
+            $notice->active = false;
+            $notice->save();
+
+            $this->auditor->record(AuditAction::NoticeExpired, $notice, [], $actor);
+
             return $notice;
-        }
-
-        $notice->status = NoticeStatus::Expired;
-        $notice->active = false;
-        $notice->save();
-
-        $this->auditor->record(AuditAction::NoticeExpired, $notice, [], $actor);
-
-        return $notice;
+        });
     }
 }

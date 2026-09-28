@@ -1,5 +1,14 @@
 # Known Bugs
 
+## An old copy takes a published notice off the board
+
+- Status: Fixed
+- Area: Notices
+- Observed: Scheduling and expiring read the status of the copy on the screen. A notice published since the page opened could be scheduled again, which took it off the board.
+- Impact: A notice families were already reading disappeared until its new time.
+- Reproduction: Open a draft notice in two tabs. Publish it in one. Schedule it in the other.
+- Resolution: Scheduling and expiring now re-read the notice under a lock.
+
 ## One notice that cannot go out stops the notice scheduler
 
 - Status: Fixed
