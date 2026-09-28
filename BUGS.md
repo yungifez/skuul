@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A role manager can strip roles they could not give
+- Status: Fixed
+- Area: Campus roles
+- Observed: Giving a role checked that the giver held everything in it. Taking a role away checked only "manage role".
+- Impact: A junior role manager could take the admin role from the principal, or any powerful role from its holders, and lock them out of their work.
+- Reproduction: Give a person only "read role" and "manage role". Open the Admin role and take it from another admin.
+- Resolution: Taking a role away now needs the same power as giving it. The screen says the role holds more than the person does.
+
 ## A fee above about 21 million cannot be invoiced
 - Status: Fixed
 - Area: Fee invoices

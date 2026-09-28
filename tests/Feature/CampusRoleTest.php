@@ -383,6 +383,24 @@ class CampusRoleTest extends TestCase
         app(AssignCampusRole::class)->give($this->memberOf($this->workingSchool()), $admin, $this->workingSchool(), $actor);
     }
 
+    public function test_nobody_takes_away_a_role_holding_more_than_they_do(): void
+    {
+        $admin = CampusRole::query()->where('name', Role::Admin->value)->firstOrFail();
+        $principal = $this->memberOf($this->workingSchool());
+        school_context()->set($this->workingSchool(), remember: false);
+        $principal->assignRole($admin);
+        $actor = $this->roleManager(['read student']);
+
+        try {
+            app(AssignCampusRole::class)->take($principal, $admin, $this->workingSchool(), $actor);
+            $this->fail('A role manager stripped a role they could not give.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString('holds more than you do', $exception->getMessage());
+        }
+
+        $this->assertTrue(app(RoleAuthority::class)->holdersAt($admin, $this->workingSchool())->whereKey($principal->id)->exists());
+    }
+
     public function test_the_screen_lists_the_roles_of_this_campus_only(): void
     {
         $actor = $this->roleManager(['read student']);

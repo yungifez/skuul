@@ -81,11 +81,18 @@ class AssignCampusRole
     /**
      * Take the role away again.
      *
-     * @throws InvalidValueException when nobody at the campus could manage roles afterwards
+     * @throws InvalidValueException when the role holds more than the taker does,
+     *                               or nobody at the campus could manage roles afterwards
      */
     public function take(User $person, CampusRole $role, School $school, ?User $actor = null): void
     {
         $this->authority->mustBeAssignableAt($role, $school);
+
+        // Taking a role away is as strong as giving it. Somebody who could not
+        // give the role cannot strip it from the people who hold it.
+        if ($actor !== null && $this->authority->grantableBy($actor, $school)->intersect($role->permissions->pluck('name'))->count() !== $role->permissions->count()) {
+            throw new InvalidValueException("$role->name holds more than you do, so you cannot take it away.");
+        }
 
         if (!$this->authority->holdersAt($role, $school)->whereKey($person->id)->exists()) {
             return;
