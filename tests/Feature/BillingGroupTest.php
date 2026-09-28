@@ -20,10 +20,14 @@ use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
 use App\Models\BillingGroup;
+use App\Models\Fee;
+use App\Models\FeeCategory;
+use App\Models\FeeInvoice;
 use App\Models\Organization;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
+use App\Services\Fee\FeeInvoiceService;
 use App\Services\Finance\ChartOfAccounts;
 use App\Services\Finance\StudentLedger;
 use App\Traits\FeatureTestTrait;
@@ -204,6 +208,39 @@ class BillingGroupTest extends TestCase
         $this->assertSame(0, $credit->creditHeld($enrollment->fresh(), $source->id));
     }
 
+    public function test_a_carried_invoice_can_be_paid_at_the_new_campus(): void
+    {
+        [$source, $destination] = $this->twoCampuses(sharing: true);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        $invoice = $this->invoiceAt($source, $enrollment, 100);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+        $moved = $enrollment->fresh();
+
+        app(ReceivePayment::class)->receive($moved, 10_000);
+
+        $chart = app(ChartOfAccounts::class);
+        $this->assertSame(10_000, $invoice->fresh()->paid->getMinorAmount()->toInt());
+        $this->assertSame(0.0, app(StudentLedger::class)->balance($moved));
+        $this->assertSame(0.0, app(StudentLedger::class)->unappliedCredit($moved));
+        $this->assertSame(0.0, round($chart->account('fees_receivable', $source->id)->balance(), 2));
+        $this->assertSame(0.0, round($chart->account('fees_receivable', $destination->id)->balance(), 2));
+        $this->assertSame($destination->id, $invoice->fresh()->school_id);
+    }
+
+    public function test_a_bill_stays_with_the_campus_that_keeps_separate_books(): void
+    {
+        [$source, $destination] = $this->twoCampuses();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        $invoice = $this->invoiceAt($source, $enrollment, 100);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, $this->cycleSection($destination));
+
+        $this->assertSame($source->id, $invoice->fresh()->school_id);
+        app(ReceivePayment::class)->receive($enrollment->fresh(), 10_000, schoolId: $source->id);
+        $this->assertSame(10_000, $invoice->fresh()->paid->getMinorAmount()->toInt());
+    }
+
     public function test_a_learner_who_owes_nothing_carries_nothing(): void
     {
         [$source, $destination] = $this->twoCampuses(sharing: true);
@@ -331,6 +368,25 @@ class BillingGroupTest extends TestCase
             ->assertForbidden();
 
         Livewire::actingAs($reader)->test(OrganizationBillingGroups::class, ['organization' => $organization])->assertForbidden();
+    }
+
+    /**
+     * Bill a learner at one campus.
+     */
+    private function invoiceAt(School $school, StudentRecord $enrollment, int $amount): FeeInvoice
+    {
+        $this->actingAsMemberOf($school);
+        $category = FeeCategory::factory()->create(['school_id' => $school->id]);
+        $fee = Fee::factory()->create(['fee_category_id' => $category->id]);
+
+        app(FeeInvoiceService::class)->storeFeeInvoice([
+            'issue_date' => now()->toDateString(),
+            'due_date' => now()->toDateString(),
+            'student_records' => [$enrollment->id],
+            'records' => [['fee_id' => $fee->id, 'amount' => $amount, 'waiver' => 0, 'fine' => 0]],
+        ]);
+
+        return FeeInvoice::where('user_id', $enrollment->user_id)->latest('id')->firstOrFail();
     }
 
     /**

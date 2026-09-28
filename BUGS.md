@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A carried debt could not be paid at the new campus
+
+- Status: Fixed
+- Area: Finance, campus moves inside a billing group
+- Observed: A move inside a billing group carried the debt to the new campus's books, but the bills stayed at the old campus. A payment at the new campus found no bill to settle and became credit. The debt stayed open.
+- Impact: The family paid but still showed as owing at the new campus. A payment at the old campus cleared a debt its books no longer held, so its receivable went below nothing.
+- Reproduction: Put two campuses in one billing group. Bill a learner 100 at the first. Move them to the second. Take 100 at the second campus. The bill shows 0 paid.
+- Resolution: The carry now moves the learner's posted, still-owed bills to the new campus with the debt. Campuses with separate books keep their bills, as before.
+
 ## A refund sent twice paid out twice
 
 - Status: Fixed

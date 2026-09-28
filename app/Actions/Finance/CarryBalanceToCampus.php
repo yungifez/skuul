@@ -5,6 +5,7 @@ namespace App\Actions\Finance;
 use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AuditAction;
 use App\Exceptions\InvalidValueException;
+use App\Models\FeeInvoice;
 use App\Models\LedgerAccount;
 use App\Models\LedgerLine;
 use App\Models\School;
@@ -89,6 +90,8 @@ class CarryBalanceToCampus
                 $carried[$purpose] = $amount;
             }
 
+            $this->moveOpenInvoices($enrollment, $from, $to);
+
             if ($carried !== []) {
                 $this->auditor->record(
                     AuditAction::BalanceCarriedToCampus,
@@ -156,6 +159,25 @@ class CarryBalanceToCampus
             source: $enrollment,
             actor: $actor,
         );
+    }
+
+    /**
+     * Send the posted bills still owed along with the debt.
+     *
+     * The debt now sits in the new campus's books, so its bills must be paid
+     * there. Left behind, a payment at the new campus finds nothing to settle,
+     * and a payment at the old campus clears a debt its books no longer hold.
+     */
+    private function moveOpenInvoices(StudentRecord $enrollment, School $from, School $to): void
+    {
+        FeeInvoice::query()
+            ->where('student_record_id', $enrollment->id)
+            ->where('school_id', $from->id)
+            ->whereNotNull('ledger_transaction_id')
+            ->isDue()
+            ->lockForUpdate()
+            ->get()
+            ->each(fn (FeeInvoice $invoice) => $invoice->forceFill(['school_id' => $to->id])->save());
     }
 
     /**
