@@ -115,14 +115,24 @@ class PortalAcademicActivityTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_a_learner_cannot_read_an_inactive_enrollment(): void
+    public function test_a_learner_cannot_read_an_archived_enrollment(): void
+    {
+        $enrollment = $this->enrollment();
+        $enrollment->update(['status' => EnrollmentStatus::Archived]);
+
+        $this->actingAsMemberOf($this->workingSchool(), $enrollment->user)
+            ->get(route('portal.programmes.index', $enrollment))
+            ->assertForbidden();
+    }
+
+    public function test_a_withdrawn_learner_still_reads_their_records(): void
     {
         $enrollment = $this->enrollment();
         $enrollment->update(['status' => EnrollmentStatus::Withdrawn]);
 
         $this->actingAsMemberOf($this->workingSchool(), $enrollment->user)
             ->get(route('portal.programmes.index', $enrollment))
-            ->assertForbidden();
+            ->assertOk();
     }
 
     public function test_a_suspended_learner_still_reads_their_enrollment(): void

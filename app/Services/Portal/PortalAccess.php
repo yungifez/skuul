@@ -24,16 +24,19 @@ class PortalAccess
     /**
      * The enrollments a family keeps reading.
      *
-     * A learner who graduated or transferred still has report cards,
-     * transcripts, and perhaps a debt at that school. The family needs them
-     * to enrol elsewhere and to settle up. A suspended learner is still
-     * enrolled, and the family needs the school's notices most then.
+     * A learner who graduated, transferred, or was withdrawn still has report
+     * cards, transcripts, and perhaps a debt at that school. The family needs
+     * them to enrol elsewhere and to settle up, and has a right to see them.
+     * A suspended learner is still enrolled, and the family needs the
+     * school's notices most then. An archived enrollment was put away by the
+     * school, and stays out.
      */
     private const ReadableStatuses = [
         EnrollmentStatus::Active,
         EnrollmentStatus::Suspended,
         EnrollmentStatus::Graduated,
         EnrollmentStatus::Transferred,
+        EnrollmentStatus::Withdrawn,
     ];
 
     /**

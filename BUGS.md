@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A withdrawn learner's family loses their records
+
+- Status: Fixed
+- Area: Parent portal
+- Observed: The portal read active, suspended, graduated, and transferred enrollments. A withdrawn enrollment dropped out, so the family could no longer open its report cards, transcripts, or invoices.
+- Impact: A family that took a child out could not show earlier results to a new school, or see and settle a debt the school still held. People also have a right to see their own records.
+- Reproduction: Withdraw a learner with invoices and results. Open the portal as the learner or their guardian. The enrollment is gone.
+- Resolution: The portal now reads withdrawn enrollments, like transferred ones, and each still shows its status. Archived enrollments stay out.
 ## A billed fee cannot be waived or written off
 
 - Status: Fixed
