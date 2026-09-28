@@ -6,6 +6,7 @@ use App\Actions\Curriculum\AssignTeacher;
 use App\Actions\School\EndSchoolMembership;
 use App\Actions\School\GrantSchoolMembership;
 use App\Actions\Staff\ManageStaffLeave;
+use App\Actions\Staff\ManageStaffProfile;
 use App\Actions\Timetable\CreateSectionTimetableOverride;
 use App\Actions\Timetable\CreateTimetableSubstitution;
 use App\Actions\Timetable\PublishTimetable;
@@ -14,6 +15,7 @@ use App\Enums\AuditAction;
 use App\Enums\LeaveStatus;
 use App\Enums\LeaveType;
 use App\Enums\Role;
+use App\Enums\StaffStatus;
 use App\Enums\TimetableStatus;
 use App\Exceptions\InvalidValueException;
 use App\Exceptions\TimetableConflictException;
@@ -354,6 +356,31 @@ class TimetableRevisionTest extends TestCase
 
         $this->assertNull($ahead->fresh());
         $this->assertNotNull($given->fresh());
+    }
+
+    public function test_a_teacher_marked_as_left_teaches_and_covers_until_their_last_day(): void
+    {
+        $this->authorized_user([]);
+        $teacher = $this->teacher();
+        $this->timetableWithLesson($teacher, '10:00', '11:00');
+        $absent = $this->timetableWithLesson($this->teacher(), '08:00', '09:00');
+        app(PublishTimetable::class)->publish($absent);
+        $weekday = Weekday::firstOrFail();
+        $lastDay = Carbon::parse('next '.$weekday->name);
+        $cover = app(CreateTimetableSubstitution::class);
+        $onTheLastDay = $cover->create($absent->fresh(), $absent->timeSlots()->firstOrFail(), $weekday->id, $teacher, $lastDay, 'Absence', auth()->user());
+        $afterLeaving = $cover->create($absent->fresh(), $absent->timeSlots()->firstOrFail(), $weekday->id, $teacher, $lastDay->copy()->addWeek(), 'Absence', auth()->user());
+        $profile = StaffProfile::factory()->create(['user_id' => $teacher->id, 'school_id' => $this->workingSchool()->id]);
+
+        app(ManageStaffProfile::class)->update($profile, [
+            'employment_type' => $profile->employment_type->value,
+            'status' => StaffStatus::Left->value,
+            'left_on' => $lastDay->toDateString(),
+        ]);
+
+        $this->assertNotNull($onTheLastDay->fresh());
+        $this->assertNull($afterLeaving->fresh());
+        $this->assertSame($lastDay->copy()->addDay()->toDateString(), TeachingAssignment::query()->forTeacher($teacher)->sole()->ends_on->toDateString());
     }
 
     public function test_deleting_a_teacher_of_one_campus_ends_their_teaching_and_cover(): void

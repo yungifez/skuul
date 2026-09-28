@@ -3,6 +3,7 @@
 namespace App\Actions\Staff;
 
 use App\Actions\Audit\RecordAuditEvent;
+use App\Actions\School\EndSchoolMembership;
 use App\Enums\AuditAction;
 use App\Enums\LeaveStatus;
 use App\Enums\StaffStatus;
@@ -25,6 +26,7 @@ class ManageStaffProfile
     public function __construct(
         private RecordAuditEvent $auditor,
         private ManageStaffLeave $manageStaffLeave,
+        private EndSchoolMembership $endSchoolMembership,
     ) {}
 
     /**
@@ -67,9 +69,10 @@ class ManageStaffProfile
     /**
      * Change the job, the hours, or the state of the record.
      *
-     * A person who leaves gets a leaving date, today unless one is given, and
-     * any leave they still hold after it is withdrawn. A person who has not
-     * left has no leaving date.
+     * A person who leaves gets a leaving date, today unless one is given. Any
+     * leave they still hold after it is withdrawn, and their subjects, boarding
+     * duty and cover end after it. A person who has not left has no leaving
+     * date.
      *
      * @param  array{staff_number?: string|null, job_title?: string|null, department?: string|null, employment_type: string, status: string, left_on?: string|null}  $attributes
      *
@@ -101,6 +104,8 @@ class ManageStaffProfile
 
                 if ($leftOn !== null) {
                     $this->withdrawLeaveAfter($profile, $leftOn, $actor);
+                    // They still work on their last day, and nothing after it.
+                    $this->endSchoolMembership->endDutiesFrom($profile->user()->firstOrFail(), $profile->school_id, $leftOn->copy()->addDay());
                 }
 
                 return $profile;

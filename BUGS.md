@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A teacher marked as left kept teaching and covering
+- Status: Fixed
+- Area: Staff records, teaching and timetable cover
+- Observed: Marking a staff record as Left withdrew the person's leave, but nothing else. Their subjects, boarding duty and booked cover ran on past their last day.
+- Impact: Timetables and cover lists named a teacher who had left. Classes after the leaving date had nobody.
+- Reproduction: Book a teacher as cover two weeks ahead. Mark their staff record Left with a leaving date next week.
+- Resolution: Leaving now ends the person's subjects and boarding duty the day after their last day, and gives up cover booked after it. Their campus membership stays, because the same person may also be a guardian there. The same step runs when a membership ends.
+
 ## A deleted or departed teacher kept their lessons and cover
 - Status: Fixed
 - Area: Staff removal, teaching and timetable cover

@@ -11,6 +11,8 @@ use App\Models\SchoolMembership;
 use App\Models\TeachingAssignment;
 use App\Models\TimetableSubstitution;
 use App\Models\User;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
 
@@ -20,8 +22,7 @@ use RuntimeException;
  * The membership record stays so the history remains readable. The person, and
  * their records in that school, are not deleted. The subjects they still teach
  * and the boarding houses they still supervise there end, so each shows it
- * needs somebody. Cover they were booked for from today on is given up, so the
- * lesson shows it needs cover again; cover already given stays in the record.
+ * needs somebody, and cover booked from today on is given up.
  */
 class EndSchoolMembership
 {
@@ -51,30 +52,46 @@ class EndSchoolMembership
 
             $user->schoolMemberships()->where('school_id', $school->id)->update(['is_primary' => false]);
 
-            TeachingAssignment::query()
-                ->where('school_id', $school->id)
-                ->forTeacher($user)
-                ->where(fn ($running) => $running->whereNull('ends_on')->orWhereDate('ends_on', '>', today()))
-                ->get()
-                ->each(fn (TeachingAssignment $assignment) => $this->teaching->end($assignment, today()));
-
-            BoardingSupervision::query()
-                ->where('school_id', $school->id)
-                ->where('user_id', $user->id)
-                ->whereNull('ends_on')
-                ->whereDate('starts_on', '<=', today())
-                ->get()
-                ->each(fn (BoardingSupervision $duty) => $this->boardingDuty->end($duty, today()));
-
-            TimetableSubstitution::query()
-                ->where('replacement_teacher_id', $user->id)
-                ->whereDate('substituted_on', '>=', today())
-                ->whereHas('timetable.academicCycleSection', fn ($sections) => $sections->where('school_id', $school->id))
-                ->delete();
+            $this->endDutiesFrom($user, $school->id, today());
 
             $this->promoteAnotherPrimary($user);
 
             return $membership;
+        });
+    }
+
+    /**
+     * End the work the person does at one campus from the given day on.
+     *
+     * Their subjects and boarding duty end that day, so each shows it needs
+     * somebody. Cover booked for that day or later is given up, so the lesson
+     * shows it needs cover again. Cover already given stays in the record.
+     */
+    public function endDutiesFrom(User $user, int $schoolId, CarbonInterface $firstDayAway): void
+    {
+        $firstDayAway = Carbon::instance($firstDayAway)->startOfDay();
+
+        DB::transaction(function () use ($user, $schoolId, $firstDayAway): void {
+            TeachingAssignment::query()
+                ->where('school_id', $schoolId)
+                ->forTeacher($user)
+                ->where(fn ($running) => $running->whereNull('ends_on')->orWhereDate('ends_on', '>', $firstDayAway))
+                ->get()
+                ->each(fn (TeachingAssignment $assignment) => $this->teaching->end($assignment, $firstDayAway));
+
+            BoardingSupervision::query()
+                ->where('school_id', $schoolId)
+                ->where('user_id', $user->id)
+                ->whereNull('ends_on')
+                ->whereDate('starts_on', '<=', $firstDayAway)
+                ->get()
+                ->each(fn (BoardingSupervision $duty) => $this->boardingDuty->end($duty, $firstDayAway->copy()));
+
+            TimetableSubstitution::query()
+                ->where('replacement_teacher_id', $user->id)
+                ->whereDate('substituted_on', '>=', $firstDayAway)
+                ->whereHas('timetable.academicCycleSection', fn ($sections) => $sections->where('school_id', $schoolId))
+                ->delete();
         });
     }
 
