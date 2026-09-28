@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A section with learners could be archived for good
+- Status: Fixed
+- Area: Academic structure
+- Observed: A section could be archived while learners were placed in it or its admission queue was open. An archived section never opens again.
+- Impact: Learners were left in a section nobody could use. Offered places could no longer be accepted.
+- Reproduction: Place a learner in an active section. Archive the section.
+- Resolution: `ChangeAcademicCycleSectionStatus` refuses to archive a section that has enrolled learners or open admission queue entries.
+
 ## Library loans renewed for leavers and past a waiting queue
 - Status: Fixed
 - Area: Library

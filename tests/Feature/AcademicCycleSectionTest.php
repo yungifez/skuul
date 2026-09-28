@@ -2,11 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Curriculum\ChangeAcademicCycleSectionStatus;
 use App\Actions\Curriculum\CreateAcademicCycleSection;
 use App\Actions\Curriculum\CreateAcademicLevel;
 use App\Actions\Curriculum\RollForwardAcademicCycleSections;
+use App\Actions\Enrollment\ChangeEnrollmentStatus;
 use App\Enums\AcademicStructureStatus;
+use App\Enums\AdmissionWaitlistStatus;
 use App\Enums\AuditAction;
+use App\Enums\EnrollmentStatus;
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\AcademicCycleSectionForm;
@@ -14,8 +18,10 @@ use App\Livewire\AcademicStructureStatusControl;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
 use App\Models\AcademicYear;
+use App\Models\AdmissionWaitlistEntry;
 use App\Models\AuditEvent;
 use App\Models\School;
+use App\Models\StudentRecord;
 use App\Models\User;
 use App\Policies\AcademicCycleSectionPolicy;
 use App\Traits\FeatureTestTrait;
@@ -127,6 +133,42 @@ class AcademicCycleSectionTest extends TestCase
 
         $this->assertSame(AcademicStructureStatus::Active, $section->fresh()->status);
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::AcademicCycleSectionStatusChanged)->forSubject($section)->first());
+    }
+
+    public function test_a_section_with_learners_is_not_archived(): void
+    {
+        $this->authorized_user(['read section', 'update section']);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $section = $enrollment->academicCycleSection;
+
+        Livewire::test(AcademicStructureStatusControl::class, ['record' => $section])
+            ->call('archive')
+            ->assertDispatched('status-message', message: 'Move the 1 learners of this section before archiving it.');
+
+        $this->assertSame(AcademicStructureStatus::Active, $section->fresh()->status);
+
+        app(ChangeEnrollmentStatus::class)->change($enrollment, EnrollmentStatus::Withdrawn);
+        app(ChangeAcademicCycleSectionStatus::class)->change($section->fresh(), AcademicStructureStatus::Archived);
+
+        $this->assertSame(AcademicStructureStatus::Archived, $section->fresh()->status);
+    }
+
+    public function test_a_section_with_an_open_admission_queue_is_not_archived(): void
+    {
+        $this->authorized_user([]);
+        $section = AcademicCycleSection::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'status' => AcademicStructureStatus::Active,
+        ]);
+        AdmissionWaitlistEntry::factory()->create([
+            'school_id' => $this->workingSchool()->id,
+            'academic_cycle_section_id' => $section->id,
+            'status' => AdmissionWaitlistStatus::Offered,
+        ]);
+
+        $this->expectExceptionMessage("Decide the 1 open entries of this section's admission queue before archiving it.");
+
+        app(ChangeAcademicCycleSectionStatus::class)->change($section, AcademicStructureStatus::Archived);
     }
 
     public function test_a_school_user_cannot_update_a_cycle_section_from_another_school(): void
