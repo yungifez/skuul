@@ -71,7 +71,7 @@ class ListParentsTable extends DataTableComponent
         $parent = $this->builder()->findOrFail($userId);
         Gate::authorize('delete', [$parent, 'parent']);
 
-        $this->changeRow(fn () => $parents->deleteParent($parent), $parent->belongsToAnotherSchool() ? "{$parent->name} was removed from this school." : "{$parent->name} was deleted.");
+        $this->changeRow(fn () => $parents->deleteParent($parent), $parent->keepsAccountWhenRemovedHere() ? "{$parent->name} was removed from this school." : "{$parent->name} was deleted.");
     }
 
     public function render(): View

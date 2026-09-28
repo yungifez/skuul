@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Removing a person from one campus deleted an organization administrator's account
+- Status: Fixed
+- Area: Teachers, parents, students, user removal
+- Observed: Removing a person from the school deleted the whole account whenever no other school membership was active. It ignored organization and platform authority.
+- Impact: A campus administrator could delete the account of an organization administrator who taught at only that campus. The organization then lost its administrator.
+- Reproduction: Give a teacher organization membership. Remove them from the teacher list of their only campus. The account is deleted.
+- Resolution: `User::keepsAccountWhenRemovedHere()` keeps the account when another school still has the person or they hold power beyond this campus. Removal and the list messages both use it.
+
 ## One school could take over an account that holds power at another school
 - Status: Fixed
 - Area: Account access, user policy

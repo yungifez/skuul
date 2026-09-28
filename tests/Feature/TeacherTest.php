@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Organization\GrantOrganizationMembership;
 use App\Livewire\CreateTeacherForm;
 use App\Livewire\EditTeacherForm;
 use App\Livewire\ListTeachersTable;
@@ -218,6 +219,21 @@ class TeacherTest extends TestCase
         $this->assertNotSoftDeleted($teacher);
         $this->assertFalse($teacher->belongsToSchool($this->workingSchool()));
         $this->assertTrue($teacher->belongsToSchool($sibling));
+    }
+
+    public function test_a_teacher_with_organization_authority_keeps_their_account(): void
+    {
+        $teacher = User::factory()->create();
+        $teacher->assignRole('teacher');
+        $this->authorized_user(['read teacher', 'delete teacher']);
+        app(GrantOrganizationMembership::class)->grant($teacher, $this->workingSchool()->organization);
+
+        Livewire::test(ListTeachersTable::class)
+            ->call('deleteTeacher', $teacher->id)
+            ->assertDispatched('status-message', message: "{$teacher->name} was removed from this school.");
+
+        $this->assertNotSoftDeleted($teacher);
+        $this->assertFalse($teacher->belongsToSchool($this->workingSchool()));
     }
 
     public function test_a_teacher_of_another_school_cannot_be_deleted()

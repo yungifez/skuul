@@ -94,7 +94,7 @@ class ListStudentsTable extends DataTableComponent
         $student = $this->builder()->findOrFail($userId);
         Gate::authorize('delete', [$student, 'student']);
 
-        $this->changeRow(fn () => $students->deleteStudent($student), $student->belongsToAnotherSchool() ? "{$student->name} was removed from this school." : "{$student->name} was deleted.");
+        $this->changeRow(fn () => $students->deleteStudent($student), $student->keepsAccountWhenRemovedHere() ? "{$student->name} was removed from this school." : "{$student->name} was deleted.");
     }
 
     public function render(): View

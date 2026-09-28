@@ -175,7 +175,7 @@ class UserService
             // here, so a deleted teacher leaves no lesson or cover behind.
             $this->endSchoolMembershipAction->end($user, current_school());
 
-            if (!$user->belongsToAnotherSchool()) {
+            if (!$user->keepsAccountWhenRemovedHere()) {
                 $user->delete();
             }
         });

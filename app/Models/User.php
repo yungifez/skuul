@@ -313,6 +313,17 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Check whether removing the person from the working school leaves their account.
+     *
+     * The account stays when another school still has them, or when they hold
+     * organization or platform authority that is not this school's to end.
+     */
+    public function keepsAccountWhenRemovedHere(): bool
+    {
+        return $this->belongsToAnotherSchool() || $this->holdsPowerBeyond(current_school_id());
+    }
+
+    /**
      * Check whether the account carries power this campus does not own.
      *
      * One account signs in everywhere. Whoever controls its password or its
