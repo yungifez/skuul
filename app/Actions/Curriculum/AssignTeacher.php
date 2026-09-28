@@ -24,9 +24,7 @@ use Illuminate\Support\Facades\DB;
  */
 class AssignTeacher
 {
-    public function __construct(private RecordAuditEvent $auditor)
-    {
-    }
+    public function __construct(private RecordAuditEvent $auditor) {}
 
     /**
      * Give the teacher the subject.
@@ -59,27 +57,27 @@ class AssignTeacher
 
         return DB::transaction(function () use ($courseOffering, $teacher, $role, $academicCycleSection, $actor, $startsOn): TeachingAssignment {
             $assignment = TeachingAssignment::create([
-                'school_id'                 => $courseOffering->school_id,
-                'subject_id'                => $courseOffering->subject_id,
-                'user_id'                   => $teacher->id,
-                'academic_year_id'          => $courseOffering->academic_year_id,
-                'academic_period_id'        => $courseOffering->academic_period_id,
-                'course_offering_id'        => $courseOffering->id,
+                'school_id' => $courseOffering->school_id,
+                'subject_id' => $courseOffering->subject_id,
+                'user_id' => $teacher->id,
+                'academic_year_id' => $courseOffering->academic_year_id,
+                'academic_period_id' => $courseOffering->academic_period_id,
+                'course_offering_id' => $courseOffering->id,
                 'academic_cycle_section_id' => $academicCycleSection?->id,
-                'role'                      => $role,
-                'starts_on'                 => $startsOn ?? now(),
+                'role' => $role,
+                'starts_on' => $startsOn ?? now(),
             ]);
 
             $this->auditor->record(
                 AuditAction::TeachingAssignmentCreated,
                 $assignment,
                 [
-                    'subject_id'                => $courseOffering->subject_id,
-                    'teacher_id'                => $teacher->id,
-                    'role'                      => $role->value,
+                    'subject_id' => $courseOffering->subject_id,
+                    'teacher_id' => $teacher->id,
+                    'role' => $role->value,
                     'academic_cycle_section_id' => $academicCycleSection?->id,
-                    'academic_year_id'          => $courseOffering->academic_year_id,
-                    'course_offering_id'        => $courseOffering->id,
+                    'academic_year_id' => $courseOffering->academic_year_id,
+                    'course_offering_id' => $courseOffering->id,
                 ],
                 $actor,
             );
@@ -91,16 +89,19 @@ class AssignTeacher
     /**
      * End the assignment on the given day.
      *
-     * Ending it twice changes nothing.
+     * Ending it twice changes nothing. An end already set for a later day is
+     * brought forward.
      */
     public function end(TeachingAssignment $assignment, ?CarbonInterface $endsOn = null, ?User $actor = null): TeachingAssignment
     {
-        if ($assignment->ends_on !== null) {
+        $endsOn = Carbon::parse($endsOn ?? now());
+
+        if ($assignment->ends_on !== null && $assignment->ends_on->startOfDay()->lessThanOrEqualTo($endsOn->copy()->startOfDay())) {
             return $assignment;
         }
 
         return DB::transaction(function () use ($assignment, $endsOn, $actor): TeachingAssignment {
-            $assignment->ends_on = Carbon::parse($endsOn ?? now());
+            $assignment->ends_on = $endsOn;
             $assignment->save();
 
             $this->auditor->record(
@@ -109,7 +110,7 @@ class AssignTeacher
                 [
                     'subject_id' => $assignment->subject_id,
                     'teacher_id' => $assignment->user_id,
-                    'ends_on'    => $assignment->ends_on->toDateString(),
+                    'ends_on' => $assignment->ends_on->toDateString(),
                 ],
                 $actor,
             );

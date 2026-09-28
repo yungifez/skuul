@@ -2,10 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Curriculum\AssignTeacher;
 use App\Actions\Identity\ProvisionAccount;
 use App\Actions\School\EndSchoolMembership;
 use App\Actions\School\GrantSchoolMembership;
 use App\Enums\SchoolMembershipStatus;
+use App\Models\CourseOffering;
 use App\Models\School;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
@@ -85,6 +87,19 @@ class SchoolMembershipTest extends TestCase
         $this->assertSame(1, $user->schoolMemberships()->count());
         $this->assertSame(SchoolMembershipStatus::Ended, $user->schoolMemberships()->first()->status);
         $this->assertNotNull($user->schoolMemberships()->first()->ended_at);
+    }
+
+    public function test_ending_a_membership_ends_the_teaching_there(): void
+    {
+        $this->authorized_user([]);
+        $teacher = User::factory()->create();
+        $teacher->assignRole('teacher');
+        $courseOffering = CourseOffering::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $assignment = app(AssignTeacher::class)->assign($courseOffering, $teacher);
+
+        app(EndSchoolMembership::class)->end($teacher, $this->workingSchool());
+
+        $this->assertFalse($assignment->fresh()->isRunningOn(today()->addDay()));
     }
 
     public function test_ending_the_primary_membership_promotes_another_one(): void

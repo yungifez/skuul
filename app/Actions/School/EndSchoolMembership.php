@@ -2,9 +2,11 @@
 
 namespace App\Actions\School;
 
+use App\Actions\Curriculum\AssignTeacher;
 use App\Enums\SchoolMembershipStatus;
 use App\Models\School;
 use App\Models\SchoolMembership;
+use App\Models\TeachingAssignment;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -13,10 +15,13 @@ use RuntimeException;
  * Stop a person's access to one school.
  *
  * The membership record stays so the history remains readable. The person, and
- * their records in that school, are not deleted.
+ * their records in that school, are not deleted. The subjects they still teach
+ * there end, so each class shows it needs a teacher.
  */
 class EndSchoolMembership
 {
+    public function __construct(private AssignTeacher $teaching) {}
+
     /**
      * End the membership and return it, or null when there was none.
      */
@@ -37,6 +42,13 @@ class EndSchoolMembership
             $membership->save();
 
             $user->schoolMemberships()->where('school_id', $school->id)->update(['is_primary' => false]);
+
+            TeachingAssignment::query()
+                ->where('school_id', $school->id)
+                ->forTeacher($user)
+                ->where(fn ($running) => $running->whereNull('ends_on')->orWhereDate('ends_on', '>', today()))
+                ->get()
+                ->each(fn (TeachingAssignment $assignment) => $this->teaching->end($assignment, today()));
 
             $this->promoteAnotherPrimary($user);
 

@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A teacher removed from a campus still led its classes
+
+- Status: Fixed
+- Area: Teaching assignments, school membership
+- Observed: Ending a membership, now also what "delete" does for a person shared with another campus, left their teaching assignments at that campus running. An assignment that already had a later end date could not be ended sooner.
+- Impact: Offerings kept a lead teacher who could no longer open the school. Nobody saw that the class needed a new teacher, and mark sheets had nobody to fill them.
+- Reproduction: Assign a teacher to an offering. End their membership at that campus. The assignment still runs.
+- Resolution: Ending a membership ends the person's teaching at that campus today. `AssignTeacher::end` now brings a later end date forward.
+
 ## Work could be handed to somebody who had left the school
 
 - Status: Fixed
