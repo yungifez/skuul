@@ -44,6 +44,29 @@ class CloseReservation
     }
 
     /**
+     * Take off every reservation a borrower still has at one campus.
+     *
+     * A learner who moved on or left no longer comes to that library, so a
+     * copy held for them would wait behind the desk until it ran out.
+     *
+     * @return int how many reservations were taken off
+     */
+    public function cancelEveryReservation(User $borrower, int $schoolId, ?User $actor = null): int
+    {
+        $reservations = LibraryReservation::query()
+            ->where('school_id', $schoolId)
+            ->where('user_id', $borrower->id)
+            ->stillGoing()
+            ->get();
+
+        foreach ($reservations as $reservation) {
+            $this->cancel($reservation, $actor);
+        }
+
+        return $reservations->count();
+    }
+
+    /**
      * Give up on a hold nobody came for.
      *
      * @throws InvalidValueException when the copy is no longer behind the desk

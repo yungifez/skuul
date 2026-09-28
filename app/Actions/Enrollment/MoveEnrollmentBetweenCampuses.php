@@ -7,6 +7,7 @@ use App\Actions\Boarding\AssignBoardingPlace;
 use App\Actions\Cohort\ChangeCohortMembership;
 use App\Actions\Cohort\ChangeProgramParticipation;
 use App\Actions\Finance\CarryBalanceToCampus;
+use App\Actions\Library\CloseReservation;
 use App\Actions\School\GrantSchoolMembership;
 use App\Enums\AuditAction;
 use App\Exceptions\InvalidValueException;
@@ -36,6 +37,7 @@ class MoveEnrollmentBetweenCampuses
         private AssignBoardingPlace $boarding,
         private ChangeProgramParticipation $programmes,
         private ChangeCohortMembership $cohorts,
+        private CloseReservation $reservations,
     ) {}
 
     /**
@@ -79,6 +81,7 @@ class MoveEnrollmentBetweenCampuses
             $this->boarding->release($enrollment, "Moved to {$destination->name}", $actor, $effectiveOn);
             $this->programmes->withdrawFromSchool($enrollment, $source->id, "Moved to {$destination->name}", $actor);
             $this->cohorts->leaveSchool($enrollment, $source->id, $effectiveOn, $actor);
+            $this->reservations->cancelEveryReservation($enrollment->user, $source->id, $actor);
 
             $enrollment->school_id = $destination->id;
             $enrollment->save();

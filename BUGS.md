@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A library copy was held for a learner who moved on
+
+- Status: Fixed
+- Area: Library, enrollment
+- Observed: A campus move or a closed enrollment left the learner's library reservations open at the old campus. The learner keeps that campus membership on purpose, so nothing stopped the queue.
+- Impact: A returned copy was held behind the desk for a learner who no longer came, and the next person waited until the hold ran out. The portal lists only the current campus's reservations, so the family never saw it.
+- Reproduction: Reserve a title for a learner, then move them to a sibling campus, or withdraw them. The reservation stays Waiting or Ready.
+- Resolution: A move cancels every open reservation at the source campus. Closing an enrollment cancels them at its campus. The held copy passes to the next person in the queue.
+
 ## A campus a teacher left still blocked publishing a timetable
 
 - Status: Fixed

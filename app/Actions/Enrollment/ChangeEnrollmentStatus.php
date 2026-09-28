@@ -6,6 +6,7 @@ use App\Actions\Audit\RecordAuditEvent;
 use App\Actions\Boarding\AssignBoardingPlace;
 use App\Actions\Cohort\ChangeCohortMembership;
 use App\Actions\Cohort\ChangeProgramParticipation;
+use App\Actions\Library\CloseReservation;
 use App\Enums\AuditAction;
 use App\Enums\EnrollmentStatus;
 use App\Exceptions\InvalidValueException;
@@ -31,6 +32,7 @@ class ChangeEnrollmentStatus
         private ChangeProgramParticipation $programmes,
         private ChangeCohortMembership $cohorts,
         private RequestCampusMove $campusMoves,
+        private CloseReservation $reservations,
     ) {}
 
     /**
@@ -79,6 +81,10 @@ class ChangeEnrollmentStatus
             if ($status->isClosed()) {
                 $this->boarding->release($enrollment, "Enrollment closed: {$status->label()}", $actor, $effectiveOn);
                 $this->programmes->withdrawFromSchool($enrollment, $enrollment->school_id, "Enrollment closed: {$status->label()}", $actor, finished: $status === EnrollmentStatus::Graduated);
+
+                if ($enrollment->user !== null) {
+                    $this->reservations->cancelEveryReservation($enrollment->user, $enrollment->school_id, $actor);
+                }
 
                 // A closed enrollment can never move, so a move still
                 // waiting would only fail when somebody tried to approve it.

@@ -2,13 +2,17 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Enrollment\ChangeEnrollmentStatus;
+use App\Actions\Enrollment\MoveEnrollmentBetweenCampuses;
 use App\Actions\Library\CloseReservation;
 use App\Actions\Library\IssueLoan;
 use App\Actions\Library\IssueTitleToSection;
 use App\Actions\Library\RenewLoan;
 use App\Actions\Library\ReserveTitle;
 use App\Actions\Library\ReturnLoan;
+use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
+use App\Enums\EnrollmentStatus;
 use App\Enums\Feature;
 use App\Enums\LibraryCopyStatus;
 use App\Enums\LibraryReservationStatus;
@@ -19,6 +23,8 @@ use App\Livewire\LibraryLendingRulesForm;
 use App\Livewire\LibraryReservationQueue;
 use App\Livewire\LibraryShelvingForm;
 use App\Models\AcademicCycleSection;
+use App\Models\AcademicLevel;
+use App\Models\AcademicYear;
 use App\Models\AuditEvent;
 use App\Models\FinancialPeriod;
 use App\Models\LedgerTransaction;
@@ -177,6 +183,44 @@ class LibraryTest extends TestCase
 
         $this->assertSame($secondBorrower->id, $collected->user_id);
         $this->assertSame(LibraryReservationStatus::Collected, $reservation->fresh()->status);
+    }
+
+    public function test_a_campus_move_takes_the_learner_out_of_the_old_library_queue(): void
+    {
+        $this->authorized_user([]);
+        $copy = $this->copy();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $learner = $this->memberOf($this->workingSchool(), $enrollment->user);
+        app(IssueLoan::class)->issue($copy, $this->memberOf($this->workingSchool()));
+        $reservation = app(ReserveTitle::class)->reserve($copy->title, $learner);
+        $destination = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id]);
+
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, AcademicCycleSection::factory()->create([
+            'school_id' => $destination->id,
+            'academic_year_id' => AcademicYear::factory()->create(['school_id' => $destination->id])->id,
+            'academic_level_id' => AcademicLevel::factory()->create(['school_id' => $destination->id])->id,
+            'status' => AcademicStructureStatus::Active,
+        ]));
+
+        $this->assertSame(LibraryReservationStatus::Cancelled, $reservation->fresh()->status);
+    }
+
+    public function test_a_copy_held_for_a_learner_who_left_goes_to_the_next_person(): void
+    {
+        $this->authorized_user([]);
+        $copy = $this->copy();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $learner = $this->memberOf($this->workingSchool(), $enrollment->user);
+        $loan = app(IssueLoan::class)->issue($copy, $this->memberOf($this->workingSchool()));
+        $leaving = app(ReserveTitle::class)->reserve($copy->title, $learner);
+        $next = app(ReserveTitle::class)->reserve($copy->title, $this->memberOf($this->workingSchool()));
+        app(ReturnLoan::class)->receive($loan);
+
+        app(ChangeEnrollmentStatus::class)->change($enrollment, EnrollmentStatus::Withdrawn);
+
+        $this->assertSame(LibraryReservationStatus::Cancelled, $leaving->fresh()->status);
+        $this->assertSame(LibraryReservationStatus::Ready, $next->fresh()->status);
+        $this->assertSame($copy->id, $next->fresh()->library_copy_id);
     }
 
     public function test_a_reserved_copy_cannot_be_given_to_somebody_else(): void
