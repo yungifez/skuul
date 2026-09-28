@@ -147,7 +147,49 @@ class SchoolDomainTest extends TestCase
 
         $this->expectException(InvalidValueException::class);
 
+        app(AddSchoolDomain::class)->add($organization, 'lagos.example.school');
+    }
+
+    public function test_a_proved_address_cannot_be_claimed_by_another_organization(): void
+    {
+        SchoolDomain::factory()->verified()->create(['host' => 'lagos.example.school']);
+
+        $this->expectExceptionMessage('[lagos.example.school] is already claimed.');
+
         app(AddSchoolDomain::class)->add(Organization::factory()->create(), 'lagos.example.school');
+    }
+
+    public function test_an_unproved_claim_does_not_keep_the_address_from_its_owner(): void
+    {
+        $squatter = app(AddSchoolDomain::class)->add(Organization::factory()->create(), 'lagos.example.school');
+        $owner = app(AddSchoolDomain::class)->add(Organization::factory()->create(), 'lagos.example.school');
+        $this->dnsAnswers([$owner->verificationRecord() => [$owner->verification_token]]);
+
+        app(VerifySchoolDomain::class)->verify($owner);
+
+        try {
+            app(VerifySchoolDomain::class)->verify($squatter);
+            $this->fail('A second organization proved an address already proved.');
+        } catch (InvalidValueException $exception) {
+            $this->assertSame('The record was not found yet. Add it at '.$squatter->verificationRecord().' and try again in a few minutes.', $exception->getMessage());
+        }
+
+        $this->assertTrue($owner->fresh()->isVerified());
+        $this->assertFalse($squatter->fresh()->isVerified());
+        $this->assertSame($owner->id, SchoolDomain::forHost('lagos.example.school')?->id);
+    }
+
+    public function test_only_the_first_organization_to_prove_an_address_keeps_it(): void
+    {
+        $first = app(AddSchoolDomain::class)->add(Organization::factory()->create(), 'lagos.example.school');
+        $second = app(AddSchoolDomain::class)->add(Organization::factory()->create(), 'lagos.example.school');
+        $this->dnsAnswers([$first->verificationRecord() => [$first->verification_token, $second->verification_token]]);
+
+        app(VerifySchoolDomain::class)->verify($first);
+
+        $this->expectExceptionMessage('Another organization proved [lagos.example.school] first.');
+
+        app(VerifySchoolDomain::class)->verify($second);
     }
 
     public function test_something_that_is_not_an_address_is_refused(): void
@@ -245,7 +287,7 @@ class SchoolDomainTest extends TestCase
     {
         $organization = Organization::factory()->create();
         $manager = $this->organizationManager($organization);
-        SchoolDomain::factory()->create(['host' => 'taken.example.school']);
+        SchoolDomain::factory()->verified()->create(['host' => 'taken.example.school']);
 
         Livewire::actingAs($manager)
             ->test(OrganizationDomains::class, ['organization' => $organization])

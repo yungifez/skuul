@@ -1,5 +1,13 @@
 # Known Bugs
 
+## An unproved web address claim blocked its real owner
+- Status: Fixed
+- Area: Organization domains
+- Observed: The first organization to claim a web address held it, even if it never proved it owned the address.
+- Impact: One organization could claim another school's address and keep that school from ever using it.
+- Reproduction: Organization A claims `school-b.example` and does not prove it. Organization B claims the same address and is told it is already claimed.
+- Resolution: An address is unique only once proved. `AddSchoolDomain` refuses only a proved claim or a second claim by the same organization. `VerifySchoolDomain` refuses a second proof of the same address. A migration replaces the unique `host` index with a unique proved-host column.
+
 ## A section with learners could be archived for good
 - Status: Fixed
 - Area: Academic structure

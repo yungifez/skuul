@@ -8,6 +8,7 @@ use App\Exceptions\InvalidValueException;
 use App\Models\SchoolDomain;
 use App\Models\User;
 use App\Services\School\DnsTextRecords;
+use Illuminate\Database\UniqueConstraintViolationException;
 
 /**
  * Prove that an organization owns a web address.
@@ -44,7 +45,14 @@ class VerifySchoolDomain
         }
 
         $domain->verified_at = now();
-        $domain->save();
+
+        try {
+            $domain->save();
+        } catch (UniqueConstraintViolationException) {
+            $domain->verified_at = null;
+
+            throw new InvalidValueException("Another organization proved [$domain->host] first.");
+        }
 
         $this->auditor->record(
             AuditAction::SchoolDomainVerified,

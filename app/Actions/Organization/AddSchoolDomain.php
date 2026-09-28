@@ -65,7 +65,14 @@ class AddSchoolDomain
     {
         Organization::query()->lockForUpdate()->findOrFail($organization->id);
 
-        if (SchoolDomain::query()->where('host', $host)->exists()) {
+        // A claim another organization has not proved does not stop this one.
+        // Whoever proves the address first keeps it.
+        $isTaken = SchoolDomain::query()
+            ->where('host', $host)
+            ->where(fn ($claims) => $claims->whereNotNull('verified_at')->orWhere('organization_id', $organization->id))
+            ->exists();
+
+        if ($isTaken) {
             throw new InvalidValueException("[$host] is already claimed.");
         }
 
