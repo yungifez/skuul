@@ -1,5 +1,13 @@
 # Known Bugs
 
+## An entry could land in a financial period closed a moment earlier
+- Status: Fixed
+- Area: Finance ledger
+- Observed: Posting checked that the period was open before its transaction, without a lock. A close committed in between let the entry into the closed period.
+- Impact: Closed books could change after the accountant closed them, so closed totals would not match the reports sent out.
+- Reproduction: Start a payment, and close its financial period at the same moment. Or post with a period loaded before somebody closed it.
+- Resolution: `PostLedgerTransaction` re-reads the period under a shared lock inside its transaction and refuses a closed one. `ChangeFinancialPeriodStatus` locks the period, so a close waits for entries already being written.
+
 ## A blocked account still counted as the organization member manager
 - Status: Fixed
 - Area: Organization access

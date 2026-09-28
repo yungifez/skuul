@@ -8,14 +8,17 @@ use App\Actions\Finance\RecordStudentPayment;
 use App\Actions\Finance\RelieveStudentFees;
 use App\Actions\Finance\ReverseLedgerTransaction;
 use App\Enums\AuditAction;
+use App\Enums\FinancialPeriodStatus;
 use App\Enums\LedgerAccountType;
 use App\Exceptions\InvalidValueException;
 use App\Models\AuditEvent;
+use App\Models\FinancialPeriod;
 use App\Models\LedgerAccount;
 use App\Models\LedgerTransaction;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Services\Finance\ChartOfAccounts;
+use App\Services\Finance\FinancialPeriodResolver;
 use App\Services\Finance\StudentLedger;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -90,6 +93,26 @@ class LedgerTest extends TestCase
             ['account' => $chart->account('cash'), 'debit' => 100],
             ['account' => $chart->account('tuition_income', $other), 'credit' => 100],
         ]);
+    }
+
+    public function test_an_entry_is_refused_when_its_period_closed_meanwhile(): void
+    {
+        $this->authorized_user([]);
+        $chart = app(ChartOfAccounts::class);
+        $period = app(FinancialPeriodResolver::class)->openFor($this->workingSchool()->id, now());
+        FinancialPeriod::query()->whereKey($period->id)->update(['status' => FinancialPeriodStatus::Closed->value]);
+
+        try {
+            app(PostLedgerTransaction::class)->post('Late entry', [
+                ['account' => $chart->account('cash'), 'debit' => 100],
+                ['account' => $chart->account('tuition_income'), 'credit' => 100],
+            ], period: $period);
+            $this->fail('An entry was written into a closed period.');
+        } catch (InvalidValueException $exception) {
+            $this->assertSame("Financial period {$period->name} is closed.", $exception->getMessage());
+        }
+
+        $this->assertSame(0, LedgerTransaction::query()->where('financial_period_id', $period->id)->count());
     }
 
     public function test_a_posted_entry_cannot_be_changed_or_deleted(): void

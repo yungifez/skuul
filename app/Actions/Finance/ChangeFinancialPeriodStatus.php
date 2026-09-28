@@ -26,15 +26,18 @@ class ChangeFinancialPeriodStatus
             throw new InvalidValueException('That financial period belongs to another school.');
         }
 
-        if ($period->status === $status) {
-            throw new InvalidValueException("This financial period is already {$status->label()}.");
-        }
-
         if ($status === FinancialPeriodStatus::Open && trim((string) $reason) === '') {
             throw new InvalidValueException('Say why this financial period is being reopened.');
         }
 
         return DB::transaction(function () use ($period, $status, $reason, $actor): FinancialPeriod {
+            // Entries being written hold the period, so it closes after them.
+            $period = FinancialPeriod::query()->whereKey($period->id)->lockForUpdate()->firstOrFail();
+
+            if ($period->status === $status) {
+                throw new InvalidValueException("This financial period is already {$status->label()}.");
+            }
+
             $period->forceFill([
                 'status' => $status,
                 'closed_at' => $status === FinancialPeriodStatus::Closed ? now() : null,

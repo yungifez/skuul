@@ -58,6 +58,15 @@ class PostLedgerTransaction
         }
 
         return DB::transaction(function () use ($description, $prepared, $date, $source, $actor, $reference, $reversalOf, $period): LedgerTransaction {
+            // A close that lands between the check above and this write must
+            // not let the entry into a closed period. The shared lock makes a
+            // close wait for entries already being written.
+            $period = FinancialPeriod::query()->whereKey($period->id)->sharedLock()->firstOrFail();
+
+            if (!$period->isOpen()) {
+                throw new InvalidValueException("Financial period {$period->name} is closed.");
+            }
+
             $transaction = LedgerTransaction::create([
                 'school_id' => $prepared['school_id'],
                 'financial_period_id' => $period->id,
