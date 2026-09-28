@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Library loans renewed for leavers and past a waiting queue
+- Status: Fixed
+- Area: Library
+- Observed: A loan could be renewed for a borrower who had left the campus, and while other people waited for the title.
+- Impact: A copy left the campus with a learner who moved or withdrew. The reservation queue waited through every renewal.
+- Reproduction: Lend a copy to a learner. Withdraw the learner, or reserve the title for somebody else. Renew the loan.
+- Resolution: `RenewLoan` refuses a borrower who no longer belongs to or attends the campus, and a title somebody else is waiting for.
+
 ## A whole-school notice reached every parent
 - Status: Fixed
 - Area: Notices

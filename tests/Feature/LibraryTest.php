@@ -599,6 +599,44 @@ class LibraryTest extends TestCase
         app(RenewLoan::class)->renew($loan);
     }
 
+    public function test_a_copy_somebody_is_waiting_for_is_not_renewed(): void
+    {
+        $this->authorized_user([]);
+        LibraryLendingRules::create(['school_id' => $this->workingSchool()->id, 'renewals_allowed' => 3]);
+        $copy = $this->copy();
+        $loan = app(IssueLoan::class)->issue($copy, $this->memberOf($this->workingSchool()));
+        app(ReserveTitle::class)->reserve($copy->title, $this->memberOf($this->workingSchool()));
+
+        try {
+            app(RenewLoan::class)->renew($loan);
+            $this->fail('A copy somebody was waiting for was renewed.');
+        } catch (InvalidValueException $exception) {
+            $this->assertSame('Somebody is waiting for this title. Bring the copy back so it can go to them.', $exception->getMessage());
+        }
+
+        $this->assertSame(0, $loan->fresh()->renewals);
+    }
+
+    public function test_a_learner_who_left_cannot_renew_a_loan(): void
+    {
+        $this->authorized_user([]);
+        LibraryLendingRules::create(['school_id' => $this->workingSchool()->id, 'renewals_allowed' => 3]);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $learner = $this->memberOf($this->workingSchool(), $enrollment->user);
+        $learner->assignRole('student');
+        $loan = app(IssueLoan::class)->issue($this->copy(), $learner);
+        app(ChangeEnrollmentStatus::class)->change($enrollment, EnrollmentStatus::Withdrawn);
+
+        try {
+            app(RenewLoan::class)->renew($loan);
+            $this->fail('A learner who left was given more time.');
+        } catch (InvalidValueException $exception) {
+            $this->assertSame('The borrower has left this campus. The copy must come back.', $exception->getMessage());
+        }
+
+        $this->assertSame(0, $loan->fresh()->renewals);
+    }
+
     public function test_the_catalogue_is_shared_but_the_copies_are_not(): void
     {
         $this->authorized_user([]);
