@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A family lost the old school's records after a transfer
+
+- Status: Fixed
+- Area: Parent portal, transfers between organizations
+- Observed: A transfer closes the old enrollment as "Transferred". The portal only read active and graduated enrollments, so the family could no longer open the old school's report cards, transcripts, or invoices.
+- Impact: Families could not show earlier results to the new school, and could not see or settle a debt the old school still held.
+- Reproduction: Charge a learner at school A. Transfer them to a school of another organization. Open the portal as their guardian.
+- Resolution: The portal now reads transferred enrollments, as it already read graduated ones, and each still shows its status. Withdrawn, suspended, and archived enrollments stay out, as before.
+
 ## A library fine vanished when the learner had moved campus
 
 - Status: Fixed

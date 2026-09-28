@@ -22,6 +22,19 @@ use Illuminate\Support\Collection as SupportCollection;
 class PortalAccess
 {
     /**
+     * The enrollments a family keeps reading.
+     *
+     * A learner who graduated or transferred still has report cards,
+     * transcripts, and perhaps a debt at that school. The family needs them
+     * to enrol elsewhere and to settle up.
+     */
+    private const ReadableStatuses = [
+        EnrollmentStatus::Active,
+        EnrollmentStatus::Graduated,
+        EnrollmentStatus::Transferred,
+    ];
+
+    /**
      * Get the enrollments this person may read.
      *
      * @return Collection<int, StudentRecord>
@@ -33,7 +46,7 @@ class PortalAccess
 
         return StudentRecord::query()
             ->whereIn('user_id', array_unique($ids))
-            ->whereIn('status', [EnrollmentStatus::Active, EnrollmentStatus::Graduated])
+            ->whereIn('status', self::ReadableStatuses)
             ->with('user')
             ->orderBy('id')
             ->get();
@@ -44,7 +57,7 @@ class PortalAccess
      */
     public function canRead(User $person, StudentRecord $enrollment): bool
     {
-        if (!in_array($enrollment->status, [EnrollmentStatus::Active, EnrollmentStatus::Graduated], true)) {
+        if (!in_array($enrollment->status, self::ReadableStatuses, true)) {
             return false;
         }
 

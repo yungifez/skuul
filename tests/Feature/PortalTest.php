@@ -3,12 +3,14 @@
 namespace Tests\Feature;
 
 use App\Actions\Enrollment\MoveEnrollmentBetweenCampuses;
+use App\Actions\Enrollment\TransferEnrollment;
 use App\Actions\Finance\ChargeStudent;
 use App\Actions\Library\IssueLoan;
 use App\Actions\Library\ReserveTitle;
 use App\Actions\Portal\SubmitPortalRequest;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\AttendanceStatus;
+use App\Enums\EnrollmentStatus;
 use App\Enums\Feature;
 use App\Enums\NoticeRecipientState;
 use App\Enums\NoticeStatus;
@@ -32,6 +34,7 @@ use App\Models\LibraryCopy;
 use App\Models\LibraryTitle;
 use App\Models\Notice;
 use App\Models\NoticeRecipient;
+use App\Models\Organization;
 use App\Models\PortalRequest;
 use App\Models\ReportCardSnapshot;
 use App\Models\ResultSnapshot;
@@ -126,6 +129,39 @@ class PortalTest extends TestCase
 
         $this->assertSame($closedCampus->id, $enrollment->school_id);
         $this->assertFalse(app(PortalAccess::class)->canRead($guardian, $enrollment));
+    }
+
+    public function test_a_family_still_reads_the_school_a_child_transferred_from(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $guardian = $this->guardianOf($enrollment);
+        app(ChargeStudent::class)->charge($enrollment, 120, 'Unpaid term fees');
+        $newSchool = School::factory()->create(['organization_id' => Organization::factory()->create()->id]);
+
+        $newEnrollment = app(TransferEnrollment::class)->transfer($enrollment->fresh(), $newSchool, reason: 'Family moved city');
+
+        $access = app(PortalAccess::class);
+        $left = $enrollment->fresh();
+        $this->assertSame(EnrollmentStatus::Transferred, $left->status);
+        $this->assertTrue($access->canRead($guardian, $left));
+        $this->assertContains($left->id, $access->enrollmentsFor($guardian)->pluck('id')->all());
+        $this->assertContains($newEnrollment->id, $access->enrollmentsFor($guardian)->pluck('id')->all());
+
+        $this->actingAs($guardian)
+            ->get(route('portal.invoices.index', $left))
+            ->assertOk()
+            ->assertSee(money_text(120.0));
+    }
+
+    public function test_an_archived_enrollment_stays_out_of_the_portal(): void
+    {
+        $this->unauthorized_user();
+        $enrollment = $this->enrollment();
+        $guardian = $this->guardianOf($enrollment);
+        $enrollment->forceFill(['status' => EnrollmentStatus::Archived])->save();
+
+        $this->assertFalse(app(PortalAccess::class)->canRead($guardian, $enrollment->fresh()));
     }
 
     public function test_a_school_closes_one_area_and_keeps_the_rest(): void
