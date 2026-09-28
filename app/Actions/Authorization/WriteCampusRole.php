@@ -100,6 +100,7 @@ class WriteCampusRole
         $this->authority->mustNotBeBuiltIn($role);
         $this->authority->mustBelongTo($role, $school);
         $this->authority->mustBeGrantable($permissions, $actor, $school);
+        $this->mustHoldWhatIsTakenOut($role, $permissions, $actor, $school);
 
         return $this->authority->mustKeepARoleManager($school, function () use ($role, $school, $permissions, $description, $actor): CampusRole {
             $role = $this->ownCopy($role, $school, $actor);
@@ -119,6 +120,26 @@ class WriteCampusRole
 
             return $role;
         });
+    }
+
+    /**
+     * Refuse to take out of a role what the writer does not hold.
+     *
+     * Taking a permission out of a role takes it from everybody holding the
+     * role, so it needs the same power as putting it in.
+     *
+     * @param  array<int, string>  $permissions
+     *
+     * @throws InvalidValueException when a permission taken out is not the writer's to give
+     */
+    private function mustHoldWhatIsTakenOut(CampusRole $role, array $permissions, User $actor, School $school): void
+    {
+        $takenOut = array_diff($role->permissions->pluck('name')->all(), $permissions);
+        $refused = array_values(array_diff($takenOut, $this->authority->grantableBy($actor, $school)->all()));
+
+        if ($refused !== []) {
+            throw new InvalidValueException('You cannot take something out of a role that you do not hold yourself: '.implode(', ', $refused).'.');
+        }
     }
 
     /**

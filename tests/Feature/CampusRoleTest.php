@@ -77,6 +77,22 @@ class CampusRoleTest extends TestCase
         app(WriteCampusRole::class)->create($this->workingSchool(), 'Registrar', [], null, $actor);
     }
 
+    public function test_nobody_takes_out_of_a_role_what_they_do_not_hold(): void
+    {
+        $actor = $this->roleManager(['read student', 'read fee invoice']);
+        $bursar = app(WriteCampusRole::class)->create($this->workingSchool(), 'Bursar', ['read fee invoice'], null, $actor);
+        $actor->revokePermissionTo('read fee invoice');
+
+        try {
+            app(WriteCampusRole::class)->update($bursar, $this->workingSchool(), ['read student'], null, $actor->fresh());
+            $this->fail('A role lost a permission its writer does not hold.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString('read fee invoice', $exception->getMessage());
+        }
+
+        $this->assertSame(['read fee invoice'], $bursar->fresh()->permissions->pluck('name')->all());
+    }
+
     public function test_a_built_in_role_cannot_be_rewritten(): void
     {
         $actor = $this->roleManager(['read student']);
@@ -89,7 +105,7 @@ class CampusRoleTest extends TestCase
 
     public function test_changing_a_shared_role_gives_this_campus_its_own_copy(): void
     {
-        $actor = $this->roleManager(['read library', 'manage library']);
+        $actor = $this->roleManager(['read library', 'manage library', 'lend library item', 'read student']);
         $here = $this->workingSchool();
         $librarian = CampusRole::query()->where('name', 'librarian')->whereNull('school_id')->firstOrFail();
         $sharedPermissions = $librarian->permissions->pluck('name')->sort()->values()->all();
@@ -137,7 +153,7 @@ class CampusRoleTest extends TestCase
 
     public function test_the_shared_role_opens_as_this_campuss_copy(): void
     {
-        $actor = $this->roleManager(['read library', 'manage library']);
+        $actor = $this->roleManager(['read library', 'manage library', 'lend library item', 'read student']);
         $librarian = CampusRole::query()->where('name', 'librarian')->whereNull('school_id')->firstOrFail();
         $copy = app(WriteCampusRole::class)->update($librarian, $this->workingSchool(), ['read library'], null, $actor);
 
@@ -505,7 +521,7 @@ class CampusRoleTest extends TestCase
 
     public function test_changing_a_shared_role_on_screen_moves_to_the_campus_copy(): void
     {
-        $this->roleManager(['read library', 'manage library']);
+        $this->roleManager(['read library', 'manage library', 'lend library item', 'read student']);
         $librarian = CampusRole::query()->where('name', 'librarian')->whereNull('school_id')->firstOrFail();
 
         $record = Livewire::test(CampusRoleRecord::class, ['role' => $librarian])

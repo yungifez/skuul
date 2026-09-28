@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A role manager can empty a role of powers they do not hold
+- Status: Fixed
+- Area: Campus roles
+- Observed: Changing a role checked only the permissions left in it. A person could take out permissions they did not hold themselves.
+- Impact: A junior role manager could strip a bursar or registrar role, and so everybody holding it, of work they needed.
+- Reproduction: Give a person "manage role" and "read student". Open a role that holds "read fee invoice". Save it without that permission.
+- Resolution: Taking a permission out of a role now needs the same power as putting it in.
+
 ## A role manager can strip roles they could not give
 - Status: Fixed
 - Area: Campus roles
