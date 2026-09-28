@@ -84,7 +84,7 @@ class CourseOfferingPolicy
      */
     public function manageGradebook(User $user, CourseOffering $courseOffering): bool
     {
-        return $this->canWorkInGradebook($user, $courseOffering, 'manage gradebook');
+        return $this->canWorkInGradebook($user, $courseOffering, 'manage gradebook', stillTeaching: true);
     }
 
     /**
@@ -92,7 +92,7 @@ class CourseOfferingPolicy
      */
     public function publishResult(User $user, CourseOffering $courseOffering): bool
     {
-        return $this->canWorkInGradebook($user, $courseOffering, 'publish result');
+        return $this->canWorkInGradebook($user, $courseOffering, 'publish result', stillTeaching: true);
     }
 
     /**
@@ -104,13 +104,26 @@ class CourseOfferingPolicy
             && current_school_id() === $courseOffering->school_id;
     }
 
-    private function canWorkInGradebook(User $user, CourseOffering $courseOffering, string $permission): bool
+    /**
+     * Check the permission, the campus, and the teacher's link to the offering.
+     *
+     * A teacher reads the marks of any offering they ever taught. Only a
+     * teacher whose assignment has not ended may still change them, so a
+     * teacher who handed a subject over, or left and came back, cannot edit
+     * the marks of the one who took it on.
+     */
+    private function canWorkInGradebook(User $user, CourseOffering $courseOffering, string $permission, bool $stillTeaching = false): bool
     {
         if (!$user->can($permission) || current_school_id() !== $courseOffering->school_id) {
             return false;
         }
 
         return $user->can('update subject')
-            || $courseOffering->teachingAssignments()->where('user_id', $user->id)->exists();
+            || $courseOffering->teachingAssignments()
+                ->where('user_id', $user->id)
+                ->when($stillTeaching, fn ($assignments) => $assignments->where(
+                    fn ($running) => $running->whereNull('ends_on')->orWhereDate('ends_on', '>=', today())
+                ))
+                ->exists();
     }
 }

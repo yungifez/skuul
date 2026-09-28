@@ -9,6 +9,7 @@ use App\Enums\AcademicPeriodStatus;
 use App\Enums\GradeEntryState;
 use App\Enums\GradeItemType;
 use App\Enums\ResultApprovalStatus;
+use App\Enums\TeachingRole;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\GradebookMarkSheet;
 use App\Models\AcademicCycleSection;
@@ -24,10 +25,12 @@ use App\Models\ResultSnapshot;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\Subject;
+use App\Models\TeachingAssignment;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Gate;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -58,6 +61,29 @@ class GradebookMarkSheetTest extends TestCase
         $foreign = $this->courseOffering(School::factory()->create());
 
         Livewire::test(GradebookMarkSheet::class, ['courseOffering' => $foreign])->assertForbidden();
+    }
+
+    public function test_a_teacher_whose_assignment_ended_reads_the_marks_but_cannot_change_them(): void
+    {
+        $this->authorized_user(['read gradebook', 'manage gradebook', 'publish result']);
+        $courseOffering = $this->courseOffering();
+        $assignment = TeachingAssignment::create([
+            'school_id' => $courseOffering->school_id,
+            'subject_id' => $courseOffering->subject_id,
+            'user_id' => auth()->id(),
+            'academic_year_id' => $courseOffering->academic_year_id,
+            'academic_period_id' => $courseOffering->academic_period_id,
+            'course_offering_id' => $courseOffering->id,
+            'role' => TeachingRole::Lead,
+            'starts_on' => today()->subMonth(),
+        ]);
+        $this->assertTrue(Gate::allows('manageGradebook', $courseOffering));
+
+        $assignment->update(['ends_on' => today()->subDay()]);
+
+        $this->assertTrue(Gate::allows('viewGradebook', $courseOffering));
+        $this->assertFalse(Gate::allows('manageGradebook', $courseOffering));
+        $this->assertFalse(Gate::allows('publishResult', $courseOffering));
     }
 
     public function test_the_teacher_types_marks_down_the_list_and_saves_once(): void

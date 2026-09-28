@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A teacher kept changing marks after their assignment ended
+- Status: Fixed
+- Area: Gradebook, access
+- Observed: The gradebook let any teacher who was ever assigned to an offering record marks and send results. It did not check whether the assignment had ended.
+- Impact: A teacher who left a campus and came back could edit the marks of the teacher who took the subject over.
+- Reproduction: Assign a teacher to an offering. End the assignment. Open the offering's mark sheet as that teacher.
+- Resolution: Recording marks and sending results need an assignment that has not ended. A teacher can still read the marks of any offering they taught.
+
 ## A transfer sent twice opened two enrollments
 - Status: Fixed
 - Area: Enrollment, transfers
