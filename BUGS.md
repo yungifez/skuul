@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Parents are told to add student records
+- Status: Fixed
+- Area: Students list
+- Observed: A parent with no linked child opened Students and saw "Add the first student record for this school."
+- Impact: The parent got staff instructions they cannot follow and no hint of what to do.
+- Reproduction: Sign in as a parent with no linked learner. Open /dashboard/students.
+- Resolution: The empty list now tells a guardian to ask the school office to link their children.
+
 ## The upgrade hides learners who had no class
 
 - Status: Fixed

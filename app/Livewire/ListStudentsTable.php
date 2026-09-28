@@ -119,6 +119,7 @@ class ListStudentsTable extends DataTableComponent
             'searchable' => collect($columns)->contains(fn (Column $column): bool => $column->isSearchable()),
             'canManageStudents' => auth()->user()->can('update student'),
             'canDeleteStudents' => auth()->user()->can('delete student'),
+            'readsAsGuardian' => auth()->user()->readsLearnersOnlyAsGuardian(),
         ]);
     }
 }

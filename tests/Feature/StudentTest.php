@@ -772,6 +772,17 @@ class StudentTest extends TestCase
             ->assertDontSee($otherLearner->user->email);
     }
 
+    public function test_a_parent_with_no_linked_learner_is_not_asked_to_add_one(): void
+    {
+        StudentRecord::factory()->create();
+        $parent = $this->personWithRoles(['parent']);
+        $parent->parentRecord()->create(['user_id' => $parent->id]);
+
+        Livewire::test(ListStudentsTable::class)
+            ->assertSee('Ask the school office to link your children to your account.')
+            ->assertDontSee('Add the first student record for this school.');
+    }
+
     /**
      * Sign in as a member of the working school who holds these roles there.
      *
