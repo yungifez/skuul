@@ -29,7 +29,7 @@
                     </div>
                 </div>
                 <label class="flex min-h-11 select-none items-center gap-3 text-sm">
-                    <input type="checkbox" wire:model="isActive" class="size-5 rounded border-input">
+                    <input type="checkbox" wire:model="isActive" class="size-4 rounded border-input">
                     Open. A closed programme gives no new places; the places held keep running.
                 </label>
                 <div class="flex justify-end gap-2">

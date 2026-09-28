@@ -26,7 +26,7 @@
                 @foreach ($students as $student)
                     <li wire:key="graduation-student-{{ $student['id'] }}">
                         <label class="flex min-h-11 select-none items-center gap-3 py-2 text-sm">
-                            <input type="checkbox" wire:model="selectedStudentIds" value="{{ $student['id'] }}" class="size-5 rounded border-input">
+                            <input type="checkbox" wire:model="selectedStudentIds" value="{{ $student['id'] }}" class="size-4 rounded border-input">
                             <span class="min-w-0 flex-1 truncate font-medium">{{ $student['name'] }}</span>
                             <span class="shrink-0 text-muted-foreground">{{ $student['admission_number'] ?? '—' }}</span>
                         </label>

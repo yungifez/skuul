@@ -59,7 +59,7 @@
             <legend class="mb-1 text-sm font-medium">Who reads it</legend>
             @foreach ($audienceScopes as $scope)
                 <label class="flex min-h-11 cursor-pointer select-none items-start gap-3 rounded-md border p-3 text-sm has-[:checked]:border-primary">
-                    <input type="radio" wire:model.live="audienceScope" value="{{ $scope->value }}" class="mt-0.5 size-5 shrink-0 accent-primary">
+                    <input type="radio" wire:model.live="audienceScope" value="{{ $scope->value }}" class="mt-0.5 size-4 shrink-0 accent-primary">
                     <span>
                         <span class="block font-medium">{{ $scope->label() }}</span>
                         <span class="mt-1 block text-xs text-muted-foreground">
@@ -80,7 +80,7 @@
                         <div class="max-h-64 divide-y overflow-y-auto border-y" role="group" aria-label="Classes or levels">
                             @foreach ($academicLevels as $academicLevel)
                                 <label wire:key="level-{{ $academicLevel->id }}" class="flex min-h-11 cursor-pointer select-none items-center gap-3 text-sm">
-                                    <input type="checkbox" wire:model="academicLevelIds" value="{{ $academicLevel->id }}" class="size-5 rounded border-input">
+                                    <input type="checkbox" wire:model="academicLevelIds" value="{{ $academicLevel->id }}" class="size-4 rounded border-input">
                                     {{ $academicLevel->name }}
                                     @if ($academicLevel->is_group)
                                         <span class="text-xs text-muted-foreground">group, with every class under it</span>
@@ -99,7 +99,7 @@
                         <div class="max-h-64 divide-y overflow-y-auto border-y" role="group" aria-label="Sections">
                             @foreach ($sections as $section)
                                 <label wire:key="section-{{ $section->id }}" class="flex min-h-11 cursor-pointer select-none items-center gap-3 text-sm">
-                                    <input type="checkbox" wire:model="sectionIds" value="{{ $section->id }}" class="size-5 rounded border-input">
+                                    <input type="checkbox" wire:model="sectionIds" value="{{ $section->id }}" class="size-4 rounded border-input">
                                     {{ $section->academicLevel?->name ?? '—' }} · {{ $section->label ?? $section->name }}
                                 </label>
                             @endforeach
@@ -112,7 +112,7 @@
             @endif
 
             <label class="mt-2 flex min-h-11 cursor-pointer select-none items-start gap-3 text-sm">
-                <input type="checkbox" wire:model="includeGuardians" class="mt-0.5 size-5 rounded border-input">
+                <input type="checkbox" wire:model="includeGuardians" class="mt-0.5 size-4 rounded border-input">
                 <span>
                     <span class="block font-medium">Guardians too</span>
                     <span class="mt-1 block text-xs text-muted-foreground">The guardians of the learners it reaches get it as well.</span>

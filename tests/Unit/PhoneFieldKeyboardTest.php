@@ -17,7 +17,9 @@ class PhoneFieldKeyboardTest extends TestCase
 
         foreach ($this->views() as $path => $source) {
             foreach (explode("\n", $source) as $number => $line) {
-                if (!preg_match('/name="(?:[a-z_]*_)?phone"/', $line)) {
+                // Only an input opens a keyboard. The error line under it names
+                // the field too.
+                if (!str_contains($line, '<input') || !preg_match('/(?:name|wire:model(?:\.[a-z]+)*)="(?:[a-z_.]*[_.])?phone"/i', $line)) {
                     continue;
                 }
 

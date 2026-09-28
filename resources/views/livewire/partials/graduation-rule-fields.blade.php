@@ -24,7 +24,7 @@
         @endif
         @if ($creditsToggleProperty !== null && $operator !== 'at_least_credits')
             <label class="flex min-h-11 select-none items-center gap-3 text-sm sm:col-span-2">
-                <input type="checkbox" wire:model.live="{{ $creditsToggleProperty }}" class="size-5 rounded border-input">
+                <input type="checkbox" wire:model.live="{{ $creditsToggleProperty }}" class="size-4 rounded border-input">
                 Count credits as well
             </label>
         @endif

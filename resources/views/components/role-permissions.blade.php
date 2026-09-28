@@ -24,7 +24,7 @@
                     <p class="text-xs font-medium uppercase text-muted-foreground">{{ $subject }}</p>
                     @foreach ($permissions as $permission)
                         <label class="flex min-h-11 select-none items-center gap-3 text-sm">
-                            <input type="checkbox" wire:model="{{ $model }}" value="{{ $permission }}" class="size-5 rounded border-input">
+                            <input type="checkbox" wire:model="{{ $model }}" value="{{ $permission }}" class="size-4 rounded border-input">
                             <span>{{ $permission }}</span>
                         </label>
                     @endforeach

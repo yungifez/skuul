@@ -57,7 +57,7 @@
                     </div>
                 </div>
                 <label class="flex min-h-11 select-none items-center gap-3 text-sm">
-                    <input type="checkbox" wire:model="isActive" class="size-5 rounded border-input">
+                    <input type="checkbox" wire:model="isActive" class="size-4 rounded border-input">
                     In use. A closed plan leaves the portal, and a closed stage stops counting.
                 </label>
                 @include('livewire.partials.graduation-rule-fields', [
@@ -130,7 +130,7 @@
                     'isCountingCredits' => false,
                 ])
                 <label class="flex min-h-11 select-none items-center gap-3 text-sm">
-                    <input type="checkbox" wire:model="stageIsNegated" class="size-5 rounded border-input">
+                    <input type="checkbox" wire:model="stageIsNegated" class="size-4 rounded border-input">
                     The learner must not complete this stage (NOT)
                 </label>
             </form>
@@ -205,11 +205,11 @@
                 </div>
                 <div class="flex flex-wrap items-center gap-x-6">
                     <label class="flex min-h-11 select-none items-center gap-3 text-sm">
-                        <input type="checkbox" wire:model="requirementIsRequired" class="size-5 rounded border-input">
+                        <input type="checkbox" wire:model="requirementIsRequired" class="size-4 rounded border-input">
                         Required for graduation
                     </label>
                     <label class="flex min-h-11 select-none items-center gap-3 text-sm">
-                        <input type="checkbox" wire:model="requirementIsNegated" class="size-5 rounded border-input">
+                        <input type="checkbox" wire:model="requirementIsNegated" class="size-4 rounded border-input">
                         Must not be passed (NOT)
                     </label>
                     <april:button type="submit" variant="outline" class="ml-auto h-11 select-none" wire:loading.attr="disabled" wire:target="addRequirement">

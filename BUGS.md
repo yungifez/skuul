@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Some checkboxes lost their size, and the phone check flagged error lines
+- Status: Fixed
+- Area: Views, form controls
+- Observed: Seventeen checkboxes asked for size-5, which the app-wide checkbox paint overrides to 1rem. The phone keyboard check read the error line under each phone field as a field without type="tel".
+- Impact: The views said one size and showed another. Two view checks failed on every run, which hid new failures.
+- Reproduction: Run tests/Unit/NativeChoiceControlPaintTest.php and tests/Unit/PhoneFieldKeyboardTest.php.
+- Resolution: The checkboxes now ask for size-4, the size they show. The phone check reads only input lines, including Livewire-bound ones.
+
 ## A learner's passes at their old campus did not count toward graduation
 - Status: Fixed
 - Area: Graduation plans, campus moves
