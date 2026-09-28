@@ -9,6 +9,7 @@ use App\Livewire\GraduateStudents;
 use App\Livewire\ListGraduationsTable;
 use App\Livewire\ShowStudentProfile;
 use App\Models\EnrollmentStatusChange;
+use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
@@ -107,6 +108,24 @@ class EnrollmentStatusTest extends TestCase
 
         $this->assertSame(EnrollmentStatus::Active, $enrollment->fresh()->status);
         $this->assertSame(2, $enrollment->fresh()->statusChanges()->count());
+    }
+
+    public function test_a_leaver_who_now_attends_another_campus_cannot_be_taken_back(): void
+    {
+        $left = StudentRecord::factory()->create();
+        $action = app(ChangeEnrollmentStatus::class);
+        $action->change($left, EnrollmentStatus::Withdrawn);
+        $sibling = School::factory()->create(['organization_id' => $left->school->organization_id, 'name' => 'Hill Campus']);
+        StudentRecord::factory()->create(['user_id' => $left->user_id, 'school_id' => $sibling->id]);
+
+        try {
+            $action->returnToAttendance($left->fresh());
+            $this->fail('A learner was enrolled at two campuses at once.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString('Hill Campus', $exception->getMessage());
+        }
+
+        $this->assertSame(EnrollmentStatus::Withdrawn, $left->fresh()->status);
     }
 
     public function test_history_cannot_be_changed(): void

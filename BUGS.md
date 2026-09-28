@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A graduate or leaver could be reopened while enrolled at another campus
+- Status: Fixed
+- Area: Enrollment, status changes
+- Observed: Undoing a graduation, or taking back a withdrawn learner, reopened the old enrollment. It did not check whether the learner had started again somewhere else.
+- Impact: One learner was enrolled at two campuses at once. Both campuses counted, placed and billed them.
+- Reproduction: Withdraw a learner at campus A. Enroll them at campus B. At campus A, return them to attendance.
+- Resolution: A closed enrollment reopens only when the learner has no other open enrollment. Otherwise the action names the school they now attend.
+
 ## Resetting an old promotion pulled learners back from where they had moved
 - Status: Fixed
 - Area: Students, promotions

@@ -66,6 +66,10 @@ class ChangeEnrollmentStatus
                 );
             }
 
+            if ($current->isClosed()) {
+                $this->refuseALearnerWhoNowAttendsElsewhere($enrollment);
+            }
+
             $enrollment->status = $status;
             $enrollment->save();
 
@@ -109,6 +113,29 @@ class ChangeEnrollmentStatus
 
             return $enrollment;
         });
+    }
+
+    /**
+     * Refuse to reopen an enrollment while the learner is enrolled somewhere else.
+     *
+     * A graduate or a leaver can start again at another campus, or be taken in
+     * again under a new enrollment. Reopening the old one would then count them
+     * twice, and two schools would bill them.
+     *
+     * @throws InvalidValueException when another enrollment of the learner is open
+     */
+    private function refuseALearnerWhoNowAttendsElsewhere(StudentRecord $enrollment): void
+    {
+        $open = StudentRecord::query()
+            ->where('user_id', $enrollment->user_id)
+            ->whereKeyNot($enrollment->getKey())
+            ->enrolled()
+            ->with('school:id,name')
+            ->first();
+
+        if ($open !== null) {
+            throw new InvalidValueException("This learner now attends {$open->school?->name}. Ask that school to move or transfer them.");
+        }
     }
 
     /**
