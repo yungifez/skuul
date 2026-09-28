@@ -332,6 +332,36 @@ class TimetableRevisionTest extends TestCase
         app(CreateTimetableSubstitution::class)->create($absent->fresh(), $absent->timeSlots()->firstOrFail(), $weekday->id, $teacher, $date, 'Absence', auth()->user());
     }
 
+    public function test_a_teacher_cannot_cover_after_their_last_day(): void
+    {
+        $this->authorized_user([]);
+        $teacher = $this->teacher();
+        $absent = $this->timetableWithLesson($this->teacher(), '08:00', '09:00');
+        app(PublishTimetable::class)->publish($absent);
+        $weekday = Weekday::firstOrFail();
+        $date = Carbon::parse('next '.$weekday->name);
+        $profile = StaffProfile::factory()->create([
+            'user_id' => $teacher->id,
+            'school_id' => $absent->academicCycleSection->school_id,
+            'status' => StaffStatus::Left,
+            'left_on' => $date->copy()->subDay(),
+        ]);
+        $slot = $absent->timeSlots()->firstOrFail();
+
+        try {
+            app(CreateTimetableSubstitution::class)->create($absent->fresh(), $slot, $weekday->id, $teacher, $date, 'Absence', auth()->user());
+            $this->fail('A leaver was booked to cover after their last day.');
+        } catch (InvalidValueException $exception) {
+            $this->assertSame("$teacher->name leaves this school on {$date->copy()->subDay()->format('j M Y')}, before that day.", $exception->getMessage());
+        }
+
+        $profile->update(['left_on' => $date]);
+
+        $cover = app(CreateTimetableSubstitution::class)->create($absent->fresh(), $slot, $weekday->id, $teacher, $date, 'Absence', auth()->user());
+
+        $this->assertSame($teacher->id, $cover->replacement_teacher_id);
+    }
+
     public function test_leave_is_not_approved_over_cover_the_teacher_still_holds(): void
     {
         $this->authorized_user([]);

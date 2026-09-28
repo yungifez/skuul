@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A leaver can be booked to cover after their last day
+- Status: Fixed
+- Area: Timetable cover
+- Observed: Cover checked leave, other lessons and other cover, but not a recorded leaving date. A teacher who leaves on Friday could be booked to cover next Monday.
+- Impact: The leaver's duties end when their access ends, so the cover was deleted without notice and the class had nobody.
+- Reproduction: Record that a teacher leaves on a date ahead. Book them to cover a lesson after that date.
+- Resolution: Cover is refused for a date after the teacher's last day at the campus, with the date in the message. Their last day itself stays bookable.
+
 ## Lending a class set twice gives every learner a second copy
 - Status: Fixed
 - Area: Library class sets

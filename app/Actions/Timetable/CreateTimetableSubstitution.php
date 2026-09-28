@@ -5,6 +5,7 @@ namespace App\Actions\Timetable;
 use App\Actions\Audit\RecordAuditEvent;
 use App\Enums\AuditAction;
 use App\Enums\Role;
+use App\Enums\StaffStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\StaffProfile;
 use App\Models\Timetable;
@@ -16,6 +17,7 @@ use App\Models\Weekday;
 use App\Services\Calendar\SchoolCalendar;
 use App\Services\Staff\StaffAvailability;
 use App\Services\Timetable\TimetableConflictChecker;
+use Carbon\Carbon;
 use Carbon\CarbonInterface;
 use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\DB;
@@ -51,6 +53,7 @@ class CreateTimetableSubstitution
                 }
 
                 $this->failIfTheTeacherIsAway($replacementTeacher, $date);
+                $this->failIfTheTeacherHasLeftBy($replacementTeacher, $timetable->academicCycleSection->school_id, $date);
                 $this->failIfTheTeacherIsAlreadyCovering($replacementTeacher, $slot, $date);
                 $this->failIfTheTeacherHasTheirOwnLesson($replacementTeacher, $timetable, $slot, $date);
 
@@ -132,6 +135,26 @@ class CreateTimetableSubstitution
 
         if ($isAway) {
             throw new InvalidValueException("$replacementTeacher->name is on leave that day.");
+        }
+    }
+
+    /**
+     * Refuse a teacher whose last day here comes before the lesson.
+     *
+     * Their duties after that day end when they leave, so the cover would
+     * quietly disappear and the class would have nobody.
+     */
+    private function failIfTheTeacherHasLeftBy(User $replacementTeacher, int $schoolId, CarbonInterface $date): void
+    {
+        $lastDay = StaffProfile::query()
+            ->where('user_id', $replacementTeacher->id)
+            ->where('school_id', $schoolId)
+            ->where('status', StaffStatus::Left->value)
+            ->whereDate('left_on', '<', $date)
+            ->value('left_on');
+
+        if ($lastDay !== null) {
+            throw new InvalidValueException("$replacementTeacher->name leaves this school on ".Carbon::parse($lastDay)->format('j M Y').', before that day.');
         }
     }
 
