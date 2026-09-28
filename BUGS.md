@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A former guardian's requests stayed open in the school inbox
+- Status: Fixed
+- Area: Guardian links, portal requests
+- Observed: Removing a guardian link left that person's open portal requests about the learner in the staff inbox. Nothing showed that the requester had lost access.
+- Impact: In a custody change, staff could answer or hand over documents for a child to a person who is no longer a guardian.
+- Reproduction: A guardian asks for a report card. The school removes the link. The request still waits in the inbox as Submitted.
+- Resolution: `ChangeGuardianLink::unlink` cancels that guardian's open requests about the learner, with the note "The guardian link to this learner ended." Answered requests and requests about other children stay as they are.
+
 ## A member of staff could be admitted as a learner
 - Status: Fixed
 - Area: Admissions, student import, admission waitlist

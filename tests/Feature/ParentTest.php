@@ -4,12 +4,15 @@ namespace Tests\Feature;
 
 use App\Actions\Identity\ChangeGuardianLink;
 use App\Enums\AuditAction;
+use App\Enums\PortalRequestStatus;
+use App\Enums\PortalRequestType;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\AssignStudentsToParent;
 use App\Livewire\CreateParentForm;
 use App\Livewire\EditParentForm;
 use App\Livewire\ListParentsTable;
 use App\Models\AuditEvent;
+use App\Models\PortalRequest;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
@@ -299,6 +302,25 @@ class ParentTest extends TestCase
         $this->assertSame(0, $parent->parentRecord->students()->count());
     }
 
+    public function test_unlinking_a_guardian_cancels_what_they_still_asked_about_the_learner(): void
+    {
+        $student = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $sibling = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $parent = $this->guardian();
+        $parent->parentRecord->students()->attach([$student->user_id, $sibling->user_id]);
+        $open = $this->portalRequest($student, $parent, PortalRequestStatus::InReview);
+        $answered = $this->portalRequest($student, $parent, PortalRequestStatus::Answered);
+        $aboutTheSibling = $this->portalRequest($sibling, $parent, PortalRequestStatus::Submitted);
+        $this->authorized_user(['update parent']);
+
+        app(ChangeGuardianLink::class)->unlink($parent, $student->user, auth()->user());
+
+        $this->assertSame(PortalRequestStatus::Cancelled, $open->fresh()->status);
+        $this->assertSame('The guardian link to this learner ended.', $open->fresh()->response);
+        $this->assertSame(PortalRequestStatus::Answered, $answered->fresh()->status);
+        $this->assertSame(PortalRequestStatus::Submitted, $aboutTheSibling->fresh()->status);
+    }
+
     public function test_a_guardian_with_a_child_at_another_school_keeps_that_link_out_of_view(): void
     {
         $otherSchool = School::factory()->create();
@@ -350,6 +372,18 @@ class ParentTest extends TestCase
         $this->assertDatabaseMissing('parent_record_user', [
             'parent_record_id' => $parent->parentRecord->id,
             'user_id' => $student->user_id,
+        ]);
+    }
+
+    private function portalRequest(StudentRecord $enrollment, User $requester, PortalRequestStatus $status): PortalRequest
+    {
+        return PortalRequest::create([
+            'school_id' => $enrollment->school_id,
+            'student_record_id' => $enrollment->id,
+            'requested_by' => $requester->id,
+            'type' => PortalRequestType::Document,
+            'status' => $status,
+            'subject' => 'Report card',
         ]);
     }
 

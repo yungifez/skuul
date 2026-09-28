@@ -3,9 +3,12 @@
 namespace App\Actions\Identity;
 
 use App\Actions\Audit\RecordAuditEvent;
+use App\Actions\Portal\SubmitPortalRequest;
 use App\Enums\AuditAction;
+use App\Enums\PortalRequestStatus;
 use App\Exceptions\InvalidValueException;
 use App\Models\ParentRecord;
+use App\Models\PortalRequest;
 use App\Models\StudentRecord;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -19,7 +22,10 @@ use Illuminate\Support\Facades\DB;
  */
 class ChangeGuardianLink
 {
-    public function __construct(private RecordAuditEvent $audit) {}
+    public function __construct(
+        private RecordAuditEvent $audit,
+        private SubmitPortalRequest $portalRequests,
+    ) {}
 
     /**
      * @throws InvalidValueException when the learner does not attend the working school
@@ -53,7 +59,30 @@ class ChangeGuardianLink
             }
 
             $this->audit->record(AuditAction::GuardianLinkChanged, $guardian, ['learner_id' => $learner->getKey(), 'linked' => false], $actor);
+            $this->cancelOpenRequests($guardian, $learner, $actor);
         });
+    }
+
+    /**
+     * Close what the former guardian still asked about the learner.
+     *
+     * The link is the only right to ask. A request left open would look to the
+     * school like a family waiting for the learner's documents.
+     */
+    private function cancelOpenRequests(User $guardian, User $learner, User $actor): void
+    {
+        PortalRequest::query()
+            ->open()
+            ->where('requested_by', $guardian->getKey())
+            ->whereIn('student_record_id', StudentRecord::query()->where('user_id', $learner->getKey())->select('id'))
+            ->lockForUpdate()
+            ->get()
+            ->each(fn (PortalRequest $request) => $this->portalRequests->changeStatus(
+                $request,
+                PortalRequestStatus::Cancelled,
+                $actor,
+                'The guardian link to this learner ended.',
+            ));
     }
 
     private function lockedParentRecord(User $guardian): ParentRecord
