@@ -6,6 +6,7 @@ use App\Livewire\CreateTeacherForm;
 use App\Livewire\EditTeacherForm;
 use App\Livewire\ListTeachersTable;
 use App\Models\School;
+use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -97,6 +98,25 @@ class TeacherTest extends TestCase
         $this->assertSame('Flat 3', $person->address_line_2);
         $this->assertSame('Nigerian', $person->nationality);
         $this->assertSame('100001', $person->postal_code);
+    }
+
+    public function test_a_learner_cannot_be_added_as_a_teacher(): void
+    {
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $enrollment->user->forceFill(['email' => $this->faker()->unique()->freeEmail()])->save();
+        $this->authorized_user(['create teacher', 'read teacher']);
+
+        Livewire::test(CreateTeacherForm::class)
+            ->set('name', 'Test teacher cody')
+            ->set('email', $enrollment->user->email)
+            ->set('gender', 'Male')
+            ->set('nationality', 'Nigerian')
+            ->set('address', 'test address')
+            ->set('birthday', '2004-04-22')
+            ->call('save')
+            ->assertHasErrors(['email' => "{$enrollment->user->name} is a learner. A learner cannot be made staff."]);
+
+        $this->assertFalse($enrollment->user->refresh()->hasRole('teacher'));
     }
 
     public function test_edit_teacher_cannot_be_accessed_to_unauthorised_users()

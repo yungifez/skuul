@@ -89,6 +89,7 @@ class ChangeEnrollmentStatus
 
             if ($current->isClosed()) {
                 $this->refuseALearnerWhoNowAttendsElsewhere($enrollment);
+                $this->refuseALearnerWhoNowWorksAsStaff($enrollment);
 
                 if ($into === null) {
                     $this->refuseASeatThatIsNoLongerFree($enrollment);
@@ -177,6 +178,23 @@ class ChangeEnrollmentStatus
 
         if ($open !== null) {
             throw new InvalidValueException("This learner now attends {$open->school?->name}. Ask that school to move or transfer them.");
+        }
+    }
+
+    /**
+     * Refuse to reopen an enrollment of a person who was hired since they left.
+     *
+     * A learner cannot hold a staff role, so a former learner who now works
+     * at a campus must leave that work before they are taken back.
+     *
+     * @throws InvalidValueException when the person holds a staff role at a school they belong to
+     */
+    private function refuseALearnerWhoNowWorksAsStaff(StudentRecord $enrollment): void
+    {
+        $person = $enrollment->user()->first();
+
+        if ($person?->worksAsStaff() === true) {
+            throw new InvalidValueException("{$person->name} works as staff. A member of staff cannot be admitted as a learner.");
         }
     }
 

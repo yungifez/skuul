@@ -3,11 +3,13 @@
 namespace App\Services\Teacher;
 
 use App\Enums\Role;
+use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Print\PrintService;
 use App\Services\User\UserService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class TeacherService
 {
@@ -39,6 +41,18 @@ class TeacherService
     public function createTeacher(array $record): User
     {
         $this->user->failIfAlreadyHolds($record['email'], Role::Teacher);
+
+        $learner = StudentRecord::query()
+            ->whereRelation('user', 'email', $record['email'])
+            ->enrolled()
+            ->with('user:id,name')
+            ->first();
+
+        if ($learner !== null) {
+            throw ValidationException::withMessages([
+                'email' => "{$learner->user?->name} is a learner. A learner cannot be made staff.",
+            ]);
+        }
 
         return DB::transaction(function () use ($record): User {
             $teacher = $this->user->createUser($record);

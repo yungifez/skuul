@@ -5,7 +5,9 @@ namespace App\Imports;
 use App\Actions\Identity\ProvisionAccount;
 use App\Contracts\Importer;
 use App\Enums\EmploymentType;
+use App\Exceptions\InvalidValueException;
 use App\Models\StaffProfile;
+use App\Models\StudentRecord;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
@@ -95,9 +97,20 @@ class StaffImporter implements Importer
      * Write one checked row.
      *
      * @param array<string, mixed> $row
+     *
+     * @throws InvalidValueException when the person is still a learner
      */
     public function apply(array $row, ?Model $existing): Model
     {
+        $isLearner = StudentRecord::query()
+            ->whereRelation('user', 'email', $existing instanceof StaffProfile ? $existing->user?->email : $row['email'])
+            ->enrolled()
+            ->exists();
+
+        if ($isLearner) {
+            throw new InvalidValueException('This person is still a learner. A learner cannot be made staff.');
+        }
+
         $person = $existing instanceof StaffProfile
             ? $existing->user
             : $this->accountFor($row);

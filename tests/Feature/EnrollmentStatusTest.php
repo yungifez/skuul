@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Actions\Enrollment\ChangeEnrollmentStatus;
 use App\Enums\EnrollmentStatus;
+use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\GraduateStudents;
 use App\Livewire\ListGraduationsTable;
@@ -124,6 +125,25 @@ class EnrollmentStatusTest extends TestCase
             $this->fail('A learner was enrolled at two campuses at once.');
         } catch (InvalidValueException $exception) {
             $this->assertStringContainsString('Hill Campus', $exception->getMessage());
+        }
+
+        $this->assertSame(EnrollmentStatus::Withdrawn, $left->fresh()->status);
+    }
+
+    public function test_a_leaver_hired_as_staff_cannot_be_taken_back(): void
+    {
+        $left = StudentRecord::factory()->create();
+        $action = app(ChangeEnrollmentStatus::class);
+        $action->change($left, EnrollmentStatus::Withdrawn);
+        $person = $this->memberOf($left->school, $left->user);
+        setPermissionsTeamId($left->school_id);
+        $person->syncRoles([Role::Teacher]);
+
+        try {
+            $action->returnToAttendance($left->fresh());
+            $this->fail('A teacher was taken back as a learner.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString('works as staff', $exception->getMessage());
         }
 
         $this->assertSame(EnrollmentStatus::Withdrawn, $left->fresh()->status);

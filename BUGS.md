@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A learner could be made staff through the teacher form, the staff import or a reopened enrollment
+- Status: Fixed
+- Area: Teachers, staff import, enrollment status
+- Observed: The Add Teacher form and the staff import reuse an existing account by email. Neither checked for an open enrollment, so an enrolled learner got the teacher role or a staff record. A former learner hired as staff could also have their old enrollment reopened.
+- Impact: One account held both a learner portal and staff powers, such as marking or reading other learners' records.
+- Reproduction: Enter an enrolled learner's email in Add Teacher and save. Or hire a withdrawn learner as a teacher, then return their enrollment to attendance.
+- Resolution: The teacher form and the staff import refuse an enrolled learner ("A learner cannot be made staff."). `ChangeEnrollmentStatus` refuses to reopen an enrollment when the person now works as staff at a school they belong to.
+
 ## A former guardian's requests stayed open in the school inbox
 - Status: Fixed
 - Area: Guardian links, portal requests

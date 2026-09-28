@@ -240,6 +240,21 @@ class ImportTest extends TestCase
         $this->assertStringContainsString('Hill Campus', $batch->rows()->broken()->firstOrFail()->errors[0]);
     }
 
+    public function test_a_staff_import_refuses_a_learner(): void
+    {
+        $this->authorized_user(['create import', 'apply import']);
+        $learner = User::factory()->create(['email' => 'ada.bell@gmail.com']);
+        StudentRecord::factory()->create(['user_id' => $learner->id, 'school_id' => $this->workingSchool()->id, 'status' => EnrollmentStatus::Active]);
+        $runner = app(ImportRunner::class);
+
+        $batch = $runner->stage('staff', [$this->staffRow(['email' => 'ada.bell@gmail.com'])]);
+        $runner->apply($batch);
+
+        $this->assertSame(0, $batch->fresh()->applied_count);
+        $this->assertSame(0, StaffProfile::query()->where('user_id', $learner->id)->count());
+        $this->assertSame('This person is still a learner. A learner cannot be made staff.', $batch->rows()->broken()->firstOrFail()->errors[0]);
+    }
+
     public function test_a_student_import_refuses_a_member_of_staff(): void
     {
         $this->authorized_user(['create import', 'apply import']);
