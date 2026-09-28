@@ -5,7 +5,9 @@ namespace App\Actions\Identity;
 use App\Enums\AccountStatus;
 use App\Enums\PlatformPermission;
 use App\Events\AccountStatusChanged;
+use App\Models\School;
 use App\Models\User;
+use App\Services\Authorization\RoleAuthority;
 use App\Services\Authorization\SystemPermissionScope;
 use Illuminate\Support\Facades\DB;
 use RuntimeException;
@@ -20,6 +22,7 @@ class ChangeAccountStatus
     public function __construct(
         private RevokeAccountInvitation $revokeAccountInvitation,
         private SystemPermissionScope $systemPermissionScope,
+        private RoleAuthority $roleAuthority,
     ) {}
 
     /**
@@ -70,8 +73,23 @@ class ChangeAccountStatus
                 return $user;
             }
 
-            $user->account_status = $status;
-            $user->save();
+            $change = function () use ($user, $status): void {
+                $user->account_status = $status;
+                $user->save();
+            };
+
+            // A blocked account cannot manage roles, so no campus may be left
+            // with only blocked role managers.
+            if (!$status->canAccessApplication()) {
+                $schools = School::query()->whereIn('id', $user->schoolMemberships()->active()->select('school_id'))->get();
+
+                foreach ($schools as $school) {
+                    $inner = $change;
+                    $change = fn () => $this->roleAuthority->mustKeepARoleManager($school, $inner);
+                }
+            }
+
+            $change();
 
             if (!$status->canAccessApplication()) {
                 $this->revokeAccountInvitation->revoke($user);

@@ -6,6 +6,7 @@ use App\Actions\Identity\ChangeAccountStatus;
 use App\Actions\Identity\RevokeAccountInvitation;
 use App\Actions\Identity\SendAccountInvitation;
 use App\Enums\AccountStatus;
+use App\Exceptions\InvalidValueException;
 use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Models\User;
 use Illuminate\Support\Facades\Gate;
@@ -46,7 +47,14 @@ class ManageAccountAccess extends Component
     {
         Gate::authorize('manageAccountAccess', $this->user);
 
-        $this->user = $changeAccountStatus->suspend($this->user, auth()->user());
+        try {
+            $this->user = $changeAccountStatus->suspend($this->user, auth()->user());
+        } catch (InvalidValueException $exception) {
+            $this->notify($exception->getMessage(), 'danger');
+
+            return;
+        }
+
         $this->announceStatus();
     }
 
@@ -54,7 +62,14 @@ class ManageAccountAccess extends Component
     {
         Gate::authorize('manageAccountAccess', $this->user);
 
-        $this->user = $changeAccountStatus->archive($this->user, auth()->user());
+        try {
+            $this->user = $changeAccountStatus->archive($this->user, auth()->user());
+        } catch (InvalidValueException $exception) {
+            $this->notify($exception->getMessage(), 'danger');
+
+            return;
+        }
+
         $this->announceStatus();
     }
 

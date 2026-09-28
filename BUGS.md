@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A blocked account still counted as the campus role manager
+- Status: Fixed
+- Area: Roles and account access
+- Observed: A suspended or archived account still counted as somebody who can manage roles. The last role manager's account could be suspended.
+- Impact: A campus could be left with no role manager who can sign in. Nobody at the campus could give out access again.
+- Reproduction: A campus has two role managers. Suspend one, then suspend the other, or let the other leave.
+- Resolution: `RoleAuthority::campusHasARoleManager` counts only accounts that are not suspended or archived. `ChangeAccountStatus` refuses to block the last role manager of any campus the person belongs to. The account screen shows the refusal.
+
 ## An unproved web address claim blocked its real owner
 - Status: Fixed
 - Area: Organization domains

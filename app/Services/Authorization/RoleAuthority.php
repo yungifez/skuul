@@ -2,6 +2,7 @@
 
 namespace App\Services\Authorization;
 
+use App\Enums\AccountStatus;
 use App\Enums\OrganizationPermission;
 use App\Enums\PlatformPermission;
 use App\Exceptions\InvalidValueException;
@@ -140,7 +141,12 @@ class RoleAuthority
     {
         $user = (new User)->getMorphClass();
         // A role outlives the membership, so somebody who left still holds it.
-        $members = SchoolMembership::query()->active()->where('school_id', $school->id)->select('user_id');
+        // A suspended or archived account holds it too, but cannot sign in.
+        $members = SchoolMembership::query()
+            ->active()
+            ->where('school_id', $school->id)
+            ->whereIn('user_id', User::query()->whereNotIn('account_status', [AccountStatus::Suspended, AccountStatus::Archived])->select('id'))
+            ->select('user_id');
 
         $throughARole = DB::table('model_has_roles')
             ->join('role_has_permissions', 'role_has_permissions.role_id', '=', 'model_has_roles.role_id')

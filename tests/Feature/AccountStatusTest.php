@@ -3,8 +3,10 @@
 namespace Tests\Feature;
 
 use App\Actions\Identity\ChangeAccountStatus;
+use App\Actions\School\EndSchoolMembership;
 use App\Enums\AccountStatus;
 use App\Events\AccountStatusChanged;
+use App\Exceptions\InvalidValueException;
 use App\Livewire\ManageAccountAccess;
 use App\Models\AccountInvitation;
 use App\Models\School;
@@ -32,6 +34,51 @@ class AccountStatusTest extends TestCase
             ->assertHasNoErrors();
 
         $this->assertSame(AccountStatus::Suspended, $target->fresh()->account_status);
+    }
+
+    public function test_the_last_role_manager_of_a_campus_is_not_blocked(): void
+    {
+        $campus = School::factory()->create();
+        school_context()->set($campus, remember: false);
+        $first = $this->memberOf($campus);
+        $first->givePermissionTo('manage role');
+        $second = $this->memberOf($campus);
+        $second->givePermissionTo('manage role');
+        $changeAccountStatus = app(ChangeAccountStatus::class);
+
+        $changeAccountStatus->suspend($first);
+
+        foreach (['suspend', 'archive'] as $block) {
+            try {
+                $changeAccountStatus->{$block}($second);
+                $this->fail('The campus was left with nobody who can manage roles.');
+            } catch (InvalidValueException $exception) {
+                $this->assertStringContainsString('Nobody at this campus could manage roles', $exception->getMessage());
+            }
+        }
+
+        $this->assertSame(AccountStatus::Active, $second->fresh()->account_status);
+
+        try {
+            app(EndSchoolMembership::class)->end($second, $campus);
+            $this->fail('The only role manager who can sign in left the campus.');
+        } catch (InvalidValueException) {
+            $this->assertTrue($second->refresh()->belongsToSchool($campus));
+        }
+    }
+
+    public function test_blocking_the_last_role_manager_is_refused_on_the_screen(): void
+    {
+        $campus = School::factory()->create();
+        $this->authorized_user(['manage account access'], $campus);
+        $manager = $this->memberOf($campus);
+        $manager->givePermissionTo('manage role');
+
+        Livewire::test(ManageAccountAccess::class, ['user' => $manager])
+            ->call('suspend')
+            ->assertDispatched('status-message', type: 'danger');
+
+        $this->assertSame(AccountStatus::Active, $manager->fresh()->account_status);
     }
 
     public function test_authorized_user_can_reinstate_a_suspended_account()
