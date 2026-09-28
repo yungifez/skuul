@@ -86,17 +86,20 @@ class ManageSupportPlan
      */
     public function changeStatus(SupportPlan $plan, SupportPlanStatus $status, ?User $actor = null, ?string $reason = null): SupportPlan
     {
-        $current = $plan->status;
+        return DB::transaction(function () use ($plan, $status, $actor, $reason): SupportPlan {
+            // Two people may change it at once. Only the state read under
+            // the lock decides, so the history never shows a skipped step.
+            $plan->setRawAttributes(SupportPlan::query()->lockForUpdate()->findOrFail($plan->getKey())->getAttributes(), true);
+            $current = $plan->status;
 
-        if ($current === $status) {
-            return $plan;
-        }
+            if ($current === $status) {
+                return $plan;
+            }
 
-        if (!$current->canMoveTo($status)) {
-            throw new InvalidValueException("A support plan cannot move from {$current->value} to {$status->value}.");
-        }
+            if (!$current->canMoveTo($status)) {
+                throw new InvalidValueException("A support plan cannot move from {$current->value} to {$status->value}.");
+            }
 
-        return DB::transaction(function () use ($plan, $current, $status, $actor, $reason): SupportPlan {
             $plan->status = $status;
 
             if (!$status->isOpen() && $plan->ends_on === null) {

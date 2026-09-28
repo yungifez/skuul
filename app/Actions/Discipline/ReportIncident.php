@@ -105,17 +105,20 @@ class ReportIncident
      */
     public function changeStatus(Incident $incident, IncidentStatus $status, ?User $actor = null, ?string $reason = null): Incident
     {
-        $current = $incident->status;
+        return DB::transaction(function () use ($incident, $status, $actor, $reason): Incident {
+            // Two people may change it at once. Only the state read under
+            // the lock decides, so the history never shows a skipped step.
+            $incident->setRawAttributes(Incident::query()->lockForUpdate()->findOrFail($incident->getKey())->getAttributes(), true);
+            $current = $incident->status;
 
-        if ($current === $status) {
-            return $incident;
-        }
+            if ($current === $status) {
+                return $incident;
+            }
 
-        if (!$current->canMoveTo($status)) {
-            throw new InvalidValueException("A case cannot move from {$current->value} to {$status->value}.");
-        }
+            if (!$current->canMoveTo($status)) {
+                throw new InvalidValueException("A case cannot move from {$current->value} to {$status->value}.");
+            }
 
-        return DB::transaction(function () use ($incident, $current, $status, $actor, $reason): Incident {
             $incident->status = $status;
             $incident->save();
 

@@ -118,6 +118,22 @@ class SupportPlanTest extends TestCase
         $action->changeStatus($plan, SupportPlanStatus::Completed);
     }
 
+    public function test_a_plan_cancelled_meanwhile_does_not_move_from_an_old_copy(): void
+    {
+        $this->authorized_user(['create support plan']);
+        $action = app(ManageSupportPlan::class);
+        $plan = $action->open($this->enrollment(), 'Extra reading');
+        $seenEarlier = $plan->fresh();
+        $action->changeStatus($plan, SupportPlanStatus::Cancelled);
+
+        try {
+            $action->changeStatus($seenEarlier, SupportPlanStatus::Active);
+            $this->fail('A cancelled plan moved again from an old copy.');
+        } catch (InvalidValueException) {
+            $this->assertSame(SupportPlanStatus::Cancelled, $plan->fresh()->status);
+        }
+    }
+
     public function test_plan_history_cannot_be_changed(): void
     {
         $this->authorized_user(['create support plan']);

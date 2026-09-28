@@ -84,7 +84,7 @@ class SubmitPortalRequest
         return DB::transaction(function () use ($request, $person): PortalRequest {
             // Read under a lock, so an answer given at the same moment is
             // never overwritten by the family taking the request back.
-            $request = PortalRequest::query()->lockForUpdate()->findOrFail($request->getKey());
+            $request->setRawAttributes(PortalRequest::query()->lockForUpdate()->findOrFail($request->getKey())->getAttributes(), true);
 
             if ($request->requested_by !== $person->id) {
                 throw new InvalidValueException('Only the person who asked can take this request back.');
@@ -125,7 +125,7 @@ class SubmitPortalRequest
         return DB::transaction(function () use ($request, $status, $actor, $response): PortalRequest {
             // The family may take the request back while it is being
             // answered. Only the state read under the lock decides.
-            $request = PortalRequest::query()->lockForUpdate()->findOrFail($request->getKey());
+            $request->setRawAttributes(PortalRequest::query()->lockForUpdate()->findOrFail($request->getKey())->getAttributes(), true);
             $current = $request->status;
 
             if ($current === $status) {

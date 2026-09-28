@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A case or support plan moves again from an old copy
+
+- Status: Fixed
+- Area: Discipline cases, support plans
+- Observed: A status change used the status loaded on the screen. After a colleague closed a case, a second person could still move it to review from their open page. The history then showed a step from a state the case was not in.
+- Impact: Closed cases and cancelled plans reopened without a record of the reopening.
+- Reproduction: Open a case in two tabs. Close it in one. Move it to review in the other.
+- Resolution: Status changes now re-read the case or plan under a lock and decide from that state.
+
 ## An answer overwrites a request the family took back
 
 - Status: Fixed

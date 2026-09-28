@@ -113,6 +113,23 @@ class IncidentTest extends TestCase
         $action->changeStatus($incident->fresh(), IncidentStatus::UnderReview);
     }
 
+    public function test_a_case_closed_meanwhile_does_not_move_from_an_old_copy(): void
+    {
+        $this->authorized_user(['create incident']);
+        $action = app(ReportIncident::class);
+        $incident = $action->report('Late every morning');
+        $seenEarlier = $incident->fresh();
+        $action->changeStatus($incident, IncidentStatus::Closed);
+
+        try {
+            $action->changeStatus($seenEarlier, IncidentStatus::UnderReview);
+            $this->fail('A closed case moved again from an old copy.');
+        } catch (InvalidValueException) {
+            $this->assertSame(IncidentStatus::Closed, $incident->fresh()->status);
+            $this->assertSame(1, $incident->statusChanges()->count());
+        }
+    }
+
     public function test_case_history_cannot_be_changed(): void
     {
         $this->authorized_user(['create incident']);
