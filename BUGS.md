@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A move closes a support plan and nobody who runs it hears
+
+- Status: Fixed
+- Area: Support plans, campus moves, enrollment status
+- Observed: A campus move or a closed enrollment cancelled the old campus's open support plans in silence. The person who looked after the plan found out only when they next opened it.
+- Impact: Unfinished steps, such as a referral or a meeting with the family, were dropped with nobody to hand them over.
+- Reproduction: Open a support plan and give it an owner. Move the learner to another campus, or withdraw them. The owner gets no message.
+- Resolution: `ManageSupportPlan::closeAtSchool()` now mails the plan's owner, or its author when nobody owns it. The mail is sent after the commit. It names no learner, no need and no new campus, and only links to the plan. The person who made the change and anyone no longer at the campus are not told.
 ## A lost library book runs up an unlimited fine
 
 - Status: Fixed

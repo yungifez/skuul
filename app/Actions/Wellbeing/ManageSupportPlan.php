@@ -14,6 +14,7 @@ use App\Models\SupportPlanAction;
 use App\Models\SupportPlanNote;
 use App\Models\SupportPlanStatusChange;
 use App\Models\User;
+use App\Notifications\SupportPlanClosedNotification;
 use Carbon\CarbonInterface;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -131,7 +132,8 @@ class ManageSupportPlan
      * Close the plans a campus still runs for a learner who left it.
      *
      * The campus keeps the plans as history. They end so nobody there keeps
-     * adding steps for a learner it no longer teaches.
+     * adding steps for a learner it no longer teaches. The person who looks
+     * after each plan is told, so its unfinished steps are handed over.
      *
      * @return int the number of plans closed
      */
@@ -145,9 +147,28 @@ class ManageSupportPlan
 
         foreach ($open as $plan) {
             $this->changeStatus($plan, SupportPlanStatus::Cancelled, $actor, $reason);
+            $this->tellTheOwner($plan, $actor);
         }
 
         return $open->count();
+    }
+
+    /**
+     * Tell the person who looks after a plan that it closed without them.
+     *
+     * Only a person who still works at the plan's campus is told. The one who
+     * closed it already knows.
+     */
+    private function tellTheOwner(SupportPlan $plan, ?User $actor): void
+    {
+        $owner = User::query()->find($plan->assigned_to ?? $plan->created_by);
+        $actorId = $actor === null ? auth()->id() : $actor->id;
+
+        if ($owner === null || $owner->id === $actorId || !$owner->belongsToSchool($plan->school_id)) {
+            return;
+        }
+
+        $owner->notify(new SupportPlanClosedNotification($plan));
     }
 
     /**

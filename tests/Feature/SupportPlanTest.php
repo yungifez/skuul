@@ -9,6 +9,7 @@ use App\Actions\Wellbeing\RecordHealthInformation;
 use App\Enums\AcademicStructureStatus;
 use App\Enums\AuditAction;
 use App\Enums\EnrollmentStatus;
+use App\Enums\SchoolMembershipStatus;
 use App\Enums\SupportCategory;
 use App\Enums\SupportPlanStatus;
 use App\Exceptions\InvalidValueException;
@@ -20,9 +21,12 @@ use App\Models\School;
 use App\Models\StudentHealthRecord;
 use App\Models\StudentRecord;
 use App\Models\SupportPlan;
+use App\Models\User;
+use App\Notifications\SupportPlanClosedNotification;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Notification;
 use RuntimeException;
 use Tests\TestCase;
 
@@ -338,6 +342,58 @@ class SupportPlanTest extends TestCase
         $this->assertSame(SupportPlanStatus::Cancelled, $plan->fresh()->status);
         $this->assertSame($source->id, $plan->fresh()->school_id);
         $this->assertSame("Moved to $destination->name", $plan->fresh()->statusChanges()->reorder('id', 'desc')->firstOrFail()->reason);
+    }
+
+    public function test_the_plan_owner_at_the_old_campus_is_told_without_learner_details(): void
+    {
+        Notification::fake();
+        $this->authorized_user(['create support plan']);
+        $source = $this->workingSchool();
+        $destination = School::factory()->create(['organization_id' => $source->organization_id]);
+        $owner = $this->memberOf($source);
+        $enrollment = $this->enrollment();
+        $plan = app(ManageSupportPlan::class)->open($enrollment, 'Extra reading', startsOn: now(), owner: $owner);
+
+        $this->moveTo($enrollment, $destination);
+
+        Notification::assertSentTo($owner, SupportPlanClosedNotification::class, function (SupportPlanClosedNotification $notice) use ($plan, $owner, $enrollment, $destination): bool {
+            $mail = $notice->toMail($owner);
+            $text = implode(' ', [$mail->subject, ...$mail->introLines]);
+
+            return $notice->plan->is($plan)
+                && $mail->actionUrl === route('support-plans.show', $plan->id)
+                && !str_contains($text, $enrollment->user->name)
+                && !str_contains($text, 'Extra reading')
+                && !str_contains($text, $destination->name);
+        });
+        Notification::assertNotSentTo(auth()->user(), SupportPlanClosedNotification::class);
+    }
+
+    public function test_nobody_is_told_when_the_owner_closed_it_or_left_the_campus(): void
+    {
+        Notification::fake();
+        $this->authorized_user(['create support plan']);
+        $plans = app(ManageSupportPlan::class);
+        $gone = User::factory()->create();
+        $gone->schoolMemberships()->update(['status' => SchoolMembershipStatus::Ended]);
+        $mine = $plans->open($this->enrollment(), 'Extra reading', startsOn: now());
+        $orphan = $plans->open($other = $this->enrollment(), 'Speech therapy', startsOn: now(), owner: $gone);
+
+        app(ChangeEnrollmentStatus::class)->change($mine->studentRecord, EnrollmentStatus::Withdrawn);
+        app(ChangeEnrollmentStatus::class)->change($other, EnrollmentStatus::Withdrawn);
+
+        $this->assertSame(SupportPlanStatus::Cancelled, $orphan->fresh()->status);
+        Notification::assertSentTimes(SupportPlanClosedNotification::class, 0);
+    }
+
+    private function moveTo(StudentRecord $enrollment, School $destination): void
+    {
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, AcademicCycleSection::factory()->create([
+            'school_id' => $destination->id,
+            'academic_year_id' => AcademicYear::factory()->create(['school_id' => $destination->id])->id,
+            'academic_level_id' => AcademicLevel::factory()->create(['school_id' => $destination->id])->id,
+            'status' => AcademicStructureStatus::Active,
+        ]));
     }
 
     private function enrollment(): StudentRecord
