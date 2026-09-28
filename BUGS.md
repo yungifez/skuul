@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A custom role with account access can lock out the principal
+- Status: Fixed
+- Area: Account access
+- Observed: Anybody holding "manage account access" could suspend or archive any campus member, whatever that member held.
+- Impact: A front-office role given account access could suspend the principal or another admin, and lock them out of the school.
+- Reproduction: Write a role with "manage account access" and "read student". Give it to a person. As that person, suspend an admin of the campus.
+- Resolution: Account access now stops at people who hold staff power the manager could not give. What a learner or family reads through the portal does not count, so learners and families stay in reach.
+
 ## A role manager can empty a role of powers they do not hold
 - Status: Fixed
 - Area: Campus roles

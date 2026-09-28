@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Models\User;
+use App\Services\Authorization\RoleAuthority;
 use Illuminate\Auth\Access\HandlesAuthorization;
 
 class UserPolicy
@@ -101,7 +102,9 @@ class UserPolicy
     /**
      * Determine whether the user can change another account's access state.
      *
-     * This covers suspend, reinstate, archive, invite, and revoke.
+     * This covers suspend, reinstate, archive, invite, and revoke. A person
+     * who holds more at the campus than the manager could give is out of
+     * reach, so a custom role cannot lock out the people above it.
      *
      * Nobody may change their own account access, not even a super
      * administrator. Returning null for the other cases lets the super
@@ -113,7 +116,10 @@ class UserPolicy
             return false;
         }
 
-        if ($user->can('manage account access') && $model->belongsToCurrentSchool() && !$model->holdsPowerBeyond(current_school_id())) {
+        if ($user->can('manage account access')
+            && $model->belongsToCurrentSchool()
+            && !$model->holdsPowerBeyond(current_school_id())
+            && !app(RoleAuthority::class)->holdsMoreThan($model, $user, current_school())) {
             return true;
         }
 

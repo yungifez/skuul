@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Actions\Identity\ChangeAccountStatus;
 use App\Actions\School\EndSchoolMembership;
 use App\Enums\AccountStatus;
+use App\Enums\Role;
 use App\Events\AccountStatusChanged;
 use App\Exceptions\InvalidValueException;
 use App\Livewire\ManageAccountAccess;
@@ -14,6 +15,7 @@ use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -70,8 +72,9 @@ class AccountStatusTest extends TestCase
     public function test_blocking_the_last_role_manager_is_refused_on_the_screen(): void
     {
         $campus = School::factory()->create();
-        $this->authorized_user(['manage account access'], $campus);
+        $this->platform_admin($campus);
         $manager = $this->memberOf($campus);
+        school_context()->set($campus, remember: false);
         $manager->givePermissionTo('manage role');
 
         Livewire::test(ManageAccountAccess::class, ['user' => $manager])
@@ -79,6 +82,24 @@ class AccountStatusTest extends TestCase
             ->assertDispatched('status-message', type: 'danger');
 
         $this->assertSame(AccountStatus::Active, $manager->fresh()->account_status);
+    }
+
+    public function test_an_account_manager_cannot_lock_out_somebody_holding_more(): void
+    {
+        $this->authorized_user(['manage account access', 'read student']);
+        $school = $this->workingSchool();
+        $principal = $this->memberOf($school);
+        $learner = $this->memberOf($school);
+        school_context()->set($school, remember: false);
+        $principal->assignRole(Role::Admin->value);
+        $learner->assignRole(Role::Student->value);
+
+        $this->assertFalse(Gate::allows('manageAccountAccess', $principal), 'A front-office role reached the principal.');
+        $this->assertTrue(Gate::allows('manageAccountAccess', $learner), 'A learner fell out of reach of the front office.');
+
+        Livewire::test(ManageAccountAccess::class, ['user' => $principal])->call('suspend')->assertForbidden();
+
+        $this->assertSame(AccountStatus::Active, $principal->fresh()->account_status);
     }
 
     public function test_authorized_user_can_reinstate_a_suspended_account()

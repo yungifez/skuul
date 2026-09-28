@@ -5,6 +5,7 @@ namespace App\Services\Authorization;
 use App\Enums\AccountStatus;
 use App\Enums\OrganizationPermission;
 use App\Enums\PlatformPermission;
+use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Models\CampusRole;
 use App\Models\School;
@@ -208,6 +209,39 @@ class RoleAuthority
             ->inSchool($school)
             ->whereRaw('LOWER(name) = ?', [mb_strtolower($role->name)])
             ->first();
+    }
+
+    /**
+     * Check whether the person holds staff power at the campus the actor could not give.
+     *
+     * Whoever can lock a person out should not reach somebody who holds more
+     * than they do. What a learner or a family reads through the portal is
+     * not power over the campus, so it is left out.
+     */
+    public function holdsMoreThan(User $person, User $actor, School $school): bool
+    {
+        $registrar = app(PermissionRegistrar::class);
+        $before = $registrar->getPermissionsTeamId();
+
+        try {
+            $registrar->setPermissionsTeamId($school->id);
+            $person->unsetRelation('roles')->unsetRelation('permissions');
+
+            /** @var \Illuminate\Database\Eloquent\Collection<int, CampusRole> $roles */
+            $roles = $person->roles;
+
+            $staffPower = $roles
+                ->reject(fn (CampusRole $role): bool => in_array($role->name, [Role::Student->value, Role::Parent->value], true))
+                ->flatMap(fn (CampusRole $role) => $role->permissions->pluck('name'))
+                ->merge($person->permissions->pluck('name'))
+                ->unique()
+                ->all();
+        } finally {
+            $registrar->setPermissionsTeamId($before);
+            $person->unsetRelation('roles')->unsetRelation('permissions');
+        }
+
+        return array_diff($staffPower, $this->grantableBy($actor, $school)->all()) !== [];
     }
 
     private function heldBy(User $actor, School $school): array
