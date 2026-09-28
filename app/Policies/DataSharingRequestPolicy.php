@@ -66,4 +66,15 @@ class DataSharingRequestPolicy
     {
         return $user->can('fulfil data sharing') && current_school_id() === $request->holding_school_id;
     }
+
+    /**
+     * Determine whether the user can read the records that were sent.
+     *
+     * Only the school that asked reads them, and only once it took them in.
+     * The school that sent them holds the originals.
+     */
+    public function readRecords(User $user, DataSharingRequest $request): bool
+    {
+        return $user->can('request data sharing') && current_school_id() === $request->requesting_school_id;
+    }
 }

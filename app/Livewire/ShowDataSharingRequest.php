@@ -9,6 +9,7 @@ use App\Exceptions\InvalidValueException;
 use App\Livewire\Concerns\DispatchesStatusNotifications;
 use App\Models\DataSharingRequest;
 use App\Models\TransferPackage;
+use App\Services\Sharing\TransferPackageReader;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\View\View;
 use Livewire\Attributes\Locked;
@@ -95,7 +96,7 @@ class ShowDataSharingRequest extends Component
         $this->notify('Records taken in.');
     }
 
-    public function render(): View
+    public function render(TransferPackageReader $reader): View
     {
         $this->sharingRequest->loadMissing([
             'requestingSchool:id,name',
@@ -111,8 +112,11 @@ class ShowDataSharingRequest extends Component
             fn (DataSharingStatus $status): bool => $status !== DataSharingStatus::Fulfilled,
         ));
 
+        $package = $this->package();
+
         return view('livewire.show-data-sharing-request', [
-            'package' => $this->package(),
+            'package' => $package,
+            'sections' => $package?->wasReceived() && Gate::allows('readRecords', $this->sharingRequest) ? $reader->sections($package) : [],
             'isHolder' => $school === $this->sharingRequest->holding_school_id,
             'isRequester' => $school === $this->sharingRequest->requesting_school_id,
             'decisions' => Gate::allows('decide', $this->sharingRequest) ? $decisions : [],

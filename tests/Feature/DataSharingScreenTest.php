@@ -10,8 +10,10 @@ use App\Livewire\CreateDataSharingRequestForm;
 use App\Livewire\ShowDataSharingRequest;
 use App\Models\DataSharingRequest;
 use App\Models\School;
+use App\Models\StudentHealthRecord;
 use App\Models\StudentRecord;
 use App\Models\TransferPackage;
+use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -262,6 +264,41 @@ class DataSharingScreenTest extends TestCase
             ->assertDontSee('Take the records in');
 
         $this->assertTrue($package->fresh()->wasReceived());
+    }
+
+    public function test_the_asking_school_reads_the_records_once_it_took_them_in(): void
+    {
+        $asking = $this->workingSchool();
+        $holder = School::factory()->create();
+        $learner = User::factory()->create(['name' => 'Moved Learner']);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $holder->id, 'user_id' => $learner->id, 'admission_number' => 'OLD-4471']);
+        StudentHealthRecord::create(['school_id' => $holder->id, 'student_record_id' => $enrollment->id, 'allergies' => 'Peanuts']);
+
+        $this->authorized_user(['request data sharing'], $asking);
+        $request = app(RequestDataSharing::class)->request(
+            $enrollment,
+            $asking,
+            'The learner transferred to us.',
+            [DataCategory::Identity, DataCategory::Enrollment, DataCategory::Health, DataCategory::Discipline],
+        );
+        $this->authorized_user(['approve data sharing', 'fulfil data sharing'], $holder);
+        app(RequestDataSharing::class)->approve($request, auth()->user());
+        app(FulfilDataSharingRequest::class)->fulfil($request, auth()->user());
+
+        // The school that sent the copy holds the originals, not the copy.
+        Livewire::test(ShowDataSharingRequest::class, ['sharingRequest' => $request->fresh()])
+            ->assertDontSee('Peanuts');
+
+        // The permission can still be taken back until the records are taken in.
+        $this->authorized_user(['request data sharing'], $asking);
+        $screen = Livewire::test(ShowDataSharingRequest::class, ['sharingRequest' => $request->fresh()])
+            ->assertDontSee('Peanuts')
+            ->assertDontSee('Admission date')
+            ->call('receive');
+
+        $screen->assertSeeInOrder(['Identity', 'Moved Learner', 'Enrollment', 'Admission date', 'Health', 'Peanuts', 'Discipline', 'Nothing on record'])
+            ->assertSeeHtml('<dd class="font-medium break-words">—</dd>')
+            ->assertDontSee('Student record id');
     }
 
     public function test_the_holding_school_takes_the_permission_back(): void

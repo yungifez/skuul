@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Shared records could be taken in but never read
+- Status: Fixed
+- Area: Data sharing between schools
+- Observed: A school asked another for a learner's records. The other school approved and handed them over, and the asking school took them in. No screen showed what was sent.
+- Impact: The whole sharing flow ended with nothing to read. Schools would fall back to email or paper for health, results and guardian details.
+- Reproduction: Ask for a learner's health record. Approve and hand it over at the other school. Take it in, then look for the allergies.
+- Resolution: Once the asking school takes the package in, the request shows each category that was sent. Single values show as a list, and lists show as tables. Internal ids are left out, and missing values show as "—". Before the package is taken in, and at the school that sent it, nothing is shown.
+
 ## A learner who moved away could be made staff at the campus they left
 - Status: Fixed
 - Area: Staff records and staff pickers

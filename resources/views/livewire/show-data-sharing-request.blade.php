@@ -130,4 +130,50 @@
             @endif
         @endif
     </section>
+
+    @foreach ($sections as $index => $section)
+        <section wire:key="package-section-{{ $index }}" aria-labelledby="package-section-{{ $index }}" class="flex flex-col gap-4">
+            <h3 id="package-section-{{ $index }}" class="text-base font-semibold">{{ $section['label'] }}</h3>
+            @if ($section['fields'] === [] && $section['tables'] === [])
+                <p class="text-sm text-muted-foreground">Nothing on record</p>
+            @endif
+            @if ($section['fields'] !== [])
+                <dl class="grid grid-cols-1 gap-x-6 gap-y-4 border-y py-4 sm:grid-cols-3">
+                    @foreach ($section['fields'] as $field)
+                        <div class="min-w-0">
+                            <dt class="text-sm text-muted-foreground">{{ $field['label'] }}</dt>
+                            <dd class="font-medium break-words">{{ $field['value'] }}</dd>
+                        </div>
+                    @endforeach
+                </dl>
+            @endif
+            @foreach ($section['tables'] as $table)
+                <div class="flex flex-col gap-2">
+                    @if ($table['label'] !== null)
+                        <p class="text-sm font-medium">{{ $table['label'] }}</p>
+                    @endif
+                    <div class="relative overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="border-b text-left text-xs uppercase tracking-wider text-muted-foreground">
+                                    @foreach ($table['columns'] as $column)
+                                        <th class="p-3 font-medium">{{ $column }}</th>
+                                    @endforeach
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach ($table['rows'] as $row)
+                                    <tr class="border-b last:border-0">
+                                        @foreach ($row as $cell)
+                                            <td class="p-3">{{ $cell }}</td>
+                                        @endforeach
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            @endforeach
+        </section>
+    @endforeach
 </div>
