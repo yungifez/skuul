@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A lost library book runs up an unlimited fine
+
+- Status: Fixed
+- Area: Library lending rules, `ReturnLoan`
+- Observed: A late fine was days late times the daily fine, with no upper limit. A book kept for a term at 50 a day cost 4,500.
+- Impact: A family could owe far more than the book is worth. Staff then had to reverse the charge by hand, and the fee account showed a debt nobody meant.
+- Reproduction: Set a daily fine. Issue a book and take it back 90 days late. The fine is 90 times the daily fine.
+- Resolution: The lending rules now have an optional "Most a late loan can cost". `LibraryLendingRules::fineForDaysLate()` stops at that cap, and `ReturnLoan` uses it. An empty cap keeps the old behaviour. The new migration `cap_library_fines` adds a nullable `fine_cap` column.
 ## Pages holding school records sent no browser protections
 - Status: Fixed
 - Area: HTTP, sessions

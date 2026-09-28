@@ -32,6 +32,8 @@ class LibraryLendingRulesForm extends Component
 
     public string $finePerDay = '';
 
+    public string $fineCap = '';
+
     public function mount(): void
     {
         Gate::authorize('create', LibraryCopy::class);
@@ -44,6 +46,7 @@ class LibraryLendingRulesForm extends Component
         $this->learnerLimit = (string) $rules->learner_limit;
         $this->staffLimit = (string) $rules->staff_limit;
         $this->finePerDay = (string) $rules->dailyFine()->getAmount();
+        $this->fineCap = (string) $rules->fineCap()?->getAmount();
     }
 
     public function save(): void
@@ -57,6 +60,7 @@ class LibraryLendingRulesForm extends Component
             'learnerLimit' => ['required', 'integer', 'min:1', 'max:100'],
             'staffLimit' => ['required', 'integer', 'min:1', 'max:200'],
             'finePerDay' => ['required', 'numeric', 'decimal:0,2', 'min:0', 'max:100000'],
+            'fineCap' => ['nullable', 'numeric', 'decimal:0,2', 'min:0.01', 'max:10000000'],
         ], [], [
             'loanDays' => 'days a loan lasts',
             'renewalsAllowed' => 'renewals allowed',
@@ -64,6 +68,7 @@ class LibraryLendingRulesForm extends Component
             'learnerLimit' => 'items a learner may hold',
             'staffLimit' => 'items a member of staff may hold',
             'finePerDay' => 'cost of a late day',
+            'fineCap' => 'most a late loan can cost',
         ]);
 
         // One row per campus. Two first saves at once must not collide on it.
@@ -75,8 +80,9 @@ class LibraryLendingRulesForm extends Component
             'learner_limit' => (int) $this->learnerLimit,
             'staff_limit' => (int) $this->staffLimit,
             'fine_per_day' => BrickMoney::of($this->finePerDay, config('app.currency'))->getMinorAmount()->toInt(),
+            'fine_cap' => $this->fineCap === '' ? null : BrickMoney::of($this->fineCap, config('app.currency'))->getMinorAmount()->toInt(),
             'updated_by' => auth()->id(),
-        ]], ['school_id'], ['loan_days', 'renewals_allowed', 'hold_days', 'learner_limit', 'staff_limit', 'fine_per_day', 'updated_by']);
+        ]], ['school_id'], ['loan_days', 'renewals_allowed', 'hold_days', 'learner_limit', 'staff_limit', 'fine_per_day', 'fine_cap', 'updated_by']);
 
         $this->notify('The lending rules were saved.');
     }

@@ -29,6 +29,7 @@ class LibraryLendingRules extends Model
         'renewals_allowed',
         'hold_days',
         'fine_per_day',
+        'fine_cap',
         'updated_by',
     ];
 
@@ -54,6 +55,7 @@ class LibraryLendingRules extends Model
         'renewals_allowed' => 'integer',
         'hold_days' => 'integer',
         'fine_per_day' => 'integer',
+        'fine_cap' => 'integer',
     ];
 
     /**
@@ -88,5 +90,23 @@ class LibraryLendingRules extends Model
     public function chargesFines(): bool
     {
         return $this->fine_per_day > 0;
+    }
+
+    /**
+     * Get the most one late loan may cost, or null when there is no limit.
+     */
+    public function fineCap(): ?BrickMoney
+    {
+        return $this->fine_cap === null ? null : BrickMoney::ofMinor($this->fine_cap, config('app.currency'));
+    }
+
+    /**
+     * Get what a loan this many days late costs, in minor units.
+     */
+    public function fineForDaysLate(int $daysLate): int
+    {
+        $fine = max(0, $daysLate) * $this->fine_per_day;
+
+        return $this->fine_cap === null ? $fine : min($fine, $this->fine_cap);
     }
 }

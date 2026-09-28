@@ -561,6 +561,43 @@ class LibraryTest extends TestCase
         $this->assertSame(300.0, app(StudentLedger::class)->balance($enrollment->fresh()));
     }
 
+    public function test_a_book_lost_for_a_term_costs_no_more_than_the_campus_cap(): void
+    {
+        $this->authorized_user([]);
+        FinancialPeriod::query()->firstOrCreate(
+            [
+                'school_id' => $this->workingSchool()->id,
+                'name' => 'Current finance period',
+            ],
+            [
+                'starts_on' => now()->startOfYear()->toDateString(),
+                'ends_on' => now()->endOfYear()->toDateString(),
+            ],
+        );
+        LibraryLendingRules::create(['school_id' => $this->workingSchool()->id, 'fine_per_day' => 5_000, 'fine_cap' => 20_000]);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $borrower = $this->memberOf($this->workingSchool(), $enrollment->user);
+        $loan = app(IssueLoan::class)->issue($this->copy(), $borrower, issuedOn: now()->subDays(20));
+
+        $returned = app(ReturnLoan::class)->receive($loan);
+
+        // Six days at fifty would be three hundred. The cap is two hundred.
+        $this->assertSame(6, $returned->daysLate());
+        $this->assertSame(20_000, $returned->fine_charged);
+        $this->assertSame(200.0, app(StudentLedger::class)->balance($enrollment->fresh()));
+    }
+
+    public function test_a_fine_under_the_cap_is_charged_in_full(): void
+    {
+        $rules = new LibraryLendingRules(['fine_per_day' => 5_000, 'fine_cap' => 20_000]);
+
+        $this->assertSame(15_000, $rules->fineForDaysLate(3));
+        $this->assertSame(20_000, $rules->fineForDaysLate(4));
+        $this->assertSame(20_000, $rules->fineForDaysLate(90));
+        $this->assertSame(0, $rules->fineForDaysLate(0));
+        $this->assertSame(450_000, (new LibraryLendingRules(['fine_per_day' => 5_000]))->fineForDaysLate(90));
+    }
+
     public function test_a_late_book_is_fined_by_the_library_that_lent_it_after_the_learner_moves(): void
     {
         $this->authorized_user([]);
@@ -1023,6 +1060,35 @@ class LibraryTest extends TestCase
 
         $this->assertSame(1, LibraryLendingRules::query()->count());
         $this->assertSame(6, LibraryLendingRules::forSchool()->hold_days);
+    }
+
+    public function test_the_fine_cap_can_be_set_and_cleared(): void
+    {
+        $this->authorized_user(['read library', 'manage library']);
+        app(FeatureManager::class)->enable(Feature::Library);
+
+        Livewire::test(LibraryLendingRulesForm::class)
+            ->assertSet('fineCap', '')
+            ->set('finePerDay', '5')
+            ->set('fineCap', '0')
+            ->call('save')
+            ->assertHasErrors(['fineCap' => 'min'])
+            ->set('fineCap', '1.005')
+            ->call('save')
+            ->assertHasErrors(['fineCap' => 'decimal'])
+            ->set('fineCap', '150')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame(15_000, LibraryLendingRules::forSchool()->fine_cap);
+
+        Livewire::test(LibraryLendingRulesForm::class)
+            ->assertSet('fineCap', '150.00')
+            ->set('fineCap', '')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertNull(LibraryLendingRules::forSchool()->fine_cap);
     }
 
     public function test_a_fine_smaller_than_the_currency_allows_is_refused_not_crashed(): void

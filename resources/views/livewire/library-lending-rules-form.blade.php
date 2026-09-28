@@ -22,11 +22,18 @@
             </div>
         @endforeach
 
-        <div class="sm:col-span-2">
+        <div>
             <label for="rules-finePerDay" class="text-sm text-muted-foreground">What one late day costs</label>
             <input id="rules-finePerDay" type="number" inputmode="decimal" step="0.01" min="0" required wire:model="finePerDay" class="{{ $controlClasses }}" {{ field_error_bindings('finePerDay') }}>
             <x-field-error name="finePerDay" class="mt-1" />
             <p class="mt-1 text-xs text-muted-foreground">Zero means no fines. A fine goes on the learner's fee account, so one balance shows what a family owes.</p>
+        </div>
+
+        <div>
+            <label for="rules-fineCap" class="text-sm text-muted-foreground">Most a late loan can cost</label>
+            <input id="rules-fineCap" type="number" inputmode="decimal" step="0.01" min="0.01" wire:model="fineCap" placeholder="No limit" class="{{ $controlClasses }}" {{ field_error_bindings('fineCap') }}>
+            <x-field-error name="fineCap" class="mt-1" />
+            <p class="mt-1 text-xs text-muted-foreground">Leave it empty for no limit. A book lost for a term then costs no more than this.</p>
         </div>
     </div>
 

@@ -102,7 +102,7 @@ class ReturnLoan
 
         $late = $due->greaterThanOrEqualTo($back) ? 0 : (int) $due->diffInDays($back);
 
-        return $late * $policy->fine_per_day;
+        return $policy->fineForDaysLate($late);
     }
 
     /**
