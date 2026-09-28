@@ -1,5 +1,14 @@
 # Known Bugs
 
+## The dashboard's campus count opens a forbidden page
+
+- Status: Fixed
+- Area: Dashboard
+- Observed: A campus administrator saw the organization's campus count as a link. The link opened the organization page, which answered "Forbidden".
+- Impact: The dashboard sent campus staff to a dead end.
+- Reproduction: Sign in as a campus administrator who is not an organization member. Select "Campuses" on the dashboard.
+- Resolution: The count is a link only for people who may open the organization. Others see the count alone.
+
 ## A library copy waits for staff who left
 
 - Status: Fixed

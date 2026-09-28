@@ -57,6 +57,9 @@ class DashboardDataCards extends Component
     public bool $showCampuses = false;
 
     #[Locked]
+    public bool $canOpenOrganization = false;
+
+    #[Locked]
     public ?array $setupChecklist = null;
 
     /** @var array{registered: int, present: int, absent: int, late: int, rate: float|null} */
@@ -98,6 +101,7 @@ class DashboardDataCards extends Component
             || $user->administersOrganization($this->organization)
             || $user->hasRole(Role::Admin)
         );
+        $this->canOpenOrganization = $this->showCampuses && $user->can('view', $this->organization);
         $this->academicLevels = AcademicLevel::query()->inSchool()->where('is_group', false)->count();
         $this->cycleSections = AcademicCycleSection::query()
             ->inSchool()

@@ -4,9 +4,12 @@ namespace Tests\Feature;
 
 use App\Enums\AcademicPeriodStatus;
 use App\Enums\NoticeStatus;
+use App\Enums\Role;
 use App\Livewire\DashboardDataCards;
 use App\Models\AcademicPeriod;
 use App\Models\Notice;
+use App\Models\Organization;
+use App\Models\School;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
@@ -72,6 +75,23 @@ class DashboardTest extends TestCase
                 $this->addToAssertionCount(1);
             }
         }
+    }
+
+    public function test_a_campus_admin_sees_the_campus_count_without_a_link_they_cannot_open(): void
+    {
+        $organization = Organization::factory()->create();
+        $campus = School::factory()->create(['organization_id' => $organization->id]);
+        School::factory()->create(['organization_id' => $organization->id]);
+        $this->authorized_user([], $campus);
+        $admin = auth()->user();
+        $admin->assignRole(Role::Admin->value);
+
+        $this->assertFalse($admin->can('view', $organization));
+
+        Livewire::test(DashboardDataCards::class)
+            ->assertSet('showCampuses', true)
+            ->assertSee('Campuses')
+            ->assertDontSeeHtml(route('organizations.show', $organization));
     }
 
     public function test_the_open_period_count_leaves_out_periods_that_are_not_open(): void

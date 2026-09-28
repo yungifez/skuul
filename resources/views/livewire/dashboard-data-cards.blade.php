@@ -52,11 +52,16 @@
     @if ($visibleSnapshotStats->isNotEmpty() || $showCampuses)
         <section aria-label="School snapshot">
             <dl class="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-4 xl:grid-cols-7">
-                @if ($showCampuses)
+                @if ($showCampuses && $canOpenOrganization)
                     <a id="organization-campuses" href="{{ route('organizations.show', $organization) }}" class="group flex min-h-11 select-none flex-col-reverse justify-end">
                         <dt class="truncate text-sm text-muted-foreground group-hover:text-foreground">Campuses</dt>
                         <dd class="text-2xl font-semibold tabular-nums">{{ number_format($organizationSchools) }}</dd>
                     </a>
+                @elseif ($showCampuses)
+                    <div id="organization-campuses" class="flex min-h-11 select-none flex-col-reverse justify-end">
+                        <dt class="truncate text-sm text-muted-foreground">Campuses</dt>
+                        <dd class="text-2xl font-semibold tabular-nums">{{ number_format($organizationSchools) }}</dd>
+                    </div>
                 @endif
                 @foreach ($visibleSnapshotStats as $stat)
                     <a href="{{ $stat['href'] }}" class="group flex min-h-11 select-none flex-col-reverse justify-end">
