@@ -128,6 +128,20 @@ class User extends Authenticatable implements MustVerifyEmail
         return $query->where('account_status', AccountStatus::Active);
     }
 
+    /**
+     * Limit the query to learners still enrolled in the working school.
+     *
+     * A suspended learner stays on the list, so staff can find them and
+     * bring them back.
+     *
+     * @param  Builder<User>  $query
+     * @return Builder<User>
+     */
+    public function scopeEnrolledStudents(Builder $query): Builder
+    {
+        return $query->whereHas('studentRecord', fn (Builder $enrollment) => $enrollment->enrolled());
+    }
+
     public function scopeActiveStudents($query)
     {
         return $query->whereRelation('studentRecord', 'status', EnrollmentStatus::Active);

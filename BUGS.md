@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A suspended learner vanished from the student list
+
+- Status: Fixed
+- Area: Students
+- Observed: The student list and the dashboard count showed only Active enrollments. The list even had an "Enrollment" column that could only say Active.
+- Impact: Once a learner was suspended, staff could not find them to bring them back, except by typing the profile URL.
+- Reproduction: Suspend a learner from their profile. Open Students. The learner is gone.
+- Resolution: The list and the dashboard count use the new `enrolledStudents()` scope (Active or Suspended).
+
 ## Deleting a person at one campus deleted them at every campus
 
 - Status: Fixed

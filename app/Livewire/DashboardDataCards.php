@@ -108,7 +108,7 @@ class DashboardDataCards extends Component
             ->inSchool()
             ->when($currentAcademicYear !== null, fn ($query) => $query->where('academic_year_id', $currentAcademicYear->id))
             ->count();
-        $this->students = User::ofSchool()->students()->activeStudents()->count();
+        $this->students = User::ofSchool()->students()->enrolledStudents()->count();
         $this->teachers = User::ofSchool()->role(Role::Teacher)->count();
         $this->parents = User::ofSchool()->role(Role::Parent)->count();
 

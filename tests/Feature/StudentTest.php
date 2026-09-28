@@ -641,6 +641,17 @@ class StudentTest extends TestCase
             ->assertSee($otherLearner->user->email);
     }
 
+    public function test_a_suspended_learner_stays_on_the_student_list(): void
+    {
+        $this->authorized_user(['read student']);
+        $suspended = StudentRecord::factory()->create(['status' => EnrollmentStatus::Suspended]);
+        $withdrawn = StudentRecord::factory()->create(['status' => EnrollmentStatus::Withdrawn]);
+
+        Livewire::test(ListStudentsTable::class)
+            ->assertSee($suspended->user->email)
+            ->assertDontSee($withdrawn->user->email);
+    }
+
     public function test_a_parent_only_reads_their_own_children(): void
     {
         $ownChild = StudentRecord::factory()->create();

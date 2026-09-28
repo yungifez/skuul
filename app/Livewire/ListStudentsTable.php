@@ -32,7 +32,7 @@ class ListStudentsTable extends DataTableComponent
         $query = User::query()
             ->students()
             ->ofSchool()
-            ->activeStudents()
+            ->enrolledStudents()
             ->with('studentRecord.academicCycleSection.academicLevel');
 
         if (auth()->user()->readsLearnersOnlyAsGuardian()) {
