@@ -4,14 +4,19 @@ namespace Tests\Feature;
 
 use App\Actions\Boarding\AssignBoardingSupervisor;
 use App\Actions\Curriculum\AssignTeacher;
+use App\Actions\Discipline\ReportIncident;
 use App\Actions\Identity\ProvisionAccount;
 use App\Actions\School\EndSchoolMembership;
 use App\Actions\School\GrantSchoolMembership;
+use App\Actions\Wellbeing\ManageSupportPlan;
+use App\Enums\EnrollmentStatus;
+use App\Enums\IncidentStatus;
 use App\Enums\SchoolMembershipStatus;
 use App\Enums\SupervisionRole;
 use App\Models\CourseOffering;
 use App\Models\Dormitory;
 use App\Models\School;
+use App\Models\StudentRecord;
 use App\Models\User;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -115,6 +120,26 @@ class SchoolMembershipTest extends TestCase
         app(EndSchoolMembership::class)->end($warden, $this->workingSchool());
 
         $this->assertNotNull($duty->fresh()->ends_on);
+    }
+
+    public function test_ending_a_membership_hands_back_the_open_cases_there(): void
+    {
+        $this->authorized_user([]);
+        $counsellor = $this->memberOf($this->workingSchool());
+        $openCase = app(ReportIncident::class)->report('Fight at break', assignee: $counsellor);
+        $closedCase = app(ReportIncident::class)->report('Lost phone', assignee: $counsellor);
+        app(ReportIncident::class)->changeStatus($closedCase, IncidentStatus::UnderReview);
+        app(ReportIncident::class)->changeStatus($closedCase->fresh(), IncidentStatus::Resolved);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id, 'status' => EnrollmentStatus::Active]);
+        $plan = app(ManageSupportPlan::class)->open($enrollment, 'Reading support', owner: $counsellor);
+        $step = app(ManageSupportPlan::class)->addAction($plan, 'Weekly reading check', assignee: $counsellor);
+
+        app(EndSchoolMembership::class)->end($counsellor, $this->workingSchool());
+
+        $this->assertNull($openCase->fresh()->assigned_to);
+        $this->assertSame($counsellor->id, $closedCase->fresh()->assigned_to);
+        $this->assertNull($plan->fresh()->assigned_to);
+        $this->assertNull($step->fresh()->assigned_to);
     }
 
     public function test_ending_the_primary_membership_promotes_another_one(): void

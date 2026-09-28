@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Open cases stayed with a member of staff who left
+- Status: Fixed
+- Area: Discipline, support plans, staff leavers
+- Observed: When a person left a campus, their teaching, boarding duty and cover ended, but discipline cases, support plans and their steps stayed assigned to them.
+- Impact: The work looked owned while nobody did it. A restricted case or confidential plan is read by its assignee, so after the leaver lost access it could be left without a reader among the people doing the work.
+- Reproduction: Assign an open case and a support plan to a member of staff. End their membership, or record a leaving date that has passed. Open the case.
+- Resolution: When a person's first day away has come, open cases, open plans and unfinished steps at that campus lose their assignee, so each shows it needs somebody. Finished work keeps the name.
+
 ## The old campus could still edit a learner who moved away
 - Status: Fixed
 - Area: Student profiles, campus moves

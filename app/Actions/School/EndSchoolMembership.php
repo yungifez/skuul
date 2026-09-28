@@ -6,8 +6,12 @@ use App\Actions\Boarding\AssignBoardingSupervisor;
 use App\Actions\Curriculum\AssignTeacher;
 use App\Enums\SchoolMembershipStatus;
 use App\Models\BoardingSupervision;
+use App\Models\Incident;
+use App\Models\IncidentAction;
 use App\Models\School;
 use App\Models\SchoolMembership;
+use App\Models\SupportPlan;
+use App\Models\SupportPlanAction;
 use App\Models\TeachingAssignment;
 use App\Models\TimetableSubstitution;
 use App\Models\User;
@@ -22,7 +26,8 @@ use RuntimeException;
  * The membership record stays so the history remains readable. The person, and
  * their records in that school, are not deleted. The subjects they still teach
  * and the boarding houses they still supervise there end, so each shows it
- * needs somebody, and cover booked from today on is given up.
+ * needs somebody, and cover booked from today on is given up. Open cases
+ * and support plans assigned to them are handed back to the campus.
  */
 class EndSchoolMembership
 {
@@ -92,7 +97,46 @@ class EndSchoolMembership
                 ->whereDate('substituted_on', '>=', $firstDayAway)
                 ->whereHas('timetable.academicCycleSection', fn ($sections) => $sections->where('school_id', $schoolId))
                 ->delete();
+
+            // A leaver still at work keeps their cases until they go.
+            if ($firstDayAway->lessThanOrEqualTo(today())) {
+                $this->handBackOpenCases($user, $schoolId);
+            }
         });
+    }
+
+    /**
+     * Take the person's name off the cases and plans still open at the campus.
+     *
+     * A restricted case or a confidential plan is read by the person it is
+     * assigned to. Left on a leaver, the work has nobody, so each now shows
+     * it needs somebody. Finished work keeps its name.
+     */
+    private function handBackOpenCases(User $user, int $schoolId): void
+    {
+        Incident::query()
+            ->where('school_id', $schoolId)
+            ->where('assigned_to', $user->id)
+            ->open()
+            ->update(['assigned_to' => null]);
+
+        IncidentAction::query()
+            ->where('assigned_to', $user->id)
+            ->whereNull('completed_at')
+            ->whereIn('incident_id', Incident::query()->where('school_id', $schoolId)->open()->select('id'))
+            ->update(['assigned_to' => null]);
+
+        SupportPlan::query()
+            ->where('school_id', $schoolId)
+            ->where('assigned_to', $user->id)
+            ->open()
+            ->update(['assigned_to' => null]);
+
+        SupportPlanAction::query()
+            ->where('assigned_to', $user->id)
+            ->whereNull('completed_at')
+            ->whereIn('support_plan_id', SupportPlan::query()->where('school_id', $schoolId)->open()->select('id'))
+            ->update(['assigned_to' => null]);
     }
 
     /**
