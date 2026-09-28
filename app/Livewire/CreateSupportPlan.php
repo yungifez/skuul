@@ -9,7 +9,6 @@ use App\Models\StudentRecord;
 use App\Models\SupportPlan;
 use App\Models\User;
 use App\Traits\ListsSchoolPeople;
-use App\Traits\ValidatesSchoolMembership;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -21,7 +20,6 @@ use Livewire\Component;
 class CreateSupportPlan extends Component
 {
     use ListsSchoolPeople;
-    use ValidatesSchoolMembership;
 
     public ?int $studentRecordId = null;
 
@@ -56,10 +54,11 @@ class CreateSupportPlan extends Component
             'summary' => ['nullable', 'string', 'max:5000'],
             'startsOn' => ['nullable', 'date'],
             'reviewOn' => ['nullable', 'date', 'after_or_equal:startsOn'],
-            'assignedTo' => ['nullable', 'integer', $this->memberOfWorkingSchool()],
+            'assignedTo' => ['nullable', 'integer', Rule::in($this->schoolWorkers()->modelKeys())],
         ], [
             'studentRecordId.required' => 'Choose the learner.',
             'reviewOn.after_or_equal' => 'A plan cannot be reviewed before it starts.',
+            'assignedTo.in' => 'Choose somebody who works in this school.',
         ]);
 
         try {
@@ -89,7 +88,7 @@ class CreateSupportPlan extends Component
             'categories' => SupportCategory::cases(),
             'isConfidential' => SupportCategory::tryFrom($this->category)?->isConfidential() ?? false,
             'students' => $this->attendingLearners(),
-            'staff' => $this->schoolStaff(),
+            'staff' => $this->schoolWorkers(),
         ]);
     }
 }

@@ -8,7 +8,6 @@ use App\Exceptions\InvalidValueException;
 use App\Models\SupportPlan;
 use App\Models\User;
 use App\Traits\ListsSchoolPeople;
-use App\Traits\ValidatesSchoolMembership;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -23,7 +22,6 @@ use Livewire\Component;
 class ShowSupportPlan extends Component
 {
     use ListsSchoolPeople;
-    use ValidatesSchoolMembership;
 
     public SupportPlan $plan;
 
@@ -87,8 +85,8 @@ class ShowSupportPlan extends Component
         $this->validate([
             'actionDescription' => ['required', 'string', 'max:1000'],
             'actionDueOn' => ['nullable', 'date'],
-            'actionAssigneeId' => ['nullable', 'integer', $this->memberOfWorkingSchool()],
-        ]);
+            'actionAssigneeId' => ['nullable', 'integer', Rule::in($this->schoolWorkers()->modelKeys())],
+        ], ['actionAssigneeId.in' => 'Choose somebody who works in this school.']);
 
         try {
             $manageSupportPlan->addAction(
@@ -153,7 +151,7 @@ class ShowSupportPlan extends Component
         return view('livewire.show-support-plan', [
             'canUpdate' => $canUpdate,
             'nextStatuses' => $this->plan->status->allowedNext(),
-            'staff' => $canUpdate ? $this->schoolStaff() : collect(),
+            'staff' => $canUpdate ? $this->schoolWorkers() : collect(),
         ]);
     }
 }

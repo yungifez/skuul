@@ -9,6 +9,7 @@ use App\Enums\CohortType;
 use App\Enums\EnrollmentStatus;
 use App\Enums\ParticipationStatus;
 use App\Enums\ProgramType;
+use App\Enums\Role;
 use App\Livewire\CohortDirectory as CohortDirectoryComponent;
 use App\Livewire\CohortRecord;
 use App\Livewire\CreateCohortForm;
@@ -293,6 +294,7 @@ class CohortScreenTest extends TestCase
         $program = $this->program();
         $enrollment = $this->enrollment(User::factory()->create(['name' => 'Ada Bell']));
         $coach = $this->memberOf($this->workingSchool(), User::factory()->create(['name' => 'Coach Obi']));
+        $coach->assignRole(Role::Teacher);
 
         $this->get(route('programs.show', $program))->assertOk()->assertSeeLivewire(ProgramRecord::class);
 

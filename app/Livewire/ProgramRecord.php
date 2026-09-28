@@ -111,7 +111,7 @@ class ProgramRecord extends Component
             'studentRecordId' => ['required', 'integer', Rule::exists((new StudentRecord)->getTable(), 'id')->where('school_id', current_school_id())],
             'startsOn' => ['required', 'date'],
             'schedule' => ['nullable', 'string', 'max:255'],
-            'staffId' => ['nullable', 'integer', Rule::in($this->schoolStaff()->pluck('id')->all())],
+            'staffId' => ['nullable', 'integer', Rule::in($this->schoolWorkers()->pluck('id')->all())],
         ], [
             'studentRecordId.exists' => 'Choose a learner of this school.',
             'staffId.in' => 'Choose somebody who works in this school.',
@@ -174,7 +174,7 @@ class ProgramRecord extends Component
             'running' => $this->program->participations->filter(fn ($place): bool => $place->status->isRunning()),
             'canWrite' => $canWrite,
             'students' => $canWrite && $this->program->is_active ? $this->attendingLearners() : collect(),
-            'staff' => $canWrite && $this->program->is_active ? $this->schoolStaff() : collect(),
+            'staff' => $canWrite && $this->program->is_active ? $this->schoolWorkers() : collect(),
         ]);
     }
 }

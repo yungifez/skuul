@@ -9,7 +9,6 @@ use App\Exceptions\InvalidValueException;
 use App\Models\Incident;
 use App\Models\User;
 use App\Traits\ListsSchoolPeople;
-use App\Traits\ValidatesSchoolMembership;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -21,7 +20,6 @@ use Livewire\Component;
 class CreateIncident extends Component
 {
     use ListsSchoolPeople;
-    use ValidatesSchoolMembership;
 
     private const MaxParticipants = 20;
 
@@ -72,13 +70,14 @@ class CreateIncident extends Component
             'description' => ['nullable', 'string', 'max:5000'],
             'location' => ['nullable', 'string', 'max:255'],
             'occurredAt' => ['required', 'date', 'before_or_equal:now'],
-            'assignedTo' => ['nullable', 'integer', $this->memberOfWorkingSchool()],
+            'assignedTo' => ['nullable', 'integer', Rule::in($this->schoolWorkers()->modelKeys())],
             'participants' => ['array', 'max:'.self::MaxParticipants],
             'participants.*.student_record_id' => ['nullable', 'integer', Rule::exists('student_records', 'id')->where('school_id', current_school_id())],
             'participants.*.role' => ['required', Rule::enum(IncidentParticipantRole::class)],
             'participants.*.note' => ['nullable', 'string', 'max:255'],
         ], [
             'occurredAt.before_or_equal' => 'A case cannot be recorded for a time that has not happened.',
+            'assignedTo.in' => 'Choose somebody who works in this school.',
         ]);
 
         try {
@@ -109,7 +108,7 @@ class CreateIncident extends Component
             'isRestricted' => IncidentCategory::tryFrom($this->category)?->isRestricted() ?? false,
             'roles' => IncidentParticipantRole::cases(),
             'students' => $this->schoolLearners(),
-            'staff' => $this->schoolStaff(),
+            'staff' => $this->schoolWorkers(),
             'canAddParticipant' => count($this->participants) < self::MaxParticipants,
         ]);
     }

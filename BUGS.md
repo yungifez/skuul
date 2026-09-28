@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A safeguarding case could be handed to a parent or a learner
+- Status: Fixed
+- Area: Discipline cases, support plans, programmes
+- Observed: The assignee pickers listed every member who was not a learner, parents included. The server accepted any active member, learners included. Being assigned a restricted case opens it.
+- Impact: A parent, possibly the parent of the child in the case, could read a restricted safeguarding case or a support plan, and be listed as the person running it.
+- Reproduction: Open "Record a case" and choose a parent in the assignee list, or send a learner's id. The case saves with that person as the owner.
+- Resolution: `schoolWorkers()` lists members who hold a staff role at the working school and are not enrolled learners. Cases, case actions, support plans, plan actions and programmes offer only them and refuse anyone else ("Choose somebody who works in this school.").
+
 ## A campus could change the email of an organization administrator
 - Status: Fixed
 - Area: User profiles

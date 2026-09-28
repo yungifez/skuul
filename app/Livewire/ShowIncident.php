@@ -10,7 +10,6 @@ use App\Models\Incident;
 use App\Models\IncidentNote;
 use App\Models\User;
 use App\Traits\ListsSchoolPeople;
-use App\Traits\ValidatesSchoolMembership;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
@@ -25,7 +24,6 @@ use Livewire\Component;
 class ShowIncident extends Component
 {
     use ListsSchoolPeople;
-    use ValidatesSchoolMembership;
 
     public Incident $incident;
 
@@ -94,8 +92,8 @@ class ShowIncident extends Component
             'actionType' => ['required', 'string', 'max:100'],
             'actionDescription' => ['required', 'string', 'max:1000'],
             'actionDueOn' => ['nullable', 'date'],
-            'actionAssigneeId' => ['nullable', 'integer', $this->memberOfWorkingSchool()],
-        ]);
+            'actionAssigneeId' => ['nullable', 'integer', Rule::in($this->schoolWorkers()->modelKeys())],
+        ], ['actionAssigneeId.in' => 'Choose somebody who works in this school.']);
 
         try {
             $reportIncident->addAction(
@@ -170,7 +168,7 @@ class ShowIncident extends Component
         return view('livewire.show-incident', [
             'canUpdate' => $canUpdate,
             'nextStatuses' => $this->incident->status->allowedNext(),
-            'staff' => $canUpdate ? $this->schoolStaff() : collect(),
+            'staff' => $canUpdate ? $this->schoolWorkers() : collect(),
             'notes' => $this->incident->notes
                 ->filter(fn (IncidentNote $note): bool => auth()->user()->can('view', $note))
                 ->values(),

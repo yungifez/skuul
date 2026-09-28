@@ -8,6 +8,7 @@ use App\Enums\Feature;
 use App\Enums\IncidentCategory;
 use App\Enums\IncidentParticipantRole;
 use App\Enums\IncidentStatus;
+use App\Enums\Role;
 use App\Livewire\CreateIncident;
 use App\Livewire\IncidentDirectory as IncidentDirectoryComponent;
 use App\Livewire\ShowIncident;
@@ -107,6 +108,46 @@ class IncidentScreenTest extends TestCase
             ->set('assignedTo', $leaver->id)
             ->call('save')
             ->assertHasErrors('assignedTo');
+    }
+
+    public function test_a_case_is_handed_only_to_somebody_who_works_here(): void
+    {
+        $this->authorized_user(['read incident', 'create incident', 'update incident']);
+        $parent = $this->memberOf($this->workingSchool());
+        $parent->assignRole(Role::Parent);
+        $learner = $this->enrollment()->user;
+        $teacher = $this->memberOf($this->workingSchool());
+        $teacher->assignRole(Role::Teacher);
+
+        $form = Livewire::test(CreateIncident::class)
+            ->assertViewHas('staff', fn ($staff): bool => $staff->contains('id', $teacher->id)
+                && !$staff->contains('id', $parent->id)
+                && !$staff->contains('id', $learner->id))
+            ->set('summary', 'Disclosure')
+            ->set('category', IncidentCategory::Behaviour->value)
+            ->set('occurredAt', now()->subHour()->format('Y-m-d\TH:i'));
+
+        foreach ([$parent, $learner] as $person) {
+            $form->set('assignedTo', $person->id)
+                ->call('save')
+                ->assertHasErrors(['assignedTo' => 'Choose somebody who works in this school.']);
+        }
+
+        $this->assertSame(0, Incident::query()->count());
+
+        $incident = app(ReportIncident::class)->report('Broke a window');
+
+        Livewire::test(ShowIncident::class, ['incident' => $incident])
+            ->set('actionType', 'Meeting')
+            ->set('actionDescription', 'Speak to the guardian.')
+            ->set('actionAssigneeId', $parent->id)
+            ->call('addAction')
+            ->assertHasErrors('actionAssigneeId')
+            ->set('actionAssigneeId', $teacher->id)
+            ->call('addAction')
+            ->assertHasNoErrors();
+
+        $this->assertSame($teacher->id, $incident->actions()->sole()->assigned_to);
     }
 
     public function test_a_case_cannot_be_recorded_in_the_future(): void
