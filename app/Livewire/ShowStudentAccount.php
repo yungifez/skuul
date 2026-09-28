@@ -13,10 +13,13 @@ use App\Models\StudentRecord;
 use App\Services\Finance\PaymentChannelRegistry;
 use App\Services\Finance\StudentLedger;
 use Brick\Money\Money as BrickMoney;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
+use Throwable;
 
 /**
  * One student's money: what they owe, what they paid, what is held for them.
@@ -51,12 +54,19 @@ class ShowStudentAccount extends Component
 
     public string $refundReference = '';
 
+    /**
+     * Name the refund being written, so a save sent twice pays out once.
+     */
+    #[Locked]
+    public string $refundKey = '';
+
     public function mount(StudentRecord $enrollment): void
     {
         $this->campusId = current_school_id();
         $this->mustBeAllowedTo('read fee invoice', $enrollment);
 
         $this->enrollment = $enrollment;
+        $this->refundKey = (string) Str::uuid();
     }
 
     /**
@@ -125,6 +135,15 @@ class ShowStudentAccount extends Component
             'refundReason.min' => 'Give a reason somebody can understand later.',
         ]);
 
+        // A resent save carries the key of a refund already paid out.
+        $paidKey = 'student-refund-paid:'.$this->campusId.':'.$this->refundKey;
+
+        if (!Cache::add($paidKey, true, now()->addHour())) {
+            $this->reset('isRefunding', 'refundAmount', 'refundReason', 'refundReference');
+
+            return;
+        }
+
         try {
             $refund->refund(
                 enrollment: $this->enrollment,
@@ -136,12 +155,18 @@ class ShowStudentAccount extends Component
                 schoolId: $this->campusId,
             );
         } catch (InvalidValueException $exception) {
+            Cache::forget($paidKey);
             $this->addError('refundAmount', $exception->getMessage());
 
             return;
+        } catch (Throwable $exception) {
+            Cache::forget($paidKey);
+
+            throw $exception;
         }
 
         $this->reset('isRefunding', 'refundAmount', 'refundReason', 'refundReference');
+        $this->refundKey = (string) Str::uuid();
         $this->notify('The refund was recorded.');
     }
 

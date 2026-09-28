@@ -25,6 +25,7 @@ use App\Services\Finance\StudentLedger;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Livewire\Livewire;
 use RuntimeException;
 use Tests\TestCase;
@@ -557,6 +558,50 @@ class StudentPaymentTest extends TestCase
 
         $this->assertTrue($payment->fresh()->isReversed());
         $this->assertSame(0, $invoice->fresh()->paid->getMinorAmount()->toInt());
+    }
+
+    public function test_a_refund_sent_again_pays_out_once(): void
+    {
+        $this->authorized_user(['read fee invoice', 'refund student payment']);
+        $enrollment = $this->enrollment();
+        app(ReceivePayment::class)->receive($enrollment, 10_000);
+
+        $screen = Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment]);
+        $firstKey = $screen->get('refundKey');
+
+        $screen->set('refundAmount', '20')
+            ->set('refundReason', 'The family asked for it back')
+            ->call('refund')
+            ->assertHasNoErrors();
+
+        $this->assertNotSame($firstKey, $screen->get('refundKey'));
+
+        // A resent request carries the old key and the old form.
+        Cache::add('student-refund-paid:'.current_school_id().':'.$screen->get('refundKey'), true);
+        $screen->set('refundAmount', '20')
+            ->set('refundReason', 'The family asked for it back')
+            ->call('refund');
+
+        $this->assertSame(1, StudentPayment::where('student_record_id', $enrollment->id)->where('amount', '<', 0)->count());
+        $this->assertSame(8_000, app(ApplyStudentCredit::class)->creditHeld($enrollment));
+    }
+
+    public function test_a_second_refund_on_the_same_screen_is_its_own_refund(): void
+    {
+        $this->authorized_user(['read fee invoice', 'refund student payment']);
+        $enrollment = $this->enrollment();
+        app(ReceivePayment::class)->receive($enrollment, 10_000);
+
+        Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment])
+            ->set('refundAmount', '20')
+            ->set('refundReason', 'The family asked for it back')
+            ->call('refund')
+            ->set('refundAmount', '30')
+            ->set('refundReason', 'Uniform paid twice by mistake')
+            ->call('refund')
+            ->assertHasNoErrors();
+
+        $this->assertSame(5_000, app(ApplyStudentCredit::class)->creditHeld($enrollment));
     }
 
     public function test_a_campus_cannot_take_back_a_payment_another_campus_took(): void

@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A refund sent twice paid out twice
+
+- Status: Fixed
+- Area: Finance, student account refunds
+- Observed: A refund request sent again, from a retry or a stale tab, recorded a second refund while the learner still held enough credit.
+- Impact: The school paid the family twice and the books showed less credit than the family was owed.
+- Reproduction: Hold 100 in credit for a learner. Refund 20. Send the same refund request again. Two refunds of 20 are recorded.
+- Resolution: The account screen names each refund with a locked key. A request with a key already paid out records nothing. The key changes after each refund, so a real second refund still goes through.
+
 ## A payment taken twice from the invoice screen
 
 - Status: Fixed
