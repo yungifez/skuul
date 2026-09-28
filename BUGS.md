@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A student import could enrol a learner who already attends another school
+- Status: Fixed
+- Area: Imports
+- Observed: A student import row reused the account for its email and enrolled it at the working campus. It did not check for an active enrollment at another school, which the admission form refuses.
+- Impact: One learner attended and was billed at two schools at once.
+- Reproduction: Enrol a learner at campus A. At campus B, import a students file with that learner's email.
+- Resolution: `StudentImporter` refuses the row and names the school the learner attends. No account or enrollment is changed.
+
 ## A waitlist place could enrol a learner who already attends another school
 - Status: Fixed
 - Area: Admissions

@@ -5,6 +5,7 @@ namespace App\Imports;
 use App\Actions\Enrollment\ChangeEnrollmentPlacement;
 use App\Actions\Identity\ProvisionAccount;
 use App\Contracts\Importer;
+use App\Enums\EnrollmentStatus;
 use App\Enums\Role;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicCycleSection;
@@ -122,6 +123,8 @@ class StudentImporter implements Importer
             throw new InvalidValueException("The level {$row['level']} has no section called {$row['section']} in this cycle.");
         }
 
+        $this->refuseALearnerWhoAttendsElsewhere($existing instanceof StudentRecord ? $existing->user?->email : $row['email']);
+
         $student = $this->accountFor($row, $existing);
 
         if (!$student->hasRole(Role::Student->value)) {
@@ -143,6 +146,28 @@ class StudentImporter implements Importer
         );
 
         return $enrollment->refresh();
+    }
+
+    /**
+     * Refuse a row for a learner who is enrolled and attending at another school.
+     *
+     * The admission form refuses the same person. A second enrollment would
+     * bypass the campus move and the transfer, which carry the history.
+     *
+     * @throws InvalidValueException
+     */
+    private function refuseALearnerWhoAttendsElsewhere(?string $email): void
+    {
+        $elsewhere = StudentRecord::query()
+            ->whereRelation('user', 'email', $email)
+            ->where('school_id', '!=', current_school_id())
+            ->where('status', EnrollmentStatus::Active)
+            ->with('school:id,name')
+            ->first();
+
+        if ($elsewhere !== null) {
+            throw new InvalidValueException("This learner attends {$elsewhere->school?->name}. Ask that school to move or transfer them.");
+        }
     }
 
     /**

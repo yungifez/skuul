@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\AcademicStructureStatus;
+use App\Enums\EnrollmentStatus;
 use App\Enums\ImportRowState;
 use App\Enums\ImportStatus;
 use App\Exceptions\InvalidValueException;
@@ -215,6 +216,25 @@ class ImportTest extends TestCase
 
         $this->assertSame($otherSection->id, $enrollment->academic_cycle_section_id);
         $this->assertSame(2, $enrollment->placements()->count());
+    }
+
+    public function test_a_student_import_refuses_a_learner_who_attends_another_school(): void
+    {
+        $this->authorized_user(['create import', 'apply import']);
+        [$academicLevel, $cycleSection] = $this->levelAndSection();
+        $sibling = School::factory()->create(['organization_id' => $this->workingSchool()->organization_id, 'name' => 'Hill Campus']);
+        $learner = User::factory()->create(['email' => 'ada.bell@gmail.com']);
+        StudentRecord::factory()->create(['user_id' => $learner->id, 'school_id' => $sibling->id, 'status' => EnrollmentStatus::Active]);
+        $runner = app(ImportRunner::class);
+
+        $batch = $runner->stage('students', [
+            $this->studentRow(['email' => 'ada.bell@gmail.com', 'level' => $academicLevel->name, 'section' => $cycleSection->name]),
+        ]);
+        $runner->apply($batch);
+
+        $this->assertSame(0, $batch->fresh()->applied_count);
+        $this->assertSame(0, $this->enrollmentsOf('ada.bell@gmail.com'));
+        $this->assertStringContainsString('Hill Campus', $batch->rows()->broken()->firstOrFail()->errors[0]);
     }
 
     public function test_an_import_is_written_once(): void
