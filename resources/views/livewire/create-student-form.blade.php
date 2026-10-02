@@ -16,6 +16,14 @@
                 @endforeach
             </select>
             <x-field-error name="academicCycleSectionId" class="mt-1" />
+            @if ($cycleSections === [])
+                <p class="mt-1 text-sm text-muted-foreground">
+                    A learner joins a {{ $sectionWord }} of the current year, and none is active yet.
+                    @can('read section')
+                        <a href="{{ route('academic-cycle-sections.index') }}" class="inline-flex min-h-11 items-center font-medium text-foreground underline underline-offset-4">Open the {{ strtolower(school_terms('section', 'sections')) }}</a>
+                    @endcan
+                </p>
+            @endif
         </div>
         <div>
             <label for="admission-number" class="text-sm text-muted-foreground">Admission number</label>

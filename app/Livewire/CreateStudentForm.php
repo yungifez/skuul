@@ -69,7 +69,9 @@ class CreateStudentForm extends Component
             ],
             'admissionDate' => ['required', 'date_format:Y-m-d', 'before_or_equal:'.school_today()->toDateString()],
         ], [
-            'academicCycleSectionId.required' => 'Choose the section the learner joins.',
+            'academicCycleSectionId.required' => $this->cycleSections === []
+                ? 'No '.strtolower(school_term('section', 'section')).' is active this year, so there is nowhere to admit the learner yet.'
+                : 'Choose the section the learner joins.',
             'academicCycleSectionId.in' => 'Choose an active section of the current year.',
         ], $this->personDetailAttributes() + [
             'admissionNumber' => 'admission number',

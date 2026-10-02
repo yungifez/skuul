@@ -102,6 +102,30 @@ class StudentTest extends TestCase
 
     // test unauthorised users cannot create students
 
+    public function test_admitting_with_no_active_section_points_to_the_sections(): void
+    {
+        AcademicCycleSection::query()->where('school_id', $this->workingSchool()->id)->update(['status' => AcademicStructureStatus::Draft]);
+        $this->authorized_user(['create student', 'read section']);
+
+        Livewire::test(CreateStudentForm::class)
+            ->assertSee('none is active yet')
+            ->assertSee(route('academic-cycle-sections.index'))
+            ->set('name', 'Noah Fischer')
+            ->set('email', $this->faker()->unique()->freeEmail())
+            ->call('save')
+            ->assertHasErrors(['academicCycleSectionId' => 'No section is active this year, so there is nowhere to admit the learner yet.']);
+    }
+
+    public function test_admitting_with_no_active_section_hides_the_link_from_someone_who_cannot_read_sections(): void
+    {
+        AcademicCycleSection::query()->where('school_id', $this->workingSchool()->id)->update(['status' => AcademicStructureStatus::Draft]);
+        $this->authorized_user(['create student']);
+
+        Livewire::test(CreateStudentForm::class)
+            ->assertSee('none is active yet')
+            ->assertDontSee(route('academic-cycle-sections.index'));
+    }
+
     public function test_unauthorised_users_cannot_create_students(): void
     {
         $this->unauthorized_user();
