@@ -97,12 +97,11 @@ If you are running on production, visit your domain to verify it is working
 After running the above commands, you should be able to access the application at http::/localhost or your designated domain name depending on configuration.
 
 ## Updating
-Typically, you can update most of the time following these steps
-- clone the new version
-- composer update
-- php artisan optimize:clear
-- php artisan migrate (Make sure to backup database)
-- php artisan db:seed --class RunInProductionSeeder
+If you installed Skuul with `git clone`, run this command to install the newest release:
+```shell
+php artisan skuul:update
+```
+Run `php artisan skuul:update --check` to see if a new release is available. See [OPERATIONS.md](OPERATIONS.md) for the full steps.
 ## Setup
 * Log in to the application with the following credentials
     * Email: super@admin.com

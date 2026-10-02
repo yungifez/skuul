@@ -35,4 +35,14 @@ return [
         'report-cards',
         'transcripts',
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Update source
+    |--------------------------------------------------------------------------
+    |
+    | The GitHub repository whose releases `skuul:update` installs.
+    |
+    */
+    'update_repository' => (string) env('SKUUL_UPDATE_REPOSITORY', 'yungifez/skuul'),
 ];

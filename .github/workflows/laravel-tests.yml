@@ -24,15 +24,6 @@ jobs:
             exit 1
           fi
 
-      # April UI is required from a path repository beside the application.
-      # Use a token with read access here if the repository becomes private.
-      - name: Check out April UI
-        uses: actions/checkout@v4
-        with:
-          repository: yungifez/april-ui
-          ref: main
-          path: april-ui
-
       - name: Set up PHP
         uses: shivammathur/setup-php@v2
         with:
@@ -71,13 +62,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           path: skuul
-
-      - name: Check out April UI
-        uses: actions/checkout@v4
-        with:
-          repository: yungifez/april-ui
-          ref: main
-          path: april-ui
 
       - name: Set up PHP
         uses: shivammathur/setup-php@v2

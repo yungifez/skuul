@@ -23,20 +23,16 @@ queue is only for local development.
 
 Run these steps for every release.
 
-1. Check out the active April UI `main` branch beside this repository.
-2. Build the image and push it to your registry.
-3. Put the site in maintenance mode: `php artisan down`.
-4. Start the new containers.
-5. Install dependencies: `composer install --no-dev --optimize-autoloader`.
-6. Build the front end: `npm ci && npm run build`.
-7. Run the migrations: `php artisan migrate --force`.
-8. Cache the configuration, routes, and views: `php artisan optimize`.
-9. Restart the queue workers: `php artisan queue:restart`.
-10. Leave maintenance mode: `php artisan up`.
-11. Check `/health`. It must answer with HTTP 200.
-
-The application uses a path repository. The release checkout must contain the
-current April UI `main` branch beside the application before Composer runs.
+1. Build the image and push it to your registry.
+2. Put the site in maintenance mode: `php artisan down`.
+3. Start the new containers.
+4. Install dependencies: `composer install --no-dev --optimize-autoloader`.
+5. Build the front end: `npm ci && npm run build`.
+6. Run the migrations: `php artisan migrate --force`.
+7. Cache the configuration, routes, and views: `php artisan optimize`.
+8. Restart the queue workers: `php artisan queue:restart`.
+9. Leave maintenance mode: `php artisan up`.
+10. Check `/health`. It must answer with HTTP 200.
 
 Set these values before the first deployment:
 
@@ -59,6 +55,23 @@ data is separate and must never run on a live database.
 
 Write migrations so that the previous release keeps working. Add a column
 before you use it, and remove an old column in a later release.
+
+### Update a server that runs from a git checkout
+
+1. Check for a new release: `php artisan skuul:update --check`.
+2. Read the release notes at the link that the command shows.
+3. Update: `php artisan skuul:update`.
+
+The command installs the newest GitHub release of the same major version. It
+takes a backup with the uploaded files, puts the site in maintenance mode, and
+does steps 4 to 9 above. It stops if the checkout has local changes. A new
+major version can need manual steps, so the command does not install it.
+
+If a step fails, the site stays in maintenance mode. Check out the previous
+tag, run `composer install --no-dev`, restore the backup, and run
+`php artisan up`.
+
+Set `SKUUL_UPDATE_REPOSITORY` to install releases from a fork.
 
 ## 3. Back up
 
