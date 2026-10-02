@@ -86,7 +86,7 @@ class ChangeEnrollmentPlacement
                 'academic_year_id' => $academicYear->id,
                 'academic_period_id' => $academicPeriod?->id,
                 'academic_cycle_section_id' => $academicCycleSection->id,
-                'effective_on' => $effectiveOn ?? now(),
+                'effective_on' => $effectiveOn ?? school_today($enrollment->school_id),
                 'changed_by' => $actor?->id,
                 'reason' => $reason,
             ]);

@@ -64,7 +64,7 @@ class AssignBoardingPlace
                 'student_record_id' => $enrollment->id,
                 'dormitory_bed_id' => $bed->id,
                 'academic_year_id' => current_academic_year_id(),
-                'effective_on' => $effectiveOn ?? now(),
+                'effective_on' => $effectiveOn ?? school_today($enrollment->school_id),
                 'reason' => $reason,
                 'changed_by' => $actor === null ? auth()->id() : $actor->id,
             ]);
@@ -112,7 +112,7 @@ class AssignBoardingPlace
             'student_record_id' => $enrollment->id,
             'dormitory_bed_id' => null,
             'academic_year_id' => current_academic_year_id(),
-            'effective_on' => $effectiveOn ?? now(),
+            'effective_on' => $effectiveOn ?? school_today($current->school_id),
             'reason' => $reason,
             'changed_by' => $actor === null ? auth()->id() : $actor->id,
         ]);

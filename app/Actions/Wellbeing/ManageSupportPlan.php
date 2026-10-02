@@ -104,7 +104,7 @@ class ManageSupportPlan
             $plan->status = $status;
 
             if (!$status->isOpen() && $plan->ends_on === null) {
-                $plan->ends_on = now();
+                $plan->ends_on = school_today($plan->school_id);
             }
 
             $plan->save();

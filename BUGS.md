@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Moves, admissions and holds took the server's date
+- Status: Fixed
+- Area: Enrollment, admissions, boarding, library, support plans
+- Observed: A new admission, a change of class or status, a boarding place, a closed support plan, and a library hold all took their date from the server's clock in UTC.
+- Impact: At a school behind UTC, a learner placed in a class in the evening got tomorrow's date. They were missing from that class's register for the rest of the day. A withdrawal or a hold was dated a day late in the same way.
+- Reproduction: Give a school the America/Los_Angeles zone. At 8 p.m. local time, withdraw a learner. The withdrawal was dated the next day.
+- Resolution: Each date now comes from the school that owns the record.
+
 ## Shared records arrived with their fields jumbled
 - Status: Fixed
 - Area: Record sharing between schools

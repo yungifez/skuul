@@ -101,7 +101,7 @@ class CloseReservation
             $title = $reservation->title;
 
             $reservation->status = $status;
-            $reservation->closed_on = now();
+            $reservation->closed_on = school_today($reservation->school_id);
 
             // The copy is only let go when nobody took it. A collected
             // reservation keeps the copy it names, which is what was borrowed.

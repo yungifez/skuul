@@ -62,8 +62,8 @@ class HoldCopyForNextInQueue
 
         $reservation->status = LibraryReservationStatus::Ready;
         $reservation->library_copy_id = $copy->id;
-        $reservation->ready_on = now();
-        $reservation->holds_until = now()->addDays($rules->hold_days);
+        $reservation->ready_on = school_today($copy->school_id);
+        $reservation->holds_until = school_today($copy->school_id)->addDays($rules->hold_days);
         $reservation->save();
 
         $this->auditor->record(

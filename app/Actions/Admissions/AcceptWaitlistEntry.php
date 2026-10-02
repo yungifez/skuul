@@ -117,7 +117,7 @@ class AcceptWaitlistEntry
             'school_id' => $entry->school_id,
             'user_id' => $entry->user_id,
             'admission_number' => $this->students->generateAdmissionNumber($entry->school_id),
-            'admission_date' => now(),
+            'admission_date' => school_today($entry->school_id),
         ]);
 
         return $this->place->place(

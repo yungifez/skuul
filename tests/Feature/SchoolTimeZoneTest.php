@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Actions\Enrollment\ChangeEnrollmentStatus;
 use App\Actions\Finance\ReceivePayment;
+use App\Enums\EnrollmentStatus;
 use App\Enums\LibraryReservationStatus;
 use App\Enums\NoticeStatus;
 use App\Livewire\CreateStudentForm;
@@ -161,6 +163,17 @@ class SchoolTimeZoneTest extends TestCase
 
         $this->travelTo(now('UTC')->setDate(2026, 10, 1)->setTime(23, 30));
         $this->assertTrue($request->hasExpired());
+    }
+
+    public function test_an_evening_change_at_a_school_behind_the_server_keeps_the_school_date(): void
+    {
+        $losAngeles = School::factory()->create(['timezone' => 'America/Los_Angeles']);
+        $enrollment = StudentRecord::factory()->create(['school_id' => $losAngeles->id]);
+        $this->travelTo(now('UTC')->setDate(2026, 10, 2)->setTime(3, 0));
+
+        app(ChangeEnrollmentStatus::class)->change($enrollment, EnrollmentStatus::Withdrawn);
+
+        $this->assertSame('2026-10-01', $enrollment->statusChanges()->sole()->effective_on->toDateString());
     }
 
     private function noticeEnding(School $school, string $lastDay): Notice

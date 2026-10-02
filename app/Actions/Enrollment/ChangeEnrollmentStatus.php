@@ -103,7 +103,7 @@ class ChangeEnrollmentStatus
                 'student_record_id' => $enrollment->id,
                 'from_status' => $current,
                 'to_status' => $status,
-                'effective_on' => $effectiveOn ?? now(),
+                'effective_on' => $effectiveOn ?? school_today($enrollment->school_id),
                 'changed_by' => $actor?->id,
                 'reason' => $reason,
             ]);
