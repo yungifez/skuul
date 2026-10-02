@@ -72,6 +72,19 @@ class MonitoringTest extends TestCase
         $this->artisan('skuul:check-backup')->assertFailed();
     }
 
+    public function test_a_rehearsal_that_only_looked_inside_the_backup_does_not_count(): void
+    {
+        Storage::fake('backups');
+        config(['monitoring.backup.disk' => 'backups', 'monitoring.backup.path' => 'backups', 'monitoring.backup.max_age_hours' => 26]);
+
+        Storage::disk('backups')->put('backups/skuul-2026-08-21.sql.gz', 'dump');
+        Storage::disk('backups')->put('restore-rehearsals/2026-08-21-030000.json', '{"restored":false,"rows":null}');
+
+        $this->artisan('skuul:check-backup')
+            ->expectsOutput('No restore has ever been rehearsed. Run skuul:rehearse-restore.')
+            ->assertFailed();
+    }
+
     public function test_the_backup_check_fails_when_the_last_rehearsal_is_too_long_ago(): void
     {
         Storage::fake('backups');

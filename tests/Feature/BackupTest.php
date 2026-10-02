@@ -200,6 +200,20 @@ class BackupTest extends TestCase
         $this->assertCount(1, Storage::disk('backups')->files('restore-rehearsals'));
     }
 
+    public function test_a_rehearsal_without_a_database_to_restore_into_does_not_claim_a_restore(): void
+    {
+        config(['monitoring.backup.rehearsal.connection' => null]);
+        $this->artisan('skuul:backup')->assertSuccessful();
+
+        $this->artisan('skuul:rehearse-restore')
+            ->expectsOutput('No rehearsal connection is set, so the backup was only looked inside.')
+            ->assertSuccessful();
+
+        $record = json_decode(Storage::disk('backups')->get(Storage::disk('backups')->files('restore-rehearsals')[0]), true);
+        $this->assertFalse($record['restored']);
+        $this->assertNull($record['rows']);
+    }
+
     public function test_a_rehearsal_with_nothing_to_restore_fails(): void
     {
         $this->artisan('skuul:rehearse-restore')->assertFailed();

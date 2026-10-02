@@ -117,16 +117,19 @@ class RehearseRestore extends Command
     /**
      * Load the dump into the rehearsal database and count what came back.
      *
-     * @return array<string, int>
+     * Without a rehearsal connection nothing is restored, so the result is null
+     * and the record does not claim a restore.
+     *
+     * @return array<string, int>|null
      */
-    private function restore(string $dump, DatabaseDumperRegistry $dumpers): array
+    private function restore(string $dump, DatabaseDumperRegistry $dumpers): ?array
     {
         $connection = $this->option('into') ?? config('monitoring.backup.rehearsal.connection');
 
         if (!is_string($connection) || $connection === '') {
             $this->warn('No rehearsal connection is set, so the backup was only looked inside.');
 
-            return [];
+            return null;
         }
 
         $dumper = $dumpers->forConnection($connection);

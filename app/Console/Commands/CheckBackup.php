@@ -79,6 +79,12 @@ class CheckBackup extends Command
         $newest = null;
 
         foreach ($disk->files($path) as $file) {
+            // A rehearsal that only looked inside the backup proves nothing about
+            // restoring it, so only a record of a real restore counts.
+            if ((json_decode((string) $disk->get($file), true)['restored'] ?? false) !== true) {
+                continue;
+            }
+
             $rehearsed = Carbon::createFromTimestamp($disk->lastModified($file));
 
             if ($newest === null || $rehearsed->greaterThan($newest)) {
