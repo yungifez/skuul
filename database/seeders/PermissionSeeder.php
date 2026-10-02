@@ -351,20 +351,6 @@ class PermissionSeeder extends Seeder
             'name' => 'manage grading scale',
         ]);
 
-        // permission for exam slots
-        Permission::firstOrCreate([
-            'name' => 'create exam slot',
-        ]);
-        Permission::firstOrCreate([
-            'name' => 'read exam slot',
-        ]);
-        Permission::firstOrCreate([
-            'name' => 'update exam slot',
-        ]);
-        Permission::firstOrCreate([
-            'name' => 'delete exam slot',
-        ]);
-
         // Gradebook permissions
         Permission::firstOrCreate([
             'name' => 'read gradebook',
@@ -873,10 +859,6 @@ class PermissionSeeder extends Seeder
             'update exam',
             'delete exam',
             'manage grading scale',
-            'create exam slot',
-            'read exam slot',
-            'update exam slot',
-            'delete exam slot',
             'read gradebook',
             'manage gradebook',
             'publish result',
@@ -988,7 +970,6 @@ class PermissionSeeder extends Seeder
             'set academic period',
             'read student',
             'read exam',
-            'read exam slot',
             'create syllabus',
             'read syllabus',
             'update syllabus',

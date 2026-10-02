@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Remove exam slots, which the gradebook replaced
+- Status: Fixed
+- Area: Exams, gradebook
+- Observed: Exam slots outlived the exam records they were built for. Nothing linked to them, but their pages still opened by URL. While working in one school, a user could open the slot list of another school's exam and see its name and an "Add exam slot" button. The exam's own page was that slot list. The gradebook had an exam slot column that no code ever filled.
+- Impact: Another school's exam names could be read across campuses. Staff could find a half-working screen that did nothing in the gradebook. A closed term still showed the "Add" button.
+- Reproduction: Work in school B. Open /dashboard/exams/{id}/manage/exam-slots for an exam of school A. The page opens.
+- Resolution: Exam slots are removed: model, policy, controller, service, action, Livewire screens, views, routes, seeder and factory. The exam's slot-list page and the "View exam" action are gone; exams are read in their tables and changed on their edit page. A migration drops the exam_slots table and grade_items.exam_slot_id, and deletes the four "exam slot" permissions. A test checks that the routes, table, column and permissions are gone.
+
 ## Load the notice editor from the host that serves the page
 - Status: Fixed
 - Area: Notices, rich text editor

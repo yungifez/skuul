@@ -6,7 +6,6 @@ use App\Traits\InAcademicPeriod;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -52,15 +51,5 @@ class Exam extends Model
     public function academicPeriod(): BelongsTo
     {
         return $this->belongsTo(AcademicPeriod::class);
-    }
-
-    /**
-     * Get the slots of the exam.
-     *
-     * @return HasMany<ExamSlot, $this>
-     */
-    public function examSlots(): HasMany
-    {
-        return $this->hasMany(ExamSlot::class);
     }
 }

@@ -15,7 +15,6 @@ use App\Models\AcademicPeriodStatusChange;
 use App\Models\AcademicYear;
 use App\Models\CourseOffering;
 use App\Models\Exam;
-use App\Models\ExamSlot;
 use App\Models\GradeItem;
 use App\Models\School;
 use App\Models\StudentRecord;
@@ -156,19 +155,6 @@ class AcademicPeriodLifecycleTest extends TestCase
         $this->expectException(ClosedPeriodException::class);
 
         $exam->fresh()->delete();
-    }
-
-    public function test_exam_slots_cannot_be_changed_in_a_closed_period(): void
-    {
-        $academicPeriod = $this->openAcademicPeriod();
-        $exam = Exam::factory()->create(['academic_period_id' => $academicPeriod->id]);
-        $slot = ExamSlot::factory()->create(['exam_id' => $exam->id]);
-
-        app(ChangeAcademicPeriodStatus::class)->close($academicPeriod);
-
-        $this->expectException(ClosedPeriodException::class);
-
-        $slot->fresh()->update(['name' => 'new slot']);
     }
 
     public function test_timetable_slots_cannot_be_changed_in_a_closed_period(): void

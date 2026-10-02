@@ -35,14 +35,6 @@ class ExamController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(Exam $exam): View
-    {
-        return view('pages.exam.exam-slot.index', compact('exam'));
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Exam $exam): View

@@ -10,17 +10,16 @@ use App\Livewire\ListExamsTable;
 use App\Models\AcademicPeriod;
 use App\Models\AcademicYear;
 use App\Models\AuditEvent;
-use App\Models\CourseOffering;
 use App\Models\Exam;
-use App\Models\ExamSlot;
-use App\Models\GradeItem;
 use App\Models\School;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Schema;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
+use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
 
 class ExamTest extends TestCase
@@ -288,36 +287,6 @@ class ExamTest extends TestCase
         ]);
     }
 
-    public function test_an_exam_with_marked_papers_stays_in_its_period(): void
-    {
-        $period = $this->plannedPeriod();
-        $otherPeriod = AcademicPeriod::factory()->create([
-            'school_id' => $period->school_id,
-            'academic_year_id' => $period->academic_year_id,
-            'status' => AcademicPeriodStatus::Draft,
-        ]);
-        $exam = Exam::factory()->create(['academic_period_id' => $period->id, 'start_date' => '2026-10-05', 'stop_date' => '2026-10-09']);
-        $slot = ExamSlot::factory()->create(['exam_id' => $exam->id]);
-        $courseOffering = CourseOffering::factory()->create([
-            'school_id' => $period->school_id,
-            'academic_year_id' => $period->academic_year_id,
-            'academic_period_id' => $period->id,
-        ]);
-        GradeItem::create([
-            'school_id' => $period->school_id,
-            'course_offering_id' => $courseOffering->id,
-            'name' => 'Mid-term paper',
-        ])->forceFill(['exam_slot_id' => $slot->id])->save();
-        $this->authorized_user(['update exam']);
-
-        Livewire::test(EditExamForm::class, ['exam' => $exam])
-            ->set('academicPeriodId', (string) $otherPeriod->id)
-            ->call('save')
-            ->assertHasErrors('academicPeriodId');
-
-        $this->assertSame($period->id, $exam->fresh()->academic_period_id);
-    }
-
     // test unauthorized user cannot view exam
 
     public function test_unauthorized_user_cannot_view_exam()
@@ -338,14 +307,18 @@ class ExamTest extends TestCase
             ->assertForbidden();
     }
 
-    public function test_authorized_user_can_open_an_exam_and_manage_its_slots(): void
+    public function test_exam_slots_are_gone_with_their_permissions(): void
     {
-        $exam = Exam::factory()->create();
+        $this->assertFalse(Route::has('exam-slots.index'));
+        $this->assertFalse(Route::has('exams.show'));
+        $this->assertFalse(Schema::hasTable('exam_slots'));
+        $this->assertFalse(Schema::hasColumn('grade_items', 'exam_slot_id'));
+        $this->assertFalse(Permission::query()->where('name', 'like', '% exam slot')->exists());
 
+        $exam = Exam::factory()->create();
         $this->authorized_user(['read exam'])
-            ->get(route('exams.show', $exam))
-            ->assertOk()
-            ->assertSee('Exam Slots In '.$exam->name);
+            ->get("dashboard/exams/{$exam->id}/manage/exam-slots")
+            ->assertNotFound();
     }
 
     // test unauthorized user cannot view exam

@@ -23,7 +23,6 @@ use App\Models\CourseOffering;
 use App\Models\CustomTimetableItem;
 use App\Models\Dormitory;
 use App\Models\Exam;
-use App\Models\ExamSlot;
 use App\Models\Fee;
 use App\Models\FeeCategory;
 use App\Models\FeeInvoice;
@@ -113,6 +112,17 @@ class CrossSchoolAccessTest extends TestCase
     }
 
     /**
+     * The records that still open a page of their own. An exam is read in its
+     * table and opened only through its edit page.
+     *
+     * @return array<string, array{0: string, 1: string, 2: array<int, string>}>
+     */
+    public static function schoolOwnedReadableResources(): array
+    {
+        return array_diff_key(self::schoolOwnedResources(), array_flip(['exam']));
+    }
+
+    /**
      * The records that still open a classic edit page.
      *
      * @return array<string, array{0: string, 1: string, 2: array<int, string>}>
@@ -129,7 +139,7 @@ class CrossSchoolAccessTest extends TestCase
      */
     private static function livewireDeletedResources(): array
     {
-        return ['subject', 'exam', 'notice', 'custom timetable item', 'fee category', 'fee', 'fee invoice'];
+        return ['subject', 'notice', 'custom timetable item', 'fee category', 'fee', 'fee invoice'];
     }
 
     /**
@@ -139,7 +149,7 @@ class CrossSchoolAccessTest extends TestCase
      */
     public static function schoolOwnedDeletableResources(): array
     {
-        return array_diff_key(self::schoolOwnedResources(), array_flip(self::livewireDeletedResources()));
+        return array_diff_key(self::schoolOwnedResources(), array_flip([...self::livewireDeletedResources(), 'exam']));
     }
 
     /**
@@ -153,7 +163,7 @@ class CrossSchoolAccessTest extends TestCase
     /**
      * @param  array<int, string>  $subjects
      */
-    #[DataProvider('schoolOwnedResources')]
+    #[DataProvider('schoolOwnedReadableResources')]
     public function test_a_record_of_another_school_cannot_be_read(string $key, string $uri, array $subjects): void
     {
         $this->actAsFullyPermittedUser($subjects)
@@ -292,16 +302,6 @@ class CrossSchoolAccessTest extends TestCase
         $this->actAsFullyPermittedUser(['timetable']);
 
         Livewire::test(EditTimetableForm::class, ['timetable' => $this->records['timetable']])->assertForbidden();
-    }
-
-    public function test_an_exam_slot_of_another_school_cannot_be_read(): void
-    {
-        $exam = $this->records['exam'];
-        $slot = $this->records['examSlot'];
-
-        $this->actAsFullyPermittedUser(['exam', 'exam slot'])
-            ->get("dashboard/exams/$exam->id/manage/exam-slots/$slot->id")
-            ->assertForbidden();
     }
 
     /**
@@ -520,7 +520,6 @@ class CrossSchoolAccessTest extends TestCase
             'syllabus' => Syllabus::factory()->create([
                 'course_offering_id' => $courseOffering->id,
             ]),
-            'examSlot' => ExamSlot::factory()->create(['exam_id' => $exam->id]),
             'notice' => Notice::factory()->create(['school_id' => $this->otherSchool->id]),
             'customTimetableItem' => CustomTimetableItem::factory()->create(['school_id' => $this->otherSchool->id]),
             'fee' => Fee::factory()->create(['fee_category_id' => $feeCategory->id]),

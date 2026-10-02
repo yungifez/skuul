@@ -14,7 +14,6 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 /**
  * @property AcademicPeriodStatus $status
@@ -266,15 +265,5 @@ class AcademicPeriod extends Model
     public function exams(): HasMany
     {
         return $this->hasMany(Exam::class, 'academic_period_id');
-    }
-
-    /**
-     * Get all of the examSlots for the AcademicPeriod.
-     *
-     * @return HasManyThrough<ExamSlot, Exam, $this>
-     */
-    public function examSlots(): HasManyThrough
-    {
-        return $this->hasManyThrough(ExamSlot::class, Exam::class, 'academic_period_id');
     }
 }

@@ -54,7 +54,6 @@ class GradebookScreenTest extends TestCase
             ->assertHasNoErrors();
 
         $item = GradeItem::query()->whereBelongsTo($courseOffering)->sole();
-        $this->assertNull($item->exam_slot_id);
         $this->assertSame(60.0, $item->max_points);
         $this->assertSame($category->id, $item->grade_category_id);
 

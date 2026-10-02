@@ -164,7 +164,6 @@ class ShowAcademicYear extends DataTableComponent
             $row = $exam->toArray();
             $row['academic_period_name'] = $exam->academicPeriod->name;
             $row['edit_url'] = route('exams.edit', $exam);
-            $row['view_url'] = route('exams.show', $exam);
 
             return $row;
         })->values()->all();

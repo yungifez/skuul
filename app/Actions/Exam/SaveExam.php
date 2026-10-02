@@ -7,7 +7,6 @@ use App\Enums\AuditAction;
 use App\Exceptions\InvalidValueException;
 use App\Models\AcademicPeriod;
 use App\Models\Exam;
-use App\Models\GradeItem;
 use App\Models\User;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -49,21 +48,13 @@ class SaveExam
      *
      * @param  array{name: string, description: string|null, academic_period_id: int, start_date: string, stop_date: string}  $attributes
      *
-     * @throws InvalidValueException when the dates or the name do not fit the period, or its papers are already marked
+     * @throws InvalidValueException when the dates or the name do not fit the period
      */
     public function update(Exam $exam, array $attributes, User $actor): Exam
     {
         return DB::transaction(function () use ($exam, $attributes, $actor): Exam {
             $exam = Exam::query()->whereKey($exam->getKey())->lockForUpdate()->firstOrFail();
             $period = $this->lockedPeriod($attributes['academic_period_id']);
-
-            $isMoving = $period->getKey() !== $exam->academic_period_id;
-
-            // The gradebook columns of a paper belong to the classes of the old
-            // period, so moving the exam would leave its marks in the wrong term.
-            if ($isMoving && GradeItem::query()->whereIn('exam_slot_id', $exam->examSlots()->select('id'))->exists()) {
-                throw new InvalidValueException('Papers in this exam are already in the gradebook, so it stays in its reporting period.');
-            }
 
             $this->refuseDatesOutside($period, $attributes);
             $this->refuseATakenName($period, $attributes['name'], $exam);
