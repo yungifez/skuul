@@ -14,7 +14,7 @@
             @endif
         </p>
 
-        <dl class="grid grid-cols-2 gap-x-6 gap-y-4 border-y py-4">
+        <dl class="grid grid-cols-1 gap-x-6 gap-y-4 border-y py-4 sm:grid-cols-2">
             <div>
                 <dt class="text-sm text-muted-foreground">Owed</dt>
                 <dd @class(['text-2xl font-semibold tabular-nums tracking-tight', 'text-muted-foreground' => !$owes]) id="account-owed">{{ money_text($balance) }}</dd>

@@ -83,7 +83,7 @@
                 <dt class="text-sm text-muted-foreground">Charged</dt>
                 <dd class="font-medium tabular-nums">{{ $charged->formatToLocale($locale) }}</dd>
             </div>
-            <div>
+            <div class="col-span-2 sm:col-span-1">
                 <dt class="text-sm text-muted-foreground">Owed</dt>
                 <dd @class(['text-2xl font-semibold tabular-nums tracking-tight', 'text-muted-foreground' => !$feeInvoice->balance->isPositive()]) id="invoice-owed">{{ $feeInvoice->balance->formatToLocale($locale) }}</dd>
             </div>

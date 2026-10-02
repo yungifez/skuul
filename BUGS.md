@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Large sums ran off a phone screen
+- Status: Fixed
+- Area: Finance, invoice, payment and account screens
+- Observed: At 390px wide, a large sum such as "NGN 12,345,678.00" was wider than its half of the summary grid. The figure ran past the screen edge.
+- Impact: The office could not read the full sum owed on a phone. The page scrolled sideways.
+- Reproduction: Open an invoice of more than NGN 1,000,000 on a 390px screen. Look at Owed.
+- Resolution: Large sums now take a full row on phones and go back to the grid on wider screens. This applies to the invoice, take payment, student account and finance overview screens.
+
 ## A cheque or transfer could be recorded with no reference
 - Status: Fixed
 - Area: Finance, taking payments and refunds

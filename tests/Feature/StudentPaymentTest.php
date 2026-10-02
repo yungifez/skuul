@@ -440,6 +440,19 @@ class StudentPaymentTest extends TestCase
         $this->assertSame(4_000, $lines[1]->fresh()->paid->getMinorAmount()->toInt());
     }
 
+    public function test_large_sums_owed_get_a_full_row_on_a_phone(): void
+    {
+        $this->authorized_user(['read fee invoice', 'update fee invoice']);
+        $enrollment = $this->enrollment();
+        $invoice = $this->invoiceFor($enrollment, [['amount' => 12_345_678]]);
+
+        Livewire::test(TakeInvoicePayment::class, ['feeInvoice' => $invoice])
+            ->assertSeeHtmlInOrder(['<div class="col-span-2 sm:col-span-1">', 'Owed', 'id="payment-owed"']);
+
+        Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment])
+            ->assertSeeHtml('grid grid-cols-1 gap-x-6 gap-y-4 border-y py-4 sm:grid-cols-2');
+    }
+
     public function test_a_cheque_needs_its_number_and_cash_does_not(): void
     {
         $this->authorized_user(['read fee invoice', 'update fee invoice']);

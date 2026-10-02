@@ -47,7 +47,7 @@
             @endif
 
             <dl class="grid grid-cols-2 gap-x-6 gap-y-4 border-y py-4 sm:grid-cols-4">
-                <div>
+                <div class="col-span-2 sm:col-span-1">
                     <dt class="text-sm text-muted-foreground">Owed</dt>
                     <dd class="text-2xl font-semibold tabular-nums tracking-tight" id="finance-owed">{{ money_text($summary['outstanding']) }}</dd>
                 </div>
@@ -55,11 +55,11 @@
                     <dt class="text-sm text-muted-foreground">Overdue invoices</dt>
                     <dd @class(['text-2xl font-semibold tabular-nums tracking-tight', 'text-destructive' => $summary['overdue'] > 0, 'text-muted-foreground' => $summary['overdue'] === 0])>{{ $summary['overdue'] }}</dd>
                 </div>
-                <div>
+                <div class="col-span-2 sm:col-span-1">
                     <dt class="text-sm text-muted-foreground">Received</dt>
                     <dd class="text-2xl font-semibold tabular-nums tracking-tight">{{ money_text($summary['received']) }}</dd>
                 </div>
-                <div>
+                <div class="col-span-2 sm:col-span-1">
                     <dt class="text-sm text-muted-foreground">Spent</dt>
                     <dd @class(['text-2xl font-semibold tabular-nums tracking-tight', 'text-muted-foreground' => $summary['spent'] == 0])>{{ money_text($summary['spent']) }}</dd>
                 </div>
