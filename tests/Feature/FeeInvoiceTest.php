@@ -83,7 +83,10 @@ class FeeInvoiceTest extends TestCase
         $this->memberOf($school, $studentRecord->user);
         // The table lists the running year, newest due date first, ten to a
         // page. The last day of the year puts this invoice on the first page.
+        // The table sends its rows as JSON, so a name with an apostrophe would
+        // not match the escaped HTML that assertSee looks for.
         $feeInvoice = FeeInvoice::factory()->for($studentRecord->user)->create([
+            'name' => 'Second term fees',
             'school_id' => $school->id,
             'student_record_id' => $studentRecord->id,
             'financial_period_id' => $financialPeriod->id,

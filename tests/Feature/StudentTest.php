@@ -750,9 +750,13 @@ class StudentTest extends TestCase
         $suspended = StudentRecord::factory()->create(['status' => EnrollmentStatus::Suspended]);
         $withdrawn = StudentRecord::factory()->create(['status' => EnrollmentStatus::Withdrawn]);
 
+        // The list pages by name, so search for each learner to read their row.
         Livewire::test(ListStudentsTable::class)
+            ->set('search', $suspended->user->email)
             ->assertSee($suspended->user->email)
-            ->assertDontSee($withdrawn->user->email);
+            ->assertSee($suspended->admission_number)
+            ->set('search', $withdrawn->user->email)
+            ->assertDontSee($withdrawn->admission_number);
     }
 
     public function test_a_parent_only_reads_their_own_children(): void
