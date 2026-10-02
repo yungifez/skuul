@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Notices, holds and permissions ended on the server's day
+- Status: Fixed
+- Area: Notices, library, data sharing, staff, boarding, timetables, scheduled jobs
+- Observed: The earlier time zone fix moved bills, registers and forms to the school's clock. Other day checks still used the server's day in UTC. These checks included the notice end date, a library hold's last day, a data sharing request's end date, a leaver's last day, cover that already happened, and the default day for attendance, boarding rolls and assignments.
+- Impact: At a school in Los Angeles, a notice ending on 1 October left the board at 5 p.m. local time. A library hold ended in the middle of the afternoon. Leavers lost access before their last day was over. At a school ahead of UTC, the same things ended late.
+- Reproduction: Give a school the America/Los_Angeles zone. Publish a notice that ends today. At 5 p.m. local time, run `skuul:process-notices`. The notice expired.
+- Resolution: Each check now uses the day at the school that owns the record. The scheduled jobs check each row against its own school's date, and do not miss a school whose day is ahead of the server's.
+
 ## Large sums ran off a phone screen
 - Status: Fixed
 - Area: Finance, invoice, payment and account screens
