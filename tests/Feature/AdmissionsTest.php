@@ -293,6 +293,28 @@ class AdmissionsTest extends TestCase
         $this->assertSame(AdmissionWaitlistStatus::Offered, $offered->fresh()->status);
     }
 
+    public function test_a_learner_at_a_school_of_another_organization_is_refused_without_naming_it(): void
+    {
+        $section = $this->section(1);
+        $occupied = $this->unplacedStudent();
+        app(ChangeEnrollmentPlacement::class)->place($occupied, $section);
+        $candidate = User::factory()->create();
+        $stranger = School::factory()->create(['name' => 'Far Academy']);
+        StudentRecord::factory()->create(['user_id' => $candidate->id, 'school_id' => $stranger->id, 'status' => EnrollmentStatus::Active]);
+        app(JoinWaitlist::class)->join($section, $candidate);
+        app(ChangeEnrollmentStatus::class)->graduate($occupied);
+        $offered = app(OfferNextWaitlistEntry::class)->offer($section);
+
+        try {
+            app(AcceptWaitlistEntry::class)->accept($offered);
+            $this->fail('A learner attending another school was admitted again.');
+        } catch (InvalidValueException $exception) {
+            $this->assertSame('This candidate is enrolled at another school. Ask that school to move or transfer them.', $exception->getMessage());
+        }
+
+        $this->assertSame(1, StudentRecord::query()->where('user_id', $candidate->id)->count());
+    }
+
     public function test_a_member_of_staff_cannot_take_a_place(): void
     {
         $section = $this->section(1);

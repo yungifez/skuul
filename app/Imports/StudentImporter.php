@@ -166,11 +166,13 @@ class StudentImporter implements Importer
             ->whereRelation('user', 'email', $email)
             ->where('school_id', '!=', current_school_id())
             ->enrolled()
-            ->with('school:id,name')
+            ->with('school:id,name,organization_id')
             ->first();
 
         if ($elsewhere !== null) {
-            throw new InvalidValueException("This learner attends {$elsewhere->school?->name}. Ask that school to move or transfer them.");
+            throw new InvalidValueException($elsewhere->school?->organization_id === current_school()?->organization_id
+                ? "This learner attends {$elsewhere->school->name}. Ask that school to move or transfer them."
+                : 'This learner is enrolled at another school. Ask that school to move or transfer them.');
         }
 
         $person = User::query()->whereRaw('LOWER(email) = ?', [mb_strtolower((string) $email)])->first();

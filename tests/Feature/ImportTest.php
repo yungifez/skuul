@@ -240,6 +240,24 @@ class ImportTest extends TestCase
         $this->assertStringContainsString('Hill Campus', $batch->rows()->broken()->firstOrFail()->errors[0]);
     }
 
+    public function test_a_student_import_never_names_a_school_of_another_organization(): void
+    {
+        $this->authorized_user(['create import', 'apply import']);
+        [$academicLevel, $cycleSection] = $this->levelAndSection();
+        $stranger = School::factory()->create(['name' => 'Far Academy']);
+        $learner = User::factory()->create(['email' => 'ada.bell@gmail.com']);
+        StudentRecord::factory()->create(['user_id' => $learner->id, 'school_id' => $stranger->id, 'status' => EnrollmentStatus::Active]);
+        $runner = app(ImportRunner::class);
+
+        $batch = $runner->stage('students', [
+            $this->studentRow(['email' => 'ada.bell@gmail.com', 'level' => $academicLevel->name, 'section' => $cycleSection->name]),
+        ]);
+        $runner->apply($batch);
+
+        $this->assertSame(0, $this->enrollmentsOf('ada.bell@gmail.com'));
+        $this->assertSame('This learner is enrolled at another school. Ask that school to move or transfer them.', $batch->rows()->broken()->firstOrFail()->errors[0]);
+    }
+
     public function test_a_staff_import_refuses_a_learner(): void
     {
         $this->authorized_user(['create import', 'apply import']);

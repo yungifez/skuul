@@ -61,11 +61,13 @@ class AcceptWaitlistEntry
                 ->where('user_id', $entry->user_id)
                 ->where('school_id', '!=', $entry->school_id)
                 ->enrolled()
-                ->with('school:id,name')
+                ->with('school:id,name,organization_id')
                 ->first();
 
             if ($attendingElsewhere !== null) {
-                throw new InvalidValueException("This candidate attends {$attendingElsewhere->school?->name}. Ask that school to move or transfer them.");
+                throw new InvalidValueException($attendingElsewhere->school?->organization_id === $entry->school?->organization_id
+                    ? "This candidate attends {$attendingElsewhere->school->name}. Ask that school to move or transfer them."
+                    : 'This candidate is enrolled at another school. Ask that school to move or transfer them.');
             }
 
             $candidate = $entry->candidate()->firstOrFail();
