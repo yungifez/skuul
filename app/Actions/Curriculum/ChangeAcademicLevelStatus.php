@@ -13,9 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class ChangeAcademicLevelStatus
 {
-    public function __construct(private RecordAuditEvent $auditor)
-    {
-    }
+    public function __construct(private RecordAuditEvent $auditor) {}
 
     /**
      * Move a reusable level between lifecycle states.
@@ -41,7 +39,7 @@ class ChangeAcademicLevelStatus
             $from = $academicLevel->status;
 
             if (!$from->canMoveTo($status)) {
-                throw new InvalidValueException("A {$from->label()} academic level cannot become {$status->label()}.");
+                throw new InvalidValueException("A {$from->label()} ".strtolower(school_term('class_level', 'class'))." cannot become {$status->label()}.");
             }
 
             if ($status === AcademicStructureStatus::Archived) {
@@ -73,7 +71,7 @@ class ChangeAcademicLevelStatus
             ->count();
 
         if ($running > 0) {
-            throw new InvalidValueException("Archive the {$running} draft or active cycle sections of this level first.");
+            throw new InvalidValueException("Archive the {$running} draft or active ".strtolower(school_terms('section', 'sections')).' of this '.strtolower(school_term('class_level', 'class')).' first.');
         }
     }
 }

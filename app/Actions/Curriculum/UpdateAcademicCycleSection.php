@@ -88,7 +88,7 @@ class UpdateAcademicCycleSection
         ?User $homeroomTeacher,
     ): void {
         if ($section->status === AcademicStructureStatus::Archived) {
-            throw new InvalidValueException('An archived cycle section cannot be edited.');
+            throw new InvalidValueException('An archived '.strtolower(school_term('section', 'section')).' cannot be edited.');
         }
 
         if ($section->academicYear->isClosed()) {

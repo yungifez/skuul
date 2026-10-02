@@ -41,7 +41,7 @@ class UpdateAcademicLevel
             $academicLevel = AcademicLevel::query()->lockForUpdate()->findOrFail($academicLevel->id);
 
             if ($academicLevel->status === AcademicStructureStatus::Archived) {
-                throw new InvalidValueException('An archived academic level cannot be edited.');
+                throw new InvalidValueException('An archived '.strtolower(school_term('class_level', 'class')).' cannot be edited.');
             }
 
             $before = [
@@ -114,15 +114,15 @@ class UpdateAcademicLevel
 
         if ($parent !== null) {
             if ($parent->school_id !== $academicLevel->school_id) {
-                throw new InvalidValueException('The parent academic level belongs to another school.');
+                throw new InvalidValueException('That level group belongs to another school.');
             }
 
             if ($parent->id === $academicLevel->id) {
-                throw new InvalidValueException('An academic level cannot be its own parent.');
+                throw new InvalidValueException('A level cannot sit under itself.');
             }
 
             if ($this->descendsFrom($parent, $academicLevel)) {
-                throw new InvalidValueException('That parent sits under this academic level already.');
+                throw new InvalidValueException('That level group sits under this one already.');
             }
         }
     }

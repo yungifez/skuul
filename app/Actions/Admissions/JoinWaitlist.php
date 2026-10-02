@@ -85,7 +85,7 @@ class JoinWaitlist
     private function refuseWhatDoesNotFit(AcademicCycleSection $section, User $candidate): void
     {
         if ($section->status !== AcademicStructureStatus::Active) {
-            throw new InvalidValueException('Activate the cycle section before opening its admission queue.');
+            throw new InvalidValueException('Activate the '.strtolower(school_term('section', 'section')).' before opening its admission queue.');
         }
 
         if ($section->academicYear->isClosed()) {

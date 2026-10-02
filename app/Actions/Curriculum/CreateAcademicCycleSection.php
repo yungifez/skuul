@@ -73,7 +73,7 @@ class CreateAcademicCycleSection
         ?User $homeroomTeacher,
     ): void {
         if ($academicYear->school_id !== $academicLevel->school_id) {
-            throw new InvalidValueException('The academic level belongs to another school.');
+            throw new InvalidValueException('That '.strtolower(school_term('class_level', 'class')).' belongs to another school.');
         }
 
         if ($academicLevel->is_group) {

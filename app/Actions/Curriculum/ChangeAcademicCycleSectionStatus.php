@@ -37,7 +37,7 @@ class ChangeAcademicCycleSectionStatus
             $from = $section->status;
 
             if (!$from->canMoveTo($status)) {
-                throw new InvalidValueException("A {$from->label()} cycle section cannot become {$status->label()}.");
+                throw new InvalidValueException("A {$from->label()} ".strtolower(school_term('section', 'section'))." cannot become {$status->label()}.");
             }
 
             if ($status === AcademicStructureStatus::Active && $section->academicYear->isClosed()) {

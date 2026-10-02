@@ -28,7 +28,7 @@ class CreateAcademicLevel
         $schoolId = current_school_id();
 
         if ($parent !== null && $parent->school_id !== $schoolId) {
-            throw new InvalidValueException('The parent academic level belongs to another school.');
+            throw new InvalidValueException('That level group belongs to another school.');
         }
 
         if ($isGroup && $parent !== null) {

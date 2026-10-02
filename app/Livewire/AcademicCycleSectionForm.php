@@ -175,7 +175,7 @@ class AcademicCycleSectionForm extends Component
         }
 
         if ($section !== null) {
-            session()->flash('success', 'Cycle section updated.');
+            session()->flash('success', school_term('section', 'Section').' updated.');
             $this->redirectRoute('academic-cycle-sections.show', $saved);
 
             return;
@@ -195,7 +195,7 @@ class AcademicCycleSectionForm extends Component
             return;
         }
 
-        session()->flash('success', 'Cycle section created as a draft. Activate it when the setup is right.');
+        session()->flash('success', school_term('section', 'Section').' created as a draft. Activate it when the setup is right.');
         $this->redirectRoute('academic-cycle-sections.show', $saved);
     }
 

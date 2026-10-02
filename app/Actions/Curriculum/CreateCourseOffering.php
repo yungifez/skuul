@@ -176,7 +176,7 @@ class CreateCourseOffering
         }
 
         if ($academicLevel->school_id !== $academicYear->school_id) {
-            throw new InvalidValueException('The academic level belongs to another school.');
+            throw new InvalidValueException('That '.strtolower(school_term('class_level', 'class')).' belongs to another school.');
         }
 
         if ($academicLevel->is_group && $rosterMode !== RosterMode::AcademicLevel) {
@@ -191,7 +191,7 @@ class CreateCourseOffering
         }
 
         if ($studentRecords->count() !== count($studentRecordIds)) {
-            throw new InvalidValueException('Every named learner must actively attend this academic level in this school.');
+            throw new InvalidValueException('Every named learner must actively attend this '.strtolower(school_term('class_level', 'class')).' in this school.');
         }
 
         if (

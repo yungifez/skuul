@@ -157,6 +157,18 @@ class AcademicStructureScreenTest extends TestCase
         $this->assertNotNull(AuditEvent::ofAction(AuditAction::AcademicLevelUpdated)->forSubject($academicLevel)->first());
     }
 
+    public function test_adding_a_class_speaks_the_school_words(): void
+    {
+        $this->authorized_user(['read class', 'create class']);
+
+        Livewire::test(AcademicLevelForm::class)
+            ->set('name', 'Primary 5')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame('Class created. Add a section to use it this school year.', session('success'));
+    }
+
     public function test_a_level_is_archived_only_when_no_section_of_it_still_runs(): void
     {
         $this->authorized_user(['read class', 'update class']);

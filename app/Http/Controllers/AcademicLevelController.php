@@ -63,7 +63,7 @@ class AcademicLevelController extends Controller
         if (!$academicLevel->isEditable()) {
             return redirect()
                 ->route('academic-levels.show', $academicLevel)
-                ->with('danger', 'An archived academic level cannot be edited.');
+                ->with('danger', 'An archived '.strtolower(school_term('class_level', 'class')).' cannot be edited.');
         }
 
         return view('pages.academic-level.edit', compact('academicLevel'));

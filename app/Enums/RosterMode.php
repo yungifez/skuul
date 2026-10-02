@@ -40,7 +40,7 @@ enum RosterMode: string
         return match ($this) {
             self::HomeSection => 'One '.$sectionLabel,
             self::CombinedHomeSections => 'Combined '.$sectionsLabel,
-            self::AcademicLevel => 'Whole academic level',
+            self::AcademicLevel => 'Whole class',
             self::IndividualRoster => 'Named learners',
         };
     }
@@ -53,7 +53,7 @@ enum RosterMode: string
         return match ($this) {
             self::HomeSection => 'The learners of one '.$sectionLabel.' attend.',
             self::CombinedHomeSections => 'The learners of several '.$sectionsLabel.' attend together.',
-            self::AcademicLevel => 'Every learner of the academic level attends.',
+            self::AcademicLevel => 'Every learner of the class attends.',
             self::IndividualRoster => 'Staff choose each learner who attends.',
         };
     }

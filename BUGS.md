@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Messages spoke of "academic levels" and "cycle sections"
+- Status: Fixed
+- Area: Classes, sections, admissions, audit log
+- Observed: Screens call them classes and sections, or the words the school chose. About 25 messages used the internal names instead. For example, adding a class said "Academic level created. Add a cycle section to use it in a cycle."
+- Impact: Staff met words they never see anywhere else. A school that renamed "section" to "stream" or "arm" still read "cycle section".
+- Reproduction: Add a class. Read the message at the top of the screen.
+- Resolution: The messages now use the school's own words for class, section, term and school year. The audit log says "Class created" and "Section created".
+
 ## Moves, admissions and holds took the server's date
 - Status: Fixed
 - Area: Enrollment, admissions, boarding, library, support plans

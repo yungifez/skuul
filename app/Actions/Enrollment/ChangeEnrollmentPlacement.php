@@ -77,7 +77,7 @@ class ChangeEnrollmentPlacement
             // another way cannot fill it before the family answers.
             if ($this->seats->isFull($academicCycleSection)) {
                 throw new InvalidValueException(
-                    "The cycle section is full at {$academicCycleSection->capacity} seats, counting open waitlist offers. Add the candidate to its admission waitlist instead."
+                    'The '.strtolower(school_term('section', 'section'))." is full at {$academicCycleSection->capacity} seats, counting open waitlist offers. Add the candidate to its admission waitlist instead."
                 );
             }
 
@@ -131,7 +131,7 @@ class ChangeEnrollmentPlacement
         }
 
         if ($academicCycleSection->school_id !== $enrollment->school_id) {
-            throw new InvalidValueException('The cycle section belongs to another school.');
+            throw new InvalidValueException('That '.strtolower(school_term('section', 'section')).' belongs to another school.');
         }
 
         if ($academicCycleSection->academicYear->isClosed()) {
@@ -139,11 +139,11 @@ class ChangeEnrollmentPlacement
         }
 
         if ($academicCycleSection->status !== AcademicStructureStatus::Active) {
-            throw new InvalidValueException('Activate the cycle section before placing a student in it.');
+            throw new InvalidValueException('Activate the '.strtolower(school_term('section', 'section')).' before placing a student in it.');
         }
 
         if ($academicPeriod !== null && $academicPeriod->academic_year_id !== $academicCycleSection->academic_year_id) {
-            throw new InvalidValueException('The academic period does not belong to the cycle section’s academic year.');
+            throw new InvalidValueException('That '.strtolower(school_term('period', 'period')).' is not part of the '.strtolower(school_term('section', 'section')).'’s '.strtolower(school_term('academic_year', 'school year')).'.');
         }
     }
 

@@ -146,7 +146,7 @@ class AcademicLevelForm extends Component
         }
 
         if ($academicLevel !== null) {
-            session()->flash('success', 'Academic level updated.');
+            session()->flash('success', school_term('class_level', 'Class').' updated.');
             $this->redirectRoute('academic-levels.show', $academicLevel);
 
             return;
@@ -185,7 +185,7 @@ class AcademicLevelForm extends Component
             return;
         }
 
-        session()->flash('success', 'Academic level created. Add a cycle section to use it in a cycle.');
+        session()->flash('success', school_term('class_level', 'Class').' created. Add a '.strtolower(school_term('section', 'section')).' to use it this '.strtolower(school_term('academic_year', 'school year')).'.');
         $this->redirectRoute('academic-levels.show', $created);
     }
 
