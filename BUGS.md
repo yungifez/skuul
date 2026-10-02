@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Error pages show the framework's bare default
+- Status: Fixed
+- Area: Errors
+- Observed: A 403, 404, 419 or 500 showed Laravel's plain page with no app look and no way back.
+- Impact: A staff member who hit a closed page had to edit the address bar to get out. A 403 also hid the reason the app gave.
+- Reproduction: As a school admin, open /dashboard/organizations/1.
+- Resolution: Add app-styled pages for 401, 403, 404, 409, 419, 429, 500 and 503 on one shared layout. Each has a dashboard link and a back button. The 403 keeps a reason the app gave. ErrorPagesTest covers them.
+
 ## The waiver form is cut off on a phone
 
 - Status: Fixed
