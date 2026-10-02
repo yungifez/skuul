@@ -2,7 +2,8 @@
 
 namespace App\Services\Demo;
 
-use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\DemoSchoolSeeder;
+use Database\Seeders\RunInProductionSeeder;
 use Database\Seeders\WorldSeeder;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +23,8 @@ class DemoDataRefresher
     public function __construct(private PermissionRegistrar $permissionRegistrar) {}
 
     /**
-     * Empty every application table and seed the demo school again.
+     * Empty every application table, load the roles and permissions, and
+     * build the demo school again.
      */
     public function refresh(): void
     {
@@ -42,7 +44,8 @@ class DemoDataRefresher
             Artisan::call('db:seed', ['--class' => WorldSeeder::class, '--force' => true]);
         }
 
-        Artisan::call('db:seed', ['--class' => DatabaseSeeder::class, '--force' => true]);
+        Artisan::call('db:seed', ['--class' => RunInProductionSeeder::class, '--force' => true]);
+        Artisan::call('db:seed', ['--class' => DemoSchoolSeeder::class, '--force' => true]);
     }
 
     /**

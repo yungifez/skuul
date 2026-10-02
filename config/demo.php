@@ -17,16 +17,16 @@ return [
 
     /*
      | The seeded accounts the sign-in page offers, by the role they show.
-     | DatabaseSeeder creates them, all with the same password.
+     | DemoSchoolSeeder creates them, all with the same password.
      */
     'accounts' => [
-        'Platform administrator' => 'super@example.com',
-        'School administrator' => 'admin@example.com',
-        'Teacher' => 'teacher@example.com',
-        'Student' => 'student@example.com',
-        'Parent' => 'parent@example.com',
-        'Accountant' => 'accountant@example.com',
-        'Librarian' => 'libratian@example.com',
+        'Platform administrator' => 'megan.carter@staff.riversideusd.example',
+        'School administrator' => 'david.nguyen@staff.riversideusd.example',
+        'Teacher' => 'sarah.mitchell@staff.riversideusd.example',
+        'Student' => 'ethan.brooks@student.riversideusd.example',
+        'Parent' => 'laura.brooks@family.riversideusd.example',
+        'Accountant' => 'james.patel@staff.riversideusd.example',
+        'Librarian' => 'emily.rodriguez@staff.riversideusd.example',
     ],
 
     'password' => 'password',

@@ -102,7 +102,7 @@ class DemoModeTest extends TestCase
             ->assertOk()
             ->assertSee('Try the demo as')
             ->assertSee('School administrator')
-            ->assertSee('teacher@example.com')
+            ->assertSee('sarah.mitchell@staff.riversideusd.example')
             ->assertDontSee('creates your account and emails you an invitation link');
     }
 
@@ -113,7 +113,7 @@ class DemoModeTest extends TestCase
         $this->get(route('login'))
             ->assertOk()
             ->assertDontSee('Try the demo as')
-            ->assertDontSee('teacher@example.com')
+            ->assertDontSee('sarah.mitchell@staff.riversideusd.example')
             ->assertSee('creates your account and emails you an invitation link');
     }
 }
