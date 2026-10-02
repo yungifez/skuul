@@ -198,6 +198,11 @@ enum AuditAction: string
     case FeesRelieved = 'fee_invoice.relieved';
 
     /**
+     * An invoice from before the books was put on the learner's account.
+     */
+    case InvoiceBroughtIntoBooks = 'fee_invoice.brought_into_books';
+
+    /**
      * A learner's balance followed them to another campus of the same purse.
      */
     case BalanceCarriedToCampus = 'student.balance_carried_to_campus';
@@ -750,6 +755,7 @@ enum AuditAction: string
             self::StudentCreditApplied => 'Credit used against fees',
             self::StudentRefunded => 'Money given back',
             self::FeesRelieved => 'Fees waived or written off',
+            self::InvoiceBroughtIntoBooks => 'Older invoice put in the books',
             self::BalanceCarriedToCampus => 'Balance carried to another campus',
             self::BillingGroupChanged => 'Billing group changed',
             self::BudgetSet => 'Budget set',

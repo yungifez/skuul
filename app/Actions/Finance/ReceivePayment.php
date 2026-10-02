@@ -29,6 +29,7 @@ class ReceivePayment
     public function __construct(
         private RecordStudentPayment $post,
         private AllocationPlanner $planner,
+        private BringInvoiceIntoTheBooks $bringIn,
         private PaymentChannelRegistry $channels,
         private RecordAuditEvent $auditor,
         private CarryBalanceToCampus $carry,
@@ -74,6 +75,10 @@ class ReceivePayment
 
         return DB::transaction(function () use ($enrollment, $amount, $channel, $method, $allocations, $onlyInvoice, $reference, $note, $receivedOn, $actor, $source, $schoolId): StudentPayment {
             $this->refuseAReferenceAlreadyRecorded($enrollment, $reference, $schoolId);
+
+            // Bills from before the books must be on the account before money
+            // settles them, or the account and its bills disagree.
+            $this->bringIn->forLearner($enrollment, $schoolId, $actor);
 
             // The split is worked out under the lock, so two payments at the
             // same moment cannot both settle the same fee.

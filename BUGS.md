@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Money taken on an older invoice put the account out of step with its bills
+
+- Status: Fixed
+- Area: Finance, upgrades, student accounts
+- Observed: Invoices raised before the ledger existed have no ledger entry. A payment on one still went into the books and settled the invoice's lines. One learner's account showed NGN 85.00 owed while the invoices on the same page showed about NGN 20 million.
+- Impact: After an upgrade, the account balance, the dashboard and the books understated what families owed, and a payment could cut another invoice's debt in the books.
+- Reproduction: On a school upgraded from an older version, open a learner's account with old invoices. Take a payment on one of them. The account's owed figure does not match the invoices.
+- Resolution: A payment or a use of credit now first puts the learner's older invoices at that campus in the books, charging what each still owes after payments the books never saw. The new `skuul:bring-invoices-into-books` command does this for every older invoice once, after an upgrade. `LegacyInvoiceBooksTest` covers both paths.
+
 ## A parent could read other families' accounts and the school's money
 
 - Status: Fixed

@@ -29,6 +29,7 @@ class ApplyStudentCredit
         private PostLedgerTransaction $post,
         private ChartOfAccounts $chart,
         private AllocationPlanner $planner,
+        private BringInvoiceIntoTheBooks $bringIn,
         private RecordAuditEvent $auditor,
         private StudentLedger $ledger,
     ) {}
@@ -56,6 +57,7 @@ class ApplyStudentCredit
             // Every change to a learner's money locks their record first, so
             // the same credit cannot be spent twice at the same moment.
             StudentRecord::query()->whereKey($enrollment->getKey())->lockForUpdate()->first();
+            $this->bringIn->forLearner($enrollment, $schoolId, $actor);
 
             $credit = $this->creditHeld($enrollment, $schoolId);
 
