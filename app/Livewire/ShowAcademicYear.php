@@ -148,13 +148,13 @@ class ShowAcademicYear extends DataTableComponent
 
     protected function builder(): Builder
     {
-        return Exam::query()->whereRelation('academicPeriod', 'academic_year_id', $this->academicYear->id)->with('academicPeriod');
+        return Exam::query()->whereRelation('academicPeriod', 'academic_year_id', $this->academicYear->id)->with('academicPeriod')->orderByDesc('start_date')->orderByDesc('id');
     }
 
     /** @return array<int, Column> */
     protected function columns(): array
     {
-        return [Column::make('Name', 'name')->searchable()->sortable(), Column::make(school_term('period', 'Period'), 'academic_period_name')];
+        return [Column::make('Name', 'name')->searchable()->sortable(), Column::make(school_term('period', 'Period'), 'academic_period_name'), Column::make('Starts', 'start_date_label'), Column::make('Ends', 'stop_date_label')];
     }
 
     /** @return array<int, array<string, mixed>> */
@@ -163,6 +163,8 @@ class ShowAcademicYear extends DataTableComponent
         return $rows->map(function (Exam $exam): array {
             $row = $exam->toArray();
             $row['academic_period_name'] = $exam->academicPeriod->name;
+            $row['start_date_label'] = $exam->start_date->format('M j, Y');
+            $row['stop_date_label'] = $exam->stop_date->format('M j, Y');
             $row['edit_url'] = route('exams.edit', $exam);
 
             return $row;

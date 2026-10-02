@@ -148,6 +148,20 @@ class AcademicYearTest extends TestCase
             ->assertOk();
     }
 
+    public function test_a_new_exam_shows_first_on_the_calendar_overview_with_its_dates(): void
+    {
+        $periodId = current_school()->academic_period_id;
+        Exam::factory()->count(10)->create(['academic_period_id' => $periodId, 'start_date' => '2026-08-01', 'stop_date' => '2026-08-02']);
+        Exam::factory()->create(['name' => 'Mock exam', 'academic_period_id' => $periodId, 'start_date' => '2099-09-10', 'stop_date' => '2099-09-12']);
+        $this->authorized_user(['read academic year', 'read exam']);
+
+        $firstRow = Livewire::test(ShowAcademicYear::class, ['academicYear' => current_academic_year()])->viewData('data')[0];
+
+        $this->assertSame('Mock exam', $firstRow['name']);
+        $this->assertSame('Sep 10, 2099', $firstRow['start_date_label']);
+        $this->assertSame('Sep 12, 2099', $firstRow['stop_date_label']);
+    }
+
     public function test_the_calendar_overview_deletes_one_of_its_exams(): void
     {
         $exam = Exam::factory()->create(['academic_period_id' => current_school()->academic_period_id]);
