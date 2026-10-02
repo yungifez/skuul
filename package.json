@@ -6,16 +6,9 @@
     },
     "devDependencies": {
         "@tailwindcss/postcss": "^4.3.0",
-        "autoprefixer": "^10.4.13",
-        "axios": "^1.15.2",
         "laravel-vite-plugin": "^1.2.0",
-        "lodash": "^4.17.23",
         "postcss": "^8.5.14",
         "tailwindcss": "^4.3.0",
         "vite": "^6.4.2"
-    },
-    "dependencies": {
-        "@alpinejs/persist": "^3.10.5",
-        "alpinejs": "^3.10.5"
     }
 }

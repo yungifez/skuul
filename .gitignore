@@ -19,3 +19,4 @@ yarn-error.log
 # Tool caches. Both are rebuilt on every run.
 /storage/framework/phpstan
 .php-cs-fixer.cache
+_ide_helper.php
