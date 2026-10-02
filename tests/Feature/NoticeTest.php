@@ -141,7 +141,7 @@ class NoticeTest extends TestCase
         $this->authorized_user(['create notice'])
             ->get('dashboard/notices/create')
             ->assertSuccessful()
-            ->assertSee('<script src="/april-ui/editor', false)
+            ->assertSee('src="http://campus-two.test:8081/april-ui/editor', false)
             ->assertDontSee('http://localhost/april-ui/editor', false);
     }
 

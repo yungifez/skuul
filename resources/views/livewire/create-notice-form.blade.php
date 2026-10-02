@@ -128,8 +128,5 @@
 </form>
 
 @pushOnce('scripts')
-    @php
-        $editorVersion = json_decode(file_get_contents(base_path('vendor/yungifez/april-ui/dist/manifest.json')), true)['/editor.js'] ?? '';
-    @endphp
-    <script src="{{ route(config('app.debug') ? 'april-ui.editor.js' : 'april-ui.editor.min.js', ['ver' => $editorVersion], absolute: false) }}"></script>
+    @aprilEditorScripts
 @endPushOnce
