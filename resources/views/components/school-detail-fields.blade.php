@@ -1,4 +1,4 @@
-@props(['countries' => [], 'currentLogoUrl' => null, 'initialsFallback' => '', 'upload' => null])
+@props(['countries' => [], 'currentLogoUrl' => null, 'initialsFallback' => '', 'upload' => null, 'suggestTimezone' => false])
 
 @php
     $controlClasses = 'mt-2 h-11 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
@@ -38,7 +38,7 @@
             ->map(fn (string $zone): array => ['zone' => $zone, 'offset' => (new \DateTime('now', new \DateTimeZone($zone)))->format('P')])
             ->groupBy(fn (array $zone): string => \Illuminate\Support\Str::before($zone['zone'], '/'));
     @endphp
-    <div x-data x-init="if (!$wire.timezone) { $wire.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? '' }">
+    <div @if ($suggestTimezone) x-data x-init="if (!$wire.timezone) { $wire.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? '' }" @endif>
         <label for="timezone" class="text-sm font-medium">Time zone</label>
         <select id="timezone" wire:model="timezone" class="{{ $controlClasses }}" {{ field_error_bindings('timezone') }}>
             <option value="">Server time ({{ config('app.timezone') }})</option>

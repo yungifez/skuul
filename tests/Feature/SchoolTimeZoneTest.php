@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Actions\Enrollment\ChangeEnrollmentStatus;
 use App\Actions\Finance\ReceivePayment;
+use App\Actions\Organization\GrantOrganizationMembership;
 use App\Enums\EnrollmentStatus;
 use App\Enums\LibraryReservationStatus;
 use App\Enums\NoticeStatus;
@@ -12,6 +13,7 @@ use App\Livewire\EditSchoolForm;
 use App\Models\DataSharingRequest;
 use App\Models\LibraryReservation;
 use App\Models\Notice;
+use App\Models\Organization;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Traits\FeatureTestTrait;
@@ -44,6 +46,22 @@ class SchoolTimeZoneTest extends TestCase
             ->assertHasNoErrors();
 
         $this->assertSame('Africa/Lagos', $school->fresh()->timezone);
+    }
+
+    public function test_only_a_new_school_takes_the_browser_zone_as_a_suggestion(): void
+    {
+        $school = $this->workingSchool();
+        $this->assertNull($school->timezone);
+        $this->authorized_user(['create school', 'update school'], $school);
+        app(GrantOrganizationMembership::class)->grant(auth()->user(), Organization::factory()->create());
+
+        $this->get(route('schools.create'))
+            ->assertOk()
+            ->assertSee('Intl.DateTimeFormat', false);
+
+        $this->get(route('schools.edit', $school))
+            ->assertOk()
+            ->assertDontSee('Intl.DateTimeFormat', false);
     }
 
     public function test_a_school_without_a_zone_keeps_the_server_date(): void

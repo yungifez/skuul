@@ -22,7 +22,7 @@
             </section>
 
             <div class="flex flex-col gap-6 border-t pt-6">
-                <x-school-detail-fields :countries="$countries" :upload="$logo" :initials-fallback="str($name)->substr(0, 2)->upper()->toString()" />
+                <x-school-detail-fields :countries="$countries" :suggest-timezone="true" :upload="$logo" :initials-fallback="str($name)->substr(0, 2)->upper()->toString()" />
             </div>
 
             <div class="flex justify-end border-t pt-6">
