@@ -169,6 +169,35 @@ class AcademicStructureScreenTest extends TestCase
         $this->assertSame('Class created. Add a section to use it this school year.', session('success'));
     }
 
+    public function test_a_school_word_that_starts_with_a_vowel_takes_an(): void
+    {
+        $this->authorized_user(['read class', 'create class', 'create academic year']);
+        SchoolOperatingProfile::query()->updateOrCreate(
+            ['school_id' => $this->workingSchool()->id],
+            ['preset' => 'home_sections', 'labels' => array_replace(SchoolOperatingProfile::labelsFor('home_sections'), ['section' => 'Arm'])],
+        );
+
+        Livewire::test(AcademicLevelForm::class)
+            ->set('name', 'Primary 5')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame('Class created. Add an arm to use it this academic year.', session('success'));
+        $this->get(route('academic-years.create'))
+            ->assertOk()
+            ->assertSee('Set up an academic year')
+            ->assertDontSee('a academic year');
+    }
+
+    public function test_the_article_follows_the_sound_of_the_word(): void
+    {
+        $this->assertSame('an academic year', with_indefinite_article('academic year'));
+        $this->assertSame('an Arm', with_indefinite_article('Arm'));
+        $this->assertSame('a section', with_indefinite_article('section'));
+        $this->assertSame('a unit', with_indefinite_article('unit'));
+        $this->assertSame('a user group', with_indefinite_article('user group'));
+    }
+
     public function test_a_level_is_archived_only_when_no_section_of_it_still_runs(): void
     {
         $this->authorized_user(['read class', 'update class']);
@@ -432,7 +461,7 @@ class AcademicStructureScreenTest extends TestCase
 
         $actor->get(route('academic-cycle-sections.create'))
             ->assertOk()
-            ->assertSee('Add a '.strtolower(school_term('class_level', 'class')).' first');
+            ->assertSee('Add '.with_indefinite_article(strtolower(school_term('class_level', 'class'))).' first');
     }
 
     public function test_the_create_screen_preselects_the_level_it_was_opened_from(): void

@@ -20,7 +20,7 @@
                     <div class="flex min-w-0 flex-col gap-2">
                         <april:label for="report-card-period">{{ school_term('period', 'Academic period') }}</april:label>
                         <april:native-select id="report-card-period" wire:model="academic_period_id" required class="w-full min-w-0">
-                            <option value="">Choose a {{ school_term('period', 'period') }}</option>
+                            <option value="">Choose {{ with_indefinite_article(strtolower(school_term('period', 'period'))) }}</option>
                             @foreach ($periods as $period)
                                 <option value="{{ $period->id }}">{{ $period->academicYear?->name }} · {{ $period->displayName }}</option>
                             @endforeach

@@ -85,7 +85,7 @@
                             </april:dropdown-menu-item>
                         @endif
                         @if ($levelMenu['addChild'])
-                            <april:dropdown-menu-item x-on:click="window.location.href = '{{ route('academic-levels.create', ['parent_id' => $academicLevel->id] + $setupParameters) }}'" aria-label="Add a {{ $levelTerm }} under {{ $academicLevel->name }}">
+                            <april:dropdown-menu-item x-on:click="window.location.href = '{{ route('academic-levels.create', ['parent_id' => $academicLevel->id] + $setupParameters) }}'" aria-label="Add {{ with_indefinite_article($levelTerm) }} under {{ $academicLevel->name }}">
                                 <x-lucide-folder-plus class="mr-2 size-4" />Add {{ $levelTerm }} inside
                             </april:dropdown-menu-item>
                         @endif
@@ -143,7 +143,7 @@
                     <p class="flex min-h-11 items-center gap-2 text-sm text-muted-foreground">
                         No {{ strtolower(school_terms('section', 'sections')) }} this year
                         @if ($levelMenu['addSection'])
-                            <a href="{{ route('academic-cycle-sections.create', ['academic_level_id' => $academicLevel->id] + $setupParameters) }}" class="select-none font-medium text-foreground underline-offset-4 hover:underline" aria-label="Add a {{ $sectionTerm }} under {{ $academicLevel->name }}">Add {{ $sectionTerm }}</a>
+                            <a href="{{ route('academic-cycle-sections.create', ['academic_level_id' => $academicLevel->id] + $setupParameters) }}" class="select-none font-medium text-foreground underline-offset-4 hover:underline" aria-label="Add {{ with_indefinite_article($sectionTerm) }} under {{ $academicLevel->name }}">Add {{ $sectionTerm }}</a>
                         @endif
                     </p>
                 @endif

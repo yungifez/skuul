@@ -84,7 +84,7 @@
 
                 @if ($choosesSections)
                     @if ($selectedLevel === null)
-                        <p class="text-sm text-muted-foreground">Choose a {{ strtolower(school_term('class_level', 'class')) }} to see its {{ $sectionsTerm }}.</p>
+                        <p class="text-sm text-muted-foreground">Choose {{ with_indefinite_article(strtolower(school_term('class_level', 'class'))) }} to see its {{ $sectionsTerm }}.</p>
                     @elseif ($sections->isEmpty())
                         <p class="text-sm text-muted-foreground">No {{ $sectionsTerm }} in {{ $selectedLevel->name }} this year.</p>
                     @else
@@ -103,7 +103,7 @@
                     <p class="text-sm">Everyone in {{ $selectedLevel?->name ?? 'the '.strtolower(school_term('class_level', 'class')) }}</p>
                 @elseif ($rosterMode === \App\Enums\RosterMode::IndividualRoster->value)
                     @if ($learners->isEmpty())
-                        <p class="text-sm text-muted-foreground">{{ $selectedLevel === null ? 'Choose a '.strtolower(school_term('class_level', 'class')).' to see its learners.' : 'No learners in '.$selectedLevel->name.' yet.' }}</p>
+                        <p class="text-sm text-muted-foreground">{{ $selectedLevel === null ? 'Choose '.with_indefinite_article(strtolower(school_term('class_level', 'class'))).' to see its learners.' : 'No learners in '.$selectedLevel->name.' yet.' }}</p>
                     @else
                         <ul class="max-h-72 divide-y overflow-y-auto border-y" aria-label="Learners">
                             @foreach ($learners as $learner)

@@ -12,7 +12,7 @@
     <april:card class="mx-auto max-w-3xl">
         <slot:title>Edit the reusable {{ strtolower(school_term('class_level', 'class')) }}</slot:title>
         <slot:description>
-            A change here renames the {{ strtolower(school_term('class_level', 'class')) }} everywhere it is read. It never moves a learner, a result, or a {{ strtolower(school_term('section', 'section')) }} between school years.
+            A change here renames the {{ strtolower(school_term('class_level', 'class')) }} everywhere it is read. It never moves a learner, a result, or {{ with_indefinite_article(strtolower(school_term('section', 'section'))) }} between school years.
         </slot:description>
         <slot:content>
             <livewire:academic-level-form :academic-level="$academicLevel" />

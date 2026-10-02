@@ -246,7 +246,7 @@ class SetupWizardTest extends TestCase
             ->assertSee('2 without a teacher')
             ->assertSee('No teacher')
             ->assertSee('Actions for Primary 4')
-            ->assertSee('Add a '.strtolower(school_term('section', 'section')).' under Primary 5')
+            ->assertSee('Add '.with_indefinite_article(strtolower(school_term('section', 'section'))).' under Primary 5')
             ->assertSee(e(route('academic-cycle-sections.create', ['academic_level_id' => $emptyLevel->id, 'setup' => 1, 'academic_year_id' => $academicYear->id])), false)
             ->assertDontSee('No additional details yet')
             ->assertDontSee('Build this year’s classes');

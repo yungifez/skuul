@@ -41,7 +41,7 @@
             <x-empty-state
                 icon="lucide-graduation-cap"
                 title="No {{ strtolower(school_terms('class_level', 'Class')) }} yet"
-                description="A {{ strtolower(school_term('section', 'section')) }} needs a {{ strtolower(school_term('class_level', 'class')) }} first, such as Primary 1.">
+                description="{{ ucfirst(with_indefinite_article(strtolower(school_term('section', 'section')))) }} needs {{ with_indefinite_article(strtolower(school_term('class_level', 'class'))) }} first, such as Primary 1.">
                 <x-resource-create-action :href="route('academic-levels.create')" ability="create" :arguments="[\App\Models\AcademicLevel::class]">Add {{ school_term('class_level', 'class') }}</x-resource-create-action>
             </x-empty-state>
         @elseif (!$hasMatches)

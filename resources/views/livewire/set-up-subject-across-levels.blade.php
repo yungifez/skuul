@@ -10,7 +10,7 @@
             <div>
                 <label for="subject" class="sr-only">{{ school_term('course', 'Subject') }}</label>
                 <select id="subject" wire:model="subjectId" class="{{ $controlClasses }}" {{ field_error_bindings('subjectId') }}>
-                    <option value="">Choose a {{ strtolower(school_term('course', 'subject')) }}</option>
+                    <option value="">Choose {{ with_indefinite_article(strtolower(school_term('course', 'subject'))) }}</option>
                     @foreach ($subjects as $subject)
                         <option value="{{ $subject->id }}">{{ $subject->name }}</option>
                     @endforeach
@@ -20,7 +20,7 @@
             <div>
                 <label for="academic-period" class="sr-only">{{ school_term('period', 'Academic period') }}</label>
                 <select id="academic-period" wire:model="academicPeriodId" class="{{ $controlClasses }}" {{ field_error_bindings('academicPeriodId') }}>
-                    <option value="">Choose a {{ strtolower(school_term('period', 'period')) }}</option>
+                    <option value="">Choose {{ with_indefinite_article(strtolower(school_term('period', 'period'))) }}</option>
                     <option value="all">All {{ strtolower(school_terms('period', 'periods')) }} in {{ $academicYear->name }}</option>
                     @foreach ($academicYear->topLevelPeriods as $academicPeriod)
                         <option value="{{ $academicPeriod->id }}">{{ $academicPeriod->display_name }}</option>

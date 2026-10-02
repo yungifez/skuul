@@ -16,7 +16,7 @@
                 <slot:empty>
                     <div class="space-y-1">
                         <p class="font-medium text-foreground">No {{ strtolower(school_terms('academic_year', 'school years')) }} yet</p>
-                        <p>Set up a {{ strtolower(school_term('academic_year', 'school year')) }} to define the reporting periods staff will use.</p>
+                        <p>Set up {{ with_indefinite_article(strtolower(school_term('academic_year', 'school year'))) }} to define the reporting periods staff will use.</p>
                     </div>
                 </slot:empty>
 

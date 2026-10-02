@@ -8,13 +8,13 @@
 
     <april:card>
         <slot:title>Open a register</slot:title>
-        <slot:description>Choose a {{ strtolower(school_term('section', 'section')) }} and a day.</slot:description>
+        <slot:description>Choose {{ with_indefinite_article(strtolower(school_term('section', 'section'))) }} and a day.</slot:description>
         <slot:content>
             <div class="grid gap-4 md:grid-cols-[minmax(0,2fr)_minmax(12rem,1fr)] md:items-end">
                 <div class="flex flex-col gap-2">
                     <april:label for="register-section">{{ school_term('section', 'Section') }}</april:label>
                     <select id="register-section" wire:model.live="academicCycleSectionId" class="h-10 w-full rounded-md border border-input bg-background px-3 text-sm" {{ field_error_bindings('academicCycleSectionId') }}>
-                        <option value="">Choose a {{ strtolower(school_term('section', 'section')) }}</option>
+                        <option value="">Choose {{ with_indefinite_article(strtolower(school_term('section', 'section'))) }}</option>
                         @foreach ($sections as $item)
                             <option value="{{ $item->id }}">{{ $item->academicLevel?->name }} · {{ $item->label ?? $item->name }}</option>
                         @endforeach
@@ -48,9 +48,9 @@
         <april:card>
             <slot:content>
                 <x-empty-state icon="lucide-clipboard-list" title="No {{ strtolower(school_terms('section', 'sections')) }} this {{ strtolower(school_term('academic_year', 'school year')) }}"
-                    description="A register lists the learners of one {{ strtolower(school_term('section', 'section')) }}. Add and activate a {{ strtolower(school_term('section', 'section')) }} first.">
+                    description="A register lists the learners of one {{ strtolower(school_term('section', 'section')) }}. Add and activate {{ with_indefinite_article(strtolower(school_term('section', 'section'))) }} first.">
                     @can('create', App\Models\AcademicCycleSection::class)
-                        <april:button-link href="{{ route('academic-cycle-sections.create') }}" variant="outline" class="h-11 select-none">Add a {{ strtolower(school_term('section', 'section')) }}</april:button-link>
+                        <april:button-link href="{{ route('academic-cycle-sections.create') }}" variant="outline" class="h-11 select-none">Add {{ with_indefinite_article(strtolower(school_term('section', 'section'))) }}</april:button-link>
                     @endcan
                 </x-empty-state>
             </slot:content>
@@ -59,7 +59,7 @@
         <april:card>
             <slot:content>
                 <x-empty-state icon="lucide-clipboard-list" title="No register open"
-                    description="Choose a {{ strtolower(school_term('section', 'section')) }} above to mark who attended." />
+                    description="Choose {{ with_indefinite_article(strtolower(school_term('section', 'section'))) }} above to mark who attended." />
             </slot:content>
         </april:card>
     @elseif ($closure)

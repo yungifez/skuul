@@ -1,4 +1,4 @@
-<form wire:submit="save" class="flex flex-col gap-6" aria-label="{{ $academicCycleSection === null ? 'Add a '.strtolower(school_term('section', 'section')) : 'Change '.$academicCycleSection->name }}">
+<form wire:submit="save" class="flex flex-col gap-6" aria-label="{{ $academicCycleSection === null ? 'Add '.with_indefinite_article(strtolower(school_term('section', 'section'))) : 'Change '.$academicCycleSection->name }}">
     @php
         $controlClasses = 'mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring';
         $sectionWord = strtolower(school_term('section', 'section'));

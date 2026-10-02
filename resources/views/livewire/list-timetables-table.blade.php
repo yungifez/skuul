@@ -2,7 +2,7 @@
     <april:card>
         <slot:title>Timetables</slot:title>
         <slot:description>
-            A timetable repeats weekly during one {{ strtolower(school_term('period', 'period')) }}. It can belong to a {{ strtolower(school_term('section', 'section')) }} or be schoolwide.
+            A timetable repeats weekly during one {{ strtolower(school_term('period', 'period')) }}. It can belong to {{ with_indefinite_article(strtolower(school_term('section', 'section'))) }} or be schoolwide.
             The published one is what the school teaches; a change goes out as the next revision.
         </slot:description>
         <slot:content>

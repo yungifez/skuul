@@ -166,6 +166,19 @@ if (!function_exists('school_terms')) {
     }
 }
 
+if (!function_exists('with_indefinite_article')) {
+    /**
+     * Put "a" or "an" before a word, such as a school's own term for a section.
+     */
+    function with_indefinite_article(string $noun): string
+    {
+        $soundsLikeAVowel = preg_match('/^[aeiou]/i', $noun) === 1
+            && preg_match('/^(uni|use|usu|eu|one)/i', $noun) !== 1;
+
+        return ($soundsLikeAVowel ? 'an ' : 'a ').$noun;
+    }
+}
+
 if (!function_exists('school_roster_label')) {
     /**
      * Get a learner-list label that uses the school's chosen section word.

@@ -162,7 +162,7 @@ class RecordAttendance
         }
 
         if ($enrollment->academic_cycle_section_id === null) {
-            throw new InvalidValueException('Place the student in a '.strtolower(school_term('section', 'section')).' before taking attendance.');
+            throw new InvalidValueException('Place the student in '.with_indefinite_article(strtolower(school_term('section', 'section'))).' before taking attendance.');
         }
 
         if ($kind === AttendanceKind::Period && $subject === null) {
@@ -200,7 +200,7 @@ class RecordAttendance
         $section = $enrollment->sectionOn($day) ?? $enrollment->academicCycleSection;
 
         if ($section === null) {
-            throw new InvalidValueException('Place the student in a '.strtolower(school_term('section', 'section')).' before taking attendance.');
+            throw new InvalidValueException('Place the student in '.with_indefinite_article(strtolower(school_term('section', 'section'))).' before taking attendance.');
         }
 
         if ($enrollment->school_id !== null && $section->school_id !== $enrollment->school_id) {

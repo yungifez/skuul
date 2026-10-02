@@ -368,7 +368,7 @@ class AcademicCalendarSetupTest extends TestCase
         $this->authorized_user(['create academic year'])
             ->get(route('academic-years.create'))
             ->assertOk()
-            ->assertSee('Set up a '.strtolower(school_term('academic_year', 'school year')))
+            ->assertSee('Set up '.with_indefinite_article(strtolower(school_term('academic_year', 'school year'))))
             ->assertSee('Reporting structure')
             ->assertDontSee('Stop year');
     }

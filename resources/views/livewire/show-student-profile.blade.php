@@ -118,7 +118,7 @@
                         <div>
                             <label for="placement-cycle-section" class="sr-only">{{ school_term('section', 'Section') }}</label>
                             <select id="placement-cycle-section" wire:model="placementCycleSectionId" class="{{ $controlClasses }}" @disabled(!$academicYear || $isClosed) {{ field_error_bindings('placementCycleSectionId') }}>
-                                <option value="">Choose a {{ $sectionTerm }}</option>
+                                <option value="">Choose {{ with_indefinite_article($sectionTerm) }}</option>
                                 @foreach ($cycleSections as $cycleSection)
                                     <option value="{{ $cycleSection['id'] }}">{{ $cycleSection['level'] }} · {{ $cycleSection['name'] }}</option>
                                 @endforeach

@@ -185,7 +185,7 @@ class AcademicLevelForm extends Component
             return;
         }
 
-        session()->flash('success', school_term('class_level', 'Class').' created. Add a '.strtolower(school_term('section', 'section')).' to use it this '.strtolower(school_term('academic_year', 'school year')).'.');
+        session()->flash('success', school_term('class_level', 'Class').' created. Add '.with_indefinite_article(strtolower(school_term('section', 'section'))).' to use it this '.strtolower(school_term('academic_year', 'school year')).'.');
         $this->redirectRoute('academic-levels.show', $created);
     }
 

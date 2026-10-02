@@ -15,15 +15,15 @@
             @if ($academicLevels->isEmpty())
                 <x-empty-state
                     icon="lucide-graduation-cap"
-                    title="Add a {{ strtolower(school_term('class_level', 'class')) }} first"
-                    description="A {{ strtolower(school_term('section', 'section')) }} always sits inside a {{ strtolower(school_term('class_level', 'class')) }}, such as Primary 4. Create the {{ strtolower(school_term('class_level', 'class')) }} once, then reuse it every year.">
+                    title="Add {{ with_indefinite_article(strtolower(school_term('class_level', 'class'))) }} first"
+                    description="{{ ucfirst(with_indefinite_article(strtolower(school_term('section', 'section')))) }} always sits inside {{ with_indefinite_article(strtolower(school_term('class_level', 'class'))) }}, such as Primary 4. Create the {{ strtolower(school_term('class_level', 'class')) }} once, then reuse it every year.">
                     <x-resource-create-action :href="route('academic-levels.create')" ability="create" :arguments="[\App\Models\AcademicLevel::class]">Add {{ strtolower(school_term('class_level', 'class')) }}</x-resource-create-action>
                 </x-empty-state>
             @elseif ($academicYears->isEmpty())
                 <x-empty-state
                     icon="lucide-calendar"
-                    title="Add a {{ strtolower(school_term('academic_year', 'school year')) }} first"
-                    description="A {{ strtolower(school_term('section', 'section')) }} serves one exact {{ strtolower(school_term('academic_year', 'school year')) }}, so the year has to exist before the {{ strtolower(school_term('section', 'section')) }} does.">
+                    title="Add {{ with_indefinite_article(strtolower(school_term('academic_year', 'school year'))) }} first"
+                    description="{{ ucfirst(with_indefinite_article(strtolower(school_term('section', 'section')))) }} serves one exact {{ strtolower(school_term('academic_year', 'school year')) }}, so the year has to exist before the {{ strtolower(school_term('section', 'section')) }} does.">
                     <april:button-link href="{{ route('academic-years.index') }}" variant="outline">Go to academic years</april:button-link>
                 </x-empty-state>
             @else

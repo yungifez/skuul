@@ -9,7 +9,7 @@
 
 @section('content')
     <april:card class="mx-auto max-w-3xl">
-        <slot:title>Add a {{ strtolower(school_term('class_level', 'class')) }} this school teaches</slot:title>
+        <slot:title>Add {{ with_indefinite_article(strtolower(school_term('class_level', 'class'))) }} this school teaches</slot:title>
         <slot:description>
             Add one reusable level or level group. You will add this year’s {{ strtolower(school_term('section', 'section')) }} later.
         </slot:description>

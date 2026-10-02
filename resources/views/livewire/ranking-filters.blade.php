@@ -47,7 +47,7 @@
                                 <april:label for="academic_level_id">{{ school_term('class_level', 'Class') }}</april:label>
                             </div>
                             <april:native-select id="academic_level_id" wire:model.live="academicLevelId" class="w-full min-w-0">
-                                <option value="">Choose a {{ strtolower(school_term('class_level', 'class')) }}</option>
+                                <option value="">Choose {{ with_indefinite_article(strtolower(school_term('class_level', 'class'))) }}</option>
                                 <optgroup label="{{ school_terms('class_level', 'Classes') }}">
                                     @foreach ($academicLevels->where('is_group', false) as $option)
                                         <option value="{{ $option->id }}">
@@ -152,7 +152,7 @@
             <slot:content>
                 @if (!$chosen)
                     <x-empty-state icon="lucide-list-ordered" title="Choose a class or group first"
-                        description="Pick a class, a {{ strtolower(school_term('section', 'section')) }}, or a group above, then the order will update." />
+                        description="Pick a class, {{ with_indefinite_article(strtolower(school_term('section', 'section'))) }}, or a group above, then the order will update." />
                 @elseif ($rows->isEmpty())
                     <x-empty-state icon="lucide-search-x" title="Nothing to put in order"
                         description="Nobody in this group has a published result for what you chose." />

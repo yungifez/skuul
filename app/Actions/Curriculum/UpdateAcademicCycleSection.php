@@ -101,7 +101,7 @@ class UpdateAcademicCycleSection
             }
 
             if (!$homeroomTeacher->hasRole(Role::Teacher->value)) {
-                throw new InvalidValueException('Only a teacher can be a '.strtolower(school_term('homeroom_teacher', 'class teacher')).'.');
+                throw new InvalidValueException('Only a teacher can be '.with_indefinite_article(strtolower(school_term('homeroom_teacher', 'class teacher'))).'.');
             }
         }
     }

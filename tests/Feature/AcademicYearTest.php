@@ -65,7 +65,7 @@ class AcademicYearTest extends TestCase
         $this->authorized_user(['create academic year'])
             ->get('/dashboard/academic-years/create')
             ->assertOk()
-            ->assertSee('Set up a '.strtolower(school_term('academic_year', 'school year')));
+            ->assertSee('Set up '.with_indefinite_article(strtolower(school_term('academic_year', 'school year'))));
     }
 
     public function test_an_unauthorized_user_cannot_edit_a_school_calendar(): void

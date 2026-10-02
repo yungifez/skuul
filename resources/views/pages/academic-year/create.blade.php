@@ -5,9 +5,9 @@
 
 ]])
 
-@section('title', __('Set up a '.strtolower(school_term('academic_year', 'school year'))))
+@section('title', __('Set up '.with_indefinite_article(strtolower(school_term('academic_year', 'school year')))))
 
-@section('page_heading', __('Set up a '.strtolower(school_term('academic_year', 'school year'))))
+@section('page_heading', __('Set up '.with_indefinite_article(strtolower(school_term('academic_year', 'school year')))))
 
 @section('content')
     <div class="mx-auto flex w-full max-w-5xl flex-col gap-6">
