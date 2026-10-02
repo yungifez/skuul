@@ -9,6 +9,7 @@ use App\Actions\Jetstream\DeleteUser;
 use App\Enums\OrganizationPermission;
 use App\Enums\PlatformPermission;
 use App\Events\AccountStatusChanged;
+use App\Exceptions\DemoDeletionRefused;
 use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\EnsureFeatureIsEnabled;
 use App\Http\Middleware\RequireActiveSchool;
@@ -40,6 +41,7 @@ use Laravel\Jetstream\Jetstream;
 use Livewire\Component;
 use Livewire\Livewire;
 use Livewire\Mechanisms\HandleComponents\ComponentContext;
+use Throwable;
 
 use function Livewire\on;
 
@@ -120,6 +122,31 @@ class AppServiceProvider extends ServiceProvider
 
         $this->keepLivewireInsideItsSchool();
         $this->keepDatesInsideTheDatabase();
+        $this->keepTheDemoWhole();
+    }
+
+    /**
+     * Refuse every deletion a visitor asks for while demo mode is on.
+     *
+     * Only a request with a route can ask, so the scheduled reset and other
+     * commands still remove what they need to.
+     */
+    private function keepTheDemoWhole(): void
+    {
+        Event::listen('eloquent.deleting: *', function (): void {
+            if (config('demo.enabled') && request()->route() !== null) {
+                throw new DemoDeletionRefused;
+            }
+        });
+
+        // A refused deletion in a Livewire action says why in the status
+        // display, where the action's own message would have appeared.
+        on('exception', function (mixed $component, Throwable $exception, callable $stopPropagation): void {
+            if ($exception instanceof DemoDeletionRefused && $component instanceof Component) {
+                $component->dispatch('status-message', type: 'danger', message: $exception->getMessage());
+                $stopPropagation();
+            }
+        });
     }
 
     /**

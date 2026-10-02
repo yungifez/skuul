@@ -8,6 +8,7 @@ use App\Console\Commands\GenerateUpcomingAcademicCycles;
 use App\Console\Commands\ProcessLibraryHolds;
 use App\Console\Commands\ProcessNotices;
 use App\Console\Commands\PruneExpiredInvitations;
+use App\Console\Commands\RefreshDemoData;
 use App\Console\Commands\RehearseRestore;
 use App\Console\Commands\SendAcademicCalendarReminders;
 use App\Console\Commands\SendSyllabusBehindReminders;
@@ -94,6 +95,10 @@ Schedule::command(RehearseRestore::class)->weeklyOn(7, '03:00')->withoutOverlapp
 // Say early when the backups stopped arriving, or when nobody has restored
 // one for too long.
 Schedule::command(CheckBackup::class)->dailyAt('07:00')->onOneServer();
+
+// Put the public demo back to its seeded school, so the next visitor finds
+// the data the last one changed. Real schools never turn demo mode on.
+Schedule::command(RefreshDemoData::class)->hourly()->when(fn (): bool => (bool) config('demo.enabled'))->withoutOverlapping()->onOneServer();
 
 // Keep the failed job table and old batches from growing without limit.
 Schedule::command('queue:prune-failed --hours=336')->daily()->onOneServer();
