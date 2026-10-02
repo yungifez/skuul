@@ -179,6 +179,32 @@ class DataSharingScreenTest extends TestCase
         $this->assertSame('The guardian agreed.', $request->fresh()->decision_note);
     }
 
+    public function test_the_holding_school_sees_who_it_is_asked_about(): void
+    {
+        $request = $this->requestForThisSchool();
+        $this->authorized_user(['request data sharing', 'approve data sharing']);
+
+        Livewire::test(ShowDataSharingRequest::class, ['sharingRequest' => $request])
+            ->assertSeeInOrder([$request->studentRecord->user->name, $request->studentRecord->admission_number]);
+    }
+
+    public function test_the_asking_school_sees_only_the_admission_number(): void
+    {
+        $holder = School::factory()->create();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $holder->id]);
+        $this->authorized_user(['request data sharing']);
+        $request = app(RequestDataSharing::class)->request(
+            $enrollment,
+            $this->workingSchool(),
+            'The learner transferred to us.',
+            [DataCategory::Enrollment],
+        );
+
+        Livewire::test(ShowDataSharingRequest::class, ['sharingRequest' => $request])
+            ->assertSee($enrollment->admission_number)
+            ->assertDontSee($enrollment->user->name);
+    }
+
     public function test_the_asking_school_never_answers_its_own_request(): void
     {
         $holder = School::factory()->create();

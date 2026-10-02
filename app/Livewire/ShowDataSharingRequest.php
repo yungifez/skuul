@@ -102,6 +102,7 @@ class ShowDataSharingRequest extends Component
             'requestingSchool:id,name',
             'holdingSchool:id,name',
             'studentRecord:id,admission_number,user_id',
+            'studentRecord.user:id,name',
             'requestedBy:id,name',
             'decidedBy:id,name',
         ]);

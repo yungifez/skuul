@@ -37,7 +37,14 @@
             </div>
             <div>
                 <dt class="text-sm text-muted-foreground">Learner</dt>
-                <dd class="font-medium">{{ $sharingRequest->studentRecord?->admission_number ?? '—' }}</dd>
+                @if ($isHolder)
+                    <dd class="font-medium" id="sharing-learner">
+                        {{ $sharingRequest->studentRecord?->user?->name ?? 'Unnamed' }}
+                        <span class="block text-xs font-normal text-muted-foreground">{{ $sharingRequest->studentRecord?->admission_number ?? '—' }}</span>
+                    </dd>
+                @else
+                    <dd class="font-medium" id="sharing-learner">{{ $sharingRequest->studentRecord?->admission_number ?? '—' }}</dd>
+                @endif
             </div>
             <div>
                 <dt class="text-sm text-muted-foreground">Asked on</dt>

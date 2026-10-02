@@ -1,5 +1,13 @@
 # Known Bugs
 
+## The school asked for records could not see who they were for
+- Status: Fixed
+- Area: Record sharing between schools
+- Observed: The request page showed the holding school only the learner's admission number. The list of received requests showed the name, but the page where the school approves or declines did not.
+- Impact: The person deciding had to look up the number elsewhere before agreeing to share a learner's records. A misread number could lead to sharing the wrong learner's records.
+- Reproduction: From school B, ask school A for a learner's records. As school A, open the request. Look at Learner.
+- Resolution: The holding school now sees the learner's name above the admission number. The asking school still sees only the admission number, so a request reveals nothing about another school's roll.
+
 ## Notices, holds and permissions ended on the server's day
 - Status: Fixed
 - Area: Notices, library, data sharing, staff, boarding, timetables, scheduled jobs
