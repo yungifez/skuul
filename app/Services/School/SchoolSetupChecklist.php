@@ -2,6 +2,7 @@
 
 namespace App\Services\School;
 
+use App\Actions\Curriculum\SetInstructionalModel;
 use App\Enums\Role;
 use App\Models\AcademicCycleSection;
 use App\Models\AcademicLevel;
@@ -17,6 +18,7 @@ class SchoolSetupChecklist
     public function __construct(
         private InstructionalModelResolver $instructionalModels,
         private SchoolSetupProgress $schoolSetupProgress,
+        private SetInstructionalModel $setInstructionalModel,
     ) {}
 
     /**
@@ -60,6 +62,11 @@ class SchoolSetupChecklist
         $classesLabel = school_terms('class_level', 'class');
         $sectionsLabel = school_terms('section', 'section');
         $schoolDetailsComplete = $this->schoolSetupProgress->detailsComplete($school);
+        // A year that has started keeps the approach it runs with, so there
+        // is nothing left to answer. A school that sets up mid-year would
+        // otherwise see this step forever.
+        $teachingApproachSettled = $academicYear !== null
+            && ($this->instructionalModels->isChosen($academicYear, $school) || !$this->setInstructionalModel->isFutureCycle($academicYear));
 
         $items = [
             $this->item(
@@ -103,8 +110,8 @@ class SchoolSetupChecklist
                 description: 'Tell Skuul whether learners stay together or move between subject classes.',
                 reason: $academicYear === null
                     ? 'Choose a current school year first, then select the teaching approach for it.'
-                    : ($this->instructionalModels->isChosen($academicYear, $school) ? '' : 'No teaching approach has been chosen for the current school year.'),
-                complete: $academicYear !== null && $this->instructionalModels->isChosen($academicYear, $school),
+                    : ($teachingApproachSettled ? '' : 'No teaching approach has been chosen for the current school year.'),
+                complete: $teachingApproachSettled,
                 required: true,
                 group: 'Prepare the year',
                 url: $academicYear === null ? route('academic-years.index') : route('academic-years.instructional-model.edit', $academicYear),

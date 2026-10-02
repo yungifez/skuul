@@ -7,6 +7,7 @@ use App\Models\CourseOffering;
 use App\Models\Organization;
 use App\Models\StudentRecord;
 use App\Models\User;
+use App\Services\School\SchoolSetupChecklist;
 use Database\Seeders\Demo\DemoSchool;
 use Database\Seeders\DemoSchoolSeeder;
 use Illuminate\Database\Eloquent\Model;
@@ -47,6 +48,16 @@ class DemoSchoolSeederTest extends TestCase
             $this->assertNotNull($account, "Missing demo account: $role");
             $this->assertTrue(Hash::check(config('demo.password'), $account->password), "Wrong password: $role");
         }
+    }
+
+    public function test_the_high_school_has_no_required_setup_step_left(): void
+    {
+        school_context()->set($this->demo->campus, remember: false);
+        academic_period_context()->setAcademicYear($this->demo->academicYear, remember: false);
+
+        $checklist = app(SchoolSetupChecklist::class)->for($this->demo->campus);
+
+        $this->assertSame(0, $checklist['required_remaining'], collect($checklist['items'])->reject(fn (array $item): bool => $item['complete'])->pluck('title')->join(', '));
     }
 
     public function test_the_school_year_runs_today_with_two_semesters(): void
