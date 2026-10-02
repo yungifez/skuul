@@ -44,10 +44,30 @@ class TransferPackageBuilder
         ];
 
         foreach ($request->categories() as $category) {
-            $payload[$category->value] = $this->partFor($category, $enrollment);
+            $payload[$category->value] = $this->keepOrder($this->partFor($category, $enrollment));
         }
 
         return $payload;
+    }
+
+    /**
+     * Write down the order of every map's keys next to it.
+     *
+     * A JSON column may sort an object's keys when it stores them. The list
+     * lets the reader show the fields in the order they were built.
+     *
+     * @param  array<int|string, mixed>  $part
+     * @return array<int|string, mixed>
+     */
+    private function keepOrder(array $part): array
+    {
+        $kept = array_map(fn (mixed $value): mixed => is_array($value) ? $this->keepOrder($value) : $value, $part);
+
+        if (array_is_list($part)) {
+            return $kept;
+        }
+
+        return [...$kept, TransferPackageReader::KEY_ORDER => array_map(strval(...), array_keys($part))];
     }
 
     /**

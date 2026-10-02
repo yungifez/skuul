@@ -327,6 +327,28 @@ class DataSharingScreenTest extends TestCase
             ->assertDontSee('Student record id');
     }
 
+    public function test_shared_figures_read_in_the_order_they_were_built(): void
+    {
+        $asking = $this->workingSchool();
+        $holder = School::factory()->create();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $holder->id]);
+
+        $this->authorized_user(['request data sharing'], $asking);
+        $request = app(RequestDataSharing::class)->request($enrollment, $asking, 'The learner transferred to us.', [DataCategory::Attendance]);
+        $this->authorized_user(['approve data sharing', 'fulfil data sharing'], $holder);
+        app(RequestDataSharing::class)->approve($request, auth()->user());
+        $package = app(FulfilDataSharingRequest::class)->fulfil($request, auth()->user());
+
+        $this->authorized_user(['request data sharing'], $asking);
+        Livewire::test(ShowDataSharingRequest::class, ['sharingRequest' => $request->fresh()])
+            ->call('receive')
+            ->assertSeeInOrder(['Present', 'Absent', 'Late', 'Excused', 'Recorded', 'Rate'])
+            ->assertDontSee('__keys')
+            ->assertDontSee('Keys');
+
+        $this->assertSame(0, $package->fresh()->payload['attendance']['present']);
+    }
+
     public function test_the_holding_school_takes_the_permission_back(): void
     {
         $request = $this->requestForThisSchool();

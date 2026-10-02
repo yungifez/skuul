@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Shared records arrived with their fields jumbled
+- Status: Fixed
+- Area: Record sharing between schools
+- Observed: The school that took records in saw the fields in a strange order. For example, attendance read Late, Rate, Absent, Excused, Present, Recorded. Identity, health and table columns were jumbled the same way.
+- Impact: Staff at the new school had to hunt for each figure. A rate read before the counts it comes from is easy to misread.
+- Reproduction: Ask another school for Attendance. Approve and hand it over. Take it in. Read the Attendance section.
+- Resolution: The database sorts the keys of a stored JSON object by length. The package now records the order its fields were built in, and the reader shows them in that order. Packages built before this change still open.
+
 ## The school asked for records could not see who they were for
 - Status: Fixed
 - Area: Record sharing between schools

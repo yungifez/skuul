@@ -22,6 +22,11 @@ class TransferPackageReader
     private const CODED = ['status', 'category', 'gender'];
 
     /**
+     * The key that keeps the order of a map's keys in the stored package.
+     */
+    public const KEY_ORDER = '__keys';
+
+    /**
      * Get the sections of the package.
      *
      * @return list<array{label: string, fields: list<array{label: string, value: string}>, tables: list<array{label: string|null, columns: list<string>, rows: list<list<string>>}>}>
@@ -38,10 +43,41 @@ class TransferPackageReader
             }
 
             $part = $package->payload[$value] ?? [];
-            $sections[] = ['label' => $category->label(), ...$this->layOut(is_array($part) ? $part : [])];
+            $sections[] = ['label' => $category->label(), ...$this->layOut(is_array($part) ? $this->inBuiltOrder($part) : [])];
         }
 
         return $sections;
+    }
+
+    /**
+     * Put every map's keys back in the order the package was built in.
+     *
+     * Packages built before the order was kept come back as they are stored.
+     *
+     * @param  array<int|string, mixed>  $part
+     * @return array<int|string, mixed>
+     */
+    private function inBuiltOrder(array $part): array
+    {
+        $order = $part[self::KEY_ORDER] ?? null;
+        unset($part[self::KEY_ORDER]);
+
+        $part = array_map(fn (mixed $value): mixed => is_array($value) ? $this->inBuiltOrder($value) : $value, $part);
+
+        if (!is_array($order)) {
+            return $part;
+        }
+
+        $ordered = [];
+
+        foreach ($order as $key) {
+            if (array_key_exists($key, $part)) {
+                $ordered[$key] = $part[$key];
+                unset($part[$key]);
+            }
+        }
+
+        return [...$ordered, ...$part];
     }
 
     /**
