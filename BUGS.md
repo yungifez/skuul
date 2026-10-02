@@ -1,5 +1,13 @@
 # Known Bugs
 
+## Load the notice editor from the host that serves the page
+- Status: Fixed
+- Area: Notices, rich text editor
+- Observed: The notice message box showed no editor. The console showed "editor is not defined". The page asked for the editor script at http://localhost/april-ui/editor.min.js, but the app runs on another host and port.
+- Impact: Staff could not type a notice message, so they could not send notices. Any deploy where views compile under a different host breaks the same way.
+- Reproduction: Compile views under one host (for example, a test run), then open Notices > Create on another host. The message box stays empty and the console shows errors.
+- Resolution: The notice form now writes the editor script tag on each request, as a host-relative URL with the April version hash. The April directive built the URL once, when the view was compiled. A test checks the relative URL under a different root URL.
+
 ## A new campus's register asked for a section that did not exist
 - Status: Fixed
 - Area: Attendance register

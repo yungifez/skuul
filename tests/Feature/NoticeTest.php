@@ -16,6 +16,7 @@ use App\Traits\FeatureTestTrait;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\URL;
 use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -131,6 +132,17 @@ class NoticeTest extends TestCase
             ->assertSee('data-slot="editor"', false)
             ->assertSee('wire:model="content"', false)
             ->assertSee('wire:model.live="audienceScope"', false);
+    }
+
+    public function test_the_message_editor_loads_from_whatever_host_serves_the_page(): void
+    {
+        URL::forceRootUrl('http://campus-two.test:8081');
+
+        $this->authorized_user(['create notice'])
+            ->get('dashboard/notices/create')
+            ->assertSuccessful()
+            ->assertSee('<script src="/april-ui/editor', false)
+            ->assertDontSee('http://localhost/april-ui/editor', false);
     }
 
     public function test_a_notice_is_saved_as_a_draft_and_opens_on_its_own_page(): void
