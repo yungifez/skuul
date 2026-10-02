@@ -29,8 +29,7 @@ class AccountInvitationVisibility
     public function __construct(
         private SystemPermissionScope $systemPermissionScope,
         private OrganizationPermissionScope $organizationPermissionScope,
-    ) {
-    }
+    ) {}
 
     /**
      * Check whether this person may open the invitation screen at all.

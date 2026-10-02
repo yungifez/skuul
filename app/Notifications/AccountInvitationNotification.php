@@ -21,12 +21,10 @@ class AccountInvitationNotification extends Notification implements ShouldQueue
     /**
      * Create a new notification instance.
      *
-     * @param string $token     the plain, one-time invitation token
-     * @param Carbon $expiresAt the time the link stops working
+     * @param  string  $token  the plain, one-time invitation token
+     * @param  Carbon  $expiresAt  the time the link stops working
      */
-    public function __construct(private string $token, private Carbon $expiresAt)
-    {
-    }
+    public function __construct(private string $token, private Carbon $expiresAt) {}
 
     /**
      * Get the delivery channels.
@@ -45,7 +43,7 @@ class AccountInvitationNotification extends Notification implements ShouldQueue
     {
         $url = route('invitations.show', ['token' => $this->token]);
 
-        return (new MailMessage())
+        return (new MailMessage)
             ->subject('Set up your '.config('app.name').' account')
             ->greeting('Hello '.$notifiable->name.',')
             ->line('An administrator created an account for you on '.config('app.name').'.')

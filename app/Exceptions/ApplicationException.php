@@ -13,8 +13,7 @@ class ApplicationException extends Exception
     /**
      * Render the exception into an HTTP response.
      *
-     * @param Request $request
-     *
+     * @param  Request  $request
      * @return RedirectResponse|JsonResponse
      */
     public function render($request)

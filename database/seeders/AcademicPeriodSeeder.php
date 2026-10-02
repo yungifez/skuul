@@ -16,9 +16,9 @@ class AcademicPeriodSeeder extends Seeder
     {
         $academicPeriod = AcademicPeriod::firstOrCreate([
             'id' => 1, ], [
-                'name'             => 'AcademicPeriod 1',
+                'name' => 'AcademicPeriod 1',
                 'academic_year_id' => 1,
-                'school_id'        => 1,
+                'school_id' => 1,
             ]);
         $academicPeriod->school->academic_period_id = $academicPeriod->id;
         $academicPeriod->school->save();

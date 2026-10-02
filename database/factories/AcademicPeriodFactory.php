@@ -18,9 +18,9 @@ class AcademicPeriodFactory extends Factory
     public function definition()
     {
         return [
-            'name'             => $this->faker->unique()->word,
+            'name' => $this->faker->unique()->word,
             'academic_year_id' => 1,
-            'school_id'        => 1,
+            'school_id' => 1,
         ];
     }
 }

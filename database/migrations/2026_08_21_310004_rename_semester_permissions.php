@@ -3,7 +3,8 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-return new class() extends Migration {
+return new class extends Migration
+{
     /**
      * The permissions the rename touches, old name to new name.
      *
@@ -11,11 +12,11 @@ return new class() extends Migration {
      */
     private array $renames = [
         'create semester' => 'create academic period',
-        'read semester'   => 'read academic period',
+        'read semester' => 'read academic period',
         'update semester' => 'update academic period',
         'delete semester' => 'delete academic period',
-        'set semester'    => 'set academic period',
-        'menu-semester'   => 'menu-academic-period',
+        'set semester' => 'set academic period',
+        'menu-semester' => 'menu-academic-period',
     ];
 
     /**
@@ -41,7 +42,7 @@ return new class() extends Migration {
     /**
      * Rename each permission that is present, skipping a name already taken.
      *
-     * @param array<string, string> $map
+     * @param  array<string, string>  $map
      */
     private function apply(array $map): void
     {

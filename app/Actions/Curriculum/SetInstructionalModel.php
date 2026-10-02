@@ -25,8 +25,7 @@ class SetInstructionalModel
     public function __construct(
         private RecordAuditEvent $auditor,
         private InstructionalModelResolver $resolver,
-    ) {
-    }
+    ) {}
 
     /**
      * Record the model the campus teaches the cycle with.
@@ -54,11 +53,11 @@ class SetInstructionalModel
         return DB::transaction(function () use ($academicYear, $model, $actor, $reason, $current, $setting): InstructionalModelSetting {
             $setting = InstructionalModelSetting::updateOrCreate(
                 [
-                    'school_id'        => $academicYear->school_id,
+                    'school_id' => $academicYear->school_id,
                     'academic_year_id' => $academicYear->id,
                 ],
                 [
-                    'model'      => $model,
+                    'model' => $model,
                     'updated_by' => $actor === null ? auth()->id() : $actor->id,
                 ],
             );
@@ -69,11 +68,11 @@ class SetInstructionalModel
                 AuditAction::InstructionalModelChanged,
                 $setting,
                 [
-                    'from'             => $current?->value,
-                    'to'               => $model->value,
-                    'school_id'        => $academicYear->school_id,
+                    'from' => $current?->value,
+                    'to' => $model->value,
+                    'school_id' => $academicYear->school_id,
                     'academic_year_id' => $academicYear->id,
-                    'reason'           => $reason,
+                    'reason' => $reason,
                 ],
                 $actor,
             );

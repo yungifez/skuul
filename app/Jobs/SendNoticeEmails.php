@@ -27,9 +27,7 @@ class SendNoticeEmails implements ShouldQueue
      */
     public int $tries = 3;
 
-    public function __construct(private int $noticeId)
-    {
-    }
+    public function __construct(private int $noticeId) {}
 
     /**
      * Send the notice.

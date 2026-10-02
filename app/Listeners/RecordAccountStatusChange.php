@@ -14,9 +14,7 @@ use App\Events\AccountStatusChanged;
  */
 class RecordAccountStatusChange
 {
-    public function __construct(private RecordAuditEvent $auditor)
-    {
-    }
+    public function __construct(private RecordAuditEvent $auditor) {}
 
     /**
      * Handle the event.
@@ -27,8 +25,8 @@ class RecordAccountStatusChange
             AuditAction::AccountStatusChanged,
             $event->user,
             [
-                'from'   => $event->from->value,
-                'to'     => $event->to->value,
+                'from' => $event->from->value,
+                'to' => $event->to->value,
                 'reason' => $event->reason,
             ],
             $event->changedBy,

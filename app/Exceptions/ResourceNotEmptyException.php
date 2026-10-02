@@ -2,6 +2,4 @@
 
 namespace App\Exceptions;
 
-class ResourceNotEmptyException extends ApplicationException
-{
-}
+class ResourceNotEmptyException extends ApplicationException {}

@@ -54,9 +54,9 @@ class ResultSnapshot extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'payload'      => 'array',
-        'percentage'   => 'float',
-        'revision'     => 'integer',
+        'payload' => 'array',
+        'percentage' => 'float',
+        'revision' => 'integer',
         'published_at' => 'datetime',
         'approval_status' => ResultApprovalStatus::class,
         'approved_at' => 'datetime',
@@ -84,8 +84,7 @@ class ResultSnapshot extends Model
     /**
      * Limit the query to the newest revision of each result.
      *
-     * @param Builder<$this> $query
-     *
+     * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
     public function scopeLatestRevision(Builder $query): Builder

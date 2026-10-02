@@ -23,9 +23,7 @@ use Spatie\Permission\Events\RoleDetachedEvent;
  */
 class RecordPermissionChanges
 {
-    public function __construct(private RecordAuditEvent $auditor)
-    {
-    }
+    public function __construct(private RecordAuditEvent $auditor) {}
 
     /**
      * Register the listeners for the subscriber.
@@ -73,7 +71,7 @@ class RecordPermissionChanges
     /**
      * Write one access change to the log.
      *
-     * @param array<int, string> $names
+     * @param  array<int, string>  $names
      */
     private function record(AuditAction $action, Model $subject, string $key, array $names): void
     {
@@ -90,8 +88,7 @@ class RecordPermissionChanges
      * The payload can hold names, keys, enums, models, or a collection of any
      * of those, so each shape is resolved to the name people recognise.
      *
-     * @param Model $lookup the role or permission model used to resolve keys
-     *
+     * @param  Model  $lookup  the role or permission model used to resolve keys
      * @return array<int, string>
      */
     private function names(mixed $value, Model $lookup): array
