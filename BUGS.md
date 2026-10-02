@@ -1,5 +1,14 @@
 # Known Bugs
 
+## The waiver form is cut off on a phone
+
+- Status: Fixed
+- Area: Student accounts
+- Observed: The waive or write-off form opened as a row inside the invoice table. On a phone the table scrolls sideways, so the form was wider than the screen. The right side of each field and the button were off screen. Rows with the ⋯ menu also pushed "Take payment" out of line with the other rows.
+- Impact: Staff on a phone had to scroll the table sideways to fill in and submit the form, and could miss a field.
+- Reproduction: Open a student account at 390px wide. Open ⋯ on a posted invoice and choose "Waive or write off".
+- Resolution: The form now opens below the invoice table at full width and names the invoice it changes. Rows without the menu keep an empty space of the same size, so the buttons line up.
+
 ## A child who changed school opens the old school's calendar
 
 - Status: Fixed

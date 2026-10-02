@@ -91,6 +91,11 @@
         @if ($invoices->isEmpty())
             <p class="text-sm text-muted-foreground">No invoices</p>
         @else
+            @php
+                $relievable = fn ($invoice) => $canRefund && $invoice->ledger_transaction_id !== null && $invoice->balance->isPositive();
+                $anyRelievable = $invoices->contains($relievable);
+                $relievingInvoice = $relievingInvoiceId === null ? null : $invoices->firstWhere('id', $relievingInvoiceId);
+            @endphp
             <div class="relative overflow-x-auto border-y">
                 <table class="w-full text-sm">
                     <thead>
@@ -118,7 +123,7 @@
                                         @if ($canTakeMoney && $invoice->balance->isPositive())
                                             <april:button-link href="{{ route('fee-invoices.pay', $invoice->id) }}" variant="outline" class="h-11 select-none whitespace-nowrap">Take payment</april:button-link>
                                         @endif
-                                        @if ($canRefund && $invoice->ledger_transaction_id !== null && $invoice->balance->isPositive())
+                                        @if ($relievable($invoice))
                                             <april:dropdown-menu>
                                                 <slot:trigger>
                                                     <april:button type="button" variant="ghost" size="icon" class="size-11 shrink-0 select-none" aria-label="More for {{ $invoice->name }}">
@@ -131,60 +136,60 @@
                                                     </april:dropdown-menu-item>
                                                 </slot:content>
                                             </april:dropdown-menu>
+                                        @elseif ($anyRelievable)
+                                            <span class="size-11 shrink-0" aria-hidden="true"></span>
                                         @endif
                                     </div>
                                 </td>
                             </tr>
-                            @if ($canRefund && $relievingInvoiceId === $invoice->id)
-                                @php
-                                    $owedLines = $invoice->feeInvoiceRecords->filter(fn ($line) => $line->outstanding->isPositive());
-                                @endphp
-                                <tr wire:key="relief-{{ $invoice->id }}">
-                                    <td colspan="6" class="py-3">
-                                        <form wire:submit="relieve" class="flex flex-col gap-3" aria-label="Waive or write off part of {{ $invoice->name }}">
-                                            <div class="grid gap-3 sm:grid-cols-[1fr_10rem_12rem]">
-                                                <div>
-                                                    <label for="relief-line" class="sr-only">Fee</label>
-                                                    <select id="relief-line" wire:model="reliefLineId" class="{{ $controlClasses }}" {{ field_error_bindings('reliefLineId') }}>
-                                                        <option value="">Choose the fee</option>
-                                                        @foreach ($owedLines as $line)
-                                                            <option value="{{ $line->id }}">{{ $line->fee?->name ?? 'Fee' }} · {{ $line->outstanding->formatToLocale($locale) }} owed</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                                <div>
-                                                    <label for="relief-amount" class="sr-only">Amount</label>
-                                                    <input type="number" id="relief-amount" wire:model="reliefAmount" step="0.01" min="0.01" placeholder="Amount" class="{{ $controlClasses }}" {{ field_error_bindings('reliefAmount') }}>
-                                                </div>
-                                                <div>
-                                                    <label for="relief-kind" class="sr-only">Kind</label>
-                                                    <select id="relief-kind" wire:model="reliefKind" class="{{ $controlClasses }}" {{ field_error_bindings('reliefKind') }}>
-                                                        <option value="waiver">Waiver or scholarship</option>
-                                                        <option value="write_off">Write-off, cannot collect</option>
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label for="relief-reason" class="sr-only">Reason</label>
-                                                <input id="relief-reason" wire:model="reliefReason" maxlength="500" placeholder="Why the fee is being taken off" class="{{ $controlClasses }}" {{ field_error_bindings('reliefReason') }}>
-                                            </div>
-                                            <x-field-error name="reliefLineId" />
-                                            <x-field-error name="reliefAmount" />
-                                            <x-field-error name="reliefKind" />
-                                            <x-field-error name="reliefReason" />
-                                            <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
-                                                <april:button type="button" variant="ghost" class="h-11 select-none" wire:click="cancel">Cancel</april:button>
-                                                <april:button type="submit" class="h-11 select-none" wire:loading.attr="disabled" wire:target="relieve"
-                                                    wire:confirm="Take this off the invoice? It is kept in the books and cannot be edited afterwards.">Take it off</april:button>
-                                            </div>
-                                        </form>
-                                    </td>
-                                </tr>
-                            @endif
                         @endforeach
                     </tbody>
                 </table>
             </div>
+
+            @if ($canRefund && $relievingInvoice !== null)
+                @php
+                    $owedLines = $relievingInvoice->feeInvoiceRecords->filter(fn ($line) => $line->outstanding->isPositive());
+                @endphp
+                <form wire:submit="relieve" wire:key="relief-{{ $relievingInvoice->id }}" class="flex flex-col gap-3" aria-labelledby="relief-heading">
+                    <h3 id="relief-heading" class="text-sm font-semibold">Waive or write off <span class="font-normal text-muted-foreground">· {{ $relievingInvoice->name }}</span></h3>
+                    <div class="grid gap-3 sm:grid-cols-[1fr_10rem_12rem]">
+                        <div>
+                            <label for="relief-line" class="sr-only">Fee</label>
+                            <select id="relief-line" wire:model="reliefLineId" class="{{ $controlClasses }}" {{ field_error_bindings('reliefLineId') }}>
+                                <option value="">Choose the fee</option>
+                                @foreach ($owedLines as $line)
+                                    <option value="{{ $line->id }}">{{ $line->fee?->name ?? 'Fee' }} · {{ $line->outstanding->formatToLocale($locale) }} owed</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div>
+                            <label for="relief-amount" class="sr-only">Amount</label>
+                            <input type="number" id="relief-amount" wire:model="reliefAmount" step="0.01" min="0.01" placeholder="Amount" class="{{ $controlClasses }}" {{ field_error_bindings('reliefAmount') }}>
+                        </div>
+                        <div>
+                            <label for="relief-kind" class="sr-only">Kind</label>
+                            <select id="relief-kind" wire:model="reliefKind" class="{{ $controlClasses }}" {{ field_error_bindings('reliefKind') }}>
+                                <option value="waiver">Waiver or scholarship</option>
+                                <option value="write_off">Write-off, cannot collect</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label for="relief-reason" class="sr-only">Reason</label>
+                        <input id="relief-reason" wire:model="reliefReason" maxlength="500" placeholder="Why the fee is being taken off" class="{{ $controlClasses }}" {{ field_error_bindings('reliefReason') }}>
+                    </div>
+                    <x-field-error name="reliefLineId" />
+                    <x-field-error name="reliefAmount" />
+                    <x-field-error name="reliefKind" />
+                    <x-field-error name="reliefReason" />
+                    <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+                        <april:button type="button" variant="ghost" class="h-11 select-none" wire:click="cancel">Cancel</april:button>
+                        <april:button type="submit" class="h-11 select-none" wire:loading.attr="disabled" wire:target="relieve"
+                            wire:confirm="Take this off the invoice? It is kept in the books and cannot be edited afterwards.">Take it off</april:button>
+                    </div>
+                </form>
+            @endif
         @endif
     </section>
 

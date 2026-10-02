@@ -733,6 +733,7 @@ class StudentPaymentTest extends TestCase
             ->assertSeeHtml("startRelieving({$invoice->id})")
             ->call('startRelieving', $invoice->id)
             ->assertSet('reliefLineId', (string) $line->id)
+            ->assertSeeHtmlInOrder(['</table>', 'id="relief-line"'])
             ->set('reliefAmount', '70.01')
             ->set('reliefReason', 'Staff child discount')
             ->call('relieve')
