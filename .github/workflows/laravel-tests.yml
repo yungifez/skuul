@@ -2,7 +2,6 @@ name: Laravel tests
 
 on:
   push:
-    branches: [main, dev]
   pull_request:
     branches: [main, dev]
 
@@ -55,8 +54,8 @@ jobs:
       DB_HOST: 127.0.0.1
       DB_PORT: 3306
       DB_DATABASE: testing
-      DB_USERNAME: root
-      DB_PASSWORD: root
+      DB_USERNAME: sail
+      DB_PASSWORD: password
     steps:
       - name: Check out the application
         uses: actions/checkout@v4
@@ -75,10 +74,13 @@ jobs:
         with:
           node-version: '20'
 
+      # phpunit.xml points the tests at Sail's database: host mysql, user sail.
+      # The runner gives that name and that user to its own MySQL server.
       - name: Start MySQL
         run: |
           sudo /etc/init.d/mysql start
-          mysql -h "$DB_HOST" -u"$DB_USERNAME" -p"$DB_PASSWORD" -e "CREATE DATABASE IF NOT EXISTS $DB_DATABASE;"
+          echo "127.0.0.1 mysql" | sudo tee -a /etc/hosts
+          mysql -h 127.0.0.1 -uroot -proot -e "CREATE DATABASE IF NOT EXISTS $DB_DATABASE; CREATE USER IF NOT EXISTS '$DB_USERNAME'@'%' IDENTIFIED BY '$DB_PASSWORD'; GRANT ALL ON *.* TO '$DB_USERNAME'@'%'; FLUSH PRIVILEGES;"
 
       - name: Install PHP dependencies
         working-directory: skuul
