@@ -8,7 +8,7 @@ namespace App\Exceptions;
  * Deleting would empty the demo for everyone until the next hourly reset,
  * so the demo refuses it and says why.
  */
-class DemoDeletionRefused extends ApplicationException
+class DemoDeletionRefused extends DemoChangeRefused
 {
     public function __construct()
     {

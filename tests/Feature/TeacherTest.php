@@ -200,6 +200,20 @@ class TeacherTest extends TestCase
         $this->assertSame('Renamed teacher', $person->fresh()->name);
     }
 
+    public function test_a_teacher_whose_email_domain_has_no_mail_server_can_still_be_renamed(): void
+    {
+        $person = User::factory()->create(['email' => 'pat.lee@staff.district.invalid']);
+        $person->assignRole('teacher');
+        $this->authorized_user(['update teacher']);
+
+        Livewire::test(EditTeacherForm::class, ['teacher' => $person])
+            ->set('name', 'Pat Lee')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame('Pat Lee', $person->fresh()->name);
+    }
+
     public function test_unauthorised_users_cannot_delete_teachers()
     {
         $teacher = User::factory()->create();

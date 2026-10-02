@@ -13,6 +13,10 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     /**
      * Validate and update the given user's profile information.
      *
+     * Only a new email address is looked up in DNS. The one the account
+     * already has was checked when it was set, and a domain that has since
+     * gone quiet should not stop someone saving their name.
+     *
      * @param  mixed  $user
      * @return User
      */
@@ -20,7 +24,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
     {
         $validated = Validator::make($input, [
             'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email:rfc,dns', 'max:100', Rule::unique('users')->ignore($user->id)],
+            'email' => ['required', ($input['email'] ?? null) === $user->email ? 'email:rfc' : 'email:rfc,dns', 'max:100', Rule::unique('users')->ignore($user->id)],
             'photo' => ['nullable', 'mimes:jpg,jpeg,png', 'max:3000'],
             'birthday' => ['nullable', 'date_format:Y-m-d', 'before:today'],
             'address' => ['nullable', 'string', 'max:255'],
@@ -45,7 +49,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             $user->forceFill([
                 'name' => $validated['name'],
                 'email' => $validated['email'],
-                'birthday' => $validated['birthday'],
+                'birthday' => array_key_exists('birthday', $validated) ? $validated['birthday'] : $user->birthday,
                 'address' => $validated['address'] ?? null,
                 'address_line_2' => array_key_exists('address_line_2', $validated)
                     ? $validated['address_line_2']
@@ -79,7 +83,7 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'name' => $input['name'],
             'email' => $input['email'],
             'email_verified_at' => null,
-            'birthday' => $input['birthday'],
+            'birthday' => array_key_exists('birthday', $input) ? $input['birthday'] : $user->birthday,
             'address' => $input['address'] ?? null,
             'address_line_2' => array_key_exists('address_line_2', $input)
                 ? $input['address_line_2']

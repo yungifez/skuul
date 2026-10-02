@@ -118,6 +118,30 @@ class ProfileInformationTest extends TestCase
         $this->assertEquals('10001', $user->fresh()->postal_code);
     }
 
+    public function test_a_profile_whose_email_domain_has_no_mail_server_can_still_be_saved(): void
+    {
+        $this->actingAs($user = User::factory()->create(['email' => 'pat.lee@staff.district.invalid']));
+
+        Livewire::test(UpdateProfileInformationForm::class)
+            ->set('state', ['name' => 'Pat Lee', 'email' => 'pat.lee@staff.district.invalid'])
+            ->call('updateProfileInformation')
+            ->assertHasNoErrors();
+
+        $this->assertSame('Pat Lee', $user->fresh()->name);
+    }
+
+    public function test_a_new_profile_email_must_have_a_mail_server(): void
+    {
+        $this->actingAs($user = User::factory()->create(['email' => 'pat.lee@staff.district.invalid']));
+
+        Livewire::test(UpdateProfileInformationForm::class)
+            ->set('state', ['name' => 'Pat Lee', 'email' => 'pat.lee@other.district.invalid'])
+            ->call('updateProfileInformation')
+            ->assertHasErrors(['email' => 'email']);
+
+        $this->assertSame('pat.lee@staff.district.invalid', $user->fresh()->email);
+    }
+
     public function test_the_address_picker_dispatches_named_location_events(): void
     {
         Livewire::test(NationalityAndStateInputFields::class)

@@ -9,12 +9,15 @@ use App\Actions\Jetstream\DeleteUser;
 use App\Enums\OrganizationPermission;
 use App\Enums\PlatformPermission;
 use App\Events\AccountStatusChanged;
+use App\Exceptions\DemoAccountLocked;
+use App\Exceptions\DemoChangeRefused;
 use App\Exceptions\DemoDeletionRefused;
 use App\Http\Middleware\EnsureAccountIsActive;
 use App\Http\Middleware\EnsureFeatureIsEnabled;
 use App\Http\Middleware\RequireActiveSchool;
 use App\Listeners\RecordAccountStatusChange;
 use App\Listeners\RecordPermissionChanges;
+use App\Models\User;
 use App\Services\Academic\AcademicPeriodContext;
 use App\Services\Authorization\OrganizationPermissionScope;
 use App\Services\Authorization\SystemPermissionScope;
@@ -126,10 +129,11 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
-     * Refuse every deletion a visitor asks for while demo mode is on.
+     * Refuse every deletion a visitor asks for while demo mode is on, and
+     * every change to how a demo account signs in.
      *
      * Only a request with a route can ask, so the scheduled reset and other
-     * commands still remove what they need to.
+     * commands still change what they need to.
      */
     private function keepTheDemoWhole(): void
     {
@@ -139,10 +143,18 @@ class AppServiceProvider extends ServiceProvider
             }
         });
 
-        // A refused deletion in a Livewire action says why in the status
+        Event::listen('eloquent.updating: '.User::class, function (User $user): void {
+            if (config('demo.enabled') && request()->route() !== null
+                && in_array($user->getOriginal('email'), config('demo.accounts'), true)
+                && $user->isDirty(['email', 'password', 'two_factor_secret', 'two_factor_confirmed_at', 'account_status', 'password_change_required_at'])) {
+                throw new DemoAccountLocked;
+            }
+        });
+
+        // A refused change in a Livewire action says why in the status
         // display, where the action's own message would have appeared.
         on('exception', function (mixed $component, Throwable $exception, callable $stopPropagation): void {
-            if ($exception instanceof DemoDeletionRefused && $component instanceof Component) {
+            if ($exception instanceof DemoChangeRefused && $component instanceof Component) {
                 $component->dispatch('status-message', type: 'danger', message: $exception->getMessage());
                 $stopPropagation();
             }

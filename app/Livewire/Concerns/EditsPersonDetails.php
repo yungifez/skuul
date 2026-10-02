@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\On;
 use Livewire\Features\SupportFileUploads\TemporaryUploadedFile;
 
@@ -22,6 +23,13 @@ trait EditsPersonDetails
     public string $name = '';
 
     public string $email = '';
+
+    /**
+     * The address the person already has, so a save that keeps it does not
+     * look it up again.
+     */
+    #[Locked]
+    public string $storedEmail = '';
 
     public string $birthday = '';
 
@@ -65,6 +73,7 @@ trait EditsPersonDetails
     {
         $this->name = (string) $user->name;
         $this->email = (string) $user->email;
+        $this->storedEmail = $this->email;
         $this->birthday = $user->birthday ? substr((string) $user->birthday, 0, 10) : '';
         $this->gender = $this->knownGender((string) $user->gender);
         $this->phone = (string) $user->phone;
@@ -98,7 +107,7 @@ trait EditsPersonDetails
     {
         return [
             'name' => ['required', 'string', 'max:100'],
-            'email' => ['required', 'email:rfc,dns', 'max:100'],
+            'email' => ['required', $this->email === $this->storedEmail ? 'email:rfc' : 'email:rfc,dns', 'max:100'],
             'birthday' => ['nullable', 'date_format:Y-m-d', 'before:today'],
             'gender' => ['nullable', 'string', Rule::in(self::GENDERS)],
             'phone' => ['nullable', 'string', 'max:100'],

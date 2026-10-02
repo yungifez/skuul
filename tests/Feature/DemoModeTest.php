@@ -5,11 +5,16 @@ namespace Tests\Feature;
 use App\Console\Commands\RefreshDemoData;
 use App\Livewire\ListNoticesTable;
 use App\Models\Notice;
+use App\Models\User;
 use App\Services\Demo\DemoDataRefresher;
 use App\Traits\FeatureTestTrait;
 use Illuminate\Console\Scheduling\Event;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
+use Laravel\Jetstream\Http\Livewire\TwoFactorAuthenticationForm;
+use Laravel\Jetstream\Http\Livewire\UpdatePasswordForm;
+use Laravel\Jetstream\Http\Livewire\UpdateProfileInformationForm;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -115,5 +120,93 @@ class DemoModeTest extends TestCase
             ->assertDontSee('Try the demo as')
             ->assertDontSee('sarah.mitchell@staff.riversideusd.example')
             ->assertSee('creates your account and emails you an invitation link');
+    }
+
+    public function test_a_visitor_cannot_change_the_password_of_a_demo_account(): void
+    {
+        config(['demo.enabled' => true]);
+        $this->actingAs($account = $this->demoAccount());
+
+        Livewire::test(UpdatePasswordForm::class)
+            ->set('state', ['current_password' => 'password', 'password' => 'a-new-password', 'password_confirmation' => 'a-new-password'])
+            ->call('updatePassword')
+            ->assertDispatched('status-message', type: 'danger', message: 'The demo accounts keep their email, password, two-factor sign-in and status, so every visitor can sign in. Every other change works.');
+
+        $this->assertTrue(Hash::check('password', $account->fresh()->password));
+    }
+
+    public function test_a_visitor_cannot_turn_on_two_factor_sign_in_for_a_demo_account(): void
+    {
+        config(['demo.enabled' => true]);
+        $this->actingAs($account = $this->demoAccount());
+        $this->withSession(['auth.password_confirmed_at' => time()]);
+
+        Livewire::test(TwoFactorAuthenticationForm::class)
+            ->call('enableTwoFactorAuthentication')
+            ->assertDispatched('status-message', type: 'danger');
+
+        $this->assertNull($account->fresh()->two_factor_secret);
+    }
+
+    public function test_a_visitor_cannot_change_the_email_of_a_demo_account(): void
+    {
+        config(['demo.enabled' => true]);
+        $this->actingAs($account = $this->demoAccount());
+
+        Livewire::test(UpdateProfileInformationForm::class)
+            ->set('state', ['name' => $account->name, 'email' => 'sarah.mitchell@gmail.com'])
+            ->call('updateProfileInformation')
+            ->assertDispatched('status-message', type: 'danger');
+
+        $this->assertSame('sarah.mitchell@staff.riversideusd.example', $account->fresh()->email);
+    }
+
+    public function test_a_visitor_can_still_rename_a_demo_account(): void
+    {
+        config(['demo.enabled' => true]);
+        $this->actingAs($account = $this->demoAccount());
+
+        Livewire::test(UpdateProfileInformationForm::class)
+            ->set('state', ['name' => 'Sarah M. Mitchell', 'email' => $account->email])
+            ->call('updateProfileInformation')
+            ->assertNotDispatched('status-message');
+
+        $this->assertSame('Sarah M. Mitchell', $account->fresh()->name);
+    }
+
+    public function test_an_account_outside_the_demo_list_can_change_its_password_in_demo_mode(): void
+    {
+        config(['demo.enabled' => true]);
+        $this->actingAs($account = User::factory()->create(['password' => Hash::make('password')]));
+
+        Livewire::test(UpdatePasswordForm::class)
+            ->set('state', ['current_password' => 'password', 'password' => 'a-new-password', 'password_confirmation' => 'a-new-password'])
+            ->call('updatePassword');
+
+        $this->assertTrue(Hash::check('a-new-password', $account->fresh()->password));
+    }
+
+    public function test_the_demo_account_lock_is_off_outside_demo_mode(): void
+    {
+        config(['demo.enabled' => false]);
+        $this->actingAs($account = $this->demoAccount());
+
+        Livewire::test(UpdatePasswordForm::class)
+            ->set('state', ['current_password' => 'password', 'password' => 'a-new-password', 'password_confirmation' => 'a-new-password'])
+            ->call('updatePassword');
+
+        $this->assertTrue(Hash::check('a-new-password', $account->fresh()->password));
+    }
+
+    /**
+     * A seeded demo account, signed in with the demo password.
+     */
+    private function demoAccount(): User
+    {
+        return User::factory()->create([
+            'name' => 'Sarah Mitchell',
+            'email' => 'sarah.mitchell@staff.riversideusd.example',
+            'password' => Hash::make('password'),
+        ]);
     }
 }
