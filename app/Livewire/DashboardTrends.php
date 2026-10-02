@@ -40,6 +40,12 @@ class DashboardTrends extends Component
         $user = auth()->user();
         $today = school_today()->toImmutable();
 
+        // Families hold read permissions for their own learners. The school's
+        // figures are for staff.
+        if ($user->isPortalOnly()) {
+            return;
+        }
+
         if ($user->can('read attendance')) {
             $attendance = $trends->attendanceByWeek($today);
             $this->attendance = $attendance['recent'] === null && $attendance['previous'] === null ? null : $attendance;

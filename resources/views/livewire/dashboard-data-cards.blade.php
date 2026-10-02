@@ -10,7 +10,7 @@
             ['label' => 'Parents', 'value' => $parents, 'permission' => 'read parent', 'href' => route('parents.index')],
         ];
         $visibleSnapshotStats = collect($snapshotStats)->filter(
-            fn (array $stat): bool => auth()->user()->can($stat['permission']),
+            fn (array $stat): bool => !auth()->user()->isPortalOnly() && auth()->user()->can($stat['permission']),
         );
     @endphp
 

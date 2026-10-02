@@ -20,6 +20,7 @@ class StudentAccountController extends Controller
     {
         abort_unless(
             auth()->user()?->can('read fee invoice') === true
+                && !auth()->user()->isPortalOnly()
                 && $studentRecord->hasAccountInSchool(),
             403,
         );

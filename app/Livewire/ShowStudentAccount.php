@@ -285,6 +285,7 @@ class ShowStudentAccount extends Component
     {
         abort_unless(
             auth()->user()?->can($permission) === true
+                && !auth()->user()->isPortalOnly()
                 && $this->campusId === current_school_id()
                 && $enrollment->hasAccountInSchool(),
             403,

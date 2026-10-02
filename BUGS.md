@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A parent could read other families' accounts and the school's money
+
+- Status: Fixed
+- Area: Access control, student accounts, receipts, dashboard
+- Observed: Parents and learners hold "read fee invoice" and "read student" so the portal can show their own bills. The office account page, the receipt page and the dashboard checked only those permissions. A parent with no children linked opened other learners' accounts and receipts by changing the number in the address, and saw the school's fees billed, collected and owed by lateness on the dashboard.
+- Impact: Any family could read every other family's balance, invoices, payments and receipts, and the school's income.
+- Reproduction: Sign in as a parent. Open /dashboard/fees/accounts/1 or /dashboard/fees/payments/1/receipt. Open the dashboard.
+- Resolution: The office account page and the school-wide dashboard figures are now for staff only. A receipt opens for staff, or for the learner and their guardians through the portal rules. `PortalFinancePrivacyTest` covers parents, learners, guardians and staff.
+
 ## Dates followed the server's clock, not the school's
 
 - Status: Fixed
