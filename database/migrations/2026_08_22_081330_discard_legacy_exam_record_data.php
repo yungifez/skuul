@@ -1,15 +1,21 @@
 <?php
 
+use App\Services\Backup\LegacyDataArchive;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
 
-return new class() extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
+        $publications = DB::table('audit_events')
+            ->whereIn('action', ['exam.result_published', 'exam.result_unpublished']);
+
+        LegacyDataArchive::keep('exam_records', DB::table('exam_records'));
+        LegacyDataArchive::keep('exam_result_publications', clone $publications);
+
         DB::table('exam_records')->delete();
-        DB::table('audit_events')
-            ->whereIn('action', ['exam.result_published', 'exam.result_unpublished'])
-            ->delete();
+        $publications->delete();
 
         $permissions = [
             'create exam record',
