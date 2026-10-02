@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A cheque or transfer could be recorded with no reference
+- Status: Fixed
+- Area: Finance, taking payments and refunds
+- Observed: The office could record a cheque or bank transfer payment, or give money back by cheque, with the reference field empty.
+- Impact: The bursar could not match the payment to the bank statement. A bounced cheque could not be traced to its record.
+- Reproduction: Open an invoice. Take a payment. Choose Cheque. Leave Reference empty. Save. The payment was recorded.
+- Resolution: The payment and refund forms now ask for the reference when the payment method needs one. Cash still needs no reference. The placeholder shows "Reference (optional)" only for methods that do not need one.
+
 ## Money taken on an older invoice put the account out of step with its bills
 
 - Status: Fixed

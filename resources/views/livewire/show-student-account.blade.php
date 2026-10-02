@@ -66,7 +66,7 @@
                     </div>
                     <div>
                         <label for="refund-reference" class="sr-only">Reference</label>
-                        <input id="refund-reference" wire:model="refundReference" maxlength="100" placeholder="Reference (optional)" class="{{ $controlClasses }}" {{ field_error_bindings('refundReference') }}>
+                        <input id="refund-reference" wire:model="refundReference" maxlength="100" placeholder="Reference (optional)" x-data="{ needs: @js(collect($channels)->map(fn ($channel): bool => $channel->needsReference())) }" x-bind:placeholder="needs[$wire.refundMethod] ? 'Reference' : 'Reference (optional)'" class="{{ $controlClasses }}" {{ field_error_bindings('refundReference') }}>
                     </div>
                 </div>
                 <div>

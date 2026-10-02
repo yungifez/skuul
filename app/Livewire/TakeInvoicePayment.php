@@ -54,7 +54,7 @@ class TakeInvoicePayment extends Component
         $this->validate([
             'amount' => ['required', 'numeric', 'decimal:0,2', 'min:0.01', 'max:100000000'],
             'method' => ['required', 'string', Rule::in($channels->keys())],
-            'reference' => ['nullable', 'string', 'max:100'],
+            'reference' => [$this->needsReference($channels, $this->method) ? 'required' : 'nullable', 'string', 'max:100'],
             'note' => ['nullable', 'string', 'max:1000'],
             'receivedOn' => ['nullable', 'date', 'before_or_equal:'.school_today()->toDateString()],
             'lines' => ['array'],
@@ -62,6 +62,7 @@ class TakeInvoicePayment extends Component
         ], [
             'amount.required' => 'Say how much money arrived.',
             'method.in' => 'This school does not take money that way.',
+            'reference.required' => 'Add the cheque number or the reference on the slip.',
         ], ['receivedOn' => 'date received', 'lines.*' => 'amount for this fee']);
 
         $enrollment = $this->feeInvoice->studentRecord;
@@ -146,5 +147,15 @@ class TakeInvoicePayment extends Component
     private function minor(string $amount): int
     {
         return BrickMoney::of($amount, config('app.currency'))->getMinorAmount()->toInt();
+    }
+
+    /**
+     * Check whether money paid this way carries a number to trace it by.
+     *
+     * A cheque that bounces is found again by its number.
+     */
+    private function needsReference(PaymentChannelRegistry $channels, string $method): bool
+    {
+        return $channels->has($method) && $channels->get($method)->needsReference();
     }
 }

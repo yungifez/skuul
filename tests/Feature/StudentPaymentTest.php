@@ -429,6 +429,7 @@ class StudentPaymentTest extends TestCase
         Livewire::test(TakeInvoicePayment::class, ['feeInvoice' => $invoice])
             ->set('amount', '40')
             ->set('method', 'bank_transfer')
+            ->set('reference', 'TRF-2210')
             ->set('splitByFee', true)
             ->set('lines', [$lines[1]->id => '40'])
             ->call('save')
@@ -437,6 +438,47 @@ class StudentPaymentTest extends TestCase
 
         $this->assertSame(0, $lines[0]->fresh()->paid->getMinorAmount()->toInt());
         $this->assertSame(4_000, $lines[1]->fresh()->paid->getMinorAmount()->toInt());
+    }
+
+    public function test_a_cheque_needs_its_number_and_cash_does_not(): void
+    {
+        $this->authorized_user(['read fee invoice', 'update fee invoice']);
+        $enrollment = $this->enrollment();
+        $invoice = $this->invoiceFor($enrollment, [['amount' => 100]]);
+
+        Livewire::test(TakeInvoicePayment::class, ['feeInvoice' => $invoice])
+            ->set('amount', '10')
+            ->set('method', 'cheque')
+            ->call('save')
+            ->assertHasErrors(['reference' => 'required'])
+            ->set('reference', 'CHQ 004512')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        Livewire::test(TakeInvoicePayment::class, ['feeInvoice' => $invoice])
+            ->set('amount', '10')
+            ->set('method', 'cash')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $this->assertSame(2_000, $invoice->fresh()->paid->getMinorAmount()->toInt());
+    }
+
+    public function test_money_given_back_by_cheque_needs_its_number(): void
+    {
+        $this->authorized_user(['read fee invoice', 'refund student payment']);
+        $enrollment = $this->enrollment();
+        app(ReceivePayment::class)->receive($enrollment, 5_000);
+
+        Livewire::test(ShowStudentAccount::class, ['enrollment' => $enrollment])
+            ->set('isRefunding', true)
+            ->set('refundAmount', '10')
+            ->set('refundReason', 'The family asked for it back')
+            ->set('refundMethod', 'cheque')
+            ->call('refund')
+            ->assertHasErrors(['refundReference' => 'required']);
+
+        $this->assertSame(5_000, app(ApplyStudentCredit::class)->creditHeld($enrollment));
     }
 
     public function test_the_screen_refuses_a_way_to_pay_the_school_does_not_take(): void

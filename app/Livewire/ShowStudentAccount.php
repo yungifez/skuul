@@ -133,8 +133,13 @@ class ShowStudentAccount extends Component
             'refundAmount' => ['required', 'decimal:0,2', 'min:0.01', 'max:100000000'],
             'refundReason' => ['required', 'string', 'min:5', 'max:500'],
             'refundMethod' => ['required', 'string', Rule::in($channels->keys())],
-            'refundReference' => ['nullable', 'string', 'max:100'],
+            'refundReference' => [
+                $channels->has($this->refundMethod) && $channels->get($this->refundMethod)->needsReference() ? 'required' : 'nullable',
+                'string',
+                'max:100',
+            ],
         ], [
+            'refundReference.required' => 'Add the cheque number or the transfer reference.',
             'refundReason.required' => 'Say why the money is being given back.',
             'refundReason.min' => 'Give a reason somebody can understand later.',
         ]);

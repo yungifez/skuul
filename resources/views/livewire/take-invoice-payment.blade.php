@@ -58,7 +58,7 @@
             <div class="grid gap-3 sm:grid-cols-2">
                 <div>
                     <label for="payment-reference" class="sr-only">Reference</label>
-                    <input id="payment-reference" maxlength="100" autocomplete="off" wire:model="reference" placeholder="Reference (optional)" class="{{ $controlClasses }}" {{ field_error_bindings('reference') }}>
+                    <input id="payment-reference" maxlength="100" autocomplete="off" wire:model="reference" placeholder="Reference (optional)" x-data="{ needs: @js(collect($channels)->map(fn ($channel): bool => $channel->needsReference())) }" x-bind:placeholder="needs[$wire.method] ? 'Reference' : 'Reference (optional)'" class="{{ $controlClasses }}" {{ field_error_bindings('reference') }}>
                     <x-field-error name="reference" class="mt-1" />
                 </div>
                 <div>
