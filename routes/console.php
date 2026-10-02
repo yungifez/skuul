@@ -12,6 +12,7 @@ use App\Console\Commands\RehearseRestore;
 use App\Console\Commands\SendAcademicCalendarReminders;
 use App\Console\Commands\SendSyllabusBehindReminders;
 use App\Http\Controllers\HealthController;
+use App\Jobs\RecordQueueHeartbeat;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Cache;
@@ -47,8 +48,11 @@ Artisan::command('inspire', function () {
 
 // Say the scheduler is alive, so the health endpoint can see it.
 Schedule::call(function (): void {
-    Cache::put(HealthController::SCHEDULER_KEY, now(), now()->addHour());
+    Cache::forever(HealthController::SCHEDULER_KEY, now());
 })->everyMinute()->name('scheduler-heartbeat');
+
+// Give the queue workers a job to prove they are running.
+Schedule::job(new RecordQueueHeartbeat)->everyMinute()->name('queue-heartbeat')->onOneServer();
 
 // Close invitation links nobody used.
 Schedule::command(PruneExpiredInvitations::class)->hourly()->withoutOverlapping()->onOneServer();

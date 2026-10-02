@@ -23,9 +23,14 @@ class HealthController extends Controller
     public const SCHEDULER_KEY = 'health:scheduler-last-run';
 
     /**
-     * The number of minutes a scheduler heartbeat stays fresh.
+     * The cache key a queue worker refreshes each time it takes the heartbeat job.
      */
-    private const SCHEDULER_FRESH_MINUTES = 5;
+    public const QUEUE_KEY = 'health:queue-last-run';
+
+    /**
+     * The number of minutes a heartbeat stays fresh.
+     */
+    private const FRESH_MINUTES = 5;
 
     /**
      * Run every check and report the result.
@@ -43,9 +48,9 @@ class HealthController extends Controller
 
                 return Cache::get('health:check') === 'ok';
             }),
-            'queue'     => $this->check(fn (): bool => Queue::size() >= 0),
-            'storage'   => $this->check(fn () => Storage::disk('public')->directoryExists('') || is_writable(storage_path())),
-            'scheduler' => $this->check(fn () => $this->schedulerIsFresh()),
+            'queue' => $this->check(fn (): bool => Queue::size() >= 0 && $this->workersAreTakingJobs()),
+            'storage' => $this->check(fn () => Storage::disk('public')->directoryExists('') || is_writable(storage_path())),
+            'scheduler' => $this->check(fn () => $this->isFresh(self::SCHEDULER_KEY)),
         ];
 
         $healthy = !in_array('failed', $checks, true);
@@ -53,7 +58,7 @@ class HealthController extends Controller
         return response()->json([
             'status' => $healthy ? 'ok' : 'failed',
             'checks' => $checks,
-            'time'   => now()->toIso8601String(),
+            'time' => now()->toIso8601String(),
         ], $healthy ? 200 : 503);
     }
 
@@ -70,19 +75,33 @@ class HealthController extends Controller
     }
 
     /**
-     * Check that the scheduler ran recently.
+     * Check that a queue worker took a job recently.
      *
-     * A missing heartbeat means the scheduler never ran, so the check reports
-     * "unknown" instead of a failure until the first run happens.
+     * The sync connection runs every job in the request, so it has no workers.
      */
-    private function schedulerIsFresh(): bool
+    private function workersAreTakingJobs(): bool
     {
-        $lastRun = Cache::get(self::SCHEDULER_KEY);
-
-        if ($lastRun === null) {
+        if (config('queue.default') === 'sync') {
             return true;
         }
 
-        return now()->diffInMinutes($lastRun, absolute: true) <= self::SCHEDULER_FRESH_MINUTES;
+        return $this->isFresh(self::QUEUE_KEY);
+    }
+
+    /**
+     * Check that a heartbeat was written recently.
+     *
+     * A missing heartbeat fails too. It means the scheduler or the workers
+     * never started, which is as broken as having stopped.
+     */
+    private function isFresh(string $key): bool
+    {
+        $lastRun = Cache::get($key);
+
+        if ($lastRun === null) {
+            return false;
+        }
+
+        return now()->diffInMinutes($lastRun, absolute: true) <= self::FRESH_MINUTES;
     }
 }
