@@ -44,7 +44,18 @@
         </slot:content>
     </april:card>
 
-    @if (! $section)
+    @if (! $section && $sections->isEmpty())
+        <april:card>
+            <slot:content>
+                <x-empty-state icon="lucide-clipboard-list" title="No {{ strtolower(school_terms('section', 'sections')) }} this {{ strtolower(school_term('academic_year', 'school year')) }}"
+                    description="A register lists the learners of one {{ strtolower(school_term('section', 'section')) }}. Add and activate a {{ strtolower(school_term('section', 'section')) }} first.">
+                    @can('create', App\Models\AcademicCycleSection::class)
+                        <april:button-link href="{{ route('academic-cycle-sections.create') }}" variant="outline" class="h-11 select-none">Add a {{ strtolower(school_term('section', 'section')) }}</april:button-link>
+                    @endcan
+                </x-empty-state>
+            </slot:content>
+        </april:card>
+    @elseif (! $section)
         <april:card>
             <slot:content>
                 <x-empty-state icon="lucide-clipboard-list" title="No register open"

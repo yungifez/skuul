@@ -1,5 +1,13 @@
 # Known Bugs
 
+## A new campus's register asked for a section that did not exist
+- Status: Fixed
+- Area: Attendance register
+- Observed: At a campus with no sections this school year, the register said "Choose a section above to mark who attended." The list above it was empty.
+- Impact: Staff at a new campus hit a dead end with no hint of what was missing. The dashboard's "Take attendance" button led straight to it.
+- Reproduction: Switch to a campus with no sections. Open the attendance register.
+- Resolution: The register now says there are no sections this school year and that a register needs one. People who can add sections get a link to add one.
+
 ## Messages spoke of "academic levels" and "cycle sections"
 - Status: Fixed
 - Area: Classes, sections, admissions, audit log

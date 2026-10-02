@@ -376,6 +376,27 @@ class AttendanceTest extends TestCase
             ->assertSee('Choose a');
     }
 
+    public function test_a_campus_without_sections_is_told_to_add_one(): void
+    {
+        $this->authorized_user(['read attendance', 'create section'], School::factory()->create());
+
+        $this->get(route('attendance.register'))
+            ->assertOk()
+            ->assertSee('No sections this school year')
+            ->assertDontSee('No register open')
+            ->assertSee(route('academic-cycle-sections.create'));
+    }
+
+    public function test_only_people_who_add_sections_get_the_link(): void
+    {
+        $this->authorized_user(['read attendance'], School::factory()->create());
+
+        $this->get(route('attendance.register'))
+            ->assertOk()
+            ->assertSee('No sections this school year')
+            ->assertDontSee(route('academic-cycle-sections.create'));
+    }
+
     public function test_the_register_screen_lists_the_learners_with_bulk_marking(): void
     {
         $this->authorized_user(['read attendance', 'take attendance']);
