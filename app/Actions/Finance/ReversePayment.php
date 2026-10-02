@@ -94,9 +94,10 @@ class ReversePayment
                 $payment->school_id,
             );
 
-            // A campus of the group can take back a payment after the learner
-            // moved on. What it takes back follows the learner's account.
-            $this->carry->carryToWhereTheyAttend($payment->studentRecord, $payment->school_id, $actor);
+            // A campus can take back a payment after the learner moved on. What
+            // it takes back follows the learner's account, even when the group
+            // that carried the payment across has since ended.
+            $this->carry->carryTakenBack($payment, $actor);
 
             return $reversal;
         });

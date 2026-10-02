@@ -9,6 +9,7 @@ use App\Models\FeeInvoice;
 use App\Models\LedgerAccount;
 use App\Models\LedgerLine;
 use App\Models\School;
+use App\Models\StudentPayment;
 use App\Models\StudentRecord;
 use App\Models\User;
 use App\Services\Finance\ChartOfAccounts;
@@ -86,6 +87,68 @@ class CarryBalanceToCampus
             School::query()->findOrFail($attending),
             $actor,
         );
+    }
+
+    /**
+     * Carry what taking back a payment changed at a campus the learner left.
+     *
+     * While the two campuses still keep one purse, the whole balance follows
+     * the learner as on any other day. After they stop billing together, only
+     * the part of this payment that an earlier carry took across comes back
+     * through the same path, so the old campus does not chase a debt the new
+     * campus now holds, and the new campus does not keep credit that bounced.
+     * Money the old campus billed or took on its own stays there.
+     *
+     * @return array<string, float>
+     */
+    public function carryTakenBack(StudentPayment $payment, ?User $actor = null): array
+    {
+        $enrollment = $payment->studentRecord;
+        $attending = StudentRecord::query()->whereKey($enrollment->id)->value('school_id');
+
+        if ($attending === null || (int) $attending === $payment->school_id) {
+            return [];
+        }
+
+        $from = School::query()->findOrFail($payment->school_id);
+        $to = School::query()->findOrFail($attending);
+
+        if ($from->billsWith($to)) {
+            return $this->carry($enrollment, $from, $to, $actor);
+        }
+
+        if (!$this->wasCarriedAfter($payment, $enrollment, $from) || !$this->wasCarriedAfter($payment, $enrollment, $to)) {
+            return [];
+        }
+
+        $owed = round(min(
+            max(0.0, $this->balanceOf('fees_receivable', $enrollment, $from)),
+            $payment->allocations()
+                ->whereHas('feeInvoice', fn ($invoice) => $invoice->where('school_id', $to->id))
+                ->sum('amount') / 100,
+        ), 2);
+        $credit = round(min(
+            max(0.0, -$this->balanceOf('unapplied_credits', $enrollment, $from)),
+            $payment->unallocated()->getAmount()->toFloat(),
+        ), 2);
+
+        $carried = array_filter(['fees_receivable' => $owed, 'unapplied_credits' => -$credit], fn (float $amount): bool => $amount !== 0.0);
+
+        foreach ($carried as $purpose => $amount) {
+            $this->moveOne($purpose, $amount, $enrollment, $from, $to, $actor);
+        }
+
+        if ($carried !== []) {
+            $this->auditor->record(
+                AuditAction::BalanceCarriedToCampus,
+                $enrollment,
+                ['from_school_id' => $from->id, 'to_school_id' => $to->id, 'carried' => $carried, 'payment_id' => $payment->id],
+                $actor,
+                $to,
+            );
+        }
+
+        return $carried;
     }
 
     /**
@@ -236,6 +299,25 @@ class CarryBalanceToCampus
             'memo' => $memo,
             'student_record_id' => $enrollment->id,
         ];
+    }
+
+    /**
+     * Check whether a carry for this learner touched the campus after the payment.
+     */
+    private function wasCarriedAfter(StudentPayment $payment, StudentRecord $enrollment, School $school): bool
+    {
+        if ($payment->ledger_transaction_id === null) {
+            return false;
+        }
+
+        return LedgerLine::query()
+            ->where('student_record_id', $enrollment->id)
+            ->whereIn('ledger_account_id', [
+                $this->chart->account('due_from_campus', $school->id)->id,
+                $this->chart->account('due_to_campus', $school->id)->id,
+            ])
+            ->where('ledger_transaction_id', '>', $payment->ledger_transaction_id)
+            ->exists();
     }
 
     /**

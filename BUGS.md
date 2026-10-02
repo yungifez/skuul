@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A payment taken back after a billing group ended split the debt across two campuses
+
+- Status: Fixed
+- Area: Finance, billing groups, campus moves
+- Observed: A learner paid at campus A and moved to campus B while the two shared a billing group. The payment was carried to B. The campuses then left the group, and A took the payment back. A's books showed the family owing the money, and B still held the carried credit. A part payment left 40 owed at A and 60 at B, while the bill at B said 100.
+- Impact: Both campuses could chase the family for one bill. The new campus kept credit for money the school never received.
+- Reproduction: Put A and B in one billing group. Take 200 at A. Move the learner to B. Take A out of the group. Take the payment back at A.
+- Resolution: Taking back a payment now carries back the part of it an earlier move took across, through the same campus accounts, even after the group has ended. Debt for bills that stayed at A stays at A. Money A billed or took on its own is not moved. `BillingGroupTest` covers credit, part payments, settled bills and later payments.
+
 ## Error pages show the framework's bare default
 - Status: Fixed
 - Area: Errors
