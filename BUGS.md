@@ -1,5 +1,14 @@
 # Known Bugs
 
+## A child who changed school opens the old school's calendar
+
+- Status: Fixed
+- Area: Parent portal, sidebar
+- Observed: The sidebar's family calendar link opened the enrollment with the lowest id. For a child who left one school and joined another, that was the old school.
+- Impact: The family read the old school's term dates and closures, and missed the new school's.
+- Reproduction: Withdraw or transfer a learner, then enrol them at another school. Sign in as their guardian. The calendar link names the old enrollment.
+- Resolution: The link now prefers an enrollment the child still attends. It falls back to the newest enrollment when none is attended.
+
 ## A withdrawn learner's family loses their records
 
 - Status: Fixed

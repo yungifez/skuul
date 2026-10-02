@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\CalendarEventType;
+use App\Enums\EnrollmentStatus;
 use App\Enums\Feature;
 use App\Enums\PortalArea;
 use App\Models\AcademicCycleSection;
@@ -203,6 +204,21 @@ class PortalCalendarScreenTest extends TestCase
             ->get(route('dashboard'))
             ->assertOk()
             ->assertSee(route('portal.calendar.index', $enrollment), escape: false);
+    }
+
+    public function test_a_child_who_changed_school_is_offered_the_new_school_calendar(): void
+    {
+        $left = $this->enrollment(['status' => EnrollmentStatus::Withdrawn]);
+        $newSchool = School::factory()->create();
+        app(FeatureManager::class)->enable(Feature::Portal, $newSchool->id);
+        app(FeatureManager::class)->enable(Feature::Events, $newSchool->id);
+        $attending = StudentRecord::factory()->create(['school_id' => $newSchool->id, 'user_id' => $left->user_id]);
+
+        $this->actingAs($this->guardianOf($left))
+            ->get(route('dashboard'))
+            ->assertOk()
+            ->assertSee(route('portal.calendar.index', $attending), escape: false)
+            ->assertDontSee(route('portal.calendar.index', $left), escape: false);
     }
 
     /**

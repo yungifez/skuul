@@ -2,6 +2,7 @@
 
 namespace App\Livewire\Layouts;
 
+use App\Enums\EnrollmentStatus;
 use App\Enums\Feature;
 use App\Enums\PortalArea;
 use App\Models\CalendarEvent;
@@ -560,13 +561,17 @@ class Menu extends Component
      * A staff member holds no enrollment and no children, so the family
      * entries stay hidden for them. A guardian of more than one child reads
      * the first, and every family screen names the child it is showing.
+     * An enrollment the child still attends comes before one they left, so
+     * a child who changed school opens the new school's calendar.
      */
     private function portalEnrollment(User $user): ?StudentRecord
     {
         $access = app(PortalAccess::class);
+        $enrollments = $access->enrollmentsFor($user);
 
         /** @var StudentRecord|null $enrollment */
-        $enrollment = $access->enrollmentsFor($user)->first();
+        $enrollment = $enrollments->first(fn (StudentRecord $enrollment): bool => in_array($enrollment->status, EnrollmentStatus::enrolled(), true))
+            ?? $enrollments->last();
 
         if ($enrollment === null) {
             return null;
