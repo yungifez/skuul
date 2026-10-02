@@ -61,7 +61,7 @@ class CreateDataSharingRequestForm extends Component
             'categories' => ['required', 'array', 'min:1'],
             'categories.*' => [Rule::enum(DataCategory::class)],
             'purpose' => ['required', 'string', 'max:500'],
-            'expiresOn' => ['nullable', 'date', 'after_or_equal:today'],
+            'expiresOn' => ['nullable', 'date', 'after_or_equal:'.school_today()->toDateString()],
         ], [
             'categories.required' => 'A request must name what it asks for.',
             'expiresOn.after_or_equal' => 'A request cannot end before it starts.',

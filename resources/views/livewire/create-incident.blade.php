@@ -26,7 +26,7 @@
 
             <div class="flex flex-col gap-2">
                 <label for="occurred-at" class="text-sm font-medium">When</label>
-                <input type="datetime-local" id="occurred-at" wire:model="occurredAt" max="{{ now()->format('Y-m-d\TH:i') }}" class="{{ $controlClasses }}" {{ field_error_bindings('occurredAt') }}>
+                <input type="datetime-local" id="occurred-at" wire:model="occurredAt" max="{{ school_now()->format('Y-m-d\TH:i') }}" class="{{ $controlClasses }}" {{ field_error_bindings('occurredAt') }}>
                 <x-field-error name="occurredAt" />
             </div>
 

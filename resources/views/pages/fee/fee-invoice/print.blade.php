@@ -147,7 +147,7 @@
                 <span></span>
                 {{ $isReceipt ? 'Received by' : 'Authorised by' }} · signature and school stamp
             </div>
-            <p class="muted">Printed {{ now()->format('j M Y, H:i') }} by {{ auth()->user()->name }}</p>
+            <p class="muted">Printed {{ school_now()->format('j M Y, H:i') }} by {{ auth()->user()->name }}</p>
         </footer>
     </div>
 @endsection

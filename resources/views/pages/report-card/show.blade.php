@@ -61,7 +61,7 @@
                     </div>
                     <div class="rounded-lg border p-4">
                         <dt class="text-sm text-muted-foreground">Issued</dt>
-                        <dd class="text-lg font-semibold">{{ $reportCardSnapshot->published_at->format('j M Y') }}</dd>
+                        <dd class="text-lg font-semibold">{{ school_time($reportCardSnapshot->published_at)?->format('j M Y') }}</dd>
                         <p class="mt-1 text-xs text-muted-foreground">
                             {{ $reportCardSnapshot->publishedBy?->name ? 'By '.$reportCardSnapshot->publishedBy->name : 'Publisher not recorded' }}
                         </p>
@@ -117,7 +117,7 @@
                                     @endif
                                 </p>
                                 <p class="text-sm text-muted-foreground">
-                                    {{ $revision->published_at->format('j M Y') }}
+                                    {{ school_time($revision->published_at)?->format('j M Y') }}
                                     @if ($revision->publishedBy?->name)
                                         · {{ $revision->publishedBy->name }}
                                     @endif

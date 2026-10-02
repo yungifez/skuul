@@ -52,7 +52,7 @@ class ReserveTitle
                 'school_id' => $schoolId,
                 'library_title_id' => $title->id,
                 'user_id' => $borrower->id,
-                'reserved_on' => now()->toDateString(),
+                'reserved_on' => school_today()->toDateString(),
                 'created_by' => $actor === null ? auth()->id() : $actor->id,
             ]);
 

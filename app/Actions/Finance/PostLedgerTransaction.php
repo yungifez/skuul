@@ -47,7 +47,8 @@ class PostLedgerTransaction
         ?FinancialPeriod $period = null,
     ): LedgerTransaction {
         $prepared = $this->prepare($lines);
-        $period ??= $this->periods->openFor($prepared['school_id'], $date ?? now());
+        $date ??= school_today($prepared['school_id']);
+        $period ??= $this->periods->openFor($prepared['school_id'], $date);
 
         if ($period->school_id !== $prepared['school_id']) {
             throw new InvalidValueException('A ledger entry and its financial period must belong to the same school.');
@@ -72,7 +73,7 @@ class PostLedgerTransaction
                 'financial_period_id' => $period->id,
                 'reference' => $reference,
                 'description' => $description,
-                'transaction_date' => $date ?? now(),
+                'transaction_date' => $date,
                 'source_type' => $source?->getMorphClass(),
                 'source_id' => $source?->getKey(),
                 'reversal_of_id' => $reversalOf?->id,

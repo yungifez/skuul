@@ -1,6 +1,6 @@
 @php
     $selectedPeriod = collect($periods)->firstWhere('id', $academicPeriodId);
-    $calendarAnchor = \Illuminate\Support\Carbon::parse($calendarDate ?: now()->toDateString());
+    $calendarAnchor = \Illuminate\Support\Carbon::parse($calendarDate ?: school_today()->toDateString());
     $weekStart = $calendarAnchor->copy()->startOfWeek(\Illuminate\Support\Carbon::MONDAY);
     $monthStart = $calendarAnchor->copy()->startOfMonth();
     $monthCursor = $monthStart->copy()->startOfWeek(\Illuminate\Support\Carbon::MONDAY);

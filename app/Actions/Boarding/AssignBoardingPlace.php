@@ -146,7 +146,7 @@ class AssignBoardingPlace
                 ->where('status', OvernightLeaveStatus::Requested)
                 ->orWhere(fn ($approved) => $approved
                     ->where('status', OvernightLeaveStatus::Approved)
-                    ->whereDate('leaves_on', '>', today())))
+                    ->whereDate('leaves_on', '>', school_today())))
             ->get();
 
         foreach ($nightsAway as $nightAway) {

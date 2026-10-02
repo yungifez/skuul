@@ -64,7 +64,7 @@
                             </div>
                             <div>
                                 <dt class="text-muted-foreground">Received</dt>
-                                <dd class="mt-0.5 font-medium">{{ $request->created_at->format('M j, Y') }}</dd>
+                                <dd class="mt-0.5 font-medium">{{ school_time($request->created_at)?->format('M j, Y') }}</dd>
                             </div>
                         </dl>
 

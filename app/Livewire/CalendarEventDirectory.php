@@ -62,7 +62,7 @@ class CalendarEventDirectory extends Component
 
     public function showCurrentMonth(): void
     {
-        $this->month = now()->format('Y-m');
+        $this->month = school_today()->format('Y-m');
     }
 
     public function showDrafts(): void
@@ -117,7 +117,7 @@ class CalendarEventDirectory extends Component
     {
         return rescue(
             fn (): string => Carbon::createFromFormat('Y-m', $month)->startOfMonth()->format('Y-m'),
-            fn (): string => now()->format('Y-m'),
+            fn (): string => school_today()->format('Y-m'),
             report: false,
         );
     }

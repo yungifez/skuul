@@ -43,7 +43,7 @@ class CreateIncident extends Component
         Gate::authorize('create', Incident::class);
 
         $this->category = IncidentCategory::cases()[0]->value;
-        $this->occurredAt = now()->format('Y-m-d\TH:i');
+        $this->occurredAt = school_now()->format('Y-m-d\TH:i');
         $this->addParticipant();
     }
 
@@ -69,7 +69,7 @@ class CreateIncident extends Component
             'category' => ['required', Rule::enum(IncidentCategory::class)],
             'description' => ['nullable', 'string', 'max:5000'],
             'location' => ['nullable', 'string', 'max:255'],
-            'occurredAt' => ['required', 'date', 'before_or_equal:now'],
+            'occurredAt' => ['required', 'date', 'before_or_equal:'.school_now()->format('Y-m-d H:i')],
             'assignedTo' => ['nullable', 'integer', Rule::in($this->schoolWorkers()->modelKeys())],
             'participants' => ['array', 'max:'.self::MaxParticipants],
             'participants.*.student_record_id' => ['nullable', 'integer', Rule::exists('student_records', 'id')->where('school_id', current_school_id())],

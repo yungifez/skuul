@@ -71,9 +71,9 @@ class ShowStudentProfile extends Component
     public function mount(bool $showManagement = true): void
     {
         $this->showManagement = $showManagement;
-        $this->statusEffectiveOn = now()->toDateString();
-        $this->placementEffectiveOn = now()->toDateString();
-        $this->campusEffectiveOn = now()->toDateString();
+        $this->statusEffectiveOn = school_today()->toDateString();
+        $this->placementEffectiveOn = school_today()->toDateString();
+        $this->campusEffectiveOn = school_today()->toDateString();
 
         if ($this->showManagement) {
             $this->loadCycleSections();
@@ -97,7 +97,7 @@ class ShowStudentProfile extends Component
         $this->validate([
             'statusSelection' => ['required', 'in:'.implode(',', array_column($this->statusOptions, 'value'))],
             'statusReason' => ['nullable', 'string', 'max:1000'],
-            'statusEffectiveOn' => ['required', 'date', 'before_or_equal:today'],
+            'statusEffectiveOn' => ['required', 'date', 'before_or_equal:'.school_today()->toDateString()],
         ]);
 
         try {
@@ -134,7 +134,7 @@ class ShowStudentProfile extends Component
         $this->validate([
             'placementCycleSectionId' => ['required', 'integer'],
             'placementReason' => ['nullable', 'string', 'max:1000'],
-            'placementEffectiveOn' => ['required', 'date', 'before_or_equal:today'],
+            'placementEffectiveOn' => ['required', 'date', 'before_or_equal:'.school_today()->toDateString()],
         ]);
 
         $academicCycleSection = AcademicCycleSection::inSchool()
@@ -189,7 +189,7 @@ class ShowStudentProfile extends Component
         $this->validate([
             'campusCycleSectionId' => ['required', 'integer'],
             'campusReason' => ['nullable', 'string', 'max:1000'],
-            'campusEffectiveOn' => ['required', 'date', 'before_or_equal:today'],
+            'campusEffectiveOn' => ['required', 'date', 'before_or_equal:'.school_today()->toDateString()],
         ]);
 
         // Only a section of a sibling campus may be chosen, so read it from

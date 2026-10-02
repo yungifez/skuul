@@ -151,7 +151,7 @@ class OvernightLeaveDesk extends Component
 
     public function render(): View
     {
-        $today = today()->toDateString();
+        $today = school_today()->toDateString();
         $with = ['studentRecord:id,user_id,admission_number', 'studentRecord.user:id,name'];
 
         return view('livewire.overnight-leave-desk', [
@@ -167,7 +167,7 @@ class OvernightLeaveDesk extends Component
             'boarders' => $this->isAsking ? $this->boarders() : collect(),
             'canDecide' => Gate::allows('decide overnight leave'),
             'canAsk' => Gate::allows('create', OvernightLeave::class),
-            'today' => today(),
+            'today' => school_today(),
         ]);
     }
 
@@ -235,8 +235,8 @@ class OvernightLeaveDesk extends Component
     private function resetAskForm(): void
     {
         $this->reset('isAsking', 'learnerId', 'destination', 'contact', 'reason');
-        $this->leavesOn = today()->toDateString();
-        $this->returnsOn = today()->addDay()->toDateString();
+        $this->leavesOn = school_today()->toDateString();
+        $this->returnsOn = school_today()->addDay()->toDateString();
         $this->resetValidation();
     }
 }

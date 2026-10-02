@@ -38,7 +38,7 @@ class CreateStaffProfileForm extends Component
         Gate::authorize('create', StaffProfile::class);
 
         $this->employmentType = EmploymentType::FullTime->value;
-        $this->joinedOn = now()->toDateString();
+        $this->joinedOn = school_today()->toDateString();
     }
 
     public function save(ManageStaffProfile $manageStaffProfile): void

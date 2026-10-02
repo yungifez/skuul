@@ -94,7 +94,7 @@ class ManageTimetable extends Component
     public function mount(): void
     {
         $period = $this->timetable->academicPeriod;
-        $this->calendarDate = $period?->starts_on?->toDateString() ?? now()->toDateString();
+        $this->calendarDate = $period?->starts_on?->toDateString() ?? school_today()->toDateString();
         $this->slotStartsOn = $this->calendarDate;
         $this->slotOccursOn = $this->calendarDate;
         $this->weekdayMap = Weekday::query()->pluck('id', 'name')->all();
@@ -134,7 +134,7 @@ class ManageTimetable extends Component
 
     public function goToCalendarToday(): void
     {
-        $this->calendarDate = now()->toDateString();
+        $this->calendarDate = school_today()->toDateString();
         $this->slotOccursOn = $this->calendarDate;
         $this->refreshWeek();
     }
@@ -396,7 +396,7 @@ class ManageTimetable extends Component
             $this->slotRecurrence = 'weekly';
             $this->showRecurrenceOptions = false;
             $this->slotRecurrenceInterval = 1;
-            $this->slotStartsOn = $this->timetable->academicPeriod?->starts_on?->toDateString() ?? now()->toDateString();
+            $this->slotStartsOn = $this->timetable->academicPeriod?->starts_on?->toDateString() ?? school_today()->toDateString();
             $this->slotOccursOn = $this->timetable->academicPeriod?->starts_on?->toDateString();
             $this->slotWeekdayIds = [$this->weekdayMap[Carbon::parse($this->slotStartsOn)->englishDayOfWeek] ?? 1];
             $this->showTimeSlotDialog = false;

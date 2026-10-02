@@ -52,7 +52,7 @@ class ProgramRecord extends Component
         Gate::authorize('view', $program);
 
         $this->program = $program;
-        $this->startsOn = now()->toDateString();
+        $this->startsOn = school_today()->toDateString();
     }
 
     public function startEditing(): void

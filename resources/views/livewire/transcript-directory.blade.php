@@ -97,7 +97,7 @@
                                     </td>
                                     <td class="px-3 py-3"><span class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold">Revision {{ $transcript->revision }}</span></td>
                                     <td class="px-3 py-3">{{ count($results) }}</td>
-                                    <td class="whitespace-nowrap px-3 py-3 text-muted-foreground">{{ $transcript->issued_at->format('j M Y') }}</td>
+                                    <td class="whitespace-nowrap px-3 py-3 text-muted-foreground">{{ school_time($transcript->issued_at)?->format('j M Y') }}</td>
                                     <td class="px-3 py-3 text-right">
                                         <button type="button" class="inline-flex h-9 items-center rounded-md border border-input bg-background px-3 text-sm font-medium hover:bg-accent" x-on:click="open = (open === {{ $transcript->id }} ? null : {{ $transcript->id }})" x-bind:aria-expanded="open === {{ $transcript->id }}" aria-controls="transcript-details-{{ $transcript->id }}">
                                             <span x-text="open === {{ $transcript->id }} ? 'Hide subjects' : 'Read subjects'">Read subjects</span>

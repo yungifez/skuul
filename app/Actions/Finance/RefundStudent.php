@@ -102,7 +102,7 @@ class RefundStudent
                 'amount' => BrickMoney::ofMinor(-$amount, config('app.currency')),
                 'method' => $method,
                 'reference' => $reference,
-                'received_on' => $refundedOn ?? now(),
+                'received_on' => $refundedOn ?? school_today($schoolId),
                 'note' => "Refund: $reason",
                 'ledger_transaction_id' => $transaction->id,
                 'recorded_by' => $actor === null ? auth()->id() : $actor->id,

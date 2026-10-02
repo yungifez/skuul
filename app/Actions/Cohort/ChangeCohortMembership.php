@@ -124,7 +124,7 @@ class ChangeCohortMembership
     {
         $joinedOn = Carbon::parse($joinedOn ?? now())->startOfDay();
 
-        if ($joinedOn->isAfter(today())) {
+        if ($joinedOn->isAfter(school_today())) {
             throw new InvalidValueException('Nobody can join a group on a day that has not come yet.');
         }
 

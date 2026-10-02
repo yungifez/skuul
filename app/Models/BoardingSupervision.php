@@ -82,7 +82,7 @@ class BoardingSupervision extends Model
      */
     public function scopeOnDuty(Builder $query, ?string $onDate = null): Builder
     {
-        $onDate ??= now()->toDateString();
+        $onDate ??= school_today()->toDateString();
 
         return $query
             ->where('starts_on', '<=', $onDate)

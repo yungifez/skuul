@@ -43,7 +43,7 @@ class CohortRecord extends Component
         Gate::authorize('view', $cohort);
 
         $this->cohort = $cohort;
-        $this->joinedOn = now()->toDateString();
+        $this->joinedOn = school_today()->toDateString();
     }
 
     public function startEditing(): void

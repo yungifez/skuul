@@ -32,7 +32,7 @@
                 <dt class="text-sm text-muted-foreground">State</dt>
                 <dd class="font-medium">{{ $sharingRequest->status->label() }}</dd>
                 @if ($sharingRequest->decidedBy !== null)
-                    <dd class="text-xs text-muted-foreground">{{ $sharingRequest->decidedBy->name }} · {{ $sharingRequest->decided_at?->format('j M Y') }}</dd>
+                    <dd class="text-xs text-muted-foreground">{{ $sharingRequest->decidedBy->name }} · {{ school_time($sharingRequest->decided_at)?->format('j M Y') }}</dd>
                 @endif
             </div>
             <div>
@@ -41,7 +41,7 @@
             </div>
             <div>
                 <dt class="text-sm text-muted-foreground">Asked on</dt>
-                <dd class="font-medium">{{ $sharingRequest->created_at->format('j M Y') }}</dd>
+                <dd class="font-medium">{{ school_time($sharingRequest->created_at)?->format('j M Y') }}</dd>
                 <dd class="text-xs text-muted-foreground">{{ $sharingRequest->requestedBy?->name ?? '—' }}</dd>
             </div>
             <div>
@@ -108,7 +108,7 @@
             <dl class="grid grid-cols-2 gap-x-6 gap-y-4 border-y py-4 sm:grid-cols-3">
                 <div>
                     <dt class="text-sm text-muted-foreground">Built on</dt>
-                    <dd class="font-medium">{{ $package->created_at->format('j M Y') }}</dd>
+                    <dd class="font-medium">{{ school_time($package->created_at)?->format('j M Y') }}</dd>
                 </div>
                 <div>
                     <dt class="text-sm text-muted-foreground">Kinds of record</dt>
@@ -116,7 +116,7 @@
                 </div>
                 <div>
                     <dt class="text-sm text-muted-foreground">Taken in</dt>
-                    <dd class="font-medium">{{ $package->received_at?->format('j M Y') ?? '—' }}</dd>
+                    <dd class="font-medium">{{ school_time($package->received_at)?->format('j M Y') ?? '—' }}</dd>
                 </div>
             </dl>
             @if ($isRequester && !$package->wasReceived() && $sharingRequest->status === \App\Enums\DataSharingStatus::Revoked)

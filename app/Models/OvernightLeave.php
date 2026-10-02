@@ -108,7 +108,7 @@ class OvernightLeave extends Model
      */
     public function scopeAwayOn(Builder $query, ?string $night = null): Builder
     {
-        $night ??= now()->toDateString();
+        $night ??= school_today()->toDateString();
 
         return $query
             ->where('status', OvernightLeaveStatus::Approved)

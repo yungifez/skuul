@@ -37,7 +37,7 @@
                 </div>
                 <div>
                     <label for="payment-received-on" class="sr-only">Received on</label>
-                    <input id="payment-received-on" type="date" max="{{ now()->toDateString() }}" wire:model="receivedOn" class="{{ $controlClasses }}" {{ field_error_bindings('receivedOn') }}>
+                    <input id="payment-received-on" type="date" max="{{ school_today()->toDateString() }}" wire:model="receivedOn" class="{{ $controlClasses }}" {{ field_error_bindings('receivedOn') }}>
                     <x-field-error name="receivedOn" class="mt-1" />
                 </div>
             </div>

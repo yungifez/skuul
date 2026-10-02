@@ -56,7 +56,7 @@ class RequestCampusMove
             'to_school_id' => $academicCycleSection->school_id,
             'academic_cycle_section_id' => $academicCycleSection->id,
             'reason' => $reason,
-            'effective_on' => $effectiveOn === null ? now()->toDateString() : Carbon::parse($effectiveOn)->toDateString(),
+            'effective_on' => $effectiveOn === null ? school_today()->toDateString() : Carbon::parse($effectiveOn)->toDateString(),
             'requested_by' => $actor === null ? auth()->id() : $actor->id,
         ]);
 
@@ -93,7 +93,7 @@ class RequestCampusMove
                 actor: $actor,
                 reason: $request->reason,
                 // Approving early moves the learner now, so the move starts today.
-                effectiveOn: $request->effective_on?->isFuture() === true ? today() : $request->effective_on,
+                effectiveOn: $request->effective_on?->isFuture() === true ? school_today() : $request->effective_on,
             );
 
             return $this->writeDecision($request, CampusMoveStatus::Approved, $actor, $note);

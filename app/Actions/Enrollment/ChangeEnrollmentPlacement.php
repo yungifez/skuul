@@ -64,7 +64,7 @@ class ChangeEnrollmentPlacement
 
             // The pointer moves now, so the history cannot say the learner
             // sits here only from a later day.
-            if ($effectiveOn !== null && $effectiveOn->isAfter(today()->endOfDay())) {
+            if ($effectiveOn !== null && $effectiveOn->isAfter(school_today()->endOfDay())) {
                 throw new InvalidValueException('A new place starts when it is made. Choose today or an earlier day.');
             }
 

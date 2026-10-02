@@ -24,7 +24,7 @@
             @if ($record === null)
                 the school holds nothing for this child yet.
             @else
-                last saved {{ $record->updated_at->format('j M Y, H:i') }} by {{ $record->updatedBy?->name ?? '—' }}.
+                last saved {{ school_time($record->updated_at)?->format('j M Y, H:i') }} by {{ $record->updatedBy?->name ?? '—' }}.
             @endif
             The audit log keeps your name and which fields changed, never what they say.
         </span>

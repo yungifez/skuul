@@ -80,7 +80,7 @@
                                 {{ $action->assignedTo?->name ?? 'Nobody yet' }}
                                 · {{ $action->due_on?->format('j M Y') ?? 'No date' }}
                                 @if ($action->completed_at !== null)
-                                    · Done {{ $action->completed_at->format('j M Y') }}
+                                    · Done {{ school_time($action->completed_at)?->format('j M Y') }}
                                 @endif
                             </p>
                         </div>
@@ -135,7 +135,7 @@
                     <li wire:key="note-{{ $note->id }}" class="py-3 text-sm">
                         <p class="flex flex-wrap items-center gap-x-2 text-muted-foreground">
                             <span class="font-medium text-foreground">{{ $note->writtenBy?->name ?? 'Unknown person' }}</span>
-                            <span>{{ $note->created_at->format('j M Y') }}</span>
+                            <span>{{ school_time($note->created_at)?->format('j M Y') }}</span>
                         </p>
                         <p class="mt-1 whitespace-pre-line">{{ $note->body }}</p>
                     </li>
@@ -161,13 +161,13 @@
         <ol class="flex flex-col gap-3 border-l pl-4 text-sm">
             <li>
                 <p class="font-medium">Written</p>
-                <p class="text-muted-foreground">{{ $plan->created_at->format('j M Y') }} · {{ $plan->createdBy?->name ?? 'Unknown person' }}</p>
+                <p class="text-muted-foreground">{{ school_time($plan->created_at)?->format('j M Y') }} · {{ $plan->createdBy?->name ?? 'Unknown person' }}</p>
             </li>
             @foreach ($plan->statusChanges as $change)
                 <li wire:key="change-{{ $change->id }}">
                     <p class="font-medium">{{ $change->from_status->label() }} → {{ $change->to_status->label() }}</p>
                     <p class="text-muted-foreground">
-                        {{ $change->created_at->format('j M Y') }} · {{ $change->changedBy?->name ?? 'Unknown person' }}
+                        {{ school_time($change->created_at)?->format('j M Y') }} · {{ $change->changedBy?->name ?? 'Unknown person' }}
                         @if (filled($change->reason))
                             · {{ $change->reason }}
                         @endif

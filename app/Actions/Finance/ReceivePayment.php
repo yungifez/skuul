@@ -105,7 +105,7 @@ class ReceivePayment
                 'amount' => BrickMoney::ofMinor($amount, config('app.currency')),
                 'method' => $method,
                 'reference' => $reference,
-                'received_on' => $receivedOn ?? now(),
+                'received_on' => $receivedOn ?? school_today($schoolId),
                 'note' => $note,
                 'ledger_transaction_id' => $transaction->id,
                 'recorded_by' => $actor === null ? auth()->id() : $actor->id,

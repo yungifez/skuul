@@ -169,7 +169,7 @@ class ManageStaffProfile
      */
     public function endAccessOfALeaver(StaffProfile $profile): void
     {
-        if ($profile->status !== StaffStatus::Left || $profile->left_on === null || !$profile->left_on->lt(today())) {
+        if ($profile->status !== StaffStatus::Left || $profile->left_on === null || !$profile->left_on->lt(school_today())) {
             return;
         }
 

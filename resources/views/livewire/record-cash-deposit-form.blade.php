@@ -22,7 +22,7 @@
             </div>
             <div>
                 <label for="deposit-date" class="text-sm text-muted-foreground">Date</label>
-                <input type="date" id="deposit-date" wire:model="depositDate" max="{{ now()->toDateString() }}" required class="{{ $controlClasses }} mt-1" {{ field_error_bindings('depositDate') }}>
+                <input type="date" id="deposit-date" wire:model="depositDate" max="{{ school_today()->toDateString() }}" required class="{{ $controlClasses }} mt-1" {{ field_error_bindings('depositDate') }}>
             </div>
         </div>
         <x-field-error name="amount" />

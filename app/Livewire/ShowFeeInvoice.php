@@ -38,7 +38,7 @@ class ShowFeeInvoice extends Component
         return view('livewire.show-fee-invoice', [
             'hasLines' => $hasLines,
             'isSettled' => $isSettled,
-            'isOverdue' => $hasLines && !$isSettled && $this->feeInvoice->due_date->lt(today()),
+            'isOverdue' => $hasLines && !$isSettled && $this->feeInvoice->due_date->lt(school_today()),
             'payments' => $this->feeInvoice->allocations
                 ->groupBy('student_payment_id')
                 ->map(fn ($allocations) => [

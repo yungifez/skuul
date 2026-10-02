@@ -41,7 +41,7 @@ class DecideOvernightLeave
                 throw new InvalidValueException("This request was answered already: {$leave->status->label()}.");
             }
 
-            if ($status === OvernightLeaveStatus::Approved && $leave->returns_on->isBefore(today())) {
+            if ($status === OvernightLeaveStatus::Approved && $leave->returns_on->isBefore(school_today())) {
                 throw new InvalidValueException('The nights on this request have passed. Refuse it instead.');
             }
 
@@ -49,11 +49,11 @@ class DecideOvernightLeave
                 throw new InvalidValueException('This learner no longer boards in this house. Refuse the request instead.');
             }
 
-            if ($status === OvernightLeaveStatus::Returned && $leave->leaves_on->isAfter(today())) {
+            if ($status === OvernightLeaveStatus::Returned && $leave->leaves_on->isAfter(school_today())) {
                 throw new InvalidValueException('This learner has not left yet. Cancel the night away instead.');
             }
 
-            if ($status === OvernightLeaveStatus::Cancelled && $leave->status === OvernightLeaveStatus::Approved && !$leave->leaves_on->isAfter(today())) {
+            if ($status === OvernightLeaveStatus::Cancelled && $leave->status === OvernightLeaveStatus::Approved && !$leave->leaves_on->isAfter(school_today())) {
                 throw new InvalidValueException('This learner has left already. Record them back in the house instead.');
             }
 

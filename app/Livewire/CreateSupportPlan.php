@@ -40,7 +40,7 @@ class CreateSupportPlan extends Component
         Gate::authorize('create', SupportPlan::class);
 
         $this->category = SupportCategory::Intervention->value;
-        $this->startsOn = now()->toDateString();
+        $this->startsOn = school_today()->toDateString();
     }
 
     public function save(ManageSupportPlan $manageSupportPlan): void

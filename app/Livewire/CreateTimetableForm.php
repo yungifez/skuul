@@ -92,9 +92,9 @@ class CreateTimetableForm extends Component
                 'ends_on' => $period->ends_on?->toDateString(),
             ])->all();
         $this->academicPeriodId = current_academic_period_id() ?? $this->periods[0]['id'] ?? null;
-        $this->newEvent['occurs_on'] = $this->selectedPeriod()['starts_on'] ?? now()->toDateString();
+        $this->newEvent['occurs_on'] = $this->selectedPeriod()['starts_on'] ?? school_today()->toDateString();
         $this->newEvent['starts_on'] = $this->newEvent['occurs_on'];
-        $this->calendarDate = $this->selectedPeriod()['starts_on'] ?? now()->toDateString();
+        $this->calendarDate = $this->selectedPeriod()['starts_on'] ?? school_today()->toDateString();
         $this->cycleSections = AcademicCycleSection::inSchool()
             ->with('academicLevel')->where('academic_year_id', current_academic_year_id())
             ->where('status', AcademicStructureStatus::Active)->orderBy('position')->orderBy('name')->get()
@@ -129,11 +129,11 @@ class CreateTimetableForm extends Component
     public function updatedNewEventRecurrence(string $recurrence): void
     {
         if ($recurrence === 'one_time' && $this->newEvent['occurs_on'] === null) {
-            $this->newEvent['occurs_on'] = $this->selectedPeriod()['starts_on'] ?? now()->toDateString();
+            $this->newEvent['occurs_on'] = $this->selectedPeriod()['starts_on'] ?? school_today()->toDateString();
         }
 
         if ($recurrence !== 'one_time' && $this->newEvent['starts_on'] === null) {
-            $this->newEvent['starts_on'] = $this->selectedPeriod()['starts_on'] ?? now()->toDateString();
+            $this->newEvent['starts_on'] = $this->selectedPeriod()['starts_on'] ?? school_today()->toDateString();
         }
 
         if ($recurrence === 'weekly' && $this->newEvent['weekday_ids'] === []) {
@@ -147,13 +147,13 @@ class CreateTimetableForm extends Component
 
     public function updatedAcademicPeriodId(): void
     {
-        $this->calendarDate = $this->selectedPeriod()['starts_on'] ?? now()->toDateString();
+        $this->calendarDate = $this->selectedPeriod()['starts_on'] ?? school_today()->toDateString();
 
         if ($this->newEvent['recurrence'] === 'one_time') {
-            $this->newEvent['occurs_on'] = $this->selectedPeriod()['starts_on'] ?? now()->toDateString();
+            $this->newEvent['occurs_on'] = $this->selectedPeriod()['starts_on'] ?? school_today()->toDateString();
         }
 
-        $this->newEvent['starts_on'] = $this->selectedPeriod()['starts_on'] ?? now()->toDateString();
+        $this->newEvent['starts_on'] = $this->selectedPeriod()['starts_on'] ?? school_today()->toDateString();
     }
 
     public function updatedNewEventStartsOn(?string $date): void
@@ -185,7 +185,7 @@ class CreateTimetableForm extends Component
 
     public function goToCalendarToday(): void
     {
-        $this->calendarDate = now()->toDateString();
+        $this->calendarDate = school_today()->toDateString();
     }
 
     public function chooseCalendarDate(string $date): void
@@ -328,7 +328,7 @@ class CreateTimetableForm extends Component
         $this->newEvent['audience_role'] = '';
         $this->newEvent['weekday_ids'] = $weekdayIds;
         $this->newEvent['occurs_on'] = $this->newEvent['recurrence'] === 'one_time'
-            ? ($this->selectedPeriod()['starts_on'] ?? now()->toDateString())
+            ? ($this->selectedPeriod()['starts_on'] ?? school_today()->toDateString())
             : null;
         $this->newEvent['starts_on'] = $this->newEvent['recurrence'] === 'one_time'
             ? null

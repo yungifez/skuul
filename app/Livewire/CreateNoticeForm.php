@@ -47,7 +47,7 @@ class CreateNoticeForm extends Component
     {
         Gate::authorize('create', Notice::class);
 
-        $this->startDate = now()->toDateString();
+        $this->startDate = school_today()->toDateString();
         $this->stopDate = now()->addWeeks(2)->toDateString();
     }
 

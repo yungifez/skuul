@@ -65,7 +65,7 @@ class ReversePayment
                 'amount' => $payment->amount->multipliedBy(-1),
                 'method' => $payment->method,
                 'reference' => $payment->reference,
-                'received_on' => now(),
+                'received_on' => school_today($payment->school_id),
                 'note' => "Payment taken back: $reason",
                 'ledger_transaction_id' => $transaction?->id,
                 'reversal_of_id' => $payment->id,

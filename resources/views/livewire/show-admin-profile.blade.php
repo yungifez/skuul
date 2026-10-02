@@ -12,7 +12,7 @@
         </div>
         <div>
             <dt class="text-sm text-muted-foreground">Joined</dt>
-            <dd class="flex min-h-11 items-center text-sm">{{ $membership?->joined_at?->format('j M Y') ?? '—' }}</dd>
+            <dd class="flex min-h-11 items-center text-sm">{{ school_time($membership?->joined_at)?->format('j M Y') ?? '—' }}</dd>
         </div>
         <div>
             <dt class="text-sm text-muted-foreground">Roles</dt>
@@ -20,7 +20,7 @@
         </div>
         <div>
             <dt class="text-sm text-muted-foreground">Invitation</dt>
-            <dd class="text-sm">{{ $pendingInvitation ? 'Pending until '.$pendingInvitation->expires_at->format('j M Y') : '—' }}</dd>
+            <dd class="text-sm">{{ $pendingInvitation ? 'Pending until '.school_time($pendingInvitation->expires_at)?->format('j M Y') : '—' }}</dd>
         </div>
         <div>
             <dt class="text-sm text-muted-foreground">Primary school</dt>

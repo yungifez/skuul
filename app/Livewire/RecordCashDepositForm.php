@@ -38,7 +38,7 @@ class RecordCashDepositForm extends Component
     {
         $this->ensureAllowed();
 
-        $this->depositDate = now()->toDateString();
+        $this->depositDate = school_today()->toDateString();
     }
 
     public function updatedAmount(): void
@@ -53,7 +53,7 @@ class RecordCashDepositForm extends Component
 
         $this->validate([
             'amount' => ['required', 'numeric', 'gt:0', 'max:1000000000', 'decimal:0,2'],
-            'depositDate' => ['required', 'date', 'before_or_equal:today'],
+            'depositDate' => ['required', 'date', 'before_or_equal:'.school_today()->toDateString()],
             'bankReference' => ['nullable', 'string', 'max:100'],
             'note' => ['nullable', 'string', 'max:2000'],
         ], [

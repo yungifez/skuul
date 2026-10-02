@@ -24,7 +24,7 @@
         </div>
         <div>
             <label for="admission-date" class="text-sm text-muted-foreground">Date of admission</label>
-            <input id="admission-date" type="date" wire:model="admissionDate" max="{{ now()->toDateString() }}" class="{{ $controlClasses }}" {{ field_error_bindings('admissionDate') }}>
+            <input id="admission-date" type="date" wire:model="admissionDate" max="{{ school_today()->toDateString() }}" class="{{ $controlClasses }}" {{ field_error_bindings('admissionDate') }}>
             <x-field-error name="admissionDate" class="mt-1" />
         </div>
     </div>

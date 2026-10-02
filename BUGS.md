@@ -1,5 +1,14 @@
 # Known Bugs
 
+## Dates followed the server's clock, not the school's
+
+- Status: Fixed
+- Area: Schools, dates across the app
+- Observed: The app ran on UTC. Near midnight the header, new payments, invoices, registers and form defaults took the server's date, not the school's. A school east of UTC could not record a payment, expense or register for its own today until the server's date caught up, because "not in the future" checks used the server's date.
+- Impact: Receipts and ledger entries carried the wrong day. Staff in Lagos were blocked for an hour each night, and schools further east for longer.
+- Reproduction: Run a school in Lagos. At 00:30 local time, take a payment. It is dated the day before. Set the received date to today. The form says the date is in the future.
+- Resolution: Each school now has a time zone, picked on the school details form and guessed from the browser when empty. Business dates, date limits, form defaults, printed times and the header use the school's date. Stored moments stay in UTC and show on the school's clock. Times staff type in, such as calendar events, are kept as typed. A school with no zone keeps the server's date. `SchoolTimeZoneTest` covers the setting, payments, the header and form limits.
+
 ## A payment taken back after a billing group ended split the debt across two campuses
 
 - Status: Fixed

@@ -54,7 +54,7 @@
                             <div class="min-w-0">
                                 <p class="font-medium [overflow-wrap:anywhere]">{{ $request->subject }}</p>
                                 <p class="text-sm text-muted-foreground">
-                                    {{ $request->type->label() }} · sent {{ $request->created_at->format('j M Y') }} · {{ $request->status->label() }}
+                                    {{ $request->type->label() }} · sent {{ school_time($request->created_at)?->format('j M Y') }} · {{ $request->status->label() }}
                                 </p>
                             </div>
                             @if ($request->status->isOpen())
@@ -77,7 +77,7 @@
                         @endif
                         @if (filled($request->response))
                             <div class="border-l-2 pl-3">
-                                <p class="text-xs text-muted-foreground">The school answered on {{ $request->answered_at?->format('j M Y') ?? '—' }}</p>
+                                <p class="text-xs text-muted-foreground">The school answered on {{ school_time($request->answered_at)?->format('j M Y') ?? '—' }}</p>
                                 <p class="mt-1 whitespace-pre-line text-sm [overflow-wrap:anywhere]">{{ $request->response }}</p>
                             </div>
                         @endif

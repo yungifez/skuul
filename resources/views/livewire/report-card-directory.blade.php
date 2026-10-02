@@ -142,7 +142,7 @@
                                     </span>
                                 </april:data-table-cell>
                                 <april:data-table-cell class="whitespace-nowrap text-muted-foreground">
-                                    {{ $card->published_at->format('j M Y') }}
+                                    {{ school_time($card->published_at)?->format('j M Y') }}
                                 </april:data-table-cell>
                                 <april:data-table-cell class="text-right">
                                     <april:button-link href="{{ route('report-cards.show', $card) }}" variant="outline" size="sm"

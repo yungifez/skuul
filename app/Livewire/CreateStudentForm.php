@@ -38,7 +38,7 @@ class CreateStudentForm extends Component
     {
         Gate::authorize('create', [User::class, 'student']);
 
-        $this->admissionDate = today()->toDateString();
+        $this->admissionDate = school_today()->toDateString();
         $this->cycleSections = AcademicCycleSection::inSchool()
             ->with('academicLevel')
             ->where('academic_year_id', current_academic_year_id())
@@ -67,7 +67,7 @@ class CreateStudentForm extends Component
                 'max:100',
                 Rule::unique('student_records', 'admission_number')->where('school_id', current_school_id()),
             ],
-            'admissionDate' => ['required', 'date_format:Y-m-d', 'before_or_equal:today'],
+            'admissionDate' => ['required', 'date_format:Y-m-d', 'before_or_equal:'.school_today()->toDateString()],
         ], [
             'academicCycleSectionId.required' => 'Choose the section the learner joins.',
             'academicCycleSectionId.in' => 'Choose an active section of the current year.',

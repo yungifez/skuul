@@ -96,7 +96,7 @@ class TransferEnrollment
                 'is_primary' => true,
                 'transferred_from_id' => $enrollment->id,
                 'admission_number' => $this->studentService->generateAdmissionNumber($destination->id),
-                'admission_date' => now()->toDateString(),
+                'admission_date' => school_today()->toDateString(),
             ]);
 
             // The person needs access to the school they now attend.

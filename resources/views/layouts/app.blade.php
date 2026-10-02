@@ -39,7 +39,7 @@
                             <div class="flex flex-wrap items-center gap-3">
                                 @yield('page_actions')
                                 <div class="text-sm text-muted-foreground">
-                                    {{ now()->format('D, M j, Y') }}
+                                    {{ school_today()->format('D, M j, Y') }}
                                 </div>
                             </div>
                         </div>

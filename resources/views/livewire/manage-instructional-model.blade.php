@@ -156,7 +156,7 @@
                             <p class="mt-1 text-sm text-muted-foreground">{{ $migration->reason }}</p>
                         </div>
                         <p class="shrink-0 text-xs text-muted-foreground sm:text-right">
-                            {{ $migration->migratedBy?->name ?? 'A campus administrator' }} · {{ $migration->created_at?->format('M j, Y') }}
+                            {{ $migration->migratedBy?->name ?? 'A campus administrator' }} · {{ school_time($migration->created_at)?->format('M j, Y') }}
                         </p>
                     </li>
                 @endforeach
@@ -182,7 +182,7 @@
                                 @endif
                             </p>
                             <p class="mt-1 text-sm text-muted-foreground">{{ $exception->reason }}</p>
-                            <p class="mt-1 text-xs text-muted-foreground">{{ $exception->grantedBy?->name ?? 'A campus administrator' }} · {{ $exception->created_at?->format('M j, Y') }}</p>
+                            <p class="mt-1 text-xs text-muted-foreground">{{ $exception->grantedBy?->name ?? 'A campus administrator' }} · {{ school_time($exception->created_at)?->format('M j, Y') }}</p>
                         </div>
 
                         @if ($canSet && $exception->isRunning())

@@ -68,7 +68,7 @@ class ShowTimetable extends Component
     {
         $viewer = auth()->user();
         $period = $this->timetable->academicPeriod;
-        $this->calendarDate = $period?->starts_on?->toDateString() ?? now()->toDateString();
+        $this->calendarDate = $period?->starts_on?->toDateString() ?? school_today()->toDateString();
         $this->weekdayMap = Weekday::query()->orderBy('id')->pluck('id', 'name')->all();
         $this->grid = $this->calendar->gridFor($this->timetable, Carbon::parse($this->calendarDate), $viewer);
 
@@ -113,7 +113,7 @@ class ShowTimetable extends Component
 
     public function goToCalendarToday(): void
     {
-        $this->calendarDate = now()->toDateString();
+        $this->calendarDate = school_today()->toDateString();
         $this->refreshCalendar();
     }
 

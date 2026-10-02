@@ -110,7 +110,7 @@
                 </div>
                 <div>
                     <label for="joined_on" class="text-sm text-muted-foreground">Joined on</label>
-                    <input type="date" id="joined_on" wire:model="joinedOn" required max="{{ now()->toDateString() }}" class="{{ $controlClasses }}" {{ field_error_bindings('joinedOn') }}>
+                    <input type="date" id="joined_on" wire:model="joinedOn" required max="{{ school_today()->toDateString() }}" class="{{ $controlClasses }}" {{ field_error_bindings('joinedOn') }}>
                     <x-field-error name="joinedOn" class="mt-1" />
                 </div>
                 <april:button type="submit" variant="outline" class="h-11 select-none" wire:loading.attr="disabled" wire:target="addMember">

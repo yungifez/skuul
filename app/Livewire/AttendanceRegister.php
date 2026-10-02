@@ -44,7 +44,7 @@ class AttendanceRegister extends Component
     public function mount(): void
     {
         if (!$this->isValidDate($this->attendedOn)) {
-            $this->attendedOn = now()->toDateString();
+            $this->attendedOn = school_today()->toDateString();
         }
 
         $section = $this->selectedSection();
@@ -95,7 +95,7 @@ class AttendanceRegister extends Component
 
     public function goToToday(): void
     {
-        $this->attendedOn = now()->toDateString();
+        $this->attendedOn = school_today()->toDateString();
         $this->updatedAttendedOn();
     }
 
@@ -126,7 +126,7 @@ class AttendanceRegister extends Component
 
         $validated = $this->validate([
             'academicCycleSectionId' => ['required', 'integer', Rule::exists((new AcademicCycleSection)->getTable(), 'id')->where('school_id', current_school_id())],
-            'attendedOn' => ['required', 'date', 'before_or_equal:today'],
+            'attendedOn' => ['required', 'date', 'before_or_equal:'.school_today()->toDateString()],
         ]);
 
         $section = $this->selectedSection();

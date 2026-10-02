@@ -85,7 +85,7 @@
                                 {{ $substitution->replacementTeacher?->name ?? '—' }} covers · {{ $substitution->reason }} · approved by {{ $substitution->approvedBy?->name ?? '—' }}
                             </p>
                         </div>
-                        @if ($canWithdraw && !$substitution->substituted_on->lt(today()))
+                        @if ($canWithdraw && !$substitution->substituted_on->lt(school_today()))
                             <april:dropdown-menu>
                                 <slot:trigger>
                                     <april:button type="button" variant="ghost" size="icon" class="size-11 select-none" aria-label="More for the cover on {{ $substitution->substituted_on->format('j M') }}">

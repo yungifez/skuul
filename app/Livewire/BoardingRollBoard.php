@@ -88,6 +88,6 @@ class BoardingRollBoard extends Component
     {
         $isDate = $this->date !== '' && Validator::make(['date' => $this->date], ['date' => ['date_format:Y-m-d', 'date']])->passes();
 
-        return $isDate ? Carbon::parse($this->date)->startOfDay() : Carbon::today();
+        return $isDate ? Carbon::parse($this->date)->startOfDay() : school_today();
     }
 }

@@ -12,6 +12,8 @@ use App\Services\Feature\FeatureManager;
 use App\Services\School\SchoolContext;
 use Brick\Math\RoundingMode;
 use Brick\Money\Money as BrickMoney;
+use Carbon\CarbonInterface;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\HtmlString;
 use Illuminate\Support\Str;
 use Illuminate\View\ComponentAttributeBag;
@@ -319,5 +321,63 @@ if (!function_exists('money_text')) {
         );
 
         return $money->formatToLocale(app()->getLocale());
+    }
+}
+
+if (!function_exists('school_timezone')) {
+    /**
+     * Get the zone a school keeps its clocks in.
+     *
+     * A school that has not picked one keeps the application's zone.
+     */
+    function school_timezone(School|int|null $school = null): string
+    {
+        if ($school === null || $school === current_school_id()) {
+            $school = current_school();
+        } elseif (is_int($school)) {
+            $school = School::query()->find($school);
+        }
+
+        return $school?->timezone ?: (string) config('app.timezone');
+    }
+}
+
+if (!function_exists('school_now')) {
+    /**
+     * Get the time it is now on a school's clock.
+     *
+     * For what a person reads or types, such as a printed time or a time
+     * field. Moments the application stores keep using `now()`.
+     */
+    function school_now(School|int|null $school = null): Carbon
+    {
+        return now(school_timezone($school));
+    }
+}
+
+if (!function_exists('school_today')) {
+    /**
+     * Get the date it is now at a school.
+     *
+     * Near midnight the server's date and the school's date differ. Bills,
+     * receipts and registers carry the school's date. The date comes back at
+     * midnight in the application's zone, the way date columns are kept, so
+     * it compares and saves like `today()`.
+     */
+    function school_today(School|int|null $school = null): Carbon
+    {
+        return Carbon::parse(now(school_timezone($school))->toDateString(), config('app.timezone'));
+    }
+}
+
+if (!function_exists('school_time')) {
+    /**
+     * Show a stored moment on the school's clock.
+     *
+     * Moments are kept in the application's zone. This is for display only.
+     */
+    function school_time(?CarbonInterface $moment, School|int|null $school = null): ?Carbon
+    {
+        return $moment === null ? null : Carbon::instance($moment)->setTimezone(school_timezone($school));
     }
 }

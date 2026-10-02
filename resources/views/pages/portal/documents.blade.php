@@ -25,7 +25,7 @@
                             <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4">
                                 <div>
                                     <p class="font-medium">{{ $reportCard->academicPeriod->label ?? $reportCard->academicPeriod->name }}</p>
-                                    <p class="text-sm text-muted-foreground">Revision {{ $reportCard->revision }} · published {{ $reportCard->published_at->format('j M Y') }}</p>
+                                    <p class="text-sm text-muted-foreground">Revision {{ $reportCard->revision }} · published {{ school_time($reportCard->published_at)?->format('j M Y') }}</p>
                                 </div>
                                 <april:button-link href="{{ route('portal.documents.report-cards.download', [$studentRecord, $reportCard]) }}" variant="outline" size="sm" aria-label="Download the report card for {{ $reportCard->academicPeriod->label ?? $reportCard->academicPeriod->name }}"><x-lucide-download class="mr-2 size-4" />Download</april:button-link>
                             </div>
@@ -46,7 +46,7 @@
                     <div class="flex flex-wrap items-center justify-between gap-3 rounded-lg border p-4">
                         <div>
                             <p class="font-medium">Revision {{ $transcript->revision }}</p>
-                            <p class="text-sm text-muted-foreground">Issued {{ $transcript->issued_at->format('j M Y') }}</p>
+                            <p class="text-sm text-muted-foreground">Issued {{ school_time($transcript->issued_at)?->format('j M Y') }}</p>
                         </div>
                         <april:button-link href="{{ route('portal.documents.transcripts.download', [$studentRecord, $transcript]) }}" variant="outline" size="sm" aria-label="Download transcript revision {{ $transcript->revision }}"><x-lucide-download class="mr-2 size-4" />Download</april:button-link>
                     </div>

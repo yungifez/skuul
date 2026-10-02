@@ -101,6 +101,9 @@ class SchoolService
         $school->state = $record['state'];
         $school->city = $record['city'];
         $school->postal_code = $record['postal_code'];
+        if (array_key_exists('timezone', $record)) {
+            $school->timezone = $record['timezone'];
+        }
         $school->initials = $record['initials'] ?? null;
         $school->phone = $record['phone'] ?? null;
         $school->email = $record['email'] ?? null;

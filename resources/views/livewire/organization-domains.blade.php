@@ -20,7 +20,7 @@
                                 <p class="break-all text-sm font-medium">{{ $domain->host }}{{ $domain->is_primary ? ' · main' : '' }}</p>
                                 <p class="text-xs text-muted-foreground">
                                     Opens {{ $domain->school !== null && $domain->school->organization_id === $organization->id ? $domain->school->name : 'the organization, no campus' }} ·
-                                    {{ $domain->isVerified() ? 'proved '.$domain->verified_at?->format('j M Y') : 'not proved yet' }}
+                                    {{ $domain->isVerified() ? 'proved '.school_time($domain->verified_at)?->format('j M Y') : 'not proved yet' }}
                                 </p>
                             </div>
                             @unless ($domain->isVerified())

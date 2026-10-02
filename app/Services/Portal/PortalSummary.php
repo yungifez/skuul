@@ -223,7 +223,7 @@ class PortalSummary
         $latestRollEntry = $place?->isBoarding()
             ? BoardingRollEntry::inSchool()
                 ->where('student_record_id', $enrollment->id)
-                ->whereHas('roll', fn ($roll) => $roll->where('school_id', $enrollment->school_id)->whereDate('taken_on', '<=', now()->toDateString()))
+                ->whereHas('roll', fn ($roll) => $roll->where('school_id', $enrollment->school_id)->whereDate('taken_on', '<=', school_today()->toDateString()))
                 ->with('roll')
                 ->latest('id')
                 ->first()

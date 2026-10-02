@@ -3,7 +3,7 @@
         <h2 id="house-checks-heading" class="text-base font-semibold">{{ $day->format('l, j F Y') }}</h2>
         <div class="w-full sm:w-48">
             <label for="roll-date" class="sr-only">Day</label>
-            <input id="roll-date" type="date" wire:model.live="date" value="{{ $day->toDateString() }}" max="{{ today()->toDateString() }}" class="h-11 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+            <input id="roll-date" type="date" wire:model.live="date" value="{{ $day->toDateString() }}" max="{{ school_today()->toDateString() }}" class="h-11 w-full rounded-md border border-input bg-background px-3 text-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
         </div>
     </div>
 

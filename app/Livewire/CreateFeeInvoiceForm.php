@@ -60,7 +60,7 @@ class CreateFeeInvoiceForm extends Component
     {
         Gate::authorize('create', FeeInvoice::class);
 
-        $this->issueDate = now()->toDateString();
+        $this->issueDate = school_today()->toDateString();
         $this->idempotencyKey = (string) Str::uuid();
         $this->academicLevelId = (string) ($this->levels()->first()?->id);
         $this->feeCategoryId = (string) (FeeCategory::inSchool()->orderBy('name')->value('id') ?? '');

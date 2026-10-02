@@ -44,7 +44,7 @@ class TakeInvoicePayment extends Component
     {
         Gate::authorize('update', $this->feeInvoice);
 
-        $this->receivedOn = now()->toDateString();
+        $this->receivedOn = school_today()->toDateString();
     }
 
     public function save(ReceivePayment $receive, PaymentChannelRegistry $channels): void
@@ -56,7 +56,7 @@ class TakeInvoicePayment extends Component
             'method' => ['required', 'string', Rule::in($channels->keys())],
             'reference' => ['nullable', 'string', 'max:100'],
             'note' => ['nullable', 'string', 'max:1000'],
-            'receivedOn' => ['nullable', 'date', 'before_or_equal:today'],
+            'receivedOn' => ['nullable', 'date', 'before_or_equal:'.school_today()->toDateString()],
             'lines' => ['array'],
             'lines.*' => ['nullable', 'numeric', 'decimal:0,2', 'min:0'],
         ], [

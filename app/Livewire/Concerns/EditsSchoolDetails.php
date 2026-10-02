@@ -31,6 +31,8 @@ trait EditsSchoolDetails
 
     public string $postalCode = '';
 
+    public string $timezone = '';
+
     /** @var TemporaryUploadedFile|null */
     public $logo = null;
 
@@ -45,6 +47,7 @@ trait EditsSchoolDetails
         $this->state = (string) $school->state;
         $this->city = (string) $school->city;
         $this->postalCode = (string) $school->postal_code;
+        $this->timezone = (string) $school->timezone;
     }
 
     /**
@@ -62,6 +65,7 @@ trait EditsSchoolDetails
             'state' => ['required', 'string', 'max:100'],
             'city' => ['required', 'string', 'max:100'],
             'postalCode' => ['required', 'string', 'max:30'],
+            'timezone' => ['nullable', 'timezone:all'],
             'logo' => ['nullable', 'image', 'max:5120'],
         ];
     }
@@ -71,11 +75,11 @@ trait EditsSchoolDetails
      */
     protected function schoolDetailAttributes(): array
     {
-        return ['postalCode' => 'postal code', 'initials' => 'short name'];
+        return ['postalCode' => 'postal code', 'initials' => 'short name', 'timezone' => 'time zone'];
     }
 
     /**
-     * @return array{name: string, initials: string|null, phone: string|null, email: string|null, address: string, country: string, state: string, city: string, postal_code: string, logo?: TemporaryUploadedFile}
+     * @return array{name: string, initials: string|null, phone: string|null, email: string|null, address: string, country: string, state: string, city: string, postal_code: string, timezone: string|null, logo?: TemporaryUploadedFile}
      */
     protected function schoolDetails(): array
     {
@@ -91,6 +95,7 @@ trait EditsSchoolDetails
             'state' => $this->state,
             'city' => trim($this->city),
             'postal_code' => trim($this->postalCode),
+            'timezone' => $blankToNull($this->timezone),
             ...($this->logo === null ? [] : ['logo' => $this->logo]),
         ];
     }

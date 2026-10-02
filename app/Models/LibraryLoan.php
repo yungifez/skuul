@@ -111,7 +111,7 @@ class LibraryLoan extends Model
      */
     public function daysLate(?string $asAt = null): int
     {
-        $end = ($this->returned_on ?? now()->parse($asAt ?? now()->toDateString()))->copy()->startOfDay();
+        $end = ($this->returned_on ?? now()->parse($asAt ?? school_today()->toDateString()))->copy()->startOfDay();
         $due = $this->due_on->copy()->startOfDay();
 
         return $due->greaterThanOrEqualTo($end) ? 0 : (int) $due->diffInDays($end);
@@ -144,6 +144,6 @@ class LibraryLoan extends Model
      */
     public function scopeOverdue(Builder $query, ?string $asAt = null): Builder
     {
-        return $query->whereNull('returned_on')->whereDate('due_on', '<', $asAt ?? now()->toDateString());
+        return $query->whereNull('returned_on')->whereDate('due_on', '<', $asAt ?? school_today()->toDateString());
     }
 }

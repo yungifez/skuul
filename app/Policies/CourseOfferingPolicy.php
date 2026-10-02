@@ -122,7 +122,7 @@ class CourseOfferingPolicy
             || $courseOffering->teachingAssignments()
                 ->where('user_id', $user->id)
                 ->when($stillTeaching, fn ($assignments) => $assignments->where(
-                    fn ($running) => $running->whereNull('ends_on')->orWhereDate('ends_on', '>=', today())
+                    fn ($running) => $running->whereNull('ends_on')->orWhereDate('ends_on', '>=', school_today())
                 ))
                 ->exists();
     }

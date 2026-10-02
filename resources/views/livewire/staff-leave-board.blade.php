@@ -159,7 +159,7 @@
                             <dt class="text-xs font-medium text-muted-foreground">Answer</dt>
                             <dd class="text-sm">
                                 @if ($leave->decided_at !== null)
-                                    {{ $leave->decidedBy?->name ?? 'Unknown person' }} · {{ $leave->decided_at->format('j M Y') }}
+                                    {{ $leave->decidedBy?->name ?? 'Unknown person' }} · {{ school_time($leave->decided_at)?->format('j M Y') }}
                                 @else
                                     Waiting for an answer
                                 @endif

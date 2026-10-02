@@ -84,7 +84,7 @@
                                     <p class="text-sm text-muted-foreground">
                                         {{ $note->author?->name }}
                                         @if ($note->submitted_at)
-                                            · sent {{ $note->submitted_at->format('M j, Y') }}
+                                            · sent {{ school_time($note->submitted_at)?->format('M j, Y') }}
                                         @endif
                                         @if ($note->reviewedBy)
                                             · reviewed by {{ $note->reviewedBy->name }}

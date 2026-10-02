@@ -22,7 +22,7 @@
     @if ($type === 'report-card')
         <p><strong>Academic year:</strong> {{ $document->academicYear?->name ?? 'Unknown year' }}</p>
         <p><strong>Period:</strong> {{ $document->academicPeriod->label ?? $document->academicPeriod->name }}</p>
-        <p><strong>Revision:</strong> {{ $document->revision }} · <strong>Published:</strong> {{ $document->published_at->format('j M Y') }}</p>
+        <p><strong>Revision:</strong> {{ $document->revision }} · <strong>Published:</strong> {{ school_time($document->published_at)?->format('j M Y') }}</p>
         <p><strong>Average:</strong> {{ $document->average_percentage === null ? '—' : number_format($document->average_percentage, 2).'%' }}</p>
         <table>
             <thead><tr><th>Subject</th><th>Percentage</th></tr></thead>
@@ -35,7 +35,7 @@
             </tbody>
         </table>
     @else
-        <p><strong>Revision:</strong> {{ $document->revision }} · <strong>Issued:</strong> {{ $document->issued_at->format('j M Y') }}</p>
+        <p><strong>Revision:</strong> {{ $document->revision }} · <strong>Issued:</strong> {{ school_time($document->issued_at)?->format('j M Y') }}</p>
         <table>
             <thead><tr><th>Period</th><th>Subject</th><th>Percentage</th></tr></thead>
             <tbody>

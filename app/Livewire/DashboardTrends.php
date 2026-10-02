@@ -3,7 +3,6 @@
 namespace App\Livewire;
 
 use App\Services\Dashboard\SchoolTrends;
-use Carbon\CarbonImmutable;
 use Illuminate\View\View;
 use Livewire\Attributes\Defer;
 use Livewire\Component;
@@ -39,7 +38,7 @@ class DashboardTrends extends Component
     public function mount(SchoolTrends $trends): void
     {
         $user = auth()->user();
-        $today = CarbonImmutable::today();
+        $today = school_today()->toImmutable();
 
         if ($user->can('read attendance')) {
             $attendance = $trends->attendanceByWeek($today);

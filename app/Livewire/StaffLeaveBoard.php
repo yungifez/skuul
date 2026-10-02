@@ -56,8 +56,8 @@ class StaffLeaveBoard extends Component
         $selectedType = LeaveType::tryFrom($this->type);
         $this->status = $selectedStatus === null ? '' : $selectedStatus->value;
         $this->type = $selectedType === null ? '' : $selectedType->value;
-        $this->startsOn = now()->toDateString();
-        $this->endsOn = now()->toDateString();
+        $this->startsOn = school_today()->toDateString();
+        $this->endsOn = school_today()->toDateString();
     }
 
     public function updatedStatus(): void

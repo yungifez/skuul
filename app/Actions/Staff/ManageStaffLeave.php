@@ -185,7 +185,7 @@ class ManageStaffLeave
     private function refuseCoverStillHeld(StaffLeaveRequest $request): void
     {
         $teacher = $request->staffProfile()->with('user:id,name')->firstOrFail()->user;
-        $from = $request->starts_on->max(today());
+        $from = $request->starts_on->max(school_today());
 
         $lessons = TimetableSubstitution::query()
             ->where('replacement_teacher_id', $teacher->id)

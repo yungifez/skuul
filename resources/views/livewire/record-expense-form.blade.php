@@ -31,7 +31,7 @@
                 </div>
                 <div>
                     <label for="expense-date" class="text-sm text-muted-foreground">Date</label>
-                    <input type="date" id="expense-date" wire:model="expenseDate" max="{{ now()->toDateString() }}" required class="{{ $controlClasses }} mt-1" {{ field_error_bindings('expenseDate') }}>
+                    <input type="date" id="expense-date" wire:model="expenseDate" max="{{ school_today()->toDateString() }}" required class="{{ $controlClasses }} mt-1" {{ field_error_bindings('expenseDate') }}>
                 </div>
                 <div>
                     <label for="expense-account" class="text-sm text-muted-foreground">Spent on</label>

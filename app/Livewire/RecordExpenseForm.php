@@ -57,7 +57,7 @@ class RecordExpenseForm extends Component
     {
         Gate::authorize('create', Expense::class);
 
-        $this->expenseDate = now()->toDateString();
+        $this->expenseDate = school_today()->toDateString();
     }
 
     public function updatedAmount(): void
@@ -79,7 +79,7 @@ class RecordExpenseForm extends Component
         $this->validate([
             'description' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'gt:0', 'max:1000000000', 'decimal:0,2'],
-            'expenseDate' => ['required', 'date', 'before_or_equal:today'],
+            'expenseDate' => ['required', 'date', 'before_or_equal:'.school_today()->toDateString()],
             'ledgerAccountId' => ['required', 'integer', Rule::exists('ledger_accounts', 'id')->where(fn (Builder $query) => $query
                 ->where('school_id', current_school_id())
                 ->where('type', 'expense')

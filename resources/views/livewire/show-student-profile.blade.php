@@ -86,7 +86,7 @@
                         </div>
                         <div>
                             <label for="status-effective-on" class="sr-only">Effective on</label>
-                            <input type="date" id="status-effective-on" wire:model="statusEffectiveOn" max="{{ today()->toDateString() }}" class="{{ $controlClasses }}" {{ field_error_bindings('statusEffectiveOn') }}>
+                            <input type="date" id="status-effective-on" wire:model="statusEffectiveOn" max="{{ school_today()->toDateString() }}" class="{{ $controlClasses }}" {{ field_error_bindings('statusEffectiveOn') }}>
                         </div>
                         <div>
                             <label for="status-reason" class="sr-only">Reason</label>
@@ -126,7 +126,7 @@
                         </div>
                         <div>
                             <label for="placement-effective-on" class="sr-only">Effective on</label>
-                            <input type="date" id="placement-effective-on" wire:model="placementEffectiveOn" max="{{ today()->toDateString() }}" class="{{ $controlClasses }}" {{ field_error_bindings('placementEffectiveOn') }}>
+                            <input type="date" id="placement-effective-on" wire:model="placementEffectiveOn" max="{{ school_today()->toDateString() }}" class="{{ $controlClasses }}" {{ field_error_bindings('placementEffectiveOn') }}>
                         </div>
                         <div>
                             <label for="placement-reason" class="sr-only">Reason</label>
@@ -161,7 +161,7 @@
                         </div>
                         <div>
                             <label for="campus-effective-on" class="sr-only">Effective on</label>
-                            <input type="date" id="campus-effective-on" wire:model="campusEffectiveOn" max="{{ today()->toDateString() }}" class="{{ $controlClasses }}" {{ field_error_bindings('campusEffectiveOn') }}>
+                            <input type="date" id="campus-effective-on" wire:model="campusEffectiveOn" max="{{ school_today()->toDateString() }}" class="{{ $controlClasses }}" {{ field_error_bindings('campusEffectiveOn') }}>
                         </div>
                         <div>
                             <label for="campus-reason" class="sr-only">Reason</label>

@@ -10,7 +10,7 @@
             <span @class([
                 'inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold',
                 'bg-muted text-muted-foreground' => $roll->isComplete(),
-            ])>{{ $roll->isComplete() ? 'Completed '.$roll->completed_at?->format('H:i') : 'In progress' }}</span>
+            ])>{{ $roll->isComplete() ? 'Completed '.school_time($roll->completed_at)?->format('H:i') : 'In progress' }}</span>
         </div>
         <p class="text-sm text-muted-foreground" aria-live="polite">
             {{ $answered }} of {{ count($answers) }} answered

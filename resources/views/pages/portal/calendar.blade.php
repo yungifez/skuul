@@ -32,7 +32,7 @@
                                 <x-lucide-chevron-left class="mr-1 size-4" />
                                 {{ $month->copy()->subMonth()->format('M') }}
                             </april:button-link>
-                            <april:button-link href="{{ $linkFor(now()->format('Y-m')) }}" variant="outline" size="sm">Today</april:button-link>
+                            <april:button-link href="{{ $linkFor(school_today()->format('Y-m')) }}" variant="outline" size="sm">Today</april:button-link>
                             <april:button-link href="{{ $linkFor($month->copy()->addMonth()->format('Y-m')) }}" variant="outline" size="sm">
                                 {{ $month->copy()->addMonth()->format('M') }}
                                 <x-lucide-chevron-right class="ml-1 size-4" />

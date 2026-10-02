@@ -33,6 +33,26 @@
 <section class="space-y-4 border-t pt-6" aria-labelledby="school-address-heading">
     <h2 id="school-address-heading" class="text-base font-semibold">Address</h2>
     <x-school-address-fields :countries="$countries" wire />
+    @php
+        $zones = collect(\DateTimeZone::listIdentifiers())
+            ->map(fn (string $zone): array => ['zone' => $zone, 'offset' => (new \DateTime('now', new \DateTimeZone($zone)))->format('P')])
+            ->groupBy(fn (array $zone): string => \Illuminate\Support\Str::before($zone['zone'], '/'));
+    @endphp
+    <div x-data x-init="if (!$wire.timezone) { $wire.timezone = Intl.DateTimeFormat().resolvedOptions().timeZone ?? '' }">
+        <label for="timezone" class="text-sm font-medium">Time zone</label>
+        <select id="timezone" wire:model="timezone" class="{{ $controlClasses }}" {{ field_error_bindings('timezone') }}>
+            <option value="">Server time ({{ config('app.timezone') }})</option>
+            @foreach ($zones as $region => $regionZones)
+                <optgroup label="{{ $region }}">
+                    @foreach ($regionZones as $zone)
+                        <option value="{{ $zone['zone'] }}">{{ str_replace(['/', '_'], [' / ', ' '], $zone['zone']) }} (UTC{{ $zone['offset'] }})</option>
+                    @endforeach
+                </optgroup>
+            @endforeach
+        </select>
+        <p class="mt-1 text-xs text-muted-foreground">Bills, receipts and registers use the date here.</p>
+        <x-field-error name="timezone" class="mt-1" />
+    </div>
 </section>
 
 <section class="space-y-4 border-t pt-6" aria-labelledby="school-logo-heading">
