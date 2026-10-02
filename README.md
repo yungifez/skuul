@@ -1,170 +1,97 @@
-# Skuul school management system
+# Skuul
 
-<p align="center">
-    <!-- <a href="https://packagist.org/packages/yungifez/skuul">
-        <img src="https://poser.pugx.org/yungifez/skuul/d/total.svg" alt="Total Composer Downloads">
-    </a> -->
-    <a href="https://packagist.org/packages/yungifez/skuul">
-        <img src="https://poser.pugx.org/yungifez/skuul/v/stable.svg" alt="Latest Stable Version">
-    </a>
-    <a href="https://packagist.org/packages/yungifez/skuul">
-        <img src="https://poser.pugx.org/yungifez/skuul/license.svg" alt="License">
-    </a>
-</p>
+Skuul is a school management application. It manages organizations and campuses,
+student records, academic calendars, attendance, gradebooks, timetables, fees,
+and reports. It also supports family access, student care, staff operations,
+programmes, facilities, boarding, and library records.
 
->In search of good school management systems written in laravel, I tried so many although most were quite remarkably good they lacked some essential features that I would have loved in a school management system.This made me passionate in building my own school management system. Although it has been difficult, it's actually forming up into a quite useable project.
+## Documentation
 
-![schooldash-dahboard-page](https://user-images.githubusercontent.com/63137056/216740379-18cb9f1d-5e80-4bc8-8b99-07d08ea98da4.png)
+The documentation site is [yungifez.github.io/skuul.org](https://yungifez.github.io/skuul.org/).
+Its source is [yungifez/skuul.org](https://github.com/yungifez/skuul.org).
+The guides cover installation, campus setup, user workflows, family access,
+operations, and developer reference.
 
+This branch uses Laravel 13 and Livewire 4. Use the **Current development**
+guides for this branch. The V2 guides describe older releases. Check the
+[release notes](https://github.com/yungifez/skuul/releases) before installing
+or updating a released version.
 
-# CONGRATS V2 OF SKUUL IS OUT
-
-
-Skuul is awesome, but it had a few shortcomings when it came to some areas like UI speed and application slugishness as it grows. Version 2 fixes these issues and also improves on accessibility. 
-
-V2 is way faster and doesn't slow down condiderably as the app grows. Also upgrading should be relatively easy. Requirements remain the same with one exception, we now require node for asset bundling. No worries if you don't have node, there is a solution to that
-
-### Skuul is a multi school management system that aims to make school administration and activities a breeze by using the power of the internet and increased connectinity
+> **Breaking change: data loss when upgrading from V2.**
+> The development migrations delete legacy academic records and remove schema columns.
+> They do not automatically convert all V2 history. Selected JSON archives do not replace a full database backup.
+> Do not run this as a routine in-place V2 update. Test a specific migration and recovery plan first.
+> The destructive migrations cannot restore deleted data through rollback.
+> Read [OPERATIONS.md](OPERATIONS.md#breaking-upgrade-from-v2) before migrating an existing installation.
 
 ## Requirements
-* Php 8.1 and above
-* Composer 
-* Since this project is running laravel 9, we suggest checking out the official requirements [here](https://laravel.com/docs/9.x/upgrade#updating-dependencies)
-* Npm
 
-## Installation
-To skip steps 4 down ( after composer install ), you can run the below command and it would guide you through the process automatically
-```shell
-php artisan skuul:init
- ```
-* Clone the repository by running the following command in your comamand line below (Or you can dowload zip file from github)
-```shell
-git clone https://github.com/yungifez/skuul ./skuul
- ```
-* Head to the project's directory
-```shell
-cd skuul
- ```
-* Install composer dependancies
-```shell
-composer install
+- PHP 8.4 or later. Sail and CI use PHP 8.5.
+- Composer 2.
+- Node.js and npm. Sail provides Node.js 24; CI currently uses Node.js 20.
+- MySQL 8 and Redis.
+- Docker with Compose for local development with Sail.
+- MySQL client tools for the backup and restore commands.
+
+Use the committed dependency locks. Run `composer check-platform-reqs` in the
+target runtime to check its PHP version and extensions.
+
+## Local setup
+
+1. Clone this repository and enter its directory.
+2. Install the locked Composer dependencies with a compatible PHP runtime.
+   Sail is available after this first install.
+3. Copy `.env.example` to `.env`. Set `DB_DATABASE=skuul` before starting a
+   new Sail database. Keep `testing` for the test suite.
+4. Start Sail and prepare the application:
+
+   ```sh
+   vendor/bin/sail up -d
+   vendor/bin/sail composer check-platform-reqs
+   vendor/bin/sail npm ci
+   vendor/bin/sail npm run build
+   vendor/bin/sail artisan key:generate --no-interaction
+   vendor/bin/sail artisan migrate --no-interaction
+   vendor/bin/sail artisan db:seed --class=WorldSeeder --no-interaction
+   vendor/bin/sail artisan storage:link --no-interaction
+   vendor/bin/sail open
+   ```
+
+5. Complete the browser installer. Choose your administrator email and
+   password, organization, and first campus. The installer loads the required
+   roles and permissions. It does not use a default administrator password.
+6. Sign in and complete the school setup checklist. Choose the school year,
+   reporting periods, teaching approach, classes, and grading scales.
+
+Load demo data only in a disposable installation. Do not run the default
+database seeder against a production database.
+
+Run these commands in separate terminals for background work:
+
+```sh
+vendor/bin/sail artisan queue:work --tries=3
+vendor/bin/sail artisan schedule:work
 ```
-* Copy .env.example file into .env file and configure based on your environment
-```shell
-cp .env.example .env
+
+See [OPERATIONS.md](OPERATIONS.md) for production setup, updates, backups,
+restore checks, and monitoring.
+
+## Development checks
+
+Tests use the `testing` MySQL database and can replace its data. Keep local
+application data in a separate database.
+
+```sh
+vendor/bin/sail artisan test --compact
+vendor/bin/sail php vendor/bin/phpstan analyse --memory-limit=2G
+vendor/bin/sail composer audit
+vendor/bin/sail npm run build
 ```
-* Install node dependencies
-```shell
-npm install
-```
-* Build NPM assets
-```shell
-  npm run build
-```
 
-Note if you do not have node, you can do this in your local environment and using an ftp program upload the publi/build folder and manifest.json folder to your server
-* Generate encryption key
-```shell
-php artisan key:generate
-```
-* Migrate the database
-```shell
-php artisan migrate
-```
-* Seed database 
-    
-    You can seed the database in 2 ways
-    - For production ie in your live server
-        ```shell
-        php artisan db:seed --class RunInProductionSeeder
-        ```
-    - For testing or development purposes
-        ```shell
-        php artisan db:seed
-        ```
-* Seed database to populate countries (takes approximately 10 minutes)
-```shell
-php artisan db:seed --class=WorldSeeder
-```
-* Set application logo by adding it in the public img folder and edit the .env logo path appropriately
-* Store favicon in path public/favicons/, the file should be called favicon.ico
-* For development or testing purposes, you can use the laravel built in server by running 
-```shell
-php artisan serve
-```
-If you are running on production, visit your domain to verify it is working 
+CI also checks PHP formatting with Pint. Follow the project instructions in
+[AGENTS.md](AGENTS.md) and the rules in `.ai/rules` when changing code.
 
-After running the above commands, you should be able to access the application at http::/localhost or your designated domain name depending on configuration.
+## License
 
-## Updating
-If you installed Skuul with `git clone`, run this command to install the newest release:
-```shell
-php artisan skuul:update
-```
-Run `php artisan skuul:update --check` to see if a new release is available. See [OPERATIONS.md](OPERATIONS.md) for the full steps.
-## Setup
-* Log in to the application with the following credentials
-    * Email: super@admin.com
-    * Password: password
-
-* You would be prompted to change your password, change your passsword in the profile page to continue
-
-    
-* if you are on production 
-    - When you log in, you would be redirected to a page with error message at the top right corner that says "Please set your school of operation first". At the menu, click on create schools
-    - On the page to create schools, provide a name, address and initial for your school and click on create school
-    - Click on view schools, select the current school and click on the button set scvhool
-    - You can now head over to the dashboard
-    - You can begin to add classes, students, teachers etc. Some operations would not work specifically all links under the academics section
-    - Head over to academic years, create a new academic year and a new semester then set the academic year and semester 
-* if you are on dev or testing, data is preset to test and use the application.
-
-## Usage
-* Add class groups to the school
-* Add classes to class groups
-* Add sections to classes
-* Add students to sections (You must have created a class and a section before you can add students)
-* Add teachers to school
-* Add subjects to school
-
-## Features
-### Super Admin
-By default super admin can manage all activities in each school, some super admin exclusive features are
-* Ability to create, edit and delete schools
-" Ability to set school of operation
-
-### Admin
-* Ability to manage own school settings
-* Ability to create, edit, view and delete class groups in assigned school
-* Ability to create, edit, view and delete classes 
-* Ability to create, edit, view and delete sections
-* Ability to create, edit, view and delete classes
-* Ability to create, edit, view and delete subjects
-* Ability to create, edit, view and delete academic years
-* Ability to set Academic years
-* Ability to admit students, view student profiles, edit student profile, print student profile and delete student
-* Ability to create teachers, edit teacher profile and delete teacher
-* Ability to create, edit, manage, view and delete timetables
-* Ability to create, edit, view and delete sylabii
-* Ability to create, edit, view and delete semester
-* Ability to set own school academic year and semester
-
-### Teachers
-* Ability to create, edit, view and delete sylabii
-* Ability to create, edit, manage, view and delete timetables
-
-This project was highly inspired by 4jean/lavSMS
-
-Do you like the current state of this project?, you can support me or hire me for work
-
-Todo
-- Create demo site (for now, go to yungifez.xyz might be a mess but worth it. Log in to super admin account with password helloworld)
-- Create logo
-- Need help creating demo video
-- Write docs using a tool like larecipe
-- Write issue and contribution template file
-etc
-
-
-
-
+Skuul uses the [MIT license](LICENSE). The original project was inspired by
+[4jean/lavSMS](https://github.com/4jean/lavSMS).
