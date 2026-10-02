@@ -81,7 +81,7 @@ class DataSharingRequest extends Model
             return false;
         }
 
-        return $this->expires_on->lt(Carbon::parse($on ?? now())->startOfDay());
+        return $this->expires_on->lt(Carbon::parse($on ?? school_today($this->requesting_school_id))->startOfDay());
     }
 
     /**

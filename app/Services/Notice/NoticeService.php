@@ -23,8 +23,8 @@ class NoticeService
     public function getPresentNotices(): Collection
     {
         return Notice::inSchool()
-            ->whereDate('start_date', '<=', date('Y-m-d'))
-            ->whereDate('stop_date', '>=', date('Y-m-d'))
+            ->whereDate('start_date', '<=', school_today()->toDateString())
+            ->whereDate('stop_date', '>=', school_today()->toDateString())
             ->where('active', 1)
             ->get();
     }

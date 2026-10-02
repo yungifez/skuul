@@ -40,7 +40,7 @@ class SchoolCalendar
      */
     public function isTeachingDay(DateTimeInterface|string|null $date = null): bool
     {
-        $day = Carbon::parse($date ?? now());
+        $day = Carbon::parse($date ?? school_today());
 
         return !CalendarEvent::query()
             ->inSchool()

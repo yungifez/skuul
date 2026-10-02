@@ -138,6 +138,6 @@ class LibraryReservation extends Model
     {
         return $this->status === LibraryReservationStatus::Ready
             && $this->holds_until !== null
-            && $this->holds_until->isBefore(now()->startOfDay());
+            && $this->holds_until->isBefore(school_today($this->school_id));
     }
 }

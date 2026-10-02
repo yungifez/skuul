@@ -45,7 +45,7 @@ class RecordAttendance
         ?string $reason = null,
         string $source = 'teacher',
     ): AttendanceRecord {
-        $day = Carbon::parse($date ?? now())->startOfDay();
+        $day = Carbon::parse($date ?? school_today($enrollment->school_id))->startOfDay();
 
         $term = $this->termOf($enrollment, $day);
         $this->failIfRecordsDoNotFit($enrollment, $day, $kind, $subject, $term);

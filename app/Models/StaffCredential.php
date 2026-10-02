@@ -33,8 +33,8 @@ class StaffCredential extends Model
      * @var array<string, string>
      */
     protected $casts = [
-        'issued_on'   => 'date',
-        'expires_on'  => 'date',
+        'issued_on' => 'date',
+        'expires_on' => 'date',
         'verified_at' => 'datetime',
     ];
 
@@ -55,14 +55,13 @@ class StaffCredential extends Model
             return false;
         }
 
-        return $this->expires_on->lt(Carbon::parse($on ?? now())->startOfDay());
+        return $this->expires_on->lt(Carbon::parse($on ?? school_today())->startOfDay());
     }
 
     /**
      * Limit the query to the papers that run out before the given day.
      *
-     * @param Builder<$this> $query
-     *
+     * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
     public function scopeExpiringBefore(Builder $query, mixed $date): Builder

@@ -122,7 +122,7 @@ class OvernightLeave extends Model
     public function coversTonight(): bool
     {
         return $this->status->allowsTheLearnerOut()
-            && $this->leaves_on->lessThanOrEqualTo(now())
-            && $this->returns_on->greaterThanOrEqualTo(now()->startOfDay());
+            && $this->leaves_on->lessThanOrEqualTo(school_today($this->school_id))
+            && $this->returns_on->greaterThanOrEqualTo(school_today($this->school_id));
     }
 }

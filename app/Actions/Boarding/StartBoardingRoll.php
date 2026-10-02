@@ -34,7 +34,7 @@ class StartBoardingRoll
         CarbonInterface|string|null $date = null,
         ?User $actor = null,
     ): BoardingRoll {
-        $takenOn = Carbon::parse($date ?? now())->toDateString();
+        $takenOn = Carbon::parse($date ?? school_today($dormitory->school_id))->toDateString();
 
         return DB::transaction(function () use ($dormitory, $type, $takenOn, $actor): BoardingRoll {
             $roll = BoardingRoll::query()

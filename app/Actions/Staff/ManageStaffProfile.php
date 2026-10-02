@@ -106,7 +106,7 @@ class ManageStaffProfile
                     $this->failIfTheLastRoleManagerLeaves($profile);
                 }
 
-                $leftOn = $isLeaving ? Carbon::parse($attributes['left_on'] ?? now())->startOfDay() : null;
+                $leftOn = $isLeaving ? Carbon::parse($attributes['left_on'] ?? school_today())->startOfDay() : null;
 
                 if ($leftOn !== null && $profile->joined_on !== null && $leftOn->lt($profile->joined_on)) {
                     throw new InvalidValueException('A person cannot leave before they joined.');

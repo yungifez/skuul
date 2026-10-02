@@ -63,10 +63,15 @@ class ProcessNotices extends Command
         $finished = Notice::query()
             ->where('status', NoticeStatus::Published)
             ->whereNotNull('stop_date')
-            ->whereDate('stop_date', '<', now()->toDateString())
+            ->whereDate('stop_date', '<', now()->addDay()->toDateString())
             ->get();
 
         foreach ($finished as $notice) {
+            // Every school counts its own day.
+            if (!$notice->hasRunOut()) {
+                continue;
+            }
+
             $publisher->expire($notice);
             $expired++;
         }

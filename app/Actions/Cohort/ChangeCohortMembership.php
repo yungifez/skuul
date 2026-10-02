@@ -78,7 +78,7 @@ class ChangeCohortMembership
                 throw new InvalidValueException('This person already left the group.');
             }
 
-            $leftOn = Carbon::parse($leftOn ?? now())->startOfDay();
+            $leftOn = Carbon::parse($leftOn ?? school_today())->startOfDay();
             $member->left_on = $member->joined_on !== null && $member->joined_on->greaterThan($leftOn) ? $member->joined_on : $leftOn;
             $member->save();
 
@@ -122,7 +122,7 @@ class ChangeCohortMembership
      */
     private function add(Cohort $cohort, array $holder, CarbonInterface|string|null $joinedOn, ?User $actor): CohortMember
     {
-        $joinedOn = Carbon::parse($joinedOn ?? now())->startOfDay();
+        $joinedOn = Carbon::parse($joinedOn ?? school_today())->startOfDay();
 
         if ($joinedOn->isAfter(school_today())) {
             throw new InvalidValueException('Nobody can join a group on a day that has not come yet.');

@@ -75,7 +75,7 @@ class CreateTimetableSubstitution
      */
     public function withdraw(TimetableSubstitution $substitution, User $actor): void
     {
-        if ($substitution->substituted_on->lt(now()->startOfDay())) {
+        if ($substitution->substituted_on->lt(school_today())) {
             throw new InvalidValueException('That lesson has already happened, so its cover stays on the record.');
         }
 

@@ -38,10 +38,13 @@ class EndLeaversAccess extends Command
     public function handle(ManageStaffProfile $staffProfiles): int
     {
         $ended = 0;
+        $todayAt = [];
 
+        // Every campus counts its own day. The query takes a day more than
+        // the server's date, so a campus already in tomorrow is not missed.
         $profiles = StaffProfile::query()
             ->where('status', StaffStatus::Left->value)
-            ->whereDate('left_on', '<', today())
+            ->whereDate('left_on', '<', today()->addDay())
             ->whereExists(fn ($membership) => $membership->from((new SchoolMembership)->getTable())
                 ->whereColumn('school_memberships.user_id', 'staff_profiles.user_id')
                 ->whereColumn('school_memberships.school_id', 'staff_profiles.school_id')
@@ -49,6 +52,10 @@ class EndLeaversAccess extends Command
             ->lazyById();
 
         foreach ($profiles as $profile) {
+            if ($profile->left_on === null || !$profile->left_on->lt($todayAt[$profile->school_id] ??= school_today($profile->school_id))) {
+                continue;
+            }
+
             // The last person who can manage the campus stays until somebody
             // else can, or the campus could not be run at all.
             try {

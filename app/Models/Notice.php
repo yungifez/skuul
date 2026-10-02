@@ -157,13 +157,13 @@ class Notice extends Model
     {
         $stopDate = $this->getAttribute('stop_date');
 
-        return $stopDate !== null && Carbon::parse($stopDate)->endOfDay()->isPast();
+        return $stopDate !== null && Carbon::parse($stopDate)->startOfDay()->lt(school_today($this->school_id));
     }
 
     public function scopeActive($query)
     {
-        $query->where('start_date', '<=', date('Y-m-d'))
-            ->where('stop_date', '>=', date('Y-m-d'))
+        $query->where('start_date', '<=', school_today()->toDateString())
+            ->where('stop_date', '>=', school_today()->toDateString())
             ->where('active', 1);
     }
 

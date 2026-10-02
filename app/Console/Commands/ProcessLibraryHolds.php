@@ -41,11 +41,16 @@ class ProcessLibraryHolds extends Command
         $reservations = LibraryReservation::query()
             ->where('status', LibraryReservationStatus::Ready->value)
             ->whereNotNull('holds_until')
-            ->whereDate('holds_until', '<', now()->startOfDay())
+            ->whereDate('holds_until', '<', now()->addDay()->toDateString())
             ->orderBy('id')
             ->lazyById();
 
         foreach ($reservations as $reservation) {
+            // Every school counts its own day.
+            if (!$reservation->holdHasRunOut()) {
+                continue;
+            }
+
             // A hold collected while this ran is simply left alone.
             try {
                 $close->expire($reservation);

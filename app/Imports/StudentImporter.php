@@ -140,7 +140,7 @@ class StudentImporter implements Importer
                 'user_id' => $student->id,
                 'school_id' => current_school_id(),
                 'admission_number' => $this->freeAdmissionNumber($row['admission_number'] ?? null),
-                'admission_date' => Carbon::parse($row['admission_date'] ?? now()),
+                'admission_date' => Carbon::parse($row['admission_date'] ?? school_today()),
             ]);
 
         $this->changePlacement->place(

@@ -34,7 +34,7 @@ class CohortMember extends Model
      */
     protected $casts = [
         'joined_on' => 'date',
-        'left_on'   => 'date',
+        'left_on' => 'date',
     ];
 
     /**
@@ -45,7 +45,7 @@ class CohortMember extends Model
      */
     public function isHeldOn(mixed $date = null): bool
     {
-        $day = Carbon::parse($date ?? now())->startOfDay();
+        $day = Carbon::parse($date ?? school_today())->startOfDay();
 
         if ($this->joined_on !== null && $this->joined_on->gt($day)) {
             return false;
@@ -57,8 +57,7 @@ class CohortMember extends Model
     /**
      * Limit the query to the places held today.
      *
-     * @param Builder<$this> $query
-     *
+     * @param  Builder<$this>  $query
      * @return Builder<$this>
      */
     public function scopeCurrent(Builder $query): Builder

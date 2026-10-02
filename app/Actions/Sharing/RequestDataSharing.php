@@ -52,7 +52,7 @@ class RequestDataSharing
 
         $expiry = $expiresOn === null ? null : Carbon::parse($expiresOn)->startOfDay();
 
-        if ($expiry !== null && $expiry->lt(now()->startOfDay())) {
+        if ($expiry !== null && $expiry->lt(school_today($requestingSchool))) {
             throw new InvalidValueException('A request cannot end before it starts.');
         }
 

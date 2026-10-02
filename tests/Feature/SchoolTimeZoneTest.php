@@ -3,8 +3,13 @@
 namespace Tests\Feature;
 
 use App\Actions\Finance\ReceivePayment;
+use App\Enums\LibraryReservationStatus;
+use App\Enums\NoticeStatus;
 use App\Livewire\CreateStudentForm;
 use App\Livewire\EditSchoolForm;
+use App\Models\DataSharingRequest;
+use App\Models\LibraryReservation;
+use App\Models\Notice;
 use App\Models\School;
 use App\Models\StudentRecord;
 use App\Traits\FeatureTestTrait;
@@ -101,6 +106,74 @@ class SchoolTimeZoneTest extends TestCase
     /**
      * Put the school on Lagos time, where the date turns an hour before UTC.
      */
+    public function test_a_notice_runs_to_the_end_of_its_last_day_at_each_school(): void
+    {
+        $lagos = $this->workingSchool();
+        $this->inLagos($lagos);
+        $losAngeles = School::factory()->create(['timezone' => 'America/Los_Angeles']);
+        $this->travelTo(now('UTC')->setDate(2026, 10, 2)->setTime(3, 0));
+        $endsInLagos = $this->noticeEnding($lagos, '2026-10-01');
+        $endsInLosAngeles = $this->noticeEnding($losAngeles, '2026-10-01');
+
+        $this->artisan('skuul:process-notices')->assertSuccessful();
+
+        $this->assertNotSame(NoticeStatus::Published, $endsInLagos->fresh()->status);
+        $this->assertSame(NoticeStatus::Published, $endsInLosAngeles->fresh()->status);
+    }
+
+    public function test_a_notice_ends_once_local_midnight_passes_before_the_server_date(): void
+    {
+        $school = $this->workingSchool();
+        $this->inLagos($school);
+        $this->travelTo(now('UTC')->setDate(2026, 10, 1)->setTime(23, 30));
+        $notice = $this->noticeEnding($school, '2026-10-01');
+
+        $this->artisan('skuul:process-notices')->assertSuccessful();
+
+        $this->assertNotSame(NoticeStatus::Published, $notice->fresh()->status);
+    }
+
+    public function test_a_library_hold_lasts_to_the_end_of_the_school_day(): void
+    {
+        $losAngeles = School::factory()->create(['timezone' => 'America/Los_Angeles']);
+        $this->travelTo(now('UTC')->setDate(2026, 10, 2)->setTime(3, 0));
+        $hold = new LibraryReservation([
+            'school_id' => $losAngeles->id,
+            'status' => LibraryReservationStatus::Ready,
+            'holds_until' => '2026-10-01',
+        ]);
+
+        $this->assertFalse($hold->holdHasRunOut());
+
+        $this->travelTo(now('UTC')->setDate(2026, 10, 2)->setTime(8, 0));
+
+        $this->assertTrue($hold->holdHasRunOut());
+    }
+
+    public function test_a_sharing_request_runs_out_on_the_asking_school_clock(): void
+    {
+        $school = $this->workingSchool();
+        $this->inLagos($school);
+        $request = new DataSharingRequest(['requesting_school_id' => $school->id, 'expires_on' => '2026-10-01']);
+
+        $this->travelTo(now('UTC')->setDate(2026, 10, 1)->setTime(22, 30));
+        $this->assertFalse($request->hasExpired());
+
+        $this->travelTo(now('UTC')->setDate(2026, 10, 1)->setTime(23, 30));
+        $this->assertTrue($request->hasExpired());
+    }
+
+    private function noticeEnding(School $school, string $lastDay): Notice
+    {
+        return Notice::factory()->create([
+            'school_id' => $school->id,
+            'status' => NoticeStatus::Published,
+            'active' => true,
+            'start_date' => '2026-09-01',
+            'stop_date' => $lastDay,
+        ]);
+    }
+
     private function inLagos(School $school): void
     {
         $school->forceFill(['timezone' => 'Africa/Lagos'])->save();

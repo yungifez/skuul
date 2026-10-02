@@ -65,7 +65,7 @@ class AssignTeacher
                 'course_offering_id' => $courseOffering->id,
                 'academic_cycle_section_id' => $academicCycleSection?->id,
                 'role' => $role,
-                'starts_on' => $startsOn ?? now(),
+                'starts_on' => $startsOn ?? school_today(),
             ]);
 
             $this->auditor->record(
@@ -94,7 +94,7 @@ class AssignTeacher
      */
     public function end(TeachingAssignment $assignment, ?CarbonInterface $endsOn = null, ?User $actor = null): TeachingAssignment
     {
-        $endsOn = Carbon::parse($endsOn ?? now());
+        $endsOn = Carbon::parse($endsOn ?? school_today());
 
         if ($assignment->ends_on !== null && $assignment->ends_on->startOfDay()->lessThanOrEqualTo($endsOn->copy()->startOfDay())) {
             return $assignment;
