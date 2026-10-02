@@ -61,12 +61,6 @@ parameters:
 			path: app/Services/School/SchoolService.php
 
 		-
-			message: '#^Unreachable statement \- code above always terminates\.$#'
-			identifier: deadCode.unreachable
-			count: 1
-			path: app/Services/School/SchoolService.php
-
-		-
 			message: '#^Parameter \#1 \$min of function mt_rand expects int, string given\.$#'
 			identifier: argument.type
 			count: 1
@@ -77,12 +71,6 @@ parameters:
 			identifier: argument.type
 			count: 1
 			path: app/Services/Student/StudentService.php
-
-		-
-			message: '#^PHPDoc tag @param references unknown parameter\: \$role$#'
-			identifier: parameter.notFound
-			count: 1
-			path: app/Services/User/UserService.php
 
 		-
 			message: '#^Parameter \#1 \$code of function abort expects Illuminate\\Contracts\\Support\\Responsable\|int\|Symfony\\Component\\HttpFoundation\\Response, string given\.$#'
