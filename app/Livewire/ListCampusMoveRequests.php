@@ -133,6 +133,11 @@ class ListCampusMoveRequests extends Component
      */
     private function noteFor(int $requestId): ?string
     {
+        $this->validate(
+            ["notes.{$requestId}" => ['nullable', 'string', 'max:500']],
+            attributes: ["notes.{$requestId}" => 'note'],
+        );
+
         $note = $this->notes[$requestId] ?? null;
 
         return filled($note) ? $note : null;

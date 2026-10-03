@@ -92,6 +92,21 @@ class CampusMoveInboxTest extends TestCase
         $this->assertSame($source->id, $enrollment->fresh()->school_id);
     }
 
+    public function test_a_note_longer_than_its_column_is_refused(): void
+    {
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $destination = $this->siblingCampus();
+        $request = app(RequestCampusMove::class)->request($enrollment, $this->cycleSection($destination));
+        $this->actAsCampusUser($destination, [CampusMoveAuthority::ApprovePermission]);
+
+        Livewire::test(ListCampusMoveRequests::class)
+            ->set("notes.{$request->id}", str_repeat('a', 501))
+            ->call('reject', $request->id)
+            ->assertHasErrors(["notes.{$request->id}" => 'max']);
+
+        $this->assertSame(CampusMoveStatus::Requested, $request->fresh()->status);
+    }
+
     public function test_the_asking_campus_sees_its_own_request_and_takes_it_back(): void
     {
         $source = $this->workingSchool();
@@ -104,6 +119,7 @@ class CampusMoveInboxTest extends TestCase
         Livewire::test(ListCampusMoveRequests::class)
             ->assertSee('Students this campus asked to send away')
             ->assertSee($destination->name)
+            ->assertSee($request->academicCycleSection->name)
             ->call('cancel', $request->id)
             ->assertHasNoErrors();
 
