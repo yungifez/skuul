@@ -15,8 +15,8 @@ class SchoolSetupController extends Controller
 
     public function show(School $school, ?string $step = null): View|RedirectResponse
     {
-        school_context()->set($school, remember: false);
         $this->authorize('update', $school);
+        school_context()->set($school, remember: false);
         $progress = $this->progress->for($school);
         $requested = $step === null ? $progress['current'] : SchoolSetupStep::tryFrom($step);
 

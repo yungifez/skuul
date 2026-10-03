@@ -107,6 +107,25 @@ class TimetableTest extends TestCase
         $response->assertOk();
 
         $this->get(route('timetables.show', $draftTimetable))->assertForbidden();
+        $this->get(route('timetables.print', $ownTimetable))->assertOk();
+        $this->get(route('timetables.print', $draftTimetable))->assertForbidden();
+    }
+
+    public function test_another_schools_timetable_cannot_be_printed(): void
+    {
+        $school = $this->workingSchool();
+        $otherSchool = School::factory()->create(['organization_id' => $school->organization_id]);
+        $otherSection = AcademicCycleSection::factory()->create(['school_id' => $otherSchool->id]);
+        $otherTimetable = Timetable::factory()->create([
+            'academic_cycle_section_id' => $otherSection->id,
+            'academic_period_id' => AcademicPeriod::factory()->create(['school_id' => $otherSchool->id, 'academic_year_id' => $otherSection->academic_year_id])->id,
+            'name' => 'Other campus lessons',
+        ]);
+
+        $this->authorized_user(['read timetable'], $school)
+            ->get(route('timetables.print', $otherTimetable))
+            ->assertForbidden()
+            ->assertDontSee('Other campus lessons');
     }
 
     public function test_a_student_lists_only_published_timetables_for_their_section_and_the_school(): void

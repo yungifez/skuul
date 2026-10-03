@@ -47,6 +47,8 @@ class TimetableController extends Controller
      */
     public function print(Timetable $timetable): Response
     {
+        $this->authorize('view', $timetable);
+
         $data['timetable'] = $timetable;
 
         return $this->timetableService->printTimetable($data['timetable']->name, 'pages.timetable.print', $data);

@@ -302,4 +302,17 @@ class SetupWizardTest extends TestCase
         ]);
         $this->assertTrue(auth()->user()->belongsToSchool($school));
     }
+
+    public function test_school_setup_refuses_another_campus_of_the_same_organization(): void
+    {
+        $school = $this->workingSchool();
+        $otherCampus = School::factory()->create(['organization_id' => $school->organization_id, 'name' => 'Northside campus']);
+
+        $this->authorized_user(['update school', 'manage school settings'], $school)
+            ->get(route('schools.setup', $otherCampus))
+            ->assertForbidden()
+            ->assertDontSee('Northside campus');
+
+        $this->assertSame($school->id, current_school_id());
+    }
 }
