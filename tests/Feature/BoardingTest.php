@@ -556,6 +556,30 @@ class BoardingTest extends TestCase
         $this->assertFalse(BoardingPlace::currentFor($enrollment)->isBoarding());
     }
 
+    public function test_a_move_approved_at_the_other_campus_ends_the_place_in_the_houses_year(): void
+    {
+        $this->authorized_user(['read boarding', 'manage boarding']);
+        $source = $this->workingSchool();
+        $sourceYear = AcademicYear::factory()->create(['school_id' => $source->id]);
+        $source->forceFill(['academic_year_id' => $sourceYear->id])->save();
+        $destination = School::factory()->create(['organization_id' => $source->organization_id]);
+        $destinationYear = AcademicYear::factory()->create(['school_id' => $destination->id]);
+        $destination->forceFill(['academic_year_id' => $destinationYear->id])->save();
+        $enrollment = $this->enrollment();
+        app(AssignBoardingPlace::class)->assign($enrollment, $this->bed());
+
+        school_context()->set($destination, remember: false);
+        academic_period_context()->setAcademicYear($destinationYear, remember: false);
+        app(MoveEnrollmentBetweenCampuses::class)->move($enrollment, AcademicCycleSection::factory()->create([
+            'school_id' => $destination->id,
+            'academic_year_id' => $destinationYear->id,
+            'academic_level_id' => AcademicLevel::factory()->create(['school_id' => $destination->id])->id,
+            'status' => AcademicStructureStatus::Active,
+        ]));
+
+        $this->assertSame($sourceYear->id, BoardingPlace::currentFor($enrollment)->academic_year_id);
+    }
+
     public function test_a_learner_who_leaves_the_school_gives_up_their_bed(): void
     {
         $this->authorized_user(['read boarding', 'manage boarding']);

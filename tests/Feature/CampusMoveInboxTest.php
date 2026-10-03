@@ -110,6 +110,23 @@ class CampusMoveInboxTest extends TestCase
         $this->assertSame(CampusMoveStatus::Cancelled, $request->fresh()->status);
     }
 
+    public function test_taking_back_a_request_the_other_campus_already_decided_says_so(): void
+    {
+        $source = $this->workingSchool();
+        $destination = $this->siblingCampus();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $source->id]);
+        $request = app(RequestCampusMove::class)->request($enrollment, $this->cycleSection($destination));
+        $this->authorized_user([CampusMoveAuthority::RequestPermission]);
+        $screen = Livewire::test(ListCampusMoveRequests::class);
+
+        app(RequestCampusMove::class)->reject($request);
+
+        $screen->call('cancel', $request->id)
+            ->assertDispatched('status-message', type: 'danger', message: 'This request was already decided.');
+
+        $this->assertSame(CampusMoveStatus::Rejected, $request->fresh()->status);
+    }
+
     public function test_the_asking_campus_cannot_approve_its_own_request(): void
     {
         $destination = $this->siblingCampus();

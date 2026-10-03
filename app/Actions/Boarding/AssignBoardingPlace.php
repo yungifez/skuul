@@ -11,6 +11,7 @@ use App\Models\BoardingPlace;
 use App\Models\Dormitory;
 use App\Models\DormitoryBed;
 use App\Models\OvernightLeave;
+use App\Models\School;
 use App\Models\StudentRecord;
 use App\Models\User;
 use Carbon\CarbonInterface;
@@ -111,7 +112,11 @@ class AssignBoardingPlace
             'school_id' => $current->school_id,
             'student_record_id' => $enrollment->id,
             'dormitory_bed_id' => null,
-            'academic_year_id' => current_academic_year_id(),
+            // A campus move ends the place from the other campus, whose
+            // working year belongs to that campus and not to this house.
+            'academic_year_id' => $current->school_id === current_school_id()
+                ? current_academic_year_id()
+                : School::query()->whereKey($current->school_id)->value('academic_year_id'),
             'effective_on' => $effectiveOn ?? school_today($current->school_id),
             'reason' => $reason,
             'changed_by' => $actor === null ? auth()->id() : $actor->id,

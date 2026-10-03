@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Actions\Enrollment\MoveEnrollmentBetweenCampuses;
+use App\Actions\Enrollment\RequestCampusMove;
 use App\Actions\Organization\GrantOrganizationMembership;
 use App\Actions\Organization\SetOrganizationMemberPermissions;
 use App\Enums\AcademicStructureStatus;
@@ -67,6 +68,38 @@ class CampusMoveScreenTest extends TestCase
 
         $this->assertSame($this->workingSchool()->id, $enrollment->fresh()->school_id, 'Asking must not move the student.');
         $this->assertSame(CampusMoveStatus::Requested, CampusMoveRequest::query()->sole()->status);
+    }
+
+    public function test_a_reason_longer_than_its_column_is_refused_on_the_form(): void
+    {
+        $cycleSection = $this->cycleSection($this->siblingCampus());
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $this->authorized_user(['read student', 'update student', CampusMoveAuthority::RequestPermission]);
+
+        Livewire::test(ShowStudentProfile::class, ['student' => $enrollment->user])
+            ->set('managing', 'campus')
+            ->set('campusCycleSectionId', $cycleSection->id)
+            ->set('campusReason', str_repeat('a', 501))
+            ->call('moveCampus')
+            ->assertHasErrors(['campusReason' => 'max']);
+
+        $this->assertSame(0, CampusMoveRequest::query()->count());
+    }
+
+    public function test_taking_back_a_request_already_decided_reloads_instead_of_failing(): void
+    {
+        $cycleSection = $this->cycleSection($this->siblingCampus());
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $request = app(RequestCampusMove::class)->request($enrollment, $cycleSection);
+        $this->authorized_user(['read student', 'update student', CampusMoveAuthority::RequestPermission]);
+        $screen = Livewire::test(ShowStudentProfile::class, ['student' => $enrollment->user]);
+
+        app(RequestCampusMove::class)->reject($request);
+
+        $screen->call('cancelCampusMove')
+            ->assertDispatched('status-message', type: 'danger', message: 'The other campus already decided this request.');
+
+        $this->assertSame(CampusMoveStatus::Rejected, $request->fresh()->status);
     }
 
     public function test_an_organization_person_moves_the_student_straight_away(): void

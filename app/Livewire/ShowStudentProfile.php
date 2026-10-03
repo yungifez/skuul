@@ -96,7 +96,7 @@ class ShowStudentProfile extends Component
 
         $this->validate([
             'statusSelection' => ['required', 'in:'.implode(',', array_column($this->statusOptions, 'value'))],
-            'statusReason' => ['nullable', 'string', 'max:1000'],
+            'statusReason' => ['nullable', 'string', 'max:500'],
             'statusEffectiveOn' => ['required', 'date', 'before_or_equal:'.school_today()->toDateString()],
         ]);
 
@@ -133,7 +133,7 @@ class ShowStudentProfile extends Component
 
         $this->validate([
             'placementCycleSectionId' => ['required', 'integer'],
-            'placementReason' => ['nullable', 'string', 'max:1000'],
+            'placementReason' => ['nullable', 'string', 'max:500'],
             'placementEffectiveOn' => ['required', 'date', 'before_or_equal:'.school_today()->toDateString()],
         ]);
 
@@ -188,7 +188,7 @@ class ShowStudentProfile extends Component
 
         $this->validate([
             'campusCycleSectionId' => ['required', 'integer'],
-            'campusReason' => ['nullable', 'string', 'max:1000'],
+            'campusReason' => ['nullable', 'string', 'max:500'],
             'campusEffectiveOn' => ['required', 'date', 'before_or_equal:'.school_today()->toDateString()],
         ]);
 
@@ -264,7 +264,14 @@ class ShowStudentProfile extends Component
             return;
         }
 
-        $requestCampusMove->cancel($this->openCampusMoveRequest, auth()->user());
+        try {
+            $requestCampusMove->cancel($this->openCampusMoveRequest, auth()->user());
+        } catch (InvalidValueException $exception) {
+            $this->notify('The other campus already decided this request.', 'danger');
+            $this->refreshEnrollment();
+
+            return;
+        }
 
         $this->notify('The campus move request was taken back.');
         $this->refreshEnrollment();

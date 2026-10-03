@@ -47,9 +47,21 @@ class ListCampusMoveRequests extends Component
     {
         $request = CampusMoveRequest::query()->findOrFail($requestId);
 
+        if (!$request->status->isOpen()) {
+            $this->notify('This request was already decided.', 'danger');
+
+            return;
+        }
+
         $this->authorize('cancel', $request);
 
-        $requestCampusMove->cancel($request, auth()->user(), $this->noteFor($requestId));
+        try {
+            $requestCampusMove->cancel($request, auth()->user(), $this->noteFor($requestId));
+        } catch (ApplicationException $exception) {
+            $this->notify($exception->getMessage(), 'danger');
+
+            return;
+        }
 
         unset($this->notes[$requestId]);
         $this->notify('The campus move request was taken back.');

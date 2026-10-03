@@ -231,6 +231,40 @@ class CampusMoveRequestTest extends TestCase
         app(RequestCampusMove::class)->request($enrollment, $this->cycleSection($sibling));
     }
 
+    public function test_a_request_into_a_campus_that_has_the_admission_number_is_refused(): void
+    {
+        $sibling = $this->siblingCampus();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id, 'admission_number' => 'ADM-7']);
+        StudentRecord::factory()->create(['school_id' => $sibling->id, 'admission_number' => 'ADM-7']);
+
+        try {
+            app(RequestCampusMove::class)->request($enrollment, $this->cycleSection($sibling));
+            $this->fail('A request that can never be approved was stored.');
+        } catch (InvalidValueException $exception) {
+            $this->assertStringContainsString('admission number ADM-7', $exception->getMessage());
+        }
+
+        $this->assertSame(0, CampusMoveRequest::query()->count());
+    }
+
+    public function test_a_rejection_on_a_stale_screen_cannot_undo_an_approval(): void
+    {
+        $sibling = $this->siblingCampus();
+        $enrollment = StudentRecord::factory()->create(['school_id' => $this->workingSchool()->id]);
+        $request = app(RequestCampusMove::class)->request($enrollment, $this->cycleSection($sibling));
+        $seenBeforeTheApproval = $request->fresh();
+        app(RequestCampusMove::class)->approve($request);
+
+        try {
+            app(RequestCampusMove::class)->reject($seenBeforeTheApproval);
+            $this->fail('A rejection overwrote an approval that already moved the student.');
+        } catch (InvalidValueException) {
+        }
+
+        $this->assertSame(CampusMoveStatus::Approved, $request->fresh()->status);
+        $this->assertSame($sibling->id, $enrollment->fresh()->school_id);
+    }
+
     public function test_a_decided_request_cannot_be_decided_again(): void
     {
         $sibling = $this->siblingCampus();

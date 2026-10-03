@@ -41,39 +41,43 @@ class RequestCampusMove
         ?string $reason = null,
         CarbonInterface|string|null $effectiveOn = null,
     ): CampusMoveRequest {
-        $academicCycleSection->loadMissing('school');
-        $enrollment->loadMissing('school');
+        return DB::transaction(function () use ($enrollment, $academicCycleSection, $actor, $reason, $effectiveOn): CampusMoveRequest {
+            // Locking the enrollment makes two requests sent at the same moment
+            // wait for each other, so the second one sees the first.
+            $enrollment = StudentRecord::query()->with('school')->lockForUpdate()->findOrFail($enrollment->getKey());
+            $academicCycleSection->loadMissing('school');
 
-        $this->failIfTheMoveCouldNeverBeMade($enrollment, $academicCycleSection);
+            $this->failIfTheMoveCouldNeverBeMade($enrollment, $academicCycleSection);
 
-        if ($this->openRequestFor($enrollment) !== null) {
-            throw new InvalidValueException('This student already has a campus move waiting for a decision.');
-        }
+            if ($this->openRequestFor($enrollment) !== null) {
+                throw new InvalidValueException('This student already has a campus move waiting for a decision.');
+            }
 
-        $request = CampusMoveRequest::create([
-            'student_record_id' => $enrollment->id,
-            'from_school_id' => $enrollment->school_id,
-            'to_school_id' => $academicCycleSection->school_id,
-            'academic_cycle_section_id' => $academicCycleSection->id,
-            'reason' => $reason,
-            'effective_on' => $effectiveOn === null ? school_today()->toDateString() : Carbon::parse($effectiveOn)->toDateString(),
-            'requested_by' => $actor === null ? auth()->id() : $actor->id,
-        ]);
-
-        $this->auditor->record(
-            AuditAction::CampusMoveRequested,
-            $request,
-            [
+            $request = CampusMoveRequest::create([
                 'student_record_id' => $enrollment->id,
-                'from_school_id' => $request->from_school_id,
-                'to_school_id' => $request->to_school_id,
+                'from_school_id' => $enrollment->school_id,
+                'to_school_id' => $academicCycleSection->school_id,
+                'academic_cycle_section_id' => $academicCycleSection->id,
                 'reason' => $reason,
-            ],
-            $actor,
-            $request->to_school_id,
-        );
+                'effective_on' => $effectiveOn === null ? school_today()->toDateString() : Carbon::parse($effectiveOn)->toDateString(),
+                'requested_by' => $actor === null ? auth()->id() : $actor->id,
+            ]);
 
-        return $request;
+            $this->auditor->record(
+                AuditAction::CampusMoveRequested,
+                $request,
+                [
+                    'student_record_id' => $enrollment->id,
+                    'from_school_id' => $request->from_school_id,
+                    'to_school_id' => $request->to_school_id,
+                    'reason' => $reason,
+                ],
+                $actor,
+                $request->to_school_id,
+            );
+
+            return $request;
+        });
     }
 
     /**
@@ -105,15 +109,17 @@ class RequestCampusMove
      */
     public function reject(CampusMoveRequest $request, ?User $actor = null, ?string $note = null): CampusMoveRequest
     {
-        return $this->writeDecision($request, CampusMoveStatus::Rejected, $actor, $note);
+        return $this->decideWithoutMoving($request, CampusMoveStatus::Rejected, $actor, $note);
     }
 
     /**
-     * Take the request back, which only the campus that asked does.
+     * Take the request back.
+     *
+     * The campus that asked does this, or a person with organization authority.
      */
     public function cancel(CampusMoveRequest $request, ?User $actor = null, ?string $note = null): CampusMoveRequest
     {
-        return $this->writeDecision($request, CampusMoveStatus::Cancelled, $actor, $note);
+        return $this->decideWithoutMoving($request, CampusMoveStatus::Cancelled, $actor, $note);
     }
 
     /**
@@ -126,6 +132,26 @@ class RequestCampusMove
             ->open()
             ->latest('id')
             ->first();
+    }
+
+    /**
+     * Close the request without moving the student.
+     *
+     * The request is read again under a lock, so a rejection cannot
+     * overwrite an approval that moved the student a moment earlier.
+     */
+    private function decideWithoutMoving(
+        CampusMoveRequest $request,
+        CampusMoveStatus $status,
+        ?User $actor,
+        ?string $note,
+    ): CampusMoveRequest {
+        return DB::transaction(fn (): CampusMoveRequest => $this->writeDecision(
+            CampusMoveRequest::query()->lockForUpdate()->findOrFail($request->getKey()),
+            $status,
+            $actor,
+            $note,
+        ));
     }
 
     /**
@@ -204,6 +230,17 @@ class RequestCampusMove
 
         if ($enrollment->school->organization_id !== $academicCycleSection->school->organization_id) {
             throw new InvalidValueException('The two campuses belong to different organizations. Transfer the enrollment instead.');
+        }
+
+        $destination = $academicCycleSection->school;
+        $numberTaken = $enrollment->admission_number !== null && StudentRecord::query()
+            ->where('school_id', $destination->id)
+            ->where('admission_number', $enrollment->admission_number)
+            ->whereKeyNot($enrollment->getKey())
+            ->exists();
+
+        if ($numberTaken) {
+            throw new InvalidValueException("{$destination->name} already has a learner with admission number {$enrollment->admission_number}. Change one of the numbers first.");
         }
     }
 }
